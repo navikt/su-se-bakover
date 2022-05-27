@@ -54,7 +54,6 @@ private data class JsonBody(
     val epsFnr: String?,
     val delerBolig: Boolean?,
     val erEPSUførFlyktning: Boolean?,
-    val begrunnelse: String?,
 ) {
     fun toService(): Either<Resultat, LeggTilBosituasjonRequest> {
         val periode = periode.toPeriodeOrResultat()
@@ -65,7 +64,6 @@ private data class JsonBody(
             epsFnr = epsFnr,
             delerBolig = delerBolig,
             ektemakeEllerSamboerUførFlyktning = erEPSUførFlyktning,
-            begrunnelse = begrunnelse,
         ).right()
     }
 }

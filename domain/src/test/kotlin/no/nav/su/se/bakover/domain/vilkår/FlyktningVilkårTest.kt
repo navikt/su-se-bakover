@@ -22,7 +22,6 @@ internal class FlyktningVilkårTest {
     fun `mapper behandlingsinformasjon for oppfylt til vilkår og grunnlag`() {
         Behandlingsinformasjon.Flyktning(
             status = Behandlingsinformasjon.Flyktning.Status.VilkårOppfylt,
-            begrunnelse = "jabadoo",
         ).tilVilkår(
             stønadsperiode = stønadsperiode2021,
             clock = fixedClock,
@@ -39,7 +38,6 @@ internal class FlyktningVilkårTest {
                             periode = år(2021),
                         ),
                         vurderingsperiode = år(2021),
-                        begrunnelse = "jabadoo",
                     ).getOrFail(),
                 ),
             ).getOrFail(),
@@ -50,7 +48,6 @@ internal class FlyktningVilkårTest {
     fun `mapper behandlingsinformasjon for avslag til vilkår og grunnlag`() {
         Behandlingsinformasjon.Flyktning(
             status = Behandlingsinformasjon.Flyktning.Status.VilkårIkkeOppfylt,
-            begrunnelse = null,
         ).tilVilkår(
             stønadsperiode = stønadsperiode2021,
             clock = fixedClock,
@@ -67,7 +64,6 @@ internal class FlyktningVilkårTest {
                             periode = år(2021),
                         ),
                         vurderingsperiode = år(2021),
-                        begrunnelse = "",
                     ).getOrFail(),
                 ),
             ).getOrFail(),
@@ -79,7 +75,6 @@ internal class FlyktningVilkårTest {
 
         Behandlingsinformasjon.Flyktning(
             status = Behandlingsinformasjon.Flyktning.Status.Uavklart,
-            begrunnelse = null,
         ).tilVilkår(
             stønadsperiode = stønadsperiode2021,
             clock = fixedClock,
@@ -100,10 +95,9 @@ internal class FlyktningVilkårTest {
                         periode = år(2021),
                     ),
                     vurderingsperiode = år(2021),
-                    begrunnelse = "jabadoo",
                 ).getOrFail(),
             ),
-        ).getOrFail().oppdaterStønadsperiode(Stønadsperiode.create(juli(2021), "")).erLik(
+        ).getOrFail().oppdaterStønadsperiode(Stønadsperiode.create(juli(2021))).erLik(
             FlyktningVilkår.Vurdert.tryCreate(
                 vurderingsperioder = nonEmptyListOf(
                     VurderingsperiodeFlyktning.tryCreate(
@@ -116,7 +110,6 @@ internal class FlyktningVilkårTest {
                             periode = juli(2021),
                         ),
                         vurderingsperiode = juli(2021),
-                        begrunnelse = "jabadoo",
                     ).getOrFail(),
                 ),
             ).getOrFail(),
@@ -137,7 +130,6 @@ internal class FlyktningVilkårTest {
                         periode = år(2021),
                     ),
                     vurderingsperiode = år(2021),
-                    begrunnelse = "jabadoo",
                 ).getOrFail(),
                 VurderingsperiodeFlyktning.tryCreate(
                     id = UUID.randomUUID(),
@@ -149,7 +141,6 @@ internal class FlyktningVilkårTest {
                         periode = år(2021),
                     ),
                     vurderingsperiode = år(2021),
-                    begrunnelse = "jabadoo",
                 ).getOrFail(),
             ),
         ) shouldBe FlyktningVilkår.Vurdert.UgyldigFlyktningVilkår.OverlappendeVurderingsperioder.left()
@@ -167,7 +158,6 @@ internal class FlyktningVilkårTest {
                 periode = mai(2021),
             ),
             vurderingsperiode = mai(2021),
-            begrunnelse = "jabadoo",
         ).getOrFail()
 
         val v2 = VurderingsperiodeFlyktning.tryCreate(
@@ -180,7 +170,6 @@ internal class FlyktningVilkårTest {
                 periode = juni(2021),
             ),
             vurderingsperiode = juni(2021),
-            begrunnelse = null,
         ).getOrFail()
 
         FlyktningVilkår.Vurdert.tryCreate(

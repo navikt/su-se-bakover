@@ -101,7 +101,6 @@ internal class OppdaterRevurderingServiceTest {
                     id = UUID.randomUUID(),
                     opprettet = fixedTidspunkt,
                     periode = periodeNesteMånedOgTreMånederFram,
-                    begrunnelse = null,
                 ),
             ),
         ),
@@ -290,7 +289,6 @@ internal class OppdaterRevurderingServiceTest {
                                 id = UUID.randomUUID(),
                                 opprettet = fixedTidspunkt,
                                 periode = it.periode,
-                                begrunnelse = null,
                             ),
                         ),
                     ),
@@ -504,7 +502,6 @@ internal class OppdaterRevurderingServiceTest {
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
                             periode = periodePlussEtÅr,
-                            begrunnelse = null,
                         )
                     )
                 ),
@@ -520,7 +517,6 @@ internal class OppdaterRevurderingServiceTest {
                                     opprettet = fixedTidspunkt,
                                 ),
                                 periode = periodePlussEtÅr,
-                                begrunnelse = "ok",
                                 opprettet = fixedTidspunkt,
                             ),
                         ),

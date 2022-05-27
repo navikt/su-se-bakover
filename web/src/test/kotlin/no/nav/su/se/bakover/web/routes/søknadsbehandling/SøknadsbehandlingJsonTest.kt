@@ -42,20 +42,16 @@ internal class SøknadsbehandlingJsonTest {
           "opprettet": "${DateTimeFormatter.ISO_INSTANT.format(søknadsbehandling.opprettet)}",
           "behandlingsinformasjon": {
                 "flyktning": {
-                    "status" : "VilkårOppfylt",
-                    "begrunnelse" : null
+                    "status" : "VilkårOppfylt"
                 },
                 "lovligOpphold": {
-                    "status" : "VilkårOppfylt",
-                    "begrunnelse" : null
+                    "status" : "VilkårOppfylt"
                 },
                 "fastOppholdINorge": {
-                    "status": "VilkårOppfylt",
-                    "begrunnelse": null
+                    "status": "VilkårOppfylt"
                 },
                 "institusjonsopphold": {
-                    "status": "VilkårOppfylt",
-                    "begrunnelse": null
+                    "status": "VilkårOppfylt"
                 },
                 "formue": {
                     "status": "VilkårOppfylt",
@@ -82,8 +78,7 @@ internal class SøknadsbehandlingJsonTest {
                     "begrunnelse": null
                 },
                 "personligOppmøte": {
-                    "status": "MøttPersonlig",
-                    "begrunnelse": null
+                    "status": "MøttPersonlig"
                 }
           },
           "søknad": $søknadJsonString,
@@ -100,8 +95,7 @@ internal class SøknadsbehandlingJsonTest {
             "periode": {
               "fraOgMed": "2021-01-01",
               "tilOgMed": "2021-12-31"
-            },
-            "begrunnelse": "begrunnelsen"
+            }
           },
           "grunnlagsdataOgVilkårsvurderinger": {
             "uføre": $expectedVurderingUføreJson,

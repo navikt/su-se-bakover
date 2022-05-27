@@ -16,7 +16,6 @@ internal fun ApplicationTestBuilder.leggTilPersonligOppmøte(
     sakId: String,
     behandlingId: String,
     status: String = "MøttPersonlig",
-    begrunnelse: String = "Vurdering av personlig oppmøte er lagt til automatisk av LeggTilPersonligOppmøte.kt",
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
 ): String {
     return runBlocking {
@@ -35,8 +34,7 @@ internal fun ApplicationTestBuilder.leggTilPersonligOppmøte(
                     "institusjonsopphold":null,
                     "formue":null,
                     "personligOppmøte":{
-                      "status": "$status",
-                      "begrunnelse": "$begrunnelse"
+                      "status": "$status"
                     }
                   }
                 """.trimIndent(),

@@ -11,19 +11,15 @@ fun Behandlingsinformasjon.withAlleVilkårOppfylt() =
     Behandlingsinformasjon(
         flyktning = Behandlingsinformasjon.Flyktning(
             status = Behandlingsinformasjon.Flyktning.Status.VilkårOppfylt,
-            begrunnelse = flyktning?.begrunnelse,
         ),
         lovligOpphold = Behandlingsinformasjon.LovligOpphold(
             status = Behandlingsinformasjon.LovligOpphold.Status.VilkårOppfylt,
-            begrunnelse = lovligOpphold?.begrunnelse,
         ),
         fastOppholdINorge = Behandlingsinformasjon.FastOppholdINorge(
             status = Behandlingsinformasjon.FastOppholdINorge.Status.VilkårOppfylt,
-            begrunnelse = fastOppholdINorge?.begrunnelse,
         ),
         institusjonsopphold = Behandlingsinformasjon.Institusjonsopphold(
             status = Behandlingsinformasjon.Institusjonsopphold.Status.VilkårOppfylt,
-            begrunnelse = institusjonsopphold?.begrunnelse,
         ),
         formue = Behandlingsinformasjon.Formue(
             status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
@@ -42,7 +38,6 @@ fun Behandlingsinformasjon.withAlleVilkårOppfylt() =
         ),
         personligOppmøte = Behandlingsinformasjon.PersonligOppmøte(
             status = Behandlingsinformasjon.PersonligOppmøte.Status.MøttPersonlig,
-            begrunnelse = personligOppmøte?.begrunnelse,
         ),
     )
 
@@ -51,19 +46,15 @@ fun Behandlingsinformasjon.withAlleVilkårAvslått() =
     Behandlingsinformasjon(
         flyktning = Behandlingsinformasjon.Flyktning(
             status = Behandlingsinformasjon.Flyktning.Status.VilkårIkkeOppfylt,
-            begrunnelse = flyktning?.begrunnelse,
         ),
         lovligOpphold = Behandlingsinformasjon.LovligOpphold(
             status = Behandlingsinformasjon.LovligOpphold.Status.VilkårIkkeOppfylt,
-            begrunnelse = lovligOpphold?.begrunnelse,
         ),
         fastOppholdINorge = Behandlingsinformasjon.FastOppholdINorge(
             status = Behandlingsinformasjon.FastOppholdINorge.Status.VilkårIkkeOppfylt,
-            begrunnelse = fastOppholdINorge?.begrunnelse,
         ),
         institusjonsopphold = Behandlingsinformasjon.Institusjonsopphold(
             status = Behandlingsinformasjon.Institusjonsopphold.Status.VilkårIkkeOppfylt,
-            begrunnelse = institusjonsopphold?.begrunnelse,
         ),
         formue = Behandlingsinformasjon.Formue(
             status = Behandlingsinformasjon.Formue.Status.VilkårIkkeOppfylt,
@@ -82,7 +73,6 @@ fun Behandlingsinformasjon.withAlleVilkårAvslått() =
         ),
         personligOppmøte = Behandlingsinformasjon.PersonligOppmøte(
             status = Behandlingsinformasjon.PersonligOppmøte.Status.IkkeMøttPersonlig,
-            begrunnelse = personligOppmøte?.begrunnelse,
         ),
     )
 
@@ -92,7 +82,6 @@ fun Behandlingsinformasjon.withAvslåttFlyktning(): Behandlingsinformasjon {
         Behandlingsinformasjon(
             flyktning = Behandlingsinformasjon.Flyktning(
                 status = Behandlingsinformasjon.Flyktning.Status.VilkårIkkeOppfylt,
-                begrunnelse = flyktning?.begrunnelse,
             ),
         ),
     )

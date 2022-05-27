@@ -19,7 +19,6 @@ internal fun ApplicationTestBuilder.leggTilFastOppholdINorge(
     sakId: String,
     behandlingId: String,
     vurdering: String = "VilkårOppfylt",
-    begrunnelse: String = "Vurdering av fastOppholdINorge er lagt til automatisk av LeggTilFastOppholdINorge.kt",
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
 ): String {
     return runBlocking {
@@ -35,8 +34,7 @@ internal fun ApplicationTestBuilder.leggTilFastOppholdINorge(
                     "flyktning":null,
                     "lovligOpphold":null,
                     "fastOppholdINorge":{
-                      "status":"$vurdering",
-                      "begrunnelse":"$begrunnelse"
+                      "status":"$vurdering"
                     },
                     "institusjonsopphold":null,
                     "formue":null,

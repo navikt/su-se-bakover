@@ -18,7 +18,6 @@ fun fullstendigUtenEPS(periode: Periode): Grunnlag.Bosituasjon.Fullstendig {
         id = UUID.randomUUID(),
         opprettet = fixedTidspunkt,
         periode = periode,
-        begrunnelse = null,
     )
 }
 
@@ -28,6 +27,5 @@ fun fullstendigMedEPS(periode: Periode): Grunnlag.Bosituasjon.Fullstendig.Ektefe
         opprettet = fixedTidspunkt,
         periode = periode,
         fnr = Fnr.generer(),
-        begrunnelse = null,
     )
 }

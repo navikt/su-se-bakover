@@ -78,8 +78,8 @@ fun person(
     navn = Person.Navn(fornavn = "Tore", mellomnavn = "Johnas", etternavn = "Strømøy"),
 )
 
-val stønadsperiode2021 = Stønadsperiode.create(år(2021), "stønadsperiode2021")
-val stønadsperiode2022 = Stønadsperiode.create(år(2022), "stønadsperiode2022")
+val stønadsperiode2021 = Stønadsperiode.create(år(2021))
+val stønadsperiode2022 = Stønadsperiode.create(år(2022))
 
 val attestant = NavIdentBruker.Attestant("attestant")
 const val attestantNavn = "Att E. Stant"

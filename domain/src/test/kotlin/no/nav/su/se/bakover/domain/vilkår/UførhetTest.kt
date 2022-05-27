@@ -37,14 +37,12 @@ internal class UførhetTest {
                     opprettet = fixedTidspunkt,
                     grunnlag = null,
                     periode = år(2021),
-                    begrunnelse = "",
                 ),
                 Vurderingsperiode.Uføre.create(
                     resultat = Resultat.Avslag,
                     opprettet = fixedTidspunkt,
                     grunnlag = null,
                     periode = år(2021),
-                    begrunnelse = "",
                 ),
             ),
         ) shouldBe Vilkår.Uførhet.Vurdert.UgyldigUførevilkår.OverlappendeVurderingsperioder.left()
@@ -65,7 +63,6 @@ internal class UførhetTest {
             resultat = Resultat.Innvilget,
             grunnlag = null,
             periode = Periode.create(1.januar(2021), 28.februar(2021)),
-            begrunnelse = null,
         )
         actual.last() shouldBe Vurderingsperiode.Uføre.create(
             id = actual.last().id,
@@ -73,7 +70,6 @@ internal class UførhetTest {
             resultat = Resultat.Avslag,
             grunnlag = null,
             periode = mars(2021),
-            begrunnelse = null,
         )
     }
 
@@ -125,10 +121,7 @@ internal class UførhetTest {
             nonEmptyListOf(januar, februar),
         ).getOrFail().let { vilkår ->
             vilkår.oppdaterStønadsperiode(
-                stønadsperiode = Stønadsperiode.create(
-                    periode = januar(2021),
-                    begrunnelse = "ville endre",
-                ),
+                stønadsperiode = Stønadsperiode.create(periode = januar(2021)),
             ).let {
                 it.vurderingsperioder shouldHaveSize 1
                 it.vurderingsperioder.first().erLik(januar) shouldBe true
@@ -150,10 +143,7 @@ internal class UførhetTest {
             nonEmptyListOf(janMars, aprAug),
         ).getOrFail().let { vilkår ->
             vilkår.oppdaterStønadsperiode(
-                stønadsperiode = Stønadsperiode.create(
-                    periode = Periode.create(1.mars(2021), 31.mai(2021)),
-                    begrunnelse = "ville endre",
-                ),
+                stønadsperiode = Stønadsperiode.create(periode = Periode.create(1.mars(2021), 31.mai(2021))),
             ).let {
                 it.vurderingsperioder shouldHaveSize 2
                 it.vurderingsperioder.first().erLik(
@@ -191,10 +181,7 @@ internal class UførhetTest {
             nonEmptyListOf(februar, april),
         ).getOrFail().let { vilkår ->
             vilkår.oppdaterStønadsperiode(
-                stønadsperiode = Stønadsperiode.create(
-                    periode = Periode.create(1.januar(2021), 31.mai(2021)),
-                    begrunnelse = "ville endre",
-                ),
+                stønadsperiode = Stønadsperiode.create(periode = Periode.create(1.januar(2021), 31.mai(2021))),
             ).let {
                 it.vurderingsperioder shouldHaveSize 2
                 it.vurderingsperioder.first().erLik(
@@ -235,10 +222,7 @@ internal class UførhetTest {
             nonEmptyListOf(februar, mars),
         ).getOrFail().let { vilkår ->
             vilkår.oppdaterStønadsperiode(
-                stønadsperiode = Stønadsperiode.create(
-                    periode = februar(2021),
-                    begrunnelse = "ville endre",
-                ),
+                stønadsperiode = Stønadsperiode.create(periode = februar(2021)),
             ).let {
                 it.vurderingsperioder shouldHaveSize 1
                 it.vurderingsperioder.first().erLik(
@@ -266,10 +250,7 @@ internal class UførhetTest {
             nonEmptyListOf(februar, mars),
         ).getOrFail().let { vilkår ->
             vilkår.oppdaterStønadsperiode(
-                stønadsperiode = Stønadsperiode.create(
-                    periode = februar(2023),
-                    begrunnelse = "ville endre",
-                ),
+                stønadsperiode = Stønadsperiode.create(periode = februar(2023)),
             ).let {
                 it.vurderingsperioder shouldHaveSize 1
                 it.vurderingsperioder.first().erLik(
@@ -288,14 +269,12 @@ internal class UførhetTest {
         tidspunkt: Tidspunkt = fixedTidspunkt,
         resultat: Resultat = Resultat.Innvilget,
         grunnlag: Grunnlag.Uføregrunnlag? = null,
-        begrunnelse: String? = null,
     ): Vurderingsperiode.Uføre {
         return Vurderingsperiode.Uføre.create(
             opprettet = tidspunkt,
             resultat = resultat,
             grunnlag = grunnlag,
             periode = periode,
-            begrunnelse = begrunnelse,
         )
     }
 }

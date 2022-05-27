@@ -268,7 +268,6 @@ class SøknadsbehandlingServiceBeregningTest {
                                         forventetInntekt = janAprilIEU,
                                     ),
                                     periode = Periode.create(1.januar(2021), 30.april(2021)),
-                                    begrunnelse = "",
                                 ),
                                 Vurderingsperiode.Uføre.create(
                                     id = UUID.randomUUID(),
@@ -282,7 +281,6 @@ class SøknadsbehandlingServiceBeregningTest {
                                         forventetInntekt = maiDesIEU,
                                     ),
                                     periode = Periode.create(1.mai(2021), 31.desember(2021)),
-                                    begrunnelse = "",
                                 ),
                             ),
                         ),

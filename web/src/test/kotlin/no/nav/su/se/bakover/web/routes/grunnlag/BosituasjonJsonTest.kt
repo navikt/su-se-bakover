@@ -32,7 +32,6 @@ internal class BosituasjonJsonTest {
           "fnr" : "$fnrBosituasjon",
           "delerBolig": null,
           "ektemakeEllerSamboerUførFlyktning": true,
-          "begrunnelse": null,
           "sats": "ORDINÆR",
           "periode": {
             "fraOgMed": "2021-01-01",
@@ -47,7 +46,6 @@ internal class BosituasjonJsonTest {
             opprettet = bosituasjonOpprettet,
             periode = år(2021),
             fnr = fnrBosituasjon,
-            begrunnelse = null,
         )
     }
 }

@@ -451,7 +451,6 @@ internal class OpprettRevurderingServiceTest {
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
                         periode = vedtaksperiode,
-                        begrunnelse = null,
                     ),
                 ),
             )
@@ -793,7 +792,6 @@ internal class OpprettRevurderingServiceTest {
                     resultat = Resultat.Innvilget,
                     grunnlag = uføregrunnlag,
                     periode = periodePlussEtÅr,
-                    begrunnelse = "ok",
                     opprettet = fixedTidspunkt,
                 ),
             ),
@@ -803,7 +801,6 @@ internal class OpprettRevurderingServiceTest {
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
                 periode = periodePlussEtÅr,
-                begrunnelse = null,
             ),
         )
         val andreVedtak = createSøknadsbehandlingVedtak().copy(

@@ -30,7 +30,6 @@ data class LeggTilFormuegrunnlagRequest(
                     periode = element.periode,
                     epsFormue = element.epsFormue,
                     søkersFormue = element.søkersFormue,
-                    begrunnelse = element.begrunnelse,
                     bosituasjon = bosituasjon,
                     behandlingsPeriode = behandlingsperiode,
                 ).getOrHandle {

@@ -25,7 +25,6 @@ internal class BosituasjongrunnlagPostgresRepoTest {
                 id = id,
                 opprettet = Tidspunkt.EPOCH,
                 periode = periode,
-                begrunnelse = null,
             )
             dataSource.withTransaction {
                 grunnlagRepo.lagreBosituasjongrunnlag(behandlingId = id, grunnlag = listOf(bosituasjon), it)
@@ -45,7 +44,6 @@ internal class BosituasjongrunnlagPostgresRepoTest {
                 id = id,
                 opprettet = Tidspunkt.EPOCH,
                 periode = periode,
-                begrunnelse = null,
             )
             dataSource.withTransaction {
                 grunnlagRepo.lagreBosituasjongrunnlag(behandlingId = id, grunnlag = listOf(bosituasjon), it)
@@ -105,7 +103,6 @@ internal class BosituasjongrunnlagPostgresRepoTest {
                 opprettet = Tidspunkt.EPOCH,
                 periode = periode,
                 fnr = Fnr.generer(),
-                begrunnelse = null,
             )
             dataSource.withTransaction {
                 grunnlagRepo.lagreBosituasjongrunnlag(behandlingId = id, grunnlag = listOf(bosituasjon), it)
@@ -126,7 +123,6 @@ internal class BosituasjongrunnlagPostgresRepoTest {
                 opprettet = Tidspunkt.EPOCH,
                 periode = periode,
                 fnr = Fnr.generer(),
-                begrunnelse = null,
             )
             dataSource.withTransaction {
                 grunnlagRepo.lagreBosituasjongrunnlag(behandlingId = id, grunnlag = listOf(bosituasjon), it)
@@ -147,7 +143,6 @@ internal class BosituasjongrunnlagPostgresRepoTest {
                 opprettet = Tidspunkt.EPOCH,
                 periode = periode,
                 fnr = Fnr.generer(),
-                begrunnelse = null,
             )
             dataSource.withTransaction {
                 grunnlagRepo.lagreBosituasjongrunnlag(behandlingId = id, grunnlag = listOf(bosituasjon), it)

@@ -511,7 +511,7 @@ internal class RevurderingBeregnOgSimulerTest {
         revurdering1.harPågåendeAvkorting() shouldBe false
         revurdering1.harIdentifisertBehovForFremtidigAvkorting() shouldBe true
 
-        val stønadsperiode2 = Stønadsperiode.create(Periode.create(1.juli(2021), 31.desember(2021)), "baluba")
+        val stønadsperiode2 = Stønadsperiode.create(Periode.create(1.juli(2021), 31.desember(2021)))
         val uteståendeAvkorting =
             (((revurdering1 as VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering).behandling.avkorting) as AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarsel).avkortingsvarsel
         val (sakEtterInnvilgelse2, innvilget2) = vedtakSøknadsbehandlingIverksattInnvilget(

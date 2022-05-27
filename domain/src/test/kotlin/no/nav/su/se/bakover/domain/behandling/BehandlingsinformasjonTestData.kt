@@ -14,44 +14,36 @@ object BehandlingsinformasjonTestData {
     object Flyktning {
         val Oppfylt = Behandlingsinformasjon.Flyktning(
             status = Behandlingsinformasjon.Flyktning.Status.VilkårOppfylt,
-            begrunnelse = "det stemmer"
         )
         val Uavklart = Behandlingsinformasjon.Flyktning(
             status = Behandlingsinformasjon.Flyktning.Status.Uavklart,
-            begrunnelse = "det stemmer"
         )
     }
 
     object LovligOpphold {
         val Oppfylt = Behandlingsinformasjon.LovligOpphold(
             status = Behandlingsinformasjon.LovligOpphold.Status.VilkårOppfylt,
-            begrunnelse = "det stemmer"
         )
         val Uavklart = Behandlingsinformasjon.LovligOpphold(
             status = Behandlingsinformasjon.LovligOpphold.Status.Uavklart,
-            begrunnelse = "det stemmer"
         )
     }
 
     object FastOppholdINorge {
         val Oppfylt = Behandlingsinformasjon.FastOppholdINorge(
             status = Behandlingsinformasjon.FastOppholdINorge.Status.VilkårOppfylt,
-            begrunnelse = "det stemmer"
         )
         val Uavklart = Behandlingsinformasjon.FastOppholdINorge(
             status = Behandlingsinformasjon.FastOppholdINorge.Status.Uavklart,
-            begrunnelse = "det stemmer"
         )
     }
 
     object Institusjonsopphold {
         val Oppfylt = Behandlingsinformasjon.Institusjonsopphold(
             status = Behandlingsinformasjon.Institusjonsopphold.Status.VilkårOppfylt,
-            begrunnelse = "det stemmer"
         )
         val Uavklart = Behandlingsinformasjon.Institusjonsopphold(
             status = Behandlingsinformasjon.Institusjonsopphold.Status.Uavklart,
-            begrunnelse = "det stemmer"
         )
     }
 
@@ -106,11 +98,9 @@ object BehandlingsinformasjonTestData {
     object PersonligOppmøte {
         val Oppfylt = Behandlingsinformasjon.PersonligOppmøte(
             status = Behandlingsinformasjon.PersonligOppmøte.Status.MøttPersonlig,
-            begrunnelse = "det stemmer"
         )
         val Uavklart = Behandlingsinformasjon.PersonligOppmøte(
             status = Behandlingsinformasjon.PersonligOppmøte.Status.Uavklart,
-            begrunnelse = "det stemmer"
         )
     }
 }

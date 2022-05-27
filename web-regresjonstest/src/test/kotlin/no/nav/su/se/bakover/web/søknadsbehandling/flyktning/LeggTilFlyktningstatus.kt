@@ -19,7 +19,6 @@ internal fun ApplicationTestBuilder.leggTilFlyktningstatus(
     sakId: String,
     behandlingId: String,
     resultat: String = "VilkårOppfylt",
-    begrunnelse: String = "Vurdering av flyktningstatus er lagt til automatisk av LeggTilFlyktningstatus.kt",
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
 ): String {
 
@@ -34,8 +33,7 @@ internal fun ApplicationTestBuilder.leggTilFlyktningstatus(
                 """
                   {
                     "flyktning":{
-                      "status":"$resultat",
-                      "begrunnelse":"$begrunnelse"
+                      "status":"$resultat"
                     },
                     "lovligOpphold":null,
                     "fastOppholdINorge":null,

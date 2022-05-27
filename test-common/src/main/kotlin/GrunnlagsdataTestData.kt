@@ -45,7 +45,6 @@ fun bosituasjongrunnlagEnslig(
         id = id,
         opprettet = fixedTidspunkt,
         periode = periode,
-        begrunnelse = "bosituasjongrunnlagEnslig",
     )
 }
 
@@ -59,7 +58,6 @@ fun bosituasjongrunnlagEpsUførFlyktning(
         fnr = epsFnr,
         opprettet = fixedTidspunkt,
         periode = periode,
-        begrunnelse = "bosituasjongrunnlagEps",
     )
 }
 

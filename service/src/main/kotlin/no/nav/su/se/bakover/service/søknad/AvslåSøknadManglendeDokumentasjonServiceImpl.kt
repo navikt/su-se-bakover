@@ -142,7 +142,6 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImpl(
                         fraOgMed = LocalDate.now(clock).startOfMonth(),
                         tilOgMed = LocalDate.now(clock).endOfMonth(),
                     ),
-                    begrunnelse = "",
                 ),
             clock = clock,
             formuegrenserFactory = satsFactory.formuegrenserFactory,

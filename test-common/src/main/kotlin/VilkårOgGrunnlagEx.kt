@@ -44,7 +44,6 @@ fun Formuegrunnlag.Companion.create(
     periode: Periode,
     epsFormue: Formuegrunnlag.Verdier?,
     søkersFormue: Formuegrunnlag.Verdier,
-    begrunnelse: String?,
     bosituasjon: Grunnlag.Bosituasjon.Fullstendig,
     behandlingsPeriode: Periode,
 ): Formuegrunnlag = tryCreate(
@@ -53,7 +52,6 @@ fun Formuegrunnlag.Companion.create(
     periode,
     epsFormue,
     søkersFormue,
-    begrunnelse,
     listOf(bosituasjon),
     behandlingsPeriode,
 ).getOrHandle { throw IllegalArgumentException("Kunne ikke instansiere Formuegrunnlag. Underliggende grunn: $it") }

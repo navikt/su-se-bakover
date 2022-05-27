@@ -64,7 +64,6 @@ data class Behandlingsinformasjon(
 
     data class Flyktning(
         val status: Status,
-        val begrunnelse: String?,
     ) : Base() {
         enum class Status {
             VilkårOppfylt,
@@ -100,7 +99,6 @@ data class Behandlingsinformasjon(
                                     throw IllegalArgumentException("Kunne ikke instansiere ${FlyktningGrunnlag::class.simpleName}. Melding: $it")
                                 },
                                 vurderingsperiode = stønadsperiode.periode,
-                                begrunnelse = begrunnelse ?: "",
                             ).getOrHandle {
                                 throw IllegalArgumentException("Kunne ikke instansiere ${VurderingsperiodeFlyktning::class.simpleName}. Melding: $it")
                             },
@@ -116,7 +114,6 @@ data class Behandlingsinformasjon(
 
     data class LovligOpphold(
         val status: Status,
-        val begrunnelse: String?,
     ) : Base() {
         enum class Status {
             VilkårOppfylt,
@@ -152,7 +149,6 @@ data class Behandlingsinformasjon(
                                     throw IllegalArgumentException("Kunne ikke instansiere ${LovligOppholdGrunnlag::class.simpleName}. Melding: $it")
                                 },
                                 vurderingsperiode = stønadsperiode.periode,
-                                begrunnelse = begrunnelse ?: "",
                             ).getOrHandle {
                                 throw IllegalArgumentException("Kunne ikke instansiere ${VurderingsperiodeLovligOpphold::class.simpleName}. Melding: $it")
                             },
@@ -168,7 +164,6 @@ data class Behandlingsinformasjon(
 
     data class FastOppholdINorge(
         val status: Status,
-        val begrunnelse: String?,
     ) : Base() {
         enum class Status {
             VilkårOppfylt,
@@ -204,7 +199,6 @@ data class Behandlingsinformasjon(
                                     throw IllegalArgumentException("Kunne ikke instansiere ${FastOppholdINorgeGrunnlag::class.simpleName}. Melding: $it")
                                 },
                                 vurderingsperiode = stønadsperiode.periode,
-                                begrunnelse = begrunnelse ?: "",
                             ).getOrHandle {
                                 throw IllegalArgumentException("Kunne ikke instansiere ${VurderingsperiodeFastOppholdINorge::class.simpleName}. Melding: $it")
                             },
@@ -220,7 +214,6 @@ data class Behandlingsinformasjon(
 
     data class Institusjonsopphold(
         val status: Status,
-        val begrunnelse: String?,
     ) : Base() {
         enum class Status {
             VilkårOppfylt,
@@ -256,7 +249,6 @@ data class Behandlingsinformasjon(
                                     throw IllegalArgumentException("Kunne ikke instansiere ${InstitusjonsoppholdGrunnlag::class.simpleName}. Melding: $it")
                                 },
                                 vurderingsperiode = stønadsperiode.periode,
-                                begrunnelse = begrunnelse ?: "",
                             ).getOrHandle {
                                 throw IllegalArgumentException("Kunne ikke instansiere ${VurderingsperiodeInstitusjonsopphold::class.simpleName}. Melding: $it")
                             },
@@ -383,7 +375,6 @@ data class Behandlingsinformasjon(
                                 throw IllegalStateException("Kunne ikke create formue-verdier. Sjekk om data er gyldig")
                             }
                         },
-                        begrunnelse = this.begrunnelse,
                         bosituasjon = bosituasjon,
                         behandlingsPeriode = stønadsperiode.periode,
                     ).getOrHandle {
@@ -399,7 +390,6 @@ data class Behandlingsinformasjon(
 
     data class PersonligOppmøte(
         val status: Status,
-        val begrunnelse: String?,
     ) : Base() {
         enum class Status {
             MøttPersonlig,
@@ -451,7 +441,6 @@ data class Behandlingsinformasjon(
                                     throw IllegalArgumentException("Kunne ikke instansiere ${PersonligOppmøteGrunnlag::class.simpleName}. Melding: $it")
                                 },
                                 vurderingsperiode = stønadsperiode.periode,
-                                begrunnelse = begrunnelse ?: "",
                             ).getOrHandle {
                                 throw IllegalArgumentException("Kunne ikke instansiere ${VurderingsperiodePersonligOppmøte::class.simpleName}. Melding: $it")
                             },

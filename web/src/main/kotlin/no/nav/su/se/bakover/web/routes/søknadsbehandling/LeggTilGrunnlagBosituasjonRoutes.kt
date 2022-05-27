@@ -57,7 +57,6 @@ internal fun Route.leggTilGrunnlagBosituasjonRoutes(
             return FullførBosituasjonRequest(
                 behandlingId = behandlingId,
                 bosituasjon = bosituasjon,
-                begrunnelse = begrunnelse,
             ).right()
         }
     }

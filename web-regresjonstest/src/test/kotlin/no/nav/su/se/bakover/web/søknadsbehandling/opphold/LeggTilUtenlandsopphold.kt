@@ -23,7 +23,6 @@ internal fun ApplicationTestBuilder.leggTilUtenlandsopphold(
     fraOgMed: String = "2021-01-01",
     tilOgMed: String = "2021-12-31",
     vurdering: String = "SkalHoldeSegINorge",
-    begrunnelse: String = "Vurdering av utenlandsopphold er lagt til automatisk av LeggTilUførhet.kt",
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
     url: String = "/saker/$sakId/behandlinger/$behandlingId/utenlandsopphold",
 ): String {
@@ -41,8 +40,7 @@ internal fun ApplicationTestBuilder.leggTilUtenlandsopphold(
                       "fraOgMed":"$fraOgMed",
                       "tilOgMed":"$tilOgMed"
                     },
-                    "status":"$vurdering",
-                    "begrunnelse":"$begrunnelse"
+                    "status":"$vurdering"
                   }
                 """.trimIndent(),
             )

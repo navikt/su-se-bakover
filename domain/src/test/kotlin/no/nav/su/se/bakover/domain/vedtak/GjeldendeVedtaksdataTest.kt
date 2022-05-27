@@ -27,9 +27,7 @@ internal class GjeldendeVedtaksdataTest {
     @Test
     fun `finner gjeldende vedtak for gitt dato`() {
         val (sak, førstegangsvedtak) = vedtakSøknadsbehandlingIverksattInnvilget(
-            stønadsperiode = Stønadsperiode.create(
-                år(2021), "",
-            ),
+            stønadsperiode = Stønadsperiode.create(år(2021)),
         )
         val revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021))
         val (_, revurderingsVedtak) = vedtakRevurdering(
@@ -67,15 +65,11 @@ internal class GjeldendeVedtaksdataTest {
     @Test
     fun `tidslinje inneholder hull mellom to vedtak`() {
         val (sak, førstegangsvedtak) = vedtakSøknadsbehandlingIverksattInnvilget(
-            stønadsperiode = Stønadsperiode.create(
-                Periode.create(1.januar(2021), 31.mars(2021)), "",
-            ),
+            stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.mars(2021))),
         )
 
         val (_, nyStønadsperiode) = vedtakSøknadsbehandlingIverksattInnvilget(
-            stønadsperiode = Stønadsperiode.create(
-                Periode.create(1.mai(2021), 31.desember(2021)), "",
-            ),
+            stønadsperiode = Stønadsperiode.create(Periode.create(1.mai(2021), 31.desember(2021))),
         )
 
         sak.copy(
@@ -108,9 +102,7 @@ internal class GjeldendeVedtaksdataTest {
     @Test
     fun `håndterer at etterspurt periode ikke inneholder vedtaksdata`() {
         val (_, førstegangsvedtak) = vedtakSøknadsbehandlingIverksattInnvilget(
-            stønadsperiode = Stønadsperiode.create(
-                Periode.create(1.januar(2021), 31.mars(2021)), "",
-            ),
+            stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.mars(2021))),
         )
         val data = GjeldendeVedtaksdata(
             periode = Periode.create(1.mai(2021), 31.desember(2021)),
@@ -132,9 +124,7 @@ internal class GjeldendeVedtaksdataTest {
     @Test
     fun `tidslinje inneholder bare et vedtak`() {
         val (_, førstegangsvedtak) = vedtakSøknadsbehandlingIverksattInnvilget(
-            stønadsperiode = Stønadsperiode.create(
-                år(2021), "",
-            ),
+            stønadsperiode = Stønadsperiode.create(år(2021)),
         )
 
         val data = GjeldendeVedtaksdata(

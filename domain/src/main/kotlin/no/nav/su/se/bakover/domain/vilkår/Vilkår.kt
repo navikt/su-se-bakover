@@ -594,19 +594,13 @@ sealed class Vilkår {
                             if (tidligere != null) {
                                 acc.add(
                                     periode to tidligere.oppdaterStønadsperiode(
-                                        Stønadsperiode.create(
-                                            periode = periode,
-                                            begrunnelse = stønadsperiode.begrunnelse,
-                                        ),
+                                        Stønadsperiode.create(periode = periode),
                                     ),
                                 )
                             } else if (senere != null) {
                                 acc.add(
                                     periode to senere.oppdaterStønadsperiode(
-                                        Stønadsperiode.create(
-                                            periode = periode,
-                                            begrunnelse = stønadsperiode.begrunnelse,
-                                        ),
+                                        Stønadsperiode.create(periode = periode),
                                     ),
                                 )
                             }
@@ -839,7 +833,6 @@ sealed class Vurderingsperiode {
         override val resultat: Resultat,
         override val grunnlag: Grunnlag.Uføregrunnlag?,
         override val periode: Periode,
-        val begrunnelse: String?,
     ) : Vurderingsperiode(), KanPlasseresPåTidslinje<Uføre> {
 
         fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Uføre {
@@ -888,9 +881,8 @@ sealed class Vurderingsperiode {
                 resultat: Resultat,
                 grunnlag: Grunnlag.Uføregrunnlag?,
                 periode: Periode,
-                begrunnelse: String?,
             ): Uføre {
-                return tryCreate(id, opprettet, resultat, grunnlag, periode, begrunnelse).getOrHandle {
+                return tryCreate(id, opprettet, resultat, grunnlag, periode).getOrHandle {
                     throw IllegalArgumentException(it.toString())
                 }
             }
@@ -901,7 +893,6 @@ sealed class Vurderingsperiode {
                 resultat: Resultat,
                 grunnlag: Grunnlag.Uføregrunnlag?,
                 vurderingsperiode: Periode,
-                begrunnelse: String?,
             ): Either<UgyldigVurderingsperiode, Uføre> {
 
                 grunnlag?.let {
@@ -914,7 +905,6 @@ sealed class Vurderingsperiode {
                     resultat = resultat,
                     grunnlag = grunnlag,
                     periode = vurderingsperiode,
-                    begrunnelse = begrunnelse,
                 ).right()
             }
         }

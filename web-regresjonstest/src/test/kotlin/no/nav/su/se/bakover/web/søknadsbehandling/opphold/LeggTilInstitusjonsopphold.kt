@@ -19,7 +19,6 @@ internal fun ApplicationTestBuilder.leggTilInstitusjonsopphold(
     sakId: String,
     behandlingId: String,
     vurdering: String = "VilkårOppfylt",
-    begrunnelse: String = "Vurdering av institusjonsopphold er lagt til automatisk av LeggTilInstitusjonsopphold.kt",
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
 ): String {
     return runBlocking {
@@ -36,8 +35,7 @@ internal fun ApplicationTestBuilder.leggTilInstitusjonsopphold(
                     "lovligOpphold":null,
                     "fastOppholdINorge":null,
                     "institusjonsopphold":{
-                      "status":"$vurdering",
-                      "begrunnelse":"$begrunnelse"
+                      "status":"$vurdering"
                     },
                     "formue":null,
                     "personligOppmøte":null

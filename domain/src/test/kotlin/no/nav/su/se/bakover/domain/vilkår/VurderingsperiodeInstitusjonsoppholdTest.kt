@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.domain.vilkår
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.år
@@ -31,14 +30,10 @@ internal class VurderingsperiodeInstitusjonsoppholdTest {
                 periode = år(2021),
             ),
             vurderingsperiode = år(2021),
-            begrunnelse = null,
         ).getOrFail()
             .let {
                 it.oppdaterStønadsperiode(
-                    Stønadsperiode.create(
-                        februar(2021),
-                        "",
-                    ),
+                    Stønadsperiode.create(februar(2021)),
                 ) shouldBe VurderingsperiodeInstitusjonsopphold.tryCreate(
                     id = vilkårId,
                     opprettet = fixedTidspunkt,
@@ -49,7 +44,6 @@ internal class VurderingsperiodeInstitusjonsoppholdTest {
                         periode = februar(2021),
                     ),
                     vurderingsperiode = februar(2021),
-                    begrunnelse = null,
                 ).getOrFail()
             }
     }
@@ -66,7 +60,6 @@ internal class VurderingsperiodeInstitusjonsoppholdTest {
                 periode = år(2021),
             ),
             vurderingsperiode = år(2021),
-            begrunnelse = null,
         ).getOrFail()
             .copy(CopyArgs.Tidslinje.Full).let {
                 it shouldBe it.copy()
@@ -82,7 +75,6 @@ internal class VurderingsperiodeInstitusjonsoppholdTest {
                 periode = år(2021),
             ),
             vurderingsperiode = år(2021),
-            begrunnelse = null,
         ).getOrFail().copy(CopyArgs.Tidslinje.NyPeriode(mai(2021))).let {
             it shouldBe it.copy(periode = mai(2021))
         }
@@ -100,7 +92,6 @@ internal class VurderingsperiodeInstitusjonsoppholdTest {
                 periode = år(2021),
             ),
             vurderingsperiode = år(2021),
-            begrunnelse = null,
         ).getOrFail()
             .erLik(
                 VurderingsperiodeInstitusjonsopphold.tryCreate(
@@ -113,7 +104,6 @@ internal class VurderingsperiodeInstitusjonsoppholdTest {
                         periode = februar(2021),
                     ),
                     vurderingsperiode = februar(2021),
-                    begrunnelse = "koko",
                 ).getOrFail(),
             ) shouldBe true
 
@@ -127,7 +117,6 @@ internal class VurderingsperiodeInstitusjonsoppholdTest {
                 periode = år(2021),
             ),
             vurderingsperiode = år(2021),
-            begrunnelse = null,
         ).getOrFail()
             .erLik(
                 VurderingsperiodeInstitusjonsopphold.tryCreate(
@@ -140,7 +129,6 @@ internal class VurderingsperiodeInstitusjonsoppholdTest {
                         periode = februar(2021),
                     ),
                     vurderingsperiode = februar(2021),
-                    begrunnelse = "koko",
                 ).getOrFail(),
             ) shouldBe false
     }

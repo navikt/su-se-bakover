@@ -107,7 +107,6 @@ fun innvilgetUførevilkårForventetInntekt0(
                 resultat = Resultat.Innvilget,
                 grunnlag = uføregrunnlag,
                 periode = periode,
-                begrunnelse = "innvilgetUførevilkårForventetInntekt0",
             ),
         ),
     )
@@ -127,7 +126,6 @@ fun utenlandsoppholdInnvilget(
                 resultat = Resultat.Innvilget,
                 grunnlag = grunnlag,
                 periode = periode,
-                begrunnelse = "begrunnelse",
             ),
         ),
     ).getOrFail()
@@ -190,7 +188,6 @@ fun utenlandsoppholdAvslag(
                 resultat = Resultat.Avslag,
                 grunnlag = null,
                 periode = periode,
-                begrunnelse = "begrunnelse",
             ),
         ),
     ).getOrFail()
@@ -208,7 +205,6 @@ fun innvilgetUførevilkårForventetInntekt12000(
                 resultat = Resultat.Innvilget,
                 grunnlag = uføregrunnlagForventetInntekt12000(opprettet = opprettet, periode = periode),
                 periode = periode,
-                begrunnelse = "innvilgetUførevilkårForventetInntekt12000",
             ),
         ),
     )
@@ -219,7 +215,6 @@ fun innvilgetUførevilkår(
     grunnlagsId: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = år(2021),
-    begrunnelse: String? = "innvilgetUførevilkårForventetInntekt0",
     forventetInntekt: Int = 0,
     uføregrad: Uføregrad = Uføregrad.parse(100),
 ): Vilkår.Uførhet.Vurdert {
@@ -237,7 +232,6 @@ fun innvilgetUførevilkår(
                     uføregrad = uføregrad,
                 ),
                 periode = periode,
-                begrunnelse = begrunnelse,
             ),
         ),
     )
@@ -255,7 +249,6 @@ fun avslåttUførevilkårUtenGrunnlag(
                 resultat = Resultat.Avslag,
                 grunnlag = null,
                 periode = periode,
-                begrunnelse = "avslåttUførevilkårUtenGrunnlag",
             ),
         ),
     )
@@ -281,7 +274,6 @@ fun formueGrunnlagUtenEps0Innvilget(
             kontanter = 0,
             depositumskonto = 0,
         ),
-        begrunnelse = null,
         bosituasjon = bosituasjon,
         behandlingsPeriode = periode,
     )
@@ -308,7 +300,6 @@ fun formueGrunnlagUtenEpsAvslått(
             kontanter = 0,
             depositumskonto = 0,
         ),
-        begrunnelse = null,
         bosituasjon = bosituasjon,
         behandlingsPeriode = periode,
     )
@@ -401,7 +392,7 @@ fun vilkårsvurderingerSøknadsbehandlingInnvilget(
         formue = formuevilkårIkkeVurdert(),
         opplysningsplikt = opplysningsplikt,
     ).oppdater(
-        stønadsperiode = Stønadsperiode.create(periode = periode, begrunnelse = ""),
+        stønadsperiode = Stønadsperiode.create(periode = periode),
         behandlingsinformasjon = behandlingsinformasjon,
         grunnlagsdata = Grunnlagsdata.tryCreate(
             fradragsgrunnlag = emptyList(),
@@ -466,10 +457,7 @@ fun vilkårsvurderingerAvslåttAlle(
         formue = formuevilkårIkkeVurdert(),
         opplysningsplikt = utilstrekkeligDokumentert(periode = periode)
     ).oppdater(
-        stønadsperiode = Stønadsperiode.create(
-            periode = periode,
-            begrunnelse = "",
-        ),
+        stønadsperiode = Stønadsperiode.create(periode = periode),
         behandlingsinformasjon = behandlingsinformasjonAlleVilkårAvslått,
         grunnlagsdata = Grunnlagsdata.tryCreate(
             fradragsgrunnlag = listOf(),
@@ -509,7 +497,6 @@ fun avslåttFormueVilkår(
         id = UUID.randomUUID(),
         opprettet = fixedTidspunkt,
         periode = periode,
-        begrunnelse = null,
     ),
 ): Vilkår.Formue.Vurdert {
     val (søkerVerdi, epsVerdi) = when (bosituasjon.harEPS()) {
@@ -530,7 +517,6 @@ fun avslåttFormueVilkår(
                 periode = periode,
                 epsFormue = epsVerdi,
                 søkersFormue = søkerVerdi,
-                begrunnelse = null,
                 bosituasjon = bosituasjon,
                 behandlingsPeriode = periode,
             ),
@@ -546,7 +532,6 @@ fun innvilgetFormueVilkår(
         id = UUID.randomUUID(),
         opprettet = fixedTidspunkt,
         periode = periode,
-        begrunnelse = null,
     ),
 ): Vilkår.Formue.Vurdert {
     val (søkerVerdi, epsVerdi) = when (bosituasjon.harEPS()) {
@@ -567,7 +552,6 @@ fun innvilgetFormueVilkår(
                 periode = periode,
                 epsFormue = epsVerdi,
                 søkersFormue = søkerVerdi,
-                begrunnelse = null,
                 bosituasjon = bosituasjon,
                 behandlingsPeriode = periode,
             ),

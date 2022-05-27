@@ -47,7 +47,6 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
                                 1.januar(2021),
                                 30.april(2021),
                             ),
-                            begrunnelse = null,
                         ),
                     ),
                 ),
@@ -86,7 +85,6 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
                             1.januar(2021),
                             31.mai(2021),
                         ),
-                        begrunnelse = null,
                     ),
                 ),
             ),
@@ -142,7 +140,6 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
                             1.januar(2021),
                             31.mai(2021),
                         ),
-                        begrunnelse = null,
                     ),
                 ),
             ),
@@ -186,7 +183,6 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = forrigePeriode,
-            begrunnelse = null,
         )
         val grunnlagsdata = Grunnlagsdata.create(
             fradragsgrunnlag = listOf(fradragsgrunnlag),

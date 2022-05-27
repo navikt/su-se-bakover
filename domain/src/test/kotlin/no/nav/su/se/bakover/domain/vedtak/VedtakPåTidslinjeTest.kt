@@ -62,7 +62,6 @@ internal class VedtakPåTidslinjeTest {
             resultat = Resultat.Innvilget,
             grunnlag = uføregrunnlag,
             periode = periode,
-            begrunnelse = "hei",
         )
 
         val f1 = lagFradragsgrunnlag(
@@ -86,7 +85,6 @@ internal class VedtakPåTidslinjeTest {
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = periode,
-            begrunnelse = "Begrunnelse",
         )
 
         val formuevilkår = innvilgetFormueVilkår(periode = periode)
@@ -126,7 +124,6 @@ internal class VedtakPåTidslinjeTest {
                             vilkårcopy.vurderingsperioder shouldHaveSize 1
                             vilkårcopy.vurderingsperioder[0].let { vurderingsperiodecopy ->
                                 vurderingsperiodecopy.id shouldNotBe uføreVurderingsperiode.id
-                                vurderingsperiodecopy.begrunnelse shouldBe uføreVurderingsperiode.begrunnelse
                                 vurderingsperiodecopy.resultat shouldBe uføreVurderingsperiode.resultat
                                 vurderingsperiodecopy.periode shouldBe uføreVurderingsperiode.periode
                                 vurderingsperiodecopy.grunnlag!!.let {
@@ -144,7 +141,6 @@ internal class VedtakPåTidslinjeTest {
                         it.periode shouldBe expectedFormuegrunnlag.periode
                         it.epsFormue shouldBe expectedFormuegrunnlag.epsFormue
                         it.søkersFormue shouldBe expectedFormuegrunnlag.søkersFormue
-                        it.begrunnelse shouldBe expectedFormuegrunnlag.begrunnelse
                     }
                     vilkårsvurdering.formue.shouldBeType<Vilkår.Formue.Vurdert>()
                         .let { vilkårcopy ->
@@ -160,7 +156,6 @@ internal class VedtakPåTidslinjeTest {
                                     it.periode shouldBe expectedFormuegrunnlag.periode
                                     it.epsFormue shouldBe expectedFormuegrunnlag.epsFormue
                                     it.søkersFormue shouldBe expectedFormuegrunnlag.søkersFormue
-                                    it.begrunnelse shouldBe expectedFormuegrunnlag.begrunnelse
                                 }
                             }
                         }
@@ -211,14 +206,12 @@ internal class VedtakPåTidslinjeTest {
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.juni(2021)),
-            begrunnelse = "Bor med barn",
         )
 
         val b2 = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = Periode.create(fraOgMed = 1.juli(2021), tilOgMed = 31.desember(2021)),
-            begrunnelse = "Giftet seg",
             fnr = epsFnr,
         )
 
@@ -228,7 +221,6 @@ internal class VedtakPåTidslinjeTest {
             resultat = Resultat.Innvilget,
             grunnlag = uføregrunnlag,
             periode = periode,
-            begrunnelse = "hei",
         )
 
         val f1 = lagFradragsgrunnlag(
@@ -299,14 +291,12 @@ internal class VedtakPåTidslinjeTest {
                             it.periode shouldBe Periode.create(1.mai(2021), 31.juli(2021))
                             it.epsFormue shouldBe expectedFormuegrunnlag.epsFormue
                             it.søkersFormue shouldBe expectedFormuegrunnlag.søkersFormue
-                            it.begrunnelse shouldBe expectedFormuegrunnlag.begrunnelse
                         }
                         vilkårsvurdering.uføre.shouldBeType<Vilkår.Uførhet.Vurdert>()
                             .let { vilkårcopy ->
                                 vilkårcopy.vurderingsperioder shouldHaveSize 1
                                 vilkårcopy.vurderingsperioder[0].let { vurderingsperiodecopy ->
                                     vurderingsperiodecopy.id shouldNotBe vurderingsperiode.id
-                                    vurderingsperiodecopy.begrunnelse shouldBe vurderingsperiode.begrunnelse
                                     vurderingsperiodecopy.resultat shouldBe vurderingsperiode.resultat
                                     vurderingsperiodecopy.periode shouldBe Periode.create(1.mai(2021), 31.juli(2021))
                                     vurderingsperiodecopy.grunnlag!!.let {
@@ -331,7 +321,6 @@ internal class VedtakPåTidslinjeTest {
                                         it.periode shouldBe Periode.create(1.mai(2021), 31.juli(2021))
                                         it.epsFormue shouldBe expectedFormuegrunnlag.epsFormue
                                         it.søkersFormue shouldBe expectedFormuegrunnlag.søkersFormue
-                                        it.begrunnelse shouldBe expectedFormuegrunnlag.begrunnelse
                                     }
                                 }
                             }
@@ -362,13 +351,11 @@ internal class VedtakPåTidslinjeTest {
                     it[0].shouldBeType<Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen>().let {
                         it.id shouldNotBe b1.id
                         it.periode shouldBe Periode.create(1.mai(2021), 30.juni(2021))
-                        it.begrunnelse shouldBe "Bor med barn"
                     }
                     it[1].shouldBeType<Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre>()
                         .let {
                             it.id shouldNotBe b1.id
                             it.periode shouldBe juli(2021)
-                            it.begrunnelse shouldBe "Giftet seg"
                         }
                 }
                 vedtakPåTidslinje.grunnlagsdata.fradragsgrunnlag.let { fradragCopy ->

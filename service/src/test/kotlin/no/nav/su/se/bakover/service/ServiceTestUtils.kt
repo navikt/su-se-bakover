@@ -23,12 +23,10 @@ internal fun formuegrunnlag(
     periode = periode,
     epsFormue = epsFormue,
     søkersFormue = Formuegrunnlag.Verdier.empty(),
-    begrunnelse = null,
     bosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(
         id = UUID.randomUUID(),
         opprettet = fixedTidspunkt,
         periode = periode,
-        begrunnelse = null,
     ),
     behandlingsPeriode = periode,
 )

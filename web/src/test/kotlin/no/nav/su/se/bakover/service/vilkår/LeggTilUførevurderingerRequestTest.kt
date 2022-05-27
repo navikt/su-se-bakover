@@ -252,7 +252,6 @@ internal class LeggTilUførevurderingerRequestTest {
                         forventetInntekt = 12000,
                     ),
                     periode = januar(2021),
-                    begrunnelse = null,
                 ),
                 Vurderingsperiode.Uføre.create(
                     id = actual.vurderingsperioder[1].id,
@@ -266,7 +265,6 @@ internal class LeggTilUførevurderingerRequestTest {
                         forventetInntekt = 12000,
                     ),
                     periode = februar(2021),
-                    begrunnelse = null,
                 ),
             ),
         )
@@ -316,7 +314,6 @@ internal class LeggTilUførevurderingerRequestTest {
                         forventetInntekt = 12000,
                     ),
                     periode = januar(2021),
-                    begrunnelse = null,
                 ),
                 Vurderingsperiode.Uføre.create(
                     id = actual.vurderingsperioder[1].id,
@@ -330,7 +327,6 @@ internal class LeggTilUførevurderingerRequestTest {
                         forventetInntekt = 12000,
                     ),
                     periode = februar(2021),
-                    begrunnelse = null,
                 ),
             ),
         )
@@ -361,7 +357,6 @@ internal class LeggTilUførevurderingerRequestTest {
                             resultat = Resultat.Innvilget,
                             grunnlag = null,
                             periode = januar(2021),
-                            begrunnelse = "blah",
                         ),
                     ),
                 )
@@ -389,7 +384,6 @@ internal class LeggTilUførevurderingerRequestTest {
                             resultat = Resultat.Uavklart,
                             grunnlag = null,
                             periode = januar(2021),
-                            begrunnelse = "blah",
                         ),
                     ),
                 )

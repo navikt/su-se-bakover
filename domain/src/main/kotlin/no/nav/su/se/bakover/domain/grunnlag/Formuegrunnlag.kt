@@ -18,7 +18,6 @@ data class Formuegrunnlag private constructor(
     override val opprettet: Tidspunkt,
     val epsFormue: Verdier?,
     val søkersFormue: Verdier,
-    val begrunnelse: String?,
 ) : Grunnlag(), KanPlasseresPåTidslinje<Formuegrunnlag> {
 
     fun harEPSFormue(): Boolean {
@@ -47,8 +46,7 @@ data class Formuegrunnlag private constructor(
     override fun erLik(other: Grunnlag): Boolean {
         return other is Formuegrunnlag &&
             søkersFormue == other.søkersFormue &&
-            epsFormue == other.epsFormue &&
-            begrunnelse == other.begrunnelse
+            epsFormue == other.epsFormue
     }
 
     data class Verdier private constructor(
@@ -148,7 +146,6 @@ data class Formuegrunnlag private constructor(
             periode: Periode,
             epsFormue: Verdier?,
             søkersFormue: Verdier,
-            begrunnelse: String?,
             // Denne tar ikke høyde for søknadsbehandling da denne ikke nødvendigvis er fullstendig
             bosituasjon: List<Bosituasjon.Fullstendig>,
             behandlingsPeriode: Periode,
@@ -159,7 +156,6 @@ data class Formuegrunnlag private constructor(
                 opprettet = opprettet,
                 epsFormue = epsFormue,
                 søkersFormue = søkersFormue,
-                begrunnelse = if (begrunnelse.isNullOrBlank()) null else begrunnelse,
             )
 
             if (!(behandlingsPeriode.inneholder(periode))) {
@@ -184,7 +180,6 @@ data class Formuegrunnlag private constructor(
             periode: Periode,
             epsFormue: Verdier?,
             søkersFormue: Verdier,
-            begrunnelse: String?,
             // Tillater ufullstending for å kunne bruke med søknadsbehandling
             bosituasjon: List<Bosituasjon>,
             behandlingsPeriode: Periode,
@@ -195,7 +190,6 @@ data class Formuegrunnlag private constructor(
                 opprettet = opprettet,
                 epsFormue = epsFormue,
                 søkersFormue = søkersFormue,
-                begrunnelse = if (begrunnelse.isNullOrBlank()) null else begrunnelse,
             )
 
             if (!(behandlingsPeriode.inneholder(periode))) {
@@ -243,7 +237,6 @@ data class Formuegrunnlag private constructor(
             periode: Periode,
             epsFormue: Verdier?,
             søkersFormue: Verdier,
-            begrunnelse: String?,
         ): Formuegrunnlag {
             return Formuegrunnlag(
                 id = id,
@@ -251,7 +244,6 @@ data class Formuegrunnlag private constructor(
                 opprettet = opprettet,
                 epsFormue = epsFormue,
                 søkersFormue = søkersFormue,
-                begrunnelse = begrunnelse,
             )
         }
     }

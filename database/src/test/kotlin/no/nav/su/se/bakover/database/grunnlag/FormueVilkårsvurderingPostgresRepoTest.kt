@@ -51,7 +51,6 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
             opprettet = fixedTidspunkt,
             periode = periode,
             fnr = Fnr.generer(),
-            begrunnelse = "i87i78i78i87i",
         ),
         søkersFormue: Formuegrunnlag.Verdier = Formuegrunnlag.Verdier.create(
             verdiIkkePrimærbolig = 9,
@@ -80,7 +79,6 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
             periode = periode,
             epsFormue = epsFormue,
             søkersFormue = søkersFormue,
-            begrunnelse = "dfgdfgdfgsdfgdfg",
             bosituasjon = bosituasjon,
             behandlingsPeriode = periode,
         )

@@ -113,7 +113,6 @@ internal class RegulerGrunnbeløpServiceImplTest {
                             grunnlagsId = (it.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).grunnlag.first().id,
                             opprettet = fixedTidspunkt,
                             periode = nyttUføregrunnlag.periode,
-                            begrunnelse = "grunnbeløpet er høyere",
                             forventetInntekt = nyttUføregrunnlag.forventetInntekt,
                             uføregrad = nyttUføregrunnlag.uføregrad,
                         ),

@@ -66,7 +66,6 @@ internal class FormuegrunnlagPostgresRepo(
             opprettet = tidspunkt("opprettet"),
             epsFormue = stringOrNull("epsFormue")?.let { deserialize<FormueverdierJson?>(it)?.toDomain() },
             søkersFormue = deserialize<FormueverdierJson>(string("søkerFormue")).toDomain(),
-            begrunnelse = stringOrNull("begrunnelse"),
         )
     }
 
@@ -80,8 +79,7 @@ internal class FormuegrunnlagPostgresRepo(
                 fraOgMed,
                 tilOgMed,
                 epsFormue,
-                søkerFormue,
-                begrunnelse
+                søkerFormue
             ) values
             (
                 :id,
@@ -90,8 +88,7 @@ internal class FormuegrunnlagPostgresRepo(
                 :fraOgMed,
                 :tilOgMed,
                 to_jsonb(:epsFormue::json),
-                to_jsonb(:sokerFormue::json),
-                :begrunnelse
+                to_jsonb(:sokerFormue::json)
             )
         """.trimIndent()
             .insert(
@@ -103,7 +100,6 @@ internal class FormuegrunnlagPostgresRepo(
                     "tilOgMed" to formuegrunnlag.periode.tilOgMed,
                     "epsFormue" to objectMapper.writeValueAsString(formuegrunnlag.epsFormue?.toJson()),
                     "sokerFormue" to objectMapper.writeValueAsString(formuegrunnlag.søkersFormue.toJson()),
-                    "begrunnelse" to formuegrunnlag.begrunnelse,
                 ),
                 tx,
             )

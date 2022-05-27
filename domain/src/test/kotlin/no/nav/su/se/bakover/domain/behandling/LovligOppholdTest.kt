@@ -9,7 +9,6 @@ internal class LovligOppholdTest {
     fun `er ikke ferdigbehandlet hvis status er uavklart`() {
         Behandlingsinformasjon.LovligOpphold(
             status = Behandlingsinformasjon.LovligOpphold.Status.Uavklart,
-            begrunnelse = "neh"
         ).let {
             it.erVilkårOppfylt() shouldBe false
             it.erVilkårIkkeOppfylt() shouldBe false
@@ -20,7 +19,6 @@ internal class LovligOppholdTest {
     fun `er oppfylt hvis status er oppfylt`() {
         Behandlingsinformasjon.LovligOpphold(
             status = Behandlingsinformasjon.LovligOpphold.Status.VilkårOppfylt,
-            begrunnelse = "neh"
         ).erVilkårOppfylt() shouldBe true
     }
 
@@ -28,7 +26,6 @@ internal class LovligOppholdTest {
     fun `er ikke oppfylt hvis status er ikke oppfylt`() {
         Behandlingsinformasjon.LovligOpphold(
             status = Behandlingsinformasjon.LovligOpphold.Status.VilkårIkkeOppfylt,
-            begrunnelse = "neh"
         ).erVilkårOppfylt() shouldBe false
     }
 }

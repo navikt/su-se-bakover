@@ -273,7 +273,7 @@ internal class RevurderingTest {
     fun `beregning som fører til beløp under minstegrense gir opphør`() {
         val periode = år(2021)
         opprettetRevurdering(
-            stønadsperiode = Stønadsperiode.create(periode, ""),
+            stønadsperiode = Stønadsperiode.create(periode),
             revurderingsperiode = periode,
             grunnlagsdataOverrides = listOf(
                 fradragsgrunnlagArbeidsinntekt(

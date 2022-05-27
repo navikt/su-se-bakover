@@ -42,7 +42,7 @@ object BehandlingTestUtils {
     internal val oppgaveId = OppgaveId("o")
     private val journalpostId = JournalpostId("j")
     internal val stønadsperiode =
-        Stønadsperiode.create(år(2021), "begrunnelsen")
+        Stønadsperiode.create(år(2021))
     internal val journalførtSøknadMedOppgave = Søknad.Journalført.MedOppgave.IkkeLukket(
         sakId = sakId,
         opprettet = Tidspunkt.EPOCH,
@@ -63,19 +63,15 @@ object BehandlingTestUtils {
         behandlingsinformasjon = Behandlingsinformasjon(
             flyktning = Behandlingsinformasjon.Flyktning(
                 status = Behandlingsinformasjon.Flyktning.Status.VilkårOppfylt,
-                begrunnelse = null,
             ),
             lovligOpphold = Behandlingsinformasjon.LovligOpphold(
                 status = Behandlingsinformasjon.LovligOpphold.Status.VilkårOppfylt,
-                begrunnelse = null,
             ),
             fastOppholdINorge = Behandlingsinformasjon.FastOppholdINorge(
                 status = Behandlingsinformasjon.FastOppholdINorge.Status.VilkårOppfylt,
-                begrunnelse = null,
             ),
             institusjonsopphold = Behandlingsinformasjon.Institusjonsopphold(
                 status = Behandlingsinformasjon.Institusjonsopphold.Status.VilkårOppfylt,
-                begrunnelse = null,
             ),
             formue = Behandlingsinformasjon.Formue(
                 status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
@@ -103,7 +99,6 @@ object BehandlingTestUtils {
             ),
             personligOppmøte = Behandlingsinformasjon.PersonligOppmøte(
                 status = Behandlingsinformasjon.PersonligOppmøte.Status.MøttPersonlig,
-                begrunnelse = null,
             ),
         ),
         fnr = fnr,

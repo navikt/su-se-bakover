@@ -26,7 +26,6 @@ internal class BosituasjonTest {
             opprettet = fixedTidspunkt,
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.juni(2021)),
             fnr = Fnr.generer(),
-            begrunnelse = null,
         ).harEPS() shouldBe true
 
         Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
@@ -34,7 +33,6 @@ internal class BosituasjonTest {
             opprettet = fixedTidspunkt,
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.juni(2021)),
             fnr = Fnr.generer(),
-            begrunnelse = null,
         ).harEPS() shouldBe true
 
         Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre(
@@ -42,21 +40,18 @@ internal class BosituasjonTest {
             opprettet = fixedTidspunkt,
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.juni(2021)),
             fnr = Fnr.generer(),
-            begrunnelse = null,
         ).harEPS() shouldBe true
 
         Grunnlag.Bosituasjon.Fullstendig.Enslig(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.juni(2021)),
-            begrunnelse = null,
         ).harEPS() shouldBe false
 
         Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.juni(2021)),
-            begrunnelse = null,
         ).harEPS() shouldBe false
 
         Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
@@ -93,7 +88,6 @@ internal class BosituasjonTest {
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = januar(2021),
-            begrunnelse = null,
         )
         val b2 = b1.copy(
             periode = februar(2021),
@@ -103,7 +97,6 @@ internal class BosituasjonTest {
             opprettet = fixedTidspunkt,
             periode = mars(2021),
             fnr = Fnr.generer(),
-            begrunnelse = null,
         )
 
         val actual = listOf(b1, b2, b3).slåSammenPeriodeOgBosituasjon()
@@ -112,14 +105,12 @@ internal class BosituasjonTest {
             id = b1.id,
             opprettet = fixedTidspunkt,
             periode = Periode.create(1.januar(2021), 28.februar(2021)),
-            begrunnelse = null,
         )
         actual.last() shouldBe Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
             id = b3.id,
             opprettet = fixedTidspunkt,
             periode = mars(2021),
             fnr = b3.fnr,
-            begrunnelse = null,
         )
     }
 
@@ -129,7 +120,6 @@ internal class BosituasjonTest {
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = januar(2021),
-            begrunnelse = null,
         )
         val b2 = Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
             id = UUID.randomUUID(),

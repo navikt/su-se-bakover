@@ -41,13 +41,11 @@ internal class FormueForBrevTest {
                 kontanter = 10,
                 depositumskonto = 10,
             ),
-            begrunnelse = null,
             bosituasjon = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
                 fnr = Fnr.generer(),
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
                 periode = periode,
-                begrunnelse = null,
             ),
             behandlingsPeriode = periode,
         )

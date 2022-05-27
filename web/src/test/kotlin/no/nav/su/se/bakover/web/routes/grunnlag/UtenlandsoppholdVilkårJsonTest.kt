@@ -46,7 +46,6 @@ internal class UtenlandsoppholdVilkårJsonTest {
                         periode = Periode.create(1.januar(2021), 30.april(2021)),
                     ),
                     periode = Periode.create(1.januar(2021), 30.april(2021)),
-                    begrunnelse = "jamba",
                 ),
                 VurderingsperiodeUtenlandsopphold.create(
                     id = UUID.randomUUID(),
@@ -54,7 +53,6 @@ internal class UtenlandsoppholdVilkårJsonTest {
                     resultat = Resultat.Innvilget,
                     grunnlag = null,
                     periode = Periode.create(1.mai(2021), 31.desember(2021)),
-                    begrunnelse = "jess",
                 ),
             ),
         ).getOrFail()
@@ -65,7 +63,6 @@ internal class UtenlandsoppholdVilkårJsonTest {
               "vurderinger": [
                 {
                   "status": "SkalVæreMerEnn90DagerIUtlandet",
-                  "begrunnelse": "jamba",
                   "periode": {
                     "fraOgMed": "2021-01-01",
                     "tilOgMed": "2021-04-30"
@@ -73,7 +70,6 @@ internal class UtenlandsoppholdVilkårJsonTest {
                 },
                 {
                   "status": "SkalHoldeSegINorge",
-                  "begrunnelse": "jess",
                   "periode": {
                     "fraOgMed": "2021-05-01",
                     "tilOgMed": "2021-12-31"

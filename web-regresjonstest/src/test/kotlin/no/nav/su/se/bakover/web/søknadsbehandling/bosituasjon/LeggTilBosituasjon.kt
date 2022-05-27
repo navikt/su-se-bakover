@@ -43,7 +43,6 @@ internal fun ApplicationTestBuilder.fullførBosituasjon(
     sakId: String,
     behandlingId: String,
     bosituasjon: String = "BOR_ALENE",
-    begrunnelse: String = "Vurderinger rundt bosituasjon er lagt til automatisk av LeggTilBosituasjon.kt",
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
 ): String {
     return runBlocking {
@@ -56,8 +55,7 @@ internal fun ApplicationTestBuilder.fullførBosituasjon(
                 //language=JSON
                 """
                   {
-                    "bosituasjon":"$bosituasjon",
-                    "begrunnelse":"$begrunnelse"
+                    "bosituasjon":"$bosituasjon"
                   }
                 """.trimIndent(),
             )

@@ -51,7 +51,6 @@ internal class VedtakTest {
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = periode,
-            begrunnelse = null,
         )
     }
 
@@ -80,7 +79,6 @@ internal class VedtakTest {
                 forventetInntekt = 0,
             ),
             periode = vurderingsperiode,
-            begrunnelse = null,
         )
     }
 
@@ -116,7 +114,6 @@ internal class VedtakTest {
                 periode = vurderingsperiode,
                 epsFormue = null,
                 søkersFormue = Formuegrunnlag.Verdier.empty(),
-                begrunnelse = null,
                 bosituasjon = bosituasjon,
                 behandlingsPeriode = behandlingsperiode,
             ),
@@ -348,7 +345,6 @@ internal class VedtakTest {
             resultat = Resultat.Avslag,
             grunnlag = null,
             periode = p2,
-            begrunnelse = "denne personen får et avslag fordi john ikke liker han",
         )
 
         val b = lagVedtak(
@@ -426,10 +422,7 @@ internal class VedtakTest {
                     ),
                 ),
                 fritekstTilBrev = "",
-                stønadsperiode = Stønadsperiode.create(
-                    periode = Periode.create(fraDato, tilDato),
-                    begrunnelse = "begrunnelsen for perioden",
-                ),
+                stønadsperiode = Stønadsperiode.create(periode = Periode.create(fraDato, tilDato)),
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 avkorting = AvkortingVedSøknadsbehandling.Iverksatt.IngenUtestående,

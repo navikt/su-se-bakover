@@ -67,10 +67,8 @@ internal object RevurderingTestUtils {
             )
         },
     )
-    internal val stønadsperiodeNesteMånedOgTreMånederFram = Stønadsperiode.create(
-        periode = periodeNesteMånedOgTreMånederFram,
-        begrunnelse = "begrunnelsen for perioden",
-    )
+    internal val stønadsperiodeNesteMånedOgTreMånederFram =
+        Stønadsperiode.create(periode = periodeNesteMånedOgTreMånederFram)
 
     internal val beregning = no.nav.su.se.bakover.test.beregning(
         periode = periodeNesteMånedOgTreMånederFram,
@@ -169,5 +167,4 @@ internal fun Vurderingsperiode.Uføre.ekvivalentMed(other: Vurderingsperiode.Uf�
     resultat shouldBe other.resultat
     grunnlag!!.ekvivalentMed(other.grunnlag!!)
     periode shouldBe other.periode
-    begrunnelse shouldBe other.begrunnelse
 }

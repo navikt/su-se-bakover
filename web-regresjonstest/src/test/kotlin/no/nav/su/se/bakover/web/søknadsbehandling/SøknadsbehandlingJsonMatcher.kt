@@ -21,7 +21,7 @@ fun assertSøknadsbehandlingJson(
     expectedSaksbehandler: String? = null,
     expectedFritekstTilBrev: String = "",
     expectedSakId: String,
-    expectedStønadsperiode: String? = null, // """{"periode":{"fraOgMed":"2021-01-01","tilOgMed":"2021-12-01"},"begrunnelse":""}""",
+    expectedStønadsperiode: String? = null,
     expectedGrunnlagsdataOgVilkårsvurderinger: String,
     expectedErLukket: Boolean = false,
     expectedSimuleringForAvkortingsvarsel: String? = null,

@@ -34,31 +34,28 @@ internal class BosituasjongrunnlagPostgresRepo(
         val epsFnr = stringOrNull("eps_fnr")?.let {
             Fnr(it)
         }
-        val begrunnelse = stringOrNull("begrunnelse")
 
         return when (Bosituasjonstype.valueOf(string("bosituasjontype"))) {
             Bosituasjonstype.ALENE -> Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                id = id, opprettet = opprettet, periode = periode, begrunnelse = begrunnelse,
+                id = id, opprettet = opprettet, periode = periode,
             )
             Bosituasjonstype.MED_VOKSNE -> Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen(
-                id = id, opprettet = opprettet, periode = periode, begrunnelse = begrunnelse,
+                id = id, opprettet = opprettet, periode = periode,
             )
             Bosituasjonstype.EPS_67_ELLER_ELDRE -> Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre(
-                id = id, opprettet = opprettet, periode = periode, fnr = epsFnr!!, begrunnelse = begrunnelse,
+                id = id, opprettet = opprettet, periode = periode, fnr = epsFnr!!,
             )
             Bosituasjonstype.EPS_UNDER_67 -> Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
                 id = id,
                 opprettet = opprettet,
                 periode = periode,
                 fnr = epsFnr!!,
-                begrunnelse = begrunnelse,
             )
             Bosituasjonstype.EPS_UNDER_67_UFØR_FLYKTNING -> Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
                 id = id,
                 opprettet = opprettet,
                 periode = periode,
                 fnr = epsFnr!!,
-                begrunnelse = begrunnelse,
             )
             Bosituasjonstype.HAR_IKKE_EPS -> Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
                 id = id,
@@ -109,8 +106,7 @@ internal class BosituasjongrunnlagPostgresRepo(
                 fraOgMed,
                 tilOgMed,
                 bosituasjontype,
-                eps_fnr,
-                begrunnelse
+                eps_fnr
             ) values 
             (
                 :id,
@@ -119,8 +115,7 @@ internal class BosituasjongrunnlagPostgresRepo(
                 :fraOgMed,
                 :tilOgMed,
                 :bosituasjontype, 
-                :eps_fnr,
-                :begrunnelse
+                :eps_fnr
             )
         """.trimIndent()
             .insert(
@@ -147,15 +142,6 @@ internal class BosituasjongrunnlagPostgresRepo(
                         is Grunnlag.Bosituasjon.Fullstendig.Enslig -> null
                         is Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps -> null
                         is Grunnlag.Bosituasjon.Ufullstendig.HarEps -> grunnlag.fnr
-                    },
-                    "begrunnelse" to when (grunnlag) {
-                        is Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen -> grunnlag.begrunnelse
-                        is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning -> grunnlag.begrunnelse
-                        is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre -> grunnlag.begrunnelse
-                        is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning -> grunnlag.begrunnelse
-                        is Grunnlag.Bosituasjon.Fullstendig.Enslig -> grunnlag.begrunnelse
-                        is Grunnlag.Bosituasjon.Ufullstendig.HarEps -> null
-                        is Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps -> null
                     },
                 ),
                 tx,

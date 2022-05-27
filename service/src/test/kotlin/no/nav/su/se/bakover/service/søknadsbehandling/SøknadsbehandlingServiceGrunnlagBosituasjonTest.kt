@@ -316,7 +316,6 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
         val request = FullførBosituasjonRequest(
             behandlingId = behandlingId,
             bosituasjon = BosituasjonValg.BOR_ALENE,
-            begrunnelse = "begrunnelse",
         )
 
         val response = createSøknadsbehandlingService(
@@ -344,7 +343,6 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
                 FullførBosituasjonRequest(
                     behandlingId = behandlingId,
                     bosituasjon = BosituasjonValg.BOR_ALENE,
-                    "begrunnelse",
                 ),
             )
         }
@@ -388,7 +386,6 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = stønadsperiode.periode,
-            begrunnelse = "begrunnelse",
         )
 
         val expected = uavklart.copy(
@@ -418,7 +415,6 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             FullførBosituasjonRequest(
                 behandlingId = behandlingId,
                 bosituasjon = BosituasjonValg.BOR_ALENE,
-                begrunnelse = "begrunnelse",
             ),
         ).orNull()!!
 

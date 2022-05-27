@@ -29,7 +29,6 @@ internal fun UtenlandsoppholdVilkår.Vurdert.toJson(): UtenlandsoppholdVilkårJs
 internal fun VurderingsperiodeUtenlandsopphold.toJson(): VurderingsperiodeUtenlandsoppholdJson {
     return VurderingsperiodeUtenlandsoppholdJson(
         status = resultat.tilUtenlandsoppholdStatus(),
-        begrunnelse = begrunnelse,
         periode = periode.toJson(),
     )
 }
@@ -44,6 +43,5 @@ internal fun Resultat.tilUtenlandsoppholdStatus(): UtenlandsoppholdStatus {
 
 internal data class VurderingsperiodeUtenlandsoppholdJson(
     val status: UtenlandsoppholdStatus,
-    val begrunnelse: String?,
     val periode: PeriodeJson,
 )

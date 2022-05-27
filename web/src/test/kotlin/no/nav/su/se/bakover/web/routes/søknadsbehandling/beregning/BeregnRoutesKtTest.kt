@@ -60,10 +60,7 @@ import javax.sql.DataSource
 
 internal class BeregnRoutesKtTest {
 
-    private val stønadsperiode = Stønadsperiode.create(
-        periode = år(2021),
-        begrunnelse = "begrunnelse",
-    )
+    private val stønadsperiode = Stønadsperiode.create(periode = år(2021))
 
     private fun repos(dataSource: DataSource) = DatabaseBuilder.build(
         embeddedDatasource = dataSource,
@@ -310,7 +307,6 @@ internal class BeregnRoutesKtTest {
             FullførBosituasjonRequest(
                 behandlingId = objects.søknadsbehandling.id,
                 bosituasjon = BosituasjonValg.BOR_ALENE,
-                begrunnelse = "fullførBosituasjongrunnlag begrunnelse",
             ),
         )
         services.søknadsbehandling.vilkårsvurder(

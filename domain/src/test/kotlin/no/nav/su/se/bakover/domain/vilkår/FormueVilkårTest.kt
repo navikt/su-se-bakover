@@ -39,7 +39,6 @@ internal class FormueVilkårTest {
         val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen(
             id = UUID.randomUUID(), opprettet = fixedTidspunkt,
             periode = mars(2021),
-            begrunnelse = null,
         )
         val f3 = lagFormueVurderingsperiode(
             periodeInnenfor2021 = mars(2021),
@@ -85,7 +84,6 @@ internal class FormueVilkårTest {
         val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen(
             id = UUID.randomUUID(), opprettet = fixedTidspunkt,
             periode = februar(2021),
-            begrunnelse = null,
         )
         val f2 = lagFormueVurderingsperiode(
             periodeInnenfor2021 = februar(2021),
@@ -110,12 +108,10 @@ internal class FormueVilkårTest {
                 søkersFormue = Formuegrunnlag.Verdier.empty().copy(
                     verdiEiendommer = 100,
                 ),
-                begrunnelse = null,
                 bosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(
                     id = UUID.randomUUID(),
                     opprettet = fixedTidspunkt,
                     periode = februar(2021),
-                    begrunnelse = null,
                 ),
                 år(2021),
             ),
@@ -135,12 +131,10 @@ internal class FormueVilkårTest {
                 periode = februar(2021),
                 epsFormue = null,
                 søkersFormue = Formuegrunnlag.Verdier.empty(),
-                begrunnelse = "",
                 bosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(
                     id = UUID.randomUUID(),
                     opprettet = fixedTidspunkt,
                     periode = februar(2021),
-                    begrunnelse = null,
                 ),
                 år(2021),
             ),
@@ -310,7 +304,6 @@ internal class FormueVilkårTest {
             id = id,
             opprettet = tidspunkt,
             periode = periodeInnenfor2021,
-            begrunnelse = null,
         ),
         grunnlagsId: UUID = id,
         grunnlag: Formuegrunnlag = Formuegrunnlag.create(
@@ -319,7 +312,6 @@ internal class FormueVilkårTest {
             opprettet = tidspunkt,
             epsFormue = null,
             søkersFormue = Formuegrunnlag.Verdier.empty(),
-            begrunnelse = null,
             behandlingsPeriode = år(2021),
             bosituasjon = bosituasjon,
         ),

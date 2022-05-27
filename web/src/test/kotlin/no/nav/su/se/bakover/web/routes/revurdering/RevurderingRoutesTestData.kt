@@ -107,13 +107,11 @@ object RevurderingRoutesTestData {
                 periode = periode,
                 epsFormue = null,
                 søkersFormue = Formuegrunnlag.Verdier.empty(),
-                begrunnelse = null,
                 behandlingsPeriode = periode,
                 bosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(
                     id = UUID.randomUUID(),
                     opprettet = fixedTidspunkt,
                     periode = periode,
-                    begrunnelse = null,
                 ),
             ),
         ),

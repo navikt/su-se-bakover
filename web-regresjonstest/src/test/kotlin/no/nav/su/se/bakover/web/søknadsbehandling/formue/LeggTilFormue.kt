@@ -16,7 +16,6 @@ internal fun ApplicationTestBuilder.leggTilFormue(
     sakId: String,
     behandlingId: String,
     vurdering: String = "VilkårOppfylt",
-    begrunnelse: String = "Vurdering av formue er lagt til automatisk av LeggTilFormue.kt",
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
 ): String {
     return runBlocking {
@@ -45,8 +44,7 @@ internal fun ApplicationTestBuilder.leggTilFormue(
                         "kontanter": 0,
                         "depositumskonto": 0
                       },
-                      "epsVerdier": null,
-                      "begrunnelse": "$begrunnelse"
+                      "epsVerdier": null
                     },
                     "personligOppmøte":null
                   }

@@ -28,25 +28,21 @@ internal fun behandlingsinformasjonFromJson(b: BehandlingsinformasjonJson) =
         flyktning = b.flyktning?.let { f ->
             Behandlingsinformasjon.Flyktning(
                 status = Behandlingsinformasjon.Flyktning.Status.valueOf(f.status),
-                begrunnelse = f.begrunnelse,
             )
         },
         lovligOpphold = b.lovligOpphold?.let { l ->
             Behandlingsinformasjon.LovligOpphold(
                 status = Behandlingsinformasjon.LovligOpphold.Status.valueOf(l.status),
-                begrunnelse = l.begrunnelse,
             )
         },
         fastOppholdINorge = b.fastOppholdINorge?.let { f ->
             Behandlingsinformasjon.FastOppholdINorge(
                 status = Behandlingsinformasjon.FastOppholdINorge.Status.valueOf(f.status),
-                begrunnelse = f.begrunnelse,
             )
         },
         institusjonsopphold = b.institusjonsopphold?.let { i ->
             Behandlingsinformasjon.Institusjonsopphold(
                 status = Behandlingsinformasjon.Institusjonsopphold.Status.valueOf(i.status),
-                begrunnelse = i.begrunnelse,
             )
         },
         formue = b.formue?.let { f ->
@@ -80,34 +76,17 @@ internal fun behandlingsinformasjonFromJson(b: BehandlingsinformasjonJson) =
         personligOppmøte = b.personligOppmøte?.let { p ->
             Behandlingsinformasjon.PersonligOppmøte(
                 status = Behandlingsinformasjon.PersonligOppmøte.Status.valueOf(p.status),
-                begrunnelse = p.begrunnelse,
             )
         },
     )
 
-internal fun Behandlingsinformasjon.Flyktning.toJson() =
-    FlyktningJson(
-        status = status.name,
-        begrunnelse = begrunnelse,
-    )
+internal fun Behandlingsinformasjon.Flyktning.toJson() = FlyktningJson(status = status.name)
 
-internal fun Behandlingsinformasjon.LovligOpphold.toJson() =
-    LovligOppholdJson(
-        status = status.name,
-        begrunnelse = begrunnelse,
-    )
+internal fun Behandlingsinformasjon.LovligOpphold.toJson() = LovligOppholdJson(status = status.name)
 
-internal fun Behandlingsinformasjon.FastOppholdINorge.toJson() =
-    FastOppholdINorgeJson(
-        status = status.name,
-        begrunnelse = begrunnelse,
-    )
+internal fun Behandlingsinformasjon.FastOppholdINorge.toJson() = FastOppholdINorgeJson(status = status.name)
 
-internal fun Behandlingsinformasjon.Institusjonsopphold.toJson() =
-    InstitusjonsoppholdJson(
-        status = status.name,
-        begrunnelse = begrunnelse,
-    )
+internal fun Behandlingsinformasjon.Institusjonsopphold.toJson() = InstitusjonsoppholdJson(status = status.name)
 
 internal fun Behandlingsinformasjon.Formue.toJson() =
     FormueJson(
@@ -129,33 +108,17 @@ internal fun Behandlingsinformasjon.Formue.Verdier.toJson() =
         depositumskonto = depositumskonto,
     )
 
-internal fun Behandlingsinformasjon.PersonligOppmøte.toJson() =
-    PersonligOppmøteJson(
-        status = status.name,
-        begrunnelse = begrunnelse,
-    )
+internal fun Behandlingsinformasjon.PersonligOppmøte.toJson() = PersonligOppmøteJson(status = status.name)
 
 internal inline fun <reified T : Enum<T>> enumContains(s: String) = enumValues<T>().any { it.name == s }
 
-internal data class FlyktningJson(
-    val status: String,
-    val begrunnelse: String?,
-)
+internal data class FlyktningJson(val status: String)
 
-internal data class LovligOppholdJson(
-    val status: String,
-    val begrunnelse: String?,
-)
+internal data class LovligOppholdJson(val status: String)
 
-internal data class FastOppholdINorgeJson(
-    val status: String,
-    val begrunnelse: String?,
-)
+internal data class FastOppholdINorgeJson(val status: String)
 
-internal data class InstitusjonsoppholdJson(
-    val status: String,
-    val begrunnelse: String?,
-)
+internal data class InstitusjonsoppholdJson(val status: String)
 
 internal data class FormueJson(
     val status: String,
@@ -175,7 +138,4 @@ internal data class VerdierJson(
     val depositumskonto: Int,
 )
 
-internal data class PersonligOppmøteJson(
-    val status: String,
-    val begrunnelse: String?,
-)
+internal data class PersonligOppmøteJson(val status: String)

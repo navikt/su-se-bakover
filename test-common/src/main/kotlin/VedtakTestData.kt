@@ -210,7 +210,7 @@ fun vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         tilOgMed = år(2021).tilOgMed,
     ),
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
-        stønadsperiode = Stønadsperiode.create(periode, "whatever"),
+        stønadsperiode = Stønadsperiode.create(periode),
         clock = clock,
     ),
     attestering: Attestering = attesteringIverksatt(clock = clock),

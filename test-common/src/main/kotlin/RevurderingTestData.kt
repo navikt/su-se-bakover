@@ -1385,7 +1385,7 @@ fun simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         tilOgMed = år(2021).tilOgMed,
     ),
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
-        stønadsperiode = Stønadsperiode.create(periode, "whatever"),
+        stønadsperiode = Stønadsperiode.create(periode),
         clock = clock,
     ),
     simulering: Simulering = simuleringStans(
@@ -1424,7 +1424,7 @@ fun iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         tilOgMed = år(2021).tilOgMed,
     ),
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
-        stønadsperiode = Stønadsperiode.create(periode, "whatever"),
+        stønadsperiode = Stønadsperiode.create(periode),
     ),
     attestering: Attestering = attesteringIverksatt(clock),
 ): Pair<Sak, StansAvYtelseRevurdering.IverksattStansAvYtelse> {

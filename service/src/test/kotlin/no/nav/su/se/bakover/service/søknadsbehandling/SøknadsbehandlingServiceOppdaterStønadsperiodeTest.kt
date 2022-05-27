@@ -51,10 +51,7 @@ internal class SøknadsbehandlingServiceOppdaterStønadsperiodeTest {
     fun `oppdaterer stønadsperiode for behandling, grunnlagsdata og vilkårsvurderinger`() {
         val (sak, vilkårsvurdert) = søknadsbehandlingVilkårsvurdertInnvilget()
 
-        val nyStønadsperiode = Stønadsperiode.create(
-            periode = Periode.create(1.juni(2021), 31.mars(2022)),
-            begrunnelse = "begg",
-        )
+        val nyStønadsperiode = Stønadsperiode.create(periode = Periode.create(1.juni(2021), 31.mars(2022)))
 
         SøknadsbehandlingServiceAndMocks(
             sakService = mock {

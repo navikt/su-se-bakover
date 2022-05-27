@@ -44,7 +44,6 @@ internal class UføreVilkårsvurderingPostgresRepo(
                     uføre_grunnlag_id,
                     vurdering,
                     resultat,
-                    begrunnelse,
                     fraOgMed,
                     tilOgMed
                 ) values 
@@ -55,7 +54,6 @@ internal class UføreVilkårsvurderingPostgresRepo(
                     :ufore_grunnlag_id,
                     :vurdering,
                     :resultat,
-                    :begrunnelse,
                     :fraOgMed,
                     :tilOgMed
                 )
@@ -68,7 +66,6 @@ internal class UføreVilkårsvurderingPostgresRepo(
                     "ufore_grunnlag_id" to vurderingsperiode.grunnlag?.id,
                     "vurdering" to "MANUELL",
                     "resultat" to vurderingsperiode.resultat.toDto().toString(),
-                    "begrunnelse" to vurderingsperiode.begrunnelse,
                     "fraOgMed" to vurderingsperiode.periode.fraOgMed,
                     "tilOgMed" to vurderingsperiode.periode.tilOgMed,
                 ),
@@ -120,7 +117,6 @@ internal class UføreVilkårsvurderingPostgresRepo(
             grunnlag = uuidOrNull("uføre_grunnlag_id")?.let {
                 uføregrunnlagRepo.hentForUføregrunnlagForId(it, session)
             },
-            begrunnelse = stringOrNull("begrunnelse"),
             periode = Periode.create(
                 fraOgMed = localDate("fraOgMed"),
                 tilOgMed = localDate("tilOgMed"),

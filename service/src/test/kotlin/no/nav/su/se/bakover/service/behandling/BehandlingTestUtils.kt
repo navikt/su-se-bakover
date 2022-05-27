@@ -43,19 +43,15 @@ object BehandlingTestUtils {
     internal val behandlingsinformasjon = Behandlingsinformasjon(
         flyktning = Flyktning(
             status = Status.VilkårOppfylt,
-            begrunnelse = null
         ),
         lovligOpphold = LovligOpphold(
             status = LovligOpphold.Status.VilkårOppfylt,
-            begrunnelse = null
         ),
         fastOppholdINorge = FastOppholdINorge(
             status = FastOppholdINorge.Status.VilkårOppfylt,
-            begrunnelse = null
         ),
         institusjonsopphold = Behandlingsinformasjon.Institusjonsopphold(
             status = Behandlingsinformasjon.Institusjonsopphold.Status.VilkårOppfylt,
-            begrunnelse = null
         ),
         formue = Formue(
             status = Formue.Status.VilkårOppfylt,
@@ -83,7 +79,6 @@ object BehandlingTestUtils {
         ),
         personligOppmøte = PersonligOppmøte(
             status = MøttPersonlig,
-            begrunnelse = null
         ),
     )
 }
