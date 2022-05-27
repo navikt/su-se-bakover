@@ -464,10 +464,7 @@ internal class StønadsstatistikkMapperTest {
     fun `Gjenopptak bruker nyeste beregning for hver måned`() {
         val stønadsperiode = Periode.create(1.januar(2021), 28.februar(2021))
         var sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
-            stønadsperiode = Stønadsperiode.create(
-                stønadsperiode,
-                "",
-            ),
+            stønadsperiode = Stønadsperiode.create(stønadsperiode),
             clock = fixedClock,
         )
         lateinit var gjenopptakVedtak: VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse
