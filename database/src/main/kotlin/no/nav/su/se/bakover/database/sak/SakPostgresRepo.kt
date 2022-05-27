@@ -54,10 +54,18 @@ internal class SakPostgresRepo(
         }
     }
 
-    override fun hentSak(fnr: Fnr): Sak? {
+    override fun hentSak(fnr: Fnr, type: Søknadstype): Sak? {
         return dbMetrics.timeQuery("hentSakForFnr") {
             sessionFactory.withSessionContext {
-                hentSakInternal(fnr, it)
+                hentSakInternal(fnr, type, it)
+            }
+        }
+    }
+
+    override fun hentSaker(fnr: Fnr): List<Sak> {
+        return dbMetrics.timeQuery("hentSakerForFnr") {
+            sessionFactory.withSessionContext {
+                hentSakerInternal(fnr, it)
             }
         }
     }
@@ -162,11 +170,11 @@ internal class SakPostgresRepo(
         }
     }
 
-    private fun hentSakInternal(fnr: Fnr, sessionContext: SessionContext): Sak? {
+    private fun hentSakInternal(fnr: Fnr, type: Søknadstype, sessionContext: SessionContext): Sak? {
         return dbMetrics.timeQuery("hentSakInternalForFnr") {
             sessionContext.withSession { session ->
-                "select * from sak where fnr=:fnr"
-                    .hent(mapOf("fnr" to fnr.toString()), session) { it.toSak(sessionContext) }
+                "select * from sak where fnr=:fnr and type=:type"
+                    .hent(mapOf("fnr" to fnr.toString(), "type" to type.value), session) { it.toSak(sessionContext) }
             }
         }
     }
@@ -185,6 +193,15 @@ internal class SakPostgresRepo(
             sessionContext.withSession { session ->
                 "select * from sak where saksnummer=:saksnummer"
                     .hent(mapOf("saksnummer" to saksnummer.nummer), session) { it.toSak(sessionContext) }
+            }
+        }
+    }
+
+    private fun hentSakerInternal(fnr: Fnr, sessionContext: SessionContext): List<Sak> {
+        return dbMetrics.timeQuery("hentSakerInternalForFnr") {
+            sessionContext.withSession { session ->
+                "select * from sak where fnr=:fnr"
+                    .hentListe(mapOf("fnr" to fnr.toString()), session) { it.toSak(sessionContext) }
             }
         }
     }

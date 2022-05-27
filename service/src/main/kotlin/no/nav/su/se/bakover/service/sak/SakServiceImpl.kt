@@ -6,12 +6,14 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.BegrensetSakerInfo
 import no.nav.su.se.bakover.domain.BegrensetSakinfo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.domain.Søknadstype
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakRepo
@@ -35,8 +37,16 @@ internal class SakServiceImpl(
         return sakRepo.hentSak(sakId)?.right() ?: FantIkkeSak.left()
     }
 
-    override fun hentSak(fnr: Fnr): Either<FantIkkeSak, Sak> {
-        return sakRepo.hentSak(fnr)?.right() ?: FantIkkeSak.left()
+    override fun hentSak(fnr: Fnr, type: Søknadstype): Either<FantIkkeSak, Sak> {
+        return sakRepo.hentSak(fnr, type)?.right() ?: FantIkkeSak.left()
+    }
+
+    override fun hentSaker(fnr: Fnr): Either<FantIkkeSak, List<Sak>> {
+        val saker = sakRepo.hentSaker(fnr)
+        if (saker.isEmpty()) {
+            return FantIkkeSak.left()
+        }
+        return saker.right()
     }
 
     override fun hentSak(saksnummer: Saksnummer): Either<FantIkkeSak, Sak> {
@@ -79,21 +89,31 @@ internal class SakServiceImpl(
         return sakRepo.hentFerdigeBehandlinger()
     }
 
-    override fun hentBegrensetSakinfo(fnr: Fnr): Either<FantIkkeSak, BegrensetSakinfo> {
-        return hentSak(fnr)
-            .map { sak ->
-                BegrensetSakinfo(
-                    harÅpenSøknad = sak.søknader
-                        .any { søknad ->
-                            val behandling = sak.søknadsbehandlinger
-                                .find { b -> b.søknad.id == søknad.id }
-                            (
-                                søknad !is Søknad.Journalført.MedOppgave.Lukket &&
-                                    (behandling == null || !behandling.erIverksatt)
-                                )
-                        },
-                    iverksattInnvilgetStønadsperiode = sak.hentGjeldendeStønadsperiode(clock),
+    override fun hentBegrensetSakerInfo(fnr: Fnr): Either<FantIkkeSak, BegrensetSakerInfo> {
+        return hentSaker(fnr)
+            .map { saker ->
+                BegrensetSakerInfo(
+                    uføre = sakTilBegrensetSakInfo(saker.find { it.type == Søknadstype.UFØRE }),
+                    alder = sakTilBegrensetSakInfo(saker.find { it.type == Søknadstype.ALDER })
                 )
             }
+    }
+
+    private fun sakTilBegrensetSakInfo(sak: Sak?): BegrensetSakinfo {
+        if (sak == null) {
+            return BegrensetSakinfo(false, null)
+        }
+        return BegrensetSakinfo(
+            harÅpenSøknad = sak.søknader
+                .any { søknad ->
+                    val behandling = sak.søknadsbehandlinger
+                        .find { b -> b.søknad.id == søknad.id }
+                    (
+                        søknad !is Søknad.Journalført.MedOppgave.Lukket &&
+                            (behandling == null || !behandling.erIverksatt)
+                        )
+                },
+            iverksattInnvilgetStønadsperiode = sak.hentGjeldendeStønadsperiode(clock),
+        )
     }
 }

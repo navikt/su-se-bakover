@@ -12,6 +12,10 @@ import no.nav.su.se.bakover.web.errorJson
 import kotlin.reflect.KClass
 
 internal object Feilresponser {
+    val ugyldigTypeSak = BadRequest.errorJson(
+        "Ugyldig type sak",
+        "ugyldig_type_sak"
+    )
     val fantIkkeBehandling = NotFound.errorJson(
         "Fant ikke behandling",
         "fant_ikke_behandling",

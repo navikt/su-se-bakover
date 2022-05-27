@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.AktørId
-import no.nav.su.se.bakover.domain.BegrensetSakinfo
+import no.nav.su.se.bakover.domain.BegrensetSakerInfo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NySak
@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.SendPåminnelseNyStønadsperiodeContext
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
+import no.nav.su.se.bakover.domain.Søknadstype
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
@@ -273,10 +274,17 @@ open class AccessCheckProxy(
                     return services.sak.hentSak(sakId)
                 }
 
-                override fun hentSak(fnr: Fnr): Either<FantIkkeSak, Sak> {
+                override fun hentSaker(fnr: Fnr): Either<FantIkkeSak, List<Sak>> {
+                    return services.sak.hentSaker(fnr)
+                        .also {
+                            it.map { saker -> saker.map { sak -> assertHarTilgangTilSak(sak.id) } }
+                        }
+                }
+
+                override fun hentSak(fnr: Fnr, type: Søknadstype): Either<FantIkkeSak, Sak> {
                     // Siden vi også vil kontrollere på EPS må vi hente ut saken først
                     // og sjekke på hele den (i stedet for å gjøre assertHarTilgangTilPerson(fnr))
-                    return services.sak.hentSak(fnr)
+                    return services.sak.hentSak(fnr, type)
                         .also {
                             it.map { sak -> assertHarTilgangTilSak(sak.id) }
                         }
@@ -315,9 +323,9 @@ open class AccessCheckProxy(
                     return services.sak.hentFerdigeBehandlingerForAlleSaker()
                 }
 
-                override fun hentBegrensetSakinfo(fnr: Fnr): Either<FantIkkeSak, BegrensetSakinfo> {
+                override fun hentBegrensetSakerInfo(fnr: Fnr): Either<FantIkkeSak, BegrensetSakerInfo> {
                     assertHarTilgangTilPerson(fnr)
-                    return services.sak.hentBegrensetSakinfo(fnr)
+                    return services.sak.hentBegrensetSakerInfo(fnr)
                 }
             },
             søknad = object : SøknadService {

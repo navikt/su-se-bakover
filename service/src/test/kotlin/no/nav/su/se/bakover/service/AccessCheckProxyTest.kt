@@ -65,7 +65,7 @@ internal class AccessCheckProxyTest {
                 services = services.copy(
                     sak = mock {
                         on {
-                            hentSak(fnr)
+                            hentSak(fnr, Søknadstype.UFØRE)
                         } doReturn Either.Right(
                             Sak(
                                 id = sakId,
@@ -92,7 +92,7 @@ internal class AccessCheckProxyTest {
                 ),
             ).proxy()
 
-            shouldThrow<Tilgangssjekkfeil> { proxied.sak.hentSak(fnr) }
+            shouldThrow<Tilgangssjekkfeil> { proxied.sak.hentSak(fnr, Søknadstype.UFØRE) }
         }
 
         @Test
@@ -207,7 +207,7 @@ internal class AccessCheckProxyTest {
         private val servicesReturningSak = services.copy(
             sak = mock {
                 on {
-                    hentSak(fnr)
+                    hentSak(fnr, Søknadstype.UFØRE)
                 } doReturn Either.Right(
                     Sak(
                         id = UUID.randomUUID(),
@@ -259,8 +259,8 @@ internal class AccessCheckProxyTest {
 
         @Test
         fun `Når man gjør oppslag på fnr`() {
-            proxied.sak.hentSak(fnr)
-            verify(servicesReturningSak.sak).hentSak(fnr = argShouldBe(fnr))
+            proxied.sak.hentSak(fnr, Søknadstype.UFØRE)
+            verify(servicesReturningSak.sak).hentSak(fnr = argShouldBe(fnr), type = argShouldBe(Søknadstype.UFØRE))
         }
 
         @Test
