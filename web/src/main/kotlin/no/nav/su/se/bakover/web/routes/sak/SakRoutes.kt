@@ -171,8 +171,8 @@ internal fun Route.sakRoutes(
         }
     }
 
-    data class Body(val fraOgMed: LocalDate, val tilOgMed: LocalDate = LocalDate.MAX) {
-        val periode = Periode.create(fraOgMed, tilOgMed)
+    data class Body(val fraOgMed: LocalDate, val tilOgMed: LocalDate?) {
+        val periode = Periode.create(fraOgMed, tilOgMed ?: LocalDate.MAX)
     }
 
     data class Response(val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson?)

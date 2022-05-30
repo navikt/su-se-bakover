@@ -102,7 +102,6 @@ import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeSetteNyDatoForKontr
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
-import no.nav.su.se.bakover.service.regulering.BeregnRequest
 import no.nav.su.se.bakover.service.regulering.KunneIkkeAvslutte
 import no.nav.su.se.bakover.service.regulering.KunneIkkeOppretteRegulering
 import no.nav.su.se.bakover.service.regulering.KunneIkkeRegulereManuelt
@@ -111,11 +110,9 @@ import no.nav.su.se.bakover.service.revurdering.Forhåndsvarselhandling
 import no.nav.su.se.bakover.service.revurdering.FortsettEtterForhåndsvarselFeil
 import no.nav.su.se.bakover.service.revurdering.FortsettEtterForhåndsvarslingRequest
 import no.nav.su.se.bakover.service.revurdering.GjenopptaYtelseRequest
-import no.nav.su.se.bakover.service.revurdering.HentGjeldendeGrunnlagsdataOgVilkårsvurderingerResponse
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeForhåndsvarsle
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeGjenopptaYtelse
-import no.nav.su.se.bakover.service.revurdering.KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteGjenopptakAvYtelse
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteStansYtelse
@@ -684,11 +681,6 @@ open class AccessCheckProxy(
                 override fun leggTilFormuegrunnlag(request: LeggTilFormuegrunnlagRequest): Either<KunneIkkeLeggeTilFormuegrunnlag, RevurderingOgFeilmeldingerResponse> {
                     assertHarTilgangTilRevurdering(request.revurderingId)
                     return services.revurdering.leggTilFormuegrunnlag(request)
-                }
-
-                override fun hentGjeldendeGrunnlagsdataOgVilkårsvurderinger(revurderingId: UUID): Either<KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger, HentGjeldendeGrunnlagsdataOgVilkårsvurderingerResponse> {
-                    assertHarTilgangTilRevurdering(revurderingId)
-                    return services.revurdering.hentGjeldendeGrunnlagsdataOgVilkårsvurderinger(revurderingId)
                 }
 
                 override fun avsluttRevurdering(

@@ -44,7 +44,7 @@ internal fun Route.revurderingRoutes(
 
     leggTilFormueRevurderingRoute(revurderingService, satsFactory)
 
-    hentGrunnlagRevurderingRoutes(revurderingService, vedtakService, satsFactory)
+    hentGrunnlagRevurderingRoutes(vedtakService, satsFactory)
 
     stansUtbetaling(revurderingService, satsFactory)
 

@@ -39,7 +39,6 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.plus
-import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.vedtakRevurderingIverksattInnvilget
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingSøknadsbehandlingIkkeVurdert
@@ -263,7 +262,6 @@ internal class VedtakServiceImplTest {
         vedtakRepo = vedtakRepo,
         sakService = sakService,
         clock = fixedClock,
-        satsFactory = satsFactoryTest,
     )
 
     private fun innvilgetVedtak(fnr: Fnr) =

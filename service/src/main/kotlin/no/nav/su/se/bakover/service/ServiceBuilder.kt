@@ -103,7 +103,6 @@ object ServiceBuilder {
             vedtakRepo = databaseRepos.vedtakRepo,
             sakService = sakService,
             clock = clock,
-            satsFactory = satsFactory,
         )
 
         val kontrollsamtaleService = KontrollsamtaleServiceImpl(
