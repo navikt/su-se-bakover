@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
-import no.nav.su.se.bakover.domain.sak.SakIdSaksnummerFnr
+import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import java.util.UUID
 
@@ -25,7 +25,7 @@ interface SakService {
     fun hentÅpneBehandlingerForAlleSaker(): List<Behandlingsoversikt>
     fun hentFerdigeBehandlingerForAlleSaker(): List<Behandlingsoversikt>
     fun hentBegrensetSakinfo(fnr: Fnr): Either<FantIkkeSak, BegrensetSakinfo>
-    fun hentSakidOgSaksnummer(fnr: Fnr): Either<FantIkkeSak, SakIdSaksnummerFnr>
+    fun hentSakidOgSaksnummer(fnr: Fnr): Either<FantIkkeSak, SakInfo>
 }
 
 object FantIkkeSak

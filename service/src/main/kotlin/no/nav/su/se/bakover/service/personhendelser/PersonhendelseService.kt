@@ -22,7 +22,7 @@ class PersonhendelseService(
 
     fun prosesserNyHendelse(personhendelse: Personhendelse.IkkeTilknyttetSak) {
         val eksisterendeSakIdOgNummer =
-            sakRepo.hentSakIdOgNummerForIdenter(personhendelse.metadata.personidenter) ?: return Unit.also {
+            sakRepo.hentSakInfoForIdenter(personhendelse.metadata.personidenter) ?: return Unit.also {
                 log.debug("Personhendelse ikke knyttet til sak: Ignorerer ${personhendelse.hendelse} med hendelsesid ${personhendelse.metadata.hendelseId}, offset ${personhendelse.metadata.offset}, partisjon ${personhendelse.metadata.partisjon} og endringstype ${personhendelse.endringstype}")
                 sikkerLogg.debug("Personhendelse ikke knyttet til sak: $personhendelse")
             }

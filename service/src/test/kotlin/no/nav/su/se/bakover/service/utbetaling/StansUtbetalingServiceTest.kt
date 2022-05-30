@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -105,6 +106,7 @@ internal class StansUtbetalingServiceTest {
         saksnummer = saksnummer,
         opprettet = Tidspunkt.EPOCH,
         fnr = fnr,
+        type = Sakstype.UFØRE,
         utbetalinger = listOf(
             oversendtUtbetaling.copy(
                 type = Utbetaling.UtbetalingsType.NY,

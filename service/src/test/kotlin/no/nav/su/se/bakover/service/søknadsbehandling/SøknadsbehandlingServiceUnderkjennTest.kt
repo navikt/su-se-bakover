@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
@@ -106,6 +107,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
     )
 
     private val oppgaveConfig = OppgaveConfig.Søknad(
+        sakstype = Sakstype.UFØRE,
         journalpostId = journalpostId,
         søknadId = søknadId,
         aktørId = aktørId,

@@ -34,8 +34,8 @@ sealed interface SøknadInnhold {
     }
 
     fun type() = when (this) {
-        is SøknadsinnholdAlder -> Søknadstype.ALDER
-        is SøknadsinnholdUføre -> Søknadstype.UFØRE
+        is SøknadsinnholdAlder -> Sakstype.ALDER
+        is SøknadsinnholdUføre -> Sakstype.UFØRE
     }
 }
 

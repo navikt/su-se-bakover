@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder.build
@@ -95,6 +96,7 @@ internal class SøknadRoutesKtTest {
         opprettet = tidspunkt,
         fnr = Fnr.generer(),
         utbetalinger = emptyList(),
+        type = Sakstype.UFØRE,
     )
     private val søknadId = UUID.randomUUID()
 

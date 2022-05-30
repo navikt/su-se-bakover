@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -28,7 +29,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
-import no.nav.su.se.bakover.domain.sak.SakIdSaksnummerFnr
+import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.statistikk.Event
@@ -473,10 +474,11 @@ internal class ReguleringServiceImplTest {
             },
             sakRepo = mock {
                 on { hentSakIdSaksnummerOgFnrForAlleSaker() } doReturn listOf(
-                    SakIdSaksnummerFnr(
+                    SakInfo(
                         sakId = testData.first.sakId,
                         saksnummer = testData.first.saksnummer,
                         fnr = testData.first.fnr,
+                        type = Sakstype.UFØRE,
                     ),
                 )
                 on { hentSak(any<UUID>()) } doReturn _sak
@@ -502,14 +504,15 @@ internal class ReguleringServiceImplTest {
     private fun lagTestdata(
         sak: Sak,
         reguleringsdato: LocalDate = 1.mai(2021),
-    ): Triple<SakIdSaksnummerFnr, GjeldendeVedtaksdata, UtbetalingslinjePåTidslinje?> {
+    ): Triple<SakInfo, GjeldendeVedtaksdata, UtbetalingslinjePåTidslinje?> {
         val søknadsbehandling = sak.søknadsbehandlinger.single()
 
         return Triple(
-            SakIdSaksnummerFnr(
+            SakInfo(
                 sakId = søknadsbehandling.sakId,
                 saksnummer = søknadsbehandling.saksnummer,
                 fnr = søknadsbehandling.fnr,
+                type = Sakstype.UFØRE,
             ),
 
             sak.kopierGjeldendeVedtaksdata(

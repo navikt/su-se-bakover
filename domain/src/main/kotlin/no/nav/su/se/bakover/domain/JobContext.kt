@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
-import no.nav.su.se.bakover.domain.sak.SakIdSaksnummerFnr
+import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import java.time.Clock
 import java.time.LocalDate
@@ -96,7 +96,7 @@ data class SendPåminnelseNyStønadsperiodeContext(
         """.trimIndent()
     }
 
-    fun uprosesserte(alle: () -> List<SakIdSaksnummerFnr>): Set<Saksnummer> {
+    fun uprosesserte(alle: () -> List<SakInfo>): Set<Saksnummer> {
         return alle().map { it.saksnummer }.toSet().minus(prosessert())
     }
 

@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -40,7 +41,8 @@ internal class SakJsonTest {
         opprettet = fixedTidspunkt,
         fnr = Fnr("12345678910"),
         utbetalinger = emptyList(),
-        klager = emptyList()
+        klager = emptyList(),
+        type = Sakstype.UFØRE,
     )
 
     //language=JSON

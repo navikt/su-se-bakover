@@ -18,11 +18,12 @@ import no.nav.su.se.bakover.domain.JobContextRepo
 import no.nav.su.se.bakover.domain.NameAndYearMonthId
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.SendPåminnelseNyStønadsperiodeContext
 import no.nav.su.se.bakover.domain.brev.BrevTemplate
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
-import no.nav.su.se.bakover.domain.sak.SakIdSaksnummerFnr
+import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
@@ -71,8 +72,8 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             clock = desemberClock,
             sakRepo = mock {
                 on { hentSakIdSaksnummerOgFnrForAlleSaker() } doReturn listOf(
-                    SakIdSaksnummerFnr(sak1.id, sak1.saksnummer, sak1.fnr),
-                    SakIdSaksnummerFnr(sak2.id, sak2.saksnummer, sak2.fnr),
+                    SakInfo(sak1.id, sak1.saksnummer, sak1.fnr, sak1.type),
+                    SakInfo(sak2.id, sak2.saksnummer, sak2.fnr, sak2.type),
                 )
                 on { hentSak(any<Saksnummer>()) } doReturnConsecutively listOf(
                     sak1, sak2,
@@ -163,7 +164,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             clock = desemberClock,
             sakRepo = mock {
                 on { hentSakIdSaksnummerOgFnrForAlleSaker() } doReturn listOf(
-                    SakIdSaksnummerFnr(sak1.id, sak1.saksnummer, sak1.fnr),
+                    SakInfo(sak1.id, sak1.saksnummer, sak1.fnr, sak1.type),
                 )
                 on { hentSak(any<Saksnummer>()) } doReturnConsecutively listOf(
                     sak1,
@@ -280,11 +281,11 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             clock = juliClock,
             sakRepo = mock {
                 on { hentSakIdSaksnummerOgFnrForAlleSaker() } doReturn listOf(
-                    SakIdSaksnummerFnr(sak1.id, sak1.saksnummer, sak1.fnr),
-                    SakIdSaksnummerFnr(sak2.id, sak2.saksnummer, sak2.fnr),
-                    SakIdSaksnummerFnr(sak3.id, sak3.saksnummer, sak3.fnr),
-                    SakIdSaksnummerFnr(sak4.id, sak4.saksnummer, sak4.fnr),
-                    SakIdSaksnummerFnr(sak5.id, sak5.saksnummer, sak5.fnr),
+                    SakInfo(sak1.id, sak1.saksnummer, sak1.fnr, sak1.type),
+                    SakInfo(sak2.id, sak2.saksnummer, sak2.fnr, sak2.type),
+                    SakInfo(sak3.id, sak3.saksnummer, sak3.fnr, sak3.type),
+                    SakInfo(sak4.id, sak4.saksnummer, sak4.fnr, sak4.type),
+                    SakInfo(sak5.id, sak5.saksnummer, sak5.fnr, sak5.type),
                 )
                 on { hentSak(any<Saksnummer>()) } doReturnConsecutively listOf(
                     sak1,
@@ -376,13 +377,14 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             opprettet = Tidspunkt.now(fixedClock),
             fnr = Fnr.generer(),
             utbetalinger = emptyList(),
+            type = Sakstype.UFØRE
         )
 
         SendPåminnelseNyStønadsperiodeServiceAndMocks(
             clock = fixedClock,
             sakRepo = mock {
                 on { hentSakIdSaksnummerOgFnrForAlleSaker() } doReturn listOf(
-                    SakIdSaksnummerFnr(sak.id, sak.saksnummer, sak.fnr),
+                    SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type),
                 )
                 on { hentSak(any<Saksnummer>()) } doReturn sak
             },

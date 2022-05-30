@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -120,6 +121,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
 
         client.opprettOppgave(
             OppgaveConfig.Søknad(
+                sakstype = Sakstype.UFØRE,
                 journalpostId = journalpostId,
                 søknadId = søknadId,
                 aktørId = AktørId(aktørId),
@@ -136,6 +138,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
 
         client.opprettOppgaveMedSystembruker(
             OppgaveConfig.Søknad(
+                sakstype = Sakstype.UFØRE,
                 journalpostId = journalpostId,
                 søknadId = søknadId,
                 aktørId = AktørId(aktørId),
@@ -218,6 +221,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         )
         client.opprettOppgave(
             OppgaveConfig.Søknad(
+                sakstype = Sakstype.UFØRE,
                 journalpostId = journalpostId,
                 søknadId = søknadId,
                 aktørId = AktørId(aktørId),
@@ -321,6 +325,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         )
         client.opprettOppgave(
             OppgaveConfig.Søknad(
+                sakstype = Sakstype.UFØRE,
                 journalpostId = journalpostId,
                 søknadId = søknadId,
                 aktørId = AktørId(aktørId),

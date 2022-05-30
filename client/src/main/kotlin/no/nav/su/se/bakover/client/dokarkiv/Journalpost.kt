@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Behandlingstema
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.Tema
 import no.nav.su.se.bakover.domain.brev.BrevInnhold
@@ -12,7 +13,7 @@ import java.util.Base64
 
 sealed class Journalpost {
     val tema: String = Tema.SUPPLERENDE_STØNAD.value
-    val behandlingstema: String = Behandlingstema.SU_UFØRE_FLYKTNING.value
+    abstract val sakstype: Sakstype
     abstract val journalfoerendeEnhet: String
     abstract val tittel: String
     abstract val journalpostType: JournalPostType
@@ -21,19 +22,27 @@ sealed class Journalpost {
     abstract val bruker: Bruker
     abstract val sak: Fagsak
     abstract val dokumenter: List<JournalpostDokument>
+
+    val behandlingstema: String
+        get() = when (sakstype) {
+            Sakstype.ALDER -> Behandlingstema.SU_ALDER.value
+            Sakstype.UFØRE -> Behandlingstema.SU_UFØRE_FLYKTNING.value
+        }
+
     fun søkersNavn(person: Person): String =
         """${person.navn.etternavn}, ${person.navn.fornavn} ${person.navn.mellomnavn ?: ""}""".trimEnd()
 
     data class Søknadspost private constructor(
         val person: Person,
         val saksnummer: Saksnummer,
+        override val sakstype: Sakstype,
         override val dokumenter: List<JournalpostDokument>,
     ) : Journalpost() {
-        override val tittel: String = søknadsposttittel
         override val avsenderMottaker: AvsenderMottaker = AvsenderMottaker(
             id = person.ident.fnr.toString(),
             navn = søkersNavn(person),
         )
+        override val tittel: String = lagTittel(sakstype)
         override val bruker: Bruker = Bruker(id = person.ident.fnr.toString())
         override val sak: Fagsak = Fagsak(saksnummer.nummer.toString())
         override val journalpostType: JournalPostType = JournalPostType.INNGAAENDE
@@ -41,25 +50,29 @@ sealed class Journalpost {
         override val journalfoerendeEnhet: String = "9999"
 
         companion object {
-            private const val søknadsposttittel = "Søknad om supplerende stønad for uføre flyktninger"
+            fun lagTittel(sakstype: Sakstype) = when (sakstype) {
+                Sakstype.ALDER -> "Søknad om supplerende stønad for alder"
+                Sakstype.UFØRE -> "Søknad om supplerende stønad for uføre flyktninger"
+            }
             fun from(
                 person: Person,
                 saksnummer: Saksnummer,
                 søknadInnhold: SøknadInnhold,
                 pdf: ByteArray,
-            ) = Søknadspost(
+            ): Søknadspost = Søknadspost(
                 person = person,
                 saksnummer = saksnummer,
                 dokumenter = lagDokumenter(
                     pdf = pdf,
                     søknadInnhold = søknadInnhold,
                 ),
+                sakstype = søknadInnhold.type()
             )
 
             private fun lagDokumenter(pdf: ByteArray, søknadInnhold: SøknadInnhold): List<JournalpostDokument> =
                 listOf(
                     JournalpostDokument(
-                        tittel = søknadsposttittel,
+                        tittel = lagTittel(søknadInnhold.type()),
                         dokumentKategori = DokumentKategori.SOK,
                         dokumentvarianter = listOf(
                             DokumentVariant.ArkivPDF(fysiskDokument = Base64.getEncoder().encodeToString(pdf)),
@@ -78,6 +91,7 @@ sealed class Journalpost {
         val saksnummer: Saksnummer,
         override val dokumenter: List<JournalpostDokument>,
         override val tittel: String,
+        override val sakstype: Sakstype,
     ) : Journalpost() {
         override val avsenderMottaker: AvsenderMottaker = AvsenderMottaker(
             id = person.ident.fnr.toString(),
@@ -95,6 +109,7 @@ sealed class Journalpost {
                 saksnummer: Saksnummer,
                 brevInnhold: BrevInnhold,
                 pdf: ByteArray,
+                sakstype: Sakstype,
             ) = Vedtakspost(
                 person = person,
                 saksnummer = saksnummer,
@@ -104,12 +119,14 @@ sealed class Journalpost {
                     originalJson = brevInnhold.toJson(),
                 ),
                 tittel = brevInnhold.brevTemplate.tittel(),
+                sakstype = sakstype
             )
 
             fun from(
                 person: Person,
                 saksnummer: Saksnummer,
                 dokument: Dokument,
+                sakstype: Sakstype,
             ) = Vedtakspost(
                 person = person,
                 saksnummer = saksnummer,
@@ -119,6 +136,7 @@ sealed class Journalpost {
                     originalJson = dokument.generertDokumentJson,
                 ),
                 tittel = dokument.tittel,
+                sakstype = sakstype
             )
 
             private fun lagDokumenter(tittel: String, pdf: ByteArray, originalJson: String): List<JournalpostDokument> =
@@ -142,6 +160,7 @@ sealed class Journalpost {
         val saksnummer: Saksnummer,
         override val dokumenter: List<JournalpostDokument>,
         override val tittel: String,
+        override val sakstype: Sakstype
     ) : Journalpost() {
         override val avsenderMottaker: AvsenderMottaker = AvsenderMottaker(
             id = person.ident.fnr.toString(),
@@ -159,6 +178,7 @@ sealed class Journalpost {
                 saksnummer: Saksnummer,
                 brevInnhold: BrevInnhold,
                 pdf: ByteArray,
+                sakstype: Sakstype,
             ) = Info(
                 person = person,
                 saksnummer = saksnummer,
@@ -168,12 +188,14 @@ sealed class Journalpost {
                     originalJson = brevInnhold.toJson(),
                 ),
                 tittel = brevInnhold.brevTemplate.tittel(),
+                sakstype = sakstype
             )
 
             fun from(
                 person: Person,
                 saksnummer: Saksnummer,
                 dokument: Dokument,
+                sakstype: Sakstype
             ) = Info(
                 person = person,
                 saksnummer = saksnummer,
@@ -183,6 +205,7 @@ sealed class Journalpost {
                     originalJson = dokument.generertDokumentJson,
                 ),
                 tittel = dokument.tittel,
+                sakstype = sakstype,
             )
 
             private fun lagDokumenter(tittel: String, pdf: ByteArray, originalJson: String): List<JournalpostDokument> =

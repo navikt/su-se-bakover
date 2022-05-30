@@ -8,12 +8,13 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import no.nav.su.se.bakover.domain.personhendelse.PersonhendelseRepo
-import no.nav.su.se.bakover.domain.sak.SakIdSaksnummerFnr
+import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
@@ -36,7 +37,7 @@ internal class PersonhendelseServiceTest {
         val sakId = UUID.randomUUID()
         val fnr = Fnr.generer()
         val sakRepoMock = mock<SakRepo> {
-            on { hentSakIdOgNummerForIdenter(any()) } doReturn SakIdSaksnummerFnr(sakId, Saksnummer(2021), fnr)
+            on { hentSakInfoForIdenter(any()) } doReturn SakInfo(sakId, Saksnummer(2021), fnr, Sakstype.UFØRE)
         }
         val personhendelseRepoMock = mock<PersonhendelseRepo>()
         val oppgaveServiceMock: OppgaveService = mock()
@@ -50,15 +51,16 @@ internal class PersonhendelseServiceTest {
         val nyPersonhendelse = lagNyPersonhendelse()
         personhendelseService.prosesserNyHendelse(nyPersonhendelse)
 
-        verify(sakRepoMock).hentSakIdOgNummerForIdenter(argThat { it shouldBe nyPersonhendelse.metadata.personidenter })
+        verify(sakRepoMock).hentSakInfoForIdenter(argThat { it shouldBe nyPersonhendelse.metadata.personidenter })
         verify(personhendelseRepoMock).lagre(
             personhendelse = argThat<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave> {
                 it shouldBe nyPersonhendelse.tilknyttSak(
                     it.id,
-                    SakIdSaksnummerFnr(
+                    SakInfo(
                         sakId,
                         Saksnummer(2021),
                         fnr,
+                        Sakstype.UFØRE
                     ),
                 )
             },
@@ -69,7 +71,7 @@ internal class PersonhendelseServiceTest {
     @Test
     internal fun `ignorerer hendelser for personer som ikke har en sak`() {
         val sakRepoMock = mock<SakRepo> {
-            on { hentSakIdOgNummerForIdenter(any()) } doReturn null
+            on { hentSakInfoForIdenter(any()) } doReturn null
         }
         val personhendelseRepoMock = mock<PersonhendelseRepo>()
         val oppgaveServiceMock: OppgaveService = mock()
@@ -84,7 +86,7 @@ internal class PersonhendelseServiceTest {
         val nyPersonhendelse = lagNyPersonhendelse()
         personhendelseService.prosesserNyHendelse(nyPersonhendelse)
 
-        verify(sakRepoMock).hentSakIdOgNummerForIdenter(argThat { it shouldBe nyPersonhendelse.metadata.personidenter })
+        verify(sakRepoMock).hentSakInfoForIdenter(argThat { it shouldBe nyPersonhendelse.metadata.personidenter })
         verifyNoMoreInteractions(personhendelseRepoMock, sakRepoMock)
     }
 
