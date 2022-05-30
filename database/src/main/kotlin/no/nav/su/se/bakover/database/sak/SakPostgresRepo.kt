@@ -73,7 +73,7 @@ internal class SakPostgresRepo(
     /***
      * @param personidenter Inneholder alle identer til brukeren, f.eks fnr og aktørid.
      */
-    override fun hentSakIdOgNummerForIdenter(personidenter: NonEmptyList<String>): SakInfo? {
+    override fun hentSakInfoForIdenter(personidenter: NonEmptyList<String>): SakInfo? {
         return dbMetrics.timeQuery("hentSakIdOgNummerForIdenter") {
             sessionFactory.withSession { session ->
                 """

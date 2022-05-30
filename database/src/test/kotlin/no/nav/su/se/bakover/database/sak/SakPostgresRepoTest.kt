@@ -41,7 +41,7 @@ internal class SakPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.sakRepo
             val nySak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
-            repo.hentSakIdOgNummerForIdenter(nonEmptyListOf(nySak.fnr.toString())) shouldBe SakInfo(
+            repo.hentSakInfoForIdenter(nonEmptyListOf(nySak.fnr.toString())) shouldBe SakInfo(
                 nySak.id,
                 nySak.saksnummer,
                 nySak.fnr,
@@ -56,13 +56,13 @@ internal class SakPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.sakRepo
             val nySak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
-            repo.hentSakIdOgNummerForIdenter(nonEmptyListOf("1234567890123", nySak.fnr.toString())) shouldBe SakInfo(
+            repo.hentSakInfoForIdenter(nonEmptyListOf("1234567890123", nySak.fnr.toString())) shouldBe SakInfo(
                 nySak.id,
                 nySak.saksnummer,
                 nySak.fnr,
                 nySak.type
             )
-            repo.hentSakIdOgNummerForIdenter(nonEmptyListOf(nySak.fnr.toString(), "1234567890123")) shouldBe SakInfo(
+            repo.hentSakInfoForIdenter(nonEmptyListOf(nySak.fnr.toString(), "1234567890123")) shouldBe SakInfo(
                 nySak.id,
                 nySak.saksnummer,
                 nySak.fnr,
@@ -77,7 +77,7 @@ internal class SakPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.sakRepo
             val nySak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
-            repo.hentSakIdOgNummerForIdenter(
+            repo.hentSakInfoForIdenter(
                 nonEmptyListOf(
                     "1234567890123",
                     nySak.fnr.toString(),

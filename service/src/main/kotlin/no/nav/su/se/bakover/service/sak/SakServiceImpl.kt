@@ -56,7 +56,7 @@ internal class SakServiceImpl(
     }
 
     override fun hentSakidOgSaksnummer(fnr: Fnr): Either<FantIkkeSak, SakInfo> {
-        return sakRepo.hentSakIdOgNummerForIdenter(personidenter = nonEmptyListOf(fnr.toString()))?.right()
+        return sakRepo.hentSakInfoForIdenter(personidenter = nonEmptyListOf(fnr.toString()))?.right()
             ?: FantIkkeSak.left()
     }
 
