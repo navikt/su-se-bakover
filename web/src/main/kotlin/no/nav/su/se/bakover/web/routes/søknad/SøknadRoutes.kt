@@ -15,6 +15,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.log
+import no.nav.su.se.bakover.common.metrics.SuMetrics
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.Brukerrolle
@@ -36,7 +37,6 @@ import no.nav.su.se.bakover.web.deserialize
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
-import no.nav.su.se.bakover.web.metrics.SuMetrics
 import no.nav.su.se.bakover.web.receiveTextUTF8
 import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.Feilresponser.Brev.kunneIkkeLageBrevutkast

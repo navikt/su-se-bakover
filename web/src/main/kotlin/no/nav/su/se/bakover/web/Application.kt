@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.client.UnleashBuilder
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.JmsConfig
 import no.nav.su.se.bakover.common.log
+import no.nav.su.se.bakover.common.metrics.SuMetrics
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.domain.DatabaseRepos
@@ -49,7 +50,6 @@ import no.nav.su.se.bakover.web.external.frikortVedtakRoutes
 import no.nav.su.se.bakover.web.features.withUser
 import no.nav.su.se.bakover.web.metrics.BehandlingMicrometerMetrics
 import no.nav.su.se.bakover.web.metrics.DbMicrometerMetrics
-import no.nav.su.se.bakover.web.metrics.SuMetrics
 import no.nav.su.se.bakover.web.metrics.SøknadMicrometerMetrics
 import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.avstemming.avstemmingRoutes

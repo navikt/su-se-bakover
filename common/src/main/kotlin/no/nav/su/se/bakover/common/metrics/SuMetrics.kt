@@ -1,9 +1,11 @@
-package no.nav.su.se.bakover.web.metrics
+package no.nav.su.se.bakover.common.metrics
 
+import com.github.benmanes.caffeine.cache.Cache
 import io.micrometer.core.instrument.Clock
 import io.micrometer.core.instrument.Counter
 import io.micrometer.core.instrument.Metrics
 import io.micrometer.core.instrument.Tags
+import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics
 import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
 import io.prometheus.client.CollectorRegistry
@@ -14,21 +16,26 @@ object SuMetrics {
     private val prometheusMeterRegistry = PrometheusMeterRegistry(
         PrometheusConfig.DEFAULT,
         collectorRegistry,
-        Clock.SYSTEM
+        Clock.SYSTEM,
     )
-    val dbTimer: Histogram = Histogram.build("db_query_latency_histogram", "Histogram av eksekveringstid for db-spørringer")
-        .labelNames("query")
-        .register(collectorRegistry)
+    val dbTimer: Histogram =
+        Histogram.build("db_query_latency_histogram", "Histogram av eksekveringstid for db-spørringer")
+            .labelNames("query")
+            .register(collectorRegistry)
 
     fun setup(): Pair<CollectorRegistry, PrometheusMeterRegistry> {
         Metrics.addRegistry(prometheusMeterRegistry)
         return Pair(collectorRegistry, prometheusMeterRegistry)
     }
 
-    internal fun incrementCounter(metricName: String, type: String) {
+    fun <K, V> monitorCache(cache: Cache<K, V>, cacheName: String) {
+        CaffeineCacheMetrics.monitor(prometheusMeterRegistry, cache, cacheName)
+    }
+
+    fun incrementCounter(metricName: String, type: String) {
         Metrics.counter(
             metricName,
-            Tags.of("type", type)
+            Tags.of("type", type),
         ).increment()
     }
 

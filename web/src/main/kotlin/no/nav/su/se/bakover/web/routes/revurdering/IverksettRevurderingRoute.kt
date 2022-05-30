@@ -4,6 +4,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
+import no.nav.su.se.bakover.common.metrics.SuMetrics
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -19,7 +20,6 @@ import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
-import no.nav.su.se.bakover.web.metrics.SuMetrics
 import no.nav.su.se.bakover.web.routes.Feilresponser.attestantOgSaksbehandlerKanIkkeVæreSammePerson
 import no.nav.su.se.bakover.web.routes.Feilresponser.avkortingErAlleredeAvkortet
 import no.nav.su.se.bakover.web.routes.Feilresponser.ingenEndringUgyldig
