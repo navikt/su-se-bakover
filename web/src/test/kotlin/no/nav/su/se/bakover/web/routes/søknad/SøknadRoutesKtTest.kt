@@ -34,11 +34,11 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder.build
 import no.nav.su.se.bakover.domain.SøknadsinnholdUføre
-import no.nav.su.se.bakover.domain.Søknadstype
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -96,7 +96,7 @@ internal class SøknadRoutesKtTest {
         opprettet = tidspunkt,
         fnr = Fnr.generer(),
         utbetalinger = emptyList(),
-        type = Søknadstype.UFØRE,
+        type = Sakstype.UFØRE,
     )
     private val søknadId = UUID.randomUUID()
 

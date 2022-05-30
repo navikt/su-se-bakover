@@ -9,11 +9,11 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import java.time.LocalDate
 import java.util.UUID
 
-enum class Søknadstype(val value: String) {
+enum class Sakstype(val value: String) {
     ALDER("alder"), UFØRE("uføre");
 
     companion object {
-        fun from(value: String): Søknadstype =
+        fun from(value: String): Sakstype =
             when (value) {
                 UFØRE.value -> UFØRE
                 ALDER.value -> ALDER
@@ -30,10 +30,10 @@ sealed class Søknad {
     abstract val sakId: UUID
     abstract val søknadInnhold: SøknadInnhold
 
-    val type: Søknadstype by lazy {
+    val type: Sakstype by lazy {
         when (søknadInnhold) {
-            is SøknadsinnholdAlder -> Søknadstype.ALDER
-            is SøknadsinnholdUføre -> Søknadstype.UFØRE
+            is SøknadsinnholdAlder -> Sakstype.ALDER
+            is SøknadsinnholdUføre -> Sakstype.UFØRE
         }
     }
 

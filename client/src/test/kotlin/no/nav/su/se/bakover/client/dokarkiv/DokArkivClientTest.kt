@@ -15,8 +15,8 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.Søknadstype
 import no.nav.su.se.bakover.domain.VedtakInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
@@ -229,7 +229,7 @@ internal class DokArkivClientTest : WiremockBase {
                 saksnummer = Saksnummer(saksnummer),
                 brevInnhold = VedtakInnholdTestdataBuilder.build(),
                 pdf = pdf,
-                søknadstype = Søknadstype.UFØRE,
+                sakstype = Sakstype.UFØRE,
             )
         ) shouldBe(
             JournalpostId("1").right()

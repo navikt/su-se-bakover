@@ -8,7 +8,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.Søknadstype
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -37,7 +37,7 @@ internal class PersonhendelseServiceTest {
         val sakId = UUID.randomUUID()
         val fnr = Fnr.generer()
         val sakRepoMock = mock<SakRepo> {
-            on { hentSakIdOgNummerForIdenter(any()) } doReturn SakInfo(sakId, Saksnummer(2021), fnr, Søknadstype.UFØRE)
+            on { hentSakIdOgNummerForIdenter(any()) } doReturn SakInfo(sakId, Saksnummer(2021), fnr, Sakstype.UFØRE)
         }
         val personhendelseRepoMock = mock<PersonhendelseRepo>()
         val oppgaveServiceMock: OppgaveService = mock()
@@ -60,7 +60,7 @@ internal class PersonhendelseServiceTest {
                         sakId,
                         Saksnummer(2021),
                         fnr,
-                        Søknadstype.UFØRE
+                        Sakstype.UFØRE
                     ),
                 )
             },

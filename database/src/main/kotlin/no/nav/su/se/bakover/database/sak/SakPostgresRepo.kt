@@ -20,7 +20,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.Søknadstype
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
@@ -90,7 +90,7 @@ internal class SakPostgresRepo(
                             sakId = id,
                             saksnummer = Saksnummer(row.long("saksnummer")),
                             fnr = Fnr(row.string("fnr")),
-                            type = Søknadstype.from(row.string("type")),
+                            type = Sakstype.from(row.string("type")),
                         )
                     }
                 }
@@ -145,7 +145,7 @@ internal class SakPostgresRepo(
                 sakId = it.uuid("id"),
                 saksnummer = Saksnummer(it.long("saksnummer")),
                 fnr = Fnr(it.string("fnr")),
-                type = Søknadstype.from(it.string("type")),
+                type = Sakstype.from(it.string("type")),
             )
         }
     }
@@ -205,7 +205,7 @@ internal class SakPostgresRepo(
                 vedtakListe = vedtakPostgresRepo.hentForSakId(sakId, session),
                 klager = klageRepo.hentKlager(sakId, sessionContext),
                 reguleringer = reguleringRepo.hentForSakId(sakId, sessionContext),
-                type = Søknadstype.from(string("type")),
+                type = Sakstype.from(string("type")),
             )
         }
     }

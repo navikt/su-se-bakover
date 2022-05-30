@@ -75,7 +75,7 @@ data class Sak(
     val vedtakListe: List<Vedtak> = emptyList(),
     val klager: List<Klage> = emptyList(),
     val reguleringer: List<Regulering> = emptyList(),
-    val type: Søknadstype,
+    val type: Sakstype,
 ) {
 
     fun utbetalingstidslinje(

@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.Søknadstype
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -40,7 +40,7 @@ internal class JournalpostFactoryTest {
             ),
         )
 
-        JournalpostFactory.lagJournalpost(personMock, saksnummer, dokument, Søknadstype.UFØRE).let {
+        JournalpostFactory.lagJournalpost(personMock, saksnummer, dokument, Sakstype.UFØRE).let {
             it.shouldBeTypeOf<Journalpost.Vedtakspost>()
             assert(it, dokument, DokumentKategori.VB)
         }
@@ -60,7 +60,7 @@ internal class JournalpostFactoryTest {
             ),
         )
 
-        JournalpostFactory.lagJournalpost(personMock, saksnummer, dokument, Søknadstype.UFØRE).let {
+        JournalpostFactory.lagJournalpost(personMock, saksnummer, dokument, Sakstype.UFØRE).let {
             it.shouldBeTypeOf<Journalpost.Info>()
             assert(it, dokument, DokumentKategori.IB)
         }

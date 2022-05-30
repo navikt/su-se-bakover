@@ -153,7 +153,7 @@ internal class BrevServiceImpl(
                     person = person,
                     saksnummer = sak.saksnummer,
                     dokument = dokumentdistribusjon.dokument,
-                    søknadstype = sak.type
+                    sakstype = sak.type
                 ),
             ).mapLeft {
                 KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.FeilVedJournalføring

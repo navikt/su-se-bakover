@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.domain.Behandlingstype
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Oppgavetype
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.Søknadstype
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
 import java.time.Clock
@@ -35,12 +35,12 @@ sealed class OppgaveConfig {
         override val aktørId: AktørId,
         override val tilordnetRessurs: NavIdentBruker?,
         override val clock: Clock,
-        val søknadstype: Søknadstype,
+        val sakstype: Sakstype,
     ) : OppgaveConfig() {
         override val saksreferanse = søknadId.toString()
-        override val behandlingstema = when (søknadstype) {
-            Søknadstype.ALDER -> Behandlingstema.SU_ALDER
-            Søknadstype.UFØRE -> Behandlingstema.SU_UFØRE_FLYKTNING
+        override val behandlingstema = when (sakstype) {
+            Sakstype.ALDER -> Behandlingstema.SU_ALDER
+            Sakstype.UFØRE -> Behandlingstema.SU_UFØRE_FLYKTNING
         }
         override val oppgavetype = Oppgavetype.BEHANDLE_SAK
         override val behandlingstype = Behandlingstype.SØKNAD

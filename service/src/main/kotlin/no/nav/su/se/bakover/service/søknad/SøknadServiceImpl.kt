@@ -217,7 +217,7 @@ internal class SøknadServiceImpl(
                 aktørId = person.ident.aktørId,
                 clock = clock,
                 tilordnetRessurs = null,
-                søknadstype = søknad.søknadInnhold.type()
+                sakstype = søknad.søknadInnhold.type()
             ),
         ).mapLeft {
             log.error("Ny søknad: Kunne ikke opprette oppgave for sak ${søknad.sakId} og søknad ${søknad.id}. Originalfeil: $it")

@@ -12,10 +12,10 @@ import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.SøknadsinnholdUføre
-import no.nav.su.se.bakover.domain.Søknadstype
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.domain.søknad.SøknadRepo
 import no.nav.su.se.bakover.service.argThat
@@ -51,7 +51,7 @@ class HentSøknadPdfTest {
         fnr = Fnr(fnr = "12345678901"),
         søknader = listOf(søknad),
         utbetalinger = emptyList(),
-        type = Søknadstype.UFØRE,
+        type = Sakstype.UFØRE,
     )
     private val person = Person(
         ident = Ident(

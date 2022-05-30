@@ -335,7 +335,7 @@ internal class SøknadsbehandlingServiceImpl(
                     aktørId = aktørId,
                     tilordnetRessurs = underkjent.saksbehandler,
                     clock = clock,
-                    søknadstype = underkjent.søknad.søknadInnhold.type()
+                    sakstype = underkjent.søknad.søknadInnhold.type()
                 ),
             ).getOrElse {
                 log.error("Behandling ${underkjent.id} ble ikke underkjent. Klarte ikke opprette behandlingsoppgave")

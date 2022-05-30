@@ -11,10 +11,10 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.Søknad.Journalført.MedOppgave.Lukket.LukketType.AVVIST
 import no.nav.su.se.bakover.domain.Søknad.Journalført.MedOppgave.Lukket.LukketType.TRUKKET
-import no.nav.su.se.bakover.domain.Søknadstype
 import no.nav.su.se.bakover.domain.brev.BrevConfig
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.AvvistSøknadBrevRequest
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.TrukketSøknadBrevRequest
@@ -143,7 +143,7 @@ internal class LukkSøknadServiceImplTest {
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 fnr = sak.fnr,
-                type = Søknadstype.UFØRE,
+                type = Sakstype.UFØRE,
             ).right()
         }
         val brevServiceMock = mock<BrevService> {
@@ -340,7 +340,7 @@ internal class LukkSøknadServiceImplTest {
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 fnr = sak.fnr,
-                type = Søknadstype.UFØRE,
+                type = Sakstype.UFØRE,
             ).right()
         }
 
@@ -606,7 +606,7 @@ internal class LukkSøknadServiceImplTest {
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 fnr = sak.fnr,
-                type = Søknadstype.UFØRE,
+                type = Sakstype.UFØRE,
             ).right()
         }
 
@@ -720,7 +720,7 @@ internal class LukkSøknadServiceImplTest {
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 fnr = sak.fnr,
-                type = Søknadstype.UFØRE,
+                type = Sakstype.UFØRE,
             ).right()
         }
         ServiceOgMocks(
@@ -775,7 +775,7 @@ internal class LukkSøknadServiceImplTest {
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 fnr = sak.fnr,
-                type = Søknadstype.UFØRE,
+                type = Sakstype.UFØRE,
             ).right()
         }
         ServiceOgMocks(
@@ -873,7 +873,7 @@ internal class LukkSøknadServiceImplTest {
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 fnr = sak.fnr,
-                type = Søknadstype.UFØRE,
+                type = Sakstype.UFØRE,
             ).right()
         }
         val brevServiceMock = mock<BrevService> {
@@ -1001,7 +1001,7 @@ internal class LukkSøknadServiceImplTest {
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 fnr = sak.fnr,
-                type = Søknadstype.UFØRE,
+                type = Sakstype.UFØRE,
             ).right()
         }
         ServiceOgMocks(
