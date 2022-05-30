@@ -22,8 +22,8 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.Søknadstype
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
@@ -75,7 +75,7 @@ internal class SakRoutesKtTest {
                 SakFactory(clock = fixedClock).nySakMedNySøknad(Fnr(sakFnr01), søknadInnhold).also {
                     repos.sak.opprettSak(it)
                 }
-                val opprettetSakId: Sak = repos.sak.hentSak(Fnr(sakFnr01), Søknadstype.UFØRE)!!
+                val opprettetSakId: Sak = repos.sak.hentSak(Fnr(sakFnr01), Sakstype.UFØRE)!!
 
                 defaultRequest(
                     Get,

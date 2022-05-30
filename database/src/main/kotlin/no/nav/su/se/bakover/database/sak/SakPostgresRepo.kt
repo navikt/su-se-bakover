@@ -54,7 +54,7 @@ internal class SakPostgresRepo(
         }
     }
 
-    override fun hentSak(fnr: Fnr, type: Søknadstype): Sak? {
+    override fun hentSak(fnr: Fnr, type: Sakstype): Sak? {
         return dbMetrics.timeQuery("hentSakForFnr") {
             sessionFactory.withSessionContext {
                 hentSakInternal(fnr, type, it)
@@ -170,7 +170,7 @@ internal class SakPostgresRepo(
         }
     }
 
-    private fun hentSakInternal(fnr: Fnr, type: Søknadstype, sessionContext: SessionContext): Sak? {
+    private fun hentSakInternal(fnr: Fnr, type: Sakstype, sessionContext: SessionContext): Sak? {
         return dbMetrics.timeQuery("hentSakInternalForFnr") {
             sessionContext.withSession { session ->
                 "select * from sak where fnr=:fnr and type=:type"

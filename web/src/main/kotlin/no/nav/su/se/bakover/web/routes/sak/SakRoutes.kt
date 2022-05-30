@@ -18,7 +18,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.Søknadstype
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.service.sak.KunneIkkeHenteGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.sak.SakService
@@ -56,9 +56,9 @@ internal fun Route.sakRoutes(
             call.withBody<Body> { body ->
                 when {
                     body.fnr != null -> {
-                        Either.catch { Fnr(body.fnr) to Søknadstype.from(body.type!!) }.fold(
+                        Either.catch { Fnr(body.fnr) to Sakstype.from(body.type!!) }.fold(
                             ifLeft = {
-                                if (Søknadstype.values().none { it.value == body.type }) {
+                                if (Sakstype.values().none { it.value == body.type }) {
                                     call.svar(Feilresponser.ugyldigTypeSak)
                                 } else {
                                     call.svar(
@@ -137,32 +137,18 @@ internal fun Route.sakRoutes(
                 }
                 .map { fnr ->
                     sakService.hentBegrensetSakerInfo(fnr)
-                        .fold(
-                            {
-                                BegrensetSakerInfoJson(
-                                    uføre = BegrensetSakinfoJson(
-                                        harÅpenSøknad = false,
-                                        iverksattInnvilgetStønadsperiode = null,
-                                    ),
-                                    alder = BegrensetSakinfoJson(
-                                        harÅpenSøknad = false,
-                                        iverksattInnvilgetStønadsperiode = null
-                                    )
+                        .let { info ->
+                            BegrensetSakerInfoJson(
+                                uføre = BegrensetSakinfoJson(
+                                    harÅpenSøknad = info.uføre.harÅpenSøknad,
+                                    iverksattInnvilgetStønadsperiode = info.uføre.iverksattInnvilgetStønadsperiode?.toJson()
+                                ),
+                                alder = BegrensetSakinfoJson(
+                                    harÅpenSøknad = info.alder.harÅpenSøknad,
+                                    iverksattInnvilgetStønadsperiode = info.alder.iverksattInnvilgetStønadsperiode?.toJson()
                                 )
-                            },
-                            { info ->
-                                BegrensetSakerInfoJson(
-                                    uføre = BegrensetSakinfoJson(
-                                        harÅpenSøknad = info.uføre.harÅpenSøknad,
-                                        iverksattInnvilgetStønadsperiode = info.uføre.iverksattInnvilgetStønadsperiode?.toJson()
-                                    ),
-                                    alder = BegrensetSakinfoJson(
-                                        harÅpenSøknad = info.alder.harÅpenSøknad,
-                                        iverksattInnvilgetStønadsperiode = info.alder.iverksattInnvilgetStønadsperiode?.toJson()
-                                    )
-                                )
-                            },
-                        )
+                            )
+                        }
                 }.map {
                     Resultat.json(OK, objectMapper.writeValueAsString(it))
                 }

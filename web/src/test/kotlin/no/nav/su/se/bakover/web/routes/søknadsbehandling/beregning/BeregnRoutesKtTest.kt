@@ -19,9 +19,9 @@ import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.Søknadstype
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
@@ -220,7 +220,7 @@ internal class BeregnRoutesKtTest {
         SakFactory(clock = fixedClock).nySakMedNySøknad(fnr, søknadInnhold).also {
             repos.sak.opprettSak(it)
         }
-        val sak: Sak = repos.sak.hentSak(fnr, Søknadstype.UFØRE)!!
+        val sak: Sak = repos.sak.hentSak(fnr, Sakstype.UFØRE)!!
         val journalpostId = JournalpostId("12")
         val oppgaveId = OppgaveId("12")
         val søknadMedOppgave: Søknad.Journalført.MedOppgave.IkkeLukket = (sak.søknader[0] as Søknad.Ny)

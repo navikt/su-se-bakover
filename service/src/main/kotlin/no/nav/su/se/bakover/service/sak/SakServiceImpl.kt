@@ -12,8 +12,8 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.Søknadstype
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakRepo
@@ -37,7 +37,7 @@ internal class SakServiceImpl(
         return sakRepo.hentSak(sakId)?.right() ?: FantIkkeSak.left()
     }
 
-    override fun hentSak(fnr: Fnr, type: Søknadstype): Either<FantIkkeSak, Sak> {
+    override fun hentSak(fnr: Fnr, type: Sakstype): Either<FantIkkeSak, Sak> {
         return sakRepo.hentSak(fnr, type)?.right() ?: FantIkkeSak.left()
     }
 
@@ -57,12 +57,9 @@ internal class SakServiceImpl(
         sakId: UUID,
         periode: Periode,
     ): Either<KunneIkkeHenteGjeldendeVedtaksdata, GjeldendeVedtaksdata?> {
-        return hentSak(sakId)
-            .mapLeft { KunneIkkeHenteGjeldendeVedtaksdata.FantIkkeSak }
-            .flatMap { sak ->
-                sak.hentGjeldendeVedtaksdata(periode, clock)
-                    .mapLeft { KunneIkkeHenteGjeldendeVedtaksdata.IngenVedtak }
-            }
+        return hentSak(sakId).mapLeft { KunneIkkeHenteGjeldendeVedtaksdata.FantIkkeSak }.flatMap { sak ->
+            sak.hentGjeldendeVedtaksdata(periode, clock).mapLeft { KunneIkkeHenteGjeldendeVedtaksdata.IngenVedtak }
+        }
     }
 
     override fun hentSakidOgSaksnummer(fnr: Fnr): Either<FantIkkeSak, SakInfo> {
@@ -89,14 +86,21 @@ internal class SakServiceImpl(
         return sakRepo.hentFerdigeBehandlinger()
     }
 
-    override fun hentBegrensetSakerInfo(fnr: Fnr): Either<FantIkkeSak, BegrensetSakerInfo> {
-        return hentSaker(fnr)
-            .map { saker ->
+    override fun hentBegrensetSakerInfo(fnr: Fnr): BegrensetSakerInfo {
+        return hentSaker(fnr).fold(
+            ifLeft = {
                 BegrensetSakerInfo(
-                    uføre = sakTilBegrensetSakInfo(saker.find { it.type == Søknadstype.UFØRE }),
-                    alder = sakTilBegrensetSakInfo(saker.find { it.type == Søknadstype.ALDER })
+                    sakTilBegrensetSakInfo(null),
+                    sakTilBegrensetSakInfo(null),
                 )
-            }
+            },
+            ifRight = { saker ->
+                BegrensetSakerInfo(
+                    uføre = sakTilBegrensetSakInfo(saker.find { it.type == Sakstype.UFØRE }),
+                    alder = sakTilBegrensetSakInfo(saker.find { it.type == Sakstype.ALDER }),
+                )
+            },
+        )
     }
 
     private fun sakTilBegrensetSakInfo(sak: Sak?): BegrensetSakinfo {
@@ -104,15 +108,10 @@ internal class SakServiceImpl(
             return BegrensetSakinfo(false, null)
         }
         return BegrensetSakinfo(
-            harÅpenSøknad = sak.søknader
-                .any { søknad ->
-                    val behandling = sak.søknadsbehandlinger
-                        .find { b -> b.søknad.id == søknad.id }
-                    (
-                        søknad !is Søknad.Journalført.MedOppgave.Lukket &&
-                            (behandling == null || !behandling.erIverksatt)
-                        )
-                },
+            harÅpenSøknad = sak.søknader.any { søknad ->
+                val behandling = sak.søknadsbehandlinger.find { b -> b.søknad.id == søknad.id }
+                (søknad !is Søknad.Journalført.MedOppgave.Lukket && (behandling == null || !behandling.erIverksatt))
+            },
             iverksattInnvilgetStønadsperiode = sak.hentGjeldendeStønadsperiode(clock),
         )
     }

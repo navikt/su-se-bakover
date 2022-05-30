@@ -15,10 +15,10 @@ import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.SendPåminnelseNyStønadsperiodeContext
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
-import no.nav.su.se.bakover.domain.Søknadstype
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
@@ -281,7 +281,7 @@ open class AccessCheckProxy(
                         }
                 }
 
-                override fun hentSak(fnr: Fnr, type: Søknadstype): Either<FantIkkeSak, Sak> {
+                override fun hentSak(fnr: Fnr, type: Sakstype): Either<FantIkkeSak, Sak> {
                     // Siden vi også vil kontrollere på EPS må vi hente ut saken først
                     // og sjekke på hele den (i stedet for å gjøre assertHarTilgangTilPerson(fnr))
                     return services.sak.hentSak(fnr, type)
@@ -323,7 +323,7 @@ open class AccessCheckProxy(
                     return services.sak.hentFerdigeBehandlingerForAlleSaker()
                 }
 
-                override fun hentBegrensetSakerInfo(fnr: Fnr): Either<FantIkkeSak, BegrensetSakerInfo> {
+                override fun hentBegrensetSakerInfo(fnr: Fnr): BegrensetSakerInfo {
                     assertHarTilgangTilPerson(fnr)
                     return services.sak.hentBegrensetSakerInfo(fnr)
                 }

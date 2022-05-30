@@ -5,12 +5,12 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.Søknadstype
+import no.nav.su.se.bakover.domain.Sakstype
 import java.util.UUID
 
 interface SakRepo {
     fun hentSak(sakId: UUID): Sak?
-    fun hentSak(fnr: Fnr, type: Søknadstype): Sak?
+    fun hentSak(fnr: Fnr, type: Sakstype): Sak?
     fun hentSak(saksnummer: Saksnummer): Sak?
     fun hentSakInfoForIdenter(personidenter: NonEmptyList<String>): SakInfo?
     fun opprettSak(sak: NySak)
