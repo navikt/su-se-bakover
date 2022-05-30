@@ -33,7 +33,7 @@ subprojects {
         implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jacksonVersion")
         implementation("ch.qos.logback:logback-classic:1.2.11")
         implementation("net.logstash.logback:logstash-logback-encoder:7.2")
-        implementation("io.github.cdimascio:dotenv-kotlin:6.2.2")
+        implementation("io.github.cdimascio:dotenv-kotlin:6.3.1")
         implementation("org.apache.kafka:kafka-clients:3.1.0")
         implementation("com.networknt:json-schema-validator:1.0.70")
         implementation("no.finn.unleash:unleash-client-java:4.4.1")
