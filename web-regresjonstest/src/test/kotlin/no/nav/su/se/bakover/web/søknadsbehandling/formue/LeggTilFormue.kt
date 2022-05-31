@@ -19,6 +19,7 @@ internal fun ApplicationTestBuilder.leggTilFormue(
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
     fraOgMed: String,
     tilOgMed: String,
+    måInnhenteMerInformasjon: Boolean = false,
 ): String {
     return runBlocking {
         defaultRequest(
@@ -47,7 +48,7 @@ internal fun ApplicationTestBuilder.leggTilFormue(
                           "depositumskonto": 0
                         },
                         "begrunnelse": "$begrunnelse",
-                        "måInnhenteMerInformasjon": false
+                        "måInnhenteMerInformasjon": $måInnhenteMerInformasjon
                   }
                 ]
                 """.trimIndent(),

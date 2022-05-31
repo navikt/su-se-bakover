@@ -15,7 +15,7 @@ internal class NySøknadsbehandlingIT {
 
     @Test
     fun `ny innvilget søknadsbehandling uten eksisterende sak`() {
-        withTestApplicationAndEmbeddedDb() {
+        withTestApplicationAndEmbeddedDb {
             val fnr = Fnr.generer().toString()
             val opprettSøknadsbehandlingResponseJson = opprettInnvilgetSøknadsbehandling(
                 fnr = fnr,
