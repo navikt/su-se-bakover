@@ -311,7 +311,7 @@ sealed class Vilkårsvurderinger {
             bosituasjon: NonEmptyList<Grunnlag.Bosituasjon>,
         ): Vilkårsvurderinger.Søknadsbehandling {
             return this.copy(
-                formue = this.formue.fjernEPSFormue(bosituasjon.perioderUtenEPS())
+                formue = this.formue.fjernEPSFormue(bosituasjon.perioderUtenEPS()),
             )
         }
 
@@ -429,7 +429,7 @@ sealed class Vilkårsvurderinger {
             bosituasjon: NonEmptyList<Grunnlag.Bosituasjon>,
         ): Vilkårsvurderinger.Revurdering {
             return this.copy(
-                formue = this.formue.fjernEPSFormue(bosituasjon.perioderUtenEPS())
+                formue = this.formue.fjernEPSFormue(bosituasjon.perioderUtenEPS()),
             )
         }
 
@@ -760,6 +760,7 @@ sealed class Vilkår {
              * Merk, i noen tilfeller kan periodene være usammenhengende.
              */
             val perioder = vurderingsperioder.map { it.periode }
+
             init {
                 require(perioder.erSortert())
                 require(!perioder.harDuplikater())
@@ -832,15 +833,25 @@ sealed class Vilkår {
 
             companion object {
 
+                /**
+                 * @param grunnlag liste med pairs (måInnhenteMerInformasjon -> formuegrunnlag)
+                 */
                 fun tryCreateFromGrunnlag(
-                    grunnlag: Nel<Formuegrunnlag>,
+                    grunnlag: Nel<Pair<Boolean, Formuegrunnlag>>,
                     formuegrenserFactory: FormuegrenserFactory,
                 ): Either<UgyldigFormuevilkår, Vurdert> {
                     val vurderingsperioder = grunnlag.map {
-                        Vurderingsperiode.Formue.tryCreateFromGrunnlag(
-                            grunnlag = it,
-                            formuegrenserFactory = formuegrenserFactory,
-                        )
+                        if (it.first) {
+                            Vurderingsperiode.Formue.tryCreateFromGrunnlagMåInnhenteMerInformasjon(
+                                grunnlag = it.second,
+                            )
+                        } else {
+                            Vurderingsperiode.Formue.tryCreateFromGrunnlag(
+                                grunnlag = it.second,
+                                formuegrenserFactory = formuegrenserFactory,
+                            )
+                        }
+
                     }
                     return fromVurderingsperioder(vurderingsperioder)
                 }
@@ -1108,6 +1119,27 @@ sealed class Vurderingsperiode {
                 ).right()
             }
 
+            /**
+             * I søknadsbehandlingen har vi mulighet til å huke av for at vi må innhente mer informasjon.
+             * Saksbehandleren har fremdeles mulighet til å legge inn verdier for søker og eps.
+             * Verdiene til søker og EPS  defaultes til 0, bortsett fra hvis søker har fylt inn et kjøretøy, da saksbehandleren fylle ut dette før hen kan lagre 'må innhente mer informasjon' (dette er en 'feature' inntil videre)
+             */
+            fun tryCreateFromGrunnlagMåInnhenteMerInformasjon(
+                id: UUID = UUID.randomUUID(),
+                grunnlag: Formuegrunnlag,
+            ): Formue {
+                return Formue(
+                    id = id,
+                    opprettet = grunnlag.opprettet,
+                    resultat = Resultat.Uavklart,
+                    grunnlag = grunnlag,
+                    periode = grunnlag.periode,
+                )
+            }
+
+            /**
+             * Brukes av Revurdering og Søknadsbehandling dersom saksbehandler ikke har huka av for at vi skal innhente
+             */
             fun tryCreateFromGrunnlag(
                 id: UUID = UUID.randomUUID(),
                 grunnlag: Formuegrunnlag,
@@ -1117,8 +1149,8 @@ sealed class Vurderingsperiode {
                     id = id,
                     opprettet = grunnlag.opprettet,
                     resultat = if (grunnlag.periode.måneder().all {
-                        grunnlag.sumFormue() <= formuegrenserFactory.forMåned(it).formuegrense.avrund()
-                    }
+                            grunnlag.sumFormue() <= formuegrenserFactory.forMåned(it).formuegrense.avrund()
+                        }
                     ) Resultat.Innvilget else Resultat.Avslag,
                     grunnlag = grunnlag,
                     periode = grunnlag.periode,

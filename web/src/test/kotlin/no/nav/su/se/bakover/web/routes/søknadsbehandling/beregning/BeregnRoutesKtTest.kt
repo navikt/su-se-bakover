@@ -310,11 +310,12 @@ internal class BeregnRoutesKtTest {
             LeggTilFormuegrunnlagRequest(
                 behandlingId = objects.søknadsbehandling.id,
                 formuegrunnlag = nonEmptyListOf(
-                    LeggTilFormuegrunnlagRequest.Grunnlag(
+                    LeggTilFormuegrunnlagRequest.Grunnlag.Søknadsbehandling(
                         periode = år(2021),
                         epsFormue = null,
                         søkersFormue = Formuegrunnlag.Verdier.empty(),
                         begrunnelse = "søknadsbehandling.leggTilFormuegrunnlag",
+                        måInnhenteMerInformasjon = false,
                     ),
                 ),
             ),

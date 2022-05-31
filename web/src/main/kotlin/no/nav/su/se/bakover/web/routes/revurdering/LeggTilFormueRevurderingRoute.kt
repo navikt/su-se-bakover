@@ -66,7 +66,7 @@ private data class FormueBody(
                 behandlingId = revurderingId,
                 formuegrunnlag = NonEmptyList.fromListUnsafe(
                     this.map { formueBody ->
-                        LeggTilFormuegrunnlagRequest.Grunnlag(
+                        LeggTilFormuegrunnlagRequest.Grunnlag.Revurdering(
                             periode = formueBody.periode.toPeriodeOrResultat()
                                 .getOrHandle { return it.left() },
                             epsFormue = formueBody.epsFormue?.let {

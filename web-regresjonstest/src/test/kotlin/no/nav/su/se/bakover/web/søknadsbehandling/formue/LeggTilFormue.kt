@@ -46,7 +46,8 @@ internal fun ApplicationTestBuilder.leggTilFormue(
                           "kontanter": 0,
                           "depositumskonto": 0
                         },
-                        "begrunnelse": "$begrunnelse"
+                        "begrunnelse": "$begrunnelse",
+                        "måInnhenteMerInformasjon": false
                   }
                 ]
                 """.trimIndent(),

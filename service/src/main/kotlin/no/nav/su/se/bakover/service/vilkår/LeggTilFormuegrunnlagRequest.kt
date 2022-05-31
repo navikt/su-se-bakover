@@ -26,7 +26,7 @@ data class LeggTilFormuegrunnlagRequest(
     ): Either<KunneIkkeMappeTilDomenet, Vilkår.Formue.Vurdert> {
         return Vilkår.Formue.Vurdert.tryCreateFromGrunnlag(
             grunnlag = formuegrunnlag.map { element ->
-                Formuegrunnlag.tryCreate(
+                element.måInnhenteMerInformasjon to Formuegrunnlag.tryCreate(
                     opprettet = Tidspunkt.now(clock),
                     periode = element.periode,
                     epsFormue = element.epsFormue,
@@ -68,7 +68,7 @@ data class LeggTilFormuegrunnlagRequest(
     ): Either<KunneIkkeMappeTilDomenet, Vilkår.Formue.Vurdert> {
         return Vilkår.Formue.Vurdert.tryCreateFromGrunnlag(
             grunnlag = formuegrunnlag.map { element ->
-                Formuegrunnlag.tryCreate(
+                element.måInnhenteMerInformasjon to Formuegrunnlag.tryCreate(
                     opprettet = Tidspunkt.now(clock),
                     periode = element.periode,
                     epsFormue = element.epsFormue,
@@ -94,10 +94,29 @@ data class LeggTilFormuegrunnlagRequest(
         }
     }
 
-    data class Grunnlag(
-        val periode: Periode,
-        val epsFormue: Formuegrunnlag.Verdier?,
-        val søkersFormue: Formuegrunnlag.Verdier,
-        val begrunnelse: String?,
-    )
+    sealed interface Grunnlag {
+        val periode: Periode
+        val epsFormue: Formuegrunnlag.Verdier?
+        val søkersFormue: Formuegrunnlag.Verdier
+        val begrunnelse: String?
+        val måInnhenteMerInformasjon: Boolean
+
+        data class Søknadsbehandling(
+            override val periode: Periode,
+            override val epsFormue: Formuegrunnlag.Verdier?,
+            override val søkersFormue: Formuegrunnlag.Verdier,
+            override val begrunnelse: String?,
+            override val måInnhenteMerInformasjon: Boolean,
+        ) : Grunnlag
+
+        data class Revurdering(
+            override val periode: Periode,
+            override val epsFormue: Formuegrunnlag.Verdier?,
+            override val søkersFormue: Formuegrunnlag.Verdier,
+            override val begrunnelse: String?,
+
+            ) : Grunnlag {
+            override val måInnhenteMerInformasjon = false
+        }
+    }
 }

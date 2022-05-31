@@ -56,7 +56,7 @@ internal class RevurderingLeggTilFormueServiceTest {
 
     @Test
     fun `legg til revurdering av formue happy case`() {
-        val nyFormue = LeggTilFormuegrunnlagRequest.Grunnlag(
+        val nyFormue = LeggTilFormuegrunnlagRequest.Grunnlag.Revurdering(
             periode = år(2021),
             epsFormue = Formuegrunnlag.Verdier.empty(),
             søkersFormue = Formuegrunnlag.Verdier.empty(),
@@ -135,7 +135,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                     behandlingId = revurderingId,
                     formuegrunnlag = Nel.fromListUnsafe(
                         listOf(
-                            LeggTilFormuegrunnlagRequest.Grunnlag(
+                            LeggTilFormuegrunnlagRequest.Grunnlag.Revurdering(
                                 periode = år(2021),
                                 epsFormue = Formuegrunnlag.Verdier.empty(),
                                 søkersFormue = Formuegrunnlag.Verdier.empty(),
@@ -175,7 +175,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                     behandlingId = revurderingId,
                     formuegrunnlag = Nel.fromListUnsafe(
                         listOf(
-                            LeggTilFormuegrunnlagRequest.Grunnlag(
+                            LeggTilFormuegrunnlagRequest.Grunnlag.Revurdering(
                                 periode = år(2020),
                                 epsFormue = null,
                                 søkersFormue = Formuegrunnlag.Verdier.empty(),
@@ -211,7 +211,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                     behandlingId = revurderingId,
                     formuegrunnlag = Nel.fromListUnsafe(
                         listOf(
-                            LeggTilFormuegrunnlagRequest.Grunnlag(
+                            LeggTilFormuegrunnlagRequest.Grunnlag.Revurdering(
                                 periode = Periode.create(1.januar(2021), 31.mars(2021)),
                                 epsFormue = null,
                                 søkersFormue = Formuegrunnlag.Verdier.empty(),
@@ -256,13 +256,13 @@ internal class RevurderingLeggTilFormueServiceTest {
                     behandlingId = revurderingId,
                     formuegrunnlag = Nel.fromListUnsafe(
                         listOf(
-                            LeggTilFormuegrunnlagRequest.Grunnlag(
+                            LeggTilFormuegrunnlagRequest.Grunnlag.Revurdering(
                                 periode = periodeJanMars2021,
                                 epsFormue = Formuegrunnlag.Verdier.empty(),
                                 søkersFormue = Formuegrunnlag.Verdier.empty(),
                                 begrunnelse = null,
                             ),
-                            LeggTilFormuegrunnlagRequest.Grunnlag(
+                            LeggTilFormuegrunnlagRequest.Grunnlag.Revurdering(
                                 periode = periodeMarsDesember2021,
                                 epsFormue = Formuegrunnlag.Verdier.empty(),
                                 søkersFormue = Formuegrunnlag.Verdier.empty(),
@@ -296,7 +296,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                     behandlingId = revurderingId,
                     formuegrunnlag = Nel.fromListUnsafe(
                         listOf(
-                            LeggTilFormuegrunnlagRequest.Grunnlag(
+                            LeggTilFormuegrunnlagRequest.Grunnlag.Revurdering(
                                 periode = år(2021),
                                 epsFormue = Formuegrunnlag.Verdier.empty(),
                                 søkersFormue = Formuegrunnlag.Verdier.empty(),
@@ -336,7 +336,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                 request = LeggTilFormuegrunnlagRequest(
                     behandlingId = revurderingId,
                     formuegrunnlag = nonEmptyListOf(
-                        LeggTilFormuegrunnlagRequest.Grunnlag(
+                        LeggTilFormuegrunnlagRequest.Grunnlag.Revurdering(
                             periode = år(2021),
                             epsFormue = null,
                             søkersFormue = Formuegrunnlag.Verdier.create(
@@ -378,13 +378,13 @@ internal class RevurderingLeggTilFormueServiceTest {
                 request = LeggTilFormuegrunnlagRequest(
                     behandlingId = revurderingId,
                     formuegrunnlag = nonEmptyListOf(
-                        LeggTilFormuegrunnlagRequest.Grunnlag(
+                        LeggTilFormuegrunnlagRequest.Grunnlag.Revurdering(
                             periode = Periode.create(1.januar(2021), 31.mai(2021)),
                             epsFormue = null,
                             søkersFormue = Formuegrunnlag.Verdier.empty(),
                             begrunnelse = ":)",
                         ),
-                        LeggTilFormuegrunnlagRequest.Grunnlag(
+                        LeggTilFormuegrunnlagRequest.Grunnlag.Revurdering(
                             periode = Periode.create(1.juni(2021), 31.desember(2021)),
                             epsFormue = null,
                             søkersFormue = Formuegrunnlag.Verdier.create(
@@ -419,7 +419,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                     behandlingId = revurderingId,
                     formuegrunnlag = Nel.fromListUnsafe(
                         listOf(
-                            LeggTilFormuegrunnlagRequest.Grunnlag(
+                            LeggTilFormuegrunnlagRequest.Grunnlag.Revurdering(
                                 periode = år(2021),
                                 epsFormue = null,
                                 søkersFormue = Formuegrunnlag.Verdier.empty(),

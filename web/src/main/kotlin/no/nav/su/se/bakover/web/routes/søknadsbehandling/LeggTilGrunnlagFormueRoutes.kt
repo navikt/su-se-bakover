@@ -41,6 +41,7 @@ private data class FormueBody(
     val epsFormue: FormuegrunnlagJson.VerdierJson?,
     val søkersFormue: FormuegrunnlagJson.VerdierJson,
     val begrunnelse: String?,
+    val måInnhenteMerInformasjon: Boolean,
 ) {
 
     companion object {
@@ -68,7 +69,7 @@ private data class FormueBody(
                 behandlingId = behandlingId,
                 formuegrunnlag = NonEmptyList.fromListUnsafe(
                     this.map { formueBody ->
-                        LeggTilFormuegrunnlagRequest.Grunnlag(
+                        LeggTilFormuegrunnlagRequest.Grunnlag.Søknadsbehandling(
                             periode = formueBody.periode.toPeriodeOrResultat()
                                 .getOrHandle { return it.left() },
                             epsFormue = formueBody.epsFormue?.let {
@@ -80,6 +81,7 @@ private data class FormueBody(
                                 return it.tilResultat().left()
                             },
                             begrunnelse = formueBody.begrunnelse,
+                            måInnhenteMerInformasjon = formueBody.måInnhenteMerInformasjon,
                         )
                     },
                 ),

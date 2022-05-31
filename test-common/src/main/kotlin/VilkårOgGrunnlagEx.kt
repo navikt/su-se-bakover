@@ -30,11 +30,14 @@ fun Vilkår.Uførhet.Vurdert.Companion.create(
         .getOrHandle { throw IllegalArgumentException(it.toString()) }
 }
 
+/**
+ * Setter måInnhenteMerInformasjon for alle grunnlagene til 'false'
+ */
 fun Vilkår.Formue.Vurdert.Companion.createFromGrunnlag(
     grunnlag: Nel<Formuegrunnlag>,
 ): Vilkår.Formue.Vurdert =
     tryCreateFromGrunnlag(
-        grunnlag = grunnlag,
+        grunnlag = grunnlag.map { false to it },
         formuegrenserFactory = formuegrenserFactoryTest,
     ).getOrHandle { throw IllegalArgumentException(it.toString()) }
 

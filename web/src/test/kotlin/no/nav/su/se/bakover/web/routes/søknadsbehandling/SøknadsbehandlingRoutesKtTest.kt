@@ -922,11 +922,12 @@ internal class SøknadsbehandlingRoutesKtTest {
             LeggTilFormuegrunnlagRequest(
                 behandlingId = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
                 formuegrunnlag = nonEmptyListOf(
-                    LeggTilFormuegrunnlagRequest.Grunnlag(
+                    LeggTilFormuegrunnlagRequest.Grunnlag.Søknadsbehandling(
                         periode = år(2021),
                         epsFormue = if (epsFnr == null) null else Formuegrunnlag.Verdier.empty(),
                         søkersFormue = Formuegrunnlag.Verdier.empty(),
                         begrunnelse = "søknadsbehandling.leggTilFormuegrunnlag",
+                        måInnhenteMerInformasjon = false,
                     ),
                 ),
             ),
