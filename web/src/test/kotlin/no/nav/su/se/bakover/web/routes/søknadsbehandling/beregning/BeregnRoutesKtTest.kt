@@ -39,7 +39,7 @@ import no.nav.su.se.bakover.service.søknadsbehandling.VilkårsvurderRequest
 import no.nav.su.se.bakover.service.vilkår.BosituasjonValg
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
-import no.nav.su.se.bakover.service.vilkår.LeggTilFormuegrunnlagRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
@@ -306,11 +306,11 @@ internal class BeregnRoutesKtTest {
                 epsFnr = null,
             ),
         )
-        services.søknadsbehandling.leggTilFormuegrunnlag(
-            LeggTilFormuegrunnlagRequest(
+        services.søknadsbehandling.leggTilFormuevilkår(
+            LeggTilFormuevilkårRequest(
                 behandlingId = objects.søknadsbehandling.id,
                 formuegrunnlag = nonEmptyListOf(
-                    LeggTilFormuegrunnlagRequest.Grunnlag.Søknadsbehandling(
+                    LeggTilFormuevilkårRequest.Grunnlag.Søknadsbehandling(
                         periode = år(2021),
                         epsFormue = null,
                         søkersFormue = Formuegrunnlag.Verdier.empty(),

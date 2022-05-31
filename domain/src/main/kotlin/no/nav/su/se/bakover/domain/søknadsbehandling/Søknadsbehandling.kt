@@ -144,34 +144,34 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         bosituasjon: Grunnlag.Bosituasjon,
         clock: Clock,
     ): Either<KunneIkkeOppdatereBosituasjon, Vilkårsvurdert> {
-        val oppdatertGrunnlagsdataOgVilkårsvurderinger =
-            grunnlagsdataOgVilkårsvurderinger.oppdaterBosituasjon(bosituasjon)
-        return when (this) {
-            is Vilkårsvurdert -> tilVilkårsvurdert(
-                this.behandlingsinformasjon,
-                oppdatertGrunnlagsdataOgVilkårsvurderinger,
-                clock,
-            ).right()
-            is Beregnet -> tilVilkårsvurdert(
-                this.behandlingsinformasjon,
-                oppdatertGrunnlagsdataOgVilkårsvurderinger,
-                clock,
-            ).right()
-            is Simulert -> tilVilkårsvurdert(
-                this.behandlingsinformasjon,
-                oppdatertGrunnlagsdataOgVilkårsvurderinger,
-                clock,
-            ).right()
-            is Underkjent -> tilVilkårsvurdert(
-                this.behandlingsinformasjon,
-                oppdatertGrunnlagsdataOgVilkårsvurderinger,
-                clock,
-            ).right()
+        grunnlagsdataOgVilkårsvurderinger.oppdaterBosituasjon(listOf(bosituasjon)).let { grunnlagOgVilkår ->
+            return when (this) {
+                is Vilkårsvurdert -> tilVilkårsvurdert(
+                    this.behandlingsinformasjon,
+                    grunnlagOgVilkår,
+                    clock,
+                ).right()
+                is Beregnet -> tilVilkårsvurdert(
+                    this.behandlingsinformasjon,
+                    grunnlagOgVilkår,
+                    clock,
+                ).right()
+                is Simulert -> tilVilkårsvurdert(
+                    this.behandlingsinformasjon,
+                    grunnlagOgVilkår,
+                    clock,
+                ).right()
+                is Underkjent -> tilVilkårsvurdert(
+                    this.behandlingsinformasjon,
+                    grunnlagOgVilkår,
+                    clock,
+                ).right()
 
-            is TilAttestering,
-            is LukketSøknadsbehandling,
-            is Iverksatt,
-            -> KunneIkkeOppdatereBosituasjon.UgyldigTilstand(this::class, Vilkårsvurdert::class).left()
+                is TilAttestering,
+                is LukketSøknadsbehandling,
+                is Iverksatt,
+                -> KunneIkkeOppdatereBosituasjon.UgyldigTilstand(this::class, Vilkårsvurdert::class).left()
+            }
         }
     }
 
@@ -190,8 +190,8 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         ).left()
     }
 
-    open fun leggTilFormuegrunnlag(
-        grunnlag: Vilkår.Formue.Vurdert,
+    open fun leggTilFormuevilkår(
+        vilkår: Vilkår.Formue.Vurdert,
         clock: Clock,
     ): Either<KunneIkkeLeggeTilFormuegrunnlag, Vilkårsvurdert> {
         return KunneIkkeLeggeTilFormuegrunnlag.UgyldigTilstand(
@@ -659,13 +659,13 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
             }
 
-            override fun leggTilFormuegrunnlag(
-                grunnlag: Vilkår.Formue.Vurdert,
+            override fun leggTilFormuevilkår(
+                vilkår: Vilkår.Formue.Vurdert,
                 clock: Clock,
             ): Either<KunneIkkeLeggeTilFormuegrunnlag, Vilkårsvurdert> {
                 return tilVilkårsvurdert(
-                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.oppdaterFormuegrunnlag(
-                        grunnlag = grunnlag,
+                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.oppdaterFormuevilkår(
+                        vilkår = vilkår,
                     ),
                     clock = clock,
                 ).right()
@@ -810,13 +810,13 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
             }
 
-            override fun leggTilFormuegrunnlag(
-                grunnlag: Vilkår.Formue.Vurdert,
+            override fun leggTilFormuevilkår(
+                vilkår: Vilkår.Formue.Vurdert,
                 clock: Clock,
             ): Either<KunneIkkeLeggeTilFormuegrunnlag, Vilkårsvurdert> {
                 return tilVilkårsvurdert(
-                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.oppdaterFormuegrunnlag(
-                        grunnlag = grunnlag,
+                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.oppdaterFormuevilkår(
+                        vilkår = vilkår,
                     ),
                     clock = clock,
                 ).right()
@@ -912,13 +912,13 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
             }
 
-            override fun leggTilFormuegrunnlag(
-                grunnlag: Vilkår.Formue.Vurdert,
+            override fun leggTilFormuevilkår(
+                vilkår: Vilkår.Formue.Vurdert,
                 clock: Clock,
             ): Either<KunneIkkeLeggeTilFormuegrunnlag, Vilkårsvurdert> {
                 return tilVilkårsvurdert(
-                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.oppdaterFormuegrunnlag(
-                        grunnlag = grunnlag,
+                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.oppdaterFormuevilkår(
+                        vilkår = vilkår,
                     ),
                     clock = clock,
                 ).right()
@@ -1104,13 +1104,13 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
             }
 
-            override fun leggTilFormuegrunnlag(
-                grunnlag: Vilkår.Formue.Vurdert,
+            override fun leggTilFormuevilkår(
+                vilkår: Vilkår.Formue.Vurdert,
                 clock: Clock,
             ): Either<KunneIkkeLeggeTilFormuegrunnlag, Vilkårsvurdert> {
                 return tilVilkårsvurdert(
-                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.oppdaterFormuegrunnlag(
-                        grunnlag = grunnlag,
+                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.oppdaterFormuevilkår(
+                        vilkår = vilkår,
                     ),
                     clock = clock,
                 ).right()
@@ -1290,13 +1290,13 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
             }
 
-            override fun leggTilFormuegrunnlag(
-                grunnlag: Vilkår.Formue.Vurdert,
+            override fun leggTilFormuevilkår(
+                vilkår: Vilkår.Formue.Vurdert,
                 clock: Clock,
             ): Either<KunneIkkeLeggeTilFormuegrunnlag, Vilkårsvurdert> {
                 return tilVilkårsvurdert(
-                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.oppdaterFormuegrunnlag(
-                        grunnlag = grunnlag,
+                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.oppdaterFormuevilkår(
+                        vilkår = vilkår,
                     ),
                     clock = clock,
                 ).right()
@@ -1531,13 +1531,13 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
         }
 
-        override fun leggTilFormuegrunnlag(
-            grunnlag: Vilkår.Formue.Vurdert,
+        override fun leggTilFormuevilkår(
+            vilkår: Vilkår.Formue.Vurdert,
             clock: Clock,
         ): Either<KunneIkkeLeggeTilFormuegrunnlag, Vilkårsvurdert> {
             return tilVilkårsvurdert(
-                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.oppdaterFormuegrunnlag(
-                    grunnlag = grunnlag,
+                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.oppdaterFormuevilkår(
+                    vilkår = vilkår,
                 ),
                 clock = clock,
             ).right()
@@ -2038,13 +2038,13 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
             }
 
-            override fun leggTilFormuegrunnlag(
-                grunnlag: Vilkår.Formue.Vurdert,
+            override fun leggTilFormuevilkår(
+                vilkår: Vilkår.Formue.Vurdert,
                 clock: Clock,
             ): Either<KunneIkkeLeggeTilFormuegrunnlag, Vilkårsvurdert> {
                 return tilVilkårsvurdert(
-                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.oppdaterFormuegrunnlag(
-                        grunnlag = grunnlag,
+                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.oppdaterFormuevilkår(
+                        vilkår = vilkår,
                     ),
                     clock = clock,
                 ).right()
@@ -2227,13 +2227,13 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
                 }
 
-                override fun leggTilFormuegrunnlag(
-                    grunnlag: Vilkår.Formue.Vurdert,
+                override fun leggTilFormuevilkår(
+                    vilkår: Vilkår.Formue.Vurdert,
                     clock: Clock,
                 ): Either<KunneIkkeLeggeTilFormuegrunnlag, Vilkårsvurdert> {
                     return tilVilkårsvurdert(
-                        grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.oppdaterFormuegrunnlag(
-                            grunnlag = grunnlag,
+                        grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.oppdaterFormuevilkår(
+                            vilkår = vilkår,
                         ),
                         clock = clock,
                     ).right()
@@ -2358,13 +2358,13 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
                 }
 
-                override fun leggTilFormuegrunnlag(
-                    grunnlag: Vilkår.Formue.Vurdert,
+                override fun leggTilFormuevilkår(
+                    vilkår: Vilkår.Formue.Vurdert,
                     clock: Clock,
                 ): Either<KunneIkkeLeggeTilFormuegrunnlag, Vilkårsvurdert> {
                     return tilVilkårsvurdert(
-                        grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.oppdaterFormuegrunnlag(
-                            grunnlag = grunnlag,
+                        grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.oppdaterFormuevilkår(
+                            vilkår = vilkår,
                         ),
                         clock = clock,
                     ).right()

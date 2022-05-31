@@ -65,7 +65,7 @@ import no.nav.su.se.bakover.service.søknadsbehandling.VilkårsvurderRequest
 import no.nav.su.se.bakover.service.vilkår.BosituasjonValg
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
-import no.nav.su.se.bakover.service.vilkår.LeggTilFormuegrunnlagRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
@@ -918,11 +918,11 @@ internal class SøknadsbehandlingRoutesKtTest {
                 epsFnr = epsFnr,
             ),
         )
-        services.søknadsbehandling.leggTilFormuegrunnlag(
-            LeggTilFormuegrunnlagRequest(
+        services.søknadsbehandling.leggTilFormuevilkår(
+            LeggTilFormuevilkårRequest(
                 behandlingId = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
                 formuegrunnlag = nonEmptyListOf(
-                    LeggTilFormuegrunnlagRequest.Grunnlag.Søknadsbehandling(
+                    LeggTilFormuevilkårRequest.Grunnlag.Søknadsbehandling(
                         periode = år(2021),
                         epsFormue = if (epsFnr == null) null else Formuegrunnlag.Verdier.empty(),
                         søkersFormue = Formuegrunnlag.Verdier.empty(),

@@ -851,7 +851,6 @@ sealed class Vilkår {
                                 formuegrenserFactory = formuegrenserFactory,
                             )
                         }
-
                     }
                     return fromVurderingsperioder(vurderingsperioder)
                 }
@@ -1149,8 +1148,8 @@ sealed class Vurderingsperiode {
                     id = id,
                     opprettet = grunnlag.opprettet,
                     resultat = if (grunnlag.periode.måneder().all {
-                            grunnlag.sumFormue() <= formuegrenserFactory.forMåned(it).formuegrense.avrund()
-                        }
+                        grunnlag.sumFormue() <= formuegrenserFactory.forMåned(it).formuegrense.avrund()
+                    }
                     ) Resultat.Innvilget else Resultat.Avslag,
                     grunnlag = grunnlag,
                     periode = grunnlag.periode,

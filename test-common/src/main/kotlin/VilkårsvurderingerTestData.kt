@@ -284,6 +284,44 @@ fun formueGrunnlagUtenEps0Innvilget(
     )
 }
 
+fun formueGrunnlagMedEps0Innvilget(
+    opprettet: Tidspunkt = fixedTidspunkt,
+    periode: Periode = år(2021),
+    bosituasjon: NonEmptyList<Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer>
+): Formuegrunnlag {
+    val bosituasjonsperiode = bosituasjon.toList().periode()
+    require(bosituasjonsperiode == periode) {
+        "Bosituasjonsperiode: $bosituasjonsperiode må være lik formuevilkåret sin periode: $periode"
+    }
+    return Formuegrunnlag.create(
+        id = UUID.randomUUID(),
+        opprettet = opprettet,
+        periode = periode,
+        epsFormue = Formuegrunnlag.Verdier.create(
+            verdiIkkePrimærbolig = 0,
+            verdiEiendommer = 0,
+            verdiKjøretøy = 0,
+            innskudd = 0,
+            verdipapir = 0,
+            pengerSkyldt = 0,
+            kontanter = 0,
+            depositumskonto = 0,
+        ),
+        søkersFormue = Formuegrunnlag.Verdier.create(
+            verdiIkkePrimærbolig = 0,
+            verdiEiendommer = 0,
+            verdiKjøretøy = 0,
+            innskudd = 0,
+            verdipapir = 0,
+            pengerSkyldt = 0,
+            kontanter = 0,
+            depositumskonto = 0,
+        ),
+        bosituasjon = bosituasjon.toList(),
+        behandlingsPeriode = periode,
+    )
+}
+
 fun formueGrunnlagUtenEpsAvslått(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
@@ -365,6 +403,29 @@ fun formuevilkårUtenEps0Innvilget(
         vurderingsperioder = nonEmptyListOf(
             Vurderingsperiode.Formue.tryCreateFromGrunnlag(
                 grunnlag = formueGrunnlagUtenEps0Innvilget(opprettet, periode, bosituasjon),
+                formuegrenserFactory = formuegrenserFactoryTest,
+            ).also {
+                assert(it.resultat == Resultat.Innvilget)
+                assert(it.periode == periode)
+                assert(it.opprettet == opprettet)
+            },
+        ),
+    )
+}
+
+fun formuevilkårMedEps0Innvilget(
+    opprettet: Tidspunkt = fixedTidspunkt,
+    periode: Periode = år(2021),
+    bosituasjon: NonEmptyList<Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer>,
+): Vilkår.Formue.Vurdert {
+    val bosituasjonsperiode = bosituasjon.toList().periode()
+    require(bosituasjonsperiode == periode) {
+        "Bosituasjonsperiode: $bosituasjonsperiode må være lik formuevilkåret sin periode: $periode"
+    }
+    return Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(
+        vurderingsperioder = nonEmptyListOf(
+            Vurderingsperiode.Formue.tryCreateFromGrunnlag(
+                grunnlag = formueGrunnlagMedEps0Innvilget(opprettet, periode, bosituasjon),
                 formuegrenserFactory = formuegrenserFactoryTest,
             ).also {
                 assert(it.resultat == Resultat.Innvilget)

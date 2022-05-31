@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import java.time.Clock
 import java.util.UUID
 
-data class LeggTilFormuegrunnlagRequest(
+data class LeggTilFormuevilkårRequest(
     val behandlingId: UUID,
     val formuegrunnlag: Nel<Grunnlag>,
 ) {
@@ -115,7 +115,7 @@ data class LeggTilFormuegrunnlagRequest(
             override val søkersFormue: Formuegrunnlag.Verdier,
             override val begrunnelse: String?,
 
-            ) : Grunnlag {
+        ) : Grunnlag {
             override val måInnhenteMerInformasjon = false
         }
     }

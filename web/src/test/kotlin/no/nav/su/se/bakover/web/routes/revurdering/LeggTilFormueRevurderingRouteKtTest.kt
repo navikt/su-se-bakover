@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilFormuegrunnlag
 import no.nav.su.se.bakover.service.revurdering.RevurderingOgFeilmeldingerResponse
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
-import no.nav.su.se.bakover.service.vilkår.LeggTilFormuegrunnlagRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.opprettetRevurdering
 import no.nav.su.se.bakover.web.testSusebakover
@@ -112,7 +112,7 @@ internal class LeggTilFormueRevurderingRouteKtTest {
     fun `ikke lov med overlappende perioder`() {
         assertErrorMapsToJson(
             error = KunneIkkeLeggeTilFormuegrunnlag.KunneIkkeMappeTilDomenet(
-                LeggTilFormuegrunnlagRequest.KunneIkkeMappeTilDomenet.IkkeLovMedOverlappendePerioder,
+                LeggTilFormuevilkårRequest.KunneIkkeMappeTilDomenet.IkkeLovMedOverlappendePerioder,
             ),
             expectStatusCode = HttpStatusCode.BadRequest,
             expectErrorJson = """
@@ -128,7 +128,7 @@ internal class LeggTilFormueRevurderingRouteKtTest {
     @Test
     fun `formueperioden er utenfor behandlingsperioden`() {
         assertErrorMapsToJson(
-            error = KunneIkkeLeggeTilFormuegrunnlag.KunneIkkeMappeTilDomenet(LeggTilFormuegrunnlagRequest.KunneIkkeMappeTilDomenet.FormuePeriodeErUtenforBehandlingsperioden),
+            error = KunneIkkeLeggeTilFormuegrunnlag.KunneIkkeMappeTilDomenet(LeggTilFormuevilkårRequest.KunneIkkeMappeTilDomenet.FormuePeriodeErUtenforBehandlingsperioden),
             expectStatusCode = HttpStatusCode.BadRequest,
             expectErrorJson = """
                 {

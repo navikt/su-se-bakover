@@ -19,7 +19,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilFormuegrunnlag
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilFormuegrunnlag.FantIkkeSøknadsbehandling
-import no.nav.su.se.bakover.service.vilkår.LeggTilFormuegrunnlagRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
@@ -57,7 +57,7 @@ private data class FormueBody(
                 depositumskonto = json.depositumskonto,
             )
 
-        fun List<FormueBody>.toServiceRequest(behandlingId: UUID): Either<Resultat, LeggTilFormuegrunnlagRequest> {
+        fun List<FormueBody>.toServiceRequest(behandlingId: UUID): Either<Resultat, LeggTilFormuevilkårRequest> {
             if (this.isEmpty()) {
                 return HttpStatusCode.BadRequest.errorJson(
                     "Formueliste kan ikke være tom",
@@ -65,11 +65,11 @@ private data class FormueBody(
                 ).left()
             }
 
-            return LeggTilFormuegrunnlagRequest(
+            return LeggTilFormuevilkårRequest(
                 behandlingId = behandlingId,
                 formuegrunnlag = NonEmptyList.fromListUnsafe(
                     this.map { formueBody ->
-                        LeggTilFormuegrunnlagRequest.Grunnlag.Søknadsbehandling(
+                        LeggTilFormuevilkårRequest.Grunnlag.Søknadsbehandling(
                             periode = formueBody.periode.toPeriodeOrResultat()
                                 .getOrHandle { return it.left() },
                             epsFormue = formueBody.epsFormue?.let {
@@ -102,7 +102,7 @@ internal fun Route.leggTilFormueForSøknadsbehandlingRoute(
                         body.toServiceRequest(behandlingId).mapLeft {
                             call.svar(it)
                         }.map { request ->
-                            søknadsbehandlingService.leggTilFormuegrunnlag(
+                            søknadsbehandlingService.leggTilFormuevilkår(
                                 request,
                             ).map {
                                 call.sikkerlogg("Lagret formue for revudering $behandlingId på $sakId")

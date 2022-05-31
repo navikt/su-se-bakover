@@ -66,7 +66,7 @@ import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
-import no.nav.su.se.bakover.service.vilkår.LeggTilFormuegrunnlagRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
@@ -720,14 +720,14 @@ internal class SøknadsbehandlingServiceImpl(
             }
     }
 
-    override fun leggTilFormuegrunnlag(
-        request: LeggTilFormuegrunnlagRequest,
+    override fun leggTilFormuevilkår(
+        request: LeggTilFormuevilkårRequest,
     ): Either<KunneIkkeLeggeTilFormuegrunnlag, Søknadsbehandling> {
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilFormuegrunnlag.FantIkkeSøknadsbehandling.left()
 
-        return søknadsbehandling.leggTilFormuegrunnlag(
-            grunnlag = request.toDomain(
+        return søknadsbehandling.leggTilFormuevilkår(
+            vilkår = request.toDomain(
                 bosituasjon = søknadsbehandling.grunnlagsdata.bosituasjon,
                 behandlingsperiode = søknadsbehandling.periode,
                 clock = clock,

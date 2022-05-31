@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilOpplysningsplik
 import no.nav.su.se.bakover.service.revurdering.LeggTilOpplysningspliktRequest
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
-import no.nav.su.se.bakover.service.vilkår.LeggTilFormuegrunnlagRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
 import java.util.UUID
@@ -39,7 +39,7 @@ interface SøknadsbehandlingService {
     fun fullførBosituasjongrunnlag(request: FullførBosituasjonRequest): Either<KunneIkkeFullføreBosituasjonGrunnlag, Søknadsbehandling>
     fun leggTilFradragsgrunnlag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradragsgrunnlag, Søknadsbehandling>
 
-    fun leggTilFormuegrunnlag(request: LeggTilFormuegrunnlagRequest): Either<KunneIkkeLeggeTilFormuegrunnlag, Søknadsbehandling>
+    fun leggTilFormuevilkår(request: LeggTilFormuevilkårRequest): Either<KunneIkkeLeggeTilFormuegrunnlag, Søknadsbehandling>
     fun hentForSøknad(søknadId: UUID): Søknadsbehandling?
     fun lukk(lukketSøknadbehandling: LukketSøknadsbehandling, tx: TransactionContext)
     fun lagre(avslag: AvslagManglendeDokumentasjon, tx: TransactionContext)
@@ -215,7 +215,7 @@ interface SøknadsbehandlingService {
 
     sealed interface KunneIkkeLeggeTilFormuegrunnlag {
         object FantIkkeSøknadsbehandling : KunneIkkeLeggeTilFormuegrunnlag
-        data class KunneIkkeMappeTilDomenet(val feil: LeggTilFormuegrunnlagRequest.KunneIkkeMappeTilDomenet) : KunneIkkeLeggeTilFormuegrunnlag
+        data class KunneIkkeMappeTilDomenet(val feil: LeggTilFormuevilkårRequest.KunneIkkeMappeTilDomenet) : KunneIkkeLeggeTilFormuegrunnlag
 
         data class KunneIkkeLeggeTilFormuegrunnlagTilSøknadsbehandling(val feil: Søknadsbehandling.KunneIkkeLeggeTilFormuegrunnlag) : KunneIkkeLeggeTilFormuegrunnlag
     }

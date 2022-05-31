@@ -209,8 +209,8 @@ internal class LagBrevRequestVisitorTest {
     fun `lager request for vilkårsvurdert avslag pga formue`() {
         val vilkårsvurdertAvslagPgaFormue: Søknadsbehandling.Vilkårsvurdert.Avslag =
             søknadsbehandlingVilkårsvurdertInnvilget().second
-                .leggTilFormuegrunnlag(
-                    grunnlag = formuevilkårAvslåttPgrBrukersformue(),
+                .leggTilFormuevilkår(
+                    vilkår = formuevilkårAvslåttPgrBrukersformue(),
                     clock = fixedClock
                 ).getOrFail() as Søknadsbehandling.Vilkårsvurdert.Avslag
         vilkårsvurdertAvslagPgaFormue.let { søknadsbehandling ->
@@ -976,8 +976,8 @@ internal class LagBrevRequestVisitorTest {
     fun `lager request for vedtak med avslått formue`() {
         val søknadsbehandling = (
             søknadsbehandlingVilkårsvurdertInnvilget().second
-                .leggTilFormuegrunnlag(
-                    grunnlag = formuevilkårAvslåttPgrBrukersformue(),
+                .leggTilFormuevilkår(
+                    vilkår = formuevilkårAvslåttPgrBrukersformue(),
                     clock = fixedClock
                 ).getOrFail() as Søknadsbehandling.Vilkårsvurdert.Avslag
             )

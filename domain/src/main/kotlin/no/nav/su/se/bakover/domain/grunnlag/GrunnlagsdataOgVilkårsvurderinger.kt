@@ -4,6 +4,8 @@ import arrow.core.Either
 import arrow.core.getOrHandle
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.erSammenhengendeSortertOgUtenDuplikater
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.perioderMedEPS
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.perioderUtenEPS
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 
@@ -32,12 +34,59 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
      *
      * Fjerner EPS sin formue/fradrag dersom søker ikke har EPS.
      * */
-    open fun oppdaterBosituasjon(
-        bosituasjon: Grunnlag.Bosituasjon,
+    @Suppress("UNCHECKED_CAST")
+    open fun oppdaterBosituasjon(bosituasjon: List<Grunnlag.Bosituasjon>): GrunnlagsdataOgVilkårsvurderinger {
+        return when {
+            bosituasjon.all { it is Grunnlag.Bosituasjon.Ufullstendig } -> oppdaterBosituasjonUfullstendig(bosituasjon as List<Grunnlag.Bosituasjon.Ufullstendig>)
+            bosituasjon.all { it is Grunnlag.Bosituasjon.Fullstendig } -> oppdaterBosituasjonFullstendig(bosituasjon as List<Grunnlag.Bosituasjon.Fullstendig>)
+            else -> {
+                throw IllegalArgumentException("Alle elementer i listen må ha samme grad av kompletthet")
+            }
+        }
+    }
+
+    private fun oppdaterBosituasjonInternal(
+        bosituasjon: List<Grunnlag.Bosituasjon>,
+        oppdaterGrunnlagsdata: (fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>, bosituasjon: List<Grunnlag.Bosituasjon>) -> Either<KunneIkkeLageGrunnlagsdata, Grunnlagsdata>,
     ): GrunnlagsdataOgVilkårsvurderinger {
-        return when (bosituasjon) {
-            is Grunnlag.Bosituasjon.Fullstendig -> oppdaterBosituasjon(bosituasjon)
-            is Grunnlag.Bosituasjon.Ufullstendig -> oppdaterBosituasjon(bosituasjon)
+        val grunnlagsdataJustertForEPS = oppdaterGrunnlagsdata(
+            /**
+             * Hvis vi går fra "eps" til "ingen eps" må vi fjerne fradragene for EPS for alle periodene
+             * hvor det eksiterer fradrag for EPS. Ved endring fra "ingen eps" til "eps" er det umulig for
+             * oss å vite om det skal eksistere fradrag, caset er derfor uhåndtert (opp til saksbehandler).
+             */
+            grunnlagsdata.fradragsgrunnlag.fjernFradragEPS(bosituasjon.perioderUtenEPS()),
+            bosituasjon,
+        ).getOrHandle {
+            throw IllegalStateException(it.toString())
+        }
+
+        val formueJustertForEPS = vilkårsvurderinger.formue
+            /**
+             * Hvis vi går fra "ingen eps" til "eps" må vi fylle på med tomme verdier for EPS formue for
+             * periodene hvor vi tidligere ikke hadde eps.
+             */
+            .leggTilTomEPSFormueHvisDetMangler(bosituasjon.perioderMedEPS())
+            /**
+             * Hvis vi går fra "eps" til "ingen eps" må vi fjerne formue for alle periodene hvor vi
+             * ikke lenger har eps.
+             */
+            .fjernEPSFormue(bosituasjon.perioderUtenEPS())
+            .slåSammenLikePerioder()
+
+        return when (this) {
+            is Revurdering -> {
+                Revurdering(
+                    grunnlagsdata = grunnlagsdataJustertForEPS,
+                    vilkårsvurderinger = vilkårsvurderinger.leggTil(formueJustertForEPS),
+                )
+            }
+            is Søknadsbehandling -> {
+                Søknadsbehandling(
+                    grunnlagsdata = grunnlagsdataJustertForEPS,
+                    vilkårsvurderinger = vilkårsvurderinger.leggTil(formueJustertForEPS),
+                )
+            }
         }
     }
 
@@ -47,8 +96,8 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
      *
      * Fjerner EPS sin formue/fradrag dersom søker ikke har EPS.
      * */
-    private fun oppdaterBosituasjon(
-        bosituasjon: Grunnlag.Bosituasjon.Ufullstendig,
+    private fun oppdaterBosituasjonUfullstendig(
+        bosituasjon: List<Grunnlag.Bosituasjon.Ufullstendig>,
     ): GrunnlagsdataOgVilkårsvurderinger {
         if (this is Revurdering) throw IllegalArgumentException("Kan ikke oppdatere med en ufullstendig bosituasjon for revurdering.")
         return oppdaterBosituasjonInternal(
@@ -63,8 +112,8 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
      *
      * Fjerner EPS sin formue/fradrag dersom søker ikke har EPS.
      * */
-    private fun oppdaterBosituasjon(
-        bosituasjon: Grunnlag.Bosituasjon.Fullstendig,
+    private fun oppdaterBosituasjonFullstendig(
+        bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>,
     ): GrunnlagsdataOgVilkårsvurderinger {
         return oppdaterBosituasjonInternal(
             bosituasjon = bosituasjon,
@@ -72,52 +121,25 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
         )
     }
 
-    private fun oppdaterBosituasjonInternal(
-        bosituasjon: Grunnlag.Bosituasjon,
-        oppdaterGrunnlagsdata: (fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>, bosituasjon: List<Grunnlag.Bosituasjon>) -> Either<KunneIkkeLageGrunnlagsdata, Grunnlagsdata>,
-    ): GrunnlagsdataOgVilkårsvurderinger {
-        val oppdatertGrunnlagsdata = oppdaterGrunnlagsdata(
-            grunnlagsdata.fradragsgrunnlag.fjernFradragForEPSHvisEnslig(bosituasjon),
-            listOf(bosituasjon),
-        ).getOrHandle {
-            when (it) {
-                KunneIkkeLageGrunnlagsdata.FradragForEPSMenBosituasjonUtenEPS -> throw IllegalStateException("Fradrag for EPS skulle ha vært fjernet.")
-                KunneIkkeLageGrunnlagsdata.FradragManglerBosituasjon -> throw IllegalStateException("Bosituasjonsperioden har blitt satt feil sammenlignet med fradrag")
-                KunneIkkeLageGrunnlagsdata.MåLeggeTilBosituasjonFørFradrag -> throw IllegalStateException("Dette er metoden for å oppdatere bosituasjon. Vi har en implementasjonsfeil ved at fradrag blir lagt til uten bosituasjon")
-                is KunneIkkeLageGrunnlagsdata.UgyldigFradragsgrunnlag -> throw IllegalStateException("Eneste endringen vi potensialt har gjort, er å fjerne fradrag for EPS")
-                is KunneIkkeLageGrunnlagsdata.Konsistenssjekk -> throw IllegalStateException("Inkonsistens mellom bosituasjon og fradrag: ${it.feil::class}")
-            }
-        }
-        return when (this) {
-            is Revurdering -> Revurdering(
-                grunnlagsdata = oppdatertGrunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger.nullstillEpsFormueHvisIngenEps(bosituasjon),
-            )
-            is Søknadsbehandling -> Søknadsbehandling(
-                grunnlagsdata = oppdatertGrunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger.nullstillEpsFormueHvisIngenEps(bosituasjon),
-            )
-        }
-    }
-
     data class Søknadsbehandling(
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
     ) : GrunnlagsdataOgVilkårsvurderinger() {
 
-        override fun oppdaterBosituasjon(bosituasjon: Grunnlag.Bosituasjon): Søknadsbehandling {
+        override fun oppdaterBosituasjon(bosituasjon: List<Grunnlag.Bosituasjon>): Søknadsbehandling {
             return super.oppdaterBosituasjon(bosituasjon) as Søknadsbehandling
         }
+
         /**
          * Bytt til en Either dersom man ikke ønsker kaste exceptions herfra lenger.
          */
-        fun oppdaterFormuegrunnlag(
-            grunnlag: Vilkår.Formue.Vurdert,
+        fun oppdaterFormuevilkår(
+            vilkår: Vilkår.Formue.Vurdert,
         ): Søknadsbehandling {
             // TODO jah: Dette er sjekker som alltid bør gjøres før man får en instans av denne typen.
             //  både for ctor og copy (kun init som kan garantere dette).
             //  det blir litt for omfattende i denne omgangen.
-            require(grunnlag.perioder.erSammenhengendeSortertOgUtenDuplikater()) {
+            require(vilkår.perioder.erSammenhengendeSortertOgUtenDuplikater()) {
                 "For søknadsbehandling krever vi sammenhengende perioder. Merk at dette ikke gjelder for andre stønadsbehandlinger som revurdering/regulering."
             }
             // TODO jah: Konsistenssjekken gjøres også av LeggTilFormuegrunnlagRequest.toDomain() så det bør være trygt å kaste her.
@@ -125,21 +147,22 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
             //  Mens behandlingene bør sjekke mot sin periode og evt. andre ting som kun angår de.
             SjekkOmGrunnlagErKonsistent.BosituasjonOgFormue(
                 bosituasjon = grunnlagsdata.bosituasjon,
-                formue = grunnlag.vurderingsperioder.map { it.grunnlag },
-            ).resultat.tapLeft {
-                it.forEach {
-                    when (it) {
+                formue = vilkår.grunnlag,
+            ).resultat.tapLeft { alleFeil ->
+                alleFeil.forEach { konsistensproblem ->
+                    when (konsistensproblem) {
                         Konsistensproblem.BosituasjonOgFormue.FormueForEPSManglerForBosituasjonsperiode,
                         Konsistensproblem.BosituasjonOgFormue.IngenFormueForBosituasjonsperiode,
                         Konsistensproblem.BosituasjonOgFormue.KombinasjonAvBosituasjonOgFormueErUyldig,
                         is Konsistensproblem.BosituasjonOgFormue.UgyldigFormue,
                         -> throw IllegalArgumentException(
-                            "Konsistenssjekk mellom bosituasjon og formue feilet: $it",
+                            "Konsistenssjekk mellom bosituasjon og formue feilet: $konsistensproblem",
                         )
-                        is Konsistensproblem.BosituasjonOgFormue.UgyldigBosituasjon -> it.feil.forEach {
+                        is Konsistensproblem.BosituasjonOgFormue.UgyldigBosituasjon -> konsistensproblem.feil.forEach {
                             when (it) {
                                 Konsistensproblem.Bosituasjon.Mangler,
-                                Konsistensproblem.Bosituasjon.Overlapp -> throw IllegalArgumentException(
+                                Konsistensproblem.Bosituasjon.Overlapp,
+                                -> throw IllegalArgumentException(
                                     "Konsistenssjekk mellom bosituasjon og formue feilet: $it",
                                 )
                                 Konsistensproblem.Bosituasjon.Ufullstendig -> Unit // Bosituasjon trenger ikke være fullstendig på dette tidspunktet.
@@ -149,7 +172,7 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
                 }
             }
 
-            return vilkårsvurderinger.leggTil(grunnlag).let {
+            return vilkårsvurderinger.leggTil(vilkår).let {
                 this.copy(
                     vilkårsvurderinger = it,
                 )
@@ -166,7 +189,7 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
     ) : GrunnlagsdataOgVilkårsvurderinger() {
 
-        override fun oppdaterBosituasjon(bosituasjon: Grunnlag.Bosituasjon): Revurdering {
+        fun oppdaterBosituasjon(bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>): Revurdering {
             return super.oppdaterBosituasjon(bosituasjon) as Revurdering
         }
 

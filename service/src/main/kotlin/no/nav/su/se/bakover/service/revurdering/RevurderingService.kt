@@ -34,7 +34,7 @@ import no.nav.su.se.bakover.service.utbetaling.SimulerStansFeilet
 import no.nav.su.se.bakover.service.utbetaling.UtbetalGjenopptakFeil
 import no.nav.su.se.bakover.service.utbetaling.UtbetalStansFeil
 import no.nav.su.se.bakover.service.vilkår.LeggTilFlereUtenlandsoppholdRequest
-import no.nav.su.se.bakover.service.vilkår.LeggTilFormuegrunnlagRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -132,7 +132,7 @@ interface RevurderingService {
     ): Either<KunneIkkeLeggeTilBosituasjongrunnlag, RevurderingOgFeilmeldingerResponse>
 
     fun leggTilFormuegrunnlag(
-        request: LeggTilFormuegrunnlagRequest,
+        request: LeggTilFormuevilkårRequest,
     ): Either<KunneIkkeLeggeTilFormuegrunnlag, RevurderingOgFeilmeldingerResponse>
 
     fun lagBrevutkastForAvslutting(
@@ -370,7 +370,7 @@ sealed class KunneIkkeLeggeTilFormuegrunnlag {
     data class Konsistenssjekk(val feil: Konsistensproblem.BosituasjonOgFormue) : KunneIkkeLeggeTilFormuegrunnlag()
 
     data class KunneIkkeMappeTilDomenet(
-        val feil: LeggTilFormuegrunnlagRequest.KunneIkkeMappeTilDomenet,
+        val feil: LeggTilFormuevilkårRequest.KunneIkkeMappeTilDomenet,
     ) : KunneIkkeLeggeTilFormuegrunnlag()
 }
 

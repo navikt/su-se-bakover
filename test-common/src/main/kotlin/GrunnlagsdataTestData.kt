@@ -109,8 +109,13 @@ fun grunnlagsdataMedEpsMedFradrag(
         fradragsgrunnlagArbeidsinntekt1000(
             periode = periode,
         ),
+        fradragsgrunnlagArbeidsinntekt(
+            periode = periode,
+            arbeidsinntekt = 1000.0,
+            tilhører = FradragTilhører.EPS,
+        ),
     ),
-    bosituasjon: Nel<Grunnlag.Bosituasjon> = nonEmptyListOf(
+    bosituasjon: Nel<Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer> = nonEmptyListOf(
         bosituasjongrunnlagEpsUførFlyktning(
             epsFnr = epsFnr,
             periode = periode,

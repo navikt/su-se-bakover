@@ -165,7 +165,7 @@ import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFlereUtenlandsoppholdRequest
-import no.nav.su.se.bakover.service.vilkår.LeggTilFormuegrunnlagRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
 import java.time.LocalDate
@@ -504,9 +504,9 @@ open class AccessCheckProxy(
                     return services.søknadsbehandling.leggTilFradragsgrunnlag(request)
                 }
 
-                override fun leggTilFormuegrunnlag(request: LeggTilFormuegrunnlagRequest): Either<SøknadsbehandlingService.KunneIkkeLeggeTilFormuegrunnlag, Søknadsbehandling> {
+                override fun leggTilFormuevilkår(request: LeggTilFormuevilkårRequest): Either<SøknadsbehandlingService.KunneIkkeLeggeTilFormuegrunnlag, Søknadsbehandling> {
                     assertHarTilgangTilBehandling(request.behandlingId)
-                    return services.søknadsbehandling.leggTilFormuegrunnlag(request)
+                    return services.søknadsbehandling.leggTilFormuevilkår(request)
                 }
 
                 override fun hentForSøknad(søknadId: UUID) = kastKanKunKallesFraAnnenService()
@@ -683,7 +683,7 @@ open class AccessCheckProxy(
                     return services.revurdering.leggTilBosituasjongrunnlag(request)
                 }
 
-                override fun leggTilFormuegrunnlag(request: LeggTilFormuegrunnlagRequest): Either<KunneIkkeLeggeTilFormuegrunnlag, RevurderingOgFeilmeldingerResponse> {
+                override fun leggTilFormuegrunnlag(request: LeggTilFormuevilkårRequest): Either<KunneIkkeLeggeTilFormuegrunnlag, RevurderingOgFeilmeldingerResponse> {
                     assertHarTilgangTilRevurdering(request.behandlingId)
                     return services.revurdering.leggTilFormuegrunnlag(request)
                 }
