@@ -86,6 +86,16 @@ internal class ApplicationConfigTest {
                 url = "safUrl",
                 clientId = "safClientId",
             ),
+            maskinportenConfig = ApplicationConfig.ClientsConfig.MaskinportenConfig(
+                clientId = "maskinporten_client_id",
+                scopes = "maskinporten_scopes",
+                clientJwk = "maskinporten_client_jwk",
+                wellKnownUrl = "maskinporten_well_known_url",
+                issuer = "maskinporten_issuer",
+                jwksUri = "maskinporten_jwks_uri",
+                tokenEndpoint = "maskinporten_token_endpoint",
+            ),
+            skatteetatenConfig = ApplicationConfig.ClientsConfig.SkatteetatenConfig(a = "a"),
         ),
         kafkaConfig = ApplicationConfig.KafkaConfig(
             producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg(
@@ -194,6 +204,13 @@ internal class ApplicationConfigTest {
                 "HOSTNAME" to "hostname",
                 "MQ_TILBAKEKREVING_MOTTAK" to "tilbakekrevingMottak",
                 "TILBAKEKREVING_URL" to "tilbakekrevingUrl",
+                "MASKINPORTEN_CLIENT_ID" to "maskinporten_client_id",
+                "MASKINPORTEN_SCOPES" to "maskinporten_scopes",
+                "MASKINPORTEN_CLIENT_JWK" to "maskinporten_client_jwk",
+                "MASKINPORTEN_WELL_KNOWN_URL" to "maskinporten_well_known_url",
+                "MASKINPORTEN_ISSUER" to "maskinporten_issuer",
+                "MASKINPORTEN_JWKS_URI" to "maskinporten_jwks_uri",
+                "MASKINPORTEN_TOKEN_ENDPOINT" to "maskinporten_token_endpoint",
             ),
         ) {
             ApplicationConfig.createFromEnvironmentVariables() shouldBe expectedApplicationConfig
@@ -265,6 +282,16 @@ internal class ApplicationConfigTest {
                     dkifUrl = "mocked",
                     kabalConfig = ApplicationConfig.ClientsConfig.KabalConfig("mocked", "mocked"),
                     safConfig = ApplicationConfig.ClientsConfig.SafConfig("mocked", "mocked"),
+                    maskinportenConfig = ApplicationConfig.ClientsConfig.MaskinportenConfig(
+                        clientId = "mocked",
+                        scopes = "mocked",
+                        clientJwk = "mocked",
+                        wellKnownUrl = "mocked",
+                        issuer = "mocked",
+                        jwksUri = "mocked",
+                        tokenEndpoint = "mocked"
+                    ),
+                    skatteetatenConfig = ApplicationConfig.ClientsConfig.SkatteetatenConfig(a = "mocked"),
                 ),
                 kafkaConfig = ApplicationConfig.KafkaConfig(
                     producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg((emptyMap())),

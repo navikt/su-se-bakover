@@ -10,8 +10,8 @@ import com.nimbusds.jose.jwk.RSAKey
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
 import no.nav.su.se.bakover.client.isSuccess
-import no.nav.su.se.bakover.common.MaskinportenConfig
-import no.nav.su.se.bakover.common.SkatteetatenConfig
+import no.nav.su.se.bakover.common.ApplicationConfig.ClientsConfig.MaskinportenConfig
+import no.nav.su.se.bakover.common.ApplicationConfig.ClientsConfig.SkatteetatenConfig
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.domain.Fnr
@@ -22,7 +22,7 @@ import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.time.Duration
 import java.time.LocalDateTime
-import java.util.*
+import java.util.Date
 
 class SkatteClient(private val maskinportenConfig: MaskinportenConfig, private val skatteetatenConfig: SkatteetatenConfig) : SkatteOppslag {
 

@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
 import no.nav.su.se.bakover.client.kafka.KafkaPublisher
 import no.nav.su.se.bakover.client.kodeverk.Kodeverk
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
+import no.nav.su.se.bakover.client.skatteetaten.SkatteOppslag
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.domain.journalpost.JournalpostClient
@@ -43,4 +44,5 @@ data class Clients(
     val klageClient: KlageClient,
     val journalpostClient: JournalpostClient,
     val tilbakekrevingClient: TilbakekrevingClient,
+    val skatteOppslag: SkatteOppslag,
 )

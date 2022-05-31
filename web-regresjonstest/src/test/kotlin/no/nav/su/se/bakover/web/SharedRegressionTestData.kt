@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.ClientsBuilder
 import no.nav.su.se.bakover.client.journalpost.JournalpostClientStub
 import no.nav.su.se.bakover.client.kabal.KlageClientStub
+import no.nav.su.se.bakover.client.skatteetaten.SkatteClientStub
 import no.nav.su.se.bakover.client.stubs.azure.AzureClientStub
 import no.nav.su.se.bakover.client.stubs.dkif.DkifClientStub
 import no.nav.su.se.bakover.client.stubs.dokarkiv.DokArkivStub
@@ -129,6 +130,16 @@ internal object SharedRegressionTestData {
             dkifUrl = "dkifUrl",
             kabalConfig = ApplicationConfig.ClientsConfig.KabalConfig(url = "kabalUrl", clientId = "KabalClientId"),
             safConfig = ApplicationConfig.ClientsConfig.SafConfig(url = "safUrl", clientId = "safClientId"),
+            maskinportenConfig = ApplicationConfig.ClientsConfig.MaskinportenConfig(
+                clientId = "maskinportenClientId",
+                scopes = "maskinportenScopes",
+                clientJwk = "maskinportenClientJwk",
+                wellKnownUrl = "maskinportenWellKnownUrl",
+                issuer = "maskinportenIssuer",
+                jwksUri = "maskinportenJwksUri",
+                tokenEndpoint = "maskinporteTokenEndpointn"
+            ),
+            skatteetatenConfig = ApplicationConfig.ClientsConfig.SkatteetatenConfig(a = "a"),
         ),
         kafkaConfig = ApplicationConfig.KafkaConfig(
             producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg(emptyMap()),
@@ -282,6 +293,7 @@ data class TestClientsBuilder(
         klageClient = KlageClientStub,
         journalpostClient = JournalpostClientStub,
         tilbakekrevingClient = TilbakekrevingClientStub(clock),
+        skatteOppslag = SkatteClientStub()
     )
 
     override fun build(applicationConfig: ApplicationConfig): Clients = testClients

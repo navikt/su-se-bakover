@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.client.person.MicrosoftGraphApiClient
 import no.nav.su.se.bakover.client.person.PdlClientConfig
 import no.nav.su.se.bakover.client.person.PersonClient
 import no.nav.su.se.bakover.client.person.PersonClientConfig
+import no.nav.su.se.bakover.client.skatteetaten.SkatteClient
 import no.nav.su.se.bakover.client.skjerming.SkjermingClient
 import no.nav.su.se.bakover.client.sts.StsClient
 import no.nav.su.se.bakover.common.ApplicationConfig
@@ -120,6 +121,10 @@ data class ProdClientsBuilder(
                 ).tilbakekrevingSoapService(),
                 clock = clock,
             ),
+            skatteOppslag = SkatteClient(
+                maskinportenConfig = applicationConfig.clientsConfig.maskinportenConfig,
+                skatteetatenConfig = applicationConfig.clientsConfig.skatteetatenConfig
+            )
         )
     }
 }
