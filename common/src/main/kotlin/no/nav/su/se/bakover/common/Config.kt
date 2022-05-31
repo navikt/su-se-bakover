@@ -336,6 +336,8 @@ data class ApplicationConfig(
         val dkifUrl: String,
         val kabalConfig: KabalConfig,
         val safConfig: SafConfig,
+        val maskinportenConfig: MaskinportenConfig,
+        val skatteetatenConfig: SkatteetatenConfig
     ) {
         companion object {
             fun createFromEnvironmentVariables() = ClientsConfig(
@@ -353,6 +355,8 @@ data class ApplicationConfig(
                 dkifUrl = getEnvironmentVariableOrDefault("DKIF_URL", "http://dkif.default.svc.nais.local"),
                 kabalConfig = KabalConfig.createFromEnvironmentVariables(),
                 safConfig = SafConfig.createFromEnvironmentVariables(),
+                maskinportenConfig = MaskinportenConfig.createFromEnvironmentVariables(),
+                skatteetatenConfig = SkatteetatenConfig.createFromEnvironmentVariables(),
             )
 
             fun createLocalConfig() = ClientsConfig(
@@ -630,5 +634,31 @@ data class ApplicationConfig(
                 kafkaConfig = emptyMap(),
             )
         }
+    }
+}
+
+data class SkatteetatenConfig(
+    val a: String
+
+) {
+    companion object {
+        fun createFromEnvironmentVariables() = SkatteetatenConfig("a")
+
+        fun createLocalConfig() = SkatteetatenConfig("a")
+    }
+}
+data class MaskinportenConfig(
+    val clientId: String,
+    val scopes: String,
+    val clientJwk: String,
+    val wellKnownUrl: String,
+    val issuer: String,
+    val jwksUri: String,
+    val tokenEndpoint: String,
+) {
+    companion object {
+        fun createFromEnvironmentVariables() = MaskinportenConfig("a", "a", "a", "a, ", "a", "a", "a")
+
+        fun createLocalConfig() = MaskinportenConfig("a", "a", "a", "a, ", "a", "a", "a")
     }
 }
