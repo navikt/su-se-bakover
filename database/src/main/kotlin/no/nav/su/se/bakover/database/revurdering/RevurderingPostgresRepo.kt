@@ -740,7 +740,7 @@ internal class RevurderingPostgresRepo(
         forhåndsvarsel: Forhåndsvarsel?,
         skalFøreTilBrevutsending: Boolean,
         grunnlagsdata: Grunnlagsdata,
-        vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
+        vilkårsvurderinger: Vilkårsvurderinger.Revurdering.Uføre,
         informasjonSomRevurderes: InformasjonSomRevurderes?,
         avkorting: AvkortingVedRevurdering?,
         tilbakekrevingsbehandling: Tilbakekrevingsbehandling?,

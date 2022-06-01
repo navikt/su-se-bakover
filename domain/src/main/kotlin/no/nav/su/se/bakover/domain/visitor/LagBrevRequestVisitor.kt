@@ -551,8 +551,8 @@ class LagBrevRequestVisitor(
 
     private fun Vilkårsvurderinger.hentUføregrunnlag(): List<Grunnlag.Uføregrunnlag> {
         return when (this) {
-            is Vilkårsvurderinger.Revurdering -> this.uføre.grunnlag
-            is Vilkårsvurderinger.Søknadsbehandling -> this.uføre.grunnlag
+            is Vilkårsvurderinger.Revurdering.Uføre -> this.uføre.grunnlag
+            is Vilkårsvurderinger.Søknadsbehandling.Uføre -> this.uføre.grunnlag
         }
     }
 

@@ -125,7 +125,7 @@ sealed interface Regulering : Reguleringsfelter {
 
         override val grunnlagsdata: Grunnlagsdata
             get() = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata
-        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering
+        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering.Uføre
             get() = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger
 
         init {

@@ -210,7 +210,7 @@ internal class StatusovergangTest {
             statusovergang(
                 vilkårsvurdertAvslag.copy(
                     grunnlagsdata = Grunnlagsdata.create(bosituasjon = listOf(bosituasjongrunnlagEnslig())),
-                    vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
+                    vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre(
                         uføre = innvilgetUførevilkår(),
                         utenlandsopphold = utenlandsoppholdInnvilget(),
                         formue = formuevilkårIkkeVurdert(),
@@ -338,7 +338,7 @@ internal class StatusovergangTest {
             statusovergang(
                 underkjentAvslagVilkår.copy(
                     grunnlagsdata = Grunnlagsdata.create(bosituasjon = listOf(bosituasjongrunnlagEnslig())),
-                    vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
+                    vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre(
                         uføre = innvilgetUførevilkår(),
                         utenlandsopphold = utenlandsoppholdInnvilget(),
                         formue = formuevilkårIkkeVurdert(),
@@ -370,7 +370,7 @@ internal class StatusovergangTest {
             statusovergang(
                 underkjentAvslagBeregning.copy(
                     grunnlagsdata = Grunnlagsdata.create(bosituasjon = listOf(bosituasjongrunnlagEnslig())),
-                    vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
+                    vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre(
                         uføre = innvilgetUførevilkår(),
                         utenlandsopphold = utenlandsoppholdInnvilget(),
                         formue = formuevilkårIkkeVurdert(),
@@ -390,7 +390,7 @@ internal class StatusovergangTest {
             statusovergang(
                 underkjentAvslagBeregning.copy(
                     grunnlagsdata = Grunnlagsdata.create(bosituasjon = listOf(bosituasjongrunnlagEnslig())),
-                    vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
+                    vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre(
                         uføre = innvilgetUførevilkår(),
                         formue = formuevilkårIkkeVurdert(),
                     ),

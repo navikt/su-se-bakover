@@ -91,7 +91,7 @@ internal class RevurderingJsonTest {
                 fradragsgrunnlag = listOf(fradragsgrunnlag),
                 bosituasjon = listOf(bosituasjon),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.Uføre(
                 uføre = Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(vurderingsperiodeUføre),
                 ),

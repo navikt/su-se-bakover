@@ -25,7 +25,7 @@ data class AvsluttetRevurdering private constructor(
     override val periode: Periode = underliggendeRevurdering.periode
     override val tilRevurdering: VedtakSomKanRevurderes = underliggendeRevurdering.tilRevurdering
     override val grunnlagsdata: Grunnlagsdata = underliggendeRevurdering.grunnlagsdata
-    override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering = underliggendeRevurdering.vilkårsvurderinger
+    override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering.Uføre = underliggendeRevurdering.vilkårsvurderinger
     override val saksbehandler: NavIdentBruker.Saksbehandler = underliggendeRevurdering.saksbehandler
     override val fritekstTilBrev: String = underliggendeRevurdering.fritekstTilBrev
     override val revurderingsårsak: Revurderingsårsak = underliggendeRevurdering.revurderingsårsak

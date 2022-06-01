@@ -534,7 +534,7 @@ internal class TestDataHelper(
         utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(utbetalingslinje(stønadsperiode.periode)),
         utbetalingId: UUID30 = UUID30.randomUUID(),
         epsFnr: Fnr? = null,
-        vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerSøknadsbehandlingInnvilget(
+        vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre = vilkårsvurderingerSøknadsbehandlingInnvilget(
             stønadsperiode.periode,
         ),
         grunnlagsdata: Grunnlagsdata = if (epsFnr != null) grunnlagsdataMedEpsMedFradrag(
@@ -776,7 +776,7 @@ internal class TestDataHelper(
             periode,
             epsFnr,
         ) else grunnlagsdataEnsligMedFradrag(periode),
-        vilkårsvurderinger: Vilkårsvurderinger.Revurdering = vilkårsvurderingerSøknadsbehandlingInnvilget(periode = periode)
+        vilkårsvurderinger: Vilkårsvurderinger.Revurdering.Uføre = vilkårsvurderingerSøknadsbehandlingInnvilget(periode = periode)
             .tilVilkårsvurderingerRevurdering(),
     ): OpprettetRevurdering {
         return OpprettetRevurdering(
@@ -1016,7 +1016,7 @@ internal class TestDataHelper(
             stønadsperiode2021.periode.tilOgMed,
         ),
         grunnlagsdata: Grunnlagsdata = grunnlagsdataMedEpsMedFradrag(periode, epsFnr),
-        vilkårsvurderinger: Vilkårsvurderinger.Revurdering = vilkårsvurderingerSøknadsbehandlingInnvilget(periode = periode)
+        vilkårsvurderinger: Vilkårsvurderinger.Revurdering.Uføre = vilkårsvurderingerSøknadsbehandlingInnvilget(periode = periode)
             .tilVilkårsvurderingerRevurdering(),
         tilRevurdering: VedtakSomKanRevurderes = persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
             stønadsperiode = stønadsperiode2021,
@@ -1050,7 +1050,7 @@ internal class TestDataHelper(
             stønadsperiode2021.periode.tilOgMed,
         ),
         grunnlagsdata: Grunnlagsdata = grunnlagsdataMedEpsMedFradrag(periode, epsFnr),
-        vilkårsvurderinger: Vilkårsvurderinger.Revurdering = vilkårsvurderingerSøknadsbehandlingInnvilget(periode = periode)
+        vilkårsvurderinger: Vilkårsvurderinger.Revurdering.Uføre = vilkårsvurderingerSøknadsbehandlingInnvilget(periode = periode)
             .tilVilkårsvurderingerRevurdering(),
         tilRevurdering: VedtakSomKanRevurderes = persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
             stønadsperiode = stønadsperiode2021,
@@ -1083,7 +1083,7 @@ internal class TestDataHelper(
             stønadsperiode2021.periode.tilOgMed,
         ),
         grunnlagsdata: Grunnlagsdata = grunnlagsdataMedEpsMedFradrag(periode, epsFnr),
-        vilkårsvurderinger: Vilkårsvurderinger.Revurdering = vilkårsvurderingerSøknadsbehandlingInnvilget(periode = periode)
+        vilkårsvurderinger: Vilkårsvurderinger.Revurdering.Uføre = vilkårsvurderingerSøknadsbehandlingInnvilget(periode = periode)
             .tilVilkårsvurderingerRevurdering(),
         tilRevurdering: VedtakSomKanRevurderes = persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
             stønadsperiode = stønadsperiode2021,
@@ -1120,7 +1120,7 @@ internal class TestDataHelper(
             stønadsperiode2021.periode.tilOgMed,
         ),
         grunnlagsdata: Grunnlagsdata = grunnlagsdataMedEpsMedFradrag(periode, epsFnr),
-        vilkårsvurderinger: Vilkårsvurderinger.Revurdering = vilkårsvurderingerSøknadsbehandlingInnvilget(periode = periode)
+        vilkårsvurderinger: Vilkårsvurderinger.Revurdering.Uføre = vilkårsvurderingerSøknadsbehandlingInnvilget(periode = periode)
             .tilVilkårsvurderingerRevurdering(),
         tilRevurdering: VedtakSomKanRevurderes = persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
             stønadsperiode = stønadsperiode2021,
@@ -1214,7 +1214,7 @@ internal class TestDataHelper(
         søknadId: UUID = UUID.randomUUID(),
         stønadsperiode: Stønadsperiode = stønadsperiode2021,
         behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
-        vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerSøknadsbehandlingInnvilget(
+        vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre = vilkårsvurderingerSøknadsbehandlingInnvilget(
             periode = stønadsperiode.periode,
         ),
         grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligMedFradrag(periode = stønadsperiode.periode),
@@ -1242,7 +1242,7 @@ internal class TestDataHelper(
         grunnlagsdata: Grunnlagsdata = Grunnlagsdata.create(
             bosituasjon = listOf(bosituasjongrunnlagEnslig(periode = stønadsperiode2021.periode)),
         ),
-        vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = Vilkårsvurderinger.Søknadsbehandling(
+        vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre = Vilkårsvurderinger.Søknadsbehandling.Uføre(
             uføre = innvilgetUførevilkår(periode = stønadsperiode2021.periode),
             formue = formuevilkårIkkeVurdert(),
         ),
@@ -1271,7 +1271,7 @@ internal class TestDataHelper(
         søknadId: UUID = UUID.randomUUID(),
         stønadsperiode: Stønadsperiode = stønadsperiode2021,
         behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
-        vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerSøknadsbehandlingInnvilget(
+        vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre = vilkårsvurderingerSøknadsbehandlingInnvilget(
             stønadsperiode.periode,
         ),
         grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligMedFradrag(stønadsperiode.periode),
@@ -1331,7 +1331,7 @@ internal class TestDataHelper(
         søknadId: UUID = UUID.randomUUID(),
         stønadsperiode: Stønadsperiode = stønadsperiode2021,
         behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
-        vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerSøknadsbehandlingInnvilget(
+        vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre = vilkårsvurderingerSøknadsbehandlingInnvilget(
             stønadsperiode.periode,
         ),
         grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligMedFradrag(stønadsperiode.periode),
@@ -1356,7 +1356,7 @@ internal class TestDataHelper(
         søknadId: UUID = UUID.randomUUID(),
         stønadsperiode: Stønadsperiode = stønadsperiode2021,
         behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
-        vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerSøknadsbehandlingInnvilget(
+        vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre = vilkårsvurderingerSøknadsbehandlingInnvilget(
             stønadsperiode.periode,
         ),
         grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligMedFradrag(stønadsperiode.periode),
@@ -1472,7 +1472,7 @@ internal class TestDataHelper(
         søknadId: UUID = UUID.randomUUID(),
         stønadsperiode: Stønadsperiode = stønadsperiode2021,
         behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
-        vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerSøknadsbehandlingInnvilget(
+        vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre = vilkårsvurderingerSøknadsbehandlingInnvilget(
             stønadsperiode.periode,
         ),
         epsFnr: Fnr? = null,

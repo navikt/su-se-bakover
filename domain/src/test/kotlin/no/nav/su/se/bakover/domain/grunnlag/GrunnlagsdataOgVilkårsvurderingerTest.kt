@@ -50,7 +50,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
                         ),
                     ),
                 ),
-                vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
+                vilkårsvurderinger = Vilkårsvurderinger.Revurdering.Uføre(
                     uføre = innvilgetUførevilkårForventetInntekt0(
                         periode = Periode.create(
                             1.januar(2021),
@@ -88,7 +88,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
                     ),
                 ),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.Uføre(
                 uføre = innvilgetUførevilkårForventetInntekt0(
                     periode = Periode.create(
                         1.januar(2021),
@@ -106,7 +106,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
     fun `ikke vurdert grunnlagsdata og innvilget vilkårsvurderinger kaster ikke exception`() {
         GrunnlagsdataOgVilkårsvurderinger.Revurdering(
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.Uføre(
                 uføre = innvilgetUførevilkårForventetInntekt0(
                     periode = Periode.create(
                         1.januar(2021),

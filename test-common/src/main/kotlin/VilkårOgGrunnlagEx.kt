@@ -274,18 +274,18 @@ fun Grunnlagsdata.shouldBeEqualToExceptId(expected: Grunnlagsdata) {
 
 fun Vilkårsvurderinger.shouldBeEqualToExceptId(expected: Vilkårsvurderinger) {
     when (this) {
-        is Vilkårsvurderinger.Revurdering -> {
+        is Vilkårsvurderinger.Revurdering.Uføre -> {
             this.shouldBeEqualToExceptId(expected)
         }
-        is Vilkårsvurderinger.Søknadsbehandling -> {
+        is Vilkårsvurderinger.Søknadsbehandling.Uføre -> {
             this.shouldBeEqualToExceptId(expected)
         }
     }
 }
 
-fun Vilkårsvurderinger.Søknadsbehandling.shouldBeEqualToExceptId(expected: Vilkårsvurderinger) {
-    expected shouldBe beOfType<Vilkårsvurderinger.Søknadsbehandling>()
-    (expected as Vilkårsvurderinger.Søknadsbehandling).let {
+fun Vilkårsvurderinger.Søknadsbehandling.Uføre.shouldBeEqualToExceptId(expected: Vilkårsvurderinger) {
+    expected shouldBe beOfType<Vilkårsvurderinger.Søknadsbehandling.Uføre>()
+    (expected as Vilkårsvurderinger.Søknadsbehandling.Uføre).let {
         this.uføre.shouldBeEqualToExceptId(expected.uføre)
         this.formue.shouldBeEqualToExceptId(expected.formue)
         this.flyktning.shouldBeEqualToExceptId(expected.flyktning)
@@ -297,9 +297,9 @@ fun Vilkårsvurderinger.Søknadsbehandling.shouldBeEqualToExceptId(expected: Vil
     }
 }
 
-fun Vilkårsvurderinger.Revurdering.shouldBeEqualToExceptId(expected: Vilkårsvurderinger) {
-    expected shouldBe beOfType<Vilkårsvurderinger.Revurdering>()
-    (expected as Vilkårsvurderinger.Revurdering).let {
+fun Vilkårsvurderinger.Revurdering.Uføre.shouldBeEqualToExceptId(expected: Vilkårsvurderinger) {
+    expected shouldBe beOfType<Vilkårsvurderinger.Revurdering.Uføre>()
+    (expected as Vilkårsvurderinger.Revurdering.Uføre).let {
         this.uføre.shouldBeEqualToExceptId(expected.uføre)
         this.formue.shouldBeEqualToExceptId(expected.formue)
     }

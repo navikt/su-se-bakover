@@ -74,7 +74,7 @@ sealed class AbstraktRevurdering : Behandling {
     override val sakId by lazy { tilRevurdering.behandling.sakId }
     override val saksnummer by lazy { tilRevurdering.behandling.saksnummer }
     override val fnr by lazy { tilRevurdering.behandling.fnr }
-    abstract override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering
+    abstract override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering.Uføre
 }
 
 sealed class Revurdering :
@@ -320,7 +320,7 @@ sealed class Revurdering :
     }
 
     private fun oppdaterVilkårsvurderinger(
-        vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
+        vilkårsvurderinger: Vilkårsvurderinger.Revurdering.Uføre,
     ): OpprettetRevurdering {
         return OpprettetRevurdering(
             id = id,
@@ -572,7 +572,7 @@ data class OpprettetRevurdering(
     override val revurderingsårsak: Revurderingsårsak,
     override val forhåndsvarsel: Forhåndsvarsel?,
     override val grunnlagsdata: Grunnlagsdata,
-    override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
+    override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering.Uføre,
     override val informasjonSomRevurderes: InformasjonSomRevurderes,
     override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty(),
     override val avkorting: AvkortingVedRevurdering.Uhåndtert,
@@ -616,7 +616,7 @@ data class OpprettetRevurdering(
         periode: Periode,
         revurderingsårsak: Revurderingsårsak,
         grunnlagsdata: Grunnlagsdata,
-        vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
+        vilkårsvurderinger: Vilkårsvurderinger.Revurdering.Uføre,
         informasjonSomRevurderes: InformasjonSomRevurderes,
         tilRevurdering: VedtakSomKanRevurderes,
         avkorting: AvkortingVedRevurdering.Uhåndtert,
@@ -666,7 +666,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         periode: Periode,
         revurderingsårsak: Revurderingsårsak,
         grunnlagsdata: Grunnlagsdata,
-        vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
+        vilkårsvurderinger: Vilkårsvurderinger.Revurdering.Uføre,
         informasjonSomRevurderes: InformasjonSomRevurderes,
         tilRevurdering: VedtakSomKanRevurderes,
         avkorting: AvkortingVedRevurdering.Uhåndtert,
@@ -700,7 +700,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val revurderingsårsak: Revurderingsårsak,
         override val forhåndsvarsel: Forhåndsvarsel?,
         override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
+        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering.Uføre,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.DelvisHåndtert,
@@ -765,7 +765,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val revurderingsårsak: Revurderingsårsak,
         override val forhåndsvarsel: Forhåndsvarsel?,
         override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
+        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering.Uføre,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.DelvisHåndtert,
@@ -813,7 +813,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val revurderingsårsak: Revurderingsårsak,
         override val forhåndsvarsel: Forhåndsvarsel?,
         override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
+        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering.Uføre,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.DelvisHåndtert,
@@ -1125,7 +1125,7 @@ sealed class SimulertRevurdering : Revurdering() {
         override val simulering: Simulering,
         override val forhåndsvarsel: Forhåndsvarsel?,
         override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
+        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering.Uføre,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.Håndtert,
@@ -1233,7 +1233,7 @@ sealed class SimulertRevurdering : Revurdering() {
         override val simulering: Simulering,
         override val forhåndsvarsel: Forhåndsvarsel?,
         override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
+        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering.Uføre,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.Håndtert,
@@ -1355,7 +1355,7 @@ sealed class SimulertRevurdering : Revurdering() {
         periode: Periode,
         revurderingsårsak: Revurderingsårsak,
         grunnlagsdata: Grunnlagsdata,
-        vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
+        vilkårsvurderinger: Vilkårsvurderinger.Revurdering.Uføre,
         informasjonSomRevurderes: InformasjonSomRevurderes,
         tilRevurdering: VedtakSomKanRevurderes,
         avkorting: AvkortingVedRevurdering.Uhåndtert,
@@ -1400,7 +1400,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         val simulering: Simulering,
         override val forhåndsvarsel: Forhåndsvarsel.Ferdigbehandlet,
         override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
+        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering.Uføre,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.Håndtert,
@@ -1469,7 +1469,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         val simulering: Simulering,
         override val forhåndsvarsel: Forhåndsvarsel.Ferdigbehandlet,
         override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
+        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering.Uføre,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.Håndtert,
@@ -1551,7 +1551,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val skalFøreTilUtsendingAvVedtaksbrev: Boolean,
         override val forhåndsvarsel: Forhåndsvarsel?,
         override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
+        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering.Uføre,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.Håndtert,
@@ -1705,7 +1705,7 @@ sealed class IverksattRevurdering : Revurdering() {
         override val forhåndsvarsel: Forhåndsvarsel.Ferdigbehandlet,
         val simulering: Simulering,
         override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
+        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering.Uføre,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.Iverksatt,
@@ -1736,7 +1736,7 @@ sealed class IverksattRevurdering : Revurdering() {
         val simulering: Simulering,
         override val forhåndsvarsel: Forhåndsvarsel.Ferdigbehandlet,
         override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
+        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering.Uføre,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.Iverksatt,
@@ -1790,7 +1790,7 @@ sealed class IverksattRevurdering : Revurdering() {
         val skalFøreTilUtsendingAvVedtaksbrev: Boolean,
         override val forhåndsvarsel: Forhåndsvarsel?,
         override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
+        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering.Uføre,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.Iverksatt,
@@ -1814,7 +1814,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
     abstract val beregning: Beregning
     abstract override val attesteringer: Attesteringshistorikk
     abstract override val grunnlagsdata: Grunnlagsdata
-    abstract override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering
+    abstract override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering.Uføre
     val attestering: Attestering.Underkjent
         get() = attesteringer.hentSisteAttestering() as Attestering.Underkjent
 
@@ -1859,7 +1859,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override val forhåndsvarsel: Forhåndsvarsel.Ferdigbehandlet,
         val simulering: Simulering,
         override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
+        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering.Uføre,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val avkorting: AvkortingVedRevurdering.Håndtert,
         val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling,
@@ -1914,7 +1914,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override val forhåndsvarsel: Forhåndsvarsel.Ferdigbehandlet,
         val simulering: Simulering,
         override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
+        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering.Uføre,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.Håndtert,
@@ -1991,7 +1991,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         val skalFøreTilUtsendingAvVedtaksbrev: Boolean,
         override val forhåndsvarsel: Forhåndsvarsel?,
         override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
+        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering.Uføre,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.Håndtert,
@@ -2031,7 +2031,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         periode: Periode,
         revurderingsårsak: Revurderingsårsak,
         grunnlagsdata: Grunnlagsdata,
-        vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
+        vilkårsvurderinger: Vilkårsvurderinger.Revurdering.Uføre,
         informasjonSomRevurderes: InformasjonSomRevurderes,
         tilRevurdering: VedtakSomKanRevurderes,
         avkorting: AvkortingVedRevurdering.Uhåndtert,

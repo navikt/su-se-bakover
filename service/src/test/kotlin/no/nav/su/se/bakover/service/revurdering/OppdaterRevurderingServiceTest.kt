@@ -104,7 +104,7 @@ internal class OppdaterRevurderingServiceTest {
                 ),
             ),
         ),
-        vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
+        vilkårsvurderinger = Vilkårsvurderinger.Revurdering.Uføre(
             uføre = vilkårsvurderingUføre,
             formue = formuevilkårIkkeVurdert(),
             utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
@@ -505,8 +505,8 @@ internal class OppdaterRevurderingServiceTest {
                         )
                     )
                 ),
-                vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
-                    Vilkår.Uførhet.Vurdert.create(
+                vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre(
+                    uføre = Vilkår.Uførhet.Vurdert.create(
                         vurderingsperioder = nonEmptyListOf(
                             Vurderingsperiode.Uføre.create(
                                 resultat = Resultat.Innvilget,
@@ -521,7 +521,7 @@ internal class OppdaterRevurderingServiceTest {
                             ),
                         ),
                     ),
-                    andreVedtakFormueVilkår,
+                    formue = andreVedtakFormueVilkår,
                 ),
             ),
         )

@@ -454,7 +454,7 @@ internal class OpprettRevurderingServiceTest {
                     ),
                 ),
             )
-            on { vilkårsvurderinger } doReturn Vilkårsvurderinger.Revurdering(
+            on { vilkårsvurderinger } doReturn Vilkårsvurderinger.Revurdering.Uføre(
                 uføre = vilkårsvurderingUføre,
                 formue = formueVilkår(periode = vedtaksperiode),
                 utenlandsopphold = utenlandsoppholdInnvilget(periode = vedtaksperiode),
@@ -809,7 +809,7 @@ internal class OpprettRevurderingServiceTest {
                 grunnlagsdata = Grunnlagsdata.create(
                     bosituasjon = bosituasjon,
                 ),
-                vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
+                vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre(
                     uføre = uførevilkår,
                     formue = formuevilkårIkkeVurdert(),
                 ),

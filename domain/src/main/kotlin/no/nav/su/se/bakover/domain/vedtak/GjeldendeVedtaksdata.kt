@@ -25,7 +25,7 @@ data class GjeldendeVedtaksdata(
     private val clock: Clock,
 ) {
     val grunnlagsdata: Grunnlagsdata
-    val vilkårsvurderinger: Vilkårsvurderinger.Revurdering
+    val vilkårsvurderinger: Vilkårsvurderinger.Revurdering.Uføre
     val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering
 
     private val tidslinje: Tidslinje<VedtakSomKanRevurderes.VedtakPåTidslinje> = vedtakListe
@@ -48,7 +48,7 @@ data class GjeldendeVedtaksdata(
                 it.grunnlagsdata.bosituasjon
             }.slåSammenPeriodeOgBosituasjon(),
         )
-        vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
+        vilkårsvurderinger = Vilkårsvurderinger.Revurdering.Uføre(
             uføre = vilkårsvurderingerFraTidslinje.uføreVilkår(),
             formue = vilkårsvurderingerFraTidslinje.formueVilkår(),
             utenlandsopphold = vilkårsvurderingerFraTidslinje.utenlandsoppholdVilkår(),
@@ -112,8 +112,8 @@ data class GjeldendeVedtaksdata(
     }
 }
 
-private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.vilkårsvurderinger(): Vilkårsvurderinger.Revurdering {
-    return Vilkårsvurderinger.Revurdering(
+private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.vilkårsvurderinger(): Vilkårsvurderinger.Revurdering.Uføre {
+    return Vilkårsvurderinger.Revurdering.Uføre(
         uføre = this.map { it.uføreVilkår() }
             .filterIsInstance<Vilkår.Uførhet.Vurdert>()
             .flatMap { it.vurderingsperioder }

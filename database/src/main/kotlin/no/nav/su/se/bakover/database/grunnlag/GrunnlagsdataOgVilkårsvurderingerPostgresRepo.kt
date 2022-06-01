@@ -68,7 +68,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
                     fradragsgrunnlag = fradragsgrunnlagPostgresRepo.hentFradragsgrunnlag(behandlingId, session),
                     bosituasjon = bosituasjongrunnlagPostgresRepo.hentBosituasjongrunnlag(behandlingId, session),
                 ),
-                vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
+                vilkårsvurderinger = Vilkårsvurderinger.Revurdering.Uføre(
                     uføre = uføreVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                     formue = formueVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                     utenlandsopphold = utenlandsoppholdVilkårsvurderingPostgresRepo.hent(behandlingId, session),
@@ -88,7 +88,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
                     fradragsgrunnlag = fradragsgrunnlagPostgresRepo.hentFradragsgrunnlag(behandlingId, session),
                     bosituasjon = bosituasjongrunnlagPostgresRepo.hentBosituasjongrunnlag(behandlingId, session),
                 ),
-                vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
+                vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre(
                     uføre = uføreVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                     formue = formueVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                     utenlandsopphold = utenlandsoppholdVilkårsvurderingPostgresRepo.hent(behandlingId, session),

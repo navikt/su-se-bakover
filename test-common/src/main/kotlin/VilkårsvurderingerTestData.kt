@@ -305,12 +305,12 @@ fun formueGrunnlagUtenEpsAvslått(
     )
 }
 
-fun vilkårsvurderingSøknadsbehandlingIkkeVurdert(): Vilkårsvurderinger.Søknadsbehandling {
-    return Vilkårsvurderinger.Søknadsbehandling.ikkeVurdert()
+fun vilkårsvurderingSøknadsbehandlingIkkeVurdert(): Vilkårsvurderinger.Søknadsbehandling.Uføre {
+    return Vilkårsvurderinger.Søknadsbehandling.Uføre.ikkeVurdert()
 }
 
-fun vilkårsvurderingRevurderingIkkeVurdert(): Vilkårsvurderinger.Revurdering {
-    return Vilkårsvurderinger.Revurdering.ikkeVurdert()
+fun vilkårsvurderingRevurderingIkkeVurdert(): Vilkårsvurderinger.Revurdering.Uføre {
+    return Vilkårsvurderinger.Revurdering.Uføre.ikkeVurdert()
 }
 
 fun formuevilkårIkkeVurdert(): Vilkår.Formue {
@@ -385,8 +385,8 @@ fun vilkårsvurderingerSøknadsbehandlingInnvilget(
         id = UUID.randomUUID(),
         periode = periode
     ),
-): Vilkårsvurderinger.Søknadsbehandling {
-    return Vilkårsvurderinger.Søknadsbehandling(
+): Vilkårsvurderinger.Søknadsbehandling.Uføre {
+    return Vilkårsvurderinger.Søknadsbehandling.Uføre(
         uføre = uføre,
         utenlandsopphold = utenlandsopphold,
         formue = formuevilkårIkkeVurdert(),
@@ -410,8 +410,8 @@ fun vilkårsvurderingerRevurderingInnvilget(
     formue: Vilkår.Formue = formuevilkårUtenEps0Innvilget(periode = periode, bosituasjon = bosituasjon),
     utenlandsopphold: UtenlandsoppholdVilkår = utenlandsoppholdInnvilget(periode = periode),
     opplysningsplikt: OpplysningspliktVilkår = tilstrekkeligDokumentert(periode = periode),
-): Vilkårsvurderinger.Revurdering {
-    return Vilkårsvurderinger.Revurdering(
+): Vilkårsvurderinger.Revurdering.Uføre {
+    return Vilkårsvurderinger.Revurdering.Uføre(
         uføre = uføre,
         formue = formue,
         utenlandsopphold = utenlandsopphold,
@@ -426,8 +426,8 @@ fun vilkårsvurderingerAvslåttAlleRevurdering(
     formue: Vilkår.Formue = formuevilkårAvslåttPgrBrukersformue(periode = periode, bosituasjon = bosituasjon),
     utenlandsopphold: UtenlandsoppholdVilkår = utenlandsoppholdAvslag(periode = periode),
     opplysningsplikt: OpplysningspliktVilkår = utilstrekkeligDokumentert(periode = periode),
-): Vilkårsvurderinger.Revurdering {
-    return Vilkårsvurderinger.Revurdering(
+): Vilkårsvurderinger.Revurdering.Uføre {
+    return Vilkårsvurderinger.Revurdering.Uføre(
         uføre = uføre,
         formue = formue,
         utenlandsopphold = utenlandsopphold,
@@ -448,8 +448,8 @@ fun vilkårsvurderingerAvslåttAlleRevurdering(
 fun vilkårsvurderingerAvslåttAlle(
     periode: Periode = år(2021),
     bosituasjon: Grunnlag.Bosituasjon.Fullstendig = bosituasjongrunnlagEnslig(periode = periode),
-): Vilkårsvurderinger.Søknadsbehandling {
-    return Vilkårsvurderinger.Søknadsbehandling(
+): Vilkårsvurderinger.Søknadsbehandling.Uføre {
+    return Vilkårsvurderinger.Søknadsbehandling.Uføre(
         uføre = avslåttUførevilkårUtenGrunnlag(
             periode = periode,
         ),
@@ -480,8 +480,8 @@ fun vilkårsvurderingerAvslåttAlle(
 fun vilkårsvurderingerAvslåttUføreOgAndreInnvilget(
     periode: Periode = år(2021),
     bosituasjon: Grunnlag.Bosituasjon.Fullstendig = bosituasjongrunnlagEnslig(periode = periode),
-): Vilkårsvurderinger.Revurdering {
-    return Vilkårsvurderinger.Revurdering(
+): Vilkårsvurderinger.Revurdering.Uføre {
+    return Vilkårsvurderinger.Revurdering.Uføre(
         uføre = avslåttUførevilkårUtenGrunnlag(periode = periode),
         formue = formuevilkårUtenEps0Innvilget(periode = periode, bosituasjon = bosituasjon),
         utenlandsopphold = utenlandsoppholdInnvilget(periode = periode),

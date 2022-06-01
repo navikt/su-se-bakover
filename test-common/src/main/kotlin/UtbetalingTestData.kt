@@ -68,10 +68,10 @@ fun nyUtbetalingForSimulering(
             beregning = beregning,
             clock = clock,
             uføregrunnlag = when (val vilkår = behandling.vilkårsvurderinger) {
-                is Vilkårsvurderinger.Revurdering -> {
+                is Vilkårsvurderinger.Revurdering.Uføre -> {
                     vilkår.uføre.grunnlag
                 }
-                is Vilkårsvurderinger.Søknadsbehandling -> {
+                is Vilkårsvurderinger.Søknadsbehandling.Uføre -> {
                     vilkår.uføre.grunnlag
                 }
             },
@@ -99,10 +99,10 @@ fun nyUtbetalingSimulert(
                 saksnummer = behandling.saksnummer,
                 clock = clock,
                 uføregrunnlag = when (val vv = behandling.vilkårsvurderinger) {
-                    is Vilkårsvurderinger.Revurdering -> {
+                    is Vilkårsvurderinger.Revurdering.Uføre -> {
                         vv.uføre.grunnlag
                     }
-                    is Vilkårsvurderinger.Søknadsbehandling -> {
+                    is Vilkårsvurderinger.Søknadsbehandling.Uføre -> {
                         vv.uføre.grunnlag
                     }
                 },

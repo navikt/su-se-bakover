@@ -66,7 +66,7 @@ class AvslagManglendeDokumentasjonKomponentTest {
                     avslag.avslagsgrunner shouldBe listOf(Avslagsgrunn.MANGLENDE_DOKUMENTASJON)
                     avslag.vilkårsvurderinger.opplysningspliktVilkår().shouldBeType<OpplysningspliktVilkår.Vurdert>()
                         .let { actualVilkår ->
-                            avslag.vilkårsvurderinger shouldBe Vilkårsvurderinger.Søknadsbehandling.ikkeVurdert().copy(
+                            avslag.vilkårsvurderinger shouldBe Vilkårsvurderinger.Søknadsbehandling.Uføre.ikkeVurdert().copy(
                                 opplysningsplikt = OpplysningspliktVilkår.Vurdert.tryCreate(
                                     vurderingsperioder = nonEmptyListOf(
                                         VurderingsperiodeOpplysningsplikt.create(

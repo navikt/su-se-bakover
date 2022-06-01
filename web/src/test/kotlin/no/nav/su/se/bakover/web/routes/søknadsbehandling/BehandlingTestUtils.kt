@@ -118,7 +118,7 @@ object BehandlingTestUtils {
         grunnlagsdata = Grunnlagsdata.create(
             bosituasjon = listOf(bosituasjon),
         ),
-        vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
+        vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre(
             uføre = Vilkår.Uførhet.Vurdert.create(
                 vurderingsperioder = nonEmptyListOf(vurderingsperiodeUføre),
             ),
