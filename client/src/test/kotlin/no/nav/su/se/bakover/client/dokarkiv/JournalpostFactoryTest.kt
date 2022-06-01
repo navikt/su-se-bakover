@@ -48,7 +48,7 @@ internal class JournalpostFactoryTest {
 
     @Test
     fun `lager infopost for dokumentkategori informasjon`() {
-        val dokument = Dokument.MedMetadata.Informasjon(
+        val dokument = Dokument.MedMetadata.Informasjon.Annet(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             tittel = "tittel",

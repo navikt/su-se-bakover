@@ -29,7 +29,7 @@ data class TrukketSøknadBrevRequest(
 
     override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<LagBrevRequest.KunneIkkeGenererePdf, ByteArray>): Either<LagBrevRequest.KunneIkkeGenererePdf, Dokument.UtenMetadata.Informasjon> {
         return genererDokument(genererPdf).map {
-            Dokument.UtenMetadata.Informasjon(
+            Dokument.UtenMetadata.Informasjon.Annet(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(), // TODO jah: Ta inn clock
                 tittel = it.first,

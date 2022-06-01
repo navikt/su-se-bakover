@@ -209,7 +209,7 @@ internal class LukkSøknadServiceImplTest {
                 )
                 verify(serviceAndMocks.brevService).lagreDokument(
                     argThat { dokument ->
-                        dokument should beOfType<Dokument.MedMetadata.Informasjon>()
+                        dokument should beOfType<Dokument.MedMetadata.Informasjon.Annet>()
                         dokument.tittel shouldBe expectedRequest.brevInnhold.brevTemplate.tittel()
                         dokument.generertDokument shouldBe generertPdf
                         dokument.generertDokumentJson shouldBe expectedRequest.brevInnhold.toJson()
@@ -410,7 +410,7 @@ internal class LukkSøknadServiceImplTest {
                 )
                 verify(serviceAndMocks.brevService).lagreDokument(
                     argThat { dokument ->
-                        dokument should beOfType<Dokument.MedMetadata.Informasjon>()
+                        dokument should beOfType<Dokument.MedMetadata.Informasjon.Annet>()
                         dokument.tittel shouldBe expectedRequest.brevInnhold.brevTemplate.tittel()
                         dokument.generertDokument shouldBe generertPdf
                         dokument.generertDokumentJson shouldBe expectedRequest.brevInnhold.toJson()
@@ -941,7 +941,7 @@ internal class LukkSøknadServiceImplTest {
                 )
                 verify(serviceAndMocks.brevService).lagreDokument(
                     argThat { dokument ->
-                        dokument should beOfType<Dokument.MedMetadata.Informasjon>()
+                        dokument should beOfType<Dokument.MedMetadata.Informasjon.Annet>()
                         dokument.tittel shouldBe expectedRequest.brevInnhold.brevTemplate.tittel()
                         dokument.generertDokument shouldBe generertPdf
                         dokument.generertDokumentJson shouldBe expectedRequest.brevInnhold.toJson()

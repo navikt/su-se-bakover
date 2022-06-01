@@ -250,7 +250,26 @@ internal class DokumentPostgresRepo(
         val journalpostId = if (hentStatus) stringOrNull("journalpostid") else null
 
         return when (type) {
-            DokumentKategori.INFORMASJON -> Dokument.MedMetadata.Informasjon(
+            DokumentKategori.INFORMASJON_VIKTIG -> Dokument.MedMetadata.Informasjon.Viktig(
+                id = id,
+                opprettet = opprettet,
+                tittel = tittel,
+                generertDokument = innhold,
+                generertDokumentJson = request,
+                metadata = Dokument.Metadata(
+                    sakId = sakId,
+                    søknadId = søknadId,
+                    vedtakId = vedtakId,
+                    revurderingId = revurderingId,
+                    klageId = klageId,
+                    bestillBrev = bestillbrev,
+                    brevbestillingId = brevbestillingId,
+                    journalpostId = journalpostId,
+                ),
+            )
+            DokumentKategori.INFORMASJON,
+            DokumentKategori.INFORMASJON_ANNET,
+            -> Dokument.MedMetadata.Informasjon.Annet(
                 id = id,
                 opprettet = opprettet,
                 tittel = tittel,
@@ -291,6 +310,8 @@ internal class DokumentPostgresRepo(
 
     private enum class DokumentKategori {
         INFORMASJON,
+        INFORMASJON_VIKTIG,
+        INFORMASJON_ANNET,
         VEDTAK,
     }
 

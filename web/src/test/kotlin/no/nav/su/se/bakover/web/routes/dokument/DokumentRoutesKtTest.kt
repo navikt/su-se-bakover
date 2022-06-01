@@ -92,7 +92,7 @@ internal class DokumentRoutesKtTest {
         val services = TestServicesBuilder.services().copy(
             brev = mock {
                 on { hentDokumenterFor(argThat { it is HentDokumenterForIdType.Søknad }) } doReturn listOf(
-                    Dokument.UtenMetadata.Informasjon(
+                    Dokument.UtenMetadata.Informasjon.Annet(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.EPOCH,
                         tittel = "en fin tittel",

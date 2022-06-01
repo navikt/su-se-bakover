@@ -294,8 +294,8 @@ internal class OversendKlageTest {
         verify(mocks.klageRepoMock).lagre(eq(expectedKlage), anyOrNull())
         verify(mocks.brevServiceMock).lagreDokument(
             argThat {
-                it shouldBe Dokument.MedMetadata.Informasjon(
-                    utenMetadata = Dokument.UtenMetadata.Informasjon(
+                it shouldBe Dokument.MedMetadata.Informasjon.Annet(
+                    utenMetadata = Dokument.UtenMetadata.Informasjon.Annet(
                         id = it.id,
                         opprettet = it.opprettet,
                         tittel = "Oversendelsesbrev til klager",
@@ -531,8 +531,8 @@ internal class OversendKlageTest {
         )
         verify(mocks.brevServiceMock).lagreDokument(
             argThat {
-                it shouldBe Dokument.MedMetadata.Informasjon(
-                    utenMetadata = Dokument.UtenMetadata.Informasjon(
+                it shouldBe Dokument.MedMetadata.Informasjon.Annet(
+                    utenMetadata = Dokument.UtenMetadata.Informasjon.Annet(
                         id = it.id,
                         opprettet = it.opprettet,
                         tittel = "Oversendelsesbrev til klager",
