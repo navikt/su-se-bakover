@@ -5,14 +5,13 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.april
 import no.nav.su.se.bakover.common.periode.mai
+import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import org.junit.jupiter.api.Test
-import java.time.Clock
 import java.time.LocalDate
 
 internal class GrunnbeløpFactoryTest {
 
-    private val factory = GrunnbeløpFactory(
-        clock = Clock.systemUTC(),
+    private val factory = SatsFactoryForSupplerendeStønad(
         grunnbeløpsendringer = listOf(
             Grunnbeløpsendring(1.mai(2005), 1.mai(2005), 60699),
             Grunnbeløpsendring(1.mai(2006), 1.mai(2006), 62892),
@@ -34,9 +33,11 @@ internal class GrunnbeløpFactoryTest {
         ),
     )
 
+    private val påDagensDato = factory.gjeldende(LocalDate.now())
+
     @Test
     fun `april 2017`() {
-        factory.forMåned(april(2017)) shouldBe GrunnbeløpForMåned(
+        påDagensDato.grunnbeløp(april(2017)) shouldBe GrunnbeløpForMåned(
             måned = april(2017),
             grunnbeløpPerÅr = 92576,
             ikrafttredelse = 1.mai(2016),
@@ -48,7 +49,7 @@ internal class GrunnbeløpFactoryTest {
 
     @Test
     fun `mai 2017`() {
-        factory.forMåned(mai(2017)) shouldBe GrunnbeløpForMåned(
+        påDagensDato.grunnbeløp(mai(2017)) shouldBe GrunnbeløpForMåned(
             måned = mai(2017),
             grunnbeløpPerÅr = 93634,
             ikrafttredelse = 1.mai(2017),
@@ -60,7 +61,7 @@ internal class GrunnbeløpFactoryTest {
 
     @Test
     fun `april 2018`() {
-        factory.forMåned(april(2018)) shouldBe GrunnbeløpForMåned(
+        påDagensDato.grunnbeløp(april(2018)) shouldBe GrunnbeløpForMåned(
             måned = april(2018),
             grunnbeløpPerÅr = 93634,
             ikrafttredelse = 1.mai(2017),
@@ -70,7 +71,7 @@ internal class GrunnbeløpFactoryTest {
 
     @Test
     fun `mai 2018`() {
-        factory.forMåned(mai(2018)) shouldBe GrunnbeløpForMåned(
+        påDagensDato.grunnbeløp(mai(2018)) shouldBe GrunnbeløpForMåned(
             måned = mai(2018),
             grunnbeløpPerÅr = 96883,
             ikrafttredelse = 1.mai(2018),
@@ -80,7 +81,7 @@ internal class GrunnbeløpFactoryTest {
 
     @Test
     fun `april 2019`() {
-        factory.forMåned(april(2019)) shouldBe GrunnbeløpForMåned(
+        påDagensDato.grunnbeløp(april(2019)) shouldBe GrunnbeløpForMåned(
             måned = april(2019),
             grunnbeløpPerÅr = 96883,
             ikrafttredelse = 1.mai(2018),
@@ -90,7 +91,7 @@ internal class GrunnbeløpFactoryTest {
 
     @Test
     fun `mai 2019`() {
-        factory.forMåned(mai(2019)) shouldBe GrunnbeløpForMåned(
+        påDagensDato.grunnbeløp(mai(2019)) shouldBe GrunnbeløpForMåned(
             måned = mai(2019),
             grunnbeløpPerÅr = 99858,
             ikrafttredelse = 1.mai(2019),
@@ -100,7 +101,7 @@ internal class GrunnbeløpFactoryTest {
 
     @Test
     fun `april 2020`() {
-        factory.forMåned(april(2020)) shouldBe GrunnbeløpForMåned(
+        påDagensDato.grunnbeløp(april(2020)) shouldBe GrunnbeløpForMåned(
             måned = april(2020),
             grunnbeløpPerÅr = 99858,
             ikrafttredelse = 1.mai(2019),
@@ -110,7 +111,7 @@ internal class GrunnbeløpFactoryTest {
 
     @Test
     fun `mai 2020`() {
-        factory.forMåned(mai(2020)) shouldBe GrunnbeløpForMåned(
+        påDagensDato.grunnbeløp(mai(2020)) shouldBe GrunnbeløpForMåned(
             måned = mai(2020),
             grunnbeløpPerÅr = 101351,
             ikrafttredelse = 1.mai(2020),
@@ -120,7 +121,7 @@ internal class GrunnbeløpFactoryTest {
 
     @Test
     fun `april 2021`() {
-        factory.forMåned(april(2021)) shouldBe GrunnbeløpForMåned(
+        påDagensDato.grunnbeløp(april(2021)) shouldBe GrunnbeløpForMåned(
             måned = april(2021),
             grunnbeløpPerÅr = 101351,
             ikrafttredelse = 1.mai(2020),
@@ -130,7 +131,7 @@ internal class GrunnbeløpFactoryTest {
 
     @Test
     fun `mai 2021`() {
-        factory.forMåned(mai(2021)) shouldBe GrunnbeløpForMåned(
+        påDagensDato.grunnbeløp(mai(2021)) shouldBe GrunnbeløpForMåned(
             måned = mai(2021),
             grunnbeløpPerÅr = 106399,
             ikrafttredelse = 1.mai(2021),
@@ -140,7 +141,7 @@ internal class GrunnbeløpFactoryTest {
 
     @Test
     fun `april 2022`() {
-        factory.forMåned(april(2022)) shouldBe GrunnbeløpForMåned(
+        påDagensDato.grunnbeløp(april(2022)) shouldBe GrunnbeløpForMåned(
             måned = april(2022),
             grunnbeløpPerÅr = 106399,
             ikrafttredelse = 1.mai(2021),
@@ -150,22 +151,18 @@ internal class GrunnbeløpFactoryTest {
 
     @Test
     fun `historisk grunnbeløp`() {
-        factory.gjeldende(1.januar(2020)).forMåned(mai(2022)) shouldBe GrunnbeløpForMåned(
+        factory.gjeldende(1.januar(2020)).grunnbeløp(mai(2022)) shouldBe GrunnbeløpForMåned(
             måned = mai(2022),
             grunnbeløpPerÅr = 99858,
             ikrafttredelse = 1.mai(2019),
             virkningstidspunkt = 1.mai(2019),
         )
 
-        factory.gjeldende(1.januar(2021)).forMåned(mai(2022)) shouldBe GrunnbeløpForMåned(
+        factory.gjeldende(1.januar(2021)).grunnbeløp(mai(2022)) shouldBe GrunnbeløpForMåned(
             måned = mai(2022),
             grunnbeløpPerÅr = 101351,
             ikrafttredelse = 1.mai(2020),
             virkningstidspunkt = 1.mai(2020),
         )
-
-        factory.gjeldende(1.januar(2022)).alle().count() shouldBe factory.alle().count()
-
-        factory.gjeldende(LocalDate.now()).alle() shouldBe factory.alle()
     }
 }

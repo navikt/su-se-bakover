@@ -40,7 +40,7 @@ import no.nav.su.se.bakover.test.revurderingTilAttestering
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
-import no.nav.su.se.bakover.test.satsFactoryTest
+import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulertUtbetaling
 import no.nav.su.se.bakover.test.simulertUtbetalingOpphør
 import no.nav.su.se.bakover.test.stønadsperiode2021
@@ -118,7 +118,7 @@ internal class RevurderingBeregnOgSimulerTest {
                             fraOgMed = revurdering.periode.fraOgMed,
                             clock = fixedClock,
                         ).getOrFail(),
-                        satsFactory = satsFactoryTest,
+                        satsFactory = satsFactoryTestPåDato(),
                     ).getOrFail().beregning,
                     clock = fixedClock,
                 ).right()
@@ -208,7 +208,7 @@ internal class RevurderingBeregnOgSimulerTest {
                             fraOgMed = opprettetRevurdering.periode.fraOgMed,
                             clock = fixedClock,
                         ).getOrFail(),
-                        satsFactory = satsFactoryTest,
+                        satsFactory = satsFactoryTestPåDato(),
                     ).getOrFail().beregning,
                     clock = fixedClock,
                 ).right()

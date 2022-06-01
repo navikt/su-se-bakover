@@ -708,8 +708,8 @@ class LagBrevRequestVisitor(
             is Tilbakekrev -> {
                 LagBrevRequest.TilbakekrevingAvPenger(
                     ordinærtRevurderingBrev = innvilgetRevurdering(
-                        revurdering,
-                        beregning,
+                        revurdering = revurdering,
+                        beregning = beregning,
                     ).getOrHandle { return it.left() },
                     tilbakekreving = Tilbakekreving(simulering.hentFeilutbetalteBeløp().månedbeløp),
                     satsoversikt = Satsoversikt.fra(revurdering, satsFactory),

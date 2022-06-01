@@ -28,7 +28,7 @@ import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.formuegrenserFactoryTest
+import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.plus
@@ -378,7 +378,7 @@ internal class SakTest {
             val actual = vilkårsvurdert.oppdaterStønadsperiode(
                 oppdatertStønadsperiode = Stønadsperiode.create(nyPeriode),
                 clock = fixedClock,
-                formuegrenserFactory = formuegrenserFactoryTest,
+                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             ).getOrFail()
 
             vilkårsvurdert.periode shouldNotBe nyPeriode
@@ -405,7 +405,7 @@ internal class SakTest {
                     søknadsbehandlingId = opprettetSøknadsbehandling.id,
                     stønadsperiode = Stønadsperiode.create(nyPeriode),
                     clock = fixedClock,
-                    formuegrenserFactory = formuegrenserFactoryTest,
+                    formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                 ) shouldBe Sak.KunneIkkeOppdatereStønadsperiode.StønadsperiodeOverlapperMedLøpendeStønadsperiode.left()
             }
         }
@@ -428,7 +428,7 @@ internal class SakTest {
                     søknadsbehandlingId = mellomToAndrePerioder.id,
                     stønadsperiode = nyPeriode,
                     clock = fixedClock,
-                    formuegrenserFactory = formuegrenserFactoryTest,
+                    formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                 ) shouldBe Sak.KunneIkkeOppdatereStønadsperiode.StønadsperiodeForSenerePeriodeEksisterer.left()
             }
         }
@@ -470,7 +470,7 @@ internal class SakTest {
                     søknadsbehandlingId = nySøknadsbehandlingMedOpplysningsplikt.id,
                     stønadsperiode = nyStønadsperiode,
                     clock = tikkendeKlokke,
-                    formuegrenserFactory = formuegrenserFactoryTest,
+                    formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                 ).getOrFail() shouldBe nySøknadsbehandlingMedOpplysningsplikt
 
                 listOf(
@@ -483,7 +483,7 @@ internal class SakTest {
                         søknadsbehandlingId = nySøknadsbehandlingMedOpplysningsplikt.id,
                         stønadsperiode = stønadsperiode,
                         clock = tikkendeKlokke,
-                        formuegrenserFactory = formuegrenserFactoryTest,
+                        formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                     ) shouldBe Sak.KunneIkkeOppdatereStønadsperiode.StønadsperiodeInneholderAvkortingPgaUtenlandsopphold.left()
                 }
 
@@ -501,7 +501,7 @@ internal class SakTest {
                         søknadsbehandlingId = nySøknadsbehandlingMedOpplysningsplikt.id,
                         stønadsperiode = stønadsperiode,
                         clock = tikkendeKlokke,
-                        formuegrenserFactory = formuegrenserFactoryTest,
+                        formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                     ).getOrFail() shouldBe nySøknadsbehandlingMedOpplysningsplikt.copy(
                         stønadsperiode = stønadsperiode,
                     )

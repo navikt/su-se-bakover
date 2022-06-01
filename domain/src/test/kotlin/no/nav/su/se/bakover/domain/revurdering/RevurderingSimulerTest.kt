@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.opprettetRevurderingAvslagSpesifiktVilkår
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
-import no.nav.su.se.bakover.test.satsFactoryTest
+import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simuleringNy
 import no.nav.su.se.bakover.test.simulertUtbetalingOpphør
 import no.nav.su.se.bakover.test.utenlandsoppholdAvslag
@@ -37,7 +37,7 @@ class RevurderingSimulerTest {
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
-                satsFactory = satsFactoryTest,
+                satsFactory = satsFactoryTestPåDato(),
             ).getOrFail().let { beregnet ->
                 (beregnet as BeregnetRevurdering.Opphørt)
                     .toSimulert(
@@ -81,7 +81,7 @@ class RevurderingSimulerTest {
                         fraOgMed = revurdering.periode.fraOgMed,
                         clock = fixedClock,
                     ).getOrFail(),
-                    satsFactory = satsFactoryTest,
+                    satsFactory = satsFactoryTestPåDato(),
                 ).getOrFail().let { beregnet ->
                     (beregnet as BeregnetRevurdering.Opphørt)
                         .toSimulert(
@@ -112,7 +112,7 @@ class RevurderingSimulerTest {
                     fraOgMed = revurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
-                satsFactory = satsFactoryTest,
+                satsFactory = satsFactoryTestPåDato(),
             ).getOrFail().let {
                 (it as BeregnetRevurdering.Opphørt)
                     .toSimulert(
@@ -154,7 +154,7 @@ class RevurderingSimulerTest {
                         fraOgMed = revurdering.periode.fraOgMed,
                         clock = fixedClock,
                     ).getOrFail(),
-                    satsFactory = satsFactoryTest,
+                    satsFactory = satsFactoryTestPåDato(),
                 ).getOrFail().let {
                     (it as BeregnetRevurdering.Opphørt)
                         .toSimulert(

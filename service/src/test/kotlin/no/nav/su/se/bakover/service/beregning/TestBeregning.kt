@@ -13,7 +13,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.satser.Satskategori
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.satsFactoryTest
+import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import java.util.UUID
 
 internal object TestBeregning : Beregning {
@@ -39,7 +39,7 @@ internal object TestMånedsberegning : Månedsberegning {
     override fun getFradrag(): List<FradragForMåned> = listOf(TestFradrag)
     override fun getFribeløpForEps(): Double = 0.0
     override fun getMerknader(): List<Merknad.Beregning> = emptyList()
-    override val fullSupplerendeStønadForMåned = satsFactoryTest.høy(januar(2021))
+    override val fullSupplerendeStønadForMåned = satsFactoryTestPåDato().høyUføre(januar(2021))
     override val periode: Periode = januar(2020)
     override fun equals(other: Any?) = (other as? Månedsberegning)?.let { this.equals(other) } ?: false
     override val måned: Måned = januar(2020)

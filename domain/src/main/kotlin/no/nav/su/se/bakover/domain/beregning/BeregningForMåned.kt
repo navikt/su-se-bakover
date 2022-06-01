@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.domain.satser.Satskategori
 data class BeregningForMåned(
     override val måned: Måned,
     private val fradrag: List<FradragForMåned>,
-    override val fullSupplerendeStønadForMåned: FullSupplerendeStønadForMåned,
+    override val fullSupplerendeStønadForMåned: FullSupplerendeStønadForMåned.Uføre,
     private val fribeløpForEps: Double = 0.0,
     private val merknader: Merknader.Beregningsmerknad = Merknader.Beregningsmerknad(),
     private val sumYtelse: Int,

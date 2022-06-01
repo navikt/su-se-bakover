@@ -13,11 +13,13 @@ import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.satsFactoryTest
+import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.susebakover
 import org.mockito.kotlin.mock
 import java.time.Clock
+import java.time.LocalDate
 import javax.sql.DataSource
 
 class AppComponents private constructor(
@@ -30,11 +32,11 @@ class AppComponents private constructor(
 ) {
     companion object {
         fun instance(clock: Clock, dataSource: DataSource): AppComponents {
-            val satsFactory = satsFactoryTest(clock)
+            val satsFactory = satsFactoryTestPåDato(LocalDate.now(clock))
             val databaseRepos: DatabaseRepos = SharedRegressionTestData.databaseRepos(
                 dataSource = dataSource,
                 clock = clock,
-                satsFactory = satsFactory,
+                satsFactory = satsFactoryTest,
             )
             val clients: Clients = TestClientsBuilder(
                 clock = clock,

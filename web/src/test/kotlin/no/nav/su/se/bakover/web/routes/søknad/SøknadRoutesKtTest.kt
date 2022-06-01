@@ -54,6 +54,7 @@ import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.satsFactoryTest
+import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagUtenBeregning
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -202,7 +203,7 @@ internal class SøknadRoutesKtTest {
                 embeddedDatasource = dataSource,
                 dbMetrics = dbMetricsStub,
                 clock = fixedClock,
-                satsFactory = satsFactoryTest,
+                satsFactory = satsFactoryTest
             )
 
             val clients = TestClientsBuilder(fixedClock, repos).build(applicationConfig).copy(
@@ -219,7 +220,7 @@ internal class SøknadRoutesKtTest {
                 søknadMetrics = mock(),
                 clock = fixedClock,
                 unleash = mock(),
-                satsFactory = satsFactoryTest,
+                satsFactory = satsFactoryTestPåDato(),
             )
 
             testApplication {
@@ -438,7 +439,7 @@ internal class SøknadRoutesKtTest {
                     },
                 )
 
-                bodyAsText() shouldBe serialize(sak.toJson(fixedClock, satsFactoryTest))
+                bodyAsText() shouldBe serialize(sak.toJson(fixedClock, satsFactoryTestPåDato()))
             }
         }
     }

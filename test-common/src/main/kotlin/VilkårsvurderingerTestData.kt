@@ -403,7 +403,7 @@ fun formuevilkårUtenEps0Innvilget(
         vurderingsperioder = nonEmptyListOf(
             Vurderingsperiode.Formue.tryCreateFromGrunnlag(
                 grunnlag = formueGrunnlagUtenEps0Innvilget(opprettet, periode, bosituasjon),
-                formuegrenserFactory = formuegrenserFactoryTest,
+                formuegrenserFactory = formuegrenserFactoryTestPåDato(opprettet),
             ).also {
                 assert(it.resultat == Resultat.Innvilget)
                 assert(it.periode == periode)
@@ -426,7 +426,7 @@ fun formuevilkårMedEps0Innvilget(
         vurderingsperioder = nonEmptyListOf(
             Vurderingsperiode.Formue.tryCreateFromGrunnlag(
                 grunnlag = formueGrunnlagMedEps0Innvilget(opprettet, periode, bosituasjon),
-                formuegrenserFactory = formuegrenserFactoryTest,
+                formuegrenserFactory = formuegrenserFactoryTestPåDato(opprettet),
             ).also {
                 assert(it.resultat == Resultat.Innvilget)
                 assert(it.periode == periode)
@@ -451,7 +451,7 @@ fun formuevilkårAvslåttPgrBrukersformue(
                     periode = periode,
                     bosituasjon = bosituasjon,
                 ),
-                formuegrenserFactory = formuegrenserFactoryTest,
+                formuegrenserFactory = formuegrenserFactoryTestPåDato(opprettet),
             ).also {
                 assert(it.resultat == Resultat.Avslag)
                 assert(it.periode == periode)
@@ -474,7 +474,7 @@ fun formuevilkårAvslåttPgrBrukersformue(
                     periode = periode,
                     bosituasjon = bosituasjon,
                 ),
-                formuegrenserFactory = formuegrenserFactoryTest,
+                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             ).also {
                 assert(it.resultat == Resultat.Avslag)
                 assert(it.periode == periode)

@@ -246,7 +246,7 @@ fun beregnetRevurdering(
                 fraOgMed = revurderingsperiode.fraOgMed,
                 clock = clock,
             ).getOrFail(),
-            satsFactory = satsFactoryTest,
+            satsFactory = satsFactoryTestPåDato(),
         ).getOrFail()
 
         sak.copy(
@@ -636,7 +636,7 @@ fun beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
                 fraOgMed = revurderingsperiode.fraOgMed,
                 clock = clock,
             ).getOrFail(),
-            satsFactory = satsFactoryTest,
+            satsFactory = satsFactoryTestPåDato(),
         ).getOrFail() as BeregnetRevurdering.Innvilget
         Pair(
             sak.copy(
@@ -719,7 +719,7 @@ fun beregnetRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
                 fraOgMed = revurderingsperiode.fraOgMed,
                 clock = clock,
             ).getOrFail(),
-            satsFactory = satsFactoryTest,
+            satsFactory = satsFactoryTestPåDato(),
         ).getOrFail() as BeregnetRevurdering.IngenEndring
         Pair(
             sak.copy(
@@ -769,7 +769,7 @@ fun beregnetRevurderingOpphørtPgaVilkårFraInnvilgetSøknadsbehandlingsVedtak(
                 fraOgMed = revurderingsperiode.fraOgMed,
                 clock = clock,
             ).getOrFail(),
-            satsFactory = satsFactoryTest,
+            satsFactory = satsFactoryTestPåDato(),
         ).getOrFail() as BeregnetRevurdering.Opphørt
         Pair(
             sak.copy(
@@ -826,7 +826,7 @@ fun beregnetRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
                 fraOgMed = revurderingsperiode.fraOgMed,
                 clock = clock,
             ).getOrFail(),
-            satsFactory = satsFactoryTest,
+            satsFactory = satsFactoryTestPåDato(),
         ).getOrFail() as BeregnetRevurdering.Opphørt
         Pair(
             sak.copy(

@@ -38,7 +38,6 @@ import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.UgyldigFnrException
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
-import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
@@ -74,6 +73,7 @@ import no.nav.su.se.bakover.web.routes.toggleRoutes
 import no.nav.su.se.bakover.web.routes.vilkår.opplysningsplikt.opplysningspliktRoutes
 import org.slf4j.event.Level
 import java.time.Clock
+import java.time.LocalDate
 import java.time.format.DateTimeParseException
 
 fun main() {
@@ -91,7 +91,7 @@ fun Application.susebakover(
     søknadMetrics: SøknadMetrics = SøknadMicrometerMetrics(),
     applicationConfig: ApplicationConfig = ApplicationConfig.createConfig(),
     unleash: Unleash = UnleashBuilder.build(applicationConfig),
-    satsFactory: SatsFactory = SatsFactoryForSupplerendeStønad(clock = clock),
+    satsFactory: SatsFactoryForSupplerendeStønad = SatsFactoryForSupplerendeStønad(),
     databaseRepos: DatabaseRepos = DatabaseBuilder.build(
         databaseConfig = applicationConfig.database,
         dbMetrics = DbMicrometerMetrics(),
@@ -118,10 +118,11 @@ fun Application.susebakover(
         søknadMetrics = søknadMetrics,
         clock = clock,
         unleash = unleash,
-        satsFactory = satsFactory,
+        satsFactory = satsFactory.gjeldende(LocalDate.now(clock)),
     ),
     accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services),
 ) {
+    val satsFactoryIDag = satsFactory.gjeldende(LocalDate.now(clock))
     install(StatusPages) {
         exception<Tilgangssjekkfeil> { call, cause ->
             when (cause.feil) {
@@ -206,27 +207,27 @@ fun Application.susebakover(
                     accessCheckProxy,
                 ) { accessProtectedServices ->
                     personRoutes(accessProtectedServices.person, clock)
-                    sakRoutes(accessProtectedServices.sak, clock, satsFactory)
+                    sakRoutes(accessProtectedServices.sak, clock, satsFactoryIDag)
                     søknadRoutes(
                         søknadService = accessProtectedServices.søknad,
                         lukkSøknadService = accessProtectedServices.lukkSøknad,
                         avslåSøknadManglendeDokumentasjonService = accessProtectedServices.avslåSøknadManglendeDokumentasjonService,
                         clock = clock,
-                        satsFactory,
+                        satsFactoryIDag,
                     )
-                    overordnetSøknadsbehandligRoutes(accessProtectedServices.søknadsbehandling, clock, satsFactory)
+                    overordnetSøknadsbehandligRoutes(accessProtectedServices.søknadsbehandling, clock, satsFactoryIDag)
                     avstemmingRoutes(accessProtectedServices.avstemming, clock)
                     driftRoutes(accessProtectedServices.søknad)
-                    revurderingRoutes(accessProtectedServices.revurdering, accessProtectedServices.vedtakService, clock, satsFactory)
+                    revurderingRoutes(accessProtectedServices.revurdering, accessProtectedServices.vedtakService, clock, satsFactoryIDag)
                     klageRoutes(accessProtectedServices.klageService, clock)
                     dokumentRoutes(accessProtectedServices.brev)
                     nøkkeltallRoutes(accessProtectedServices.nøkkeltallService)
                     kontrollsamtaleRoutes(accessProtectedServices.kontrollsamtale)
-                    reguleringRoutes(accessProtectedServices.reguleringService, satsFactory)
+                    reguleringRoutes(accessProtectedServices.reguleringService, satsFactoryIDag)
                     opplysningspliktRoutes(
                         søknadsbehandlingService = accessProtectedServices.søknadsbehandling,
                         revurderingService = accessProtectedServices.revurdering,
-                        satsFactory = satsFactory,
+                        satsFactory = satsFactoryIDag,
                     )
                     skattRoutes(accessProtectedServices.skatteService, accessProtectedServices.toggles)
                 }

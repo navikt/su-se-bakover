@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.satsFactoryTest
+import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import java.util.UUID
@@ -99,7 +99,7 @@ internal class FormuevilkårJsonTest {
                     periode = julDes,
                 ),
             ),
-        ).toJson(satsFactoryTest)
+        ).toJson(satsFactoryTestPåDato())
         //language=JSON
         val expectedVilkårJson = """
 {
