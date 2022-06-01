@@ -175,7 +175,8 @@ internal class SøknadsbehandlingServiceImpl(
     }
 
     /**
-     * Vilkårsvurderer kun behandlingsinformasjon på søknadsbehandling. Behandlingsinformasjon er tenkt migrert over til GrunnlagsdataOgVilkårsvurderinger og deretter sanert.
+     * Vilkårsvurderer behandlingsinformasjon og tilhørende vilkår på søknadsbehandling.
+     * Behandlingsinformasjon brukes fremdeles i route/database-lagene, men er tenkt migrert/sanert helt til Vilkårsvurderinger.
      */
     override fun vilkårsvurder(request: VilkårsvurderRequest): Either<SøknadsbehandlingService.KunneIkkeVilkårsvurdere, Søknadsbehandling.Vilkårsvurdert> {
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)

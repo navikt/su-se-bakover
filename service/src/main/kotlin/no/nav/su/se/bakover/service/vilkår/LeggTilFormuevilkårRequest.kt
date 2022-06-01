@@ -39,7 +39,6 @@ data class LeggTilFormuevilkårRequest(
                             KunneIkkeMappeTilDomenet.FormuePeriodeErUtenforBehandlingsperioden
                         }
                         is KunneIkkeLageFormueGrunnlag.Konsistenssjekk -> {
-                            // TODO jah: Vi må akseptere at bosituasjonen er ufullstendig på dette tidspunktet.
                             KunneIkkeMappeTilDomenet.Konsistenssjekk(it.feil)
                         }
                     }.left()
