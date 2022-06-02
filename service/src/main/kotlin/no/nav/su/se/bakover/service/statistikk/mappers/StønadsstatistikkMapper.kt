@@ -95,7 +95,9 @@ private fun mapBeregning(
     val alleFradrag = beregning.tilFradragPerMåned()
     val månedsberegninger = beregning.getMånedsberegninger().associateBy { it.måned }
 
-    return beregning.periode.måneder().toList().map { måned ->
+    val månederIVedtakOgBeregning = vedtak.periode.måneder().toSet().intersect(beregning.periode.måneder().toSet()).toList()
+
+    return månederIVedtakOgBeregning.map { måned ->
         val fradrag = høgstAvForventetInntektOgArbeidsInntekt(alleFradrag[måned]!!)
 
         Statistikk.Stønad.Månedsbeløp(

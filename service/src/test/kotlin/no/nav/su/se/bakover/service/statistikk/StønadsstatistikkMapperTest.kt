@@ -101,7 +101,7 @@ internal class StønadsstatistikkMapperTest {
                                 inntektstype = "ForventetInntekt",
                                 beløp = 3000,
                                 tilhører = "BRUKER",
-                                erUtenlandsk = false
+                                erUtenlandsk = false,
                             ),
                         ),
                         fradragSum = 3000,
@@ -118,7 +118,7 @@ internal class StønadsstatistikkMapperTest {
                                 inntektstype = "ForventetInntekt",
                                 beløp = 3000,
                                 tilhører = "BRUKER",
-                                erUtenlandsk = false
+                                erUtenlandsk = false,
                             ),
                         ),
                         fradragSum = 3000,
@@ -535,6 +535,71 @@ internal class StønadsstatistikkMapperTest {
                   "versjon": 1609462923456,
                   "flyktningsstatus": "FLYKTNING"
                 }
+        """.trimIndent()
+
+        JSONAssert.assertEquals(expected, actual, true)
+    }
+
+    @Test
+    fun `Gjenopptak for en kortere periode enn søknadsperioden bruker nyeste beregning for hver måned`() {
+        val stønadsperiode = Periode.create(1.januar(2021), 28.februar(2021))
+        var sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
+            stønadsperiode = Stønadsperiode.create(stønadsperiode),
+            clock = fixedClock,
+        )
+        val stansOgGjenopptagelsesperiode = Periode.create(1.februar(2021), 28.februar(2021))
+        lateinit var gjenopptakVedtak: VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse
+        sakOgVedtak = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(sakOgVedtakSomKanRevurderes = sakOgVedtak, periode = stansOgGjenopptagelsesperiode, clock = fixedClock.plus(2, ChronoUnit.SECONDS))
+        vedtakIverksattGjenopptakAvYtelseFraIverksattStans(sakOgVedtakSomKanRevurderes = sakOgVedtak, periode = stansOgGjenopptagelsesperiode, clock = fixedClock.plus(3, ChronoUnit.SECONDS)).let {
+            sakOgVedtak = it
+            gjenopptakVedtak = it.second
+        }
+
+        val actual = objectMapper.writeValueAsString(
+            StønadsstatistikkMapper(fixedClock).map(
+                vedtak = gjenopptakVedtak,
+                aktørId = aktørId,
+                ytelseVirkningstidspunkt = vedtak.periode.fraOgMed,
+                sak = sakOgVedtak.first,
+            ),
+        )
+        val expected = """
+            {
+                "funksjonellTid": "2021-01-01T01:02:03.456789Z",
+                "tekniskTid": "2021-01-01T01:02:03.456789Z",
+                "stonadstype": "SU_UFØR",
+                "sakId": "${sak.id}",
+                "aktorId": 293829399,
+                "sakstype": "GJENOPPTAK",
+                "vedtaksdato": "2021-01-01",
+                "vedtakstype": "GJENOPPTAK",
+                "vedtaksresultat": "GJENOPPTATT",
+                "behandlendeEnhetKode": "4815",
+                "ytelseVirkningstidspunkt": "2021-01-01",
+                "gjeldendeStonadVirkningstidspunkt": "2021-02-01",
+                "gjeldendeStonadStopptidspunkt": "2021-02-28",
+                "gjeldendeStonadUtbetalingsstart": "2021-02-01",
+                "gjeldendeStonadUtbetalingsstopp": "2021-02-28",
+                "månedsbeløp": [
+                    {
+                        "måned": "2021-02-01",
+                        "stonadsklassifisering": "BOR_ALENE",
+                        "bruttosats": 20946,
+                        "nettosats": 20946,
+                        "inntekter": [
+                            {
+                                "inntektstype": "ForventetInntekt",
+                                "beløp":0,
+                                "tilhører": "BRUKER",
+                                "erUtenlandsk": false
+                            }
+                        ],
+                        "fradragSum": 0
+                    }
+                ],
+                "versjon": 1609462923456,
+                "flyktningsstatus": "FLYKTNING"
+            }
         """.trimIndent()
 
         JSONAssert.assertEquals(expected, actual, true)

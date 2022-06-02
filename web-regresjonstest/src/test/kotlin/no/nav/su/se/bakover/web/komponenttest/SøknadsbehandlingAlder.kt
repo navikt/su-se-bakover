@@ -172,7 +172,6 @@ internal class SøknadsbehandlingAlder {
                 }
             }
 
-
             assertThrows<NotImplementedError> {
                 appComponents.services.søknadsbehandling.beregn(
                     request = SøknadsbehandlingService.BeregnRequest(
