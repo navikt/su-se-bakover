@@ -468,7 +468,7 @@ class LagBrevRequestVisitor(
                 harEktefelle = søknadsbehandling.grunnlagsdata.bosituasjon.ifNotEmpty { harEPS() } ?: false,
                 beregning = beregning,
                 fritekst = fritekst,
-                uføregrunnlag = søknadsbehandling.vilkårsvurderinger.uføre.grunnlag,
+                uføregrunnlag = søknadsbehandling.vilkårsvurderinger.hentUføregrunnlag(),
                 formuevilkår = søknadsbehandling.vilkårsvurderinger.formue,
                 saksnummer = søknadsbehandling.saksnummer,
                 bosituasjon = søknadsbehandling.grunnlagsdata.bosituasjon,
@@ -493,7 +493,7 @@ class LagBrevRequestVisitor(
                 bosituasjon = søknadsbehandling.grunnlagsdata.bosituasjon,
                 beregning = beregning,
                 fritekst = søknadsbehandling.fritekstTilBrev,
-                uføregrunnlag = søknadsbehandling.vilkårsvurderinger.uføre.grunnlag,
+                uføregrunnlag = søknadsbehandling.vilkårsvurderinger.hentUføregrunnlag(),
                 saksnummer = søknadsbehandling.saksnummer,
             )
         }
@@ -515,8 +515,15 @@ class LagBrevRequestVisitor(
                 fritekst = revurdering.fritekstTilBrev,
                 // TODO("flere_satser denne må endres til å støtte flere")
                 harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEPS(),
-                forventetInntektStørreEnn0 = revurdering.vilkårsvurderinger.hentUføregrunnlag()
-                    .harForventetInntektStørreEnn0(),
+                forventetInntektStørreEnn0 = revurdering.vilkårsvurderinger.uføreVilkår()
+                    .fold(
+                        {
+                            TODO("vilkårsvurdering_alder brev for alder er ikke implementert enda")
+                        },
+                        {
+                            it.grunnlag.harForventetInntektStørreEnn0()
+                        },
+                    ),
                 dagensDato = LocalDate.now(clock),
                 saksnummer = revurdering.saksnummer,
                 satsoversikt = Satsoversikt.fra(revurdering, satsFactory),
@@ -553,6 +560,8 @@ class LagBrevRequestVisitor(
         return when (this) {
             is Vilkårsvurderinger.Revurdering.Uføre -> this.uføre.grunnlag
             is Vilkårsvurderinger.Søknadsbehandling.Uføre -> this.uføre.grunnlag
+            is Vilkårsvurderinger.Revurdering.Alder -> TODO("vilkårsvurdering_alder brev for alder ikke implementert enda")
+            is Vilkårsvurderinger.Søknadsbehandling.Alder -> TODO("vilkårsvurdering_alder brev for alder ikke implementert enda")
         }
     }
 
@@ -792,7 +801,7 @@ class LagBrevRequestVisitor(
                 bosituasjon = vedtak.behandling.grunnlagsdata.bosituasjon,
                 beregning = vedtak.beregning,
                 fritekst = vedtak.behandling.fritekstTilBrev,
-                uføregrunnlag = vedtak.behandling.vilkårsvurderinger.uføre.grunnlag,
+                uføregrunnlag = vedtak.behandling.vilkårsvurderinger.hentUføregrunnlag(),
                 saksnummer = vedtak.behandling.saksnummer,
             )
         }
@@ -810,7 +819,7 @@ class LagBrevRequestVisitor(
                 revurdertBeregning = vedtak.beregning,
                 fritekst = vedtak.behandling.fritekstTilBrev,
                 harEktefelle = vedtak.behandling.grunnlagsdata.bosituasjon.harEPS(),
-                forventetInntektStørreEnn0 = vedtak.behandling.vilkårsvurderinger.uføre.grunnlag.harForventetInntektStørreEnn0(),
+                forventetInntektStørreEnn0 = vedtak.behandling.vilkårsvurderinger.hentUføregrunnlag().harForventetInntektStørreEnn0(),
                 dagensDato = LocalDate.now(clock),
                 saksnummer = vedtak.behandling.saksnummer,
                 satsoversikt = Satsoversikt.fra(vedtak.behandling, satsFactory),
@@ -845,7 +854,7 @@ class LagBrevRequestVisitor(
                         beregning = vedtak.beregning,
                         fritekst = vedtak.behandling.fritekstTilBrev,
                         harEktefelle = vedtak.behandling.grunnlagsdata.bosituasjon.harEPS(),
-                        forventetInntektStørreEnn0 = vedtak.behandling.vilkårsvurderinger.uføre.grunnlag.harForventetInntektStørreEnn0(),
+                        forventetInntektStørreEnn0 = vedtak.behandling.vilkårsvurderinger.hentUføregrunnlag().harForventetInntektStørreEnn0(),
                         opphørsgrunner = vedtak.utledOpphørsgrunner(clock),
                         dagensDato = LocalDate.now(clock),
                         saksnummer = vedtak.behandling.saksnummer,
@@ -875,7 +884,7 @@ class LagBrevRequestVisitor(
                             revurdertBeregning = vedtak.beregning,
                             fritekst = vedtak.behandling.fritekstTilBrev,
                             harEktefelle = vedtak.behandling.grunnlagsdata.bosituasjon.harEPS(),
-                            forventetInntektStørreEnn0 = vedtak.behandling.vilkårsvurderinger.uføre.grunnlag.harForventetInntektStørreEnn0(),
+                            forventetInntektStørreEnn0 = vedtak.behandling.vilkårsvurderinger.hentUføregrunnlag().harForventetInntektStørreEnn0(),
                             dagensDato = LocalDate.now(clock),
                             saksnummer = vedtak.behandling.saksnummer,
                             satsoversikt = Satsoversikt.fra(vedtak.behandling, satsFactory),
@@ -950,7 +959,7 @@ class LagBrevRequestVisitor(
                     beregning = vedtak.beregning,
                     fritekst = vedtak.behandling.fritekstTilBrev,
                     harEktefelle = vedtak.behandling.grunnlagsdata.bosituasjon.harEPS(),
-                    uføregrunnlag = vedtak.behandling.vilkårsvurderinger.uføre.grunnlag,
+                    uføregrunnlag = vedtak.behandling.vilkårsvurderinger.hentUføregrunnlag(),
                     gjeldendeMånedsutbetaling = gjeldendeUtbetaling,
                     saksnummer = vedtak.behandling.saksnummer,
                     bosituasjon = vedtak.behandling.grunnlagsdata.bosituasjon,

@@ -79,8 +79,8 @@ internal class GjeldendeVedtaksdataTest {
             val data = GjeldendeVedtaksdata(
                 periode = år(2021),
                 vedtakListe = nonEmptyListOf(
-                    førstegangsvedtak as VedtakSomKanRevurderes,
-                    nyStønadsperiode as VedtakSomKanRevurderes,
+                    førstegangsvedtak,
+                    nyStønadsperiode,
                 ),
                 clock = fixedClock,
             )
@@ -106,7 +106,7 @@ internal class GjeldendeVedtaksdataTest {
         )
         val data = GjeldendeVedtaksdata(
             periode = Periode.create(1.mai(2021), 31.desember(2021)),
-            vedtakListe = nonEmptyListOf(førstegangsvedtak as VedtakSomKanRevurderes),
+            vedtakListe = nonEmptyListOf(førstegangsvedtak),
             clock = fixedClock,
         )
         data.gjeldendeVedtakPåDato(1.mai(2021)) shouldBe null
@@ -129,7 +129,7 @@ internal class GjeldendeVedtaksdataTest {
 
         val data = GjeldendeVedtaksdata(
             periode = år(2021),
-            vedtakListe = nonEmptyListOf(førstegangsvedtak as VedtakSomKanRevurderes),
+            vedtakListe = nonEmptyListOf(førstegangsvedtak),
             clock = fixedClock,
         )
         data.tidslinjeForVedtakErSammenhengende() shouldBe true

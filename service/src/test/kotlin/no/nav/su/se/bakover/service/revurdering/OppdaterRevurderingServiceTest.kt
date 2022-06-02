@@ -382,11 +382,11 @@ internal class OppdaterRevurderingServiceTest {
                 begrunnelse = Revurderingsårsak.Begrunnelse.create("bør bli oppdatert"),
             )
             oppdatertRevurdering.forhåndsvarsel shouldBe null
-            oppdatertRevurdering.vilkårsvurderinger.uføre.grunnlag.let {
+            oppdatertRevurdering.vilkårsvurderinger.uføreVilkår().getOrFail().grunnlag.let {
                 it shouldHaveSize 1
-                it[0].ekvivalentMed(sakOgIverksattInnvilgetSøknadsbehandlingsvedtak.second.behandling.vilkårsvurderinger.uføre.grunnlag.first())
+                it[0].ekvivalentMed(sakOgIverksattInnvilgetSøknadsbehandlingsvedtak.second.behandling.vilkårsvurderinger.uføreVilkår().getOrFail().grunnlag.first())
             }
-            oppdatertRevurdering.vilkårsvurderinger.uføre.ekvivalentMed(sakOgIverksattInnvilgetSøknadsbehandlingsvedtak.second.behandling.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert)
+            oppdatertRevurdering.vilkårsvurderinger.uføreVilkår().getOrFail().ekvivalentMed(sakOgIverksattInnvilgetSøknadsbehandlingsvedtak.second.behandling.vilkårsvurderinger.uføreVilkår().getOrFail() as Vilkår.Uførhet.Vurdert)
             oppdatertRevurdering.informasjonSomRevurderes shouldBe InformasjonSomRevurderes.create(mapOf(Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert))
         }
 

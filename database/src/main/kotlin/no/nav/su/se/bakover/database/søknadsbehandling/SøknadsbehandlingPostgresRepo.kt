@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
@@ -170,7 +171,7 @@ internal class SøknadsbehandlingPostgresRepo(
     override fun hent(id: UUID): Søknadsbehandling? {
         return dbMetrics.timeQuery("hentSøknadsbehandling") {
             sessionFactory.withSession { session ->
-                "select b.*, s.fnr, s.saksnummer from behandling b inner join sak s on s.id = b.sakId where b.id=:id"
+                "select b.*, s.fnr, s.saksnummer, s.type from behandling b inner join sak s on s.id = b.sakId where b.id=:id"
                     .hent(mapOf("id" to id), session) { row ->
                         row.toSøknadsbehandling(session)
                     }
@@ -181,7 +182,7 @@ internal class SøknadsbehandlingPostgresRepo(
     override fun hentForSak(sakId: UUID, sessionContext: SessionContext): List<Søknadsbehandling> {
         return dbMetrics.timeQuery("hentSøknadsbehandlingForSakId") {
             sessionContext.withSession { session ->
-                "select b.*, s.fnr, s.saksnummer from behandling b inner join sak s on s.id = b.sakId where b.sakId=:sakId"
+                "select b.*, s.fnr, s.saksnummer, s.type from behandling b inner join sak s on s.id = b.sakId where b.sakId=:sakId"
                     .hentListe(mapOf("sakId" to sakId), session) {
                         it.toSøknadsbehandling(session)
                     }
@@ -192,7 +193,7 @@ internal class SøknadsbehandlingPostgresRepo(
     override fun hentForSøknad(søknadId: UUID): Søknadsbehandling? {
         return dbMetrics.timeQuery("hentSøknadsbehandlingForSøknadId") {
             sessionFactory.withSession { session ->
-                "select b.*, s.fnr, s.saksnummer from behandling b inner join sak s on s.id = b.sakId where søknadId=:soknadId".hent(
+                "select b.*, s.fnr, s.saksnummer, s.type from behandling b inner join sak s on s.id = b.sakId where søknadId=:soknadId".hent(
                     mapOf("soknadId" to søknadId), session,
                 ) { it.toSøknadsbehandling(session) }
             }
@@ -208,7 +209,7 @@ internal class SøknadsbehandlingPostgresRepo(
     }
 
     internal fun hent(id: UUID, session: Session): Søknadsbehandling? {
-        return "select b.*, s.fnr, s.saksnummer from behandling b inner join sak s on s.id = b.sakId where b.id=:id"
+        return "select b.*, s.fnr, s.saksnummer, s.type from behandling b inner join sak s on s.id = b.sakId where b.id=:id"
             .hent(mapOf("id" to id), session) { row ->
                 row.toSøknadsbehandling(session)
             }
@@ -235,8 +236,9 @@ internal class SøknadsbehandlingPostgresRepo(
 
         val fnr = Fnr(string("fnr"))
         val (grunnlagsdata, vilkårsvurderinger) = grunnlagsdataOgVilkårsvurderingerPostgresRepo.hentForSøknadsbehandling(
-            behandlingId,
-            session,
+            behandlingId = behandlingId,
+            session = session,
+            sakstype = Sakstype.from(string("type"))
         ).let { grunnlagsdataOgVilkårsvurderinger ->
             stønadsperiode?.let {
                 grunnlagsdataOgVilkårsvurderinger.copy(

@@ -776,7 +776,7 @@ internal class TestDataHelper(
             periode,
             epsFnr,
         ) else grunnlagsdataEnsligMedFradrag(periode),
-        vilkårsvurderinger: Vilkårsvurderinger.Revurdering.Uføre = vilkårsvurderingerSøknadsbehandlingInnvilget(periode = periode)
+        vilkårsvurderinger: Vilkårsvurderinger.Revurdering = vilkårsvurderingerSøknadsbehandlingInnvilget(periode = periode)
             .tilVilkårsvurderingerRevurdering(),
     ): OpprettetRevurdering {
         return OpprettetRevurdering(

@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -399,7 +400,7 @@ internal class RevurderingPostgresRepoTest {
 
             repo.hent(iverksatt.id) shouldBe iverksatt
             dataSource.withSession {
-                repo.hentRevurderingerForSak(iverksatt.sakId, it) shouldBe listOf(iverksatt)
+                repo.hentRevurderingerForSak(iverksatt.sakId, it, Sakstype.UFØRE) shouldBe listOf(iverksatt)
             }
         }
     }

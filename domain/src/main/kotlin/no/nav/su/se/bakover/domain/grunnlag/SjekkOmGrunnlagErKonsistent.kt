@@ -21,7 +21,15 @@ data class SjekkOmGrunnlagErKonsistent(
 ) {
     constructor(gjeldendeVedtaksdata: GjeldendeVedtaksdata) : this(
         formuegrunnlag = gjeldendeVedtaksdata.vilkårsvurderinger.formue.grunnlag,
-        uføregrunnlag = gjeldendeVedtaksdata.vilkårsvurderinger.uføre.grunnlag,
+        uføregrunnlag = gjeldendeVedtaksdata.vilkårsvurderinger.uføreVilkår().fold(
+            {
+                // TODO("vilkårsvurdering_alder" konsistenssjekk for alder)
+                emptyList()
+            },
+            {
+                it.grunnlag
+            },
+        ),
         bosituasjongrunnlag = gjeldendeVedtaksdata.grunnlagsdata.bosituasjon,
         fradragsgrunnlag = gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag,
     )

@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.tilbakekreving.TilbakekrevingPostgresRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakPostgresRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.beregning.BeregningMedFradragBeregnetMånedsvis
@@ -170,12 +171,19 @@ internal class RevurderingPostgresRepo(
 
     internal fun hent(id: UUID, session: Session): AbstraktRevurdering? {
         return """
-                    SELECT *
-                    FROM revurdering
-                    WHERE id = :id
+                    SELECT 
+                        r.*,
+                        s.type
+                    FROM revurdering r
+                        INNER JOIN behandling_vedtak bv ON r.vedtakSomRevurderesId = bv.vedtakId
+                        JOIN sak s ON s.id = bv.sakid 
+                    WHERE r.id = :id
         """.trimIndent()
             .hent(mapOf("id" to id), session) { row ->
-                row.toRevurdering(session)
+                row.toRevurdering(
+                    session = session,
+                    sakstype = Sakstype.from(row.string("type")),
+                )
             }
     }
 
@@ -219,27 +227,28 @@ internal class RevurderingPostgresRepo(
         }
     }
 
-    internal fun hentRevurderingerForSak(sakId: UUID, session: Session): List<AbstraktRevurdering> =
+    internal fun hentRevurderingerForSak(sakId: UUID, session: Session, sakstype: Sakstype): List<AbstraktRevurdering> =
         """
             SELECT
                 r.*
             FROM
                 revurdering r
                 INNER JOIN behandling_vedtak bv
-                    ON r.vedtakSomRevurderesId = bv.vedtakId
+                    ON r.vedtakSomRevurderesId = bv.vedtakId               
             WHERE bv.sakid=:sakId
         """.trimIndent()
             .hentListe(mapOf("sakId" to sakId), session) {
-                it.toRevurdering(session)
+                it.toRevurdering(session, sakstype)
             }
 
-    private fun Row.toRevurdering(session: Session): AbstraktRevurdering {
+    private fun Row.toRevurdering(session: Session, sakstype: Sakstype): AbstraktRevurdering {
         val id = uuid("id")
         val status = RevurderingsType.valueOf(string("revurderingsType"))
         val periode = string("periode").let { objectMapper.readValue<Periode>(it) }
         val opprettet = tidspunkt("opprettet")
         val tilRevurdering = vedtakRepo.hent(uuid("vedtakSomRevurderesId"), session)!! as VedtakSomKanRevurderes
-        val beregning: BeregningMedFradragBeregnetMånedsvis? = stringOrNull("beregning")?.deserialiserBeregning(satsFactory)
+        val beregning: BeregningMedFradragBeregnetMånedsvis? =
+            stringOrNull("beregning")?.deserialiserBeregning(satsFactory)
         val simulering = stringOrNull("simulering")?.let { objectMapper.readValue<Simulering>(it) }
         val saksbehandler = string("saksbehandler")
         val oppgaveId = stringOrNull("oppgaveid")
@@ -260,7 +269,11 @@ internal class RevurderingPostgresRepo(
             InformasjonSomRevurderes.create(objectMapper.readValue<Map<Revurderingsteg, Vurderingstatus>>(it))
         }
 
-        val (grunnlagsdata, vilkårsvurderinger) = grunnlagsdataOgVilkårsvurderingerPostgresRepo.hentForRevurdering(id, session)
+        val (grunnlagsdata, vilkårsvurderinger) = grunnlagsdataOgVilkårsvurderingerPostgresRepo.hentForRevurdering(
+            behandlingId = id,
+            session = session,
+            sakstype = sakstype,
+        )
 
         val avkorting = stringOrNull("avkorting")?.let {
             objectMapper.readValue<AvkortingVedRevurderingDb>(it).toDomain()
@@ -287,7 +300,7 @@ internal class RevurderingPostgresRepo(
             forhåndsvarsel = forhåndsvarsel,
             skalFøreTilBrevutsending = skalFøreTilBrevutsending,
             grunnlagsdata = grunnlagsdata,
-            vilkårsvurderinger = vilkårsvurderinger,
+            vilkårsvurderinger = vilkårsvurderinger as Vilkårsvurderinger.Revurdering.Uføre,
             informasjonSomRevurderes = informasjonSomRevurderes,
             avkorting = avkorting,
             tilbakekrevingsbehandling = tilbakekrevingsbehandling,

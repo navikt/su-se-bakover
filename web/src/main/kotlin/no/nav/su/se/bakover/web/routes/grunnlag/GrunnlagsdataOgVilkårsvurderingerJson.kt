@@ -24,7 +24,14 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
             satsFactory: SatsFactory,
         ): GrunnlagsdataOgVilkårsvurderingerJson {
             return GrunnlagsdataOgVilkårsvurderingerJson(
-                uføre = vilkårsvurderinger.uføreVilkår().toJson(),
+                uføre = vilkårsvurderinger.uføreVilkår().fold(
+                    {
+                        TODO("vilkårsvurdering_alder json for aldersvilkår ikke implementert enda")
+                    },
+                    {
+                        it.toJson()
+                    }
+                ),
                 fradrag = grunnlagsdata.fradragsgrunnlag.map { it.fradrag.toJson() },
                 bosituasjon = grunnlagsdata.bosituasjon.toJson(),
                 formue = vilkårsvurderinger.formueVilkår().toJson(satsFactory),

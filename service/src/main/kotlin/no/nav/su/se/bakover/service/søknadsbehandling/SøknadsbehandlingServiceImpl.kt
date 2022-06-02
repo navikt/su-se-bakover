@@ -237,7 +237,14 @@ internal class SøknadsbehandlingServiceImpl(
                         sakId = saksbehandling.sakId,
                         saksbehandler = request.saksbehandler,
                         beregning = beregning,
-                        uføregrunnlag = saksbehandling.vilkårsvurderinger.uføre.grunnlag,
+                        uføregrunnlag = saksbehandling.vilkårsvurderinger.uføreVilkår().fold(
+                            {
+                                TODO("vilkårsvurdering_alder utbetaling av alder ikke implementert")
+                            },
+                            {
+                                it.grunnlag
+                            }
+                        ),
                         utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
                     ),
                 ).map {
@@ -395,7 +402,14 @@ internal class SøknadsbehandlingServiceImpl(
                                 sakId = iverksattBehandling.sakId,
                                 saksbehandler = request.attestering.attestant,
                                 beregning = iverksattBehandling.beregning,
-                                uføregrunnlag = iverksattBehandling.vilkårsvurderinger.uføre.grunnlag,
+                                uføregrunnlag = iverksattBehandling.vilkårsvurderinger.uføreVilkår().fold(
+                                    {
+                                        TODO("vilkårsvurdering_alder utbetaling av alder ikke implementert")
+                                    },
+                                    {
+                                        it.grunnlag
+                                    }
+                                ),
                                 utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
                             ),
                             simulering = iverksattBehandling.simulering,

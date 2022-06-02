@@ -51,7 +51,7 @@ internal class SøknadsbehandlingLeggTilUførevilkårTest {
                     ),
                 ),
             ).getOrFail().let { medUførevilkår ->
-                (medUførevilkår.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).let {
+                (medUførevilkår.vilkårsvurderinger.uføreVilkår().getOrFail() as Vilkår.Uførhet.Vurdert).let {
                     it.vurderingsperioder shouldHaveSize 2
                     it.grunnlag shouldHaveSize 2
                 }

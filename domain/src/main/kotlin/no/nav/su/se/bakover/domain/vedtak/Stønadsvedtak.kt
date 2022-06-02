@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.vedtak
 
+import arrow.core.Either
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
@@ -400,7 +401,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             return originaltVedtak.erGjenopptak()
         }
 
-        fun uføreVilkår(): Vilkår.Uførhet {
+        fun uføreVilkår(): Either<Vilkårsvurderinger.VilkårEksistererIkke, Vilkår.Uførhet> {
             return vilkårsvurderinger.uføreVilkår()
         }
 

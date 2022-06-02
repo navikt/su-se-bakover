@@ -383,7 +383,7 @@ internal class SakTest {
 
             vilkårsvurdert.periode shouldNotBe nyPeriode
             actual.periode shouldBe nyPeriode
-            actual.vilkårsvurderinger.uføre.grunnlag.first().periode shouldBe nyPeriode
+            actual.vilkårsvurderinger.uføreVilkår().getOrFail().grunnlag.first().periode shouldBe nyPeriode
             actual.vilkårsvurderinger.formue.grunnlag.first().periode shouldBe nyPeriode
             actual.grunnlagsdata.bosituasjon.first().periode shouldBe nyPeriode
         }
@@ -460,9 +460,7 @@ internal class SakTest {
             )
 
             val nySøknadsbehandlingMedOpplysningsplikt = nySøknadsbehandling.copy(
-                vilkårsvurderinger = nySøknadsbehandling.vilkårsvurderinger.copy(
-                    opplysningsplikt = tilstrekkeligDokumentert(),
-                ),
+                vilkårsvurderinger = nySøknadsbehandling.vilkårsvurderinger.leggTil(tilstrekkeligDokumentert())
             )
 
             sakMedRevurderingOgSøknadVedtak.copy(

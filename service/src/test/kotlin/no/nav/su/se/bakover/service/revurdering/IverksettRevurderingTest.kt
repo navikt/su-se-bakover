@@ -88,7 +88,7 @@ internal class IverksettRevurderingTest {
                         sakId = sakId,
                         saksbehandler = attestant,
                         beregning = revurderingTilAttestering.beregning,
-                        uføregrunnlag = revurderingTilAttestering.vilkårsvurderinger.uføre.grunnlag,
+                        uføregrunnlag = revurderingTilAttestering.vilkårsvurderinger.uføreVilkår().getOrFail().grunnlag,
                         utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
                     ),
                     simulering = revurderingTilAttestering.simulering,

@@ -74,6 +74,12 @@ fun nyUtbetalingForSimulering(
                 is Vilkårsvurderinger.Søknadsbehandling.Uføre -> {
                     vilkår.uføre.grunnlag
                 }
+                is Vilkårsvurderinger.Revurdering.Alder -> {
+                    TODO("vilkårsvurdering_alder utbetaling for alder ikke implementert")
+                }
+                is Vilkårsvurderinger.Søknadsbehandling.Alder -> {
+                    TODO("vilkårsvurdering_alder utbetaling for alder ikke implementert")
+                }
             },
             kjøreplan = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
         ).generate()
@@ -104,6 +110,12 @@ fun nyUtbetalingSimulert(
                     }
                     is Vilkårsvurderinger.Søknadsbehandling.Uføre -> {
                         vv.uføre.grunnlag
+                    }
+                    is Vilkårsvurderinger.Revurdering.Alder -> {
+                        TODO("vilkårsvurdering_alder simulering av alder ikke implementert")
+                    }
+                    is Vilkårsvurderinger.Søknadsbehandling.Alder -> {
+                        TODO("vilkårsvurdering_alder simulering av alder ikke implementert")
                     }
                 },
             ),

@@ -9,6 +9,7 @@ sealed class Reguleringstype {
             return "AUTOMATISK"
         }
     }
+
     data class MANUELL(val problemer: Set<ÅrsakTilManuellRegulering>) : Reguleringstype() {
         override fun toString(): String {
             return "MANUELL"
@@ -38,9 +39,12 @@ fun GjeldendeVedtaksdata.utledReguleringstype(): Reguleringstype {
         problemer.add(ÅrsakTilManuellRegulering.YtelseErMidlertidigStanset)
     }
 
-    if (this.vilkårsvurderinger.uføre.grunnlag.harForventetInntektStørreEnn0()) {
-        problemer.add(ÅrsakTilManuellRegulering.ForventetInntektErStørreEnn0)
-    }
+    this.vilkårsvurderinger.uføreVilkår()
+        .map {
+            if (it.grunnlag.harForventetInntektStørreEnn0()) {
+                problemer.add(ÅrsakTilManuellRegulering.ForventetInntektErStørreEnn0)
+            }
+        }
 
     if (this.delerAvPeriodenErOpphør()) {
         problemer.add(ÅrsakTilManuellRegulering.DelvisOpphør)

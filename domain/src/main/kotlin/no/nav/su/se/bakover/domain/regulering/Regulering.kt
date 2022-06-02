@@ -125,7 +125,7 @@ sealed interface Regulering : Reguleringsfelter {
 
         override val grunnlagsdata: Grunnlagsdata
             get() = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata
-        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering.Uføre
+        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering
             get() = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger
 
         init {
@@ -152,8 +152,8 @@ sealed interface Regulering : Reguleringsfelter {
             this.copy(
                 grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
                     grunnlagsdata = grunnlagsdata,
-                    vilkårsvurderinger = vilkårsvurderinger.copy(
-                        uføre = Vilkår.Uførhet.Vurdert.tryCreate(
+                    vilkårsvurderinger = vilkårsvurderinger.leggTil(
+                        Vilkår.Uførhet.Vurdert.tryCreate(
                             Nel.fromListUnsafe(
                                 uføregrunnlag.map {
                                     Vurderingsperiode.Uføre.tryCreate(
@@ -165,8 +165,6 @@ sealed interface Regulering : Reguleringsfelter {
                                 },
                             ),
                         ).getOrHandle { throw RuntimeException("$it") },
-                        formue = vilkårsvurderinger.formue,
-                        utenlandsopphold = vilkårsvurderinger.utenlandsopphold,
                     ),
                 ),
             )
@@ -200,7 +198,14 @@ sealed interface Regulering : Reguleringsfelter {
                     sakId = sakId,
                     saksbehandler = saksbehandler,
                     beregning = beregning,
-                    uføregrunnlag = vilkårsvurderinger.uføre.grunnlag,
+                    uføregrunnlag = vilkårsvurderinger.uføreVilkår().fold(
+                        {
+                            TODO("vilkårsvurdering_alder implementer regulering for alder")
+                        },
+                        {
+                            it.grunnlag
+                        }
+                    ),
                     // Spesielt for regulering, ved etterbetaling, ønsker vi å utbetale disse sammen med neste kjøring, da disse beløpene bruker å være relativt små.
                     utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SammenMedNestePlanlagteUtbetaling
                 ),
@@ -239,7 +244,7 @@ sealed interface Regulering : Reguleringsfelter {
         /**
          * Denne er gjort public pga å gjøre den testbar fra databasen siden vi må kunne gjøre den persistert
          */
-        val opprettetRegulering: Regulering.OpprettetRegulering,
+        val opprettetRegulering: OpprettetRegulering,
         override val beregning: Beregning,
         override val simulering: Simulering,
     ) : Regulering, Reguleringsfelter by opprettetRegulering {
@@ -247,7 +252,7 @@ sealed interface Regulering : Reguleringsfelter {
     }
 
     data class AvsluttetRegulering(
-        val opprettetRegulering: Regulering.OpprettetRegulering,
+        val opprettetRegulering: OpprettetRegulering,
         val avsluttetTidspunkt: Tidspunkt,
     ) : Regulering by opprettetRegulering {
         override val erFerdigstilt = true

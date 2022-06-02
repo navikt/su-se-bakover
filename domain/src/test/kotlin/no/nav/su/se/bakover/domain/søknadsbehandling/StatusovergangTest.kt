@@ -158,10 +158,7 @@ internal class StatusovergangTest {
                     formuegrenserFactory = formuegrenserFactoryTest,
                 ),
             ) shouldBe opprettet.copy(
-                vilkårsvurderinger = opprettet.vilkårsvurderinger.copy(
-                    // legges til automatisk
-                    opplysningsplikt = tilstrekkeligDokumentert(),
-                ),
+                vilkårsvurderinger = opprettet.vilkårsvurderinger.leggTil(tilstrekkeligDokumentert()),
             )
         }
 
@@ -852,7 +849,7 @@ internal class StatusovergangTest {
                 Statusovergang.TilIverksatt(
                     attestering = attestering,
                     hentOpprinneligAvkorting = { null },
-                )
+                ),
             ) shouldBe iverksattAvslagVilkår.right()
         }
 
@@ -863,7 +860,7 @@ internal class StatusovergangTest {
                 Statusovergang.TilIverksatt(
                     attestering = attestering,
                     hentOpprinneligAvkorting = { null },
-                )
+                ),
             ) shouldBe iverksattAvslagBeregning.right()
         }
 
@@ -874,7 +871,7 @@ internal class StatusovergangTest {
                 Statusovergang.TilIverksatt(
                     attestering = attestering,
                     hentOpprinneligAvkorting = { null },
-                )
+                ),
             ) shouldBe iverksattInnvilget.right()
         }
 
@@ -885,7 +882,7 @@ internal class StatusovergangTest {
                 Statusovergang.TilIverksatt(
                     attestering = attestering,
                     hentOpprinneligAvkorting = { null },
-                )
+                ),
             ) shouldBe KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
         }
 
@@ -896,7 +893,7 @@ internal class StatusovergangTest {
                 Statusovergang.TilIverksatt(
                     attestering = attestering,
                     hentOpprinneligAvkorting = { null },
-                )
+                ),
             ) shouldBe KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
         }
 
@@ -907,7 +904,7 @@ internal class StatusovergangTest {
                 Statusovergang.TilIverksatt(
                     attestering = attestering,
                     hentOpprinneligAvkorting = { null },
-                )
+                ),
             ) shouldBe KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
         }
 
@@ -926,7 +923,7 @@ internal class StatusovergangTest {
                     Statusovergang.TilIverksatt(
                         attestering = attestering,
                         hentOpprinneligAvkorting = { null },
-                    )
+                    ),
                 )
             }
         }

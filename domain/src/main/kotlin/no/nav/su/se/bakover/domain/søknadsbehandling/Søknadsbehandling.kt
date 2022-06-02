@@ -60,7 +60,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     abstract val status: BehandlingsStatus
     abstract val stønadsperiode: Stønadsperiode?
     abstract override val grunnlagsdata: Grunnlagsdata
-    abstract override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre
+    abstract override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling
     abstract override val attesteringer: Attesteringshistorikk
     abstract val avkorting: AvkortingVedSøknadsbehandling
 
@@ -467,7 +467,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 // TODO jah: Hvorfor er denne nullable når vi krever at den ikke er det noen få linjer ned.
                 stønadsperiode: Stønadsperiode?,
                 grunnlagsdata: Grunnlagsdata,
-                vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre,
+                vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                 attesteringer: Attesteringshistorikk,
                 clock: Clock,
                 avkorting: AvkortingVedSøknadsbehandling.Uhåndtert,
@@ -578,7 +578,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val fritekstTilBrev: String,
             override val stønadsperiode: Stønadsperiode,
             override val grunnlagsdata: Grunnlagsdata,
-            override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre,
+            override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val attesteringer: Attesteringshistorikk,
             override val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert,
         ) : Vilkårsvurdert() {
@@ -641,7 +641,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             }
 
             private fun vilkårsvurder(
-                vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre,
+                vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                 clock: Clock,
                 formuegrenserFactory: FormuegrenserFactory,
             ): Vilkårsvurdert {
@@ -716,7 +716,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val fritekstTilBrev: String,
             override val stønadsperiode: Stønadsperiode,
             override val grunnlagsdata: Grunnlagsdata,
-            override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre,
+            override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val attesteringer: Attesteringshistorikk,
             override val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere,
         ) : Vilkårsvurdert(), ErAvslag {
@@ -776,7 +776,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             }
 
             private fun vilkårsvurder(
-                vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre,
+                vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                 clock: Clock,
                 formuegrenserFactory: FormuegrenserFactory,
             ): Vilkårsvurdert {
@@ -832,7 +832,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val fritekstTilBrev: String,
             override val stønadsperiode: Stønadsperiode?,
             override val grunnlagsdata: Grunnlagsdata,
-            override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre,
+            override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val attesteringer: Attesteringshistorikk,
             override val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere,
         ) : Vilkårsvurdert() {
@@ -864,7 +864,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             }
 
             private fun vilkårsvurder(
-                vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre,
+                vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                 clock: Clock,
                 formuegrenserFactory: FormuegrenserFactory,
             ): Vilkårsvurdert {
@@ -984,7 +984,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val fritekstTilBrev: String,
             override val stønadsperiode: Stønadsperiode,
             override val grunnlagsdata: Grunnlagsdata,
-            override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre,
+            override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val attesteringer: Attesteringshistorikk,
             override val avkorting: AvkortingVedSøknadsbehandling.Håndtert,
         ) : Beregnet() {
@@ -1045,7 +1045,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             }
 
             private fun vilkårsvurder(
-                vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre,
+                vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                 clock: Clock,
                 formuegrenserFactory: FormuegrenserFactory,
             ): Vilkårsvurdert {
@@ -1120,7 +1120,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val fritekstTilBrev: String,
             override val stønadsperiode: Stønadsperiode,
             override val grunnlagsdata: Grunnlagsdata,
-            override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre,
+            override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val attesteringer: Attesteringshistorikk,
             override val avkorting: AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
         ) : Beregnet(), ErAvslag {
@@ -1217,7 +1217,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             }
 
             private fun vilkårsvurder(
-                vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre,
+                vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                 clock: Clock,
                 formuegrenserFactory: FormuegrenserFactory,
             ): Vilkårsvurdert {
@@ -1294,7 +1294,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         override val fritekstTilBrev: String,
         override val stønadsperiode: Stønadsperiode,
         override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre,
+        override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedSøknadsbehandling.Håndtert,
     ) : Søknadsbehandling() {
@@ -1447,7 +1447,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         }
 
         private fun vilkårsvurder(
-            vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre,
+            vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             clock: Clock,
             formuegrenserFactory: FormuegrenserFactory,
         ): Vilkårsvurdert {
@@ -1514,7 +1514,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val fritekstTilBrev: String,
             override val stønadsperiode: Stønadsperiode,
             override val grunnlagsdata: Grunnlagsdata,
-            override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre,
+            override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val attesteringer: Attesteringshistorikk,
             override val avkorting: AvkortingVedSøknadsbehandling.Håndtert,
         ) : TilAttestering() {
@@ -1591,7 +1591,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val fritekstTilBrev: String,
                 override val stønadsperiode: Stønadsperiode,
                 override val grunnlagsdata: Grunnlagsdata,
-                override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre,
+                override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                 override val attesteringer: Attesteringshistorikk,
                 override val avkorting: AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
             ) : Avslag() {
@@ -1670,7 +1670,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val fritekstTilBrev: String,
                 override val stønadsperiode: Stønadsperiode,
                 override val grunnlagsdata: Grunnlagsdata,
-                override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre,
+                override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                 override val attesteringer: Attesteringshistorikk,
                 override val avkorting: AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
             ) : Avslag() {
@@ -1802,7 +1802,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val fritekstTilBrev: String,
             override val stønadsperiode: Stønadsperiode,
             override val grunnlagsdata: Grunnlagsdata,
-            override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre,
+            override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val avkorting: AvkortingVedSøknadsbehandling.Håndtert,
         ) : Underkjent() {
 
@@ -1933,7 +1933,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             }
 
             private fun vilkårsvurder(
-                vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre,
+                vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                 clock: Clock,
                 formuegrenserFactory: FormuegrenserFactory,
             ): Vilkårsvurdert {
@@ -1993,7 +1993,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val fritekstTilBrev: String,
                 override val stønadsperiode: Stønadsperiode,
                 override val grunnlagsdata: Grunnlagsdata,
-                override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre,
+                override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                 override val avkorting: AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
             ) : Avslag() {
                 override val status: BehandlingsStatus = BehandlingsStatus.UNDERKJENT_AVSLAG
@@ -2108,7 +2108,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 }
 
                 private fun vilkårsvurder(
-                    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre,
+                    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                     clock: Clock,
                     formuegrenserFactory: FormuegrenserFactory,
                 ): Vilkårsvurdert {
@@ -2166,7 +2166,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val fritekstTilBrev: String,
                 override val stønadsperiode: Stønadsperiode,
                 override val grunnlagsdata: Grunnlagsdata,
-                override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre,
+                override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                 override val avkorting: AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
             ) : Avslag() {
                 override val status: BehandlingsStatus = BehandlingsStatus.UNDERKJENT_AVSLAG
@@ -2225,7 +2225,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 }
 
                 private fun vilkårsvurder(
-                    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre,
+                    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                     clock: Clock,
                     formuegrenserFactory: FormuegrenserFactory,
                 ): Vilkårsvurdert {
@@ -2301,7 +2301,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val fritekstTilBrev: String,
             override val stønadsperiode: Stønadsperiode,
             override val grunnlagsdata: Grunnlagsdata,
-            override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre,
+            override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val avkorting: AvkortingVedSøknadsbehandling.Iverksatt,
         ) : Iverksatt() {
             override val status: BehandlingsStatus = BehandlingsStatus.IVERKSATT_INNVILGET
@@ -2328,7 +2328,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val fritekstTilBrev: String,
                 override val stønadsperiode: Stønadsperiode,
                 override val grunnlagsdata: Grunnlagsdata,
-                override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre,
+                override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                 override val avkorting: AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere,
             ) : Avslag() {
                 override val status: BehandlingsStatus = BehandlingsStatus.IVERKSATT_AVSLAG
@@ -2366,7 +2366,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val fritekstTilBrev: String,
                 override val stønadsperiode: Stønadsperiode,
                 override val grunnlagsdata: Grunnlagsdata,
-                override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre,
+                override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                 override val avkorting: AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere,
             ) : Avslag() {
                 override val status: BehandlingsStatus = BehandlingsStatus.IVERKSATT_AVSLAG

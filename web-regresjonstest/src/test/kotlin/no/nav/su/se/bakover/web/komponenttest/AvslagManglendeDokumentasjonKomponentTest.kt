@@ -150,8 +150,8 @@ class AvslagManglendeDokumentasjonKomponentTest {
                         avslag.vilkårsvurderinger.opplysningspliktVilkår()
                             .shouldBeType<OpplysningspliktVilkår.Vurdert>()
                             .let { actualVilkår ->
-                                avslag.vilkårsvurderinger shouldBe avslag.vilkårsvurderinger.copy(
-                                    opplysningsplikt = OpplysningspliktVilkår.Vurdert.tryCreate(
+                                avslag.vilkårsvurderinger shouldBe avslag.vilkårsvurderinger.leggTil(
+                                    OpplysningspliktVilkår.Vurdert.tryCreate(
                                         vurderingsperioder = nonEmptyListOf(
                                             VurderingsperiodeOpplysningsplikt.create(
                                                 id = actualVilkår.vurderingsperioder.single().id,
@@ -167,7 +167,7 @@ class AvslagManglendeDokumentasjonKomponentTest {
                                         ),
                                     ).getOrFail(),
                                 )
-                                avslag.vilkårsvurderinger.uføreVilkår().shouldBeType<Vilkår.Uførhet.Vurdert>()
+                                avslag.vilkårsvurderinger.uføreVilkår().getOrFail().shouldBeType<Vilkår.Uførhet.Vurdert>()
                             }
                         avslag.vilkårsvurderinger.resultat shouldBe Vilkårsvurderingsresultat.Avslag(
                             setOf(avslag.vilkårsvurderinger.opplysningspliktVilkår()),

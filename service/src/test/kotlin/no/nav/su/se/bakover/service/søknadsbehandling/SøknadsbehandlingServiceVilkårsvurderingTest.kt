@@ -71,9 +71,9 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
         response.let {
             it.vilkårsvurderinger.resultat shouldBe Vilkårsvurderingsresultat.Innvilget(
                 vilkår = setOf(
-                    response.vilkårsvurderinger.uføre,
+                    response.vilkårsvurderinger.uføreVilkår().getOrFail(),
                     response.vilkårsvurderinger.formue,
-                    response.vilkårsvurderinger.flyktning,
+                    response.vilkårsvurderinger.flyktningVilkår().getOrFail(),
                     response.vilkårsvurderinger.lovligOpphold,
                     response.vilkårsvurderinger.fastOpphold,
                     response.vilkårsvurderinger.institusjonsopphold,
@@ -113,9 +113,9 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
         response.let {
             it.vilkårsvurderinger.resultat shouldBe Vilkårsvurderingsresultat.Avslag(
                 vilkår = setOf(
-                    response.vilkårsvurderinger.uføre,
+                    response.vilkårsvurderinger.uføreVilkår().getOrFail(),
                     response.vilkårsvurderinger.formue,
-                    response.vilkårsvurderinger.flyktning,
+                    response.vilkårsvurderinger.flyktningVilkår().getOrFail(),
                     response.vilkårsvurderinger.lovligOpphold,
                     response.vilkårsvurderinger.fastOpphold,
                     response.vilkårsvurderinger.institusjonsopphold,
