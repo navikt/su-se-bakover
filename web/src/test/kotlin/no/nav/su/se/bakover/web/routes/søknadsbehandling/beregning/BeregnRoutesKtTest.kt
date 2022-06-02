@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
@@ -234,6 +235,7 @@ internal class BeregnRoutesKtTest {
             oppgaveId = OppgaveId("1234"),
             fnr = sak.fnr,
             avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke(),
+            sakstype = Sakstype.UFØRE,
         )
         repos.søknadsbehandling.lagreNySøknadsbehandling(
             nySøknadsbehandling,

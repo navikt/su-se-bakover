@@ -320,6 +320,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 avkorting = AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere(
                     håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
                 ),
+                sakstype = iverksatt.sakstype,
             )
             repo.hent(iverksatt.id).also {
                 it shouldBe expected
@@ -404,6 +405,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 avkorting = AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere(
                     håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
                 ),
+                sakstype = opprettetMedStønadsperiode.sakstype,
             )
         }
     }

@@ -179,7 +179,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
 
     @Test
     fun `Oppretter behandling og publiserer event`() {
-        val søknad = nySakMedjournalførtSøknadOgOppgave().second
+        val (sak, søknad) = nySakMedjournalførtSøknadOgOppgave()
 
         // Skal kunne starte ny behandling selv om vi har iverksatte behandlinger.
         val eksisterendeSøknadsbehandlinger = listOf(
@@ -203,7 +203,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
             søknadService = søknadService,
             avkortingsvarselRepo = mock() {
                 on { hentUtestående(any()) } doReturn Avkortingsvarsel.Ingen
-            }
+            },
         )
 
         serviceAndMocks.søknadsbehandlingService.opprett(
@@ -225,7 +225,8 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                 grunnlagsdata = Grunnlagsdata.IkkeVurdert,
                 vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingIkkeVurdert(),
                 attesteringer = Attesteringshistorikk.empty(),
-                avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke()
+                avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke(),
+                sakstype = sak.type,
             ),
             // periode er null for Søknadsbehandling.Vilkårsvurdert.Uavklart og vil gi exception dersom man kaller get() på den.
             Søknadsbehandling.Vilkårsvurdert.Uavklart::periode,
@@ -245,7 +246,8 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                     søknad = søknad,
                     oppgaveId = søknad.oppgaveId,
                     fnr = søknad.søknadInnhold.personopplysninger.fnr,
-                    avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke()
+                    avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke(),
+                    sakstype = sak.type,
                 )
             },
         )
@@ -271,7 +273,8 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                         grunnlagsdata = Grunnlagsdata.IkkeVurdert,
                         vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingIkkeVurdert(),
                         attesteringer = Attesteringshistorikk.empty(),
-                        avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke()
+                        avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke(),
+                        sakstype = sak.type,
                     ),
                 )
             },

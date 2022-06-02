@@ -22,6 +22,7 @@ fun NySøknadsbehandling.toSøknadsbehandling(saksnummer: Saksnummer): Søknadsb
         grunnlagsdata = Grunnlagsdata.IkkeVurdert,
         vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingIkkeVurdert(),
         attesteringer = Attesteringshistorikk.empty(),
-        avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke()
+        avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke(),
+        sakstype = this.sakstype,
     )
 }
