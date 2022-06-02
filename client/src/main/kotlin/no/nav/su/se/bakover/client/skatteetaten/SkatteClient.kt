@@ -49,7 +49,7 @@ class SkatteClient(private val maskinportenConfig: MaskinportenConfig, private v
                 .issuer(maskinportenConfig.clientId) // Vi signerer denne JWT
                 .claim("scope", maskinportenConfig.scopes)
                 .issueTime(Date.from(Tidspunkt.now().instant))
-                .expirationTime(Date.from(Tidspunkt.now().instant.plusSeconds(5 * 60)))
+                .expirationTime(Date.from(Tidspunkt.now().instant.plusSeconds(60)))
                 .build()
         )
         signedJWT.sign(RSASSASigner(key.toRSAPrivateKey()))
@@ -61,7 +61,7 @@ class SkatteClient(private val maskinportenConfig: MaskinportenConfig, private v
             .POST(HttpRequest.BodyPublishers.ofString(body))
             .build()
 
-        log.info("data: $signedJWT")
+        log.info("request-body: $body")
         client.send(postRequest, HttpResponse.BodyHandlers.ofString()).let { response ->
             if (!response.isSuccess()) {
                 log.error("Feil i henting av token mot maskinporten, ${response.statusCode()}")
