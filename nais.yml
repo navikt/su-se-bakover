@@ -48,7 +48,7 @@ spec:
     scopes:
       consumes:
         - name: "skatteetaten:skattemelding"
-        - name: "skatteetaten:beregnetskatt"
+#        - name: "skatteetaten:beregnetskatt"
   prometheus:
     enabled: true
     path: /metrics
