@@ -14,7 +14,7 @@ import java.time.format.DateTimeFormatter
 
 internal data class FormuevilkårJson(
     val vurderinger: List<VurderingsperiodeFormueJson>,
-    val resultat: FormuevilkårStatus,
+    val resultat: FormuevilkårStatus?,
     val formuegrenser: List<FormuegrenseJson>,
 )
 
@@ -33,7 +33,10 @@ internal fun Vilkår.Formue.toJson(satsFactory: SatsFactory): FormuevilkårJson 
             is Vilkår.Formue.IkkeVurdert -> emptyList()
             is Vilkår.Formue.Vurdert -> vurderingsperioder.map { it.toJson() }
         },
-        resultat = resultat.toFormueStatusString(),
+        resultat = when (this) {
+            is Vilkår.Formue.IkkeVurdert -> null
+            is Vilkår.Formue.Vurdert -> resultat.toFormueStatusString()
+        },
         // TODO("håndter_formue egentlig knyttet til formuegrenser")
         // TODO jah + jacob:  Denne bør flyttes til et eget endepunkt i de tilfellene vi ikke har fylt ut formuegrunnlaget/vilkåret enda.
         //  I de tilfellene vi har fylt ut formue og det har blitt lagret i databasen, bør grunnlaget innholde grensene og frontend bør bruke de derfra.
