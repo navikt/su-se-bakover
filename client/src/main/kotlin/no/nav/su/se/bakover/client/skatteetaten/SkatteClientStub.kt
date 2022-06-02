@@ -5,7 +5,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.domain.Fnr
 
 class SkatteClientStub : SkatteOppslag {
-    override fun hentSkattemelding(fnr: Fnr): Either<Unit, Skattemelding> {
+    override fun hentSkattemelding(fnr: Fnr): Either<String, Skattemelding> {
         return Skattemelding(100).right()
     }
 }

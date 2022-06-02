@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.client.skatteetaten
 
 import arrow.core.Either
-import arrow.core.left
 import com.nimbusds.jose.JOSEObjectType
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.JWSHeader
@@ -56,7 +55,7 @@ class SkatteClient(private val maskinportenConfig: MaskinportenConfig, private v
         signedJWT.sign(RSASSASigner(key.toRSAPrivateKey()))
         val body = "grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${signedJWT.serialize()}"
         val postRequest = HttpRequest.newBuilder()
-            .uri(URI.create("maskinporten token path fra env"))
+            .uri(URI.create(maskinportenConfig.tokenEndpoint))
             .header("Accept", "application/json")
             .header("Content-Type", "application/x-www-form-urlencoded")
             .POST(HttpRequest.BodyPublishers.ofString(body))
@@ -72,9 +71,11 @@ class SkatteClient(private val maskinportenConfig: MaskinportenConfig, private v
         }
     }
 
-    override fun hentSkattemelding(fnr: Fnr): Either<Unit, Skattemelding> {
-
-        return Unit.left()
+    override fun hentSkattemelding(fnr: Fnr): Either<String, Skattemelding> {
+        return Either.catch {
+            refreshSession()
+            Skattemelding(123)
+        }.mapLeft { e -> e.message!! }
     }
 
     private data class SkatteToken(
