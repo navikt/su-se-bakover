@@ -295,6 +295,7 @@ internal class VedtakServiceImplTest {
                 grunnlagsdata = Grunnlagsdata.IkkeVurdert,
                 vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingIkkeVurdert(),
                 avkorting = AvkortingVedSøknadsbehandling.Iverksatt.IngenUtestående,
+                sakstype = Sakstype.UFØRE,
             ),
             UUID30.randomUUID(),
             fixedClock,

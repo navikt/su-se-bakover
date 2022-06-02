@@ -3,19 +3,10 @@ package no.nav.su.se.bakover.service.søknadsbehandling
 import arrow.core.left
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
-import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.journal.JournalpostId
-import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
@@ -37,7 +28,6 @@ import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringAvslagUtenBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.tilstrekkeligDokumentert
-import no.nav.su.se.bakover.test.vilkårsvurderingSøknadsbehandlingIkkeVurdert
 import org.junit.jupiter.api.Test
 import org.mockito.internal.verification.Times
 import org.mockito.kotlin.any
@@ -51,9 +41,7 @@ import java.util.UUID
 
 internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
 
-    private val sakId = UUID.randomUUID()
     private val behandlingId = UUID.randomUUID()
-    private val oppgaveId = OppgaveId("o")
     private val stønadsperiode = Stønadsperiode.create(år(2021))
 
     @Test
@@ -169,29 +157,9 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
 
     @Test
     fun `ufullstendig happy case`() {
-        val uavklart = Søknadsbehandling.Vilkårsvurdert.Uavklart(
-            id = behandlingId,
-            opprettet = fixedTidspunkt,
-            sakId = sakId,
-            saksnummer = Saksnummer(2021),
-            søknad = Søknad.Journalført.MedOppgave.IkkeLukket(
-                id = UUID.randomUUID(),
-                opprettet = Tidspunkt.EPOCH,
-                sakId = sakId,
-                søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-                oppgaveId = oppgaveId,
-                journalpostId = JournalpostId("j"),
-            ),
-            oppgaveId = oppgaveId,
-            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
-            fnr = Fnr.generer(),
-            fritekstTilBrev = "",
+        val uavklart = søknadsbehandlingVilkårsvurdertUavklart(
             stønadsperiode = stønadsperiode,
-            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingIkkeVurdert(),
-            attesteringer = Attesteringshistorikk.empty(),
-            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere(uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående),
-        )
+        ).second
 
         val bosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
             id = UUID.randomUUID(),
@@ -223,7 +191,10 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             clock = fixedClock,
         ).leggTilBosituasjonEpsgrunnlag(
-            LeggTilBosituasjonEpsRequest(behandlingId = behandlingId, epsFnr = null),
+            LeggTilBosituasjonEpsRequest(
+                behandlingId = uavklart.id,
+                epsFnr = null,
+            ),
         ).orNull()!!
 
         response shouldBe expected.copy(
@@ -236,7 +207,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             ),
         )
 
-        verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandlingId })
+        verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe uavklart.id })
         verify(søknadsbehandlingRepoMock).defaultTransactionContext()
         verify(søknadsbehandlingRepoMock).lagre(
             any(),
@@ -350,23 +321,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
 
     @Test
     fun `fullfør happy case`() {
-        val uavklart = Søknadsbehandling.Vilkårsvurdert.Uavklart(
-            id = behandlingId,
-            opprettet = fixedTidspunkt,
-            sakId = sakId,
-            saksnummer = Saksnummer(2021),
-            søknad = Søknad.Journalført.MedOppgave.IkkeLukket(
-                id = UUID.randomUUID(),
-                opprettet = Tidspunkt.EPOCH,
-                sakId = sakId,
-                søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-                oppgaveId = oppgaveId,
-                journalpostId = JournalpostId("j"),
-            ),
-            oppgaveId = oppgaveId,
-            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
-            fnr = Fnr.generer(),
-            fritekstTilBrev = "",
+        val uavklart = søknadsbehandlingVilkårsvurdertUavklart(
             stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata.create(
                 bosituasjon = listOf(
@@ -377,10 +332,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
                     ),
                 ),
             ),
-            vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingIkkeVurdert(),
-            attesteringer = Attesteringshistorikk.empty(),
-            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere(uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående),
-        )
+        ).second
 
         val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(
             id = UUID.randomUUID(),
@@ -401,7 +353,6 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
         )
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
-            on { hent(any()) } doReturn uavklart
             on { hent(any()) } doReturnConsecutively listOf(
                 uavklart,
                 expected,
@@ -413,7 +364,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             clock = fixedClock,
         ).fullførBosituasjongrunnlag(
             FullførBosituasjonRequest(
-                behandlingId = behandlingId,
+                behandlingId = uavklart.id,
                 bosituasjon = BosituasjonValg.BOR_ALENE,
             ),
         ).orNull()!!
@@ -428,7 +379,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             ),
         )
 
-        verify(søknadsbehandlingRepoMock, Times(2)).hent(argThat { it shouldBe behandlingId })
+        verify(søknadsbehandlingRepoMock, Times(2)).hent(argThat { it shouldBe uavklart.id })
         verify(søknadsbehandlingRepoMock, Times(2)).defaultTransactionContext()
         verify(søknadsbehandlingRepoMock, Times(2)).lagre(any(), anyOrNull())
         verifyNoMoreInteractions(søknadsbehandlingRepoMock)

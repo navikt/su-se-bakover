@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
@@ -79,6 +80,7 @@ internal class SøknadsbehandlingServiceSimuleringTest {
             vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingIkkeVurdert(),
             attesteringer = Attesteringshistorikk.empty(),
             avkorting = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
+            sakstype = beregnetBehandling.sakstype,
         )
 
         response shouldBe expected.right()
@@ -178,6 +180,7 @@ internal class SøknadsbehandlingServiceSimuleringTest {
         vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingIkkeVurdert(),
         attesteringer = Attesteringshistorikk.empty(),
         avkorting = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
+        sakstype = Sakstype.UFØRE,
     )
 
     private val simulering = Simulering(
