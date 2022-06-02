@@ -49,6 +49,7 @@ spec:
       consumes:
         - name: "skatteetaten:skattemelding"
         - name: "skatteetaten:beregnetskatt"
+        - name: "skatteetaten:summertskattegrunnlag"
   prometheus:
     enabled: true
     path: /metrics
