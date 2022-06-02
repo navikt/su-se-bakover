@@ -119,8 +119,10 @@ internal class SøknadsbehandlingServiceImpl(
             return SøknadsbehandlingService.KunneIkkeOpprette.SøknadHarAlleredeBehandling.left()
         }
 
-        val åpneSøknadsbehandlinger =
-            søknadsbehandlingRepo.hentForSak(søknad.sakId).filterNot { it.erIverksatt }.filterNot { it.erLukket }
+        val åpneSøknadsbehandlinger = søknadsbehandlingRepo.hentForSak(søknad.sakId)
+            .filterNot { it.erIverksatt }
+            .filterNot { it.erLukket }
+
         if (åpneSøknadsbehandlinger.isNotEmpty()) {
             return SøknadsbehandlingService.KunneIkkeOpprette.HarAlleredeÅpenSøknadsbehandling.left()
         }
@@ -138,6 +140,7 @@ internal class SøknadsbehandlingServiceImpl(
                 oppgaveId = søknad.oppgaveId,
                 fnr = søknad.søknadInnhold.personopplysninger.fnr,
                 avkorting = avkorting.kanIkke(),
+                sakstype = søknad.type,
             ),
         )
 
@@ -327,7 +330,7 @@ internal class SøknadsbehandlingServiceImpl(
                     aktørId = aktørId,
                     tilordnetRessurs = underkjent.saksbehandler,
                     clock = clock,
-                    sakstype = underkjent.søknad.søknadInnhold.type()
+                    sakstype = underkjent.søknad.søknadInnhold.type(),
                 ),
             ).getOrElse {
                 log.error("Behandling ${underkjent.id} ble ikke underkjent. Klarte ikke opprette behandlingsoppgave")

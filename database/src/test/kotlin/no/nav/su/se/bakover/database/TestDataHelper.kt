@@ -1194,6 +1194,7 @@ internal class TestDataHelper(
             oppgaveId = søknad.oppgaveId,
             fnr = sak.fnr,
             avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke(),
+            sakstype = sak.type,
         ).let { nySøknadsbehandling ->
             søknadsbehandlingRepo.lagreNySøknadsbehandling(nySøknadsbehandling)
             sakRepo.hentSak(sakId)!!.oppdaterStønadsperiodeForSøknadsbehandling(

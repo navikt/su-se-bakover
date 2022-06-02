@@ -846,6 +846,7 @@ internal class SøknadsbehandlingRoutesKtTest {
             oppgaveId = OppgaveId("1234"),
             fnr = sak.fnr,
             avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke(),
+            sakstype = sak.type,
         )
         repos.søknadsbehandling.lagreNySøknadsbehandling(
             nySøknadsbehandling,

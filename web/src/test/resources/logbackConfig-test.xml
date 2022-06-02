@@ -21,6 +21,8 @@
     <logger name="io.confluent" level="OFF"/>
     <logger name="kafka" level="OFF"/>
     <logger name="state.change.logger" level="WARN"/>
+    <logger name="io.micrometer" level="ERROR"/>
+    <logger name="no.nav.su.se.bakover.client.UnleashBuilder" level="ERROR"/>
 
     <!-- WEB -->
     <logger name="ktor.test" level="WARN"/>

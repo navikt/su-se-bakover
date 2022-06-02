@@ -103,7 +103,8 @@ class SøknadsbehandlingServiceUnderkjennTest {
         grunnlagsdata = Grunnlagsdata.IkkeVurdert,
         vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingIkkeVurdert(),
         attesteringer = Attesteringshistorikk.empty(),
-        avkorting = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående
+        avkorting = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
+        sakstype = Sakstype.UFØRE,
     )
 
     private val oppgaveConfig = OppgaveConfig.Søknad(
@@ -369,7 +370,8 @@ class SøknadsbehandlingServiceUnderkjennTest {
             stønadsperiode = innvilgetBehandlingTilAttestering.stønadsperiode,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingIkkeVurdert(),
-            avkorting = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående
+            avkorting = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
+            sakstype = innvilgetBehandlingTilAttestering.sakstype,
         )
 
         actual shouldBe underkjentMedNyOppgaveIdOgAttestering.right()
@@ -461,7 +463,8 @@ class SøknadsbehandlingServiceUnderkjennTest {
             stønadsperiode = innvilgetBehandlingTilAttestering.stønadsperiode,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingIkkeVurdert(),
-            avkorting = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående
+            avkorting = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
+            sakstype = innvilgetBehandlingTilAttestering.sakstype,
         )
 
         actual shouldBe underkjentMedNyOppgaveIdOgAttestering.right()

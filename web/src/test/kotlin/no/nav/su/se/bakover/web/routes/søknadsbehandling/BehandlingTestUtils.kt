@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
@@ -105,5 +106,6 @@ object BehandlingTestUtils {
             )
         ),
         avkorting = AvkortingVedSøknadsbehandling.Iverksatt.IngenUtestående,
+        sakstype = Sakstype.UFØRE,
     )
 }

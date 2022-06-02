@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.periode.inneholderAlle
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsplan
@@ -62,6 +63,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     abstract override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling
     abstract override val attesteringer: Attesteringshistorikk
     abstract val avkorting: AvkortingVedSøknadsbehandling
+    abstract val sakstype: Sakstype
 
     // TODO ia: fritekst bør flyttes ut av denne klassen og til et eget konsept (som også omfatter fritekst på revurderinger)
     abstract val fritekstTilBrev: String
@@ -353,6 +355,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     vilkårsvurderinger = behandling.vilkårsvurderinger,
                     attesteringer = behandling.attesteringer,
                     avkorting = behandling.avkorting.håndter().kanIkke(),
+                    sakstype = behandling.sakstype,
                 )
                 AvslagGrunnetBeregning.Nei -> {
                     Beregnet.Innvilget(
@@ -371,6 +374,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         vilkårsvurderinger = behandling.vilkårsvurderinger,
                         attesteringer = behandling.attesteringer,
                         avkorting = behandling.avkorting.håndter(),
+                        sakstype = behandling.sakstype,
                     )
                 }
             }.right()
@@ -469,6 +473,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 attesteringer = attesteringer,
                 clock = clock,
                 avkorting = avkorting,
+                sakstype = sakstype,
             )
 
         companion object {
@@ -488,6 +493,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 attesteringer: Attesteringshistorikk,
                 clock: Clock,
                 avkorting: AvkortingVedSøknadsbehandling.Uhåndtert,
+                sakstype: Sakstype,
             ): Vilkårsvurdert {
                 val grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata
                 val vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger
@@ -540,6 +546,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                             oppdaterteVilkårsvurderinger,
                             attesteringer,
                             avkorting.kanIkke(),
+                            sakstype,
                         )
                     }
                     is Vilkårsvurderingsresultat.Innvilget -> {
@@ -558,6 +565,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                             oppdaterteVilkårsvurderinger,
                             attesteringer,
                             avkorting.uhåndtert(),
+                            sakstype,
                         )
                     }
                     is Vilkårsvurderingsresultat.Uavklart -> {
@@ -576,6 +584,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                             oppdaterteVilkårsvurderinger,
                             attesteringer,
                             avkorting.kanIkke(),
+                            sakstype,
                         )
                     }
                 }
@@ -597,6 +606,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val attesteringer: Attesteringshistorikk,
             override val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert,
+            override val sakstype: Sakstype,
         ) : Vilkårsvurdert() {
 
             override val status: BehandlingsStatus = BehandlingsStatus.VILKÅRSVURDERT_INNVILGET
@@ -639,6 +649,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     vilkårsvurderinger,
                     attesteringer,
                     avkorting,
+                    sakstype,
                 ).right()
             }
 
@@ -751,6 +762,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val attesteringer: Attesteringshistorikk,
             override val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere,
+            override val sakstype: Sakstype,
         ) : Vilkårsvurdert(), ErAvslag {
 
             override val status: BehandlingsStatus = BehandlingsStatus.VILKÅRSVURDERT_AVSLAG
@@ -784,6 +796,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     vilkårsvurderinger,
                     attesteringer,
                     avkorting.håndter().kanIkke(),
+                    sakstype,
                 )
 
             // TODO fiks typing/gyldig tilstand/vilkår fradrag?
@@ -881,6 +894,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val attesteringer: Attesteringshistorikk,
             override val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere,
+            override val sakstype: Sakstype,
         ) : Vilkårsvurdert() {
 
             override val status: BehandlingsStatus = BehandlingsStatus.OPPRETTET
@@ -999,6 +1013,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 attesteringer = attesteringer,
                 clock = clock,
                 avkorting = avkorting.uhåndtert(),
+                sakstype = sakstype,
             )
 
         abstract override fun beregn(
@@ -1026,6 +1041,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 vilkårsvurderinger,
                 attesteringer,
                 avkorting,
+                sakstype,
             )
 
         data class Innvilget(
@@ -1044,6 +1060,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val attesteringer: Attesteringshistorikk,
             override val avkorting: AvkortingVedSøknadsbehandling.Håndtert,
+            override val sakstype: Sakstype,
         ) : Beregnet() {
             override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET_INNVILGET
             override val periode: Periode = stønadsperiode.periode
@@ -1084,6 +1101,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     vilkårsvurderinger,
                     attesteringer,
                     avkorting.uhåndtert(),
+                    sakstype,
                 ).right()
             }
 
@@ -1194,6 +1212,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val attesteringer: Attesteringshistorikk,
             override val avkorting: AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
+            override val sakstype: Sakstype,
         ) : Beregnet(), ErAvslag {
             override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET_AVSLAG
             override val periode: Periode = stønadsperiode.periode
@@ -1236,6 +1255,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     vilkårsvurderinger,
                     attesteringer,
                     avkorting.uhåndtert(),
+                    sakstype,
                 ).right()
             }
 
@@ -1264,6 +1284,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     vilkårsvurderinger,
                     attesteringer,
                     avkorting.kanIkke(),
+                    sakstype,
                 )
 
             // TODO fiks typing/gyldig tilstand/vilkår fradrag?
@@ -1382,6 +1403,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedSøknadsbehandling.Håndtert,
+        override val sakstype: Sakstype,
     ) : Søknadsbehandling() {
         override val status: BehandlingsStatus = BehandlingsStatus.SIMULERT
         override val periode: Periode = stønadsperiode.periode
@@ -1420,6 +1442,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 vilkårsvurderinger,
                 attesteringer,
                 avkorting.uhåndtert(),
+                sakstype,
             ).right()
         }
 
@@ -1443,6 +1466,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 attesteringer = attesteringer,
                 clock = clock,
                 avkorting = avkorting.uhåndtert(),
+                sakstype = sakstype,
             )
 
         override fun beregn(
@@ -1481,6 +1505,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 vilkårsvurderinger,
                 attesteringer,
                 avkorting,
+                sakstype,
             )
 
         fun tilAttestering(
@@ -1511,6 +1536,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 vilkårsvurderinger,
                 attesteringer,
                 avkorting,
+                sakstype,
             )
         }
 
@@ -1611,6 +1637,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val attesteringer: Attesteringshistorikk,
             override val avkorting: AvkortingVedSøknadsbehandling.Håndtert,
+            override val sakstype: Sakstype,
         ) : TilAttestering() {
             override val status: BehandlingsStatus = BehandlingsStatus.TIL_ATTESTERING_INNVILGET
             override val periode: Periode = stønadsperiode.periode
@@ -1646,6 +1673,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     grunnlagsdata,
                     vilkårsvurderinger,
                     avkorting,
+                    sakstype,
                 )
             }
 
@@ -1668,6 +1696,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     grunnlagsdata,
                     vilkårsvurderinger,
                     avkorting.iverksett(id),
+                    sakstype,
                 )
             }
         }
@@ -1692,6 +1721,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                 override val attesteringer: Attesteringshistorikk,
                 override val avkorting: AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
+                override val sakstype: Sakstype,
             ) : Avslag() {
 
                 // TODO fiks typing/gyldig tilstand/vilkår fradrag?
@@ -1732,6 +1762,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         grunnlagsdata,
                         vilkårsvurderinger,
                         avkorting,
+                        sakstype,
                     )
                 }
 
@@ -1754,6 +1785,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         grunnlagsdata,
                         vilkårsvurderinger,
                         avkorting.iverksett(id),
+                        sakstype,
                     )
                 }
             }
@@ -1775,6 +1807,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                 override val attesteringer: Attesteringshistorikk,
                 override val avkorting: AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
+                override val sakstype: Sakstype,
             ) : Avslag() {
 
                 private val avslagsgrunnForBeregning: List<Avslagsgrunn> =
@@ -1822,6 +1855,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         grunnlagsdata,
                         vilkårsvurderinger,
                         avkorting,
+                        sakstype,
                     )
                 }
 
@@ -1845,6 +1879,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         grunnlagsdata,
                         vilkårsvurderinger,
                         avkorting.iverksett(id),
+                        sakstype,
                     )
                 }
             }
@@ -1887,6 +1922,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 attesteringer = attesteringer,
                 clock = clock,
                 avkorting = avkorting.uhåndtert(),
+                sakstype = sakstype,
             )
 
         data class Innvilget(
@@ -1907,6 +1943,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val grunnlagsdata: Grunnlagsdata,
             override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val avkorting: AvkortingVedSøknadsbehandling.Håndtert,
+            override val sakstype: Sakstype,
         ) : Underkjent() {
 
             override val status: BehandlingsStatus = BehandlingsStatus.UNDERKJENT_INNVILGET
@@ -1948,6 +1985,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     vilkårsvurderinger = vilkårsvurderinger,
                     attesteringer = attesteringer,
                     avkorting = avkorting.uhåndtert(),
+                    sakstype,
                 ).right()
             }
 
@@ -1991,6 +2029,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     vilkårsvurderinger,
                     attesteringer,
                     avkorting,
+                    sakstype,
                 )
 
             fun tilAttestering(saksbehandler: NavIdentBruker.Saksbehandler): TilAttestering.Innvilget {
@@ -2018,6 +2057,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     vilkårsvurderinger,
                     attesteringer,
                     avkorting,
+                    sakstype,
                 )
             }
 
@@ -2112,6 +2152,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val grunnlagsdata: Grunnlagsdata,
                 override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                 override val avkorting: AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
+                override val sakstype: Sakstype,
             ) : Avslag() {
                 override val status: BehandlingsStatus = BehandlingsStatus.UNDERKJENT_AVSLAG
                 override val periode: Periode = stønadsperiode.periode
@@ -2154,6 +2195,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         vilkårsvurderinger,
                         attesteringer,
                         avkorting.uhåndtert(),
+                        sakstype,
                     ).right()
                 }
 
@@ -2201,6 +2243,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         vilkårsvurderinger,
                         attesteringer,
                         avkorting,
+                        sakstype,
                     )
 
                 // TODO fiks typing/gyldig tilstand/vilkår fradrag?
@@ -2299,6 +2342,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val grunnlagsdata: Grunnlagsdata,
                 override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                 override val avkorting: AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
+                override val sakstype: Sakstype,
             ) : Avslag() {
                 override val status: BehandlingsStatus = BehandlingsStatus.UNDERKJENT_AVSLAG
                 override val periode: Periode = stønadsperiode.periode
@@ -2332,6 +2376,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         vilkårsvurderinger,
                         attesteringer,
                         avkorting,
+                        sakstype,
                     )
 
                 // TODO fiks typing/gyldig tilstand/vilkår fradrag?
@@ -2448,6 +2493,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val grunnlagsdata: Grunnlagsdata,
             override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val avkorting: AvkortingVedSøknadsbehandling.Iverksatt,
+            override val sakstype: Sakstype,
         ) : Iverksatt() {
             override val status: BehandlingsStatus = BehandlingsStatus.IVERKSATT_INNVILGET
             override val periode: Periode = stønadsperiode.periode
@@ -2479,6 +2525,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val grunnlagsdata: Grunnlagsdata,
                 override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                 override val avkorting: AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere,
+                override val sakstype: Sakstype,
             ) : Avslag() {
                 override val status: BehandlingsStatus = BehandlingsStatus.IVERKSATT_AVSLAG
                 override val periode: Periode = stønadsperiode.periode
@@ -2521,6 +2568,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val grunnlagsdata: Grunnlagsdata,
                 override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                 override val avkorting: AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere,
+                override val sakstype: Sakstype,
             ) : Avslag() {
                 override val status: BehandlingsStatus = BehandlingsStatus.IVERKSATT_AVSLAG
                 override val periode: Periode = stønadsperiode.periode

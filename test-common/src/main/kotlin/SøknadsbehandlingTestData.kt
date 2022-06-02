@@ -64,6 +64,7 @@ fun søknadsbehandlingVilkårsvurdertUavklart(
             vilkårsvurderinger = vilkårsvurderinger,
             attesteringer = Attesteringshistorikk.empty(),
             avkorting = avkorting,
+            sakstype = sak.type,
         )
         Pair(
             sak.copy(

@@ -9,19 +9,9 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Brukerrolle
-import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
-import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
-import no.nav.su.se.bakover.test.generer
-import no.nav.su.se.bakover.test.vilkårsvurderingSøknadsbehandlingIkkeVurdert
+import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.sak.sakPath
@@ -32,7 +22,6 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
-import java.util.UUID
 
 class OppdaterStønadsperiodeTest {
     private val url = "$sakPath/$sakId/behandlinger/$behandlingId/stønadsperiode"
@@ -146,22 +135,7 @@ class OppdaterStønadsperiodeTest {
 
     @Test
     fun `svarer med 201 og søknadsbehandling hvis alt er ok`() {
-        val søknadsbehandling = Søknadsbehandling.Vilkårsvurdert.Uavklart(
-            id = UUID.randomUUID(),
-            opprettet = Tidspunkt.EPOCH,
-            sakId = UUID.randomUUID(),
-            saksnummer = Saksnummer(2021),
-            søknad = BehandlingTestUtils.journalførtSøknadMedOppgave,
-            oppgaveId = OppgaveId("oppgaveId"),
-            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
-            fnr = Fnr.generer(),
-            fritekstTilBrev = "",
-            stønadsperiode = BehandlingTestUtils.stønadsperiode,
-            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingIkkeVurdert(),
-            attesteringer = Attesteringshistorikk.empty(),
-            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke(),
-        )
+        val søknadsbehandling = søknadsbehandlingVilkårsvurdertUavklart().second
 
         val serviceMock = mock<SøknadsbehandlingService> {
             on { oppdaterStønadsperiode(any()) } doReturn søknadsbehandling.right()
