@@ -43,7 +43,8 @@ internal class DokumentPostgresRepo(
                             "generertDokument" to dokument.generertDokument,
                             "generertDokumentJson" to objectMapper.writeValueAsString(dokument.generertDokumentJson),
                             "type" to when (dokument) {
-                                is Dokument.MedMetadata.Informasjon -> DokumentKategori.INFORMASJON
+                                is Dokument.MedMetadata.Informasjon.Viktig -> DokumentKategori.INFORMASJON_VIKTIG
+                                is Dokument.MedMetadata.Informasjon.Annet -> DokumentKategori.INFORMASJON_ANNET
                                 is Dokument.MedMetadata.Vedtak -> DokumentKategori.VEDTAK
                             }.toString(),
                             "tittel" to dokument.tittel,
@@ -267,9 +268,7 @@ internal class DokumentPostgresRepo(
                     journalpostId = journalpostId,
                 ),
             )
-            DokumentKategori.INFORMASJON,
-            DokumentKategori.INFORMASJON_ANNET,
-            -> Dokument.MedMetadata.Informasjon.Annet(
+            DokumentKategori.INFORMASJON_ANNET -> Dokument.MedMetadata.Informasjon.Annet(
                 id = id,
                 opprettet = opprettet,
                 tittel = tittel,
@@ -309,7 +308,6 @@ internal class DokumentPostgresRepo(
     private fun Row.toDokument(): Dokument.MedMetadata = this.toDokumentMedStatus(false)
 
     private enum class DokumentKategori {
-        INFORMASJON,
         INFORMASJON_VIKTIG,
         INFORMASJON_ANNET,
         VEDTAK,
