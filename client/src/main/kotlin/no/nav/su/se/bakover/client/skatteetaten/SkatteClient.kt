@@ -64,6 +64,8 @@ class SkatteClient(private val maskinportenConfig: MaskinportenConfig, private v
         client.send(postRequest, HttpResponse.BodyHandlers.ofString()).let { response ->
             if (!response.isSuccess()) {
                 log.error("Feil i henting av token mot maskinporten, ${response.statusCode()}")
+                log.debug("response:  $response") // fjern dette sen
+                log.debug("token: $signedJWT")
             } else {
                 log.info("Vi fikk hentet token! wow. ${response.body()}")
                 token = SkatteToken(json = JSONObject(response.body()))
