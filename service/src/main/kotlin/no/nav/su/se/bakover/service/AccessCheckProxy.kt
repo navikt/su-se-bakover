@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.AktørId
-import no.nav.su.se.bakover.domain.BegrensetSakerInfo
+import no.nav.su.se.bakover.domain.AlleredeGjeldendeSakForBruker
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NySak
@@ -323,9 +323,9 @@ open class AccessCheckProxy(
                     return services.sak.hentFerdigeBehandlingerForAlleSaker()
                 }
 
-                override fun hentBegrensetSakerInfo(fnr: Fnr): BegrensetSakerInfo {
+                override fun hentAlleredeGjeldendeSakForBruker(fnr: Fnr): AlleredeGjeldendeSakForBruker {
                     assertHarTilgangTilPerson(fnr)
-                    return services.sak.hentBegrensetSakerInfo(fnr)
+                    return services.sak.hentAlleredeGjeldendeSakForBruker(fnr)
                 }
             },
             søknad = object : SøknadService {

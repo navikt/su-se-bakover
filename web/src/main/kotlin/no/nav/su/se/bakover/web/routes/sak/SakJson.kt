@@ -65,7 +65,7 @@ internal data class SakJson(
     }
 }
 
-internal data class BegrensetSakerInfoJson(
+internal data class AlleredeGjeldendeSakForBrukerJson(
     val uføre: BegrensetSakinfoJson,
     val alder: BegrensetSakinfoJson
 )

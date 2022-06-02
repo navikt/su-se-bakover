@@ -6,7 +6,7 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.BegrensetSakerInfo
+import no.nav.su.se.bakover.domain.AlleredeGjeldendeSakForBruker
 import no.nav.su.se.bakover.domain.BegrensetSakinfo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NySak
@@ -86,16 +86,16 @@ internal class SakServiceImpl(
         return sakRepo.hentFerdigeBehandlinger()
     }
 
-    override fun hentBegrensetSakerInfo(fnr: Fnr): BegrensetSakerInfo {
+    override fun hentAlleredeGjeldendeSakForBruker(fnr: Fnr): AlleredeGjeldendeSakForBruker {
         return hentSaker(fnr).fold(
             ifLeft = {
-                BegrensetSakerInfo(
+                AlleredeGjeldendeSakForBruker(
                     sakTilBegrensetSakInfo(null),
                     sakTilBegrensetSakInfo(null),
                 )
             },
             ifRight = { saker ->
-                BegrensetSakerInfo(
+                AlleredeGjeldendeSakForBruker(
                     uføre = sakTilBegrensetSakInfo(saker.find { it.type == Sakstype.UFØRE }),
                     alder = sakTilBegrensetSakInfo(saker.find { it.type == Sakstype.ALDER }),
                 )

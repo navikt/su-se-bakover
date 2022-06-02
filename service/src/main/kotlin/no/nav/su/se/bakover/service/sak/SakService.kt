@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.service.sak
 
 import arrow.core.Either
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.BegrensetSakerInfo
+import no.nav.su.se.bakover.domain.AlleredeGjeldendeSakForBruker
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
@@ -26,7 +26,7 @@ interface SakService {
     fun opprettSak(sak: NySak)
     fun hentÅpneBehandlingerForAlleSaker(): List<Behandlingsoversikt>
     fun hentFerdigeBehandlingerForAlleSaker(): List<Behandlingsoversikt>
-    fun hentBegrensetSakerInfo(fnr: Fnr): BegrensetSakerInfo
+    fun hentAlleredeGjeldendeSakForBruker(fnr: Fnr): AlleredeGjeldendeSakForBruker
     fun hentSakidOgSaksnummer(fnr: Fnr): Either<FantIkkeSak, SakInfo>
 }
 

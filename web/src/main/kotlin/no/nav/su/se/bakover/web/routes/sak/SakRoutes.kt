@@ -136,9 +136,9 @@ internal fun Route.sakRoutes(
                         .mapLeft { Feilresponser.ugyldigFødselsnummer }
                 }
                 .map { fnr ->
-                    sakService.hentBegrensetSakerInfo(fnr)
+                    sakService.hentAlleredeGjeldendeSakForBruker(fnr)
                         .let { info ->
-                            BegrensetSakerInfoJson(
+                            AlleredeGjeldendeSakForBrukerJson(
                                 uføre = BegrensetSakinfoJson(
                                     harÅpenSøknad = info.uføre.harÅpenSøknad,
                                     iverksattInnvilgetStønadsperiode = info.uføre.iverksattInnvilgetStønadsperiode?.toJson()

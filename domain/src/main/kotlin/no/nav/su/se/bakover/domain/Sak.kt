@@ -448,7 +448,7 @@ class SakFactory(
     }
 }
 
-data class BegrensetSakerInfo(
+data class AlleredeGjeldendeSakForBruker(
     val uføre: BegrensetSakinfo,
     val alder: BegrensetSakinfo
 )
