@@ -1,4 +1,4 @@
-UPDATE dokument SET type = 'INFORMASJON_VIKTIG' WHERE type = 'INFORMASJON' AND tittel = 'Oversendelsesbrev til klager';
+UPDATE dokument SET type = 'INFORMASJON_ANNET' WHERE type = 'INFORMASJON' AND tittel = 'Oversendelsesbrev til klager';
 UPDATE dokument SET type = 'INFORMASJON_VIKTIG' WHERE type = 'INFORMASJON' AND tittel = 'Supplerende stønad ufør flyktning – innkalling til samtale';
 
 UPDATE dokument SET type = 'INFORMASJON_ANNET' WHERE type = 'INFORMASJON' AND tittel = 'Ikke grunnlag for revurdering';

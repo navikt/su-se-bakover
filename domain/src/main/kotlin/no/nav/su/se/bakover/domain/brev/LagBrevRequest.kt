@@ -430,7 +430,7 @@ interface LagBrevRequest {
 
             override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Informasjon> {
                 return genererDokument(genererPdf).map {
-                    Dokument.UtenMetadata.Informasjon.Viktig(
+                    Dokument.UtenMetadata.Informasjon.Annet(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(),
                         tittel = it.first,
