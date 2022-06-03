@@ -148,7 +148,7 @@ internal class FortsettEtterForhåndsvarslingTest {
                 on { hent(any()) } doReturn simulertMedForhåndsvarsel
             },
             brevService = mock {
-                on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn Dokument.UtenMetadata.Informasjon(
+                on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn Dokument.UtenMetadata.Informasjon.Annet(
                     opprettet = fixedTidspunkt,
                     tittel = "tittel1",
                     generertDokument = "brev".toByteArray(),
@@ -198,7 +198,7 @@ internal class FortsettEtterForhåndsvarslingTest {
         )
         verify(mocks.brevService).lagreDokument(
             argThat {
-                it should beOfType<Dokument.MedMetadata.Informasjon>()
+                it should beOfType<Dokument.MedMetadata.Informasjon.Annet>()
                 it.generertDokument shouldBe "brev".toByteArray()
                 it.metadata shouldBe Dokument.Metadata(
                     sakId = simulertMedForhåndsvarsel.sakId,

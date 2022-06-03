@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.fnrOver67
+import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.søknadsinnholdAlder
@@ -21,6 +22,7 @@ import no.nav.su.se.bakover.service.søknadsbehandling.VilkårsvurderRequest
 import no.nav.su.se.bakover.service.vilkår.BosituasjonValg
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
@@ -85,10 +87,7 @@ internal class SøknadsbehandlingAlder {
             appComponents.services.søknadsbehandling.vilkårsvurder(
                 request = VilkårsvurderRequest(
                     behandlingId = søknadsbehandling.id,
-                    behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon()
-                        .withAlleVilkårOppfylt().copy(
-                            formue = null,
-                        ),
+                    behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
                 ),
             ).getOrFail()
 
@@ -138,6 +137,29 @@ internal class SøknadsbehandlingAlder {
                 ),
             ).getOrFail()
 
+            appComponents.services.søknadsbehandling.leggTilFormuevilkår(
+                request = LeggTilFormuevilkårRequest(
+                    behandlingId = søknadsbehandling.id,
+                    formuegrunnlag = nonEmptyListOf(
+                        LeggTilFormuevilkårRequest.Grunnlag.Søknadsbehandling(
+                            periode = stønadsperiode2022.periode,
+                            epsFormue = null,
+                            søkersFormue = Formuegrunnlag.Verdier.create(
+                                verdiIkkePrimærbolig = 0,
+                                verdiEiendommer = 0,
+                                verdiKjøretøy = 0,
+                                innskudd = 0,
+                                verdipapir = 0,
+                                pengerSkyldt = 0,
+                                kontanter = 0,
+                                depositumskonto = 0,
+                            ),
+                            begrunnelse = null,
+                            måInnhenteMerInformasjon = false,
+                        ),
+                    ),
+                ),
+            )
             appComponents.services.søknadsbehandling.leggTilUtenlandsopphold(
                 request = LeggTilUtenlandsoppholdRequest(
                     behandlingId = søknadsbehandling.id,

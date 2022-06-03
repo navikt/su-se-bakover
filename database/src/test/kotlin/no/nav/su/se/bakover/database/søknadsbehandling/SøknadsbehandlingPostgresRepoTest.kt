@@ -32,7 +32,6 @@ import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.behandlingsinformasjonAlleVilkårInnvilget
 import no.nav.su.se.bakover.test.enUkeEtterFixedTidspunkt
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.formuegrenserFactoryTest
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
@@ -197,7 +196,6 @@ internal class SøknadsbehandlingPostgresRepoTest {
             simulert.tilVilkårsvurdert(
                 behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
                 clock = fixedClock,
-                formuegrenserFactory = formuegrenserFactoryTest,
             )
                 .also { vilkårsvurdert ->
                     repo.lagre(vilkårsvurdert)
@@ -320,6 +318,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 avkorting = AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere(
                     håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
                 ),
+                sakstype = iverksatt.sakstype,
             )
             repo.hent(iverksatt.id).also {
                 it shouldBe expected
@@ -404,6 +403,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 avkorting = AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere(
                     håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
                 ),
+                sakstype = opprettetMedStønadsperiode.sakstype,
             )
         }
     }

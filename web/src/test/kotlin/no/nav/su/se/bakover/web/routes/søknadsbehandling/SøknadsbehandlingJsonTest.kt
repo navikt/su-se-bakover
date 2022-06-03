@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -53,30 +54,6 @@ internal class SøknadsbehandlingJsonTest {
                 "institusjonsopphold": {
                     "status": "VilkårOppfylt"
                 },
-                "formue": {
-                    "status": "VilkårOppfylt",
-                    "verdier": {
-                        "verdiIkkePrimærbolig": 0,
-                        "verdiEiendommer": 0,
-                        "verdiKjøretøy": 0,
-                        "innskudd": 0,
-                        "verdipapir": 0,
-                        "pengerSkyldt": 0,
-                        "kontanter": 0,
-                        "depositumskonto": 0
-                    },
-                    "epsVerdier": {
-                        "verdiIkkePrimærbolig": 0,
-                        "verdiEiendommer": 0,
-                        "verdiKjøretøy": 0,
-                        "innskudd": 0,
-                        "verdipapir": 0,
-                        "pengerSkyldt": 0,
-                        "kontanter": 0,
-                        "depositumskonto": 0
-                    },
-                    "begrunnelse": null
-                },
                 "personligOppmøte": {
                     "status": "MøttPersonlig"
                 }
@@ -102,7 +79,7 @@ internal class SøknadsbehandlingJsonTest {
             "fradrag": [],
             "bosituasjon": $expectedBosituasjonJson,
             "formue": {
-                "resultat": "MåInnhenteMerInformasjon",
+                "resultat": null,
                 "formuegrenser": [
                   {
                       "gyldigFra": "2020-05-01",
@@ -161,6 +138,7 @@ internal class SøknadsbehandlingJsonTest {
             vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingIkkeVurdert(),
             attesteringer = Attesteringshistorikk.empty(),
             avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke(),
+            sakstype = Sakstype.UFØRE,
         )
         val opprettetTidspunkt = DateTimeFormatter.ISO_INSTANT.format(behandlingWithNulls.opprettet)
 
@@ -174,7 +152,6 @@ internal class SøknadsbehandlingJsonTest {
             "lovligOpphold": null,
             "fastOppholdINorge": null,
             "institusjonsopphold": null,
-            "formue": null,
             "personligOppmøte": null
           },
           "søknad": $søknadJsonString,
@@ -191,7 +168,7 @@ internal class SøknadsbehandlingJsonTest {
             "fradrag": [],
             "bosituasjon": [],
             "formue": {
-                "resultat": "MåInnhenteMerInformasjon",
+                "resultat": null,
                 "formuegrenser": [
                   {
                       "gyldigFra": "2020-05-01",

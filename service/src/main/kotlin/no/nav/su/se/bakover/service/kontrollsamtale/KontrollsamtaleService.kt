@@ -225,7 +225,7 @@ class KontrollsamtaleServiceImpl(
             saksnummer = saksnummer,
         )
         return brevService.lagBrev(brevRequest).map {
-            Dokument.UtenMetadata.Informasjon(
+            Dokument.UtenMetadata.Informasjon.Viktig(
                 opprettet = Tidspunkt.now(clock),
                 tittel = brevRequest.brevInnhold.brevTemplate.tittel(),
                 generertDokument = it,

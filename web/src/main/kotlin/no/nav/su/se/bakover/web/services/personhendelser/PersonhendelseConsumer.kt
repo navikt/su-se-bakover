@@ -7,13 +7,13 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import no.nav.su.se.bakover.common.ApplicationConfig
-import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
 import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.consumer.ConsumerRecords
 import org.apache.kafka.clients.consumer.OffsetAndMetadata
 import org.apache.kafka.common.TopicPartition
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -25,8 +25,9 @@ class PersonhendelseConsumer(
     topicName: String = "aapen-person-pdl-leesah-v1",
     // Vi ønsker ikke holde tråden i live for lenge ved en avslutting av applikasjonen.
     private val pollTimeoutDuration: Duration = Duration.ofMillis(500),
+    private val log: Logger = LoggerFactory.getLogger(PersonhendelseConsumer::class.java),
+    private val sikkerLogg: Logger = no.nav.su.se.bakover.common.sikkerLogg,
 ) {
-    private val log = LoggerFactory.getLogger(this::class.java)
 
     init {
         log.info("Personhendelse: Setter opp Kafka-Consumer som lytter på $topicName fra PDL")

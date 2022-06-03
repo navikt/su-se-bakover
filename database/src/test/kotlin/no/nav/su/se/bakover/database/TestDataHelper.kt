@@ -1194,6 +1194,7 @@ internal class TestDataHelper(
             oppgaveId = søknad.oppgaveId,
             fnr = sak.fnr,
             avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke(),
+            sakstype = sak.type,
         ).let { nySøknadsbehandling ->
             søknadsbehandlingRepo.lagreNySøknadsbehandling(nySøknadsbehandling)
             sakRepo.hentSak(sakId)!!.oppdaterStønadsperiodeForSøknadsbehandling(
@@ -1229,7 +1230,6 @@ internal class TestDataHelper(
         ).tilVilkårsvurdert(
             behandlingsinformasjon = behandlingsinformasjon,
             clock = fixedClock,
-            formuegrenserFactory = formuegrenserFactoryTest,
         ).let {
             søknadsbehandlingRepo.lagre(it)
             Pair(sakRepo.hentSak(sakId)!!, it as Søknadsbehandling.Vilkårsvurdert.Innvilget)
@@ -1258,7 +1258,6 @@ internal class TestDataHelper(
         ).tilVilkårsvurdert(
             behandlingsinformasjon = behandlingsinformasjonMedAvslag,
             clock = fixedClock,
-            formuegrenserFactory = formuegrenserFactoryTest,
         )
             .let {
                 søknadsbehandlingRepo.lagre(it)

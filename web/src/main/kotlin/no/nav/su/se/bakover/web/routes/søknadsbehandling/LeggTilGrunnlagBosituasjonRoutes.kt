@@ -26,7 +26,6 @@ import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeBehandling
-import no.nav.su.se.bakover.web.routes.Feilresponser.harIkkeEktefelle
 import no.nav.su.se.bakover.web.routes.Feilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.web.routes.grunnlag.tilResultat
 import no.nav.su.se.bakover.web.svar
@@ -157,8 +156,6 @@ internal fun Route.leggTilGrunnlagBosituasjonRoutes(
 internal fun SøknadsbehandlingService.KunneIkkeVilkårsvurdere.tilResultat(): Resultat {
     return when (this) {
         SøknadsbehandlingService.KunneIkkeVilkårsvurdere.FantIkkeBehandling -> fantIkkeBehandling
-        is SøknadsbehandlingService.KunneIkkeVilkårsvurdere.FeilVedValideringAvBehandlingsinformasjon -> this.feil.tilResultat()
-        SøknadsbehandlingService.KunneIkkeVilkårsvurdere.HarIkkeEktefelle -> harIkkeEktefelle
     }
 }
 

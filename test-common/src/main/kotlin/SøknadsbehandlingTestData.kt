@@ -64,6 +64,7 @@ fun søknadsbehandlingVilkårsvurdertUavklart(
             vilkårsvurderinger = vilkårsvurderinger,
             attesteringer = Attesteringshistorikk.empty(),
             avkorting = avkorting,
+            sakstype = sak.type,
         )
         Pair(
             sak.copy(
@@ -96,7 +97,6 @@ fun søknadsbehandlingVilkårsvurdertInnvilget(
             ).tilVilkårsvurdert(
                 behandlingsinformasjon = behandlingsinformasjon,
                 clock = fixedClock,
-                formuegrenserFactory = formuegrenserFactoryTest,
             ) as Søknadsbehandling.Vilkårsvurdert.Innvilget
         Pair(
             sak.copy(
@@ -107,6 +107,10 @@ fun søknadsbehandlingVilkårsvurdertInnvilget(
     }
 }
 
+/**
+ * @param grunnlagsdata defaults to enslig uten fradrag
+ * @param vilkårsvurderinger alle vilkår gir avslag
+ */
 fun søknadsbehandlingVilkårsvurdertAvslag(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
@@ -125,7 +129,6 @@ fun søknadsbehandlingVilkårsvurdertAvslag(
             ).tilVilkårsvurdert(
                 behandlingsinformasjon = behandlingsinformasjon,
                 clock = fixedClock,
-                formuegrenserFactory = formuegrenserFactoryTest,
             ) as Søknadsbehandling.Vilkårsvurdert.Avslag
         Pair(
             sak.copy(
@@ -357,7 +360,7 @@ fun søknadsbehandlingUnderkjentInnvilget(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
-    grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
+    grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(periode = stønadsperiode.periode),
     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre = vilkårsvurderingerSøknadsbehandlingInnvilget(
         stønadsperiode.periode,
     ),

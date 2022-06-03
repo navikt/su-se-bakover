@@ -14,6 +14,8 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
+import no.nav.su.se.bakover.domain.brev.Distribusjonstidspunkt
+import no.nav.su.se.bakover.domain.brev.Distribusjonstype
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
@@ -75,8 +77,12 @@ internal class BrevServiceImpl(
     }
 
     // Internal for testing.
-    internal fun distribuerBrev(journalpostId: JournalpostId): Either<KunneIkkeDistribuereBrev, BrevbestillingId> =
-        dokDistFordeling.bestillDistribusjon(journalpostId)
+    internal fun distribuerBrev(
+        journalpostId: JournalpostId,
+        distribusjonstype: Distribusjonstype,
+        distribusjonstidspunkt: Distribusjonstidspunkt,
+    ): Either<KunneIkkeDistribuereBrev, BrevbestillingId> =
+        dokDistFordeling.bestillDistribusjon(journalpostId, distribusjonstype, distribusjonstidspunkt)
             .mapLeft {
                 log.error("Feil ved bestilling av distribusjon for journalpostId:$journalpostId")
                 KunneIkkeDistribuereBrev
@@ -172,7 +178,11 @@ internal class BrevServiceImpl(
     // Internal for testing.
     internal fun distribuerDokument(dokumentdistribusjon: Dokumentdistribusjon): Either<KunneIkkeBestilleBrevForDokument, Dokumentdistribusjon> {
         return dokumentdistribusjon.distribuerBrev { jounalpostId ->
-            distribuerBrev(jounalpostId)
+            distribuerBrev(
+                jounalpostId,
+                dokumentdistribusjon.dokument.distribusjonstype,
+                dokumentdistribusjon.dokument.distribusjonstidspunkt,
+            )
                 .mapLeft {
                     KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev(
                         journalpostId = jounalpostId,

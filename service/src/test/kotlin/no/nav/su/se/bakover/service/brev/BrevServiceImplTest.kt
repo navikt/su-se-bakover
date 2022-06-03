@@ -24,6 +24,8 @@ import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.brev.BrevTemplate
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
+import no.nav.su.se.bakover.domain.brev.Distribusjonstidspunkt
+import no.nav.su.se.bakover.domain.brev.Distribusjonstype
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
@@ -67,6 +69,8 @@ internal class BrevServiceImplTest {
             ),
             navn = Person.Navn(fornavn = "Tore", mellomnavn = null, etternavn = "Strømøy"),
         )
+        private val distribusjonstype = Distribusjonstype.VIKTIG
+        private val distribusjonstidspunkt = Distribusjonstidspunkt.KJERNETID
     }
 
     @Test
@@ -103,14 +107,28 @@ internal class BrevServiceImplTest {
     @Test
     fun `distribuerer brev`() {
         val dockdistMock = mock<DokDistFordeling> {
-            on { bestillDistribusjon(JournalpostId("journalpostId")) } doReturn BrevbestillingId("en bestillings id").right()
+            on {
+                bestillDistribusjon(
+                    JournalpostId("journalpostId"),
+                    distribusjonstype,
+                    distribusjonstidspunkt,
+                )
+            } doReturn BrevbestillingId("en bestillings id").right()
         }
 
         ServiceOgMocks(
             dokDistFordeling = dockdistMock,
-        ).brevService.distribuerBrev(JournalpostId("journalpostId")) shouldBe BrevbestillingId("en bestillings id").right()
+        ).brevService.distribuerBrev(
+            JournalpostId("journalpostId"),
+            distribusjonstype,
+            distribusjonstidspunkt,
+        ) shouldBe BrevbestillingId("en bestillings id").right()
 
-        verify(dockdistMock).bestillDistribusjon(JournalpostId("journalpostId"))
+        verify(dockdistMock).bestillDistribusjon(
+            JournalpostId("journalpostId"),
+            distribusjonstype,
+            distribusjonstidspunkt,
+        )
     }
 
     @Test
@@ -266,7 +284,7 @@ internal class BrevServiceImplTest {
     @Test
     fun `distribuer dokument - feil ved bestilling av brev`() {
         val dokDistMock = mock<DokDistFordeling> {
-            on { bestillDistribusjon(any()) } doReturn KunneIkkeBestilleDistribusjon.left()
+            on { bestillDistribusjon(any(), any(), any()) } doReturn KunneIkkeBestilleDistribusjon.left()
         }
 
         val dokumentdistribusjon = dokumentdistribusjon()
@@ -276,7 +294,7 @@ internal class BrevServiceImplTest {
             dokDistFordeling = dokDistMock,
         ).let {
             it.brevService.distribuerDokument(dokumentdistribusjon) shouldBe KunneIkkeBestilleBrevForDokument.FeilVedBestillingAvBrev.left()
-            verify(dokDistMock).bestillDistribusjon(JournalpostId("sad"))
+            verify(dokDistMock).bestillDistribusjon(JournalpostId("sad"), Distribusjonstype.VEDTAK, distribusjonstidspunkt)
             it.verifyNoMoreInteraction()
         }
     }
@@ -284,7 +302,7 @@ internal class BrevServiceImplTest {
     @Test
     fun `distribuer dokument - happy`() {
         val dokDistMock = mock<DokDistFordeling> {
-            on { bestillDistribusjon(any()) } doReturn BrevbestillingId("happy").right()
+            on { bestillDistribusjon(any(), any(), any()) } doReturn BrevbestillingId("happy").right()
         }
 
         val dokumentRepoMock = mock<DokumentRepo>()
@@ -305,7 +323,7 @@ internal class BrevServiceImplTest {
             dokumentRepo = dokumentRepoMock,
         ).let {
             it.brevService.distribuerDokument(dokumentdistribusjon) shouldBe expected.right()
-            verify(dokDistMock).bestillDistribusjon(JournalpostId("very"))
+            verify(dokDistMock).bestillDistribusjon(JournalpostId("very"), Distribusjonstype.VEDTAK, distribusjonstidspunkt)
             verify(dokumentRepoMock).oppdaterDokumentdistribusjon(expected)
             it.verifyNoMoreInteraction()
         }

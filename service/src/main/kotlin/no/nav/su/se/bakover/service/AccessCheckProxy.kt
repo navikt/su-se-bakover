@@ -131,7 +131,6 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeSendeRevurderingTilAtte
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeStanseYtelse
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeUnderkjenneRevurdering
 import no.nav.su.se.bakover.service.revurdering.LeggTilBosituasjonerRequest
-import no.nav.su.se.bakover.service.revurdering.LeggTilFormuegrunnlagRequest
 import no.nav.su.se.bakover.service.revurdering.LeggTilOpplysningspliktRequest
 import no.nav.su.se.bakover.service.revurdering.OppdaterRevurderingRequest
 import no.nav.su.se.bakover.service.revurdering.OppdaterTilbakekrevingsbehandlingRequest
@@ -166,6 +165,7 @@ import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFlereUtenlandsoppholdRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
 import java.time.LocalDate
@@ -504,6 +504,11 @@ open class AccessCheckProxy(
                     return services.søknadsbehandling.leggTilFradragsgrunnlag(request)
                 }
 
+                override fun leggTilFormuevilkår(request: LeggTilFormuevilkårRequest): Either<SøknadsbehandlingService.KunneIkkeLeggeTilFormuegrunnlag, Søknadsbehandling> {
+                    assertHarTilgangTilBehandling(request.behandlingId)
+                    return services.søknadsbehandling.leggTilFormuevilkår(request)
+                }
+
                 override fun hentForSøknad(søknadId: UUID) = kastKanKunKallesFraAnnenService()
 
                 override fun lukk(
@@ -678,8 +683,8 @@ open class AccessCheckProxy(
                     return services.revurdering.leggTilBosituasjongrunnlag(request)
                 }
 
-                override fun leggTilFormuegrunnlag(request: LeggTilFormuegrunnlagRequest): Either<KunneIkkeLeggeTilFormuegrunnlag, RevurderingOgFeilmeldingerResponse> {
-                    assertHarTilgangTilRevurdering(request.revurderingId)
+                override fun leggTilFormuegrunnlag(request: LeggTilFormuevilkårRequest): Either<KunneIkkeLeggeTilFormuegrunnlag, RevurderingOgFeilmeldingerResponse> {
+                    assertHarTilgangTilRevurdering(request.behandlingId)
                     return services.revurdering.leggTilFormuegrunnlag(request)
                 }
 

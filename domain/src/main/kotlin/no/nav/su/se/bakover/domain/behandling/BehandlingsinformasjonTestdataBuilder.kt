@@ -21,21 +21,6 @@ fun Behandlingsinformasjon.withAlleVilkårOppfylt() =
         institusjonsopphold = Behandlingsinformasjon.Institusjonsopphold(
             status = Behandlingsinformasjon.Institusjonsopphold.Status.VilkårOppfylt,
         ),
-        formue = Behandlingsinformasjon.Formue(
-            status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
-            verdier = Behandlingsinformasjon.Formue.Verdier(
-                verdiIkkePrimærbolig = formue?.verdier?.verdiIkkePrimærbolig ?: 0,
-                verdiEiendommer = formue?.verdier?.verdiEiendommer ?: 0,
-                verdiKjøretøy = formue?.verdier?.verdiKjøretøy ?: 0,
-                innskudd = formue?.verdier?.innskudd ?: 0,
-                verdipapir = formue?.verdier?.verdipapir ?: 0,
-                pengerSkyldt = formue?.verdier?.pengerSkyldt ?: 0,
-                kontanter = formue?.verdier?.kontanter ?: 0,
-                depositumskonto = formue?.verdier?.depositumskonto ?: 0,
-            ),
-            epsVerdier = null,
-            begrunnelse = formue?.begrunnelse,
-        ),
         personligOppmøte = Behandlingsinformasjon.PersonligOppmøte(
             status = Behandlingsinformasjon.PersonligOppmøte.Status.MøttPersonlig,
         ),
@@ -55,21 +40,6 @@ fun Behandlingsinformasjon.withAlleVilkårAvslått() =
         ),
         institusjonsopphold = Behandlingsinformasjon.Institusjonsopphold(
             status = Behandlingsinformasjon.Institusjonsopphold.Status.VilkårIkkeOppfylt,
-        ),
-        formue = Behandlingsinformasjon.Formue(
-            status = Behandlingsinformasjon.Formue.Status.VilkårIkkeOppfylt,
-            verdier = Behandlingsinformasjon.Formue.Verdier(
-                verdiIkkePrimærbolig = formue?.verdier?.verdiIkkePrimærbolig ?: 90000000,
-                verdiEiendommer = formue?.verdier?.verdiEiendommer ?: 0,
-                verdiKjøretøy = formue?.verdier?.verdiKjøretøy ?: 0,
-                innskudd = formue?.verdier?.innskudd ?: 0,
-                verdipapir = formue?.verdier?.verdipapir ?: 0,
-                pengerSkyldt = formue?.verdier?.pengerSkyldt ?: 0,
-                kontanter = formue?.verdier?.kontanter ?: 0,
-                depositumskonto = formue?.verdier?.depositumskonto ?: 0,
-            ),
-            epsVerdier = null,
-            begrunnelse = formue?.begrunnelse,
         ),
         personligOppmøte = Behandlingsinformasjon.PersonligOppmøte(
             status = Behandlingsinformasjon.PersonligOppmøte.Status.IkkeMøttPersonlig,

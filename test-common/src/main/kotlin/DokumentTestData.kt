@@ -27,7 +27,7 @@ fun dokumetMedMetadataVedtak(
     ),
 )
 
-fun dokumentUtenMetadataInformasjon(id: UUID = UUID.randomUUID()) = Dokument.UtenMetadata.Informasjon(
+fun dokumentUtenMetadataInformasjon(id: UUID = UUID.randomUUID()) = Dokument.UtenMetadata.Informasjon.Annet(
     id = id,
     opprettet = fixedTidspunkt,
     tittel = "tittel1",

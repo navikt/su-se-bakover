@@ -1,5 +1,8 @@
 package no.nav.su.se.bakover.web.søknadsbehandling.grunnlagsdataOgVilkårsvurderinger
 
+/**
+ * Vil kun stemme dersom clock er før 2021-05-01 (da vil formuegrenser øke med et element)
+ */
 fun tomGrunnlagsdataOgVilkårsvurderingerResponse(): String {
     //language=JSON
     return """
@@ -9,7 +12,7 @@ fun tomGrunnlagsdataOgVilkårsvurderingerResponse(): String {
       "bosituasjon":[],
       "formue":{
         "vurderinger":[],
-        "resultat":"MåInnhenteMerInformasjon",
+        "resultat": null,
         "formuegrenser":[        
           {
             "gyldigFra":"2020-05-01",

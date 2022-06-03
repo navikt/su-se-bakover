@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilFormuegrunnlag
 import no.nav.su.se.bakover.service.revurdering.RevurderingOgFeilmeldingerResponse
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
+import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.opprettetRevurdering
 import no.nav.su.se.bakover.web.testSusebakover
@@ -110,7 +111,9 @@ internal class LeggTilFormueRevurderingRouteKtTest {
     @Test
     fun `ikke lov med overlappende perioder`() {
         assertErrorMapsToJson(
-            error = KunneIkkeLeggeTilFormuegrunnlag.IkkeLovMedOverlappendePerioder,
+            error = KunneIkkeLeggeTilFormuegrunnlag.KunneIkkeMappeTilDomenet(
+                LeggTilFormuevilkårRequest.KunneIkkeMappeTilDomenet.IkkeLovMedOverlappendePerioder,
+            ),
             expectStatusCode = HttpStatusCode.BadRequest,
             expectErrorJson = """
                 {
@@ -123,44 +126,14 @@ internal class LeggTilFormueRevurderingRouteKtTest {
     }
 
     @Test
-    fun `eps formueperioder er utenfor bosituasjonsperioden`() {
-        assertErrorMapsToJson(
-            error = KunneIkkeLeggeTilFormuegrunnlag.EpsFormueperiodeErUtenforBosituasjonPeriode,
-            expectStatusCode = HttpStatusCode.BadRequest,
-            expectErrorJson = """
-                {
-                    "message":"Ikke lov med formueperiode utenfor bosituasjonperioder",
-                    "code":"ikke_lov_med_formueperiode_utenfor_bosituasjonperiode"
-                }
-            """.trimIndent(),
-
-        )
-    }
-
-    @Test
     fun `formueperioden er utenfor behandlingsperioden`() {
         assertErrorMapsToJson(
-            error = KunneIkkeLeggeTilFormuegrunnlag.FormuePeriodeErUtenforBehandlingsperioden,
+            error = KunneIkkeLeggeTilFormuegrunnlag.KunneIkkeMappeTilDomenet(LeggTilFormuevilkårRequest.KunneIkkeMappeTilDomenet.FormuePeriodeErUtenforBehandlingsperioden),
             expectStatusCode = HttpStatusCode.BadRequest,
             expectErrorJson = """
                 {
                     "message":"Ikke lov med formueperiode utenfor behandlingsperioden",
                     "code":"ikke_lov_med_formueperiode_utenfor_behandlingsperioden"
-                }
-            """.trimIndent(),
-
-        )
-    }
-
-    @Test
-    fun `må ha EPS hvis man har lagt inn eps formue`() {
-        assertErrorMapsToJson(
-            error = KunneIkkeLeggeTilFormuegrunnlag.MåHaEpsHvisManHarSattEpsFormue,
-            expectStatusCode = HttpStatusCode.BadRequest,
-            expectErrorJson = """
-                {
-                    "message":"Ikke lov med formue for eps hvis man ikke har eps",
-                    "code":"ikke_lov_med_formue_for_eps_hvis_man_ikke_har_eps"
                 }
             """.trimIndent(),
 

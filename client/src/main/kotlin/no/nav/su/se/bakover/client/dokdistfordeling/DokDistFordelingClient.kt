@@ -8,28 +8,33 @@ import com.github.kittinunf.fuel.httpPost
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.getOrCreateCorrelationId
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
+import no.nav.su.se.bakover.domain.brev.Distribusjonstidspunkt
+import no.nav.su.se.bakover.domain.brev.Distribusjonstype
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
 
 internal const val dokDistFordelingPath = "/rest/v1/distribuerjournalpost"
 
+/**
+ * https://confluence.adeo.no/pages/viewpage.action?pageId=320039012
+ */
 class DokDistFordelingClient(val baseUrl: String, val tokenOppslag: TokenOppslag) : DokDistFordeling {
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun bestillDistribusjon(
         journalPostId: JournalpostId,
+        distribusjonstype: Distribusjonstype,
+        distribusjonstidspunkt: Distribusjonstidspunkt,
     ): Either<KunneIkkeBestilleDistribusjon, BrevbestillingId> {
-        val body = byggDistribusjonPostJson(journalPostId)
+        val body = byggDistribusjonPostJson(journalPostId, distribusjonstype, distribusjonstidspunkt)
         val (_, _, result) = "$baseUrl$dokDistFordelingPath".httpPost()
             .authentication().bearer(tokenOppslag.token())
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
             .header("X-Correlation-ID", getOrCreateCorrelationId())
-            .body(
-                body,
-            ).responseString()
+            .body(body).responseString()
 
         return result.fold(
             { json ->
@@ -54,13 +59,43 @@ class DokDistFordelingClient(val baseUrl: String, val tokenOppslag: TokenOppslag
         )
     }
 
-    fun byggDistribusjonPostJson(journalPostId: JournalpostId): String {
+    internal fun byggDistribusjonPostJson(
+        journalPostId: JournalpostId,
+        distribusjonstype: Distribusjonstype,
+        distribusjonstidspunkt: Distribusjonstidspunkt,
+    ): String {
         return """
                     {
                         "journalpostId": "$journalPostId",
                         "bestillendeFagsystem": "SUPSTONAD",
-                        "dokumentProdApp": "SU_SE_BAKOVER"
+                        "dokumentProdApp": "SU_SE_BAKOVER",
+                        "distribusjonstype": "${distribusjonstype.toDokdistFordelingType()}",
+                        "distribusjonstidspunkt": "${distribusjonstidspunkt.toDokdistFordelingType()}"
                     }
         """.trimIndent()
+    }
+
+    private fun Distribusjonstype.toDokdistFordelingType() = when (this) {
+        Distribusjonstype.VEDTAK -> PayloadTyper.Distribusjonstype.VEDTAK.value
+        Distribusjonstype.VIKTIG -> PayloadTyper.Distribusjonstype.VIKTIG.value
+        Distribusjonstype.ANNET -> PayloadTyper.Distribusjonstype.ANNET.value
+    }
+
+    private fun Distribusjonstidspunkt.toDokdistFordelingType() = when (this) {
+        Distribusjonstidspunkt.UMIDDELBART -> PayloadTyper.Distribusjonstidspunkt.UMIDDELBART.value
+        Distribusjonstidspunkt.KJERNETID -> PayloadTyper.Distribusjonstidspunkt.KJERNETID.value
+    }
+}
+
+private sealed class PayloadTyper {
+    enum class Distribusjonstype(val value: String) {
+        VEDTAK("VEDTAK"),
+        VIKTIG("VIKTIG"),
+        ANNET("ANNET");
+    }
+
+    enum class Distribusjonstidspunkt(val value: String) {
+        UMIDDELBART("UMIDDELBART"),
+        KJERNETID("KJERNETID");
     }
 }

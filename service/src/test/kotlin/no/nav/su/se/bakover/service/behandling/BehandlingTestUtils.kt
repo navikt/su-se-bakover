@@ -11,8 +11,6 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.FastOppholdINorge
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Flyktning
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Flyktning.Status
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Formue
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Formue.Verdier
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.LovligOpphold
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.PersonligOppmøte
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.PersonligOppmøte.Status.MøttPersonlig
@@ -52,30 +50,6 @@ object BehandlingTestUtils {
         ),
         institusjonsopphold = Behandlingsinformasjon.Institusjonsopphold(
             status = Behandlingsinformasjon.Institusjonsopphold.Status.VilkårOppfylt,
-        ),
-        formue = Formue(
-            status = Formue.Status.VilkårOppfylt,
-            verdier = Verdier(
-                verdiIkkePrimærbolig = 0,
-                verdiEiendommer = 0,
-                verdiKjøretøy = 0,
-                innskudd = 0,
-                verdipapir = 0,
-                pengerSkyldt = 0,
-                kontanter = 0,
-                depositumskonto = 0
-            ),
-            epsVerdier = Verdier(
-                verdiIkkePrimærbolig = 0,
-                verdiEiendommer = 0,
-                verdiKjøretøy = 0,
-                innskudd = 0,
-                verdipapir = 0,
-                pengerSkyldt = 0,
-                kontanter = 0,
-                depositumskonto = 0
-            ),
-            begrunnelse = null
         ),
         personligOppmøte = PersonligOppmøte(
             status = MøttPersonlig,

@@ -553,3 +553,9 @@ fun List<Grunnlag.Bosituasjon>.singleOrThrow(): Grunnlag.Bosituasjon {
     }
     return this.first()
 }
+
+/**
+ * Listen med periode trenger ikke være sammenhengende eller sortert.
+ * Den kan og inneholde duplikater.
+ */
+fun List<Grunnlag>.periode(): Periode = this.map { it.periode }.minAndMaxOf()

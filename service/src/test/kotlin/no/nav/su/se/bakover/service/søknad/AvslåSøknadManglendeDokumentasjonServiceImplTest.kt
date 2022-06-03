@@ -147,6 +147,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 avkorting = AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere(
                     håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
                 ),
+                sakstype = sak.type,
             )
 
             val expectedAvslagVilkår = Avslagsvedtak.AvslagVilkår(
@@ -292,6 +293,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 avkorting = AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere(
                     håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
                 ),
+                sakstype = sak.type,
             )
 
             val expectedAvslagVilkår = Avslagsvedtak.AvslagVilkår(
