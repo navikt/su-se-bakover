@@ -1,10 +1,12 @@
 package no.nav.su.se.bakover.client.skatteetaten
 
 import arrow.core.Either
+import no.nav.su.se.bakover.client.AccessToken
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.Skattemelding
 
 interface SkatteOppslag {
-    fun hentSkattemelding(fnr: Fnr): Either<String, Skattemelding>
+    fun hentSkattemelding(accessToken: AccessToken, fnr: Fnr): Either<Feil, Skattemelding>
 }
 
-data class Skattemelding(val penger: Int)
+object Feil

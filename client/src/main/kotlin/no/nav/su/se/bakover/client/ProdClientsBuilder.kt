@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.client.journalpost.JournalpostHttpClient
 import no.nav.su.se.bakover.client.kabal.KabalHttpClient
 import no.nav.su.se.bakover.client.kafka.KafkaPublisherClient
 import no.nav.su.se.bakover.client.kodeverk.KodeverkHttpClient
+import no.nav.su.se.bakover.client.maskinporten.MaskinportenHTTPClient
 import no.nav.su.se.bakover.client.nais.LeaderPodLookupClient
 import no.nav.su.se.bakover.client.oppdrag.IbmMqPublisher
 import no.nav.su.se.bakover.client.oppdrag.MqPublisher.MqPublisherConfig
@@ -122,8 +123,10 @@ data class ProdClientsBuilder(
                 clock = clock,
             ),
             skatteOppslag = SkatteClient(
-                maskinportenConfig = applicationConfig.clientsConfig.maskinportenConfig,
                 skatteetatenConfig = applicationConfig.clientsConfig.skatteetatenConfig
+            ),
+            maskinportenClient = MaskinportenHTTPClient(
+                maskinportenConfig = applicationConfig.clientsConfig.maskinportenConfig
             )
         )
     }

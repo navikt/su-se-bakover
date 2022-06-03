@@ -228,7 +228,7 @@ fun Application.susebakover(
                         revurderingService = accessProtectedServices.revurdering,
                         satsFactory = satsFactory,
                     )
-                    skattRoutes(clients.skatteOppslag)
+                    skattRoutes(accessProtectedServices.skatteService)
                 }
             }
         }

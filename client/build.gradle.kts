@@ -24,7 +24,6 @@ dependencies {
     // Fails to find SAAJMetaFactoryImpl when either missing or if you upgrade to 2.0.0
     implementation("com.sun.xml.messaging.saaj:saaj-impl:1.5.2")
     implementation("com.nimbusds:nimbus-jose-jwt:9.23")
-    implementation("io.github.nefilim.kjwt:kjwt-core:0.5.3")
 
     testImplementation(project(":test-common"))
     testImplementation("com.github.tomakehurst:wiremock-jre8:2.33.2") {
