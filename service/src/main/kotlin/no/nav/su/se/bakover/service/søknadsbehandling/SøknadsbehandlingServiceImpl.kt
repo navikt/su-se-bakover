@@ -118,8 +118,10 @@ internal class SøknadsbehandlingServiceImpl(
             return SøknadsbehandlingService.KunneIkkeOpprette.SøknadHarAlleredeBehandling.left()
         }
 
-        val åpneSøknadsbehandlinger =
-            søknadsbehandlingRepo.hentForSak(søknad.sakId).filterNot { it.erIverksatt }.filterNot { it.erLukket }
+        val åpneSøknadsbehandlinger = søknadsbehandlingRepo.hentForSak(søknad.sakId)
+            .filterNot { it.erIverksatt }
+            .filterNot { it.erLukket }
+
         if (åpneSøknadsbehandlinger.isNotEmpty()) {
             return SøknadsbehandlingService.KunneIkkeOpprette.HarAlleredeÅpenSøknadsbehandling.left()
         }
@@ -137,6 +139,7 @@ internal class SøknadsbehandlingServiceImpl(
                 oppgaveId = søknad.oppgaveId,
                 fnr = søknad.søknadInnhold.personopplysninger.fnr,
                 avkorting = avkorting.kanIkke(),
+                sakstype = søknad.type,
             ),
         )
 
@@ -192,7 +195,11 @@ internal class SøknadsbehandlingServiceImpl(
     ): Either<SøknadsbehandlingService.KunneIkkeVilkårsvurdere, Søknadsbehandling.Vilkårsvurdert> {
         return statusovergang(
             søknadsbehandling = søknadsbehandling,
-            statusovergang = Statusovergang.TilVilkårsvurdert(validertBehandlingsinformasjon, clock, formuegrenserFactory),
+            statusovergang = Statusovergang.TilVilkårsvurdert(
+                validertBehandlingsinformasjon,
+                clock,
+                formuegrenserFactory,
+            ),
         ).let { vilkårsvurdert ->
             søknadsbehandlingRepo.lagre(vilkårsvurdert)
             vilkårsvurdert.right()
@@ -335,7 +342,7 @@ internal class SøknadsbehandlingServiceImpl(
                     aktørId = aktørId,
                     tilordnetRessurs = underkjent.saksbehandler,
                     clock = clock,
-                    sakstype = underkjent.søknad.søknadInnhold.type()
+                    sakstype = underkjent.søknad.søknadInnhold.type(),
                 ),
             ).getOrElse {
                 log.error("Behandling ${underkjent.id} ble ikke underkjent. Klarte ikke opprette behandlingsoppgave")
@@ -662,9 +669,10 @@ internal class SøknadsbehandlingServiceImpl(
          *  I flere av funksjonene i denne fila bruker vi [Statusovergang] og [no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor] for å bestemme om det er en gyldig statusovergang, men i dette tilfellet bruker vi domenemodellen sin funksjon leggTilFradragsgrunnlag til dette.
          * Vi ønsker gradvis å gå over til sistenevnte måte å gjøre det på.
          */
-        val oppdatertBehandling = behandling.leggTilFradragsgrunnlag(request.fradragsgrunnlag, formuegrenserFactory).getOrHandle {
-            return it.toService().left()
-        }
+        val oppdatertBehandling =
+            behandling.leggTilFradragsgrunnlag(request.fradragsgrunnlag, formuegrenserFactory).getOrHandle {
+                return it.toService().left()
+            }
 
         søknadsbehandlingRepo.lagre(oppdatertBehandling)
 

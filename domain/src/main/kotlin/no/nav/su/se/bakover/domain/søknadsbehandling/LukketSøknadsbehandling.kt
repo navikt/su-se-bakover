@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 
 data class LukketSøknadsbehandling private constructor(
@@ -36,6 +37,7 @@ data class LukketSøknadsbehandling private constructor(
             avkorting.kanIkke()
         }
     }
+    override val sakstype: Sakstype = lukketSøknadsbehandling.sakstype
     companion object {
 
         fun tryCreate(

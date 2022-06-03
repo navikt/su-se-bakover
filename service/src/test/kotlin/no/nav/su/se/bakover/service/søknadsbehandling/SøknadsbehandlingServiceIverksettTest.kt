@@ -502,6 +502,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 grunnlagsdata = actual.grunnlagsdata,
                 vilkårsvurderinger = actual.vilkårsvurderinger,
                 avkorting = actual.avkorting,
+                sakstype = actual.sakstype,
             )
 
             actual shouldBe expected
