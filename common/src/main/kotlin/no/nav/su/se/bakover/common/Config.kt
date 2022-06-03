@@ -451,7 +451,7 @@ data class ApplicationConfig(
         }
 
         data class SkatteetatenConfig(
-            val a: String,
+            val apiUri: String,
 
         ) {
             companion object {

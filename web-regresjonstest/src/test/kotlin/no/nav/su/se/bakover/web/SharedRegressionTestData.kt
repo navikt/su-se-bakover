@@ -140,7 +140,7 @@ internal object SharedRegressionTestData {
                 jwksUri = "maskinportenJwksUri",
                 tokenEndpoint = "maskinporteTokenEndpointn"
             ),
-            skatteetatenConfig = ApplicationConfig.ClientsConfig.SkatteetatenConfig(a = "a"),
+            skatteetatenConfig = ApplicationConfig.ClientsConfig.SkatteetatenConfig(apiUri = "a"),
         ),
         kafkaConfig = ApplicationConfig.KafkaConfig(
             producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg(emptyMap()),

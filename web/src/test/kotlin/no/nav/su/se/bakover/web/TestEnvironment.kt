@@ -107,7 +107,7 @@ val applicationConfig = ApplicationConfig(
             jwksUri = "maskinportenJwksUri",
             tokenEndpoint = "maskinportenTokenEndpoint"
         ),
-        skatteetatenConfig = ApplicationConfig.ClientsConfig.SkatteetatenConfig(a = ""),
+        skatteetatenConfig = ApplicationConfig.ClientsConfig.SkatteetatenConfig(apiUri = ""),
     ),
     kafkaConfig = ApplicationConfig.KafkaConfig(
         producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg(emptyMap()),

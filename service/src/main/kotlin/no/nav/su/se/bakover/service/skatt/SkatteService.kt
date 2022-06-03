@@ -3,10 +3,10 @@ package no.nav.su.se.bakover.service.skatt
 import arrow.core.Either
 import no.nav.su.se.bakover.client.maskinporten.KunneIkkeHenteToken
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.Skattemelding
+import no.nav.su.se.bakover.domain.SamletSkattegrunnlag
 
 interface SkatteService {
-    fun hentSkattemelding(fnr: Fnr): Either<KunneIkkeHenteSkattemelding, Skattemelding>
+    fun hentSamletSkattegrunnlag(fnr: Fnr): Either<KunneIkkeHenteSkattemelding, SamletSkattegrunnlag>
 }
 
 sealed class KunneIkkeHenteSkattemelding {
