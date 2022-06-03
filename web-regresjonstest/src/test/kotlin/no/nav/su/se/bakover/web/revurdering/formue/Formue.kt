@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.revurdering.formue
 
+import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
@@ -61,8 +62,10 @@ internal fun ApplicationTestBuilder.leggTilFormue(
                 """.trimIndent(),
             )
         }.apply {
-            status shouldBe HttpStatusCode.OK
-            contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
+            withClue("body=${this.bodyAsText()}") {
+                status shouldBe HttpStatusCode.OK
+                contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
+            }
         }.bodyAsText()
     }
 }

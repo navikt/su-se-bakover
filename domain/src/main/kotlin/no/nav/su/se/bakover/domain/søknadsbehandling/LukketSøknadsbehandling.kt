@@ -38,6 +38,10 @@ data class LukketSøknadsbehandling private constructor(
         }
     }
     override val sakstype: Sakstype = lukketSøknadsbehandling.sakstype
+
+    init {
+        kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
+    }
     companion object {
 
         fun tryCreate(

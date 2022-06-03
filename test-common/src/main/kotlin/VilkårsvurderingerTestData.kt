@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.test
 
+import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
@@ -7,11 +8,11 @@ import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
 import no.nav.su.se.bakover.domain.grunnlag.Opplysningspliktgrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.grunnlag.Utenlandsoppholdgrunnlag
+import no.nav.su.se.bakover.domain.grunnlag.periode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.Resultat
@@ -257,8 +258,12 @@ fun avslåttUførevilkårUtenGrunnlag(
 fun formueGrunnlagUtenEps0Innvilget(
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = år(2021),
-    bosituasjon: Grunnlag.Bosituasjon.Fullstendig,
+    bosituasjon: NonEmptyList<Grunnlag.Bosituasjon.Fullstendig>
 ): Formuegrunnlag {
+    val bosituasjonsperiode = bosituasjon.toList().periode()
+    require(bosituasjonsperiode == periode) {
+        "Bosituasjonsperiode: $bosituasjonsperiode må være lik formuevilkåret sin periode: $periode"
+    }
     return Formuegrunnlag.create(
         id = UUID.randomUUID(),
         opprettet = opprettet,
@@ -274,7 +279,45 @@ fun formueGrunnlagUtenEps0Innvilget(
             kontanter = 0,
             depositumskonto = 0,
         ),
-        bosituasjon = bosituasjon,
+        bosituasjon = bosituasjon.toList(),
+        behandlingsPeriode = periode,
+    )
+}
+
+fun formueGrunnlagMedEps0Innvilget(
+    opprettet: Tidspunkt = fixedTidspunkt,
+    periode: Periode = år(2021),
+    bosituasjon: NonEmptyList<Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer>
+): Formuegrunnlag {
+    val bosituasjonsperiode = bosituasjon.toList().periode()
+    require(bosituasjonsperiode == periode) {
+        "Bosituasjonsperiode: $bosituasjonsperiode må være lik formuevilkåret sin periode: $periode"
+    }
+    return Formuegrunnlag.create(
+        id = UUID.randomUUID(),
+        opprettet = opprettet,
+        periode = periode,
+        epsFormue = Formuegrunnlag.Verdier.create(
+            verdiIkkePrimærbolig = 0,
+            verdiEiendommer = 0,
+            verdiKjøretøy = 0,
+            innskudd = 0,
+            verdipapir = 0,
+            pengerSkyldt = 0,
+            kontanter = 0,
+            depositumskonto = 0,
+        ),
+        søkersFormue = Formuegrunnlag.Verdier.create(
+            verdiIkkePrimærbolig = 0,
+            verdiEiendommer = 0,
+            verdiKjøretøy = 0,
+            innskudd = 0,
+            verdipapir = 0,
+            pengerSkyldt = 0,
+            kontanter = 0,
+            depositumskonto = 0,
+        ),
+        bosituasjon = bosituasjon.toList(),
         behandlingsPeriode = periode,
     )
 }
@@ -283,8 +326,26 @@ fun formueGrunnlagUtenEpsAvslått(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = år(2021),
-    bosituasjon: Grunnlag.Bosituasjon.Fullstendig,
+    bosituasjon: Grunnlag.Bosituasjon.Fullstendig = bosituasjongrunnlagEnslig(),
 ): Formuegrunnlag {
+    return formueGrunnlagUtenEpsAvslått(
+        id = id,
+        opprettet = opprettet,
+        periode = periode,
+        bosituasjon = nonEmptyListOf(bosituasjon),
+    )
+}
+
+fun formueGrunnlagUtenEpsAvslått(
+    id: UUID = UUID.randomUUID(),
+    opprettet: Tidspunkt = fixedTidspunkt,
+    periode: Periode = år(2021),
+    bosituasjon: NonEmptyList<Grunnlag.Bosituasjon.Fullstendig>,
+): Formuegrunnlag {
+    val bosituasjonsperiode = bosituasjon.toList().periode()
+    require(bosituasjonsperiode == periode) {
+        "Bosituasjonsperiode: $bosituasjonsperiode må være lik formuevilkåret sin periode: $periode"
+    }
     return Formuegrunnlag.create(
         id = id,
         opprettet = opprettet,
@@ -320,8 +381,24 @@ fun formuevilkårIkkeVurdert(): Vilkår.Formue {
 fun formuevilkårUtenEps0Innvilget(
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = år(2021),
-    bosituasjon: Grunnlag.Bosituasjon.Fullstendig,
+    bosituasjon: Grunnlag.Bosituasjon.Fullstendig = bosituasjongrunnlagEnslig(),
 ): Vilkår.Formue {
+    return formuevilkårUtenEps0Innvilget(
+        opprettet = opprettet,
+        periode = periode,
+        bosituasjon = nonEmptyListOf(bosituasjon),
+    )
+}
+
+fun formuevilkårUtenEps0Innvilget(
+    opprettet: Tidspunkt = fixedTidspunkt,
+    periode: Periode = år(2021),
+    bosituasjon: NonEmptyList<Grunnlag.Bosituasjon.Fullstendig>,
+): Vilkår.Formue.Vurdert {
+    val bosituasjonsperiode = bosituasjon.toList().periode()
+    require(bosituasjonsperiode == periode) {
+        "Bosituasjonsperiode: $bosituasjonsperiode må være lik formuevilkåret sin periode: $periode"
+    }
     return Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(
         vurderingsperioder = nonEmptyListOf(
             Vurderingsperiode.Formue.tryCreateFromGrunnlag(
@@ -336,10 +413,58 @@ fun formuevilkårUtenEps0Innvilget(
     )
 }
 
+fun formuevilkårMedEps0Innvilget(
+    opprettet: Tidspunkt = fixedTidspunkt,
+    periode: Periode = år(2021),
+    bosituasjon: NonEmptyList<Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer>,
+): Vilkår.Formue.Vurdert {
+    val bosituasjonsperiode = bosituasjon.toList().periode()
+    require(bosituasjonsperiode == periode) {
+        "Bosituasjonsperiode: $bosituasjonsperiode må være lik formuevilkåret sin periode: $periode"
+    }
+    return Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(
+        vurderingsperioder = nonEmptyListOf(
+            Vurderingsperiode.Formue.tryCreateFromGrunnlag(
+                grunnlag = formueGrunnlagMedEps0Innvilget(opprettet, periode, bosituasjon),
+                formuegrenserFactory = formuegrenserFactoryTest,
+            ).also {
+                assert(it.resultat == Resultat.Innvilget)
+                assert(it.periode == periode)
+                assert(it.opprettet == opprettet)
+            },
+        ),
+    )
+}
+
 fun formuevilkårAvslåttPgrBrukersformue(
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = år(2021),
-    bosituasjon: Grunnlag.Bosituasjon.Fullstendig,
+    bosituasjon: Grunnlag.Bosituasjon.Fullstendig = bosituasjongrunnlagEnslig(
+        periode = periode,
+    ),
+): Vilkår.Formue.Vurdert {
+    return Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(
+        vurderingsperioder = nonEmptyListOf(
+            Vurderingsperiode.Formue.tryCreateFromGrunnlag(
+                grunnlag = formueGrunnlagUtenEpsAvslått(
+                    opprettet = opprettet,
+                    periode = periode,
+                    bosituasjon = bosituasjon,
+                ),
+                formuegrenserFactory = formuegrenserFactoryTest,
+            ).also {
+                assert(it.resultat == Resultat.Avslag)
+                assert(it.periode == periode)
+                assert(it.opprettet == opprettet)
+            },
+        ),
+    )
+}
+
+fun formuevilkårAvslåttPgrBrukersformue(
+    opprettet: Tidspunkt = fixedTidspunkt,
+    periode: Periode = år(2021),
+    bosituasjon: NonEmptyList<Grunnlag.Bosituasjon.Fullstendig>,
 ): Vilkår.Formue {
     return Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(
         vurderingsperioder = nonEmptyListOf(
@@ -372,9 +497,11 @@ fun vilkårsvurderingerSøknadsbehandlingInnvilget(
         id = UUID.randomUUID(),
         periode = periode,
     ),
-    bosituasjon: Grunnlag.Bosituasjon.Fullstendig = bosituasjongrunnlagEnslig(
-        id = UUID.randomUUID(),
-        periode = periode,
+    bosituasjon: NonEmptyList<Grunnlag.Bosituasjon.Fullstendig> = nonEmptyListOf(
+        bosituasjongrunnlagEnslig(
+            id = UUID.randomUUID(),
+            periode = periode,
+        ),
     ),
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     utenlandsopphold: UtenlandsoppholdVilkår = utenlandsoppholdInnvilget(
@@ -383,31 +510,30 @@ fun vilkårsvurderingerSøknadsbehandlingInnvilget(
     ),
     opplysningsplikt: OpplysningspliktVilkår = tilstrekkeligDokumentert(
         id = UUID.randomUUID(),
-        periode = periode
+        periode = periode,
     ),
+    formue: Vilkår.Formue = formuevilkårUtenEps0Innvilget(periode = periode, bosituasjon = bosituasjon),
 ): Vilkårsvurderinger.Søknadsbehandling {
     return Vilkårsvurderinger.Søknadsbehandling(
         uføre = uføre,
         utenlandsopphold = utenlandsopphold,
-        formue = formuevilkårIkkeVurdert(),
+        formue = formue,
         opplysningsplikt = opplysningsplikt,
     ).oppdater(
         stønadsperiode = Stønadsperiode.create(periode = periode),
         behandlingsinformasjon = behandlingsinformasjon,
-        grunnlagsdata = Grunnlagsdata.tryCreate(
-            fradragsgrunnlag = emptyList(),
-            bosituasjon = listOf(bosituasjon),
-        ).getOrFail(),
         clock = fixedClock,
-        formuegrenserFactory = formuegrenserFactoryTest,
     )
 }
 
 fun vilkårsvurderingerRevurderingInnvilget(
     periode: Periode = år(2021),
     uføre: Vilkår.Uførhet = innvilgetUførevilkårForventetInntekt0(periode = periode),
-    bosituasjon: Grunnlag.Bosituasjon.Fullstendig = bosituasjongrunnlagEnslig(periode = periode),
-    formue: Vilkår.Formue = formuevilkårUtenEps0Innvilget(periode = periode, bosituasjon = bosituasjon),
+    bosituasjon: NonEmptyList<Grunnlag.Bosituasjon.Fullstendig> = nonEmptyListOf(bosituasjongrunnlagEnslig(periode = periode)),
+    formue: Vilkår.Formue = formuevilkårUtenEps0Innvilget(
+        periode = periode,
+        bosituasjon = bosituasjon,
+    ),
     utenlandsopphold: UtenlandsoppholdVilkår = utenlandsoppholdInnvilget(periode = periode),
     opplysningsplikt: OpplysningspliktVilkår = tilstrekkeligDokumentert(periode = periode),
 ): Vilkårsvurderinger.Revurdering {
@@ -422,8 +548,11 @@ fun vilkårsvurderingerRevurderingInnvilget(
 fun vilkårsvurderingerAvslåttAlleRevurdering(
     periode: Periode = år(2021),
     uføre: Vilkår.Uførhet = avslåttUførevilkårUtenGrunnlag(periode = periode),
-    bosituasjon: Grunnlag.Bosituasjon.Fullstendig = bosituasjongrunnlagEnslig(periode = periode),
-    formue: Vilkår.Formue = formuevilkårAvslåttPgrBrukersformue(periode = periode, bosituasjon = bosituasjon),
+    bosituasjon: NonEmptyList<Grunnlag.Bosituasjon.Fullstendig> = nonEmptyListOf(bosituasjongrunnlagEnslig(periode = periode)),
+    formue: Vilkår.Formue = formuevilkårAvslåttPgrBrukersformue(
+        periode = periode,
+        bosituasjon = NonEmptyList.fromListUnsafe(bosituasjon.toList()),
+    ),
     utenlandsopphold: UtenlandsoppholdVilkår = utenlandsoppholdAvslag(periode = periode),
     opplysningsplikt: OpplysningspliktVilkår = utilstrekkeligDokumentert(periode = periode),
 ): Vilkårsvurderinger.Revurdering {
@@ -447,24 +576,21 @@ fun vilkårsvurderingerAvslåttAlleRevurdering(
 @Suppress("unused")
 fun vilkårsvurderingerAvslåttAlle(
     periode: Periode = år(2021),
-    bosituasjon: Grunnlag.Bosituasjon.Fullstendig = bosituasjongrunnlagEnslig(periode = periode),
 ): Vilkårsvurderinger.Søknadsbehandling {
     return Vilkårsvurderinger.Søknadsbehandling(
         uføre = avslåttUførevilkårUtenGrunnlag(
             periode = periode,
         ),
         utenlandsopphold = utenlandsoppholdAvslag(periode = periode),
-        formue = formuevilkårIkkeVurdert(),
-        opplysningsplikt = utilstrekkeligDokumentert(periode = periode)
+        formue = formuevilkårAvslåttPgrBrukersformue(
+            periode = periode,
+            bosituasjon = bosituasjongrunnlagEnslig(periode = periode),
+        ),
+        opplysningsplikt = utilstrekkeligDokumentert(periode = periode),
     ).oppdater(
         stønadsperiode = Stønadsperiode.create(periode = periode),
         behandlingsinformasjon = behandlingsinformasjonAlleVilkårAvslått,
-        grunnlagsdata = Grunnlagsdata.tryCreate(
-            fradragsgrunnlag = listOf(),
-            bosituasjon = listOf(bosituasjon),
-        ).getOrFail(),
         clock = fixedClock,
-        formuegrenserFactory = formuegrenserFactoryTest,
     )
 }
 
@@ -479,11 +605,14 @@ fun vilkårsvurderingerAvslåttAlle(
  */
 fun vilkårsvurderingerAvslåttUføreOgAndreInnvilget(
     periode: Periode = år(2021),
-    bosituasjon: Grunnlag.Bosituasjon.Fullstendig = bosituasjongrunnlagEnslig(periode = periode),
+    bosituasjon: NonEmptyList<Grunnlag.Bosituasjon.Fullstendig> = nonEmptyListOf(bosituasjongrunnlagEnslig(periode = periode)),
 ): Vilkårsvurderinger.Revurdering {
     return Vilkårsvurderinger.Revurdering(
         uføre = avslåttUførevilkårUtenGrunnlag(periode = periode),
-        formue = formuevilkårUtenEps0Innvilget(periode = periode, bosituasjon = bosituasjon),
+        formue = formuevilkårUtenEps0Innvilget(
+            periode = periode,
+            bosituasjon = bosituasjon,
+        ),
         utenlandsopphold = utenlandsoppholdInnvilget(periode = periode),
         opplysningsplikt = tilstrekkeligDokumentert(periode = periode),
     )
@@ -493,13 +622,18 @@ fun avslåttFormueVilkår(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode,
-    bosituasjon: Grunnlag.Bosituasjon.Fullstendig = Grunnlag.Bosituasjon.Fullstendig.Enslig(
-        id = UUID.randomUUID(),
-        opprettet = fixedTidspunkt,
-        periode = periode,
+    bosituasjon: NonEmptyList<Grunnlag.Bosituasjon.Fullstendig> = nonEmptyListOf(
+        Grunnlag.Bosituasjon.Fullstendig.Enslig(
+            id = UUID.randomUUID(),
+            opprettet = fixedTidspunkt,
+            periode = periode,
+        ),
     ),
 ): Vilkår.Formue.Vurdert {
-    val (søkerVerdi, epsVerdi) = when (bosituasjon.harEPS()) {
+    require(bosituasjon.all { it.harEPS() } || bosituasjon.none { it.harEPS() }) {
+        "Test-dataene har ikke støtte for å dele opp formue i fler perioder enda."
+    }
+    val (søkerVerdi, epsVerdi) = when (bosituasjon.first().harEPS()) {
         true -> {
             Formuegrunnlag.Verdier.empty().copy(verdiEiendommer = 15_000) to
                 Formuegrunnlag.Verdier.empty().copy(verdiEiendommer = 150_000)
@@ -534,7 +668,24 @@ fun innvilgetFormueVilkår(
         periode = periode,
     ),
 ): Vilkår.Formue.Vurdert {
-    val (søkerVerdi, epsVerdi) = when (bosituasjon.harEPS()) {
+    return innvilgetFormueVilkår(
+        id = id,
+        opprettet = opprettet,
+        periode = periode,
+        bosituasjon = nonEmptyListOf(bosituasjon),
+    )
+}
+
+fun innvilgetFormueVilkår(
+    id: UUID = UUID.randomUUID(),
+    opprettet: Tidspunkt = fixedTidspunkt,
+    periode: Periode,
+    bosituasjon: NonEmptyList<Grunnlag.Bosituasjon.Fullstendig>,
+): Vilkår.Formue.Vurdert {
+    require(bosituasjon.all { it.harEPS() } || bosituasjon.none { it.harEPS() }) {
+        "Test-dataene har ikke støtte for å dele opp formue i fler perioder enda."
+    }
+    val (søkerVerdi, epsVerdi) = when (bosituasjon.first().harEPS()) {
         true -> {
             Formuegrunnlag.Verdier.empty().copy(verdiEiendommer = 15_000) to
                 Formuegrunnlag.Verdier.empty().copy(verdiEiendommer = 15_000)

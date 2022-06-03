@@ -1,14 +1,12 @@
 package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.left
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
-import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
@@ -29,7 +27,6 @@ import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringAvslagUtenBereg
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.tilstrekkeligDokumentert
 import org.junit.jupiter.api.Test
-import org.mockito.internal.verification.Times
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
@@ -175,8 +172,8 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             ),
             behandlingsinformasjon = uavklart.behandlingsinformasjon,
             vilkårsvurderinger = uavklart.vilkårsvurderinger.copy(
-                opplysningsplikt = tilstrekkeligDokumentert()
-            )
+                opplysningsplikt = tilstrekkeligDokumentert(),
+            ),
         )
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
@@ -235,8 +232,8 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             ),
             behandlingsinformasjon = uavklart.behandlingsinformasjon,
             vilkårsvurderinger = uavklart.vilkårsvurderinger.copy(
-                opplysningsplikt = tilstrekkeligDokumentert()
-            )
+                opplysningsplikt = tilstrekkeligDokumentert(),
+            ),
         )
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
@@ -307,16 +304,20 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             on { hent(any()) } doReturn tilAttestering
         }
 
-        shouldThrow<StatusovergangVisitor.UgyldigStatusovergangException> {
-            createSøknadsbehandlingService(
-                søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            ).fullførBosituasjongrunnlag(
-                FullførBosituasjonRequest(
-                    behandlingId = behandlingId,
-                    bosituasjon = BosituasjonValg.BOR_ALENE,
-                ),
+        createSøknadsbehandlingService(
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
+        ).fullførBosituasjongrunnlag(
+            FullførBosituasjonRequest(
+                behandlingId = behandlingId,
+                bosituasjon = BosituasjonValg.BOR_ALENE,
+
+            ),
+        ) shouldBe KunneIkkeFullføreBosituasjonGrunnlag.KunneIkkeEndreBosituasjongrunnlag(
+            Søknadsbehandling.KunneIkkeOppdatereBosituasjon.UgyldigTilstand(
+                fra = Søknadsbehandling.TilAttestering.Avslag.UtenBeregning::class,
+                til = Søknadsbehandling.Vilkårsvurdert::class,
             )
-        }
+        ).left()
     }
 
     @Test
@@ -353,10 +354,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
         )
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
-            on { hent(any()) } doReturnConsecutively listOf(
-                uavklart,
-                expected,
-            )
+            on { hent(any()) } doReturn uavklart
         }
 
         val response = createSøknadsbehandlingService(
@@ -373,15 +371,15 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             grunnlagsdata = Grunnlagsdata.create(
                 bosituasjon = listOf(
                     bosituasjon.copy(
-                        id = (response as Søknadsbehandling.Vilkårsvurdert).grunnlagsdata.bosituasjon.first().id,
+                        id = response.grunnlagsdata.bosituasjon.first().id,
                     ),
                 ),
             ),
         )
 
-        verify(søknadsbehandlingRepoMock, Times(2)).hent(argThat { it shouldBe uavklart.id })
-        verify(søknadsbehandlingRepoMock, Times(2)).defaultTransactionContext()
-        verify(søknadsbehandlingRepoMock, Times(2)).lagre(any(), anyOrNull())
+        verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe uavklart.id })
+        verify(søknadsbehandlingRepoMock).defaultTransactionContext()
+        verify(søknadsbehandlingRepoMock).lagre(any(), anyOrNull())
         verifyNoMoreInteractions(søknadsbehandlingRepoMock)
     }
 }

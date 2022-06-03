@@ -30,13 +30,34 @@ fun Vilkår.Uførhet.Vurdert.Companion.create(
         .getOrHandle { throw IllegalArgumentException(it.toString()) }
 }
 
+/**
+ * Setter måInnhenteMerInformasjon for alle grunnlagene til 'false'
+ */
 fun Vilkår.Formue.Vurdert.Companion.createFromGrunnlag(
     grunnlag: Nel<Formuegrunnlag>,
 ): Vilkår.Formue.Vurdert =
     tryCreateFromGrunnlag(
-        grunnlag = grunnlag,
+        grunnlag = grunnlag.map { false to it },
         formuegrenserFactory = formuegrenserFactoryTest,
     ).getOrHandle { throw IllegalArgumentException(it.toString()) }
+
+fun Formuegrunnlag.Companion.create(
+    id: UUID = UUID.randomUUID(),
+    opprettet: Tidspunkt = Tidspunkt.now(),
+    periode: Periode,
+    epsFormue: Formuegrunnlag.Verdier?,
+    søkersFormue: Formuegrunnlag.Verdier,
+    vararg bosituasjon: Grunnlag.Bosituasjon.Fullstendig,
+    behandlingsPeriode: Periode,
+): Formuegrunnlag = tryCreate(
+    id = id,
+    opprettet = opprettet,
+    periode = periode,
+    epsFormue = epsFormue,
+    søkersFormue = søkersFormue,
+    bosituasjon = listOf(*bosituasjon),
+    behandlingsPeriode = behandlingsPeriode,
+).getOrHandle { throw IllegalArgumentException("Kunne ikke instansiere Formuegrunnlag. Underliggende grunn: $it") }
 
 fun Formuegrunnlag.Companion.create(
     id: UUID = UUID.randomUUID(),
@@ -47,13 +68,31 @@ fun Formuegrunnlag.Companion.create(
     bosituasjon: Grunnlag.Bosituasjon.Fullstendig,
     behandlingsPeriode: Periode,
 ): Formuegrunnlag = tryCreate(
-    id,
-    opprettet,
-    periode,
-    epsFormue,
-    søkersFormue,
-    listOf(bosituasjon),
-    behandlingsPeriode,
+    id = id,
+    opprettet = opprettet,
+    periode = periode,
+    epsFormue = epsFormue,
+    søkersFormue = søkersFormue,
+    bosituasjon = listOf(bosituasjon),
+    behandlingsPeriode = behandlingsPeriode,
+).getOrHandle { throw IllegalArgumentException("Kunne ikke instansiere Formuegrunnlag. Underliggende grunn: $it") }
+
+fun Formuegrunnlag.Companion.create(
+    id: UUID = UUID.randomUUID(),
+    opprettet: Tidspunkt = Tidspunkt.now(),
+    periode: Periode,
+    epsFormue: Formuegrunnlag.Verdier?,
+    søkersFormue: Formuegrunnlag.Verdier,
+    bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>,
+    behandlingsPeriode: Periode,
+): Formuegrunnlag = tryCreate(
+    id = id,
+    opprettet = opprettet,
+    periode = periode,
+    epsFormue = epsFormue,
+    søkersFormue = søkersFormue,
+    bosituasjon = bosituasjon,
+    behandlingsPeriode = behandlingsPeriode,
 ).getOrHandle { throw IllegalArgumentException("Kunne ikke instansiere Formuegrunnlag. Underliggende grunn: $it") }
 
 fun Formuegrunnlag.Verdier.Companion.empty() = create(

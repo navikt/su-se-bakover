@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
@@ -59,6 +58,7 @@ import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeBeregne
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilFormuegrunnlag
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilUføreVilkår
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
@@ -66,6 +66,7 @@ import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
@@ -176,30 +177,17 @@ internal class SøknadsbehandlingServiceImpl(
         }
     }
 
+    /**
+     * Vilkårsvurderer behandlingsinformasjon og tilhørende vilkår på søknadsbehandling.
+     * Behandlingsinformasjon brukes fremdeles i route/database-lagene, men er tenkt migrert/sanert helt til Vilkårsvurderinger.
+     */
     override fun vilkårsvurder(request: VilkårsvurderRequest): Either<SøknadsbehandlingService.KunneIkkeVilkårsvurdere, Søknadsbehandling.Vilkårsvurdert> {
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return SøknadsbehandlingService.KunneIkkeVilkårsvurdere.FantIkkeBehandling.left()
 
-        val validertBehandlingsinformasjon = request.hentValidertBehandlingsinformasjon(
-            søknadsbehandling.grunnlagsdata.bosituasjon.firstOrNull(),
-        ).getOrHandle {
-            return SøknadsbehandlingService.KunneIkkeVilkårsvurdere.FeilVedValideringAvBehandlingsinformasjon(it).left()
-        }
-
-        return vilkårsvurder(søknadsbehandling, validertBehandlingsinformasjon)
-    }
-
-    private fun vilkårsvurder(
-        søknadsbehandling: Søknadsbehandling,
-        validertBehandlingsinformasjon: Behandlingsinformasjon,
-    ): Either<SøknadsbehandlingService.KunneIkkeVilkårsvurdere, Søknadsbehandling.Vilkårsvurdert> {
         return statusovergang(
             søknadsbehandling = søknadsbehandling,
-            statusovergang = Statusovergang.TilVilkårsvurdert(
-                validertBehandlingsinformasjon,
-                clock,
-                formuegrenserFactory,
-            ),
+            statusovergang = Statusovergang.TilVilkårsvurdert(request.behandlingsinformasjon, clock),
         ).let { vilkårsvurdert ->
             søknadsbehandlingRepo.lagre(vilkårsvurdert)
             vilkårsvurdert.right()
@@ -625,7 +613,7 @@ internal class SøknadsbehandlingServiceImpl(
             return it.left()
         }
 
-        return søknadsbehandling.oppdaterBosituasjon(bosituasjon, clock, formuegrenserFactory).mapLeft {
+        return søknadsbehandling.oppdaterBosituasjon(bosituasjon, clock).mapLeft {
             KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeOppdatereBosituasjon(it)
         }.map {
             søknadsbehandlingRepo.lagre(it)
@@ -633,7 +621,7 @@ internal class SøknadsbehandlingServiceImpl(
         }
     }
 
-    override fun fullførBosituasjongrunnlag(request: FullførBosituasjonRequest): Either<KunneIkkeFullføreBosituasjonGrunnlag, Søknadsbehandling> {
+    override fun fullførBosituasjongrunnlag(request: FullførBosituasjonRequest): Either<KunneIkkeFullføreBosituasjonGrunnlag, Søknadsbehandling.Vilkårsvurdert> {
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeFullføreBosituasjonGrunnlag.FantIkkeBehandling.left()
 
@@ -642,22 +630,10 @@ internal class SøknadsbehandlingServiceImpl(
                 return KunneIkkeFullføreBosituasjonGrunnlag.KlarteIkkeLagreBosituasjon.left()
             }
 
-        return vilkårsvurder(
-            VilkårsvurderRequest(
-                behandlingId = søknadsbehandling.id,
-                behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon.copy(
-                    formue = søknadsbehandling.behandlingsinformasjon.formue?.nullstillEpsFormueHvisIngenEps(bosituasjon),
-                ),
-            ),
-        ).mapLeft {
-            return KunneIkkeFullføreBosituasjonGrunnlag.FantIkkeBehandling.left()
-        }.map { vilkårsvurdert ->
-            return vilkårsvurdert.oppdaterBosituasjon(bosituasjon, clock, formuegrenserFactory).mapLeft {
-                KunneIkkeFullføreBosituasjonGrunnlag.KunneIkkeEndreBosituasjongrunnlag(it)
-            }.map {
-                søknadsbehandlingRepo.lagre(it)
-                it
-            }
+        return søknadsbehandling.oppdaterBosituasjon(bosituasjon, clock).mapLeft {
+            KunneIkkeFullføreBosituasjonGrunnlag.KunneIkkeEndreBosituasjongrunnlag(it)
+        }.tap {
+            søknadsbehandlingRepo.lagre(it)
         }
     }
 
@@ -726,7 +702,7 @@ internal class SøknadsbehandlingServiceImpl(
             }
         }
 
-        val vilkårsvurdert = søknadsbehandling.leggTilUtenlandsopphold(vilkår, clock, formuegrenserFactory)
+        val vilkårsvurdert = søknadsbehandling.leggTilUtenlandsopphold(vilkår, clock)
             .getOrHandle {
                 return it.tilService().left()
             }
@@ -746,6 +722,29 @@ internal class SøknadsbehandlingServiceImpl(
                 søknadsbehandlingRepo.lagre(it)
                 it
             }
+    }
+
+    override fun leggTilFormuevilkår(
+        request: LeggTilFormuevilkårRequest,
+    ): Either<KunneIkkeLeggeTilFormuegrunnlag, Søknadsbehandling> {
+        val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
+            ?: return KunneIkkeLeggeTilFormuegrunnlag.FantIkkeSøknadsbehandling.left()
+
+        return søknadsbehandling.leggTilFormuevilkår(
+            vilkår = request.toDomain(
+                bosituasjon = søknadsbehandling.grunnlagsdata.bosituasjon,
+                behandlingsperiode = søknadsbehandling.periode,
+                clock = clock,
+                formuegrenserFactory = formuegrenserFactory,
+            ).getOrHandle {
+                return KunneIkkeLeggeTilFormuegrunnlag.KunneIkkeMappeTilDomenet(it).left()
+            },
+            clock = clock,
+        ).tap {
+            søknadsbehandlingRepo.lagre(it)
+        }.mapLeft {
+            KunneIkkeLeggeTilFormuegrunnlag.KunneIkkeLeggeTilFormuegrunnlagTilSøknadsbehandling(it)
+        }
     }
 
     private fun Søknadsbehandling.KunneIkkeLeggeTilUtenlandsopphold.tilService(): SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold {

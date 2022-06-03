@@ -27,14 +27,11 @@ import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.brev.beregning.Tilbakekreving
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.minsteAntallSammenhengendePerioder
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.perioderMedEPS
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.perioderUtenEPS
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.Konsistensproblem
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.SjekkOmGrunnlagErKonsistent
-import no.nav.su.se.bakover.domain.grunnlag.fjernFradragEPS
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -285,36 +282,12 @@ sealed class Revurdering :
         return SjekkOmGrunnlagErKonsistent.Bosituasjon(bosituasjon).resultat
             .mapLeft { KunneIkkeLeggeTilBosituasjon.Konsistenssjekk(it.first()) }
             .flatMap {
-                Grunnlagsdata.tryCreate(
-                    /**
-                     * Hvis vi går fra "eps" til "ingen eps" må vi fjerne fradragene for EPS for alle periodene
-                     * hvor det eksiterer fradrag for EPS. Ved endring fra "ingen eps" til "eps" er det umulig for
-                     * oss å vite om det skal eksistere fradrag, caset er derfor uhåndtert (opp til saksbehandler).
-                     */
-                    fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag.fjernFradragEPS(bosituasjon.perioderUtenEPS()),
-                    bosituasjon = bosituasjon,
-                ).mapLeft {
-                    KunneIkkeLeggeTilBosituasjon.Valideringsfeil(it)
-                }.flatMap { grunnlagsdata ->
-                    oppdaterGrunnlag(grunnlagsdata).let { medOppdatertFradrag ->
-                        val justertForEPS = medOppdatertFradrag.vilkårsvurderinger.formue
-                            /**
-                             * Hvis vi går fra "ingen eps" til "eps" må vi fylle på med tomme verdier for EPS formue for
-                             * periodene hvor vi tidligere ikke hadde eps.
-                             */
-                            .leggTilTomEPSFormueHvisDetMangler(bosituasjon.perioderMedEPS())
-                            /**
-                             * Hvis vi går fra "eps" til "ingen eps" må vi fjerne formue for alle periodene hvor vi
-                             * ikke lenger har eps.
-                             */
-                            .fjernEPSFormue(bosituasjon.perioderUtenEPS())
-                            .slåSammenLikePerioder()
-                        medOppdatertFradrag.oppdaterFormueInternal(
-                            formue = justertForEPS,
-                        ).mapLeft {
+                grunnlagsdataOgVilkårsvurderinger.oppdaterBosituasjon(bosituasjon).let { grunnlagOgVilkår ->
+                    oppdaterGrunnlag(grunnlagOgVilkår.grunnlagsdata)
+                        .oppdaterFormueInternal(grunnlagOgVilkår.vilkårsvurderinger.formue)
+                        .mapLeft {
                             KunneIkkeLeggeTilBosituasjon.KunneIkkeOppdatereFormue(it)
                         }
-                    }
                 }
             }
     }
@@ -401,7 +374,7 @@ sealed class Revurdering :
             clock = clock,
             beregningStrategyFactory = BeregningStrategyFactory(
                 clock = clock,
-                satsFactory = satsFactory
+                satsFactory = satsFactory,
             ),
         ).decide().beregn().getOrHandle { return it.left() }
 
@@ -1601,7 +1574,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         eksisterendeUtbetalinger: List<Utbetaling>,
         clock: Clock,
         gjeldendeVedtaksdata: GjeldendeVedtaksdata,
-        satsFactory: SatsFactory
+        satsFactory: SatsFactory,
     ) = throw RuntimeException("Skal ikke kunne beregne når revurderingen er til attestering")
 
     sealed class KunneIkkeIverksetteRevurdering {

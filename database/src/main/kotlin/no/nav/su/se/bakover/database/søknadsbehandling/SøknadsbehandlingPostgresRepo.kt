@@ -245,9 +245,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.oppdater(
                         stønadsperiode = stønadsperiode,
                         behandlingsinformasjon = behandlingsinformasjon,
-                        grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                         clock = clock,
-                        formuegrenserFactory = satsFactory.formuegrenserFactory,
                     ),
                 )
             } ?: grunnlagsdataOgVilkårsvurderinger
