@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.database.grunnlag
 
-import arrow.core.getOrHandle
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.TransactionalSession
@@ -25,15 +24,14 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
         tx: TransactionalSession,
     ) {
         dbMetrics.timeQuery("lagreGrunnlagsdataOgVilkårsvurderinger") {
-            if (grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.erUføre()) {
-                uføreVilkårsvurderingPostgresRepo.lagre(
-                    behandlingId = behandlingId,
-                    vilkår = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.uføreVilkår().getOrHandle {
-                        throw IllegalStateException("Vilkårsvurdering for uføre mangler uførevilkår")
-                    },
-                    tx = tx,
-                )
-            }
+            grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.uføreVilkår()
+                .tap {
+                    uføreVilkårsvurderingPostgresRepo.lagre(
+                        behandlingId = behandlingId,
+                        vilkår = it,
+                        tx = tx,
+                    )
+                }
 
             formueVilkårsvurderingPostgresRepo.lagre(
                 behandlingId = behandlingId,

@@ -39,12 +39,16 @@ fun GjeldendeVedtaksdata.utledReguleringstype(): Reguleringstype {
         problemer.add(ÅrsakTilManuellRegulering.YtelseErMidlertidigStanset)
     }
 
-    this.vilkårsvurderinger.uføreVilkår()
-        .map {
+    this.vilkårsvurderinger.uføreVilkår().fold(
+        {
+            TODO("vilkårsvurdering_alder implementer regulering for alder")
+        },
+        {
             if (it.grunnlag.harForventetInntektStørreEnn0()) {
                 problemer.add(ÅrsakTilManuellRegulering.ForventetInntektErStørreEnn0)
             }
-        }
+        },
+    )
 
     if (this.delerAvPeriodenErOpphør()) {
         problemer.add(ÅrsakTilManuellRegulering.DelvisOpphør)

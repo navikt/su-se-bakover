@@ -23,8 +23,7 @@ data class SjekkOmGrunnlagErKonsistent(
         formuegrunnlag = gjeldendeVedtaksdata.vilkårsvurderinger.formue.grunnlag,
         uføregrunnlag = gjeldendeVedtaksdata.vilkårsvurderinger.uføreVilkår().fold(
             {
-                // TODO("vilkårsvurdering_alder" konsistenssjekk for alder)
-                emptyList()
+                TODO("vilkårsvurdering_alder konsistenssjekk for alder")
             },
             {
                 it.grunnlag

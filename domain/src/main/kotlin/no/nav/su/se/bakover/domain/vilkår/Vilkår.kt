@@ -73,15 +73,7 @@ sealed class Vilkårsvurderinger {
     abstract val formue: Vilkår.Formue
     abstract val utenlandsopphold: UtenlandsoppholdVilkår
     abstract val opplysningsplikt: OpplysningspliktVilkår
-    abstract val erVurdert: Boolean
-
-    fun erUføre(): Boolean {
-        return this is Søknadsbehandling.Uføre || this is Revurdering.Uføre
-    }
-
-    fun erAlder(): Boolean {
-        return this is Søknadsbehandling.Alder || this is Revurdering.Alder
-    }
+    val erVurdert: Boolean by lazy { vilkår.none { it.resultat is Resultat.Uavklart } }
 
     fun uføreVilkår(): Either<VilkårEksistererIkke, Vilkår.Uførhet> {
         return when (this) {
@@ -219,8 +211,6 @@ sealed class Vilkårsvurderinger {
                     )
                 }
 
-            override val erVurdert = vilkår.none { it.resultat == Resultat.Uavklart }
-
             override fun lagTidslinje(periode: Periode): Uføre {
                 return copy(
                     uføre = uføre.lagTidslinje(periode),
@@ -328,26 +318,6 @@ sealed class Vilkårsvurderinger {
                 personligOppmøte = personligOppmøte.oppdaterStønadsperiode(stønadsperiode),
             )
 
-            /**
-             * Fjerner formue dersom søker ikke har EPS - det finnes et tilsvarende steg i [Grunnlagsdata] for fradrag.
-             */
-            fun nullstillEpsFormueHvisIngenEps(
-                bosituasjon: Grunnlag.Bosituasjon,
-            ): Vilkårsvurderinger.Søknadsbehandling {
-                return nullstillEpsFormueHvisIngenEps(nonEmptyListOf(bosituasjon))
-            }
-
-            /**
-             * Fjerner formue dersom søker ikke har EPS - det finnes et tilsvarende steg i [Grunnlagsdata] for fradrag.
-             */
-            fun nullstillEpsFormueHvisIngenEps(
-                bosituasjon: NonEmptyList<Grunnlag.Bosituasjon>,
-            ): Vilkårsvurderinger.Søknadsbehandling {
-                return this.copy(
-                    formue = this.formue.fjernEPSFormue(bosituasjon.perioderUtenEPS()),
-                )
-            }
-
             companion object {
                 fun ikkeVurdert() =
                     Uføre(
@@ -382,7 +352,6 @@ sealed class Vilkårsvurderinger {
                 personligOppmøte,
                 opplysningsplikt,
             )
-            override val erVurdert: Boolean = vilkår.none { it.resultat is Resultat.Uavklart }
 
             override fun lagTidslinje(periode: Periode): Søknadsbehandling {
                 return Alder(
@@ -498,8 +467,6 @@ sealed class Vilkårsvurderinger {
                 opplysningsplikt,
             )
 
-            override val erVurdert = vilkår.none { it.resultat == Resultat.Uavklart }
-
             override fun leggTil(vilkår: Vilkår): Uføre {
                 return when (vilkår) {
                     is Vilkår.Formue -> copy(formue = vilkår)
@@ -601,7 +568,6 @@ sealed class Vilkårsvurderinger {
                 utenlandsopphold,
                 opplysningsplikt,
             )
-            override val erVurdert: Boolean = vilkår.none { it.resultat is Resultat.Uavklart }
 
             override fun lagTidslinje(periode: Periode): Vilkårsvurderinger {
                 return Alder(

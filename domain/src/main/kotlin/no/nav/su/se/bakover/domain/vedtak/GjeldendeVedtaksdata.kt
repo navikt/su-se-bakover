@@ -46,7 +46,7 @@ data class GjeldendeVedtaksdata(
                 it.grunnlagsdata.bosituasjon
             }.slåSammenPeriodeOgBosituasjon(),
         )
-        vilkårsvurderinger = vedtakPåTidslinje.vilkårsvurderinger().let {
+        vilkårsvurderinger = vedtakPåTidslinje.let {
             // TODO("vilkårsvurdering_alder mulig vi må/bør gjøre dette på en annen måte")
             when {
                 vedtakPåTidslinje.all {
@@ -54,10 +54,10 @@ data class GjeldendeVedtaksdata(
                         it.vilkårsvurderinger is Vilkårsvurderinger.Revurdering.Uføre
                 } -> {
                     Vilkårsvurderinger.Revurdering.Uføre(
-                        uføre = it.uføre,
-                        formue = it.formue,
-                        utenlandsopphold = it.utenlandspphold,
-                        opplysningsplikt = it.opplysningsplikt,
+                        uføre = it.uføreVilkår(),
+                        formue = it.formueVilkår(),
+                        utenlandsopphold = it.utenlandsoppholdVilkår(),
+                        opplysningsplikt = it.opplysningspliktVilkår(),
                     )
                 }
                 vedtakPåTidslinje.all {
@@ -65,9 +65,9 @@ data class GjeldendeVedtaksdata(
                         it.vilkårsvurderinger is Vilkårsvurderinger.Revurdering.Alder
                 } -> {
                     Vilkårsvurderinger.Revurdering.Alder(
-                        formue = it.formue,
-                        utenlandsopphold = it.utenlandspphold,
-                        opplysningsplikt = it.opplysningsplikt,
+                        formue = it.formueVilkår(),
+                        utenlandsopphold = it.utenlandsoppholdVilkår(),
+                        opplysningsplikt = it.opplysningspliktVilkår(),
                     )
                 }
                 else -> {
@@ -133,31 +133,20 @@ data class GjeldendeVedtaksdata(
     }
 }
 
-private data class VilkårsvurderingerFraTidslinje(
-    val uføre: Vilkår.Uførhet,
-    val formue: Vilkår.Formue,
-    val utenlandspphold: UtenlandsoppholdVilkår,
-    val opplysningsplikt: OpplysningspliktVilkår,
-)
-
-private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.vilkårsvurderinger(): VilkårsvurderingerFraTidslinje {
-    return VilkårsvurderingerFraTidslinje(
-        uføre = uføreVilkår(),
-        formue = formueVilkår(),
-        utenlandspphold = utenlandsoppholdVilkår(),
-        opplysningsplikt = opplysningspliktVilkår(),
-    )
-}
-
 private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.uføreVilkår(): Vilkår.Uførhet {
-    return mapNotNull { vedtak ->
-        vedtak.uføreVilkår().orNull()?.let {
-            when (it) {
-                Vilkår.Uførhet.IkkeVurdert -> emptyList()
-                is Vilkår.Uførhet.Vurdert -> it.vurderingsperioder
-            }
-        }
-    }.flatten().let {
+    return flatMap { vedtak ->
+        vedtak.uføreVilkår().fold(
+            {
+                emptyList()
+            },
+            {
+                when (it) {
+                    Vilkår.Uførhet.IkkeVurdert -> emptyList()
+                    is Vilkår.Uførhet.Vurdert -> it.vurderingsperioder
+                }
+            },
+        )
+    }.let {
         if (it.isNotEmpty()) {
             Vilkår.Uførhet.Vurdert.fromVurderingsperioder(vurderingsperioder = NonEmptyList.fromListUnsafe(it))
                 .getOrHandle { throw IllegalArgumentException("Kunne ikke instansiere ${Vilkår.Uførhet.Vurdert::class.simpleName}. Melding: $it") }
