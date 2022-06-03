@@ -233,7 +233,7 @@ interface LagBrevRequest {
 
         override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Informasjon> {
             return genererDokument(genererPdf).map {
-                Dokument.UtenMetadata.Informasjon(
+                Dokument.UtenMetadata.Informasjon.Viktig(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(), // TODO jah: Ta inn clock
                     tittel = it.first,
@@ -266,7 +266,7 @@ interface LagBrevRequest {
 
         override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Informasjon> {
             return genererDokument(genererPdf).map {
-                Dokument.UtenMetadata.Informasjon(
+                Dokument.UtenMetadata.Informasjon.Viktig(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(), // TODO jah: Ta inn clock
                     tittel = it.first,
@@ -296,7 +296,7 @@ interface LagBrevRequest {
 
         override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata> {
             return genererDokument(genererPdf).map {
-                Dokument.UtenMetadata.Informasjon(
+                Dokument.UtenMetadata.Informasjon.Annet(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(), // TODO: Ta inn clock
                     tittel = it.first,
@@ -398,7 +398,7 @@ interface LagBrevRequest {
 
         override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Informasjon> {
             return genererDokument(genererPdf).map {
-                Dokument.UtenMetadata.Informasjon(
+                Dokument.UtenMetadata.Informasjon.Viktig(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(), // TODO jah: Ta inn clock
                     tittel = it.first,
@@ -430,7 +430,7 @@ interface LagBrevRequest {
 
             override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Informasjon> {
                 return genererDokument(genererPdf).map {
-                    Dokument.UtenMetadata.Informasjon(
+                    Dokument.UtenMetadata.Informasjon.Annet(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(),
                         tittel = it.first,
@@ -484,7 +484,7 @@ interface LagBrevRequest {
 
         override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Informasjon> {
             return genererDokument(genererPdf).map {
-                Dokument.UtenMetadata.Informasjon(
+                Dokument.UtenMetadata.Informasjon.Viktig(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(), // TODO jah: Ta inn clock
                     tittel = it.first,

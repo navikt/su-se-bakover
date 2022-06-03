@@ -83,7 +83,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             brevService = mock {
                 on { lagDokument(any<LagBrevRequest>()) } doReturnConsecutively listOf(
                     KunneIkkeLageDokument.KunneIkkeGenererePDF.left(),
-                    Dokument.UtenMetadata.Informasjon(
+                    Dokument.UtenMetadata.Informasjon.Viktig(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(desemberClock),
                         tittel = BrevTemplate.PåminnelseNyStønadsperiode.tittel(),
@@ -173,7 +173,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             sessionFactory = TestSessionFactory(),
             brevService = mock {
                 on { lagDokument(any<LagBrevRequest>()) } doReturnConsecutively listOf(
-                    Dokument.UtenMetadata.Informasjon(
+                    Dokument.UtenMetadata.Informasjon.Viktig(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(desemberClock),
                         tittel = BrevTemplate.PåminnelseNyStønadsperiode.tittel(),
@@ -298,7 +298,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             sessionFactory = TestSessionFactory(),
             brevService = mock {
                 on { lagDokument(any<LagBrevRequest>()) } doReturnConsecutively listOf(
-                    Dokument.UtenMetadata.Informasjon(
+                    Dokument.UtenMetadata.Informasjon.Viktig(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(juliClock),
                         tittel = BrevTemplate.PåminnelseNyStønadsperiode.tittel(),
