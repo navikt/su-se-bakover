@@ -66,7 +66,7 @@ class AvslagManglendeDokumentasjonKomponentTest {
                     avslag.avslagsgrunner shouldBe listOf(Avslagsgrunn.MANGLENDE_DOKUMENTASJON)
                     avslag.vilkårsvurderinger.opplysningspliktVilkår().shouldBeType<OpplysningspliktVilkår.Vurdert>()
                         .let { actualVilkår ->
-                            avslag.vilkårsvurderinger shouldBe Vilkårsvurderinger.Søknadsbehandling.ikkeVurdert().copy(
+                            avslag.vilkårsvurderinger shouldBe Vilkårsvurderinger.Søknadsbehandling.Uføre.ikkeVurdert().copy(
                                 opplysningsplikt = OpplysningspliktVilkår.Vurdert.tryCreate(
                                     vurderingsperioder = nonEmptyListOf(
                                         VurderingsperiodeOpplysningsplikt.create(
@@ -150,8 +150,8 @@ class AvslagManglendeDokumentasjonKomponentTest {
                         avslag.vilkårsvurderinger.opplysningspliktVilkår()
                             .shouldBeType<OpplysningspliktVilkår.Vurdert>()
                             .let { actualVilkår ->
-                                avslag.vilkårsvurderinger shouldBe avslag.vilkårsvurderinger.copy(
-                                    opplysningsplikt = OpplysningspliktVilkår.Vurdert.tryCreate(
+                                avslag.vilkårsvurderinger shouldBe avslag.vilkårsvurderinger.leggTil(
+                                    OpplysningspliktVilkår.Vurdert.tryCreate(
                                         vurderingsperioder = nonEmptyListOf(
                                             VurderingsperiodeOpplysningsplikt.create(
                                                 id = actualVilkår.vurderingsperioder.single().id,
@@ -167,7 +167,7 @@ class AvslagManglendeDokumentasjonKomponentTest {
                                         ),
                                     ).getOrFail(),
                                 )
-                                avslag.vilkårsvurderinger.uføreVilkår().shouldBeType<Vilkår.Uførhet.Vurdert>()
+                                avslag.vilkårsvurderinger.uføreVilkår().getOrFail().shouldBeType<Vilkår.Uførhet.Vurdert>()
                             }
                         avslag.vilkårsvurderinger.resultat shouldBe Vilkårsvurderingsresultat.Avslag(
                             setOf(avslag.vilkårsvurderinger.opplysningspliktVilkår()),

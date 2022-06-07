@@ -156,10 +156,7 @@ internal class StatusovergangTest {
                     clock = fixedClock,
                 ),
             ) shouldBe opprettet.copy(
-                vilkårsvurderinger = opprettet.vilkårsvurderinger.copy(
-                    // legges til automatisk
-                    opplysningsplikt = tilstrekkeligDokumentert(),
-                ),
+                vilkårsvurderinger = opprettet.vilkårsvurderinger.leggTil(tilstrekkeligDokumentert()),
             )
         }
 
@@ -205,7 +202,7 @@ internal class StatusovergangTest {
             statusovergang(
                 vilkårsvurdertAvslag.copy(
                     grunnlagsdata = Grunnlagsdata.create(bosituasjon = listOf(bosituasjongrunnlagEnslig())),
-                    vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
+                    vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre(
                         uføre = innvilgetUførevilkår(),
                         utenlandsopphold = utenlandsoppholdInnvilget(),
                         formue = formuevilkårUtenEps0Innvilget(),
@@ -323,7 +320,7 @@ internal class StatusovergangTest {
             statusovergang(
                 underkjentAvslagVilkår.copy(
                     grunnlagsdata = Grunnlagsdata.create(bosituasjon = listOf(bosituasjongrunnlagEnslig())),
-                    vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
+                    vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre(
                         uføre = innvilgetUførevilkår(),
                         utenlandsopphold = utenlandsoppholdInnvilget(),
                         formue = formuevilkårUtenEps0Innvilget(),
@@ -353,7 +350,7 @@ internal class StatusovergangTest {
             statusovergang(
                 underkjentAvslagBeregning.copy(
                     grunnlagsdata = Grunnlagsdata.create(bosituasjon = listOf(bosituasjongrunnlagEnslig())),
-                    vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
+                    vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre(
                         uføre = innvilgetUførevilkår(),
                         utenlandsopphold = utenlandsoppholdInnvilget(),
                         formue = formuevilkårUtenEps0Innvilget(),
@@ -372,7 +369,7 @@ internal class StatusovergangTest {
             statusovergang(
                 underkjentAvslagBeregning.copy(
                     grunnlagsdata = Grunnlagsdata.create(bosituasjon = listOf(bosituasjongrunnlagEnslig())),
-                    vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
+                    vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre(
                         uføre = innvilgetUførevilkår(),
                         formue = formuevilkårIkkeVurdert(),
                     ),
@@ -831,7 +828,7 @@ internal class StatusovergangTest {
                 Statusovergang.TilIverksatt(
                     attestering = attestering,
                     hentOpprinneligAvkorting = { null },
-                )
+                ),
             ) shouldBe iverksattAvslagVilkår.right()
         }
 
@@ -842,7 +839,7 @@ internal class StatusovergangTest {
                 Statusovergang.TilIverksatt(
                     attestering = attestering,
                     hentOpprinneligAvkorting = { null },
-                )
+                ),
             ) shouldBe iverksattAvslagBeregning.right()
         }
 
@@ -853,7 +850,7 @@ internal class StatusovergangTest {
                 Statusovergang.TilIverksatt(
                     attestering = attestering,
                     hentOpprinneligAvkorting = { null },
-                )
+                ),
             ) shouldBe iverksattInnvilget.right()
         }
 
@@ -864,7 +861,7 @@ internal class StatusovergangTest {
                 Statusovergang.TilIverksatt(
                     attestering = attestering,
                     hentOpprinneligAvkorting = { null },
-                )
+                ),
             ) shouldBe KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
         }
 
@@ -875,7 +872,7 @@ internal class StatusovergangTest {
                 Statusovergang.TilIverksatt(
                     attestering = attestering,
                     hentOpprinneligAvkorting = { null },
-                )
+                ),
             ) shouldBe KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
         }
 
@@ -886,7 +883,7 @@ internal class StatusovergangTest {
                 Statusovergang.TilIverksatt(
                     attestering = attestering,
                     hentOpprinneligAvkorting = { null },
-                )
+                ),
             ) shouldBe KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
         }
 
@@ -905,7 +902,7 @@ internal class StatusovergangTest {
                     Statusovergang.TilIverksatt(
                         attestering = attestering,
                         hentOpprinneligAvkorting = { null },
-                    )
+                    ),
                 )
             }
         }

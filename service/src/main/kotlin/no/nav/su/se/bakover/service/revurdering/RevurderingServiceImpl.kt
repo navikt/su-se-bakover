@@ -685,7 +685,14 @@ internal class RevurderingServiceImpl(
                                 sakId = beregnetRevurdering.sakId,
                                 saksbehandler = saksbehandler,
                                 beregning = beregnetRevurdering.beregning,
-                                uføregrunnlag = beregnetRevurdering.vilkårsvurderinger.uføre.grunnlag,
+                                uføregrunnlag = beregnetRevurdering.vilkårsvurderinger.uføreVilkår().fold(
+                                    {
+                                        TODO("vilkårsvurdering_alder utbetaling av alder ikke implementert")
+                                    },
+                                    {
+                                        it.grunnlag
+                                    }
+                                ),
                                 utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
                             ),
                         ).mapLeft {
@@ -1229,7 +1236,14 @@ internal class RevurderingServiceImpl(
                                 sakId = revurdering.sakId,
                                 saksbehandler = attestant,
                                 beregning = revurdering.beregning,
-                                uføregrunnlag = revurdering.vilkårsvurderinger.uføre.grunnlag,
+                                uføregrunnlag = revurdering.vilkårsvurderinger.uføreVilkår().fold(
+                                    {
+                                        TODO("vilkårsvurdering_alder utbetaling av alder ikke implementert")
+                                    },
+                                    {
+                                        it.grunnlag
+                                    }
+                                ),
                                 utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
                             ),
                             simulering = revurdering.simulering,

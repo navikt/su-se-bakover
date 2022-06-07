@@ -160,11 +160,11 @@ internal class OpprettRevurderingServiceTest {
                 årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER.toString(), begrunnelse = "Ny informasjon",
             )
             opprettetRevurdering.forhåndsvarsel shouldBe null
-            opprettetRevurdering.vilkårsvurderinger.uføre.grunnlag.let {
+            opprettetRevurdering.vilkårsvurderinger.uføreVilkår().getOrFail().grunnlag.let {
                 it shouldHaveSize 1
                 it[0].ekvivalentMed(uføregrunnlag)
             }
-            opprettetRevurdering.vilkårsvurderinger.uføre.ekvivalentMed(vilkårsvurderingUføre)
+            opprettetRevurdering.vilkårsvurderinger.uføreVilkår().getOrFail().ekvivalentMed(vilkårsvurderingUføre)
             opprettetRevurdering.informasjonSomRevurderes shouldBe InformasjonSomRevurderes.create(mapOf(Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert))
 
             inOrder(
@@ -249,11 +249,11 @@ internal class OpprettRevurderingServiceTest {
                 Revurderingsårsak.Begrunnelse.create("g-regulering"),
             )
             opprettetRevurdering.forhåndsvarsel shouldBe Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles
-            opprettetRevurdering.vilkårsvurderinger.uføre.grunnlag.let {
+            opprettetRevurdering.vilkårsvurderinger.uføreVilkår().getOrFail().grunnlag.let {
                 it shouldHaveSize 1
                 it[0].ekvivalentMed(uføregrunnlag.copy(periode = periode))
             }
-            opprettetRevurdering.vilkårsvurderinger.uføre.ekvivalentMed(
+            opprettetRevurdering.vilkårsvurderinger.uføreVilkår().getOrFail().ekvivalentMed(
                 vilkårsvurderingUføre.copy(
                     vurderingsperioder = vilkårsvurderingUføre.vurderingsperioder.map {
                         it.copy(CopyArgs.Tidslinje.NyPeriode(periode))
@@ -344,11 +344,11 @@ internal class OpprettRevurderingServiceTest {
                 Revurderingsårsak.Begrunnelse.create("g-regulering"),
             )
             opprettetRevurdering.forhåndsvarsel shouldBe Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles
-            opprettetRevurdering.vilkårsvurderinger.uføre.grunnlag.let {
+            opprettetRevurdering.vilkårsvurderinger.uføreVilkår().getOrFail().grunnlag.let {
                 it shouldHaveSize 1
                 it[0].ekvivalentMed(uføregrunnlag.copy(periode = periode))
             }
-            opprettetRevurdering.vilkårsvurderinger.uføre.ekvivalentMed(
+            opprettetRevurdering.vilkårsvurderinger.uføreVilkår().getOrFail().ekvivalentMed(
                 vilkårsvurderingUføre.copy(
                     vurderingsperioder = vilkårsvurderingUføre.vurderingsperioder.map {
                         it.copy(CopyArgs.Tidslinje.NyPeriode(periode))
@@ -454,7 +454,7 @@ internal class OpprettRevurderingServiceTest {
                     ),
                 ),
             )
-            on { vilkårsvurderinger } doReturn Vilkårsvurderinger.Revurdering(
+            on { vilkårsvurderinger } doReturn Vilkårsvurderinger.Revurdering.Uføre(
                 uføre = vilkårsvurderingUføre,
                 formue = formueVilkår(periode = vedtaksperiode),
                 utenlandsopphold = utenlandsoppholdInnvilget(periode = vedtaksperiode),
@@ -809,7 +809,7 @@ internal class OpprettRevurderingServiceTest {
                 grunnlagsdata = Grunnlagsdata.create(
                     bosituasjon = bosituasjon,
                 ),
-                vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
+                vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre(
                     uføre = uførevilkår,
                     formue = formuevilkårIkkeVurdert(),
                 ),

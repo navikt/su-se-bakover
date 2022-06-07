@@ -34,8 +34,8 @@ internal class StønadsstatistikkMapperTest {
     private val aktørId = AktørId("293829399")
     private val testdata = vedtakSøknadsbehandlingIverksattInnvilget().let { (_, vedtak) ->
         vedtakSøknadsbehandlingIverksattInnvilget(
-            vilkårsvurderinger = vedtak.behandling.vilkårsvurderinger.copy(
-                uføre = Vilkår.Uførhet.Vurdert.create(
+            vilkårsvurderinger = vedtak.behandling.vilkårsvurderinger.leggTil(
+                Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = arrow.core.nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = java.util.UUID.randomUUID(),

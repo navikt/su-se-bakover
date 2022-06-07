@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningMedFradragBeregnetMånedsvis
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
@@ -239,8 +240,11 @@ internal class ReguleringPostgresRepo(
         val saksbehandler = NavIdentBruker.Saksbehandler(string("saksbehandler"))
         val periode = string("periode").let { objectMapper.readValue<Periode>(it) }
 
-        val grunnlagsdataOgVilkårsvurderinger =
-            grunnlagsdataOgVilkårsvurderingerPostgresRepo.hentForRevurdering(id, session)
+        val grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderingerPostgresRepo.hentForRevurdering(
+            behandlingId = id,
+            session = session,
+            sakstype = Sakstype.from(string("type")),
+        )
 
         val avsluttet = stringOrNull("avsluttet")?.let { objectMapper.readValue<AvsluttetReguleringJson>(it) }
 

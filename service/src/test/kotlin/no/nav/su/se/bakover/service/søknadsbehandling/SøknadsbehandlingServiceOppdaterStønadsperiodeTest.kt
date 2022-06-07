@@ -78,7 +78,7 @@ internal class SøknadsbehandlingServiceOppdaterStønadsperiodeTest {
                     it shouldBe response
                     it.stønadsperiode shouldBe nyStønadsperiode
                     it.vilkårsvurderinger.let { vilkårsvurderinger ->
-                        vilkårsvurderinger.uføre.grunnlag.all { it.periode == nyStønadsperiode.periode } shouldBe true
+                        vilkårsvurderinger.uføreVilkår().getOrFail().grunnlag.all { it.periode == nyStønadsperiode.periode } shouldBe true
                         vilkårsvurderinger.formue.grunnlag.all { it.periode == nyStønadsperiode.periode } shouldBe true
                     }
                 },

@@ -68,11 +68,17 @@ fun nyUtbetalingForSimulering(
             beregning = beregning,
             clock = clock,
             uføregrunnlag = when (val vilkår = behandling.vilkårsvurderinger) {
-                is Vilkårsvurderinger.Revurdering -> {
+                is Vilkårsvurderinger.Revurdering.Uføre -> {
                     vilkår.uføre.grunnlag
                 }
-                is Vilkårsvurderinger.Søknadsbehandling -> {
+                is Vilkårsvurderinger.Søknadsbehandling.Uføre -> {
                     vilkår.uføre.grunnlag
+                }
+                is Vilkårsvurderinger.Revurdering.Alder -> {
+                    TODO("vilkårsvurdering_alder utbetaling for alder ikke implementert")
+                }
+                is Vilkårsvurderinger.Søknadsbehandling.Alder -> {
+                    TODO("vilkårsvurdering_alder utbetaling for alder ikke implementert")
                 }
             },
             kjøreplan = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
@@ -99,11 +105,17 @@ fun nyUtbetalingSimulert(
                 saksnummer = behandling.saksnummer,
                 clock = clock,
                 uføregrunnlag = when (val vv = behandling.vilkårsvurderinger) {
-                    is Vilkårsvurderinger.Revurdering -> {
+                    is Vilkårsvurderinger.Revurdering.Uføre -> {
                         vv.uføre.grunnlag
                     }
-                    is Vilkårsvurderinger.Søknadsbehandling -> {
+                    is Vilkårsvurderinger.Søknadsbehandling.Uføre -> {
                         vv.uføre.grunnlag
+                    }
+                    is Vilkårsvurderinger.Revurdering.Alder -> {
+                        TODO("vilkårsvurdering_alder simulering av alder ikke implementert")
+                    }
+                    is Vilkårsvurderinger.Søknadsbehandling.Alder -> {
+                        TODO("vilkårsvurdering_alder simulering av alder ikke implementert")
                     }
                 },
             ),

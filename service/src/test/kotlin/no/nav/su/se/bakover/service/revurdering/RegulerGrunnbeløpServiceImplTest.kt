@@ -107,10 +107,10 @@ internal class RegulerGrunnbeløpServiceImplTest {
         verify(revurderingRepoMock).lagre(
             argThat {
                 it shouldBe opprettetRevurdering.copy(
-                    vilkårsvurderinger = opprettetRevurdering.vilkårsvurderinger.copy(
-                        uføre = innvilgetUførevilkår(
-                            vurderingsperiodeId = (it.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).vurderingsperioder.first().id,
-                            grunnlagsId = (it.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).grunnlag.first().id,
+                    vilkårsvurderinger = opprettetRevurdering.vilkårsvurderinger.leggTil(
+                        innvilgetUførevilkår(
+                            vurderingsperiodeId = (it.vilkårsvurderinger.uføreVilkår().getOrFail() as Vilkår.Uførhet.Vurdert).vurderingsperioder.first().id,
+                            grunnlagsId = (it.vilkårsvurderinger.uføreVilkår().getOrFail() as Vilkår.Uførhet.Vurdert).grunnlag.first().id,
                             opprettet = fixedTidspunkt,
                             periode = nyttUføregrunnlag.periode,
                             forventetInntekt = nyttUføregrunnlag.forventetInntekt,

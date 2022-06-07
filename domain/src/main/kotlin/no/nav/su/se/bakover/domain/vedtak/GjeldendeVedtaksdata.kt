@@ -36,8 +36,6 @@ data class GjeldendeVedtaksdata(
     val pågåendeAvkortingEllerBehovForFremtidigAvkorting: Boolean =
         vedtakPåTidslinje.any { it.originaltVedtak.harPågåendeAvkorting() || it.originaltVedtak.harIdentifisertBehovForFremtidigAvkorting() }
 
-    private val vilkårsvurderingerFraTidslinje: Vilkårsvurderinger = vedtakPåTidslinje.vilkårsvurderinger()
-
     // TODO istedenfor å bruke constructor + init, burde GjeldendeVedtaksdata ha en tryCreate
     init {
         grunnlagsdata = Grunnlagsdata.create(
@@ -48,12 +46,35 @@ data class GjeldendeVedtaksdata(
                 it.grunnlagsdata.bosituasjon
             }.slåSammenPeriodeOgBosituasjon(),
         )
-        vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
-            uføre = vilkårsvurderingerFraTidslinje.uføreVilkår(),
-            formue = vilkårsvurderingerFraTidslinje.formueVilkår(),
-            utenlandsopphold = vilkårsvurderingerFraTidslinje.utenlandsoppholdVilkår(),
-            opplysningsplikt = vilkårsvurderingerFraTidslinje.opplysningspliktVilkår(),
-        )
+        vilkårsvurderinger = vedtakPåTidslinje.let {
+            // TODO("vilkårsvurdering_alder mulig vi må/bør gjøre dette på en annen måte")
+            when {
+                vedtakPåTidslinje.all {
+                    it.vilkårsvurderinger is Vilkårsvurderinger.Søknadsbehandling.Uføre ||
+                        it.vilkårsvurderinger is Vilkårsvurderinger.Revurdering.Uføre
+                } -> {
+                    Vilkårsvurderinger.Revurdering.Uføre(
+                        uføre = it.uføreVilkår(),
+                        formue = it.formueVilkår(),
+                        utenlandsopphold = it.utenlandsoppholdVilkår(),
+                        opplysningsplikt = it.opplysningspliktVilkår(),
+                    )
+                }
+                vedtakPåTidslinje.all {
+                    it.vilkårsvurderinger is Vilkårsvurderinger.Søknadsbehandling.Alder ||
+                        it.vilkårsvurderinger is Vilkårsvurderinger.Revurdering.Alder
+                } -> {
+                    Vilkårsvurderinger.Revurdering.Alder(
+                        formue = it.formueVilkår(),
+                        utenlandsopphold = it.utenlandsoppholdVilkår(),
+                        opplysningsplikt = it.opplysningspliktVilkår(),
+                    )
+                }
+                else -> {
+                    throw IllegalStateException("Kan ikke hente gjeldende vedtaksdata for blanding av uføre og alder.")
+                }
+            }
+        }
         grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
             grunnlagsdata = grunnlagsdata,
             vilkårsvurderinger = vilkårsvurderinger,
@@ -112,52 +133,68 @@ data class GjeldendeVedtaksdata(
     }
 }
 
-private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.vilkårsvurderinger(): Vilkårsvurderinger.Revurdering {
-    return Vilkårsvurderinger.Revurdering(
-        uføre = this.map { it.uføreVilkår() }
-            .filterIsInstance<Vilkår.Uførhet.Vurdert>()
-            .flatMap { it.vurderingsperioder }
-            .let {
-                if (it.isNotEmpty()) {
-                    Vilkår.Uførhet.Vurdert.fromVurderingsperioder(vurderingsperioder = NonEmptyList.fromListUnsafe(it))
-                        .getOrHandle { throw IllegalArgumentException("Kunne ikke instansiere ${Vilkår.Uførhet.Vurdert::class.simpleName}. Melding: $it") }
-                        .slåSammenLikePerioder()
-                } else {
-                    Vilkår.Uførhet.IkkeVurdert
+private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.uføreVilkår(): Vilkår.Uførhet {
+    return flatMap { vedtak ->
+        vedtak.uføreVilkår().fold(
+            {
+                emptyList()
+            },
+            {
+                when (it) {
+                    Vilkår.Uførhet.IkkeVurdert -> emptyList()
+                    is Vilkår.Uførhet.Vurdert -> it.vurderingsperioder
                 }
             },
-        formue = this.map { it.formueVilkår() }
-            .filterIsInstance<Vilkår.Formue.Vurdert>()
-            .flatMap { it.vurderingsperioder }
-            .let {
-                if (it.isNotEmpty()) {
-                    Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(NonEmptyList.fromListUnsafe(it))
-                        .slåSammenLikePerioder()
-                } else {
-                    Vilkår.Formue.IkkeVurdert
-                }
-            },
-        utenlandsopphold = this.map { it.utenlandsoppholdVilkår() }
-            .filterIsInstance<UtenlandsoppholdVilkår.Vurdert>()
-            .flatMap { it.vurderingsperioder }
-            .let {
-                if (it.isNotEmpty()) {
-                    UtenlandsoppholdVilkår.Vurdert.createFromVilkårsvurderinger(NonEmptyList.fromListUnsafe(it))
-                        .slåSammenLikePerioder()
-                } else {
-                    UtenlandsoppholdVilkår.IkkeVurdert
-                }
-            },
-        opplysningsplikt = this.map { it.opplysningspliktVilkår() }
-            .filterIsInstance<OpplysningspliktVilkår.Vurdert>()
-            .flatMap { it.vurderingsperioder }
-            .let {
-                if (it.isNotEmpty()) {
-                    OpplysningspliktVilkår.Vurdert.createFromVilkårsvurderinger(NonEmptyList.fromListUnsafe(it))
-                        .slåSammenLikePerioder()
-                } else {
-                    OpplysningspliktVilkår.IkkeVurdert
-                }
-            },
-    )
+        )
+    }.let {
+        if (it.isNotEmpty()) {
+            Vilkår.Uførhet.Vurdert.fromVurderingsperioder(vurderingsperioder = NonEmptyList.fromListUnsafe(it))
+                .getOrHandle { throw IllegalArgumentException("Kunne ikke instansiere ${Vilkår.Uførhet.Vurdert::class.simpleName}. Melding: $it") }
+                .slåSammenLikePerioder()
+        } else {
+            Vilkår.Uførhet.IkkeVurdert
+        }
+    }
+}
+
+private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.formueVilkår(): Vilkår.Formue {
+    return map { it.formueVilkår() }
+        .filterIsInstance<Vilkår.Formue.Vurdert>()
+        .flatMap { it.vurderingsperioder }
+        .let {
+            if (it.isNotEmpty()) {
+                Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(NonEmptyList.fromListUnsafe(it))
+                    .slåSammenLikePerioder()
+            } else {
+                Vilkår.Formue.IkkeVurdert
+            }
+        }
+}
+
+private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.utenlandsoppholdVilkår(): UtenlandsoppholdVilkår {
+    return map { it.utenlandsoppholdVilkår() }
+        .filterIsInstance<UtenlandsoppholdVilkår.Vurdert>()
+        .flatMap { it.vurderingsperioder }
+        .let {
+            if (it.isNotEmpty()) {
+                UtenlandsoppholdVilkår.Vurdert.createFromVilkårsvurderinger(NonEmptyList.fromListUnsafe(it))
+                    .slåSammenLikePerioder()
+            } else {
+                UtenlandsoppholdVilkår.IkkeVurdert
+            }
+        }
+}
+
+private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.opplysningspliktVilkår(): OpplysningspliktVilkår {
+    return map { it.opplysningspliktVilkår() }
+        .filterIsInstance<OpplysningspliktVilkår.Vurdert>()
+        .flatMap { it.vurderingsperioder }
+        .let {
+            if (it.isNotEmpty()) {
+                OpplysningspliktVilkår.Vurdert.createFromVilkårsvurderinger(NonEmptyList.fromListUnsafe(it))
+                    .slåSammenLikePerioder()
+            } else {
+                OpplysningspliktVilkår.IkkeVurdert
+            }
+        }
 }

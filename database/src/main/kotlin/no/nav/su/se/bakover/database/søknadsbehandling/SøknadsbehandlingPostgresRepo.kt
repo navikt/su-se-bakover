@@ -237,8 +237,9 @@ internal class SøknadsbehandlingPostgresRepo(
 
         val fnr = Fnr(string("fnr"))
         val (grunnlagsdata, vilkårsvurderinger) = grunnlagsdataOgVilkårsvurderingerPostgresRepo.hentForSøknadsbehandling(
-            behandlingId,
-            session,
+            behandlingId = behandlingId,
+            session = session,
+            sakstype = Sakstype.from(string("type"))
         ).let { grunnlagsdataOgVilkårsvurderinger ->
             stønadsperiode?.let {
                 grunnlagsdataOgVilkårsvurderinger.copy(

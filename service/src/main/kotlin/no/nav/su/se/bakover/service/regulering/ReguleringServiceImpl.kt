@@ -296,7 +296,14 @@ class ReguleringServiceImpl(
                     sakId = regulering.sakId,
                     saksbehandler = regulering.saksbehandler,
                     beregning = regulering.beregning,
-                    uføregrunnlag = regulering.vilkårsvurderinger.tilVilkårsvurderingerRevurdering().uføre.grunnlag,
+                    uføregrunnlag = regulering.vilkårsvurderinger.tilVilkårsvurderingerRevurdering().uføreVilkår().fold(
+                        {
+                            TODO("vilkårsvurdering_alder utbetaling av alder ikke implementert")
+                        },
+                        {
+                            it.grunnlag
+                        }
+                    ),
                     // Spesielt for regulering, ved etterbetaling, ønsker vi å utbetale disse sammen med neste kjøring, da disse beløpene bruker å være relativt små.
                     utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SammenMedNestePlanlagteUtbetaling,
                 ),

@@ -73,11 +73,17 @@ class BeregningStrategyFactory(
         val beregningsgrunnlag = Beregningsgrunnlag.tryCreate(
             beregningsperiode = totalBeregningsperiode,
             uføregrunnlag = when (val vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger) {
-                is Vilkårsvurderinger.Revurdering -> {
+                is Vilkårsvurderinger.Revurdering.Uføre -> {
                     vilkårsvurderinger.uføre.grunnlag
                 }
-                is Vilkårsvurderinger.Søknadsbehandling -> {
+                is Vilkårsvurderinger.Søknadsbehandling.Uføre -> {
                     vilkårsvurderinger.uføre.grunnlag
+                }
+                is Vilkårsvurderinger.Revurdering.Alder -> {
+                    TODO("vilkårsvurdering_alder Beregning av alder er ikke implementert enda")
+                }
+                is Vilkårsvurderinger.Søknadsbehandling.Alder -> {
+                    TODO("vilkårsvurdering_alder Beregning av alder er ikke implementert enda")
                 }
             },
             fradragFraSaksbehandler = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.fradragsgrunnlag,

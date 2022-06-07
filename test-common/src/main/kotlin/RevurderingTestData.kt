@@ -294,7 +294,14 @@ fun simulertRevurdering(
                         sakId = beregnet.sakId,
                         saksnummer = beregnet.saksnummer,
                         clock = clock,
-                        uføregrunnlag = beregnet.vilkårsvurderinger.uføre.grunnlag
+                        uføregrunnlag = beregnet.vilkårsvurderinger.uføreVilkår().fold(
+                            {
+                                TODO("vilkårsvurdering_alder kan ikke hente uførevilkår for alder")
+                            },
+                            {
+                                it.grunnlag
+                            }
+                        )
                     ),
                     clock = clock,
                     false,
@@ -892,7 +899,14 @@ fun simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
                 fnr = revurdering.fnr,
                 sakId = revurdering.sakId,
                 saksnummer = revurdering.saksnummer,
-                uføregrunnlag = revurdering.vilkårsvurderinger.uføre.grunnlag,
+                uføregrunnlag = revurdering.vilkårsvurderinger.uføreVilkår().fold(
+                    {
+                        TODO("vilkårsvurdering_alder kan ikke hente uførevilkår for alder")
+                    },
+                    {
+                        it.grunnlag
+                    }
+                ),
             ),
             clock = clock,
             tilbakekrevingTillatt = false,

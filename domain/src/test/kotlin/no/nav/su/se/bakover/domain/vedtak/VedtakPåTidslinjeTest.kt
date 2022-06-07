@@ -95,7 +95,7 @@ internal class VedtakPåTidslinjeTest {
                 fradragsgrunnlag = listOf(f1, f2),
                 bosituasjon = listOf(bosituasjon),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.Uføre(
                 uføre = Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         uføreVurderingsperiode,
@@ -110,7 +110,7 @@ internal class VedtakPåTidslinjeTest {
         original.copy(CopyArgs.Tidslinje.Full).let { vedtakPåTidslinje ->
             vedtakPåTidslinje.opprettet shouldBe original.opprettet
             vedtakPåTidslinje.periode shouldBe original.periode
-            vedtakPåTidslinje.vilkårsvurderinger.shouldBeType<Vilkårsvurderinger.Revurdering>()
+            vedtakPåTidslinje.vilkårsvurderinger.shouldBeType<Vilkårsvurderinger.Revurdering.Uføre>()
                 .let { vilkårsvurdering ->
                     vilkårsvurdering.uføre.grunnlag shouldHaveSize 1
                     vilkårsvurdering.uføre.grunnlag[0].let {
@@ -256,7 +256,7 @@ internal class VedtakPåTidslinjeTest {
                 bosituasjon = listOf(b1, b2),
                 fradragsgrunnlag = listOf(f1, f2, f3),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.Uføre(
                 uføre = Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         vurderingsperiode,
@@ -274,7 +274,7 @@ internal class VedtakPåTidslinjeTest {
                 vedtakPåTidslinje.opprettet shouldBe original.opprettet
                 vedtakPåTidslinje.periode shouldBe Periode.create(1.mai(2021), 31.juli(2021))
 
-                vedtakPåTidslinje.vilkårsvurderinger.shouldBeType<Vilkårsvurderinger.Revurdering>()
+                vedtakPåTidslinje.vilkårsvurderinger.shouldBeType<Vilkårsvurderinger.Revurdering.Uføre>()
                     .let { vilkårsvurdering ->
                         vilkårsvurdering.uføre.grunnlag shouldHaveSize 1
                         vilkårsvurdering.uføre.grunnlag[0].let {

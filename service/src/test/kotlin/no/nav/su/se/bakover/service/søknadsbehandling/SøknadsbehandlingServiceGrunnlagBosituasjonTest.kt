@@ -171,8 +171,8 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
                 ),
             ),
             behandlingsinformasjon = uavklart.behandlingsinformasjon,
-            vilkårsvurderinger = uavklart.vilkårsvurderinger.copy(
-                opplysningsplikt = tilstrekkeligDokumentert(),
+            vilkårsvurderinger = uavklart.vilkårsvurderinger.leggTil(
+                tilstrekkeligDokumentert(),
             ),
         )
 
@@ -231,8 +231,8 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
                 ),
             ),
             behandlingsinformasjon = uavklart.behandlingsinformasjon,
-            vilkårsvurderinger = uavklart.vilkårsvurderinger.copy(
-                opplysningsplikt = tilstrekkeligDokumentert(),
+            vilkårsvurderinger = uavklart.vilkårsvurderinger.leggTil(
+                tilstrekkeligDokumentert(),
             ),
         )
 
@@ -348,9 +348,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
                 ),
             ),
             behandlingsinformasjon = uavklart.behandlingsinformasjon,
-            vilkårsvurderinger = uavklart.vilkårsvurderinger.copy(
-                opplysningsplikt = tilstrekkeligDokumentert(),
-            ),
+            vilkårsvurderinger = uavklart.vilkårsvurderinger.leggTil(tilstrekkeligDokumentert()),
         )
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
