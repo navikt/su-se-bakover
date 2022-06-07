@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
@@ -91,6 +92,7 @@ internal class UtbetalingsstrategiNyTest {
             clock = fixedClock,
             uføregrunnlag = uføregrunnlagListe,
             kjøreplan = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+            sakstype = Sakstype.UFØRE,
         ).generate()
 
         val first = actual.utbetalingslinjer.first()
@@ -128,6 +130,7 @@ internal class UtbetalingsstrategiNyTest {
                 opprettet = fixedTidspunkt,
                 sakId = sakId,
                 saksnummer = saksnummer,
+                fnr = fnr,
                 utbetalingslinjer = nonEmptyListOf(
                     Utbetalingslinje.Ny(
                         id = forrigeUtbetalingslinjeId,
@@ -139,10 +142,10 @@ internal class UtbetalingsstrategiNyTest {
                         uføregrad = Uføregrad.parse(50),
                     ),
                 ),
-                fnr = fnr,
                 type = Utbetaling.UtbetalingsType.NY,
                 behandler = NavIdentBruker.Saksbehandler("Z123"),
                 avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt),
+                sakstype = Sakstype.UFØRE,
             ).toSimulertUtbetaling(
                 simulering = Simulering(
                     gjelderId = fnr,
@@ -174,6 +177,7 @@ internal class UtbetalingsstrategiNyTest {
             clock = fixedClock,
             uføregrunnlag = uføregrunnlagListe,
             kjøreplan = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+            sakstype = Sakstype.UFØRE,
         ).generate()
 
         nyUtbetaling shouldBe Utbetaling.UtbetalingForSimulering(
@@ -181,6 +185,7 @@ internal class UtbetalingsstrategiNyTest {
             opprettet = nyUtbetaling.opprettet,
             sakId = sakId,
             saksnummer = saksnummer,
+            fnr = fnr,
             utbetalingslinjer = nonEmptyListOf(
                 expectedUtbetalingslinje(
                     utbetalingslinjeId = nyUtbetaling.utbetalingslinjer[0].id,
@@ -199,10 +204,10 @@ internal class UtbetalingsstrategiNyTest {
                     forrigeUtbetalingslinjeId = nyUtbetaling.utbetalingslinjer[0].id,
                 ),
             ),
-            fnr = fnr,
             type = Utbetaling.UtbetalingsType.NY,
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt),
+            sakstype = Sakstype.UFØRE,
         )
     }
 
@@ -225,11 +230,12 @@ internal class UtbetalingsstrategiNyTest {
             opprettet = 1.januar(2020).startOfDay(),
             sakId = sakId,
             saksnummer = saksnummer,
-            utbetalingslinjer = dummyUtbetalingslinjer,
             fnr = fnr,
+            utbetalingslinjer = dummyUtbetalingslinjer,
             type = Utbetaling.UtbetalingsType.NY,
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay()),
+            sakstype = Sakstype.UFØRE,
         ).toSimulertUtbetaling(
             simulering = Simulering(
                 gjelderId = fnr,
@@ -250,11 +256,12 @@ internal class UtbetalingsstrategiNyTest {
             opprettet = 1.februar(2020).startOfDay(),
             sakId = sakId,
             saksnummer = saksnummer,
-            utbetalingslinjer = dummyUtbetalingslinjer,
             fnr = fnr,
+            utbetalingslinjer = dummyUtbetalingslinjer,
             type = Utbetaling.UtbetalingsType.NY,
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             avstemmingsnøkkel = Avstemmingsnøkkel(1.februar(2020).startOfDay()),
+            sakstype = Sakstype.UFØRE,
         ).toSimulertUtbetaling(
             simulering = Simulering(
                 gjelderId = fnr,
@@ -275,11 +282,12 @@ internal class UtbetalingsstrategiNyTest {
             opprettet = 1.mars(2020).startOfDay(),
             sakId = sakId,
             saksnummer = saksnummer,
-            utbetalingslinjer = dummyUtbetalingslinjer,
             fnr = fnr,
+            utbetalingslinjer = dummyUtbetalingslinjer,
             type = Utbetaling.UtbetalingsType.NY,
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             avstemmingsnøkkel = Avstemmingsnøkkel(1.mars(2020).startOfDay()),
+            sakstype = Sakstype.UFØRE,
         ).toSimulertUtbetaling(
             simulering = Simulering(
                 gjelderId = fnr,
@@ -298,11 +306,12 @@ internal class UtbetalingsstrategiNyTest {
             opprettet = 1.juli(2020).startOfDay(),
             sakId = sakId,
             saksnummer = saksnummer,
-            utbetalingslinjer = dummyUtbetalingslinjer,
             fnr = fnr,
+            utbetalingslinjer = dummyUtbetalingslinjer,
             type = Utbetaling.UtbetalingsType.NY,
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             avstemmingsnøkkel = Avstemmingsnøkkel(1.juli(2020).startOfDay()),
+            sakstype = Sakstype.UFØRE,
         ).toSimulertUtbetaling(
             simulering = Simulering(
                 gjelderId = fnr,
@@ -343,12 +352,14 @@ internal class UtbetalingsstrategiNyTest {
             clock = fixedClock,
             uføregrunnlag = uføregrunnlagListe,
             kjøreplan = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+            sakstype = Sakstype.UFØRE,
         ).generate()
         actualUtbetaling shouldBe Utbetaling.UtbetalingForSimulering(
             id = actualUtbetaling.id,
             opprettet = actualUtbetaling.opprettet,
             sakId = sakId,
             saksnummer = saksnummer,
+            fnr = fnr,
             utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Ny(
                     id = actualUtbetaling.utbetalingslinjer[0].id,
@@ -369,10 +380,10 @@ internal class UtbetalingsstrategiNyTest {
                     uføregrad = Uføregrad.parse(50),
                 ),
             ),
-            fnr = fnr,
             type = Utbetaling.UtbetalingsType.NY,
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt),
+            sakstype = Sakstype.UFØRE,
         )
     }
 
@@ -420,12 +431,14 @@ internal class UtbetalingsstrategiNyTest {
             clock = fixedClock,
             uføregrunnlag = uføregrunnlagListe,
             kjøreplan = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+            sakstype = Sakstype.UFØRE,
         ).generate()
         actualUtbetaling shouldBe Utbetaling.UtbetalingForSimulering(
             id = actualUtbetaling.id,
             opprettet = actualUtbetaling.opprettet,
             sakId = sakId,
             saksnummer = saksnummer,
+            fnr = fnr,
             utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Ny(
                     id = actualUtbetaling.utbetalingslinjer[0].id,
@@ -455,10 +468,10 @@ internal class UtbetalingsstrategiNyTest {
                     uføregrad = Uføregrad.parse(50),
                 ),
             ),
-            fnr = fnr,
             type = Utbetaling.UtbetalingsType.NY,
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt),
+            sakstype = Sakstype.UFØRE,
         )
     }
 
@@ -477,6 +490,7 @@ internal class UtbetalingsstrategiNyTest {
                 beregning = BeregningMedTomMånedsbereninger,
                 uføregrunnlag = uføreList,
                 kjøreplan = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                sakstype = Sakstype.UFØRE,
             ).generate()
         }
     }
@@ -504,6 +518,7 @@ internal class UtbetalingsstrategiNyTest {
                 beregning = BeregningMedTomMånedsbereninger,
                 uføregrunnlag = uføreList,
                 kjøreplan = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                sakstype = Sakstype.UFØRE,
             ).generate()
         }
     }
@@ -538,6 +553,7 @@ internal class UtbetalingsstrategiNyTest {
                 beregning = BeregningMedTomMånedsbereninger,
                 uføregrunnlag = uføreList,
                 kjøreplan = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                sakstype = Sakstype.UFØRE,
             ).generate()
         }
     }
@@ -555,6 +571,7 @@ internal class UtbetalingsstrategiNyTest {
                 beregning = createBeregning(1.januar(2021), 31.desember(2021)),
                 uføregrunnlag = emptyList(),
                 kjøreplan = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                sakstype = Sakstype.UFØRE,
             ).generate()
         }
     }
@@ -603,6 +620,7 @@ internal class UtbetalingsstrategiNyTest {
                 ),
                 uføregrunnlag = emptyList(),
                 kjøreplan = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                sakstype = Sakstype.UFØRE,
             ).generate()
         }
     }
@@ -629,6 +647,7 @@ internal class UtbetalingsstrategiNyTest {
             beregning = createBeregning(1.mai(2021), 31.desember(2021)),
             uføregrunnlag = uføreList,
             kjøreplan = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+            sakstype = Sakstype.UFØRE,
         ).generate()
 
         actual.utbetalingslinjer.size shouldBe 1
@@ -677,6 +696,7 @@ internal class UtbetalingsstrategiNyTest {
             beregning = createBeregning(1.mai(2021), 31.desember(2021)),
             uføregrunnlag = uføreList,
             kjøreplan = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+            sakstype = Sakstype.UFØRE,
         ).generate()
 
         actual.utbetalingslinjer.size shouldBe 2
@@ -757,6 +777,7 @@ internal class UtbetalingsstrategiNyTest {
             ),
             uføregrunnlag = uføreList,
             kjøreplan = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+            sakstype = Sakstype.UFØRE,
         ).generate()
 
         actual.utbetalingslinjer.size shouldBe 2
@@ -844,6 +865,7 @@ internal class UtbetalingsstrategiNyTest {
             ),
             uføregrunnlag = uføreList,
             kjøreplan = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+            sakstype = Sakstype.UFØRE,
         ).generate()
 
         actual.utbetalingslinjer.size shouldBe 2
@@ -895,6 +917,7 @@ internal class UtbetalingsstrategiNyTest {
                 beregning = createBeregning(1.januar(2021), 31.desember(2021)),
                 uføregrunnlag = uføreList,
                 kjøreplan = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                sakstype = Sakstype.UFØRE,
             ).generate()
         }.also {
             it.message shouldContain "Uføregrunnlaget inneholder ikke alle beregningsperiodene. Grunnlagsperiodene:"
@@ -930,6 +953,7 @@ internal class UtbetalingsstrategiNyTest {
             beregning = createBeregning(1.juni(2021), 31.desember(2021)),
             uføregrunnlag = uføreList,
             kjøreplan = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+            sakstype = Sakstype.UFØRE,
         ).generate()
 
         actual.utbetalingslinjer.size shouldBe 1
@@ -978,6 +1002,7 @@ internal class UtbetalingsstrategiNyTest {
             beregning = createBeregning(1.juni(2021), 30.november(2021)),
             uføregrunnlag = uføreList,
             kjøreplan = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+            sakstype = Sakstype.UFØRE,
         ).generate()
 
         actual.utbetalingslinjer.size shouldBe 1
@@ -1006,11 +1031,12 @@ internal class UtbetalingsstrategiNyTest {
             opprettet = actual.opprettet,
             sakId = sakId,
             saksnummer = saksnummer,
-            utbetalingslinjer = oppdragslinjer,
             fnr = fnr,
+            utbetalingslinjer = oppdragslinjer,
             type = Utbetaling.UtbetalingsType.NY,
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt),
+            sakstype = Sakstype.UFØRE,
         )
     }
 

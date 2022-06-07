@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -269,6 +270,7 @@ internal class KontrollerSimuleringTest {
             type = type,
             behandler = NavIdentBruker.Saksbehandler("saksa"),
             avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt),
+            sakstype = Sakstype.UFØRE,
         ).toSimulertUtbetaling(
             simulering = simulering,
         )

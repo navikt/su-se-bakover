@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -31,6 +32,7 @@ sealed class Utbetalingsstrategi {
     abstract val fnr: Fnr
     abstract val utbetalinger: List<Utbetaling>
     abstract val behandler: NavIdentBruker
+    abstract val sakstype: Sakstype
 
     /**
      * Sjekk om vi noen gang har forsøkt å opphøre ytelsen i perioden fra [datoForStanEllerReaktivering] til siste utbetaling.
@@ -63,6 +65,7 @@ sealed class Utbetalingsstrategi {
         override val fnr: Fnr,
         override val utbetalinger: List<Utbetaling>,
         override val behandler: NavIdentBruker,
+        override val sakstype: Sakstype,
         val stansDato: LocalDate,
         val clock: Clock,
     ) : Utbetalingsstrategi() {
@@ -107,6 +110,7 @@ sealed class Utbetalingsstrategi {
                 type = Utbetaling.UtbetalingsType.STANS,
                 behandler = behandler,
                 avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.now(clock)),
+                sakstype = sakstype,
             ).right()
         }
 
@@ -126,6 +130,7 @@ sealed class Utbetalingsstrategi {
         override val fnr: Fnr,
         override val utbetalinger: List<Utbetaling>,
         override val behandler: NavIdentBruker,
+        override val sakstype: Sakstype,
         val beregning: Beregning,
         val clock: Clock,
         val uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
@@ -149,11 +154,12 @@ sealed class Utbetalingsstrategi {
                 opprettet = Tidspunkt.now(clock),
                 sakId = sakId,
                 saksnummer = saksnummer,
-                utbetalingslinjer = NonEmptyList.fromListUnsafe(utbetalingslinjer),
                 fnr = fnr,
+                utbetalingslinjer = NonEmptyList.fromListUnsafe(utbetalingslinjer),
                 type = Utbetaling.UtbetalingsType.NY,
                 behandler = behandler,
                 avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.now(clock)),
+                sakstype = sakstype,
             )
         }
 
@@ -210,6 +216,7 @@ sealed class Utbetalingsstrategi {
         override val fnr: Fnr,
         override val utbetalinger: List<Utbetaling>,
         override val behandler: NavIdentBruker,
+        override val sakstype: Sakstype,
         val opphørsDato: LocalDate,
         val clock: Clock,
     ) : Utbetalingsstrategi() {
@@ -223,6 +230,7 @@ sealed class Utbetalingsstrategi {
                 opprettet = Tidspunkt.now(clock),
                 sakId = sakId,
                 saksnummer = saksnummer,
+                fnr = fnr,
                 utbetalingslinjer = nonEmptyListOf(
                     Utbetalingslinje.Endring.Opphør(
                         utbetalingslinje = sisteUtbetalingslinje,
@@ -230,10 +238,10 @@ sealed class Utbetalingsstrategi {
                         clock = clock,
                     ),
                 ),
-                fnr = fnr,
                 type = Utbetaling.UtbetalingsType.OPPHØR,
                 behandler = behandler,
                 avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.now(clock)),
+                sakstype = sakstype,
             )
         }
     }
@@ -244,6 +252,7 @@ sealed class Utbetalingsstrategi {
         override val fnr: Fnr,
         override val utbetalinger: List<Utbetaling>,
         override val behandler: NavIdentBruker,
+        override val sakstype: Sakstype,
         val clock: Clock,
     ) : Utbetalingsstrategi() {
         fun generer(): Either<Feil, Utbetaling.UtbetalingForSimulering> {
@@ -264,6 +273,7 @@ sealed class Utbetalingsstrategi {
                 opprettet = Tidspunkt.now(clock),
                 sakId = sakId,
                 saksnummer = saksnummer,
+                fnr = fnr,
                 utbetalingslinjer = nonEmptyListOf(
                     Utbetalingslinje.Endring.Reaktivering(
                         utbetalingslinje = sisteOversendteUtbetalingslinje,
@@ -271,10 +281,10 @@ sealed class Utbetalingsstrategi {
                         clock = clock,
                     ),
                 ),
-                fnr = fnr,
                 type = Utbetaling.UtbetalingsType.GJENOPPTA,
                 behandler = behandler,
                 avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.now(clock)),
+                sakstype = sakstype,
             ).right()
         }
 

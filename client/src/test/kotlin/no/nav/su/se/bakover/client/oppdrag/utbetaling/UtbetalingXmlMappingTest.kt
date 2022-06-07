@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -57,15 +58,16 @@ class UtbetalingXmlMappingTest {
         opprettet = fixedTidspunkt,
         sakId = sakId,
         saksnummer = saksnummer,
+        fnr = fnr,
         utbetalingslinjer = nonEmptyListOf(
             førsteUtbetalingsLinje,
             andreUtbetalingslinje,
             tredjeUtbetalingslinje,
         ),
-        fnr = fnr,
         type = Utbetaling.UtbetalingsType.NY,
         behandler = NavIdentBruker.Attestant("A123456"),
         avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay()),
+        sakstype = Sakstype.UFØRE,
     )
 
     //language=xml

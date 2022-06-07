@@ -136,7 +136,7 @@ internal class AvstemmingPostgresRepo(
             sessionFactory.withSession { session ->
                 val fraOgMedCondition = """(u.avstemmingsnøkkel ->> 'opprettet')::timestamptz >= :fom"""
                 val tilOgMedCondition = """(u.avstemmingsnøkkel ->> 'opprettet')::timestamptz <= :tom"""
-                """select u.*, s.saksnummer from utbetaling u inner join sak s on s.id = u.sakId where $fraOgMedCondition and $tilOgMedCondition"""
+                """select u.*, s.saksnummer, s.type as sakstype from utbetaling u inner join sak s on s.id = u.sakId where $fraOgMedCondition and $tilOgMedCondition"""
                     .hentListe(
                         mapOf(
                             "fom" to fraOgMed,
@@ -158,6 +158,7 @@ internal class AvstemmingPostgresRepo(
                 """
                 select distinct
                     s.saksnummer,
+                    s.type as sakstype,
                     u.*
                 from utbetaling u    
                 join utbetalingslinje ul on ul.utbetalingid = u.id

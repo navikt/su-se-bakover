@@ -45,6 +45,7 @@ import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.SøknadsinnholdUføre
@@ -225,6 +226,7 @@ internal fun oversendtUtbetalingUtenKvittering(
         type = Utbetaling.UtbetalingsType.NY,
         behandler = attestant,
         avstemmingsnøkkel = avstemmingsnøkkel,
+        sakstype = Sakstype.UFØRE // TODO("simulering_utbetaling_alder utled fra sak/behandling")
     ).toSimulertUtbetaling(
         simulering = simulering(fnr),
     ).toOversendtUtbetaling(

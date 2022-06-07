@@ -127,6 +127,7 @@ internal class UtbetalingServiceImpl(
             behandler = request.saksbehandler,
             opphørsDato = request.opphørsdato,
             clock = clock,
+            sakstype = sak.type,
         ).generate()
 
         val simuleringsperiode = Periode.create(
@@ -178,6 +179,7 @@ internal class UtbetalingServiceImpl(
             uføregrunnlag = request.uføregrunnlag,
             clock = clock,
             kjøreplan = request.utbetalingsinstruksjonForEtterbetaling,
+            sakstype = sak.type,
         ).generate()
 
         val simuleringsperiode = request.beregning.periode
@@ -239,6 +241,7 @@ internal class UtbetalingServiceImpl(
             behandler = request.saksbehandler,
             stansDato = request.stansdato,
             clock = clock,
+            sakstype = sak.type,
         ).generer()
             .getOrHandle {
                 return SimulerStansFeilet.KunneIkkeGenerereUtbetaling(it).left()
@@ -300,6 +303,7 @@ internal class UtbetalingServiceImpl(
             utbetalinger = request.sak.utbetalinger,
             behandler = request.saksbehandler,
             clock = clock,
+            sakstype = request.sak.type,
         ).generer()
             .getOrHandle { return SimulerGjenopptakFeil.KunneIkkeGenerereUtbetaling(it).left() }
 

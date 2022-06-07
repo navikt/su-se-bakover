@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -58,6 +59,7 @@ internal class LokalKvitteringJobTest {
         type = Utbetaling.UtbetalingsType.NY,
         behandler = NavIdentBruker.Attestant("attestant"),
         avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.EPOCH),
+        sakstype = Sakstype.UFØRE,
     ).toSimulertUtbetaling(
         simulering = Simulering(
             gjelderId = fnr,

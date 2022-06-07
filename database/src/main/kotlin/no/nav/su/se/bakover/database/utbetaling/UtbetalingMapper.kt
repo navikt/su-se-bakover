@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -28,43 +29,33 @@ data class UtbetalingMapper(
     val kvittering: Kvittering?,
     val avstemmingId: UUID30?,
     val behandler: NavIdentBruker,
+    val sakstype: Sakstype,
 ) {
-    fun map(): Utbetaling.OversendtUtbetaling = when (kvittering) {
-        null -> {
-            Utbetaling.UtbetalingForSimulering(
-                id = id,
-                opprettet = opprettet,
-                sakId = sakId,
-                saksnummer = saksnummer,
-                fnr = fnr,
-                utbetalingslinjer = utbetalingslinjer,
-                type = type,
-                behandler = behandler,
-                avstemmingsnøkkel = avstemmingsnøkkel,
-            ).toSimulertUtbetaling(
-                simulering = simulering,
-            ).toOversendtUtbetaling(
-                oppdragsmelding = utbetalingsrequest,
-            )
-        }
-        else -> {
-            Utbetaling.UtbetalingForSimulering(
-                id = id,
-                opprettet = opprettet,
-                sakId = sakId,
-                saksnummer = saksnummer,
-                fnr = fnr,
-                utbetalingslinjer = utbetalingslinjer,
-                type = type,
-                behandler = behandler,
-                avstemmingsnøkkel = avstemmingsnøkkel,
-            ).toSimulertUtbetaling(
-                simulering = simulering,
-            ).toOversendtUtbetaling(
-                oppdragsmelding = utbetalingsrequest,
-            ).toKvittertUtbetaling(
-                kvittering = kvittering,
-            )
+    fun map(): Utbetaling.OversendtUtbetaling {
+        return Utbetaling.UtbetalingForSimulering(
+            id = id,
+            opprettet = opprettet,
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            utbetalingslinjer = utbetalingslinjer,
+            type = type,
+            behandler = behandler,
+            avstemmingsnøkkel = avstemmingsnøkkel,
+            sakstype = sakstype,
+        ).toSimulertUtbetaling(
+            simulering = simulering,
+        ).toOversendtUtbetaling(
+            oppdragsmelding = utbetalingsrequest,
+        ).let {
+            when (kvittering) {
+                null -> {
+                    it
+                }
+                else -> {
+                    it.toKvittertUtbetaling(kvittering = kvittering)
+                }
+            }
         }
     }
 }

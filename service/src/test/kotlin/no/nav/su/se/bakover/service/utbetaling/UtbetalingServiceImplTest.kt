@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -72,6 +73,7 @@ internal class UtbetalingServiceImplTest {
         type = Utbetaling.UtbetalingsType.NY,
         behandler = attestant,
         avstemmingsnøkkel = avstemmingsnøkkel,
+        sakstype = Sakstype.UFØRE,
     )
 
     private val kvitteringOK = Kvittering(
@@ -119,6 +121,7 @@ internal class UtbetalingServiceImplTest {
                     type = it.type,
                     behandler = it.behandler,
                     avstemmingsnøkkel = it.avstemmingsnøkkel,
+                    sakstype = Sakstype.UFØRE,
                 ).toSimulertUtbetaling(
                     simulering = it.simulering,
                 ).toOversendtUtbetaling(
@@ -156,6 +159,7 @@ internal class UtbetalingServiceImplTest {
                     type = it.type,
                     behandler = it.behandler,
                     avstemmingsnøkkel = it.avstemmingsnøkkel,
+                    sakstype = Sakstype.UFØRE,
                 ).toSimulertUtbetaling(
                     simulering = it.simulering,
                 ).toOversendtUtbetaling(

@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -46,11 +47,12 @@ internal class UtbetalingsstrategiOpphørTest {
         sakId = sakId,
         saksnummer = saksnummer,
 
-        utbetalingslinjer = nonEmptyListOf(enUtbetalingslinje),
         fnr = fnr,
+        utbetalingslinjer = nonEmptyListOf(enUtbetalingslinje),
         type = Utbetaling.UtbetalingsType.NY,
         behandler = behandler,
-        avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt)
+        avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt),
+        sakstype = Sakstype.UFØRE,
     ).toSimulertUtbetaling(
         simulering = Simulering(
             gjelderId = fnr,
@@ -76,6 +78,7 @@ internal class UtbetalingsstrategiOpphørTest {
                 behandler = NavIdentBruker.Saksbehandler("Z123"),
                 clock = fixedClock,
                 opphørsDato = 1.januar(2021),
+                sakstype = Sakstype.UFØRE,
             ).generate()
         }.also {
             it.message shouldBe "Ingen oversendte utbetalinger å opphøre"
@@ -93,6 +96,7 @@ internal class UtbetalingsstrategiOpphørTest {
                 behandler = NavIdentBruker.Saksbehandler("Z123"),
                 clock = fixedClock,
                 opphørsDato = 1.januar(2022),
+                sakstype = Sakstype.UFØRE,
             ).generate()
         }.also {
             it.message shouldBe "Dato for opphør må være tidligere enn tilOgMed for siste utbetalingslinje"
@@ -110,6 +114,7 @@ internal class UtbetalingsstrategiOpphørTest {
                 behandler = NavIdentBruker.Saksbehandler("Z123"),
                 clock = fixedClock,
                 opphørsDato = 19.januar(2021),
+                sakstype = Sakstype.UFØRE,
             ).generate()
         }.also {
             it.message shouldBe "Ytelse kan kun opphøres fra første dag i måneden"
@@ -126,6 +131,7 @@ internal class UtbetalingsstrategiOpphørTest {
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             clock = fixedClock,
             opphørsDato = 1.januar(2021),
+            sakstype = Sakstype.UFØRE,
         ).generate().also {
             it.sakId shouldBe sakId
             it.saksnummer shouldBe saksnummer

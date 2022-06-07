@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -68,6 +69,7 @@ internal class UtbetalingsstrategiStansTest {
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             stansDato = 1.juli(2020),
             clock = fixedClock,
+            sakstype = Sakstype.UFØRE,
         ).generer().getOrFail("Skal kunne lage utbetaling for stans")
 
         stans.utbetalingslinjer[0] shouldBe Utbetalingslinje.Endring.Stans(
@@ -110,6 +112,7 @@ internal class UtbetalingsstrategiStansTest {
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             stansDato = 1.juli(2020),
             clock = fixedClock,
+            sakstype = Sakstype.UFØRE,
         ).generer() shouldBe Utbetalingsstrategi.Stans.Feil.SisteUtbetalingErEnStans.left()
     }
 
@@ -141,6 +144,7 @@ internal class UtbetalingsstrategiStansTest {
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             stansDato = 1.juli(2020),
             clock = fixedClock,
+            sakstype = Sakstype.UFØRE,
         ).generer() shouldBe Utbetalingsstrategi.Stans.Feil.SisteUtbetalingErOpphør.left()
     }
 
@@ -168,6 +172,7 @@ internal class UtbetalingsstrategiStansTest {
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             stansDato = 1.juli(2021),
             clock = fixedClock,
+            sakstype = Sakstype.UFØRE,
         ).generer() shouldBe Utbetalingsstrategi.Stans.Feil.IngenUtbetalingerEtterStansDato.left()
     }
 
@@ -195,6 +200,7 @@ internal class UtbetalingsstrategiStansTest {
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             stansDato = 10.juli(2020),
             clock = fixedClock,
+            sakstype = Sakstype.UFØRE,
         ).generer() shouldBe Utbetalingsstrategi.Stans.Feil.StansDatoErIkkeFørsteDatoIInneværendeEllerNesteMåned.left()
     }
 
@@ -226,6 +232,7 @@ internal class UtbetalingsstrategiStansTest {
                 behandler = NavIdentBruker.Saksbehandler("Z123"),
                 stansDato = it,
                 clock = fixedClock,
+                sakstype = Sakstype.UFØRE,
             ).generer().getOrFail("Skal kunne lage utbetaling for stans")
         }
 
@@ -245,6 +252,7 @@ internal class UtbetalingsstrategiStansTest {
                 behandler = NavIdentBruker.Saksbehandler("Z123"),
                 stansDato = it,
                 clock = fixedClock,
+                sakstype = Sakstype.UFØRE,
             )
                 .generer() shouldBe Utbetalingsstrategi.Stans.Feil.StansDatoErIkkeFørsteDatoIInneværendeEllerNesteMåned.left()
         }
@@ -299,6 +307,7 @@ internal class UtbetalingsstrategiStansTest {
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             stansDato = 1.august(2021),
             clock = fixedClock15Juli21,
+            sakstype = Sakstype.UFØRE,
         ).generer() shouldBe Utbetalingsstrategi.Stans.Feil.KanIkkeStanseOpphørtePerioder.left()
     }
 
@@ -354,6 +363,7 @@ internal class UtbetalingsstrategiStansTest {
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             stansDato = 1.august(2021),
             clock = fixedClock15Juli21,
+            sakstype = Sakstype.UFØRE,
         ).generer() shouldBe Utbetalingsstrategi.Stans.Feil.KanIkkeStanseOpphørtePerioder.left()
     }
 
@@ -366,11 +376,12 @@ internal class UtbetalingsstrategiStansTest {
             opprettet = Tidspunkt.now(clock),
             sakId = sakId,
             saksnummer = saksnummer,
-            utbetalingslinjer = utbetalingslinjer,
             fnr = fnr,
+            utbetalingslinjer = utbetalingslinjer,
             type = type,
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.now(clock)),
+            sakstype = Sakstype.UFØRE,
         ).toSimulertUtbetaling(
             simulering = Simulering(
                 gjelderId = fnr,

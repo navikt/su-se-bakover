@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -937,14 +938,15 @@ internal class KonsistensavstemmingTest {
     ): Utbetaling.OversendtUtbetaling.UtenKvittering {
         return Utbetaling.UtbetalingForSimulering(
             id = id,
+            opprettet = opprettet,
             sakId = UUID.randomUUID(),
             saksnummer = saksnummer,
-            utbetalingslinjer = utbetalingsLinjer,
             fnr = fnr,
-            opprettet = opprettet,
+            utbetalingslinjer = utbetalingsLinjer,
             type = Utbetaling.UtbetalingsType.NY,
             behandler = behandler,
             avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt),
+            sakstype = Sakstype.UFØRE,
         ).toSimulertUtbetaling(
             simulering = Simulering(
                 gjelderId = fnr,

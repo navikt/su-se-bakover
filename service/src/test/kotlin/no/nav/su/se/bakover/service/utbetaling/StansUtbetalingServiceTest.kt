@@ -97,6 +97,7 @@ internal class StansUtbetalingServiceTest {
         type = Utbetaling.UtbetalingsType.STANS,
         behandler = NavIdentBruker.Saksbehandler("Z123"),
         avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt),
+        sakstype = Sakstype.UFØRE,
     )
 
     private val simulertUtbetaling = stansUtbetaling.toSimulertUtbetaling(simulering)
@@ -122,6 +123,7 @@ internal class StansUtbetalingServiceTest {
                 type = Utbetaling.UtbetalingsType.NY,
                 behandler = NavIdentBruker.Saksbehandler("Z123"),
                 avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt),
+                sakstype = Sakstype.UFØRE,
             ).toSimulertUtbetaling(
                 simulering,
             ).toOversendtUtbetaling(

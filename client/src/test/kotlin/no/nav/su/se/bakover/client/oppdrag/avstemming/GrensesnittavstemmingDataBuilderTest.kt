@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -117,11 +118,12 @@ internal fun lagUtbetaling(
             opprettet = opprettet.atStartOfDay(zoneIdOslo).toTidspunkt(),
             sakId = sakId,
             saksnummer = saksnummer,
-            utbetalingslinjer = linjer,
             fnr = fnr,
+            utbetalingslinjer = linjer,
             type = Utbetaling.UtbetalingsType.NY,
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             avstemmingsnøkkel = Avstemmingsnøkkel(opprettet.atStartOfDay(zoneIdOslo).toTidspunkt()),
+            sakstype = Sakstype.UFØRE,
         ).toSimulertUtbetaling(
             simulering = simulering,
         ).toOversendtUtbetaling(
@@ -134,11 +136,12 @@ internal fun lagUtbetaling(
             opprettet = opprettet.atStartOfDay(zoneIdOslo).toTidspunkt(),
             sakId = sakId,
             saksnummer = saksnummer,
-            utbetalingslinjer = linjer,
             fnr = fnr,
+            utbetalingslinjer = linjer,
             type = Utbetaling.UtbetalingsType.NY,
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             avstemmingsnøkkel = Avstemmingsnøkkel(opprettet.atStartOfDay(zoneIdOslo).toTidspunkt()),
+            sakstype = Sakstype.UFØRE,
         ).toSimulertUtbetaling(
             simulering = simulering,
         ).toOversendtUtbetaling(

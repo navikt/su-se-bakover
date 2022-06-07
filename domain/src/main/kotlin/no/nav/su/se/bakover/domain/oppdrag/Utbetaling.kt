@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
@@ -29,6 +30,7 @@ sealed interface Utbetaling {
     val type: UtbetalingsType
     val behandler: NavIdentBruker
     val avstemmingsnøkkel: Avstemmingsnøkkel
+    val sakstype: Sakstype
 
     fun sisteUtbetalingslinje() = utbetalingslinjer.last()
     fun erFørstegangsUtbetaling() = utbetalingslinjer.any { it.forrigeUtbetalingslinjeId == null }
@@ -47,6 +49,7 @@ sealed interface Utbetaling {
         override val type: UtbetalingsType,
         override val behandler: NavIdentBruker,
         override val avstemmingsnøkkel: Avstemmingsnøkkel,
+        override val sakstype: Sakstype,
     ) : Utbetaling {
         fun toSimulertUtbetaling(simulering: Simulering) =
             SimulertUtbetaling(

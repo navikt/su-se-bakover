@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -72,6 +73,7 @@ internal class UtbetalingPublisherTest {
         type = Utbetaling.UtbetalingsType.NY,
         behandler = NavIdentBruker.Saksbehandler("Z123"),
         avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt),
+        sakstype = Sakstype.UFØRE,
     ).toSimulertUtbetaling(
         simulering = Simulering(
             gjelderId = Fnr(

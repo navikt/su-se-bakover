@@ -195,16 +195,17 @@ internal class SøknadsbehandlingServiceSimuleringTest {
         opprettet = fixedTidspunkt,
         sakId = sakId,
         saksnummer = saksnummer,
+        fnr = fnr,
         utbetalingslinjer = nonEmptyListOf(
             utbetalingslinje(
                 periode = januar(2021),
                 beløp = 0,
             ),
         ),
-        fnr = fnr,
         type = Utbetaling.UtbetalingsType.NY,
         behandler = Attestant("SU"),
         avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt),
+        sakstype = Sakstype.UFØRE,
     )
 
     private val simulertUtbetaling = utbetalingForSimulering.toSimulertUtbetaling(simulering)

@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
@@ -82,6 +83,7 @@ fun nyUtbetalingForSimulering(
                 }
             },
             kjøreplan = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+            sakstype = sakOgBehandling.first.type,
         ).generate()
     }
 }
@@ -167,6 +169,7 @@ fun opphørUtbetalingForSimulering(
             behandler = saksbehandler,
             opphørsDato = opphørsdato,
             clock = clock,
+            sakstype = sakOgBehandling.first.type,
         ).generate()
     }
 }
@@ -285,6 +288,7 @@ fun oversendtUtbetalingUtenKvittering(
         type = type,
         behandler = attestant,
         avstemmingsnøkkel = avstemmingsnøkkel,
+        sakstype = Sakstype.UFØRE
     ).toSimulertUtbetaling(
         simulering = simuleringNy(
             beregning = beregning,
@@ -326,6 +330,7 @@ fun simulertUtbetaling(
         type = type,
         behandler = attestant,
         avstemmingsnøkkel = avstemmingsnøkkel,
+        sakstype = Sakstype.UFØRE // TODO("simulering_utbetaling_alder utled fra sak/behandling")
     ).toSimulertUtbetaling(
         simulering = simuleringNy(
             fnr = fnr,
@@ -363,6 +368,7 @@ fun simulertUtbetalingOpphør(
         type = Utbetaling.UtbetalingsType.OPPHØR,
         behandler = behandler,
         avstemmingsnøkkel = avstemmingsnøkkel,
+        sakstype = Sakstype.UFØRE // TODO("simulering_utbetaling_alder utled fra sak/behandling")
     ).toSimulertUtbetaling(
         simulering = simuleringOpphørt(
             opphørsdato = opphørsdato,
@@ -400,6 +406,7 @@ fun simulertFeilutbetaling(
         type = type,
         behandler = attestant,
         avstemmingsnøkkel = avstemmingsnøkkel,
+        sakstype = Sakstype.UFØRE // TODO("simulering_utbetaling_alder utled fra sak/behandling")
     ).toSimulertUtbetaling(
         simulering = simuleringFeilutbetaling(periode),
     )
@@ -448,8 +455,9 @@ fun stansUtbetalingForSimulering(
         fnr = fnr,
         utbetalinger = eksisterendeUtbetalinger,
         behandler = saksbehandler,
-        clock = clock,
         stansDato = stansDato,
+        clock = clock,
+        sakstype = Sakstype.UFØRE // TODO("simulering_utbetaling_alder utled fra sak/behandling")
     ).generer().getOrFail()
 }
 
@@ -517,6 +525,7 @@ fun gjenopptakUtbetalingForSimulering(
         utbetalinger = eksisterendeUtbetalinger,
         behandler = saksbehandler,
         clock = clock,
+        sakstype = Sakstype.UFØRE // TODO("simulering_utbetaling_alder utled fra sak/behandling")
     ).generer().getOrFail("Skal kunne generere utbetaling for gjenopptak")
 }
 
