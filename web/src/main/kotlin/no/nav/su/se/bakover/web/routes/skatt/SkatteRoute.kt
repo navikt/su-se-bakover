@@ -6,10 +6,13 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
+import no.nav.su.se.bakover.client.skatteetaten.SkatteoppslagFeil
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.service.skatt.KunneIkkeHenteSkattemelding
 import no.nav.su.se.bakover.service.skatt.SkatteService
 import no.nav.su.se.bakover.web.Resultat
+import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.parameter
 import no.nav.su.se.bakover.web.routes.Feilresponser
@@ -28,10 +31,20 @@ internal fun Route.skattRoutes(skatteService: SkatteService) {
                 .map { fnr ->
                     skatteService.hentSamletSkattegrunnlag(fnr)
                         .fold(
-                            ifLeft = { Feilresponser.fantIkkeVedtak.svar(call) },
+                            ifLeft = {
+                                when (it) {
+                                    is KunneIkkeHenteSkattemelding.KallFeilet -> {
+                                        when (val feil = it.feil) {
+                                            is SkatteoppslagFeil.KunneIkkeHenteSkattedata -> HttpStatusCode.fromValue(feil.statusCode).errorJson("Feil i henting av skattedata for gitt person", "Ukjent skattefeil")
+                                            is SkatteoppslagFeil.Nettverksfeil -> HttpStatusCode.InternalServerError.errorJson("Feil i kommunikasjon mot skatteetaten", "Ukjent skattefeil")
+                                        }
+                                    }
+                                    is KunneIkkeHenteSkattemelding.KunneIkkeHenteAccessToken -> HttpStatusCode.InternalServerError.errorJson("Feil i kommunikasjon mot skatteetaten", "Ukjent skattefeil")
+                                }
+                            },
                             ifRight = {
                                 call.svar(Resultat.json(HttpStatusCode.OK, it.toString()))
-                            }
+                            },
                         )
                 }
         }

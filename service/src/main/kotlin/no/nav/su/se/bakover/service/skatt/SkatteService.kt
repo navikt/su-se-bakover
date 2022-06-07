@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.service.skatt
 
 import arrow.core.Either
 import no.nav.su.se.bakover.client.maskinporten.KunneIkkeHenteToken
+import no.nav.su.se.bakover.client.skatteetaten.SkatteoppslagFeil
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.SamletSkattegrunnlag
 
@@ -11,5 +12,5 @@ interface SkatteService {
 
 sealed class KunneIkkeHenteSkattemelding {
     data class KunneIkkeHenteAccessToken(val feil: KunneIkkeHenteToken) : KunneIkkeHenteSkattemelding()
-    object SkatteErSlem : KunneIkkeHenteSkattemelding()
+    data class KallFeilet(val feil: SkatteoppslagFeil) : KunneIkkeHenteSkattemelding()
 }

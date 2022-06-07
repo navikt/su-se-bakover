@@ -10,5 +10,6 @@ interface Skatteoppslag {
 }
 
 sealed class SkatteoppslagFeil {
-    data class Nei(val feil: String) : SkatteoppslagFeil()
+    data class KunneIkkeHenteSkattedata(val statusCode: Int, val feilmelding: String) : SkatteoppslagFeil()
+    data class Nettverksfeil(val throwable: Throwable) : SkatteoppslagFeil()
 }

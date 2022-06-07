@@ -36,14 +36,16 @@ class SkatteClient(private val skatteetatenConfig: SkatteetatenConfig) : Skatteo
         Either.catch {
             client.send(getRequest, HttpResponse.BodyHandlers.ofString()).let { response ->
                 if (!response.isSuccess()) {
-                    log.error("Feil i henting samlet skattegrunnlag for person, ${response.statusCode()}")
-                    log.info("response body: ${response.body()}") // fjern dette sen
-                    return SkatteoppslagFeil.Nei("å nei").left()
+                    log.debug("Kall mot skatteetatens api feilet med statuskode ${response.statusCode()} og følgende feil: ${response.body()}")
+                    return SkatteoppslagFeil.KunneIkkeHenteSkattedata(
+                        statusCode = response.statusCode(),
+                        feilmelding = "Kall mot skatteetatens api feilet",
+                    ).left()
                 } else {
                     log.info("Vi fikk hentet token! wow. ${response.body()}")
                     return objectMapper.readValue(response.body(), SamletSkattegrunnlag::class.java).right()
                 }
             }
-        }.getOrHandle { return SkatteoppslagFeil.Nei("whoops").left() }
+        }.getOrHandle { return SkatteoppslagFeil.Nettverksfeil(it).left() }
     }
 }

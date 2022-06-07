@@ -62,15 +62,13 @@ class MaskinportenHTTPClient(private val maskinportenConfig: ApplicationConfig.C
             .POST(HttpRequest.BodyPublishers.ofString(body))
             .build()
 
-        log.info("request-body: $body")
         Either.catch {
             client.send(postRequest, HttpResponse.BodyHandlers.ofString()).let { response ->
                 if (!response.isSuccess()) {
-                    log.error("Feil i henting av token mot maskinporten, ${response.statusCode()}")
-                    log.info("response body: ${response.body()}") // fjern dette sen
+                    log.error("Feil i henting av token mot maskinporten med statuskode ${response.statusCode()} og feil: ${response.body()}")
                     return KunneIkkeHenteToken.UgyldigRespons(response.statusCode(), response.body()).left()
                 } else {
-                    log.info("Vi fikk hentet token! wow. ${response.body()}")
+                    log.debug("Hentet token fra maskinporten")
                     return ExpiringTokenResponse(JSONObject(response.body())).right()
                 }
             }

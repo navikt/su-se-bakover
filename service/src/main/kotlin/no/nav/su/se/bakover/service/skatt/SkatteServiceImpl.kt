@@ -31,7 +31,7 @@ class SkatteServiceImpl(
             .mapLeft { KunneIkkeHenteSkattemelding.KunneIkkeHenteAccessToken(it) }
             .flatMap { tokenResponse ->
                 skatteClient.hentSamletSkattegrunnlag(tokenResponse.accessToken, fnr)
-                    .mapLeft { KunneIkkeHenteSkattemelding.SkatteErSlem }
+                    .mapLeft { KunneIkkeHenteSkattemelding.KallFeilet(it) }
             }
     }
 }
