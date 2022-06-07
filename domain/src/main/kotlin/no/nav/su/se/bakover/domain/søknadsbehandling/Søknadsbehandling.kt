@@ -728,22 +728,19 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 clock: Clock,
                 formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
-                val oppdatertVilkårsvurderinger = vilkårsvurderinger.oppdaterStønadsperiode(
+                return grunnlagsdataOgVilkårsvurderinger.oppdaterStønadsperiode(
                     stønadsperiode = oppdatertStønadsperiode,
                     formuegrenserFactory = formuegrenserFactory,
-                )
-                return copy(
-                    stønadsperiode = oppdatertStønadsperiode,
-                    grunnlagsdata = grunnlagsdata.oppdaterGrunnlagsperioder(
-                        oppdatertPeriode = oppdatertStønadsperiode.periode,
-                    ).getOrHandle {
-                        return KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it).left()
-                    },
-                    vilkårsvurderinger = oppdatertVilkårsvurderinger,
-                ).vilkårsvurder(
-                    vilkårsvurderinger = oppdatertVilkårsvurderinger,
-                    clock = clock,
-                ).right()
+                ).let {
+                    copy(
+                        stønadsperiode = oppdatertStønadsperiode,
+                        grunnlagsdata = it.grunnlagsdata,
+                        vilkårsvurderinger = it.vilkårsvurderinger,
+                    ).vilkårsvurder(
+                        vilkårsvurderinger = it.vilkårsvurderinger,
+                        clock = clock,
+                    ).right()
+                }
             }
         }
 
@@ -862,20 +859,19 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 clock: Clock,
                 formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
-                return copy(
+                return grunnlagsdataOgVilkårsvurderinger.oppdaterStønadsperiode(
                     stønadsperiode = oppdatertStønadsperiode,
-                    grunnlagsdata = grunnlagsdata.oppdaterGrunnlagsperioder(
-                        oppdatertPeriode = oppdatertStønadsperiode.periode,
-                    ).getOrHandle {
-                        return KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it).left()
-                    },
-                ).vilkårsvurder(
-                    vilkårsvurderinger = vilkårsvurderinger.oppdaterStønadsperiode(
+                    formuegrenserFactory = formuegrenserFactory,
+                ).let {
+                    copy(
                         stønadsperiode = oppdatertStønadsperiode,
-                        formuegrenserFactory = formuegrenserFactory,
-                    ),
-                    clock = clock,
-                ).right()
+                        grunnlagsdata = it.grunnlagsdata,
+                        vilkårsvurderinger = it.vilkårsvurderinger,
+                    ).vilkårsvurder(
+                        vilkårsvurderinger = it.vilkårsvurderinger,
+                        clock = clock,
+                    ).right()
+                }
             }
         }
 
@@ -965,20 +961,19 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 clock: Clock,
                 formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
-                return copy(
+                return grunnlagsdataOgVilkårsvurderinger.oppdaterStønadsperiode(
                     stønadsperiode = oppdatertStønadsperiode,
-                    grunnlagsdata = grunnlagsdata.oppdaterGrunnlagsperioder(
-                        oppdatertPeriode = oppdatertStønadsperiode.periode,
-                    ).getOrHandle {
-                        return KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it).left()
-                    },
-                ).vilkårsvurder(
-                    vilkårsvurderinger = vilkårsvurderinger.oppdaterStønadsperiode(
+                    formuegrenserFactory = formuegrenserFactory,
+                ).let {
+                    copy(
                         stønadsperiode = oppdatertStønadsperiode,
-                        formuegrenserFactory = formuegrenserFactory,
-                    ),
-                    clock = clock,
-                ).right()
+                        grunnlagsdata = it.grunnlagsdata,
+                        vilkårsvurderinger = it.vilkårsvurderinger,
+                    ).vilkårsvurder(
+                        vilkårsvurderinger = it.vilkårsvurderinger,
+                        clock = clock,
+                    ).right()
+                }
             }
 
             data class StønadsperiodeIkkeDefinertException(
@@ -1179,20 +1174,19 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 clock: Clock,
                 formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
-                return copy(
+                return grunnlagsdataOgVilkårsvurderinger.oppdaterStønadsperiode(
                     stønadsperiode = oppdatertStønadsperiode,
-                    grunnlagsdata = grunnlagsdata.oppdaterGrunnlagsperioder(
-                        oppdatertPeriode = oppdatertStønadsperiode.periode,
-                    ).getOrHandle {
-                        return KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it).left()
-                    },
-                ).vilkårsvurder(
-                    vilkårsvurderinger = vilkårsvurderinger.oppdaterStønadsperiode(
+                    formuegrenserFactory = formuegrenserFactory,
+                ).let {
+                    copy(
                         stønadsperiode = oppdatertStønadsperiode,
-                        formuegrenserFactory = formuegrenserFactory,
-                    ),
-                    clock = clock,
-                ).right()
+                        grunnlagsdata = it.grunnlagsdata,
+                        vilkårsvurderinger = it.vilkårsvurderinger,
+                    ).vilkårsvurder(
+                        vilkårsvurderinger = it.vilkårsvurderinger,
+                        clock = clock,
+                    ).right()
+                }
             }
         }
 
@@ -1368,20 +1362,19 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 clock: Clock,
                 formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
-                return copy(
+                return grunnlagsdataOgVilkårsvurderinger.oppdaterStønadsperiode(
                     stønadsperiode = oppdatertStønadsperiode,
-                    grunnlagsdata = grunnlagsdata.oppdaterGrunnlagsperioder(
-                        oppdatertPeriode = oppdatertStønadsperiode.periode,
-                    ).getOrHandle {
-                        return KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it).left()
-                    },
-                ).vilkårsvurder(
-                    vilkårsvurderinger = vilkårsvurderinger.oppdaterStønadsperiode(
+                    formuegrenserFactory = formuegrenserFactory,
+                ).let {
+                    copy(
                         stønadsperiode = oppdatertStønadsperiode,
-                        formuegrenserFactory = formuegrenserFactory,
-                    ),
-                    clock = clock,
-                ).right()
+                        grunnlagsdata = it.grunnlagsdata,
+                        vilkårsvurderinger = it.vilkårsvurderinger,
+                    ).vilkårsvurder(
+                        vilkårsvurderinger = it.vilkårsvurderinger,
+                        clock = clock,
+                    ).right()
+                }
             }
         }
     }
@@ -1594,20 +1587,19 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             clock: Clock,
             formuegrenserFactory: FormuegrenserFactory,
         ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
-            return copy(
+            return grunnlagsdataOgVilkårsvurderinger.oppdaterStønadsperiode(
                 stønadsperiode = oppdatertStønadsperiode,
-                grunnlagsdata = grunnlagsdata.oppdaterGrunnlagsperioder(
-                    oppdatertPeriode = oppdatertStønadsperiode.periode,
-                ).getOrHandle {
-                    return KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it).left()
-                },
-            ).vilkårsvurder(
-                vilkårsvurderinger = vilkårsvurderinger.oppdaterStønadsperiode(
+                formuegrenserFactory = formuegrenserFactory,
+            ).let {
+                copy(
                     stønadsperiode = oppdatertStønadsperiode,
-                    formuegrenserFactory = formuegrenserFactory,
-                ),
-                clock = clock,
-            ).right()
+                    grunnlagsdata = it.grunnlagsdata,
+                    vilkårsvurderinger = it.vilkårsvurderinger,
+                ).vilkårsvurder(
+                    vilkårsvurderinger = it.vilkårsvurderinger,
+                    clock = clock,
+                ).right()
+            }
         }
     }
 
@@ -2117,20 +2109,19 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 clock: Clock,
                 formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
-                return copy(
+                return grunnlagsdataOgVilkårsvurderinger.oppdaterStønadsperiode(
                     stønadsperiode = oppdatertStønadsperiode,
-                    grunnlagsdata = grunnlagsdata.oppdaterGrunnlagsperioder(
-                        oppdatertPeriode = oppdatertStønadsperiode.periode,
-                    ).getOrHandle {
-                        return KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it).left()
-                    },
-                ).vilkårsvurder(
-                    vilkårsvurderinger = vilkårsvurderinger.oppdaterStønadsperiode(
+                    formuegrenserFactory = formuegrenserFactory,
+                ).let {
+                    copy(
                         stønadsperiode = oppdatertStønadsperiode,
-                        formuegrenserFactory = formuegrenserFactory,
-                    ),
-                    clock = clock,
-                ).right()
+                        grunnlagsdata = it.grunnlagsdata,
+                        vilkårsvurderinger = it.vilkårsvurderinger,
+                    ).vilkårsvurder(
+                        vilkårsvurderinger = it.vilkårsvurderinger,
+                        clock = clock,
+                    ).right()
+                }
             }
         }
 
@@ -2309,20 +2300,19 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     clock: Clock,
                     formuegrenserFactory: FormuegrenserFactory,
                 ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
-                    return copy(
+                    return grunnlagsdataOgVilkårsvurderinger.oppdaterStønadsperiode(
                         stønadsperiode = oppdatertStønadsperiode,
-                        grunnlagsdata = grunnlagsdata.oppdaterGrunnlagsperioder(
-                            oppdatertPeriode = oppdatertStønadsperiode.periode,
-                        ).getOrHandle {
-                            return KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it).left()
-                        },
-                    ).vilkårsvurder(
-                        vilkårsvurderinger = vilkårsvurderinger.oppdaterStønadsperiode(
+                        formuegrenserFactory = formuegrenserFactory,
+                    ).let {
+                        copy(
                             stønadsperiode = oppdatertStønadsperiode,
-                            formuegrenserFactory = formuegrenserFactory,
-                        ),
-                        clock = clock,
-                    ).right()
+                            grunnlagsdata = it.grunnlagsdata,
+                            vilkårsvurderinger = it.vilkårsvurderinger,
+                        ).vilkårsvurder(
+                            vilkårsvurderinger = it.vilkårsvurderinger,
+                            clock = clock,
+                        ).right()
+                    }
                 }
             }
 
@@ -2442,20 +2432,19 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     clock: Clock,
                     formuegrenserFactory: FormuegrenserFactory,
                 ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
-                    return copy(
+                    return grunnlagsdataOgVilkårsvurderinger.oppdaterStønadsperiode(
                         stønadsperiode = oppdatertStønadsperiode,
-                        grunnlagsdata = grunnlagsdata.oppdaterGrunnlagsperioder(
-                            oppdatertPeriode = oppdatertStønadsperiode.periode,
-                        ).getOrHandle {
-                            return KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it).left()
-                        },
-                    ).vilkårsvurder(
-                        vilkårsvurderinger = vilkårsvurderinger.oppdaterStønadsperiode(
+                        formuegrenserFactory = formuegrenserFactory,
+                    ).let {
+                        copy(
                             stønadsperiode = oppdatertStønadsperiode,
-                            formuegrenserFactory = formuegrenserFactory,
-                        ),
-                        clock = clock,
-                    ).right()
+                            grunnlagsdata = it.grunnlagsdata,
+                            vilkårsvurderinger = it.vilkårsvurderinger,
+                        ).vilkårsvurder(
+                            vilkårsvurderinger = it.vilkårsvurderinger,
+                            clock = clock,
+                        ).right()
+                    }
                 }
             }
         }
