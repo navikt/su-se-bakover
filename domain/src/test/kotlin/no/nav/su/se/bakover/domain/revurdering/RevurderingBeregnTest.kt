@@ -618,7 +618,7 @@ internal class RevurderingBeregnTest {
 
     private fun lagUtbetaling(
         vararg utbetalingslinjer: Utbetalingslinje,
-    ) = Utbetaling.OversendtUtbetaling.MedKvittering(
+    ) = Utbetaling.UtbetalingForSimulering(
         opprettet = fixedTidspunkt,
         sakId = UUID.randomUUID(),
         saksnummer = Saksnummer(9999),
@@ -627,8 +627,11 @@ internal class RevurderingBeregnTest {
         type = Utbetaling.UtbetalingsType.NY,
         behandler = mock(),
         avstemmingsnøkkel = mock(),
+    ).toSimulertUtbetaling(
         simulering = mock(),
-        utbetalingsrequest = mock(),
+    ).toOversendtUtbetaling(
+        oppdragsmelding = mock(),
+    ).toKvittertUtbetaling(
         kvittering = mock(),
     )
 

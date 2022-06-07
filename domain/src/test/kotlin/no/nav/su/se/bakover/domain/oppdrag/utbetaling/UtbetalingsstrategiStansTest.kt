@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
@@ -361,10 +362,16 @@ internal class UtbetalingsstrategiStansTest {
         type: Utbetaling.UtbetalingsType,
         clock: Clock = fixedClock,
     ) =
-        Utbetaling.OversendtUtbetaling.MedKvittering(
+        Utbetaling.UtbetalingForSimulering(
             opprettet = Tidspunkt.now(clock),
             sakId = sakId,
             saksnummer = saksnummer,
+            utbetalingslinjer = utbetalingslinjer,
+            fnr = fnr,
+            type = type,
+            behandler = NavIdentBruker.Saksbehandler("Z123"),
+            avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.now(clock)),
+        ).toSimulertUtbetaling(
             simulering = Simulering(
                 gjelderId = fnr,
                 gjelderNavn = "navn",
@@ -372,17 +379,16 @@ internal class UtbetalingsstrategiStansTest {
                 nettoBeløp = 0,
                 periodeList = listOf(),
             ),
-            utbetalingsrequest = Utbetalingsrequest(
+        ).toOversendtUtbetaling(
+            oppdragsmelding = Utbetalingsrequest(
                 value = "",
             ),
+
+        ).toKvittertUtbetaling(
             kvittering = Kvittering(
                 Kvittering.Utbetalingsstatus.OK_MED_VARSEL,
                 "",
                 mottattTidspunkt = Tidspunkt.now(clock),
             ),
-            utbetalingslinjer = utbetalingslinjer,
-            fnr = fnr,
-            type = type,
-            behandler = NavIdentBruker.Saksbehandler("Z123"),
         )
 }

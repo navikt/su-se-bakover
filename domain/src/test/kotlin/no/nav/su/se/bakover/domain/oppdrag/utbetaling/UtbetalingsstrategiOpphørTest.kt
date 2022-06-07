@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -40,10 +41,17 @@ internal class UtbetalingsstrategiOpphørTest {
         uføregrad = Uføregrad.parse(50),
     )
 
-    private val enUtbetaling = Utbetaling.OversendtUtbetaling.MedKvittering(
+    private val enUtbetaling = Utbetaling.UtbetalingForSimulering(
         opprettet = fixedTidspunkt,
         sakId = sakId,
         saksnummer = saksnummer,
+
+        utbetalingslinjer = nonEmptyListOf(enUtbetalingslinje),
+        fnr = fnr,
+        type = Utbetaling.UtbetalingsType.NY,
+        behandler = behandler,
+        avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt)
+    ).toSimulertUtbetaling(
         simulering = Simulering(
             gjelderId = fnr,
             gjelderNavn = "navn",
@@ -51,12 +59,10 @@ internal class UtbetalingsstrategiOpphørTest {
             nettoBeløp = 0,
             periodeList = listOf(),
         ),
+    ).toOversendtUtbetaling(
+        oppdragsmelding = Utbetalingsrequest(value = ""),
+    ).toKvittertUtbetaling(
         kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK, "", mottattTidspunkt = fixedTidspunkt),
-        utbetalingsrequest = Utbetalingsrequest(value = ""),
-        utbetalingslinjer = nonEmptyListOf(enUtbetalingslinje),
-        fnr = fnr,
-        type = Utbetaling.UtbetalingsType.NY,
-        behandler = behandler,
     )
 
     @Test
@@ -135,7 +141,7 @@ internal class UtbetalingsstrategiOpphørTest {
                     beløp = enUtbetalingslinje.beløp,
                     forrigeUtbetalingslinjeId = enUtbetalingslinje.forrigeUtbetalingslinjeId,
                     virkningstidspunkt = 1.januar(2021),
-                    uføregrad = enUtbetalingslinje.uføregrad
+                    uføregrad = enUtbetalingslinje.uføregrad,
                 ),
             )
         }

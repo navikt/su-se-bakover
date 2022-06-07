@@ -934,25 +934,29 @@ internal class KonsistensavstemmingTest {
         opprettet: Tidspunkt = fixedTidspunkt,
         utbetalingsLinjer: NonEmptyList<Utbetalingslinje>,
         behandler: NavIdentBruker = defaultAttestant,
-    ) = Utbetaling.OversendtUtbetaling.UtenKvittering(
-        id = id,
-        sakId = UUID.randomUUID(),
-        saksnummer = saksnummer,
-        utbetalingslinjer = utbetalingsLinjer,
-        fnr = fnr,
-        opprettet = opprettet,
-        type = Utbetaling.UtbetalingsType.NY,
-        behandler = behandler,
-        avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt),
-        simulering = Simulering(
-            gjelderId = fnr,
-            gjelderNavn = "navn",
-            datoBeregnet = idag(fixedClock),
-            nettoBeløp = 0,
-            periodeList = listOf(),
-        ),
-        utbetalingsrequest = Utbetalingsrequest(value = ""),
-    )
+    ): Utbetaling.OversendtUtbetaling.UtenKvittering {
+        return Utbetaling.UtbetalingForSimulering(
+            id = id,
+            sakId = UUID.randomUUID(),
+            saksnummer = saksnummer,
+            utbetalingslinjer = utbetalingsLinjer,
+            fnr = fnr,
+            opprettet = opprettet,
+            type = Utbetaling.UtbetalingsType.NY,
+            behandler = behandler,
+            avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt),
+        ).toSimulertUtbetaling(
+            simulering = Simulering(
+                gjelderId = fnr,
+                gjelderNavn = "navn",
+                datoBeregnet = idag(fixedClock),
+                nettoBeløp = 0,
+                periodeList = listOf(),
+            ),
+        ).toOversendtUtbetaling(
+            oppdragsmelding = Utbetalingsrequest(value = ""),
+        )
+    }
 
     private fun createUtbetalingslinje(
         opprettet: Tidspunkt,

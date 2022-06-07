@@ -258,18 +258,21 @@ internal class KontrollerSimuleringTest {
         utbetalingslinjer: NonEmptyList<Utbetalingslinje>,
         type: Utbetaling.UtbetalingsType,
         simulering: Simulering,
-    ): Utbetaling.SimulertUtbetaling = Utbetaling.SimulertUtbetaling(
-        id = UUID30.randomUUID(),
-        opprettet = fixedTidspunkt,
-        sakId = UUID.randomUUID(),
-        saksnummer = Saksnummer(9999),
-        fnr = fnr,
-        utbetalingslinjer = utbetalingslinjer,
-        type = type,
-        behandler = NavIdentBruker.Saksbehandler("saksa"),
-        avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt),
-        simulering = simulering,
-    )
+    ): Utbetaling.SimulertUtbetaling {
+        return Utbetaling.UtbetalingForSimulering(
+            id = UUID30.randomUUID(),
+            opprettet = fixedTidspunkt,
+            sakId = UUID.randomUUID(),
+            saksnummer = Saksnummer(9999),
+            fnr = fnr,
+            utbetalingslinjer = utbetalingslinjer,
+            type = type,
+            behandler = NavIdentBruker.Saksbehandler("saksa"),
+            avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt),
+        ).toSimulertUtbetaling(
+            simulering = simulering,
+        )
+    }
 
     private fun eksisterendeUtbetaling(
         periode: Periode,

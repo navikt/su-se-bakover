@@ -27,11 +27,11 @@ data class UtbetalingMapper(
     val utbetalingsrequest: Utbetalingsrequest,
     val kvittering: Kvittering?,
     val avstemmingId: UUID30?,
-    val behandler: NavIdentBruker
+    val behandler: NavIdentBruker,
 ) {
     fun map(): Utbetaling.OversendtUtbetaling = when (kvittering) {
         null -> {
-            Utbetaling.OversendtUtbetaling.UtenKvittering(
+            Utbetaling.UtbetalingForSimulering(
                 id = id,
                 opprettet = opprettet,
                 sakId = sakId,
@@ -41,12 +41,14 @@ data class UtbetalingMapper(
                 type = type,
                 behandler = behandler,
                 avstemmingsnøkkel = avstemmingsnøkkel,
+            ).toSimulertUtbetaling(
                 simulering = simulering,
-                utbetalingsrequest = utbetalingsrequest,
+            ).toOversendtUtbetaling(
+                oppdragsmelding = utbetalingsrequest,
             )
         }
         else -> {
-            Utbetaling.OversendtUtbetaling.MedKvittering(
+            Utbetaling.UtbetalingForSimulering(
                 id = id,
                 opprettet = opprettet,
                 sakId = sakId,
@@ -56,8 +58,11 @@ data class UtbetalingMapper(
                 type = type,
                 behandler = behandler,
                 avstemmingsnøkkel = avstemmingsnøkkel,
+            ).toSimulertUtbetaling(
                 simulering = simulering,
-                utbetalingsrequest = utbetalingsrequest,
+            ).toOversendtUtbetaling(
+                oppdragsmelding = utbetalingsrequest,
+            ).toKvittertUtbetaling(
                 kvittering = kvittering,
             )
         }

@@ -215,7 +215,7 @@ internal fun oversendtUtbetalingUtenKvittering(
     utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(utbetalingslinje()),
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.database.avstemmingsnøkkel,
 ): Utbetaling.OversendtUtbetaling.UtenKvittering {
-    return Utbetaling.OversendtUtbetaling.UtenKvittering(
+    return Utbetaling.UtbetalingForSimulering(
         id = id,
         opprettet = fixedTidspunkt,
         sakId = sakId,
@@ -225,8 +225,10 @@ internal fun oversendtUtbetalingUtenKvittering(
         type = Utbetaling.UtbetalingsType.NY,
         behandler = attestant,
         avstemmingsnøkkel = avstemmingsnøkkel,
+    ).toSimulertUtbetaling(
         simulering = simulering(fnr),
-        utbetalingsrequest = Utbetalingsrequest("<xml></xml>"),
+    ).toOversendtUtbetaling(
+        oppdragsmelding = Utbetalingsrequest("<xml></xml>"),
     )
 }
 

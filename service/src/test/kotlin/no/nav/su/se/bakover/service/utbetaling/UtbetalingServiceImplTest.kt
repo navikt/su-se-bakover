@@ -109,7 +109,7 @@ internal class UtbetalingServiceImplTest {
     fun `oppdater med kvittering - kvittering eksisterer ikke fra før`() {
         val utbetalingUtenKvittering = vedtakSøknadsbehandlingIverksattInnvilget().let { (sak, _) ->
             (sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering).let {
-                Utbetaling.OversendtUtbetaling.UtenKvittering(
+                Utbetaling.UtbetalingForSimulering(
                     id = it.id,
                     opprettet = it.opprettet,
                     sakId = it.sakId,
@@ -119,8 +119,10 @@ internal class UtbetalingServiceImplTest {
                     type = it.type,
                     behandler = it.behandler,
                     avstemmingsnøkkel = it.avstemmingsnøkkel,
+                ).toSimulertUtbetaling(
                     simulering = it.simulering,
-                    utbetalingsrequest = it.utbetalingsrequest,
+                ).toOversendtUtbetaling(
+                    oppdragsmelding = it.utbetalingsrequest,
                 )
             }
         }
@@ -144,7 +146,7 @@ internal class UtbetalingServiceImplTest {
     fun `oppdater med kvittering - kvittering eksisterer fra før`() {
         val utbetalingUtenKvittering = vedtakSøknadsbehandlingIverksattInnvilget().let { (sak, _) ->
             (sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering).let {
-                Utbetaling.OversendtUtbetaling.UtenKvittering(
+                Utbetaling.UtbetalingForSimulering(
                     id = it.id,
                     opprettet = it.opprettet,
                     sakId = it.sakId,
@@ -154,8 +156,10 @@ internal class UtbetalingServiceImplTest {
                     type = it.type,
                     behandler = it.behandler,
                     avstemmingsnøkkel = it.avstemmingsnøkkel,
+                ).toSimulertUtbetaling(
                     simulering = it.simulering,
-                    utbetalingsrequest = it.utbetalingsrequest,
+                ).toOversendtUtbetaling(
+                    oppdragsmelding = it.utbetalingsrequest,
                 )
             }
         }

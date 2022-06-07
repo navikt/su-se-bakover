@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -324,15 +325,17 @@ internal class UtbetalingsstrategiGjenopptaTest {
     private fun createOversendtUtbetaling(
         utbetalingslinjer: NonEmptyList<Utbetalingslinje>,
         type: Utbetaling.UtbetalingsType,
-    ) =
-        Utbetaling.OversendtUtbetaling.UtenKvittering(
+    ): Utbetaling.OversendtUtbetaling.UtenKvittering {
+        return Utbetaling.UtbetalingForSimulering(
             opprettet = fixedTidspunkt,
             sakId = sakId,
             saksnummer = saksnummer,
-            utbetalingsrequest = Utbetalingsrequest(""),
             utbetalingslinjer = utbetalingslinjer,
             fnr = fnr,
             type = type,
+            behandler = NavIdentBruker.Saksbehandler("Z123"),
+            avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt),
+        ).toSimulertUtbetaling(
             simulering = Simulering(
                 gjelderId = Fnr(fnr = fnr.toString()),
                 gjelderNavn = "navn",
@@ -340,6 +343,8 @@ internal class UtbetalingsstrategiGjenopptaTest {
                 nettoBeløp = 0,
                 periodeList = listOf(),
             ),
-            behandler = NavIdentBruker.Saksbehandler("Z123"),
+        ).toOversendtUtbetaling(
+            oppdragsmelding = Utbetalingsrequest(""),
         )
+    }
 }

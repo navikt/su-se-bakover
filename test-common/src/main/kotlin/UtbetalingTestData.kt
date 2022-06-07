@@ -274,26 +274,30 @@ fun oversendtUtbetalingUtenKvittering(
     type: Utbetaling.UtbetalingsType = Utbetaling.UtbetalingsType.NY,
     eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
     beregning: Beregning = beregning(periode),
-) = Utbetaling.OversendtUtbetaling.UtenKvittering(
-    id = id,
-    opprettet = Tidspunkt.now(clock),
-    sakId = sakId,
-    saksnummer = saksnummer,
-    fnr = fnr,
-    utbetalingslinjer = utbetalingslinjer,
-    type = type,
-    behandler = attestant,
-    avstemmingsnøkkel = avstemmingsnøkkel,
-    simulering = simuleringNy(
-        beregning = beregning,
-        eksisterendeUtbetalinger = eksisterendeUtbetalinger,
-        fnr = fnr,
+): Utbetaling.OversendtUtbetaling.UtenKvittering {
+    return Utbetaling.UtbetalingForSimulering(
+        id = id,
+        opprettet = Tidspunkt.now(clock),
         sakId = sakId,
         saksnummer = saksnummer,
-        clock = clock,
-    ),
-    utbetalingsrequest = utbetalingsRequest,
-)
+        fnr = fnr,
+        utbetalingslinjer = utbetalingslinjer,
+        type = type,
+        behandler = attestant,
+        avstemmingsnøkkel = avstemmingsnøkkel,
+    ).toSimulertUtbetaling(
+        simulering = simuleringNy(
+            beregning = beregning,
+            eksisterendeUtbetalinger = eksisterendeUtbetalinger,
+            fnr = fnr,
+            sakId = sakId,
+            saksnummer = saksnummer,
+            clock = clock,
+        ),
+    ).toOversendtUtbetaling(
+        oppdragsmelding = utbetalingsRequest,
+    )
+}
 
 fun simulertUtbetaling(
     id: UUID30 = UUID30.randomUUID(),
@@ -311,18 +315,25 @@ fun simulertUtbetaling(
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.avstemmingsnøkkel,
     type: Utbetaling.UtbetalingsType = Utbetaling.UtbetalingsType.NY,
     eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
-) = Utbetaling.SimulertUtbetaling(
-    id = id,
-    opprettet = Tidspunkt.now(clock),
-    sakId = sakId,
-    saksnummer = saksnummer,
-    fnr = fnr,
-    utbetalingslinjer = utbetalingslinjer,
-    type = type,
-    behandler = attestant,
-    avstemmingsnøkkel = avstemmingsnøkkel,
-    simulering = simuleringNy(fnr = fnr, eksisterendeUtbetalinger = eksisterendeUtbetalinger, clock = clock),
-)
+): Utbetaling.SimulertUtbetaling {
+    return Utbetaling.UtbetalingForSimulering(
+        id = id,
+        opprettet = Tidspunkt.now(clock),
+        sakId = sakId,
+        saksnummer = saksnummer,
+        fnr = fnr,
+        utbetalingslinjer = utbetalingslinjer,
+        type = type,
+        behandler = attestant,
+        avstemmingsnøkkel = avstemmingsnøkkel,
+    ).toSimulertUtbetaling(
+        simulering = simuleringNy(
+            fnr = fnr,
+            eksisterendeUtbetalinger = eksisterendeUtbetalinger,
+            clock = clock,
+        ),
+    )
+}
 
 fun simulertUtbetalingOpphør(
     id: UUID30 = UUID30.randomUUID(),
@@ -336,7 +347,7 @@ fun simulertUtbetalingOpphør(
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.avstemmingsnøkkel,
     eksisterendeUtbetalinger: List<Utbetaling>,
 ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
-    return Utbetaling.SimulertUtbetaling(
+    return Utbetaling.UtbetalingForSimulering(
         id = id,
         opprettet = Tidspunkt.now(clock),
         sakId = sakId,
@@ -352,6 +363,7 @@ fun simulertUtbetalingOpphør(
         type = Utbetaling.UtbetalingsType.OPPHØR,
         behandler = behandler,
         avstemmingsnøkkel = avstemmingsnøkkel,
+    ).toSimulertUtbetaling(
         simulering = simuleringOpphørt(
             opphørsdato = opphørsdato,
             eksisterendeUtbetalinger = eksisterendeUtbetalinger,
@@ -377,18 +389,21 @@ fun simulertFeilutbetaling(
     ),
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.avstemmingsnøkkel,
     type: Utbetaling.UtbetalingsType = Utbetaling.UtbetalingsType.NY,
-) = Utbetaling.SimulertUtbetaling(
-    id = id,
-    opprettet = Tidspunkt.now(clock),
-    sakId = sakId,
-    saksnummer = saksnummer,
-    fnr = fnr,
-    utbetalingslinjer = utbetalingslinjer,
-    type = type,
-    behandler = attestant,
-    avstemmingsnøkkel = avstemmingsnøkkel,
-    simulering = simuleringFeilutbetaling(periode),
-)
+): Utbetaling.SimulertUtbetaling {
+    return Utbetaling.UtbetalingForSimulering(
+        id = id,
+        opprettet = Tidspunkt.now(clock),
+        sakId = sakId,
+        saksnummer = saksnummer,
+        fnr = fnr,
+        utbetalingslinjer = utbetalingslinjer,
+        type = type,
+        behandler = attestant,
+        avstemmingsnøkkel = avstemmingsnøkkel,
+    ).toSimulertUtbetaling(
+        simulering = simuleringFeilutbetaling(periode),
+    )
+}
 
 /**
  * Defaultverdier:

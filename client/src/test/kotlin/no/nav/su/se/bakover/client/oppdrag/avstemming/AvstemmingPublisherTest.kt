@@ -138,7 +138,7 @@ class AvstemmingPublisherTest {
         fraOgMed = 1.januar(2020).startOfDay(),
         tilOgMed = 2.januar(2020).startOfDay(),
         utbetalinger = listOf(
-            Utbetaling.OversendtUtbetaling.MedKvittering(
+            Utbetaling.UtbetalingForSimulering(
                 opprettet = fixedTidspunkt,
                 saksnummer = saksnummer,
                 sakId = sakId,
@@ -149,6 +149,10 @@ class AvstemmingPublisherTest {
                     ),
                 ),
                 fnr = Fnr("12345678910"),
+                type = Utbetaling.UtbetalingsType.NY,
+                behandler = NavIdentBruker.Saksbehandler("Z123"),
+                avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt),
+            ).toSimulertUtbetaling(
                 simulering = Simulering(
                     gjelderId = Fnr("12345678910"),
                     gjelderNavn = "",
@@ -156,16 +160,14 @@ class AvstemmingPublisherTest {
                     nettoBeløp = 5000,
                     periodeList = listOf(),
                 ),
-                utbetalingsrequest = Utbetalingsrequest(
-                    value = "",
-                ),
+            ).toOversendtUtbetaling(
+                oppdragsmelding = Utbetalingsrequest(value = ""),
+            ).toKvittertUtbetaling(
                 kvittering = Kvittering(
                     utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
                     originalKvittering = "hallo",
                     mottattTidspunkt = fixedTidspunkt,
                 ),
-                type = Utbetaling.UtbetalingsType.NY,
-                behandler = NavIdentBruker.Saksbehandler("Z123"),
             ),
         ),
     )

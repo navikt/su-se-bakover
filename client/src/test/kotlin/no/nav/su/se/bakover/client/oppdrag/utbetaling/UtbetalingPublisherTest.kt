@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -57,7 +58,7 @@ internal class UtbetalingPublisherTest {
         }
     }
 
-    private val simulertUtbetaling = Utbetaling.SimulertUtbetaling(
+    private val simulertUtbetaling = Utbetaling.UtbetalingForSimulering(
         opprettet = fixedTidspunkt,
         sakId = sakId,
         saksnummer = saksnummer,
@@ -69,12 +70,14 @@ internal class UtbetalingPublisherTest {
             ),
         ),
         type = Utbetaling.UtbetalingsType.NY,
+        behandler = NavIdentBruker.Saksbehandler("Z123"),
+        avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt),
+    ).toSimulertUtbetaling(
         simulering = Simulering(
             gjelderId = Fnr(
-                fnr = "12345678910"
+                fnr = "12345678910",
             ),
-            gjelderNavn = "navn", datoBeregnet = idag(fixedClock), nettoBeløp = 0, periodeList = listOf()
+            gjelderNavn = "navn", datoBeregnet = idag(fixedClock), nettoBeløp = 0, periodeList = listOf(),
         ),
-        behandler = NavIdentBruker.Saksbehandler("Z123"),
     )
 }
