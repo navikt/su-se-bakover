@@ -1,7 +1,8 @@
 package no.nav.su.se.bakover.web.routes.søknad
 
 import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.web.routes.søknad.SøknadsinnholdJson.Companion.toSøknadsinnholdJson
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdJson
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdJson.Companion.toSøknadsinnholdJson
 import java.time.format.DateTimeFormatter
 
 internal data class OpprettetSøknadJson(
