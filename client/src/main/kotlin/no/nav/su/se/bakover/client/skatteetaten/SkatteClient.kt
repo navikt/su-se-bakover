@@ -26,13 +26,18 @@ class SkatteClient(private val skatteetatenConfig: SkatteetatenConfig) : Skatteo
         .build()
 
     override fun hentSamletSkattegrunnlag(accessToken: AccessToken, fnr: Fnr): Either<SkatteoppslagFeil, SamletSkattegrunnlag> {
-        val getRequest = HttpRequest.newBuilder()
-            // TODO: Ikke hardkode år
-            .uri(URI.create("${skatteetatenConfig.apiUri}/nav/2021/$fnr"))
-            .header("Accept", "application/json")
-            .header("Authorization", "Bearer ${accessToken.token}")
-            .GET()
-            .build()
+        val getRequest = try {
+            HttpRequest.newBuilder()
+                // TODO: Ikke hardkode år
+                .uri(URI.create("${skatteetatenConfig.apiUri}/nav/2021/$fnr"))
+                .header("Accept", "application/json")
+                .header("Authorization", "Bearer ${accessToken.token}")
+                .GET()
+                .build()
+        } catch (e: Exception) {
+            log.warn("Vi klarte ikke å bygge en request en gang. Dette betyr at vi ikke henter noe data fra skatteetaten.", e)
+            throw e
+        }
 
         Either.catch {
             client.send(getRequest, HttpResponse.BodyHandlers.ofString()).let { response ->
