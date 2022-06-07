@@ -41,10 +41,9 @@ import no.nav.su.se.bakover.web.receiveTextUTF8
 import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.Feilresponser.Brev.kunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
-import no.nav.su.se.bakover.web.routes.søknad.SøknadsinnholdUføreJson.ForNavJson.DigitalSøknad
-import no.nav.su.se.bakover.web.routes.søknad.SøknadsinnholdUføreJson.ForNavJson.Papirsøknad
 import no.nav.su.se.bakover.web.routes.søknad.lukk.LukkSøknadErrorHandler
 import no.nav.su.se.bakover.web.routes.søknad.lukk.LukkSøknadInputHandler
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdJson
 import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
@@ -75,11 +74,10 @@ internal fun Route.søknadRoutes(
                         call.svar(Feilresponser.ugyldigBody)
                     },
                     ifRight = { søknadsinnholdJson ->
-                        val identBruker = when (søknadsinnholdJson.forNav) {
-                            is DigitalSøknad -> NavIdentBruker.Veileder(call.suUserContext.navIdent)
-                            is Papirsøknad -> NavIdentBruker.Saksbehandler(call.suUserContext.navIdent)
-                        }
-                        søknadService.nySøknad(søknadsinnholdJson.toSøknadsinnhold(), identBruker).fold(
+                        søknadService.nySøknad(
+                            søknadsinnholdJson.toSøknadsinnhold(),
+                            søknadsinnholdJson.forNav.identBruker(call),
+                        ).fold(
                             { call.svar(it.tilResultat(type)) },
                             { (saksnummer, søknad) ->
                                 call.audit(
