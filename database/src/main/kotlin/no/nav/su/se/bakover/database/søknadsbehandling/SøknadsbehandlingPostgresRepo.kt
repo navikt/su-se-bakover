@@ -237,17 +237,16 @@ internal class SøknadsbehandlingPostgresRepo(
 
         val fnr = Fnr(string("fnr"))
         val (grunnlagsdata, vilkårsvurderinger) = grunnlagsdataOgVilkårsvurderingerPostgresRepo.hentForSøknadsbehandling(
-            behandlingId,
-            session,
+            behandlingId = behandlingId,
+            session = session,
+            sakstype = Sakstype.from(string("type"))
         ).let { grunnlagsdataOgVilkårsvurderinger ->
             stønadsperiode?.let {
                 grunnlagsdataOgVilkårsvurderinger.copy(
                     vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.oppdater(
                         stønadsperiode = stønadsperiode,
                         behandlingsinformasjon = behandlingsinformasjon,
-                        grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                         clock = clock,
-                        formuegrenserFactory = satsFactory.formuegrenserFactory,
                     ),
                 )
             } ?: grunnlagsdataOgVilkårsvurderinger

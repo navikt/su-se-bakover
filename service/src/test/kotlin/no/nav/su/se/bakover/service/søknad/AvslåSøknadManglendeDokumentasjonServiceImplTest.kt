@@ -127,8 +127,8 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                     periode = expectedPeriode,
                 ),
                 grunnlagsdata = uavklart.grunnlagsdata,
-                vilkårsvurderinger = uavklart.vilkårsvurderinger.copy(
-                    opplysningsplikt = OpplysningspliktVilkår.Vurdert.tryCreate(
+                vilkårsvurderinger = uavklart.vilkårsvurderinger.leggTil(
+                    OpplysningspliktVilkår.Vurdert.tryCreate(
                         vurderingsperioder = nonEmptyListOf(
                             VurderingsperiodeOpplysningsplikt.create(
                                 id = UUID.randomUUID(),
@@ -273,8 +273,8 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 fritekstTilBrev = "finfin tekst",
                 stønadsperiode = vilkårsvurdertInnvilget.stønadsperiode,
                 grunnlagsdata = vilkårsvurdertInnvilget.grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurdertInnvilget.vilkårsvurderinger.copy(
-                    opplysningsplikt = OpplysningspliktVilkår.Vurdert.tryCreate(
+                vilkårsvurderinger = vilkårsvurdertInnvilget.vilkårsvurderinger.leggTil(
+                    OpplysningspliktVilkår.Vurdert.tryCreate(
                         vurderingsperioder = nonEmptyListOf(
                             VurderingsperiodeOpplysningsplikt.create(
                                 id = UUID.randomUUID(),

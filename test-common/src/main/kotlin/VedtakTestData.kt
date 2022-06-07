@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.test
 
+import arrow.core.Nel
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
@@ -12,9 +13,9 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
-import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
@@ -32,16 +33,23 @@ import java.util.UUID
 /**
  * Ikke journalført eller distribuert brev.
  * Oversendt utbetaling med kvittering.
+ * @param grunnlagsdata bosituasjon må være fullstendig
  */
 fun vedtakSøknadsbehandlingIverksattInnvilget(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerSøknadsbehandlingInnvilget(stønadsperiode.periode),
+    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerSøknadsbehandlingInnvilget(
+        periode = stønadsperiode.periode,
+        bosituasjon = Nel.fromListUnsafe(grunnlagsdata.bosituasjon.map { it as Grunnlag.Bosituasjon.Fullstendig }),
+    ),
     clock: Clock = fixedClock,
     avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
 ): Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling> {
+    require(
+        grunnlagsdata.bosituasjon.all { it is Grunnlag.Bosituasjon.Fullstendig }
+    )
     return søknadsbehandlingIverksattInnvilget(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
@@ -78,7 +86,7 @@ fun vedtakSøknadsbehandlingIverksattAvslagMedBeregning(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerSøknadsbehandlingInnvilget(
+    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre = vilkårsvurderingerSøknadsbehandlingInnvilget(
         periode = stønadsperiode.periode,
         uføre = innvilgetUførevilkårForventetInntekt0(
             id = UUID.randomUUID(),
@@ -163,7 +171,7 @@ fun vedtakIverksattAutomatiskRegulering(
     clock: Clock = fixedClock,
     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
         grunnlagsdataEnsligUtenFradrag(periode = regulerFraOgMed),
-        vilkårsvurderingerRevurderingInnvilget(periode = regulerFraOgMed)
+        vilkårsvurderingerRevurderingInnvilget(periode = regulerFraOgMed),
     ),
     utbetalingId: UUID30 = UUID30.randomUUID(),
 ): Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> {
@@ -303,7 +311,7 @@ fun vedtakRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
         it.copy(
             vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(
                 periode = revurderingsperiode,
-                bosituasjon = it.grunnlagsdata.bosituasjon.singleFullstendigOrThrow(),
+                bosituasjon = Nel.fromListUnsafe(it.grunnlagsdata.bosituasjon.map { it as Grunnlag.Bosituasjon.Fullstendig }),
             ),
         )
     },
@@ -349,6 +357,7 @@ val brevbestillingIdVedtak = BrevbestillingId("brevbestillingIdVedtak")
 val journalført: JournalføringOgBrevdistribusjon.Journalført = JournalføringOgBrevdistribusjon.Journalført(
     journalpostId = journalpostIdVedtak,
 )
+@Suppress("unused")
 val journalførtOgDistribuertBrev: JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev =
     JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
         journalpostId = journalpostIdVedtak,

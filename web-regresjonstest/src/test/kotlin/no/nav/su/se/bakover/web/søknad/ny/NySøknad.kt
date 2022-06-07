@@ -1,8 +1,10 @@
 package no.nav.su.se.bakover.web.søknad.ny
 
+import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
@@ -113,8 +115,10 @@ private fun ApplicationTestBuilder.nySøknad(
         ) {
             setBody(requestJson)
         }.apply {
-            status shouldBe HttpStatusCode.Created
-            contentType() shouldBe io.ktor.http.ContentType.parse("application/json; charset=UTF-8")
+            withClue("body=${this.bodyAsText()}") {
+                status shouldBe HttpStatusCode.Created
+                contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
+            }
         }.bodyAsText()
     }
 }

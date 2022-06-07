@@ -50,7 +50,7 @@ internal class RevurderingLeggTilUføregrunnlagTest {
                         bosituasjon,
                     ),
                 ),
-                vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
+                vilkårsvurderinger = Vilkårsvurderinger.Revurdering.Uføre(
                     uføre = Vilkår.Uførhet.Vurdert.create(
                         vurderingsperioder = nonEmptyListOf(
                             Vurderingsperiode.Uføre.create(

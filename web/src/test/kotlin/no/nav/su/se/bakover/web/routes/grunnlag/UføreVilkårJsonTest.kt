@@ -65,7 +65,7 @@ class UføreVilkårJsonTest {
             vurderingsperioder = nonEmptyListOf(vurderingsperiodeUføre),
         )
 
-        internal val vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
+        internal val vilkårsvurderinger = Vilkårsvurderinger.Revurdering.Uføre(
             uføre = uførevurdering,
             formue = formuevilkårIkkeVurdert(),
             utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,

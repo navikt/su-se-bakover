@@ -55,11 +55,9 @@ import no.nav.su.se.bakover.web.routes.Feilresponser.attestantOgSaksbehandlerKan
 import no.nav.su.se.bakover.web.routes.Feilresponser.avkortingErAlleredeAnnullert
 import no.nav.su.se.bakover.web.routes.Feilresponser.avkortingErAlleredeAvkortet
 import no.nav.su.se.bakover.web.routes.Feilresponser.avkortingErUfullstendig
-import no.nav.su.se.bakover.web.routes.Feilresponser.depositumErHøyereEnnInnskudd
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeBehandling
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkePerson
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeSak
-import no.nav.su.se.bakover.web.routes.Feilresponser.harIkkeEktefelle
 import no.nav.su.se.bakover.web.routes.Feilresponser.kunneIkkeSimulere
 import no.nav.su.se.bakover.web.routes.Feilresponser.lagringFeilet
 import no.nav.su.se.bakover.web.routes.Feilresponser.tilResultat
@@ -256,8 +254,6 @@ internal fun Route.søknadsbehandlingRoutes(
                             call.svar(
                                 when (it) {
                                     KunneIkkeVilkårsvurdere.FantIkkeBehandling -> fantIkkeBehandling
-                                    KunneIkkeVilkårsvurdere.HarIkkeEktefelle -> harIkkeEktefelle
-                                    is KunneIkkeVilkårsvurdere.FeilVedValideringAvBehandlingsinformasjon -> it.feil.tilResultat()
                                 },
                             )
                         },
@@ -532,19 +528,5 @@ internal fun Route.søknadsbehandlingRoutes(
                 )
             }
         }
-    }
-}
-
-internal fun VilkårsvurderRequest.FeilVedValideringAvBehandlingsinformasjon.tilResultat(): Resultat {
-    return when (this) {
-        VilkårsvurderRequest.FeilVedValideringAvBehandlingsinformasjon.DepositumErHøyereEnnInnskudd -> depositumErHøyereEnnInnskudd
-        VilkårsvurderRequest.FeilVedValideringAvBehandlingsinformasjon.BosituasjonOgFormueForEpsErIkkeKonsistent -> BadRequest.errorJson(
-            "Bosituasjon og formue for EPS er ikke konsistent",
-            "bosituasjon_og_formue_for_eps_er_ikke_konsistent",
-        )
-        VilkårsvurderRequest.FeilVedValideringAvBehandlingsinformasjon.KanIkkeLeggeTilFormueFørBosituasjon -> BadRequest.errorJson(
-            "Kan ikke legge til formue før det er lagt til en bosituasjon",
-            "legger_til_formue_før_bosituasjon",
-        )
     }
 }

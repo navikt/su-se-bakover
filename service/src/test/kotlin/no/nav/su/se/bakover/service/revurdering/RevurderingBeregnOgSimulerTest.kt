@@ -245,7 +245,7 @@ internal class RevurderingBeregnOgSimulerTest {
                         sakId = sakId,
                         saksbehandler = saksbehandler,
                         beregning = (actual.revurdering as SimulertRevurdering).beregning,
-                        uføregrunnlag = opprettetRevurdering.vilkårsvurderinger.uføre.grunnlag,
+                        uføregrunnlag = opprettetRevurdering.vilkårsvurderinger.uføreVilkår().getOrFail().grunnlag,
                         utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
                     )
                 },
@@ -328,7 +328,7 @@ internal class RevurderingBeregnOgSimulerTest {
                         sakId = sakId,
                         saksbehandler = saksbehandler,
                         beregning = beregnet.beregning,
-                        uføregrunnlag = beregnet.vilkårsvurderinger.uføre.grunnlag,
+                        uføregrunnlag = beregnet.vilkårsvurderinger.uføreVilkår().getOrFail().grunnlag,
                         utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
                     )
                 },
@@ -382,7 +382,7 @@ internal class RevurderingBeregnOgSimulerTest {
                         sakId = sakId,
                         saksbehandler = saksbehandler,
                         beregning = (actual.revurdering as SimulertRevurdering).beregning,
-                        uføregrunnlag = underkjent.vilkårsvurderinger.uføre.grunnlag,
+                        uføregrunnlag = underkjent.vilkårsvurderinger.uføreVilkår().getOrFail().grunnlag,
                         utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
                     )
                 },

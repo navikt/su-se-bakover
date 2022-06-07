@@ -66,6 +66,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formuegrenserFactoryTest
+import no.nav.su.se.bakover.test.formuevilkårAvslåttPgrBrukersformue
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
@@ -93,7 +94,6 @@ internal class LagBrevRequestVisitorTest {
         vilkårsvurdertInnvilget.tilVilkårsvurdert(
             Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(),
             clock = fixedClock,
-            formuegrenserFactory = formuegrenserFactoryTest,
         ).let { søknadsbehandling ->
             LagBrevRequestVisitor(
                 hentPerson = { LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson.left() },
@@ -149,7 +149,6 @@ internal class LagBrevRequestVisitorTest {
             vilkårsvurdertInnvilget.tilVilkårsvurdert(
                 Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
                 clock = fixedClock,
-                formuegrenserFactory = formuegrenserFactoryTest,
             )
                 .let {
                     LagBrevRequestVisitor(
@@ -208,27 +207,12 @@ internal class LagBrevRequestVisitorTest {
 
     @Test
     fun `lager request for vilkårsvurdert avslag pga formue`() {
-        val vilkårsvurdertAvslagPgaFormue = vilkårsvurdertInnvilget.tilVilkårsvurdert(
-            behandlingsinformasjon = vilkårsvurdertInnvilget.behandlingsinformasjon.copy(
-                formue = Behandlingsinformasjon.Formue(
-                    status = Behandlingsinformasjon.Formue.Status.VilkårIkkeOppfylt,
-                    verdier = Behandlingsinformasjon.Formue.Verdier(
-                        verdiIkkePrimærbolig = 100000,
-                        verdiEiendommer = 100000,
-                        verdiKjøretøy = 10000,
-                        innskudd = 10000,
-                        verdipapir = 1000,
-                        pengerSkyldt = 100000,
-                        kontanter = 100000,
-                        depositumskonto = 0,
-                    ),
-                    epsVerdier = null, begrunnelse = null,
-                ),
-            ),
-            grunnlagsdata = vilkårsvurdertInnvilget.grunnlagsdata,
-            clock = fixedClock,
-            formuegrenserFactory = formuegrenserFactoryTest,
-        )
+        val vilkårsvurdertAvslagPgaFormue: Søknadsbehandling.Vilkårsvurdert.Avslag =
+            søknadsbehandlingVilkårsvurdertInnvilget().second
+                .leggTilFormuevilkår(
+                    vilkår = formuevilkårAvslåttPgrBrukersformue(),
+                    clock = fixedClock
+                ).getOrFail() as Søknadsbehandling.Vilkårsvurdert.Avslag
         vilkårsvurdertAvslagPgaFormue.let { søknadsbehandling ->
             LagBrevRequestVisitor(
                 hentPerson = { person.right() },
@@ -250,13 +234,13 @@ internal class LagBrevRequestVisitorTest {
                             opprettet = fixedTidspunkt,
                             epsFormue = null,
                             søkersFormue = Formuegrunnlag.Verdier.create(
-                                verdiIkkePrimærbolig = 100000,
-                                verdiEiendommer = 100000,
-                                verdiKjøretøy = 10000,
-                                innskudd = 10000,
-                                verdipapir = 1000,
-                                pengerSkyldt = 100000,
-                                kontanter = 100000,
+                                verdiIkkePrimærbolig = 0,
+                                verdiEiendommer = 0,
+                                verdiKjøretøy = 0,
+                                innskudd = 1000000,
+                                verdipapir = 0,
+                                pengerSkyldt = 0,
+                                kontanter = 0,
                                 depositumskonto = 0,
                             ),
                             behandlingsPeriode = søknadsbehandling.periode,
@@ -411,7 +395,6 @@ internal class LagBrevRequestVisitorTest {
             vilkårsvurdertInnvilget.tilVilkårsvurdert(
                 behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(),
                 clock = fixedClock,
-                formuegrenserFactory = formuegrenserFactoryTest,
             ) as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
@@ -540,7 +523,6 @@ internal class LagBrevRequestVisitorTest {
             vilkårsvurdertInnvilget.tilVilkårsvurdert(
                 behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(),
                 clock = fixedClock,
-                formuegrenserFactory = formuegrenserFactoryTest,
             ) as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
@@ -694,7 +676,6 @@ internal class LagBrevRequestVisitorTest {
             vilkårsvurdertInnvilget.tilVilkårsvurdert(
                 behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(),
                 clock = fixedClock,
-                formuegrenserFactory = formuegrenserFactoryTest,
             ) as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
@@ -944,7 +925,6 @@ internal class LagBrevRequestVisitorTest {
             vilkårsvurdertInnvilget.tilVilkårsvurdert(
                 behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(),
                 clock = fixedClock,
-                formuegrenserFactory = formuegrenserFactoryTest,
             ) as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
@@ -995,26 +975,11 @@ internal class LagBrevRequestVisitorTest {
     @Test
     fun `lager request for vedtak med avslått formue`() {
         val søknadsbehandling = (
-            vilkårsvurdertInnvilget.tilVilkårsvurdert(
-                Behandlingsinformasjon.lagTomBehandlingsinformasjon().copy(
-                    formue = Behandlingsinformasjon.Formue(
-                        status = Behandlingsinformasjon.Formue.Status.VilkårIkkeOppfylt,
-                        verdier = Behandlingsinformasjon.Formue.Verdier(
-                            verdiIkkePrimærbolig = 100000,
-                            verdiEiendommer = 100000,
-                            verdiKjøretøy = 100000,
-                            innskudd = 100000,
-                            verdipapir = 100000,
-                            pengerSkyldt = 100000,
-                            kontanter = 100000,
-                            depositumskonto = 0,
-                        ),
-                        epsVerdier = null, begrunnelse = null,
-                    ),
-                ),
-                clock = fixedClock,
-                formuegrenserFactory = formuegrenserFactoryTest,
-            ) as Søknadsbehandling.Vilkårsvurdert.Avslag
+            søknadsbehandlingVilkårsvurdertInnvilget().second
+                .leggTilFormuevilkår(
+                    vilkår = formuevilkårAvslåttPgrBrukersformue(),
+                    clock = fixedClock
+                ).getOrFail() as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
             .tilIverksatt(Attestering.Iverksatt(attestant, fixedTidspunkt))
@@ -1054,13 +1019,13 @@ internal class LagBrevRequestVisitorTest {
                     periode = søknadsbehandling.vilkårsvurderinger.formue.grunnlag.firstOrThrowIfMultipleOrEmpty().periode,
                     epsFormue = null,
                     søkersFormue = Formuegrunnlag.Verdier.create(
-                        verdiIkkePrimærbolig = 100000,
-                        verdiEiendommer = 100000,
-                        verdiKjøretøy = 100000,
-                        innskudd = 100000,
-                        verdipapir = 100000,
-                        pengerSkyldt = 100000,
-                        kontanter = 100000,
+                        verdiIkkePrimærbolig = 0,
+                        verdiEiendommer = 0,
+                        verdiKjøretøy = 0,
+                        innskudd = 1000000,
+                        verdipapir = 0,
+                        pengerSkyldt = 0,
+                        kontanter = 0,
                         depositumskonto = 0,
                     ),
                     bosituasjon = søknadsbehandling.grunnlagsdata.bosituasjon.first() as Grunnlag.Bosituasjon.Fullstendig,
@@ -1207,7 +1172,7 @@ internal class LagBrevRequestVisitorTest {
                     ),
                 ),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.Uføre(
                 uføre = Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(

@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.service.utbetaling.SimulerStansFeilet
 import no.nav.su.se.bakover.service.utbetaling.UtbetalGjenopptakFeil
 import no.nav.su.se.bakover.service.utbetaling.UtbetalStansFeil
 import no.nav.su.se.bakover.service.vilkår.LeggTilFlereUtenlandsoppholdRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -131,7 +132,7 @@ interface RevurderingService {
     ): Either<KunneIkkeLeggeTilBosituasjongrunnlag, RevurderingOgFeilmeldingerResponse>
 
     fun leggTilFormuegrunnlag(
-        request: LeggTilFormuegrunnlagRequest,
+        request: LeggTilFormuevilkårRequest,
     ): Either<KunneIkkeLeggeTilFormuegrunnlag, RevurderingOgFeilmeldingerResponse>
 
     fun lagBrevutkastForAvslutting(
@@ -361,16 +362,16 @@ sealed class KunneIkkeLeggeTilBosituasjongrunnlag {
 
 sealed class KunneIkkeLeggeTilFormuegrunnlag {
     object FantIkkeRevurdering : KunneIkkeLeggeTilFormuegrunnlag()
-    object IkkeLovMedOverlappendePerioder : KunneIkkeLeggeTilFormuegrunnlag()
-    object EpsFormueperiodeErUtenforBosituasjonPeriode : KunneIkkeLeggeTilFormuegrunnlag()
-    object MåHaEpsHvisManHarSattEpsFormue : KunneIkkeLeggeTilFormuegrunnlag()
-    object FormuePeriodeErUtenforBehandlingsperioden : KunneIkkeLeggeTilFormuegrunnlag()
     data class UgyldigTilstand(
         val fra: KClass<out Revurdering>,
         val til: KClass<out Revurdering>,
     ) : KunneIkkeLeggeTilFormuegrunnlag()
 
     data class Konsistenssjekk(val feil: Konsistensproblem.BosituasjonOgFormue) : KunneIkkeLeggeTilFormuegrunnlag()
+
+    data class KunneIkkeMappeTilDomenet(
+        val feil: LeggTilFormuevilkårRequest.KunneIkkeMappeTilDomenet,
+    ) : KunneIkkeLeggeTilFormuegrunnlag()
 }
 
 sealed class KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger {

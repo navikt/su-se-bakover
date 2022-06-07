@@ -91,7 +91,7 @@ internal class RevurderingJsonTest {
                 fradragsgrunnlag = listOf(fradragsgrunnlag),
                 bosituasjon = listOf(bosituasjon),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.Uføre(
                 uføre = Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(vurderingsperiodeUføre),
                 ),
@@ -131,7 +131,7 @@ internal class RevurderingJsonTest {
                   "fradrag": [$expectedFradragsgrunnlagJson],
                   "bosituasjon": $expectedBosituasjonJson,
                   "formue": {
-                    "resultat": "MåInnhenteMerInformasjon",
+                    "resultat": null,
                     "formuegrenser": [
                      
                       {
@@ -208,7 +208,7 @@ internal class RevurderingJsonTest {
                   "fradrag": [],
                   "bosituasjon": [],
                   "formue": {
-                    "resultat": "MåInnhenteMerInformasjon",
+                    "resultat": null,
                     "formuegrenser": [
                       {
                             "gyldigFra":"2022-05-01",
@@ -298,7 +298,7 @@ internal class RevurderingJsonTest {
                   "fradrag": [],
                   "bosituasjon": [],
                   "formue": {
-                    "resultat": "MåInnhenteMerInformasjon",
+                    "resultat": null,
                     "formuegrenser": [
                      
                       {
@@ -375,7 +375,7 @@ internal class RevurderingJsonTest {
                   "fradrag": [],
                   "bosituasjon": [],
                   "formue": {
-                    "resultat": "MåInnhenteMerInformasjon",
+                    "resultat": null,
                     "formuegrenser": [
                      
                       {
@@ -464,7 +464,7 @@ internal class RevurderingJsonTest {
                   "fradrag": [],
                   "bosituasjon": [],
                   "formue": {
-                    "resultat": "MåInnhenteMerInformasjon",
+                    "resultat": null,
                     "formuegrenser": [
                      
                       {
@@ -551,7 +551,7 @@ internal class RevurderingJsonTest {
                   "fradrag": [],
                   "bosituasjon": [],
                   "formue": {
-                    "resultat": "MåInnhenteMerInformasjon",
+                    "resultat": null,
                     "formuegrenser": [
                      
                       {
@@ -637,7 +637,7 @@ internal class RevurderingJsonTest {
                   "fradrag": [],
                   "bosituasjon": [],
                   "formue": {
-                    "resultat": "MåInnhenteMerInformasjon",
+                    "resultat": null,
                     "formuegrenser": [
                      
                       {
@@ -723,7 +723,7 @@ internal class RevurderingJsonTest {
                   "fradrag": [],
                   "bosituasjon": [],
                   "formue": {
-                    "resultat": "MåInnhenteMerInformasjon",
+                    "resultat": null,
                     "formuegrenser": [
                      
                       {
@@ -805,7 +805,7 @@ internal class RevurderingJsonTest {
                   "fradrag": [],
                   "bosituasjon": [],
                   "formue": {
-                    "resultat": "MåInnhenteMerInformasjon",
+                    "resultat": null,
                     "formuegrenser": [
                       {
                           "gyldigFra": "2020-05-01",
@@ -906,7 +906,7 @@ internal class RevurderingJsonTest {
                   "fradrag": [],
                   "bosituasjon": [],
                   "formue": {
-                    "resultat": "MåInnhenteMerInformasjon",
+                    "resultat": null,
                     "formuegrenser": [                     
                       {
                           "gyldigFra": "2020-05-01",
@@ -1006,7 +1006,7 @@ internal class RevurderingJsonTest {
                   "fradrag": [],
                   "bosituasjon": [],
                   "formue": {
-                    "resultat": "MåInnhenteMerInformasjon",
+                    "resultat": null,
                     "formuegrenser": [
                       {
                           "gyldigFra": "2020-05-01",
@@ -1102,7 +1102,7 @@ internal class RevurderingJsonTest {
                   "fradrag": [],
                   "bosituasjon": [],
                   "formue": {
-                    "resultat": "MåInnhenteMerInformasjon",
+                    "resultat": null,
                     "formuegrenser": [
                       {
                           "gyldigFra": "2020-05-01",
@@ -1201,7 +1201,7 @@ internal class RevurderingJsonTest {
                   "fradrag": [],
                   "bosituasjon": [],
                   "formue": {
-                  "resultat": "MåInnhenteMerInformasjon",
+                  "resultat": null,
                     "formuegrenser": [
                      
                       {
@@ -1296,7 +1296,7 @@ internal class RevurderingJsonTest {
                   "fradrag": [],
                   "bosituasjon": [],
                   "formue": {
-                    "resultat": "MåInnhenteMerInformasjon",
+                    "resultat": null,
                     "formuegrenser": [
                       {
                           "gyldigFra": "2020-05-01",
@@ -1384,7 +1384,7 @@ internal class RevurderingJsonTest {
                   "fradrag": [],
                   "bosituasjon": [],
                   "formue": {
-                    "resultat": "MåInnhenteMerInformasjon",
+                    "resultat": null,
                     "formuegrenser": [
                       {
                           "gyldigFra": "2020-05-01",
@@ -1433,7 +1433,7 @@ internal class RevurderingJsonTest {
                 "forhåndsvarsel": { "type": "INGEN_FORHÅNDSVARSEL" },
                 "begrunnelse": "valid",
                 "grunnlagsdataOgVilkårsvurderinger": {
-                  "uføre": ${serialize((simulertRevurdering.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).toJson())},
+                  "uføre": ${serialize((simulertRevurdering.vilkårsvurderinger.uføreVilkår().getOrFail() as Vilkår.Uførhet.Vurdert).toJson())},
                   "fradrag": [],
                   "bosituasjon": ${serialize(simulertRevurdering.grunnlagsdata.bosituasjon.toJson())},
                   "formue": ${serialize(simulertRevurdering.vilkårsvurderinger.formue.toJson(satsFactoryTest))},
@@ -1471,7 +1471,7 @@ internal class RevurderingJsonTest {
                 "forhåndsvarsel": { "type": "INGEN_FORHÅNDSVARSEL" },
                 "begrunnelse": "valid",
                 "grunnlagsdataOgVilkårsvurderinger": {
-                  "uføre": ${serialize((iverksattRevurdering.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).toJson())},
+                  "uføre": ${serialize((iverksattRevurdering.vilkårsvurderinger.uføreVilkår().getOrFail() as Vilkår.Uførhet.Vurdert).toJson())},
                   "fradrag": [],
                   "bosituasjon": ${serialize(iverksattRevurdering.grunnlagsdata.bosituasjon.toJson())},
                   "formue": ${serialize(iverksattRevurdering.vilkårsvurderinger.formue.toJson(satsFactoryTest))},
@@ -1511,7 +1511,7 @@ internal class RevurderingJsonTest {
                 "begrunnelse": "valid",
                 "forhåndsvarsel": { "type": "INGEN_FORHÅNDSVARSEL" },
                 "grunnlagsdataOgVilkårsvurderinger": {
-                  "uføre": ${serialize((simulertRevurdering.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).toJson())},
+                  "uføre": ${serialize((simulertRevurdering.vilkårsvurderinger.uføreVilkår().getOrFail() as Vilkår.Uførhet.Vurdert).toJson())},
                   "fradrag": [],
                   "bosituasjon": ${serialize(simulertRevurdering.grunnlagsdata.bosituasjon.toJson())},
                   "formue": ${serialize(simulertRevurdering.vilkårsvurderinger.formue.toJson(satsFactoryTest))},
@@ -1549,7 +1549,7 @@ internal class RevurderingJsonTest {
                 "begrunnelse": "valid",
                 "forhåndsvarsel": { "type": "INGEN_FORHÅNDSVARSEL" },
                 "grunnlagsdataOgVilkårsvurderinger": {
-                  "uføre": ${serialize((iverksattRevurdering.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).toJson())},
+                  "uføre": ${serialize((iverksattRevurdering.vilkårsvurderinger.uføreVilkår().getOrFail() as Vilkår.Uførhet.Vurdert).toJson())},
                   "fradrag": [],
                   "bosituasjon": ${serialize(iverksattRevurdering.grunnlagsdata.bosituasjon.toJson())},
                   "formue": ${serialize(iverksattRevurdering.vilkårsvurderinger.formue.toJson(satsFactoryTest))},

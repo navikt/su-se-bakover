@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
+import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -39,11 +40,13 @@ import no.nav.su.se.bakover.service.søknadsbehandling.VilkårsvurderRequest
 import no.nav.su.se.bakover.service.vilkår.BosituasjonValg
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
 import no.nav.su.se.bakover.service.vilkår.UførevilkårStatus
 import no.nav.su.se.bakover.service.vilkår.UtenlandsoppholdStatus
+import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.satsFactoryTest
@@ -303,6 +306,20 @@ internal class BeregnRoutesKtTest {
             LeggTilBosituasjonEpsRequest(
                 behandlingId = objects.søknadsbehandling.id,
                 epsFnr = null,
+            ),
+        )
+        services.søknadsbehandling.leggTilFormuevilkår(
+            LeggTilFormuevilkårRequest(
+                behandlingId = objects.søknadsbehandling.id,
+                formuegrunnlag = nonEmptyListOf(
+                    LeggTilFormuevilkårRequest.Grunnlag.Søknadsbehandling(
+                        periode = år(2021),
+                        epsFormue = null,
+                        søkersFormue = Formuegrunnlag.Verdier.empty(),
+                        begrunnelse = "søknadsbehandling.leggTilFormuegrunnlag",
+                        måInnhenteMerInformasjon = false,
+                    ),
+                ),
             ),
         )
         services.søknadsbehandling.fullførBosituasjongrunnlag(

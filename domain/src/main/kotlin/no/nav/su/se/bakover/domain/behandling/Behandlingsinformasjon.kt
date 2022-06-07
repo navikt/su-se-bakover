@@ -6,20 +6,16 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.FastOppholdINorgeGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.FlyktningGrunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.InstitusjonsoppholdGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.LovligOppholdGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.PersonligOppmøteGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
-import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import no.nav.su.se.bakover.domain.vilkår.Resultat
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFastOppholdINorge
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFlyktning
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeInstitusjonsopphold
@@ -33,7 +29,6 @@ data class Behandlingsinformasjon(
     val lovligOpphold: LovligOpphold? = null,
     val fastOppholdINorge: FastOppholdINorge? = null,
     val institusjonsopphold: Institusjonsopphold? = null,
-    val formue: Formue? = null,
     val personligOppmøte: PersonligOppmøte? = null,
 ) {
     @JsonIgnore
@@ -42,7 +37,6 @@ data class Behandlingsinformasjon(
         lovligOpphold,
         fastOppholdINorge,
         institusjonsopphold,
-        formue,
         personligOppmøte,
     )
 
@@ -53,7 +47,6 @@ data class Behandlingsinformasjon(
         lovligOpphold = b.lovligOpphold ?: this.lovligOpphold,
         fastOppholdINorge = b.fastOppholdINorge ?: this.fastOppholdINorge,
         institusjonsopphold = b.institusjonsopphold ?: this.institusjonsopphold,
-        formue = b.formue ?: this.formue,
         personligOppmøte = b.personligOppmøte ?: this.personligOppmøte,
     )
 
@@ -262,132 +255,6 @@ data class Behandlingsinformasjon(
         }
     }
 
-    data class Formue(
-        val status: Status,
-        val verdier: Verdier,
-        val epsVerdier: Verdier?,
-        val begrunnelse: String?,
-    ) : Base() {
-
-        fun erDepositumHøyereEnnInnskudd(): Boolean {
-            return verdier.depositumHøyereEnnInnskudd() || epsVerdier?.depositumHøyereEnnInnskudd() == true
-        }
-
-        data class Verdier(
-            val verdiIkkePrimærbolig: Int,
-            val verdiEiendommer: Int,
-            val verdiKjøretøy: Int,
-            val innskudd: Int,
-            val verdipapir: Int,
-            val pengerSkyldt: Int,
-            val kontanter: Int,
-            val depositumskonto: Int,
-        ) {
-            fun depositumHøyereEnnInnskudd(): Boolean {
-                return this.depositumskonto > this.innskudd
-            }
-
-            companion object {
-                fun lagTomVerdier() = Verdier(
-                    verdiIkkePrimærbolig = 0,
-                    verdiEiendommer = 0,
-                    verdiKjøretøy = 0,
-                    innskudd = 0,
-                    verdipapir = 0,
-                    pengerSkyldt = 0,
-                    kontanter = 0,
-                    depositumskonto = 0,
-                )
-            }
-        }
-
-        enum class Status {
-            VilkårOppfylt,
-            VilkårIkkeOppfylt,
-            MåInnhenteMerInformasjon
-        }
-
-        override fun erVilkårOppfylt(): Boolean = status == Status.VilkårOppfylt
-        override fun erVilkårIkkeOppfylt(): Boolean = status == Status.VilkårIkkeOppfylt
-
-        /**
-         * Midlertidig migreringsfunksjon fra Behandlingsinformasjon + Grunnlag.Bosituasjon -> Behandlingsinformasjon
-         * Behandlingsinformasjonen ligger blant annet i Vedtaket inntil videre.
-         *
-         * TODO: helhet rundt løsning for oppdatering av formue og bosituasjon (formue avhengig av bosituasjon).
-         */
-        fun nullstillEpsFormueHvisIngenEps(
-            bosituasjon: Grunnlag.Bosituasjon,
-        ): Formue {
-            return when (bosituasjon) {
-                is Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps,
-                is Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen,
-                is Grunnlag.Bosituasjon.Fullstendig.Enslig,
-                -> {
-                    // fjerner eventuelle eps-verdier for å unngå ugyldig tilstand på tvers av bostituasjon og formue
-                    this.copy(epsVerdier = null)
-                }
-                is Grunnlag.Bosituasjon.Ufullstendig.HarEps,
-                is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning,
-                is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre,
-                is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning,
-                -> this
-            }
-        }
-
-        fun tilVilkår(
-            stønadsperiode: Stønadsperiode,
-            bosituasjon: List<Grunnlag.Bosituasjon>,
-            clock: Clock,
-            formuegrenserFactory: FormuegrenserFactory,
-        ): Vilkår.Formue {
-            return Vilkår.Formue.Vurdert.tryCreateFromGrunnlag(
-                grunnlag = nonEmptyListOf(
-                    Formuegrunnlag.tryCreate(
-                        id = UUID.randomUUID(),
-                        opprettet = Tidspunkt.now(clock),
-                        periode = stønadsperiode.periode,
-                        epsFormue = this.epsVerdier?.let {
-                            Formuegrunnlag.Verdier.tryCreate(
-                                verdiIkkePrimærbolig = it.verdiIkkePrimærbolig,
-                                verdiEiendommer = it.verdiEiendommer,
-                                verdiKjøretøy = it.verdiKjøretøy,
-                                innskudd = it.innskudd,
-                                verdipapir = it.verdipapir,
-                                pengerSkyldt = it.pengerSkyldt,
-                                kontanter = it.kontanter,
-                                depositumskonto = it.depositumskonto,
-                            ).getOrHandle {
-                                throw IllegalStateException("Kunne ikke create formue-verdier. Sjekk om data er gyldig")
-                            }
-                        },
-                        søkersFormue = this.verdier.let {
-                            Formuegrunnlag.Verdier.tryCreate(
-                                verdiIkkePrimærbolig = it.verdiIkkePrimærbolig,
-                                verdiEiendommer = it.verdiEiendommer,
-                                verdiKjøretøy = it.verdiKjøretøy,
-                                innskudd = it.innskudd,
-                                verdipapir = it.verdipapir,
-                                pengerSkyldt = it.pengerSkyldt,
-                                kontanter = it.kontanter,
-                                depositumskonto = it.depositumskonto,
-                            ).getOrHandle {
-                                throw IllegalStateException("Kunne ikke create formue-verdier. Sjekk om data er gyldig")
-                            }
-                        },
-                        bosituasjon = bosituasjon,
-                        behandlingsPeriode = stønadsperiode.periode,
-                    ).getOrHandle {
-                        throw IllegalArgumentException("Kunne ikke instansiere ${Formuegrunnlag::class.simpleName}. Melding: $it")
-                    },
-                ),
-                formuegrenserFactory = formuegrenserFactory,
-            ).getOrHandle {
-                throw IllegalArgumentException("Kunne ikke instansiere ${Vilkår.Formue.Vurdert::class.simpleName}. Melding: $it")
-            }
-        }
-    }
-
     data class PersonligOppmøte(
         val status: Status,
     ) : Base() {
@@ -460,7 +327,6 @@ data class Behandlingsinformasjon(
             lovligOpphold = null,
             fastOppholdINorge = null,
             institusjonsopphold = null,
-            formue = null,
             personligOppmøte = null,
         )
     }

@@ -515,7 +515,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                             sakId = innvilgetTilAttestering.sakId,
                             saksbehandler = attestant,
                             beregning = innvilgetTilAttestering.beregning,
-                            uføregrunnlag = innvilgetTilAttestering.vilkårsvurderinger.uføre.grunnlag,
+                            uføregrunnlag = innvilgetTilAttestering.vilkårsvurderinger.uføreVilkår().getOrFail().grunnlag,
                             utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
                         ),
                         simulering = innvilgetTilAttestering.simulering,

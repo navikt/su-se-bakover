@@ -16,8 +16,8 @@ import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageFormueVerdier
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilFormuegrunnlag
-import no.nav.su.se.bakover.service.revurdering.LeggTilFormuegrunnlagRequest
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
+import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
@@ -54,7 +54,7 @@ private data class FormueBody(
                 depositumskonto = json.depositumskonto,
             )
 
-        fun List<FormueBody>.toServiceRequest(revurderingId: UUID): Either<Resultat, LeggTilFormuegrunnlagRequest> {
+        fun List<FormueBody>.toServiceRequest(revurderingId: UUID): Either<Resultat, LeggTilFormuevilkårRequest> {
             if (this.isEmpty()) {
                 return HttpStatusCode.BadRequest.errorJson(
                     "Formueliste kan ikke være tom",
@@ -62,11 +62,11 @@ private data class FormueBody(
                 ).left()
             }
 
-            return LeggTilFormuegrunnlagRequest(
-                revurderingId = revurderingId,
+            return LeggTilFormuevilkårRequest(
+                behandlingId = revurderingId,
                 formuegrunnlag = NonEmptyList.fromListUnsafe(
                     this.map { formueBody ->
-                        LeggTilFormuegrunnlagRequest.Grunnlag(
+                        LeggTilFormuevilkårRequest.Grunnlag.Revurdering(
                             periode = formueBody.periode.toPeriodeOrResultat()
                                 .getOrHandle { return it.left() },
                             epsFormue = formueBody.epsFormue?.let {
@@ -130,20 +130,6 @@ private fun KunneIkkeLageFormueVerdier.tilResultat() = when (this) {
 private fun KunneIkkeLeggeTilFormuegrunnlag.tilResultat() = when (this) {
     KunneIkkeLeggeTilFormuegrunnlag.FantIkkeRevurdering -> Revurderingsfeilresponser.fantIkkeRevurdering
     is KunneIkkeLeggeTilFormuegrunnlag.UgyldigTilstand -> Feilresponser.ugyldigTilstand(this.fra, this.til)
-    KunneIkkeLeggeTilFormuegrunnlag.IkkeLovMedOverlappendePerioder -> Feilresponser.overlappendeVurderingsperioder
-    KunneIkkeLeggeTilFormuegrunnlag.EpsFormueperiodeErUtenforBosituasjonPeriode -> HttpStatusCode.BadRequest.errorJson(
-        "Ikke lov med formueperiode utenfor bosituasjonperioder",
-        "ikke_lov_med_formueperiode_utenfor_bosituasjonperiode",
-    )
-    KunneIkkeLeggeTilFormuegrunnlag.FormuePeriodeErUtenforBehandlingsperioden -> HttpStatusCode.BadRequest.errorJson(
-        "Ikke lov med formueperiode utenfor behandlingsperioden",
-        "ikke_lov_med_formueperiode_utenfor_behandlingsperioden",
-    )
-    KunneIkkeLeggeTilFormuegrunnlag.MåHaEpsHvisManHarSattEpsFormue -> HttpStatusCode.BadRequest.errorJson(
-        "Ikke lov med formue for eps hvis man ikke har eps",
-        "ikke_lov_med_formue_for_eps_hvis_man_ikke_har_eps",
-    )
-    is KunneIkkeLeggeTilFormuegrunnlag.Konsistenssjekk -> {
-        this.feil.tilResultat()
-    }
+    is KunneIkkeLeggeTilFormuegrunnlag.Konsistenssjekk -> this.feil.tilResultat()
+    is KunneIkkeLeggeTilFormuegrunnlag.KunneIkkeMappeTilDomenet -> this.feil.tilResultat()
 }

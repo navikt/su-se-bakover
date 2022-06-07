@@ -41,6 +41,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.timeout
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
+import org.slf4j.helpers.NOPLogger
 import java.time.Duration
 import no.nav.person.pdl.leesah.Personhendelse as EksternPersonhendelse
 
@@ -65,6 +66,8 @@ internal class PersonhendelseConsumerTest {
             personhendelseService = personhendelseService,
             topicName = TOPIC1,
             pollTimeoutDuration = Duration.ofMillis(1000),
+            log = NOPLogger.NOP_LOGGER, // Don't spam logs running tests
+            sikkerLogg = NOPLogger.NOP_LOGGER, // Don't spam logs running tests
         )
         val producer = kafkaProducer(kafkaServer)
         (0..5L).map {
@@ -102,6 +105,8 @@ internal class PersonhendelseConsumerTest {
             personhendelseService = personhendelseService,
             topicName = TOPIC2,
             pollTimeoutDuration = Duration.ofMillis(1000),
+            log = NOPLogger.NOP_LOGGER, // Don't spam logs running tests
+            sikkerLogg = NOPLogger.NOP_LOGGER, // Don't spam logs running tests
         )
         val producer = kafkaProducer(kafkaServer)
         // Tvinger en nullpointer exception

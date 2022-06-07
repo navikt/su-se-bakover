@@ -136,9 +136,9 @@ internal class VedtakTest {
             grunnlagsdata = Grunnlagsdata.create(
                 bosituasjon = listOf(bosituasjon),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
-                lagVurdertUføreVilkår(periode),
-                lagVurdertFormueVilkår(periode, bosituasjon),
+            vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre(
+                uføre = lagVurdertUføreVilkår(periode),
+                formue = lagVurdertFormueVilkår(periode, bosituasjon),
             ),
         )
         listOf(vedtak).lagTidslinje(
@@ -171,11 +171,11 @@ internal class VedtakTest {
             fraDato = 1.januar(2021),
             tilDato = 31.desember(2021),
             grunnlagsdata = Grunnlagsdata.create(bosituasjon = listOf(bosituasjonA)),
-            vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
-                lagVurdertUføreVilkår(
+            vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre(
+                uføre = lagVurdertUføreVilkår(
                     vurderingsperiode = periodeA,
                 ),
-                lagVurdertFormueVilkår(
+                formue = lagVurdertFormueVilkår(
                     periodeA,
                     bosituasjonA,
                 ),
@@ -189,9 +189,9 @@ internal class VedtakTest {
             fraDato = 1.mai(2021),
             tilDato = 31.desember(2021),
             grunnlagsdata = Grunnlagsdata.create(bosituasjon = listOf(bosituasjonB)),
-            vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
-                lagVurdertUføreVilkår(periodeB),
-                lagVurdertFormueVilkår(periodeB, bosituasjonB),
+            vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre(
+                uføre = lagVurdertUføreVilkår(periodeB),
+                formue = lagVurdertFormueVilkår(periodeB, bosituasjonB),
             ),
         )
         listOf(a, b).lagTidslinje(
@@ -207,11 +207,11 @@ internal class VedtakTest {
                             lagFullstendigBostiuasjon(Periode.create(1.januar(2021), 30.april(2021))),
                         ),
                     ),
-                    vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
-                        lagVurdertUføreVilkår(
+                    vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre(
+                        uføre = lagVurdertUføreVilkår(
                             vurderingsperiode = Periode.create(1.januar(2021), 30.april(2021)),
                         ),
-                        lagVurdertFormueVilkår(
+                        formue = lagVurdertFormueVilkår(
                             Periode.create(1.januar(2021), 30.april(2021)),
                             lagFullstendigBostiuasjon(Periode.create(1.januar(2021), 30.april(2021))),
                         ),
@@ -250,9 +250,9 @@ internal class VedtakTest {
             grunnlagsdata = Grunnlagsdata.create(
                 bosituasjon = listOf(lagFullstendigBostiuasjon(p1)),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
-                lagVurdertUføreVilkår(p1),
-                lagVurdertFormueVilkår(p1, lagFullstendigBostiuasjon(p1)),
+            vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre(
+                uføre = lagVurdertUføreVilkår(p1),
+                formue = lagVurdertFormueVilkår(p1, lagFullstendigBostiuasjon(p1)),
             ),
         )
 
@@ -264,9 +264,9 @@ internal class VedtakTest {
             grunnlagsdata = Grunnlagsdata.create(
                 bosituasjon = listOf(lagFullstendigBostiuasjon(p2)),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
-                lagVurdertUføreVilkår(p2),
-                lagVurdertFormueVilkår(p2, lagFullstendigBostiuasjon(p2)),
+            vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre(
+                uføre = lagVurdertUføreVilkår(p2),
+                formue = lagVurdertFormueVilkår(p2, lagFullstendigBostiuasjon(p2)),
 
             ),
         )
@@ -285,9 +285,9 @@ internal class VedtakTest {
                         fradragsgrunnlag = listOf(),
                         bosituasjon = listOf(firstBosituasjon),
                     ),
-                    vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
-                        lagVurdertUføreVilkår(firstPeriode),
-                        lagVurdertFormueVilkår(firstPeriode, firstBosituasjon),
+                    vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre(
+                        uføre = lagVurdertUføreVilkår(firstPeriode),
+                        formue = lagVurdertFormueVilkår(firstPeriode, firstBosituasjon),
                     ),
                     originaltVedtak = a,
                 ),
@@ -303,9 +303,9 @@ internal class VedtakTest {
                         fradragsgrunnlag = listOf(),
                         bosituasjon = listOf(lastBostiuasjon),
                     ),
-                    vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
-                        lagVurdertUføreVilkår(lastPeriode),
-                        lagVurdertFormueVilkår(lastPeriode, lastBostiuasjon),
+                    vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre(
+                        uføre = lagVurdertUføreVilkår(lastPeriode),
+                        formue = lagVurdertFormueVilkår(lastPeriode, lastBostiuasjon),
                     ),
                     originaltVedtak = b,
                 ),
@@ -332,9 +332,9 @@ internal class VedtakTest {
             grunnlagsdata = Grunnlagsdata.create(
                 bosituasjon = listOf(b1),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
-                lagVurdertUføreVilkår(p1),
-                lagVurdertFormueVilkår(p1, b1),
+            vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre(
+                uføre = lagVurdertUføreVilkår(p1),
+                formue = lagVurdertFormueVilkår(p1, b1),
             ),
         )
 
@@ -355,9 +355,9 @@ internal class VedtakTest {
             grunnlagsdata = Grunnlagsdata.create(
                 bosituasjon = listOf(b2),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
-                Vilkår.Uførhet.Vurdert.create(nonEmptyListOf(uføreVurderingB)),
-                lagVurdertFormueVilkår(p2, b2),
+            vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre(
+                uføre = Vilkår.Uførhet.Vurdert.create(nonEmptyListOf(uføreVurderingB)),
+                formue = lagVurdertFormueVilkår(p2, b2),
             ),
         )
 
@@ -377,12 +377,12 @@ internal class VedtakTest {
                     fradragsgrunnlag = listOf(),
                     bosituasjon = listOf(b2),
                 ),
-                vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
+                vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre(
 
-                    Vilkår.Uførhet.Vurdert.create(
+                    uføre = Vilkår.Uførhet.Vurdert.create(
                         nonEmptyListOf(uføreVurderingB),
                     ),
-                    lagVurdertFormueVilkår(p2, b2),
+                    formue = lagVurdertFormueVilkår(p2, b2),
                 ),
                 originaltVedtak = b,
             ),
@@ -398,7 +398,7 @@ internal class VedtakTest {
         fraDato: LocalDate,
         tilDato: LocalDate,
         grunnlagsdata: Grunnlagsdata,
-        vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
+        vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre,
     ): VedtakSomKanRevurderes.EndringIYtelse {
         val clock = fixedClockWithRekkefølge(rekkefølge)
         return VedtakSomKanRevurderes.fromSøknadsbehandling(

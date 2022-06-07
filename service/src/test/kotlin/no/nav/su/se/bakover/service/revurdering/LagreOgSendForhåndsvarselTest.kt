@@ -122,7 +122,7 @@ internal class LagreOgSendForhåndsvarselTest {
         )
         verify(mocks.brevService).lagreDokument(
             argThat {
-                it should beOfType<Dokument.MedMetadata.Informasjon>()
+                it should beOfType<Dokument.MedMetadata.Informasjon.Viktig>()
                 it.generertDokument shouldBe "pdf".toByteArray()
                 it.metadata shouldBe Dokument.Metadata(
                     sakId = revurdering.sakId,
@@ -411,7 +411,7 @@ internal class LagreOgSendForhåndsvarselTest {
         )
         verify(mocks.brevService).lagreDokument(
             argThat {
-                it should beOfType<Dokument.MedMetadata.Informasjon>()
+                it should beOfType<Dokument.MedMetadata.Informasjon.Viktig>()
                 it.generertDokument shouldBe "pdf".toByteArray()
                 it.metadata shouldBe Dokument.Metadata(
                     sakId = simulertRevurdering.sakId,

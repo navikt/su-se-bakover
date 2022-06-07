@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.test
 
+import arrow.core.Nel
 import arrow.core.getOrHandle
 import arrow.core.nonEmptyListOf
 import arrow.core.right
@@ -19,7 +20,6 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
-import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingUnderBehandling
@@ -294,7 +294,14 @@ fun simulertRevurdering(
                         sakId = beregnet.sakId,
                         saksnummer = beregnet.saksnummer,
                         clock = clock,
-                        uføregrunnlag = beregnet.vilkårsvurderinger.uføre.grunnlag
+                        uføregrunnlag = beregnet.vilkårsvurderinger.uføreVilkår().fold(
+                            {
+                                TODO("vilkårsvurdering_alder kan ikke hente uførevilkår for alder")
+                            },
+                            {
+                                it.grunnlag
+                            }
+                        )
                     ),
                     clock = clock,
                     false,
@@ -796,7 +803,7 @@ fun beregnetRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
         it.copy(
             vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(
                 periode = revurderingsperiode,
-                bosituasjon = it.grunnlagsdata.bosituasjon.singleFullstendigOrThrow(),
+                bosituasjon = Nel.fromListUnsafe(it.grunnlagsdata.bosituasjon.map { it as Grunnlag.Bosituasjon.Fullstendig }),
             ),
         )
     },
@@ -892,7 +899,14 @@ fun simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
                 fnr = revurdering.fnr,
                 sakId = revurdering.sakId,
                 saksnummer = revurdering.saksnummer,
-                uføregrunnlag = revurdering.vilkårsvurderinger.uføre.grunnlag,
+                uføregrunnlag = revurdering.vilkårsvurderinger.uføreVilkår().fold(
+                    {
+                        TODO("vilkårsvurdering_alder kan ikke hente uførevilkår for alder")
+                    },
+                    {
+                        it.grunnlag
+                    }
+                ),
             ),
             clock = clock,
             tilbakekrevingTillatt = false,
@@ -1050,7 +1064,7 @@ fun tilAttesteringRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
         it.copy(
             vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(
                 periode = revurderingsperiode,
-                bosituasjon = it.grunnlagsdata.bosituasjon.singleFullstendigOrThrow(),
+                bosituasjon = Nel.fromListUnsafe(it.grunnlagsdata.bosituasjon.map { it as Grunnlag.Bosituasjon.Fullstendig }),
             ),
         )
     },
@@ -1099,7 +1113,7 @@ fun iverksattRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
         it.copy(
             vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(
                 periode = revurderingsperiode,
-                bosituasjon = it.grunnlagsdata.bosituasjon.singleFullstendigOrThrow(),
+                bosituasjon = Nel.fromListUnsafe(it.grunnlagsdata.bosituasjon.map { it as Grunnlag.Bosituasjon.Fullstendig }),
             ),
         )
     },

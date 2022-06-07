@@ -74,30 +74,6 @@ object BehandlingTestUtils {
             institusjonsopphold = Behandlingsinformasjon.Institusjonsopphold(
                 status = Behandlingsinformasjon.Institusjonsopphold.Status.VilkårOppfylt,
             ),
-            formue = Behandlingsinformasjon.Formue(
-                status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
-                verdier = Behandlingsinformasjon.Formue.Verdier(
-                    verdiIkkePrimærbolig = 0,
-                    verdiEiendommer = 0,
-                    verdiKjøretøy = 0,
-                    innskudd = 0,
-                    verdipapir = 0,
-                    pengerSkyldt = 0,
-                    kontanter = 0,
-                    depositumskonto = 0,
-                ),
-                epsVerdier = Behandlingsinformasjon.Formue.Verdier(
-                    verdiIkkePrimærbolig = 0,
-                    verdiEiendommer = 0,
-                    verdiKjøretøy = 0,
-                    innskudd = 0,
-                    verdipapir = 0,
-                    pengerSkyldt = 0,
-                    kontanter = 0,
-                    depositumskonto = 0,
-                ),
-                begrunnelse = null,
-            ),
             personligOppmøte = Behandlingsinformasjon.PersonligOppmøte(
                 status = Behandlingsinformasjon.PersonligOppmøte.Status.MøttPersonlig,
             ),
@@ -119,7 +95,7 @@ object BehandlingTestUtils {
         grunnlagsdata = Grunnlagsdata.create(
             bosituasjon = listOf(bosituasjon),
         ),
-        vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
+        vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre(
             uføre = Vilkår.Uførhet.Vurdert.create(
                 vurderingsperioder = nonEmptyListOf(vurderingsperiodeUføre),
             ),

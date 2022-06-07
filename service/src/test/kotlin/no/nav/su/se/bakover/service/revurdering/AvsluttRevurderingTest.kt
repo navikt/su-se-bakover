@@ -89,7 +89,7 @@ internal class AvsluttRevurderingTest {
             on { lukkOppgave(any()) } doReturn Unit.right()
         }
         val brevServiceMock = mock<BrevService> {
-            on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn Dokument.UtenMetadata.Informasjon(
+            on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn Dokument.UtenMetadata.Informasjon.Annet(
                 opprettet = fixedTidspunkt,
                 tittel = "tittel1",
                 generertDokument = "brev".toByteArray(),
@@ -128,7 +128,7 @@ internal class AvsluttRevurderingTest {
         )
         verify(brevServiceMock).lagreDokument(
             argThat {
-                it should beOfType<Dokument.MedMetadata.Informasjon>()
+                it should beOfType<Dokument.MedMetadata.Informasjon.Annet>()
                 it.generertDokument shouldBe "brev".toByteArray()
                 it.metadata shouldBe Dokument.Metadata(
                     sakId = simulert.sakId,

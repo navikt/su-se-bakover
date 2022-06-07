@@ -35,7 +35,7 @@ data class AvvistSøknadBrevRequest(
         when (brevConfig) {
             is BrevConfig.Fritekst -> {
                 return genererDokument(genererPdf).map {
-                    Dokument.UtenMetadata.Informasjon(
+                    Dokument.UtenMetadata.Informasjon.Annet(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(), // TODO jah: Ta inn clock
                         tittel = it.first,
