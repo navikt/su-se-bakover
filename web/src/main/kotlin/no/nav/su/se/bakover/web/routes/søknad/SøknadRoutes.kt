@@ -113,7 +113,6 @@ internal fun Route.søknadRoutes(
                                             )
                                         },
                                     )
-
                             },
                         )
                     },
