@@ -28,7 +28,7 @@ class SkatteClient(private val skatteetatenConfig: SkatteetatenConfig) : Skatteo
     override fun hentSamletSkattegrunnlag(accessToken: AccessToken, fnr: Fnr): Either<SkatteoppslagFeil, SamletSkattegrunnlag> {
         val getRequest = HttpRequest.newBuilder()
             // TODO: Ikke hardkode år
-            .uri(URI.create("${skatteetatenConfig.apiUri}/nav/2021/$fnr"))
+            .uri(URI.create("${skatteetatenConfig.apiUri}/api/formueinntekt/summertskattegrunnlag/nav/2021/$fnr"))
             .header("Accept", "application/json")
             .header("Authorization", "Bearer ${accessToken.token}")
             .GET()
