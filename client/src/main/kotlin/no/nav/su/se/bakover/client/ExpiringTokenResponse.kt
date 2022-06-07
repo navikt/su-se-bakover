@@ -22,4 +22,7 @@ open class ExpiringTokenResponse(
     private fun isExpired() = expirationTime.isBefore(LocalDateTime.now())
 }
 
+fun ExpiringTokenResponse?.isValid(): Boolean {
+    return this != null && ExpiringTokenResponse.isValid(this)
+}
 data class AccessToken(val token: String)
