@@ -74,35 +74,46 @@ internal fun Route.søknadRoutes(
                         call.svar(Feilresponser.ugyldigBody)
                     },
                     ifRight = { søknadsinnholdJson ->
-                        søknadService.nySøknad(
-                            søknadsinnholdJson.toSøknadsinnhold(),
-                            søknadsinnholdJson.forNav.identBruker(call),
-                        ).fold(
-                            { call.svar(it.tilResultat(type)) },
-                            { (saksnummer, søknad) ->
-                                call.audit(
-                                    søknad.søknadInnhold.personopplysninger.fnr,
-                                    AuditLogEvent.Action.CREATE,
-                                    null,
-                                )
-                                call.sikkerlogg("Lagrer søknad ${søknad.id} på sak ${søknad.sakId}")
-                                SuMetrics.søknadMottatt(
-                                    if (søknad.søknadInnhold.forNav is ForNav.Papirsøknad)
-                                        SuMetrics.Søknadstype.PAPIR
-                                    else
-                                        SuMetrics.Søknadstype.DIGITAL,
-                                )
+                        søknadsinnholdJson.toSøknadsinnhold().fold(
+                            {
                                 call.svar(
-                                    Resultat.json(
-                                        Created,
-                                        serialize(
-                                            OpprettetSøknadJson(
-                                                saksnummer = saksnummer.nummer,
-                                                søknad = søknad.toJson(),
-                                            ),
-                                        ),
+                                    BadRequest.errorJson(
+                                        "Data i oppholdstillatelse samsvarer ikke",
+                                        "data_i_oppholdstillatelse_samsvarer_ikke",
                                     ),
                                 )
+                            },
+                            {
+                                søknadService.nySøknad(it, søknadsinnholdJson.forNav.identBruker(call))
+                                    .fold(
+                                        { call.svar(it.tilResultat(type)) },
+                                        { (saksnummer, søknad) ->
+                                            call.audit(
+                                                søknad.søknadInnhold.personopplysninger.fnr,
+                                                AuditLogEvent.Action.CREATE,
+                                                null,
+                                            )
+                                            call.sikkerlogg("Lagrer søknad ${søknad.id} på sak ${søknad.sakId}")
+                                            SuMetrics.søknadMottatt(
+                                                if (søknad.søknadInnhold.forNav is ForNav.Papirsøknad)
+                                                    SuMetrics.Søknadstype.PAPIR
+                                                else
+                                                    SuMetrics.Søknadstype.DIGITAL,
+                                            )
+                                            call.svar(
+                                                Resultat.json(
+                                                    Created,
+                                                    serialize(
+                                                        OpprettetSøknadJson(
+                                                            saksnummer = saksnummer.nummer,
+                                                            søknad = søknad.toJson(),
+                                                        ),
+                                                    ),
+                                                ),
+                                            )
+                                        },
+                                    )
+
                             },
                         )
                     },
