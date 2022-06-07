@@ -946,7 +946,7 @@ open class AccessCheckProxy(
                 override fun hentSamletSkattegrunnlag(fnr: Fnr): Either<KunneIkkeHenteSkattemelding, SamletSkattegrunnlag> {
                     // TODO ai: Sjekk att fnr har en sak hos oss.
                     assertHarTilgangTilPerson(fnr)
-                    return hentSamletSkattegrunnlag(fnr)
+                    return services.skatteService.hentSamletSkattegrunnlag(fnr)
                 }
             }
         )
