@@ -938,7 +938,7 @@ open class AccessCheckProxy(
                 }
             },
             skatteService = object : SkatteService {
-                override fun hentSkattemelding(fnr: Fnr): Either<KunneIkkeHenteSkattemelding, SamletSkattegrunnlag> {
+                override fun hentSamletSkattegrunnlag(fnr: Fnr): Either<KunneIkkeHenteSkattemelding, SamletSkattegrunnlag> {
                     // TODO ai: Sjekk att fnr har en sak hos oss.
                     assertHarTilgangTilPerson(fnr)
                     return hentSamletSkattegrunnlag(fnr)
