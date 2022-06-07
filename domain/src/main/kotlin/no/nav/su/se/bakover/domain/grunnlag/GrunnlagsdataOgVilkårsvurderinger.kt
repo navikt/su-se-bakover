@@ -2,6 +2,8 @@ package no.nav.su.se.bakover.domain.grunnlag
 
 import arrow.core.Either
 import arrow.core.getOrHandle
+import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.erSammenhengendeSortertOgUtenDuplikater
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.perioderMedEPS
@@ -136,16 +138,16 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
         fun oppdaterStønadsperiode(
             stønadsperiode: Stønadsperiode,
             formuegrenserFactory: FormuegrenserFactory,
-        ): Søknadsbehandling {
+        ): Either<KunneIkkeLageGrunnlagsdata, Søknadsbehandling> {
             return Søknadsbehandling(
                 grunnlagsdata = grunnlagsdata.oppdaterGrunnlagsperioder(
                     oppdatertPeriode = stønadsperiode.periode,
-                ).getOrHandle { throw IllegalStateException(it.toString()) },
+                ).getOrHandle { return it.left() },
                 vilkårsvurderinger = vilkårsvurderinger.oppdaterStønadsperiode(
                     stønadsperiode = stønadsperiode,
                     formuegrenserFactory = formuegrenserFactory,
                 ),
-            )
+            ).right()
         }
 
         /**

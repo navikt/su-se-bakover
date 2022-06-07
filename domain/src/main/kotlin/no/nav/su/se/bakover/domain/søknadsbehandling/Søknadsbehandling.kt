@@ -731,7 +731,9 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 return grunnlagsdataOgVilkårsvurderinger.oppdaterStønadsperiode(
                     stønadsperiode = oppdatertStønadsperiode,
                     formuegrenserFactory = formuegrenserFactory,
-                ).let {
+                ).mapLeft {
+                    KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it)
+                }.map {
                     copy(
                         stønadsperiode = oppdatertStønadsperiode,
                         grunnlagsdata = it.grunnlagsdata,
@@ -739,7 +741,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     ).vilkårsvurder(
                         vilkårsvurderinger = it.vilkårsvurderinger,
                         clock = clock,
-                    ).right()
+                    )
                 }
             }
         }
@@ -862,7 +864,9 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 return grunnlagsdataOgVilkårsvurderinger.oppdaterStønadsperiode(
                     stønadsperiode = oppdatertStønadsperiode,
                     formuegrenserFactory = formuegrenserFactory,
-                ).let {
+                ).mapLeft {
+                    KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it)
+                }.map {
                     copy(
                         stønadsperiode = oppdatertStønadsperiode,
                         grunnlagsdata = it.grunnlagsdata,
@@ -870,7 +874,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     ).vilkårsvurder(
                         vilkårsvurderinger = it.vilkårsvurderinger,
                         clock = clock,
-                    ).right()
+                    )
                 }
             }
         }
@@ -964,7 +968,9 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 return grunnlagsdataOgVilkårsvurderinger.oppdaterStønadsperiode(
                     stønadsperiode = oppdatertStønadsperiode,
                     formuegrenserFactory = formuegrenserFactory,
-                ).let {
+                ).mapLeft {
+                    KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it)
+                }.map {
                     copy(
                         stønadsperiode = oppdatertStønadsperiode,
                         grunnlagsdata = it.grunnlagsdata,
@@ -972,7 +978,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     ).vilkårsvurder(
                         vilkårsvurderinger = it.vilkårsvurderinger,
                         clock = clock,
-                    ).right()
+                    )
                 }
             }
 
@@ -1177,7 +1183,9 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 return grunnlagsdataOgVilkårsvurderinger.oppdaterStønadsperiode(
                     stønadsperiode = oppdatertStønadsperiode,
                     formuegrenserFactory = formuegrenserFactory,
-                ).let {
+                ).mapLeft {
+                    KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it)
+                }.map {
                     copy(
                         stønadsperiode = oppdatertStønadsperiode,
                         grunnlagsdata = it.grunnlagsdata,
@@ -1185,7 +1193,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     ).vilkårsvurder(
                         vilkårsvurderinger = it.vilkårsvurderinger,
                         clock = clock,
-                    ).right()
+                    )
                 }
             }
         }
@@ -1365,7 +1373,9 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 return grunnlagsdataOgVilkårsvurderinger.oppdaterStønadsperiode(
                     stønadsperiode = oppdatertStønadsperiode,
                     formuegrenserFactory = formuegrenserFactory,
-                ).let {
+                ).mapLeft {
+                    KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it)
+                }.map {
                     copy(
                         stønadsperiode = oppdatertStønadsperiode,
                         grunnlagsdata = it.grunnlagsdata,
@@ -1373,7 +1383,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     ).vilkårsvurder(
                         vilkårsvurderinger = it.vilkårsvurderinger,
                         clock = clock,
-                    ).right()
+                    )
                 }
             }
         }
@@ -1590,7 +1600,9 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             return grunnlagsdataOgVilkårsvurderinger.oppdaterStønadsperiode(
                 stønadsperiode = oppdatertStønadsperiode,
                 formuegrenserFactory = formuegrenserFactory,
-            ).let {
+            ).mapLeft {
+                KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it)
+            }.map {
                 copy(
                     stønadsperiode = oppdatertStønadsperiode,
                     grunnlagsdata = it.grunnlagsdata,
@@ -1598,7 +1610,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 ).vilkårsvurder(
                     vilkårsvurderinger = it.vilkårsvurderinger,
                     clock = clock,
-                ).right()
+                )
             }
         }
     }
@@ -2112,7 +2124,9 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 return grunnlagsdataOgVilkårsvurderinger.oppdaterStønadsperiode(
                     stønadsperiode = oppdatertStønadsperiode,
                     formuegrenserFactory = formuegrenserFactory,
-                ).let {
+                ).mapLeft {
+                    KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it)
+                }.map {
                     copy(
                         stønadsperiode = oppdatertStønadsperiode,
                         grunnlagsdata = it.grunnlagsdata,
@@ -2120,7 +2134,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     ).vilkårsvurder(
                         vilkårsvurderinger = it.vilkårsvurderinger,
                         clock = clock,
-                    ).right()
+                    )
                 }
             }
         }
@@ -2303,7 +2317,9 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     return grunnlagsdataOgVilkårsvurderinger.oppdaterStønadsperiode(
                         stønadsperiode = oppdatertStønadsperiode,
                         formuegrenserFactory = formuegrenserFactory,
-                    ).let {
+                    ).mapLeft {
+                        KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it)
+                    }.map {
                         copy(
                             stønadsperiode = oppdatertStønadsperiode,
                             grunnlagsdata = it.grunnlagsdata,
@@ -2311,7 +2327,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         ).vilkårsvurder(
                             vilkårsvurderinger = it.vilkårsvurderinger,
                             clock = clock,
-                        ).right()
+                        )
                     }
                 }
             }
@@ -2435,7 +2451,9 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     return grunnlagsdataOgVilkårsvurderinger.oppdaterStønadsperiode(
                         stønadsperiode = oppdatertStønadsperiode,
                         formuegrenserFactory = formuegrenserFactory,
-                    ).let {
+                    ).mapLeft {
+                        KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it)
+                    }.map {
                         copy(
                             stønadsperiode = oppdatertStønadsperiode,
                             grunnlagsdata = it.grunnlagsdata,
@@ -2443,7 +2461,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         ).vilkårsvurder(
                             vilkårsvurderinger = it.vilkårsvurderinger,
                             clock = clock,
-                        ).right()
+                        )
                     }
                 }
             }
