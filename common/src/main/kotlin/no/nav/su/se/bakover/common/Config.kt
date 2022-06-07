@@ -455,7 +455,7 @@ data class ApplicationConfig(
 
         ) {
             companion object {
-                fun createFromEnvironmentVariables() = SkatteetatenConfig("a")
+                fun createFromEnvironmentVariables() = SkatteetatenConfig(getEnvironmentVariableOrDefault("SKATTEETATEN_URL", "https://api-test.sits.no"))
                 fun createLocalConfig() = SkatteetatenConfig("mocked")
             }
         }

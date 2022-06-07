@@ -95,7 +95,7 @@ internal class ApplicationConfigTest {
                 jwksUri = "maskinporten_jwks_uri",
                 tokenEndpoint = "maskinporten_token_endpoint",
             ),
-            skatteetatenConfig = ApplicationConfig.ClientsConfig.SkatteetatenConfig(apiUri = "a"),
+            skatteetatenConfig = ApplicationConfig.ClientsConfig.SkatteetatenConfig(apiUri = "https://api-test.sits.no"),
         ),
         kafkaConfig = ApplicationConfig.KafkaConfig(
             producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg(
