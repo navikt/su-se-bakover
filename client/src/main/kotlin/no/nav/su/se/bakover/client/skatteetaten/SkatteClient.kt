@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.client.isSuccess
 import no.nav.su.se.bakover.common.ApplicationConfig.ClientsConfig.SkatteetatenConfig
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.SamletSkattegrunnlag
 import java.net.URI
@@ -37,6 +38,10 @@ class SkatteClient(private val skatteetatenConfig: SkatteetatenConfig) : Skatteo
             client.send(getRequest, HttpResponse.BodyHandlers.ofString()).let { response ->
                 if (!response.isSuccess()) {
                     log.debug("Kall mot skatteetatens api feilet med statuskode ${response.statusCode()} og følgende feil: ${response.body()}")
+                    sikkerLogg.warn(
+                        "Kall mot skatteetatens api feilet med statuskode ${response.statusCode()} og følgende feil: ${response.body()}. " +
+                            "Request $getRequest er forespørselen mot skatteetaten som feilet."
+                    )
                     return SkatteoppslagFeil.KunneIkkeHenteSkattedata(
                         statusCode = response.statusCode(),
                         feilmelding = "Kall mot skatteetatens api feilet",
@@ -46,6 +51,13 @@ class SkatteClient(private val skatteetatenConfig: SkatteetatenConfig) : Skatteo
                     return objectMapper.readValue(response.body(), SamletSkattegrunnlag::class.java).right()
                 }
             }
-        }.getOrHandle { return SkatteoppslagFeil.Nettverksfeil(it).left() }
+        }.getOrHandle {
+            log.warn("Fikk en exception ${it.message} i henting av data fra skatteetaten.", it)
+            sikkerLogg.warn(
+                "Fikk en exception ${it.message} i henting av data fra skatteetaten. " +
+                    "Request $getRequest er forespørselen mot skatteetaten som feilet."
+            )
+            return SkatteoppslagFeil.Nettverksfeil(it).left()
+        }
     }
 }
