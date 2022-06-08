@@ -8,6 +8,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import no.nav.su.se.bakover.client.skatteetaten.SkatteoppslagFeil
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.service.skatt.KunneIkkeHenteSkattemelding
@@ -63,7 +64,7 @@ internal fun Route.skattRoutes(skatteService: SkatteService, toggleService: Togg
                                 call.svar(feilmelding)
                             },
                             ifRight = {
-                                call.svar(Resultat.json(HttpStatusCode.OK, it.toString()))
+                                call.svar(Resultat.json(HttpStatusCode.OK, serialize(it)))
                             },
                         )
                 }
