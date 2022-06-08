@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.ForNav
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.satser.SatsFactory
+import no.nav.su.se.bakover.domain.søknadinnhold.FeilVedOpprettelseAvOppholdstillatelse
 import no.nav.su.se.bakover.service.søknad.AvslåManglendeDokumentasjonRequest
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
 import no.nav.su.se.bakover.service.søknad.KunneIkkeAvslåSøknad
@@ -43,6 +44,7 @@ import no.nav.su.se.bakover.web.routes.Feilresponser.Brev.kunneIkkeLageBrevutkas
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknad.lukk.LukkSøknadErrorHandler
 import no.nav.su.se.bakover.web.routes.søknad.lukk.LukkSøknadInputHandler
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.FeilVedOpprettelseAvSøknadinnholdJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdJson
 import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
@@ -75,14 +77,7 @@ internal fun Route.søknadRoutes(
                     },
                     ifRight = { søknadsinnholdJson ->
                         søknadsinnholdJson.toSøknadsinnhold().fold(
-                            {
-                                call.svar(
-                                    BadRequest.errorJson(
-                                        "Data i oppholdstillatelse samsvarer ikke",
-                                        "data_i_oppholdstillatelse_samsvarer_ikke",
-                                    ),
-                                )
-                            },
+                            { it.tilResultat() },
                             {
                                 søknadService.nySøknad(it, søknadsinnholdJson.forNav.identBruker(call))
                                     .fold(
@@ -251,5 +246,24 @@ private fun KunneIkkeOppretteSøknad.tilResultat(type: String) = when (this) {
     KunneIkkeOppretteSøknad.SøknadsinnsendingIkkeTillatt -> Forbidden.errorJson(
         "Innsending av type søknad $type, er ikke tillatt",
         "innsending_av_søknad_ikke_tillatt",
+    )
+}
+
+private fun FeilVedOpprettelseAvSøknadinnholdJson.tilResultat() = when (this) {
+    is FeilVedOpprettelseAvSøknadinnholdJson.FeilVedOpprettelseAvOppholdstillatelseWeb -> underliggendeFeil.tilResultat()
+}
+
+private fun FeilVedOpprettelseAvOppholdstillatelse.tilResultat() = when (this) {
+    FeilVedOpprettelseAvOppholdstillatelse.FritekstForStatsborgerskapErIkkeUtfylt -> BadRequest.errorJson(
+        "Forventet fritekst for statsborgerskap",
+        "fritekst_for_statsborgerskap_er_ikke_utfylt",
+    )
+    FeilVedOpprettelseAvOppholdstillatelse.OppholdstillatelseErIkkeUtfylt -> BadRequest.errorJson(
+        "Forventet at oppholdstillatelse er valgt",
+        "oppholdstillatelse_er_ikke_utfylt",
+    )
+    FeilVedOpprettelseAvOppholdstillatelse.TypeOppholdstillatelseErIkkeUtfylt -> BadRequest.errorJson(
+        "Forventet type oppholdstillatelse",
+        "type_oppholdstillatelse_er_ikke_utfylt",
     )
 }

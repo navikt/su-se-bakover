@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import no.nav.su.se.bakover.domain.søknadinnhold.Oppholdstillatelse
 import java.time.LocalDate
 
 @JsonTypeInfo(
@@ -85,19 +86,6 @@ data class OppholdstillatelseAlder(
     val eøsborger: Boolean?,
     val familiegjenforening: Boolean?
 )
-
-data class Oppholdstillatelse(
-    val erNorskStatsborger: Boolean,
-    val harOppholdstillatelse: Boolean? = null,
-    val oppholdstillatelseType: OppholdstillatelseType? = null,
-    val statsborgerskapAndreLand: Boolean,
-    val statsborgerskapAndreLandFritekst: String? = null
-) {
-    enum class OppholdstillatelseType() {
-        MIDLERTIDIG,
-        PERMANENT;
-    }
-}
 
 data class Boforhold(
     val borOgOppholderSegINorge: Boolean,

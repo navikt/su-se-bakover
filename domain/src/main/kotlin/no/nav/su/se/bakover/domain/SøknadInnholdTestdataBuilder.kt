@@ -1,9 +1,11 @@
 package no.nav.su.se.bakover.domain
 
+import arrow.core.getOrHandle
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.domain.Boforhold.OppgittAdresse.IngenAdresse.IngenAdresseGrunn
+import no.nav.su.se.bakover.domain.søknadinnhold.Oppholdstillatelse
 import java.time.LocalDate
 import java.time.Month.JANUARY
 
@@ -73,13 +75,13 @@ fun oppholdstillatelse(
     statsborgerskapAndreLand: Boolean = false,
     statsborgerskapAndreLandFritekst: String? = null
 ) =
-    Oppholdstillatelse(
+    Oppholdstillatelse.tryCreate(
         erNorskStatsborger = erNorskStatsborger,
         harOppholdstillatelse = harOppholdstillatelse,
         oppholdstillatelseType = oppholdstillatelseType,
         statsborgerskapAndreLand = statsborgerskapAndreLand,
         statsborgerskapAndreLandFritekst = statsborgerskapAndreLandFritekst,
-    )
+    ).getOrHandle { throw IllegalArgumentException("Feil ved opprettelse av test data") }
 
 fun inntektOgPensjon() = InntektOgPensjon(
     forventetInntekt = 2500,
