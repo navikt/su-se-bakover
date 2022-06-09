@@ -78,7 +78,7 @@ internal fun Route.søknadRoutes(
                     },
                     ifRight = { søknadsinnholdJson ->
                         søknadsinnholdJson.toSøknadsinnhold().fold(
-                            { it.tilResultat() },
+                            { call.svar(it.tilResultat()) },
                             {
                                 søknadService.nySøknad(it, søknadsinnholdJson.forNav.identBruker(call))
                                     .fold(
