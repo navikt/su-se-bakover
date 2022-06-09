@@ -281,6 +281,6 @@ private fun FeilVedOpprettelseAvBoforhold.tilResultat() = when (this) {
     )
     FeilVedOpprettelseAvBoforhold.BeggeAdressegrunnerErUtfylt -> BadRequest.errorJson(
         "Kun én adressegrunn kan være utfylt",
-        "begge_adressegrunner_er_utfylt"
+        "kun_en_adressegrunn_kan_være_utfylt"
     )
 }
