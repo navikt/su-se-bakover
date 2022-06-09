@@ -139,7 +139,7 @@ internal class SøknadRoutesKtTest {
 
                 shouldNotThrow<Throwable> { objectMapper.readValue<OpprettetSøknadJson>(createResponse.bodyAsText()) }
 
-                val sakFraDb = repos.sak.hentSak(fnr)
+                val sakFraDb = repos.sak.hentSak(fnr, Sakstype.UFØRE)
                 sakFraDb shouldNotBe null
                 sakFraDb!!.søknader shouldHaveAtLeastSize 1
             }

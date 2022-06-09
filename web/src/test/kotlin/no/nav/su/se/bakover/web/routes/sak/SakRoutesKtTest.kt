@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.test.fixedClock
@@ -74,7 +75,7 @@ internal class SakRoutesKtTest {
                 SakFactory(clock = fixedClock).nySakMedNySøknad(Fnr(sakFnr01), søknadInnhold).also {
                     repos.sak.opprettSak(it)
                 }
-                val opprettetSakId: Sak = repos.sak.hentSak(Fnr(sakFnr01))!!
+                val opprettetSakId: Sak = repos.sak.hentSak(Fnr(sakFnr01), Sakstype.UFØRE)!!
 
                 defaultRequest(
                     Get,
@@ -98,7 +99,7 @@ internal class SakRoutesKtTest {
                 repos.sak.opprettSak(SakFactory(clock = fixedClock).nySakMedNySøknad(Fnr(sakFnr01), søknadInnhold))
 
                 defaultRequest(HttpMethod.Post, "$sakPath/søk", listOf(Brukerrolle.Saksbehandler)) {
-                    setBody("""{"fnr":"$sakFnr01"}""")
+                    setBody("""{"fnr":"$sakFnr01", "type": "uføre"}""")
                 }.apply {
                     status shouldBe OK
                     bodyAsText() shouldContain """"fnr":"$sakFnr01""""
@@ -124,8 +125,14 @@ internal class SakRoutesKtTest {
                         status shouldBe OK
                         bodyAsText() shouldMatchJson """
                             {
-                                "harÅpenSøknad": false,
-                                "iverksattInnvilgetStønadsperiode": null
+                                "uføre": {
+                                    "harÅpenSøknad": false,
+                                    "iverksattInnvilgetStønadsperiode": null
+                                },
+                                "alder": {
+                                    "harÅpenSøknad": false,
+                                    "iverksattInnvilgetStønadsperiode": null
+                                }
                             }
                         """.trimIndent()
                     }
@@ -151,8 +158,14 @@ internal class SakRoutesKtTest {
                             status shouldBe OK
                             bodyAsText() shouldMatchJson """
                             {
-                                "harÅpenSøknad": true,
-                                "iverksattInnvilgetStønadsperiode": null
+                                "uføre": {
+                                    "harÅpenSøknad": true,
+                                    "iverksattInnvilgetStønadsperiode": null
+                                },
+                                "alder": {
+                                    "harÅpenSøknad": false,
+                                    "iverksattInnvilgetStønadsperiode": null
+                                }
                             }
                             """.trimIndent()
                         }
@@ -174,7 +187,7 @@ internal class SakRoutesKtTest {
                 val services = services(repos)
 
                 val sakSpy = spy(services.sak)
-                doReturn(sak.right()).`when`(sakSpy).hentSak(any<Fnr>())
+                doReturn(listOf(sak).right()).`when`(sakSpy).hentSaker(any())
 
                 testApplication {
                     application {
@@ -193,10 +206,16 @@ internal class SakRoutesKtTest {
                         status shouldBe OK
                         bodyAsText() shouldMatchJson """
                             {
-                                "harÅpenSøknad": false,
-                                "iverksattInnvilgetStønadsperiode": {
-                                    "fraOgMed": "${stønadsperiode.periode.fraOgMed}",
-                                    "tilOgMed": "${stønadsperiode.periode.tilOgMed}"
+                                "uføre": {
+                                    "harÅpenSøknad": false,
+                                    "iverksattInnvilgetStønadsperiode": {
+                                        "fraOgMed": "${stønadsperiode.periode.fraOgMed}",
+                                        "tilOgMed": "${stønadsperiode.periode.tilOgMed}"
+                                    }
+                                },
+                                "alder": {
+                                    "harÅpenSøknad": false,
+                                    "iverksattInnvilgetStønadsperiode": null
                                 }
                             }
                         """.trimIndent()
@@ -218,7 +237,7 @@ internal class SakRoutesKtTest {
             }
 
             defaultRequest(HttpMethod.Post, "$sakPath/søk", listOf(Brukerrolle.Veileder)) {
-                setBody("""{"fnr":"${Fnr.generer()}"}""")
+                setBody("""{"fnr":"${Fnr.generer()}", type: "uføre"}""")
             }.apply {
                 status shouldBe Forbidden
             }
