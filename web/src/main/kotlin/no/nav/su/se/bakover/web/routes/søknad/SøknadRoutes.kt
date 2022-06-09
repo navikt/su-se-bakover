@@ -272,15 +272,15 @@ private fun FeilVedOpprettelseAvOppholdstillatelse.tilResultat() = when (this) {
 
 private fun FeilVedOpprettelseAvBoforhold.tilResultat() = when (this) {
     FeilVedOpprettelseAvBoforhold.DelerBoligMedErIkkeUtfylt -> BadRequest.errorJson(
-        "Forventet at delerBolgMed skulle være utfylt ",
+        "DelerBoligMed må være utfylt",
         "deler_bolig_med_er_ikke_utfylt",
     )
     FeilVedOpprettelseAvBoforhold.EktefellePartnerSamboerMåVæreUtfylt -> BadRequest.errorJson(
-        "Forventet at EktefellePartnerSamboer skulle være utfylt",
+        "EktefellePartnerSamboer må være utfylt",
         "ektefelle_partner_samboer_er_ikke_utfylt",
     )
     FeilVedOpprettelseAvBoforhold.BeggeAdressegrunnerErUtfylt -> BadRequest.errorJson(
-        "Forventet at bare én av adressegrunnene skal være utfylt",
+        "Kun én adressegrunn kan være utfylt",
         "begge_adressegrunner_er_utfylt"
     )
 }
