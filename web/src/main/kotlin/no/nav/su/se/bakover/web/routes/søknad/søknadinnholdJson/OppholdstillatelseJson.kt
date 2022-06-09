@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson
 
-import no.nav.su.se.bakover.domain.Oppholdstillatelse
+import no.nav.su.se.bakover.domain.søknadinnhold.Oppholdstillatelse
 
 data class OppholdstillatelseJson(
     val erNorskStatsborger: Boolean,
@@ -9,7 +9,7 @@ data class OppholdstillatelseJson(
     val statsborgerskapAndreLand: Boolean,
     val statsborgerskapAndreLandFritekst: String? = null,
 ) {
-    fun toOppholdstillatelse() = Oppholdstillatelse(
+    fun toOppholdstillatelse() = Oppholdstillatelse.tryCreate(
         erNorskStatsborger = erNorskStatsborger,
         harOppholdstillatelse = harOppholdstillatelse,
         oppholdstillatelseType = typeOppholdstillatelse?.let {

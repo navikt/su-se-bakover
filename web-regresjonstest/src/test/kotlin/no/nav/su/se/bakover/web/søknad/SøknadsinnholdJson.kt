@@ -63,7 +63,7 @@ private fun søknadsinnholdUføreJson(
       "boforhold":{
         "borOgOppholderSegINorge":true,
         "delerBoligMedVoksne":true,
-        "delerBoligMed":null,
+        "delerBoligMed":"VOKSNE_BARN",
         "ektefellePartnerSamboer":null,
         "innlagtPåInstitusjon":{
           "datoForInnleggelse":"2020-01-01",

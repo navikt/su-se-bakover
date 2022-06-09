@@ -1,9 +1,13 @@
 package no.nav.su.se.bakover.domain
 
+import arrow.core.getOrHandle
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juli
-import no.nav.su.se.bakover.domain.Boforhold.OppgittAdresse.IngenAdresse.IngenAdresseGrunn
+import no.nav.su.se.bakover.domain.søknadinnhold.Boforhold
+import no.nav.su.se.bakover.domain.søknadinnhold.EktefellePartnerSamboer
+import no.nav.su.se.bakover.domain.søknadinnhold.OppgittAdresse
+import no.nav.su.se.bakover.domain.søknadinnhold.Oppholdstillatelse
 import java.time.LocalDate
 import java.time.Month.JANUARY
 
@@ -24,24 +28,24 @@ fun boforhold(
     borOgOppholderSegINorge: Boolean = true,
     delerBolig: Boolean = true,
     delerBoligMed: Boforhold.DelerBoligMed? = Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER,
-    ektefellePartnerSamboer: Boforhold.EktefellePartnerSamboer? = Boforhold.EktefellePartnerSamboer(
+    ektefellePartnerSamboer: EktefellePartnerSamboer? = EktefellePartnerSamboer(
         erUførFlyktning = false,
-        fnr = fnrUnder67()
+        fnr = fnrUnder67(),
     ),
     innlagtPåInstitusjon: InnlagtPåInstitusjon? = InnlagtPåInstitusjon(
         datoForInnleggelse = LocalDate.of(2020, JANUARY, 1),
         datoForUtskrivelse = LocalDate.of(2020, JANUARY, 31),
-        fortsattInnlagt = false
+        fortsattInnlagt = false,
     ),
-    oppgittAdresse: Boforhold.OppgittAdresse? = Boforhold.OppgittAdresse.IngenAdresse(IngenAdresseGrunn.HAR_IKKE_FAST_BOSTED)
-) = Boforhold(
+    oppgittAdresse: OppgittAdresse = OppgittAdresse.IngenAdresse(OppgittAdresse.IngenAdresse.IngenAdresseGrunn.HAR_IKKE_FAST_BOSTED),
+) = Boforhold.tryCreate(
     borOgOppholderSegINorge = borOgOppholderSegINorge,
     delerBolig = delerBolig,
     delerBoligMed = delerBoligMed,
     ektefellePartnerSamboer = ektefellePartnerSamboer,
     innlagtPåInstitusjon = innlagtPåInstitusjon,
-    oppgittAdresse = oppgittAdresse
-)
+    oppgittAdresse = oppgittAdresse,
+).getOrHandle { throw IllegalArgumentException("Feil ved oppsett av test-data") }
 
 fun utenlandsopphold(
     registrertePerioder: List<UtenlandsoppholdPeriode>? = listOf(
@@ -73,13 +77,13 @@ fun oppholdstillatelse(
     statsborgerskapAndreLand: Boolean = false,
     statsborgerskapAndreLandFritekst: String? = null
 ) =
-    Oppholdstillatelse(
+    Oppholdstillatelse.tryCreate(
         erNorskStatsborger = erNorskStatsborger,
         harOppholdstillatelse = harOppholdstillatelse,
         oppholdstillatelseType = oppholdstillatelseType,
         statsborgerskapAndreLand = statsborgerskapAndreLand,
         statsborgerskapAndreLandFritekst = statsborgerskapAndreLandFritekst,
-    )
+    ).getOrHandle { throw IllegalArgumentException("Feil ved opprettelse av test data") }
 
 fun inntektOgPensjon() = InntektOgPensjon(
     forventetInntekt = 2500,
