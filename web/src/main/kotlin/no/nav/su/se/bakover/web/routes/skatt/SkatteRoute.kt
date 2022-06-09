@@ -14,7 +14,9 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.service.skatt.KunneIkkeHenteSkattemelding
 import no.nav.su.se.bakover.service.skatt.SkatteService
 import no.nav.su.se.bakover.service.toggles.ToggleService
+import no.nav.su.se.bakover.web.AuditLogEvent
 import no.nav.su.se.bakover.web.Resultat
+import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.parameter
@@ -40,6 +42,7 @@ internal fun Route.skattRoutes(skatteService: SkatteService, toggleService: Togg
                     skatteService.hentSamletSkattegrunnlag(fnr)
                         .fold(
                             ifLeft = {
+                                call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
                                 val feilmelding = when (it) {
                                     is KunneIkkeHenteSkattemelding.KallFeilet -> {
                                         when (val feil = it.feil) {
@@ -64,6 +67,7 @@ internal fun Route.skattRoutes(skatteService: SkatteService, toggleService: Togg
                                 call.svar(feilmelding)
                             },
                             ifRight = {
+                                call.audit(fnr, AuditLogEvent.Action.ACCESS, null)
                                 call.svar(Resultat.json(HttpStatusCode.OK, serialize(it)))
                             },
                         )
