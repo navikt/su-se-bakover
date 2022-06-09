@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.service.sak.KunneIkkeHenteGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.sak.SakService
@@ -49,24 +50,29 @@ internal fun Route.sakRoutes(
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             data class Body(
                 val fnr: String?,
+                val type: String?,
                 val saksnummer: String?,
             )
             call.withBody<Body> { body ->
                 when {
                     body.fnr != null -> {
-                        Either.catch { Fnr(body.fnr) }.fold(
+                        Either.catch { Fnr(body.fnr) to Sakstype.from(body.type!!) }.fold(
                             ifLeft = {
-                                call.svar(
-                                    Feilresponser.ugyldigFødselsnummer,
-                                )
+                                if (Sakstype.values().none { it.value == body.type }) {
+                                    call.svar(Feilresponser.ugyldigTypeSak)
+                                } else {
+                                    call.svar(
+                                        Feilresponser.ugyldigFødselsnummer,
+                                    )
+                                }
                             },
-                            ifRight = { fnr ->
-                                sakService.hentSak(fnr)
+                            ifRight = { (fnr, type) ->
+                                sakService.hentSak(fnr, type)
                                     .mapLeft {
                                         call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
                                         call.svar(
                                             NotFound.errorJson(
-                                                "Fant ikke noen sak for person: ${body.fnr}",
+                                                "Fant ikke noen sak av typen ${body.type} for person: ${body.fnr}",
                                                 "fant_ikke_sak_for_person",
                                             ),
                                         )
@@ -130,21 +136,19 @@ internal fun Route.sakRoutes(
                         .mapLeft { Feilresponser.ugyldigFødselsnummer }
                 }
                 .map { fnr ->
-                    sakService.hentBegrensetSakinfo(fnr)
-                        .fold(
-                            {
-                                BegrensetSakinfoJson(
-                                    harÅpenSøknad = false,
-                                    iverksattInnvilgetStønadsperiode = null,
+                    sakService.hentAlleredeGjeldendeSakForBruker(fnr)
+                        .let { info ->
+                            AlleredeGjeldendeSakForBrukerJson(
+                                uføre = BegrensetSakinfoJson(
+                                    harÅpenSøknad = info.uføre.harÅpenSøknad,
+                                    iverksattInnvilgetStønadsperiode = info.uføre.iverksattInnvilgetStønadsperiode?.toJson()
+                                ),
+                                alder = BegrensetSakinfoJson(
+                                    harÅpenSøknad = info.alder.harÅpenSøknad,
+                                    iverksattInnvilgetStønadsperiode = info.alder.iverksattInnvilgetStønadsperiode?.toJson()
                                 )
-                            },
-                            { info ->
-                                BegrensetSakinfoJson(
-                                    harÅpenSøknad = info.harÅpenSøknad,
-                                    iverksattInnvilgetStønadsperiode = info.iverksattInnvilgetStønadsperiode?.toJson(),
-                                )
-                            },
-                        )
+                            )
+                        }
                 }.map {
                     Resultat.json(OK, objectMapper.writeValueAsString(it))
                 }

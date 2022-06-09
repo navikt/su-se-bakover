@@ -223,7 +223,7 @@ internal class BeregnRoutesKtTest {
         SakFactory(clock = fixedClock).nySakMedNySøknad(fnr, søknadInnhold).also {
             repos.sak.opprettSak(it)
         }
-        val sak: Sak = repos.sak.hentSak(fnr)!!
+        val sak: Sak = repos.sak.hentSak(fnr, Sakstype.UFØRE)!!
         val journalpostId = JournalpostId("12")
         val oppgaveId = OppgaveId("12")
         val søknadMedOppgave: Søknad.Journalført.MedOppgave.IkkeLukket = (sak.søknader[0] as Søknad.Ny)
