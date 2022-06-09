@@ -22,6 +22,8 @@ import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.ForNav
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.satser.SatsFactory
+import no.nav.su.se.bakover.domain.søknadinnhold.FeilVedOpprettelseAvBoforhold
+import no.nav.su.se.bakover.domain.søknadinnhold.FeilVedOpprettelseAvOppholdstillatelse
 import no.nav.su.se.bakover.service.søknad.AvslåManglendeDokumentasjonRequest
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
 import no.nav.su.se.bakover.service.søknad.KunneIkkeAvslåSøknad
@@ -41,10 +43,10 @@ import no.nav.su.se.bakover.web.receiveTextUTF8
 import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.Feilresponser.Brev.kunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
-import no.nav.su.se.bakover.web.routes.søknad.SøknadsinnholdUføreJson.ForNavJson.DigitalSøknad
-import no.nav.su.se.bakover.web.routes.søknad.SøknadsinnholdUføreJson.ForNavJson.Papirsøknad
 import no.nav.su.se.bakover.web.routes.søknad.lukk.LukkSøknadErrorHandler
 import no.nav.su.se.bakover.web.routes.søknad.lukk.LukkSøknadInputHandler
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.FeilVedOpprettelseAvSøknadinnholdJson
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdJson
 import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
@@ -75,36 +77,38 @@ internal fun Route.søknadRoutes(
                         call.svar(Feilresponser.ugyldigBody)
                     },
                     ifRight = { søknadsinnholdJson ->
-                        val identBruker = when (søknadsinnholdJson.forNav) {
-                            is DigitalSøknad -> NavIdentBruker.Veileder(call.suUserContext.navIdent)
-                            is Papirsøknad -> NavIdentBruker.Saksbehandler(call.suUserContext.navIdent)
-                        }
-                        søknadService.nySøknad(søknadsinnholdJson.toSøknadsinnhold(), identBruker).fold(
-                            { call.svar(it.tilResultat(type)) },
-                            { (saksnummer, søknad) ->
-                                call.audit(
-                                    søknad.søknadInnhold.personopplysninger.fnr,
-                                    AuditLogEvent.Action.CREATE,
-                                    null,
-                                )
-                                call.sikkerlogg("Lagrer søknad ${søknad.id} på sak ${søknad.sakId}")
-                                SuMetrics.søknadMottatt(
-                                    if (søknad.søknadInnhold.forNav is ForNav.Papirsøknad)
-                                        SuMetrics.Søknadstype.PAPIR
-                                    else
-                                        SuMetrics.Søknadstype.DIGITAL,
-                                )
-                                call.svar(
-                                    Resultat.json(
-                                        Created,
-                                        serialize(
-                                            OpprettetSøknadJson(
-                                                saksnummer = saksnummer.nummer,
-                                                søknad = søknad.toJson(),
-                                            ),
-                                        ),
-                                    ),
-                                )
+                        søknadsinnholdJson.toSøknadsinnhold().fold(
+                            { call.svar(it.tilResultat()) },
+                            {
+                                søknadService.nySøknad(it, søknadsinnholdJson.forNav.identBruker(call))
+                                    .fold(
+                                        { call.svar(it.tilResultat(type)) },
+                                        { (saksnummer, søknad) ->
+                                            call.audit(
+                                                søknad.søknadInnhold.personopplysninger.fnr,
+                                                AuditLogEvent.Action.CREATE,
+                                                null,
+                                            )
+                                            call.sikkerlogg("Lagrer søknad ${søknad.id} på sak ${søknad.sakId}")
+                                            SuMetrics.søknadMottatt(
+                                                if (søknad.søknadInnhold.forNav is ForNav.Papirsøknad)
+                                                    SuMetrics.Søknadstype.PAPIR
+                                                else
+                                                    SuMetrics.Søknadstype.DIGITAL,
+                                            )
+                                            call.svar(
+                                                Resultat.json(
+                                                    Created,
+                                                    serialize(
+                                                        OpprettetSøknadJson(
+                                                            saksnummer = saksnummer.nummer,
+                                                            søknad = søknad.toJson(),
+                                                        ),
+                                                    ),
+                                                ),
+                                            )
+                                        },
+                                    )
                             },
                         )
                     },
@@ -243,5 +247,40 @@ private fun KunneIkkeOppretteSøknad.tilResultat(type: String) = when (this) {
     KunneIkkeOppretteSøknad.SøknadsinnsendingIkkeTillatt -> Forbidden.errorJson(
         "Innsending av type søknad $type, er ikke tillatt",
         "innsending_av_søknad_ikke_tillatt",
+    )
+}
+
+private fun FeilVedOpprettelseAvSøknadinnholdJson.tilResultat() = when (this) {
+    is FeilVedOpprettelseAvSøknadinnholdJson.FeilVedOpprettelseAvOppholdstillatelseWeb -> underliggendeFeil.tilResultat()
+    is FeilVedOpprettelseAvSøknadinnholdJson.FeilVedOpprettelseAvBoforholdWeb -> underliggendeFeil.tilResultat()
+}
+
+private fun FeilVedOpprettelseAvOppholdstillatelse.tilResultat() = when (this) {
+    FeilVedOpprettelseAvOppholdstillatelse.FritekstForStatsborgerskapErIkkeUtfylt -> BadRequest.errorJson(
+        "Forventet fritekst for statsborgerskap",
+        "fritekst_for_statsborgerskap_er_ikke_utfylt",
+    )
+    FeilVedOpprettelseAvOppholdstillatelse.OppholdstillatelseErIkkeUtfylt -> BadRequest.errorJson(
+        "Forventet at oppholdstillatelse er valgt",
+        "oppholdstillatelse_er_ikke_utfylt",
+    )
+    FeilVedOpprettelseAvOppholdstillatelse.TypeOppholdstillatelseErIkkeUtfylt -> BadRequest.errorJson(
+        "Forventet type oppholdstillatelse",
+        "type_oppholdstillatelse_er_ikke_utfylt",
+    )
+}
+
+private fun FeilVedOpprettelseAvBoforhold.tilResultat() = when (this) {
+    FeilVedOpprettelseAvBoforhold.DelerBoligMedErIkkeUtfylt -> BadRequest.errorJson(
+        "DelerBoligMed må være utfylt",
+        "deler_bolig_med_er_ikke_utfylt",
+    )
+    FeilVedOpprettelseAvBoforhold.EktefellePartnerSamboerMåVæreUtfylt -> BadRequest.errorJson(
+        "EktefellePartnerSamboer må være utfylt",
+        "ektefelle_partner_samboer_er_ikke_utfylt",
+    )
+    FeilVedOpprettelseAvBoforhold.BeggeAdressegrunnerErUtfylt -> BadRequest.errorJson(
+        "Kun én adressegrunn kan være utfylt",
+        "begge_adressegrunner_er_utfylt"
     )
 }

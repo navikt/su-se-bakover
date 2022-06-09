@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.database.TestDataHelper.Companion.søknadNy
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.test.stønadsperiode2021
@@ -21,9 +22,9 @@ internal class SakPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.sakRepo
             val nySak = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
-            val opprettet: Sak = repo.hentSak(nySak.fnr)!!
+            val opprettet: Sak = repo.hentSak(nySak.fnr, Sakstype.UFØRE)!!
             val hentetId = repo.hentSak(opprettet.id)!!
-            val hentetFnr = repo.hentSak(opprettet.fnr)!!
+            val hentetFnr = repo.hentSak(opprettet.fnr, Sakstype.UFØRE)!!
 
             opprettet shouldBe hentetId
             hentetId shouldBe hentetFnr

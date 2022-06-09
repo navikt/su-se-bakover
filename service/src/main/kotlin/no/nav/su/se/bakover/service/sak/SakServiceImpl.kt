@@ -6,11 +6,13 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.AlleredeGjeldendeSakForBruker
 import no.nav.su.se.bakover.domain.BegrensetSakinfo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
 import no.nav.su.se.bakover.domain.sak.SakInfo
@@ -35,8 +37,16 @@ internal class SakServiceImpl(
         return sakRepo.hentSak(sakId)?.right() ?: FantIkkeSak.left()
     }
 
-    override fun hentSak(fnr: Fnr): Either<FantIkkeSak, Sak> {
-        return sakRepo.hentSak(fnr)?.right() ?: FantIkkeSak.left()
+    override fun hentSak(fnr: Fnr, type: Sakstype): Either<FantIkkeSak, Sak> {
+        return sakRepo.hentSak(fnr, type)?.right() ?: FantIkkeSak.left()
+    }
+
+    override fun hentSaker(fnr: Fnr): Either<FantIkkeSak, List<Sak>> {
+        val saker = sakRepo.hentSaker(fnr)
+        if (saker.isEmpty()) {
+            return FantIkkeSak.left()
+        }
+        return saker.right()
     }
 
     override fun hentSak(saksnummer: Saksnummer): Either<FantIkkeSak, Sak> {
@@ -47,12 +57,9 @@ internal class SakServiceImpl(
         sakId: UUID,
         periode: Periode,
     ): Either<KunneIkkeHenteGjeldendeVedtaksdata, GjeldendeVedtaksdata?> {
-        return hentSak(sakId)
-            .mapLeft { KunneIkkeHenteGjeldendeVedtaksdata.FantIkkeSak }
-            .flatMap { sak ->
-                sak.hentGjeldendeVedtaksdata(periode, clock)
-                    .mapLeft { KunneIkkeHenteGjeldendeVedtaksdata.IngenVedtak }
-            }
+        return hentSak(sakId).mapLeft { KunneIkkeHenteGjeldendeVedtaksdata.FantIkkeSak }.flatMap { sak ->
+            sak.hentGjeldendeVedtaksdata(periode, clock).mapLeft { KunneIkkeHenteGjeldendeVedtaksdata.IngenVedtak }
+        }
     }
 
     override fun hentSakidOgSaksnummer(fnr: Fnr): Either<FantIkkeSak, SakInfo> {
@@ -79,21 +86,33 @@ internal class SakServiceImpl(
         return sakRepo.hentFerdigeBehandlinger()
     }
 
-    override fun hentBegrensetSakinfo(fnr: Fnr): Either<FantIkkeSak, BegrensetSakinfo> {
-        return hentSak(fnr)
-            .map { sak ->
-                BegrensetSakinfo(
-                    harÅpenSøknad = sak.søknader
-                        .any { søknad ->
-                            val behandling = sak.søknadsbehandlinger
-                                .find { b -> b.søknad.id == søknad.id }
-                            (
-                                søknad !is Søknad.Journalført.MedOppgave.Lukket &&
-                                    (behandling == null || !behandling.erIverksatt)
-                                )
-                        },
-                    iverksattInnvilgetStønadsperiode = sak.hentGjeldendeStønadsperiode(clock),
+    override fun hentAlleredeGjeldendeSakForBruker(fnr: Fnr): AlleredeGjeldendeSakForBruker {
+        return hentSaker(fnr).fold(
+            ifLeft = {
+                AlleredeGjeldendeSakForBruker(
+                    sakTilBegrensetSakInfo(null),
+                    sakTilBegrensetSakInfo(null),
                 )
-            }
+            },
+            ifRight = { saker ->
+                AlleredeGjeldendeSakForBruker(
+                    uføre = sakTilBegrensetSakInfo(saker.find { it.type == Sakstype.UFØRE }),
+                    alder = sakTilBegrensetSakInfo(saker.find { it.type == Sakstype.ALDER }),
+                )
+            },
+        )
+    }
+
+    private fun sakTilBegrensetSakInfo(sak: Sak?): BegrensetSakinfo {
+        if (sak == null) {
+            return BegrensetSakinfo(false, null)
+        }
+        return BegrensetSakinfo(
+            harÅpenSøknad = sak.søknader.any { søknad ->
+                val behandling = sak.søknadsbehandlinger.find { b -> b.søknad.id == søknad.id }
+                (søknad !is Søknad.Journalført.MedOppgave.Lukket && (behandling == null || !behandling.erIverksatt))
+            },
+            iverksattInnvilgetStønadsperiode = sak.hentGjeldendeStønadsperiode(clock),
+        )
     }
 }

@@ -65,8 +65,8 @@ import no.nav.su.se.bakover.web.embeddedPostgres
 import no.nav.su.se.bakover.web.routes.sak.SakJson
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.sak.sakPath
-import no.nav.su.se.bakover.web.routes.søknad.SøknadsinnholdUføreJson.Companion.toSøknadsinnholdUføreJson
 import no.nav.su.se.bakover.web.routes.søknad.lukk.LukketJson
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdUføreJson.Companion.toSøknadsinnholdUføreJson
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -139,7 +139,7 @@ internal class SøknadRoutesKtTest {
 
                 shouldNotThrow<Throwable> { objectMapper.readValue<OpprettetSøknadJson>(createResponse.bodyAsText()) }
 
-                val sakFraDb = repos.sak.hentSak(fnr)
+                val sakFraDb = repos.sak.hentSak(fnr, Sakstype.UFØRE)
                 sakFraDb shouldNotBe null
                 sakFraDb!!.søknader shouldHaveAtLeastSize 1
             }

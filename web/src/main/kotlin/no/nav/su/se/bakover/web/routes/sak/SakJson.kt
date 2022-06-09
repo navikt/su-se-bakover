@@ -65,6 +65,10 @@ internal data class SakJson(
     }
 }
 
+internal data class AlleredeGjeldendeSakForBrukerJson(
+    val uføre: BegrensetSakinfoJson,
+    val alder: BegrensetSakinfoJson
+)
 internal data class BegrensetSakinfoJson(
     val harÅpenSøknad: Boolean,
     val iverksattInnvilgetStønadsperiode: PeriodeJson?,

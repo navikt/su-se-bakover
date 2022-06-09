@@ -448,6 +448,11 @@ class SakFactory(
     }
 }
 
+data class AlleredeGjeldendeSakForBruker(
+    val uføre: BegrensetSakinfo,
+    val alder: BegrensetSakinfo
+)
+
 data class BegrensetSakinfo(
     val harÅpenSøknad: Boolean,
     val iverksattInnvilgetStønadsperiode: Periode?,
