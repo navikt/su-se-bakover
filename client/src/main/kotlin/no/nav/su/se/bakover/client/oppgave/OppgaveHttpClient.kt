@@ -49,7 +49,7 @@ internal class OppgaveHttpClient(
         .build()
 
     override fun opprettOppgaveMedSystembruker(config: OppgaveConfig): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveId> {
-        return opprettOppgave(config, tokenoppslagForSystembruker.token())
+        return opprettOppgave(config, tokenoppslagForSystembruker.token().token)
     }
 
     override fun opprettOppgave(config: OppgaveConfig): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveId> {
@@ -59,7 +59,7 @@ internal class OppgaveHttpClient(
     }
 
     override fun lukkOppgaveMedSystembruker(oppgaveId: OppgaveId): Either<OppgaveFeil.KunneIkkeLukkeOppgave, Unit> {
-        return lukkOppgave(oppgaveId, tokenoppslagForSystembruker.token())
+        return lukkOppgave(oppgaveId, tokenoppslagForSystembruker.token().token)
     }
 
     override fun lukkOppgave(oppgaveId: OppgaveId): Either<OppgaveFeil.KunneIkkeLukkeOppgave, Unit> {

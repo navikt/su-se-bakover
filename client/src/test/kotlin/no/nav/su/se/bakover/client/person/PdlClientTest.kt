@@ -58,7 +58,7 @@ internal class PdlClientTest : WiremockBase {
             }
             """.trimIndent()
         wireMockServer.stubFor(
-            wiremockBuilderSystembruker("Bearer ${tokenOppslag.token()}")
+            wiremockBuilderSystembruker("Bearer ${tokenOppslag.token().token}")
                 .willReturn(WireMock.ok(errorResponseJson)),
         )
 
@@ -76,7 +76,7 @@ internal class PdlClientTest : WiremockBase {
     fun `hent aktørid ukjent feil`() {
 
         wireMockServer.stubFor(
-            wiremockBuilderSystembruker("Bearer ${tokenOppslag.token()}")
+            wiremockBuilderSystembruker("Bearer ${tokenOppslag.token().token}")
                 .willReturn(WireMock.serverError()),
         )
 
@@ -225,7 +225,7 @@ internal class PdlClientTest : WiremockBase {
     @Test
     fun `hent person ukjent feil`() {
         wireMockServer.stubFor(
-            wiremockBuilderSystembruker("Bearer ${tokenOppslag.token()}")
+            wiremockBuilderSystembruker("Bearer ${tokenOppslag.token().token}")
                 .willReturn(WireMock.serverError()),
         )
 
@@ -767,7 +767,7 @@ internal class PdlClientTest : WiremockBase {
             }
             """.trimIndent()
         wireMockServer.stubFor(
-            wiremockBuilderSystembruker("Bearer ${tokenOppslag.token()}")
+            wiremockBuilderSystembruker("Bearer ${tokenOppslag.token().token}")
                 .willReturn(WireMock.ok(suksessResponseJson)),
         )
 
@@ -918,7 +918,7 @@ internal class PdlClientTest : WiremockBase {
             }
             """.trimIndent()
         wireMockServer.stubFor(
-            wiremockBuilderSystembruker("Bearer ${tokenOppslag.token()}")
+            wiremockBuilderSystembruker("Bearer ${tokenOppslag.token().token}")
                 .willReturn(WireMock.ok(suksessResponseJson)),
         )
 
@@ -984,7 +984,7 @@ internal class PdlClientTest : WiremockBase {
             }
             """.trimIndent()
         wireMockServer.stubFor(
-            wiremockBuilderSystembruker("Bearer ${tokenOppslag.token()}")
+            wiremockBuilderSystembruker("Bearer ${tokenOppslag.token().token}")
                 .willReturn(WireMock.ok(suksessResponseJson)),
         )
 
@@ -1019,7 +1019,7 @@ internal class PdlClientTest : WiremockBase {
         .withHeader("Authorization", WireMock.equalTo(authorization))
         .withHeader("Content-Type", WireMock.equalTo("application/json"))
         .withHeader("Accept", WireMock.equalTo("application/json"))
-        .withHeader("Nav-Consumer-Token", WireMock.equalTo("Bearer ${tokenOppslag.token()}"))
+        .withHeader("Nav-Consumer-Token", WireMock.equalTo("Bearer ${tokenOppslag.token().token}"))
         .withHeader("Tema", WireMock.equalTo("SUP"))
 
     private fun wiremockBuilderOnBehalfOf(authorization: String) = WireMock.post(WireMock.urlPathEqualTo("/graphql"))

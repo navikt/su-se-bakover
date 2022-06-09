@@ -26,7 +26,7 @@ class DokArkivClient(
         dokumentInnhold: Journalpost,
     ): Either<ClientError, JournalpostId> {
         val (_, response, result) = "$baseUrl$dokArkivPath".httpPost(listOf("forsoekFerdigstill" to "true"))
-            .authentication().bearer(tokenOppslag.token())
+            .authentication().bearer(tokenOppslag.token().token)
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
             .header("X-Correlation-ID", getOrCreateCorrelationId())

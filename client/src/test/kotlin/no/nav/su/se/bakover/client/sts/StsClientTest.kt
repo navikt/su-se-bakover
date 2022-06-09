@@ -4,6 +4,7 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.equalTo
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.client.AccessToken
 import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
 import org.junit.jupiter.api.BeforeEach
@@ -16,7 +17,7 @@ internal class StsClientTest : WiremockBase {
     @Test
     fun stsClientTest() {
         val client = StsClient(wireMockServer.baseUrl(), username, password)
-        client.token() shouldBe "token"
+        client.token() shouldBe AccessToken("token")
     }
 
     @BeforeEach

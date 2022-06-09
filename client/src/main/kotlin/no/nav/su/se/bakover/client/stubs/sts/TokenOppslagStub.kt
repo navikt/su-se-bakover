@@ -1,11 +1,12 @@
 package no.nav.su.se.bakover.client.stubs.sts
 
+import no.nav.su.se.bakover.client.AccessToken
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.stubs.AuthStubCommonConfig
 import org.json.JSONObject
 
 object TokenOppslagStub : TokenOppslag {
-    override fun token() = "token"
+    override fun token() = AccessToken("token")
     override fun jwkConfig(): JSONObject {
         return JSONObject(
             mapOf(

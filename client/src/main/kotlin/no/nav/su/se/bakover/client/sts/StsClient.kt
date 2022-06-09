@@ -2,27 +2,28 @@ package no.nav.su.se.bakover.client.sts
 
 import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpGet
-import no.nav.su.se.bakover.client.sts.StsClient.StsToken.Companion.isValid
+import no.nav.su.se.bakover.client.AccessToken
+import no.nav.su.se.bakover.client.ExpiringTokenResponse
+import no.nav.su.se.bakover.client.isValid
 import org.json.JSONObject
-import java.time.LocalDateTime
 
 internal class StsClient(
     private val baseUrl: String,
     private val username: String,
     private val password: String
 ) : TokenOppslag {
-    private var stsToken: StsToken? = null
+    private var stsToken: ExpiringTokenResponse? = null
     private val wellKnownUrl = "$baseUrl/.well-known/openid-configuration"
 
-    override fun token(): String {
-        if (!isValid(stsToken)) {
+    override fun token(): AccessToken {
+        if (!stsToken.isValid()) {
             val (_, _, result) = "$baseUrl/rest/v1/sts/token?grant_type=client_credentials&scope=openid".httpGet()
                 .authentication().basic(username, password)
                 .header("Accept", "application/json")
                 .responseString()
 
             stsToken = result.fold(
-                { StsToken(JSONObject(it)) },
+                { ExpiringTokenResponse(JSONObject(it)) },
                 { throw RuntimeException("Error while getting token from STS, message:${it.message}, error:${String(it.errorData)}") }
             )
         }
@@ -35,24 +36,5 @@ internal class StsClient(
             { JSONObject(it) },
             { throw RuntimeException("Could not get JWK config from url $wellKnownUrl, error:$it") }
         )
-    }
-
-    private data class StsToken(
-        private val json: JSONObject
-    ) {
-        val accessToken: String = json.getString("access_token")
-        private val expiresIn: Int = json.getInt("expires_in")
-        private val expirationTime = LocalDateTime.now().plusSeconds(expiresIn - 20L)
-
-        companion object {
-            fun isValid(token: StsToken?): Boolean {
-                return when (token) {
-                    null -> false
-                    else -> !isExpired(token)
-                }
-            }
-
-            private fun isExpired(token: StsToken) = token.expirationTime.isBefore(LocalDateTime.now())
-        }
     }
 }
