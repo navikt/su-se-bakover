@@ -2,6 +2,8 @@ package no.nav.su.se.bakover.domain
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import no.nav.su.se.bakover.domain.søknadinnhold.Boforhold
+import no.nav.su.se.bakover.domain.søknadinnhold.Oppholdstillatelse
 import java.time.LocalDate
 
 @JsonTypeInfo(
@@ -85,72 +87,6 @@ data class OppholdstillatelseAlder(
     val eøsborger: Boolean?,
     val familiegjenforening: Boolean?
 )
-
-data class Oppholdstillatelse(
-    val erNorskStatsborger: Boolean,
-    val harOppholdstillatelse: Boolean? = null,
-    val oppholdstillatelseType: OppholdstillatelseType? = null,
-    val statsborgerskapAndreLand: Boolean,
-    val statsborgerskapAndreLandFritekst: String? = null
-) {
-    enum class OppholdstillatelseType() {
-        MIDLERTIDIG,
-        PERMANENT;
-    }
-}
-
-data class Boforhold(
-    val borOgOppholderSegINorge: Boolean,
-    val delerBolig: Boolean,
-    val delerBoligMed: DelerBoligMed? = null,
-    val ektefellePartnerSamboer: EktefellePartnerSamboer? = null,
-    val innlagtPåInstitusjon: InnlagtPåInstitusjon?,
-    val oppgittAdresse: OppgittAdresse?,
-) {
-    enum class DelerBoligMed() {
-        EKTEMAKE_SAMBOER, // TODO AI: Skal endres till ektefelle
-        VOKSNE_BARN,
-        ANNEN_VOKSEN;
-    }
-
-    data class EktefellePartnerSamboer(
-        val erUførFlyktning: Boolean?,
-        val fnr: Fnr
-    )
-
-    @JsonTypeInfo(
-        use = JsonTypeInfo.Id.NAME,
-        include = JsonTypeInfo.As.PROPERTY,
-        property = "type"
-    )
-    @JsonSubTypes(
-        JsonSubTypes.Type(value = OppgittAdresse.BorPåAdresse::class, name = "BorPåAdresse"),
-        JsonSubTypes.Type(value = OppgittAdresse.IngenAdresse::class, name = "IngenAdresse"),
-    )
-    sealed class OppgittAdresse {
-        data class BorPåAdresse(
-            val adresselinje: String,
-            val postnummer: String,
-            val poststed: String?,
-            val bruksenhet: String?
-        ) : OppgittAdresse() {
-            override fun toString() = "${hentGateAdresse()}, ${hentPostAdresse()}"
-
-            private fun hentGateAdresse() = if (bruksenhet != null) "$adresselinje $bruksenhet" else adresselinje
-            private fun hentPostAdresse() = if (poststed != null) "$postnummer $poststed" else postnummer
-        }
-
-        data class IngenAdresse(
-            val grunn: IngenAdresseGrunn
-        ) : OppgittAdresse() {
-
-            enum class IngenAdresseGrunn {
-                BOR_PÅ_ANNEN_ADRESSE,
-                HAR_IKKE_FAST_BOSTED
-            }
-        }
-    }
-}
 
 data class Utenlandsopphold(
     val registrertePerioder: List<UtenlandsoppholdPeriode>? = null,

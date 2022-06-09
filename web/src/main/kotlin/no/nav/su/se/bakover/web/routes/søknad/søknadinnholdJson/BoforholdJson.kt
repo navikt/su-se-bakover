@@ -1,16 +1,21 @@
 package no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson
 
-import no.nav.su.se.bakover.domain.Boforhold
+import arrow.core.Either
+import arrow.core.left
 import no.nav.su.se.bakover.domain.InnlagtPåInstitusjon
+import no.nav.su.se.bakover.domain.søknadinnhold.Boforhold
+import no.nav.su.se.bakover.domain.søknadinnhold.EktefellePartnerSamboer
+import no.nav.su.se.bakover.domain.søknadinnhold.FeilVedOpprettelseAvBoforhold
+import no.nav.su.se.bakover.domain.søknadinnhold.OppgittAdresse
 
 data class BoforholdJson(
     val borOgOppholderSegINorge: Boolean,
     val delerBoligMedVoksne: Boolean,
     val delerBoligMed: String? = null,
-    val ektefellePartnerSamboer: Boforhold.EktefellePartnerSamboer?,
+    val ektefellePartnerSamboer: EktefellePartnerSamboer?,
     val innlagtPåInstitusjon: InnlagtPåInstitusjon?,
     val borPåAdresse: AdresseFraSøknad?,
-    val ingenAdresseGrunn: Boforhold.OppgittAdresse.IngenAdresse.IngenAdresseGrunn?,
+    val ingenAdresseGrunn: OppgittAdresse.IngenAdresse.IngenAdresseGrunn?,
 ) {
     data class AdresseFraSøknad(
         val adresselinje: String,
@@ -19,23 +24,23 @@ data class BoforholdJson(
         val bruksenhet: String?,
     )
 
-    fun toBoforhold(): Boforhold {
-        if (borPåAdresse != null && ingenAdresseGrunn != null) {
-            throw IllegalArgumentException("Ogyldig adresseinformasjon sendt!")
+    fun toBoforhold(): Either<FeilVedOpprettelseAvBoforhold, Boforhold> {
+        if ((borPåAdresse != null && ingenAdresseGrunn != null)) {
+            return FeilVedOpprettelseAvBoforhold.BeggeAdressegrunnerErUtfylt.left()
         }
 
         val oppgittAdresse = when {
-            borPåAdresse != null -> Boforhold.OppgittAdresse.BorPåAdresse(
+            borPåAdresse != null -> OppgittAdresse.BorPåAdresse(
                 adresselinje = borPåAdresse.adresselinje,
                 postnummer = borPåAdresse.postnummer,
                 poststed = borPåAdresse.poststed,
                 bruksenhet = borPåAdresse.bruksenhet,
             )
-            ingenAdresseGrunn != null -> Boforhold.OppgittAdresse.IngenAdresse(ingenAdresseGrunn)
-            else -> null
+            ingenAdresseGrunn != null -> OppgittAdresse.IngenAdresse(ingenAdresseGrunn)
+            else -> throw IllegalArgumentException("Prøvde å opprette boforhold med borPåAdresse, og ingenAdressegrunn som null")
         }
 
-        return Boforhold(
+        return Boforhold.tryCreate(
             borOgOppholderSegINorge = borOgOppholderSegINorge,
             delerBolig = delerBoligMedVoksne,
             delerBoligMed = delerBoligMed?.let {
@@ -65,19 +70,17 @@ data class BoforholdJson(
                 ektefellePartnerSamboer = this.ektefellePartnerSamboer,
                 innlagtPåInstitusjon = this.innlagtPåInstitusjon,
                 borPåAdresse = when (val o = this.oppgittAdresse) {
-                    is Boforhold.OppgittAdresse.BorPåAdresse -> AdresseFraSøknad(
+                    is OppgittAdresse.BorPåAdresse -> AdresseFraSøknad(
                         adresselinje = o.adresselinje,
                         postnummer = o.postnummer,
                         poststed = o.poststed,
                         bruksenhet = o.bruksenhet,
                     )
-                    is Boforhold.OppgittAdresse.IngenAdresse -> null
-                    null -> null
+                    is OppgittAdresse.IngenAdresse -> null
                 },
                 ingenAdresseGrunn = when (val o = this.oppgittAdresse) {
-                    is Boforhold.OppgittAdresse.BorPåAdresse -> null
-                    is Boforhold.OppgittAdresse.IngenAdresse -> o.grunn
-                    null -> null
+                    is OppgittAdresse.BorPåAdresse -> null
+                    is OppgittAdresse.IngenAdresse -> o.grunn
                 },
             )
         }
