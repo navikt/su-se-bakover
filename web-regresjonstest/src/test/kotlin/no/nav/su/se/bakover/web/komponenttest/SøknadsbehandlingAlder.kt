@@ -47,7 +47,7 @@ internal class SøknadsbehandlingAlder {
                 identBruker = saksbehandler,
             )
 
-            val sak = appComponents.services.sak.hentSak(fnrOver67).getOrFail()
+            val sak = appComponents.services.sak.hentSak(fnrOver67, Sakstype.ALDER).getOrFail()
             val søknad = sak.søknader.single()
 
             søknad.type shouldBe Sakstype.ALDER
