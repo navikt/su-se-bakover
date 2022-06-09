@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.ForNav
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.satser.SatsFactory
+import no.nav.su.se.bakover.domain.søknadinnhold.FeilVedOpprettelseAvBoforhold
 import no.nav.su.se.bakover.domain.søknadinnhold.FeilVedOpprettelseAvOppholdstillatelse
 import no.nav.su.se.bakover.service.søknad.AvslåManglendeDokumentasjonRequest
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
@@ -251,6 +252,7 @@ private fun KunneIkkeOppretteSøknad.tilResultat(type: String) = when (this) {
 
 private fun FeilVedOpprettelseAvSøknadinnholdJson.tilResultat() = when (this) {
     is FeilVedOpprettelseAvSøknadinnholdJson.FeilVedOpprettelseAvOppholdstillatelseWeb -> underliggendeFeil.tilResultat()
+    is FeilVedOpprettelseAvSøknadinnholdJson.FeilVedOpprettelseAvBoforholdWeb -> underliggendeFeil.tilResultat()
 }
 
 private fun FeilVedOpprettelseAvOppholdstillatelse.tilResultat() = when (this) {
@@ -265,5 +267,20 @@ private fun FeilVedOpprettelseAvOppholdstillatelse.tilResultat() = when (this) {
     FeilVedOpprettelseAvOppholdstillatelse.TypeOppholdstillatelseErIkkeUtfylt -> BadRequest.errorJson(
         "Forventet type oppholdstillatelse",
         "type_oppholdstillatelse_er_ikke_utfylt",
+    )
+}
+
+private fun FeilVedOpprettelseAvBoforhold.tilResultat() = when (this) {
+    FeilVedOpprettelseAvBoforhold.DelerBoligMedErIkkeUtfylt -> BadRequest.errorJson(
+        "Forventet at delerBolgMed skulle være utfylt ",
+        "deler_bolig_med_er_ikke_utfylt",
+    )
+    FeilVedOpprettelseAvBoforhold.EktefellePartnerSamboerMåVæreUtfylt -> BadRequest.errorJson(
+        "Forventet at EktefellePartnerSamboer skulle være utfylt",
+        "ektefelle_partner_samboer_er_ikke_utfylt",
+    )
+    FeilVedOpprettelseAvBoforhold.BeggeAdressegrunnerErUtfylt -> BadRequest.errorJson(
+        "Forventet at bare én av adressegrunnene skal være utfylt",
+        "begge_adressegrunner_er_utfylt"
     )
 }

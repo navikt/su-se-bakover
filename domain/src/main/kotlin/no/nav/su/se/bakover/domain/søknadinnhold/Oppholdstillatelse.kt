@@ -24,20 +24,20 @@ data class Oppholdstillatelse private constructor(
             statsborgerskapAndreLand: Boolean,
             statsborgerskapAndreLandFritekst: String?,
         ): Either<FeilVedOpprettelseAvOppholdstillatelse, Oppholdstillatelse> {
-            if (!erNorskStatsborger) {
-                if (harOppholdstillatelse == null) {
-                    return FeilVedOpprettelseAvOppholdstillatelse.OppholdstillatelseErIkkeUtfylt.left()
-                }
+            validerHarOppholdstillatelse(
+                erNorskStatsborger = erNorskStatsborger, harOppholdstillatelse = harOppholdstillatelse,
+            ).mapLeft { return it.left() }
 
-                if (harOppholdstillatelse == true && oppholdstillatelseType == null) {
-                    return FeilVedOpprettelseAvOppholdstillatelse.TypeOppholdstillatelseErIkkeUtfylt.left()
-                }
-            }
-            if (statsborgerskapAndreLand) {
-                if (statsborgerskapAndreLandFritekst == null) {
-                    return FeilVedOpprettelseAvOppholdstillatelse.FritekstForStatsborgerskapErIkkeUtfylt.left()
-                }
-            }
+            validerOppholdstillatelseType(
+                erNorskStatsborger = erNorskStatsborger,
+                harOppholdstillatelse = harOppholdstillatelse,
+                oppholdstillatelseType = oppholdstillatelseType,
+            ).mapLeft { return it.left() }
+
+            validerStatsborgerskapAndreLand(
+                statsborgerskapAndreLand = statsborgerskapAndreLand,
+                statsborgerskapAndreLandFritekst = statsborgerskapAndreLandFritekst,
+            ).mapLeft { return it.left() }
 
             return Oppholdstillatelse(
                 erNorskStatsborger = erNorskStatsborger,
@@ -47,6 +47,25 @@ data class Oppholdstillatelse private constructor(
                 statsborgerskapAndreLandFritekst = statsborgerskapAndreLandFritekst,
             ).right()
         }
+
+        private fun validerHarOppholdstillatelse(
+            erNorskStatsborger: Boolean,
+            harOppholdstillatelse: Boolean?,
+        ) = if (!erNorskStatsborger && harOppholdstillatelse == null)
+            FeilVedOpprettelseAvOppholdstillatelse.OppholdstillatelseErIkkeUtfylt.left() else Unit.right()
+
+        private fun validerOppholdstillatelseType(
+            erNorskStatsborger: Boolean,
+            harOppholdstillatelse: Boolean?,
+            oppholdstillatelseType: OppholdstillatelseType?,
+        ) = if (!erNorskStatsborger && harOppholdstillatelse == true && oppholdstillatelseType == null)
+            FeilVedOpprettelseAvOppholdstillatelse.TypeOppholdstillatelseErIkkeUtfylt.left() else Unit.right()
+
+        private fun validerStatsborgerskapAndreLand(
+            statsborgerskapAndreLand: Boolean,
+            statsborgerskapAndreLandFritekst: String?,
+        ) = if (statsborgerskapAndreLand && statsborgerskapAndreLandFritekst == null)
+            FeilVedOpprettelseAvOppholdstillatelse.FritekstForStatsborgerskapErIkkeUtfylt.left() else Unit.right()
     }
 }
 

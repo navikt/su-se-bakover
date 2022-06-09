@@ -3,13 +3,16 @@ package no.nav.su.se.bakover.domain.søknad
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.startOfDay
-import no.nav.su.se.bakover.domain.Boforhold
 import no.nav.su.se.bakover.domain.InnlagtPåInstitusjon
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.fnrUnder67
+import no.nav.su.se.bakover.domain.søknadinnhold.Boforhold
+import no.nav.su.se.bakover.domain.søknadinnhold.EktefellePartnerSamboer
+import no.nav.su.se.bakover.domain.søknadinnhold.OppgittAdresse
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.getOrFail
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import java.util.UUID
@@ -181,22 +184,22 @@ class SøknadPdfInnholdJsonTest {
     fun `søker bor på annen adresse matcher json`() {
         val søknadPdfInnhold = søknadPdfInnhold.copy(
             søknadInnhold = SøknadInnholdTestdataBuilder.build().copy(
-                boforhold = Boforhold(
+                boforhold = Boforhold.tryCreate(
                     borOgOppholderSegINorge = true,
                     delerBolig = true,
                     delerBoligMed = Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER,
-                    ektefellePartnerSamboer = Boforhold.EktefellePartnerSamboer(
+                    ektefellePartnerSamboer = EktefellePartnerSamboer(
                         erUførFlyktning = false,
-                        fnr = fnrUnder67()
+                        fnr = fnrUnder67(),
                     ),
                     innlagtPåInstitusjon = InnlagtPåInstitusjon(
                         datoForInnleggelse = 1.januar(2020),
                         datoForUtskrivelse = 31.januar(2020),
-                        fortsattInnlagt = false
+                        fortsattInnlagt = false,
                     ),
-                    oppgittAdresse = Boforhold.OppgittAdresse.IngenAdresse(Boforhold.OppgittAdresse.IngenAdresse.IngenAdresseGrunn.BOR_PÅ_ANNEN_ADRESSE)
-                )
-            )
+                    oppgittAdresse = OppgittAdresse.IngenAdresse(OppgittAdresse.IngenAdresse.IngenAdresseGrunn.BOR_PÅ_ANNEN_ADRESSE),
+                ).getOrFail(),
+            ),
         )
 
         //language=JSON
@@ -352,27 +355,27 @@ class SøknadPdfInnholdJsonTest {
     fun `søker oppgir adresse matcher json`() {
         val søknadPdfInnhold = søknadPdfInnhold.copy(
             søknadInnhold = SøknadInnholdTestdataBuilder.build().copy(
-                boforhold = Boforhold(
+                boforhold = Boforhold.tryCreate(
                     borOgOppholderSegINorge = true,
                     delerBolig = true,
                     delerBoligMed = Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER,
-                    ektefellePartnerSamboer = Boforhold.EktefellePartnerSamboer(
+                    ektefellePartnerSamboer = EktefellePartnerSamboer(
                         erUførFlyktning = false,
-                        fnr = fnrUnder67()
+                        fnr = fnrUnder67(),
                     ),
                     innlagtPåInstitusjon = InnlagtPåInstitusjon(
                         datoForInnleggelse = 1.januar(2020),
                         datoForUtskrivelse = 31.januar(2020),
-                        fortsattInnlagt = false
+                        fortsattInnlagt = false,
                     ),
-                    oppgittAdresse = Boforhold.OppgittAdresse.BorPåAdresse(
+                    oppgittAdresse = OppgittAdresse.BorPåAdresse(
                         adresselinje = "Oslogata 12",
                         postnummer = "0050",
                         poststed = "OSLO",
-                        bruksenhet = null
-                    )
-                )
-            )
+                        bruksenhet = null,
+                    ),
+                ).getOrFail(),
+            ),
         )
 
         //language=JSON

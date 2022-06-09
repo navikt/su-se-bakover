@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.SøknadsinnholdAlder
 import no.nav.su.se.bakover.domain.SøknadsinnholdUføre
 import no.nav.su.se.bakover.domain.Uførevedtak
+import no.nav.su.se.bakover.domain.søknadinnhold.FeilVedOpprettelseAvBoforhold
 import no.nav.su.se.bakover.domain.søknadinnhold.FeilVedOpprettelseAvOppholdstillatelse
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.BoforholdJson.Companion.toBoforholdJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.EktefelleJson.Companion.toJson
@@ -80,7 +81,9 @@ data class SøknadsinnholdAlderJson(
             harSøktAlderspensjon = harSøktAlderspensjon.toHarSøktAlderspensjon(),
             oppholdstillatelseAlder = oppholdstillatelseAlder.toOppholdstillatelseAlder(),
             personopplysninger = personopplysninger.toPersonopplysninger(),
-            boforhold = boforhold.toBoforhold(),
+            boforhold = boforhold.toBoforhold().getOrHandle {
+                return FeilVedOpprettelseAvSøknadinnholdJson.FeilVedOpprettelseAvBoforholdWeb(it).left()
+            },
             utenlandsopphold = utenlandsopphold.toUtenlandsopphold(),
             oppholdstillatelse = oppholdstillatelse.toOppholdstillatelse().getOrHandle {
                 return FeilVedOpprettelseAvSøknadinnholdJson.FeilVedOpprettelseAvOppholdstillatelseWeb(it).left()
@@ -149,7 +152,9 @@ data class SøknadsinnholdUføreJson(
             uførevedtak = uførevedtak.toUførevedtak(),
             personopplysninger = personopplysninger.toPersonopplysninger(),
             flyktningsstatus = flyktningsstatus.toFlyktningsstatus(),
-            boforhold = boforhold.toBoforhold(),
+            boforhold = boforhold.toBoforhold().getOrHandle {
+                return FeilVedOpprettelseAvSøknadinnholdJson.FeilVedOpprettelseAvBoforholdWeb(it).left()
+            },
             utenlandsopphold = utenlandsopphold.toUtenlandsopphold(),
             oppholdstillatelse = oppholdstillatelse.toOppholdstillatelse().getOrHandle {
                 return FeilVedOpprettelseAvSøknadinnholdJson.FeilVedOpprettelseAvOppholdstillatelseWeb(it).left()
@@ -199,5 +204,8 @@ data class SøknadsinnholdUføreJson(
 
 sealed interface FeilVedOpprettelseAvSøknadinnholdJson {
     data class FeilVedOpprettelseAvOppholdstillatelseWeb(val underliggendeFeil: FeilVedOpprettelseAvOppholdstillatelse) :
+        FeilVedOpprettelseAvSøknadinnholdJson
+
+    data class FeilVedOpprettelseAvBoforholdWeb(val underliggendeFeil: FeilVedOpprettelseAvBoforhold) :
         FeilVedOpprettelseAvSøknadinnholdJson
 }
