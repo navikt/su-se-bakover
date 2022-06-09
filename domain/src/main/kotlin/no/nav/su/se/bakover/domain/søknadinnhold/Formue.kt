@@ -4,35 +4,35 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 
-data class Formue(
+data class Formue private constructor(
     val eierBolig: Boolean,
-    val borIBolig: Boolean? = null,
-    val verdiPåBolig: Number? = null,
-    val boligBrukesTil: String? = null,
-    val depositumsBeløp: Number? = null,
-    val verdiPåEiendom: Number? = null,
-    val eiendomBrukesTil: String? = null,
-    val kjøretøy: List<Kjøretøy>? = null,
-    val innskuddsBeløp: Number? = null,
-    val verdipapirBeløp: Number? = null,
-    val skylderNoenMegPengerBeløp: Number? = null,
-    val kontanterBeløp: Number? = null,
+    val borIBolig: Boolean?,
+    val verdiPåBolig: Number?,
+    val boligBrukesTil: String?,
+    val depositumsBeløp: Number?,
+    val verdiPåEiendom: Number?,
+    val eiendomBrukesTil: String?,
+    val kjøretøy: List<Kjøretøy>?,
+    val innskuddsBeløp: Number?,
+    val verdipapirBeløp: Number?,
+    val skylderNoenMegPengerBeløp: Number?,
+    val kontanterBeløp: Number?,
 ) {
 
     companion object {
         fun tryCreate(
             eierBolig: Boolean,
-            borIBolig: Boolean? = null,
-            verdiPåBolig: Number? = null,
-            boligBrukesTil: String? = null,
-            depositumsBeløp: Number? = null,
-            verdiPåEiendom: Number? = null,
-            eiendomBrukesTil: String? = null,
-            kjøretøy: List<Kjøretøy>? = null,
-            innskuddsBeløp: Number? = null,
-            verdipapirBeløp: Number? = null,
-            skylderNoenMegPengerBeløp: Number? = null,
-            kontanterBeløp: Number? = null,
+            borIBolig: Boolean?,
+            verdiPåBolig: Number?,
+            boligBrukesTil: String?,
+            depositumsBeløp: Number?,
+            verdiPåEiendom: Number?,
+            eiendomBrukesTil: String?,
+            kjøretøy: List<Kjøretøy>?,
+            innskuddsBeløp: Number?,
+            verdipapirBeløp: Number?,
+            skylderNoenMegPengerBeløp: Number?,
+            kontanterBeløp: Number?,
         ): Either<FeilVedOpprettelseAvFormue, Formue> {
             validerBorIBolig(eierBolig, borIBolig).mapLeft { return it.left() }
             validerDepositumsBeløp(eierBolig, depositumsBeløp).mapLeft { return it.left() }
@@ -75,16 +75,6 @@ data class Formue(
             if ((eierBolig && borIBolig == false) && (verdiPåBolig == null || boligBrukesTil == null)) FeilVedOpprettelseAvFormue.BoligensVerdiEllerBeskrivelseErIkkeUtfylt.left() else Unit.right()
     }
 }
-
-data class Bolig(
-    val verdi: Number,
-    val brukesTil: String,
-)
-
-data class Eiendom(
-    val verdi: Number,
-    val brukesTil: String,
-)
 
 data class Kjøretøy(
     val verdiPåKjøretøy: Number,

@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.ForNav
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadinnhold.FeilVedOpprettelseAvBoforhold
+import no.nav.su.se.bakover.domain.søknadinnhold.FeilVedOpprettelseAvFormue
 import no.nav.su.se.bakover.domain.søknadinnhold.FeilVedOpprettelseAvOppholdstillatelse
 import no.nav.su.se.bakover.service.søknad.AvslåManglendeDokumentasjonRequest
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
@@ -45,6 +46,7 @@ import no.nav.su.se.bakover.web.routes.Feilresponser.Brev.kunneIkkeLageBrevutkas
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknad.lukk.LukkSøknadErrorHandler
 import no.nav.su.se.bakover.web.routes.søknad.lukk.LukkSøknadInputHandler
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.FeilVedOpprettelseAvEktefelleJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.FeilVedOpprettelseAvSøknadinnholdJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdJson
 import no.nav.su.se.bakover.web.sikkerlogg
@@ -253,6 +255,8 @@ private fun KunneIkkeOppretteSøknad.tilResultat(type: String) = when (this) {
 private fun FeilVedOpprettelseAvSøknadinnholdJson.tilResultat() = when (this) {
     is FeilVedOpprettelseAvSøknadinnholdJson.FeilVedOpprettelseAvOppholdstillatelseWeb -> underliggendeFeil.tilResultat()
     is FeilVedOpprettelseAvSøknadinnholdJson.FeilVedOpprettelseAvBoforholdWeb -> underliggendeFeil.tilResultat()
+    is FeilVedOpprettelseAvSøknadinnholdJson.FeilVedOpprettelseAvFormueWeb -> underliggendeFeil.tilResultat()
+    is FeilVedOpprettelseAvSøknadinnholdJson.FeilVedOpprettelseAvEktefelleWeb -> underliggendeFeil.tilResultat()
 }
 
 private fun FeilVedOpprettelseAvOppholdstillatelse.tilResultat() = when (this) {
@@ -281,6 +285,25 @@ private fun FeilVedOpprettelseAvBoforhold.tilResultat() = when (this) {
     )
     FeilVedOpprettelseAvBoforhold.BeggeAdressegrunnerErUtfylt -> BadRequest.errorJson(
         "Kun én adressegrunn kan være utfylt",
-        "kun_en_adressegrunn_kan_være_utfylt"
+        "kun_en_adressegrunn_kan_være_utfylt",
     )
+}
+
+private fun FeilVedOpprettelseAvFormue.tilResultat() = when (this) {
+    FeilVedOpprettelseAvFormue.BoligensVerdiEllerBeskrivelseErIkkeUtfylt -> BadRequest.errorJson(
+        "Boligens verdi/beskrivelse er ikke utfylt",
+        "boligens_verdi_eller_beskrivelse_er_ikke_utfylt",
+    )
+    FeilVedOpprettelseAvFormue.BorIBoligErIkkeUtfylt -> BadRequest.errorJson(
+        "BorIBolig må være utfylt",
+        "borIBolig_er_ikke_utfylt",
+    )
+    FeilVedOpprettelseAvFormue.DepositumsbeløpetErIkkeutfylt -> BadRequest.errorJson(
+        "Depositumsbeløpet er ikke utfylt",
+        "depositumsbeløp_er_ikke_utfylt",
+    )
+}
+
+private fun FeilVedOpprettelseAvEktefelleJson.tilResultat() = when (this) {
+    is FeilVedOpprettelseAvEktefelleJson.FeilVedOpprettelseAvFormueEktefelle -> underliggendeFeil.tilResultat()
 }
