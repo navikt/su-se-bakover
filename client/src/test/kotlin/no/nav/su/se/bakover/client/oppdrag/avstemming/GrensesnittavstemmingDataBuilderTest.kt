@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Fagområde
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -41,6 +42,7 @@ internal class GrensesnittavstemmingDataBuilderTest {
                 nokkelFom = "1583017200000000000",
                 nokkelTom = "1583103600000000000",
                 avleverendeAvstemmingId = avstemmingId.toString(),
+                underkomponentKode = "SUUFORE",
             ),
             total = Totaldata(
                 totalAntall = 5,
@@ -95,6 +97,7 @@ internal class GrensesnittavstemmingDataBuilderTest {
                 tilOgMed = 2.mars(2020).atStartOfDay(zoneIdOslo).toTidspunkt(),
                 utbetalinger = alleUtbetalinger(),
                 avstemmingXmlRequest = null,
+                fagområde = Fagområde.SUUFORE,
             ),
         ).build() shouldBe expected
     }

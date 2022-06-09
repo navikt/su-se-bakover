@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Fagområde
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import java.time.ZoneOffset
@@ -41,7 +42,7 @@ internal class AvstemmingPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.avstemmingRepo
 
-            val zero = repo.hentSisteGrensesnittsavstemming()
+            val zero = repo.hentSisteGrensesnittsavstemming(fagområde = Fagområde.SUUFORE)
             zero shouldBe null
             val utbetaling1 =
                 testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().third
@@ -52,6 +53,7 @@ internal class AvstemmingPostgresRepoTest {
                     fraOgMed = 1.januar(2020).startOfDay(),
                     tilOgMed = 2.januar(2020).startOfDay(),
                     utbetalinger = listOf(utbetaling1),
+                    fagområde = Fagområde.SUUFORE,
                 ),
             )
             val utbetaling2 =
@@ -62,11 +64,12 @@ internal class AvstemmingPostgresRepoTest {
                 tilOgMed = 4.januar(2020).startOfDay(),
                 utbetalinger = listOf(utbetaling2),
                 avstemmingXmlRequest = "<Root></Root>",
+                fagområde = Fagområde.SUUFORE,
             )
 
             repo.opprettGrensesnittsavstemming(second)
 
-            repo.hentSisteGrensesnittsavstemming()!! shouldBe second
+            repo.hentSisteGrensesnittsavstemming(fagområde = Fagområde.SUUFORE)!! shouldBe second
         }
     }
 
@@ -111,16 +114,19 @@ internal class AvstemmingPostgresRepoTest {
             repo.hentUtbetalingerForGrensesnittsavstemming(
                 fraOgMed = 10.oktober(2020).startOfDay(),
                 tilOgMed = 10.oktober(2020).endOfDay(),
+                fagområde = Fagområde.SUUFORE,
             ) shouldBe emptyList()
 
             repo.hentUtbetalingerForGrensesnittsavstemming(
                 fraOgMed = 11.oktober(2020).startOfDay(),
                 tilOgMed = 11.oktober(2020).endOfDay(),
+                fagområde = Fagområde.SUUFORE,
             ) shouldBe listOf(utbetaling)
 
             repo.hentUtbetalingerForGrensesnittsavstemming(
                 fraOgMed = 12.oktober(2020).startOfDay(),
                 tilOgMed = 12.oktober(2020).endOfDay(),
+                fagområde = Fagområde.SUUFORE,
             ) shouldBe emptyList()
         }
     }
@@ -141,8 +147,9 @@ internal class AvstemmingPostgresRepoTest {
                 ),
             )
             val utbetalinger = repo.hentUtbetalingerForGrensesnittsavstemming(
-                11.oktober(2020).startOfDay(),
-                11.oktober(2020).endOfDay(),
+                fraOgMed = 11.oktober(2020).startOfDay(),
+                tilOgMed = 11.oktober(2020).endOfDay(),
+                fagområde = Fagområde.SUUFORE,
             )
             utbetalinger shouldHaveSize 2
             utbetalinger.map { it.id } shouldContainAll listOf(utbetaling1.id, utbetaling2.id)
@@ -164,6 +171,7 @@ internal class AvstemmingPostgresRepoTest {
                 tilOgMed = fixedTidspunkt,
                 utbetalinger = listOf(oversendtUtbetalingMedKvittering),
                 avstemmingXmlRequest = "some xml",
+                fagområde = Fagområde.SUUFORE,
             )
 
             repo.opprettGrensesnittsavstemming(avstemming)
@@ -190,6 +198,7 @@ internal class AvstemmingPostgresRepoTest {
                 opprettetTilOgMed = 31.januar(2021).endOfDay(zoneIdOslo),
                 utbetalinger = listOf(oversendtUtbetalingMedKvittering),
                 avstemmingXmlRequest = "some xml",
+                fagområde = Fagområde.SUUFORE,
             )
 
             repo.opprettKonsistensavstemming(avstemming)
@@ -203,6 +212,7 @@ internal class AvstemmingPostgresRepoTest {
                     oversendtUtbetalingMedKvittering.saksnummer to oversendtUtbetalingMedKvittering.utbetalingslinjer,
                 ),
                 avstemmingXmlRequest = "some xml",
+                fagområde = Fagområde.SUUFORE,
             )
         }
     }
@@ -222,20 +232,24 @@ internal class AvstemmingPostgresRepoTest {
                 opprettetTilOgMed = 31.desember(2020).endOfDay(zoneIdOslo),
                 utbetalinger = listOf(oversendtUtbetalingMedKvittering),
                 avstemmingXmlRequest = "some xml",
+                fagområde = Fagområde.SUUFORE,
             )
 
             repo.opprettKonsistensavstemming(avstemming1)
 
             repo.konsistensavstemmingUtførtForOgPåDato(
                 dato = 1.januar(2021),
+                fagområde = Fagområde.SUUFORE,
             ) shouldBe true
 
             repo.konsistensavstemmingUtførtForOgPåDato(
                 dato = 31.desember(2020),
+                fagområde = Fagområde.SUUFORE,
             ) shouldBe false
 
             repo.konsistensavstemmingUtførtForOgPåDato(
                 dato = 2.januar(2021),
+                fagområde = Fagområde.SUUFORE,
             ) shouldBe false
 
             val avstemming2 = Avstemming.Konsistensavstemming.Ny(
@@ -245,15 +259,18 @@ internal class AvstemmingPostgresRepoTest {
                 opprettetTilOgMed = 31.mars(2021).endOfDay(zoneIdOslo),
                 utbetalinger = listOf(oversendtUtbetalingMedKvittering),
                 avstemmingXmlRequest = "some xml",
+                fagområde = Fagområde.SUUFORE,
             )
 
             repo.opprettKonsistensavstemming(avstemming2)
 
             repo.konsistensavstemmingUtførtForOgPåDato(
                 dato = 1.februar(2021),
+                fagområde = Fagområde.SUUFORE,
             ) shouldBe false
             repo.konsistensavstemmingUtførtForOgPåDato(
                 dato = 1.april(2021),
+                fagområde = Fagområde.SUUFORE,
             ) shouldBe false
 
             val avstemming3 = Avstemming.Konsistensavstemming.Ny(
@@ -263,15 +280,18 @@ internal class AvstemmingPostgresRepoTest {
                 opprettetTilOgMed = 31.mai(2021).endOfDay(zoneIdOslo),
                 utbetalinger = listOf(oversendtUtbetalingMedKvittering),
                 avstemmingXmlRequest = "some xml",
+                fagområde = Fagområde.SUUFORE,
             )
 
             repo.opprettKonsistensavstemming(avstemming3)
 
             repo.konsistensavstemmingUtførtForOgPåDato(
                 dato = 1.mars(2021),
+                fagområde = Fagområde.SUUFORE,
             ) shouldBe false
             repo.konsistensavstemmingUtførtForOgPåDato(
                 dato = 1.juni(2021),
+                fagområde = Fagområde.SUUFORE,
             ) shouldBe false
         }
     }
@@ -287,23 +307,27 @@ internal class AvstemmingPostgresRepoTest {
             repo.hentUtbetalingerForKonsistensavstemming(
                 løpendeFraOgMed = oversendtUtbetalingMedKvittering.tidligsteDato().startOfDay(),
                 opprettetTilOgMed = oversendtUtbetalingMedKvittering.opprettet.plus(1, ChronoUnit.DAYS),
+                fagområde = Fagområde.SUUFORE,
             ) shouldBe listOf(oversendtUtbetalingMedKvittering)
 
             repo.hentUtbetalingerForKonsistensavstemming(
                 løpendeFraOgMed = oversendtUtbetalingMedKvittering.tidligsteDato().startOfDay()
                     .plus(1, ChronoUnit.DAYS),
                 opprettetTilOgMed = oversendtUtbetalingMedKvittering.opprettet.plus(1, ChronoUnit.DAYS),
+                fagområde = Fagområde.SUUFORE,
             ) shouldBe listOf(oversendtUtbetalingMedKvittering)
 
             repo.hentUtbetalingerForKonsistensavstemming(
                 løpendeFraOgMed = oversendtUtbetalingMedKvittering.tidligsteDato().startOfDay()
                     .minus(1, ChronoUnit.DAYS),
                 opprettetTilOgMed = oversendtUtbetalingMedKvittering.opprettet.plus(1, ChronoUnit.DAYS),
+                fagområde = Fagområde.SUUFORE,
             ) shouldBe listOf(oversendtUtbetalingMedKvittering)
 
             repo.hentUtbetalingerForKonsistensavstemming(
                 løpendeFraOgMed = oversendtUtbetalingMedKvittering.senesteDato().startOfDay(),
                 opprettetTilOgMed = oversendtUtbetalingMedKvittering.opprettet.plus(1, ChronoUnit.DAYS),
+                fagområde = Fagområde.SUUFORE,
             ) shouldBe listOf(oversendtUtbetalingMedKvittering)
         }
     }
@@ -319,16 +343,19 @@ internal class AvstemmingPostgresRepoTest {
             repo.hentUtbetalingerForKonsistensavstemming(
                 løpendeFraOgMed = oversendtUtbetalingMedKvittering.tidligsteDato().startOfDay(),
                 opprettetTilOgMed = oversendtUtbetalingMedKvittering.opprettet.plus(1, ChronoUnit.DAYS),
+                fagområde = Fagområde.SUUFORE,
             ) shouldBe listOf(oversendtUtbetalingMedKvittering)
 
             repo.hentUtbetalingerForKonsistensavstemming(
                 løpendeFraOgMed = oversendtUtbetalingMedKvittering.tidligsteDato().startOfDay(),
                 opprettetTilOgMed = oversendtUtbetalingMedKvittering.opprettet.minus(1, ChronoUnit.DAYS),
+                fagområde = Fagområde.SUUFORE,
             ) shouldBe emptyList()
 
             repo.hentUtbetalingerForKonsistensavstemming(
                 løpendeFraOgMed = oversendtUtbetalingMedKvittering.tidligsteDato().startOfDay(),
                 opprettetTilOgMed = oversendtUtbetalingMedKvittering.opprettet,
+                fagområde = Fagområde.SUUFORE,
             ) shouldBe listOf(oversendtUtbetalingMedKvittering)
         }
     }
@@ -345,6 +372,7 @@ internal class AvstemmingPostgresRepoTest {
                 opprettetTilOgMed = 1.januar(2021).endOfDay(),
                 utbetalinger = emptyList(),
                 avstemmingXmlRequest = "xml",
+                fagområde = Fagområde.SUUFORE,
             )
 
             repo.opprettKonsistensavstemming(avstemming)
@@ -356,6 +384,7 @@ internal class AvstemmingPostgresRepoTest {
                 opprettetTilOgMed = 1.januar(2021).endOfDay(),
                 utbetalinger = emptyMap(),
                 avstemmingXmlRequest = "xml",
+                fagområde = Fagområde.SUUFORE,
             )
         }
     }
@@ -383,21 +412,25 @@ internal class AvstemmingPostgresRepoTest {
             repo.hentUtbetalingerForKonsistensavstemming(
                 løpendeFraOgMed = 1.januar(2020).startOfDay(),
                 opprettetTilOgMed = oversendtUtbetalingMedKvittering.opprettet,
+                fagområde = Fagområde.SUUFORE,
             )[0].utbetalingslinjer shouldBe nonEmptyListOf(første, andre)
 
             repo.hentUtbetalingerForKonsistensavstemming(
                 løpendeFraOgMed = 1.mai(2020).startOfDay(),
                 opprettetTilOgMed = oversendtUtbetalingMedKvittering.opprettet,
+                fagområde = Fagområde.SUUFORE,
             )[0].utbetalingslinjer shouldBe nonEmptyListOf(første, andre)
 
             repo.hentUtbetalingerForKonsistensavstemming(
                 løpendeFraOgMed = 1.desember(2020).startOfDay(),
                 opprettetTilOgMed = oversendtUtbetalingMedKvittering.opprettet,
+                fagområde = Fagområde.SUUFORE,
             )[0].utbetalingslinjer shouldBe nonEmptyListOf(første, andre)
 
             repo.hentUtbetalingerForKonsistensavstemming(
                 løpendeFraOgMed = 1.januar(2021).startOfDay(),
                 opprettetTilOgMed = oversendtUtbetalingMedKvittering.opprettet,
+                fagområde = Fagområde.SUUFORE,
             ) shouldBe emptyList()
         }
     }

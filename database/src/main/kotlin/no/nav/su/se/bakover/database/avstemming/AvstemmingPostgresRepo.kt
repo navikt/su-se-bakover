@@ -23,6 +23,8 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingRepo
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Fagområde
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.toSakstype
 import java.time.LocalDate
 
 internal class AvstemmingPostgresRepo(
@@ -33,8 +35,8 @@ internal class AvstemmingPostgresRepo(
         return dbMetrics.timeQuery("opprettGrensesnittsavstemming") {
             sessionFactory.withSession { session ->
                 """
-            insert into avstemming (id, opprettet, fom, tom, utbetalinger, avstemmingXmlRequest)
-            values (:id, :opprettet, :fom, :tom, to_json(:utbetalinger::json), :avstemmingXmlRequest)
+            insert into avstemming (id, opprettet, fom, tom, utbetalinger, avstemmingXmlRequest, fagområde)
+            values (:id, :opprettet, :fom, :tom, to_json(:utbetalinger::json), :avstemmingXmlRequest, :fagomrade)
                 """.insert(
                     mapOf(
                         "id" to avstemming.id,
@@ -46,6 +48,7 @@ internal class AvstemmingPostgresRepo(
                                 .map { it.id.toString() },
                         ),
                         "avstemmingXmlRequest" to avstemming.avstemmingXmlRequest,
+                        "fagomrade" to avstemming.fagområde.toString(),
                     ),
                     session,
                 )
@@ -57,8 +60,8 @@ internal class AvstemmingPostgresRepo(
         return dbMetrics.timeQuery("opprettKonsistensavstemming") {
             sessionFactory.withSession { session ->
                 """
-            insert into konsistensavstemming (id, opprettet, løpendeFraOgMed, opprettetTilOgMed, utbetalinger, avstemmingXmlRequest)
-            values (:id, :opprettet, :lopendeFraOgMed, :opprettetTilOgMed, to_json(:utbetalinger::json), :avstemmingXmlRequest)
+            insert into konsistensavstemming (id, opprettet, løpendeFraOgMed, opprettetTilOgMed, utbetalinger, avstemmingXmlRequest, fagområde)
+            values (:id, :opprettet, :lopendeFraOgMed, :opprettetTilOgMed, to_json(:utbetalinger::json), :avstemmingXmlRequest, :fagomrade)
                 """.insert(
                     mapOf(
                         "id" to avstemming.id,
@@ -73,6 +76,7 @@ internal class AvstemmingPostgresRepo(
                                 .fold(emptyMap<Saksnummer, List<UUID30>>()) { acc, map -> acc + map },
                         ),
                         "avstemmingXmlRequest" to avstemming.avstemmingXmlRequest,
+                        "fagomrade" to avstemming.fagområde.toString(),
                     ),
                     session,
                 )
@@ -116,12 +120,17 @@ internal class AvstemmingPostgresRepo(
         }
     }
 
-    override fun hentSisteGrensesnittsavstemming(): Avstemming.Grensesnittavstemming? {
+    override fun hentSisteGrensesnittsavstemming(fagområde: Fagområde): Avstemming.Grensesnittavstemming? {
         return dbMetrics.timeQuery("hentSisteGrensesnittsavstemming") {
             sessionFactory.withSession { session ->
                 """
-                select * from avstemming order by tom desc limit 1
-                """.hent(emptyMap(), session) {
+                select * from avstemming where fagområde = :fagomrade order by tom desc limit 1
+                """.hent(
+                    mapOf(
+                        "fagomrade" to fagområde.toString(),
+                    ),
+                    session,
+                ) {
                     it.toGrensesnittsavstemming(session)
                 }
             }
@@ -131,16 +140,18 @@ internal class AvstemmingPostgresRepo(
     override fun hentUtbetalingerForGrensesnittsavstemming(
         fraOgMed: Tidspunkt,
         tilOgMed: Tidspunkt,
+        fagområde: Fagområde,
     ): List<Utbetaling.OversendtUtbetaling> =
         dbMetrics.timeQuery("hentUtbetalingerForGrensesnittsavstemming") {
             sessionFactory.withSession { session ->
                 val fraOgMedCondition = """(u.avstemmingsnøkkel ->> 'opprettet')::timestamptz >= :fom"""
                 val tilOgMedCondition = """(u.avstemmingsnøkkel ->> 'opprettet')::timestamptz <= :tom"""
-                """select u.*, s.saksnummer, s.type as sakstype from utbetaling u inner join sak s on s.id = u.sakId where $fraOgMedCondition and $tilOgMedCondition"""
+                """select u.*, s.saksnummer, s.type as sakstype from utbetaling u inner join sak s on s.id = u.sakId where s.type = :fagomrade and $fraOgMedCondition and $tilOgMedCondition"""
                     .hentListe(
                         mapOf(
                             "fom" to fraOgMed,
                             "tom" to tilOgMed,
+                            "fagomrade" to fagområde.toSakstype().value,
                         ),
                         session,
                     ) {
@@ -152,6 +163,7 @@ internal class AvstemmingPostgresRepo(
     override fun hentUtbetalingerForKonsistensavstemming(
         løpendeFraOgMed: Tidspunkt,
         opprettetTilOgMed: Tidspunkt,
+        fagområde: Fagområde,
     ): List<Utbetaling.OversendtUtbetaling> {
         return dbMetrics.timeQuery("hentUtbetalingerForKonsistensavstemming") {
             sessionFactory.withSession { session ->
@@ -163,13 +175,14 @@ internal class AvstemmingPostgresRepo(
                 from utbetaling u    
                 join utbetalingslinje ul on ul.utbetalingid = u.id
                 join sak s on s.id = u.sakid
-                where ul.tom >= :lopendeFraOgMed
+                where s.type = :fagomrade and ul.tom >= :lopendeFraOgMed
                     and (u.avstemmingsnøkkel ->> 'opprettet')::timestamptz <= :opprettetTilOgMed
                 """.trimIndent()
                     .hentListe(
                         mapOf(
                             "lopendeFraOgMed" to løpendeFraOgMed.toLocalDate(zoneIdOslo),
                             "opprettetTilOgMed" to opprettetTilOgMed,
+                            "fagomrade" to fagområde.toSakstype().value,
                         ),
                         session,
                     ) {
@@ -179,10 +192,15 @@ internal class AvstemmingPostgresRepo(
         }
     }
 
-    override fun konsistensavstemmingUtførtForOgPåDato(dato: LocalDate): Boolean {
+    override fun konsistensavstemmingUtførtForOgPåDato(dato: LocalDate, fagområde: Fagområde): Boolean {
         return dbMetrics.timeQuery("konsistensavstemmingUtførtForOgPåDato") {
             val opprettetOgLøpendeFraOgMed = sessionFactory.withSession { session ->
-                """select opprettet, løpendeFraOgMed from konsistensavstemming""".hentListe(emptyMap(), session) {
+                """select opprettet, løpendeFraOgMed from konsistensavstemming where fagområde = :fagomrade""".hentListe(
+                    mapOf(
+                        "fagomrade" to fagområde.toString(),
+                    ),
+                    session,
+                ) {
                     it.tidspunkt("opprettet") to it.tidspunkt("løpendeFraOgMed")
                 }
             }
@@ -212,6 +230,8 @@ internal class AvstemmingPostgresRepo(
                 it.value.map { UtbetalingInternalRepo.hentUtbetalingslinje(it, session)!! }
             }
 
+        val fagområde = Fagområde.valueOf(string("fagområde"))
+
         return Avstemming.Konsistensavstemming.Fullført(
             id = id,
             opprettet = opprettet,
@@ -219,6 +239,7 @@ internal class AvstemmingPostgresRepo(
             opprettetTilOgMed = oppretettTilOgMed,
             utbetalinger = utbetalinger,
             avstemmingXmlRequest = avstemmingXmlRequest,
+            fagområde = fagområde,
         )
     }
 
@@ -228,6 +249,7 @@ internal class AvstemmingPostgresRepo(
         val fraOgMed = tidspunkt("fom")
         val tilOgMed = tidspunkt("tom")
         val avstemmingXmlRequest = stringOrNull("avstemmingXmlRequest")
+        val fagområde = Fagområde.valueOf(string("fagområde"))
 
         return Avstemming.Grensesnittavstemming(
             id = id,
@@ -243,6 +265,7 @@ internal class AvstemmingPostgresRepo(
                 }
             }!!,
             avstemmingXmlRequest = avstemmingXmlRequest,
+            fagområde = fagområde,
         )
     }
 }

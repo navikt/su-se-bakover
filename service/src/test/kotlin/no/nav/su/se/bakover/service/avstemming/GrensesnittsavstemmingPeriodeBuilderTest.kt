@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Fagområde
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import java.time.Clock
@@ -30,6 +31,7 @@ internal class GrensesnittsavstemmingPeriodeBuilderTest {
                 fraOgMed = 1.januar(2021).startOfDay(),
                 tilOgMed = 4.januar(2021).endOfDay(),
                 utbetalinger = emptyList(),
+                fagområde = Fagområde.SUUFORE,
             ),
             fixedClock,
         ).build()

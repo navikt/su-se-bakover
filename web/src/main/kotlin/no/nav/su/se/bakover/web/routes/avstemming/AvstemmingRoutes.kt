@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.routes.avstemming
 
 import arrow.core.Either
+import arrow.core.getOrHandle
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.response.respond
@@ -10,6 +11,7 @@ import no.nav.su.se.bakover.common.endOfDay
 import no.nav.su.se.bakover.common.mapBoth
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Fagområde
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
@@ -20,6 +22,14 @@ import java.time.format.DateTimeFormatter
 
 private const val AVSTEMMING_PATH = "/avstemming"
 
+private fun String.toFagområde(): Fagområde {
+    return when {
+        this == "ALDER" -> Fagområde.SUALDER
+        this == "UFORE" -> Fagområde.SUUFORE
+        else -> throw IllegalArgumentException("Ukjent fagområde: $this")
+    }
+}
+
 // TODO jah Jacob: Consider if this is still needed.
 internal fun Route.avstemmingRoutes(
     service: AvstemmingService,
@@ -29,6 +39,7 @@ internal fun Route.avstemmingRoutes(
         authorize(Brukerrolle.Drift) {
             val fraOgMed = call.parameters["fraOgMed"] // YYYY-MM-DD
             val tilOgMed = call.parameters["tilOgMed"] // YYYY-MM-DD
+            val fagområdeString = call.parameters["fagomrade"]
 
             val periode: Either<Unit, Pair<LocalDate, LocalDate>> =
                 when {
@@ -57,50 +68,62 @@ internal fun Route.avstemmingRoutes(
                                 it
                             }
                     else ->
-                        return@authorize call.respond(HttpStatusCode.BadRequest, "Ugyldig as")
+                        return@authorize call.respond(HttpStatusCode.BadRequest, "Ugyldige parametere")
                 }
 
+            val fagområde = Either.catch {
+                fagområdeString?.toFagområde()
+            }.getOrHandle {
+                return@authorize call.respond(HttpStatusCode.BadRequest, it.message.toString())
+            }!!
+
             periode.fold(
-                { service.grensesnittsavstemming() },
+                { service.grensesnittsavstemming(fagområde) },
                 {
-                    service.grensesnittsavstemming(it.first.startOfDay(), it.second.endOfDay())
+                    service.grensesnittsavstemming(it.first.startOfDay(), it.second.endOfDay(), fagområde)
                 },
+            ).fold(
+                { call.respond(HttpStatusCode.InternalServerError, "Kunne ikke avstemme") },
+                { call.respond("Avstemt ok") },
             )
-                .fold(
-                    { call.respond(HttpStatusCode.InternalServerError, "Kunne ikke avstemme") },
-                    { call.respond("Avstemt ok") },
-                )
         }
     }
 
     post("$AVSTEMMING_PATH/konsistens") {
         authorize(Brukerrolle.Drift) {
             val fraOgMed = call.parameters["fraOgMed"]
+            val fagområdeString = call.parameters["fagomrade"]
 
             if (fraOgMed == null) call.svar(
                 HttpStatusCode.BadRequest.errorJson(
                     "Parameter 'fraOgMed' mangler",
                     "ugyldig_parameter",
                 ),
-            ) else {
-                service.konsistensavstemming(LocalDate.parse(fraOgMed, DateTimeFormatter.ISO_DATE))
-                    .bimap(
-                        {
-                            call.svar(
-                                HttpStatusCode.InternalServerError.errorJson(
-                                    "Avstemming feilet",
-                                    "avstemming_feilet",
-                                ),
-                            )
-                        },
-                        {
-                            call.respond(
-                                status = HttpStatusCode.OK,
-                                message = """{"message":"Konsistensavstemming fullført for tidspunkt:${it.løpendeFraOgMed} for utbetalinger opprettet tilOgMed:${it.opprettetTilOgMed}"}""",
-                            )
-                        },
-                    )
-            }
+            )
+
+            val fagområde = Either.catch {
+                fagområdeString?.toFagområde()
+            }.getOrHandle {
+                return@authorize call.respond(HttpStatusCode.BadRequest, it.message.toString())
+            }!!
+
+            service.konsistensavstemming(LocalDate.parse(fraOgMed, DateTimeFormatter.ISO_DATE), fagområde)
+                .bimap(
+                    {
+                        call.svar(
+                            HttpStatusCode.InternalServerError.errorJson(
+                                "Avstemming feilet",
+                                "avstemming_feilet",
+                            ),
+                        )
+                    },
+                    {
+                        call.respond(
+                            status = HttpStatusCode.OK,
+                            message = """{"message":"Konsistensavstemming fullført for tidspunkt:${it.løpendeFraOgMed} for utbetalinger opprettet tilOgMed:${it.opprettetTilOgMed}"}""",
+                        )
+                    },
+                )
         }
     }
 }

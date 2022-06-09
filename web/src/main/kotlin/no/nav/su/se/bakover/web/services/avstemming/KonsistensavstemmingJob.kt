@@ -5,6 +5,7 @@ import arrow.core.firstOrNone
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.nais.LeaderPodLookup
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Fagområde
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.web.services.erLeaderPod
 import org.slf4j.LoggerFactory
@@ -67,16 +68,25 @@ internal class KonsistensavstemmingJob(
                         },
                         {
                             if (leaderPodLookup.erLeaderPod()) {
-                                if (!avstemmingService.konsistensavstemmingUtførtForOgPåDato(idag)) {
-                                    MDC.put("X-Correlation-ID", UUID.randomUUID().toString())
-                                    log.info("Kjøreplan: $kjøreplan inneholder dato: $idag, utfører konsistensavstemming.")
-                                    avstemmingService.konsistensavstemming(idag)
-                                        .fold(
-                                            { log.error("$jobName feilet: $it") },
-                                            { log.info("$jobName fullført. Detaljer: id:${it.id}, løpendeFraOgMed:${it.løpendeFraOgMed}, opprettetTilOgMed:${it.opprettetTilOgMed}") },
-                                        )
-                                } else {
-                                    log.info("Konsistensavstemming allerede utført for dato: $idag")
+                                Fagområde.values().forEach { fagområde ->
+                                    when (fagområde) {
+                                        Fagområde.SUALDER -> {
+                                            // TODO("simulering_utbetaling_alder legg til ALDER for konsistensavstemming")
+                                        }
+                                        Fagområde.SUUFORE -> {
+                                            if (!avstemmingService.konsistensavstemmingUtførtForOgPåDato(idag, fagområde)) {
+                                                MDC.put("X-Correlation-ID", UUID.randomUUID().toString())
+                                                log.info("Kjøreplan: $kjøreplan inneholder dato: $idag, utfører konsistensavstemming.")
+                                                avstemmingService.konsistensavstemming(idag, fagområde)
+                                                    .fold(
+                                                        { log.error("$jobName feilet: $it") },
+                                                        { log.info("$jobName fullført. Detaljer: id:${it.id}, løpendeFraOgMed:${it.løpendeFraOgMed}, opprettetTilOgMed:${it.opprettetTilOgMed}") },
+                                                    )
+                                            } else {
+                                                log.info("Konsistensavstemming allerede utført for dato: $idag")
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         },

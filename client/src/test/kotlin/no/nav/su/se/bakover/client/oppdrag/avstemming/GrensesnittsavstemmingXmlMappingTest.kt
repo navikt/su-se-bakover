@@ -23,6 +23,7 @@ internal class GrensesnittsavstemmingXmlMappingTest {
                 nokkelFom = "nokkelFom",
                 nokkelTom = "nokkelTom",
                 avleverendeAvstemmingId = "avleverendeAvstemmingId",
+                underkomponentKode = "SUUFORE",
             ).start(),
         )
 
@@ -60,6 +61,7 @@ internal class GrensesnittsavstemmingXmlMappingTest {
                 nokkelFom = "nokkelFom",
                 nokkelTom = "nokkelTom",
                 avleverendeAvstemmingId = "avleverendeAvstemmingId",
+                underkomponentKode = "SUUFORE",
             ),
             total = Totaldata(
                 totalAntall = 1,
@@ -156,6 +158,7 @@ internal class GrensesnittsavstemmingXmlMappingTest {
                 nokkelFom = "nokkelFom",
                 nokkelTom = "nokkelTom",
                 avleverendeAvstemmingId = "avleverendeAvstemmingId",
+                underkomponentKode = "SUUFORE",
             ).avslutt(),
         )
 

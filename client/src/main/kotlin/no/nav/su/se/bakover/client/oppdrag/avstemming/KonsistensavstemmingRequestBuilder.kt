@@ -14,8 +14,8 @@ internal class KonsistensavstemmingRequestBuilder(
 ) {
     private val aksjonsdata = Aksjonsdata.Konsistensavstemming(
         avleverendeAvstemmingId = avstemming.id.toString(),
-        tidspunktAvstemmingTom = avstemming.opprettetTilOgMed
-            .toOppdragTimestamp(),
+        tidspunktAvstemmingTom = avstemming.opprettetTilOgMed.toOppdragTimestamp(),
+        underkomponentKode = avstemming.fagområde.toString(),
     )
 
     private fun lagData(): List<KonsistensavstemmingData> {
@@ -70,7 +70,7 @@ internal class KonsistensavstemmingRequestBuilder(
 
 internal fun OppdragForKonsistensavstemming.toOppdragdata(): KonsistensavstemmingData.Oppdragsdata {
     return KonsistensavstemmingData.Oppdragsdata(
-        fagomradeKode = OppdragDefaults.KODE_FAGOMRÅDE,
+        fagomradeKode = fagområde.toString(),
         fagsystemId = saksnummer.toString(),
         utbetalingsfrekvens = OppdragDefaults.utbetalingsfrekvens.value,
         oppdragGjelderId = fnr.toString(),
@@ -86,7 +86,7 @@ internal fun OppdragForKonsistensavstemming.toOppdragdata(): Konsistensavstemmin
         oppdragslinjeListe = utbetalingslinjer.map {
             KonsistensavstemmingData.Oppdragslinje(
                 delytelseId = it.id.toString(),
-                klassifikasjonKode = OppdragslinjeDefaults.KODE_KLASSIFIK,
+                klassifikasjonKode = fagområde.toString(),
                 vedtakPeriode = KonsistensavstemmingData.VedtakPeriode(
                     fom = it.fraOgMed.toOppdragDate(),
                     tom = it.tilOgMed.toOppdragDate(),

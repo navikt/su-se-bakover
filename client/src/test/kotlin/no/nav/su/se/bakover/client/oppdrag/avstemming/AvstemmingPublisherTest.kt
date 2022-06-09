@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Fagområde
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -53,6 +54,7 @@ class AvstemmingPublisherTest {
                     avleverendeAvstemmingId = grensesnittavstemming.id.toString(),
                     nokkelFom = Avstemmingsnøkkel(grensesnittavstemming.fraOgMed).toString(),
                     nokkelTom = Avstemmingsnøkkel(grensesnittavstemming.tilOgMed).toString(),
+                    underkomponentKode = "SUUFORE"
                 ),
             ),
         )
@@ -63,6 +65,7 @@ class AvstemmingPublisherTest {
                     avleverendeAvstemmingId = grensesnittavstemming.id.toString(),
                     nokkelFom = Avstemmingsnøkkel(grensesnittavstemming.fraOgMed).toString(),
                     nokkelTom = Avstemmingsnøkkel(grensesnittavstemming.tilOgMed).toString(),
+                    underkomponentKode = "SUUFORE"
                 ),
                 total = Totaldata(
                     totalAntall = 1,
@@ -97,6 +100,7 @@ class AvstemmingPublisherTest {
                     avleverendeAvstemmingId = grensesnittavstemming.id.toString(),
                     nokkelFom = Avstemmingsnøkkel(grensesnittavstemming.fraOgMed).toString(),
                     nokkelTom = Avstemmingsnøkkel(grensesnittavstemming.tilOgMed).toString(),
+                    underkomponentKode = "SUUFORE"
                 ),
             ),
         )
@@ -172,6 +176,7 @@ class AvstemmingPublisherTest {
                 ),
             ),
         ),
+        fagområde = Fagområde.SUUFORE,
     )
 
     private val konsistensavstemming = Avstemming.Konsistensavstemming.Ny(
@@ -190,6 +195,7 @@ class AvstemmingPublisherTest {
             ),
         ),
         avstemmingXmlRequest = null,
+        fagområde = Fagområde.SUUFORE,
     )
 
     class MqPublisherMock(private val response: Either<MqPublisher.CouldNotPublish, Unit>) : MqPublisher {

@@ -240,7 +240,7 @@ private fun createOrdinær(fraOgMed: LocalDate, tilOgMed: LocalDate, beløp: Int
     typeSats = "MND",
     antallSats = 1,
     uforegrad = 0,
-    klassekode = KlasseKode.SUUFORE,
+    klassekode = KlasseKode.SUUFORE, // TODO("simulering_utbetaling_alder switch på sakstype")
     klassekodeBeskrivelse = "Supplerende stønad Uføre",
     klasseType = KlasseType.YTEL,
 )
@@ -255,7 +255,7 @@ private fun createTidligereUtbetalt(fraOgMed: LocalDate, tilOgMed: LocalDate, be
     typeSats = "",
     antallSats = 0,
     uforegrad = 0,
-    klassekode = KlasseKode.SUUFORE,
+    klassekode = KlasseKode.SUUFORE, // TODO("simulering_utbetaling_alder switch på sakstype")
     klassekodeBeskrivelse = "suBeskrivelse",
     klasseType = KlasseType.YTEL,
 )
