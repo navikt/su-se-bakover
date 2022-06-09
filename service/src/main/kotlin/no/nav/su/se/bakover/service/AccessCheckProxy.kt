@@ -15,8 +15,8 @@ import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.SamletSkattegrunnlag
 import no.nav.su.se.bakover.domain.Sakstype
+import no.nav.su.se.bakover.domain.SamletSkattegrunnlag
 import no.nav.su.se.bakover.domain.SendPåminnelseNyStønadsperiodeContext
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
