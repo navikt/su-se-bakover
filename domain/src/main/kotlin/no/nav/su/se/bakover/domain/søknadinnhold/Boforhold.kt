@@ -6,7 +6,7 @@ import arrow.core.right
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.InnlagtPåInstitusjon
+import java.time.LocalDate
 
 data class Boforhold private constructor(
     val borOgOppholderSegINorge: Boolean,
@@ -96,6 +96,12 @@ sealed class OppgittAdresse {
         }
     }
 }
+
+data class InnlagtPåInstitusjon(
+    val datoForInnleggelse: LocalDate,
+    val datoForUtskrivelse: LocalDate?,
+    val fortsattInnlagt: Boolean,
+)
 
 sealed interface FeilVedOpprettelseAvBoforhold {
     object DelerBoligMedErIkkeUtfylt : FeilVedOpprettelseAvBoforhold

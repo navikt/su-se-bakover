@@ -5,10 +5,10 @@ import no.nav.su.se.bakover.domain.Behandlingstema
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
-import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.Tema
 import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.domain.søknadinnhold.SøknadInnhold
 import java.util.Base64
 
 sealed class Journalpost {
