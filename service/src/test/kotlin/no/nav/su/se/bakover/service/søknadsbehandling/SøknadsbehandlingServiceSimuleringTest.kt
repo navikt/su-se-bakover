@@ -87,7 +87,7 @@ internal class SøknadsbehandlingServiceSimuleringTest {
 
         verify(søknadsbehandlingRepoMock).hent(beregnetBehandling.id)
         verify(utbetalingServiceMock).simulerUtbetaling(
-            request = SimulerUtbetalingRequest.NyUtbetaling(
+            request = SimulerUtbetalingRequest.NyUføreUtbetaling(
                 sakId = beregnetBehandling.sakId,
                 saksbehandler = saksbehandler,
                 beregning = beregnetBehandling.beregning,
@@ -134,13 +134,14 @@ internal class SøknadsbehandlingServiceSimuleringTest {
             SøknadsbehandlingService.SimulerRequest(beregnetBehandling.id, saksbehandler),
         )
 
-        response shouldBe SøknadsbehandlingService.KunneIkkeSimulereBehandling.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL)
-            .left()
+        response shouldBe SøknadsbehandlingService.KunneIkkeSimulereBehandling.KunneIkkeSimulere(
+            Søknadsbehandling.KunneIkkeSimulereBehandling.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL),
+        ).left()
 
         verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe beregnetBehandling.id })
 
         verify(utbetalingServiceMock).simulerUtbetaling(
-            request = SimulerUtbetalingRequest.NyUtbetaling(
+            request = SimulerUtbetalingRequest.NyUføreUtbetaling(
                 sakId = beregnetBehandling.sakId,
                 saksbehandler = saksbehandler,
                 beregning = beregnetBehandling.beregning,

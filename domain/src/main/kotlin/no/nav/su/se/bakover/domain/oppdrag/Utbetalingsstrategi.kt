@@ -78,7 +78,10 @@ sealed class Utbetalingsstrategi {
                 !harOversendteUtbetalingerEtter(stansDato) -> {
                     return Feil.IngenUtbetalingerEtterStansDato.left()
                 }
-                !(LocalDate.now(clock).startOfMonth() == stansDato || LocalDate.now(clock).plusMonths(1).startOfMonth() == stansDato) -> {
+                !(
+                    LocalDate.now(clock).startOfMonth() == stansDato || LocalDate.now(clock).plusMonths(1)
+                        .startOfMonth() == stansDato
+                    ) -> {
                     return Feil.StansDatoErIkkeFørsteDatoIInneværendeEllerNesteMåned.left()
                 }
                 sisteOversendteUtbetalingslinje is Utbetalingslinje.Endring.Stans -> {
@@ -124,7 +127,7 @@ sealed class Utbetalingsstrategi {
         }
     }
 
-    data class Ny(
+    data class NyUføreUtbetaling(
         override val sakId: UUID,
         override val saksnummer: Saksnummer,
         override val fnr: Fnr,
@@ -145,7 +148,7 @@ sealed class Utbetalingsstrategi {
                     forrigeUtbetalingslinjeId = sisteOversendteUtbetaling()?.sisteUtbetalingslinje()?.id,
                     beløp = it.beløp,
                     uføregrad = it.uføregrad,
-                    utbetalingsinstruksjonForEtterbetalinger = kjøreplan
+                    utbetalingsinstruksjonForEtterbetalinger = kjøreplan,
                 )
             }.also {
                 it.zipWithNext { a, b -> b.link(a) }
@@ -207,6 +210,47 @@ sealed class Utbetalingsstrategi {
                     )
                 }
             }
+        }
+    }
+
+    data class NyAldersUtbetaling(
+        override val sakId: UUID,
+        override val saksnummer: Saksnummer,
+        override val fnr: Fnr,
+        override val utbetalinger: List<Utbetaling>,
+        override val behandler: NavIdentBruker,
+        override val sakstype: Sakstype,
+        val beregning: Beregning,
+        val clock: Clock,
+        val kjøreplan: UtbetalingsinstruksjonForEtterbetalinger,
+    ) : Utbetalingsstrategi() {
+        fun generate(): Utbetaling.UtbetalingForSimulering {
+            val utbetalingslinjer = SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(
+                beregning.getMånedsberegninger(),
+            ).beregningsperioder.map {
+                Utbetalingslinje.Ny(
+                    opprettet = Tidspunkt.now(clock),
+                    fraOgMed = it.periode.fraOgMed,
+                    tilOgMed = it.periode.tilOgMed,
+                    forrigeUtbetalingslinjeId = sisteOversendteUtbetaling()?.sisteUtbetalingslinje()?.id,
+                    beløp = it.getSumYtelse(),
+                    uføregrad = null,
+                    utbetalingsinstruksjonForEtterbetalinger = kjøreplan,
+                )
+            }.also {
+                it.zipWithNext { a, b -> b.link(a) }
+            }
+            return Utbetaling.UtbetalingForSimulering(
+                opprettet = Tidspunkt.now(clock),
+                sakId = sakId,
+                saksnummer = saksnummer,
+                utbetalingslinjer = NonEmptyList.fromListUnsafe(utbetalingslinjer),
+                fnr = fnr,
+                type = Utbetaling.UtbetalingsType.NY,
+                behandler = behandler,
+                avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.now(clock)),
+                sakstype = sakstype,
+            )
         }
     }
 

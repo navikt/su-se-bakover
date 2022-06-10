@@ -195,7 +195,7 @@ fun søknadsbehandlingBeregnetAvslag(
             ),
         ),
     ),
-    clock: Clock = fixedClock
+    clock: Clock = fixedClock,
 ): Pair<Sak, Søknadsbehandling.Beregnet.Avslag> {
     return søknadsbehandlingVilkårsvurdertInnvilget(
         saksnummer = saksnummer,
@@ -237,27 +237,21 @@ fun søknadsbehandlingSimulert(
         vilkårsvurderinger = vilkårsvurderinger,
         avkorting = avkorting,
     ).let { (sak, søknadsbehandling) ->
-        val oppdatertSøknadsbehandling =
-            søknadsbehandling.tilSimulert(
-                simulering = simuleringNy(
-                    eksisterendeUtbetalinger = sak.utbetalinger,
-                    beregning = søknadsbehandling.beregning,
-                    uføregrunnlag = søknadsbehandling.vilkårsvurderinger.uføreVilkår().fold(
-                        {
-                            TODO("vilkårsvurdering_alder kan ikke hente uførevilkår for alder")
-                        },
-                        {
-                            it.grunnlag
-                        }
-                    )
-                ),
+        søknadsbehandling.simuler(
+            saksbehandler = saksbehandler,
+        ) {
+            simulerNyUtbetaling(
+                sak = sak,
+                request = it,
+                clock = fixedClock,
             )
-        Pair(
-            sak.copy(
-                søknadsbehandlinger = nonEmptyListOf(oppdatertSøknadsbehandling),
-            ),
-            oppdatertSøknadsbehandling,
-        )
+        }.getOrFail()
+            .let { simulert ->
+                Pair(
+                    sak.copy(søknadsbehandlinger = sak.søknadsbehandlinger + simulert),
+                    simulert,
+                )
+            }
     }
 }
 

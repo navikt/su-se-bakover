@@ -82,7 +82,7 @@ internal class UtbetalingsstrategiNyTest {
                 forventetInntekt = 0,
             ),
         )
-        val actual = Utbetalingsstrategi.Ny(
+        val actual = Utbetalingsstrategi.NyUføreUtbetaling(
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
@@ -164,7 +164,7 @@ internal class UtbetalingsstrategiNyTest {
             ),
         )
 
-        val nyUtbetaling = Utbetalingsstrategi.Ny(
+        val nyUtbetaling = Utbetalingsstrategi.NyUføreUtbetaling(
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
@@ -342,7 +342,7 @@ internal class UtbetalingsstrategiNyTest {
                 forventetInntekt = 0,
             ),
         )
-        val actualUtbetaling = Utbetalingsstrategi.Ny(
+        val actualUtbetaling = Utbetalingsstrategi.NyUføreUtbetaling(
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
@@ -398,7 +398,7 @@ internal class UtbetalingsstrategiNyTest {
                 forventetInntekt = 0,
             ),
         )
-        val actualUtbetaling = Utbetalingsstrategi.Ny(
+        val actualUtbetaling = Utbetalingsstrategi.NyUføreUtbetaling(
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
@@ -480,7 +480,7 @@ internal class UtbetalingsstrategiNyTest {
         val uføreList = listOf<Grunnlag.Uføregrunnlag>()
 
         shouldThrow<RuntimeException> {
-            Utbetalingsstrategi.Ny(
+            Utbetalingsstrategi.NyUføreUtbetaling(
                 sakId = sakId,
                 saksnummer = saksnummer,
                 fnr = fnr,
@@ -508,7 +508,7 @@ internal class UtbetalingsstrategiNyTest {
         )
 
         shouldThrow<RuntimeException> {
-            Utbetalingsstrategi.Ny(
+            Utbetalingsstrategi.NyUføreUtbetaling(
                 sakId = sakId,
                 saksnummer = saksnummer,
                 fnr = fnr,
@@ -543,7 +543,7 @@ internal class UtbetalingsstrategiNyTest {
         )
 
         shouldThrow<RuntimeException> {
-            Utbetalingsstrategi.Ny(
+            Utbetalingsstrategi.NyUføreUtbetaling(
                 sakId = sakId,
                 saksnummer = saksnummer,
                 fnr = fnr,
@@ -561,7 +561,7 @@ internal class UtbetalingsstrategiNyTest {
     @Test
     fun `kaster exception hvis det finnes månedsberegning, men uføregrunnlag er tom (1 til 0)`() {
         shouldThrow<Utbetalingsstrategi.UtbetalingStrategyException> {
-            Utbetalingsstrategi.Ny(
+            Utbetalingsstrategi.NyUføreUtbetaling(
                 sakId = sakId,
                 saksnummer = saksnummer,
                 fnr = fnr,
@@ -580,7 +580,7 @@ internal class UtbetalingsstrategiNyTest {
     fun `kaster exception hvis det finnes flere månedsberegninger, men uføregrunnlag er tom (mange til 0)`() {
         val periode = år(2021)
         shouldThrow<Utbetalingsstrategi.UtbetalingStrategyException> {
-            Utbetalingsstrategi.Ny(
+            Utbetalingsstrategi.NyUføreUtbetaling(
                 sakId = sakId,
                 saksnummer = saksnummer,
                 fnr = fnr,
@@ -637,7 +637,7 @@ internal class UtbetalingsstrategiNyTest {
             ),
         )
 
-        val actual = Utbetalingsstrategi.Ny(
+        val actual = Utbetalingsstrategi.NyUføreUtbetaling(
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
@@ -686,7 +686,7 @@ internal class UtbetalingsstrategiNyTest {
             ),
         )
 
-        val actual = Utbetalingsstrategi.Ny(
+        val actual = Utbetalingsstrategi.NyUføreUtbetaling(
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
@@ -737,7 +737,7 @@ internal class UtbetalingsstrategiNyTest {
                 forventetInntekt = 0,
             ),
         )
-        val actual = Utbetalingsstrategi.Ny(
+        val actual = Utbetalingsstrategi.NyUføreUtbetaling(
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
@@ -825,7 +825,7 @@ internal class UtbetalingsstrategiNyTest {
                 forventetInntekt = 0,
             ),
         )
-        val actual = Utbetalingsstrategi.Ny(
+        val actual = Utbetalingsstrategi.NyUføreUtbetaling(
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
@@ -907,7 +907,7 @@ internal class UtbetalingsstrategiNyTest {
         )
 
         shouldThrow<Utbetalingsstrategi.UtbetalingStrategyException> {
-            Utbetalingsstrategi.Ny(
+            Utbetalingsstrategi.NyUføreUtbetaling(
                 sakId = sakId,
                 saksnummer = saksnummer,
                 fnr = fnr,
@@ -943,7 +943,7 @@ internal class UtbetalingsstrategiNyTest {
             ),
         )
 
-        val actual = Utbetalingsstrategi.Ny(
+        val actual = Utbetalingsstrategi.NyUføreUtbetaling(
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
@@ -992,7 +992,7 @@ internal class UtbetalingsstrategiNyTest {
             ),
         )
 
-        val actual = Utbetalingsstrategi.Ny(
+        val actual = Utbetalingsstrategi.NyUføreUtbetaling(
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,

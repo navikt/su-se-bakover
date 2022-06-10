@@ -20,9 +20,7 @@ import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjo
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
 import no.nav.su.se.bakover.domain.journal.JournalpostId
-import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
@@ -222,31 +220,15 @@ internal class SøknadsbehandlingServiceImpl(
     }
 
     override fun simuler(request: SøknadsbehandlingService.SimulerRequest): Either<SøknadsbehandlingService.KunneIkkeSimulereBehandling, Søknadsbehandling.Simulert> {
-        val saksbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
+        val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return SøknadsbehandlingService.KunneIkkeSimulereBehandling.FantIkkeBehandling.left()
-        return forsøkStatusovergang(
-            søknadsbehandling = saksbehandling,
-            statusovergang = Statusovergang.TilSimulert { beregning ->
-                utbetalingService.simulerUtbetaling(
-                    SimulerUtbetalingRequest.NyUtbetaling(
-                        sakId = saksbehandling.sakId,
-                        saksbehandler = request.saksbehandler,
-                        beregning = beregning,
-                        uføregrunnlag = saksbehandling.vilkårsvurderinger.uføreVilkår().fold(
-                            {
-                                TODO("vilkårsvurdering_alder utbetaling av alder ikke implementert")
-                            },
-                            {
-                                it.grunnlag
-                            }
-                        ),
-                        utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
-                    ),
-                ).map {
-                    it.simulering
-                }
-            },
-        ).mapLeft {
+
+        return søknadsbehandling.simuler(
+            saksbehandler = request.saksbehandler,
+        ) {
+            utbetalingService.simulerUtbetaling(it)
+                .map { simulertUtbetaling -> simulertUtbetaling.simulering }
+        }.mapLeft {
             SøknadsbehandlingService.KunneIkkeSimulereBehandling.KunneIkkeSimulere(it)
         }.map {
             søknadsbehandlingRepo.lagre(it)
@@ -390,22 +372,11 @@ internal class SøknadsbehandlingServiceImpl(
         ).map { iverksattBehandling ->
             when (iverksattBehandling) {
                 is Søknadsbehandling.Iverksatt.Innvilget -> {
-
                     val utbetaling = utbetalingService.verifiserOgSimulerUtbetaling(
                         request = UtbetalRequest.NyUtbetaling(
-                            request = SimulerUtbetalingRequest.NyUtbetaling(
-                                sakId = iverksattBehandling.sakId,
+                            request = iverksattBehandling.lagSimulerUtbetalingRequest(
                                 saksbehandler = request.attestering.attestant,
                                 beregning = iverksattBehandling.beregning,
-                                uføregrunnlag = iverksattBehandling.vilkårsvurderinger.uføreVilkår().fold(
-                                    {
-                                        TODO("vilkårsvurdering_alder utbetaling av alder ikke implementert")
-                                    },
-                                    {
-                                        it.grunnlag
-                                    }
-                                ),
-                                utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
                             ),
                             simulering = iverksattBehandling.simulering,
                         ),

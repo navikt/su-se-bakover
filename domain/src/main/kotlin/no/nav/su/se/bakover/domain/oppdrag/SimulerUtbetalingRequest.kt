@@ -12,9 +12,8 @@ sealed interface SimulerUtbetalingRequest {
     val sakId: UUID
     val saksbehandler: NavIdentBruker
 
-    interface NyUtbetalingRequest : SimulerUtbetalingRequest {
+    sealed interface NyUtbetalingRequest : SimulerUtbetalingRequest {
         val beregning: Beregning
-        val uføregrunnlag: List<Grunnlag.Uføregrunnlag>
         val utbetalingsinstruksjonForEtterbetaling: UtbetalingsinstruksjonForEtterbetalinger
     }
 
@@ -30,12 +29,19 @@ sealed interface SimulerUtbetalingRequest {
         val sak: Sak
     }
 
-    data class NyUtbetaling(
+    data class NyUføreUtbetaling(
         override val sakId: UUID,
         override val saksbehandler: NavIdentBruker,
         override val beregning: Beregning,
-        override val uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
-        override val utbetalingsinstruksjonForEtterbetaling: UtbetalingsinstruksjonForEtterbetalinger,
+        override val utbetalingsinstruksjonForEtterbetaling: UtbetalingsinstruksjonForEtterbetalinger = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+        val uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
+    ) : NyUtbetalingRequest
+
+    data class NyAldersUtbetaling(
+        override val sakId: UUID,
+        override val saksbehandler: NavIdentBruker,
+        override val beregning: Beregning,
+        override val utbetalingsinstruksjonForEtterbetaling: UtbetalingsinstruksjonForEtterbetalinger = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
     ) : NyUtbetalingRequest
 
     data class Opphør(
@@ -62,22 +68,34 @@ sealed interface UtbetalRequest : SimulerUtbetalingRequest {
     val simulering: Simulering
 
     data class NyUtbetaling(
-        private val request: SimulerUtbetalingRequest.NyUtbetalingRequest,
+        val request: SimulerUtbetalingRequest.NyUtbetalingRequest,
         override val simulering: Simulering,
     ) : UtbetalRequest,
-        SimulerUtbetalingRequest.NyUtbetalingRequest by request
+        SimulerUtbetalingRequest.NyUtbetalingRequest by request {
+        init {
+            require(request !is UtbetalRequest)
+        }
+    }
 
     data class Opphør(
         private val request: SimulerUtbetalingRequest.OpphørRequest,
         override val simulering: Simulering,
     ) : UtbetalRequest,
-        SimulerUtbetalingRequest.OpphørRequest by request
+        SimulerUtbetalingRequest.OpphørRequest by request {
+        init {
+            require(request !is UtbetalRequest)
+        }
+    }
 
     data class Stans(
-        private val request: SimulerUtbetalingRequest.Stans,
+        private val request: SimulerUtbetalingRequest.StansRequest,
         override val simulering: Simulering,
     ) : UtbetalRequest,
-        SimulerUtbetalingRequest.StansRequest by request
+        SimulerUtbetalingRequest.StansRequest by request {
+        init {
+            require(request !is UtbetalRequest)
+        }
+    }
 
     data class Gjenopptak(
         override val sakId: UUID,

@@ -34,8 +34,10 @@ import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
 import no.nav.su.se.bakover.domain.grunnlag.Opplysningspliktgrunnlag
+import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling.Vilkårsvurdert.Companion.opprett
@@ -308,6 +310,46 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             KunneIkkeLeggeTilUførevilkår()
 
         object VurderingsperiodeUtenforBehandlingsperiode : KunneIkkeLeggeTilUførevilkår()
+    }
+
+    open fun simuler(
+        saksbehandler: NavIdentBruker,
+        simuler: (request: SimulerUtbetalingRequest.NyUtbetalingRequest) -> Either<SimuleringFeilet, Simulering>,
+    ): Either<KunneIkkeSimulereBehandling, Simulert> {
+        return KunneIkkeSimulereBehandling.UgyldigTilstand(this::class).left()
+    }
+
+    sealed class KunneIkkeSimulereBehandling {
+        data class KunneIkkeSimulere(val feil: SimuleringFeilet) : KunneIkkeSimulereBehandling()
+        data class UgyldigTilstand(
+            val fra: KClass<out Søknadsbehandling>,
+            val til: KClass<out Simulert> = Simulert::class,
+        ) : KunneIkkeSimulereBehandling()
+    }
+
+    fun lagSimulerUtbetalingRequest(
+        saksbehandler: NavIdentBruker,
+        beregning: Beregning,
+    ): SimulerUtbetalingRequest.NyUtbetalingRequest {
+        return when (sakstype) {
+            Sakstype.ALDER -> {
+                SimulerUtbetalingRequest.NyAldersUtbetaling(
+                    sakId = sakId,
+                    saksbehandler = saksbehandler,
+                    beregning = beregning,
+                )
+            }
+            Sakstype.UFØRE -> {
+                SimulerUtbetalingRequest.NyUføreUtbetaling(
+                    sakId = sakId,
+                    saksbehandler = saksbehandler,
+                    beregning = beregning,
+                    uføregrunnlag = vilkårsvurderinger.uføreVilkår()
+                        .getOrHandle { throw IllegalStateException("Søknadsbehandling uføre: $id mangler uføregrunnlag") }
+                        .grunnlag,
+                )
+            }
+        }
     }
 
     protected fun beregnInternal(
@@ -1024,26 +1066,41 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             formuegrenserFactory: FormuegrenserFactory,
         ): Either<KunneIkkeBeregne, Beregnet>
 
-        fun tilSimulert(simulering: Simulering): Simulert =
-            Simulert(
-                id,
-                opprettet,
-                sakId,
-                saksnummer,
-                søknad,
-                oppgaveId,
-                behandlingsinformasjon,
-                fnr,
-                beregning,
-                simulering,
-                fritekstTilBrev,
-                stønadsperiode,
-                grunnlagsdata,
-                vilkårsvurderinger,
-                attesteringer,
-                avkorting,
-                sakstype,
-            )
+        override fun simuler(
+            saksbehandler: NavIdentBruker,
+            simuler: (request: SimulerUtbetalingRequest.NyUtbetalingRequest) -> Either<SimuleringFeilet, Simulering>,
+        ): Either<KunneIkkeSimulereBehandling, Simulert> {
+            return lagSimulerUtbetalingRequest(
+                saksbehandler = saksbehandler,
+                beregning = beregning,
+            ).let { simulerUtbetalingRequest ->
+                simuler(simulerUtbetalingRequest)
+                    .mapLeft {
+                        KunneIkkeSimulereBehandling.KunneIkkeSimulere(it)
+                    }
+                    .map { simulering ->
+                        Simulert(
+                            id,
+                            opprettet,
+                            sakId,
+                            saksnummer,
+                            søknad,
+                            oppgaveId,
+                            behandlingsinformasjon,
+                            fnr,
+                            beregning,
+                            simulering,
+                            fritekstTilBrev,
+                            stønadsperiode,
+                            grunnlagsdata,
+                            vilkårsvurderinger,
+                            attesteringer,
+                            avkorting,
+                            sakstype,
+                        )
+                    }
+            }
+        }
 
         data class Innvilget(
             override val id: UUID,
@@ -1441,7 +1498,9 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 grunnlagsdata = Grunnlagsdata.tryCreate(
                     fradragsgrunnlag = fradragsgrunnlag,
                     bosituasjon = this.grunnlagsdata.bosituasjon,
-                ).getOrHandle { return KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag(it).left() },
+                ).getOrHandle {
+                    return KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag(it).left()
+                },
                 vilkårsvurderinger,
                 attesteringer,
                 avkorting.uhåndtert(),
@@ -1490,26 +1549,41 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             )
         }
 
-        fun tilSimulert(simulering: Simulering): Simulert =
-            Simulert(
-                id,
-                opprettet,
-                sakId,
-                saksnummer,
-                søknad,
-                oppgaveId,
-                behandlingsinformasjon,
-                fnr,
-                beregning,
-                simulering,
-                fritekstTilBrev,
-                stønadsperiode,
-                grunnlagsdata,
-                vilkårsvurderinger,
-                attesteringer,
-                avkorting,
-                sakstype,
-            )
+        override fun simuler(
+            saksbehandler: NavIdentBruker,
+            simuler: (request: SimulerUtbetalingRequest.NyUtbetalingRequest) -> Either<SimuleringFeilet, Simulering>,
+        ): Either<KunneIkkeSimulereBehandling, Simulert> {
+            return lagSimulerUtbetalingRequest(
+                saksbehandler = saksbehandler,
+                beregning = beregning,
+            ).let { simulerUtbetalingRequest ->
+                simuler(simulerUtbetalingRequest)
+                    .mapLeft {
+                        KunneIkkeSimulereBehandling.KunneIkkeSimulere(it)
+                    }
+                    .map { simulering ->
+                        Simulert(
+                            id,
+                            opprettet,
+                            sakId,
+                            saksnummer,
+                            søknad,
+                            oppgaveId,
+                            behandlingsinformasjon,
+                            fnr,
+                            beregning,
+                            simulering,
+                            fritekstTilBrev,
+                            stønadsperiode,
+                            grunnlagsdata,
+                            vilkårsvurderinger,
+                            attesteringer,
+                            avkorting,
+                            sakstype,
+                        )
+                    }
+            }
+        }
 
         fun tilAttestering(
             saksbehandler: NavIdentBruker.Saksbehandler,
@@ -2015,26 +2089,41 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 )
             }
 
-            fun tilSimulert(simulering: Simulering): Simulert =
-                Simulert(
-                    id,
-                    opprettet,
-                    sakId,
-                    saksnummer,
-                    søknad,
-                    oppgaveId,
-                    behandlingsinformasjon,
-                    fnr,
-                    beregning,
-                    simulering,
-                    fritekstTilBrev,
-                    stønadsperiode,
-                    grunnlagsdata,
-                    vilkårsvurderinger,
-                    attesteringer,
-                    avkorting,
-                    sakstype,
-                )
+            override fun simuler(
+                saksbehandler: NavIdentBruker,
+                simuler: (request: SimulerUtbetalingRequest.NyUtbetalingRequest) -> Either<SimuleringFeilet, Simulering>,
+            ): Either<KunneIkkeSimulereBehandling, Simulert> {
+                return lagSimulerUtbetalingRequest(
+                    saksbehandler = saksbehandler,
+                    beregning = beregning,
+                ).let { simulerUtbetalingRequest ->
+                    simuler(simulerUtbetalingRequest)
+                        .mapLeft {
+                            KunneIkkeSimulereBehandling.KunneIkkeSimulere(it)
+                        }
+                        .map { simulering ->
+                            Simulert(
+                                id,
+                                opprettet,
+                                sakId,
+                                saksnummer,
+                                søknad,
+                                oppgaveId,
+                                behandlingsinformasjon,
+                                fnr,
+                                beregning,
+                                simulering,
+                                fritekstTilBrev,
+                                stønadsperiode,
+                                grunnlagsdata,
+                                vilkårsvurderinger,
+                                attesteringer,
+                                avkorting,
+                                sakstype,
+                            )
+                        }
+                }
+            }
 
             fun tilAttestering(saksbehandler: NavIdentBruker.Saksbehandler): TilAttestering.Innvilget {
                 if (simulering.harFeilutbetalinger()) {

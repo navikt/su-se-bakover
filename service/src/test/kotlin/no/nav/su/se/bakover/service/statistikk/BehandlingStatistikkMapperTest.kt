@@ -29,7 +29,9 @@ import no.nav.su.se.bakover.test.iverksattRevurderingInnvilgetFraInnvilgetSøkna
 import no.nav.su.se.bakover.test.iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.oversendtKlage
+import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTest
+import no.nav.su.se.bakover.test.simulerNyUtbetaling
 import no.nav.su.se.bakover.test.søknadsbehandlingBeregnetAvslag
 import no.nav.su.se.bakover.test.søknadsbehandlingBeregnetInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagMedBeregning
@@ -47,7 +49,6 @@ import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.mockito.kotlin.mock
 import java.util.UUID
 
 internal class BehandlingStatistikkMapperTest {
@@ -674,14 +675,24 @@ internal class BehandlingStatistikkMapperTest {
 
     private val uavklartSøknadsbehandling = søknadsbehandlingVilkårsvurdertUavklart().second
 
-    private val vilkårsvurdertInnvilgetSøknadsbehandling = søknadsbehandlingVilkårsvurdertInnvilget().second
+    private val sakOgInnvilget = søknadsbehandlingVilkårsvurdertInnvilget()
+    private val vilkårsvurdertInnvilgetSøknadsbehandling = sakOgInnvilget.second
     private val beregnetSøknadsbehandling = vilkårsvurdertInnvilgetSøknadsbehandling.beregn(
         begrunnelse = null,
         clock = fixedClock,
         satsFactory = satsFactoryTest,
         formuegrenserFactory = formuegrenserFactoryTest,
     ).getOrFail()
-    private val simulertSøknadsbehandling = beregnetSøknadsbehandling.tilSimulert(mock())
+    private val simulertSøknadsbehandling = beregnetSøknadsbehandling.simuler(
+        saksbehandler = saksbehandler,
+    ) {
+        simulerNyUtbetaling(
+            sak = sakOgInnvilget.first,
+            request = it,
+            clock = fixedClock,
+        )
+    }.getOrFail()
+
     private val tilAttesteringSøknadsbehandling =
         simulertSøknadsbehandling.tilAttestering(NavIdentBruker.Saksbehandler("saks"), "")
     private val iverksattSøknadsbehandling = tilAttesteringSøknadsbehandling.tilIverksatt(

@@ -169,18 +169,51 @@ internal class UtbetalingServiceImpl(
     ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
         val sak: Sak = sakService.hentSak(request.sakId).orNull()!!
 
-        val utbetaling = Utbetalingsstrategi.Ny(
-            sakId = sak.id,
-            saksnummer = sak.saksnummer,
-            fnr = sak.fnr,
-            utbetalinger = sak.utbetalinger,
-            behandler = request.saksbehandler,
-            beregning = request.beregning,
-            uføregrunnlag = request.uføregrunnlag,
-            clock = clock,
-            kjøreplan = request.utbetalingsinstruksjonForEtterbetaling,
-            sakstype = sak.type,
-        ).generate()
+        fun lagUtbetalingAlder(request: SimulerUtbetalingRequest.NyAldersUtbetaling): Utbetaling.UtbetalingForSimulering {
+            TODO("simulering_utbetaling_alder deaktivert inntil videre")
+            // return Utbetalingsstrategi.NyAldersUtbetaling(
+            //     sakId = sak.id,
+            //     saksnummer = sak.saksnummer,
+            //     fnr = sak.fnr,
+            //     utbetalinger = sak.utbetalinger,
+            //     behandler = request.saksbehandler,
+            //     beregning = request.beregning,
+            //     clock = clock,
+            //     kjøreplan = request.utbetalingsinstruksjonForEtterbetaling,
+            //     sakstype = sak.type,
+            // ).generate()
+        }
+
+        fun lagUtbetalingUføre(request: SimulerUtbetalingRequest.NyUføreUtbetaling): Utbetaling.UtbetalingForSimulering {
+            return Utbetalingsstrategi.NyUføreUtbetaling(
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+                fnr = sak.fnr,
+                utbetalinger = sak.utbetalinger,
+                behandler = request.saksbehandler,
+                beregning = request.beregning,
+                uføregrunnlag = request.uføregrunnlag,
+                clock = clock,
+                kjøreplan = request.utbetalingsinstruksjonForEtterbetaling,
+                sakstype = sak.type,
+            ).generate()
+        }
+
+        val utbetaling = when (request) {
+            is SimulerUtbetalingRequest.NyAldersUtbetaling -> {
+                lagUtbetalingAlder(request)
+            }
+            is SimulerUtbetalingRequest.NyUføreUtbetaling -> {
+                lagUtbetalingUføre(request)
+            }
+            is UtbetalRequest.NyUtbetaling -> {
+                when (val inner = request.request) {
+                    is SimulerUtbetalingRequest.NyAldersUtbetaling -> lagUtbetalingAlder(inner)
+                    is SimulerUtbetalingRequest.NyUføreUtbetaling -> lagUtbetalingUføre(inner)
+                    is UtbetalRequest.NyUtbetaling -> throw IllegalStateException("UtbetalRequest.NyUtbetaling skal inneholde request av type 'SimulerUtbetalingRequest.NyUføreUtbetaling")
+                }
+            }
+        }
 
         val simuleringsperiode = request.beregning.periode
 

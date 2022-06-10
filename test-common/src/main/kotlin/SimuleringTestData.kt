@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.test
 
+import arrow.core.Either
 import no.nav.su.se.bakover.client.stubs.oppdrag.SimuleringStub
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
@@ -7,11 +8,13 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -21,6 +24,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingForPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
@@ -64,6 +68,38 @@ private data class UtbetalingRepoMock(
     }
 }
 
+fun simulerNyUtbetaling(
+    sak: Sak,
+    request: SimulerUtbetalingRequest.NyUtbetalingRequest,
+    clock: Clock,
+): Either<SimuleringFeilet, Simulering> {
+    return nyUtbetalingForSimulering(
+        sak = sak,
+        request = request,
+        clock = clock,
+    ).let {
+        simulerNyUtbetaling(
+            sak = sak,
+            utbetaling = it,
+        )
+    }
+}
+
+fun simulerNyUtbetaling(
+    sak: Sak,
+    utbetaling: Utbetaling.UtbetalingForSimulering,
+): Either<SimuleringFeilet, Simulering> {
+    return SimuleringStub(
+        clock = nåtidForSimuleringStub,
+        utbetalingRepo = UtbetalingRepoMock(sak.utbetalinger),
+    ).simulerUtbetaling(
+        SimulerUtbetalingForPeriode(
+            utbetaling = utbetaling,
+            simuleringsperiode = Periode.create(utbetaling.tidligsteDato(), utbetaling.senesteDato()),
+        ),
+    )
+}
+
 /**
  * Ved simulering av nye utbetalingslinjer (søknadsbehandling eller revurdering som fører til endring).
  * Ved opphør bruk simuleringOpphørt()
@@ -86,7 +122,7 @@ fun simuleringNy(
         ),
     ),
 ): Simulering {
-    return Utbetalingsstrategi.Ny(
+    return Utbetalingsstrategi.NyUføreUtbetaling(
         sakId = sakId,
         saksnummer = saksnummer,
         fnr = fnr,
@@ -96,7 +132,7 @@ fun simuleringNy(
         clock = clock,
         uføregrunnlag = uføregrunnlag,
         kjøreplan = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
-        sakstype = Sakstype.UFØRE // TODO("simulering_utbetaling_alder utled fra sak/behandling")
+        sakstype = Sakstype.UFØRE, // TODO("simulering_utbetaling_alder utled fra sak/behandling")
     ).generate().let {
         SimuleringStub(
             clock = nåtidForSimuleringStub, // Overstyr klokke slik at vi kan simulere feilutbetalinger tilbake i tid,
@@ -159,7 +195,7 @@ fun simuleringGjenopptak(
         utbetalinger = eksisterendeUtbetalinger,
         behandler = saksbehandler,
         clock = clock,
-        sakstype = Sakstype.UFØRE // TODO("simulering_utbetaling_alder utled fra sak/behandling")
+        sakstype = Sakstype.UFØRE, // TODO("simulering_utbetaling_alder utled fra sak/behandling")
     ).generer().getOrFail().let {
         val reaktivering = it.utbetalingslinjer
             .filterIsInstance<Utbetalingslinje.Endring.Reaktivering>()
@@ -196,7 +232,7 @@ fun simuleringOpphørt(
         behandler = saksbehandler,
         clock = clock,
         opphørsDato = opphørsdato,
-        sakstype = Sakstype.UFØRE // TODO("simulering_utbetaling_alder utled fra sak/behandling")
+        sakstype = Sakstype.UFØRE, // TODO("simulering_utbetaling_alder utled fra sak/behandling")
     ).generate().let {
         val opphør = it.utbetalingslinjer
             .filterIsInstance<Utbetalingslinje.Endring.Opphør>()
