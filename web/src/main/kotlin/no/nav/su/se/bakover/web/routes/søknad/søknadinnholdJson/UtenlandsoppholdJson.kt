@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson
 
-import no.nav.su.se.bakover.domain.Utenlandsopphold
-import no.nav.su.se.bakover.domain.UtenlandsoppholdPeriode
+import no.nav.su.se.bakover.domain.søknadinnhold.Utenlandsopphold
+import no.nav.su.se.bakover.domain.søknadinnhold.UtenlandsoppholdPeriode
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UtenlandsoppholdPeriodeJson.Companion.toUtenlandsoppholdJson
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter

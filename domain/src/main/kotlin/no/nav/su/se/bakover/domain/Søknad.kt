@@ -6,6 +6,10 @@ import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.søknadinnhold.ForNav
+import no.nav.su.se.bakover.domain.søknadinnhold.SøknadInnhold
+import no.nav.su.se.bakover.domain.søknadinnhold.SøknadsinnholdAlder
+import no.nav.su.se.bakover.domain.søknadinnhold.SøknadsinnholdUføre
 import java.time.LocalDate
 import java.util.UUID
 

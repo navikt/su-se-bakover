@@ -3,13 +3,13 @@ package no.nav.su.se.bakover.domain.søknad
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.startOfDay
-import no.nav.su.se.bakover.domain.InnlagtPåInstitusjon
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.fnrUnder67
 import no.nav.su.se.bakover.domain.søknadinnhold.Boforhold
 import no.nav.su.se.bakover.domain.søknadinnhold.EktefellePartnerSamboer
+import no.nav.su.se.bakover.domain.søknadinnhold.InnlagtPåInstitusjon
 import no.nav.su.se.bakover.domain.søknadinnhold.OppgittAdresse
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail

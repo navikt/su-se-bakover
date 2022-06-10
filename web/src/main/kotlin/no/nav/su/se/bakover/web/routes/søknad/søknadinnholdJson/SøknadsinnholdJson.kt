@@ -6,15 +6,16 @@ import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import no.nav.su.se.bakover.domain.Flyktningsstatus
-import no.nav.su.se.bakover.domain.HarSøktAlderspensjon
-import no.nav.su.se.bakover.domain.OppholdstillatelseAlder
-import no.nav.su.se.bakover.domain.SøknadInnhold
-import no.nav.su.se.bakover.domain.SøknadsinnholdAlder
-import no.nav.su.se.bakover.domain.SøknadsinnholdUføre
-import no.nav.su.se.bakover.domain.Uførevedtak
 import no.nav.su.se.bakover.domain.søknadinnhold.FeilVedOpprettelseAvBoforhold
+import no.nav.su.se.bakover.domain.søknadinnhold.FeilVedOpprettelseAvFormue
 import no.nav.su.se.bakover.domain.søknadinnhold.FeilVedOpprettelseAvOppholdstillatelse
+import no.nav.su.se.bakover.domain.søknadinnhold.Flyktningsstatus
+import no.nav.su.se.bakover.domain.søknadinnhold.HarSøktAlderspensjon
+import no.nav.su.se.bakover.domain.søknadinnhold.OppholdstillatelseAlder
+import no.nav.su.se.bakover.domain.søknadinnhold.SøknadInnhold
+import no.nav.su.se.bakover.domain.søknadinnhold.SøknadsinnholdAlder
+import no.nav.su.se.bakover.domain.søknadinnhold.SøknadsinnholdUføre
+import no.nav.su.se.bakover.domain.søknadinnhold.Uførevedtak
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.BoforholdJson.Companion.toBoforholdJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.EktefelleJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.ForNavJson.Companion.toForNavJson
@@ -89,9 +90,13 @@ data class SøknadsinnholdAlderJson(
                 return FeilVedOpprettelseAvSøknadinnholdJson.FeilVedOpprettelseAvOppholdstillatelseWeb(it).left()
             },
             inntektOgPensjon = inntektOgPensjon.toInntektOgPensjon(),
-            formue = formue.toFormue(),
+            formue = formue.toFormue().getOrHandle {
+                return FeilVedOpprettelseAvSøknadinnholdJson.FeilVedOpprettelseAvFormueWeb(it).left()
+            },
             forNav = forNav.toForNav(),
-            ektefelle = ektefelle?.toEktefelle(),
+            ektefelle = ektefelle?.toEktefelle()?.getOrHandle {
+                return FeilVedOpprettelseAvSøknadinnholdJson.FeilVedOpprettelseAvEktefelleWeb(it).left()
+            },
         ).right()
     }
 
@@ -160,9 +165,13 @@ data class SøknadsinnholdUføreJson(
                 return FeilVedOpprettelseAvSøknadinnholdJson.FeilVedOpprettelseAvOppholdstillatelseWeb(it).left()
             },
             inntektOgPensjon = inntektOgPensjon.toInntektOgPensjon(),
-            formue = formue.toFormue(),
+            formue = formue.toFormue().getOrHandle {
+                return FeilVedOpprettelseAvSøknadinnholdJson.FeilVedOpprettelseAvFormueWeb(it).left()
+            },
             forNav = forNav.toForNav(),
-            ektefelle = ektefelle?.toEktefelle(),
+            ektefelle = ektefelle?.toEktefelle()?.getOrHandle {
+                return FeilVedOpprettelseAvSøknadinnholdJson.FeilVedOpprettelseAvEktefelleWeb(it).left()
+            },
         ).right()
     }
 
@@ -207,5 +216,11 @@ sealed interface FeilVedOpprettelseAvSøknadinnholdJson {
         FeilVedOpprettelseAvSøknadinnholdJson
 
     data class FeilVedOpprettelseAvBoforholdWeb(val underliggendeFeil: FeilVedOpprettelseAvBoforhold) :
+        FeilVedOpprettelseAvSøknadinnholdJson
+
+    data class FeilVedOpprettelseAvFormueWeb(val underliggendeFeil: FeilVedOpprettelseAvFormue) :
+        FeilVedOpprettelseAvSøknadinnholdJson
+
+    data class FeilVedOpprettelseAvEktefelleWeb(val underliggendeFeil: FeilVedOpprettelseAvEktefelleJson) :
         FeilVedOpprettelseAvSøknadinnholdJson
 }

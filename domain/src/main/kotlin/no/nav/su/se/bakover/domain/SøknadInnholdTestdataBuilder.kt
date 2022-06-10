@@ -5,9 +5,26 @@ import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.domain.søknadinnhold.Boforhold
+import no.nav.su.se.bakover.domain.søknadinnhold.Ektefelle
 import no.nav.su.se.bakover.domain.søknadinnhold.EktefellePartnerSamboer
+import no.nav.su.se.bakover.domain.søknadinnhold.Flyktningsstatus
+import no.nav.su.se.bakover.domain.søknadinnhold.ForNav
+import no.nav.su.se.bakover.domain.søknadinnhold.Formue
+import no.nav.su.se.bakover.domain.søknadinnhold.HarSøktAlderspensjon
+import no.nav.su.se.bakover.domain.søknadinnhold.InnlagtPåInstitusjon
+import no.nav.su.se.bakover.domain.søknadinnhold.InntektOgPensjon
+import no.nav.su.se.bakover.domain.søknadinnhold.Kjøretøy
 import no.nav.su.se.bakover.domain.søknadinnhold.OppgittAdresse
 import no.nav.su.se.bakover.domain.søknadinnhold.Oppholdstillatelse
+import no.nav.su.se.bakover.domain.søknadinnhold.OppholdstillatelseAlder
+import no.nav.su.se.bakover.domain.søknadinnhold.PensjonsOrdningBeløp
+import no.nav.su.se.bakover.domain.søknadinnhold.Personopplysninger
+import no.nav.su.se.bakover.domain.søknadinnhold.SøknadsinnholdAlder
+import no.nav.su.se.bakover.domain.søknadinnhold.SøknadsinnholdUføre
+import no.nav.su.se.bakover.domain.søknadinnhold.TrygdeytelseIUtlandet
+import no.nav.su.se.bakover.domain.søknadinnhold.Uførevedtak
+import no.nav.su.se.bakover.domain.søknadinnhold.Utenlandsopphold
+import no.nav.su.se.bakover.domain.søknadinnhold.UtenlandsoppholdPeriode
 import java.time.LocalDate
 import java.time.Month.JANUARY
 
@@ -100,7 +117,7 @@ fun inntektOgPensjon() = InntektOgPensjon(
     )
 )
 
-fun formue() = Formue(
+fun formue() = Formue.tryCreate(
     eierBolig = true,
     borIBolig = false,
     verdiPåBolig = 600000,
@@ -111,17 +128,17 @@ fun formue() = Formue(
     kjøretøy = listOf(
         Kjøretøy(
             verdiPåKjøretøy = 25000,
-            kjøretøyDeEier = "bil"
-        )
+            kjøretøyDeEier = "bil",
+        ),
     ),
     innskuddsBeløp = 25000,
     verdipapirBeløp = 25000,
     skylderNoenMegPengerBeløp = 25000,
-    kontanterBeløp = 25000
-)
+    kontanterBeløp = 25000,
+).getOrHandle { throw IllegalArgumentException("Feil ved oppsett av test-data") }
 
 fun ektefelle() = Ektefelle(
-    formue = Formue(
+    formue = Formue.tryCreate(
         eierBolig = true,
         borIBolig = false,
         verdiPåBolig = 0,
@@ -133,8 +150,8 @@ fun ektefelle() = Ektefelle(
         innskuddsBeløp = 0,
         verdipapirBeløp = 0,
         skylderNoenMegPengerBeløp = 0,
-        kontanterBeløp = 0
-    ),
+        kontanterBeløp = 0,
+    ).getOrHandle { throw IllegalStateException("Feil ved oppsett av test-data") },
     inntektOgPensjon = InntektOgPensjon(
         forventetInntekt = null,
         andreYtelserINav = null,

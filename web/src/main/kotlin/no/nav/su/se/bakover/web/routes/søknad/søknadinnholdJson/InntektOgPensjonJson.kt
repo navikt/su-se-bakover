@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson
 
-import no.nav.su.se.bakover.domain.InntektOgPensjon
-import no.nav.su.se.bakover.domain.PensjonsOrdningBeløp
-import no.nav.su.se.bakover.domain.TrygdeytelseIUtlandet
+import no.nav.su.se.bakover.domain.søknadinnhold.InntektOgPensjon
+import no.nav.su.se.bakover.domain.søknadinnhold.PensjonsOrdningBeløp
+import no.nav.su.se.bakover.domain.søknadinnhold.TrygdeytelseIUtlandet
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.PensjonsOrdningBeløpJson.Companion.toPensjonsOrdningBeløpJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.TrygdeytelserIUtlandetJson.Companion.toTrygdeytelseIUtlandetJson
 
