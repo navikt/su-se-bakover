@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.su.se.bakover.domain.søknadinnhold.Boforhold
+import no.nav.su.se.bakover.domain.søknadinnhold.Formue
 import no.nav.su.se.bakover.domain.søknadinnhold.Oppholdstillatelse
 import java.time.LocalDate
 
@@ -141,29 +142,9 @@ data class InntektOgPensjon(
     val pensjon: List<PensjonsOrdningBeløp>? = null
 )
 
-data class Formue(
-    val eierBolig: Boolean,
-    val borIBolig: Boolean? = null,
-    val verdiPåBolig: Number? = null,
-    val boligBrukesTil: String? = null,
-    val depositumsBeløp: Number? = null,
-    val verdiPåEiendom: Number? = null,
-    val eiendomBrukesTil: String? = null,
-    val kjøretøy: List<Kjøretøy>? = null,
-    val innskuddsBeløp: Number? = null,
-    val verdipapirBeløp: Number? = null,
-    val skylderNoenMegPengerBeløp: Number? = null,
-    val kontanterBeløp: Number? = null
-)
-
 data class PensjonsOrdningBeløp(
     val ordning: String,
     val beløp: Double
-)
-
-data class Kjøretøy(
-    val verdiPåKjøretøy: Number,
-    val kjøretøyDeEier: String
 )
 
 data class TrygdeytelseIUtlandet(

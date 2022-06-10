@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson
 
-import no.nav.su.se.bakover.domain.Formue
-import no.nav.su.se.bakover.domain.Kjøretøy
+import no.nav.su.se.bakover.domain.søknadinnhold.Formue
+import no.nav.su.se.bakover.domain.søknadinnhold.Kjøretøy
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.KjøretøyJson.Companion.toKjøretøyJson
 
 data class FormueJson(
@@ -18,7 +18,7 @@ data class FormueJson(
     val skylderNoenMegPengerBeløp: Number? = null,
     val kontanterBeløp: Number? = null
 ) {
-    fun toFormue() = Formue(
+    fun toFormue() = Formue.tryCreate(
         eierBolig = eierBolig,
         borIBolig = borIBolig,
         verdiPåBolig = verdiPåBolig,
