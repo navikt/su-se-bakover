@@ -2,8 +2,6 @@ package no.nav.su.se.bakover.test
 
 import no.nav.su.se.bakover.common.UUIDFactory
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.ForNav
-import no.nav.su.se.bakover.domain.Personopplysninger
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -12,6 +10,8 @@ import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.søknadinnhold.ForNav
+import no.nav.su.se.bakover.domain.søknadinnhold.Personopplysninger
 import java.util.LinkedList
 import java.util.UUID
 
