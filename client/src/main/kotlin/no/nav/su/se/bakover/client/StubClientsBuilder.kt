@@ -65,6 +65,7 @@ class StubClientsBuilder(
                     applicationConfig.clientsConfig.stsUrl,
                     applicationConfig.serviceUser.username,
                     applicationConfig.serviceUser.password,
+                    clock
                 )
             },
             pdfGenerator = if (applicationConfig.pdfgenLocal) {
@@ -90,7 +91,7 @@ class StubClientsBuilder(
             journalpostClient = JournalpostClientStub.also { log.warn("********** Using stub for ${JournalpostClientStub::class.java} **********") },
             tilbakekrevingClient = TilbakekrevingClientStub(clock).also { log.warn("********** Using stub for ${TilbakekrevingClient::class.java} **********") },
             skatteOppslag = SkatteClientStub().also { log.warn("********** Using stub for ${SkatteClient::class.java} **********") },
-            maskinportenClient = MaskinportenClientStub().also { log.warn("********** Using stub for ${MaskinportenClient::class.java} **********") },
+            maskinportenClient = MaskinportenClientStub(clock).also { log.warn("********** Using stub for ${MaskinportenClient::class.java} **********") },
         )
     }
 }

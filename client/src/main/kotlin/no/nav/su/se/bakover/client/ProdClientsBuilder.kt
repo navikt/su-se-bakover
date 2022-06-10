@@ -46,7 +46,7 @@ data class ProdClientsBuilder(
         val oAuth = AzureClient(azureConfig.clientId, azureConfig.clientSecret, azureConfig.wellKnownUrl)
         val kodeverk = KodeverkHttpClient(clientsConfig.kodeverkUrl, consumerId)
         val serviceUser = applicationConfig.serviceUser
-        val tokenOppslag = StsClient(clientsConfig.stsUrl, serviceUser.username, serviceUser.password)
+        val tokenOppslag = StsClient(clientsConfig.stsUrl, serviceUser.username, serviceUser.password, clock)
         val dkif = DkifClient(clientsConfig.dkifUrl, tokenOppslag, consumerId)
         val skjermingClient = SkjermingClient(clientsConfig.skjermingUrl)
         val pdlClientConfig = PdlClientConfig(
@@ -126,7 +126,8 @@ data class ProdClientsBuilder(
                 skatteetatenConfig = applicationConfig.clientsConfig.skatteetatenConfig
             ),
             maskinportenClient = MaskinportenHTTPClient(
-                maskinportenConfig = applicationConfig.clientsConfig.maskinportenConfig
+                maskinportenConfig = applicationConfig.clientsConfig.maskinportenConfig,
+                clock = clock
             )
         )
     }

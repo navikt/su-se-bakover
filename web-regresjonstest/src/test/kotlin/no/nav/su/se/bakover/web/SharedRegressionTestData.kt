@@ -295,7 +295,7 @@ data class TestClientsBuilder(
         journalpostClient = JournalpostClientStub,
         tilbakekrevingClient = TilbakekrevingClientStub(clock),
         skatteOppslag = SkatteClientStub(),
-        maskinportenClient = MaskinportenClientStub()
+        maskinportenClient = MaskinportenClientStub(clock)
     )
 
     override fun build(applicationConfig: ApplicationConfig): Clients = testClients

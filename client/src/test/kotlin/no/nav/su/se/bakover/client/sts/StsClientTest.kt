@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.time.Clock
 
 internal class StsClientTest : WiremockBase {
     private val username = "srvsupstonad"
@@ -16,7 +17,7 @@ internal class StsClientTest : WiremockBase {
 
     @Test
     fun stsClientTest() {
-        val client = StsClient(wireMockServer.baseUrl(), username, password)
+        val client = StsClient(wireMockServer.baseUrl(), username, password, clock = Clock.systemUTC())
         client.token() shouldBe AccessToken("token")
     }
 

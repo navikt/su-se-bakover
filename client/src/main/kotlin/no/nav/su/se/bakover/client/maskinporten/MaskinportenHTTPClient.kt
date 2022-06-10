@@ -22,11 +22,12 @@ import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
+import java.time.Clock
 import java.time.Duration
 import java.time.temporal.ChronoUnit
 import java.util.Date
 
-class MaskinportenHTTPClient(private val maskinportenConfig: ApplicationConfig.ClientsConfig.MaskinportenConfig) : MaskinportenClient {
+class MaskinportenHTTPClient(private val maskinportenConfig: ApplicationConfig.ClientsConfig.MaskinportenConfig, private val clock: Clock) : MaskinportenClient {
     private val client = HttpClient.newBuilder()
         .connectTimeout(Duration.ofSeconds(20))
         .followRedirects(HttpClient.Redirect.NEVER)
@@ -70,7 +71,7 @@ class MaskinportenHTTPClient(private val maskinportenConfig: ApplicationConfig.C
                     return KunneIkkeHenteToken.UgyldigRespons(response.statusCode(), response.body()).left()
                 } else {
                     log.debug("Hentet token fra maskinporten")
-                    return ExpiringTokenResponse(JSONObject(response.body())).right()
+                    return ExpiringTokenResponse(JSONObject(response.body()), clock).right()
                 }
             }
         }.getOrHandle { exception -> return KunneIkkeHenteToken.Nettverksfeil(exception).left() }
