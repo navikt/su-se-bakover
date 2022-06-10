@@ -25,7 +25,6 @@ import java.net.http.HttpResponse
 import java.time.Clock
 import java.time.Duration
 import java.time.temporal.ChronoUnit
-import java.util.Date
 
 class MaskinportenHTTPClient(private val maskinportenConfig: ApplicationConfig.ClientsConfig.MaskinportenConfig, private val clock: Clock) : MaskinportenClient {
     private val client = HttpClient.newBuilder()
@@ -45,8 +44,8 @@ class MaskinportenHTTPClient(private val maskinportenConfig: ApplicationConfig.C
                 .audience(maskinportenConfig.issuer)
                 .issuer(maskinportenConfig.clientId) // Vi signerer denne JWT
                 .claim("scope", maskinportenConfig.scopes)
-                .issueTime(Date.from(Tidspunkt.now().instant))
-                .expirationTime(Tidspunkt.now().plus(60, ChronoUnit.SECONDS).toDate())
+                .issueTime(Tidspunkt.now(clock).toDate())
+                .expirationTime(Tidspunkt.now(clock).plus(60, ChronoUnit.SECONDS).toDate())
                 .build()
         ).apply {
             sign(RSASSASigner(key.toRSAPrivateKey()))
