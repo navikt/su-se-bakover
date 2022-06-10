@@ -24,6 +24,9 @@ import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadinnhold.FeilVedOpprettelseAvBoforhold
 import no.nav.su.se.bakover.domain.søknadinnhold.FeilVedOpprettelseAvFormue
 import no.nav.su.se.bakover.domain.søknadinnhold.FeilVedOpprettelseAvOppholdstillatelse
+import no.nav.su.se.bakover.domain.søknadinnhold.FeilVedOpprettelseAvSøknadinnhold
+import no.nav.su.se.bakover.domain.søknadinnhold.FeilVedValideringAvBoforholdOgEktefelle
+import no.nav.su.se.bakover.domain.søknadinnhold.FeilVedValideringAvOppholdstillatelseOgOppholdstillatelseAlder
 import no.nav.su.se.bakover.domain.søknadinnhold.ForNav
 import no.nav.su.se.bakover.service.søknad.AvslåManglendeDokumentasjonRequest
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
@@ -47,9 +50,7 @@ import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknad.lukk.LukkSøknadErrorHandler
 import no.nav.su.se.bakover.web.routes.søknad.lukk.LukkSøknadInputHandler
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.FeilVedOpprettelseAvEktefelleJson
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.FeilVedOpprettelseAvSøknadinnhold
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.FeilVedValideringAvBoforholdOgEktefelle
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.FeilVedValideringAvOppholdstillatelseOgOppholdstillatelseAlder
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.KunneIkkeLageSøknadinnhold
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdJson
 import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
@@ -254,11 +255,15 @@ private fun KunneIkkeOppretteSøknad.tilResultat(type: String) = when (this) {
     )
 }
 
+private fun KunneIkkeLageSøknadinnhold.tilResultat() = when (this) {
+    is KunneIkkeLageSøknadinnhold.FeilVedOpprettelseAvOppholdstillatelseWeb -> underliggendeFeil.tilResultat()
+    is KunneIkkeLageSøknadinnhold.FeilVedOpprettelseAvBoforholdWeb -> underliggendeFeil.tilResultat()
+    is KunneIkkeLageSøknadinnhold.FeilVedOpprettelseAvFormueWeb -> underliggendeFeil.tilResultat()
+    is KunneIkkeLageSøknadinnhold.FeilVedOpprettelseAvEktefelleWeb -> underliggendeFeil.tilResultat()
+    is KunneIkkeLageSøknadinnhold.FeilVedOpprettelseAvSøknadinnholdWeb -> underliggendeFeil.tilResultat()
+}
+
 private fun FeilVedOpprettelseAvSøknadinnhold.tilResultat() = when (this) {
-    is FeilVedOpprettelseAvSøknadinnhold.FeilVedOpprettelseAvOppholdstillatelseWeb -> underliggendeFeil.tilResultat()
-    is FeilVedOpprettelseAvSøknadinnhold.FeilVedOpprettelseAvBoforholdWeb -> underliggendeFeil.tilResultat()
-    is FeilVedOpprettelseAvSøknadinnhold.FeilVedOpprettelseAvFormueWeb -> underliggendeFeil.tilResultat()
-    is FeilVedOpprettelseAvSøknadinnhold.FeilVedOpprettelseAvEktefelleWeb -> underliggendeFeil.tilResultat()
     is FeilVedOpprettelseAvSøknadinnhold.DataVedBoforholdOgEktefelleErInkonsekvent -> underliggendeFeil.tilResultat()
     is FeilVedOpprettelseAvSøknadinnhold.DataVedOpphodlstillatelseErInkonsekvent -> underliggendeFeil.tilResultat()
 }
