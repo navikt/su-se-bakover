@@ -23,6 +23,7 @@ import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.time.Duration
+import java.time.temporal.ChronoUnit
 import java.util.Date
 
 class MaskinportenHTTPClient(private val maskinportenConfig: ApplicationConfig.ClientsConfig.MaskinportenConfig) : MaskinportenClient {
@@ -44,14 +45,14 @@ class MaskinportenHTTPClient(private val maskinportenConfig: ApplicationConfig.C
                 .issuer(maskinportenConfig.clientId) // Vi signerer denne JWT
                 .claim("scope", maskinportenConfig.scopes)
                 .issueTime(Date.from(Tidspunkt.now().instant))
-                .expirationTime(Date.from(Tidspunkt.now().instant.plusSeconds(60)))
+                .expirationTime(Tidspunkt.now().plus(60, ChronoUnit.SECONDS).toDate())
                 .build()
         ).apply {
             sign(RSASSASigner(key.toRSAPrivateKey()))
         }
     }
 
-    override fun hentNyToken(): Either<KunneIkkeHenteToken, ExpiringTokenResponse> {
+    override fun hentNyttToken(): Either<KunneIkkeHenteToken, ExpiringTokenResponse> {
         val signedJWT = lagJWTGrant()
         val body = "grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${signedJWT.serialize()}"
 

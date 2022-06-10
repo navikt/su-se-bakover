@@ -15,7 +15,7 @@ class SkatteServiceImpl(
 ) : SkatteService {
 
     override fun hentSamletSkattegrunnlag(fnr: Fnr): Either<KunneIkkeHenteSkattemelding, SamletSkattegrunnlag> {
-        return maskinportenClient.hentNyToken()
+        return maskinportenClient.hentNyttToken()
             .mapLeft { KunneIkkeHenteSkattemelding.KunneIkkeHenteAccessToken(it) }
             .flatMap { tokenResponse ->
                 skatteClient.hentSamletSkattegrunnlag(tokenResponse.accessToken, fnr)

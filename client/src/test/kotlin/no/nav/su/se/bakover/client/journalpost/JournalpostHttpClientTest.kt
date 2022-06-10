@@ -124,7 +124,7 @@ internal class JournalpostHttpClientTest {
     @Test
     fun `får ukjent feil dersom client kall feiler`() {
         WiremockBase.wireMockServer.stubFor(
-            wiremockBuilderOnBehalfOf("Bearer ${tokenOppslag.token().token}")
+            wiremockBuilderOnBehalfOf("Bearer ${tokenOppslag.token().value}")
                 .willReturn(WireMock.serverError()),
         )
         val oAuthMock = mock<OAuth> {

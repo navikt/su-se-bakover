@@ -13,6 +13,7 @@ import java.time.temporal.ChronoUnit
 import java.time.temporal.Temporal
 import java.time.temporal.TemporalAdjuster
 import java.time.temporal.TemporalUnit
+import java.util.Date
 
 abstract class TruncatedInstant(
     @JsonValue
@@ -60,6 +61,7 @@ class Tidspunkt @JsonCreator(mode = JsonCreator.Mode.DELEGATING) constructor(
     override fun minus(amount: Long, unit: TemporalUnit): Tidspunkt = instant.minus(amount, unit).toTidspunkt()
     fun toLocalDate(zoneId: ZoneId): LocalDate = LocalDate.ofInstant(instant, zoneId)
     fun plusUnits(units: Int): Tidspunkt = this.plus(units.toLong(), unit)
+    fun toDate(): Date = Date.from(instant)
 }
 
 fun Instant.toTidspunkt() = Tidspunkt(this)

@@ -139,7 +139,7 @@ internal class PdlClient(
 
     private inline fun <reified T> kallPDLMedSystembruker(fnr: Fnr, query: String): Either<KunneIkkeHentePerson, T> {
         val pdlRequest = PdlRequest(query, Variables(ident = fnr.toString()))
-        val token = "Bearer ${config.tokenOppslag.token().token}"
+        val token = "Bearer ${config.tokenOppslag.token().value}"
         val (_, response, result) = "${config.vars.url}/graphql".httpPost()
             .header("Authorization", token)
             .header("Nav-Consumer-Token", token)

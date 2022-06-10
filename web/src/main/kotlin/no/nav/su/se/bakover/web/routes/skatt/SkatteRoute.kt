@@ -46,22 +46,24 @@ internal fun Route.skattRoutes(skatteService: SkatteService, toggleService: Togg
                                 val feilmelding = when (it) {
                                     is KunneIkkeHenteSkattemelding.KallFeilet -> {
                                         when (val feil = it.feil) {
-                                            is SkatteoppslagFeil.KunneIkkeHenteSkattedata -> HttpStatusCode.fromValue(
-                                                feil.statusCode,
-                                            )
+                                            is SkatteoppslagFeil.KunneIkkeHenteSkattedata -> (
+                                                if (feil.statusCode == 404) HttpStatusCode.fromValue(
+                                                    feil.statusCode,
+                                                ) else HttpStatusCode.InternalServerError
+                                                )
                                                 .errorJson(
                                                     "Feil i henting av skattedata for gitt person",
-                                                    "Ukjent skattefeil",
+                                                    "UKJENT_SKATTEFEIL",
                                                 )
                                             is SkatteoppslagFeil.Nettverksfeil -> HttpStatusCode.InternalServerError.errorJson(
                                                 "Feil i kommunikasjon mot skatteetaten",
-                                                "Ukjent skattefeil",
+                                                "FEIL_I_NETTVERK",
                                             )
                                         }
                                     }
                                     is KunneIkkeHenteSkattemelding.KunneIkkeHenteAccessToken -> HttpStatusCode.InternalServerError.errorJson(
                                         "Feil i kommunikasjon mot skatteetaten",
-                                        "Ukjent skattefeil",
+                                        "FEIL_I_HENTING_AV_ACCESS_TOKEN",
                                     )
                                 }
                                 call.svar(feilmelding)

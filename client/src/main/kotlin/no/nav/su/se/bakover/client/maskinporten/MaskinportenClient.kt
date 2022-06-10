@@ -4,5 +4,5 @@ import arrow.core.Either
 import no.nav.su.se.bakover.client.ExpiringTokenResponse
 
 interface MaskinportenClient {
-    fun hentNyToken(): Either<KunneIkkeHenteToken, ExpiringTokenResponse>
+    fun hentNyttToken(): Either<KunneIkkeHenteToken, ExpiringTokenResponse>
 }

@@ -30,14 +30,14 @@ class SkatteClient(private val skatteetatenConfig: SkatteetatenConfig) : Skatteo
             // TODO: Ikke hardkode år
             .uri(URI.create("${skatteetatenConfig.apiUri}/api/formueinntekt/summertskattegrunnlag/nav/2021/$fnr"))
             .header("Accept", "application/json")
-            .header("Authorization", "Bearer ${accessToken.token}")
+            .header("Authorization", "Bearer ${accessToken.value}")
             .GET()
             .build()
 
         Either.catch {
             client.send(getRequest, HttpResponse.BodyHandlers.ofString()).let { response ->
                 if (!response.isSuccess()) {
-                    log.debug("Kall mot skatteetatens api feilet med statuskode ${response.statusCode()} og følgende feil: ${response.body()}")
+                    log.warn("Kall mot skatteetatens api feilet med statuskode ${response.statusCode()} og følgende feil: ${response.body()}")
                     sikkerLogg.warn(
                         "Kall mot skatteetatens api feilet med statuskode ${response.statusCode()} og følgende feil: ${response.body()}. " +
                             "Request $getRequest er forespørselen mot skatteetaten som feilet."
@@ -47,7 +47,7 @@ class SkatteClient(private val skatteetatenConfig: SkatteetatenConfig) : Skatteo
                         feilmelding = "Kall mot skatteetatens api feilet",
                     ).left()
                 } else {
-                    log.info("Vi fikk hentet token! wow. ${response.body()}")
+                    log.info("Vi fikk hentet summert skattegrunnlag fra skatteetaten.")
                     return objectMapper.readValue(response.body(), SamletSkattegrunnlag::class.java).right()
                 }
             }
