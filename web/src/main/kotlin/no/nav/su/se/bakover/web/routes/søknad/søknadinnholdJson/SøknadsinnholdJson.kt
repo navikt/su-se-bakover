@@ -6,29 +6,29 @@ import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import no.nav.su.se.bakover.domain.søknadinnhold.Boforhold
+import no.nav.su.se.bakover.domain.søknadinnhold.Ektefelle
 import no.nav.su.se.bakover.domain.søknadinnhold.FeilVedOpprettelseAvBoforhold
 import no.nav.su.se.bakover.domain.søknadinnhold.FeilVedOpprettelseAvFormue
 import no.nav.su.se.bakover.domain.søknadinnhold.FeilVedOpprettelseAvOppholdstillatelse
-import no.nav.su.se.bakover.domain.søknadinnhold.Flyktningsstatus
-import no.nav.su.se.bakover.domain.søknadinnhold.HarSøktAlderspensjon
+import no.nav.su.se.bakover.domain.søknadinnhold.Oppholdstillatelse
 import no.nav.su.se.bakover.domain.søknadinnhold.OppholdstillatelseAlder
 import no.nav.su.se.bakover.domain.søknadinnhold.SøknadInnhold
 import no.nav.su.se.bakover.domain.søknadinnhold.SøknadsinnholdAlder
 import no.nav.su.se.bakover.domain.søknadinnhold.SøknadsinnholdUføre
-import no.nav.su.se.bakover.domain.søknadinnhold.Uførevedtak
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.BoforholdJson.Companion.toBoforholdJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.EktefelleJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.FlyktningsstatusJson.Companion.toFlyktningsstatusJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.ForNavJson.Companion.toForNavJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.FormueJson.Companion.toFormueJson
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.HarSøktAlderspensjonJson.Companion.toHarSøktAlderspensjonJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.InntektOgPensjonJson.Companion.toInntektOgPensjonJson
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.OppholdstillatelseAlderJson.Companion.toOppholdstillatelseAlderJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.OppholdstillatelseJson.Companion.toOppholdstillatelseJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.PersonopplysningerJson.Companion.toPersonopplysningerJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdAlderJson.Companion.toSøknadsinnholdAlderJson
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdAlderJson.HarSøktAlderspensjonJson.Companion.toHarSøktAlderspensjonJson
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdAlderJson.OppholdstillatelseAlderJson.Companion.toOppholdstillatelseAlderJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdUføreJson.Companion.toSøknadsinnholdUføreJson
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdUføreJson.FlyktningsstatusJson.Companion.toFlyktningsstatusJson
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdUføreJson.UførevedtakJson.Companion.toUførevedtakJson
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UførevedtakJson.Companion.toUførevedtakJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.UtenlandsoppholdJson.Companion.toUtenlandsoppholdJson
 
 @JsonTypeInfo(
@@ -41,19 +41,26 @@ import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.Utenlandsoppho
     JsonSubTypes.Type(value = SøknadsinnholdUføreJson::class, name = "uføre"),
 )
 
-sealed interface SøknadsinnholdJson {
-    val personopplysninger: PersonopplysningerJson
-    val boforhold: BoforholdJson
-    val utenlandsopphold: UtenlandsoppholdJson
-    val oppholdstillatelse: OppholdstillatelseJson
-    val inntektOgPensjon: InntektOgPensjonJson
-    val formue: FormueJson
-    val forNav: ForNavJson
-    val ektefelle: EktefelleJson?
+sealed class SøknadsinnholdJson {
+    abstract val personopplysninger: PersonopplysningerJson
+    abstract val boforhold: BoforholdJson
+    abstract val utenlandsopphold: UtenlandsoppholdJson
+    abstract val oppholdstillatelse: OppholdstillatelseJson
+    abstract val inntektOgPensjon: InntektOgPensjonJson
+    abstract val formue: FormueJson
+    abstract val forNav: ForNavJson
+    abstract val ektefelle: EktefelleJson?
 
     fun toSøknadsinnhold() = when (this) {
         is SøknadsinnholdAlderJson -> toSøknadsinnholdAlder()
         is SøknadsinnholdUføreJson -> toSøknadsinnholdUføre()
+    }
+
+    protected fun validerEktefelle(
+        boforhold: Boforhold,
+        ektefelle: Ektefelle?,
+    ): Either<FeilVedValideringAvBoforholdOgEktefelle, Unit> {
+        return if (boforhold.delerBoligMed == Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER && ektefelle == null) FeilVedValideringAvBoforholdOgEktefelle.EktefelleErIkkeutfylt.left() else Unit.right()
     }
 
     companion object {
@@ -75,53 +82,68 @@ data class SøknadsinnholdAlderJson(
     override val formue: FormueJson,
     override val forNav: ForNavJson,
     override val ektefelle: EktefelleJson?,
-) : SøknadsinnholdJson {
+) : SøknadsinnholdJson() {
 
-    fun toSøknadsinnholdAlder(): Either<FeilVedOpprettelseAvSøknadinnholdJson, SøknadsinnholdAlder> {
+    fun toSøknadsinnholdAlder(): Either<FeilVedOpprettelseAvSøknadinnhold, SøknadsinnholdAlder> {
+        val oppholdstillatelse = oppholdstillatelse.toOppholdstillatelse().getOrHandle {
+            return FeilVedOpprettelseAvSøknadinnhold.FeilVedOpprettelseAvOppholdstillatelseWeb(it).left()
+        }
+        val oppholdstillatelseAlder = oppholdstillatelseAlder.toOppholdstillatelseAlder()
+        val boforhold = boforhold.toBoforhold().getOrHandle {
+            return FeilVedOpprettelseAvSøknadinnhold.FeilVedOpprettelseAvBoforholdWeb(it).left()
+        }
+        val ektefelle = ektefelle?.toEktefelle()?.getOrHandle {
+            return FeilVedOpprettelseAvSøknadinnhold.FeilVedOpprettelseAvEktefelleWeb(it).left()
+        }
+
+        validerOppholdstillatelseAlder(oppholdstillatelse, oppholdstillatelseAlder).mapLeft {
+            return FeilVedOpprettelseAvSøknadinnhold.DataVedOpphodlstillatelseErInkonsekvent(it).left()
+        }
+        validerEktefelle(boforhold, ektefelle).mapLeft {
+            return FeilVedOpprettelseAvSøknadinnhold.DataVedBoforholdOgEktefelleErInkonsekvent(it).left()
+        }
+
         return SøknadsinnholdAlder(
             harSøktAlderspensjon = harSøktAlderspensjon.toHarSøktAlderspensjon(),
-            oppholdstillatelseAlder = oppholdstillatelseAlder.toOppholdstillatelseAlder(),
+            oppholdstillatelseAlder = oppholdstillatelseAlder,
             personopplysninger = personopplysninger.toPersonopplysninger(),
-            boforhold = boforhold.toBoforhold().getOrHandle {
-                return FeilVedOpprettelseAvSøknadinnholdJson.FeilVedOpprettelseAvBoforholdWeb(it).left()
-            },
+            boforhold = boforhold,
             utenlandsopphold = utenlandsopphold.toUtenlandsopphold(),
-            oppholdstillatelse = oppholdstillatelse.toOppholdstillatelse().getOrHandle {
-                return FeilVedOpprettelseAvSøknadinnholdJson.FeilVedOpprettelseAvOppholdstillatelseWeb(it).left()
-            },
+            oppholdstillatelse = oppholdstillatelse,
             inntektOgPensjon = inntektOgPensjon.toInntektOgPensjon(),
             formue = formue.toFormue().getOrHandle {
-                return FeilVedOpprettelseAvSøknadinnholdJson.FeilVedOpprettelseAvFormueWeb(it).left()
+                return FeilVedOpprettelseAvSøknadinnhold.FeilVedOpprettelseAvFormueWeb(it).left()
             },
             forNav = forNav.toForNav(),
-            ektefelle = ektefelle?.toEktefelle()?.getOrHandle {
-                return FeilVedOpprettelseAvSøknadinnholdJson.FeilVedOpprettelseAvEktefelleWeb(it).left()
-            },
+            ektefelle = ektefelle,
         ).right()
     }
 
-    data class HarSøktAlderspensjonJson(
-        val harSøktAlderspensjon: Boolean,
-    ) {
-        fun toHarSøktAlderspensjon() = HarSøktAlderspensjon(harSøktAlderspensjon)
-
-        companion object {
-            fun HarSøktAlderspensjon.toHarSøktAlderspensjonJson() = HarSøktAlderspensjonJson(this.harSøktAlderspensjon)
+    private fun validerOppholdstillatelseAlder(
+        oppholdstillatelse: Oppholdstillatelse,
+        oppholdstillatelseAlder: OppholdstillatelseAlder,
+    ): Either<FeilVedValideringAvOppholdstillatelseOgOppholdstillatelseAlder, Unit> {
+        validerEøsBorger(oppholdstillatelse, oppholdstillatelseAlder).mapLeft {
+            return it.left()
         }
+        validerFamiliegjenforening(oppholdstillatelse, oppholdstillatelseAlder).mapLeft {
+            return it.left()
+        }
+
+        return Unit.right()
     }
 
-    data class OppholdstillatelseAlderJson(
-        val eøsborger: Boolean?,
-        val familieforening: Boolean?,
-    ) {
-        fun toOppholdstillatelseAlder() =
-            OppholdstillatelseAlder(eøsborger = eøsborger, familiegjenforening = familieforening)
+    private fun validerEøsBorger(
+        oppholdstillatelse: Oppholdstillatelse,
+        oppholdstillatelseAlder: OppholdstillatelseAlder,
+    ) =
+        if (!oppholdstillatelse.erNorskStatsborger && oppholdstillatelseAlder.eøsborger == null) FeilVedValideringAvOppholdstillatelseOgOppholdstillatelseAlder.EøsBorgerErIkkeutfylt.left() else Unit.right()
 
-        companion object {
-            fun OppholdstillatelseAlder.toOppholdstillatelseAlderJson() =
-                OppholdstillatelseAlderJson(eøsborger = this.eøsborger, familieforening = this.familiegjenforening)
-        }
-    }
+    private fun validerFamiliegjenforening(
+        oppholdstillatelse: Oppholdstillatelse,
+        oppholdstillatelseAlder: OppholdstillatelseAlder,
+    ) =
+        if (!oppholdstillatelse.erNorskStatsborger && oppholdstillatelse.harOppholdstillatelse == true && oppholdstillatelseAlder.familiegjenforening == null) FeilVedValideringAvOppholdstillatelseOgOppholdstillatelseAlder.FamiliegjenforeningErIkkeutfylt.left() else Unit.right()
 
     companion object {
         fun SøknadsinnholdAlder.toSøknadsinnholdAlderJson() = SøknadsinnholdAlderJson(
@@ -150,49 +172,35 @@ data class SøknadsinnholdUføreJson(
     override val formue: FormueJson,
     override val forNav: ForNavJson,
     override val ektefelle: EktefelleJson?,
-) : SøknadsinnholdJson {
+) : SøknadsinnholdJson() {
 
-    fun toSøknadsinnholdUføre(): Either<FeilVedOpprettelseAvSøknadinnholdJson, SøknadsinnholdUføre> {
+    fun toSøknadsinnholdUføre(): Either<FeilVedOpprettelseAvSøknadinnhold, SøknadsinnholdUføre> {
+        val boforhold = boforhold.toBoforhold().getOrHandle {
+            return FeilVedOpprettelseAvSøknadinnhold.FeilVedOpprettelseAvBoforholdWeb(it).left()
+        }
+        val ektefelle = ektefelle?.toEktefelle()?.getOrHandle {
+            return FeilVedOpprettelseAvSøknadinnhold.FeilVedOpprettelseAvEktefelleWeb(it).left()
+        }
+        validerEktefelle(boforhold, ektefelle).mapLeft {
+            return FeilVedOpprettelseAvSøknadinnhold.DataVedBoforholdOgEktefelleErInkonsekvent(it).left()
+        }
+
         return SøknadsinnholdUføre(
             uførevedtak = uførevedtak.toUførevedtak(),
             personopplysninger = personopplysninger.toPersonopplysninger(),
             flyktningsstatus = flyktningsstatus.toFlyktningsstatus(),
-            boforhold = boforhold.toBoforhold().getOrHandle {
-                return FeilVedOpprettelseAvSøknadinnholdJson.FeilVedOpprettelseAvBoforholdWeb(it).left()
-            },
+            boforhold = boforhold,
             utenlandsopphold = utenlandsopphold.toUtenlandsopphold(),
             oppholdstillatelse = oppholdstillatelse.toOppholdstillatelse().getOrHandle {
-                return FeilVedOpprettelseAvSøknadinnholdJson.FeilVedOpprettelseAvOppholdstillatelseWeb(it).left()
+                return FeilVedOpprettelseAvSøknadinnhold.FeilVedOpprettelseAvOppholdstillatelseWeb(it).left()
             },
             inntektOgPensjon = inntektOgPensjon.toInntektOgPensjon(),
             formue = formue.toFormue().getOrHandle {
-                return FeilVedOpprettelseAvSøknadinnholdJson.FeilVedOpprettelseAvFormueWeb(it).left()
+                return FeilVedOpprettelseAvSøknadinnhold.FeilVedOpprettelseAvFormueWeb(it).left()
             },
             forNav = forNav.toForNav(),
-            ektefelle = ektefelle?.toEktefelle()?.getOrHandle {
-                return FeilVedOpprettelseAvSøknadinnholdJson.FeilVedOpprettelseAvEktefelleWeb(it).left()
-            },
+            ektefelle = ektefelle,
         ).right()
-    }
-
-    data class UførevedtakJson(
-        val harUførevedtak: Boolean,
-    ) {
-        fun toUførevedtak() = Uførevedtak(harUførevedtak)
-
-        companion object {
-            fun Uførevedtak.toUførevedtakJson() = UførevedtakJson(this.harUførevedtak)
-        }
-    }
-
-    data class FlyktningsstatusJson(
-        val registrertFlyktning: Boolean,
-    ) {
-        fun toFlyktningsstatus() = Flyktningsstatus(registrertFlyktning)
-
-        companion object {
-            fun Flyktningsstatus.toFlyktningsstatusJson() = FlyktningsstatusJson(this.registrertFlyktning)
-        }
     }
 
     companion object {
@@ -211,16 +219,31 @@ data class SøknadsinnholdUføreJson(
     }
 }
 
-sealed interface FeilVedOpprettelseAvSøknadinnholdJson {
+sealed interface FeilVedOpprettelseAvSøknadinnhold {
     data class FeilVedOpprettelseAvOppholdstillatelseWeb(val underliggendeFeil: FeilVedOpprettelseAvOppholdstillatelse) :
-        FeilVedOpprettelseAvSøknadinnholdJson
+        FeilVedOpprettelseAvSøknadinnhold
 
     data class FeilVedOpprettelseAvBoforholdWeb(val underliggendeFeil: FeilVedOpprettelseAvBoforhold) :
-        FeilVedOpprettelseAvSøknadinnholdJson
+        FeilVedOpprettelseAvSøknadinnhold
 
     data class FeilVedOpprettelseAvFormueWeb(val underliggendeFeil: FeilVedOpprettelseAvFormue) :
-        FeilVedOpprettelseAvSøknadinnholdJson
+        FeilVedOpprettelseAvSøknadinnhold
 
     data class FeilVedOpprettelseAvEktefelleWeb(val underliggendeFeil: FeilVedOpprettelseAvEktefelleJson) :
-        FeilVedOpprettelseAvSøknadinnholdJson
+        FeilVedOpprettelseAvSøknadinnhold
+
+    data class DataVedOpphodlstillatelseErInkonsekvent(val underliggendeFeil: FeilVedValideringAvOppholdstillatelseOgOppholdstillatelseAlder) :
+        FeilVedOpprettelseAvSøknadinnhold
+
+    data class DataVedBoforholdOgEktefelleErInkonsekvent(val underliggendeFeil: FeilVedValideringAvBoforholdOgEktefelle) :
+        FeilVedOpprettelseAvSøknadinnhold
+}
+
+sealed interface FeilVedValideringAvOppholdstillatelseOgOppholdstillatelseAlder {
+    object EøsBorgerErIkkeutfylt : FeilVedValideringAvOppholdstillatelseOgOppholdstillatelseAlder
+    object FamiliegjenforeningErIkkeutfylt : FeilVedValideringAvOppholdstillatelseOgOppholdstillatelseAlder
+}
+
+sealed interface FeilVedValideringAvBoforholdOgEktefelle {
+    object EktefelleErIkkeutfylt : FeilVedValideringAvBoforholdOgEktefelle
 }
