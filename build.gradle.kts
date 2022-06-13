@@ -114,7 +114,7 @@ subprojects {
     }
 
     tasks.withType<Wrapper> {
-        gradleVersion = "7.4.1"
+        gradleVersion = "7.4.2"
     }
 
     // Run `./gradlew allDeps` to get a dependency graph
