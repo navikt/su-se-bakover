@@ -24,6 +24,9 @@ import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadinnhold.FeilVedOpprettelseAvBoforhold
 import no.nav.su.se.bakover.domain.søknadinnhold.FeilVedOpprettelseAvFormue
 import no.nav.su.se.bakover.domain.søknadinnhold.FeilVedOpprettelseAvOppholdstillatelse
+import no.nav.su.se.bakover.domain.søknadinnhold.FeilVedOpprettelseAvSøknadinnhold
+import no.nav.su.se.bakover.domain.søknadinnhold.FeilVedValideringAvBoforholdOgEktefelle
+import no.nav.su.se.bakover.domain.søknadinnhold.FeilVedValideringAvOppholdstillatelseOgOppholdstillatelseAlder
 import no.nav.su.se.bakover.domain.søknadinnhold.ForNav
 import no.nav.su.se.bakover.service.søknad.AvslåManglendeDokumentasjonRequest
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
@@ -47,7 +50,7 @@ import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknad.lukk.LukkSøknadErrorHandler
 import no.nav.su.se.bakover.web.routes.søknad.lukk.LukkSøknadInputHandler
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.FeilVedOpprettelseAvEktefelleJson
-import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.FeilVedOpprettelseAvSøknadinnholdJson
+import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.KunneIkkeLageSøknadinnhold
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdJson
 import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
@@ -252,11 +255,17 @@ private fun KunneIkkeOppretteSøknad.tilResultat(type: String) = when (this) {
     )
 }
 
-private fun FeilVedOpprettelseAvSøknadinnholdJson.tilResultat() = when (this) {
-    is FeilVedOpprettelseAvSøknadinnholdJson.FeilVedOpprettelseAvOppholdstillatelseWeb -> underliggendeFeil.tilResultat()
-    is FeilVedOpprettelseAvSøknadinnholdJson.FeilVedOpprettelseAvBoforholdWeb -> underliggendeFeil.tilResultat()
-    is FeilVedOpprettelseAvSøknadinnholdJson.FeilVedOpprettelseAvFormueWeb -> underliggendeFeil.tilResultat()
-    is FeilVedOpprettelseAvSøknadinnholdJson.FeilVedOpprettelseAvEktefelleWeb -> underliggendeFeil.tilResultat()
+private fun KunneIkkeLageSøknadinnhold.tilResultat() = when (this) {
+    is KunneIkkeLageSøknadinnhold.FeilVedOpprettelseAvOppholdstillatelseWeb -> underliggendeFeil.tilResultat()
+    is KunneIkkeLageSøknadinnhold.FeilVedOpprettelseAvBoforholdWeb -> underliggendeFeil.tilResultat()
+    is KunneIkkeLageSøknadinnhold.FeilVedOpprettelseAvFormueWeb -> underliggendeFeil.tilResultat()
+    is KunneIkkeLageSøknadinnhold.FeilVedOpprettelseAvEktefelleWeb -> underliggendeFeil.tilResultat()
+    is KunneIkkeLageSøknadinnhold.FeilVedOpprettelseAvSøknadinnholdWeb -> underliggendeFeil.tilResultat()
+}
+
+private fun FeilVedOpprettelseAvSøknadinnhold.tilResultat() = when (this) {
+    is FeilVedOpprettelseAvSøknadinnhold.DataVedBoforholdOgEktefelleErInkonsekvent -> underliggendeFeil.tilResultat()
+    is FeilVedOpprettelseAvSøknadinnhold.DataVedOpphodlstillatelseErInkonsekvent -> underliggendeFeil.tilResultat()
 }
 
 private fun FeilVedOpprettelseAvOppholdstillatelse.tilResultat() = when (this) {
@@ -287,6 +296,10 @@ private fun FeilVedOpprettelseAvBoforhold.tilResultat() = when (this) {
         "Kun én adressegrunn kan være utfylt",
         "kun_en_adressegrunn_kan_være_utfylt",
     )
+    FeilVedOpprettelseAvBoforhold.InkonsekventInnleggelse -> BadRequest.errorJson(
+        "Inkonsekvent data er sendt inn for institusjonsopphold",
+        "inkonsekvent_innleggelse",
+    )
 }
 
 private fun FeilVedOpprettelseAvFormue.tilResultat() = when (this) {
@@ -306,4 +319,22 @@ private fun FeilVedOpprettelseAvFormue.tilResultat() = when (this) {
 
 private fun FeilVedOpprettelseAvEktefelleJson.tilResultat() = when (this) {
     is FeilVedOpprettelseAvEktefelleJson.FeilVedOpprettelseAvFormueEktefelle -> underliggendeFeil.tilResultat()
+}
+
+private fun FeilVedValideringAvBoforholdOgEktefelle.tilResultat() = when (this) {
+    FeilVedValideringAvBoforholdOgEktefelle.EktefelleErIkkeutfylt -> BadRequest.errorJson(
+        "Det er registrert at søker har EPS, men ingen data for EPS er registrert",
+        "ektefelle_er_ikke_utfylt",
+    )
+}
+
+private fun FeilVedValideringAvOppholdstillatelseOgOppholdstillatelseAlder.tilResultat() = when (this) {
+    FeilVedValideringAvOppholdstillatelseOgOppholdstillatelseAlder.EøsBorgerErIkkeutfylt -> BadRequest.errorJson(
+        "Eøs-borger er ikke utfylt",
+        "eøs_borger_er_ikke_utfylt",
+    )
+    FeilVedValideringAvOppholdstillatelseOgOppholdstillatelseAlder.FamiliegjenforeningErIkkeutfylt -> BadRequest.errorJson(
+        "Familiegjenforening er ikke utfylt",
+        "familiegjenforening_er_ikke_utfylt",
+    )
 }

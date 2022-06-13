@@ -25,23 +25,6 @@ internal class FormueTest {
     }
 
     @Test
-    fun `depositumsbeløp må være utfylt dersom eierbolig er false`() {
-        Formue.tryCreate(
-            eierBolig = false, borIBolig = null, verdiPåBolig = null,
-            boligBrukesTil = null, depositumsBeløp = null, verdiPåEiendom = null,
-            eiendomBrukesTil = null, kjøretøy = listOf(), innskuddsBeløp = null,
-            verdipapirBeløp = null, skylderNoenMegPengerBeløp = null, kontanterBeløp = null
-        ) shouldBe FeilVedOpprettelseAvFormue.DepositumsbeløpetErIkkeutfylt.left()
-
-        Formue.tryCreate(
-            eierBolig = false, borIBolig = null, verdiPåBolig = null,
-            boligBrukesTil = null, depositumsBeløp = 123, verdiPåEiendom = null,
-            eiendomBrukesTil = null, kjøretøy = listOf(), innskuddsBeløp = null,
-            verdipapirBeløp = null, skylderNoenMegPengerBeløp = null, kontanterBeløp = null
-        ).shouldBeRight()
-    }
-
-    @Test
     fun `informasjon om bolig må være utfylt dersom søker ikke bor i boligen`() {
         Formue.tryCreate(
             eierBolig = true, borIBolig = false, verdiPåBolig = 12,
