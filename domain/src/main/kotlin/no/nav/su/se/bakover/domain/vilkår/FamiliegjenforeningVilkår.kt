@@ -1,7 +1,10 @@
 package no.nav.su.se.bakover.domain.vilkår
 
 import arrow.core.Nel
+import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.harOverlappende
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
 import java.time.LocalDate
 
@@ -22,13 +25,13 @@ sealed class FamiliegjenforeningVilkår : Vilkår() {
     data class Vurdert private constructor(
         val vurderingsperioder: Nel<VurderingsperiodeFamiliegjenforening>,
     ) : FamiliegjenforeningVilkår() {
-        override val erAvslag = vurderingsperioder.all { it.resultat == Resultat.Innvilget }
-        override val erInnvilget = vurderingsperioder.any { it.resultat == Resultat.Avslag }
+        override val erInnvilget = vurderingsperioder.all { it.resultat == Resultat.Innvilget }
+        override val erAvslag = vurderingsperioder.any { it.resultat == Resultat.Avslag }
         override val resultat =
             if (erInnvilget) Resultat.Innvilget else if (erAvslag) Resultat.Avslag else Resultat.Uavklart
 
-        override fun slåSammenLikePerioder() = copy(vurderingsperioder = vurderingsperioder.slåSammenLikePerioder())
         override fun erLik(other: Vilkår) = other is Vurdert && vurderingsperioder.erLik(other.vurderingsperioder)
+        override fun slåSammenLikePerioder() = copy(vurderingsperioder = vurderingsperioder.slåSammenLikePerioder())
 
         override fun hentTidligesteDatoForAvslag() = vurderingsperioder
             .filter { it.resultat == Resultat.Avslag }
@@ -43,6 +46,17 @@ sealed class FamiliegjenforeningVilkår : Vilkår() {
                 ).tidslinje,
             ),
         )
+
+        companion object {
+            fun create(
+                vurderingsperioder: Nel<VurderingsperiodeFamiliegjenforening>,
+            ) =
+                if (vurderingsperioder.harOverlappende()) UgyldigFamiliegjenforeningVilkår.OverlappendeVurderingsperioder.left()
+                else Vurdert(vurderingsperioder).right()
+        }
     }
 }
 
+sealed interface UgyldigFamiliegjenforeningVilkår {
+    object OverlappendeVurderingsperioder : UgyldigFamiliegjenforeningVilkår
+}
