@@ -327,6 +327,9 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
         @Test
         fun `factory for allerede utregnede verdier caches`() {
 
+            // Trenger en egen her siden vi asserter på cachen (hvis ikke kan de andre testene forstyrre)
+            val satsFactoryTest = SatsFactoryForSupplerendeStønad()
+
             val verdier = (januar(2020)..april(2022))
                 .måneder()
                 .map { satsFactoryTest.gjeldende(it.fraOgMed) }
