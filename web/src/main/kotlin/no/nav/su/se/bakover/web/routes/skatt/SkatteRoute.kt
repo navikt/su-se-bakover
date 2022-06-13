@@ -45,27 +45,16 @@ internal fun Route.skattRoutes(skatteService: SkatteService, toggleService: Togg
                                 call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
                                 val feilmelding = when (it) {
                                     is KunneIkkeHenteSkattemelding.KallFeilet -> {
-                                        when (val feil = it.feil) {
-                                            is SkatteoppslagFeil.KunneIkkeHenteSkattedata -> (
-                                                if (feil.statusCode == 404) HttpStatusCode.fromValue(
-                                                    feil.statusCode,
-                                                ) else HttpStatusCode.InternalServerError
-                                                )
-                                                .errorJson(
-                                                    "Feil i henting av skattedata for gitt person",
-                                                    "UKJENT_SKATTEFEIL",
-                                                )
-                                            is SkatteoppslagFeil.Nettverksfeil -> HttpStatusCode.InternalServerError.errorJson(
-                                                "Feil i kommunikasjon mot skatteetaten",
-                                                "FEIL_I_NETTVERK",
-                                            )
+                                        when (it.feil) {
+                                            SkatteoppslagFeil.FantIkkePerson -> Feilresponser.fantIkkePerson
+                                            SkatteoppslagFeil.FantIkkeSkattegrunnlagForGittÅr -> HttpStatusCode.NotFound.errorJson("Ingen summert skattegrunnlag funnet på oppgitt personidentifikator og inntektsår", "inget_skattegrunnlag_for_gitt_fnr_og_år")
+                                            SkatteoppslagFeil.SkattegrunnlagFinnesIkkeLenger -> HttpStatusCode.Gone.errorJson("Skattegrunnlaget finnes ikke lenger", "skattegrunnlaget_finnes_ikke_lenger")
+                                            else -> generiskFeilmelding
                                         }
                                     }
-                                    is KunneIkkeHenteSkattemelding.KunneIkkeHenteAccessToken -> HttpStatusCode.InternalServerError.errorJson(
-                                        "Feil i kommunikasjon mot skatteetaten",
-                                        "FEIL_I_HENTING_AV_ACCESS_TOKEN",
-                                    )
+                                    is KunneIkkeHenteSkattemelding.KunneIkkeHenteAccessToken -> generiskFeilmelding
                                 }
+
                                 call.svar(feilmelding)
                             },
                             ifRight = {
@@ -77,3 +66,8 @@ internal fun Route.skattRoutes(skatteService: SkatteService, toggleService: Togg
         }
     }
 }
+
+private val generiskFeilmelding = HttpStatusCode.InternalServerError.errorJson(
+    "Feil i kommunikasjon mot skatteetaten",
+    "feil_i_kommunikasjon_mot_skatt",
+)
