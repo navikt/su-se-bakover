@@ -48,7 +48,8 @@ internal class IverksettRevurderingRouteKtTest {
                 JSONAssert.assertEquals(
                     """
                     {
-                        "message":"Bruker mangler en av de tillatte rollene: [Attestant]"
+                        "message":"Bruker mangler en av de tillatte rollene: [Attestant]",
+                        "code":"mangler_rolle"
                     }
                     """.trimIndent(),
                     bodyAsText(),

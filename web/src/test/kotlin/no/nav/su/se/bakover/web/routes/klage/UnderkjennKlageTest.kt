@@ -74,7 +74,7 @@ internal class UnderkjennKlageTest {
                     it,
                 ).apply {
                     status shouldBe HttpStatusCode.Forbidden
-                    bodyAsText() shouldBe "{\"message\":\"Bruker mangler en av de tillatte rollene: [Attestant]\"}"
+                    bodyAsText() shouldBe "{\"message\":\"Bruker mangler en av de tillatte rollene: [Attestant]\",\"code\":\"mangler_rolle\"}"
                 }
             }
         }

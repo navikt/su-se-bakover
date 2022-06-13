@@ -3,10 +3,10 @@ package no.nav.su.se.bakover.web.features
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
-import io.ktor.server.response.respond
 import io.ktor.util.pipeline.PipelineContext
 import no.nav.su.se.bakover.domain.Brukerrolle
-import no.nav.su.se.bakover.web.ErrorJson
+import no.nav.su.se.bakover.web.errorJson
+import no.nav.su.se.bakover.web.svar
 
 suspend fun PipelineContext<Unit, ApplicationCall>.authorize(
     vararg autoriserteRoller: Brukerrolle,
@@ -19,9 +19,11 @@ suspend fun PipelineContext<Unit, ApplicationCall>.authorize(
     val autorisert = autoriserteRoller.any { call.suUserContext.roller.contains(it) }
 
     if (!autorisert) {
-        call.respond(
-            status = HttpStatusCode.Forbidden,
-            message = ErrorJson("Bruker mangler en av de tillatte rollene: ${autoriserteRoller.toList()}"),
+        call.svar(
+            HttpStatusCode.Forbidden.errorJson(
+                message = "Bruker mangler en av de tillatte rollene: ${autoriserteRoller.toList()}",
+                code = "mangler_rolle",
+            ),
         )
     } else {
         build()
