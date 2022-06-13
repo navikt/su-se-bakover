@@ -52,6 +52,7 @@ sealed class Inngangsvilkår {
     object PersonligOppmøte : Inngangsvilkår()
     object FastOppholdINorge : Inngangsvilkår()
     object Opplysningsplikt : Inngangsvilkår()
+    object Familiegjenforening : Inngangsvilkår()
     object Pensjon : Inngangsvilkår()
 }
 
@@ -162,6 +163,7 @@ sealed class Vilkårsvurderinger {
                     is PensjonsVilkår.Vurdert -> {
                         vilkår.vurderingsperioder.map { it.periode }
                     }
+                    is FamiliegjenforeningVilkår.Vurdert -> vilkår.vurderingsperioder.map { it.periode }
                     FastOppholdINorgeVilkår.IkkeVurdert,
                     FlyktningVilkår.IkkeVurdert,
                     Vilkår.Formue.IkkeVurdert,
@@ -172,6 +174,7 @@ sealed class Vilkårsvurderinger {
                     Vilkår.Uførhet.IkkeVurdert,
                     UtenlandsoppholdVilkår.IkkeVurdert,
                     PensjonsVilkår.IkkeVurdert,
+                    FamiliegjenforeningVilkår.IkkeVurdert
                     -> emptyList()
                 }
             }.ifNotEmpty { this.minAndMaxOf() }
@@ -277,6 +280,7 @@ sealed class Vilkårsvurderinger {
                     is PersonligOppmøteVilkår -> copy(personligOppmøte = vilkår)
                     is Vilkår.Uførhet -> copy(uføre = vilkår)
                     is OpplysningspliktVilkår -> copy(opplysningsplikt = vilkår)
+                    is FamiliegjenforeningVilkår -> throw IllegalArgumentException("Kan ikke legge til FamiliegjenforeningVilkår for vilkårsvurdering uføre")
                     is PensjonsVilkår -> {
                         throw IllegalArgumentException("Kan ikke legge til ${vilkår::class} for ${this::class}")
                     }
@@ -383,10 +387,11 @@ sealed class Vilkårsvurderinger {
             override val formue: Vilkår.Formue,
             override val lovligOpphold: LovligOppholdVilkår,
             override val fastOpphold: FastOppholdINorgeVilkår,
-            override val institusjonsopphold: InstitusjonsoppholdVilkår,
+            override val institusjonsopphold: InstitusjonsoppholdVilkår,,
             override val utenlandsopphold: UtenlandsoppholdVilkår,
             override val personligOppmøte: PersonligOppmøteVilkår,
             override val opplysningsplikt: OpplysningspliktVilkår,
+            val familiegjenforening: FamiliegjenforeningVilkår,
             val pensjon: PensjonsVilkår,
         ) : Søknadsbehandling() {
             override val vilkår: Set<Vilkår> = setOf(
@@ -432,6 +437,7 @@ sealed class Vilkårsvurderinger {
                     is Vilkår.Uførhet -> {
                         throw IllegalArgumentException("Kan ikke legge til uførevilkår for vilkårsvurdering alder")
                     }
+                    is FamiliegjenforeningVilkår -> copy(familiegjenforening = vilkår)
                     is PensjonsVilkår -> copy(pensjon = vilkår)
                 }
             }
@@ -550,6 +556,7 @@ sealed class Vilkårsvurderinger {
                     is InstitusjonsoppholdVilkår,
                     is LovligOppholdVilkår,
                     is PersonligOppmøteVilkår,
+                    is FamiliegjenforeningVilkår,
                     -> {
                         throw IllegalArgumentException("Ukjent vilkår for revurdering av uføre: ${vilkår::class}")
                     }
@@ -654,6 +661,7 @@ sealed class Vilkårsvurderinger {
                     is InstitusjonsoppholdVilkår,
                     is LovligOppholdVilkår,
                     is PersonligOppmøteVilkår,
+                    is FamiliegjenforeningVilkår,
                     -> {
                         throw IllegalArgumentException("Ukjent vilkår for revurdering av alder: ${vilkår::class}")
                     }
@@ -731,6 +739,7 @@ sealed class Vilkårsvurderingsresultat {
                 is UtenlandsoppholdVilkår -> {
                     Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER
                 }
+                is FamiliegjenforeningVilkår -> TODO()
                 is PensjonsVilkår -> {
                     Avslagsgrunn.PENSJON
                 }
