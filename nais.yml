@@ -43,6 +43,11 @@ spec:
   ingresses:
     - {{ ingress }}
   webproxy: true
+  maskinporten:
+    enabled: true
+    scopes:
+      consumes:
+        - name: "skatteetaten:summertskattegrunnlag"
   prometheus:
     enabled: true
     path: /metrics

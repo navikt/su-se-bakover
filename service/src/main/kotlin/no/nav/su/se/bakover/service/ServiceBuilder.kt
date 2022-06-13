@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.service.person.PersonServiceImpl
 import no.nav.su.se.bakover.service.regulering.ReguleringServiceImpl
 import no.nav.su.se.bakover.service.revurdering.RevurderingServiceImpl
 import no.nav.su.se.bakover.service.sak.SakServiceImpl
+import no.nav.su.se.bakover.service.skatt.SkatteServiceImpl
 import no.nav.su.se.bakover.service.statistikk.StatistikkServiceImpl
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonServiceImpl
 import no.nav.su.se.bakover.service.søknad.SøknadServiceImpl
@@ -195,6 +196,8 @@ object ServiceBuilder {
             sessionFactory = databaseRepos.sessionFactory,
             clock = clock,
         )
+        val skatteServiceImpl =
+            SkatteServiceImpl(skatteClient = clients.skatteOppslag, maskinportenClient = clients.maskinportenClient)
         return Services(
             avstemming = AvstemmingServiceImpl(
                 repo = databaseRepos.avstemming,
@@ -250,7 +253,8 @@ object ServiceBuilder {
                 personService = personService,
                 jobContextRepo = databaseRepos.jobContextRepo,
                 formuegrenserFactory = satsFactory.formuegrenserFactory,
-            )
+            ),
+            skatteService = skatteServiceImpl,
         )
     }
 }

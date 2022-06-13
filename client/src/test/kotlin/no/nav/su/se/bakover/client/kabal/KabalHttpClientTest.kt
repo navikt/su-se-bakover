@@ -7,6 +7,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import com.github.tomakehurst.wiremock.http.Fault
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.client.AccessToken
 import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
 import no.nav.su.se.bakover.client.argThat
@@ -83,7 +84,7 @@ internal class KabalHttpClientTest : WiremockBase {
         )
         val oathMock = mock<OAuth> {}
         val tokenoppslagMock = mock<TokenOppslag> {
-            on { token() } doReturn "token"
+            on { token() } doReturn AccessToken("token")
         }
         val client = KabalHttpClient(
             kabalConfig = ApplicationConfig.ClientsConfig.KabalConfig(
@@ -116,7 +117,7 @@ internal class KabalHttpClientTest : WiremockBase {
         )
         val oathMock = mock<OAuth> {}
         val tokenoppslagMock = mock<TokenOppslag> {
-            on { token() } doReturn "token"
+            on { token() } doReturn AccessToken("token")
         }
         val client = KabalHttpClient(
             kabalConfig = ApplicationConfig.ClientsConfig.KabalConfig(

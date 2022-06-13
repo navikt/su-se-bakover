@@ -24,7 +24,7 @@ class DkifClient(
 
     override fun hentKontaktinformasjon(fnr: Fnr): Either<DigitalKontaktinformasjon.KunneIkkeHenteKontaktinformasjon, Kontaktinformasjon> {
         val (_, response, result) = "$baseUrl$dkifPath".httpGet()
-            .authentication().bearer(tokenOppslag.token())
+            .authentication().bearer(tokenOppslag.token().value)
             .header("Accept", "application/json")
             .header("Nav-Consumer-Id", consumerId)
             .header("Nav-Call-Id", getOrCreateCorrelationId())

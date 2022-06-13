@@ -98,6 +98,16 @@ val applicationConfig = ApplicationConfig(
         dkifUrl = "dkifUrl",
         kabalConfig = ApplicationConfig.ClientsConfig.KabalConfig("kabalUrl", "kabalClientId"),
         safConfig = ApplicationConfig.ClientsConfig.SafConfig("safUrlkabalUrl", "safClientId"),
+        maskinportenConfig = ApplicationConfig.ClientsConfig.MaskinportenConfig(
+            clientId = "maskinportenClientId",
+            scopes = "maskinportenScopes",
+            clientJwk = "maskinportenClientJwk",
+            wellKnownUrl = "maskinportenWellKnownUrl",
+            issuer = "maskinportenIssuer",
+            jwksUri = "maskinportenJwksUri",
+            tokenEndpoint = "maskinportenTokenEndpoint"
+        ),
+        skatteetatenConfig = ApplicationConfig.ClientsConfig.SkatteetatenConfig(apiUri = ""),
     ),
     kafkaConfig = ApplicationConfig.KafkaConfig(
         producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg(emptyMap()),

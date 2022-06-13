@@ -30,7 +30,7 @@ class DokDistFordelingClient(val baseUrl: String, val tokenOppslag: TokenOppslag
     ): Either<KunneIkkeBestilleDistribusjon, BrevbestillingId> {
         val body = byggDistribusjonPostJson(journalPostId, distribusjonstype, distribusjonstidspunkt)
         val (_, _, result) = "$baseUrl$dokDistFordelingPath".httpPost()
-            .authentication().bearer(tokenOppslag.token())
+            .authentication().bearer(tokenOppslag.token().value)
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
             .header("X-Correlation-ID", getOrCreateCorrelationId())

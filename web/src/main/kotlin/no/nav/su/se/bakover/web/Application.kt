@@ -66,6 +66,7 @@ import no.nav.su.se.bakover.web.routes.person.personRoutes
 import no.nav.su.se.bakover.web.routes.regulering.reguleringRoutes
 import no.nav.su.se.bakover.web.routes.revurdering.revurderingRoutes
 import no.nav.su.se.bakover.web.routes.sak.sakRoutes
+import no.nav.su.se.bakover.web.routes.skatt.skattRoutes
 import no.nav.su.se.bakover.web.routes.søknad.søknadRoutes
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.overordnetSøknadsbehandligRoutes
 import no.nav.su.se.bakover.web.routes.togglePaths
@@ -227,6 +228,7 @@ fun Application.susebakover(
                         revurderingService = accessProtectedServices.revurdering,
                         satsFactory = satsFactory,
                     )
+                    skattRoutes(accessProtectedServices.skatteService, accessProtectedServices.toggles)
                 }
             }
         }

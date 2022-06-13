@@ -180,7 +180,7 @@ internal class SøknadsbehandlingAlder {
                 ),
             ).getOrFail()
 
-            val innvilget = appComponents.services.søknadsbehandling.hent(
+            appComponents.services.søknadsbehandling.hent(
                 request = SøknadsbehandlingService.HentRequest(behandlingId = søknadsbehandling.id),
             ).getOrFail().also { oppdatert ->
                 oppdatert.vilkårsvurderinger.resultat.shouldBeType<Vilkårsvurderingsresultat.Innvilget>()
