@@ -296,9 +296,9 @@ private fun FeilVedOpprettelseAvBoforhold.tilResultat() = when (this) {
         "Kun én adressegrunn kan være utfylt",
         "kun_en_adressegrunn_kan_være_utfylt",
     )
-    FeilVedOpprettelseAvBoforhold.InkonsekventInnlegelse -> BadRequest.errorJson(
+    FeilVedOpprettelseAvBoforhold.InkonsekventInnleggelse -> BadRequest.errorJson(
         "Inkonsekvent data er sendt inn for institusjonsopphold",
-        "inkonsekvent_innlegelse",
+        "inkonsekvent_innleggelse",
     )
 }
 

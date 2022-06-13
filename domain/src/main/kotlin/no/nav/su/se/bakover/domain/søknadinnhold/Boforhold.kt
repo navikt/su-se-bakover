@@ -59,7 +59,7 @@ data class Boforhold private constructor(
             if (delerBolig && delerBoligMed == DelerBoligMed.EKTEMAKE_SAMBOER && ektefellePartnerSamboer == null) FeilVedOpprettelseAvBoforhold.EktefellePartnerSamboerMåVæreUtfylt.left() else Unit.right()
 
         private fun validerInnlagtPåBosituasjon(innlagtPåInstitusjon: InnlagtPåInstitusjon?) =
-            if (innlagtPåInstitusjon?.fortsattInnlagt == true && innlagtPåInstitusjon.datoForUtskrivelse != null) FeilVedOpprettelseAvBoforhold.InkonsekventInnlegelse.left() else Unit.right()
+            if (innlagtPåInstitusjon?.fortsattInnlagt == true && innlagtPåInstitusjon.datoForUtskrivelse != null) FeilVedOpprettelseAvBoforhold.InkonsekventInnleggelse.left() else Unit.right()
     }
 }
 
@@ -112,5 +112,5 @@ sealed interface FeilVedOpprettelseAvBoforhold {
     object DelerBoligMedErIkkeUtfylt : FeilVedOpprettelseAvBoforhold
     object EktefellePartnerSamboerMåVæreUtfylt : FeilVedOpprettelseAvBoforhold
     object BeggeAdressegrunnerErUtfylt : FeilVedOpprettelseAvBoforhold
-    object InkonsekventInnlegelse : FeilVedOpprettelseAvBoforhold
+    object InkonsekventInnleggelse : FeilVedOpprettelseAvBoforhold
 }

@@ -66,7 +66,7 @@ internal class BoforholdTest() {
             ektefellePartnerSamboer = EktefellePartnerSamboer(erUførFlyktning = null, fnr = Fnr("12345678901")),
             innlagtPåInstitusjon = InnlagtPåInstitusjon(1.januar(2021), 31.januar(2021), true),
             oppgittAdresse = oppgittAdresse,
-        ) shouldBe FeilVedOpprettelseAvBoforhold.InkonsekventInnlegelse.left()
+        ) shouldBe FeilVedOpprettelseAvBoforhold.InkonsekventInnleggelse.left()
     }
 
     @Test
