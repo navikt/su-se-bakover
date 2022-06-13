@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
-import no.nav.su.se.bakover.test.satsFactoryTest
+import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.junit.jupiter.api.Test
 
 internal class EpsUnder67OgUførFlyktningBeregningTest {
@@ -97,7 +97,7 @@ internal class EpsUnder67OgUførFlyktningBeregningTest {
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = beregningsgrunnlag.beregningsperiode,
-                    strategy = BeregningStrategy.EpsUnder67ÅrOgUførFlyktning(satsFactoryTest),
+                    strategy = BeregningStrategy.EpsUnder67ÅrOgUførFlyktning(satsFactoryTestPåDato()),
                 )
             ),
         ).let {

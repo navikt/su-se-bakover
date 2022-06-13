@@ -31,8 +31,8 @@ import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.formuegrenserFactoryTest
-import no.nav.su.se.bakover.test.satsFactoryTest
+import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
+import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import org.mockito.kotlin.mock
 import java.time.Clock
@@ -107,7 +107,7 @@ internal object RevurderingTestUtils {
         avkortingsvarselRepo: AvkortingsvarselRepo = mock(),
         toggleService: ToggleService = mock(),
         tilbakekrevingService: TilbakekrevingService = mock(),
-        satsFactory: SatsFactory = satsFactoryTest,
+        satsFactory: SatsFactory = satsFactoryTestPåDato(),
     ) =
         RevurderingServiceImpl(
             utbetalingService = utbetalingService,
@@ -121,7 +121,7 @@ internal object RevurderingTestUtils {
             vedtakService = vedtakService,
             kontrollsamtaleService = kontrollsamtaleService,
             sessionFactory = sessionFactory,
-            formuegrenserFactory = formuegrenserFactoryTest,
+            formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             sakService = sakService,
             avkortingsvarselRepo = avkortingsvarselRepo,
             toggleService = toggleService,

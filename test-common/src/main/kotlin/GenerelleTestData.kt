@@ -26,7 +26,7 @@ import kotlin.concurrent.getOrSet
 val fixedClock: Clock =
     Clock.fixed(1.januar(2021).atTime(1, 2, 3, 456789000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
 
-fun fixedClockAt(date: LocalDate = 1.januar(2021)) =
+fun fixedClockAt(date: LocalDate = 1.januar(2021)): Clock =
     Clock.fixed(date.atTime(1, 2, 3, 456789000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
 
 /** Fixed UTC clock at 2021-02-08T01:02:03.456789000Z */
@@ -85,7 +85,6 @@ val stønadsperiode2021 = Stønadsperiode.create(år(2021))
 val stønadsperiode2022 = Stønadsperiode.create(år(2022))
 
 val attestant = NavIdentBruker.Attestant("attestant")
-const val attestantNavn = "Att E. Stant"
 
 fun attesteringIverksatt(clock: Clock = fixedClock) = Attestering.Iverksatt(
     attestant = attestant,

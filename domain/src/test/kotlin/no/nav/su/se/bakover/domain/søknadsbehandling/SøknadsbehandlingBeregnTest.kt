@@ -13,11 +13,11 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.formuegrenserFactoryTest
+import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.nåtidForSimuleringStub
 import no.nav.su.se.bakover.test.oversendtUtbetalingMedKvittering
-import no.nav.su.se.bakover.test.satsFactoryTest
+import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simuleringOpphørt
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import org.junit.jupiter.api.Test
@@ -31,13 +31,13 @@ internal class SøknadsbehandlingBeregnTest {
             førBeregning.beregn(
                 begrunnelse = "kakota",
                 clock = fixedClock,
-                formuegrenserFactory = formuegrenserFactoryTest,
-                satsFactory = satsFactoryTest,
+                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
+                satsFactory = satsFactoryTestPåDato(),
             ).getOrFail().let { etterBeregning ->
                 etterBeregning.beregning.getFradrag() shouldHaveSize 1
                 etterBeregning.beregning.getSumFradrag() shouldBe 0.0
                 etterBeregning.beregning.getSumYtelse() shouldBe førBeregning.periode.måneder()
-                    .sumOf { satsFactoryTest.høy(it).satsForMånedAvrundet }
+                    .sumOf { satsFactoryTestPåDato().høyUføre(it).satsForMånedAvrundet }
                 etterBeregning.beregning.getBegrunnelse() shouldBe "kakota"
                 etterBeregning.grunnlagsdata shouldBe førBeregning.grunnlagsdata
             }
@@ -61,19 +61,19 @@ internal class SøknadsbehandlingBeregnTest {
                         ),
                     ),
                 ),
-                formuegrenserFactory = formuegrenserFactoryTest,
+                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             )
         }.getOrFail().let { førBeregning ->
             førBeregning.beregn(
                 begrunnelse = "kakota",
                 clock = fixedClock,
-                formuegrenserFactory = formuegrenserFactoryTest,
-                satsFactory = satsFactoryTest,
+                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
+                satsFactory = satsFactoryTestPåDato(),
             ).getOrFail().let { etterBeregning ->
                 etterBeregning.beregning.getFradrag() shouldHaveSize 1
                 etterBeregning.beregning.getSumFradrag() shouldBe 0
                 etterBeregning.beregning.getSumYtelse() shouldBe førBeregning.periode.måneder()
-                    .sumOf { satsFactoryTest.høy(it).satsForMånedAvrundet }
+                    .sumOf { satsFactoryTestPåDato().høyUføre(it).satsForMånedAvrundet }
                 etterBeregning.grunnlagsdata shouldNotBe førBeregning.grunnlagsdata
             }
         }
@@ -96,19 +96,19 @@ internal class SøknadsbehandlingBeregnTest {
                         ),
                     ),
                 ),
-                formuegrenserFactory = formuegrenserFactoryTest,
+                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             )
         }.getOrFail().let { førBeregning ->
             førBeregning.beregn(
                 begrunnelse = "kakota",
                 clock = fixedClock,
-                formuegrenserFactory = formuegrenserFactoryTest,
-                satsFactory = satsFactoryTest,
+                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
+                satsFactory = satsFactoryTestPåDato(),
             ).getOrFail().let { etterBeregning ->
                 etterBeregning.beregning.getFradrag() shouldHaveSize 2
                 etterBeregning.beregning.getSumFradrag() shouldBe førBeregning.periode.getAntallMåneder() * 15000
                 etterBeregning.beregning.getSumYtelse() shouldBe førBeregning.periode.måneder()
-                    .sumOf { satsFactoryTest.høy(it).satsForMånedAvrundet - 15000 }
+                    .sumOf { satsFactoryTestPåDato().høyUføre(it).satsForMånedAvrundet - 15000 }
                 etterBeregning.grunnlagsdata shouldBe førBeregning.grunnlagsdata
             }
         }
@@ -143,15 +143,15 @@ internal class SøknadsbehandlingBeregnTest {
             ).beregn(
                 begrunnelse = "kakota",
                 clock = fixedClock,
-                formuegrenserFactory = formuegrenserFactoryTest,
-                satsFactory = satsFactoryTest,
+                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
+                satsFactory = satsFactoryTestPåDato(),
             ).getOrFail().let { etterBeregning ->
                 etterBeregning.beregning.getFradrag() shouldHaveSize 4
                 etterBeregning.beregning.getFradrag()
                     .filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold } shouldHaveSize 3
                 etterBeregning.beregning.getSumFradrag() shouldBe expectedAvkortingBeløp.plusOrMinus(0.5)
                 etterBeregning.beregning.getSumYtelse() shouldBe førBeregning.periode.måneder()
-                    .sumOf { satsFactoryTest.høy(it).satsForMånedAvrundet } - expectedAvkortingBeløp
+                    .sumOf { satsFactoryTestPåDato().høyUføre(it).satsForMånedAvrundet } - expectedAvkortingBeløp
                 etterBeregning.grunnlagsdata.fradragsgrunnlag
                     .filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }
                     .sumOf { it.månedsbeløp } shouldBe expectedAvkortingBeløp.plusOrMinus(0.5)
@@ -181,7 +181,7 @@ internal class SøknadsbehandlingBeregnTest {
                         ),
                     ),
                 ),
-                formuegrenserFactory = formuegrenserFactoryTest,
+                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             ).getOrFail().copy(
                 avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
                     Avkortingsvarsel.Utenlandsopphold.Opprettet(
@@ -203,15 +203,15 @@ internal class SøknadsbehandlingBeregnTest {
             ).beregn(
                 begrunnelse = "kakota",
                 clock = fixedClock,
-                satsFactory = satsFactoryTest,
-                formuegrenserFactory = formuegrenserFactoryTest,
+                satsFactory = satsFactoryTestPåDato(),
+                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             ).getOrFail().let { etterBeregning ->
                 etterBeregning.beregning.getFradrag() shouldHaveSize 4
                 etterBeregning.beregning.getFradrag()
                     .filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold } shouldHaveSize 3
                 etterBeregning.beregning.getSumFradrag() shouldBe expectedAvkortingBeløp.plusOrMinus(0.5)
                 etterBeregning.beregning.getSumYtelse() shouldBe vilkårsvurdert.periode.måneder()
-                    .sumOf { satsFactoryTest.høy(it).satsForMånedAvrundet } - expectedAvkortingBeløp
+                    .sumOf { satsFactoryTestPåDato().høyUføre(it).satsForMånedAvrundet } - expectedAvkortingBeløp
                 etterBeregning.grunnlagsdata.fradragsgrunnlag
                     .filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }
                     .sumOf { it.månedsbeløp } shouldBe expectedAvkortingBeløp.plusOrMinus(0.5)

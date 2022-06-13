@@ -23,7 +23,7 @@ internal data class PersistertMånedsberegning(
         val måned = periode.tilMåned()
         return BeregningForMåned(
             måned = måned,
-            fullSupplerendeStønadForMåned = satsFactory.forSatskategori(
+            fullSupplerendeStønadForMåned = satsFactory.forSatskategoriUføre(
                 måned = måned,
                 satskategori = sats,
             ).also {

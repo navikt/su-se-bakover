@@ -20,7 +20,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.satsFactoryTest
+import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.junit.jupiter.api.Test
 import kotlin.math.abs
 
@@ -108,7 +108,7 @@ internal class VurderOmBeløpErForskjelligFraGjeldendeUtbetalingTest {
 
     private fun lagBeregning(vararg periodeBeløpMap: Pair<Periode, Int>): Beregning {
         val fradrag = periodeBeløpMap.map {
-            val sats: Double = satsFactoryTest.høy(it.first.måneder().head).satsForMånedAsDouble
+            val sats: Double = satsFactoryTestPåDato().høyUføre(it.first.måneder().head).satsForMånedAsDouble
             val diff: Double = abs(sats - it.second)
             FradragFactory.nyFradragsperiode(
                 fradragstype = Fradragstype.ForventetInntekt,
@@ -126,7 +126,7 @@ internal class VurderOmBeløpErForskjelligFraGjeldendeUtbetalingTest {
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = periode,
-                    strategy = BeregningStrategy.BorAlene(satsFactoryTest),
+                    strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
                 ),
             ),
         )

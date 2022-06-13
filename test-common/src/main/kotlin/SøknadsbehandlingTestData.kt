@@ -161,8 +161,8 @@ fun søknadsbehandlingBeregnetInnvilget(
         val oppdatertSøknadsbehandling = søknadsbehandling.beregn(
             begrunnelse = null,
             clock = clock,
-            formuegrenserFactory = formuegrenserFactoryTest,
-            satsFactory = satsFactoryTest,
+            formuegrenserFactory = formuegrenserFactoryTestPåDato(),
+            satsFactory = satsFactoryTestPåDato(),
         ).getOrFail() as Søknadsbehandling.Beregnet.Innvilget
         Pair(
             sak.copy(
@@ -207,8 +207,8 @@ fun søknadsbehandlingBeregnetAvslag(
         val oppdatertSøknadsbehandling = søknadsbehandling.beregn(
             begrunnelse = null,
             clock = clock,
-            formuegrenserFactory = formuegrenserFactoryTest,
-            satsFactory = satsFactoryTest,
+            formuegrenserFactory = formuegrenserFactoryTestPåDato(),
+            satsFactory = satsFactoryTestPåDato(),
         ).getOrFail() as Søknadsbehandling.Beregnet.Avslag
         Pair(
             sak.copy(

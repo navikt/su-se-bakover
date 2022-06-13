@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEpsUførFlyktning
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.opprettetRevurdering
-import no.nav.su.se.bakover.test.satsFactoryTest
+import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.junit.jupiter.api.Test
 
 internal class BeregningMedFlereSatserTest {
@@ -37,7 +37,7 @@ internal class BeregningMedFlereSatserTest {
 
         BeregningStrategyFactory(
             clock = fixedClock,
-            satsFactory = satsFactoryTest,
+            satsFactory = satsFactoryTestPåDato(),
         ).beregn(revurdering).let { beregning ->
             beregning.getMånedsberegninger().groupBy { it.getSats() }.let { satsMånedMap ->
                 satsMånedMap shouldHaveSize 2
@@ -46,7 +46,7 @@ internal class BeregningMedFlereSatserTest {
                         1.januar(2021),
                         30.april(2021),
                     )
-                    månedsberegninger.all { it.getSumYtelse() == satsFactoryTest.høy(januar(2021)).satsForMånedAvrundet } shouldBe true
+                    månedsberegninger.all { it.getSumYtelse() == satsFactoryTestPåDato().høyUføre(januar(2021)).satsForMånedAvrundet } shouldBe true
                     månedsberegninger.all { it.getSumFradrag() == 0.0 } shouldBe true
                     månedsberegninger.all { it.getFribeløpForEps() == 0.0 } shouldBe true
                     månedsberegninger.all { it.erFradragForEpsBenyttetIBeregning() } shouldBe false
@@ -57,9 +57,9 @@ internal class BeregningMedFlereSatserTest {
                         1.mai(2021),
                         31.desember(2021),
                     )
-                    månedsberegninger.all { it.getSumYtelse() == satsFactoryTest.ordinær(mai(2021)).satsForMånedAvrundet } shouldBe true
+                    månedsberegninger.all { it.getSumYtelse() == satsFactoryTestPåDato().ordinærUføre(mai(2021)).satsForMånedAvrundet } shouldBe true
                     månedsberegninger.all { it.getSumFradrag() == 0.0 } shouldBe true
-                    månedsberegninger.all { it.getFribeløpForEps() == satsFactoryTest.ordinær(mai(2021)).satsForMånedAsDouble } shouldBe true
+                    månedsberegninger.all { it.getFribeløpForEps() == satsFactoryTestPåDato().ordinærUføre(mai(2021)).satsForMånedAsDouble } shouldBe true
                     månedsberegninger.all { it.erFradragForEpsBenyttetIBeregning() } shouldBe false
                 }
             }

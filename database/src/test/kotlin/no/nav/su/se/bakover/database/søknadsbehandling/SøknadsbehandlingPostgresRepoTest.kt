@@ -32,8 +32,10 @@ import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.behandlingsinformasjonAlleVilkårInnvilget
 import no.nav.su.se.bakover.test.enUkeEtterFixedTidspunkt
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.satsFactoryTest
+import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagMedBeregning
@@ -162,8 +164,8 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 .beregn(
                     begrunnelse = null,
                     clock = fixedClock,
-                    satsFactory = testDataHelper.satsFactory,
-                    formuegrenserFactory = testDataHelper.satsFactory.formuegrenserFactory,
+                    satsFactory = satsFactoryTestPåDato(),
+                    formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                 ).getOrFail()
                 .also {
                     repo.lagre(it)

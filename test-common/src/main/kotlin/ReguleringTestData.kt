@@ -71,7 +71,7 @@ fun iverksattAutomatiskRegulering(
     reguleringstype = reguleringstype,
     saksbehandler = saksbehandler,
 )
-    .beregn(satsFactoryTest, null, clock).getOrFail()
+    .beregn(satsFactoryTestPåDato(), null, clock).getOrFail()
     .simuler { simulertUtbetaling().right() }.getOrFail()
     .tilIverksatt()
 

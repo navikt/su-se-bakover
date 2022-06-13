@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.test.generer
-import no.nav.su.se.bakover.test.satsFactoryTest
+import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.vilkårsvurderingSøknadsbehandlingIkkeVurdert
 import no.nav.su.se.bakover.web.routes.grunnlag.BosituasjonJsonTest.Companion.expectedBosituasjonJson
 import no.nav.su.se.bakover.web.routes.grunnlag.UføreVilkårJsonTest.Companion.expectedVurderingUføreJson
@@ -112,13 +112,13 @@ internal class SøknadsbehandlingJsonTest {
     fun `should serialize to json string`() {
         JSONAssert.assertEquals(
             behandlingJsonString,
-            serialize(søknadsbehandling.toJson(satsFactoryTest)), true
+            serialize(søknadsbehandling.toJson(satsFactoryTestPåDato())), true
         )
     }
 
     @Test
     fun `should deserialize json string`() {
-        deserialize<BehandlingJson>(behandlingJsonString) shouldBe søknadsbehandling.toJson(satsFactoryTest)
+        deserialize<BehandlingJson>(behandlingJsonString) shouldBe søknadsbehandling.toJson(satsFactoryTestPåDato())
     }
 
     @Test
@@ -186,8 +186,8 @@ internal class SøknadsbehandlingJsonTest {
         }
             """
 
-        val serialize = serialize(behandlingWithNulls.toJson(satsFactoryTest))
+        val serialize = serialize(behandlingWithNulls.toJson(satsFactoryTestPåDato()))
         JSONAssert.assertEquals(expectedNullsJson, serialize, true)
-        deserialize<BehandlingJson>(expectedNullsJson) shouldBe behandlingWithNulls.toJson(satsFactoryTest)
+        deserialize<BehandlingJson>(expectedNullsJson) shouldBe behandlingWithNulls.toJson(satsFactoryTestPåDato())
     }
 }

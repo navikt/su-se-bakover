@@ -32,13 +32,13 @@ import no.nav.su.se.bakover.test.avkortingsvarselUtenlandsopphold
 import no.nav.su.se.bakover.test.dokumentUtenMetadataVedtak
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.formuegrenserFactoryTest
+import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.kontrollsamtale
 import no.nav.su.se.bakover.test.oversendtUtbetalingUtenKvittering
 import no.nav.su.se.bakover.test.saksbehandler
-import no.nav.su.se.bakover.test.satsFactoryTest
+import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simuleringNy
 import no.nav.su.se.bakover.test.simulertUtbetaling
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringAvslagMedBeregning
@@ -112,12 +112,12 @@ internal class SøknadsbehandlingServiceIverksettTest {
         fun `feiler hvis utestående avkortinger ikke kunne avkortes fullstendig`() {
             val behandling = søknadsbehandlingVilkårsvurdertInnvilget().second.leggTilFradragsgrunnlag(
                 fradragsgrunnlag = listOf(fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 20000.0)),
-                formuegrenserFactory = formuegrenserFactoryTest,
+                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             ).getOrFail().beregn(
                 begrunnelse = null,
                 clock = fixedClock,
-                satsFactory = satsFactoryTest,
-                formuegrenserFactory = formuegrenserFactoryTest,
+                satsFactory = satsFactoryTestPåDato(),
+                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             ).getOrFail().let {
                 it.tilSimulert(simuleringNy(it.beregning))
             }.tilAttestering(

@@ -26,7 +26,7 @@ import no.nav.su.se.bakover.test.beregningAvslagUnderMinstebeløp
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
-import no.nav.su.se.bakover.test.satsFactoryTest
+import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
 import no.nav.su.se.bakover.test.vilkårsvurderingerRevurderingInnvilget
 import org.junit.jupiter.api.Test
@@ -78,7 +78,7 @@ internal class VurderOpphørVedRevurderingTest {
             fradragsgrunnlag = nonEmptyListOf(
                 fradragsgrunnlagArbeidsinntekt(
                     periode = november(2021),
-                    arbeidsinntekt = satsFactoryTest.høy(november(2021)).satsForMånedAsDouble - 100.0,
+                    arbeidsinntekt = satsFactoryTestPåDato().høyUføre(november(2021)).satsForMånedAsDouble - 100.0,
                 ),
             ),
         )
@@ -97,7 +97,7 @@ internal class VurderOpphørVedRevurderingTest {
             fradragsgrunnlag = nonEmptyListOf(
                 fradragsgrunnlagArbeidsinntekt(
                     periode = Periode.create(1.juli(2021), 31.desember(2021)),
-                    arbeidsinntekt = satsFactoryTest.høy(juli(2021)).satsForMånedAsDouble - 100.0,
+                    arbeidsinntekt = satsFactoryTestPåDato().høyUføre(juli(2021)).satsForMånedAsDouble - 100.0,
                 ),
             ),
         )
@@ -116,7 +116,7 @@ internal class VurderOpphørVedRevurderingTest {
             fradragsgrunnlag = nonEmptyListOf(
                 fradragsgrunnlagArbeidsinntekt(
                     periode = Periode.create(1.juni(2021), 31.desember(2021)),
-                    arbeidsinntekt = satsFactoryTest.høy(juni(2021)).satsForMånedAsDouble - 100.0,
+                    arbeidsinntekt = satsFactoryTestPåDato().høyUføre(juni(2021)).satsForMånedAsDouble - 100.0,
                 ),
             ),
         )

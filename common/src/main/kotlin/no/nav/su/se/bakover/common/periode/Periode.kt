@@ -10,6 +10,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.erFørsteDagIMåned
 import no.nav.su.se.bakover.common.erSisteDagIMåned
+import no.nav.su.se.bakover.common.erSortert
+import no.nav.su.se.bakover.common.erSortertOgUtenDuplikater
 import no.nav.su.se.bakover.common.startOfMonth
 import java.time.LocalDate
 import java.time.Month
@@ -333,7 +335,10 @@ fun <T> List<Pair<LocalDate, T>>.periodisert(
     if (this.isEmpty()) return emptyList()
 
     assert(this.all { it.first.erFørsteDagIMåned() }) { "Kan kun periodisere datoer som er første dag i måneden." }
-    assert(this.size == this.map { it.first }.distinct().size)
+    assert(this.map { it.first }.erSortertOgUtenDuplikater()) {
+        // Dersom vi fjerner denne, trenger vi et konsept om kunngjøringsdato eller en form for siste element har presedens over første.
+        "Datoene må være sortert i stigende rekkefølge og uten duplikater: ${this.map { it.first }}"
+    }
 
     val sortertStigendeDato: List<Triple<LocalDate, Måned, T>> =
         this.sortedBy { it.first }

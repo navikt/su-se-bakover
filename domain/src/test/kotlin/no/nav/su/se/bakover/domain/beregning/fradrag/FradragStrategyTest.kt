@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.år
-import no.nav.su.se.bakover.test.satsFactoryTest
+import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -55,7 +55,7 @@ internal class FradragStrategyTest {
         }
 
         assertThrows<IllegalArgumentException> {
-            FradragStrategy.EpsOver67År.beregn(
+            FradragStrategy.EpsOver67År(satsFactoryTestPåDato()).beregn(
                 fradrag = listOf(
                     lagFradrag(
                         Fradragstype.ForventetInntekt,
@@ -70,7 +70,7 @@ internal class FradragStrategyTest {
         }
 
         assertThrows<IllegalArgumentException> {
-            FradragStrategy.EpsOver67År.beregn(
+            FradragStrategy.EpsOver67År(satsFactoryTestPåDato()).beregn(
                 fradrag = listOf(
                     lagFradrag(
                         Fradragstype.ForventetInntekt,
@@ -90,7 +90,7 @@ internal class FradragStrategyTest {
         }
 
         assertThrows<IllegalArgumentException> {
-            FradragStrategy.EpsUnder67ÅrOgUførFlyktning(satsFactoryTest).beregn(
+            FradragStrategy.EpsUnder67ÅrOgUførFlyktning(satsFactoryTestPåDato()).beregn(
                 fradrag = listOf(
                     lagFradrag(
                         Fradragstype.ForventetInntekt,
@@ -105,7 +105,7 @@ internal class FradragStrategyTest {
         }
 
         assertThrows<IllegalArgumentException> {
-            FradragStrategy.EpsUnder67ÅrOgUførFlyktning(satsFactoryTest).beregn(
+            FradragStrategy.EpsUnder67ÅrOgUførFlyktning(satsFactoryTestPåDato()).beregn(
                 fradrag = listOf(
                     lagFradrag(
                         Fradragstype.ForventetInntekt,
@@ -166,13 +166,13 @@ internal class FradragStrategyTest {
 
         @Test
         fun `EPS over 67 år bruker garantipensjonsnivå`() {
-            FradragStrategy.EpsOver67År
+            FradragStrategy.EpsOver67År(satsFactoryTestPåDato())
                 .getEpsFribeløp(periode) shouldBe 14674.9166666.plusOrMinus(0.5)
         }
 
         @Test
         fun `EPS under 67 år ufør flyktning bruker ordinær SU-sats`() {
-            FradragStrategy.EpsUnder67ÅrOgUførFlyktning(satsFactoryTest)
+            FradragStrategy.EpsUnder67ÅrOgUførFlyktning(satsFactoryTestPåDato())
                 .getEpsFribeløp(periode) shouldBe 18973.0.plusOrMinus(0.5)
         }
 

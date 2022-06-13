@@ -13,7 +13,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragForMåned
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.satser.Satskategori
-import no.nav.su.se.bakover.test.satsFactoryTest
+import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import java.time.LocalDateTime
 import java.time.Month
 import java.time.ZoneOffset
@@ -45,7 +45,7 @@ internal object TestMånedsberegning : Månedsberegning {
     override val periode: Periode = august(2020)
     override fun equals(other: Any?) = (other as? Månedsberegning)?.let { this.equals(other) } ?: false
     override val måned: Måned = august(2020)
-    override val fullSupplerendeStønadForMåned = satsFactoryTest.høy(august(2021))
+    override val fullSupplerendeStønadForMåned = satsFactoryTestPåDato().høyUføre(august(2021))
 }
 
 internal val TestFradrag = FradragForMåned(

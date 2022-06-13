@@ -26,7 +26,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.plus
-import no.nav.su.se.bakover.test.satsFactoryTest
+import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
@@ -457,7 +457,7 @@ internal class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtb
 
     private fun lagBeregning(vararg periodeBeløpMap: Pair<Periode, Int>): Beregning {
         val fradrag = periodeBeløpMap.map {
-            val sats = satsFactoryTest.høy(it.first.måneder().head).satsForMånedAsDouble
+            val sats = satsFactoryTestPåDato().høyUføre(it.first.måneder().head).satsForMånedAsDouble
             val diff = abs(sats - it.second)
             FradragFactory.nyFradragsperiode(
                 fradragstype = Fradragstype.ForventetInntekt,
@@ -475,7 +475,7 @@ internal class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtb
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = periode,
-                    strategy = BeregningStrategy.BorAlene(satsFactoryTest),
+                    strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
                 ),
             ),
         )

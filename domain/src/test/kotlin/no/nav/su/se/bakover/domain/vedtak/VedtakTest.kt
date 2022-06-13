@@ -34,7 +34,7 @@ import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.formuegrenserFactoryTest
+import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.shouldBeEqualToExceptId
 import org.junit.jupiter.api.Test
@@ -118,7 +118,7 @@ internal class VedtakTest {
                 bosituasjon = bosituasjon,
                 behandlingsPeriode = behandlingsperiode,
             ),
-            formuegrenserFactory = formuegrenserFactoryTest,
+            formuegrenserFactory = formuegrenserFactoryTestPåDato(),
         ).also {
             assert(it.resultat == Resultat.Innvilget)
         }

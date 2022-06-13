@@ -50,7 +50,7 @@ import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import no.nav.su.se.bakover.test.oversendtUtbetalingUtenKvittering
 import no.nav.su.se.bakover.test.plus
 import no.nav.su.se.bakover.test.saksbehandler
-import no.nav.su.se.bakover.test.satsFactoryTest
+import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulertFeilutbetaling
 import no.nav.su.se.bakover.test.simulertUtbetaling
 import no.nav.su.se.bakover.test.stansetSøknadsbehandlingMedÅpenRegulering
@@ -497,7 +497,7 @@ internal class ReguleringServiceImplTest {
             tilbakekrevingService = mock {
                 on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
             },
-            satsFactory = satsFactoryTest,
+            satsFactory = satsFactoryTestPåDato(),
         )
     }
 

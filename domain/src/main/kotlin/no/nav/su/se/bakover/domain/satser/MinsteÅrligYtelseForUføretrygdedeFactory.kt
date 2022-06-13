@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.satser
 
+import no.nav.su.se.bakover.common.erSortertOgUtenDuplikater
 import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.erSammenhengendeSortertOgUtenDuplikater
 import no.nav.su.se.bakover.common.periode.periode
@@ -20,39 +21,61 @@ import java.time.LocalDate
 data class MinsteÅrligYtelseForUføretrygdedeFactory(
     val ordinær: Map<Måned, MinsteÅrligYtelseForUføretrygdedeForMåned>,
     val høy: Map<Måned, MinsteÅrligYtelseForUføretrygdedeForMåned>,
+    val påDato: LocalDate,
 ) {
     companion object {
-        fun createFromFaktorer(
-            ordinær: List<Pair<LocalDate, Faktor>>,
-            høy: List<Pair<LocalDate, Faktor>>,
-        ): MinsteÅrligYtelseForUføretrygdedeFactory {
 
-            fun mapper(satsKategori: Satskategori): Map<Måned, MinsteÅrligYtelseForUføretrygdedeForMåned> {
-                val satser = when (satsKategori) {
-                    Satskategori.ORDINÆR -> ordinær
-                    Satskategori.HØY -> høy
-                }
-                return satser.periodisert().associate { (ikrafttredelse, måned, faktor) ->
+        fun createFromFaktorer(
+            ordinær: List<MinsteÅrligYtelseForUføretrygdedeEndring>,
+            høy: List<MinsteÅrligYtelseForUføretrygdedeEndring>,
+            påDato: LocalDate,
+        ): MinsteÅrligYtelseForUføretrygdedeFactory {
+            val ikrafttredelseMessage: () -> String = {
+                "Ikrafttredelse for minste årlig ytelse for uføretrygdede må være i stigende rekkefølge og uten duplikater, men var: ${ordinær.map { it.virkningstidspunkt }}"
+            }
+            require(ordinær.map { it.ikrafttredelse }.erSortertOgUtenDuplikater(), ikrafttredelseMessage)
+            require(høy.map { it.ikrafttredelse }.erSortertOgUtenDuplikater(), ikrafttredelseMessage)
+
+            val virkningstidspunktMessage: () -> String = {
+                "Virkningstidspunkt for minste årlig ytelse for uføretrygdede må være i stigende rekkefølge og uten duplikater, men var: ${ordinær.map { it.virkningstidspunkt }}"
+            }
+            require(ordinær.map { it.virkningstidspunkt }.erSortertOgUtenDuplikater(), virkningstidspunktMessage)
+            require(høy.map { it.virkningstidspunkt }.erSortertOgUtenDuplikater(), virkningstidspunktMessage)
+
+            return MinsteÅrligYtelseForUføretrygdedeFactory(
+                ordinær = ordinær.periodiserIftVirkningstidspunkt(påDato, Satskategori.ORDINÆR),
+                høy = høy.periodiserIftVirkningstidspunkt(påDato, Satskategori.HØY),
+                påDato = påDato,
+            )
+        }
+
+        private fun List<MinsteÅrligYtelseForUføretrygdedeEndring>.periodiserIftVirkningstidspunkt(
+            senesteIkrafttredelse: LocalDate,
+            satskategori: Satskategori,
+        ): Map<Måned, MinsteÅrligYtelseForUføretrygdedeForMåned> {
+            return filterNot { it.ikrafttredelse > senesteIkrafttredelse }
+                .map { it.virkningstidspunkt to it }
+                .periodisert()
+                .associate { (virkningstidspunkt, måned, minsteÅrligYtelseForUføretrygdedeEndring) ->
                     måned to MinsteÅrligYtelseForUføretrygdedeForMåned(
-                        faktor = faktor,
-                        satsKategori = satsKategori,
-                        ikrafttredelse = ikrafttredelse,
+                        faktor = minsteÅrligYtelseForUføretrygdedeEndring.faktor,
+                        satsKategori = satskategori,
+                        ikrafttredelse = minsteÅrligYtelseForUføretrygdedeEndring.ikrafttredelse,
+                        virkningstidspunkt = virkningstidspunkt.also {
+                            require(virkningstidspunkt == minsteÅrligYtelseForUføretrygdedeEndring.virkningstidspunkt)
+                        },
                         måned = måned,
                     )
                 }
-            }
-
-            return MinsteÅrligYtelseForUføretrygdedeFactory(
-                ordinær = mapper(Satskategori.ORDINÆR),
-                høy = mapper(Satskategori.HØY),
-            )
         }
     }
 
     init {
         assert(ordinær.isNotEmpty())
         assert(høy.isNotEmpty())
+
         assert(ordinær.erSammenhengendeSortertOgUtenDuplikater())
+        assert(høy.erSammenhengendeSortertOgUtenDuplikater())
 
         assert(ordinær.toSortedMap() == ordinær)
         assert(høy.toSortedMap() == høy)
@@ -87,4 +110,13 @@ data class MinsteÅrligYtelseForUføretrygdedeFactory(
         result = 31 * result + høy.hashCode()
         return result
     }
+
+    data class MinsteÅrligYtelseForUføretrygdedeEndring(
+        /** angir datoen endringen skal virke fra og med etter den har trådt i kraft */
+        val virkningstidspunkt: LocalDate,
+        /** angir datoen endringen trer i kraft */
+        val ikrafttredelse: LocalDate,
+        /** Har vært en faktor på 2.28 for ordinær og 2.48 for høy siden 2015 (tar høyde for at de kan endre seg i utakt) */
+        val faktor: Faktor,
+    )
 }

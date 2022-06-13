@@ -22,7 +22,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.formuegrenserFactoryTest
+import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.formuevilkårIkkeVurdert
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
@@ -169,7 +169,7 @@ internal class VilkårsvurderingerTest {
             vilkårsvurderingerSøknadsbehandlingInnvilget(periode = gammel)
                 .let {
                     it.periode shouldBe gammel
-                    it.oppdaterStønadsperiode(Stønadsperiode.create(ny), formuegrenserFactoryTest).periode shouldBe ny
+                    it.oppdaterStønadsperiode(Stønadsperiode.create(ny), formuegrenserFactoryTestPåDato()).periode shouldBe ny
                 }
         }
 
@@ -376,7 +376,7 @@ internal class VilkårsvurderingerTest {
             vilkårsvurderingerRevurderingInnvilget(periode = gammel)
                 .let {
                     it.periode shouldBe gammel
-                    it.oppdaterStønadsperiode(Stønadsperiode.create(ny), formuegrenserFactoryTest).periode shouldBe ny
+                    it.oppdaterStønadsperiode(Stønadsperiode.create(ny), formuegrenserFactoryTestPåDato()).periode shouldBe ny
                 }
         }
 

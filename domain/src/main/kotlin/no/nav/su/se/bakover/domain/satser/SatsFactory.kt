@@ -13,20 +13,28 @@ import java.time.YearMonth
  * - alder) garantipensjon
  */
 interface SatsFactory {
-    fun forSatskategori(
+    fun forSatskategoriUføre(
         måned: Måned,
         satskategori: Satskategori,
-    ): FullSupplerendeStønadForMåned
+    ): FullSupplerendeStønadForMåned.Uføre
 
-    /**
-     * Returnerer en ny factory som opererer med verdiene som var gjeldende [påDato]
-     */
-    fun gjeldende(påDato: LocalDate): SatsFactory
+    /**  Hvordan verden så ut på denne datoen. */
+    val gjeldendePåDato: LocalDate
 
     val formuegrenserFactory: FormuegrenserFactory
 
-    fun høy(måned: Måned): FullSupplerendeStønadForMåned
-    fun ordinær(måned: Måned): FullSupplerendeStønadForMåned
+    /** høy supplerende stønad for uføre */
+    fun høyUføre(måned: Måned): FullSupplerendeStønadForMåned.Uføre
+
+    /** høy supplerende stønad for alder */
+    fun høyAlder(måned: Måned): FullSupplerendeStønadForMåned.Alder
+
+    /** ordinær supplerende stønad for uføre */
+    fun ordinærUføre(måned: Måned): FullSupplerendeStønadForMåned.Uføre
+
+    /** ordinær supplerende stønad for alder */
+    fun ordinærAlder(måned: Måned): FullSupplerendeStønadForMåned.Alder
+
     fun grunnbeløp(dato: LocalDate): GrunnbeløpForMåned {
         return grunnbeløp(Måned.fra(YearMonth.of(dato.year, dato.month)))
     }

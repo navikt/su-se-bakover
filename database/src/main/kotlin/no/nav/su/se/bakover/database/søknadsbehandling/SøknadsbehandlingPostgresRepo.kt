@@ -36,7 +36,7 @@ import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjo
 import no.nav.su.se.bakover.domain.beregning.BeregningMedFradragBeregnetMånedsvis
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.domain.satser.SatsFactory
+import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
@@ -52,7 +52,7 @@ internal class SøknadsbehandlingPostgresRepo(
     private val grunnlagsdataOgVilkårsvurderingerPostgresRepo: GrunnlagsdataOgVilkårsvurderingerPostgresRepo,
     private val avkortingsvarselRepo: AvkortingsvarselPostgresRepo,
     private val clock: Clock,
-    private val satsFactory: SatsFactory,
+    private val satsFactory: SatsFactoryForSupplerendeStønad,
 ) : SøknadsbehandlingRepo {
 
     override fun lagre(søknadsbehandling: Søknadsbehandling, sessionContext: TransactionContext) {
@@ -226,7 +226,7 @@ internal class SøknadsbehandlingPostgresRepo(
         val behandlingsinformasjon = objectMapper.readValue<Behandlingsinformasjon>(string("behandlingsinformasjon"))
         val status = BehandlingsStatus.valueOf(string("status"))
         val oppgaveId = OppgaveId(string("oppgaveId"))
-        val beregning: BeregningMedFradragBeregnetMånedsvis? = stringOrNull("beregning")?.deserialiserBeregning(satsFactory)
+        val beregning: BeregningMedFradragBeregnetMånedsvis? = stringOrNull("beregning")?.deserialiserBeregning(satsFactory.gjeldende(opprettet))
         val simulering = stringOrNull("simulering")?.let { objectMapper.readValue<Simulering>(it) }
         val attesteringer = Attesteringshistorikk.create(objectMapper.readValue(string("attestering")))
         val saksbehandler = stringOrNull("saksbehandler")?.let { NavIdentBruker.Saksbehandler(it) }
