@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
 import no.nav.su.se.bakover.domain.grunnlag.Opplysningspliktgrunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Utenlandsoppholdgrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.periode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
@@ -20,29 +19,11 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOpplysningsplikt
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUtenlandsopphold
+import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
+import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt0
 import java.util.UUID
-
-fun utenlandsoppholdInnvilget(
-    id: UUID = UUID.randomUUID(),
-    opprettet: Tidspunkt = fixedTidspunkt,
-    periode: Periode = år(2021),
-    grunnlag: Utenlandsoppholdgrunnlag? = null,
-): UtenlandsoppholdVilkår.Vurdert {
-    return UtenlandsoppholdVilkår.Vurdert.tryCreate(
-        vurderingsperioder = nonEmptyListOf(
-            VurderingsperiodeUtenlandsopphold.create(
-                id = id,
-                opprettet = opprettet,
-                resultat = Resultat.Innvilget,
-                grunnlag = grunnlag,
-                periode = periode,
-            ),
-        ),
-    ).getOrFail()
-}
 
 fun tilstrekkeligDokumentert(
     id: UUID = UUID.randomUUID(),
@@ -86,24 +67,6 @@ fun utilstrekkeligDokumentert(
             ),
         ),
     )
-}
-
-fun utenlandsoppholdAvslag(
-    id: UUID = UUID.randomUUID(),
-    opprettet: Tidspunkt = fixedTidspunkt,
-    periode: Periode = år(2021),
-): UtenlandsoppholdVilkår.Vurdert {
-    return UtenlandsoppholdVilkår.Vurdert.tryCreate(
-        vurderingsperioder = nonEmptyListOf(
-            VurderingsperiodeUtenlandsopphold.create(
-                id = id,
-                opprettet = opprettet,
-                resultat = Resultat.Avslag,
-                grunnlag = null,
-                periode = periode,
-            ),
-        ),
-    ).getOrFail()
 }
 
 fun formueGrunnlagUtenEps0Innvilget(

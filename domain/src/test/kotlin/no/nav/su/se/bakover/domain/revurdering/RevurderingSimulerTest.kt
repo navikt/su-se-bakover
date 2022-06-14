@@ -18,7 +18,7 @@ import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandl
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simuleringNy
 import no.nav.su.se.bakover.test.simulertUtbetalingOpphør
-import no.nav.su.se.bakover.test.utenlandsoppholdAvslag
+import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows

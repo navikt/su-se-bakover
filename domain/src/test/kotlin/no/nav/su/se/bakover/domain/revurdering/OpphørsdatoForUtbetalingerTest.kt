@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.test.nåtidForSimuleringStub
 import no.nav.su.se.bakover.test.simulertRevurderingOpphørtPgaVilkårFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
-import no.nav.su.se.bakover.test.utenlandsoppholdAvslag
+import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate

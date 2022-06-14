@@ -70,9 +70,9 @@ import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.tilstrekkeligDokumentert
-import no.nav.su.se.bakover.test.utenlandsoppholdAvslag
-import no.nav.su.se.bakover.test.utenlandsoppholdInnvilget
 import no.nav.su.se.bakover.test.vedtakRevurdering
+import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
+import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt12000
 import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
 import org.junit.jupiter.api.Test
