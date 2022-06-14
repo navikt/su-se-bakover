@@ -146,7 +146,7 @@ enum class KlasseKode {
     @Deprecated("Filtreres ut av klient, bakoverkompatabilitet")
     UFOREUT,
 
-    SUALDER; // TODO("simulering_utbetaling_alder legg til faktisk kode")
+    SUALDER;
 }
 
 fun Sakstype.toKlasseKode(): KlasseKode {

@@ -218,7 +218,7 @@ data class OppdragslinjeForKonsistensavstemming(
 )
 
 enum class Fagområde {
-    SUALDER, // TODO("simulering_utbetaling_alder legg til faktisk kode")
+    SUALDER,
     SUUFORE;
 }
 
