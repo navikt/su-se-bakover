@@ -8,9 +8,9 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.test.familiegjenforeningVilkår
-import no.nav.su.se.bakover.test.vurderingsperiodeFamiliegjenforening
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import vurderingsperiodeFamiliegjenforening
 
 private class FamiliegjenforeningTest {
 
