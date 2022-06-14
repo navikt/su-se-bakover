@@ -49,6 +49,7 @@ import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Inngangsvilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
+import no.nav.su.se.bakover.domain.vilkår.PensjonsVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -161,6 +162,10 @@ sealed class Revurdering :
         return KunneIkkeLeggeTilOpplysningsplikt.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
     }
 
+    open fun oppdaterPensjonsvilkårOgMarkerSomVurdert(vilkår: PensjonsVilkår.Vurdert): Either<KunneIkkeLeggeTilPensjonsVilkår, OpprettetRevurdering> {
+        return KunneIkkeLeggeTilPensjonsVilkår.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
+    }
+
     sealed interface KunneIkkeLeggeTilOpplysningsplikt {
         data class UgyldigTilstand(
             val fra: KClass<out Revurdering>,
@@ -168,6 +173,16 @@ sealed class Revurdering :
         ) : KunneIkkeLeggeTilOpplysningsplikt
 
         object HeleBehandlingsperiodenErIkkeVurdert : KunneIkkeLeggeTilOpplysningsplikt
+    }
+
+    sealed interface KunneIkkeLeggeTilPensjonsVilkår {
+        data class UgyldigTilstand(
+            val fra: KClass<out Revurdering>,
+            val til: KClass<out Revurdering> = OpprettetRevurdering::class,
+        ) : KunneIkkeLeggeTilPensjonsVilkår
+
+        object HeleBehandlingsperiodenErIkkeVurdert : KunneIkkeLeggeTilPensjonsVilkår
+        object VilkårKunRelevantForAlder : KunneIkkeLeggeTilPensjonsVilkår
     }
 
     private fun oppdaterOpplysnigspliktInternal(opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert): Either<KunneIkkeLeggeTilOpplysningsplikt, OpprettetRevurdering> {
@@ -181,6 +196,22 @@ sealed class Revurdering :
         return oppdaterOpplysnigspliktInternal(opplysningspliktVilkår).map {
             it.oppdaterInformasjonSomRevurderes(informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Opplysningsplikt))
         }
+    }
+
+    protected fun oppdaterPensjonsVilkårOgMarkerSomVurdertInternal(vilkår: PensjonsVilkår.Vurdert): Either<KunneIkkeLeggeTilPensjonsVilkår, OpprettetRevurdering> {
+        return oppdaterPensjonsVilkårInternal(vilkår)
+            .map { it.oppdaterInformasjonSomRevurderes(informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Pensjon)) }
+    }
+
+    private fun oppdaterPensjonsVilkårInternal(vilkår: PensjonsVilkår.Vurdert): Either<KunneIkkeLeggeTilPensjonsVilkår, OpprettetRevurdering> {
+        if (!periode.fullstendigOverlapp(vilkår.minsteAntallSammenhengendePerioder())) {
+            return KunneIkkeLeggeTilPensjonsVilkår.HeleBehandlingsperiodenErIkkeVurdert.left()
+        }
+        TODO("legg til sakstype på revurdering og sjekk at det er alder")
+        // if(Sakstype.ALDER != sakstype){
+        //     return KunneIkkeLeggeTilPensjonsVilkår.VilkårKunRelevantForAlder.left()
+        // }
+        // oppdaterVilkårsvurderinger(vilkårsvurderinger = vilkårsvurderinger.leggTil(vilkår)).right()
     }
 
     open fun oppdaterBosituasjonOgMarkerSomVurdert(bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>): Either<KunneIkkeLeggeTilBosituasjon, OpprettetRevurdering> =
@@ -2066,6 +2097,7 @@ enum class Revurderingsteg(val vilkår: String) {
     Utenlandsopphold("Utenlandsopphold"),
     Inntekt("Inntekt"),
     Opplysningsplikt("Opplysningsplikt"),
+    Pensjon("Pensjon"),
 }
 
 private fun validerTilIverksettOvergang(

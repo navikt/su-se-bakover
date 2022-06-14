@@ -99,7 +99,8 @@ internal class SøknadsbehandlingJsonTest {
                     "beskrivelse": "TilstrekkeligDokumentasjon"
                   }
                  ]     
-              }
+              },
+              "pensjon": null
           },
           "fritekstTilBrev": "",
           "erLukket": false,
@@ -112,7 +113,7 @@ internal class SøknadsbehandlingJsonTest {
     fun `should serialize to json string`() {
         JSONAssert.assertEquals(
             behandlingJsonString,
-            serialize(søknadsbehandling.toJson(satsFactoryTest)), true
+            serialize(søknadsbehandling.toJson(satsFactoryTest)), true,
         )
     }
 
@@ -178,7 +179,8 @@ internal class SøknadsbehandlingJsonTest {
                 "vurderinger": []
             },
             "utenlandsopphold": null,
-            "opplysningsplikt":null
+            "opplysningsplikt":null,
+            "pensjon": null
           },
           "fritekstTilBrev": "",
           "erLukket": false,

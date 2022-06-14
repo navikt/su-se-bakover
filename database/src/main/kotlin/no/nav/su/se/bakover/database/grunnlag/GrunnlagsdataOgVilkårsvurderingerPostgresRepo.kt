@@ -17,6 +17,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
     private val formueVilkårsvurderingPostgresRepo: FormueVilkårsvurderingPostgresRepo,
     private val utenlandsoppholdVilkårsvurderingPostgresRepo: UtenlandsoppholdVilkårsvurderingPostgresRepo,
     private val opplysningspliktVilkårsvurderingPostgresRepo: OpplysningspliktVilkårsvurderingPostgresRepo,
+    private val pensjonVilkårsvurderingPostgresRepo: PensjonVilkårsvurderingPostgresRepo,
 ) {
     fun lagre(
         behandlingId: UUID,
@@ -59,6 +60,14 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
                 vilkår = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.opplysningspliktVilkår(),
                 tx = tx,
             )
+            grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.pensjonsVilkår()
+                .tap {
+                    pensjonVilkårsvurderingPostgresRepo.lagre(
+                        behandlingId = behandlingId,
+                        vilkår = it,
+                        tx = tx,
+                    )
+                }
         }
     }
 
@@ -78,6 +87,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
                         formue = formueVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                         utenlandsopphold = utenlandsoppholdVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                         opplysningsplikt = opplysningspliktVilkårsvurderingPostgresRepo.hent(behandlingId, session),
+                        pensjon = pensjonVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                     )
                 }
                 Sakstype.UFØRE -> {
@@ -113,6 +123,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
                         formue = formueVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                         utenlandsopphold = utenlandsoppholdVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                         opplysningsplikt = opplysningspliktVilkårsvurderingPostgresRepo.hent(behandlingId, session),
+                        pensjon = pensjonVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                     )
                 }
                 Sakstype.UFØRE -> {

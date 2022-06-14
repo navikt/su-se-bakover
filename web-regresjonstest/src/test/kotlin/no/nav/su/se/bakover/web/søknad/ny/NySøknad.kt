@@ -33,6 +33,19 @@ fun ApplicationTestBuilder.nyDigitalSøknad(
     )
 }
 
+fun ApplicationTestBuilder.nyDigitalAlderssøknad(
+    brukerFnr: String = SharedRegressionTestData.fnr,
+    epsFnr: String = SharedRegressionTestData.epsFnr,
+): String {
+    return nyAlderssøknad(
+        requestJson = NySøknadJson.Request.nyDigitalAlderssøknad(
+            brukerFnr = brukerFnr,
+            epsFnr = epsFnr,
+        ),
+        brukerrolle = Brukerrolle.Veileder,
+    )
+}
+
 /**
  * Emulerer at en veileder sender inn en digital søknad
  */
@@ -44,7 +57,7 @@ fun ApplicationTestBuilder.nyDigitalSøknadOgVerifiser(
         requestJson = NySøknadJson.Request.nyDigitalSøknad(
             fnr = fnr,
         ),
-        expectedResponseJson = NySøknadJson.Response.nyDititalSøknad(
+        expectedResponseJson = NySøknadJson.Response.nyDititalUføreSøknad(
             fnr = fnr,
             saksnummer = expectedSaksnummerInResponse,
         ),
@@ -111,6 +124,26 @@ private fun ApplicationTestBuilder.nySøknad(
         defaultRequest(
             HttpMethod.Post,
             "soknad/ufore",
+            listOf(brukerrolle),
+        ) {
+            setBody(requestJson)
+        }.apply {
+            withClue("body=${this.bodyAsText()}") {
+                status shouldBe HttpStatusCode.Created
+                contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
+            }
+        }.bodyAsText()
+    }
+}
+
+private fun ApplicationTestBuilder.nyAlderssøknad(
+    requestJson: String,
+    brukerrolle: Brukerrolle, // TODO jah: Ref Auth; Åpne for å teste kode 6/7/egen ansatt.
+): String {
+    return runBlocking {
+        defaultRequest(
+            HttpMethod.Post,
+            "soknad/alder",
             listOf(brukerrolle),
         ) {
             setBody(requestJson)

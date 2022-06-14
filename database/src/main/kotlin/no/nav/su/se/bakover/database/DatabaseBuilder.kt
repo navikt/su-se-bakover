@@ -15,6 +15,8 @@ import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagsdataOgVilkårsvurderingerPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.OpplysningspliktGrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.OpplysningspliktVilkårsvurderingPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.PensjonVilkårsvurderingPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.PensjonsgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UtenlandsoppholdVilkårsvurderingPostgresRepo
@@ -133,7 +135,11 @@ object DatabaseBuilder {
             opplysningspliktVilkårsvurderingPostgresRepo = OpplysningspliktVilkårsvurderingPostgresRepo(
                 dbMetrics = dbMetrics,
                 opplysningspliktGrunnlagRepo = OpplysningspliktGrunnlagPostgresRepo(dbMetrics),
-            )
+            ),
+            pensjonVilkårsvurderingPostgresRepo = PensjonVilkårsvurderingPostgresRepo(
+                dbMetrics = dbMetrics,
+                pensjonsgrunnlagPostgresRepo = PensjonsgrunnlagPostgresRepo(dbMetrics),
+            ),
         )
 
         val søknadsbehandlingRepo = SøknadsbehandlingPostgresRepo(
@@ -198,7 +204,7 @@ object DatabaseBuilder {
                 revurderingRepo = revurderingRepo,
                 vedtakPostgresRepo = vedtakRepo,
                 klageRepo = klageRepo,
-                reguleringRepo = reguleringRepo
+                reguleringRepo = reguleringRepo,
             ),
             person = PersonPostgresRepo(
                 sessionFactory = sessionFactory,
@@ -217,7 +223,7 @@ object DatabaseBuilder {
             avkortingsvarselRepo = avkortingsvarselRepo,
             reguleringRepo = reguleringRepo,
             tilbakekrevingRepo = tilbakekrevingRepo,
-            jobContextRepo = JobContextPostgresRepo(sessionFactory)
+            jobContextRepo = JobContextPostgresRepo(sessionFactory),
         )
     }
 }

@@ -21,7 +21,8 @@ fun tomGrunnlagsdataOgVilkårsvurderingerResponse(): String {
         ]
      },
       "utenlandsopphold":null,
-      "opplysningsplikt":null
+      "opplysningsplikt":null,
+      "pensjon":null
     }
     """.trimIndent()
 }

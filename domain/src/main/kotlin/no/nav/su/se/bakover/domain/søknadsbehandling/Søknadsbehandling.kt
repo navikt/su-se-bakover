@@ -41,6 +41,7 @@ import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling.Vilkårsvurdert.Companion.opprett
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
+import no.nav.su.se.bakover.domain.vilkår.PensjonsVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -238,6 +239,24 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         object HeleBehandlingsperiodenErIkkeVurdert : KunneIkkeLeggeTilOpplysningsplikt
     }
 
+    open fun leggTilPensjonsVilkår(
+        vilkår: PensjonsVilkår.Vurdert,
+        clock: Clock,
+        formuegrenserFactory: FormuegrenserFactory,
+    ): Either<KunneIkkeLeggeTilPensjonsVilkår, Vilkårsvurdert> {
+        return KunneIkkeLeggeTilPensjonsVilkår.UgyldigTilstand(this::class).left()
+    }
+
+    sealed interface KunneIkkeLeggeTilPensjonsVilkår {
+        data class UgyldigTilstand(
+            val fra: KClass<out Søknadsbehandling>,
+            val til: KClass<out Søknadsbehandling> = Vilkårsvurdert::class,
+        ) : KunneIkkeLeggeTilPensjonsVilkår
+
+        object HeleBehandlingsperiodenErIkkeVurdert : KunneIkkeLeggeTilPensjonsVilkår
+        object VilkårKunRelevantForAlder : KunneIkkeLeggeTilPensjonsVilkår
+    }
+
     open fun beregn(
         begrunnelse: String?,
         clock: Clock,
@@ -298,6 +317,18 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         return when {
             !periode.fullstendigOverlapp(opplysningspliktVilkår.minsteAntallSammenhengendePerioder()) -> {
                 KunneIkkeLeggeTilOpplysningsplikt.HeleBehandlingsperiodenErIkkeVurdert.left()
+            }
+            else -> Unit.right()
+        }
+    }
+
+    protected open fun valider(vilkår: PensjonsVilkår.Vurdert): Either<KunneIkkeLeggeTilPensjonsVilkår, Unit> {
+        return when {
+            Sakstype.ALDER != sakstype -> {
+                KunneIkkeLeggeTilPensjonsVilkår.VilkårKunRelevantForAlder.left()
+            }
+            !periode.fullstendigOverlapp(vilkår.minsteAntallSammenhengendePerioder()) -> {
+                KunneIkkeLeggeTilPensjonsVilkår.HeleBehandlingsperiodenErIkkeVurdert.left()
             }
             else -> Unit.right()
         }
@@ -670,6 +701,15 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
             }
 
+            override fun leggTilPensjonsVilkår(
+                vilkår: PensjonsVilkår.Vurdert,
+                clock: Clock,
+                formuegrenserFactory: FormuegrenserFactory,
+            ): Either<KunneIkkeLeggeTilPensjonsVilkår, Vilkårsvurdert> {
+                return valider(vilkår)
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(vilkår), clock) }
+            }
+
             override fun leggTilFormuevilkår(
                 vilkår: Vilkår.Formue.Vurdert,
                 clock: Clock,
@@ -822,6 +862,15 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
             }
 
+            override fun leggTilPensjonsVilkår(
+                vilkår: PensjonsVilkår.Vurdert,
+                clock: Clock,
+                formuegrenserFactory: FormuegrenserFactory,
+            ): Either<KunneIkkeLeggeTilPensjonsVilkår, Vilkårsvurdert> {
+                return valider(vilkår)
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(vilkår), clock) }
+            }
+
             override fun leggTilFormuevilkår(
                 vilkår: Vilkår.Formue.Vurdert,
                 clock: Clock,
@@ -924,6 +973,15 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             ): Either<KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
                 return valider(opplysningspliktVilkår)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
+            }
+
+            override fun leggTilPensjonsVilkår(
+                vilkår: PensjonsVilkår.Vurdert,
+                clock: Clock,
+                formuegrenserFactory: FormuegrenserFactory,
+            ): Either<KunneIkkeLeggeTilPensjonsVilkår, Vilkårsvurdert> {
+                return valider(vilkår)
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(vilkår), clock) }
             }
 
             override fun leggTilFormuevilkår(
@@ -1123,6 +1181,15 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
             }
 
+            override fun leggTilPensjonsVilkår(
+                vilkår: PensjonsVilkår.Vurdert,
+                clock: Clock,
+                formuegrenserFactory: FormuegrenserFactory,
+            ): Either<KunneIkkeLeggeTilPensjonsVilkår, Vilkårsvurdert> {
+                return valider(vilkår)
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(vilkår), clock) }
+            }
+
             override fun leggTilFormuevilkår(
                 vilkår: Vilkår.Formue.Vurdert,
                 clock: Clock,
@@ -1311,6 +1378,15 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             ): Either<KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
                 return valider(opplysningspliktVilkår)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
+            }
+
+            override fun leggTilPensjonsVilkår(
+                vilkår: PensjonsVilkår.Vurdert,
+                clock: Clock,
+                formuegrenserFactory: FormuegrenserFactory,
+            ): Either<KunneIkkeLeggeTilPensjonsVilkår, Vilkårsvurdert> {
+                return valider(vilkår)
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(vilkår), clock) }
             }
 
             override fun leggTilFormuevilkår(
@@ -1558,6 +1634,15 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         ): Either<KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
             return valider(opplysningspliktVilkår)
                 .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
+        }
+
+        override fun leggTilPensjonsVilkår(
+            vilkår: PensjonsVilkår.Vurdert,
+            clock: Clock,
+            formuegrenserFactory: FormuegrenserFactory,
+        ): Either<KunneIkkeLeggeTilPensjonsVilkår, Vilkårsvurdert> {
+            return valider(vilkår)
+                .map { vilkårsvurder(vilkårsvurderinger.leggTil(vilkår), clock) }
         }
 
         override fun leggTilFormuevilkår(
@@ -2082,6 +2167,15 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
             }
 
+            override fun leggTilPensjonsVilkår(
+                vilkår: PensjonsVilkår.Vurdert,
+                clock: Clock,
+                formuegrenserFactory: FormuegrenserFactory,
+            ): Either<KunneIkkeLeggeTilPensjonsVilkår, Vilkårsvurdert> {
+                return valider(vilkår)
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(vilkår), clock) }
+            }
+
             override fun leggTilFormuevilkår(
                 vilkår: Vilkår.Formue.Vurdert,
                 clock: Clock,
@@ -2275,6 +2369,15 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
                 }
 
+                override fun leggTilPensjonsVilkår(
+                    vilkår: PensjonsVilkår.Vurdert,
+                    clock: Clock,
+                    formuegrenserFactory: FormuegrenserFactory,
+                ): Either<KunneIkkeLeggeTilPensjonsVilkår, Vilkårsvurdert> {
+                    return valider(vilkår)
+                        .map { vilkårsvurder(vilkårsvurderinger.leggTil(vilkår), clock) }
+                }
+
                 override fun leggTilFormuevilkår(
                     vilkår: Vilkår.Formue.Vurdert,
                     clock: Clock,
@@ -2407,6 +2510,15 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 ): Either<KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
                     return valider(opplysningspliktVilkår)
                         .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
+                }
+
+                override fun leggTilPensjonsVilkår(
+                    vilkår: PensjonsVilkår.Vurdert,
+                    clock: Clock,
+                    formuegrenserFactory: FormuegrenserFactory,
+                ): Either<KunneIkkeLeggeTilPensjonsVilkår, Vilkårsvurdert> {
+                    return valider(vilkår)
+                        .map { vilkårsvurder(vilkårsvurderinger.leggTil(vilkår), clock) }
                 }
 
                 override fun leggTilFormuevilkår(

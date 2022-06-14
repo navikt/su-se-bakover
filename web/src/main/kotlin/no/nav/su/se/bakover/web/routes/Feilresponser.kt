@@ -14,7 +14,7 @@ import kotlin.reflect.KClass
 internal object Feilresponser {
     val ugyldigTypeSak = BadRequest.errorJson(
         "Ugyldig type sak",
-        "ugyldig_type_sak"
+        "ugyldig_type_sak",
     )
     val fantIkkeBehandling = NotFound.errorJson(
         "Fant ikke behandling",
@@ -61,7 +61,12 @@ internal object Feilresponser {
 
     val vilkårMåVurderesForHeleBehandlingsperioden = BadRequest.errorJson(
         "Vilkår må vurderes for hele behandlingsperioden",
-        "vilkår_må_vurderes_for_hele_behandlingsperioden"
+        "vilkår_må_vurderes_for_hele_behandlingsperioden",
+    )
+
+    val vilkårKunRelevantForAlder = BadRequest.errorJson(
+        "Vilkår er kun relevant for alderssaker!",
+        "vilkår_kun_relevant_for_alder"
     )
 
     val søknadHarBehandlingFraFør = BadRequest.errorJson(

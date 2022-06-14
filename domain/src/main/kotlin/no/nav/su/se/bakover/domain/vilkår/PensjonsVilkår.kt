@@ -8,33 +8,34 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.harOverlappende
+import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.domain.CopyArgs
-import no.nav.su.se.bakover.domain.grunnlag.Utenlandsoppholdgrunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Pensjonsgrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
 import java.time.LocalDate
 import java.util.UUID
 
-sealed class UtenlandsoppholdVilkår : Vilkår() {
-    override val vilkår = Inngangsvilkår.Utenlandsopphold
-    abstract val grunnlag: List<Utenlandsoppholdgrunnlag>
+sealed class PensjonsVilkår : Vilkår() {
+    override val vilkår = Inngangsvilkår.Pensjon
+    abstract val grunnlag: List<Pensjonsgrunnlag>
 
-    abstract override fun lagTidslinje(periode: Periode): UtenlandsoppholdVilkår
-    abstract fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): UtenlandsoppholdVilkår
-    abstract override fun slåSammenLikePerioder(): UtenlandsoppholdVilkår
+    abstract override fun lagTidslinje(periode: Periode): PensjonsVilkår
+    abstract fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): PensjonsVilkår
+    abstract override fun slåSammenLikePerioder(): PensjonsVilkår
 
-    object IkkeVurdert : UtenlandsoppholdVilkår() {
+    object IkkeVurdert : PensjonsVilkår() {
         override val resultat: Resultat = Resultat.Uavklart
         override val erAvslag = false
         override val erInnvilget = false
-        override val grunnlag = emptyList<Utenlandsoppholdgrunnlag>()
-        override fun lagTidslinje(periode: Periode): UtenlandsoppholdVilkår {
+        override val grunnlag = emptyList<Pensjonsgrunnlag>()
+        override fun lagTidslinje(periode: Periode): PensjonsVilkår {
             return this
         }
 
         override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): IkkeVurdert = this
-        override fun slåSammenLikePerioder(): UtenlandsoppholdVilkår {
+        override fun slåSammenLikePerioder(): PensjonsVilkår {
             return this
         }
 
@@ -45,11 +46,11 @@ sealed class UtenlandsoppholdVilkår : Vilkår() {
     }
 
     data class Vurdert private constructor(
-        val vurderingsperioder: Nel<VurderingsperiodeUtenlandsopphold>,
-    ) : UtenlandsoppholdVilkår() {
+        val vurderingsperioder: Nel<VurderingsperiodePensjon>,
+    ) : PensjonsVilkår() {
 
-        override val grunnlag: List<Utenlandsoppholdgrunnlag> = vurderingsperioder.mapNotNull { it.grunnlag }
-        override fun lagTidslinje(periode: Periode): UtenlandsoppholdVilkår {
+        override val grunnlag: List<Pensjonsgrunnlag> = vurderingsperioder.mapNotNull { it.grunnlag }
+        override fun lagTidslinje(periode: Periode): PensjonsVilkår {
             return copy(
                 vurderingsperioder = Nel.fromListUnsafe(
                     Tidslinje(
@@ -78,36 +79,40 @@ sealed class UtenlandsoppholdVilkår : Vilkår() {
             return other is Vurdert && vurderingsperioder.erLik(other.vurderingsperioder)
         }
 
+        fun minsteAntallSammenhengendePerioder(): List<Periode> {
+            return vurderingsperioder.map { it.periode }.minsteAntallSammenhengendePerioder()
+        }
+
         companion object {
             fun tryCreate(
-                vurderingsperioder: Nel<VurderingsperiodeUtenlandsopphold>,
-            ): Either<UgyldigUtenlandsoppholdVilkår, Vurdert> {
+                vurderingsperioder: Nel<VurderingsperiodePensjon>,
+            ): Either<KunneIkkeLagePensjonsVilkår, Vurdert> {
                 if (vurderingsperioder.harOverlappende()) {
-                    return UgyldigUtenlandsoppholdVilkår.OverlappendeVurderingsperioder.left()
+                    return KunneIkkeLagePensjonsVilkår.OverlappendeVurderingsperioder.left()
                 }
                 return Vurdert(vurderingsperioder.kronologisk()).right()
             }
 
             fun createFromVilkårsvurderinger(
-                vurderingsperioder: Nel<VurderingsperiodeUtenlandsopphold>,
+                vurderingsperioder: Nel<VurderingsperiodePensjon>,
             ): Vurdert =
                 tryCreateFromVurderingsperioder(vurderingsperioder).getOrHandle { throw IllegalArgumentException(it.toString()) }
 
             fun tryCreateFromVurderingsperioder(
-                vurderingsperioder: Nel<VurderingsperiodeUtenlandsopphold>,
-            ): Either<UgyldigUtenlandsoppholdVilkår, Vurdert> {
+                vurderingsperioder: Nel<VurderingsperiodePensjon>,
+            ): Either<KunneIkkeLagePensjonsVilkår, Vurdert> {
                 if (vurderingsperioder.harOverlappende()) {
-                    return UgyldigUtenlandsoppholdVilkår.OverlappendeVurderingsperioder.left()
+                    return KunneIkkeLagePensjonsVilkår.OverlappendeVurderingsperioder.left()
                 }
                 return Vurdert(vurderingsperioder.kronologisk()).right()
             }
         }
 
-        sealed class UgyldigUtenlandsoppholdVilkår {
-            object OverlappendeVurderingsperioder : UgyldigUtenlandsoppholdVilkår()
+        sealed class UgyldigPensjonsVilkår {
+            object OverlappendeVurderingsperioder : UgyldigPensjonsVilkår()
         }
 
-        override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): UtenlandsoppholdVilkår {
+        override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): PensjonsVilkår {
             check(vurderingsperioder.count() == 1) { "Kan ikke oppdatere stønadsperiode for vilkår med med enn èn vurdering" }
             return copy(
                 vurderingsperioder = vurderingsperioder.map {
@@ -116,21 +121,21 @@ sealed class UtenlandsoppholdVilkår : Vilkår() {
             )
         }
 
-        override fun slåSammenLikePerioder(): UtenlandsoppholdVilkår {
+        override fun slåSammenLikePerioder(): PensjonsVilkår {
             return copy(vurderingsperioder = vurderingsperioder.slåSammenLikePerioder())
         }
     }
 }
 
-data class VurderingsperiodeUtenlandsopphold private constructor(
+data class VurderingsperiodePensjon private constructor(
     override val id: UUID = UUID.randomUUID(),
     override val opprettet: Tidspunkt,
     override val resultat: Resultat,
-    override val grunnlag: Utenlandsoppholdgrunnlag?,
+    override val grunnlag: Pensjonsgrunnlag?,
     override val periode: Periode,
-) : Vurderingsperiode(), KanPlasseresPåTidslinje<VurderingsperiodeUtenlandsopphold> {
+) : Vurderingsperiode(), KanPlasseresPåTidslinje<VurderingsperiodePensjon> {
 
-    fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): VurderingsperiodeUtenlandsopphold {
+    fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): VurderingsperiodePensjon {
         return create(
             id = id,
             opprettet = opprettet,
@@ -140,7 +145,7 @@ data class VurderingsperiodeUtenlandsopphold private constructor(
         )
     }
 
-    override fun copy(args: CopyArgs.Tidslinje): VurderingsperiodeUtenlandsopphold = when (args) {
+    override fun copy(args: CopyArgs.Tidslinje): VurderingsperiodePensjon = when (args) {
         CopyArgs.Tidslinje.Full -> {
             copy(
                 id = UUID.randomUUID(),
@@ -160,13 +165,9 @@ data class VurderingsperiodeUtenlandsopphold private constructor(
     }
 
     override fun erLik(other: Vurderingsperiode): Boolean {
-        return other is VurderingsperiodeUtenlandsopphold &&
+        return other is VurderingsperiodePensjon &&
             resultat == other.resultat &&
-            when {
-                grunnlag != null && other.grunnlag != null -> grunnlag.erLik(other.grunnlag)
-                grunnlag == null && other.grunnlag == null -> true
-                else -> false
-            }
+            grunnlag == other.grunnlag
     }
 
     companion object {
@@ -174,9 +175,9 @@ data class VurderingsperiodeUtenlandsopphold private constructor(
             id: UUID = UUID.randomUUID(),
             opprettet: Tidspunkt,
             resultat: Resultat,
-            grunnlag: Utenlandsoppholdgrunnlag?,
+            grunnlag: Pensjonsgrunnlag?,
             periode: Periode,
-        ): VurderingsperiodeUtenlandsopphold {
+        ): VurderingsperiodePensjon {
             return tryCreate(id, opprettet, resultat, grunnlag, periode).getOrHandle {
                 throw IllegalArgumentException(it.toString())
             }
@@ -186,15 +187,15 @@ data class VurderingsperiodeUtenlandsopphold private constructor(
             id: UUID = UUID.randomUUID(),
             opprettet: Tidspunkt,
             resultat: Resultat,
-            grunnlag: Utenlandsoppholdgrunnlag?,
+            grunnlag: Pensjonsgrunnlag?,
             vurderingsperiode: Periode,
-        ): Either<UgyldigVurderingsperiode, VurderingsperiodeUtenlandsopphold> {
+        ): Either<KunneIkkeLagePensjonsVilkår.Vurderingsperiode, VurderingsperiodePensjon> {
 
             grunnlag?.let {
-                if (vurderingsperiode != it.periode) return UgyldigVurderingsperiode.PeriodeForGrunnlagOgVurderingErForskjellig.left()
+                if (vurderingsperiode != it.periode) return KunneIkkeLagePensjonsVilkår.Vurderingsperiode.PeriodeForGrunnlagOgVurderingErForskjellig.left()
             }
 
-            return VurderingsperiodeUtenlandsopphold(
+            return VurderingsperiodePensjon(
                 id = id,
                 opprettet = opprettet,
                 resultat = resultat,
@@ -203,8 +204,12 @@ data class VurderingsperiodeUtenlandsopphold private constructor(
             ).right()
         }
     }
+}
 
-    sealed class UgyldigVurderingsperiode {
-        object PeriodeForGrunnlagOgVurderingErForskjellig : UgyldigVurderingsperiode()
+sealed interface KunneIkkeLagePensjonsVilkår {
+    sealed interface Vurderingsperiode : KunneIkkeLagePensjonsVilkår {
+        object PeriodeForGrunnlagOgVurderingErForskjellig : Vurderingsperiode
     }
+
+    object OverlappendeVurderingsperioder : KunneIkkeLagePensjonsVilkår
 }

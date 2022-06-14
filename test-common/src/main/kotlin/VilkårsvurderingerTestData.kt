@@ -15,12 +15,14 @@ import no.nav.su.se.bakover.domain.grunnlag.Utenlandsoppholdgrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.periode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
+import no.nav.su.se.bakover.domain.vilkår.PensjonsVilkår
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOpplysningsplikt
+import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodePensjon
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUtenlandsopphold
 import java.util.UUID
 
@@ -154,6 +156,24 @@ fun tilstrekkeligDokumentert(
     )
 }
 
+fun pensjonsVilkårInnvilget(
+    id: UUID = UUID.randomUUID(),
+    opprettet: Tidspunkt = fixedTidspunkt,
+    periode: Periode = år(2021),
+): PensjonsVilkår.Vurdert {
+    return PensjonsVilkår.Vurdert.createFromVilkårsvurderinger(
+        vurderingsperioder = nonEmptyListOf(
+            VurderingsperiodePensjon.create(
+                id = id,
+                opprettet = opprettet,
+                resultat = Resultat.Innvilget,
+                grunnlag = null,
+                periode = periode,
+            ),
+        ),
+    )
+}
+
 fun utilstrekkeligDokumentert(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
@@ -258,7 +278,7 @@ fun avslåttUførevilkårUtenGrunnlag(
 fun formueGrunnlagUtenEps0Innvilget(
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = år(2021),
-    bosituasjon: NonEmptyList<Grunnlag.Bosituasjon.Fullstendig>
+    bosituasjon: NonEmptyList<Grunnlag.Bosituasjon.Fullstendig>,
 ): Formuegrunnlag {
     val bosituasjonsperiode = bosituasjon.toList().periode()
     require(bosituasjonsperiode == periode) {
@@ -287,7 +307,7 @@ fun formueGrunnlagUtenEps0Innvilget(
 fun formueGrunnlagMedEps0Innvilget(
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = år(2021),
-    bosituasjon: NonEmptyList<Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer>
+    bosituasjon: NonEmptyList<Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer>,
 ): Formuegrunnlag {
     val bosituasjonsperiode = bosituasjon.toList().periode()
     require(bosituasjonsperiode == periode) {
