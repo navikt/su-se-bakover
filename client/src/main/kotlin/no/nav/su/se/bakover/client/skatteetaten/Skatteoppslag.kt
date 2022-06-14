@@ -3,13 +3,18 @@ package no.nav.su.se.bakover.client.skatteetaten
 import arrow.core.Either
 import no.nav.su.se.bakover.client.AccessToken
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.SamletSkattegrunnlag
+import no.nav.su.se.bakover.domain.Skattegrunnlag
 
 interface Skatteoppslag {
-    fun hentSamletSkattegrunnlag(accessToken: AccessToken, fnr: Fnr): Either<SkatteoppslagFeil, SamletSkattegrunnlag>
+    fun hentSamletSkattegrunnlag(accessToken: AccessToken, fnr: Fnr): Either<SkatteoppslagFeil, Skattegrunnlag>
 }
 
 sealed class SkatteoppslagFeil {
-    data class KunneIkkeHenteSkattedata(val statusCode: Int, val feilmelding: String) : SkatteoppslagFeil()
     data class Nettverksfeil(val throwable: Throwable) : SkatteoppslagFeil()
+    object FantIkkePerson : SkatteoppslagFeil()
+    object FantIkkeSkattegrunnlagForGittÅr : SkatteoppslagFeil()
+    object SkattegrunnlagFinnesIkkeLenger : SkatteoppslagFeil()
+    object ApiFeil : SkatteoppslagFeil()
+    object MappingFeil : SkatteoppslagFeil()
+    object DeserializeringFeil : SkatteoppslagFeil()
 }
