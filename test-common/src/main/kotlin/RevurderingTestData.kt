@@ -43,6 +43,7 @@ import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
+import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import java.time.Clock
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit

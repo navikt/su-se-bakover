@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.harAlleMånederMerknadForAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
-import no.nav.su.se.bakover.test.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
@@ -23,6 +22,7 @@ import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
+import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 

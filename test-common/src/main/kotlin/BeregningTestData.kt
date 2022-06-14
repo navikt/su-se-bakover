@@ -17,6 +17,8 @@ import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.utledBeregningsstrategi
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt
+import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt0
 
 /**
  * forventet inntekt 1 000 000

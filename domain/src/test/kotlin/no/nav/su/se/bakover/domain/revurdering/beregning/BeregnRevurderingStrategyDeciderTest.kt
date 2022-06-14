@@ -21,11 +21,9 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.test.TikkendeKlokke
-import no.nav.su.se.bakover.test.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.innvilgetUførevilkår
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
@@ -34,6 +32,8 @@ import no.nav.su.se.bakover.test.utenlandsoppholdAvslag
 import no.nav.su.se.bakover.test.utenlandsoppholdInnvilget
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
+import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
+import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkår
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows

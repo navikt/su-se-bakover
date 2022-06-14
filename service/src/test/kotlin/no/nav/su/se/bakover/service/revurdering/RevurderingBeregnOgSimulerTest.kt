@@ -26,7 +26,6 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.TikkendeKlokke
-import no.nav.su.se.bakover.test.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.fixedClock
@@ -48,6 +47,7 @@ import no.nav.su.se.bakover.test.underkjentInnvilgetRevurderingFraInnvilgetSøkn
 import no.nav.su.se.bakover.test.utenlandsoppholdAvslag
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
+import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any

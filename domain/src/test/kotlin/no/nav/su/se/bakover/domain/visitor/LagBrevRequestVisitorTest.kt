@@ -59,7 +59,6 @@ import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
-import no.nav.su.se.bakover.test.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
@@ -80,6 +79,7 @@ import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.tilstrekkeligDokumentert
 import no.nav.su.se.bakover.test.utenlandsoppholdInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
+import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows

@@ -25,7 +25,6 @@ import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.test.TikkendeKlokke
-import no.nav.su.se.bakover.test.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
@@ -44,6 +43,7 @@ import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakRevurderingIverksattInnvilget
 import no.nav.su.se.bakover.test.vedtakRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
+import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.time.Clock

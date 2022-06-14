@@ -23,9 +23,9 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.innvilgetUførevilkår
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
+import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkår
 import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.periode

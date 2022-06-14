@@ -15,6 +15,8 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt
+import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt0
 import java.time.Clock
 import java.time.temporal.ChronoUnit
 import java.util.UUID

@@ -31,7 +31,6 @@ import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
-import no.nav.su.se.bakover.test.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.test.epsFnr
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -43,6 +42,7 @@ import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.revurderingTilAttestering
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.stønadsperiode2021
+import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull

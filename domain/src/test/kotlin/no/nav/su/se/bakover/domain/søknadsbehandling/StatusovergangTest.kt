@@ -21,8 +21,6 @@ import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.formuevilkårIkkeVurdert
 import no.nav.su.se.bakover.test.formuevilkårUtenEps0Innvilget
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.innvilgetUførevilkår
-import no.nav.su.se.bakover.test.innvilgetUførevilkårForventetInntekt12000
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.shouldBeType
@@ -37,6 +35,8 @@ import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.tilstrekkeligDokumentert
 import no.nav.su.se.bakover.test.utenlandsoppholdInnvilget
 import no.nav.su.se.bakover.test.utilstrekkeligDokumentert
+import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkår
+import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt12000
 import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test

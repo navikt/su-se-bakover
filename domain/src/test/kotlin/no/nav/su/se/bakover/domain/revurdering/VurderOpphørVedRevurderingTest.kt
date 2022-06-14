@@ -19,7 +19,6 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
-import no.nav.su.se.bakover.test.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.beregning
 import no.nav.su.se.bakover.test.beregningAvslagForHøyInntekt
 import no.nav.su.se.bakover.test.beregningAvslagUnderMinstebeløp
@@ -28,6 +27,7 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
+import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.vilkårsvurderingerRevurderingInnvilget
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
