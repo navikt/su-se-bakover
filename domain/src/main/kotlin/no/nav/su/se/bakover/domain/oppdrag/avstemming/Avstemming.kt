@@ -91,7 +91,7 @@ sealed class Avstemming {
                         .map { it.sakstype.toFagområde() }
                         .groupBy { it }.keys
                     require(byFagområde.count() == 1) {
-                        "Avstemming kan kun gjøres for ett fagområde om gangen, fant utbetalinger for føldende fagområder: $byFagområde"
+                        "Avstemming kan kun gjøres for ett fagområde om gangen, fant utbetalinger for følgende fagområder: $byFagområde"
                     }
                     require(byFagområde.single() == fagområde) {
                         "Utbetalingsliste inneholder utbetalinger fra andre fagområder enn valgt fagområde: $fagområde"
