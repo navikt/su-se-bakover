@@ -63,7 +63,8 @@ internal class ForhåndsvarslingRouteTest {
                     JSONAssert.assertEquals(
                         """
                     {
-                        "message":"Bruker mangler en av de tillatte rollene: [Saksbehandler]"
+                        "message":"Bruker mangler en av de tillatte rollene: [Saksbehandler]",
+                        "code":"mangler_rolle"
                     }
                         """.trimIndent(),
                         bodyAsText(),
@@ -141,7 +142,8 @@ internal class ForhåndsvarslingRouteTest {
                     JSONAssert.assertEquals(
                         """
                     {
-                        "message":"Bruker mangler en av de tillatte rollene: [Saksbehandler]"
+                        "message":"Bruker mangler en av de tillatte rollene: [Saksbehandler]",
+                        "code":"mangler_rolle"
                     }
                         """.trimIndent(),
                         bodyAsText(),

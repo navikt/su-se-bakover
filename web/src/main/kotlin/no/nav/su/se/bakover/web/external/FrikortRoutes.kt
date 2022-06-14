@@ -4,10 +4,10 @@ import arrow.core.Either
 import arrow.core.getOrHandle
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
-import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.web.Resultat
@@ -46,10 +46,17 @@ internal fun Route.frikortVedtakRoutes(
             }
             ?: Tidspunkt.now(clock).toLocalDate(zoneIdOslo)
         val aktiveBehandlinger = vedtakService.hentAktiveFnr(aktivDato)
-        call.respond(object {
-            val dato = aktivDato.toFrikortFormat()
-            val fnr = aktiveBehandlinger
-        })
+        call.svar(
+            Resultat.json(
+                HttpStatusCode.OK,
+                serialize(
+                    object {
+                        val dato = aktivDato.toFrikortFormat()
+                        val fnr = aktiveBehandlinger
+                    },
+                ),
+            ),
+        )
     }
 }
 
