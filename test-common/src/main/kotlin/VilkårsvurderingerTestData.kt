@@ -32,6 +32,8 @@ fun vilkårsvurderingSøknadsbehandlingIkkeVurdert(): Vilkårsvurderinger.Søkna
     return Vilkårsvurderinger.Søknadsbehandling.Uføre.ikkeVurdert()
 }
 
+fun vilkårsvurderingSøknadsbehandlingIkkeVurdertAlder() = Vilkårsvurderinger.Søknadsbehandling.Alder()
+
 fun vilkårsvurderingRevurderingIkkeVurdert(): Vilkårsvurderinger.Revurdering.Uføre {
     return Vilkårsvurderinger.Revurdering.Uføre.ikkeVurdert()
 }
