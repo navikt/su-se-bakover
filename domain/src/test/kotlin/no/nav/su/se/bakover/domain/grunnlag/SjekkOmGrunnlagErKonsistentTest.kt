@@ -16,8 +16,8 @@ import no.nav.su.se.bakover.test.arbeidsinntekt
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fullstendigMedEPS
 import no.nav.su.se.bakover.test.fullstendigUtenEPS
-import no.nav.su.se.bakover.test.innvilgetFormueVilkår
 import no.nav.su.se.bakover.test.ufullstendigEnslig
+import no.nav.su.se.bakover.test.vilkår.innvilgetFormueVilkår
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
