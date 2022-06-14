@@ -19,7 +19,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype.BeregnetFradra
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype.ForventetInntekt
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype.Kapitalinntekt
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype.PrivatPensjon
-import no.nav.su.se.bakover.test.satsFactoryTest
+import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.junit.jupiter.api.Test
 
 /**
@@ -35,7 +35,7 @@ internal class EpsUnder67OgUførFlyktningStrategyTest {
         val forventetInntekt = lagPeriodisertFradrag(ForventetInntekt, 12000.0, periode, tilhører = BRUKER)
         val epsForventetInntekt = lagPeriodisertFradrag(ForventetInntekt, 5000.0, periode, tilhører = EPS)
 
-        FradragStrategy.EpsUnder67ÅrOgUførFlyktning(satsFactoryTest).beregn(
+        FradragStrategy.EpsUnder67ÅrOgUførFlyktning(satsFactoryTestPåDato()).beregn(
             fradrag = listOf(forventetInntekt, epsForventetInntekt),
             beregningsperiode = periode,
         ).let {
@@ -52,7 +52,7 @@ internal class EpsUnder67OgUførFlyktningStrategyTest {
 
         val expectedEpsFradrag = lagPeriodisertFradrag(BeregnetFradragEPS, 20000.0 - 18973.02, periode, tilhører = EPS)
 
-        FradragStrategy.EpsUnder67ÅrOgUførFlyktning(satsFactoryTest).beregn(
+        FradragStrategy.EpsUnder67ÅrOgUførFlyktning(satsFactoryTestPåDato()).beregn(
             fradrag = listOf(forventetInntekt, epsForventetInntekt),
             beregningsperiode = periode,
         ).let {
@@ -103,7 +103,7 @@ internal class EpsUnder67OgUførFlyktningStrategyTest {
                 BeregnetFradragEPS, 20000.0 - 19256.69, juli(2020), tilhører = EPS,
             )
 
-        FradragStrategy.EpsUnder67ÅrOgUførFlyktning(satsFactoryTest).beregn(
+        FradragStrategy.EpsUnder67ÅrOgUførFlyktning(satsFactoryTestPåDato()).beregn(
             fradrag = listOf(forventetInntekt, epsArbeidsinntektJan, epsArbeidsinntektJuli),
             beregningsperiode = år(2020),
         ).let {
@@ -128,7 +128,7 @@ internal class EpsUnder67OgUførFlyktningStrategyTest {
         val epsKapitalinntekt = lagFradrag(Kapitalinntekt, 60000.0, periode, tilhører = EPS)
         val epsPensjon = lagFradrag(PrivatPensjon, 15000.0, periode, tilhører = EPS)
 
-        FradragStrategy.EpsUnder67ÅrOgUførFlyktning(satsFactoryTest).beregn(
+        FradragStrategy.EpsUnder67ÅrOgUførFlyktning(satsFactoryTestPåDato()).beregn(
             fradrag = listOf(
                 forventetInntekt,
                 epsForventetInntekt,
@@ -159,7 +159,7 @@ internal class EpsUnder67OgUførFlyktningStrategyTest {
             tilhører = EPS,
         )
 
-        FradragStrategy.EpsUnder67ÅrOgUførFlyktning(satsFactoryTest).beregn(
+        FradragStrategy.EpsUnder67ÅrOgUførFlyktning(satsFactoryTestPåDato()).beregn(
             fradrag = listOf(forventetInntekt, epsKapitalinntekt, epsPrivatPensjon),
             beregningsperiode = periode,
         ).let {
@@ -176,7 +176,7 @@ internal class EpsUnder67OgUførFlyktningStrategyTest {
         val forventetInntekt = lagFradrag(ForventetInntekt, 1000.0, periode)
         val arbeidsinntekt = lagFradrag(Arbeidsinntekt, 2000.0, periode)
 
-        FradragStrategy.EpsUnder67ÅrOgUførFlyktning(satsFactoryTest).beregn(
+        FradragStrategy.EpsUnder67ÅrOgUførFlyktning(satsFactoryTestPåDato()).beregn(
             fradrag = listOf(forventetInntekt, arbeidsinntekt),
             beregningsperiode = periode,
         ).let {
@@ -190,7 +190,7 @@ internal class EpsUnder67OgUførFlyktningStrategyTest {
     fun `sosialstønad for EPS går til fradrag uavhengig av om det eksisterer et fribeløp`() {
         val periode = Periode.create(1.mai(2021), 31.desember(2021))
 
-        FradragStrategy.EpsUnder67ÅrOgUførFlyktning(satsFactoryTest).beregn(
+        FradragStrategy.EpsUnder67ÅrOgUførFlyktning(satsFactoryTestPåDato()).beregn(
             fradrag = listOf(
                 lagFradrag(ForventetInntekt, 0.0, periode),
                 lagFradrag(Fradragstype.Sosialstønad, 5000.0, periode, EPS),

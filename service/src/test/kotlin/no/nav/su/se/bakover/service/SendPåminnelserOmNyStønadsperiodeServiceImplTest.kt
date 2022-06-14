@@ -34,7 +34,7 @@ import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.formueGrunnlagUtenEpsAvslått
-import no.nav.su.se.bakover.test.formuegrenserFactoryTest
+import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.person
@@ -98,7 +98,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             jobContextRepo = mock {
                 on { hent<SendPåminnelseNyStønadsperiodeContext>(any()) } doReturn null
             },
-            formuegrenserFactory = formuegrenserFactoryTest,
+            formuegrenserFactory = formuegrenserFactoryTestPåDato(),
         ).let { serviceAndMocks ->
             val expectedContext = SendPåminnelseNyStønadsperiodeContext(
                 clock = desemberClock,
@@ -415,7 +415,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
         val brevService: BrevService = mock(),
         val personService: PersonService = mock(),
         val jobContextRepo: JobContextRepo = mock(),
-        val formuegrenserFactory: FormuegrenserFactory = formuegrenserFactoryTest,
+        val formuegrenserFactory: FormuegrenserFactory = formuegrenserFactoryTestPåDato(),
     ) {
         val service = SendPåminnelserOmNyStønadsperiodeServiceImpl(
             clock = clock,

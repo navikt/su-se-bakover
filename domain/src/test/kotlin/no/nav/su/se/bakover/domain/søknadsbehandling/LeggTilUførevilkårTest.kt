@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.formuegrenserFactoryTest
+import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.innvilgetUførevilkår
 import no.nav.su.se.bakover.test.søknadsbehandlingBeregnetAvslag
@@ -37,7 +37,7 @@ internal class LeggTilUførevilkårTest {
                 periode = januar(2020),
             ),
             clock = fixedClock,
-            formuegrenserFactory = formuegrenserFactoryTest,
+            formuegrenserFactory = formuegrenserFactoryTestPåDato(),
         ) shouldBe Søknadsbehandling.KunneIkkeLeggeTilUførevilkår.VurderingsperiodeUtenforBehandlingsperiode.left()
 
         uavklart.leggTilUførevilkår(
@@ -45,7 +45,7 @@ internal class LeggTilUførevilkårTest {
                 periode = Periode.create(1.januar(2020), 31.januar(2025)),
             ),
             clock = fixedClock,
-            formuegrenserFactory = formuegrenserFactoryTest,
+            formuegrenserFactory = formuegrenserFactoryTestPåDato(),
         ) shouldBe Søknadsbehandling.KunneIkkeLeggeTilUførevilkår.VurderingsperiodeUtenforBehandlingsperiode.left()
 
         uavklart.leggTilUførevilkår(
@@ -53,7 +53,7 @@ internal class LeggTilUførevilkårTest {
                 periode = uavklart.periode,
             ),
             clock = fixedClock,
-            formuegrenserFactory = formuegrenserFactoryTest,
+            formuegrenserFactory = formuegrenserFactoryTestPåDato(),
         ).isRight() shouldBe true
     }
 
@@ -75,7 +75,7 @@ internal class LeggTilUførevilkårTest {
             it.leggTilUførevilkår(
                 uførhet = innvilgetUførevilkår(),
                 clock = fixedClock,
-                formuegrenserFactory = formuegrenserFactoryTest,
+                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             ).let { oppdatert ->
                 oppdatert.isRight() shouldBe true
                 oppdatert.getOrFail() shouldBe beInstanceOf<Søknadsbehandling.Vilkårsvurdert>()
@@ -95,7 +95,7 @@ internal class LeggTilUførevilkårTest {
             it.leggTilUførevilkår(
                 uførhet = innvilgetUførevilkår(),
                 clock = fixedClock,
-                formuegrenserFactory = formuegrenserFactoryTest,
+                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             ) shouldBe Søknadsbehandling.KunneIkkeLeggeTilUførevilkår.UgyldigTilstand(
                 fra = it::class,
                 til = Søknadsbehandling.Vilkårsvurdert::class,

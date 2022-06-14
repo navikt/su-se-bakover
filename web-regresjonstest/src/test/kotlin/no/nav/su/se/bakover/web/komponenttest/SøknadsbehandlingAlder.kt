@@ -43,7 +43,7 @@ import org.junit.jupiter.api.assertThrows
 internal class SøknadsbehandlingAlder {
     @Test
     fun `sanity check`() {
-        withKomptestApplication() { appComponents ->
+        withKomptestApplication { appComponents ->
             appComponents.services.søknad.nySøknad(
                 søknadInnhold = søknadsinnholdAlder(),
                 identBruker = saksbehandler,

@@ -77,6 +77,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import no.nav.su.se.bakover.test.satsFactoryTest
+import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -103,13 +104,13 @@ internal class SøknadsbehandlingRoutesKtTest {
 
     private val saksbehandler = NavIdentBruker.Saksbehandler("AB12345")
 
-    private val satsFactory = satsFactoryTest.gjeldende(LocalDate.now(fixedClock))
+    private val satsFactory = satsFactoryTestPåDato(LocalDate.now(fixedClock))
 
     private fun repos(dataSource: DataSource) = DatabaseBuilder.build(
         embeddedDatasource = dataSource,
         dbMetrics = dbMetricsStub,
         clock = fixedClock,
-        satsFactory = satsFactory,
+        satsFactory = satsFactoryTest,
     )
 
     private fun services(

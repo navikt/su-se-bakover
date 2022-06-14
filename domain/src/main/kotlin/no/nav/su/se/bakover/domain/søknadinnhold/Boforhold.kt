@@ -33,6 +33,7 @@ data class Boforhold private constructor(
         ): Either<FeilVedOpprettelseAvBoforhold, Boforhold> {
             validerDelerBoligMed(delerBolig, delerBoligMed).mapLeft { return it.left() }
             validerEPS(delerBolig, delerBoligMed, ektefellePartnerSamboer).mapLeft { return it.left() }
+            validerInnlagtPåBosituasjon(innlagtPåInstitusjon).mapLeft { return it.left() }
 
             return Boforhold(
                 borOgOppholderSegINorge = borOgOppholderSegINorge,
@@ -56,6 +57,9 @@ data class Boforhold private constructor(
             ektefellePartnerSamboer: EktefellePartnerSamboer?,
         ) =
             if (delerBolig && delerBoligMed == DelerBoligMed.EKTEMAKE_SAMBOER && ektefellePartnerSamboer == null) FeilVedOpprettelseAvBoforhold.EktefellePartnerSamboerMåVæreUtfylt.left() else Unit.right()
+
+        private fun validerInnlagtPåBosituasjon(innlagtPåInstitusjon: InnlagtPåInstitusjon?) =
+            if (innlagtPåInstitusjon?.fortsattInnlagt == true && innlagtPåInstitusjon.datoForUtskrivelse != null) FeilVedOpprettelseAvBoforhold.InkonsekventInnleggelse.left() else Unit.right()
     }
 }
 
@@ -97,6 +101,7 @@ sealed class OppgittAdresse {
     }
 }
 
+// TODO: skill mellom domene-klassen og json
 data class InnlagtPåInstitusjon(
     val datoForInnleggelse: LocalDate,
     val datoForUtskrivelse: LocalDate?,
@@ -107,4 +112,5 @@ sealed interface FeilVedOpprettelseAvBoforhold {
     object DelerBoligMedErIkkeUtfylt : FeilVedOpprettelseAvBoforhold
     object EktefellePartnerSamboerMåVæreUtfylt : FeilVedOpprettelseAvBoforhold
     object BeggeAdressegrunnerErUtfylt : FeilVedOpprettelseAvBoforhold
+    object InkonsekventInnleggelse : FeilVedOpprettelseAvBoforhold
 }

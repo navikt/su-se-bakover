@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.domain.beregning.fradrag
 
 import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.satser.Garantipensjonsnivå
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import java.lang.Double.max
 
@@ -36,7 +35,7 @@ sealed class FradragStrategy {
         override fun getEpsFribeløp(måned: Måned): Double = 0.0
     }
 
-    object EpsOver67År : FradragStrategy() {
+    data class EpsOver67År(val satsfactory: SatsFactory) : FradragStrategy() {
         override fun beregnFradrag(fradrag: Map<Måned, List<FradragForMåned>>): Map<Måned, List<FradragForMåned>> {
             return fradrag
                 .`filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`()
@@ -45,7 +44,9 @@ sealed class FradragStrategy {
 
         override fun getEpsFribeløp(måned: Måned): Double = periodisertSumGarantipensjonsnivå(måned)
 
-        private fun periodisertSumGarantipensjonsnivå(måned: Måned) = Garantipensjonsnivå.Ordinær.forMåned(måned)
+        private fun periodisertSumGarantipensjonsnivå(måned: Måned): Double = satsfactory.ordinærAlder(
+            måned = måned,
+        ).satsForMånedAsDouble
 
         private fun Map<Måned, List<FradragForMåned>>.`fjern EPS fradrag opp til garantipensjonsnivå`(): Map<Måned, List<FradragForMåned>> {
             return mapValues { (måned, fradrag) ->
@@ -66,7 +67,7 @@ sealed class FradragStrategy {
                 .`fjern EPS fradrag opp til satsbeløp`()
         }
 
-        override fun getEpsFribeløp(måned: Måned): Double = satsfactory.ordinær(måned).satsForMånedAsDouble
+        override fun getEpsFribeløp(måned: Måned): Double = satsfactory.ordinærUføre(måned).satsForMånedAsDouble
 
         private fun Map<Måned, List<FradragForMåned>>.`fjern EPS fradrag opp til satsbeløp`(): Map<Måned, List<FradragForMåned>> {
             return mapValues { (måned, fradrag) ->

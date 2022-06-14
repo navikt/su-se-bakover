@@ -168,7 +168,10 @@ fun forNavDigitalSøknad() = ForNav.DigitalSøknad(
 
 fun søknadsinnholdAlder(
     harSøktAlderspensjon: HarSøktAlderspensjon = HarSøktAlderspensjon(false),
-    oppholdstillatelseAlder: OppholdstillatelseAlder = OppholdstillatelseAlder(eøsborger = false, familiegjenforening = false),
+    oppholdstillatelseAlder: OppholdstillatelseAlder = OppholdstillatelseAlder(
+        eøsborger = false,
+        familiegjenforening = false,
+    ),
     oppholdstillatelse: Oppholdstillatelse = oppholdstillatelse(),
     personopplysninger: Personopplysninger = Personopplysninger(fnrOver67),
     boforhold: Boforhold = boforhold(),
@@ -177,7 +180,7 @@ fun søknadsinnholdAlder(
     formue: Formue = formue(),
     forNav: ForNav = forNavDigitalSøknad(),
     ektefelle: Ektefelle? = ektefelle(),
-) = SøknadsinnholdAlder(
+) = SøknadsinnholdAlder.tryCreate(
     harSøktAlderspensjon = harSøktAlderspensjon,
     personopplysninger = personopplysninger,
     boforhold = boforhold,
@@ -188,7 +191,7 @@ fun søknadsinnholdAlder(
     formue = formue,
     forNav = forNav,
     ektefelle = ektefelle,
-)
+).getOrHandle { throw IllegalArgumentException("Feil ved oppsett av test data - $it") }
 
 object SøknadInnholdTestdataBuilder {
     fun personopplysninger(
@@ -201,7 +204,7 @@ object SøknadInnholdTestdataBuilder {
         uførevedtak: Uførevedtak = Uførevedtak(true),
         personopplysninger: Personopplysninger = personopplysninger(),
         flyktningsstatus: Flyktningsstatus = Flyktningsstatus(
-            registrertFlyktning = false
+            registrertFlyktning = false,
         ),
         boforhold: Boforhold = boforhold(),
         utenlandsopphold: Utenlandsopphold = utenlandsopphold(),
@@ -210,7 +213,7 @@ object SøknadInnholdTestdataBuilder {
         formue: Formue = formue(),
         forNav: ForNav = forNavDigitalSøknad(),
         ektefelle: Ektefelle = ektefelle(),
-    ) = SøknadsinnholdUføre(
+    ) = SøknadsinnholdUføre.tryCreate(
         uførevedtak = uførevedtak,
         flyktningsstatus = flyktningsstatus,
         personopplysninger = personopplysninger,
@@ -221,5 +224,5 @@ object SøknadInnholdTestdataBuilder {
         formue = formue,
         forNav = forNav,
         ektefelle = ektefelle,
-    )
+    ).getOrHandle { throw IllegalArgumentException("Feil ved oppsett av test data - $it") }
 }

@@ -43,7 +43,7 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formuevilkårIkkeVurdert
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.sakId
-import no.nav.su.se.bakover.test.satsFactoryTest
+import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse
 import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
@@ -153,8 +153,8 @@ internal class RevurderingJsonTest {
             }
             """.trimIndent()
 
-        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson(satsFactoryTest)), true)
-        deserialize<OpprettetRevurderingJson>(revurderingJson) shouldBe revurdering.toJson(satsFactoryTest)
+        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson(satsFactoryTestPåDato())), true)
+        deserialize<OpprettetRevurderingJson>(revurderingJson) shouldBe revurdering.toJson(satsFactoryTestPåDato())
     }
 
     @Test
@@ -240,11 +240,11 @@ internal class RevurderingJsonTest {
 
         JSONAssert.assertEquals(
             revurderingJson,
-            serialize(revurdering.toJson(satsFactoryTest(20.mai(2022).fixedClock()))),
+            serialize(revurdering.toJson(satsFactoryTestPåDato(20.mai(2022)))),
             true,
         )
         deserialize<BeregnetRevurderingJson>(revurderingJson) shouldBe revurdering.toJson(
-            satsFactoryTest(20.mai(2022).fixedClock()),
+            satsFactoryTestPåDato(20.mai(2022)),
         )
     }
 
@@ -322,8 +322,8 @@ internal class RevurderingJsonTest {
             }
             """.trimIndent()
 
-        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson(satsFactoryTest)), true)
-        deserialize<BeregnetRevurderingJson>(revurderingJson) shouldBe revurdering.toJson(satsFactoryTest)
+        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson(satsFactoryTestPåDato())), true)
+        deserialize<BeregnetRevurderingJson>(revurderingJson) shouldBe revurdering.toJson(satsFactoryTestPåDato())
     }
 
     @Test
@@ -400,8 +400,8 @@ internal class RevurderingJsonTest {
             }
             """.trimIndent()
 
-        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson(satsFactoryTest)), true)
-        deserialize<BeregnetRevurderingJson>(revurderingJson) shouldBe revurdering.toJson(satsFactoryTest)
+        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson(satsFactoryTestPåDato())), true)
+        deserialize<BeregnetRevurderingJson>(revurderingJson) shouldBe revurdering.toJson(satsFactoryTestPåDato())
     }
 
     @Test
@@ -494,8 +494,8 @@ internal class RevurderingJsonTest {
             }
             """.trimIndent()
 
-        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson(satsFactoryTest)), true)
-        deserialize<SimulertRevurderingJson>(revurderingJson) shouldBe revurdering.toJson(satsFactoryTest)
+        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson(satsFactoryTestPåDato())), true)
+        deserialize<SimulertRevurderingJson>(revurderingJson) shouldBe revurdering.toJson(satsFactoryTestPåDato())
     }
 
     @Test
@@ -580,8 +580,8 @@ internal class RevurderingJsonTest {
             }
             """.trimIndent()
 
-        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson(satsFactoryTest)), true)
-        deserialize<SimulertRevurderingJson>(revurderingJson) shouldBe revurdering.toJson(satsFactoryTest)
+        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson(satsFactoryTestPåDato())), true)
+        deserialize<SimulertRevurderingJson>(revurderingJson) shouldBe revurdering.toJson(satsFactoryTestPåDato())
     }
 
     @Test
@@ -667,8 +667,8 @@ internal class RevurderingJsonTest {
             }
             """.trimIndent()
 
-        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson(satsFactoryTest)), true)
-        deserialize<TilAttesteringJson>(revurderingJson) shouldBe revurdering.toJson(satsFactoryTest)
+        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson(satsFactoryTestPåDato())), true)
+        deserialize<TilAttesteringJson>(revurderingJson) shouldBe revurdering.toJson(satsFactoryTestPåDato())
     }
 
     @Test
@@ -754,8 +754,8 @@ internal class RevurderingJsonTest {
             }
             """.trimIndent()
 
-        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson(satsFactoryTest)), true)
-        deserialize<TilAttesteringJson>(revurderingJson) shouldBe revurdering.toJson(satsFactoryTest)
+        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson(satsFactoryTestPåDato())), true)
+        deserialize<TilAttesteringJson>(revurderingJson) shouldBe revurdering.toJson(satsFactoryTestPåDato())
     }
 
     @Test
@@ -836,8 +836,8 @@ internal class RevurderingJsonTest {
             }
             """.trimIndent()
 
-        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson(satsFactoryTest)), true)
-        deserialize<TilAttesteringJson>(revurderingJson) shouldBe revurdering.toJson(satsFactoryTest)
+        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson(satsFactoryTestPåDato())), true)
+        deserialize<TilAttesteringJson>(revurderingJson) shouldBe revurdering.toJson(satsFactoryTestPåDato())
     }
 
     @Test
@@ -937,8 +937,8 @@ internal class RevurderingJsonTest {
             }
             """.trimIndent()
 
-        JSONAssert.assertEquals(expected, serialize(revurdering.toJson(satsFactoryTest)), true)
-        deserialize<UnderkjentRevurderingJson>(expected) shouldBe revurdering.toJson(satsFactoryTest)
+        JSONAssert.assertEquals(expected, serialize(revurdering.toJson(satsFactoryTestPåDato())), true)
+        deserialize<UnderkjentRevurderingJson>(expected) shouldBe revurdering.toJson(satsFactoryTestPåDato())
     }
 
     @Test
@@ -1038,8 +1038,8 @@ internal class RevurderingJsonTest {
             }
             """.trimIndent()
 
-        JSONAssert.assertEquals(expected, serialize(revurdering.toJson(satsFactoryTest)), true)
-        deserialize<UnderkjentRevurderingJson>(expected) shouldBe revurdering.toJson(satsFactoryTest)
+        JSONAssert.assertEquals(expected, serialize(revurdering.toJson(satsFactoryTestPåDato())), true)
+        deserialize<UnderkjentRevurderingJson>(expected) shouldBe revurdering.toJson(satsFactoryTestPåDato())
     }
 
     @Test
@@ -1135,8 +1135,8 @@ internal class RevurderingJsonTest {
             }
             """.trimIndent()
 
-        JSONAssert.assertEquals(expected, serialize(revurdering.toJson(satsFactoryTest)), true)
-        deserialize<UnderkjentRevurderingJson>(expected) shouldBe revurdering.toJson(satsFactoryTest)
+        JSONAssert.assertEquals(expected, serialize(revurdering.toJson(satsFactoryTestPåDato())), true)
+        deserialize<UnderkjentRevurderingJson>(expected) shouldBe revurdering.toJson(satsFactoryTestPåDato())
     }
 
     @Test
@@ -1239,8 +1239,8 @@ internal class RevurderingJsonTest {
             }
             """.trimIndent()
 
-        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson(satsFactoryTest)), true)
-        deserialize<IverksattRevurderingJson>(revurderingJson) shouldBe revurdering.toJson(satsFactoryTest)
+        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson(satsFactoryTestPåDato())), true)
+        deserialize<IverksattRevurderingJson>(revurderingJson) shouldBe revurdering.toJson(satsFactoryTestPåDato())
     }
 
     @Test
@@ -1332,8 +1332,8 @@ internal class RevurderingJsonTest {
             }
             """.trimIndent()
 
-        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson(satsFactoryTest)), true)
-        deserialize<IverksattRevurderingJson>(revurderingJson) shouldBe revurdering.toJson(satsFactoryTest)
+        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson(satsFactoryTestPåDato())), true)
+        deserialize<IverksattRevurderingJson>(revurderingJson) shouldBe revurdering.toJson(satsFactoryTestPåDato())
     }
 
     @Test
@@ -1421,8 +1421,8 @@ internal class RevurderingJsonTest {
             }
             """.trimIndent()
 
-        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson(satsFactoryTest)), true)
-        deserialize<IverksattRevurderingJson>(revurderingJson) shouldBe revurdering.toJson(satsFactoryTest)
+        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson(satsFactoryTestPåDato())), true)
+        deserialize<IverksattRevurderingJson>(revurderingJson) shouldBe revurdering.toJson(satsFactoryTestPåDato())
     }
 
     @Test
@@ -1451,7 +1451,7 @@ internal class RevurderingJsonTest {
                   "uføre": ${serialize((simulertRevurdering.vilkårsvurderinger.uføreVilkår().getOrFail() as Vilkår.Uførhet.Vurdert).toJson())},
                   "fradrag": [],
                   "bosituasjon": ${serialize(simulertRevurdering.grunnlagsdata.bosituasjon.toJson())},
-                  "formue": ${serialize(simulertRevurdering.vilkårsvurderinger.formue.toJson(satsFactoryTest))},
+                  "formue": ${serialize(simulertRevurdering.vilkårsvurderinger.formue.toJson(satsFactoryTestPåDato()))},
                   "utenlandsopphold": ${serialize(simulertRevurdering.vilkårsvurderinger.utenlandsopphold.toJson()!!)},
                   "opplysningsplikt": ${serialize(simulertRevurdering.vilkårsvurderinger.opplysningsplikt.toJson()!!)},
                   "pensjon": null
@@ -1462,7 +1462,7 @@ internal class RevurderingJsonTest {
 
         JSONAssert.assertEquals(
             simulertRevurderingJson,
-            serialize(simulertRevurdering.toJson(satsFactoryTest)), true,
+            serialize(simulertRevurdering.toJson(satsFactoryTestPåDato())), true,
         )
 
         val iverksattRevurdering = simulertRevurdering.iverksett(
@@ -1490,7 +1490,7 @@ internal class RevurderingJsonTest {
                   "uføre": ${serialize((iverksattRevurdering.vilkårsvurderinger.uføreVilkår().getOrFail() as Vilkår.Uførhet.Vurdert).toJson())},
                   "fradrag": [],
                   "bosituasjon": ${serialize(iverksattRevurdering.grunnlagsdata.bosituasjon.toJson())},
-                  "formue": ${serialize(iverksattRevurdering.vilkårsvurderinger.formue.toJson(satsFactoryTest))},
+                  "formue": ${serialize(iverksattRevurdering.vilkårsvurderinger.formue.toJson(satsFactoryTestPåDato()))},
                   "utenlandsopphold": ${serialize(iverksattRevurdering.vilkårsvurderinger.utenlandsopphold.toJson()!!)},
                   "opplysningsplikt": ${serialize(simulertRevurdering.vilkårsvurderinger.opplysningsplikt.toJson()!!)},
                   "pensjon": null
@@ -1501,7 +1501,7 @@ internal class RevurderingJsonTest {
 
         JSONAssert.assertEquals(
             iverksattRevurderingJson,
-            serialize(iverksattRevurdering.toJson(satsFactoryTest)), true,
+            serialize(iverksattRevurdering.toJson(satsFactoryTestPåDato())), true,
         )
     }
 
@@ -1531,7 +1531,7 @@ internal class RevurderingJsonTest {
                   "uføre": ${serialize((simulertRevurdering.vilkårsvurderinger.uføreVilkår().getOrFail() as Vilkår.Uførhet.Vurdert).toJson())},
                   "fradrag": [],
                   "bosituasjon": ${serialize(simulertRevurdering.grunnlagsdata.bosituasjon.toJson())},
-                  "formue": ${serialize(simulertRevurdering.vilkårsvurderinger.formue.toJson(satsFactoryTest))},
+                  "formue": ${serialize(simulertRevurdering.vilkårsvurderinger.formue.toJson(satsFactoryTestPåDato()))},
                   "utenlandsopphold": ${serialize(simulertRevurdering.vilkårsvurderinger.utenlandsopphold.toJson()!!)},
                   "opplysningsplikt": ${serialize(simulertRevurdering.vilkårsvurderinger.opplysningsplikt.toJson()!!)},
                   "pensjon": null
@@ -1543,7 +1543,7 @@ internal class RevurderingJsonTest {
 
         JSONAssert.assertEquals(
             simulertRevurderingJson,
-            serialize(simulertRevurdering.toJson(satsFactoryTest)), true,
+            serialize(simulertRevurdering.toJson(satsFactoryTestPåDato())), true,
         )
 
         val iverksattRevurdering = simulertRevurdering.iverksett(attesteringIverksatt(clock = fixedClock))
@@ -1570,7 +1570,7 @@ internal class RevurderingJsonTest {
                   "uføre": ${serialize((iverksattRevurdering.vilkårsvurderinger.uføreVilkår().getOrFail() as Vilkår.Uførhet.Vurdert).toJson())},
                   "fradrag": [],
                   "bosituasjon": ${serialize(iverksattRevurdering.grunnlagsdata.bosituasjon.toJson())},
-                  "formue": ${serialize(iverksattRevurdering.vilkårsvurderinger.formue.toJson(satsFactoryTest))},
+                  "formue": ${serialize(iverksattRevurdering.vilkårsvurderinger.formue.toJson(satsFactoryTestPåDato()))},
                   "utenlandsopphold": ${serialize(iverksattRevurdering.vilkårsvurderinger.utenlandsopphold.toJson()!!)},
                   "opplysningsplikt": ${serialize(iverksattRevurdering.vilkårsvurderinger.opplysningsplikt.toJson()!!)},
                   "pensjon": null
@@ -1581,7 +1581,7 @@ internal class RevurderingJsonTest {
 
         JSONAssert.assertEquals(
             iverksattRevurderingJson,
-            serialize(iverksattRevurdering.toJson(satsFactoryTest)), true,
+            serialize(iverksattRevurdering.toJson(satsFactoryTestPåDato())), true,
         )
     }
 

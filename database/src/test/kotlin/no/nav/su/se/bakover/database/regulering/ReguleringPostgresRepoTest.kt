@@ -1,11 +1,25 @@
 package no.nav.su.se.bakover.database.regulering
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.mai
+import no.nav.su.se.bakover.common.periode.desember
+import no.nav.su.se.bakover.common.periode.januar
+import no.nav.su.se.bakover.common.periode.mai
+import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
+import no.nav.su.se.bakover.domain.beregning.BeregningMedFradragBeregnetMånedsvis
+import no.nav.su.se.bakover.domain.grunnbeløp.GrunnbeløpForMåned
 import no.nav.su.se.bakover.domain.regulering.Regulering
+import no.nav.su.se.bakover.domain.satser.Faktor
+import no.nav.su.se.bakover.domain.satser.FullSupplerendeStønadForMåned
+import no.nav.su.se.bakover.domain.satser.MinsteÅrligYtelseForUføretrygdedeForMåned
+import no.nav.su.se.bakover.domain.satser.Satskategori
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
+import java.math.BigDecimal
 
 internal class ReguleringPostgresRepoTest {
     @Test
@@ -119,6 +133,39 @@ internal class ReguleringPostgresRepoTest {
                 testDataHelper.persisterGjenopptakAvYtelseSimulert().saksnummer,
             )
             repo.hentSakerMedÅpenBehandlingEllerStans().sortedBy { it.nummer } shouldBe expected
+        }
+    }
+
+    @Test
+    fun `Bruker opprettet-tidspunkt for å avgjøre satser`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource = dataSource, clock = fixedClock)
+            val repo = testDataHelper.reguleringRepo
+            val regulering = testDataHelper.persisterReguleringIverksatt()
+            val hentRegulering = repo.hent(regulering.id)
+
+            hentRegulering shouldBe regulering
+            val beregning = hentRegulering!!.beregning as BeregningMedFradragBeregnetMånedsvis
+            beregning.getMånedsberegninger().zip((mai(2021)..desember(2021)).måneder()) { a, b ->
+                a.fullSupplerendeStønadForMåned shouldBe FullSupplerendeStønadForMåned.Uføre(
+                    måned = b,
+                    satskategori = Satskategori.HØY,
+                    grunnbeløp = GrunnbeløpForMåned(
+                        måned = b,
+                        grunnbeløpPerÅr = 101351,
+                        ikrafttredelse = 4.september(2020),
+                        virkningstidspunkt = 1.mai(2020),
+                    ),
+                    minsteÅrligYtelseForUføretrygdede = MinsteÅrligYtelseForUføretrygdedeForMåned(
+                        faktor = Faktor(value = 2.48),
+                        satsKategori = Satskategori.HØY,
+                        ikrafttredelse = 1.januar(2015),
+                        virkningstidspunkt = 1.januar(2015),
+                        måned = b,
+                    ),
+                    toProsentAvHøyForMåned = BigDecimal("418.9174666666666666666666666666667"),
+                )
+            }
         }
     }
 }

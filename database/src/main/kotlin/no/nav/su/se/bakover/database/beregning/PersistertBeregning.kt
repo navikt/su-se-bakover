@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.periode.PeriodeJson
 import no.nav.su.se.bakover.common.periode.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningMedFradragBeregnetMånedsvis
 import no.nav.su.se.bakover.domain.satser.SatsFactory
@@ -26,11 +25,6 @@ private data class PersistertBeregning(
     val begrunnelse: String?,
 ) {
     fun toBeregning(satsFactory: SatsFactory): BeregningMedFradragBeregnetMånedsvis {
-        /**
-         * For å håndtere at grunnbeløpet kan ha endret seg siden beregningen ble gjort, må vi bruke
-         * satsfactory slik den så ut ved opprettelse av beregningen for å få hentet ut korrekt data.
-         */
-        val satsFactoryForOpprettelsestidspunkt = satsFactory.gjeldende(påDato = opprettet.toLocalDate(zoneIdOslo))
         return BeregningMedFradragBeregnetMånedsvis(
             id = id,
             opprettet = opprettet,
@@ -42,7 +36,7 @@ private data class PersistertBeregning(
             månedsberegninger = Nel.fromListUnsafe(
                 månedsberegninger.map {
                     it.toMånedsberegning(
-                        satsFactory = satsFactoryForOpprettelsestidspunkt,
+                        satsFactory = satsFactory,
                     )
                 },
             ),

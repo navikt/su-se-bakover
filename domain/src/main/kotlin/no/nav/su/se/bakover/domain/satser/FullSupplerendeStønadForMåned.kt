@@ -7,33 +7,86 @@ import java.math.BigDecimal
 import java.math.MathContext
 import java.time.LocalDate
 
-data class FullSupplerendeStønadForMåned(
-    val måned: Måned,
-    val satskategori: Satskategori,
-    val grunnbeløp: GrunnbeløpForMåned,
-    val minsteÅrligYtelseForUføretrygdede: MinsteÅrligYtelseForUføretrygdedeForMåned,
-    val toProsentAvHøyForMåned: BigDecimal,
-) : Comparable<FullSupplerendeStønadForMåned> {
+/**
+ * Full supplerende stønad er for mange perioder definert som en kombinasjon av flere satser.
+ * Den kan også endre hva slags satstype som ligger til grunn.
+ * F.eks. SU Alder gikk fra å bruke minstepensjon til garantipensjon i 2021-01-01
+ */
+sealed interface FullSupplerendeStønadForMåned {
+    val måned: Måned
+    val satskategori: Satskategori
+    val toProsentAvHøyForMåned: BigDecimal
+    val satsPerÅr: BigDecimal
+    val satsForMåned: BigDecimal
+    val satsForMånedAvrundet: Int
+    val satsForMånedAsDouble: Double
 
-    val satsPerÅr: BigDecimal = grunnbeløp.grunnbeløpPerÅr.toBigDecimal().multiply(minsteÅrligYtelseForUføretrygdede.faktorSomBigDecimal)
+    /** Dette vil være den nyeste ikrafttredelsesdatoen basert på de satsene som gjaldt på denne datoen.
+     * F.eks. sats for uføre er satt sammen av grunnbeløp og minste årlig ytelse for uføretrygdede den 2021-01-01.
+     * Disse vil i teorien kunne ha forskjellige ikrafttredelsedatoen. F.eks. 2020-05-01 og 20220-10-01.
+     * Da vil den nyeste av disse datoene være ikrafttredelsen til full supplerende stønad.
+     */
+    val ikrafttredelse: LocalDate
+    val toProsentAvHøyForMånedAsDouble: Double
+    val periode: Måned
 
-    val satsForMåned: BigDecimal = satsPerÅr.divide(12.toBigDecimal(), MathContext.DECIMAL128)
-    val satsForMånedAvrundet: Int = satsForMåned.avrund()
-    val satsForMånedAsDouble: Double = satsForMåned.toDouble()
+    data class Uføre(
+        override val måned: Måned,
+        override val satskategori: Satskategori,
+        val grunnbeløp: GrunnbeløpForMåned,
+        val minsteÅrligYtelseForUføretrygdede: MinsteÅrligYtelseForUføretrygdedeForMåned,
+        override val toProsentAvHøyForMåned: BigDecimal,
+    ) : Comparable<FullSupplerendeStønadForMåned>, FullSupplerendeStønadForMåned {
 
-    init {
-        require(satsForMåned >= BigDecimal.ZERO)
-        require(toProsentAvHøyForMåned >= BigDecimal.ZERO)
+        override val satsPerÅr: BigDecimal =
+            grunnbeløp.grunnbeløpPerÅr
+                .toBigDecimal()
+                .multiply(minsteÅrligYtelseForUføretrygdede.faktorSomBigDecimal)
+
+        override val satsForMåned: BigDecimal = satsPerÅr.divide(12.toBigDecimal(), MathContext.DECIMAL128)
+        override val satsForMånedAvrundet: Int = satsForMåned.avrund()
+        override val satsForMånedAsDouble: Double = satsForMåned.toDouble()
+
+        init {
+            require(satsForMåned >= BigDecimal.ZERO)
+            require(toProsentAvHøyForMåned >= BigDecimal.ZERO)
+        }
+
+        /** Nyeste ikraftredelsen av grunnbeløpet og minsteÅrligYtelseForUføretrygdede som gjelder for denne måneden. */
+        override val ikrafttredelse: LocalDate =
+            maxOf(grunnbeløp.ikrafttredelse, minsteÅrligYtelseForUføretrygdede.ikrafttredelse)
+
+        override val toProsentAvHøyForMånedAsDouble = toProsentAvHøyForMåned.toDouble()
+
+        override val periode: Måned = måned
+
+        override fun compareTo(other: FullSupplerendeStønadForMåned) = this.måned.compareTo(other.måned)
     }
 
-    /** Nyeste ikraftredelsen av grunnbeløpet og minsteÅrligYtelseForUføretrygdede som gjelder for denne måneden. */
-    val ikrafttredelse: LocalDate = maxOf(grunnbeløp.ikrafttredelse, minsteÅrligYtelseForUføretrygdede.ikrafttredelse)
+    data class Alder(
+        override val måned: Måned,
+        override val satskategori: Satskategori,
+        val garantipensjonForMåned: GarantipensjonForMåned,
+        override val toProsentAvHøyForMåned: BigDecimal,
+    ) : Comparable<FullSupplerendeStønadForMåned>, FullSupplerendeStønadForMåned {
 
-    val toProsentAvHøyForMånedAsDouble = toProsentAvHøyForMåned.toDouble()
+        override val satsPerÅr: BigDecimal = garantipensjonForMåned.garantipensjonPerÅr.toBigDecimal()
 
-    val fraOgMed: LocalDate = måned.fraOgMed
-    val tilOgMed: LocalDate = måned.tilOgMed
-    val periode: Måned = måned
+        override val satsForMåned: BigDecimal = satsPerÅr.divide(12.toBigDecimal(), MathContext.DECIMAL128)
+        override val satsForMånedAvrundet: Int = satsForMåned.avrund()
+        override val satsForMånedAsDouble: Double = satsForMåned.toDouble()
 
-    override fun compareTo(other: FullSupplerendeStønadForMåned) = this.måned.compareTo(other.måned)
+        init {
+            require(satsForMåned >= BigDecimal.ZERO)
+            require(toProsentAvHøyForMåned >= BigDecimal.ZERO)
+        }
+
+        override val ikrafttredelse: LocalDate = garantipensjonForMåned.ikrafttredelse
+
+        override val toProsentAvHøyForMånedAsDouble = toProsentAvHøyForMåned.toDouble()
+
+        override val periode: Måned = måned
+
+        override fun compareTo(other: FullSupplerendeStønadForMåned) = this.måned.compareTo(other.måned)
+    }
 }

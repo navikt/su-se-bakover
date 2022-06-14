@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.plus
+import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
 import org.junit.jupiter.api.Test
 import java.time.temporal.ChronoUnit
@@ -198,7 +199,7 @@ internal class VedtakPostgresRepoTest {
                     fraOgMed = nyRevurdering.periode.fraOgMed,
                     clock = fixedClock,
                 ).getOrFail(),
-                satsFactory = testDataHelper.satsFactory,
+                satsFactory = satsFactoryTestPåDato(),
             ).getOrFail().beregning
 
             val attestertRevurdering = RevurderingTilAttestering.IngenEndring(

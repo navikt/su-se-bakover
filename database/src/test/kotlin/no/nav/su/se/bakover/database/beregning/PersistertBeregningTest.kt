@@ -3,18 +3,12 @@ package no.nav.su.se.bakover.database.beregning
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.april
-import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.fixedClock
-import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
-import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.år
-import no.nav.su.se.bakover.common.startOfDay
-import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
@@ -24,7 +18,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.satsFactoryTest
+import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import java.time.temporal.ChronoUnit
@@ -34,11 +28,11 @@ internal class PersistertBeregningTest {
 
     @Test
     fun `serialiserer og derserialiserer beregning`() {
-        val clock = 1.mai(2021).fixedClock()
+        val påDato = 21.mai(2021)
         val actualBeregning = createBeregning(
-            opprettet = Tidspunkt.now(clock),
+            opprettet = Tidspunkt.now(påDato.fixedClock()),
             periode = mai(2021),
-            strategy = BeregningStrategy.BorAlene(satsFactoryTest(clock)),
+            strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(påDato)),
         )
         //language=json
         val expectedJson = """
@@ -123,12 +117,12 @@ internal class PersistertBeregningTest {
         """.trimIndent()
         val actualJson: String = actualBeregning.serialiser()
         JSONAssert.assertEquals(expectedJson, actualJson, true)
-        actualJson.deserialiserBeregning(satsFactoryTest(1.mai(2021).fixedClock())) shouldBe actualBeregning
+        actualJson.deserialiserBeregning(satsFactoryTestPåDato(påDato)) shouldBe actualBeregning
     }
 
     @Test
     fun `serialisering av domenemodellen og den persisterte modellen er ikke lik`() {
-        val beregning = createBeregning(strategy = BeregningStrategy.BorAlene(satsFactoryTest))
+        val beregning = createBeregning(strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()))
 
         JSONAssert.assertNotEquals(
             objectMapper.writeValueAsString(beregning),
@@ -143,14 +137,14 @@ internal class PersistertBeregningTest {
             createBeregning(
                 opprettet = fixedTidspunkt, begrunnelse = "a",
                 strategy = BeregningStrategy.BorAlene(
-                    satsFactoryTest,
+                    satsFactoryTestPåDato(),
                 ),
             )
         val b: Beregning =
             createBeregning(
                 opprettet = fixedTidspunkt.plus(1, ChronoUnit.SECONDS),
                 begrunnelse = "b",
-                strategy = BeregningStrategy.BorAlene(satsFactoryTest),
+                strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
             )
         a shouldBe b
         a.getId() shouldNotBe b.getId()
@@ -192,22 +186,4 @@ internal class PersistertBeregningTest {
                 ),
             ),
         )
-
-    @Test
-    fun `må kunne hente opp og berike persisterte månedsberegninger selv om g-har endret seg`() {
-        val gammeltGrunnbeløp = satsFactoryTest(clock = 30.april(2020).fixedClock(),)
-
-        val beregningMedGammelG = createBeregning(
-            periode = Periode.create(1.januar(2020), 31.desember(2022)),
-            opprettet = 3.mars(2020).startOfDay(zoneIdOslo),
-            begrunnelse = "davai",
-            strategy = BeregningStrategy.BorAlene(gammeltGrunnbeløp),
-        )
-
-        val nyttGrunnbeløp = satsFactoryTest(clock = 1.mai(2020).fixedClock())
-
-        gammeltGrunnbeløp.grunnbeløp(mai(2020)) shouldNotBe nyttGrunnbeløp.grunnbeløp(mai(2020))
-
-        beregningMedGammelG.serialiser().deserialiserBeregning(nyttGrunnbeløp) shouldBe beregningMedGammelG
-    }
 }

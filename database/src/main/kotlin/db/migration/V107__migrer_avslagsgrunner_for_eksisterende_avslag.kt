@@ -21,7 +21,7 @@ internal class V107__migrer_avslagsgrunner_for_eksisterende_avslag : BaseJavaMig
                 }
             },
             clock = Clock.systemUTC(),
-            satsFactory = SatsFactoryForSupplerendeStønad(clock = Clock.systemUTC())
+            satsFactory = SatsFactoryForSupplerendeStønad()
         ).vedtakRepo
 
         val ps = context.connection.prepareStatement("update vedtak set avslagsgrunner = to_json(?::json) where id = ?")
