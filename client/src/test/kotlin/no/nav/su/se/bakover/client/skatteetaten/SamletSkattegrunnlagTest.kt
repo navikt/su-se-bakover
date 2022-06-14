@@ -174,7 +174,7 @@ internal class SamletSkattegrunnlagTest {
             fnr = fnr,
         ) shouldBe Skattegrunnlag(
             fnr = fnr,
-            intektsår = 2021,
+            inntektsår = 2021,
             grunnlag = listOf(
                 Skattegrunnlag.Grunnlag(
                     navn = "samletLoennsinntektMedTrygdeavgiftspliktOgMedTrekkplikt",

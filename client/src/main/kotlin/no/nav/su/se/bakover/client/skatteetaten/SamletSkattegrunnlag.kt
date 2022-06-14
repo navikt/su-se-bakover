@@ -30,7 +30,7 @@ internal fun SamletSkattegrunnlag.toDomain(): Either<Throwable, no.nav.su.se.bak
     return Either.catch {
         no.nav.su.se.bakover.domain.Skattegrunnlag(
             fnr = Fnr(personidentifikator),
-            intektsår = inntektsaar.toInt(),
+            inntektsår = inntektsaar.toInt(),
             grunnlag = grunnlag.map {
                 no.nav.su.se.bakover.domain.Skattegrunnlag.Grunnlag(
                     navn = it.tekniskNavn,
@@ -41,8 +41,8 @@ internal fun SamletSkattegrunnlag.toDomain(): Either<Throwable, no.nav.su.se.bak
                             Kategori.FORMUE.stringVerdi -> Kategori.FORMUE
                             Kategori.INNTEKTSFRADRAG.stringVerdi -> Kategori.INNTEKTSFRADRAG
                             Kategori.FORMUESFRADRAG.stringVerdi -> Kategori.FORMUESFRADRAG
-                            Kategori.VERDSETTINGSRABATTSOMGIRGJELDSREDUKSJON.stringVerdi -> Kategori.VERDSETTINGSRABATTSOMGIRGJELDSREDUKSJON
-                            Kategori.OPPJUSTERINGAVEIERINNTEKTER.stringVerdi -> Kategori.OPPJUSTERINGAVEIERINNTEKTER
+                            Kategori.VERDSETTINGSRABATT_SOM_GIR_GJELDSREDUKSJON.stringVerdi -> Kategori.VERDSETTINGSRABATT_SOM_GIR_GJELDSREDUKSJON
+                            Kategori.OPPJUSTERING_AV_EIERINNTEKTER.stringVerdi -> Kategori.OPPJUSTERING_AV_EIERINNTEKTER
                             else -> {
                                 log.warn("Fant en ukjent mapping for ${this.javaClass.simpleName}: $kategoriNavn")
                                 null

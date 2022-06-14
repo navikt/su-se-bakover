@@ -4,7 +4,7 @@ import java.time.LocalDate
 
 data class Skattegrunnlag(
     val fnr: Fnr,
-    val intektsår: Int,
+    val inntektsår: Int,
     val grunnlag: List<Grunnlag>,
     val skatteoppgjoersdato: LocalDate?,
 ) {
@@ -13,8 +13,8 @@ data class Skattegrunnlag(
         FORMUE("formue"),
         INNTEKTSFRADRAG("inntektsfradrag"),
         FORMUESFRADRAG("formuesfradrag"),
-        VERDSETTINGSRABATTSOMGIRGJELDSREDUKSJON("verdsettingsrabattSomGirGjeldsreduksjon"),
-        OPPJUSTERINGAVEIERINNTEKTER("oppjusteringAvEierinntekter"),
+        VERDSETTINGSRABATT_SOM_GIR_GJELDSREDUKSJON("verdsettingsrabattSomGirGjeldsreduksjon"),
+        OPPJUSTERING_AV_EIERINNTEKTER("oppjusteringAvEierinntekter"),
     }
 
     data class Grunnlag(
