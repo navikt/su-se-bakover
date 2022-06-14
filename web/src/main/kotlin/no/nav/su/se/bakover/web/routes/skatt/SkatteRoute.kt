@@ -47,7 +47,7 @@ internal fun Route.skattRoutes(skatteService: SkatteService, toggleService: Togg
                                     is KunneIkkeHenteSkattemelding.KallFeilet -> {
                                         when (it.feil) {
                                             SkatteoppslagFeil.FantIkkePerson -> Feilresponser.fantIkkePerson
-                                            SkatteoppslagFeil.FantIkkeSkattegrunnlagForGittÅr -> HttpStatusCode.NotFound.errorJson("Ingen summert skattegrunnlag funnet på oppgitt personidentifikator og inntektsår", "inget_skattegrunnlag_for_gitt_fnr_og_år")
+                                            SkatteoppslagFeil.FantIkkeSkattegrunnlagForGittÅr -> HttpStatusCode.NotFound.errorJson("Ingen summert skattegrunnlag funnet på oppgitt fødselsnummer og inntektsår", "inget_skattegrunnlag_for_gitt_fnr_og_år")
                                             SkatteoppslagFeil.SkattegrunnlagFinnesIkkeLenger -> HttpStatusCode.Gone.errorJson("Skattegrunnlaget finnes ikke lenger", "skattegrunnlaget_finnes_ikke_lenger")
                                             else -> generiskFeilmelding
                                         }
