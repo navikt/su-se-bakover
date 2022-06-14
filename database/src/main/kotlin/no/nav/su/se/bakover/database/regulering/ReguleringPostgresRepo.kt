@@ -248,6 +248,8 @@ internal class ReguleringPostgresRepo(
 
         val avsluttet = stringOrNull("avsluttet")?.let { objectMapper.readValue<AvsluttetReguleringJson>(it) }
 
+        val sakstype = string("type")
+
         return lagRegulering(
             status = status,
             id = id,
@@ -261,7 +263,8 @@ internal class ReguleringPostgresRepo(
             beregning = beregning,
             simulering = simulering,
             reguleringstype = type,
-            avsluttetReguleringJson = avsluttet
+            avsluttetReguleringJson = avsluttet,
+            sakstype = Sakstype.from(sakstype)
         )
     }
 
@@ -284,7 +287,8 @@ internal class ReguleringPostgresRepo(
         beregning: Beregning?,
         simulering: Simulering?,
         reguleringstype: Reguleringstype,
-        avsluttetReguleringJson: AvsluttetReguleringJson?
+        avsluttetReguleringJson: AvsluttetReguleringJson?,
+        sakstype: Sakstype,
     ): Regulering {
         val opprettetRegulering = Regulering.OpprettetRegulering(
             id = id,
@@ -298,6 +302,7 @@ internal class ReguleringPostgresRepo(
             beregning = beregning,
             simulering = simulering,
             reguleringstype = reguleringstype,
+            sakstype = sakstype,
         )
 
         return when (status) {

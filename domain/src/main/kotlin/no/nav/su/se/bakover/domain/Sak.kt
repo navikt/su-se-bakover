@@ -383,6 +383,7 @@ data class Sak(
             fnr = fnr,
             gjeldendeVedtaksdata = gjeldendeVedtaksdata,
             clock = clock,
+            sakstype = type,
         ).mapLeft {
             KunneIkkeOppretteEllerOppdatereRegulering.BleIkkeLagetReguleringDaDenneUansettMåRevurderes
         }
