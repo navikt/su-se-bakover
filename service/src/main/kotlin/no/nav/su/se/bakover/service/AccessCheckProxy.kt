@@ -16,8 +16,8 @@ import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
-import no.nav.su.se.bakover.domain.SamletSkattegrunnlag
 import no.nav.su.se.bakover.domain.SendPåminnelseNyStønadsperiodeContext
+import no.nav.su.se.bakover.domain.Skattegrunnlag
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
@@ -951,8 +951,7 @@ open class AccessCheckProxy(
                 }
             },
             skatteService = object : SkatteService {
-                override fun hentSamletSkattegrunnlag(fnr: Fnr): Either<KunneIkkeHenteSkattemelding, SamletSkattegrunnlag> {
-                    // TODO ai: Sjekk att fnr har en sak hos oss.
+                override fun hentSamletSkattegrunnlag(fnr: Fnr): Either<KunneIkkeHenteSkattemelding, Skattegrunnlag> {
                     assertHarTilgangTilPerson(fnr)
                     return services.skatteService.hentSamletSkattegrunnlag(fnr)
                 }

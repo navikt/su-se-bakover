@@ -3,10 +3,10 @@ package no.nav.su.se.bakover.client.skatteetaten
 import arrow.core.Either
 import no.nav.su.se.bakover.client.AccessToken
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.SamletSkattegrunnlag
+import no.nav.su.se.bakover.domain.Skattegrunnlag
 
 interface Skatteoppslag {
-    fun hentSamletSkattegrunnlag(accessToken: AccessToken, fnr: Fnr): Either<SkatteoppslagFeil, SamletSkattegrunnlag>
+    fun hentSamletSkattegrunnlag(accessToken: AccessToken, fnr: Fnr): Either<SkatteoppslagFeil, Skattegrunnlag>
 }
 
 sealed class SkatteoppslagFeil {
@@ -15,4 +15,5 @@ sealed class SkatteoppslagFeil {
     object FantIkkeSkattegrunnlagForGittÅr : SkatteoppslagFeil()
     object SkattegrunnlagFinnesIkkeLenger : SkatteoppslagFeil()
     object Apifeil : SkatteoppslagFeil()
+    object MappingFeil : SkatteoppslagFeil()
 }

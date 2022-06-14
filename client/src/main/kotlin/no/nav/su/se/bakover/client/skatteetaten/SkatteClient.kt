@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.client.skatteetaten
 import arrow.core.Either
 import arrow.core.getOrHandle
 import arrow.core.left
-import arrow.core.right
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.JsonMappingException
 import no.nav.su.se.bakover.client.AccessToken
@@ -13,7 +12,6 @@ import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.SamletSkattegrunnlag
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
@@ -30,7 +28,7 @@ class SkatteClient(private val skatteetatenConfig: SkatteetatenConfig) : Skatteo
     override fun hentSamletSkattegrunnlag(
         accessToken: AccessToken,
         fnr: Fnr,
-    ): Either<SkatteoppslagFeil, SamletSkattegrunnlag> {
+    ): Either<SkatteoppslagFeil, no.nav.su.se.bakover.domain.Skattegrunnlag> {
         val getRequest = HttpRequest.newBuilder()
             // TODO: Ikke hardkode år
             .uri(URI.create("${skatteetatenConfig.apiUri}/api/formueinntekt/summertskattegrunnlag/nav/2021/$fnr"))
@@ -68,7 +66,13 @@ class SkatteClient(private val skatteetatenConfig: SkatteetatenConfig) : Skatteo
                         return mappedFeil.left()
                     }
                 } else {
-                    return objectMapper.readValue(response.body(), SamletSkattegrunnlag::class.java).right()
+                    return objectMapper.readValue(response.body(), SamletSkattegrunnlag::class.java)
+                        .toDomain()
+                        .tapLeft {
+                            log.error("Feil skjedde under mapping av data fra skatteetaten.")
+                            sikkerLogg.error("Feil skjedde under mapping av data fra skatteetaten.", it)
+                        }
+                        .mapLeft { SkatteoppslagFeil.MappingFeil }
                 }
             }
         }.getOrHandle {
