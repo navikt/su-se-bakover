@@ -59,7 +59,7 @@ internal fun Route.skattRoutes(skatteService: SkatteService, toggleService: Togg
                             },
                             ifRight = {
                                 call.audit(fnr, AuditLogEvent.Action.ACCESS, null)
-                                call.svar(Resultat.json(HttpStatusCode.OK, serialize(it)))
+                                call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJSON())))
                             },
                         )
                 }
