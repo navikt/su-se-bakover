@@ -1,36 +1,36 @@
+package no.nav.su.se.bakover.test.vurderingsperiode
+
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.år
-import no.nav.su.se.bakover.domain.grunnlag.FlyktningGrunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.LovligOppholdGrunnlag
 import no.nav.su.se.bakover.domain.vilkår.Resultat
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFamiliegjenforening
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFlyktning
+import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeLovligOpphold
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import java.util.UUID
 
-fun vurderingsperiodeFamiliegjenforening(
+fun vurderingsperiodeLovligOppholdInnvilget(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
     resultat: Resultat = Resultat.Innvilget,
-    grunnlag: Grunnlag? = null,
-    periode: Periode = år(2022),
-) = VurderingsperiodeFamiliegjenforening.create(
+    grunnlag: LovligOppholdGrunnlag? = null,
+    vurderingsperiode: Periode = år(2021),
+) = VurderingsperiodeLovligOpphold.tryCreate(
     id = id,
     opprettet = opprettet,
     resultat = resultat,
     grunnlag = grunnlag,
-    periode = periode,
+    vurderingsperiode = vurderingsperiode,
 ).getOrFail()
 
-fun vurderingsperiodeFlyktning(
+fun vurderingsperiodeLovligOppholdAvslag(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
-    resultat: Resultat = Resultat.Innvilget,
-    grunnlag: FlyktningGrunnlag? = null,
-    vurderingsperiode: Periode = år(2022),
-) = VurderingsperiodeFlyktning.tryCreate(
+    resultat: Resultat = Resultat.Avslag,
+    grunnlag: LovligOppholdGrunnlag? = null,
+    vurderingsperiode: Periode = år(2021),
+) = VurderingsperiodeLovligOpphold.tryCreate(
     id = id,
     opprettet = opprettet,
     resultat = resultat,

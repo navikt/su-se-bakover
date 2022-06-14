@@ -5,9 +5,14 @@ import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.domain.vilkår.FamiliegjenforeningVilkår
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFamiliegjenforening
 import no.nav.su.se.bakover.test.getOrFail
-import vurderingsperiodeFamiliegjenforening
+import vurderingsperiode.vurderingsperiodeFamiliegjenforeningAvslag
+import vurderingsperiode.vurderingsperiodeFamiliegjenforeningInnvilget
 
-fun familiegjenforeningVilkår(
-    vurderingsperiode: Nel<VurderingsperiodeFamiliegjenforening> = nonEmptyListOf(vurderingsperiodeFamiliegjenforening()),
+fun familiegjenforeningVilkårInnvilget(
+    vurderingsperioder: Nel<VurderingsperiodeFamiliegjenforening> = nonEmptyListOf(vurderingsperiodeFamiliegjenforeningInnvilget()),
 ): FamiliegjenforeningVilkår.Vurdert =
-    FamiliegjenforeningVilkår.Vurdert.create(vurderingsperioder = vurderingsperiode).getOrFail()
+    FamiliegjenforeningVilkår.Vurdert.create(vurderingsperioder = vurderingsperioder).getOrFail()
+
+fun familiegjenforeningVilkårAvslag(
+    vurderingsperioder: Nel<VurderingsperiodeFamiliegjenforening> = nonEmptyListOf(vurderingsperiodeFamiliegjenforeningAvslag())
+) = FamiliegjenforeningVilkår.Vurdert.create(vurderingsperioder = vurderingsperioder).getOrFail()

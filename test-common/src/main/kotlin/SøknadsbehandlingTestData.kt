@@ -128,7 +128,7 @@ fun søknadsbehandlingVilkårsvurdertAvslag(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårAvslått,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre = vilkårsvurderingerAvslåttAlle(stønadsperiode.periode),
+    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerAvslåttAlle(stønadsperiode.periode),
 ): Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Avslag> {
     return søknadsbehandlingVilkårsvurdertUavklart(
         saksnummer = saksnummer,

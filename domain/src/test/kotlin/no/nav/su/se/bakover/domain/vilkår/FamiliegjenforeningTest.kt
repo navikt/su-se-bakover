@@ -7,10 +7,10 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.år
-import no.nav.su.se.bakover.test.vilkår.familiegjenforeningVilkår
+import no.nav.su.se.bakover.test.vilkår.familiegjenforeningVilkårInnvilget
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import vurderingsperiodeFamiliegjenforening
+import vurderingsperiode.vurderingsperiodeFamiliegjenforeningInnvilget
 
 private class FamiliegjenforeningTest {
 
@@ -64,40 +64,40 @@ private class FamiliegjenforeningTest {
 
         @Test
         fun `er innvilget dersom alle perioder er innvilget`() {
-            familiegjenforeningVilkår(
+            familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(
-                    vurderingsperiodeFamiliegjenforening(),
-                    vurderingsperiodeFamiliegjenforening(periode = år(2023)),
+                    vurderingsperiodeFamiliegjenforeningInnvilget(),
+                    vurderingsperiodeFamiliegjenforeningInnvilget(periode = år(2023)),
                 ),
             ).erInnvilget shouldBe true
         }
 
         @Test
         fun `er avslag dersom minst en periode er avslag`() {
-            familiegjenforeningVilkår(
+            familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(
-                    vurderingsperiodeFamiliegjenforening(),
-                    vurderingsperiodeFamiliegjenforening(resultat = Resultat.Avslag, periode = år(2023)),
+                    vurderingsperiodeFamiliegjenforeningInnvilget(),
+                    vurderingsperiodeFamiliegjenforeningInnvilget(resultat = Resultat.Avslag, periode = år(2023)),
                 ),
             ).erAvslag shouldBe true
         }
 
         @Test
         fun `er lik dersom begge er vurdert & vurderingsperiodene er lik`() {
-            familiegjenforeningVilkår().erLik(familiegjenforeningVilkår()) shouldBe true
+            familiegjenforeningVilkårInnvilget().erLik(familiegjenforeningVilkårInnvilget()) shouldBe true
         }
 
         @Test
         fun `slår sammen like perioder`() {
-            familiegjenforeningVilkår(
-                vurderingsperiode = nonEmptyListOf(
-                    vurderingsperiodeFamiliegjenforening(),
-                    vurderingsperiodeFamiliegjenforening(periode = år(2023)),
+            familiegjenforeningVilkårInnvilget(
+                vurderingsperioder = nonEmptyListOf(
+                    vurderingsperiodeFamiliegjenforeningInnvilget(),
+                    vurderingsperiodeFamiliegjenforeningInnvilget(periode = år(2023)),
                 ),
             ).slåSammenLikePerioder().vurderingsperioder.let {
                 it.size shouldBe 1
                 it.first().shouldBeEqualToIgnoringFields(
-                    vurderingsperiodeFamiliegjenforening(
+                    vurderingsperiodeFamiliegjenforeningInnvilget(
                         periode = Periode.create(1.januar(2022), 31.desember(2023)),
                     ),
                     Vurderingsperiode::id,
@@ -107,10 +107,10 @@ private class FamiliegjenforeningTest {
 
         @Test
         fun `henter tidligste dato for avslag`() {
-            familiegjenforeningVilkår(
+            familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(
-                    vurderingsperiodeFamiliegjenforening(resultat = Resultat.Avslag),
-                    vurderingsperiodeFamiliegjenforening(resultat = Resultat.Avslag, periode = år(2023)),
+                    vurderingsperiodeFamiliegjenforeningInnvilget(resultat = Resultat.Avslag),
+                    vurderingsperiodeFamiliegjenforeningInnvilget(resultat = Resultat.Avslag, periode = år(2023)),
                 ),
             ).hentTidligesteDatoForAvslag() shouldBe 1.januar(2022)
         }
@@ -120,7 +120,7 @@ private class FamiliegjenforeningTest {
     inner class Hybrid {
         @Test
         fun `vurdert er ikke lik ikkeVurdert`() {
-            familiegjenforeningVilkår(nonEmptyListOf(vurderingsperiodeFamiliegjenforening())).erLik(
+            familiegjenforeningVilkårInnvilget(nonEmptyListOf(vurderingsperiodeFamiliegjenforeningInnvilget())).erLik(
                 FamiliegjenforeningVilkår.IkkeVurdert,
             )
         }
