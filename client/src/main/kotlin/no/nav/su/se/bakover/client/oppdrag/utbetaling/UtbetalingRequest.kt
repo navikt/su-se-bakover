@@ -60,6 +60,7 @@ data class UtbetalingRequest(
 
     enum class KodeAksjon(@JsonValue val value: Int) {
         UTBETALING(1),
+
         @Suppress("unused")
         SIMULERING(3);
 
@@ -69,6 +70,7 @@ data class UtbetalingRequest(
     enum class KodeEndring(@JsonValue val value: String) {
         NY("NY"),
         ENDRING("ENDR"),
+
         @Suppress("unused")
         UENDRET("UEND");
 
@@ -78,11 +80,14 @@ data class UtbetalingRequest(
     enum class Utbetalingsfrekvens(@JsonValue val value: String) {
         @Suppress("unused")
         DAG("DAG"),
+
         @Suppress("unused")
         UKE("UKE"),
         MND("MND"),
+
         @Suppress("unused")
         FJORTEN_DAGER("14DG"),
+
         @Suppress("unused")
         ENGANGSUTBETALING("ENG");
 
@@ -209,6 +214,15 @@ data class UtbetalingRequest(
                     return when (this.utbetalingsinstruksjonForEtterbetalinger) {
                         UtbetalingsinstruksjonForEtterbetalinger.SammenMedNestePlanlagteUtbetaling -> Kjøreplan.JA
                         UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig -> Kjøreplan.NEI
+                    }
+                }
+
+                internal fun Utbetalingslinje.tilUføregrad(): Grad? {
+                    return uføregrad?.let { uføregrad ->
+                        Grad(
+                            typeGrad = TypeGrad.UFOR,
+                            grad = uføregrad.value,
+                        )
                     }
                 }
             }
