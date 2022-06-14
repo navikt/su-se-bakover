@@ -14,6 +14,7 @@ sealed class SkatteoppslagFeil {
     object FantIkkePerson : SkatteoppslagFeil()
     object FantIkkeSkattegrunnlagForGittÅr : SkatteoppslagFeil()
     object SkattegrunnlagFinnesIkkeLenger : SkatteoppslagFeil()
-    object Apifeil : SkatteoppslagFeil()
+    object ApiFeil : SkatteoppslagFeil()
     object MappingFeil : SkatteoppslagFeil()
+    object DeserializeringFeil : SkatteoppslagFeil()
 }

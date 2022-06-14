@@ -13,6 +13,8 @@ data class Skattegrunnlag(
         FORMUE("formue"),
         INNTEKTSFRADRAG("inntektsfradrag"),
         FORMUESFRADRAG("formuesfradrag"),
+        VERDSETTINGSRABATTSOMGIRGJELDSREDUKSJON("verdsettingsrabattSomGirGjeldsreduksjon"),
+        OPPJUSTERINGAVEIERINNTEKTER("oppjusteringAvEierinntekter"),
     }
 
     data class Grunnlag(

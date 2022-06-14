@@ -60,7 +60,7 @@ class SkatteClient(private val skatteetatenConfig: SkatteetatenConfig) : Skatteo
                             SkattedataFeilrespons.Feilkode.`SSG-007` -> SkatteoppslagFeil.FantIkkePerson
                             SkattedataFeilrespons.Feilkode.`SSG-008` -> SkatteoppslagFeil.FantIkkeSkattegrunnlagForGittÅr
                             SkattedataFeilrespons.Feilkode.`SSG-010` -> SkatteoppslagFeil.SkattegrunnlagFinnesIkkeLenger
-                            else -> SkatteoppslagFeil.Apifeil
+                            else -> SkatteoppslagFeil.ApiFeil
                         }
 
                         return mappedFeil.left()
@@ -79,13 +79,15 @@ class SkatteClient(private val skatteetatenConfig: SkatteetatenConfig) : Skatteo
             if (it is JsonMappingException || it is JsonProcessingException) {
                 log.error("Feilet under deserializering i henting av data fra skatteetaten. Melding: ${it.message}")
                 sikkerLogg.error("Feilet under deserializering i henting av data fra skatteetaten.", it)
-            } else {
-                log.warn("Fikk en exception ${it.message} i henting av data fra skatteetaten.", it)
-                sikkerLogg.warn(
-                    "Fikk en exception ${it.message} i henting av data fra skatteetaten. " +
-                        "Request $getRequest er forespørselen mot skatteetaten som feilet.",
-                )
+
+                return SkatteoppslagFeil.DeserializeringFeil.left()
             }
+
+            log.warn("Fikk en exception ${it.message} i henting av data fra skatteetaten.", it)
+            sikkerLogg.warn(
+                "Fikk en exception ${it.message} i henting av data fra skatteetaten. " +
+                    "Request $getRequest er forespørselen mot skatteetaten som feilet.",
+            )
 
             return SkatteoppslagFeil.Nettverksfeil(it).left()
         }

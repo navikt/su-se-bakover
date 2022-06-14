@@ -1,7 +1,9 @@
 package no.nav.su.se.bakover.client.skatteetaten
 
 import arrow.core.Either
+import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.Skattegrunnlag.Kategori
 import java.time.LocalDate
 
 /**
@@ -33,8 +35,19 @@ internal fun SamletSkattegrunnlag.toDomain(): Either<Throwable, no.nav.su.se.bak
                 no.nav.su.se.bakover.domain.Skattegrunnlag.Grunnlag(
                     navn = it.tekniskNavn,
                     beløp = it.beloep,
-                    kategori = it.kategori.map { kategoriNavn ->
-                        no.nav.su.se.bakover.domain.Skattegrunnlag.Kategori.valueOf(kategoriNavn)
+                    kategori = it.kategori.mapNotNull { kategoriNavn ->
+                        when (kategoriNavn) {
+                            Kategori.INNTEKT.stringVerdi -> Kategori.INNTEKT
+                            Kategori.FORMUE.stringVerdi -> Kategori.FORMUE
+                            Kategori.INNTEKTSFRADRAG.stringVerdi -> Kategori.INNTEKTSFRADRAG
+                            Kategori.FORMUESFRADRAG.stringVerdi -> Kategori.FORMUESFRADRAG
+                            Kategori.VERDSETTINGSRABATTSOMGIRGJELDSREDUKSJON.stringVerdi -> Kategori.VERDSETTINGSRABATTSOMGIRGJELDSREDUKSJON
+                            Kategori.OPPJUSTERINGAVEIERINNTEKTER.stringVerdi -> Kategori.OPPJUSTERINGAVEIERINNTEKTER
+                            else -> {
+                                log.warn("Fant en ukjent mapping for ${this.javaClass.simpleName}: $kategoriNavn")
+                                null
+                            }
+                        }
                     },
                 )
             },
