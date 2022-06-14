@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.between
 import no.nav.su.se.bakover.common.erFørsteDagIMåned
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.harOverlappende
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -98,8 +99,9 @@ sealed class Utbetalingsstrategi {
                 }
             }
 
+            val opprettet = Tidspunkt.now(clock)
             return Utbetaling.UtbetalingForSimulering(
-                opprettet = Tidspunkt.now(clock),
+                opprettet = opprettet,
                 sakId = sakId,
                 saksnummer = saksnummer,
                 fnr = fnr,
@@ -108,11 +110,12 @@ sealed class Utbetalingsstrategi {
                         utbetalingslinje = sisteOversendteUtbetalingslinje,
                         virkningstidspunkt = stansDato,
                         clock = clock,
+                        opprettet = opprettet,
                     ),
                 ),
                 type = Utbetaling.UtbetalingsType.STANS,
                 behandler = behandler,
-                avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.now(clock)),
+                avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
                 sakstype = sakstype,
             ).right()
         }
@@ -140,9 +143,11 @@ sealed class Utbetalingsstrategi {
         val kjøreplan: UtbetalingsinstruksjonForEtterbetalinger,
     ) : Utbetalingsstrategi() {
         fun generate(): Utbetaling.UtbetalingForSimulering {
+            val opprettet = Tidspunkt.now(clock)
+
             val utbetalingslinjer = createUtbetalingsperioder(beregning, uføregrunnlag).map {
                 Utbetalingslinje.Ny(
-                    opprettet = Tidspunkt.now(clock),
+                    opprettet = opprettet,
                     fraOgMed = it.fraOgMed,
                     tilOgMed = it.tilOgMed,
                     forrigeUtbetalingslinjeId = sisteOversendteUtbetaling()?.sisteUtbetalingslinje()?.id,
@@ -153,15 +158,18 @@ sealed class Utbetalingsstrategi {
             }.also {
                 it.zipWithNext { a, b -> b.link(a) }
             }
+
+            check(!utbetalingslinjer.map { it.periode }.harOverlappende()) { "Overlappende utbetalingslinjer" }
+
             return Utbetaling.UtbetalingForSimulering(
-                opprettet = Tidspunkt.now(clock),
+                opprettet = opprettet,
                 sakId = sakId,
                 saksnummer = saksnummer,
                 fnr = fnr,
                 utbetalingslinjer = NonEmptyList.fromListUnsafe(utbetalingslinjer),
                 type = Utbetaling.UtbetalingsType.NY,
                 behandler = behandler,
-                avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.now(clock)),
+                avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
                 sakstype = sakstype,
             )
         }
@@ -225,11 +233,13 @@ sealed class Utbetalingsstrategi {
         val kjøreplan: UtbetalingsinstruksjonForEtterbetalinger,
     ) : Utbetalingsstrategi() {
         fun generate(): Utbetaling.UtbetalingForSimulering {
+            val opprettet = Tidspunkt.now(clock)
+
             val utbetalingslinjer = SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(
                 beregning.getMånedsberegninger(),
             ).beregningsperioder.map {
                 Utbetalingslinje.Ny(
-                    opprettet = Tidspunkt.now(clock),
+                    opprettet = opprettet,
                     fraOgMed = it.periode.fraOgMed,
                     tilOgMed = it.periode.tilOgMed,
                     forrigeUtbetalingslinjeId = sisteOversendteUtbetaling()?.sisteUtbetalingslinje()?.id,
@@ -240,15 +250,18 @@ sealed class Utbetalingsstrategi {
             }.also {
                 it.zipWithNext { a, b -> b.link(a) }
             }
+
+            check(!utbetalingslinjer.map { it.periode }.harOverlappende()) { "Overlappende utbetalingslinjer" }
+
             return Utbetaling.UtbetalingForSimulering(
-                opprettet = Tidspunkt.now(clock),
+                opprettet = opprettet,
                 sakId = sakId,
                 saksnummer = saksnummer,
                 utbetalingslinjer = NonEmptyList.fromListUnsafe(utbetalingslinjer),
                 fnr = fnr,
                 type = Utbetaling.UtbetalingsType.NY,
                 behandler = behandler,
-                avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.now(clock)),
+                avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
                 sakstype = sakstype,
             )
         }
@@ -270,8 +283,9 @@ sealed class Utbetalingsstrategi {
                 validate(opphørsDato.erFørsteDagIMåned()) { "Ytelse kan kun opphøres fra første dag i måneden" }
             } ?: throw UtbetalingStrategyException("Ingen oversendte utbetalinger å opphøre")
 
+            val opprettet = Tidspunkt.now(clock)
             return Utbetaling.UtbetalingForSimulering(
-                opprettet = Tidspunkt.now(clock),
+                opprettet = opprettet,
                 sakId = sakId,
                 saksnummer = saksnummer,
                 fnr = fnr,
@@ -279,12 +293,13 @@ sealed class Utbetalingsstrategi {
                     Utbetalingslinje.Endring.Opphør(
                         utbetalingslinje = sisteUtbetalingslinje,
                         virkningstidspunkt = opphørsDato,
+                        opprettet = opprettet,
                         clock = clock,
                     ),
                 ),
                 type = Utbetaling.UtbetalingsType.OPPHØR,
                 behandler = behandler,
-                avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.now(clock)),
+                avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
                 sakstype = sakstype,
             )
         }
@@ -313,8 +328,9 @@ sealed class Utbetalingsstrategi {
              */
             if (unngåBugMedReaktiveringAvOpphørIOppdrag(sisteOversendteUtbetalingslinje.virkningstidspunkt).isLeft()) return Feil.KanIkkeGjenopptaOpphørtePeriode.left()
 
+            val opprettet = Tidspunkt.now(clock)
             return Utbetaling.UtbetalingForSimulering(
-                opprettet = Tidspunkt.now(clock),
+                opprettet = opprettet,
                 sakId = sakId,
                 saksnummer = saksnummer,
                 fnr = fnr,
@@ -322,12 +338,13 @@ sealed class Utbetalingsstrategi {
                     Utbetalingslinje.Endring.Reaktivering(
                         utbetalingslinje = sisteOversendteUtbetalingslinje,
                         virkningstidspunkt = sisteOversendteUtbetalingslinje.virkningstidspunkt,
+                        opprettet = opprettet,
                         clock = clock,
                     ),
                 ),
                 type = Utbetaling.UtbetalingsType.GJENOPPTA,
                 behandler = behandler,
-                avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.now(clock)),
+                avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
                 sakstype = sakstype,
             ).right()
         }
