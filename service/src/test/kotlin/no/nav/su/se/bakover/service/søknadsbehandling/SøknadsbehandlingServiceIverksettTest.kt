@@ -521,7 +521,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             verify(serviceAndMocks.utbetalingService).verifiserOgSimulerUtbetaling(
                 request = argThat {
                     it shouldBe UtbetalRequest.NyUtbetaling(
-                        request = SimulerUtbetalingRequest.NyUføreUtbetaling(
+                        request = SimulerUtbetalingRequest.NyUtbetaling.Uføre(
                             sakId = innvilgetTilAttestering.sakId,
                             saksbehandler = attestant,
                             beregning = innvilgetTilAttestering.beregning,

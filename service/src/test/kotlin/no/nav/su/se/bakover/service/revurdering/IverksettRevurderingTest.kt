@@ -84,7 +84,7 @@ internal class IverksettRevurderingTest {
         verify(serviceAndMocks.utbetalingService).verifiserOgSimulerUtbetaling(
             argThat {
                 it shouldBe UtbetalRequest.NyUtbetaling(
-                    request = SimulerUtbetalingRequest.NyUføreUtbetaling(
+                    request = SimulerUtbetalingRequest.NyUtbetaling.Uføre(
                         sakId = sakId,
                         saksbehandler = attestant,
                         beregning = revurderingTilAttestering.beregning,

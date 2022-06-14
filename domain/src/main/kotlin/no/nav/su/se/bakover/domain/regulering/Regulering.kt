@@ -199,7 +199,7 @@ sealed interface Regulering : Reguleringsfelter {
             }
 
             return callback(
-                SimulerUtbetalingRequest.NyUføreUtbetaling(
+                SimulerUtbetalingRequest.NyUtbetaling.Uføre(
                     sakId = sakId,
                     saksbehandler = saksbehandler,
                     beregning = beregning,

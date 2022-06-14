@@ -19,7 +19,6 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -57,11 +56,11 @@ fun utbetalingslinje(
 
 fun nyUtbetalingForSimulering(
     sak: Sak,
-    request: SimulerUtbetalingRequest.NyUtbetalingRequest,
+    request: SimulerUtbetalingRequest.NyUtbetaling,
     clock: Clock,
 ): Utbetaling.UtbetalingForSimulering {
     return when (request) {
-        is SimulerUtbetalingRequest.NyAldersUtbetaling -> {
+        is SimulerUtbetalingRequest.NyUtbetaling.Alder -> {
             Utbetalingsstrategi.NyAldersUtbetaling(
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
@@ -74,7 +73,7 @@ fun nyUtbetalingForSimulering(
                 kjøreplan = request.utbetalingsinstruksjonForEtterbetaling,
             ).generate()
         }
-        is SimulerUtbetalingRequest.NyUføreUtbetaling -> {
+        is SimulerUtbetalingRequest.NyUtbetaling.Uføre -> {
             Utbetalingsstrategi.NyUføreUtbetaling(
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
@@ -88,7 +87,6 @@ fun nyUtbetalingForSimulering(
                 kjøreplan = request.utbetalingsinstruksjonForEtterbetaling,
             ).generate()
         }
-        is UtbetalRequest.NyUtbetaling -> TODO("simulering_utbetaling alder refaktorer for å slippe denne")
     }
 }
 

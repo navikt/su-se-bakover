@@ -313,7 +313,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
     open fun simuler(
         saksbehandler: NavIdentBruker,
-        simuler: (request: SimulerUtbetalingRequest.NyUtbetalingRequest) -> Either<SimuleringFeilet, Simulering>,
+        simuler: (request: SimulerUtbetalingRequest.NyUtbetaling) -> Either<SimuleringFeilet, Simulering>,
     ): Either<KunneIkkeSimulereBehandling, Simulert> {
         return KunneIkkeSimulereBehandling.UgyldigTilstand(this::class).left()
     }
@@ -329,17 +329,17 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     fun lagSimulerUtbetalingRequest(
         saksbehandler: NavIdentBruker,
         beregning: Beregning,
-    ): SimulerUtbetalingRequest.NyUtbetalingRequest {
+    ): SimulerUtbetalingRequest.NyUtbetaling {
         return when (sakstype) {
             Sakstype.ALDER -> {
-                SimulerUtbetalingRequest.NyAldersUtbetaling(
+                SimulerUtbetalingRequest.NyUtbetaling.Alder(
                     sakId = sakId,
                     saksbehandler = saksbehandler,
                     beregning = beregning,
                 )
             }
             Sakstype.UFØRE -> {
-                SimulerUtbetalingRequest.NyUføreUtbetaling(
+                SimulerUtbetalingRequest.NyUtbetaling.Uføre(
                     sakId = sakId,
                     saksbehandler = saksbehandler,
                     beregning = beregning,
@@ -1067,7 +1067,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
         override fun simuler(
             saksbehandler: NavIdentBruker,
-            simuler: (request: SimulerUtbetalingRequest.NyUtbetalingRequest) -> Either<SimuleringFeilet, Simulering>,
+            simuler: (request: SimulerUtbetalingRequest.NyUtbetaling) -> Either<SimuleringFeilet, Simulering>,
         ): Either<KunneIkkeSimulereBehandling, Simulert> {
             return lagSimulerUtbetalingRequest(
                 saksbehandler = saksbehandler,
@@ -1550,7 +1550,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
         override fun simuler(
             saksbehandler: NavIdentBruker,
-            simuler: (request: SimulerUtbetalingRequest.NyUtbetalingRequest) -> Either<SimuleringFeilet, Simulering>,
+            simuler: (request: SimulerUtbetalingRequest.NyUtbetaling) -> Either<SimuleringFeilet, Simulering>,
         ): Either<KunneIkkeSimulereBehandling, Simulert> {
             return lagSimulerUtbetalingRequest(
                 saksbehandler = saksbehandler,
@@ -2090,7 +2090,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
             override fun simuler(
                 saksbehandler: NavIdentBruker,
-                simuler: (request: SimulerUtbetalingRequest.NyUtbetalingRequest) -> Either<SimuleringFeilet, Simulering>,
+                simuler: (request: SimulerUtbetalingRequest.NyUtbetaling) -> Either<SimuleringFeilet, Simulering>,
             ): Either<KunneIkkeSimulereBehandling, Simulert> {
                 return lagSimulerUtbetalingRequest(
                     saksbehandler = saksbehandler,

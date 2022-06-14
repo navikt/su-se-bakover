@@ -70,7 +70,7 @@ private data class UtbetalingRepoMock(
 
 fun simulerNyUtbetaling(
     sak: Sak,
-    request: SimulerUtbetalingRequest.NyUtbetalingRequest,
+    request: SimulerUtbetalingRequest.NyUtbetaling,
     clock: Clock,
 ): Either<SimuleringFeilet, Simulering> {
     return nyUtbetalingForSimulering(

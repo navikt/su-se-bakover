@@ -87,7 +87,7 @@ internal class SøknadsbehandlingServiceSimuleringTest {
 
         verify(søknadsbehandlingRepoMock).hent(beregnetBehandling.id)
         verify(utbetalingServiceMock).simulerUtbetaling(
-            request = SimulerUtbetalingRequest.NyUføreUtbetaling(
+            request = SimulerUtbetalingRequest.NyUtbetaling.Uføre(
                 sakId = beregnetBehandling.sakId,
                 saksbehandler = saksbehandler,
                 beregning = beregnetBehandling.beregning,
@@ -141,7 +141,7 @@ internal class SøknadsbehandlingServiceSimuleringTest {
         verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe beregnetBehandling.id })
 
         verify(utbetalingServiceMock).simulerUtbetaling(
-            request = SimulerUtbetalingRequest.NyUføreUtbetaling(
+            request = SimulerUtbetalingRequest.NyUtbetaling.Uføre(
                 sakId = beregnetBehandling.sakId,
                 saksbehandler = saksbehandler,
                 beregning = beregnetBehandling.beregning,

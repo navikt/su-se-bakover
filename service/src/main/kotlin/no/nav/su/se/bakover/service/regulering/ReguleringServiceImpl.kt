@@ -293,7 +293,7 @@ class ReguleringServiceImpl(
         // TODO("simulering_utbetaling_alder trenger sakstype på reguleringer)
         return utbetalingService.verifiserOgSimulerUtbetaling(
             request = UtbetalRequest.NyUtbetaling(
-                request = SimulerUtbetalingRequest.NyUføreUtbetaling(
+                request = SimulerUtbetalingRequest.NyUtbetaling.Uføre(
                     sakId = regulering.sakId,
                     saksbehandler = regulering.saksbehandler,
                     beregning = regulering.beregning,

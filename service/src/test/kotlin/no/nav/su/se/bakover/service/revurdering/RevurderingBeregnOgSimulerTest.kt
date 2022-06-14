@@ -241,7 +241,7 @@ internal class RevurderingBeregnOgSimulerTest {
             )
             verify(serviceAndMocks.utbetalingService).simulerUtbetaling(
                 request = argThat {
-                    it shouldBe SimulerUtbetalingRequest.NyUføreUtbetaling(
+                    it shouldBe SimulerUtbetalingRequest.NyUtbetaling.Uføre(
                         sakId = sakId,
                         saksbehandler = saksbehandler,
                         beregning = (actual.revurdering as SimulertRevurdering).beregning,
@@ -324,7 +324,7 @@ internal class RevurderingBeregnOgSimulerTest {
 
             verify(it.utbetalingService).simulerUtbetaling(
                 request = argThat {
-                    it shouldBe SimulerUtbetalingRequest.NyUføreUtbetaling(
+                    it shouldBe SimulerUtbetalingRequest.NyUtbetaling.Uføre(
                         sakId = sakId,
                         saksbehandler = saksbehandler,
                         beregning = beregnet.beregning,
@@ -378,7 +378,7 @@ internal class RevurderingBeregnOgSimulerTest {
             verify(serviceAndMocks.vedtakService).kopierGjeldendeVedtaksdata(sakId, underkjent.periode.fraOgMed)
             verify(serviceAndMocks.utbetalingService).simulerUtbetaling(
                 request = argThat {
-                    it shouldBe SimulerUtbetalingRequest.NyUføreUtbetaling(
+                    it shouldBe SimulerUtbetalingRequest.NyUtbetaling.Uføre(
                         sakId = sakId,
                         saksbehandler = saksbehandler,
                         beregning = (actual.revurdering as SimulertRevurdering).beregning,

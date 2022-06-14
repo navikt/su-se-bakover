@@ -169,7 +169,7 @@ internal class UtbetalingServiceImpl(
     ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
         val sak: Sak = sakService.hentSak(request.sakId).orNull()!!
 
-        fun lagUtbetalingAlder(request: SimulerUtbetalingRequest.NyAldersUtbetaling): Utbetaling.UtbetalingForSimulering {
+        fun lagUtbetalingAlder(request: SimulerUtbetalingRequest.NyUtbetaling.Alder): Utbetaling.UtbetalingForSimulering {
             TODO("simulering_utbetaling_alder deaktivert inntil videre")
             // return Utbetalingsstrategi.NyAldersUtbetaling(
             //     sakId = sak.id,
@@ -184,7 +184,7 @@ internal class UtbetalingServiceImpl(
             // ).generate()
         }
 
-        fun lagUtbetalingUføre(request: SimulerUtbetalingRequest.NyUføreUtbetaling): Utbetaling.UtbetalingForSimulering {
+        fun lagUtbetalingUføre(request: SimulerUtbetalingRequest.NyUtbetaling.Uføre): Utbetaling.UtbetalingForSimulering {
             return Utbetalingsstrategi.NyUføreUtbetaling(
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
@@ -200,17 +200,16 @@ internal class UtbetalingServiceImpl(
         }
 
         val utbetaling = when (request) {
-            is SimulerUtbetalingRequest.NyAldersUtbetaling -> {
+            is SimulerUtbetalingRequest.NyUtbetaling.Alder -> {
                 lagUtbetalingAlder(request)
             }
-            is SimulerUtbetalingRequest.NyUføreUtbetaling -> {
+            is SimulerUtbetalingRequest.NyUtbetaling.Uføre -> {
                 lagUtbetalingUføre(request)
             }
             is UtbetalRequest.NyUtbetaling -> {
                 when (val inner = request.request) {
-                    is SimulerUtbetalingRequest.NyAldersUtbetaling -> lagUtbetalingAlder(inner)
-                    is SimulerUtbetalingRequest.NyUføreUtbetaling -> lagUtbetalingUføre(inner)
-                    is UtbetalRequest.NyUtbetaling -> throw IllegalStateException("UtbetalRequest.NyUtbetaling skal inneholde request av type 'SimulerUtbetalingRequest.NyUføreUtbetaling")
+                    is SimulerUtbetalingRequest.NyUtbetaling.Alder -> lagUtbetalingAlder(inner)
+                    is SimulerUtbetalingRequest.NyUtbetaling.Uføre -> lagUtbetalingUføre(inner)
                 }
             }
         }
