@@ -148,7 +148,8 @@ internal class RevurderingJsonTest {
                   "Uførhet": "IkkeVurdert",
                   "Inntekt": "IkkeVurdert"
                 },
-                "attesteringer": []
+                "attesteringer": [],
+                "sakstype": "UFØRE"
             }
             """.trimIndent()
 
@@ -232,7 +233,8 @@ internal class RevurderingJsonTest {
                   "Uførhet": "IkkeVurdert",
                   "Inntekt": "IkkeVurdert"
                 },
-                "attesteringer": []
+                "attesteringer": [],
+                "sakstype": "UFØRE"
             }
             """.trimIndent()
 
@@ -315,7 +317,8 @@ internal class RevurderingJsonTest {
                   "Uførhet": "IkkeVurdert",
                   "Inntekt": "IkkeVurdert"
                 },
-                "attesteringer": []
+                "attesteringer": [],
+                "sakstype": "UFØRE"
             }
             """.trimIndent()
 
@@ -392,7 +395,8 @@ internal class RevurderingJsonTest {
                   "Uførhet": "IkkeVurdert",
                   "Inntekt": "IkkeVurdert"
                 },
-                "attesteringer": []
+                "attesteringer": [],
+                "sakstype": "UFØRE"
             }
             """.trimIndent()
 
@@ -482,6 +486,7 @@ internal class RevurderingJsonTest {
                   "Inntekt": "IkkeVurdert"
                 },
                 "attesteringer": [],
+                "sakstype": "UFØRE",
                 "simuleringForAvkortingsvarsel": null,
                 "tilbakekrevingsbehandling": {
                   "avgjørelse": "IKKE_AVGJORT"
@@ -569,6 +574,7 @@ internal class RevurderingJsonTest {
                   "Inntekt": "IkkeVurdert"
                 },
                 "attesteringer": [],
+                "sakstype": "UFØRE",
                 "simuleringForAvkortingsvarsel": null,
                 "tilbakekrevingsbehandling": null
             }
@@ -655,6 +661,7 @@ internal class RevurderingJsonTest {
                   "Inntekt": "Vurdert"
                 },
                 "attesteringer": [],
+                "sakstype": "UFØRE",
                 "simuleringForAvkortingsvarsel": null,
                 "tilbakekrevingsbehandling": null
             }
@@ -741,6 +748,7 @@ internal class RevurderingJsonTest {
                   "Inntekt": "IkkeVurdert"
                 },
                 "attesteringer": [],
+                "sakstype": "UFØRE",
                 "simuleringForAvkortingsvarsel": null,
                 "tilbakekrevingsbehandling": null
             }
@@ -822,6 +830,7 @@ internal class RevurderingJsonTest {
                   "Inntekt": "IkkeVurdert"
                 },
                 "attesteringer": [],
+                "sakstype": "UFØRE",
                 "simuleringForAvkortingsvarsel": null,
                 "tilbakekrevingsbehandling": null
             }
@@ -896,6 +905,7 @@ internal class RevurderingJsonTest {
                         "kommentar": "Dokumentasjon mangler"
                     }
                 }],
+                "sakstype": "UFØRE",
                 "fritekstTilBrev": "",
                 "skalFøreTilBrevutsending": true,
                 "årsak": "MELDING_FRA_BRUKER",
@@ -996,6 +1006,7 @@ internal class RevurderingJsonTest {
                         "kommentar": "Dokumentasjon mangler"
                     }
                 }],
+                "sakstype": "UFØRE",
                 "fritekstTilBrev": "",
                 "skalFøreTilBrevutsending": true,
                 "årsak": "MELDING_FRA_BRUKER",
@@ -1092,6 +1103,7 @@ internal class RevurderingJsonTest {
                         "kommentar": "Dokumentasjon mangler"
                     }
                 }],
+                "sakstype": "UFØRE",
                 "fritekstTilBrev": "",
                 "skalFøreTilBrevutsending": false,
                 "årsak": "MELDING_FRA_BRUKER",
@@ -1219,6 +1231,7 @@ internal class RevurderingJsonTest {
                   "Inntekt": "IkkeVurdert"
                 },
                 "attesteringer": [{"attestant":"attestant", "opprettet": "$attesteringOpprettet", "underkjennelse": null}],
+                "sakstype": "UFØRE",
                 "simuleringForAvkortingsvarsel": null,
                 "tilbakekrevingsbehandling": {
                   "avgjørelse": "TILBAKEKREV"
@@ -1313,6 +1326,7 @@ internal class RevurderingJsonTest {
                   "Inntekt": "IkkeVurdert"
                 },
                 "attesteringer": [{"attestant": "attestant", "opprettet": "$attesteringOpprettet", "underkjennelse": null}],
+                "sakstype": "UFØRE",
                 "simuleringForAvkortingsvarsel": null,
                 "tilbakekrevingsbehandling": null
             }
@@ -1401,6 +1415,7 @@ internal class RevurderingJsonTest {
                   "Inntekt": "IkkeVurdert"
                 },
                 "attesteringer": [{"attestant": "attestant", "opprettet": "$attesteringOpprettet", "underkjennelse": null}],
+                "sakstype": "UFØRE",
                 "simuleringForAvkortingsvarsel": null,
                 "tilbakekrevingsbehandling": null
             }
@@ -1440,7 +1455,8 @@ internal class RevurderingJsonTest {
                   "utenlandsopphold": ${serialize(simulertRevurdering.vilkårsvurderinger.utenlandsopphold.toJson()!!)},
                   "opplysningsplikt": ${serialize(simulertRevurdering.vilkårsvurderinger.opplysningsplikt.toJson()!!)}
                 },
-                "attesteringer": []
+                "attesteringer": [],
+                "sakstype": "UFØRE"
             }
             """.trimIndent()
 
@@ -1478,7 +1494,8 @@ internal class RevurderingJsonTest {
                   "utenlandsopphold": ${serialize(iverksattRevurdering.vilkårsvurderinger.utenlandsopphold.toJson()!!)},
                   "opplysningsplikt": ${serialize(simulertRevurdering.vilkårsvurderinger.opplysningsplikt.toJson()!!)}
                 },
-                "attesteringer": [{"attestant": "attestant", "opprettet": "$fixedTidspunkt", "underkjennelse": null}]
+                "attesteringer": [{"attestant": "attestant", "opprettet": "$fixedTidspunkt", "underkjennelse": null}],
+                "sakstype": "UFØRE"
             }
             """.trimIndent()
 
@@ -1518,7 +1535,8 @@ internal class RevurderingJsonTest {
                   "utenlandsopphold": ${serialize(simulertRevurdering.vilkårsvurderinger.utenlandsopphold.toJson()!!)},
                   "opplysningsplikt": ${serialize(simulertRevurdering.vilkårsvurderinger.opplysningsplikt.toJson()!!)}
                 },
-                "attesteringer": []
+                "attesteringer": [],
+                "sakstype": "UFØRE"
 
             }
             """.trimIndent()
@@ -1556,7 +1574,8 @@ internal class RevurderingJsonTest {
                   "utenlandsopphold": ${serialize(iverksattRevurdering.vilkårsvurderinger.utenlandsopphold.toJson()!!)},
                   "opplysningsplikt": ${serialize(iverksattRevurdering.vilkårsvurderinger.opplysningsplikt.toJson()!!)}
                 },
-                "attesteringer": [{"attestant": "attestant", "opprettet": "$fixedTidspunkt", "underkjennelse": null}]
+                "attesteringer": [{"attestant": "attestant", "opprettet": "$fixedTidspunkt", "underkjennelse": null}],
+                "sakstype": "UFØRE"
             }
             """.trimIndent()
 

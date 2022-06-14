@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurderingerJson
+import no.nav.su.se.bakover.web.routes.sak.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.BeregningJson
@@ -32,6 +33,7 @@ internal data class ReguleringJson(
     val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson,
     val saksbehandler: String,
     val avsluttet: Avsluttet?,
+    val sakstype: String,
 ) {
     data class Avsluttet(val tidspunkt: Tidspunkt)
     enum class Status {
@@ -75,6 +77,7 @@ internal fun Regulering.toJson(satsFactory: SatsFactory) = ReguleringJson(
         is Regulering.AvsluttetRegulering -> ReguleringJson.Avsluttet(this.avsluttetTidspunkt)
         is Regulering.IverksattRegulering, is Regulering.OpprettetRegulering -> null
     },
+    sakstype = sakstype.toJson(),
 )
 
 internal fun Set<ÅrsakTilManuellRegulering>.toJson(): Set<String> {
