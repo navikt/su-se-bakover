@@ -68,15 +68,15 @@ internal data class SakJson(
     }
 }
 
-enum class SakTypeJson {
+enum class SakstypeJson {
     ALDER,
     UFØRE;
 }
 
 internal fun Sakstype.toJson(): String {
     return when (this) {
-        Sakstype.ALDER -> SakTypeJson.ALDER.toString()
-        Sakstype.UFØRE -> SakTypeJson.UFØRE.toString()
+        Sakstype.ALDER -> SakstypeJson.ALDER.toString()
+        Sakstype.UFØRE -> SakstypeJson.UFØRE.toString()
     }
 }
 
