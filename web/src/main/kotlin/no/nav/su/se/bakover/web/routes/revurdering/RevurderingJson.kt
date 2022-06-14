@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurderingerJson
 import no.nav.su.se.bakover.web.routes.revurdering.forhåndsvarsel.ForhåndsvarselJson
 import no.nav.su.se.bakover.web.routes.revurdering.forhåndsvarsel.ForhåndsvarselJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.sak.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.AttesteringJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.AttesteringJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson
@@ -41,6 +42,7 @@ internal sealed class RevurderingJson {
     abstract val forhåndsvarsel: ForhåndsvarselJson?
     abstract val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson
     abstract val attesteringer: List<AttesteringJson>
+    abstract val sakstype: String
 }
 
 internal enum class RevurderingsStatus {
@@ -82,6 +84,7 @@ internal data class OpprettetRevurderingJson(
     override val attesteringer: List<AttesteringJson>,
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
     val fritekstTilBrev: String,
+    override val sakstype: String,
 ) : RevurderingJson()
 
 internal data class BeregnetRevurderingJson(
@@ -98,6 +101,7 @@ internal data class BeregnetRevurderingJson(
     override val forhåndsvarsel: ForhåndsvarselJson?,
     override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson,
     override val attesteringer: List<AttesteringJson>,
+    override val sakstype: String,
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
 ) : RevurderingJson()
 
@@ -113,6 +117,7 @@ internal data class SimulertRevurderingJson(
     override val forhåndsvarsel: ForhåndsvarselJson?,
     override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson,
     override val attesteringer: List<AttesteringJson>,
+    override val sakstype: String,
     val beregning: BeregningJson,
     val fritekstTilBrev: String,
     val simulering: SimuleringJson,
@@ -133,6 +138,7 @@ internal data class TilAttesteringJson(
     override val forhåndsvarsel: ForhåndsvarselJson?,
     override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson,
     override val attesteringer: List<AttesteringJson>,
+    override val sakstype: String,
     val simulering: SimuleringJson?,
     val beregning: BeregningJson,
     val fritekstTilBrev: String,
@@ -154,6 +160,7 @@ internal data class IverksattRevurderingJson(
     override val forhåndsvarsel: ForhåndsvarselJson?,
     override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson,
     override val attesteringer: List<AttesteringJson>,
+    override val sakstype: String,
     val beregning: BeregningJson,
     val simulering: SimuleringJson?,
     val fritekstTilBrev: String,
@@ -175,6 +182,7 @@ internal data class UnderkjentRevurderingJson(
     override val forhåndsvarsel: ForhåndsvarselJson?,
     override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson,
     override val attesteringer: List<AttesteringJson>,
+    override val sakstype: String,
     val beregning: BeregningJson,
     val simulering: SimuleringJson?,
     val fritekstTilBrev: String,
@@ -196,6 +204,7 @@ internal data class AvsluttetRevurderingJson(
     override val forhåndsvarsel: ForhåndsvarselJson?,
     override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson,
     override val attesteringer: List<AttesteringJson>,
+    override val sakstype: String,
     val beregning: BeregningJson?,
     val simulering: SimuleringJson?,
     val fritekstTilBrev: String,
@@ -214,6 +223,7 @@ internal data class StansAvUtbetalingJson(
     override val status: RevurderingsStatus,
     override val attesteringer: List<AttesteringJson>,
     override val forhåndsvarsel: ForhåndsvarselJson?,
+    override val sakstype: String,
     val simulering: SimuleringJson,
 ) : RevurderingJson()
 
@@ -229,6 +239,7 @@ internal data class GjenopptakAvYtelseJson(
     override val begrunnelse: String,
     override val attesteringer: List<AttesteringJson>,
     override val forhåndsvarsel: ForhåndsvarselJson?,
+    override val sakstype: String,
     val simulering: SimuleringJson,
 ) : RevurderingJson()
 
@@ -251,6 +262,7 @@ internal fun Revurdering.toJson(satsFactory: SatsFactory): RevurderingJson = whe
         ),
         informasjonSomRevurderes = informasjonSomRevurderes,
         attesteringer = attesteringer.toJson(),
+        sakstype = sakstype.toJson(),
     )
     is SimulertRevurdering -> SimulertRevurderingJson(
         id = id.toString(),
@@ -272,6 +284,7 @@ internal fun Revurdering.toJson(satsFactory: SatsFactory): RevurderingJson = whe
         ),
         informasjonSomRevurderes = informasjonSomRevurderes,
         attesteringer = attesteringer.toJson(),
+        sakstype = sakstype.toJson(),
         simuleringForAvkortingsvarsel = when (this) {
             is SimulertRevurdering.Innvilget -> null
             is SimulertRevurdering.Opphørt -> avkorting.toJson()
@@ -307,6 +320,7 @@ internal fun Revurdering.toJson(satsFactory: SatsFactory): RevurderingJson = whe
         ),
         informasjonSomRevurderes = informasjonSomRevurderes,
         attesteringer = attesteringer.toJson(),
+        sakstype = sakstype.toJson(),
         simuleringForAvkortingsvarsel = when (this) {
             is RevurderingTilAttestering.IngenEndring -> null
             is RevurderingTilAttestering.Innvilget -> null
@@ -347,6 +361,7 @@ internal fun Revurdering.toJson(satsFactory: SatsFactory): RevurderingJson = whe
         ),
         informasjonSomRevurderes = informasjonSomRevurderes,
         attesteringer = attesteringer.toJson(),
+        sakstype = sakstype.toJson(),
         simuleringForAvkortingsvarsel = when (this) {
             is IverksattRevurdering.IngenEndring -> null
             is IverksattRevurdering.Innvilget -> null
@@ -387,6 +402,7 @@ internal fun Revurdering.toJson(satsFactory: SatsFactory): RevurderingJson = whe
         ),
         informasjonSomRevurderes = informasjonSomRevurderes,
         attesteringer = attesteringer.toJson(),
+        sakstype = sakstype.toJson(),
         simuleringForAvkortingsvarsel = when (this) {
             is UnderkjentRevurdering.IngenEndring -> null
             is UnderkjentRevurdering.Innvilget -> null
@@ -417,6 +433,7 @@ internal fun Revurdering.toJson(satsFactory: SatsFactory): RevurderingJson = whe
         ),
         informasjonSomRevurderes = informasjonSomRevurderes,
         attesteringer = attesteringer.toJson(),
+        sakstype = sakstype.toJson(),
     )
     is AvsluttetRevurdering -> AvsluttetRevurderingJson(
         id = id.toString(),
@@ -438,6 +455,7 @@ internal fun Revurdering.toJson(satsFactory: SatsFactory): RevurderingJson = whe
         informasjonSomRevurderes = informasjonSomRevurderes,
         simulering = simulering?.toJson(),
         attesteringer = attesteringer.toJson(),
+        sakstype = sakstype.toJson(),
     )
 }
 
@@ -494,6 +512,7 @@ internal fun StansAvYtelseRevurdering.toJson(satsFactory: SatsFactory): Revurder
             status = InstansTilStatusMapper(this).status,
             simulering = simulering.toJson(),
             attesteringer = attesteringer.toJson(),
+            sakstype = sakstype.toJson(),
             forhåndsvarsel = ForhåndsvarselJson.IngenForhåndsvarsel,
         )
         is StansAvYtelseRevurdering.SimulertStansAvYtelse -> {
@@ -513,6 +532,7 @@ internal fun StansAvYtelseRevurdering.toJson(satsFactory: SatsFactory): Revurder
                 status = InstansTilStatusMapper(this).status,
                 simulering = simulering.toJson(),
                 attesteringer = emptyList(),
+                sakstype = sakstype.toJson(),
                 forhåndsvarsel = ForhåndsvarselJson.IngenForhåndsvarsel,
             )
         }
@@ -532,6 +552,7 @@ internal fun StansAvYtelseRevurdering.toJson(satsFactory: SatsFactory): Revurder
             status = InstansTilStatusMapper(this).status,
             simulering = simulering.toJson(),
             attesteringer = emptyList(),
+            sakstype = sakstype.toJson(),
             forhåndsvarsel = ForhåndsvarselJson.IngenForhåndsvarsel,
         )
     }
@@ -556,6 +577,7 @@ internal fun GjenopptaYtelseRevurdering.toJson(satsFactory: SatsFactory): Revurd
                 status = InstansTilStatusMapper(this).status,
                 simulering = simulering.toJson(),
                 attesteringer = attesteringer.toJson(),
+                sakstype = sakstype.toJson(),
                 forhåndsvarsel = ForhåndsvarselJson.IngenForhåndsvarsel,
             )
         }
@@ -575,6 +597,7 @@ internal fun GjenopptaYtelseRevurdering.toJson(satsFactory: SatsFactory): Revurd
             status = InstansTilStatusMapper(this).status,
             simulering = simulering.toJson(),
             attesteringer = emptyList(),
+            sakstype = sakstype.toJson(),
             forhåndsvarsel = ForhåndsvarselJson.IngenForhåndsvarsel,
         )
         is GjenopptaYtelseRevurdering.AvsluttetGjenoppta -> GjenopptakAvYtelseJson(
@@ -593,6 +616,7 @@ internal fun GjenopptaYtelseRevurdering.toJson(satsFactory: SatsFactory): Revurd
             status = InstansTilStatusMapper(this).status,
             simulering = simulering.toJson(),
             attesteringer = emptyList(),
+            sakstype = sakstype.toJson(),
             forhåndsvarsel = ForhåndsvarselJson.IngenForhåndsvarsel,
         )
     }

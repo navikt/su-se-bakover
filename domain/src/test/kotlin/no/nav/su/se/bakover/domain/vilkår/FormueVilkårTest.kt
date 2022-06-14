@@ -24,9 +24,9 @@ import no.nav.su.se.bakover.test.bosituasjongrunnlagEpsUførFlyktning
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.formueGrunnlagUtenEpsAvslått
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
-import no.nav.su.se.bakover.test.innvilgetFormueVilkår
+import no.nav.su.se.bakover.test.grunnlag.formueGrunnlagUtenEpsAvslått
+import no.nav.su.se.bakover.test.vilkår.innvilgetFormueVilkår
 import org.junit.jupiter.api.Test
 import java.util.UUID
 

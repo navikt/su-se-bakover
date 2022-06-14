@@ -33,10 +33,10 @@ import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.formueGrunnlagUtenEpsAvslått
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.grunnlag.formueGrunnlagUtenEpsAvslått
 import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget

@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -32,6 +33,7 @@ fun opprettetRegulering(
     ),
     saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler(saksbehandlerNavn),
     reguleringstype: Reguleringstype = Reguleringstype.MANUELL(emptySet()),
+    sakstype: Sakstype = Sakstype.UFØRE,
 ) = Regulering.OpprettetRegulering(
     id = id,
     opprettet = opprettet,
@@ -44,6 +46,7 @@ fun opprettetRegulering(
     simulering = null,
     saksbehandler = saksbehandler,
     reguleringstype = reguleringstype,
+    sakstype = sakstype,
 )
 
 fun iverksattAutomatiskRegulering(
@@ -60,6 +63,7 @@ fun iverksattAutomatiskRegulering(
     reguleringstype: Reguleringstype = Reguleringstype.AUTOMATISK,
     saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler.systembruker(),
     clock: Clock = fixedClock,
+    sakstype: Sakstype = Sakstype.UFØRE,
 ): Regulering.IverksattRegulering = opprettetRegulering(
     id = id,
     sakId = sakId,
@@ -70,6 +74,7 @@ fun iverksattAutomatiskRegulering(
     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
     reguleringstype = reguleringstype,
     saksbehandler = saksbehandler,
+    sakstype = sakstype,
 )
     .beregn(satsFactoryTestPåDato(), null, clock).getOrFail()
     .simuler { simulertUtbetaling().right() }.getOrFail()

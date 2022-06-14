@@ -65,7 +65,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     abstract override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling
     abstract override val attesteringer: Attesteringshistorikk
     abstract val avkorting: AvkortingVedSøknadsbehandling
-    abstract val sakstype: Sakstype
 
     // TODO ia: fritekst bør flyttes ut av denne klassen og til et eget konsept (som også omfatter fritekst på revurderinger)
     abstract val fritekstTilBrev: String

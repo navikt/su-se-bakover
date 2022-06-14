@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.attesteringUnderkjent
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.formuevilkårAvslåttPgrBrukersformue
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.oppgaveIdRevurdering
@@ -26,6 +25,7 @@ import no.nav.su.se.bakover.test.requireType
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulertRevurdering
+import no.nav.su.se.bakover.test.vilkår.formuevilkårAvslåttPgrBrukersformue
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.time.Clock
