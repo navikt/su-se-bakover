@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.år
-import no.nav.su.se.bakover.test.familiegjenforeningVilkår
+import no.nav.su.se.bakover.test.vilkår.familiegjenforeningVilkår
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import vurderingsperiodeFamiliegjenforening
