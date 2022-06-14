@@ -33,7 +33,7 @@ import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
-import no.nav.su.se.bakover.domain.satser.SatsFactory
+import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import java.util.UUID
 
@@ -41,7 +41,7 @@ internal class ReguleringPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
     private val grunnlagsdataOgVilkårsvurderingerPostgresRepo: GrunnlagsdataOgVilkårsvurderingerPostgresRepo,
     private val dbMetrics: DbMetrics,
-    private val satsFactory: SatsFactory,
+    private val satsFactory: SatsFactoryForSupplerendeStønad,
 ) : ReguleringRepo {
     override fun hent(id: UUID): Regulering? {
         return sessionFactory.withSession { session ->
@@ -235,7 +235,7 @@ internal class ReguleringPostgresRepo(
             ReguleringstypeDb.AUTOMATISK -> Reguleringstype.AUTOMATISK
         }
 
-        val beregning: BeregningMedFradragBeregnetMånedsvis? = stringOrNull("beregning")?.deserialiserBeregning(satsFactory)
+        val beregning: BeregningMedFradragBeregnetMånedsvis? = stringOrNull("beregning")?.deserialiserBeregning(satsFactory.gjeldende(opprettet))
         val simulering = stringOrNull("simulering")?.let { objectMapper.readValue<Simulering>(it) }
         val saksbehandler = NavIdentBruker.Saksbehandler(string("saksbehandler"))
         val periode = string("periode").let { objectMapper.readValue<Periode>(it) }

@@ -38,7 +38,7 @@ fun Vilkår.Formue.Vurdert.Companion.createFromGrunnlag(
 ): Vilkår.Formue.Vurdert =
     tryCreateFromGrunnlag(
         grunnlag = grunnlag.map { false to it },
-        formuegrenserFactory = formuegrenserFactoryTest,
+        formuegrenserFactory = formuegrenserFactoryTestPåDato(),
     ).getOrHandle { throw IllegalArgumentException(it.toString()) }
 
 fun Formuegrunnlag.Companion.create(

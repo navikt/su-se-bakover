@@ -21,7 +21,7 @@ import no.nav.su.se.bakover.service.statistikk.mappers.BehandlingStatistikkMappe
 import no.nav.su.se.bakover.service.statistikk.mappers.ManglendeStatistikkMappingException
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.formuegrenserFactoryTest
+import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattGjenopptakelseAvYtelseFraVedtakStansAvYtelse
 import no.nav.su.se.bakover.test.iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak
@@ -30,7 +30,7 @@ import no.nav.su.se.bakover.test.iverksattStansAvYtelseFraIverksattSøknadsbehan
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.oversendtKlage
 import no.nav.su.se.bakover.test.saksbehandler
-import no.nav.su.se.bakover.test.satsFactoryTest
+import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulerNyUtbetaling
 import no.nav.su.se.bakover.test.søknadsbehandlingBeregnetAvslag
 import no.nav.su.se.bakover.test.søknadsbehandlingBeregnetInnvilget
@@ -680,8 +680,8 @@ internal class BehandlingStatistikkMapperTest {
     private val beregnetSøknadsbehandling = vilkårsvurdertInnvilgetSøknadsbehandling.beregn(
         begrunnelse = null,
         clock = fixedClock,
-        satsFactory = satsFactoryTest,
-        formuegrenserFactory = formuegrenserFactoryTest,
+        satsFactory = satsFactoryTestPåDato(),
+        formuegrenserFactory = formuegrenserFactoryTestPåDato(),
     ).getOrFail()
     private val simulertSøknadsbehandling = beregnetSøknadsbehandling.simuler(
         saksbehandler = saksbehandler,

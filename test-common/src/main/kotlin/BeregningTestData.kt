@@ -17,6 +17,8 @@ import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.utledBeregningsstrategi
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt
+import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt0
 
 /**
  * forventet inntekt 1 000 000
@@ -43,11 +45,11 @@ fun beregningAvslagUnderMinstebeløp(
         fradragsgrunnlag = nonEmptyListOf(
             fradragsgrunnlagArbeidsinntekt(
                 periode = Periode.create(1.januar(2021), 30.april(2021)),
-                arbeidsinntekt = (satsFactoryTest.høy(januar(2021)).satsForMånedAsDouble - 100),
+                arbeidsinntekt = (satsFactoryTestPåDato().høyUføre(januar(2021)).satsForMånedAsDouble - 100),
             ),
             fradragsgrunnlagArbeidsinntekt(
                 periode = Periode.create(1.mai(2021), 31.desember(2021)),
-                arbeidsinntekt = (satsFactoryTest.høy(mai(2021)).satsForMånedAsDouble - 100),
+                arbeidsinntekt = (satsFactoryTestPåDato().høyUføre(mai(2021)).satsForMånedAsDouble - 100),
             ),
         ),
     )
@@ -81,7 +83,7 @@ fun beregning(
         return BeregningFactory(clock = fixedClock).ny(
             fradrag = it.fradrag,
             begrunnelse = null,
-            beregningsperioder = listOf(Beregningsperiode(periode, bosituasjon.utledBeregningsstrategi(satsFactoryTest))),
+            beregningsperioder = listOf(Beregningsperiode(periode, bosituasjon.utledBeregningsstrategi(satsFactoryTestPåDato()))),
         )
     }
 }

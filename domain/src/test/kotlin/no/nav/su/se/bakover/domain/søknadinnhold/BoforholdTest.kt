@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.søknadinnhold
 import arrow.core.left
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.Fnr
 import org.junit.jupiter.api.Test
 
@@ -54,6 +55,18 @@ internal class BoforholdTest() {
             innlagtPåInstitusjon = null,
             oppgittAdresse = oppgittAdresse,
         ).shouldBeRight()
+    }
+
+    @Test
+    fun `får feil dersom datoForUtskrivelse er satt og fortsattInnlagt er true`() {
+        Boforhold.tryCreate(
+            borOgOppholderSegINorge = false,
+            delerBolig = true,
+            delerBoligMed = Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER,
+            ektefellePartnerSamboer = EktefellePartnerSamboer(erUførFlyktning = null, fnr = Fnr("12345678901")),
+            innlagtPåInstitusjon = InnlagtPåInstitusjon(1.januar(2021), 31.januar(2021), true),
+            oppgittAdresse = oppgittAdresse,
+        ) shouldBe FeilVedOpprettelseAvBoforhold.InkonsekventInnleggelse.left()
     }
 
     @Test

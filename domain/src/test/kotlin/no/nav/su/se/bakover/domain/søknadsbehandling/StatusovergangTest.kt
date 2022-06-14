@@ -16,14 +16,12 @@ import no.nav.su.se.bakover.test.attesteringUnderkjent
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.formuegrenserFactoryTest
+import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.formuevilkårIkkeVurdert
 import no.nav.su.se.bakover.test.formuevilkårUtenEps0Innvilget
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.innvilgetUførevilkår
-import no.nav.su.se.bakover.test.innvilgetUførevilkårForventetInntekt12000
 import no.nav.su.se.bakover.test.saksbehandler
-import no.nav.su.se.bakover.test.satsFactoryTest
+import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.simulerNyUtbetaling
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
@@ -34,9 +32,11 @@ import no.nav.su.se.bakover.test.søknadsbehandlingUnderkjentInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertAvslag
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
-import no.nav.su.se.bakover.test.tilstrekkeligDokumentert
-import no.nav.su.se.bakover.test.utenlandsoppholdInnvilget
-import no.nav.su.se.bakover.test.utilstrekkeligDokumentert
+import no.nav.su.se.bakover.test.vilkår.tilstrekkeligDokumentert
+import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdInnvilget
+import no.nav.su.se.bakover.test.vilkår.utilstrekkeligDokumentert
+import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkår
+import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt12000
 import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -70,20 +70,20 @@ internal class StatusovergangTest {
         vilkårsvurdertInnvilget.beregn(
             begrunnelse = null,
             clock = fixedClock,
-            formuegrenserFactory = formuegrenserFactoryTest,
-            satsFactory = satsFactoryTest,
+            formuegrenserFactory = formuegrenserFactoryTestPåDato(),
+            satsFactory = satsFactoryTestPåDato(),
         ).getOrFail() as Søknadsbehandling.Beregnet.Innvilget
 
     private val beregnetAvslag: Søknadsbehandling.Beregnet.Avslag =
         vilkårsvurdertInnvilget.leggTilUførevilkår(
             uførhet = innvilgetUførevilkår(forventetInntekt = 11000000),
             clock = fixedClock,
-            formuegrenserFactory = formuegrenserFactoryTest,
+            formuegrenserFactory = formuegrenserFactoryTestPåDato(),
         ).getOrFail().beregn(
             begrunnelse = null,
             clock = fixedClock,
-            formuegrenserFactory = formuegrenserFactoryTest,
-            satsFactory = satsFactoryTest,
+            formuegrenserFactory = formuegrenserFactoryTestPåDato(),
+            satsFactory = satsFactoryTestPåDato(),
         ).getOrFail() as Søknadsbehandling.Beregnet.Avslag
 
     private val simulert: Søknadsbehandling.Simulert =
@@ -173,7 +173,7 @@ internal class StatusovergangTest {
                 opprettet.leggTilOpplysningspliktVilkår(
                     opplysningspliktVilkår = utilstrekkeligDokumentert(),
                     clock = fixedClock,
-                    formuegrenserFactory = formuegrenserFactoryTest,
+                    formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                 ).getOrFail(),
                 Statusovergang.TilVilkårsvurdert(
                     behandlingsinformasjon = Behandlingsinformasjon(),
@@ -428,8 +428,8 @@ internal class StatusovergangTest {
             vilkårsvurdertInnvilget.beregn(
                 begrunnelse = null,
                 clock = fixedClock,
-                formuegrenserFactory = formuegrenserFactoryTest,
-                satsFactory = satsFactoryTest,
+                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
+                satsFactory = satsFactoryTestPåDato(),
             ).getOrFail() shouldBe beregnetInnvilget
         }
 
@@ -438,8 +438,8 @@ internal class StatusovergangTest {
             beregnetInnvilget.beregn(
                 begrunnelse = null,
                 clock = fixedClock,
-                formuegrenserFactory = formuegrenserFactoryTest,
-                satsFactory = satsFactoryTest,
+                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
+                satsFactory = satsFactoryTestPåDato(),
             ).getOrFail() shouldBe beregnetInnvilget
         }
 
@@ -448,8 +448,8 @@ internal class StatusovergangTest {
             beregnetAvslag.beregn(
                 begrunnelse = null,
                 clock = fixedClock,
-                formuegrenserFactory = formuegrenserFactoryTest,
-                satsFactory = satsFactoryTest,
+                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
+                satsFactory = satsFactoryTestPåDato(),
             ).getOrFail() shouldBe beregnetAvslag
         }
 
@@ -458,8 +458,8 @@ internal class StatusovergangTest {
             simulert.beregn(
                 begrunnelse = null,
                 clock = fixedClock,
-                formuegrenserFactory = formuegrenserFactoryTest,
-                satsFactory = satsFactoryTest,
+                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
+                satsFactory = satsFactoryTestPåDato(),
             ).getOrFail() shouldBe beregnetInnvilget
         }
 
@@ -468,8 +468,8 @@ internal class StatusovergangTest {
             underkjentAvslagBeregning.beregn(
                 begrunnelse = null,
                 clock = fixedClock,
-                formuegrenserFactory = formuegrenserFactoryTest,
-                satsFactory = satsFactoryTest,
+                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
+                satsFactory = satsFactoryTestPåDato(),
             ).getOrFail() shouldBe beregnetAvslag
                 .medFritekstTilBrev(underkjentAvslagBeregning.fritekstTilBrev)
                 .copy(attesteringer = Attesteringshistorikk.create(listOf(underkjentAvslagBeregning.attesteringer.hentSisteAttestering())))
@@ -480,8 +480,8 @@ internal class StatusovergangTest {
             underkjentInnvilget.beregn(
                 begrunnelse = null,
                 clock = fixedClock,
-                formuegrenserFactory = formuegrenserFactoryTest,
-                satsFactory = satsFactoryTest,
+                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
+                satsFactory = satsFactoryTestPåDato(),
             ).getOrFail() shouldBe beregnetInnvilget
                 .medFritekstTilBrev(underkjentInnvilget.fritekstTilBrev)
                 .copy(attesteringer = Attesteringshistorikk.create(listOf(underkjentInnvilget.attesteringer.hentSisteAttestering())))
@@ -504,8 +504,8 @@ internal class StatusovergangTest {
                 it.beregn(
                     begrunnelse = null,
                     clock = fixedClock,
-                    formuegrenserFactory = formuegrenserFactoryTest,
-                    satsFactory = satsFactoryTest,
+                    formuegrenserFactory = formuegrenserFactoryTestPåDato(),
+                    satsFactory = satsFactoryTestPåDato(),
                 ) shouldBe Søknadsbehandling.KunneIkkeBeregne.UgyldigTilstand(it::class).left()
             }
         }
@@ -868,7 +868,7 @@ internal class StatusovergangTest {
                 it.oppdaterStønadsperiode(
                     oppdatertStønadsperiode = stønadsperiode,
                     clock = fixedClock,
-                    formuegrenserFactory = formuegrenserFactoryTest,
+                    formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                 ).isRight() shouldBe true
             }
         }
@@ -887,7 +887,7 @@ internal class StatusovergangTest {
                 it.oppdaterStønadsperiode(
                     oppdatertStønadsperiode = stønadsperiode,
                     clock = fixedClock,
-                    formuegrenserFactory = formuegrenserFactoryTest,
+                    formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                 ).isLeft() shouldBe true
             }
         }

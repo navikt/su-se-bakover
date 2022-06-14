@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.lagFradrag
-import no.nav.su.se.bakover.test.satsFactoryTest
+import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
@@ -31,13 +31,13 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
     fun `tilstøtende månedsberegninger hvor alt er likt bortsett fra dato grupperes sammen`() {
         val januar = MånedsberegningFactory.ny(
             måned = januar(2021),
-            strategy = BeregningStrategy.BorAlene(satsFactoryTest),
+            strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
             fradrag = listOf(forventetInntekt),
         )
 
         val februar = MånedsberegningFactory.ny(
             måned = februar(2021),
-            strategy = BeregningStrategy.BorAlene(satsFactoryTest),
+            strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
             fradrag = listOf(forventetInntekt),
         )
 
@@ -63,13 +63,13 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
     fun `tilstøtende månedsberegninger som har forskjellige fradrag grupperes hver for seg`() {
         val januar = MånedsberegningFactory.ny(
             måned = januar(2021),
-            strategy = BeregningStrategy.BorAlene(satsFactoryTest),
+            strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
             fradrag = listOf(forventetInntekt),
         )
 
         val februar = MånedsberegningFactory.ny(
             måned = februar(2021),
-            strategy = BeregningStrategy.BorAlene(satsFactoryTest),
+            strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
             fradrag = listOf(
                 forventetInntekt,
                 FradragFactory.nyMånedsperiode(
@@ -103,25 +103,25 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
     fun `like månedsberegninger som ikke tilstøter hverandre grupperes hver for seg`() {
         val januar = MånedsberegningFactory.ny(
             måned = januar(2021),
-            strategy = BeregningStrategy.BorAlene(satsFactoryTest),
+            strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
             fradrag = listOf(forventetInntekt),
         )
 
         val februar = MånedsberegningFactory.ny(
             måned = februar(2021),
-            strategy = BeregningStrategy.BorMedVoksne(satsFactoryTest),
+            strategy = BeregningStrategy.BorMedVoksne(satsFactoryTestPåDato()),
             fradrag = listOf(forventetInntekt),
         )
 
         val mars = MånedsberegningFactory.ny(
             måned = mars(2021),
-            strategy = BeregningStrategy.BorAlene(satsFactoryTest),
+            strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
             fradrag = listOf(forventetInntekt),
         )
 
         val april = MånedsberegningFactory.ny(
             måned = april(2021),
-            strategy = BeregningStrategy.BorMedVoksne(satsFactoryTest),
+            strategy = BeregningStrategy.BorMedVoksne(satsFactoryTestPåDato()),
             fradrag = listOf(forventetInntekt),
         )
 
@@ -144,7 +144,7 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
     fun `månedsberegninger som har forskjellig antall fradrag grupperes hver for seg`() {
         val januar = MånedsberegningFactory.ny(
             måned = januar(2021),
-            strategy = BeregningStrategy.BorAlene(satsFactoryTest),
+            strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
             fradrag = listOf(
                 forventetInntekt,
                 FradragFactory.nyMånedsperiode(
@@ -159,7 +159,7 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
 
         val februar = MånedsberegningFactory.ny(
             måned = februar(2021),
-            strategy = BeregningStrategy.BorAlene(satsFactoryTest),
+            strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
             fradrag = listOf(
                 forventetInntekt,
                 FradragFactory.nyMånedsperiode(
@@ -194,7 +194,7 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
     fun `månedsberegninger med flere fradrag av samme type grupperes sammen`() {
         val januar = MånedsberegningFactory.ny(
             måned = januar(2021),
-            strategy = BeregningStrategy.BorAlene(satsFactoryTest),
+            strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
             fradrag = listOf(
                 forventetInntekt,
                 FradragFactory.nyMånedsperiode(
@@ -216,7 +216,7 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
 
         val februar = MånedsberegningFactory.ny(
             måned = februar(2021),
-            strategy = BeregningStrategy.BorAlene(satsFactoryTest),
+            strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
             fradrag = listOf(
                 forventetInntekt,
                 FradragFactory.nyMånedsperiode(
@@ -250,7 +250,7 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
     fun `grupperer like månedsberegninger sammen selv om fradragene i utgangspunktet ikke ligger på nøyaktig samme indeks`() {
         val januar = MånedsberegningFactory.ny(
             måned = januar(2021),
-            strategy = BeregningStrategy.EpsUnder67År(satsFactoryTest),
+            strategy = BeregningStrategy.EpsUnder67År(satsFactoryTestPåDato()),
             fradrag = listOf(
                 forventetInntekt,
                 FradragFactory.nyMånedsperiode(
@@ -286,7 +286,7 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
 
         val februar = MånedsberegningFactory.ny(
             måned = februar(2021),
-            strategy = BeregningStrategy.EpsUnder67År(satsFactoryTest),
+            strategy = BeregningStrategy.EpsUnder67År(satsFactoryTestPåDato()),
             fradrag = listOf(
                 forventetInntekt,
                 FradragFactory.nyMånedsperiode(
@@ -334,25 +334,25 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
     fun `like månedsberegninger som ikke er tilstøtende grupperes hver for seg`() {
         val januar = MånedsberegningFactory.ny(
             måned = januar(2021),
-            strategy = BeregningStrategy.BorAlene(satsFactoryTest),
+            strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
             fradrag = listOf(forventetInntekt),
         )
 
         val februar = MånedsberegningFactory.ny(
             måned = februar(2021),
-            strategy = BeregningStrategy.BorAlene(satsFactoryTest),
+            strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
             fradrag = listOf(forventetInntekt),
         )
 
         val april = MånedsberegningFactory.ny(
             måned = april(2021),
-            strategy = BeregningStrategy.BorAlene(satsFactoryTest),
+            strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
             fradrag = listOf(forventetInntekt),
         )
 
         val desember = MånedsberegningFactory.ny(
             måned = desember(2021),
-            strategy = BeregningStrategy.BorAlene(satsFactoryTest),
+            strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
             fradrag = listOf(forventetInntekt),
         )
 
@@ -377,7 +377,7 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
                 listOf(
                     MånedsberegningFactory.ny(
                         måned = januar(2021),
-                        strategy = BeregningStrategy.BorAlene(satsFactoryTest),
+                        strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
                         fradrag = listOf(forventetInntekt),
                     ),
                 ),
@@ -389,7 +389,7 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
                 listOf(
                     MånedsberegningFactory.ny(
                         måned = januar(2021),
-                        strategy = BeregningStrategy.BorAlene(satsFactoryTest),
+                        strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
                         fradrag = listOf(forventetInntekt),
                     ),
                 ),
@@ -401,7 +401,7 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
                 listOf(
                     MånedsberegningFactory.ny(
                         måned = januar(2021),
-                        strategy = BeregningStrategy.BorAlene(satsFactoryTest),
+                        strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
                         fradrag = listOf(forventetInntekt),
                     ),
                 ),
@@ -416,12 +416,12 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
                 listOf(
                     MånedsberegningFactory.ny(
                         måned = januar(2021),
-                        strategy = BeregningStrategy.BorAlene(satsFactoryTest),
+                        strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
                         fradrag = listOf(forventetInntekt),
                     ),
                     MånedsberegningFactory.ny(
                         måned = januar(2021),
-                        strategy = BeregningStrategy.BorMedVoksne(satsFactoryTest),
+                        strategy = BeregningStrategy.BorMedVoksne(satsFactoryTestPåDato()),
                         fradrag = listOf(forventetInntekt),
                     ),
                 ),
@@ -433,12 +433,12 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
                 listOf(
                     MånedsberegningFactory.ny(
                         måned = januar(2021),
-                        strategy = BeregningStrategy.BorAlene(satsFactoryTest),
+                        strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
                         fradrag = listOf(forventetInntekt),
                     ),
                     MånedsberegningFactory.ny(
                         måned = februar(2021),
-                        strategy = BeregningStrategy.BorAlene(satsFactoryTest),
+                        strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
                         fradrag = listOf(
                             forventetInntekt,
                             FradragFactory.nyMånedsperiode(

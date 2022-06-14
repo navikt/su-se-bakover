@@ -25,7 +25,7 @@ import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formueGrunnlagUtenEpsAvslått
-import no.nav.su.se.bakover.test.formuegrenserFactoryTest
+import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.innvilgetFormueVilkår
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -320,7 +320,7 @@ internal class FormueVilkårTest {
         return Vurderingsperiode.Formue.tryCreateFromGrunnlag(
             id = id,
             grunnlag = grunnlag,
-            formuegrenserFactory = formuegrenserFactoryTest,
+            formuegrenserFactory = formuegrenserFactoryTestPåDato(),
         ).also {
             assert(it.resultat == resultat)
         }

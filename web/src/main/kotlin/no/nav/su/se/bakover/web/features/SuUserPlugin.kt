@@ -19,10 +19,11 @@ import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.web.AzureGroupMapper
-import no.nav.su.se.bakover.web.ErrorJson
+import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.getGroupsFromJWT
 import no.nav.su.se.bakover.web.getNAVidentFromJwt
 import no.nav.su.se.bakover.web.getNavnFromJwt
+import no.nav.su.se.bakover.web.svar
 
 class SuUserContext(val call: ApplicationCall, applicationConfig: ApplicationConfig) {
     val navIdent: String = getNAVidentFromJwt(applicationConfig, call.authentication.principal)
@@ -84,9 +85,11 @@ private fun brukerinfoPlugin(
                         SuUserContext.init(call, pluginConfig.applicationConfig)
                     } catch (ex: Throwable) {
                         log.error("Ukjent feil ved uthenting av brukerinformasjon", ex)
-                        call.respond(
-                            status = HttpStatusCode.InternalServerError,
-                            message = ErrorJson("Ukjent feil ved uthenting av brukerinformasjon"),
+                        call.svar(
+                            HttpStatusCode.InternalServerError.errorJson(
+                                message = "Ukjent feil ved uthenting av brukerinformasjon",
+                                code = "ukjent_feil_ved_uthenting_av_brukerinformasjon",
+                            ),
                         )
                     }
                 }

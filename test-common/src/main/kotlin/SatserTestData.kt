@@ -1,17 +1,22 @@
 package no.nav.su.se.bakover.test
 
-import no.nav.su.se.bakover.domain.satser.SatsFactory
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
-import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
-import java.time.Clock
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.ZoneOffset
 
 // kommentar jah: Dersom/når satser flyttes ut av kildekoden, f.eks. til databasen, må vi definere satsene for test her. Kan starte med å kopiere [SatsFactoryForSupplerendeStønad]
-// DEPRECATED
-val satsFactoryTest: SatsFactory = satsFactoryTest(fixedClock)
 
-fun satsFactoryTest(clock: Clock = fixedClock) = SatsFactoryForSupplerendeStønad(clock)
+val satsFactoryTest = SatsFactoryForSupplerendeStønad()
 
-// DEPRECATED
-val formuegrenserFactoryTest: FormuegrenserFactory = satsFactoryTest.formuegrenserFactory
+fun satsFactoryTestPåDato(påDato: LocalDate = fixedLocalDate) = satsFactoryTest.gjeldende(påDato = påDato)
 
-fun formuegrenserFactoryTest(clock: Clock = fixedClock) = satsFactoryTest(clock).formuegrenserFactory
+fun formuegrenserFactoryTestPåDato(
+    påDato: LocalDate = fixedLocalDate,
+) = satsFactoryTestPåDato(påDato).formuegrenserFactory
+
+fun formuegrenserFactoryTestPåDato(
+    påDato: Tidspunkt = fixedTidspunkt,
+    zoneId: ZoneId = ZoneOffset.UTC,
+) = satsFactoryTestPåDato(påDato.toLocalDate(zoneId)).formuegrenserFactory

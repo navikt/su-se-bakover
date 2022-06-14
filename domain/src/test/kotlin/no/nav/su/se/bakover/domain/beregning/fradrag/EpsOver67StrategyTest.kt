@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype.ForventetInnte
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype.Kapitalinntekt
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype.PrivatPensjon
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype.Sosialstønad
+import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.junit.jupiter.api.Test
 
 /**
@@ -35,7 +36,7 @@ internal class EpsOver67StrategyTest {
         val forventetInntekt = lagPeriodisertFradrag(ForventetInntekt, 12000.0, periode, tilhører = BRUKER)
         val epsArbeidsinntekt = lagPeriodisertFradrag(Arbeidsinntekt, 5000.0, periode, tilhører = EPS)
 
-        FradragStrategy.EpsOver67År.beregn(
+        FradragStrategy.EpsOver67År(satsFactoryTestPåDato()).beregn(
             fradrag = listOf(forventetInntekt, epsArbeidsinntekt),
             beregningsperiode = periode,
         ).let {
@@ -51,9 +52,9 @@ internal class EpsOver67StrategyTest {
         val epsArbeidsinntekt = lagPeriodisertFradrag(Arbeidsinntekt, 20000.0, periode, tilhører = EPS)
 
         val expectedEpsFradrag =
-            lagPeriodisertFradrag(BeregnetFradragEPS, 20000.0 - 14674.916666666666667, periode, tilhører = EPS)
+            lagPeriodisertFradrag(BeregnetFradragEPS, 20000.0 - 14674.916666666666, periode, tilhører = EPS)
 
-        FradragStrategy.EpsOver67År.beregn(
+        FradragStrategy.EpsOver67År(satsFactoryTestPåDato()).beregn(
             fradrag = listOf(forventetInntekt, epsArbeidsinntekt),
             beregningsperiode = periode,
         ).let {
@@ -107,7 +108,7 @@ internal class EpsOver67StrategyTest {
                 tilhører = EPS,
             )
 
-        FradragStrategy.EpsOver67År.beregn(
+        FradragStrategy.EpsOver67År(satsFactoryTestPåDato()).beregn(
             fradrag = listOf(forventetInntekt, epsArbeidsinntektJan, epsArbeidsinntektJuli),
             beregningsperiode = år(2020),
         ).let {
@@ -132,7 +133,7 @@ internal class EpsOver67StrategyTest {
         val epsKapitalinntekt = lagFradrag(Kapitalinntekt, 60000.0, periode, tilhører = EPS)
         val epsPensjon = lagFradrag(PrivatPensjon, 15000.0, periode, tilhører = EPS)
 
-        FradragStrategy.EpsOver67År.beregn(
+        FradragStrategy.EpsOver67År(satsFactoryTestPåDato()).beregn(
             fradrag = listOf(
                 forventetInntekt,
                 epsArbeidsinntekt,
@@ -154,7 +155,7 @@ internal class EpsOver67StrategyTest {
         val forventetInntekt = lagFradrag(ForventetInntekt, 1000.0, periode)
         val arbeidsinntekt = lagFradrag(Arbeidsinntekt, 2000.0, periode)
 
-        FradragStrategy.EpsOver67År.beregn(
+        FradragStrategy.EpsOver67År(satsFactoryTestPåDato()).beregn(
             fradrag = listOf(forventetInntekt, arbeidsinntekt),
             beregningsperiode = periode,
         ).let {
@@ -168,7 +169,7 @@ internal class EpsOver67StrategyTest {
     fun `sosialstønad for EPS går til fradrag uavhengig av om det eksisterer et fribeløp`() {
         val periode = Periode.create(1.mai(2021), 31.desember(2021))
 
-        FradragStrategy.EpsOver67År.beregn(
+        FradragStrategy.EpsOver67År(satsFactoryTestPåDato()).beregn(
             fradrag = listOf(
                 lagFradrag(ForventetInntekt, 0.0, periode),
                 lagFradrag(Sosialstønad, 5000.0, periode, EPS),

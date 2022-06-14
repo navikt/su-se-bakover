@@ -47,7 +47,7 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.satsFactoryTest
+import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import java.time.LocalDate
@@ -424,7 +424,7 @@ internal class UtbetalingsstrategiNyTest {
                 beregningsperioder = listOf(
                     Beregningsperiode(
                         periode = Periode.create(1.januar(2020), 30.april(2020)),
-                        strategy = BeregningStrategy.BorAlene(satsFactoryTest),
+                        strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
                     ),
                 ),
             ),
@@ -614,7 +614,7 @@ internal class UtbetalingsstrategiNyTest {
                     beregningsperioder = listOf(
                         Beregningsperiode(
                             periode = periode,
-                            strategy = BeregningStrategy.BorAlene(satsFactoryTest),
+                            strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
                         ),
                     ),
                 ),
@@ -771,7 +771,7 @@ internal class UtbetalingsstrategiNyTest {
                 beregningsperioder = listOf(
                     Beregningsperiode(
                         periode = periode,
-                        strategy = BeregningStrategy.BorAlene(satsFactoryTest),
+                        strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
                     ),
                 ),
             ),
@@ -859,7 +859,7 @@ internal class UtbetalingsstrategiNyTest {
                 beregningsperioder = listOf(
                     Beregningsperiode(
                         periode = periode,
-                        strategy = BeregningStrategy.BorAlene(satsFactoryTest),
+                        strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
                     ),
                 ),
             ),
@@ -1073,7 +1073,7 @@ internal class UtbetalingsstrategiNyTest {
         beregningsperioder = listOf(
             Beregningsperiode(
                 periode = Periode.create(fraOgMed, tilOgMed),
-                strategy = BeregningStrategy.BorAlene(satsFactoryTest),
+                strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
             ),
         ),
     )

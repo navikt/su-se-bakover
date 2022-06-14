@@ -10,6 +10,8 @@ import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.juni
+import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -35,7 +37,7 @@ class AvkortingKomponentTest {
         //             |-- Behandling som bruker avkorting -|
 
         val fnr = Fnr.generer().toString()
-        val tisdpunktForRevurdering: Clock = 1.mai(2021).fixedClock()
+        val tisdpunktForRevurdering: Clock = 21.mai(2021).fixedClock()
         val clock = TikkendeKlokke(tisdpunktForRevurdering)
         val behandlingStartDato = 1.januar(2021)
         val behandlingSluttDato = 31.desember(2021)
@@ -100,11 +102,11 @@ class AvkortingKomponentTest {
                     it.beløp shouldBe 20946
                 }
                 utbetalingstidslinje[1].shouldBeType<UtbetalingslinjePåTidslinje.Opphør>().let {
-                    it.periode shouldBe Periode.create(1.mai(2021), 31.mai(2021))
+                    it.periode shouldBe mai(2021)
                     it.beløp shouldBe 0
                 }
                 utbetalingstidslinje[2].shouldBeType<UtbetalingslinjePåTidslinje.Ny>().let {
-                    it.periode shouldBe Periode.create(1.juni(2021), 30.juni(2021))
+                    it.periode shouldBe juni(2021)
                     it.beløp shouldBe 1043 // (21989-20946=1043)
                 }
                 utbetalingstidslinje[3].shouldBeType<UtbetalingslinjePåTidslinje.Ny>().let {

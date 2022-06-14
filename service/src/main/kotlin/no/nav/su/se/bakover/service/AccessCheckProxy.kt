@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
+import no.nav.su.se.bakover.domain.SamletSkattegrunnlag
 import no.nav.su.se.bakover.domain.SendPåminnelseNyStønadsperiodeContext
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -144,6 +145,8 @@ import no.nav.su.se.bakover.service.revurdering.StansYtelseRequest
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.KunneIkkeHenteGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.sak.SakService
+import no.nav.su.se.bakover.service.skatt.KunneIkkeHenteSkattemelding
+import no.nav.su.se.bakover.service.skatt.SkatteService
 import no.nav.su.se.bakover.service.statistikk.Statistikk
 import no.nav.su.se.bakover.service.statistikk.StatistikkService
 import no.nav.su.se.bakover.service.søknad.AvslåManglendeDokumentasjonRequest
@@ -950,6 +953,13 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
             },
+            skatteService = object : SkatteService {
+                override fun hentSamletSkattegrunnlag(fnr: Fnr): Either<KunneIkkeHenteSkattemelding, SamletSkattegrunnlag> {
+                    // TODO ai: Sjekk att fnr har en sak hos oss.
+                    assertHarTilgangTilPerson(fnr)
+                    return services.skatteService.hentSamletSkattegrunnlag(fnr)
+                }
+            }
         )
     }
 

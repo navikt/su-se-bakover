@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.domain.beregning.MånedsberegningFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragForMåned
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.test.satsFactoryTest
+import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 
@@ -44,7 +44,7 @@ internal class MånedsberegningJsonTest {
 
         internal val månedsberegning = MånedsberegningFactory.ny(
             måned = januar(2020),
-            strategy = BeregningStrategy.BorAlene(satsFactoryTest),
+            strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
             fradrag = listOf(
                 FradragForMåned(
                     fradragstype = Fradragstype.ForventetInntekt,

@@ -43,6 +43,7 @@ import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
+import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import java.time.Clock
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
@@ -246,7 +247,7 @@ fun beregnetRevurdering(
                 fraOgMed = revurderingsperiode.fraOgMed,
                 clock = clock,
             ).getOrFail(),
-            satsFactory = satsFactoryTest,
+            satsFactory = satsFactoryTestPåDato(),
         ).getOrFail()
 
         sak.copy(
@@ -636,7 +637,7 @@ fun beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
                 fraOgMed = revurderingsperiode.fraOgMed,
                 clock = clock,
             ).getOrFail(),
-            satsFactory = satsFactoryTest,
+            satsFactory = satsFactoryTestPåDato(),
         ).getOrFail() as BeregnetRevurdering.Innvilget
         Pair(
             sak.copy(
@@ -719,7 +720,7 @@ fun beregnetRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
                 fraOgMed = revurderingsperiode.fraOgMed,
                 clock = clock,
             ).getOrFail(),
-            satsFactory = satsFactoryTest,
+            satsFactory = satsFactoryTestPåDato(),
         ).getOrFail() as BeregnetRevurdering.IngenEndring
         Pair(
             sak.copy(
@@ -769,7 +770,7 @@ fun beregnetRevurderingOpphørtPgaVilkårFraInnvilgetSøknadsbehandlingsVedtak(
                 fraOgMed = revurderingsperiode.fraOgMed,
                 clock = clock,
             ).getOrFail(),
-            satsFactory = satsFactoryTest,
+            satsFactory = satsFactoryTestPåDato(),
         ).getOrFail() as BeregnetRevurdering.Opphørt
         Pair(
             sak.copy(
@@ -826,7 +827,7 @@ fun beregnetRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
                 fraOgMed = revurderingsperiode.fraOgMed,
                 clock = clock,
             ).getOrFail(),
-            satsFactory = satsFactoryTest,
+            satsFactory = satsFactoryTestPåDato(),
         ).getOrFail() as BeregnetRevurdering.Opphørt
         Pair(
             sak.copy(

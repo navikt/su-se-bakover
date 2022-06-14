@@ -20,8 +20,8 @@ import no.nav.su.se.bakover.domain.beregning.beregning.finnMerknaderForPeriode
 import no.nav.su.se.bakover.test.beregning
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
-import no.nav.su.se.bakover.test.uføregrunnlagForventetInntekt
-import no.nav.su.se.bakover.test.uføregrunnlagForventetInntekt0
+import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt
+import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt0
 import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttAlleRevurdering
 import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttUføreOgAndreInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget

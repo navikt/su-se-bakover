@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.client.journalpost.JournalpostHttpClient
 import no.nav.su.se.bakover.client.kabal.KabalHttpClient
 import no.nav.su.se.bakover.client.kafka.KafkaPublisherClient
 import no.nav.su.se.bakover.client.kodeverk.KodeverkHttpClient
+import no.nav.su.se.bakover.client.maskinporten.MaskinportenHTTPClient
 import no.nav.su.se.bakover.client.nais.LeaderPodLookupClient
 import no.nav.su.se.bakover.client.oppdrag.IbmMqPublisher
 import no.nav.su.se.bakover.client.oppdrag.MqPublisher.MqPublisherConfig
@@ -24,6 +25,7 @@ import no.nav.su.se.bakover.client.person.MicrosoftGraphApiClient
 import no.nav.su.se.bakover.client.person.PdlClientConfig
 import no.nav.su.se.bakover.client.person.PersonClient
 import no.nav.su.se.bakover.client.person.PersonClientConfig
+import no.nav.su.se.bakover.client.skatteetaten.SkatteClient
 import no.nav.su.se.bakover.client.skjerming.SkjermingClient
 import no.nav.su.se.bakover.client.sts.StsClient
 import no.nav.su.se.bakover.common.ApplicationConfig
@@ -44,7 +46,7 @@ data class ProdClientsBuilder(
         val oAuth = AzureClient(azureConfig.clientId, azureConfig.clientSecret, azureConfig.wellKnownUrl)
         val kodeverk = KodeverkHttpClient(clientsConfig.kodeverkUrl, consumerId)
         val serviceUser = applicationConfig.serviceUser
-        val tokenOppslag = StsClient(clientsConfig.stsUrl, serviceUser.username, serviceUser.password)
+        val tokenOppslag = StsClient(clientsConfig.stsUrl, serviceUser.username, serviceUser.password, clock)
         val dkif = DkifClient(clientsConfig.dkifUrl, tokenOppslag, consumerId)
         val skjermingClient = SkjermingClient(clientsConfig.skjermingUrl)
         val pdlClientConfig = PdlClientConfig(
@@ -120,6 +122,13 @@ data class ProdClientsBuilder(
                 ).tilbakekrevingSoapService(),
                 clock = clock,
             ),
+            skatteOppslag = SkatteClient(
+                skatteetatenConfig = applicationConfig.clientsConfig.skatteetatenConfig
+            ),
+            maskinportenClient = MaskinportenHTTPClient(
+                maskinportenConfig = applicationConfig.clientsConfig.maskinportenConfig,
+                clock = clock
+            )
         )
     }
 }

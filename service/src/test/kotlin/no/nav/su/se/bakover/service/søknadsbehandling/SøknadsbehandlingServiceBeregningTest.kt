@@ -36,7 +36,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.formuegrenserFactoryTest
+import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
@@ -69,7 +69,7 @@ class SøknadsbehandlingServiceBeregningTest {
                         ),
                     ),
                 ),
-                formuegrenserFactory = formuegrenserFactoryTest,
+                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             ).getOrFail()
         }
 
@@ -208,7 +208,7 @@ class SøknadsbehandlingServiceBeregningTest {
                         tilhører = FradragTilhører.BRUKER,
                     ),
                 ),
-                formuegrenserFactory = formuegrenserFactoryTest,
+                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             ).getOrFail()
         }
 
@@ -285,7 +285,7 @@ class SøknadsbehandlingServiceBeregningTest {
                             ),
                         ),
                         clock = fixedClock,
-                        formuegrenserFactory = formuegrenserFactoryTest,
+                        formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                     ).getOrFail()
                 }
             },

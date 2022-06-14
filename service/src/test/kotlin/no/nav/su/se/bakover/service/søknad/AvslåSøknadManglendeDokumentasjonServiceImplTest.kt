@@ -40,7 +40,7 @@ import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.satsFactoryTest
+import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.søknadId
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
@@ -511,7 +511,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
         val brevService: BrevService = mock(),
         val sakService: SakService = mock(),
         val sessionFactory: SessionFactory = TestSessionFactory(),
-        val satsFactory: SatsFactory = satsFactoryTest,
+        val satsFactory: SatsFactory = satsFactoryTestPåDato(),
     ) {
         val service = AvslåSøknadManglendeDokumentasjonServiceImpl(
             clock = clock,

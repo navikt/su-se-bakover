@@ -26,7 +26,6 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.TikkendeKlokke
-import no.nav.su.se.bakover.test.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.fixedClock
@@ -40,14 +39,15 @@ import no.nav.su.se.bakover.test.revurderingTilAttestering
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
-import no.nav.su.se.bakover.test.satsFactoryTest
+import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulertUtbetaling
 import no.nav.su.se.bakover.test.simulertUtbetalingOpphør
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
-import no.nav.su.se.bakover.test.utenlandsoppholdAvslag
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
+import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
+import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
@@ -118,7 +118,7 @@ internal class RevurderingBeregnOgSimulerTest {
                             fraOgMed = revurdering.periode.fraOgMed,
                             clock = fixedClock,
                         ).getOrFail(),
-                        satsFactory = satsFactoryTest,
+                        satsFactory = satsFactoryTestPåDato(),
                     ).getOrFail().beregning,
                     clock = fixedClock,
                 ).right()
@@ -208,7 +208,7 @@ internal class RevurderingBeregnOgSimulerTest {
                             fraOgMed = opprettetRevurdering.periode.fraOgMed,
                             clock = fixedClock,
                         ).getOrFail(),
-                        satsFactory = satsFactoryTest,
+                        satsFactory = satsFactoryTestPåDato(),
                     ).getOrFail().beregning,
                     clock = fixedClock,
                 ).right()

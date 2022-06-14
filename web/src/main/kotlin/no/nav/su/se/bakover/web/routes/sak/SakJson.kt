@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.routes.sak
 import no.nav.su.se.bakover.common.periode.PeriodeJson
 import no.nav.su.se.bakover.domain.KanStansesEllerGjenopptas
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.satser.SatsFactory
@@ -33,6 +34,7 @@ internal data class SakJson(
     val vedtak: List<VedtakJson>,
     val klager: List<KlageJson>,
     val reguleringer: List<ReguleringJson>,
+    val sakstype: String,
 ) {
     companion object {
         internal fun Sak.toJson(clock: Clock, satsFactory: SatsFactory) = SakJson(
@@ -61,14 +63,28 @@ internal data class SakJson(
             reguleringer = reguleringer.map {
                 it.toJson(satsFactory)
             },
+            sakstype = type.toJson(),
         )
+    }
+}
+
+enum class SakstypeJson {
+    ALDER,
+    UFØRE;
+}
+
+internal fun Sakstype.toJson(): String {
+    return when (this) {
+        Sakstype.ALDER -> SakstypeJson.ALDER.toString()
+        Sakstype.UFØRE -> SakstypeJson.UFØRE.toString()
     }
 }
 
 internal data class AlleredeGjeldendeSakForBrukerJson(
     val uføre: BegrensetSakinfoJson,
-    val alder: BegrensetSakinfoJson
+    val alder: BegrensetSakinfoJson,
 )
+
 internal data class BegrensetSakinfoJson(
     val harÅpenSøknad: Boolean,
     val iverksattInnvilgetStønadsperiode: PeriodeJson?,

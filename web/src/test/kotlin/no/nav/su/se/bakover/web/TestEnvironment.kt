@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.database.migratedDb
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.satser.SatsFactory
+import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.service.AccessCheckProxy
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
@@ -98,6 +99,16 @@ val applicationConfig = ApplicationConfig(
         dkifUrl = "dkifUrl",
         kabalConfig = ApplicationConfig.ClientsConfig.KabalConfig("kabalUrl", "kabalClientId"),
         safConfig = ApplicationConfig.ClientsConfig.SafConfig("safUrlkabalUrl", "safClientId"),
+        maskinportenConfig = ApplicationConfig.ClientsConfig.MaskinportenConfig(
+            clientId = "maskinportenClientId",
+            scopes = "maskinportenScopes",
+            clientJwk = "maskinportenClientJwk",
+            wellKnownUrl = "maskinportenWellKnownUrl",
+            issuer = "maskinportenIssuer",
+            jwksUri = "maskinportenJwksUri",
+            tokenEndpoint = "maskinportenTokenEndpoint"
+        ),
+        skatteetatenConfig = ApplicationConfig.ClientsConfig.SkatteetatenConfig(apiUri = ""),
     ),
     kafkaConfig = ApplicationConfig.KafkaConfig(
         producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg(emptyMap()),
@@ -120,7 +131,7 @@ internal val dbMetricsStub: DbMetrics = object : DbMetrics {
 internal fun mockedDb() = TestDatabaseBuilder.build()
 internal fun embeddedPostgres(
     clock: Clock = fixedClock,
-    satsFactory: SatsFactory = satsFactoryTest,
+    satsFactory: SatsFactoryForSupplerendeStønad = satsFactoryTest,
 ) = DatabaseBuilder.build(
     embeddedDatasource = migratedDb(),
     dbMetrics = dbMetricsStub,

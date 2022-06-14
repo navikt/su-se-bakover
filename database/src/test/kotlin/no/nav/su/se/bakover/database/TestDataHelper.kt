@@ -93,7 +93,7 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
-import no.nav.su.se.bakover.domain.satser.SatsFactory
+import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.domain.søknadinnhold.SøknadsinnholdUføre
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
@@ -111,21 +111,22 @@ import no.nav.su.se.bakover.test.epsFnr
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.formuegrenserFactoryTest
+import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.formuevilkårIkkeVurdert
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.gjeldendeVedtaksdata
+import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
 import no.nav.su.se.bakover.test.grunnlagsdataMedEpsMedFradrag
-import no.nav.su.se.bakover.test.innvilgetUførevilkår
-import no.nav.su.se.bakover.test.innvilgetUførevilkårForventetInntekt0
 import no.nav.su.se.bakover.test.satsFactoryTest
+import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulerNyUtbetaling
 import no.nav.su.se.bakover.test.simulertUtbetaling
 import no.nav.su.se.bakover.test.simulertUtbetalingOpphør
 import no.nav.su.se.bakover.test.stønadsperiode2021
-import no.nav.su.se.bakover.test.uføregrunnlagForventetInntekt
+import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkår
+import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt0
 import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttUføreOgAndreInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
 import java.time.Clock
@@ -255,11 +256,7 @@ internal class TestDataHelper(
     internal val dataSource: DataSource,
     internal val dbMetrics: DbMetrics = dbMetricsStub,
     internal val clock: Clock = fixedClock,
-    /**
-     * OBS: Setter satsfactory til å returnere verdier slik de så ut på [fixedClock] som følge av at de fleste
-     * tester baserer seg på [fixedClock].
-     */
-    internal val satsFactory: SatsFactory = satsFactoryTest.gjeldende(påDato = LocalDate.now(fixedClock)),
+    satsFactory: SatsFactoryForSupplerendeStønad = satsFactoryTest,
 ) {
     internal val sessionFactory: PostgresSessionFactory =
         PostgresSessionFactory(dataSource, dbMetricsStub, sessionCounterStub)
@@ -292,7 +289,6 @@ internal class TestDataHelper(
     internal val formueVilkårsvurderingPostgresRepo = FormueVilkårsvurderingPostgresRepo(
         dbMetrics = dbMetrics,
         formuegrunnlagPostgresRepo = formuegrunnlagPostgresRepo,
-        satsFactory = satsFactory,
     )
     internal val opplysningspliktGrunnlagPostgresRepo = OpplysningspliktGrunnlagPostgresRepo(dbMetrics)
     internal val opplysningspliktVilkårsvurderingPostgresRepo = OpplysningspliktVilkårsvurderingPostgresRepo(
@@ -749,20 +745,29 @@ internal class TestDataHelper(
         }
     }
 
-    fun persisterReguleringOpprettet(): Regulering.OpprettetRegulering =
+    fun persisterReguleringOpprettet(
+        startDato: LocalDate = 1.mai(2021),
+        clock: Clock = fixedClock,
+    ): Regulering.OpprettetRegulering =
         persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().first.let { sak ->
             sak.opprettEllerOppdaterRegulering(
-                startDato = 1.mai(2021),
-                clock = fixedClock,
+                startDato = startDato,
+                clock = clock,
             ).getOrFail().also {
                 reguleringRepo.lagre(it)
             }
         }
 
-    fun persisterReguleringIverksatt() =
-        persisterReguleringOpprettet().let {
+    fun persisterReguleringIverksatt(
+        startDato: LocalDate = 1.mai(2021),
+        clock: Clock = fixedClock,
+    ) =
+        persisterReguleringOpprettet(
+            startDato = startDato,
+            clock = clock,
+        ).let {
             it.beregn(
-                satsFactory = satsFactory,
+                satsFactory = satsFactoryTestPåDato(),
                 begrunnelse = "Begrunnelse",
                 clock = clock,
             ).getOrFail()
@@ -817,7 +822,7 @@ internal class TestDataHelper(
             eksisterendeUtbetalinger = sak.utbetalinger,
             clock = clock,
             gjeldendeVedtaksdata = sak.gjeldendeVedtaksdata(stønadsperiode2021),
-            satsFactory = satsFactory,
+            satsFactory = satsFactoryTestPåDato(),
         ).getOrHandle {
             throw IllegalStateException("Her skal vi ha en beregnet revurdering")
         }.also {
@@ -845,7 +850,7 @@ internal class TestDataHelper(
             eksisterendeUtbetalinger = sak.utbetalinger,
             clock = clock,
             gjeldendeVedtaksdata = sak.gjeldendeVedtaksdata(stønadsperiode2021),
-            satsFactory = satsFactory,
+            satsFactory = satsFactoryTestPåDato(),
         ).getOrHandle {
             throw IllegalStateException("Her skal vi ha en beregnet revurdering")
         }.also {
@@ -868,7 +873,7 @@ internal class TestDataHelper(
             eksisterendeUtbetalinger = sak.utbetalinger,
             clock = clock,
             gjeldendeVedtaksdata = sak.gjeldendeVedtaksdata(stønadsperiode2021),
-            satsFactory = satsFactory,
+            satsFactory = satsFactoryTestPåDato(),
         ).getOrHandle {
             throw IllegalStateException("Her skal vi ha en beregnet revurdering")
         }.also {
@@ -1206,7 +1211,7 @@ internal class TestDataHelper(
                 søknadsbehandlingId = nySøknadsbehandling.id,
                 stønadsperiode = stønadsperiode,
                 clock = fixedClock,
-                formuegrenserFactory = formuegrenserFactoryTest,
+                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             ).getOrFail().let {
                 søknadsbehandlingRepo.lagre(it)
                 assert(it.fnr == sak.fnr && it.sakId == sakId)
@@ -1290,8 +1295,8 @@ internal class TestDataHelper(
         ).second.beregn(
             begrunnelse = null,
             clock = fixedClock,
-            satsFactory = satsFactory,
-            formuegrenserFactory = formuegrenserFactoryTest,
+            satsFactory = satsFactoryTestPåDato(),
+            formuegrenserFactory = formuegrenserFactoryTestPåDato(),
         ).getOrFail().let {
             søknadsbehandlingRepo.lagre(it)
             Pair(sakRepo.hentSak(sakId)!!, it as Søknadsbehandling.Beregnet.Innvilget)
@@ -1322,8 +1327,8 @@ internal class TestDataHelper(
         ).second.beregn(
             begrunnelse = null,
             clock = fixedClock,
-            satsFactory = satsFactory,
-            formuegrenserFactory = formuegrenserFactoryTest,
+            satsFactory = satsFactoryTestPåDato(),
+            formuegrenserFactory = formuegrenserFactoryTestPåDato(),
         ).getOrFail().let {
             søknadsbehandlingRepo.lagre(it as Søknadsbehandling.Beregnet.Avslag)
             Pair(sakRepo.hentSak(sakId)!!, it)

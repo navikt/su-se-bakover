@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.satsFactoryTest
+import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 
@@ -37,7 +37,7 @@ internal class LagBrevinnholdForBeregningTest {
             beregningsperioder = listOf(
                 no.nav.su.se.bakover.domain.beregning.Beregningsperiode(
                     periode = periode,
-                    strategy = BeregningStrategy.BorAlene(satsFactoryTest),
+                    strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
                 ),
             ),
         )
@@ -94,7 +94,7 @@ internal class LagBrevinnholdForBeregningTest {
             beregningsperioder = listOf(
                 no.nav.su.se.bakover.domain.beregning.Beregningsperiode(
                     periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
-                    strategy = BeregningStrategy.BorAlene(satsFactoryTest),
+                    strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
                 ),
             ),
         )
@@ -196,7 +196,7 @@ internal class LagBrevinnholdForBeregningTest {
             beregningsperioder = listOf(
                 no.nav.su.se.bakover.domain.beregning.Beregningsperiode(
                     periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
-                    strategy = BeregningStrategy.Eps67EllerEldre(satsFactoryTest),
+                    strategy = BeregningStrategy.Eps67EllerEldre(satsFactoryTestPåDato()),
 
                 ),
             ),
@@ -428,7 +428,7 @@ internal class LagBrevinnholdForBeregningTest {
             beregningsperioder = listOf(
                 no.nav.su.se.bakover.domain.beregning.Beregningsperiode(
                     periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
-                    strategy = BeregningStrategy.Eps67EllerEldre(satsFactoryTest),
+                    strategy = BeregningStrategy.Eps67EllerEldre(satsFactoryTestPåDato()),
                 )
             ),
 
@@ -496,7 +496,7 @@ internal class LagBrevinnholdForBeregningTest {
             beregningsperioder = listOf(
                 no.nav.su.se.bakover.domain.beregning.Beregningsperiode(
                     periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
-                    strategy = BeregningStrategy.Eps67EllerEldre(satsFactoryTest),
+                    strategy = BeregningStrategy.Eps67EllerEldre(satsFactoryTestPåDato()),
                 ),
             ),
         )

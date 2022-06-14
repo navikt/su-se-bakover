@@ -35,6 +35,7 @@
     "SAF_URL": "https://saf.intern.nav.no",
     "SAF_CLIENT_ID": "api://prod-fss.teamdokumenthandtering.saf",
     "MQ_TILBAKEKREVING_MOTTAK":"QA.P_SU_SE_BAKOVER.OPPDRAG_KRAVGRUNNLAG",
-    "TILBAKEKREVING_URL": "https://cics.adeo.no/oppdrag/K231CW80"
+    "TILBAKEKREVING_URL": "https://cics.adeo.no/oppdrag/K231CW80",
+    "SKATTEETATEN_URL": "https://api.skatteetaten.no"
   }
 }

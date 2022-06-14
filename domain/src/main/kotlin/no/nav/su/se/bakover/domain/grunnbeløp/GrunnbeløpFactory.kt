@@ -1,11 +1,10 @@
 package no.nav.su.se.bakover.domain.grunnbeløp
 
-import no.nav.su.se.bakover.common.fixedClock
+import no.nav.su.se.bakover.common.erSortertOgUtenDuplikater
 import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.erSammenhengendeSortertOgUtenDuplikater
 import no.nav.su.se.bakover.common.periode.periodisert
 import no.nav.su.se.bakover.domain.satser.supplerendeStønadAlderFlyktningIkrafttredelse
-import java.time.Clock
 import java.time.LocalDate
 import java.time.YearMonth
 
@@ -15,26 +14,26 @@ import java.time.YearMonth
  * - Grunnbeløpet er en beregningsfaktor som har betydning for retten til ytelser og for størrelsen på ytelser etter denne loven.
  * - Grunnbeløpet fastsettes av Kongen og reguleres årlig med virkning fra 1. mai i samsvar med lønnsveksten.
  *
- * @param clock angir nåtiden for dennee instansen. Styrer hvilke grunnbeløpsendringer denne insatnsen kjenner til, basert på
- * kombinasjonen av [clock] og [Grunnbeløpsendring.ikrafttredelse]. Instansen vil altså bare "se" endringer som har trådt i kraft på
- * tidspunktet gitt av [LocalDate.now] for aktuell [clock].
- * @param grunnbeløpsendringer liste med alle kjente endringer i grunnbeløp (kan også være fremtidige som enda ikke har tredt i kraft)
+ * @param påDato angir nåtiden for dennee instansen. Styrer hvilke grunnbeløpsendringer denne insatnsen kjenner til, basert på
+ * kombinasjonen av *påDato* og [Grunnbeløpsendring.ikrafttredelse]. Instansen vil altså bare "se" endringer som har trådt i kraft på gitt dato.
+ * @param grunnbeløpsendringer liste med alle kjente endringer i grunnbeløp (kan også være fremtidige som enda ikke har trådt i kraft)
  *
  */
 class GrunnbeløpFactory(
-    /**
-     * En klokke som representerer nåtid for denne instansen. Brukes til å styre hvilke grunnbeløpsendringer denne
-     * instansen skal "se".
-     */
-    private val clock: Clock,
-    /**
-     * Liste over alle kjente grunnbeløpsendringer.
-     */
+    /** Hvordan verden så ut på denne datoen. */
+    val påDato: LocalDate,
+    /** Liste over alle kjente grunnbeløpsendringer. Disse vil bli filtrert basert på [påDato] */
     private val grunnbeløpsendringer: List<Grunnbeløpsendring>,
 ) {
-    private val månedTilGrunnbeløp = grunnbeløpsendringer.periodiserIftVirkningstidspunkt(LocalDate.now(clock))
+    private val månedTilGrunnbeløp = grunnbeløpsendringer.periodiserIftVirkningstidspunkt(påDato)
 
     init {
+        require(grunnbeløpsendringer.map { it.ikrafttredelse }.erSortertOgUtenDuplikater()) {
+            "Ikrafttredelse for minste årlig ytelse for uføretrygdede må være i stigende rekkefølge og uten duplikater, men var: ${grunnbeløpsendringer.map { it.virkningstidspunkt }}"
+        }
+        require(grunnbeløpsendringer.map { it.virkningstidspunkt }.erSortertOgUtenDuplikater()) {
+            "Virkningstidspunkt for minste årlig ytelse for uføretrygdede må være i stigende rekkefølge og uten duplikater, men var: ${grunnbeløpsendringer.map { it.virkningstidspunkt }}"
+        }
         assert(månedTilGrunnbeløp.any { it.key.inneholder(supplerendeStønadAlderFlyktningIkrafttredelse) })
         assert(månedTilGrunnbeløp.isNotEmpty())
         månedTilGrunnbeløp.erSammenhengendeSortertOgUtenDuplikater()
@@ -57,17 +56,6 @@ class GrunnbeløpFactory(
 
     fun alle(): List<GrunnbeløpForMåned> {
         return alleGrunnbeløp(månedTilGrunnbeløp.minOf { it.key.fraOgMed })
-    }
-
-    /**
-     * Konstruerer en factory med grunnbeløpene som var gjeldende på [påDato] ved å fjerne alle grunnbeløp som har
-     * en [GrunnbeløpForMåned.ikrafttredelse] senere enn [påDato].
-     */
-    fun gjeldende(påDato: LocalDate): GrunnbeløpFactory {
-        return GrunnbeløpFactory(
-            clock = påDato.fixedClock(), // lager en fixed clock som representerer nåtid for påDato
-            grunnbeløpsendringer = grunnbeløpsendringer,
-        )
     }
 }
 

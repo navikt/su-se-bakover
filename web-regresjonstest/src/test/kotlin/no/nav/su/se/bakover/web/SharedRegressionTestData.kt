@@ -16,6 +16,8 @@ import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.ClientsBuilder
 import no.nav.su.se.bakover.client.journalpost.JournalpostClientStub
 import no.nav.su.se.bakover.client.kabal.KlageClientStub
+import no.nav.su.se.bakover.client.maskinporten.MaskinportenClientStub
+import no.nav.su.se.bakover.client.skatteetaten.SkatteClientStub
 import no.nav.su.se.bakover.client.stubs.azure.AzureClientStub
 import no.nav.su.se.bakover.client.stubs.dkif.DkifClientStub
 import no.nav.su.se.bakover.client.stubs.dokarkiv.DokArkivStub
@@ -39,17 +41,19 @@ import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.satser.SatsFactory
+import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.service.AccessCheckProxy
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.satsFactoryTest
+import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.web.stubs.JwtStub
 import no.nav.su.se.bakover.web.stubs.asBearerToken
 import org.mockito.kotlin.mock
 import java.time.Clock
+import java.time.LocalDate
 import javax.sql.DataSource
 
 /**
@@ -129,6 +133,16 @@ internal object SharedRegressionTestData {
             dkifUrl = "dkifUrl",
             kabalConfig = ApplicationConfig.ClientsConfig.KabalConfig(url = "kabalUrl", clientId = "KabalClientId"),
             safConfig = ApplicationConfig.ClientsConfig.SafConfig(url = "safUrl", clientId = "safClientId"),
+            maskinportenConfig = ApplicationConfig.ClientsConfig.MaskinportenConfig(
+                clientId = "maskinportenClientId",
+                scopes = "maskinportenScopes",
+                clientJwk = "maskinportenClientJwk",
+                wellKnownUrl = "maskinportenWellKnownUrl",
+                issuer = "maskinportenIssuer",
+                jwksUri = "maskinportenJwksUri",
+                tokenEndpoint = "maskinporteTokenEndpointn"
+            ),
+            skatteetatenConfig = ApplicationConfig.ClientsConfig.SkatteetatenConfig(apiUri = "a"),
         ),
         kafkaConfig = ApplicationConfig.KafkaConfig(
             producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg(emptyMap()),
@@ -151,7 +165,7 @@ internal object SharedRegressionTestData {
     internal fun databaseRepos(
         dataSource: DataSource = migratedDb(),
         clock: Clock = fixedClock,
-        satsFactory: SatsFactory = satsFactoryTest(clock),
+        satsFactory: SatsFactoryForSupplerendeStønad = satsFactoryTest,
     ): DatabaseRepos {
         return DatabaseBuilder.build(
             embeddedDatasource = dataSource,
@@ -208,7 +222,7 @@ internal object SharedRegressionTestData {
 
     private fun Application.testSusebakover(
         clock: Clock = fixedClock,
-        satsFactory: SatsFactory = satsFactoryTest(clock),
+        satsFactory: SatsFactoryForSupplerendeStønad = satsFactoryTest,
         databaseRepos: DatabaseRepos = databaseRepos(
             clock = clock,
             satsFactory = satsFactory,
@@ -222,7 +236,7 @@ internal object SharedRegressionTestData {
             søknadMetrics = mock(),
             clock = clock,
             unleash = unleash,
-            satsFactory = satsFactory,
+            satsFactory = satsFactoryTestPåDato(LocalDate.now(clock)),
         ),
         accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services),
     ) {
@@ -282,6 +296,8 @@ data class TestClientsBuilder(
         klageClient = KlageClientStub,
         journalpostClient = JournalpostClientStub,
         tilbakekrevingClient = TilbakekrevingClientStub(clock),
+        skatteOppslag = SkatteClientStub(),
+        maskinportenClient = MaskinportenClientStub(clock)
     )
 
     override fun build(applicationConfig: ApplicationConfig): Clients = testClients

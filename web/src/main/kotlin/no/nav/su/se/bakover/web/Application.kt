@@ -3,7 +3,8 @@ package no.nav.su.se.bakover.web
 import ch.qos.logback.classic.util.ContextInitializer
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders.XCorrelationId
-import io.ktor.http.HttpStatusCode
+import io.ktor.http.HttpStatusCode.Companion.BadRequest
+import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.serialization.jackson.JacksonConverter
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCall
@@ -20,7 +21,6 @@ import io.ktor.server.plugins.forwardedheaders.XForwardedHeaders
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.request.httpMethod
 import io.ktor.server.request.path
-import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.routing
 import no.finn.unleash.Unleash
@@ -38,7 +38,6 @@ import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.UgyldigFnrException
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
-import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
@@ -66,6 +65,7 @@ import no.nav.su.se.bakover.web.routes.person.personRoutes
 import no.nav.su.se.bakover.web.routes.regulering.reguleringRoutes
 import no.nav.su.se.bakover.web.routes.revurdering.revurderingRoutes
 import no.nav.su.se.bakover.web.routes.sak.sakRoutes
+import no.nav.su.se.bakover.web.routes.skatt.skattRoutes
 import no.nav.su.se.bakover.web.routes.søknad.søknadRoutes
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.overordnetSøknadsbehandligRoutes
 import no.nav.su.se.bakover.web.routes.togglePaths
@@ -73,6 +73,7 @@ import no.nav.su.se.bakover.web.routes.toggleRoutes
 import no.nav.su.se.bakover.web.routes.vilkår.opplysningsplikt.opplysningspliktRoutes
 import org.slf4j.event.Level
 import java.time.Clock
+import java.time.LocalDate
 import java.time.format.DateTimeParseException
 
 fun main() {
@@ -90,7 +91,7 @@ fun Application.susebakover(
     søknadMetrics: SøknadMetrics = SøknadMicrometerMetrics(),
     applicationConfig: ApplicationConfig = ApplicationConfig.createConfig(),
     unleash: Unleash = UnleashBuilder.build(applicationConfig),
-    satsFactory: SatsFactory = SatsFactoryForSupplerendeStønad(clock = clock),
+    satsFactory: SatsFactoryForSupplerendeStønad = SatsFactoryForSupplerendeStønad(),
     databaseRepos: DatabaseRepos = DatabaseBuilder.build(
         databaseConfig = applicationConfig.database,
         dbMetrics = DbMicrometerMetrics(),
@@ -117,10 +118,11 @@ fun Application.susebakover(
         søknadMetrics = søknadMetrics,
         clock = clock,
         unleash = unleash,
-        satsFactory = satsFactory,
+        satsFactory = satsFactory.gjeldende(LocalDate.now(clock)),
     ),
     accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services),
 ) {
+    val satsFactoryIDag = satsFactory.gjeldende(LocalDate.now(clock))
     install(StatusPages) {
         exception<Tilgangssjekkfeil> { call, cause ->
             when (cause.feil) {
@@ -141,19 +143,39 @@ fun Application.susebakover(
         }
         exception<UgyldigFnrException> { call, cause ->
             log.warn("Got UgyldigFnrException with message=${cause.message}", cause)
-            call.respond(HttpStatusCode.BadRequest, ErrorJson(cause.message ?: "Ugyldig fødselsnummer"))
+            call.svar(
+                BadRequest.errorJson(
+                    message = cause.message ?: "Ugyldig fødselsnummer",
+                    code = "ugyldig_fødselsnummer",
+                ),
+            )
         }
         exception<StatusovergangVisitor.UgyldigStatusovergangException> { call, cause ->
             log.info("Got ${StatusovergangVisitor.UgyldigStatusovergangException::class.simpleName} with message=${cause.msg}")
-            call.respond(HttpStatusCode.BadRequest, ErrorJson(cause.msg))
+            call.svar(
+                BadRequest.errorJson(
+                    message = cause.msg,
+                    code = "ugyldig_statusovergang",
+                ),
+            )
         }
         exception<DateTimeParseException> { call, cause ->
             log.info("Got ${DateTimeParseException::class.simpleName} with message ${cause.message}")
-            call.respond(HttpStatusCode.BadRequest, ErrorJson("Ugyldig dato - datoer må være på isoformat"))
+            call.svar(
+                BadRequest.errorJson(
+                    message = "Ugyldig dato - datoer må være på isoformat",
+                    code = "ugyldig_dato",
+                ),
+            )
         }
         exception<Throwable> { call, cause ->
             log.error("Got Throwable with message=${cause.message}", cause)
-            call.respond(HttpStatusCode.InternalServerError, ErrorJson("Ukjent feil"))
+            call.svar(
+                InternalServerError.errorJson(
+                    message = "Ukjent feil",
+                    code = "ukjent_feil",
+                ),
+            )
         }
     }
 
@@ -205,28 +227,29 @@ fun Application.susebakover(
                     accessCheckProxy,
                 ) { accessProtectedServices ->
                     personRoutes(accessProtectedServices.person, clock)
-                    sakRoutes(accessProtectedServices.sak, clock, satsFactory)
+                    sakRoutes(accessProtectedServices.sak, clock, satsFactoryIDag)
                     søknadRoutes(
                         søknadService = accessProtectedServices.søknad,
                         lukkSøknadService = accessProtectedServices.lukkSøknad,
                         avslåSøknadManglendeDokumentasjonService = accessProtectedServices.avslåSøknadManglendeDokumentasjonService,
                         clock = clock,
-                        satsFactory,
+                        satsFactoryIDag,
                     )
-                    overordnetSøknadsbehandligRoutes(accessProtectedServices.søknadsbehandling, clock, satsFactory)
+                    overordnetSøknadsbehandligRoutes(accessProtectedServices.søknadsbehandling, clock, satsFactoryIDag)
                     avstemmingRoutes(accessProtectedServices.avstemming, clock)
                     driftRoutes(accessProtectedServices.søknad)
-                    revurderingRoutes(accessProtectedServices.revurdering, accessProtectedServices.vedtakService, clock, satsFactory)
+                    revurderingRoutes(accessProtectedServices.revurdering, accessProtectedServices.vedtakService, clock, satsFactoryIDag)
                     klageRoutes(accessProtectedServices.klageService, clock)
                     dokumentRoutes(accessProtectedServices.brev)
                     nøkkeltallRoutes(accessProtectedServices.nøkkeltallService)
                     kontrollsamtaleRoutes(accessProtectedServices.kontrollsamtale)
-                    reguleringRoutes(accessProtectedServices.reguleringService, satsFactory)
+                    reguleringRoutes(accessProtectedServices.reguleringService, satsFactoryIDag)
                     opplysningspliktRoutes(
                         søknadsbehandlingService = accessProtectedServices.søknadsbehandling,
                         revurderingService = accessProtectedServices.revurdering,
-                        satsFactory = satsFactory,
+                        satsFactory = satsFactoryIDag,
                     )
+                    skattRoutes(accessProtectedServices.skatteService, accessProtectedServices.toggles)
                 }
             }
         }

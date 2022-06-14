@@ -35,7 +35,6 @@ data class Formue private constructor(
             kontanterBeløp: Number?,
         ): Either<FeilVedOpprettelseAvFormue, Formue> {
             validerBorIBolig(eierBolig, borIBolig).mapLeft { return it.left() }
-            validerDepositumsBeløp(eierBolig, depositumsBeløp).mapLeft { return it.left() }
             validerBolig(eierBolig, borIBolig, verdiPåBolig, boligBrukesTil).mapLeft { return it.left() }
 
             return Formue(
@@ -59,12 +58,6 @@ data class Formue private constructor(
             borIBolig: Boolean?,
         ) =
             if (eierBolig && borIBolig == null) FeilVedOpprettelseAvFormue.BorIBoligErIkkeUtfylt.left() else Unit.right()
-
-        private fun validerDepositumsBeløp(
-            eierBolig: Boolean,
-            depositumsBeløp: Number?,
-        ) =
-            if (!eierBolig && depositumsBeløp == null) FeilVedOpprettelseAvFormue.DepositumsbeløpetErIkkeutfylt.left() else Unit.right()
 
         private fun validerBolig(
             eierBolig: Boolean,

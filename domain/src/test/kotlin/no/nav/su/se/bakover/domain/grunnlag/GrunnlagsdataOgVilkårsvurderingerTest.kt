@@ -19,8 +19,8 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formuevilkårIkkeVurdert
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
-import no.nav.su.se.bakover.test.innvilgetUførevilkårForventetInntekt0
 import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
+import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt0
 import org.junit.jupiter.api.Test
 import java.util.UUID
 

@@ -13,7 +13,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragForMåned
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.lagFradrag
-import no.nav.su.se.bakover.test.satsFactoryTest
+import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.junit.jupiter.api.Test
 
 internal class PeriodisertBeregningTest {
@@ -29,7 +29,7 @@ internal class PeriodisertBeregningTest {
     fun `summerer måned uten fradrag`() {
         val månedsberegning = MånedsberegningFactory.ny(
             måned = januar(2020),
-            strategy = BeregningStrategy.BorAlene(satsFactoryTest),
+            strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
             fradrag = listOf(forventetInntekt),
         )
         månedsberegning.getSumYtelse() shouldBe 20637
@@ -40,7 +40,7 @@ internal class PeriodisertBeregningTest {
     fun `summerer måned med fradrag`() {
         val månedsberegning = MånedsberegningFactory.ny(
             måned = januar(2020),
-            strategy = BeregningStrategy.BorAlene(satsFactoryTest),
+            strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
             fradrag = listOf(
                 forventetInntekt,
                 FradragForMåned(
@@ -60,7 +60,7 @@ internal class PeriodisertBeregningTest {
         val periode = januar(2020)
         val månedsberegning = MånedsberegningFactory.ny(
             måned = periode,
-            strategy = BeregningStrategy.BorAlene(satsFactoryTest),
+            strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
             fradrag = listOf(
                 forventetInntekt,
                 FradragForMåned(
@@ -79,7 +79,7 @@ internal class PeriodisertBeregningTest {
         val periode = januar(2020)
         val månedsberegning = MånedsberegningFactory.ny(
             måned = periode,
-            strategy = BeregningStrategy.BorMedVoksne(satsFactoryTest),
+            strategy = BeregningStrategy.BorMedVoksne(satsFactoryTestPåDato()),
             fradrag = listOf(
                 forventetInntekt,
                 FradragForMåned(
@@ -98,14 +98,14 @@ internal class PeriodisertBeregningTest {
     fun `henter aktuelt grunnbeløp for periode`() {
         val m1 = MånedsberegningFactory.ny(
             måned = januar(2020),
-            strategy = BeregningStrategy.BorMedVoksne(satsFactoryTest),
+            strategy = BeregningStrategy.BorMedVoksne(satsFactoryTestPåDato()),
             fradrag = listOf(forventetInntekt),
         )
         m1.getBenyttetGrunnbeløp() shouldBe 99858
 
         val m2 = MånedsberegningFactory.ny(
             måned = desember(2020),
-            strategy = BeregningStrategy.BorMedVoksne(satsFactoryTest),
+            strategy = BeregningStrategy.BorMedVoksne(satsFactoryTestPåDato()),
             fradrag = listOf(forventetInntekt),
         )
         m2.getBenyttetGrunnbeløp() shouldBe 101351
@@ -122,7 +122,7 @@ internal class PeriodisertBeregningTest {
         )
         val m1 = MånedsberegningFactory.ny(
             måned = januar(2020),
-            strategy = BeregningStrategy.BorMedVoksne(satsFactoryTest),
+            strategy = BeregningStrategy.BorMedVoksne(satsFactoryTestPåDato()),
             fradrag = listOf(
                 forventetInntekt,
                 f1,
@@ -142,7 +142,7 @@ internal class PeriodisertBeregningTest {
         )
         val m1 = MånedsberegningFactory.ny(
             måned = januar(2020),
-            strategy = BeregningStrategy.EpsUnder67År(satsFactoryTest),
+            strategy = BeregningStrategy.EpsUnder67År(satsFactoryTestPåDato()),
             fradrag = listOf(
                 forventetInntekt,
                 f1,
@@ -159,7 +159,7 @@ internal class PeriodisertBeregningTest {
         )
         val m2 = MånedsberegningFactory.ny(
             måned = januar(2020),
-            strategy = BeregningStrategy.BorMedVoksne(satsFactoryTest),
+            strategy = BeregningStrategy.BorMedVoksne(satsFactoryTestPåDato()),
             fradrag = listOf(
                 forventetInntekt,
                 f2,

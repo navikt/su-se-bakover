@@ -4,7 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrHandle
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
-import io.ktor.server.response.respond
+import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.endOfDay
@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Fagområde
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
+import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.svar
@@ -53,28 +54,42 @@ internal fun Route.avstemmingRoutes(
                             ).mapBoth { LocalDate.parse(it, DateTimeFormatter.ISO_DATE) }
                         }
                             .mapLeft {
-                                return@authorize call.respond(
-                                    HttpStatusCode.BadRequest,
-                                    "Ugyldig(e) dato(er). Må være på ${DateTimeFormatter.ISO_DATE}",
+                                return@authorize call.svar(
+                                    HttpStatusCode.BadRequest.errorJson(
+                                        message = "Ugyldig(e) dato(er). Må være på ${DateTimeFormatter.ISO_DATE}",
+                                        code = "ugyldig_datoformat",
+                                    ),
                                 )
                             }
                             .map {
                                 if (!isValidAvstemmingsperiode(it, clock)) {
-                                    return@authorize call.respond(
-                                        HttpStatusCode.BadRequest,
-                                        "fraOgMed må være <= tilOgMed. Og tilOgMed må være tidligere enn dagens dato!",
+                                    return@authorize call.svar(
+                                        HttpStatusCode.BadRequest.errorJson(
+                                            message = "fraOgMed må være <= tilOgMed. Og tilOgMed må være tidligere enn dagens dato!",
+                                            code = "ugyldig_dato",
+                                        ),
                                     )
                                 }
                                 it
                             }
                     else ->
-                        return@authorize call.respond(HttpStatusCode.BadRequest, "Ugyldige parametere")
+                        return@authorize call.svar(
+                            HttpStatusCode.BadRequest.errorJson(
+                                "Ugyldige parametere",
+                                "",
+                            ),
+                        )
                 }
 
             val fagområde = Either.catch {
                 fagområdeString?.toFagområde()
             }.getOrHandle {
-                return@authorize call.respond(HttpStatusCode.BadRequest, it.message.toString())
+                return@authorize call.svar(
+                    HttpStatusCode.InternalServerError.errorJson(
+                        message = "$it",
+                        code = "ukjent_feil",
+                    ),
+                )
             }!!
 
             periode.fold(
@@ -83,8 +98,15 @@ internal fun Route.avstemmingRoutes(
                     service.grensesnittsavstemming(it.first.startOfDay(), it.second.endOfDay(), fagområde)
                 },
             ).fold(
-                { call.respond(HttpStatusCode.InternalServerError, "Kunne ikke avstemme") },
-                { call.respond("Avstemt ok") },
+                {
+                    call.svar(
+                        HttpStatusCode.InternalServerError.errorJson(
+                            message = "Kunne ikke avstemme",
+                            code = "kunne_ikke_avstemme",
+                        ),
+                    )
+                },
+                { call.respondText("Avstemt ok") },
             )
         }
     }
@@ -104,7 +126,12 @@ internal fun Route.avstemmingRoutes(
             val fagområde = Either.catch {
                 fagområdeString?.toFagområde()
             }.getOrHandle {
-                return@authorize call.respond(HttpStatusCode.BadRequest, it.message.toString())
+                return@authorize call.svar(
+                    HttpStatusCode.InternalServerError.errorJson(
+                        message = "$it",
+                        code = "ukjent_feil",
+                    ),
+                )
             }!!
 
             service.konsistensavstemming(LocalDate.parse(fraOgMed, DateTimeFormatter.ISO_DATE), fagområde)
@@ -112,15 +139,17 @@ internal fun Route.avstemmingRoutes(
                     {
                         call.svar(
                             HttpStatusCode.InternalServerError.errorJson(
-                                "Avstemming feilet",
-                                "avstemming_feilet",
+                                message = "Avstemming feilet",
+                                code = "avstemming_feilet",
                             ),
                         )
                     },
                     {
-                        call.respond(
-                            status = HttpStatusCode.OK,
-                            message = """{"message":"Konsistensavstemming fullført for tidspunkt:${it.løpendeFraOgMed} for utbetalinger opprettet tilOgMed:${it.opprettetTilOgMed}"}""",
+                        call.svar(
+                            Resultat.json(
+                                httpCode = HttpStatusCode.OK,
+                                json = """{"message":"Konsistensavstemming fullført for tidspunkt:${it.løpendeFraOgMed} for utbetalinger opprettet tilOgMed:${it.opprettetTilOgMed}"}""",
+                            ),
                         )
                     },
                 )

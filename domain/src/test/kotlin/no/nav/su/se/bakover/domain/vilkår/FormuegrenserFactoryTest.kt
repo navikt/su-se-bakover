@@ -9,21 +9,21 @@ import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.mars
+import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.grunnbeløp.GrunnbeløpForMåned
 import no.nav.su.se.bakover.domain.satser.Faktor
-import no.nav.su.se.bakover.test.fixedClockAt
-import no.nav.su.se.bakover.test.formuegrenserFactoryTest
-import no.nav.su.se.bakover.test.satsFactoryTest
+import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
+import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
-import java.time.Clock
+import java.time.LocalDate
 import java.time.Month
 import java.time.YearMonth
 
 internal class FormuegrenserFactoryTest {
 
-    private val formuegrense = formuegrenserFactoryTest(Clock.systemUTC())
+    private val formuegrense = formuegrenserFactoryTestPåDato(LocalDate.now())
 
     @Nested
     inner class `forMåned()` {
@@ -34,7 +34,7 @@ internal class FormuegrenserFactoryTest {
                 grunnbeløpForMåned = GrunnbeløpForMåned(
                     måned = januar(2021),
                     grunnbeløpPerÅr = 101351,
-                    ikrafttredelse = 1.mai(2020),
+                    ikrafttredelse = 4.september(2020),
                     virkningstidspunkt = 1.mai(2020),
                 ),
                 faktor = Faktor(0.5),
@@ -51,7 +51,7 @@ internal class FormuegrenserFactoryTest {
                 grunnbeløpForMåned = GrunnbeløpForMåned(
                     måned = februar(2021),
                     grunnbeløpPerÅr = 101351,
-                    ikrafttredelse = 1.mai(2020),
+                    ikrafttredelse = 4.september(2020),
                     virkningstidspunkt = 1.mai(2020),
                 ),
                 faktor = Faktor(0.5),
@@ -64,7 +64,7 @@ internal class FormuegrenserFactoryTest {
                 grunnbeløpForMåned = GrunnbeløpForMåned(
                     måned = mars(2021),
                     grunnbeløpPerÅr = 101351,
-                    ikrafttredelse = 1.mai(2020),
+                    ikrafttredelse = 4.september(2020),
                     virkningstidspunkt = 1.mai(2020),
                 ),
                 faktor = Faktor(0.5),
@@ -77,7 +77,7 @@ internal class FormuegrenserFactoryTest {
                 grunnbeløpForMåned = GrunnbeløpForMåned(
                     måned = april(2021),
                     grunnbeløpPerÅr = 101351,
-                    ikrafttredelse = 1.mai(2020),
+                    ikrafttredelse = 4.september(2020),
                     virkningstidspunkt = 1.mai(2020),
                 ),
                 faktor = Faktor(0.5),
@@ -90,7 +90,7 @@ internal class FormuegrenserFactoryTest {
                 grunnbeløpForMåned = GrunnbeløpForMåned(
                     måned = mai(2021),
                     grunnbeløpPerÅr = 106399,
-                    ikrafttredelse = 1.mai(2021),
+                    ikrafttredelse = 21.mai(2021),
                     virkningstidspunkt = 1.mai(2021),
                 ),
                 faktor = Faktor(0.5),
@@ -118,7 +118,7 @@ internal class FormuegrenserFactoryTest {
     inner class `virkningstidspunkt()` {
         @Test
         fun `virkningstidspunkt fra mai 2005`() {
-            formuegrenserFactoryTest(Clock.systemUTC()).virkningstidspunkt(
+            formuegrenserFactoryTestPåDato(LocalDate.now()).virkningstidspunkt(
                 YearMonth.of(
                     2005,
                     Month.MAY,
@@ -147,7 +147,7 @@ internal class FormuegrenserFactoryTest {
 
         @Test
         fun `virkningstidspunkt fra mai 2021`() {
-            formuegrenserFactoryTest(Clock.systemUTC()).virkningstidspunkt(
+            formuegrenserFactoryTestPåDato(LocalDate.now()).virkningstidspunkt(
                 YearMonth.of(
                     2021,
                     Month.MAY,
@@ -160,7 +160,7 @@ internal class FormuegrenserFactoryTest {
 
         @Test
         fun `virkningstidspunkt fra mai 2022`() {
-            formuegrenserFactoryTest(Clock.systemUTC()).virkningstidspunkt(
+            formuegrenserFactoryTestPåDato(LocalDate.now()).virkningstidspunkt(
                 YearMonth.of(
                     2022,
                     Month.MAY,
@@ -172,7 +172,7 @@ internal class FormuegrenserFactoryTest {
 
         @Test
         fun `virkningstidspunkt fra mai 2023`() {
-            formuegrenserFactoryTest(Clock.systemUTC()).virkningstidspunkt(
+            formuegrenserFactoryTestPåDato(LocalDate.now()).virkningstidspunkt(
                 YearMonth.of(
                     2023,
                     Month.MAY,
@@ -184,8 +184,8 @@ internal class FormuegrenserFactoryTest {
 
         @Test
         fun `Ikrafttredelse januar 2021`() {
-            satsFactoryTest(
-                clock = fixedClockAt(1.januar(2021)),
+            satsFactoryTestPåDato(
+                påDato = 1.januar(2021),
             ).formuegrenserFactory.virkningstidspunkt(
                 fraOgMed = YearMonth.of(2021, Month.JANUARY),
             ) shouldBe listOf(1.mai(2020) to BigDecimal("50675.5"))
@@ -193,8 +193,8 @@ internal class FormuegrenserFactoryTest {
 
         @Test
         fun `Ikrafttredelse april 2021`() {
-            satsFactoryTest(
-                clock = fixedClockAt(1.april(2021)),
+            satsFactoryTestPåDato(
+                påDato = 1.april(2021),
             ).formuegrenserFactory.virkningstidspunkt(
                 fraOgMed = YearMonth.of(2021, Month.JANUARY),
             ) shouldBe listOf(1.mai(2020) to BigDecimal("50675.5"))
@@ -202,8 +202,8 @@ internal class FormuegrenserFactoryTest {
 
         @Test
         fun `Ikrafttredelse mai 2021`() {
-            satsFactoryTest(
-                clock = fixedClockAt(1.mai(2021)),
+            satsFactoryTestPåDato(
+                påDato = 21.mai(2021),
             ).formuegrenserFactory.virkningstidspunkt(
                 fraOgMed = YearMonth.of(2021, Month.JANUARY),
             ) shouldBe listOf(1.mai(2021) to BigDecimal("53199.5"), 1.mai(2020) to BigDecimal("50675.5"))
@@ -211,8 +211,8 @@ internal class FormuegrenserFactoryTest {
 
         @Test
         fun `Ikrafttredelse april 2022`() {
-            satsFactoryTest(
-                clock = fixedClockAt(1.april(2022)),
+            satsFactoryTestPåDato(
+                påDato = 1.april(2022),
             ).formuegrenserFactory.virkningstidspunkt(
                 fraOgMed = YearMonth.of(2021, Month.JANUARY),
             ) shouldBe listOf(1.mai(2021) to BigDecimal("53199.5"), 1.mai(2020) to BigDecimal("50675.5"))
@@ -220,8 +220,8 @@ internal class FormuegrenserFactoryTest {
 
         @Test
         fun `Ikrafttredelse mai 2022`() {
-            satsFactoryTest(
-                clock = fixedClockAt(20.mai(2022)),
+            satsFactoryTestPåDato(
+                påDato = 20.mai(2022),
             ).formuegrenserFactory.virkningstidspunkt(
                 fraOgMed = YearMonth.of(2021, Month.JANUARY),
             ) shouldBe listOf(

@@ -131,7 +131,7 @@ class KontrollsamtaleServiceImpl(
             return KunneIkkeSetteNyDatoForKontrollsamtale.FantIkkeSak.left()
         }
         sak.harGjeldendeEllerFremtidigStønadsperiode(clock).ifFalse {
-            log.error("Fant ingen gjeldende stønadsperiode på sakId $sakId")
+            log.info("Fant ingen gjeldende stønadsperiode på sakId $sakId")
             return KunneIkkeSetteNyDatoForKontrollsamtale.FantIkkeGjeldendeStønadsperiode.left()
         }
 

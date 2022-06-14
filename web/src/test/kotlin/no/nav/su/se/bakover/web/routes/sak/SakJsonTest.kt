@@ -19,7 +19,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.satsFactoryTest
+import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.UtbetalingJson
 import org.junit.jupiter.api.Nested
@@ -59,18 +59,19 @@ internal class SakJsonTest {
                 "revurderinger": [],
                 "vedtak": [],
                 "klager": [],
-                "reguleringer": []
+                "reguleringer": [],
+                "sakstype": "UFØRE"
             }
         """.trimIndent()
 
     @Test
     fun `should serialize to json string`() {
-        JSONAssert.assertEquals(sakJsonString, serialize(sak.toJson(fixedClock, satsFactoryTest)), true)
+        JSONAssert.assertEquals(sakJsonString, serialize(sak.toJson(fixedClock, satsFactoryTestPåDato())), true)
     }
 
     @Test
     fun `should deserialize json string`() {
-        deserialize<SakJson>(sakJsonString) shouldBe sak.toJson(fixedClock, satsFactoryTest)
+        deserialize<SakJson>(sakJsonString) shouldBe sak.toJson(fixedClock, satsFactoryTestPåDato())
     }
 
     @Nested
@@ -126,7 +127,7 @@ internal class SakJsonTest {
 
             val sak = sak.copy(utbetalinger = listOf(utbetaling1, utbetaling2, utbetaling3, utbetaling4))
 
-            val (actual1, actual2, actual3, actual4) = sak.toJson(fixedClock, satsFactoryTest).utbetalinger
+            val (actual1, actual2, actual3, actual4) = sak.toJson(fixedClock, satsFactoryTestPåDato()).utbetalinger
             actual1 shouldBe UtbetalingJson(
                 fraOgMed = nyUtbetaling.fraOgMed,
                 tilOgMed = midlertidigStans.virkningstidspunkt.minusDays(1),

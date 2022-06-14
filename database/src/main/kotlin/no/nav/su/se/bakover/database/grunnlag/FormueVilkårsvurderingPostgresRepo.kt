@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.tidspunkt
-import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import java.util.UUID
@@ -18,7 +17,6 @@ import java.util.UUID
 internal class FormueVilkårsvurderingPostgresRepo(
     private val formuegrunnlagPostgresRepo: FormuegrunnlagPostgresRepo,
     private val dbMetrics: DbMetrics,
-    private val satsFactory: SatsFactory,
 ) {
     internal fun lagre(behandlingId: UUID, vilkår: Vilkår.Formue, tx: TransactionalSession) {
         slettForBehandlingId(behandlingId, tx)

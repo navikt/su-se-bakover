@@ -22,8 +22,8 @@ import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.uføregrunnlagForventetInntekt0
-import no.nav.su.se.bakover.test.uføregrunnlagForventetInntekt12000
+import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt0
+import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt12000
 import org.junit.jupiter.api.Test
 import java.util.UUID
 

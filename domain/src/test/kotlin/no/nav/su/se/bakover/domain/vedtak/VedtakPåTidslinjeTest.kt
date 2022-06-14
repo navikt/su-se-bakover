@@ -34,8 +34,8 @@ import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.innvilgetFormueVilkår
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import no.nav.su.se.bakover.test.shouldBeType
-import no.nav.su.se.bakover.test.tilstrekkeligDokumentert
-import no.nav.su.se.bakover.test.utenlandsoppholdInnvilget
+import no.nav.su.se.bakover.test.vilkår.tilstrekkeligDokumentert
+import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import java.util.UUID
