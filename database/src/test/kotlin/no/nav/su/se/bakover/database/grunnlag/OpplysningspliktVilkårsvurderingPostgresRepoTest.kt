@@ -8,8 +8,8 @@ import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
-import no.nav.su.se.bakover.test.tilstrekkeligDokumentert
-import no.nav.su.se.bakover.test.utilstrekkeligDokumentert
+import no.nav.su.se.bakover.test.vilkår.tilstrekkeligDokumentert
+import no.nav.su.se.bakover.test.vilkår.utilstrekkeligDokumentert
 import org.junit.jupiter.api.Test
 
 internal class OpplysningspliktVilkårsvurderingPostgresRepoTest {

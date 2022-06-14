@@ -76,7 +76,7 @@ import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandl
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulertUtbetalingOpphør
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
-import no.nav.su.se.bakover.test.tilstrekkeligDokumentert
+import no.nav.su.se.bakover.test.vilkår.tilstrekkeligDokumentert
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag

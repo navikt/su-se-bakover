@@ -8,8 +8,6 @@ import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
-import no.nav.su.se.bakover.domain.grunnlag.Opplysningspliktgrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.periode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
@@ -18,56 +16,13 @@ import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOpplysningsplikt
+import no.nav.su.se.bakover.test.vilkår.tilstrekkeligDokumentert
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdInnvilget
+import no.nav.su.se.bakover.test.vilkår.utilstrekkeligDokumentert
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt0
 import java.util.UUID
-
-fun tilstrekkeligDokumentert(
-    id: UUID = UUID.randomUUID(),
-    opprettet: Tidspunkt = fixedTidspunkt,
-    periode: Periode = år(2021),
-): OpplysningspliktVilkår.Vurdert {
-    return OpplysningspliktVilkår.Vurdert.createFromVilkårsvurderinger(
-        vurderingsperioder = nonEmptyListOf(
-            VurderingsperiodeOpplysningsplikt.create(
-                id = id,
-                opprettet = opprettet,
-                periode = periode,
-                grunnlag = Opplysningspliktgrunnlag(
-                    id = id,
-                    opprettet = opprettet,
-                    periode = periode,
-                    beskrivelse = OpplysningspliktBeskrivelse.TilstrekkeligDokumentasjon,
-                ),
-            ),
-        ),
-    )
-}
-
-fun utilstrekkeligDokumentert(
-    id: UUID = UUID.randomUUID(),
-    opprettet: Tidspunkt = fixedTidspunkt,
-    periode: Periode = år(2021),
-): OpplysningspliktVilkår.Vurdert {
-    return OpplysningspliktVilkår.Vurdert.createFromVilkårsvurderinger(
-        vurderingsperioder = nonEmptyListOf(
-            VurderingsperiodeOpplysningsplikt.create(
-                id = id,
-                opprettet = opprettet,
-                grunnlag = Opplysningspliktgrunnlag(
-                    id = id,
-                    opprettet = opprettet,
-                    periode = periode,
-                    beskrivelse = OpplysningspliktBeskrivelse.UtilstrekkeligDokumentasjon,
-                ),
-                periode = periode,
-            ),
-        ),
-    )
-}
 
 fun formueGrunnlagUtenEps0Innvilget(
     opprettet: Tidspunkt = fixedTidspunkt,

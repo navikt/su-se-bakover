@@ -32,9 +32,9 @@ import no.nav.su.se.bakover.test.søknadsbehandlingUnderkjentInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertAvslag
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
-import no.nav.su.se.bakover.test.tilstrekkeligDokumentert
-import no.nav.su.se.bakover.test.utilstrekkeligDokumentert
+import no.nav.su.se.bakover.test.vilkår.tilstrekkeligDokumentert
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdInnvilget
+import no.nav.su.se.bakover.test.vilkår.utilstrekkeligDokumentert
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkår
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt12000
 import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
