@@ -123,7 +123,8 @@ data class ProdClientsBuilder(
                 clock = clock,
             ),
             skatteOppslag = SkatteClient(
-                skatteetatenConfig = applicationConfig.clientsConfig.skatteetatenConfig
+                skatteetatenConfig = applicationConfig.clientsConfig.skatteetatenConfig,
+                clock = clock
             ),
             maskinportenClient = MaskinportenHTTPClient(
                 maskinportenConfig = applicationConfig.clientsConfig.maskinportenConfig,
