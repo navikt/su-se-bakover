@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.satser
 
+import arrow.core.nonEmptyListOf
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldHaveSize
@@ -373,30 +374,30 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
         fun `Cache tar høyde for knekkpunkter på tvers av satser og grunnbeløps ikraftredelser`() {
 
             val satsFactory = SatsFactoryForSupplerendeStønad(
-                garantipensjonsendringerOrdinær = listOf(
+                garantipensjonsendringerOrdinær = nonEmptyListOf(
                     GarantipensjonFactory.Garantipensjonsendring(1.mai(2021), 1.mai(2021), 0),
                     GarantipensjonFactory.Garantipensjonsendring(1.januar(2022), 1.januar(2022), 5),
                     GarantipensjonFactory.Garantipensjonsendring(1.mai(2022), 1.mai(2022), 10),
                 ),
-                garantipensjonsendringerHøy = listOf(
+                garantipensjonsendringerHøy = nonEmptyListOf(
                     GarantipensjonFactory.Garantipensjonsendring(1.mai(2021), 1.mai(2021), 0),
                     GarantipensjonFactory.Garantipensjonsendring(1.januar(2022), 1.januar(2022), 10),
                     GarantipensjonFactory.Garantipensjonsendring(1.mai(2022), 1.mai(2022), 20),
                 ),
-                grunnbeløpsendringer = listOf(
+                grunnbeløpsendringer = nonEmptyListOf(
                     // Kan slette den første her når vi har fått satt supplerendeStønadAlderFlyktningIkrafttredelse til 2021-01-01
                     Grunnbeløpsendring(1.januar(2020), 1.januar(2020), 5),
                     Grunnbeløpsendring(1.november(2021), 30.desember(2021), 10),
                     Grunnbeløpsendring(1.desember(2021), 31.desember(2021), 20),
                     Grunnbeløpsendring(1.februar(2022), 2.januar(2022), 30),
                 ),
-                minsteÅrligYtelseForUføretrygdedeOrdinær = listOf(
+                minsteÅrligYtelseForUføretrygdedeOrdinær = nonEmptyListOf(
                     MinsteÅrligUføre(1.januar(2020), 1.januar(2020), Faktor(0.00001)),
                     MinsteÅrligUføre(1.november(2021), 16.november(2021), Faktor(1.0)),
                     MinsteÅrligUføre(1.desember(2021), 18.desember(2021), Faktor(2.0)),
                     MinsteÅrligUføre(1.januar(2022), 2.januar(2022), Faktor(3.0)),
                 ),
-                minsteÅrligYtelseForUføretrygdedeHøy = listOf(
+                minsteÅrligYtelseForUføretrygdedeHøy = nonEmptyListOf(
                     MinsteÅrligUføre(1.januar(2020), 1.januar(2020), Faktor(0.00002)),
                     MinsteÅrligUføre(1.november(2021), 16.november(2021), Faktor(4.0)),
                     MinsteÅrligUføre(1.desember(2021), 18.desember(2021), Faktor(5.0)),
