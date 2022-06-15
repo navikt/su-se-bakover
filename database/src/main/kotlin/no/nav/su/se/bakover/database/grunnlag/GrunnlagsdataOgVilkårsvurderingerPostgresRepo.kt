@@ -23,6 +23,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
     private val utenlandsoppholdVilkårsvurderingPostgresRepo: UtenlandsoppholdVilkårsvurderingPostgresRepo,
     private val opplysningspliktVilkårsvurderingPostgresRepo: OpplysningspliktVilkårsvurderingPostgresRepo,
     private val pensjonVilkårsvurderingPostgresRepo: PensjonVilkårsvurderingPostgresRepo,
+    private val familiegjenforeningVilkårsvurderingPostgresRepo: FamiliegjenforeningVilkårsvurderingPostgresRepo,
 ) {
     fun lagre(
         behandlingId: UUID,
@@ -73,6 +74,9 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
                         tx = tx,
                     )
                 }
+            grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.familiegjenforening().map {
+                familiegjenforeningVilkårsvurderingPostgresRepo.lagre(behandlingId = behandlingId, vilkår = it, tx = tx)
+            }
         }
     }
 

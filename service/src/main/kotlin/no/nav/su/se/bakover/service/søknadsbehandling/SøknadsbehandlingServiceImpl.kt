@@ -585,18 +585,21 @@ internal class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilFamiliegjenforeningVilkårService.FantIkkeBehandling.left()
 
+        val familiegjenforeningVilkår = request.toVilkår(
+            periode = søknadsbehandling.periode,
+            clock = clock,
+        ).getOrHandle {
+            return KunneIkkeLeggeTilFamiliegjenforeningVilkårService.UgyldigFamiliegjenforeningVilkårService(it)
+                .left()
+        }
+
         return søknadsbehandling.leggTilFamiliegjenforegningvilkår(
-            familiegjenforegning = request.toVilkår(periode = søknadsbehandling.periode, clock = clock)
-                .getOrHandle {
-                    return KunneIkkeLeggeTilFamiliegjenforeningVilkårService.UgyldigFamiliegjenforeningVilkårService(it)
-                        .left()
-                },
+            familiegjenforegning = familiegjenforeningVilkår,
             clock = clock,
         ).mapLeft {
             it.tilKunneIkkeLeggeTilFamiliegjenforeningVilkårService()
-        }.map {
+        }.tap {
             søknadsbehandlingRepo.lagre(it)
-            it
         }
     }
 

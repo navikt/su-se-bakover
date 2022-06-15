@@ -40,10 +40,7 @@ sealed class FamiliegjenforeningVilkår : Vilkår() {
 
         override fun lagTidslinje(periode: Periode) = copy(
             vurderingsperioder = Nel.fromListUnsafe(
-                Tidslinje(
-                    periode = periode,
-                    objekter = vurderingsperioder,
-                ).tidslinje,
+                Tidslinje(periode = periode, objekter = vurderingsperioder).tidslinje,
             ),
         )
 
