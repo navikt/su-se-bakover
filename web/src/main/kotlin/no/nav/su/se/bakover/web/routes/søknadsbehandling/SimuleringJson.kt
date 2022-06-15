@@ -85,4 +85,4 @@ internal fun TolketPeriode.toJson(): SimuleringJson.SimulertPeriodeJson {
 }
 
 object MerEnnEnUtbetalingIMinstEnAvPeriodene :
-    IllegalStateException("En periode i simuleringen inneholdt mer enn èn utbetaling. Dette støttes ikke p.t.")
+    IllegalStateException("En periode i simuleringen inneholdt mer enn én utbetaling. Dette støttes ikke p.t.")

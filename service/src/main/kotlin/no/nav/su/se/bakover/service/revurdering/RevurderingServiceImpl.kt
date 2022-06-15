@@ -77,8 +77,10 @@ import no.nav.su.se.bakover.service.toggles.ToggleService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.KunneIkkeKopiereGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.vedtak.VedtakService
+import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeTilPensjonsVilkår
 import no.nav.su.se.bakover.service.vilkår.LeggTilFlereUtenlandsoppholdRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilPensjonsVilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import java.time.Clock
@@ -377,6 +379,21 @@ internal class RevurderingServiceImpl(
         }
     }
 
+    override fun leggTilPensjonsVilkår(request: LeggTilPensjonsVilkårRequest): Either<KunneIkkeLeggeTilPensjonsVilkår, RevurderingOgFeilmeldingerResponse> {
+        return hent(request.behandlingId).mapLeft {
+            KunneIkkeLeggeTilPensjonsVilkår.FantIkkeBehandling
+        }.flatMap { revurdering ->
+            revurdering.oppdaterPensjonsvilkårOgMarkerSomVurdert(request.vilkår)
+                .mapLeft {
+                    KunneIkkeLeggeTilPensjonsVilkår.Revurdering(it)
+                }
+                .map {
+                    revurderingRepo.lagre(it)
+                    identifiserFeilOgLagResponse(it)
+                }
+        }
+    }
+
     override fun leggTilFradragsgrunnlag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradragsgrunnlag, RevurderingOgFeilmeldingerResponse> {
         val revurdering = hent(request.behandlingId)
             .getOrHandle { return KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling.left() }
@@ -419,7 +436,7 @@ internal class RevurderingServiceImpl(
     }
 
     override fun leggTilFormuegrunnlag(
-        request: LeggTilFormuevilkårRequest
+        request: LeggTilFormuevilkårRequest,
     ): Either<KunneIkkeLeggeTilFormuegrunnlag, RevurderingOgFeilmeldingerResponse> {
         val revurdering = hent(request.behandlingId)
             .getOrHandle { return KunneIkkeLeggeTilFormuegrunnlag.FantIkkeRevurdering.left() }
@@ -691,7 +708,7 @@ internal class RevurderingServiceImpl(
                                     },
                                     {
                                         it.grunnlag
-                                    }
+                                    },
                                 ),
                                 utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
                             ),
@@ -1242,7 +1259,7 @@ internal class RevurderingServiceImpl(
                                     },
                                     {
                                         it.grunnlag
-                                    }
+                                    },
                                 ),
                                 utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
                             ),

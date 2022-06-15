@@ -5,6 +5,7 @@ package no.nav.su.se.bakover.web.søknad.ny
  * Da vil vi plukke opp kontraktsendringer mellom bakover/fremover; både tilsiktede og utilsiktede.
  */
 import no.nav.su.se.bakover.test.fixedLocalDate
+import no.nav.su.se.bakover.web.søknad.digitalSøknadsinnholdAlderJson
 import no.nav.su.se.bakover.web.søknad.digitalSøknadsinnholdUføreJson
 import no.nav.su.se.bakover.web.søknad.digitalUføreSøknadJson
 import no.nav.su.se.bakover.web.søknad.papirsøknadJson
@@ -26,6 +27,16 @@ object NySøknadJson {
         ): String {
             return digitalSøknadsinnholdUføreJson(
                 fnr = fnr,
+            )
+        }
+
+        internal fun nyDigitalAlderssøknad(
+            brukerFnr: String,
+            epsFnr: String
+        ): String {
+            return digitalSøknadsinnholdAlderJson(
+                brukerFnr = brukerFnr,
+                epsFnr = epsFnr,
             )
         }
 
@@ -53,7 +64,7 @@ object NySøknadJson {
         /**
          * Henger tett sammen med [no.nav.su.se.bakover.web.søknad.ny.NySøknadJson.Request.nyDigitalSøknad]
          */
-        fun nyDititalSøknad(
+        fun nyDititalUføreSøknad(
             fnr: String = no.nav.su.se.bakover.web.SharedRegressionTestData.fnr,
             saksnummer: Long = 2021,
         ): String {

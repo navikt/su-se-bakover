@@ -63,8 +63,10 @@ import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
+import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeTilPensjonsVilkår
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilPensjonsVilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
@@ -703,6 +705,19 @@ internal class SøknadsbehandlingServiceImpl(
         return søknadsbehandling.leggTilOpplysningspliktVilkår(request.vilkår, clock, formuegrenserFactory)
             .mapLeft {
                 KunneIkkeLeggeTilOpplysningsplikt.Søknadsbehandling(it)
+            }.map {
+                søknadsbehandlingRepo.lagre(it)
+                it
+            }
+    }
+
+    override fun leggTilPensjonsVilkår(request: LeggTilPensjonsVilkårRequest): Either<KunneIkkeLeggeTilPensjonsVilkår, Søknadsbehandling.Vilkårsvurdert> {
+        val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
+            ?: return KunneIkkeLeggeTilPensjonsVilkår.FantIkkeBehandling.left()
+
+        return søknadsbehandling.leggTilPensjonsVilkår(request.vilkår, clock, formuegrenserFactory)
+            .mapLeft {
+                KunneIkkeLeggeTilPensjonsVilkår.Søknadsbehandling(it)
             }.map {
                 søknadsbehandlingRepo.lagre(it)
                 it

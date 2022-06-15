@@ -51,4 +51,6 @@ internal fun Route.revurderingRoutes(
     gjenopptaUtbetaling(revurderingService, satsFactory)
 
     avsluttRevurderingRoute(revurderingService, satsFactory)
+
+    pensjonsVilkårRoutes(revurderingService, satsFactory)
 }

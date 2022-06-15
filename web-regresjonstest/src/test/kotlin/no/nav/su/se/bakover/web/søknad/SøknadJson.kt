@@ -20,6 +20,21 @@ fun digitalUføreSøknadJson(
     )
 }
 
+fun digitalAlderSøknadJson(
+    id: String = "ignored-by-some-matchers",
+    sakId: String = "ignored-by-some-matchers",
+    fnr: String = SharedRegressionTestData.fnr,
+    epsFnr: String = SharedRegressionTestData.epsFnr,
+    lukket: String? = null,
+): String {
+    return søknadJson(
+        id = id,
+        sakId = sakId,
+        søknadInnhold = digitalSøknadsinnholdAlderJson(fnr, epsFnr),
+        lukket = lukket,
+    )
+}
+
 /**
  * @param lukket defaulter til ikke lukket (null)
  */

@@ -21,4 +21,6 @@ internal fun Route.overordnetSøknadsbehandligRoutes(
     leggTilUtenlandsopphold(søknadsbehandlingService, satsFactory)
 
     leggTilFormueForSøknadsbehandlingRoute(søknadsbehandlingService, satsFactory)
+
+    pensjonsVilkårRoutes(søknadsbehandlingService, satsFactory)
 }

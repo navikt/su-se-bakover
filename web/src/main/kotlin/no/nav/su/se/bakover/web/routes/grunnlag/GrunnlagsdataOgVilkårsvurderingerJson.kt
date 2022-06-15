@@ -6,6 +6,8 @@ import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.vilkår.alder.PensjonsVilkårJson
+import no.nav.su.se.bakover.web.routes.vilkår.alder.toJson
 import no.nav.su.se.bakover.web.routes.vilkår.opplysningsplikt.OpplysningspliktVilkårJson
 import no.nav.su.se.bakover.web.routes.vilkår.opplysningsplikt.toJson
 
@@ -16,6 +18,7 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
     val formue: FormuevilkårJson?,
     val utenlandsopphold: UtenlandsoppholdVilkårJson?,
     val opplysningsplikt: OpplysningspliktVilkårJson?,
+    val pensjon: PensjonsVilkårJson?,
 ) {
     companion object {
         fun create(
@@ -25,18 +28,18 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
         ): GrunnlagsdataOgVilkårsvurderingerJson {
             return GrunnlagsdataOgVilkårsvurderingerJson(
                 uføre = vilkårsvurderinger.uføreVilkår().fold(
-                    {
-                        TODO("vilkårsvurdering_alder json for aldersvilkår ikke implementert enda")
-                    },
-                    {
-                        it.toJson()
-                    }
+                    { null },
+                    { it.toJson() },
                 ),
                 fradrag = grunnlagsdata.fradragsgrunnlag.map { it.fradrag.toJson() },
                 bosituasjon = grunnlagsdata.bosituasjon.toJson(),
                 formue = vilkårsvurderinger.formueVilkår().toJson(satsFactory),
                 utenlandsopphold = vilkårsvurderinger.utenlandsoppholdVilkår().toJson(),
                 opplysningsplikt = vilkårsvurderinger.opplysningspliktVilkår().toJson(),
+                pensjon = vilkårsvurderinger.pensjonsVilkår().fold(
+                    { null },
+                    { it.toJson() },
+                ),
             )
         }
     }

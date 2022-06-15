@@ -62,6 +62,7 @@ import javax.sql.DataSource
  */
 internal object SharedRegressionTestData {
     internal val fnr: String = Fnr.generer().toString()
+    internal val epsFnr: String = Fnr.generer().toString()
 
     private const val DEFAULT_CALL_ID = "her skulle vi sikkert hatt en korrelasjonsid"
 

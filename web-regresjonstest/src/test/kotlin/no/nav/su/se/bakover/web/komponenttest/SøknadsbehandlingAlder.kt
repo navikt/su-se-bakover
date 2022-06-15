@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.service.vilkår.BosituasjonValg
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilPensjonsVilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
@@ -33,6 +34,7 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.stønadsperiode2022
+import no.nav.su.se.bakover.test.vilkår.pensjonsVilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.tilstrekkeligDokumentert
 import no.nav.su.se.bakover.test.vilkår.utilstrekkeligDokumentert
 import org.junit.jupiter.api.Test
@@ -87,7 +89,8 @@ internal class SøknadsbehandlingAlder {
             appComponents.services.søknadsbehandling.vilkårsvurder(
                 request = VilkårsvurderRequest(
                     behandlingId = søknadsbehandling.id,
-                    behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
+                    behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon()
+                        .withAlleVilkårOppfylt(),
                 ),
             ).getOrFail()
 
@@ -97,6 +100,13 @@ internal class SøknadsbehandlingAlder {
                     vilkår = tilstrekkeligDokumentert(periode = stønadsperiode2022.periode),
                 ),
             ).getOrFail()
+
+            appComponents.services.søknadsbehandling.leggTilPensjonsVilkår(
+                request = LeggTilPensjonsVilkårRequest(
+                    behandlingId = søknadsbehandling.id,
+                    vilkår = pensjonsVilkårInnvilget(periode = stønadsperiode2022.periode),
+                ),
+            )
 
             appComponents.services.søknadsbehandling.leggTilBosituasjonEpsgrunnlag(
                 request = LeggTilBosituasjonEpsRequest(

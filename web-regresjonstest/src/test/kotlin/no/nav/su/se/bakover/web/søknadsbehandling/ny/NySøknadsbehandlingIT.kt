@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test
 internal class NySøknadsbehandlingIT {
 
     @Test
-    fun `Kan opprette ny søknadsbehandling`() {
+    fun `Kan opprette ny søknadsbehandling for uføre`() {
         val fnr = fnr
         withTestApplicationAndEmbeddedDb {
             val nySøknadsrespons = nyDigitalSøknadOgVerifiser(

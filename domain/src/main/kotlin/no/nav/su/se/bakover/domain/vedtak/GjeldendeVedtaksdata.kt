@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
+import no.nav.su.se.bakover.domain.vilkår.PensjonsVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -68,6 +69,7 @@ data class GjeldendeVedtaksdata(
                         formue = it.formueVilkår(),
                         utenlandsopphold = it.utenlandsoppholdVilkår(),
                         opplysningsplikt = it.opplysningspliktVilkår(),
+                        pensjon = it.pensjonsVilkår(),
                     )
                 }
                 else -> {
@@ -195,6 +197,20 @@ private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.opplysningspliktVilk
                     .slåSammenLikePerioder()
             } else {
                 OpplysningspliktVilkår.IkkeVurdert
+            }
+        }
+}
+
+private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.pensjonsVilkår(): PensjonsVilkår {
+    return map { it.opplysningspliktVilkår() }
+        .filterIsInstance<PensjonsVilkår.Vurdert>()
+        .flatMap { it.vurderingsperioder }
+        .let {
+            if (it.isNotEmpty()) {
+                PensjonsVilkår.Vurdert.createFromVilkårsvurderinger(NonEmptyList.fromListUnsafe(it))
+                    .slåSammenLikePerioder()
+            } else {
+                PensjonsVilkår.IkkeVurdert
             }
         }
 }

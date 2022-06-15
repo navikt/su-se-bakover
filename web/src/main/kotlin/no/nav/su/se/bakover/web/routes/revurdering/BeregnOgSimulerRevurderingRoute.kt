@@ -69,11 +69,16 @@ internal data class RevurderingOgFeilmeldingerResponseJson(
     val varselmeldinger: List<ErrorJson>,
 )
 
-internal fun RevurderingOgFeilmeldingerResponse.toJson(satsFactory: SatsFactory) = RevurderingOgFeilmeldingerResponseJson(
-    revurdering = revurdering.toJson(satsFactory),
-    feilmeldinger = feilmeldinger.map { it.toJson() },
-    varselmeldinger = varselmeldinger.map { it.toJson() },
-)
+internal fun RevurderingOgFeilmeldingerResponse.json(satsFactory: SatsFactory): String {
+    return serialize(toJson(satsFactory))
+}
+
+internal fun RevurderingOgFeilmeldingerResponse.toJson(satsFactory: SatsFactory) =
+    RevurderingOgFeilmeldingerResponseJson(
+        revurdering = revurdering.toJson(satsFactory),
+        feilmeldinger = feilmeldinger.map { it.toJson() },
+        varselmeldinger = varselmeldinger.map { it.toJson() },
+    )
 
 internal fun RevurderingsutfallSomIkkeStøttes.toJson(): ErrorJson = when (this) {
     RevurderingsutfallSomIkkeStøttes.DelvisOpphør -> ErrorJson(

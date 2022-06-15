@@ -10,4 +10,8 @@ object BehandlingJson {
     fun hentSakId(søknadsbehandlingResponseJson: String): String {
         return JSONObject(søknadsbehandlingResponseJson).getString("sakId").toString()
     }
+
+    fun hentPensjonsVilkår(json: String): String {
+        return JSONObject(json).getJSONObject("grunnlagsdataOgVilkårsvurderinger").getJSONObject("pensjon").toString()
+    }
 }

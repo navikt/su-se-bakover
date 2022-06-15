@@ -17,6 +17,10 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.Stønadsperi
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.toJson
 import java.time.format.DateTimeFormatter
 
+internal fun Søknadsbehandling.json(satsFactory: SatsFactory): String {
+    return serialize(toJson(satsFactory))
+}
+
 internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson {
 
     val behandlingsinformasjonJson = behandlingsinformasjon.toJson()

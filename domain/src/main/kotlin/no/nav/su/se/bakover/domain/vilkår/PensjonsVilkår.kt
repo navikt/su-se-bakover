@@ -8,33 +8,34 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.harOverlappende
+import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.domain.CopyArgs
-import no.nav.su.se.bakover.domain.grunnlag.LovligOppholdGrunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Pensjonsgrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
 import java.time.LocalDate
 import java.util.UUID
 
-sealed class LovligOppholdVilkår : Vilkår() {
-    override val vilkår = Inngangsvilkår.LovligOpphold
-    abstract val grunnlag: List<LovligOppholdGrunnlag>
+sealed class PensjonsVilkår : Vilkår() {
+    override val vilkår = Inngangsvilkår.Pensjon
+    abstract val grunnlag: List<Pensjonsgrunnlag>
 
-    abstract override fun lagTidslinje(periode: Periode): LovligOppholdVilkår
-    abstract fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): LovligOppholdVilkår
-    abstract override fun slåSammenLikePerioder(): LovligOppholdVilkår
+    abstract override fun lagTidslinje(periode: Periode): PensjonsVilkår
+    abstract fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): PensjonsVilkår
+    abstract override fun slåSammenLikePerioder(): PensjonsVilkår
 
-    object IkkeVurdert : LovligOppholdVilkår() {
+    object IkkeVurdert : PensjonsVilkår() {
         override val resultat: Resultat = Resultat.Uavklart
         override val erAvslag = false
         override val erInnvilget = false
-        override val grunnlag = emptyList<LovligOppholdGrunnlag>()
-        override fun lagTidslinje(periode: Periode): LovligOppholdVilkår {
+        override val grunnlag = emptyList<Pensjonsgrunnlag>()
+        override fun lagTidslinje(periode: Periode): PensjonsVilkår {
             return this
         }
 
         override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): IkkeVurdert = this
-        override fun slåSammenLikePerioder(): LovligOppholdVilkår {
+        override fun slåSammenLikePerioder(): PensjonsVilkår {
             return this
         }
 
@@ -45,11 +46,13 @@ sealed class LovligOppholdVilkår : Vilkår() {
     }
 
     data class Vurdert private constructor(
-        val vurderingsperioder: Nel<VurderingsperiodeLovligOpphold>,
-    ) : LovligOppholdVilkår() {
+        val vurderingsperioder: Nel<VurderingsperiodePensjon>,
+    ) : PensjonsVilkår() {
 
-        override val grunnlag: List<LovligOppholdGrunnlag> = vurderingsperioder.mapNotNull { it.grunnlag }
-        override fun lagTidslinje(periode: Periode): LovligOppholdVilkår {
+        // TODO("init som sjekker at perioder og stuff ikke overlapper - funksjonalitet fra Johns pr på innstrammende inits")
+
+        override val grunnlag: List<Pensjonsgrunnlag> = vurderingsperioder.mapNotNull { it.grunnlag }
+        override fun lagTidslinje(periode: Periode): PensjonsVilkår {
             return copy(
                 vurderingsperioder = Nel.fromListUnsafe(
                     Tidslinje(
@@ -78,22 +81,40 @@ sealed class LovligOppholdVilkår : Vilkår() {
             return other is Vurdert && vurderingsperioder.erLik(other.vurderingsperioder)
         }
 
+        fun minsteAntallSammenhengendePerioder(): List<Periode> {
+            return vurderingsperioder.map { it.periode }.minsteAntallSammenhengendePerioder()
+        }
+
         companion object {
             fun tryCreate(
-                vurderingsperioder: Nel<VurderingsperiodeLovligOpphold>,
-            ): Either<UgyldigLovligOppholdVilkår, Vurdert> {
+                vurderingsperioder: Nel<VurderingsperiodePensjon>,
+            ): Either<KunneIkkeLagePensjonsVilkår, Vurdert> {
                 if (vurderingsperioder.harOverlappende()) {
-                    return UgyldigLovligOppholdVilkår.OverlappendeVurderingsperioder.left()
+                    return KunneIkkeLagePensjonsVilkår.OverlappendeVurderingsperioder.left()
+                }
+                return Vurdert(vurderingsperioder.kronologisk()).right()
+            }
+
+            fun createFromVilkårsvurderinger(
+                vurderingsperioder: Nel<VurderingsperiodePensjon>,
+            ): Vurdert =
+                tryCreateFromVurderingsperioder(vurderingsperioder).getOrHandle { throw IllegalArgumentException(it.toString()) }
+
+            fun tryCreateFromVurderingsperioder(
+                vurderingsperioder: Nel<VurderingsperiodePensjon>,
+            ): Either<KunneIkkeLagePensjonsVilkår, Vurdert> {
+                if (vurderingsperioder.harOverlappende()) {
+                    return KunneIkkeLagePensjonsVilkår.OverlappendeVurderingsperioder.left()
                 }
                 return Vurdert(vurderingsperioder.kronologisk()).right()
             }
         }
 
-        sealed class UgyldigLovligOppholdVilkår {
-            object OverlappendeVurderingsperioder : UgyldigLovligOppholdVilkår()
+        sealed class UgyldigPensjonsVilkår {
+            object OverlappendeVurderingsperioder : UgyldigPensjonsVilkår()
         }
 
-        override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): LovligOppholdVilkår {
+        override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): PensjonsVilkår {
             check(vurderingsperioder.count() == 1) { "Kan ikke oppdatere stønadsperiode for vilkår med med enn én vurdering" }
             return copy(
                 vurderingsperioder = vurderingsperioder.map {
@@ -102,21 +123,21 @@ sealed class LovligOppholdVilkår : Vilkår() {
             )
         }
 
-        override fun slåSammenLikePerioder(): LovligOppholdVilkår {
+        override fun slåSammenLikePerioder(): PensjonsVilkår {
             return copy(vurderingsperioder = vurderingsperioder.slåSammenLikePerioder())
         }
     }
 }
 
-data class VurderingsperiodeLovligOpphold private constructor(
+data class VurderingsperiodePensjon private constructor(
     override val id: UUID = UUID.randomUUID(),
     override val opprettet: Tidspunkt,
     override val resultat: Resultat,
-    override val grunnlag: LovligOppholdGrunnlag?,
+    override val grunnlag: Pensjonsgrunnlag?, // TODO("forsøk å unngå null når vi har funnet ut hva grunnlaget skal inneholde")
     override val periode: Periode,
-) : Vurderingsperiode(), KanPlasseresPåTidslinje<VurderingsperiodeLovligOpphold> {
+) : Vurderingsperiode(), KanPlasseresPåTidslinje<VurderingsperiodePensjon> {
 
-    fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): VurderingsperiodeLovligOpphold {
+    fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): VurderingsperiodePensjon {
         return create(
             id = id,
             opprettet = opprettet,
@@ -126,7 +147,7 @@ data class VurderingsperiodeLovligOpphold private constructor(
         )
     }
 
-    override fun copy(args: CopyArgs.Tidslinje): VurderingsperiodeLovligOpphold = when (args) {
+    override fun copy(args: CopyArgs.Tidslinje): VurderingsperiodePensjon = when (args) {
         CopyArgs.Tidslinje.Full -> {
             copy(
                 id = UUID.randomUUID(),
@@ -146,13 +167,9 @@ data class VurderingsperiodeLovligOpphold private constructor(
     }
 
     override fun erLik(other: Vurderingsperiode): Boolean {
-        return other is VurderingsperiodeLovligOpphold &&
+        return other is VurderingsperiodePensjon &&
             resultat == other.resultat &&
-            when {
-                grunnlag != null && other.grunnlag != null -> grunnlag.erLik(other.grunnlag)
-                grunnlag == null && other.grunnlag == null -> true
-                else -> false
-            }
+            grunnlag == other.grunnlag
     }
 
     companion object {
@@ -160,9 +177,9 @@ data class VurderingsperiodeLovligOpphold private constructor(
             id: UUID = UUID.randomUUID(),
             opprettet: Tidspunkt,
             resultat: Resultat,
-            grunnlag: LovligOppholdGrunnlag?,
+            grunnlag: Pensjonsgrunnlag?,
             periode: Periode,
-        ): VurderingsperiodeLovligOpphold {
+        ): VurderingsperiodePensjon {
             return tryCreate(id, opprettet, resultat, grunnlag, periode).getOrHandle {
                 throw IllegalArgumentException(it.toString())
             }
@@ -172,15 +189,15 @@ data class VurderingsperiodeLovligOpphold private constructor(
             id: UUID = UUID.randomUUID(),
             opprettet: Tidspunkt,
             resultat: Resultat,
-            grunnlag: LovligOppholdGrunnlag?,
+            grunnlag: Pensjonsgrunnlag?,
             vurderingsperiode: Periode,
-        ): Either<UgyldigVurderingsperiode, VurderingsperiodeLovligOpphold> {
+        ): Either<KunneIkkeLagePensjonsVilkår.Vurderingsperiode, VurderingsperiodePensjon> {
 
             grunnlag?.let {
-                if (vurderingsperiode != it.periode) return UgyldigVurderingsperiode.PeriodeForGrunnlagOgVurderingErForskjellig.left()
+                if (vurderingsperiode != it.periode) return KunneIkkeLagePensjonsVilkår.Vurderingsperiode.PeriodeForGrunnlagOgVurderingErForskjellig.left()
             }
 
-            return VurderingsperiodeLovligOpphold(
+            return VurderingsperiodePensjon(
                 id = id,
                 opprettet = opprettet,
                 resultat = resultat,
@@ -189,8 +206,12 @@ data class VurderingsperiodeLovligOpphold private constructor(
             ).right()
         }
     }
+}
 
-    sealed class UgyldigVurderingsperiode {
-        object PeriodeForGrunnlagOgVurderingErForskjellig : UgyldigVurderingsperiode()
+sealed interface KunneIkkeLagePensjonsVilkår {
+    sealed interface Vurderingsperiode : KunneIkkeLagePensjonsVilkår {
+        object PeriodeForGrunnlagOgVurderingErForskjellig : Vurderingsperiode
     }
+
+    object OverlappendeVurderingsperioder : KunneIkkeLagePensjonsVilkår
 }

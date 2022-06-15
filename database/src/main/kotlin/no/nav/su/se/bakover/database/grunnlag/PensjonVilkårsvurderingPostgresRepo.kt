@@ -3,32 +3,32 @@ package no.nav.su.se.bakover.database.grunnlag
 import arrow.core.Nel
 import arrow.core.getOrHandle
 import kotliquery.Row
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.TransactionalSession
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
-import no.nav.su.se.bakover.database.periode
 import no.nav.su.se.bakover.database.tidspunkt
-import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUtenlandsopphold
+import no.nav.su.se.bakover.domain.vilkår.PensjonsVilkår
+import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodePensjon
 import java.util.UUID
 
-internal class UtenlandsoppholdVilkårsvurderingPostgresRepo(
-    private val utenlandsoppholdgrunnlagRepo: UtenlandsoppholdgrunnlagPostgresRepo,
+internal class PensjonVilkårsvurderingPostgresRepo(
+    private val pensjonsgrunnlagPostgresRepo: PensjonsgrunnlagPostgresRepo,
     private val dbMetrics: DbMetrics,
 ) {
 
-    internal fun lagre(behandlingId: UUID, vilkår: UtenlandsoppholdVilkår, tx: TransactionalSession) {
-        dbMetrics.timeQuery("lagreVilkårsvurderingUtlandsopphold") {
+    internal fun lagre(behandlingId: UUID, vilkår: PensjonsVilkår, tx: TransactionalSession) {
+        dbMetrics.timeQuery("lagreVilkårsvurderingPensjon") {
             slettForBehandlingId(behandlingId, tx)
             when (vilkår) {
-                UtenlandsoppholdVilkår.IkkeVurdert -> {
-                    utenlandsoppholdgrunnlagRepo.lagre(behandlingId, emptyList(), tx)
+                PensjonsVilkår.IkkeVurdert -> {
+                    pensjonsgrunnlagPostgresRepo.lagre(behandlingId, emptyList(), tx)
                 }
-                is UtenlandsoppholdVilkår.Vurdert -> {
-                    utenlandsoppholdgrunnlagRepo.lagre(behandlingId, vilkår.grunnlag, tx)
+                is PensjonsVilkår.Vurdert -> {
+                    pensjonsgrunnlagPostgresRepo.lagre(behandlingId, vilkår.grunnlag, tx)
                     vilkår.vurderingsperioder.forEach {
                         lagre(behandlingId, it, tx)
                     }
@@ -39,16 +39,16 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepo(
 
     private fun lagre(
         behandlingId: UUID,
-        vurderingsperiode: VurderingsperiodeUtenlandsopphold,
+        vurderingsperiode: VurderingsperiodePensjon,
         tx: TransactionalSession,
     ) {
         """
-                insert into vilkårsvurdering_utland
+                insert into vilkårsvurdering_pensjon
                 (
                     id,
                     opprettet,
                     behandlingId,
-                    grunnlag_utland_id,
+                    grunnlag_id,
                     resultat,
                     fraOgMed,
                     tilOgMed
@@ -57,7 +57,7 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepo(
                     :id,
                     :opprettet,
                     :behandlingId,
-                    :grunnlag_utland_id,
+                    :grunnlag_id,
                     :resultat,
                     :fraOgMed,
                     :tilOgMed
@@ -68,7 +68,7 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepo(
                     "id" to vurderingsperiode.id,
                     "opprettet" to vurderingsperiode.opprettet,
                     "behandlingId" to behandlingId,
-                    "grunnlag_utland_id" to vurderingsperiode.grunnlag?.id,
+                    "grunnlag_id" to vurderingsperiode.grunnlag?.id,
                     "resultat" to vurderingsperiode.resultat.toDto(),
                     "fraOgMed" to vurderingsperiode.periode.fraOgMed,
                     "tilOgMed" to vurderingsperiode.periode.tilOgMed,
@@ -79,7 +79,7 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepo(
 
     private fun slettForBehandlingId(behandlingId: UUID, tx: TransactionalSession) {
         """
-                delete from vilkårsvurdering_utland where behandlingId = :behandlingId
+                delete from vilkårsvurdering_pensjon where behandlingId = :behandlingId
         """.trimIndent()
             .oppdatering(
                 mapOf(
@@ -89,10 +89,10 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepo(
             )
     }
 
-    internal fun hent(behandlingId: UUID, session: Session): UtenlandsoppholdVilkår {
-        return dbMetrics.timeQuery("hentVilkårsvurderingUtlandsopphold") {
+    internal fun hent(behandlingId: UUID, session: Session): PensjonsVilkår {
+        return dbMetrics.timeQuery("hentVilkårsvurderingPensjon") {
             """
-                    select * from vilkårsvurdering_utland where behandlingId = :behandlingId
+                    select * from vilkårsvurdering_pensjon where behandlingId = :behandlingId
             """.trimIndent()
                 .hentListe(
                     mapOf(
@@ -103,25 +103,28 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepo(
                     it.toVurderingsperiode(session)
                 }.let {
                     when (it.isNotEmpty()) {
-                        true -> UtenlandsoppholdVilkår.Vurdert.tryCreate(vurderingsperioder = Nel.fromListUnsafe(it))
+                        true -> PensjonsVilkår.Vurdert.tryCreate(vurderingsperioder = Nel.fromListUnsafe(it))
                             .getOrHandle { feil ->
-                                throw IllegalStateException("Kunne ikke instansiere ${UtenlandsoppholdVilkår.Vurdert::class.simpleName}. Melding: $feil")
+                                throw IllegalStateException("Kunne ikke instansiere ${PensjonsVilkår.Vurdert::class.simpleName}. Melding: $feil")
                             }
-                        false -> UtenlandsoppholdVilkår.IkkeVurdert
+                        false -> PensjonsVilkår.IkkeVurdert
                     }
                 }
         }
     }
 
-    private fun Row.toVurderingsperiode(session: Session): VurderingsperiodeUtenlandsopphold {
-        return VurderingsperiodeUtenlandsopphold.create(
+    private fun Row.toVurderingsperiode(session: Session): VurderingsperiodePensjon {
+        return VurderingsperiodePensjon.create(
             id = uuid("id"),
             opprettet = tidspunkt("opprettet"),
             resultat = ResultatDto.valueOf(string("resultat")).toDomain(),
-            grunnlag = uuidOrNull("grunnlag_utland_id")?.let {
-                utenlandsoppholdgrunnlagRepo.hent(it, session)
+            grunnlag = uuidOrNull("grunnlag_id")?.let {
+                pensjonsgrunnlagPostgresRepo.hent(it, session)
             },
-            periode = periode("fraOgMed", "tilOgMed")
+            periode = Periode.create(
+                fraOgMed = localDate("fraOgMed"),
+                tilOgMed = localDate("tilOgMed"),
+            ),
         )
     }
 }

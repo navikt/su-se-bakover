@@ -5,7 +5,6 @@ import arrow.core.Nel
 import arrow.core.NonEmptyList
 import arrow.core.getOrHandle
 import arrow.core.left
-import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.avrund
@@ -23,8 +22,6 @@ import no.nav.su.se.bakover.domain.grunnlag.FastOppholdINorgeGrunnlag.Companion.
 import no.nav.su.se.bakover.domain.grunnlag.FlyktningGrunnlag.Companion.equals
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.perioderUtenEPS
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.InstitusjonsoppholdGrunnlag.Companion.equals
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
@@ -53,6 +50,7 @@ sealed class Inngangsvilkår {
     object PersonligOppmøte : Inngangsvilkår()
     object FastOppholdINorge : Inngangsvilkår()
     object Opplysningsplikt : Inngangsvilkår()
+    object Pensjon : Inngangsvilkår()
 }
 
 fun Set<Vilkår>.erLik(other: Set<Vilkår>): Boolean {
@@ -105,6 +103,15 @@ sealed class Vilkårsvurderinger {
 
     fun opplysningspliktVilkår(): OpplysningspliktVilkår {
         return opplysningsplikt
+    }
+
+    fun pensjonsVilkår(): Either<VilkårEksistererIkke, PensjonsVilkår> {
+        return when (this) {
+            is Revurdering.Alder -> pensjon.right()
+            is Revurdering.Uføre -> VilkårEksistererIkke.left()
+            is Søknadsbehandling.Alder -> pensjon.right()
+            is Søknadsbehandling.Uføre -> VilkårEksistererIkke.left()
+        }
     }
 
     val periode: Periode?
@@ -236,6 +243,9 @@ sealed class Vilkårsvurderinger {
                     is PersonligOppmøteVilkår -> copy(personligOppmøte = vilkår)
                     is Vilkår.Uførhet -> copy(uføre = vilkår)
                     is OpplysningspliktVilkår -> copy(opplysningsplikt = vilkår)
+                    is PensjonsVilkår -> {
+                        throw IllegalArgumentException("Kan ikke legge til ${vilkår::class} for ${this::class}")
+                    }
                 }
             }
 
@@ -342,6 +352,7 @@ sealed class Vilkårsvurderinger {
             override val utenlandsopphold: UtenlandsoppholdVilkår = UtenlandsoppholdVilkår.IkkeVurdert,
             override val personligOppmøte: PersonligOppmøteVilkår = PersonligOppmøteVilkår.IkkeVurdert,
             override val opplysningsplikt: OpplysningspliktVilkår = OpplysningspliktVilkår.IkkeVurdert,
+            val pensjon: PensjonsVilkår,
         ) : Søknadsbehandling() {
             override val vilkår: Set<Vilkår> = setOf(
                 formue,
@@ -351,6 +362,7 @@ sealed class Vilkårsvurderinger {
                 utenlandsopphold,
                 personligOppmøte,
                 opplysningsplikt,
+                pensjon,
             )
 
             override fun lagTidslinje(periode: Periode): Søknadsbehandling {
@@ -362,6 +374,7 @@ sealed class Vilkårsvurderinger {
                     utenlandsopphold = utenlandsopphold.lagTidslinje(periode),
                     personligOppmøte = personligOppmøte.lagTidslinje(periode),
                     opplysningsplikt = opplysningsplikt.lagTidslinje(periode),
+                    pensjon = pensjon.lagTidslinje(periode),
                 )
             }
 
@@ -380,6 +393,7 @@ sealed class Vilkårsvurderinger {
                     is Vilkår.Uførhet -> {
                         throw IllegalArgumentException("Kan ikke legge til uførevilkår for vilkårsvurdering alder")
                     }
+                    is PensjonsVilkår -> copy(pensjon = vilkår)
                 }
             }
 
@@ -425,6 +439,7 @@ sealed class Vilkårsvurderinger {
                 institusjonsopphold = institusjonsopphold.oppdaterStønadsperiode(stønadsperiode),
                 utenlandsopphold = utenlandsopphold.oppdaterStønadsperiode(stønadsperiode),
                 personligOppmøte = personligOppmøte.oppdaterStønadsperiode(stønadsperiode),
+                pensjon = pensjon.oppdaterStønadsperiode(stønadsperiode),
             )
 
             override fun tilVilkårsvurderingerRevurdering(): Revurdering.Alder {
@@ -432,6 +447,7 @@ sealed class Vilkårsvurderinger {
                     formue = formue,
                     utenlandsopphold = utenlandsopphold,
                     opplysningsplikt = opplysningsplikt,
+                    pensjon = pensjon,
                 )
             }
 
@@ -481,6 +497,9 @@ sealed class Vilkårsvurderinger {
                     -> {
                         throw IllegalArgumentException("Ukjent vilkår for revurdering av uføre: ${vilkår::class}")
                     }
+                    is PensjonsVilkår -> {
+                        throw IllegalArgumentException("Kan ikke legge til ${vilkår::class} for ${this::class}")
+                    }
                 }
             }
 
@@ -528,26 +547,6 @@ sealed class Vilkårsvurderinger {
                 opplysningsplikt = opplysningsplikt.oppdaterStønadsperiode(stønadsperiode),
             )
 
-            /**
-             * Fjerner formue dersom søker ikke har EPS - det finnes et tilsvarende steg i [Grunnlagsdata] for fradrag.
-             */
-            fun nullstillEpsFormueHvisIngenEps(
-                bosituasjon: Grunnlag.Bosituasjon,
-            ): Vilkårsvurderinger.Revurdering {
-                return nullstillEpsFormueHvisIngenEps(nonEmptyListOf(bosituasjon))
-            }
-
-            /**
-             * Fjerner formue dersom søker ikke har EPS - det finnes et tilsvarende steg i [Grunnlagsdata] for fradrag.
-             */
-            fun nullstillEpsFormueHvisIngenEps(
-                bosituasjon: NonEmptyList<Grunnlag.Bosituasjon>,
-            ): Vilkårsvurderinger.Revurdering {
-                return this.copy(
-                    formue = this.formue.fjernEPSFormue(bosituasjon.perioderUtenEPS()),
-                )
-            }
-
             companion object {
                 fun ikkeVurdert() = Uføre(
                     uføre = Vilkår.Uførhet.IkkeVurdert,
@@ -562,11 +561,13 @@ sealed class Vilkårsvurderinger {
             override val formue: Vilkår.Formue = Vilkår.Formue.IkkeVurdert,
             override val utenlandsopphold: UtenlandsoppholdVilkår = UtenlandsoppholdVilkår.IkkeVurdert,
             override val opplysningsplikt: OpplysningspliktVilkår = OpplysningspliktVilkår.IkkeVurdert,
+            val pensjon: PensjonsVilkår
         ) : Revurdering() {
             override val vilkår: Set<Vilkår> = setOf(
                 formue,
                 utenlandsopphold,
                 opplysningsplikt,
+                pensjon,
             )
 
             override fun lagTidslinje(periode: Periode): Vilkårsvurderinger {
@@ -574,6 +575,7 @@ sealed class Vilkårsvurderinger {
                     formue = formue.lagTidslinje(periode),
                     utenlandsopphold = utenlandsopphold.lagTidslinje(periode),
                     opplysningsplikt = opplysningsplikt.lagTidslinje(periode),
+                    pensjon = pensjon.lagTidslinje(periode),
                 )
             }
 
@@ -591,8 +593,9 @@ sealed class Vilkårsvurderinger {
                         throw IllegalArgumentException("Ukjent vilkår for revurdering av alder: ${vilkår::class}")
                     }
                     is Vilkår.Uførhet -> {
-                        throw IllegalArgumentException("Kan ikke legge til uførevilkår for vilkårsvurderinger av alder")
+                        throw IllegalArgumentException("Kan ikke legge til ${vilkår::class} for ${this::class}")
                     }
+                    is PensjonsVilkår -> copy(pensjon = vilkår)
                 }
             }
 
@@ -605,6 +608,7 @@ sealed class Vilkårsvurderinger {
                     formue = formue,
                     utenlandsopphold = utenlandsopphold,
                     opplysningsplikt = opplysningsplikt,
+                    pensjon = pensjon,
                 )
             }
 
@@ -657,6 +661,9 @@ sealed class Vilkårsvurderingsresultat {
                 }
                 is UtenlandsoppholdVilkår -> {
                     Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER
+                }
+                is PensjonsVilkår -> {
+                    Avslagsgrunn.PENSJON
                 }
             }
         }
@@ -945,7 +952,7 @@ sealed class Vilkår {
                 stønadsperiode: Stønadsperiode,
                 formuegrenserFactory: FormuegrenserFactory,
             ): Formue {
-                check(vurderingsperioder.count() == 1) { "Kan ikke oppdatere stønadsperiode for vilkår med med enn èn vurdering" }
+                check(vurderingsperioder.count() == 1) { "Kan ikke oppdatere stønadsperiode for vilkår med med enn én vurdering" }
                 return this.copy(
                     vurderingsperioder = this.vurderingsperioder.map {
                         it.oppdaterStønadsperiode(stønadsperiode, formuegrenserFactory)

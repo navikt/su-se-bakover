@@ -2,14 +2,12 @@ package no.nav.su.se.bakover.domain.vilkår
 
 import arrow.core.Either
 import arrow.core.Nel
-import arrow.core.NonEmptyList
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.harOverlappende
-import no.nav.su.se.bakover.common.periode.minAndMaxOf
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.grunnlag.Utenlandsoppholdgrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
@@ -110,7 +108,7 @@ sealed class UtenlandsoppholdVilkår : Vilkår() {
         }
 
         override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): UtenlandsoppholdVilkår {
-            check(vurderingsperioder.count() == 1) { "Kan ikke oppdatere stønadsperiode for vilkår med med enn èn vurdering" }
+            check(vurderingsperioder.count() == 1) { "Kan ikke oppdatere stønadsperiode for vilkår med med enn én vurdering" }
             return copy(
                 vurderingsperioder = vurderingsperioder.map {
                     it.oppdaterStønadsperiode(stønadsperiode)
@@ -204,27 +202,6 @@ data class VurderingsperiodeUtenlandsopphold private constructor(
                 periode = vurderingsperiode,
             ).right()
         }
-
-        fun Nel<VurderingsperiodeUtenlandsopphold>.slåSammenVurderingsperioder(): Nel<VurderingsperiodeUtenlandsopphold> {
-            val slåttSammen = this.sortedBy { it.periode.fraOgMed }
-                .fold(mutableListOf<MutableList<VurderingsperiodeUtenlandsopphold>>()) { acc, utenlandsopphold ->
-                    if (acc.isEmpty()) {
-                        acc.add(mutableListOf(utenlandsopphold))
-                    } else if (acc.last().sistePeriodeErLikOgTilstøtende(utenlandsopphold)) {
-                        acc.last().add(utenlandsopphold)
-                    } else {
-                        acc.add(mutableListOf(utenlandsopphold))
-                    }
-                    acc
-                }.map {
-                    val periode = it.map { it.periode }.minAndMaxOf()
-                    it.first().copy(CopyArgs.Tidslinje.NyPeriode(periode = periode))
-                }
-            return NonEmptyList.fromListUnsafe(slåttSammen)
-        }
-
-        private fun List<VurderingsperiodeUtenlandsopphold>.sistePeriodeErLikOgTilstøtende(other: VurderingsperiodeUtenlandsopphold) =
-            this.last().tilstøterOgErLik(other)
     }
 
     sealed class UgyldigVurderingsperiode {
