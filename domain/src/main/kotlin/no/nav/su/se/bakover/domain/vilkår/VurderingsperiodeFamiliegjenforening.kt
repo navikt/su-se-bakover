@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.domain.vilkår
 
-import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
@@ -29,14 +28,13 @@ data class VurderingsperiodeFamiliegjenforening private constructor(
 
     companion object {
         fun create(
-            id: UUID,
+            id: UUID = UUID.randomUUID(),
             opprettet: Tidspunkt,
             resultat: Resultat,
             grunnlag: Grunnlag? = null, // TODO - se om familiegjenforening skal ha et grunnlag
             periode: Periode,
-        ) =
-            VurderingsperiodeFamiliegjenforening(
-                id = id, opprettet = opprettet, resultat = resultat, grunnlag = grunnlag, periode = periode,
-            ).right()
+        ) = VurderingsperiodeFamiliegjenforening(
+            id = id, opprettet = opprettet, resultat = resultat, grunnlag = grunnlag, periode = periode,
+        )
     }
 }

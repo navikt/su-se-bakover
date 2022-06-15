@@ -106,6 +106,13 @@ sealed class Vilkårsvurderinger {
         }
     }
 
+    fun familiegjenforening() = when (this) {
+        is Revurdering.Alder -> VilkårEksistererIkke.left()
+        is Revurdering.Uføre -> VilkårEksistererIkke.left()
+        is Søknadsbehandling.Alder -> familiegjenforening.right()
+        is Søknadsbehandling.Uføre -> VilkårEksistererIkke.left()
+    }
+
     object VilkårEksistererIkke
 
     fun formueVilkår(): Vilkår.Formue {

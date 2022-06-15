@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFamiliegjenforening
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.getOrFail
 import java.util.UUID
 
 fun vurderingsperiodeFamiliegjenforeningInnvilget(
@@ -22,7 +21,7 @@ fun vurderingsperiodeFamiliegjenforeningInnvilget(
     resultat = resultat,
     grunnlag = grunnlag,
     periode = periode,
-).getOrFail()
+)
 
 fun vurderingsperiodeFamiliegjenforeningAvslag(
     id: UUID = UUID.randomUUID(),
@@ -36,4 +35,4 @@ fun vurderingsperiodeFamiliegjenforeningAvslag(
     resultat = resultat,
     grunnlag = grunnlag,
     periode = periode,
-).getOrFail()
+)
