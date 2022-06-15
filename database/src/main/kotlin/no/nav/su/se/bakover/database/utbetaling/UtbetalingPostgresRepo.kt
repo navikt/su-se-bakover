@@ -36,7 +36,7 @@ internal class UtbetalingPostgresRepo(
     override fun hentUtbetaling(avstemmingsnøkkel: Avstemmingsnøkkel): Utbetaling.OversendtUtbetaling? {
         return dbMetrics.timeQuery("hentUtbetalingForAvstemmingsnøkkel") {
             sessionFactory.withSession { session ->
-                "select u.*, s.saksnummer from utbetaling u left join sak s on s.id = u.sakId where u.avstemmingsnøkkel ->> 'nøkkel' = :nokkel".hent(
+                "select u.*, s.saksnummer, s.type as sakstype from utbetaling u left join sak s on s.id = u.sakId where u.avstemmingsnøkkel ->> 'nøkkel' = :nokkel".hent(
                     mapOf(
                         "nokkel" to avstemmingsnøkkel.toString(),
                     ),
@@ -55,7 +55,7 @@ internal class UtbetalingPostgresRepo(
     override fun hentUkvitterteUtbetalinger(): List<Utbetaling.OversendtUtbetaling.UtenKvittering> {
         return dbMetrics.timeQuery("hentUkvitterteUtbetalinger") {
             sessionFactory.withSession { session ->
-                "select u.*, s.saksnummer from utbetaling u left join sak s on s.id = u.sakId where u.kvittering is null".hentListe(
+                "select u.*, s.saksnummer, s.type as sakstype from utbetaling u left join sak s on s.id = u.sakId where u.kvittering is null".hentListe(
                     session = session,
                 ) { it.toUtbetaling(session) as Utbetaling.OversendtUtbetaling.UtenKvittering }
             }

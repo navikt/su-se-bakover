@@ -66,7 +66,7 @@ internal class BekreftVurderingerForKlageTest {
                     it,
                 ).apply {
                     status shouldBe HttpStatusCode.Forbidden
-                    bodyAsText() shouldBe "{\"message\":\"Bruker mangler en av de tillatte rollene: [Saksbehandler]\"}"
+                    bodyAsText() shouldBe "{\"message\":\"Bruker mangler en av de tillatte rollene: [Saksbehandler]\",\"code\":\"mangler_rolle\"}"
                 }
             }
         }

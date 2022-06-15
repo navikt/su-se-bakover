@@ -9,7 +9,6 @@ import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.server.application.call
-import io.ktor.server.response.respond
 import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
@@ -142,7 +141,7 @@ internal fun Route.søknadRoutes(
                                 "fant_ikke_sak",
                             )
                         }
-                        call.respond(responseMessage)
+                        call.svar(responseMessage)
                     },
                     {
                         call.respondBytes(it, ContentType.Application.Pdf)

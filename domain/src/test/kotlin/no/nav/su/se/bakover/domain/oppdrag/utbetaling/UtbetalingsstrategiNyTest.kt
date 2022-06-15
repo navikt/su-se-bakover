@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
@@ -81,7 +82,7 @@ internal class UtbetalingsstrategiNyTest {
                 forventetInntekt = 0,
             ),
         )
-        val actual = Utbetalingsstrategi.Ny(
+        val actual = Utbetalingsstrategi.NyUføreUtbetaling(
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
@@ -91,6 +92,7 @@ internal class UtbetalingsstrategiNyTest {
             clock = fixedClock,
             uføregrunnlag = uføregrunnlagListe,
             kjøreplan = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+            sakstype = Sakstype.UFØRE,
         ).generate()
 
         val first = actual.utbetalingslinjer.first()
@@ -124,21 +126,11 @@ internal class UtbetalingsstrategiNyTest {
         )
 
         val eksisterendeUtbetalinger = listOf(
-            Utbetaling.OversendtUtbetaling.MedKvittering(
+            Utbetaling.UtbetalingForSimulering(
                 opprettet = fixedTidspunkt,
                 sakId = sakId,
                 saksnummer = saksnummer,
-                simulering = Simulering(
-                    gjelderId = fnr,
-                    gjelderNavn = "navn",
-                    datoBeregnet = idag(fixedClock),
-                    nettoBeløp = 0,
-                    periodeList = listOf(),
-                ),
-                kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK, "", mottattTidspunkt = fixedTidspunkt),
-                utbetalingsrequest = Utbetalingsrequest(
-                    value = "",
-                ),
+                fnr = fnr,
                 utbetalingslinjer = nonEmptyListOf(
                     Utbetalingslinje.Ny(
                         id = forrigeUtbetalingslinjeId,
@@ -150,13 +142,29 @@ internal class UtbetalingsstrategiNyTest {
                         uføregrad = Uføregrad.parse(50),
                     ),
                 ),
-                fnr = fnr,
                 type = Utbetaling.UtbetalingsType.NY,
                 behandler = NavIdentBruker.Saksbehandler("Z123"),
+                avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt),
+                sakstype = Sakstype.UFØRE,
+            ).toSimulertUtbetaling(
+                simulering = Simulering(
+                    gjelderId = fnr,
+                    gjelderNavn = "navn",
+                    datoBeregnet = idag(fixedClock),
+                    nettoBeløp = 0,
+                    periodeList = listOf(),
+                ),
+
+            ).toOversendtUtbetaling(
+                oppdragsmelding = Utbetalingsrequest(
+                    value = "",
+                ),
+            ).toKvittertUtbetaling(
+                kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK, "", mottattTidspunkt = fixedTidspunkt),
             ),
         )
 
-        val nyUtbetaling = Utbetalingsstrategi.Ny(
+        val nyUtbetaling = Utbetalingsstrategi.NyUføreUtbetaling(
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
@@ -169,6 +177,7 @@ internal class UtbetalingsstrategiNyTest {
             clock = fixedClock,
             uføregrunnlag = uføregrunnlagListe,
             kjøreplan = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+            sakstype = Sakstype.UFØRE,
         ).generate()
 
         nyUtbetaling shouldBe Utbetaling.UtbetalingForSimulering(
@@ -176,6 +185,7 @@ internal class UtbetalingsstrategiNyTest {
             opprettet = nyUtbetaling.opprettet,
             sakId = sakId,
             saksnummer = saksnummer,
+            fnr = fnr,
             utbetalingslinjer = nonEmptyListOf(
                 expectedUtbetalingslinje(
                     utbetalingslinjeId = nyUtbetaling.utbetalingslinjer[0].id,
@@ -194,10 +204,10 @@ internal class UtbetalingsstrategiNyTest {
                     forrigeUtbetalingslinjeId = nyUtbetaling.utbetalingslinjer[0].id,
                 ),
             ),
-            fnr = fnr,
             type = Utbetaling.UtbetalingsType.NY,
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt),
+            sakstype = Sakstype.UFØRE,
         )
     }
 
@@ -215,15 +225,18 @@ internal class UtbetalingsstrategiNyTest {
             ),
         )
 
-        val first = Utbetaling.OversendtUtbetaling.MedKvittering(
+        val first = Utbetaling.UtbetalingForSimulering(
             id = UUID30.randomUUID(),
             opprettet = 1.januar(2020).startOfDay(),
             sakId = sakId,
             saksnummer = saksnummer,
-            utbetalingsrequest = Utbetalingsrequest(""),
-            kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK, "", mottattTidspunkt = fixedTidspunkt),
-            utbetalingslinjer = dummyUtbetalingslinjer,
             fnr = fnr,
+            utbetalingslinjer = dummyUtbetalingslinjer,
+            type = Utbetaling.UtbetalingsType.NY,
+            behandler = NavIdentBruker.Saksbehandler("Z123"),
+            avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay()),
+            sakstype = Sakstype.UFØRE,
+        ).toSimulertUtbetaling(
             simulering = Simulering(
                 gjelderId = fnr,
                 gjelderNavn = "navn",
@@ -231,19 +244,25 @@ internal class UtbetalingsstrategiNyTest {
                 nettoBeløp = 0,
                 periodeList = listOf(),
             ),
-            type = Utbetaling.UtbetalingsType.NY,
-            behandler = NavIdentBruker.Saksbehandler("Z123"),
+        ).toOversendtUtbetaling(
+            oppdragsmelding = Utbetalingsrequest(""),
+
+        ).toKvittertUtbetaling(
+            kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK, "", mottattTidspunkt = fixedTidspunkt),
         )
 
-        val second = Utbetaling.OversendtUtbetaling.MedKvittering(
+        val second = Utbetaling.UtbetalingForSimulering(
             id = UUID30.randomUUID(),
             opprettet = 1.februar(2020).startOfDay(),
             sakId = sakId,
             saksnummer = saksnummer,
-            utbetalingsrequest = Utbetalingsrequest(""),
-            kvittering = Kvittering(Kvittering.Utbetalingsstatus.FEIL, "", mottattTidspunkt = fixedTidspunkt),
-            utbetalingslinjer = dummyUtbetalingslinjer,
             fnr = fnr,
+            utbetalingslinjer = dummyUtbetalingslinjer,
+            type = Utbetaling.UtbetalingsType.NY,
+            behandler = NavIdentBruker.Saksbehandler("Z123"),
+            avstemmingsnøkkel = Avstemmingsnøkkel(1.februar(2020).startOfDay()),
+            sakstype = Sakstype.UFØRE,
+        ).toSimulertUtbetaling(
             simulering = Simulering(
                 gjelderId = fnr,
                 gjelderNavn = "navn",
@@ -251,19 +270,25 @@ internal class UtbetalingsstrategiNyTest {
                 nettoBeløp = 0,
                 periodeList = listOf(),
             ),
-            type = Utbetaling.UtbetalingsType.NY,
-            behandler = NavIdentBruker.Saksbehandler("Z123"),
+        ).toOversendtUtbetaling(
+            oppdragsmelding = Utbetalingsrequest(""),
+
+        ).toKvittertUtbetaling(
+            kvittering = Kvittering(Kvittering.Utbetalingsstatus.FEIL, "", mottattTidspunkt = fixedTidspunkt),
         )
 
-        val third = Utbetaling.OversendtUtbetaling.MedKvittering(
+        val third = Utbetaling.UtbetalingForSimulering(
             id = UUID30.randomUUID(),
             opprettet = 1.mars(2020).startOfDay(),
             sakId = sakId,
             saksnummer = saksnummer,
-            utbetalingsrequest = Utbetalingsrequest(""),
-            kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK_MED_VARSEL, "", mottattTidspunkt = fixedTidspunkt),
-            utbetalingslinjer = dummyUtbetalingslinjer,
             fnr = fnr,
+            utbetalingslinjer = dummyUtbetalingslinjer,
+            type = Utbetaling.UtbetalingsType.NY,
+            behandler = NavIdentBruker.Saksbehandler("Z123"),
+            avstemmingsnøkkel = Avstemmingsnøkkel(1.mars(2020).startOfDay()),
+            sakstype = Sakstype.UFØRE,
+        ).toSimulertUtbetaling(
             simulering = Simulering(
                 gjelderId = fnr,
                 gjelderNavn = "navn",
@@ -271,18 +296,23 @@ internal class UtbetalingsstrategiNyTest {
                 nettoBeløp = 0,
                 periodeList = listOf(),
             ),
-            type = Utbetaling.UtbetalingsType.NY,
-            behandler = NavIdentBruker.Saksbehandler("Z123"),
+        ).toOversendtUtbetaling(
+            oppdragsmelding = Utbetalingsrequest(""),
+        ).toKvittertUtbetaling(
+            kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK_MED_VARSEL, "", mottattTidspunkt = fixedTidspunkt),
         )
-        val fourth = Utbetaling.OversendtUtbetaling.MedKvittering(
+        val fourth = Utbetaling.UtbetalingForSimulering(
             id = UUID30.randomUUID(),
             opprettet = 1.juli(2020).startOfDay(),
             sakId = sakId,
             saksnummer = saksnummer,
-            utbetalingsrequest = Utbetalingsrequest(""),
-            kvittering = Kvittering(Kvittering.Utbetalingsstatus.FEIL, "", mottattTidspunkt = fixedTidspunkt),
-            utbetalingslinjer = dummyUtbetalingslinjer,
             fnr = fnr,
+            utbetalingslinjer = dummyUtbetalingslinjer,
+            type = Utbetaling.UtbetalingsType.NY,
+            behandler = NavIdentBruker.Saksbehandler("Z123"),
+            avstemmingsnøkkel = Avstemmingsnøkkel(1.juli(2020).startOfDay()),
+            sakstype = Sakstype.UFØRE,
+        ).toSimulertUtbetaling(
             simulering = Simulering(
                 gjelderId = fnr,
                 gjelderNavn = "navn",
@@ -290,8 +320,12 @@ internal class UtbetalingsstrategiNyTest {
                 nettoBeløp = 0,
                 periodeList = listOf(),
             ),
-            type = Utbetaling.UtbetalingsType.NY,
-            behandler = NavIdentBruker.Saksbehandler("Z123"),
+        ).toOversendtUtbetaling(
+            oppdragsmelding = Utbetalingsrequest(""),
+
+        ).toKvittertUtbetaling(
+            kvittering = Kvittering(Kvittering.Utbetalingsstatus.FEIL, "", mottattTidspunkt = fixedTidspunkt),
+
         )
         val utbetalinger = listOf(first, second, third, fourth)
         utbetalinger.hentOversendteUtbetalingerUtenFeil()[1] shouldBe third
@@ -308,7 +342,7 @@ internal class UtbetalingsstrategiNyTest {
                 forventetInntekt = 0,
             ),
         )
-        val actualUtbetaling = Utbetalingsstrategi.Ny(
+        val actualUtbetaling = Utbetalingsstrategi.NyUføreUtbetaling(
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
@@ -318,12 +352,14 @@ internal class UtbetalingsstrategiNyTest {
             clock = fixedClock,
             uføregrunnlag = uføregrunnlagListe,
             kjøreplan = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+            sakstype = Sakstype.UFØRE,
         ).generate()
         actualUtbetaling shouldBe Utbetaling.UtbetalingForSimulering(
             id = actualUtbetaling.id,
             opprettet = actualUtbetaling.opprettet,
             sakId = sakId,
             saksnummer = saksnummer,
+            fnr = fnr,
             utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Ny(
                     id = actualUtbetaling.utbetalingslinjer[0].id,
@@ -344,10 +380,10 @@ internal class UtbetalingsstrategiNyTest {
                     uføregrad = Uføregrad.parse(50),
                 ),
             ),
-            fnr = fnr,
             type = Utbetaling.UtbetalingsType.NY,
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt),
+            sakstype = Sakstype.UFØRE,
         )
     }
 
@@ -362,7 +398,7 @@ internal class UtbetalingsstrategiNyTest {
                 forventetInntekt = 0,
             ),
         )
-        val actualUtbetaling = Utbetalingsstrategi.Ny(
+        val actualUtbetaling = Utbetalingsstrategi.NyUføreUtbetaling(
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
@@ -389,18 +425,20 @@ internal class UtbetalingsstrategiNyTest {
                     Beregningsperiode(
                         periode = Periode.create(1.januar(2020), 30.april(2020)),
                         strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
-                    )
+                    ),
                 ),
             ),
             clock = fixedClock,
             uføregrunnlag = uføregrunnlagListe,
             kjøreplan = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+            sakstype = Sakstype.UFØRE,
         ).generate()
         actualUtbetaling shouldBe Utbetaling.UtbetalingForSimulering(
             id = actualUtbetaling.id,
             opprettet = actualUtbetaling.opprettet,
             sakId = sakId,
             saksnummer = saksnummer,
+            fnr = fnr,
             utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Ny(
                     id = actualUtbetaling.utbetalingslinjer[0].id,
@@ -430,10 +468,10 @@ internal class UtbetalingsstrategiNyTest {
                     uføregrad = Uføregrad.parse(50),
                 ),
             ),
-            fnr = fnr,
             type = Utbetaling.UtbetalingsType.NY,
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt),
+            sakstype = Sakstype.UFØRE,
         )
     }
 
@@ -442,7 +480,7 @@ internal class UtbetalingsstrategiNyTest {
         val uføreList = listOf<Grunnlag.Uføregrunnlag>()
 
         shouldThrow<RuntimeException> {
-            Utbetalingsstrategi.Ny(
+            Utbetalingsstrategi.NyUføreUtbetaling(
                 sakId = sakId,
                 saksnummer = saksnummer,
                 fnr = fnr,
@@ -452,6 +490,7 @@ internal class UtbetalingsstrategiNyTest {
                 beregning = BeregningMedTomMånedsbereninger,
                 uføregrunnlag = uføreList,
                 kjøreplan = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                sakstype = Sakstype.UFØRE,
             ).generate()
         }
     }
@@ -469,7 +508,7 @@ internal class UtbetalingsstrategiNyTest {
         )
 
         shouldThrow<RuntimeException> {
-            Utbetalingsstrategi.Ny(
+            Utbetalingsstrategi.NyUføreUtbetaling(
                 sakId = sakId,
                 saksnummer = saksnummer,
                 fnr = fnr,
@@ -479,6 +518,7 @@ internal class UtbetalingsstrategiNyTest {
                 beregning = BeregningMedTomMånedsbereninger,
                 uføregrunnlag = uføreList,
                 kjøreplan = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                sakstype = Sakstype.UFØRE,
             ).generate()
         }
     }
@@ -503,7 +543,7 @@ internal class UtbetalingsstrategiNyTest {
         )
 
         shouldThrow<RuntimeException> {
-            Utbetalingsstrategi.Ny(
+            Utbetalingsstrategi.NyUføreUtbetaling(
                 sakId = sakId,
                 saksnummer = saksnummer,
                 fnr = fnr,
@@ -513,6 +553,7 @@ internal class UtbetalingsstrategiNyTest {
                 beregning = BeregningMedTomMånedsbereninger,
                 uføregrunnlag = uføreList,
                 kjøreplan = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                sakstype = Sakstype.UFØRE,
             ).generate()
         }
     }
@@ -520,7 +561,7 @@ internal class UtbetalingsstrategiNyTest {
     @Test
     fun `kaster exception hvis det finnes månedsberegning, men uføregrunnlag er tom (1 til 0)`() {
         shouldThrow<Utbetalingsstrategi.UtbetalingStrategyException> {
-            Utbetalingsstrategi.Ny(
+            Utbetalingsstrategi.NyUføreUtbetaling(
                 sakId = sakId,
                 saksnummer = saksnummer,
                 fnr = fnr,
@@ -530,6 +571,7 @@ internal class UtbetalingsstrategiNyTest {
                 beregning = createBeregning(1.januar(2021), 31.desember(2021)),
                 uføregrunnlag = emptyList(),
                 kjøreplan = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                sakstype = Sakstype.UFØRE,
             ).generate()
         }
     }
@@ -538,7 +580,7 @@ internal class UtbetalingsstrategiNyTest {
     fun `kaster exception hvis det finnes flere månedsberegninger, men uføregrunnlag er tom (mange til 0)`() {
         val periode = år(2021)
         shouldThrow<Utbetalingsstrategi.UtbetalingStrategyException> {
-            Utbetalingsstrategi.Ny(
+            Utbetalingsstrategi.NyUføreUtbetaling(
                 sakId = sakId,
                 saksnummer = saksnummer,
                 fnr = fnr,
@@ -573,11 +615,12 @@ internal class UtbetalingsstrategiNyTest {
                         Beregningsperiode(
                             periode = periode,
                             strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
-                        )
+                        ),
                     ),
                 ),
                 uføregrunnlag = emptyList(),
                 kjøreplan = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                sakstype = Sakstype.UFØRE,
             ).generate()
         }
     }
@@ -594,7 +637,7 @@ internal class UtbetalingsstrategiNyTest {
             ),
         )
 
-        val actual = Utbetalingsstrategi.Ny(
+        val actual = Utbetalingsstrategi.NyUføreUtbetaling(
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
@@ -604,6 +647,7 @@ internal class UtbetalingsstrategiNyTest {
             beregning = createBeregning(1.mai(2021), 31.desember(2021)),
             uføregrunnlag = uføreList,
             kjøreplan = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+            sakstype = Sakstype.UFØRE,
         ).generate()
 
         actual.utbetalingslinjer.size shouldBe 1
@@ -642,7 +686,7 @@ internal class UtbetalingsstrategiNyTest {
             ),
         )
 
-        val actual = Utbetalingsstrategi.Ny(
+        val actual = Utbetalingsstrategi.NyUføreUtbetaling(
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
@@ -652,6 +696,7 @@ internal class UtbetalingsstrategiNyTest {
             beregning = createBeregning(1.mai(2021), 31.desember(2021)),
             uføregrunnlag = uføreList,
             kjøreplan = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+            sakstype = Sakstype.UFØRE,
         ).generate()
 
         actual.utbetalingslinjer.size shouldBe 2
@@ -692,7 +737,7 @@ internal class UtbetalingsstrategiNyTest {
                 forventetInntekt = 0,
             ),
         )
-        val actual = Utbetalingsstrategi.Ny(
+        val actual = Utbetalingsstrategi.NyUføreUtbetaling(
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
@@ -727,11 +772,12 @@ internal class UtbetalingsstrategiNyTest {
                     Beregningsperiode(
                         periode = periode,
                         strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
-                    )
+                    ),
                 ),
             ),
             uføregrunnlag = uføreList,
             kjøreplan = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+            sakstype = Sakstype.UFØRE,
         ).generate()
 
         actual.utbetalingslinjer.size shouldBe 2
@@ -779,7 +825,7 @@ internal class UtbetalingsstrategiNyTest {
                 forventetInntekt = 0,
             ),
         )
-        val actual = Utbetalingsstrategi.Ny(
+        val actual = Utbetalingsstrategi.NyUføreUtbetaling(
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
@@ -814,11 +860,12 @@ internal class UtbetalingsstrategiNyTest {
                     Beregningsperiode(
                         periode = periode,
                         strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
-                    )
+                    ),
                 ),
             ),
             uføregrunnlag = uføreList,
             kjøreplan = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+            sakstype = Sakstype.UFØRE,
         ).generate()
 
         actual.utbetalingslinjer.size shouldBe 2
@@ -860,7 +907,7 @@ internal class UtbetalingsstrategiNyTest {
         )
 
         shouldThrow<Utbetalingsstrategi.UtbetalingStrategyException> {
-            Utbetalingsstrategi.Ny(
+            Utbetalingsstrategi.NyUføreUtbetaling(
                 sakId = sakId,
                 saksnummer = saksnummer,
                 fnr = fnr,
@@ -870,6 +917,7 @@ internal class UtbetalingsstrategiNyTest {
                 beregning = createBeregning(1.januar(2021), 31.desember(2021)),
                 uføregrunnlag = uføreList,
                 kjøreplan = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                sakstype = Sakstype.UFØRE,
             ).generate()
         }.also {
             it.message shouldContain "Uføregrunnlaget inneholder ikke alle beregningsperiodene. Grunnlagsperiodene:"
@@ -895,7 +943,7 @@ internal class UtbetalingsstrategiNyTest {
             ),
         )
 
-        val actual = Utbetalingsstrategi.Ny(
+        val actual = Utbetalingsstrategi.NyUføreUtbetaling(
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
@@ -905,6 +953,7 @@ internal class UtbetalingsstrategiNyTest {
             beregning = createBeregning(1.juni(2021), 31.desember(2021)),
             uføregrunnlag = uføreList,
             kjøreplan = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+            sakstype = Sakstype.UFØRE,
         ).generate()
 
         actual.utbetalingslinjer.size shouldBe 1
@@ -943,7 +992,7 @@ internal class UtbetalingsstrategiNyTest {
             ),
         )
 
-        val actual = Utbetalingsstrategi.Ny(
+        val actual = Utbetalingsstrategi.NyUføreUtbetaling(
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
@@ -953,6 +1002,7 @@ internal class UtbetalingsstrategiNyTest {
             beregning = createBeregning(1.juni(2021), 30.november(2021)),
             uføregrunnlag = uføreList,
             kjøreplan = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+            sakstype = Sakstype.UFØRE,
         ).generate()
 
         actual.utbetalingslinjer.size shouldBe 1
@@ -981,11 +1031,12 @@ internal class UtbetalingsstrategiNyTest {
             opprettet = actual.opprettet,
             sakId = sakId,
             saksnummer = saksnummer,
-            utbetalingslinjer = oppdragslinjer,
             fnr = fnr,
+            utbetalingslinjer = oppdragslinjer,
             type = Utbetaling.UtbetalingsType.NY,
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt),
+            sakstype = Sakstype.UFØRE,
         )
     }
 
@@ -1023,7 +1074,7 @@ internal class UtbetalingsstrategiNyTest {
             Beregningsperiode(
                 periode = Periode.create(fraOgMed, tilOgMed),
                 strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
-            )
+            ),
         ),
     )
 }

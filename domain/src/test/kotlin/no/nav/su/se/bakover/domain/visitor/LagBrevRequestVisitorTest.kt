@@ -59,27 +59,28 @@ import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
-import no.nav.su.se.bakover.test.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
-import no.nav.su.se.bakover.test.formuevilkårAvslåttPgrBrukersformue
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.innvilgetFormueVilkår
 import no.nav.su.se.bakover.test.iverksattRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.oppgaveIdRevurdering
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
+import no.nav.su.se.bakover.test.simulerNyUtbetaling
 import no.nav.su.se.bakover.test.simulertUtbetalingOpphør
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
-import no.nav.su.se.bakover.test.tilstrekkeligDokumentert
-import no.nav.su.se.bakover.test.utenlandsoppholdInnvilget
+import no.nav.su.se.bakover.test.vilkår.formuevilkårAvslåttPgrBrukersformue
+import no.nav.su.se.bakover.test.vilkår.innvilgetFormueVilkår
+import no.nav.su.se.bakover.test.vilkår.tilstrekkeligDokumentert
+import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
+import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -115,7 +116,15 @@ internal class LagBrevRequestVisitorTest {
             satsFactory = satsFactoryTestPåDato(),
             formuegrenserFactory = formuegrenserFactoryTestPåDato(),
         ).getOrFail()
-            .tilSimulert(simulering)
+            .simuler(
+                saksbehandler = saksbehandler,
+            ) {
+                simulerNyUtbetaling(
+                    sak = sak,
+                    request = it,
+                    clock = fixedClock,
+                )
+            }.getOrFail()
             .tilAttestering(saksbehandler, "Fritekst!")
             .tilIverksatt(Attestering.Iverksatt(attestant, fixedTidspunkt))
             .let { søknadsbehandling ->
@@ -211,7 +220,7 @@ internal class LagBrevRequestVisitorTest {
             søknadsbehandlingVilkårsvurdertInnvilget().second
                 .leggTilFormuevilkår(
                     vilkår = formuevilkårAvslåttPgrBrukersformue(),
-                    clock = fixedClock
+                    clock = fixedClock,
                 ).getOrFail() as Søknadsbehandling.Vilkårsvurdert.Avslag
         vilkårsvurdertAvslagPgaFormue.let { søknadsbehandling ->
             LagBrevRequestVisitor(
@@ -358,7 +367,15 @@ internal class LagBrevRequestVisitorTest {
             satsFactory = satsFactoryTestPåDato(),
             formuegrenserFactory = formuegrenserFactoryTestPåDato(),
         ).getOrFail()
-            .tilSimulert(simulering).let { søknadsbehandling ->
+            .simuler(
+                saksbehandler = saksbehandler,
+            ) {
+                simulerNyUtbetaling(
+                    sak = sak,
+                    request = it,
+                    clock = fixedClock,
+                )
+            }.getOrFail().let { søknadsbehandling ->
                 LagBrevRequestVisitor(
                     hentPerson = { person.right() },
                     hentNavn = { hentNavn(it) },
@@ -491,7 +508,15 @@ internal class LagBrevRequestVisitorTest {
             satsFactory = satsFactoryTestPåDato(),
             formuegrenserFactory = formuegrenserFactoryTestPåDato(),
         ).getOrFail()
-            .tilSimulert(simulering)
+            .simuler(
+                saksbehandler = saksbehandler,
+            ) {
+                simulerNyUtbetaling(
+                    sak = sak,
+                    request = it,
+                    clock = fixedClock,
+                )
+            }.getOrFail()
             .tilAttestering(saksbehandler, "Fritekst!")
             .let { søknadsbehandling ->
                 LagBrevRequestVisitor(
@@ -636,7 +661,15 @@ internal class LagBrevRequestVisitorTest {
             satsFactory = satsFactoryTestPåDato(),
             formuegrenserFactory = formuegrenserFactoryTestPåDato(),
         ).getOrFail()
-            .tilSimulert(simulering)
+            .simuler(
+                saksbehandler = saksbehandler,
+            ) {
+                simulerNyUtbetaling(
+                    sak = sak,
+                    request = it,
+                    clock = fixedClock,
+                )
+            }.getOrFail()
             .tilAttestering(saksbehandler, "Fritekst!")
             .tilUnderkjent(
                 Attestering.Underkjent(
@@ -779,7 +812,15 @@ internal class LagBrevRequestVisitorTest {
             satsFactory = satsFactoryTestPåDato(),
             formuegrenserFactory = formuegrenserFactoryTestPåDato(),
         ).getOrFail()
-            .tilSimulert(simulering)
+            .simuler(
+                saksbehandler = saksbehandler,
+            ) {
+                simulerNyUtbetaling(
+                    sak = sak,
+                    request = it,
+                    clock = fixedClock,
+                )
+            }.getOrFail()
             .tilAttestering(saksbehandler, "Fritekst!")
             .tilIverksatt(Attestering.Iverksatt(attestant, fixedTidspunkt))
             .let { søknadsbehandling ->
@@ -816,7 +857,15 @@ internal class LagBrevRequestVisitorTest {
                 satsFactory = satsFactoryTestPåDato(),
                 formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             ).getOrFail()
-            .tilSimulert(simulering)
+            .simuler(
+                saksbehandler = saksbehandler,
+            ) {
+                simulerNyUtbetaling(
+                    sak = sak,
+                    request = it,
+                    clock = fixedClock,
+                )
+            }.getOrFail()
             .tilAttestering(saksbehandler, "Fritekst!")
             .tilIverksatt(Attestering.Iverksatt(attestant, fixedTidspunkt))
 
@@ -978,7 +1027,7 @@ internal class LagBrevRequestVisitorTest {
             søknadsbehandlingVilkårsvurdertInnvilget().second
                 .leggTilFormuevilkår(
                     vilkår = formuevilkårAvslåttPgrBrukersformue(),
-                    clock = fixedClock
+                    clock = fixedClock,
                 ).getOrFail() as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
@@ -1053,7 +1102,15 @@ internal class LagBrevRequestVisitorTest {
                 satsFactory = satsFactoryTestPåDato(),
                 formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             ).getOrFail()
-                .tilSimulert(simulering)
+                .simuler(
+                    saksbehandler = saksbehandler,
+                ) {
+                    simulerNyUtbetaling(
+                        sak = sak,
+                        request = it,
+                        clock = fixedClock,
+                    )
+                }.getOrFail()
                 .tilAttestering(saksbehandler, "Fritekst!")
                 .tilIverksatt(Attestering.Iverksatt(attestant, fixedTidspunkt))
 
@@ -1141,7 +1198,15 @@ internal class LagBrevRequestVisitorTest {
                     satsFactory = satsFactoryTestPåDato(),
                     formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                 ).getOrFail()
-                .tilSimulert(simulering)
+                .simuler(
+                    saksbehandler = saksbehandler,
+                ) {
+                    simulerNyUtbetaling(
+                        sak = sak,
+                        request = it,
+                        clock = fixedClock,
+                    )
+                }.getOrFail()
                 .tilAttestering(saksbehandler, "Fritekst!")
                 .tilIverksatt(Attestering.Iverksatt(attestant, fixedTidspunkt))
 
@@ -1386,7 +1451,15 @@ internal class LagBrevRequestVisitorTest {
                 satsFactory = satsFactoryTestPåDato(),
                 formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             ).getOrFail()
-                .tilSimulert(simulering)
+                .simuler(
+                    saksbehandler = saksbehandler,
+                ) {
+                    simulerNyUtbetaling(
+                        sak = sak,
+                        request = it,
+                        clock = fixedClock,
+                    )
+                }.getOrFail()
                 .tilAttestering(saksbehandler, "Fritekst!")
                 .tilIverksatt(Attestering.Iverksatt(attestant, fixedTidspunkt))
 
@@ -1562,5 +1635,7 @@ internal class LagBrevRequestVisitorTest {
         ),
     )
 
-    private val vilkårsvurdertInnvilget = søknadsbehandlingVilkårsvurdertInnvilget().second
+    private val sakOgInnvilget = søknadsbehandlingVilkårsvurdertInnvilget()
+    private val sak = sakOgInnvilget.first
+    private val vilkårsvurdertInnvilget = sakOgInnvilget.second
 }

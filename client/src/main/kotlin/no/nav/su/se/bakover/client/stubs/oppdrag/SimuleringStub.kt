@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.zoneIdOslo
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
@@ -17,6 +18,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
+import no.nav.su.se.bakover.domain.oppdrag.simulering.toKlasseKode
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
 import java.time.Clock
@@ -85,11 +87,13 @@ class SimuleringStub(
                                             fraOgMed = måned.fraOgMed,
                                             tilOgMed = måned.tilOgMed,
                                             beløp = utbetaltLinje.beløp,
+                                            sakstype = utbetaling.sakstype,
                                         ),
                                         createOrdinær(
                                             fraOgMed = måned.fraOgMed,
                                             tilOgMed = måned.tilOgMed,
                                             beløp = nyLinje.beløp,
+                                            sakstype = utbetaling.sakstype,
                                         ),
                                     ).let {
                                         if (feilutbetaling) {
@@ -115,6 +119,7 @@ class SimuleringStub(
                                             fraOgMed = måned.fraOgMed,
                                             tilOgMed = måned.tilOgMed,
                                             beløp = nyLinje.beløp,
+                                            sakstype = utbetaling.sakstype,
                                         ),
                                     ),
                                 )
@@ -132,14 +137,15 @@ class SimuleringStub(
                                     feilkonto = true,
                                     detaljer = listOf(
                                         createTidligereUtbetalt(
-                                            måned.fraOgMed,
-                                            måned.tilOgMed,
-                                            utbetaltLinje.beløp,
+                                            fraOgMed = måned.fraOgMed,
+                                            tilOgMed = måned.tilOgMed,
+                                            beløp = utbetaltLinje.beløp,
+                                            sakstype = utbetaling.sakstype,
                                         ),
                                         createFeilutbetaling(
-                                            måned.fraOgMed,
-                                            måned.tilOgMed,
-                                            utbetaltLinje.beløp,
+                                            fraOgMed = måned.fraOgMed,
+                                            tilOgMed = måned.tilOgMed,
+                                            beløp = utbetaltLinje.beløp,
                                         ),
                                     ),
                                 )
@@ -159,6 +165,7 @@ class SimuleringStub(
                                         fraOgMed = måned.fraOgMed,
                                         tilOgMed = måned.tilOgMed,
                                         beløp = nyLinje.beløp,
+                                        sakstype = utbetaling.sakstype,
                                     ),
                                 ),
                             )
@@ -175,14 +182,15 @@ class SimuleringStub(
                                     feilkonto = true,
                                     detaljer = listOf(
                                         createTidligereUtbetalt(
-                                            måned.fraOgMed,
-                                            måned.tilOgMed,
-                                            utbetaltLinje.beløp,
+                                            fraOgMed = måned.fraOgMed,
+                                            tilOgMed = måned.tilOgMed,
+                                            beløp = utbetaltLinje.beløp,
+                                            sakstype = utbetaling.sakstype,
                                         ),
                                         createFeilutbetaling(
-                                            måned.fraOgMed,
-                                            måned.tilOgMed,
-                                            utbetaltLinje.beløp,
+                                            fraOgMed = måned.fraOgMed,
+                                            tilOgMed = måned.tilOgMed,
+                                            beløp = utbetaltLinje.beløp,
                                         ),
                                     ),
                                 )
@@ -230,7 +238,7 @@ private fun Utbetaling.finnUtbetalingslinjeForDato(fraOgMed: LocalDate): Utbetal
     }
 }
 
-private fun createOrdinær(fraOgMed: LocalDate, tilOgMed: LocalDate, beløp: Int) = SimulertDetaljer(
+private fun createOrdinær(fraOgMed: LocalDate, tilOgMed: LocalDate, beløp: Int, sakstype: Sakstype) = SimulertDetaljer(
     faktiskFraOgMed = fraOgMed,
     faktiskTilOgMed = tilOgMed,
     konto = "4952000",
@@ -240,25 +248,26 @@ private fun createOrdinær(fraOgMed: LocalDate, tilOgMed: LocalDate, beløp: Int
     typeSats = "MND",
     antallSats = 1,
     uforegrad = 0,
-    klassekode = KlasseKode.SUUFORE,
-    klassekodeBeskrivelse = "Supplerende stønad Uføre",
+    klassekode = sakstype.toKlasseKode(),
+    klassekodeBeskrivelse = "Supplerende stønad $sakstype",
     klasseType = KlasseType.YTEL,
 )
 
-private fun createTidligereUtbetalt(fraOgMed: LocalDate, tilOgMed: LocalDate, beløp: Int) = SimulertDetaljer(
-    faktiskFraOgMed = fraOgMed,
-    faktiskTilOgMed = tilOgMed,
-    konto = "4952000",
-    belop = -beløp,
-    tilbakeforing = true,
-    sats = 0,
-    typeSats = "",
-    antallSats = 0,
-    uforegrad = 0,
-    klassekode = KlasseKode.SUUFORE,
-    klassekodeBeskrivelse = "suBeskrivelse",
-    klasseType = KlasseType.YTEL,
-)
+private fun createTidligereUtbetalt(fraOgMed: LocalDate, tilOgMed: LocalDate, beløp: Int, sakstype: Sakstype) =
+    SimulertDetaljer(
+        faktiskFraOgMed = fraOgMed,
+        faktiskTilOgMed = tilOgMed,
+        konto = "4952000",
+        belop = -beløp,
+        tilbakeforing = true,
+        sats = 0,
+        typeSats = "",
+        antallSats = 0,
+        uforegrad = 0,
+        klassekode = sakstype.toKlasseKode(),
+        klassekodeBeskrivelse = "Supplerende stønad $sakstype",
+        klasseType = KlasseType.YTEL,
+    )
 
 private fun createFeilutbetaling(fraOgMed: LocalDate, tilOgMed: LocalDate, beløp: Int) = SimulertDetaljer(
     faktiskFraOgMed = fraOgMed,
@@ -270,7 +279,7 @@ private fun createFeilutbetaling(fraOgMed: LocalDate, tilOgMed: LocalDate, belø
     typeSats = "",
     antallSats = 0,
     uforegrad = 0,
-    klassekode = KlasseKode.KL_KODE_FEIL_INNT,
+    klassekode = KlasseKode.KL_KODE_FEIL_INNT, // TODO("simulering_utbetaling_alder mistenker alder ikke er _INNT, men noe annet")
     klassekodeBeskrivelse = "Feilutbetaling Inntektsytelser",
     klasseType = KlasseType.FEIL,
 )

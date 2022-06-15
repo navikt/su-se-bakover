@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.iverksattAttestering
 import no.nav.su.se.bakover.database.saksbehandler
 import no.nav.su.se.bakover.database.sessionCounterStub
-import no.nav.su.se.bakover.database.simulering
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -36,6 +35,7 @@ import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
+import no.nav.su.se.bakover.test.simulerNyUtbetaling
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagMedBeregning
@@ -148,12 +148,11 @@ internal class SøknadsbehandlingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.søknadsbehandlingRepo
-            val innvilgetVilkårsvurdering =
-                testDataHelper.persisterSøknadsbehandlingVilkårsvurdertInnvilget().second.also {
-                    val behandlingId = it.id
-                    repo.hent(behandlingId) shouldBe it
+            val (sak, innvilgetVilkårsvurdering) = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertInnvilget()
+                .also { (_, innvilget) ->
+                    repo.hent(innvilget.id) shouldBe innvilget
                     dataSource.withSession { session ->
-                        "select * from behandling where id = :id".hent(mapOf("id" to behandlingId), session) { row ->
+                        "select * from behandling where id = :id".hent(mapOf("id" to innvilget.id), session) { row ->
                             row.stringOrNull("beregning") shouldBe null
                             row.stringOrNull("simulering") shouldBe null
                         }
@@ -180,20 +179,29 @@ internal class SøknadsbehandlingPostgresRepoTest {
                         }
                     }
                 }
-            val simulert = beregnet.tilSimulert(simulering(beregnet.fnr))
-                .also { simulert ->
-                    repo.lagre(simulert)
-                    repo.hent(simulert.id) shouldBe simulert
-                    dataSource.withSession {
-                        "select * from behandling where id = :id".hent(
-                            mapOf("id" to innvilgetVilkårsvurdering.id),
-                            it,
-                        ) { row ->
-                            row.stringOrNull("beregning") shouldNotBe null
-                            row.stringOrNull("simulering") shouldNotBe null
-                        }
+
+            val simulert = beregnet.simuler(
+                saksbehandler = saksbehandler,
+            ) {
+                simulerNyUtbetaling(
+                    sak = sak,
+                    request = it,
+                    clock = fixedClock,
+                )
+            }.getOrFail().also { simulert ->
+                repo.lagre(simulert)
+                repo.hent(simulert.id) shouldBe simulert
+                dataSource.withSession {
+                    "select * from behandling where id = :id".hent(
+                        mapOf("id" to innvilgetVilkårsvurdering.id),
+                        it,
+                    ) { row ->
+                        row.stringOrNull("beregning") shouldNotBe null
+                        row.stringOrNull("simulering") shouldNotBe null
                     }
                 }
+            }
+
             // Tilbake til vilkårsvurdert
             simulert.tilVilkårsvurdert(
                 behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
@@ -441,7 +449,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 sessionContext = sessionFactory.newTransactionContext(),
             )
             iverksattAvslagMedBeregning.avkorting shouldBe AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere(
-                håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående
+                håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
             )
 
             repo.lagre(
@@ -449,7 +457,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 sessionContext = sessionFactory.newTransactionContext(),
             )
             iverksattAvslagUtenBeregning.avkorting shouldBe AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere(
-                håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående
+                håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
             )
 
             verifyNoInteractions(avkortingsvarselRepoMock)

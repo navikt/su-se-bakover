@@ -7,8 +7,10 @@ import no.nav.su.se.bakover.client.oppdrag.toOppdragDate
 import no.nav.su.se.bakover.client.oppdrag.toOppdragTimestamp
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest.Oppdragslinje.KodeStatusLinje.Companion.tilKjøreplan
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest.Oppdragslinje.KodeStatusLinje.Companion.tilKodeStatusLinje
+import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest.Oppdragslinje.KodeStatusLinje.Companion.tilUføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.toFagområde
 
 internal fun toUtbetalingRequest(
     utbetaling: Utbetaling,
@@ -24,7 +26,7 @@ internal fun toUtbetalingRequest(
                     UtbetalingRequest.KodeEndring.ENDRING
                 }
             },
-            kodeFagomraade = OppdragDefaults.KODE_FAGOMRÅDE,
+            kodeFagomraade = utbetaling.sakstype.toFagområde().toString(),
             fagsystemId = utbetaling.saksnummer.toString(),
             utbetFrekvens = OppdragDefaults.utbetalingsfrekvens,
             oppdragGjelderId = utbetaling.fnr.toString(),
@@ -46,7 +48,8 @@ internal fun toUtbetalingRequest(
                                 datoStatusFom = it.virkningstidspunkt.toOppdragDate(),
                                 kodeEndringLinje = UtbetalingRequest.Oppdragslinje.KodeEndringLinje.ENDRING,
                                 delytelseId = it.id.toString(),
-                                kodeKlassifik = OppdragslinjeDefaults.KODE_KLASSIFIK,
+                                kodeKlassifik = utbetaling.sakstype.toFagområde()
+                                    .toString(), // bruker bare fagområde siden vi ikke har flere "sub-ytelser" per fagområde
                                 datoVedtakFom = it.fraOgMed.toOppdragDate(),
                                 datoVedtakTom = it.tilOgMed.toOppdragDate(),
                                 sats = it.beløp.toString(),
@@ -58,12 +61,7 @@ internal fun toUtbetalingRequest(
                                 refDelytelseId = null,
                                 refFagsystemId = null,
                                 attestant = listOf(UtbetalingRequest.Oppdragslinje.Attestant(utbetaling.behandler.navIdent)),
-                                grad = it.uføregrad?.let { uføregrad ->
-                                    UtbetalingRequest.Oppdragslinje.Grad(
-                                        typeGrad = UtbetalingRequest.Oppdragslinje.TypeGrad.UFOR,
-                                        grad = uføregrad.value,
-                                    )
-                                },
+                                grad = it.tilUføregrad(),
                                 /** Referanse til hvilken utbetaling linjen tilhører */
                                 utbetalingId = utbetaling.id.toString(),
                             )
@@ -74,7 +72,8 @@ internal fun toUtbetalingRequest(
                                 datoStatusFom = null,
                                 kodeEndringLinje = UtbetalingRequest.Oppdragslinje.KodeEndringLinje.NY,
                                 delytelseId = it.id.toString(),
-                                kodeKlassifik = OppdragslinjeDefaults.KODE_KLASSIFIK,
+                                kodeKlassifik = utbetaling.sakstype.toFagområde()
+                                    .toString(), // bruker bare fagområde siden vi ikke har flere "sub-ytelser" per fagområde,
                                 datoVedtakFom = it.fraOgMed.toOppdragDate(),
                                 datoVedtakTom = it.tilOgMed.toOppdragDate(),
                                 sats = it.beløp.toString(),
@@ -86,11 +85,7 @@ internal fun toUtbetalingRequest(
                                 refDelytelseId = it.forrigeUtbetalingslinjeId?.toString(),
                                 refFagsystemId = it.forrigeUtbetalingslinjeId?.let { utbetaling.saksnummer.toString() },
                                 attestant = listOf(UtbetalingRequest.Oppdragslinje.Attestant(utbetaling.behandler.navIdent)),
-                                grad = UtbetalingRequest.Oppdragslinje.Grad(
-                                    typeGrad = UtbetalingRequest.Oppdragslinje.TypeGrad.UFOR,
-                                    // alle nye utbetalingslinjer skal ha uføregrad
-                                    grad = it.uføregrad!!.value,
-                                ),
+                                grad = it.tilUføregrad(),
                                 /** Referanse til hvilken utbetaling linjen tilhører */
                                 utbetalingId = utbetaling.id.toString(),
                             )

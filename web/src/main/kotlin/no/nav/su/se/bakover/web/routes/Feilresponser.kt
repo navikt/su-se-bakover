@@ -7,6 +7,8 @@ import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
 import kotlin.reflect.KClass
@@ -318,6 +320,24 @@ internal object Feilresponser {
                 "Kontroll av simulering feilet. Inkonsistens må undersøkes",
                 "kontroll_av_simulering_feilet",
             )
+        }
+    }
+
+    internal fun SøknadsbehandlingService.KunneIkkeSimulereBehandling.tilResultat(): Resultat {
+        return when (this) {
+            SøknadsbehandlingService.KunneIkkeSimulereBehandling.FantIkkeBehandling -> {
+                fantIkkeBehandling
+            }
+            is SøknadsbehandlingService.KunneIkkeSimulereBehandling.KunneIkkeSimulere -> {
+                when (val nested = this.feil) {
+                    is Søknadsbehandling.KunneIkkeSimulereBehandling.KunneIkkeSimulere -> {
+                        nested.feil.tilResultat()
+                    }
+                    is Søknadsbehandling.KunneIkkeSimulereBehandling.UgyldigTilstand -> {
+                        ugyldigTilstand(nested.fra, nested.til)
+                    }
+                }
+            }
         }
     }
 

@@ -8,9 +8,6 @@ import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import java.time.Clock
 import java.util.UUID
 
@@ -58,29 +55,6 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Avslag.UtenBeregning) {
             result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock = clock).right()
-        }
-    }
-
-    class TilSimulert(
-        private val simulering: (beregning: Beregning) -> Either<SimuleringFeilet, Simulering>,
-    ) : Statusovergang<SimuleringFeilet, Søknadsbehandling.Simulert>() {
-
-        override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Innvilget) {
-            simulering(søknadsbehandling.beregning)
-                .mapLeft { result = it.left() }
-                .map { result = søknadsbehandling.tilSimulert(it).right() }
-        }
-
-        override fun visit(søknadsbehandling: Søknadsbehandling.Simulert) {
-            simulering(søknadsbehandling.beregning)
-                .mapLeft { result = it.left() }
-                .map { result = søknadsbehandling.tilSimulert(it).right() }
-        }
-
-        override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Innvilget) {
-            simulering(søknadsbehandling.beregning)
-                .mapLeft { result = it.left() }
-                .map { result = søknadsbehandling.tilSimulert(it).right() }
         }
     }
 

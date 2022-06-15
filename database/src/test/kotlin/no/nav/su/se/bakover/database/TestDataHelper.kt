@@ -47,6 +47,7 @@ import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
@@ -113,20 +114,21 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
-import no.nav.su.se.bakover.test.formuevilkårIkkeVurdert
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.gjeldendeVedtaksdata
+import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
 import no.nav.su.se.bakover.test.grunnlagsdataMedEpsMedFradrag
-import no.nav.su.se.bakover.test.innvilgetUførevilkår
-import no.nav.su.se.bakover.test.innvilgetUførevilkårForventetInntekt0
 import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
+import no.nav.su.se.bakover.test.simulerNyUtbetaling
 import no.nav.su.se.bakover.test.simulertUtbetaling
 import no.nav.su.se.bakover.test.simulertUtbetalingOpphør
 import no.nav.su.se.bakover.test.stønadsperiode2021
-import no.nav.su.se.bakover.test.uføregrunnlagForventetInntekt
+import no.nav.su.se.bakover.test.vilkår.formuevilkårIkkeVurdert
+import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkår
+import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt0
 import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttUføreOgAndreInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
 import java.time.Clock
@@ -218,7 +220,7 @@ internal fun oversendtUtbetalingUtenKvittering(
     utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(utbetalingslinje()),
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.database.avstemmingsnøkkel,
 ): Utbetaling.OversendtUtbetaling.UtenKvittering {
-    return Utbetaling.OversendtUtbetaling.UtenKvittering(
+    return Utbetaling.UtbetalingForSimulering(
         id = id,
         opprettet = fixedTidspunkt,
         sakId = sakId,
@@ -228,8 +230,11 @@ internal fun oversendtUtbetalingUtenKvittering(
         type = Utbetaling.UtbetalingsType.NY,
         behandler = attestant,
         avstemmingsnøkkel = avstemmingsnøkkel,
+        sakstype = Sakstype.UFØRE, // TODO("simulering_utbetaling_alder utled fra sak/behandling")
+    ).toSimulertUtbetaling(
         simulering = simulering(fnr),
-        utbetalingsrequest = Utbetalingsrequest("<xml></xml>"),
+    ).toOversendtUtbetaling(
+        oppdragsmelding = Utbetalingsrequest("<xml></xml>"),
     )
 }
 
@@ -1355,12 +1360,21 @@ internal class TestDataHelper(
             behandlingsinformasjon = behandlingsinformasjon,
             vilkårsvurderinger = vilkårsvurderinger,
             grunnlagsdata = grunnlagsdata,
-        ).let {
-            it.second.tilSimulert(simulering(it.second.fnr))
-        }.let {
-            søknadsbehandlingRepo.lagre(it)
-            Pair(sakRepo.hentSak(sakId)!!, it)
-        }
+        ).let { (sak, beregnet) ->
+            beregnet.simuler(
+                saksbehandler = saksbehandler,
+            ) {
+                simulerNyUtbetaling(
+                    sak = sak,
+                    request = it,
+                    clock = fixedClock,
+                )
+            }
+        }.getOrFail()
+            .let {
+                søknadsbehandlingRepo.lagre(it)
+                Pair(sakRepo.hentSak(sakId)!!, it)
+            }
     }
 
     internal fun persisterSøknadsbehandlingTilAttesteringInnvilget(

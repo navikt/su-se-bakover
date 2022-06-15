@@ -73,9 +73,10 @@ sealed class Utbetalingslinje {
                 utbetalingslinje: Utbetalingslinje,
                 virkningstidspunkt: LocalDate,
                 clock: Clock,
+                opprettet: Tidspunkt = Tidspunkt.now(clock),
             ) : this(
                 id = utbetalingslinje.id,
-                opprettet = Tidspunkt.now(clock),
+                opprettet = opprettet,
                 fraOgMed = utbetalingslinje.fraOgMed,
                 tilOgMed = utbetalingslinje.tilOgMed,
                 forrigeUtbetalingslinjeId = utbetalingslinje.forrigeUtbetalingslinjeId,
@@ -106,9 +107,10 @@ sealed class Utbetalingslinje {
                 utbetalingslinje: Utbetalingslinje,
                 virkningstidspunkt: LocalDate,
                 clock: Clock,
+                opprettet: Tidspunkt = Tidspunkt.now(clock)
             ) : this(
                 id = utbetalingslinje.id,
-                opprettet = Tidspunkt.now(clock),
+                opprettet = opprettet,
                 fraOgMed = utbetalingslinje.fraOgMed,
                 tilOgMed = utbetalingslinje.tilOgMed,
                 forrigeUtbetalingslinjeId = utbetalingslinje.forrigeUtbetalingslinjeId,
@@ -139,9 +141,10 @@ sealed class Utbetalingslinje {
                 utbetalingslinje: Utbetalingslinje,
                 virkningstidspunkt: LocalDate,
                 clock: Clock,
+                opprettet: Tidspunkt = Tidspunkt.now(clock),
             ) : this(
                 id = utbetalingslinje.id,
-                opprettet = Tidspunkt.now(clock),
+                opprettet = opprettet,
                 fraOgMed = utbetalingslinje.fraOgMed,
                 tilOgMed = utbetalingslinje.tilOgMed,
                 forrigeUtbetalingslinjeId = utbetalingslinje.forrigeUtbetalingslinjeId,

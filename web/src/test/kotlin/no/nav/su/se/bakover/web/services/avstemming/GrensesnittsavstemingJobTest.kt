@@ -4,6 +4,7 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.nais.LeaderPodLookupFeil
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Fagområde
 import no.nav.su.se.bakover.web.services.erLeaderPod
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -40,7 +41,7 @@ internal class GrensesnittsavstemingJobTest {
         ).let {
             it.run()
             verify(it.leaderPodLookup).amITheLeader(any())
-            verify(it.avstemmingService).grensesnittsavstemming()
+            verify(it.avstemmingService).grensesnittsavstemming(fagområde = Fagområde.SUUFORE)
             it.leaderPodLookup.erLeaderPod() shouldBe true
         }
     }

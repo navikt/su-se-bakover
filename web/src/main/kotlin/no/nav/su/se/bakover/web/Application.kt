@@ -3,7 +3,8 @@ package no.nav.su.se.bakover.web
 import ch.qos.logback.classic.util.ContextInitializer
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders.XCorrelationId
-import io.ktor.http.HttpStatusCode
+import io.ktor.http.HttpStatusCode.Companion.BadRequest
+import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.serialization.jackson.JacksonConverter
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCall
@@ -20,7 +21,6 @@ import io.ktor.server.plugins.forwardedheaders.XForwardedHeaders
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.request.httpMethod
 import io.ktor.server.request.path
-import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.routing
 import no.finn.unleash.Unleash
@@ -143,19 +143,39 @@ fun Application.susebakover(
         }
         exception<UgyldigFnrException> { call, cause ->
             log.warn("Got UgyldigFnrException with message=${cause.message}", cause)
-            call.respond(HttpStatusCode.BadRequest, ErrorJson(cause.message ?: "Ugyldig fødselsnummer"))
+            call.svar(
+                BadRequest.errorJson(
+                    message = cause.message ?: "Ugyldig fødselsnummer",
+                    code = "ugyldig_fødselsnummer",
+                ),
+            )
         }
         exception<StatusovergangVisitor.UgyldigStatusovergangException> { call, cause ->
             log.info("Got ${StatusovergangVisitor.UgyldigStatusovergangException::class.simpleName} with message=${cause.msg}")
-            call.respond(HttpStatusCode.BadRequest, ErrorJson(cause.msg))
+            call.svar(
+                BadRequest.errorJson(
+                    message = cause.msg,
+                    code = "ugyldig_statusovergang",
+                ),
+            )
         }
         exception<DateTimeParseException> { call, cause ->
             log.info("Got ${DateTimeParseException::class.simpleName} with message ${cause.message}")
-            call.respond(HttpStatusCode.BadRequest, ErrorJson("Ugyldig dato - datoer må være på isoformat"))
+            call.svar(
+                BadRequest.errorJson(
+                    message = "Ugyldig dato - datoer må være på isoformat",
+                    code = "ugyldig_dato",
+                ),
+            )
         }
         exception<Throwable> { call, cause ->
             log.error("Got Throwable with message=${cause.message}", cause)
-            call.respond(HttpStatusCode.InternalServerError, ErrorJson("Ukjent feil"))
+            call.svar(
+                InternalServerError.errorJson(
+                    message = "Ukjent feil",
+                    code = "ukjent_feil",
+                ),
+            )
         }
     }
 

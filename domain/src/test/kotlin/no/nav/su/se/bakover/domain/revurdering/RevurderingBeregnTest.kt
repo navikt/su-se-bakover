@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
@@ -36,8 +37,6 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
-import no.nav.su.se.bakover.test.avslåttFormueVilkår
-import no.nav.su.se.bakover.test.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
@@ -48,6 +47,8 @@ import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandl
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
+import no.nav.su.se.bakover.test.vilkår.avslåttFormueVilkår
+import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
@@ -618,7 +619,7 @@ internal class RevurderingBeregnTest {
 
     private fun lagUtbetaling(
         vararg utbetalingslinjer: Utbetalingslinje,
-    ) = Utbetaling.OversendtUtbetaling.MedKvittering(
+    ) = Utbetaling.UtbetalingForSimulering(
         opprettet = fixedTidspunkt,
         sakId = UUID.randomUUID(),
         saksnummer = Saksnummer(9999),
@@ -627,8 +628,12 @@ internal class RevurderingBeregnTest {
         type = Utbetaling.UtbetalingsType.NY,
         behandler = mock(),
         avstemmingsnøkkel = mock(),
+        sakstype = Sakstype.UFØRE,
+    ).toSimulertUtbetaling(
         simulering = mock(),
-        utbetalingsrequest = mock(),
+    ).toOversendtUtbetaling(
+        oppdragsmelding = mock(),
+    ).toKvittertUtbetaling(
         kvittering = mock(),
     )
 

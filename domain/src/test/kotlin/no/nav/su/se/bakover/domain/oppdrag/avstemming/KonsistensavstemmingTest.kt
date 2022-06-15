@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -55,6 +56,7 @@ internal class KonsistensavstemmingTest {
             opprettetTilOgMed = 31.desember(2021).endOfDay(),
             utbetalinger = emptyList(),
             avstemmingXmlRequest = "",
+            fagområde = Fagområde.SUUFORE,
         ).løpendeUtbetalinger shouldBe emptyList()
     }
 
@@ -82,9 +84,11 @@ internal class KonsistensavstemmingTest {
             opprettetTilOgMed = Tidspunkt.now(andreKlokke),
             utbetalinger = listOf(første),
             avstemmingXmlRequest = "",
+            fagområde = Fagområde.SUUFORE,
         ).løpendeUtbetalinger shouldBe listOf(
             OppdragForKonsistensavstemming(
                 saksnummer = saksnummer,
+                fagområde = Fagområde.SUUFORE,
                 fnr = fnr,
                 utbetalingslinjer = listOf(
                     første.utbetalingslinjer[0],
@@ -134,9 +138,11 @@ internal class KonsistensavstemmingTest {
             opprettetTilOgMed = Tidspunkt.now(andreKlokke),
             utbetalinger = listOf(første, andre),
             avstemmingXmlRequest = "",
+            fagområde = Fagområde.SUUFORE,
         ).løpendeUtbetalinger shouldBe listOf(
             OppdragForKonsistensavstemming(
                 saksnummer = saksnummer,
+                fagområde = Fagområde.SUUFORE,
                 fnr = fnr,
                 utbetalingslinjer = listOf(
                     første.utbetalingslinjer[0].toOppdragslinjeForKonsistensavstemming(
@@ -243,9 +249,11 @@ internal class KonsistensavstemmingTest {
             opprettetTilOgMed = Tidspunkt.now(andreKlokke),
             utbetalinger = listOf(s1u1, s1u2, s2u1, s2u2),
             avstemmingXmlRequest = "",
+            fagområde = Fagområde.SUUFORE,
         ).løpendeUtbetalinger shouldBe listOf(
             OppdragForKonsistensavstemming(
                 saksnummer = saksnummer,
+                fagområde = Fagområde.SUUFORE,
                 fnr = fnr,
                 utbetalingslinjer = listOf(
                     s1u1.utbetalingslinjer[0],
@@ -255,6 +263,7 @@ internal class KonsistensavstemmingTest {
             ),
             OppdragForKonsistensavstemming(
                 saksnummer = saksnummer2,
+                fagområde = Fagområde.SUUFORE,
                 fnr = fnr2,
                 utbetalingslinjer = listOf(
                     s2u1.utbetalingslinjer[0],
@@ -349,9 +358,11 @@ internal class KonsistensavstemmingTest {
             opprettetTilOgMed = Tidspunkt.now(andreKlokke),
             utbetalinger = listOf(s1u1, s1u2, s2u1, s2u2),
             avstemmingXmlRequest = "",
+            fagområde = Fagområde.SUUFORE,
         ).løpendeUtbetalinger shouldBe listOf(
             OppdragForKonsistensavstemming(
                 saksnummer = saksnummer,
+                fagområde = Fagområde.SUUFORE,
                 fnr = fnr,
                 utbetalingslinjer = listOf(
                     s1u2.utbetalingslinjer[1],
@@ -359,6 +370,7 @@ internal class KonsistensavstemmingTest {
             ),
             OppdragForKonsistensavstemming(
                 saksnummer = saksnummer2,
+                fagområde = Fagområde.SUUFORE,
                 fnr = fnr2,
                 utbetalingslinjer = listOf(
                     s2u2.utbetalingslinjer[0],
@@ -373,6 +385,7 @@ internal class KonsistensavstemmingTest {
             opprettetTilOgMed = 1.januar(2000).endOfDay(), // Dato langt bak i tid
             utbetalinger = listOf(s1u1, s1u2, s2u1, s2u2),
             avstemmingXmlRequest = "",
+            fagområde = Fagområde.SUUFORE,
         ).løpendeUtbetalinger shouldBe emptyList()
 
         Avstemming.Konsistensavstemming.Ny(
@@ -382,9 +395,11 @@ internal class KonsistensavstemmingTest {
             opprettetTilOgMed = Tidspunkt.now(andreKlokke).minus(1, ChronoUnit.DAYS), // Dato forut for andre klokke
             utbetalinger = listOf(s1u1, s1u2, s2u1, s2u2),
             avstemmingXmlRequest = "",
+            fagområde = Fagområde.SUUFORE,
         ).løpendeUtbetalinger shouldBe listOf(
             OppdragForKonsistensavstemming(
                 saksnummer = saksnummer,
+                fagområde = Fagområde.SUUFORE,
                 fnr = fnr,
                 utbetalingslinjer = listOf(
                     s1u1.utbetalingslinjer[0],
@@ -392,6 +407,7 @@ internal class KonsistensavstemmingTest {
             ),
             OppdragForKonsistensavstemming(
                 saksnummer = saksnummer2,
+                fagområde = Fagområde.SUUFORE,
                 fnr = fnr2,
                 utbetalingslinjer = listOf(
                     s2u1.utbetalingslinjer[0],
@@ -438,9 +454,11 @@ internal class KonsistensavstemmingTest {
             opprettetTilOgMed = 31.desember(2021).endOfDay(),
             utbetalinger = listOf(første, andre),
             avstemmingXmlRequest = "",
+            fagområde = Fagområde.SUUFORE,
         ).løpendeUtbetalinger shouldBe listOf(
             OppdragForKonsistensavstemming(
                 saksnummer = saksnummer,
+                fagområde = Fagområde.SUUFORE,
                 fnr = fnr,
                 utbetalingslinjer = listOf(
                     første.utbetalingslinjer[0].toOppdragslinjeForKonsistensavstemming(
@@ -506,9 +524,11 @@ internal class KonsistensavstemmingTest {
             opprettetTilOgMed = 31.desember(2021).endOfDay(),
             utbetalinger = listOf(første, andre, tredje),
             avstemmingXmlRequest = "",
+            fagområde = Fagområde.SUUFORE,
         ).løpendeUtbetalinger shouldBe listOf(
             OppdragForKonsistensavstemming(
                 saksnummer = saksnummer,
+                fagområde = Fagområde.SUUFORE,
                 fnr = fnr,
                 utbetalingslinjer = listOf(
                     første.utbetalingslinjer[0].toOppdragslinjeForKonsistensavstemming(
@@ -560,6 +580,7 @@ internal class KonsistensavstemmingTest {
             opprettetTilOgMed = Tidspunkt.now(andreKlokke),
             utbetalinger = listOf(første, andre),
             avstemmingXmlRequest = "",
+            fagområde = Fagområde.SUUFORE,
         ).løpendeUtbetalinger shouldBe emptyList()
     }
 
@@ -661,9 +682,11 @@ internal class KonsistensavstemmingTest {
             opprettetTilOgMed = 5.september(2021).endOfDay(zoneIdOslo),
             utbetalinger = listOf(første, andre, tredje, fjerde, femte),
             avstemmingXmlRequest = "",
+            fagområde = Fagområde.SUUFORE,
         ).løpendeUtbetalinger shouldBe listOf(
             OppdragForKonsistensavstemming(
                 saksnummer = saksnummer,
+                fagområde = Fagområde.SUUFORE,
                 fnr = fnr,
                 utbetalingslinjer = listOf(
                     ny3.toOppdragslinjeForKonsistensavstemming(
@@ -684,9 +707,11 @@ internal class KonsistensavstemmingTest {
             opprettetTilOgMed = 5.september(2021).endOfDay(zoneIdOslo),
             utbetalinger = listOf(første, andre, tredje, fjerde, femte),
             avstemmingXmlRequest = "",
+            fagområde = Fagområde.SUUFORE,
         ).løpendeUtbetalinger shouldBe listOf(
             OppdragForKonsistensavstemming(
                 saksnummer = saksnummer,
+                fagområde = Fagområde.SUUFORE,
                 fnr = fnr,
                 utbetalingslinjer = listOf(
                     ny1.toOppdragslinjeForKonsistensavstemming(
@@ -776,9 +801,11 @@ internal class KonsistensavstemmingTest {
             opprettetTilOgMed = 5.september(2021).endOfDay(zoneIdOslo),
             utbetalinger = listOf(første, andre, tredje),
             avstemmingXmlRequest = "",
+            fagområde = Fagområde.SUUFORE,
         ).løpendeUtbetalinger shouldBe listOf(
             OppdragForKonsistensavstemming(
                 saksnummer = saksnummer,
+                fagområde = Fagområde.SUUFORE,
                 fnr = fnr,
                 utbetalingslinjer = listOf(
                     ny2.toOppdragslinjeForKonsistensavstemming(
@@ -841,9 +868,11 @@ internal class KonsistensavstemmingTest {
             opprettetTilOgMed = Tidspunkt.now(andreKlokke),
             utbetalinger = listOf(første, andre),
             avstemmingXmlRequest = "",
+            fagområde = Fagområde.SUUFORE,
         ).løpendeUtbetalinger shouldBe listOf(
             OppdragForKonsistensavstemming(
                 saksnummer = saksnummer,
+                fagområde = Fagområde.SUUFORE,
                 fnr = fnr,
                 utbetalingslinjer = listOf(
                     første.utbetalingslinjer[0].toOppdragslinjeForKonsistensavstemming(
@@ -878,9 +907,11 @@ internal class KonsistensavstemmingTest {
             opprettetTilOgMed = Tidspunkt.now(andreKlokke),
             utbetalinger = listOf(første, andre),
             avstemmingXmlRequest = "",
+            fagområde = Fagområde.SUUFORE,
         ).løpendeUtbetalinger shouldBe listOf(
             OppdragForKonsistensavstemming(
                 saksnummer = saksnummer,
+                fagområde = Fagområde.SUUFORE,
                 fnr = fnr,
                 utbetalingslinjer = listOf(
                     første.utbetalingslinjer[1].toOppdragslinjeForKonsistensavstemming(
@@ -908,9 +939,11 @@ internal class KonsistensavstemmingTest {
             opprettetTilOgMed = Tidspunkt.now(andreKlokke),
             utbetalinger = listOf(første, andre),
             avstemmingXmlRequest = "",
+            fagområde = Fagområde.SUUFORE,
         ).løpendeUtbetalinger shouldBe listOf(
             OppdragForKonsistensavstemming(
                 saksnummer = saksnummer,
+                fagområde = Fagområde.SUUFORE,
                 fnr = fnr,
                 utbetalingslinjer = listOf(
                     andre.utbetalingslinjer[0].toOppdragslinjeForKonsistensavstemming(
@@ -934,25 +967,30 @@ internal class KonsistensavstemmingTest {
         opprettet: Tidspunkt = fixedTidspunkt,
         utbetalingsLinjer: NonEmptyList<Utbetalingslinje>,
         behandler: NavIdentBruker = defaultAttestant,
-    ) = Utbetaling.OversendtUtbetaling.UtenKvittering(
-        id = id,
-        sakId = UUID.randomUUID(),
-        saksnummer = saksnummer,
-        utbetalingslinjer = utbetalingsLinjer,
-        fnr = fnr,
-        opprettet = opprettet,
-        type = Utbetaling.UtbetalingsType.NY,
-        behandler = behandler,
-        avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt),
-        simulering = Simulering(
-            gjelderId = fnr,
-            gjelderNavn = "navn",
-            datoBeregnet = idag(fixedClock),
-            nettoBeløp = 0,
-            periodeList = listOf(),
-        ),
-        utbetalingsrequest = Utbetalingsrequest(value = ""),
-    )
+    ): Utbetaling.OversendtUtbetaling.UtenKvittering {
+        return Utbetaling.UtbetalingForSimulering(
+            id = id,
+            opprettet = opprettet,
+            sakId = UUID.randomUUID(),
+            saksnummer = saksnummer,
+            fnr = fnr,
+            utbetalingslinjer = utbetalingsLinjer,
+            type = Utbetaling.UtbetalingsType.NY,
+            behandler = behandler,
+            avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt),
+            sakstype = Sakstype.UFØRE,
+        ).toSimulertUtbetaling(
+            simulering = Simulering(
+                gjelderId = fnr,
+                gjelderNavn = "navn",
+                datoBeregnet = idag(fixedClock),
+                nettoBeløp = 0,
+                periodeList = listOf(),
+            ),
+        ).toOversendtUtbetaling(
+            oppdragsmelding = Utbetalingsrequest(value = ""),
+        )
+    }
 
     private fun createUtbetalingslinje(
         opprettet: Tidspunkt,

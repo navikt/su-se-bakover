@@ -70,7 +70,7 @@ internal class ForhåndsvisBrevForKlageTest {
                     it,
                 ).apply {
                     status shouldBe HttpStatusCode.Forbidden
-                    bodyAsText() shouldBe "{\"message\":\"Bruker mangler en av de tillatte rollene: [Saksbehandler, Attestant]\"}"
+                    bodyAsText() shouldBe "{\"message\":\"Bruker mangler en av de tillatte rollene: [Saksbehandler, Attestant]\",\"code\":\"mangler_rolle\"}"
                 }
             }
         }

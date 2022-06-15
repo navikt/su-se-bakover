@@ -15,11 +15,13 @@ import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -68,6 +70,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
             utbetalinger = nonEmptyListOf(opprinnelig, stans),
             behandler = attestant,
             clock = fixedClock,
+            sakstype = Sakstype.UFØRE,
         ).generer().getOrFail("skal kunne lage utbetaling")
 
         actual shouldBe Utbetaling.UtbetalingForSimulering(
@@ -91,6 +94,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
             type = Utbetaling.UtbetalingsType.GJENOPPTA,
             behandler = attestant,
             avstemmingsnøkkel = actual.avstemmingsnøkkel,
+            sakstype = Sakstype.UFØRE,
         )
     }
 
@@ -103,6 +107,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
             utbetalinger = emptyList(),
             behandler = attestant,
             clock = fixedClock,
+            sakstype = Sakstype.UFØRE,
         ).generer() shouldBe Utbetalingsstrategi.Gjenoppta.Feil.FantIngenUtbetalinger.left()
     }
 
@@ -176,6 +181,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
             utbetalinger = nonEmptyListOf(første, førsteStans, førsteGjenopptak, andre, andreStans),
             behandler = attestant,
             clock = fixedClock,
+            sakstype = Sakstype.UFØRE,
         ).generer().getOrFail("skal kunne lage utbetaling")
 
         actual.utbetalingslinjer shouldBe nonEmptyListOf(
@@ -215,6 +221,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
             utbetalinger = nonEmptyListOf(første),
             behandler = attestant,
             clock = fixedClock,
+            sakstype = Sakstype.UFØRE,
         ).generer() shouldBe Utbetalingsstrategi.Gjenoppta.Feil.SisteUtbetalingErIkkeStans.left()
     }
 
@@ -263,6 +270,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
             utbetalinger = nonEmptyListOf(første, andre, tredje),
             behandler = attestant,
             clock = fixedClock,
+            sakstype = Sakstype.UFØRE,
         ).generer() shouldBe Utbetalingsstrategi.Gjenoppta.Feil.SisteUtbetalingErIkkeStans.left()
     }
 
@@ -307,6 +315,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
             utbetalinger = nonEmptyListOf(utbetaling, stans),
             behandler = attestant,
             clock = fixedClock,
+            sakstype = Sakstype.UFØRE,
         ).generer().getOrFail("skal kunne lage utbetaling").also {
             Utbetalingslinje.Endring.Reaktivering(
                 id = utbetaling.sisteUtbetalingslinje().id,
@@ -324,15 +333,18 @@ internal class UtbetalingsstrategiGjenopptaTest {
     private fun createOversendtUtbetaling(
         utbetalingslinjer: NonEmptyList<Utbetalingslinje>,
         type: Utbetaling.UtbetalingsType,
-    ) =
-        Utbetaling.OversendtUtbetaling.UtenKvittering(
+    ): Utbetaling.OversendtUtbetaling.UtenKvittering {
+        return Utbetaling.UtbetalingForSimulering(
             opprettet = fixedTidspunkt,
             sakId = sakId,
             saksnummer = saksnummer,
-            utbetalingsrequest = Utbetalingsrequest(""),
-            utbetalingslinjer = utbetalingslinjer,
             fnr = fnr,
+            utbetalingslinjer = utbetalingslinjer,
             type = type,
+            behandler = NavIdentBruker.Saksbehandler("Z123"),
+            avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt),
+            sakstype = Sakstype.UFØRE,
+        ).toSimulertUtbetaling(
             simulering = Simulering(
                 gjelderId = Fnr(fnr = fnr.toString()),
                 gjelderNavn = "navn",
@@ -340,6 +352,8 @@ internal class UtbetalingsstrategiGjenopptaTest {
                 nettoBeløp = 0,
                 periodeList = listOf(),
             ),
-            behandler = NavIdentBruker.Saksbehandler("Z123"),
+        ).toOversendtUtbetaling(
+            oppdragsmelding = Utbetalingsrequest(""),
         )
+    }
 }

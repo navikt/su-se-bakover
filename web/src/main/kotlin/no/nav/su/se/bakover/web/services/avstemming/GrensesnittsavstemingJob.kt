@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.services.avstemming
 
 import arrow.core.Either
 import no.nav.su.se.bakover.domain.nais.LeaderPodLookup
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Fagområde
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.web.services.erLeaderPod
 import org.slf4j.LoggerFactory
@@ -47,13 +48,22 @@ internal class GrensesnittsavstemingJob(
         fun run() {
             Either.catch {
                 if (leaderPodLookup.erLeaderPod()) {
-                    log.info("Executing $jobName")
-                    // Ktor legger på X-Correlation-ID for web-requests, men vi har ikke noe tilsvarende automagi for meldingskøen.
-                    MDC.put("X-Correlation-ID", UUID.randomUUID().toString())
-                    avstemmingService.grensesnittsavstemming().fold(
-                        { log.error("$jobName failed with error: $it") },
-                        { log.info("$jobName completed successfully. Details: id:${it.id}, fraOgMed:${it.fraOgMed}, tilOgMed:${it.tilOgMed}, amount:{${it.utbetalinger.size}}") },
-                    )
+                    Fagområde.values().forEach { fagområde ->
+                        when (fagområde) {
+                            Fagområde.SUALDER -> {
+                                // TODO("simulering_utbetaling_alder legg til ALDER for konsistensavstemming")
+                            }
+                            Fagområde.SUUFORE -> {
+                                log.info("Executing $jobName")
+                                // Ktor legger på X-Correlation-ID for web-requests, men vi har ikke noe tilsvarende automagi for meldingskøen.
+                                MDC.put("X-Correlation-ID", UUID.randomUUID().toString())
+                                avstemmingService.grensesnittsavstemming(fagområde).fold(
+                                    { log.error("$jobName failed with error: $it") },
+                                    { log.info("$jobName completed successfully. Details: id:${it.id}, fraOgMed:${it.fraOgMed}, tilOgMed:${it.tilOgMed}, amount:{${it.utbetalinger.size}}") },
+                                )
+                            }
+                        }
+                    }
                 }
             }.mapLeft {
                 log.error("Skeduleringsjobb '$jobName' feilet med stacktrace:", it)

@@ -16,8 +16,8 @@ import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
-import no.nav.su.se.bakover.domain.SamletSkattegrunnlag
 import no.nav.su.se.bakover.domain.SendPåminnelseNyStønadsperiodeContext
+import no.nav.su.se.bakover.domain.Skattegrunnlag
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
@@ -55,6 +55,7 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Fagområde
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Kravgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.RåttKravgrunnlag
@@ -184,25 +185,27 @@ open class AccessCheckProxy(
     fun proxy(): Services {
         return Services(
             avstemming = object : AvstemmingService {
-                override fun grensesnittsavstemming(): Either<AvstemmingFeilet, Avstemming.Grensesnittavstemming> {
-                    return services.avstemming.grensesnittsavstemming()
+                override fun grensesnittsavstemming(fagområde: Fagområde): Either<AvstemmingFeilet, Avstemming.Grensesnittavstemming> {
+                    return services.avstemming.grensesnittsavstemming(fagområde)
                 }
 
                 override fun grensesnittsavstemming(
                     fraOgMed: Tidspunkt,
                     tilOgMed: Tidspunkt,
+                    fagområde: Fagområde,
                 ): Either<AvstemmingFeilet, Avstemming.Grensesnittavstemming> {
-                    return services.avstemming.grensesnittsavstemming(fraOgMed, tilOgMed)
+                    return services.avstemming.grensesnittsavstemming(fraOgMed, tilOgMed, fagområde)
                 }
 
                 override fun konsistensavstemming(
                     løpendeFraOgMed: LocalDate,
+                    fagområde: Fagområde,
                 ): Either<AvstemmingFeilet, Avstemming.Konsistensavstemming.Ny> {
-                    return services.avstemming.konsistensavstemming(løpendeFraOgMed)
+                    return services.avstemming.konsistensavstemming(løpendeFraOgMed, fagområde)
                 }
 
-                override fun konsistensavstemmingUtførtForOgPåDato(dato: LocalDate): Boolean {
-                    return services.avstemming.konsistensavstemmingUtførtForOgPåDato(dato)
+                override fun konsistensavstemmingUtførtForOgPåDato(dato: LocalDate, fagområde: Fagområde): Boolean {
+                    return services.avstemming.konsistensavstemmingUtførtForOgPåDato(dato, fagområde)
                 }
             },
             utbetaling = object : UtbetalingService {
@@ -963,8 +966,7 @@ open class AccessCheckProxy(
                 }
             },
             skatteService = object : SkatteService {
-                override fun hentSamletSkattegrunnlag(fnr: Fnr): Either<KunneIkkeHenteSkattemelding, SamletSkattegrunnlag> {
-                    // TODO ai: Sjekk att fnr har en sak hos oss.
+                override fun hentSamletSkattegrunnlag(fnr: Fnr): Either<KunneIkkeHenteSkattemelding, Skattegrunnlag> {
                     assertHarTilgangTilPerson(fnr)
                     return services.skatteService.hentSamletSkattegrunnlag(fnr)
                 }

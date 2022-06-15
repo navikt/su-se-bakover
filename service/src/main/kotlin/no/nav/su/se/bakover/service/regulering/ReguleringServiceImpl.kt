@@ -290,9 +290,10 @@ class ReguleringServiceImpl(
     }
 
     private fun lagVedtakOgUtbetal(regulering: Regulering.IverksattRegulering): Either<KunneIkkeFerdigstilleOgIverksette.KunneIkkeUtbetale, Pair<Regulering.IverksattRegulering, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering>> {
+        // TODO("simulering_utbetaling_alder trenger sakstype på reguleringer)
         return utbetalingService.verifiserOgSimulerUtbetaling(
             request = UtbetalRequest.NyUtbetaling(
-                request = SimulerUtbetalingRequest.NyUtbetaling(
+                request = SimulerUtbetalingRequest.NyUtbetaling.Uføre(
                     sakId = regulering.sakId,
                     saksbehandler = regulering.saksbehandler,
                     beregning = regulering.beregning,

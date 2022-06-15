@@ -99,7 +99,7 @@ class RoutesTest {
                 setBody("""{"fnr":"${Fnr.generer()}"}""")
             }.apply {
                 this.status shouldBe InternalServerError
-                JSONAssert.assertEquals("""{"message":"Ukjent feil"}""", this.bodyAsText(), true)
+                JSONAssert.assertEquals("""{"message":"Ukjent feil","code": "ukjent_feil"}""", this.bodyAsText(), true)
             }
         }
     }

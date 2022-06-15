@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -258,18 +259,22 @@ internal class KontrollerSimuleringTest {
         utbetalingslinjer: NonEmptyList<Utbetalingslinje>,
         type: Utbetaling.UtbetalingsType,
         simulering: Simulering,
-    ): Utbetaling.SimulertUtbetaling = Utbetaling.SimulertUtbetaling(
-        id = UUID30.randomUUID(),
-        opprettet = fixedTidspunkt,
-        sakId = UUID.randomUUID(),
-        saksnummer = Saksnummer(9999),
-        fnr = fnr,
-        utbetalingslinjer = utbetalingslinjer,
-        type = type,
-        behandler = NavIdentBruker.Saksbehandler("saksa"),
-        avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt),
-        simulering = simulering,
-    )
+    ): Utbetaling.SimulertUtbetaling {
+        return Utbetaling.UtbetalingForSimulering(
+            id = UUID30.randomUUID(),
+            opprettet = fixedTidspunkt,
+            sakId = UUID.randomUUID(),
+            saksnummer = Saksnummer(9999),
+            fnr = fnr,
+            utbetalingslinjer = utbetalingslinjer,
+            type = type,
+            behandler = NavIdentBruker.Saksbehandler("saksa"),
+            avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt),
+            sakstype = Sakstype.UFØRE,
+        ).toSimulertUtbetaling(
+            simulering = simulering,
+        )
+    }
 
     private fun eksisterendeUtbetaling(
         periode: Periode,

@@ -63,7 +63,8 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
                 JSONAssert.assertEquals(
                     """
                     {
-                        "message":"Bruker mangler en av de tillatte rollene: [Saksbehandler]"
+                        "message":"Bruker mangler en av de tillatte rollene: [Saksbehandler]",
+                        "code":"mangler_rolle"
                     }
                     """.trimIndent(),
                     bodyAsText(),

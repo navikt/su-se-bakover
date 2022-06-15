@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
@@ -62,6 +63,7 @@ sealed interface Regulering : Reguleringsfelter {
             gjeldendeVedtaksdata: GjeldendeVedtaksdata,
             clock: Clock,
             opprettet: Tidspunkt = Tidspunkt.now(clock),
+            sakstype: Sakstype,
         ): Either<LagerIkkeReguleringDaDenneUansettMåRevurderes, OpprettetRegulering> {
             val reguleringstype = SjekkOmGrunnlagErKonsistent(gjeldendeVedtaksdata).resultat.fold(
                 { konsistensproblemer ->
@@ -91,6 +93,7 @@ sealed interface Regulering : Reguleringsfelter {
                 beregning = null,
                 simulering = null,
                 reguleringstype = reguleringstype,
+                sakstype = sakstype,
             ).right()
         }
     }
@@ -120,6 +123,7 @@ sealed interface Regulering : Reguleringsfelter {
         override val simulering: Simulering?,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val reguleringstype: Reguleringstype,
+        override val sakstype: Sakstype,
     ) : Regulering {
 
         override val erFerdigstilt = false
@@ -195,7 +199,7 @@ sealed interface Regulering : Reguleringsfelter {
             }
 
             return callback(
-                SimulerUtbetalingRequest.NyUtbetaling(
+                SimulerUtbetalingRequest.NyUtbetaling.Uføre(
                     sakId = sakId,
                     saksbehandler = saksbehandler,
                     beregning = beregning,
@@ -205,10 +209,10 @@ sealed interface Regulering : Reguleringsfelter {
                         },
                         {
                             it.grunnlag
-                        }
+                        },
                     ),
                     // Spesielt for regulering, ved etterbetaling, ønsker vi å utbetale disse sammen med neste kjøring, da disse beløpene bruker å være relativt små.
-                    utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SammenMedNestePlanlagteUtbetaling
+                    utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SammenMedNestePlanlagteUtbetaling,
                 ),
             )
                 .mapLeft { KunneIkkeSimulere.SimuleringFeilet }

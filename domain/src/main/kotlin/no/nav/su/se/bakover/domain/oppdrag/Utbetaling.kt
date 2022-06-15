@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
@@ -19,16 +20,17 @@ import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
-sealed class Utbetaling {
-    abstract val id: UUID30
-    abstract val opprettet: Tidspunkt
-    abstract val sakId: UUID
-    abstract val saksnummer: Saksnummer
-    abstract val fnr: Fnr
-    abstract val utbetalingslinjer: NonEmptyList<Utbetalingslinje>
-    abstract val type: UtbetalingsType
-    abstract val behandler: NavIdentBruker
-    abstract val avstemmingsnøkkel: Avstemmingsnøkkel
+sealed interface Utbetaling {
+    val id: UUID30
+    val opprettet: Tidspunkt
+    val sakId: UUID
+    val saksnummer: Saksnummer
+    val fnr: Fnr
+    val utbetalingslinjer: NonEmptyList<Utbetalingslinje>
+    val type: UtbetalingsType
+    val behandler: NavIdentBruker
+    val avstemmingsnøkkel: Avstemmingsnøkkel
+    val sakstype: Sakstype
 
     fun sisteUtbetalingslinje() = utbetalingslinjer.last()
     fun erFørstegangsUtbetaling() = utbetalingslinjer.any { it.forrigeUtbetalingslinjeId == null }
@@ -47,102 +49,51 @@ sealed class Utbetaling {
         override val type: UtbetalingsType,
         override val behandler: NavIdentBruker,
         override val avstemmingsnøkkel: Avstemmingsnøkkel,
-    ) : Utbetaling() {
+        override val sakstype: Sakstype,
+    ) : Utbetaling {
         fun toSimulertUtbetaling(simulering: Simulering) =
             SimulertUtbetaling(
-                id = id,
-                opprettet = opprettet,
-                sakId = sakId,
-                saksnummer = saksnummer,
-                fnr = fnr,
-                utbetalingslinjer = utbetalingslinjer,
-                type = type,
-                behandler = behandler,
-                avstemmingsnøkkel = avstemmingsnøkkel,
-                simulering = simulering
+                this,
+                simulering = simulering,
             )
     }
 
     data class SimulertUtbetaling(
-        override val id: UUID30 = UUID30.randomUUID(),
-        override val opprettet: Tidspunkt,
-        override val sakId: UUID,
-        override val saksnummer: Saksnummer,
-        override val fnr: Fnr,
-        override val utbetalingslinjer: NonEmptyList<Utbetalingslinje>,
-        override val type: UtbetalingsType,
-        override val behandler: NavIdentBruker,
-        override val avstemmingsnøkkel: Avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
+        private val utbetalingForSimulering: UtbetalingForSimulering,
         val simulering: Simulering,
-    ) : Utbetaling() {
+    ) : Utbetaling by utbetalingForSimulering {
         fun toOversendtUtbetaling(oppdragsmelding: Utbetalingsrequest) =
             OversendtUtbetaling.UtenKvittering(
-                id = id,
-                opprettet = opprettet,
-                sakId = sakId,
-                saksnummer = saksnummer,
-                fnr = fnr,
-                utbetalingslinjer = utbetalingslinjer,
-                type = type,
-                behandler = behandler,
-                avstemmingsnøkkel = avstemmingsnøkkel,
+                this,
                 simulering = simulering,
-                utbetalingsrequest = oppdragsmelding
+                utbetalingsrequest = oppdragsmelding,
             )
     }
 
-    sealed class OversendtUtbetaling : Utbetaling() {
-        abstract val simulering: Simulering
-        abstract val utbetalingsrequest: Utbetalingsrequest
+    sealed interface OversendtUtbetaling : Utbetaling {
+        val simulering: Simulering
+        val utbetalingsrequest: Utbetalingsrequest
 
         data class UtenKvittering(
-            override val id: UUID30 = UUID30.randomUUID(),
-            override val opprettet: Tidspunkt,
-            override val sakId: UUID,
-            override val saksnummer: Saksnummer,
-            override val fnr: Fnr,
-            override val utbetalingslinjer: NonEmptyList<Utbetalingslinje>,
-            override val type: UtbetalingsType,
-            override val behandler: NavIdentBruker,
-            override val avstemmingsnøkkel: Avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
+            private val simulertUtbetaling: SimulertUtbetaling,
             override val simulering: Simulering,
             override val utbetalingsrequest: Utbetalingsrequest,
-        ) : OversendtUtbetaling() {
+        ) : OversendtUtbetaling, Utbetaling by simulertUtbetaling {
             fun toKvittertUtbetaling(kvittering: Kvittering) =
                 MedKvittering(
-                    id = id,
-                    opprettet = opprettet,
-                    sakId = sakId,
-                    saksnummer = saksnummer,
-                    fnr = fnr,
-                    utbetalingslinjer = utbetalingslinjer,
-                    type = type,
-                    behandler = behandler,
-                    avstemmingsnøkkel = avstemmingsnøkkel,
-                    simulering = simulering,
-                    utbetalingsrequest = utbetalingsrequest,
-                    kvittering = kvittering
+                    this,
+                    kvittering = kvittering,
                 )
         }
 
         data class MedKvittering(
-            override val id: UUID30 = UUID30.randomUUID(),
-            override val opprettet: Tidspunkt,
-            override val sakId: UUID,
-            override val saksnummer: Saksnummer,
-            override val fnr: Fnr,
-            override val utbetalingslinjer: NonEmptyList<Utbetalingslinje>,
-            override val type: UtbetalingsType,
-            override val behandler: NavIdentBruker,
-            override val avstemmingsnøkkel: Avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
-            override val simulering: Simulering,
-            override val utbetalingsrequest: Utbetalingsrequest,
+            private val utenKvittering: UtenKvittering,
             val kvittering: Kvittering,
-        ) : OversendtUtbetaling() {
+        ) : OversendtUtbetaling by utenKvittering {
             fun kvittertMedFeilEllerVarsel() =
                 listOf(
                     Kvittering.Utbetalingsstatus.OK_MED_VARSEL,
-                    Kvittering.Utbetalingsstatus.FEIL
+                    Kvittering.Utbetalingsstatus.FEIL,
                 ).contains(kvittering.utbetalingsstatus)
         }
     }

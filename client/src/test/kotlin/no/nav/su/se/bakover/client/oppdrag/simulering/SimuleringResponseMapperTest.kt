@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -58,6 +59,7 @@ internal class SimuleringResponseMapperTest {
             type = Utbetaling.UtbetalingsType.OPPHØR,
             behandler = NavIdentBruker.Saksbehandler("saksa"),
             avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt),
+            sakstype = Sakstype.UFØRE,
         )
         val simuleringsperiode = SimulerBeregningRequest.SimuleringsPeriode().apply {
             datoSimulerFom = "2021-02-01"

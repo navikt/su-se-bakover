@@ -104,7 +104,8 @@ internal class SøknadsbehandlingJsonTest {
           },
           "fritekstTilBrev": "",
           "erLukket": false,
-          "simuleringForAvkortingsvarsel": null
+          "simuleringForAvkortingsvarsel": null,
+          "sakstype": "UFØRE"
         }
             """.trimIndent()
     }
@@ -184,7 +185,8 @@ internal class SøknadsbehandlingJsonTest {
           },
           "fritekstTilBrev": "",
           "erLukket": false,
-          "simuleringForAvkortingsvarsel": null
+          "simuleringForAvkortingsvarsel": null,
+          "sakstype": "UFØRE"
         }
             """
 

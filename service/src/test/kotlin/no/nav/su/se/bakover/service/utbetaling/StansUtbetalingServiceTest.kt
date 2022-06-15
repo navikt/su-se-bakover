@@ -4,6 +4,7 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
+import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
@@ -43,6 +44,7 @@ import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.utbetalingslinje
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
@@ -79,7 +81,7 @@ internal class StansUtbetalingServiceTest {
         periode = år(2021),
         beløp = 5,
     )
-    private val utbetalingForSimulering = Utbetaling.UtbetalingForSimulering(
+    private val stansUtbetaling = Utbetaling.UtbetalingForSimulering(
         id = UUID30.randomUUID(),
         opprettet = fixedTidspunkt,
         sakId = sakId,
@@ -95,9 +97,10 @@ internal class StansUtbetalingServiceTest {
         type = Utbetaling.UtbetalingsType.STANS,
         behandler = NavIdentBruker.Saksbehandler("Z123"),
         avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt),
+        sakstype = Sakstype.UFØRE,
     )
 
-    private val simulertUtbetaling = utbetalingForSimulering.toSimulertUtbetaling(simulering)
+    private val simulertUtbetaling = stansUtbetaling.toSimulertUtbetaling(simulering)
 
     private val oversendtUtbetaling = simulertUtbetaling.toOversendtUtbetaling(oppdragsmelding)
 
@@ -108,11 +111,23 @@ internal class StansUtbetalingServiceTest {
         fnr = fnr,
         type = Sakstype.UFØRE,
         utbetalinger = listOf(
-            oversendtUtbetaling.copy(
-                type = Utbetaling.UtbetalingsType.NY,
+            Utbetaling.UtbetalingForSimulering(
+                id = UUID30.randomUUID(),
+                opprettet = fixedTidspunkt,
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
                 utbetalingslinjer = nonEmptyListOf(
                     førsteUtbetalingslinje,
                 ),
+                type = Utbetaling.UtbetalingsType.NY,
+                behandler = NavIdentBruker.Saksbehandler("Z123"),
+                avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt),
+                sakstype = Sakstype.UFØRE,
+            ).toSimulertUtbetaling(
+                simulering,
+            ).toOversendtUtbetaling(
+                oppdragsmelding,
             ),
         ),
     )
@@ -167,8 +182,9 @@ internal class StansUtbetalingServiceTest {
             ),
         ).getOrHandle { fail(it.toString()) }
 
-        response shouldBe oversendtUtbetaling.copy(
-            id = response.id,
+        response.shouldBeType<Utbetaling.OversendtUtbetaling.UtenKvittering>().shouldBeEqualToIgnoringFields(
+            other = oversendtUtbetaling,
+            property = Utbetaling::id,
         )
 
         inOrder(
@@ -183,7 +199,7 @@ internal class StansUtbetalingServiceTest {
             verify(simuleringClientMock).simulerUtbetaling(
                 argThat {
                     it shouldBe SimulerUtbetalingForPeriode(
-                        utbetaling = utbetalingForSimulering.copy(
+                        utbetaling = stansUtbetaling.copy(
                             id = it.utbetaling.id,
                             opprettet = it.utbetaling.opprettet,
                             avstemmingsnøkkel = it.utbetaling.avstemmingsnøkkel,
@@ -200,7 +216,7 @@ internal class StansUtbetalingServiceTest {
             )
             verify(utbetalingPublisherMock).publish(
                 argThat {
-                    it shouldBe utbetalingForSimulering.copy(
+                    it shouldBe stansUtbetaling.copy(
                         id = it.id,
                         opprettet = it.opprettet,
                         avstemmingsnøkkel = it.avstemmingsnøkkel,
@@ -215,7 +231,7 @@ internal class StansUtbetalingServiceTest {
 
             verify(utbetalingRepoMock).opprettUtbetaling(
                 argThat {
-                    it shouldBe utbetalingForSimulering.copy(
+                    it shouldBe stansUtbetaling.copy(
                         id = it.id,
                         opprettet = it.opprettet,
                         avstemmingsnøkkel = it.avstemmingsnøkkel,
@@ -275,7 +291,7 @@ internal class StansUtbetalingServiceTest {
             verify(simuleringClientMock).simulerUtbetaling(
                 argThat {
                     it shouldBe SimulerUtbetalingForPeriode(
-                        utbetaling = utbetalingForSimulering.copy(
+                        utbetaling = stansUtbetaling.copy(
                             id = it.utbetaling.id,
                             opprettet = it.utbetaling.opprettet,
                             avstemmingsnøkkel = it.utbetaling.avstemmingsnøkkel,
@@ -349,7 +365,7 @@ internal class StansUtbetalingServiceTest {
             verify(simuleringClientMock).simulerUtbetaling(
                 argThat {
                     it shouldBe SimulerUtbetalingForPeriode(
-                        utbetaling = utbetalingForSimulering.copy(
+                        utbetaling = stansUtbetaling.copy(
                             id = it.utbetaling.id,
                             opprettet = it.utbetaling.opprettet,
                             avstemmingsnøkkel = it.utbetaling.avstemmingsnøkkel,
@@ -366,7 +382,7 @@ internal class StansUtbetalingServiceTest {
             )
             verify(utbetalingPublisherMock).publish(
                 argThat {
-                    it shouldBe utbetalingForSimulering.copy(
+                    it shouldBe stansUtbetaling.copy(
                         id = it.id,
                         opprettet = it.opprettet,
                         avstemmingsnøkkel = it.avstemmingsnøkkel,

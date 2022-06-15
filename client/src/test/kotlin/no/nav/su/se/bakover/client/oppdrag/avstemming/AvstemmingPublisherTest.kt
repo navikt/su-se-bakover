@@ -20,12 +20,14 @@ import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Fagområde
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -52,6 +54,7 @@ class AvstemmingPublisherTest {
                     avleverendeAvstemmingId = grensesnittavstemming.id.toString(),
                     nokkelFom = Avstemmingsnøkkel(grensesnittavstemming.fraOgMed).toString(),
                     nokkelTom = Avstemmingsnøkkel(grensesnittavstemming.tilOgMed).toString(),
+                    underkomponentKode = "SUUFORE"
                 ),
             ),
         )
@@ -62,6 +65,7 @@ class AvstemmingPublisherTest {
                     avleverendeAvstemmingId = grensesnittavstemming.id.toString(),
                     nokkelFom = Avstemmingsnøkkel(grensesnittavstemming.fraOgMed).toString(),
                     nokkelTom = Avstemmingsnøkkel(grensesnittavstemming.tilOgMed).toString(),
+                    underkomponentKode = "SUUFORE"
                 ),
                 total = Totaldata(
                     totalAntall = 1,
@@ -96,6 +100,7 @@ class AvstemmingPublisherTest {
                     avleverendeAvstemmingId = grensesnittavstemming.id.toString(),
                     nokkelFom = Avstemmingsnøkkel(grensesnittavstemming.fraOgMed).toString(),
                     nokkelTom = Avstemmingsnøkkel(grensesnittavstemming.tilOgMed).toString(),
+                    underkomponentKode = "SUUFORE"
                 ),
             ),
         )
@@ -138,17 +143,22 @@ class AvstemmingPublisherTest {
         fraOgMed = 1.januar(2020).startOfDay(),
         tilOgMed = 2.januar(2020).startOfDay(),
         utbetalinger = listOf(
-            Utbetaling.OversendtUtbetaling.MedKvittering(
+            Utbetaling.UtbetalingForSimulering(
                 opprettet = fixedTidspunkt,
-                saksnummer = saksnummer,
                 sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = Fnr("12345678910"),
                 utbetalingslinjer = nonEmptyListOf(
                     utbetalingslinje(
                         periode = januar(2021),
                         beløp = 5000,
                     ),
                 ),
-                fnr = Fnr("12345678910"),
+                type = Utbetaling.UtbetalingsType.NY,
+                behandler = NavIdentBruker.Saksbehandler("Z123"),
+                avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt),
+                sakstype = Sakstype.UFØRE,
+            ).toSimulertUtbetaling(
                 simulering = Simulering(
                     gjelderId = Fnr("12345678910"),
                     gjelderNavn = "",
@@ -156,18 +166,17 @@ class AvstemmingPublisherTest {
                     nettoBeløp = 5000,
                     periodeList = listOf(),
                 ),
-                utbetalingsrequest = Utbetalingsrequest(
-                    value = "",
-                ),
+            ).toOversendtUtbetaling(
+                oppdragsmelding = Utbetalingsrequest(value = ""),
+            ).toKvittertUtbetaling(
                 kvittering = Kvittering(
                     utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
                     originalKvittering = "hallo",
                     mottattTidspunkt = fixedTidspunkt,
                 ),
-                type = Utbetaling.UtbetalingsType.NY,
-                behandler = NavIdentBruker.Saksbehandler("Z123"),
             ),
         ),
+        fagområde = Fagområde.SUUFORE,
     )
 
     private val konsistensavstemming = Avstemming.Konsistensavstemming.Ny(
@@ -186,6 +195,7 @@ class AvstemmingPublisherTest {
             ),
         ),
         avstemmingXmlRequest = null,
+        fagområde = Fagområde.SUUFORE,
     )
 
     class MqPublisherMock(private val response: Either<MqPublisher.CouldNotPublish, Unit>) : MqPublisher {

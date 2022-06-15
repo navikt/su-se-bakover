@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -72,6 +73,8 @@ sealed class AbstraktRevurdering : Behandling {
     override val sakId by lazy { tilRevurdering.behandling.sakId }
     override val saksnummer by lazy { tilRevurdering.behandling.saksnummer }
     override val fnr by lazy { tilRevurdering.behandling.fnr }
+    override val sakstype: Sakstype by lazy { tilRevurdering.behandling.sakstype }
+
     abstract override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering
 }
 

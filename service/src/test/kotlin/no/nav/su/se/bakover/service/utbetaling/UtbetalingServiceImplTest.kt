@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -72,6 +73,7 @@ internal class UtbetalingServiceImplTest {
         type = Utbetaling.UtbetalingsType.NY,
         behandler = attestant,
         avstemmingsnøkkel = avstemmingsnøkkel,
+        sakstype = Sakstype.UFØRE,
     )
 
     private val kvitteringOK = Kvittering(
@@ -109,7 +111,7 @@ internal class UtbetalingServiceImplTest {
     fun `oppdater med kvittering - kvittering eksisterer ikke fra før`() {
         val utbetalingUtenKvittering = vedtakSøknadsbehandlingIverksattInnvilget().let { (sak, _) ->
             (sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering).let {
-                Utbetaling.OversendtUtbetaling.UtenKvittering(
+                Utbetaling.UtbetalingForSimulering(
                     id = it.id,
                     opprettet = it.opprettet,
                     sakId = it.sakId,
@@ -119,8 +121,11 @@ internal class UtbetalingServiceImplTest {
                     type = it.type,
                     behandler = it.behandler,
                     avstemmingsnøkkel = it.avstemmingsnøkkel,
+                    sakstype = Sakstype.UFØRE,
+                ).toSimulertUtbetaling(
                     simulering = it.simulering,
-                    utbetalingsrequest = it.utbetalingsrequest,
+                ).toOversendtUtbetaling(
+                    oppdragsmelding = it.utbetalingsrequest,
                 )
             }
         }
@@ -144,7 +149,7 @@ internal class UtbetalingServiceImplTest {
     fun `oppdater med kvittering - kvittering eksisterer fra før`() {
         val utbetalingUtenKvittering = vedtakSøknadsbehandlingIverksattInnvilget().let { (sak, _) ->
             (sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering).let {
-                Utbetaling.OversendtUtbetaling.UtenKvittering(
+                Utbetaling.UtbetalingForSimulering(
                     id = it.id,
                     opprettet = it.opprettet,
                     sakId = it.sakId,
@@ -154,8 +159,11 @@ internal class UtbetalingServiceImplTest {
                     type = it.type,
                     behandler = it.behandler,
                     avstemmingsnøkkel = it.avstemmingsnøkkel,
+                    sakstype = Sakstype.UFØRE,
+                ).toSimulertUtbetaling(
                     simulering = it.simulering,
-                    utbetalingsrequest = it.utbetalingsrequest,
+                ).toOversendtUtbetaling(
+                    oppdragsmelding = it.utbetalingsrequest,
                 )
             }
         }
