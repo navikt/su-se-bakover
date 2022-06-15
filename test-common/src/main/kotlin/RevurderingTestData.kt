@@ -138,7 +138,7 @@ fun opprettRevurderingFraSaksopplysninger(
     ).getOrFail()
 
     val gjeldendeVedtak = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(revurderingsperiode.fraOgMed)
-        ?: throw IllegalStateException("Fant ingen gjelende vedtak for fra og med dato for revurderingen: ${revurderingsperiode.fraOgMed}")
+        ?: throw IllegalStateException("Fant ingen gjeldende vedtak for fra og med dato for revurderingen: ${revurderingsperiode.fraOgMed}")
 
     val grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
         grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,

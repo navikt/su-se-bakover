@@ -90,7 +90,7 @@ internal class VilkårsvurderingerTest {
                 (vilkårsvurdering.resultat as Vilkårsvurderingsresultat.Avslag).let {
                     it.vilkår shouldBe setOf(vilkårsvurdering.uføre)
                     it.avslagsgrunner shouldBe listOf(Avslagsgrunn.UFØRHET)
-                    it.dato shouldBe 1.september(2021)
+                    it.tidligsteDatoForAvslag shouldBe 1.september(2021)
                 }
             }
         }
@@ -112,7 +112,7 @@ internal class VilkårsvurderingerTest {
                             Avslagsgrunn.PERSONLIG_OPPMØTE,
                             Avslagsgrunn.MANGLENDE_DOKUMENTASJON
                         )
-                        it.dato shouldBe 1.januar(2021)
+                        it.tidligsteDatoForAvslag shouldBe 1.januar(2021)
                     }
                 }
         }
@@ -313,7 +313,7 @@ internal class VilkårsvurderingerTest {
                 (vilkårsvurdering.resultat as Vilkårsvurderingsresultat.Avslag).let {
                     it.vilkår shouldBe setOf(vilkårsvurdering.uføre)
                     it.avslagsgrunner shouldBe listOf(Avslagsgrunn.UFØRHET)
-                    it.dato shouldBe 1.september(2021)
+                    it.tidligsteDatoForAvslag shouldBe 1.september(2021)
                 }
             }
         }
@@ -330,7 +330,7 @@ internal class VilkårsvurderingerTest {
                             Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER,
                             Avslagsgrunn.MANGLENDE_DOKUMENTASJON
                         )
-                        it.dato shouldBe 1.januar(2021)
+                        it.tidligsteDatoForAvslag shouldBe 1.januar(2021)
                     }
                 }
         }

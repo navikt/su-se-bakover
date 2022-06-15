@@ -11,6 +11,13 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.withAvslåttFlyktning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
+import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
+import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
+import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
+import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
+import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
+import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.attesteringUnderkjent
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
@@ -214,6 +221,11 @@ internal class StatusovergangTest {
                         utenlandsopphold = utenlandsoppholdInnvilget(),
                         formue = formuevilkårUtenEps0Innvilget(),
                         opplysningsplikt = tilstrekkeligDokumentert(),
+                        lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
+                        fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
+                        institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
+                        personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
+                        flyktning = FlyktningVilkår.IkkeVurdert,
                     ),
                 ),
                 Statusovergang.TilVilkårsvurdert(
@@ -332,6 +344,12 @@ internal class StatusovergangTest {
                         utenlandsopphold = utenlandsoppholdInnvilget(),
                         formue = formuevilkårUtenEps0Innvilget(),
                         opplysningsplikt = tilstrekkeligDokumentert(),
+                        // Disse kommer inn fra behandlingsinformasjonen
+                        lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
+                        fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
+                        institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
+                        personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
+                        flyktning = FlyktningVilkår.IkkeVurdert,
                     ),
                 ),
                 Statusovergang.TilVilkårsvurdert(
@@ -355,6 +373,7 @@ internal class StatusovergangTest {
         @Test
         fun `underkjent avslag beregning til vilkårsvurdert innvilget`() {
             statusovergang(
+                // TODO jah: Det føles ikke som en naturlig test når vi må bruke copy for å endre tilstand.
                 underkjentAvslagBeregning.copy(
                     grunnlagsdata = Grunnlagsdata.create(bosituasjon = listOf(bosituasjongrunnlagEnslig())),
                     vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre(
@@ -362,6 +381,11 @@ internal class StatusovergangTest {
                         utenlandsopphold = utenlandsoppholdInnvilget(),
                         formue = formuevilkårUtenEps0Innvilget(),
                         opplysningsplikt = tilstrekkeligDokumentert(),
+                        lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
+                        fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
+                        institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
+                        personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
+                        flyktning = FlyktningVilkår.IkkeVurdert,
                     ),
                 ),
                 Statusovergang.TilVilkårsvurdert(
@@ -379,6 +403,13 @@ internal class StatusovergangTest {
                     vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre(
                         uføre = innvilgetUførevilkår(),
                         formue = formuevilkårIkkeVurdert(),
+                        lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
+                        fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
+                        institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
+                        personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
+                        flyktning = FlyktningVilkår.IkkeVurdert,
+                        opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
+                        utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
                     ),
                 ),
                 Statusovergang.TilVilkårsvurdert(

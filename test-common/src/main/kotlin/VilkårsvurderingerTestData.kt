@@ -8,7 +8,12 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.periode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
+import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
+import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
+import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
+import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
+import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -65,6 +70,11 @@ fun vilkårsvurderingerSøknadsbehandlingInnvilget(
         utenlandsopphold = utenlandsopphold,
         formue = formue,
         opplysningsplikt = opplysningsplikt,
+        lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
+        fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
+        institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
+        personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
+        flyktning = FlyktningVilkår.IkkeVurdert,
     ).oppdater(
         stønadsperiode = Stønadsperiode.create(periode = periode),
         behandlingsinformasjon = behandlingsinformasjon,
@@ -133,6 +143,12 @@ fun vilkårsvurderingerAvslåttAlle(
             bosituasjon = bosituasjongrunnlagEnslig(periode = periode),
         ),
         opplysningsplikt = utilstrekkeligDokumentert(periode = periode),
+        // Disse blir oppdatert fra [behandlingsinformasjonAlleVilkårAvslått]
+        lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
+        fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
+        institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
+        personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
+        flyktning = FlyktningVilkår.IkkeVurdert,
     ).oppdater(
         stønadsperiode = Stønadsperiode.create(periode = periode),
         behandlingsinformasjon = behandlingsinformasjonAlleVilkårAvslått,

@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.behandlingsinformasjonAlleVilkårInnvilget
 import no.nav.su.se.bakover.test.enUkeEtterFixedTidspunkt
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.satsFactoryTest
@@ -135,7 +136,13 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 it?.stønadsperiode shouldBe Stønadsperiode.create(periode = januar(2021))
             }
 
-            repo.lagre(vilkårsvurdert.copy(stønadsperiode = stønadsperiode2021))
+            repo.lagre(
+                vilkårsvurdert.oppdaterStønadsperiode(
+                    oppdatertStønadsperiode = stønadsperiode2021,
+                    clock = fixedClock,
+                    formuegrenserFactory = formuegrenserFactoryTestPåDato(fixedLocalDate),
+                ).orNull()!!,
+            )
 
             repo.hent(vilkårsvurdert.id).also {
                 it?.stønadsperiode shouldBe stønadsperiode2021
