@@ -13,12 +13,14 @@ import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Skattegrunnlag
+import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
 internal class SamletSkattegrunnlagTest {
     val client =
-        SkatteClient(skatteetatenConfig = ApplicationConfig.ClientsConfig.SkatteetatenConfig(apiUri = wireMockServer.baseUrl()))
+        SkatteClient(skatteetatenConfig = ApplicationConfig.ClientsConfig.SkatteetatenConfig(apiUri = wireMockServer.baseUrl()), fixedClock)
     val fnr = Fnr("21839199217")
 
     @Test
@@ -188,6 +190,7 @@ internal class SamletSkattegrunnlagTest {
                 ),
             ),
             skatteoppgjoersdato = LocalDate.of(2022, 2, 10),
+            hentetDato = fixedTidspunkt
         ).right()
     }
 }

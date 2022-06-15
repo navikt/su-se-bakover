@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain
 
+import no.nav.su.se.bakover.common.Tidspunkt
 import java.time.LocalDate
 
 data class Skattegrunnlag(
@@ -7,6 +8,7 @@ data class Skattegrunnlag(
     val inntektsår: Int,
     val grunnlag: List<Grunnlag>,
     val skatteoppgjoersdato: LocalDate?,
+    val hentetDato: Tidspunkt,
 ) {
     enum class Kategori(val stringVerdi: String) {
         INNTEKT("inntekt"),
