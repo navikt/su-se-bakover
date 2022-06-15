@@ -50,6 +50,8 @@ sealed interface FullSupplerendeStønadForMåned {
         init {
             require(satsForMåned >= BigDecimal.ZERO)
             require(toProsentAvHøyForMåned >= BigDecimal.ZERO)
+            require(måned == minsteÅrligYtelseForUføretrygdede.måned)
+            require(måned == grunnbeløp.måned)
         }
 
         /** Nyeste ikraftredelsen av grunnbeløpet og minsteÅrligYtelseForUføretrygdede som gjelder for denne måneden. */
@@ -79,6 +81,7 @@ sealed interface FullSupplerendeStønadForMåned {
         init {
             require(satsForMåned >= BigDecimal.ZERO)
             require(toProsentAvHøyForMåned >= BigDecimal.ZERO)
+            require(måned == garantipensjonForMåned.måned)
         }
 
         override val ikrafttredelse: LocalDate = garantipensjonForMåned.ikrafttredelse

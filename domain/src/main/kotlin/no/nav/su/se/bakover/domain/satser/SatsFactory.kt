@@ -19,8 +19,16 @@ interface SatsFactory {
     ): FullSupplerendeStønadForMåned.Uføre
 
     /**  Hvordan verden så ut på denne datoen. */
-    val gjeldendePåDato: LocalDate
+    val knekkpunkt: Knekkpunkt
 
+    /**
+     * Inclusive. Vi har ikke satser før denne måneden, dette året.
+     */
+    val tidligsteTilgjengeligeMåned: Måned
+
+    /**
+     * TODO jah: Bytt ut denne med en formuegrenseForMåned og formuegrenser etter en gitt dato/måned.
+     */
     val formuegrenserFactory: FormuegrenserFactory
 
     /** høy supplerende stønad for uføre */

@@ -3,13 +3,13 @@ package no.nav.su.se.bakover.web.routes.grunnlag
 import no.nav.su.se.bakover.common.avrund
 import no.nav.su.se.bakover.common.periode.PeriodeJson
 import no.nav.su.se.bakover.common.periode.PeriodeJson.Companion.toJson
+import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 
 internal data class FormuevilkårJson(
@@ -41,7 +41,7 @@ internal fun Vilkår.Formue.toJson(satsFactory: SatsFactory): FormuevilkårJson 
         // TODO jah + jacob:  Denne bør flyttes til et eget endepunkt i de tilfellene vi ikke har fylt ut formuegrunnlaget/vilkåret enda.
         //  I de tilfellene vi har fylt ut formue og det har blitt lagret i databasen, bør grunnlaget innholde grensene og frontend bør bruke de derfra.
         // jah: For ufør trenger vi fra 2021-01-01 og da gjelder grunnbeløpet med virkningstidspunkt 2020-05-01 fram til og med 2021-04-30
-        formuegrenser = satsFactory.formuegrenserFactory.virkningstidspunkt(YearMonth.of(2020, 5)).toJson(),
+        formuegrenser = satsFactory.formuegrenserFactory.virkningstidspunkt(mai(2020)).toJson(),
     )
 }
 

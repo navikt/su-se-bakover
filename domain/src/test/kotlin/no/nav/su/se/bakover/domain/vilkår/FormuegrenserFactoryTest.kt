@@ -12,14 +12,13 @@ import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.grunnbeløp.GrunnbeløpForMåned
 import no.nav.su.se.bakover.domain.satser.Faktor
+import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.time.Month
-import java.time.YearMonth
 
 internal class FormuegrenserFactoryTest {
 
@@ -117,12 +116,9 @@ internal class FormuegrenserFactoryTest {
     @Nested
     inner class `virkningstidspunkt()` {
         @Test
-        fun `virkningstidspunkt fra mai 2005`() {
-            formuegrenserFactoryTestPåDato(LocalDate.now()).virkningstidspunkt(
-                YearMonth.of(
-                    2005,
-                    Month.MAY,
-                ),
+        fun `virkningstidspunkt fra januar 2016`() {
+            SatsFactoryForSupplerendeStønad(tidligsteTilgjengeligeMåned = januar(2016)).gjeldende(LocalDate.now()).formuegrenserFactory.virkningstidspunkt(
+                januar(2016),
             ) shouldBe listOf(
                 1.mai(2022) to BigDecimal("55738.5"),
                 1.mai(2021) to BigDecimal("53199.5"),
@@ -132,26 +128,24 @@ internal class FormuegrenserFactoryTest {
                 1.mai(2017) to BigDecimal("46817.0"),
                 1.mai(2016) to BigDecimal("46288.0"),
                 1.mai(2015) to BigDecimal("45034.0"),
-                1.mai(2014) to BigDecimal("44185.0"),
-                1.mai(2013) to BigDecimal("42622.5"),
-                1.mai(2012) to BigDecimal("41061.0"),
-                1.mai(2011) to BigDecimal("39608.0"),
-                1.mai(2010) to BigDecimal("37820.5"),
-                1.mai(2009) to BigDecimal("36440.5"),
-                1.mai(2008) to BigDecimal("35128.0"),
-                1.mai(2007) to BigDecimal("33406.0"),
-                1.mai(2006) to BigDecimal("31446.0"),
-                1.mai(2005) to BigDecimal("30349.5"),
+                // TODO jah: Disse har gått igjennom verifikasjon. De skal nok inn igjen når vi skal begynne å revurdere alder.
+                // 1.mai(2014) to BigDecimal("44185.0"),
+                // 1.mai(2013) to BigDecimal("42622.5"),
+                // 1.mai(2012) to BigDecimal("41061.0"),
+                // 1.mai(2011) to BigDecimal("39608.0"),
+                // 1.mai(2010) to BigDecimal("37820.5"),
+                // 1.mai(2009) to BigDecimal("36440.5"),
+                // 1.mai(2008) to BigDecimal("35128.0"),
+                // 1.mai(2007) to BigDecimal("33406.0"),
+                // 1.mai(2006) to BigDecimal("31446.0"),
+                // 1.mai(2005) to BigDecimal("30349.5"),
             )
         }
 
         @Test
         fun `virkningstidspunkt fra mai 2021`() {
             formuegrenserFactoryTestPåDato(LocalDate.now()).virkningstidspunkt(
-                YearMonth.of(
-                    2021,
-                    Month.MAY,
-                ),
+                mai(2021),
             ) shouldBe listOf(
                 1.mai(2022) to BigDecimal("55738.5"),
                 1.mai(2021) to BigDecimal("53199.5"),
@@ -161,10 +155,7 @@ internal class FormuegrenserFactoryTest {
         @Test
         fun `virkningstidspunkt fra mai 2022`() {
             formuegrenserFactoryTestPåDato(LocalDate.now()).virkningstidspunkt(
-                YearMonth.of(
-                    2022,
-                    Month.MAY,
-                ),
+                mai(2022),
             ) shouldBe listOf(
                 1.mai(2022) to BigDecimal("55738.5"),
             )
@@ -173,10 +164,7 @@ internal class FormuegrenserFactoryTest {
         @Test
         fun `virkningstidspunkt fra mai 2023`() {
             formuegrenserFactoryTestPåDato(LocalDate.now()).virkningstidspunkt(
-                YearMonth.of(
-                    2023,
-                    Month.MAY,
-                ),
+                mai(2023),
             ) shouldBe listOf(
                 1.mai(2022) to BigDecimal("55738.5"),
             )
@@ -187,7 +175,7 @@ internal class FormuegrenserFactoryTest {
             satsFactoryTestPåDato(
                 påDato = 1.januar(2021),
             ).formuegrenserFactory.virkningstidspunkt(
-                fraOgMed = YearMonth.of(2021, Month.JANUARY),
+                fraOgMed = januar(2021),
             ) shouldBe listOf(1.mai(2020) to BigDecimal("50675.5"))
         }
 
@@ -196,7 +184,7 @@ internal class FormuegrenserFactoryTest {
             satsFactoryTestPåDato(
                 påDato = 1.april(2021),
             ).formuegrenserFactory.virkningstidspunkt(
-                fraOgMed = YearMonth.of(2021, Month.JANUARY),
+                fraOgMed = januar(2021),
             ) shouldBe listOf(1.mai(2020) to BigDecimal("50675.5"))
         }
 
@@ -205,7 +193,7 @@ internal class FormuegrenserFactoryTest {
             satsFactoryTestPåDato(
                 påDato = 21.mai(2021),
             ).formuegrenserFactory.virkningstidspunkt(
-                fraOgMed = YearMonth.of(2021, Month.JANUARY),
+                fraOgMed = januar(2021),
             ) shouldBe listOf(1.mai(2021) to BigDecimal("53199.5"), 1.mai(2020) to BigDecimal("50675.5"))
         }
 
@@ -214,7 +202,7 @@ internal class FormuegrenserFactoryTest {
             satsFactoryTestPåDato(
                 påDato = 1.april(2022),
             ).formuegrenserFactory.virkningstidspunkt(
-                fraOgMed = YearMonth.of(2021, Month.JANUARY),
+                fraOgMed = januar(2021),
             ) shouldBe listOf(1.mai(2021) to BigDecimal("53199.5"), 1.mai(2020) to BigDecimal("50675.5"))
         }
 
@@ -223,7 +211,7 @@ internal class FormuegrenserFactoryTest {
             satsFactoryTestPåDato(
                 påDato = 20.mai(2022),
             ).formuegrenserFactory.virkningstidspunkt(
-                fraOgMed = YearMonth.of(2021, Month.JANUARY),
+                fraOgMed = januar(2021),
             ) shouldBe listOf(
                 1.mai(2022) to BigDecimal("55738.5"),
                 1.mai(2021) to BigDecimal("53199.5"),

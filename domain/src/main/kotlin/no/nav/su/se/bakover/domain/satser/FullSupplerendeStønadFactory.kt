@@ -1,28 +1,31 @@
 package no.nav.su.se.bakover.domain.satser
 
 import no.nav.su.se.bakover.common.periode.Måned
-import no.nav.su.se.bakover.common.periode.periode
+import no.nav.su.se.bakover.common.periode.erSammenhengendeSortertOgUtenDuplikater
 import no.nav.su.se.bakover.domain.grunnbeløp.GrunnbeløpFactory
+import no.nav.su.se.bakover.domain.satser.Knekkpunkt.Companion.compareTo
 import java.math.BigDecimal
 import java.math.MathContext
-import java.time.LocalDate
-import java.time.Month
-
-// TODO(satsfactory_alder) jah: I lov om supplerende stønad ble satsen for alder endret fra minste pensjonsnivå til garantipensjon.
-//  Vi må legge inn minste pensjonsnivå og ta høyde for det før vi skal revurdere tilbake til før 2021-01-01.
-//  På grunn av testene må vi sette sperren til 2020
-val supplerendeStønadAlderFlyktningIkrafttredelse: LocalDate = LocalDate.of(2020, Month.JANUARY, 1)
 
 sealed class FullSupplerendeStønadFactory {
     protected abstract val satskategori: Satskategori
     protected abstract val månedTilFullSupplerendeStønad: Map<Måned, FullSupplerendeStønadForMåned>
 
+    /** Knekkpunktet til factorien */
+    protected abstract val knekkpunkt: Knekkpunkt
+
+    /** Inclusive */
+    protected abstract val tidligsteTilgjengeligeMåned: Måned
+
+    /** Inclusive */
+    protected abstract val senesteTilgjengeligeMåned: Måned
+
     protected fun månedTilFullSupplerendeStønadForUføre(
         grunnbeløpFactory: GrunnbeløpFactory,
         minsteÅrligYtelseForUføretrygdedeFactory: MinsteÅrligYtelseForUføretrygdedeFactory,
     ): Map<Måned, FullSupplerendeStønadForMåned.Uføre> {
-        require(grunnbeløpFactory.påDato == minsteÅrligYtelseForUføretrygdedeFactory.påDato)
-        return grunnbeløpFactory.alleGrunnbeløp(supplerendeStønadAlderFlyktningIkrafttredelse)
+        require(grunnbeløpFactory.knekkpunkt == minsteÅrligYtelseForUføretrygdedeFactory.knekkpunkt)
+        return grunnbeløpFactory.alleGrunnbeløp(tidligsteTilgjengeligeMåned)
             .associate { grunnbeløp ->
                 val minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdedeFactory.forMåned(
                     grunnbeløp.måned,
@@ -63,21 +66,46 @@ sealed class FullSupplerendeStønadFactory {
         data class Ufør(
             val grunnbeløpFactory: GrunnbeløpFactory,
             val minsteÅrligYtelseForUføretrygdedeFactory: MinsteÅrligYtelseForUføretrygdedeFactory,
+            override val knekkpunkt: Knekkpunkt,
+            override val tidligsteTilgjengeligeMåned: Måned,
         ) : Ordinær() {
+
             override val månedTilFullSupplerendeStønad: Map<Måned, FullSupplerendeStønadForMåned.Uføre>
                 get() = månedTilFullSupplerendeStønadForUføre(
                     grunnbeløpFactory = grunnbeløpFactory,
                     minsteÅrligYtelseForUføretrygdedeFactory = minsteÅrligYtelseForUføretrygdedeFactory,
                 )
 
+            init {
+                require(knekkpunkt == grunnbeløpFactory.knekkpunkt)
+                require(knekkpunkt == minsteÅrligYtelseForUføretrygdedeFactory.knekkpunkt)
+                require(månedTilFullSupplerendeStønad.values.all { it.ikrafttredelse <= knekkpunkt })
+                require(månedTilFullSupplerendeStønad.isNotEmpty())
+                require(månedTilFullSupplerendeStønad.erSammenhengendeSortertOgUtenDuplikater())
+                require(månedTilFullSupplerendeStønad.keys.first() == tidligsteTilgjengeligeMåned)
+            }
+
+            override val senesteTilgjengeligeMåned = månedTilFullSupplerendeStønad.keys.last()
+
             override fun forMåned(måned: Måned): FullSupplerendeStønadForMåned.Uføre {
                 return månedTilFullSupplerendeStønad[måned]
-                    ?: throw IllegalStateException("Kan ikke avgjøre full supplerende stønad for måned: $måned. Vi har bare data for perioden: ${månedTilFullSupplerendeStønad.periode()}")
+                    ?: if (måned > senesteTilgjengeligeMåned) månedTilFullSupplerendeStønad[senesteTilgjengeligeMåned]!!.copy(
+                        måned = måned,
+                        grunnbeløp = grunnbeløpFactory.forMåned(måned),
+                        minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdedeFactory.forMåned(
+                            måned,
+                            satskategori,
+                        ),
+                    ) else throw IllegalArgumentException(
+                        "Har ikke data for etterspurt måned: $måned. Vi har bare data fra og med måned: ${månedTilFullSupplerendeStønad.keys.first()}",
+                    )
             }
         }
 
         data class Alder(
             val garantipensjonFactory: GarantipensjonFactory,
+            override val knekkpunkt: Knekkpunkt,
+            override val tidligsteTilgjengeligeMåned: Måned,
         ) : Ordinær() {
             override val månedTilFullSupplerendeStønad: Map<Måned, FullSupplerendeStønadForMåned.Alder>
                 get() = garantipensjonFactory.ordinær.mapValues {
@@ -85,15 +113,33 @@ sealed class FullSupplerendeStønadFactory {
                         måned = it.value.måned,
                         satskategori = Satskategori.ORDINÆR,
                         garantipensjonForMåned = it.value,
-                        toProsentAvHøyForMåned = garantipensjonFactory.høy[it.value.måned]!!.garantipensjonPerÅr
+                        toProsentAvHøyForMåned = garantipensjonFactory.forMåned(
+                            it.value.måned,
+                            Satskategori.HØY,
+                        ).garantipensjonPerÅr
                             .toBigDecimal()
                             .divide(12.toBigDecimal(), MathContext.DECIMAL128),
                     )
                 }
 
+            init {
+                require(knekkpunkt == garantipensjonFactory.knekkpunkt)
+                require(månedTilFullSupplerendeStønad.values.all { it.ikrafttredelse <= knekkpunkt })
+                require(månedTilFullSupplerendeStønad.isNotEmpty())
+                require(månedTilFullSupplerendeStønad.erSammenhengendeSortertOgUtenDuplikater())
+                require(månedTilFullSupplerendeStønad.keys.first() == tidligsteTilgjengeligeMåned)
+            }
+
+            override val senesteTilgjengeligeMåned = månedTilFullSupplerendeStønad.keys.last()
+
             override fun forMåned(måned: Måned): FullSupplerendeStønadForMåned.Alder {
                 return månedTilFullSupplerendeStønad[måned]
-                    ?: throw IllegalStateException("Kan ikke avgjøre full supplerende stønad for måned: $måned. Vi har bare data for perioden: ${månedTilFullSupplerendeStønad.periode()}")
+                    ?: if (måned > senesteTilgjengeligeMåned) månedTilFullSupplerendeStønad[senesteTilgjengeligeMåned]!!.copy(
+                        måned = måned,
+                        garantipensjonForMåned = garantipensjonFactory.forMåned(måned, satskategori),
+                    ) else throw IllegalArgumentException(
+                        "Har ikke data for etterspurt måned: $måned. Vi har bare data fra og med måned: ${månedTilFullSupplerendeStønad.keys.first()}",
+                    )
             }
         }
     }
@@ -108,6 +154,8 @@ sealed class FullSupplerendeStønadFactory {
         data class Ufør(
             val grunnbeløpFactory: GrunnbeløpFactory,
             val minsteÅrligYtelseForUføretrygdedeFactory: MinsteÅrligYtelseForUføretrygdedeFactory,
+            override val knekkpunkt: Knekkpunkt,
+            override val tidligsteTilgjengeligeMåned: Måned,
         ) : Høy() {
             override val månedTilFullSupplerendeStønad: Map<Måned, FullSupplerendeStønadForMåned.Uføre>
                 get() = månedTilFullSupplerendeStønadForUføre(
@@ -115,14 +163,36 @@ sealed class FullSupplerendeStønadFactory {
                     minsteÅrligYtelseForUføretrygdedeFactory = minsteÅrligYtelseForUføretrygdedeFactory,
                 )
 
+            init {
+                require(knekkpunkt == grunnbeløpFactory.knekkpunkt)
+                require(knekkpunkt == minsteÅrligYtelseForUføretrygdedeFactory.knekkpunkt)
+                require(månedTilFullSupplerendeStønad.values.all { it.ikrafttredelse <= knekkpunkt })
+                require(månedTilFullSupplerendeStønad.isNotEmpty())
+                require(månedTilFullSupplerendeStønad.erSammenhengendeSortertOgUtenDuplikater())
+                require(månedTilFullSupplerendeStønad.keys.first() == tidligsteTilgjengeligeMåned)
+            }
+
+            override val senesteTilgjengeligeMåned = månedTilFullSupplerendeStønad.keys.last()
+
             override fun forMåned(måned: Måned): FullSupplerendeStønadForMåned.Uføre {
                 return månedTilFullSupplerendeStønad[måned]
-                    ?: throw IllegalStateException("Kan ikke avgjøre full supplerende stønad for måned: $måned. Vi har bare data for perioden: ${månedTilFullSupplerendeStønad.periode()}")
+                    ?: if (måned > senesteTilgjengeligeMåned) månedTilFullSupplerendeStønad[senesteTilgjengeligeMåned]!!.copy(
+                        måned = måned,
+                        grunnbeløp = grunnbeløpFactory.forMåned(måned),
+                        minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdedeFactory.forMåned(
+                            måned,
+                            satskategori,
+                        ),
+                    ) else throw IllegalArgumentException(
+                        "Har ikke data for etterspurt måned: $måned. Vi har bare data fra og med måned: ${månedTilFullSupplerendeStønad.keys.first()}",
+                    )
             }
         }
 
         data class Alder(
             val garantipensjonFactory: GarantipensjonFactory,
+            override val knekkpunkt: Knekkpunkt,
+            override val tidligsteTilgjengeligeMåned: Måned,
         ) : Høy() {
             override val månedTilFullSupplerendeStønad: Map<Måned, FullSupplerendeStønadForMåned.Alder>
                 get() = garantipensjonFactory.høy.mapValues {
@@ -136,9 +206,24 @@ sealed class FullSupplerendeStønadFactory {
                     )
                 }
 
+            init {
+                require(knekkpunkt == garantipensjonFactory.knekkpunkt)
+                require(månedTilFullSupplerendeStønad.values.all { it.ikrafttredelse <= knekkpunkt })
+                require(månedTilFullSupplerendeStønad.isNotEmpty())
+                require(månedTilFullSupplerendeStønad.erSammenhengendeSortertOgUtenDuplikater())
+                require(månedTilFullSupplerendeStønad.keys.first() == tidligsteTilgjengeligeMåned)
+            }
+
+            override val senesteTilgjengeligeMåned = månedTilFullSupplerendeStønad.keys.last()
+
             override fun forMåned(måned: Måned): FullSupplerendeStønadForMåned.Alder {
                 return månedTilFullSupplerendeStønad[måned]
-                    ?: throw IllegalStateException("Kan ikke avgjøre full supplerende stønad for måned: $måned. Vi har bare data for perioden: ${månedTilFullSupplerendeStønad.periode()}")
+                    ?: if (måned > senesteTilgjengeligeMåned) månedTilFullSupplerendeStønad[senesteTilgjengeligeMåned]!!.copy(
+                        måned = måned,
+                        garantipensjonForMåned = garantipensjonFactory.forMåned(måned, satskategori),
+                    ) else throw IllegalArgumentException(
+                        "Har ikke data for etterspurt måned: $måned. Vi har bare data fra og med måned: ${månedTilFullSupplerendeStønad.keys.first()}",
+                    )
             }
         }
     }

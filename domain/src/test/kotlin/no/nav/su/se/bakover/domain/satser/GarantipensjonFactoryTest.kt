@@ -19,43 +19,41 @@ import java.math.BigDecimal
 
 internal class GarantipensjonFactoryTest {
     @Test
-    fun `ordinært garantipensjonsnivå før desember 2015 skal være udefinert`() {
+    fun `ordinært garantipensjonsnivå før desember 2019 skal være udefinert`() {
         shouldThrow<RuntimeException> {
-            satsFactoryTestPåDato().ordinærAlder(desember(2015))
+            satsFactoryTestPåDato().ordinærAlder(desember(2019))
         }
     }
 
     @Test
-    fun `høyt garantipensjonsnivå før desember 2015 skal være udefinert`() {
+    fun `høyt garantipensjonsnivå før desember 2019 skal være udefinert`() {
         shouldThrow<RuntimeException> {
-            satsFactoryTestPåDato().høyAlder(desember(2015))
+            satsFactoryTestPåDato().høyAlder(desember(2019))
         }
     }
 
     @Test
-    fun `ordinært garantipensjonsnivå fra januar 2016 skal være definert`() {
+    fun `ordinært garantipensjonsnivå fra januar 2020 skal være definert`() {
         shouldNotThrow<Throwable> {
-            satsFactoryTestPåDato().ordinærAlder(januar(2016))
+            satsFactoryTestPåDato().ordinærAlder(januar(2020))
         }
     }
 
     @Test
-    fun `høyt garantipensjonsnivå fra januar 2016 skal være definert`() {
+    fun `høyt garantipensjonsnivå fra januar 2020 skal være definert`() {
         shouldNotThrow<Throwable> {
-            satsFactoryTestPåDato().høyAlder(januar(2016))
+            satsFactoryTestPåDato().høyAlder(januar(2020))
         }
     }
 
     @Test
-    fun `ordinært garantipensjonsnivå mellom sept 2019 og mai 2020 skal være 176 099 kr`() {
-        satsFactoryTestPåDato().ordinærAlder(september(2019)).satsPerÅr.intValueExact() shouldBe 176099
+    fun `ordinært garantipensjonsnivå mellom januar 2020 og mai 2020 skal være 176 099 kr`() {
         satsFactoryTestPåDato().ordinærAlder(januar(2020)).satsPerÅr.intValueExact() shouldBe 176099
         satsFactoryTestPåDato().ordinærAlder(april(2020)).satsPerÅr.intValueExact() shouldBe 176099
     }
 
     @Test
-    fun `høyt garantipensjonsnivå mellom sept 2019 og mai 2020 skal være 190 368 kr`() {
-        satsFactoryTestPåDato().høyAlder(september(2019)).satsPerÅr.intValueExact() shouldBe 190368
+    fun `høyt garantipensjonsnivå mellom januar 2020 og mai 2020 skal være 190 368 kr`() {
         satsFactoryTestPåDato().høyAlder(januar(2020)).satsPerÅr.intValueExact() shouldBe 190368
         satsFactoryTestPåDato().høyAlder(april(2020)).satsPerÅr.intValueExact() shouldBe 190368
     }

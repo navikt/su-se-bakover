@@ -1,61 +1,67 @@
 package no.nav.su.se.bakover.domain.grunnbeløp
 
+import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.erSortertOgUtenDuplikater
 import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.erSammenhengendeSortertOgUtenDuplikater
-import no.nav.su.se.bakover.common.periode.periodisert
-import no.nav.su.se.bakover.domain.satser.supplerendeStønadAlderFlyktningIkrafttredelse
+import no.nav.su.se.bakover.domain.satser.Knekkpunkt
+import no.nav.su.se.bakover.domain.satser.Knekkpunkt.Companion.compareTo
+import no.nav.su.se.bakover.domain.satser.RåSats
+import no.nav.su.se.bakover.domain.satser.RåSatser
+import no.nav.su.se.bakover.domain.satser.periodisert
 import java.time.LocalDate
-import java.time.YearMonth
-
 /**
  * Fra lov om supplerende stønad (https://lovdata.no/dokument/NL/lov/2005-04-29-21):
  * - Med grunnbeløpet meiner ein i lova her grunnbeløpet etter [folketrygdlova § 1-4](https://lovdata.no/dokument/NL/lov/1997-02-28-19/KAPITTEL_2-1#%C2%A71-4).
  * - Grunnbeløpet er en beregningsfaktor som har betydning for retten til ytelser og for størrelsen på ytelser etter denne loven.
  * - Grunnbeløpet fastsettes av Kongen og reguleres årlig med virkning fra 1. mai i samsvar med lønnsveksten.
  *
- * @param påDato angir nåtiden for dennee instansen. Styrer hvilke grunnbeløpsendringer denne insatnsen kjenner til, basert på
- * kombinasjonen av *påDato* og [Grunnbeløpsendring.ikrafttredelse]. Instansen vil altså bare "se" endringer som har trådt i kraft på gitt dato.
  * @param grunnbeløpsendringer liste med alle kjente endringer i grunnbeløp (kan også være fremtidige som enda ikke har trådt i kraft)
+ *
+ * @param knekkpunkt ikrafttredelsesdatoen til en gitt lov/sats. Brukes for å finne ut hvilke satser som gjaldt på en gitt dato.
+ * @param tidligsteTilgjengeligeMåned Første måned denne satsen er aktuell. Som for denne satsen er 2021-01-01, men siden vi har tester som antar den gjelder før dette er den dynamisk.
  *
  */
 class GrunnbeløpFactory(
-    /** Hvordan verden så ut på denne datoen. */
-    val påDato: LocalDate,
-    /** Liste over alle kjente grunnbeløpsendringer. Disse vil bli filtrert basert på [påDato] */
-    private val grunnbeløpsendringer: List<Grunnbeløpsendring>,
+    private val grunnbeløpsendringer: NonEmptyList<Grunnbeløpsendring>,
+    val knekkpunkt: Knekkpunkt,
+    val tidligsteTilgjengeligeMåned: Måned,
 ) {
-    private val månedTilGrunnbeløp = grunnbeløpsendringer.periodiserIftVirkningstidspunkt(påDato)
+    private val månedTilGrunnbeløp: Map<Måned, GrunnbeløpForMåned> =
+        grunnbeløpsendringer.periodiserIftVirkningstidspunkt(knekkpunkt, tidligsteTilgjengeligeMåned)
+
+    private val sisteMånedMedEndring = månedTilGrunnbeløp.keys.last()
 
     init {
         require(grunnbeløpsendringer.map { it.ikrafttredelse }.erSortertOgUtenDuplikater()) {
-            "Ikrafttredelse for minste årlig ytelse for uføretrygdede må være i stigende rekkefølge og uten duplikater, men var: ${grunnbeløpsendringer.map { it.virkningstidspunkt }}"
+            "Ikrafttredelse for minste årlig ytelse for uføretrygdede må være i stigende rekkefølge og uten duplikater, men var: ${grunnbeløpsendringer.map { it.ikrafttredelse }}"
         }
         require(grunnbeløpsendringer.map { it.virkningstidspunkt }.erSortertOgUtenDuplikater()) {
             "Virkningstidspunkt for minste årlig ytelse for uføretrygdede må være i stigende rekkefølge og uten duplikater, men var: ${grunnbeløpsendringer.map { it.virkningstidspunkt }}"
         }
-        assert(månedTilGrunnbeløp.any { it.key.inneholder(supplerendeStønadAlderFlyktningIkrafttredelse) })
-        assert(månedTilGrunnbeløp.isNotEmpty())
-        månedTilGrunnbeløp.erSammenhengendeSortertOgUtenDuplikater()
+        require(månedTilGrunnbeløp.values.all { it.ikrafttredelse <= knekkpunkt })
+        require(månedTilGrunnbeløp.isNotEmpty())
+        require(månedTilGrunnbeløp.erSammenhengendeSortertOgUtenDuplikater())
+        require(månedTilGrunnbeløp.keys.first() == tidligsteTilgjengeligeMåned)
     }
 
     fun forMåned(måned: Måned): GrunnbeløpForMåned {
-        return månedTilGrunnbeløp[måned]!!
+        return månedTilGrunnbeløp[måned]
+            ?: if (måned > sisteMånedMedEndring) månedTilGrunnbeløp[sisteMånedMedEndring]!!.copy(
+                måned = måned,
+            ) else throw IllegalArgumentException(
+                "Har ikke data for etterspurt måned: $måned. Vi har bare data fra og med måned: ${månedTilGrunnbeløp.keys.first()}",
+            )
     }
 
-    fun alleGrunnbeløp(fraOgMed: LocalDate): List<GrunnbeløpForMåned> {
+    fun alleGrunnbeløp(fraOgMed: Måned): List<GrunnbeløpForMåned> {
         return månedTilGrunnbeløp.filterValues {
-            it.måned starterSamtidigEllerSenere Måned.fra(
-                YearMonth.of(
-                    fraOgMed.year,
-                    fraOgMed.month,
-                ),
-            )
+            it.måned starterSamtidigEllerSenere fraOgMed
         }.values.toList()
     }
 
     fun alle(): List<GrunnbeløpForMåned> {
-        return alleGrunnbeløp(månedTilGrunnbeløp.minOf { it.key.fraOgMed })
+        return alleGrunnbeløp(månedTilGrunnbeløp.minOf { it.key })
     }
 }
 
@@ -68,16 +74,20 @@ data class Grunnbeløpsendring(
     val verdi: Int,
 )
 
-private fun List<Grunnbeløpsendring>.periodiserIftVirkningstidspunkt(senesteIkrafttredelse: LocalDate): Map<Måned, GrunnbeløpForMåned> {
-    return filterNot { it.ikrafttredelse > senesteIkrafttredelse }
-        .map { it.virkningstidspunkt to it }
-        .periodisert()
-        .associate { (virkningstidspunkt, måned, grunnbeløpsendring) ->
-            måned to GrunnbeløpForMåned(
-                måned = måned,
-                grunnbeløpPerÅr = grunnbeløpsendring.verdi,
-                ikrafttredelse = grunnbeløpsendring.ikrafttredelse,
-                virkningstidspunkt = virkningstidspunkt,
+private fun NonEmptyList<Grunnbeløpsendring>.periodiserIftVirkningstidspunkt(
+    knekkpunkt: Knekkpunkt,
+    tidligsteTilgjengeligeMåned: Måned,
+): Map<Måned, GrunnbeløpForMåned> {
+    return filterNot { it.ikrafttredelse > knekkpunkt }
+        .map { RåSats(it.virkningstidspunkt, it) }
+        .let { RåSatser(NonEmptyList.fromListUnsafe(it)) }
+        .periodisert(tidligsteTilgjengeligeMåned)
+        .associate {
+            it.måned to GrunnbeløpForMåned(
+                måned = it.måned,
+                grunnbeløpPerÅr = it.verdi.verdi,
+                ikrafttredelse = it.verdi.ikrafttredelse,
+                virkningstidspunkt = it.verdi.virkningstidspunkt,
             )
         }
 }

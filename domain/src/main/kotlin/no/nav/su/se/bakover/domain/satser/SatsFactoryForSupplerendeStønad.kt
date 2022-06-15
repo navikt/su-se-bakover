@@ -6,6 +6,8 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.erSortertOgUtenDuplikater
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
+import no.nav.su.se.bakover.common.periode.Måned
+import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.grunnbeløp.GrunnbeløpFactory
@@ -24,7 +26,11 @@ import java.time.ZoneId
  * Da må vi skrive om denne logikken. På sikt bør nok disse gjøres om til en lenket liste, som modellerer virkeligheten bedre.
  */
 class SatsFactoryForSupplerendeStønad(
-    private val datoTilFactory: MutableMap<LocalDate, SatsFactoryForSupplerendeStønadPåDato> = mutableMapOf(),
+    // TODO(satsfactory_alder) jah: I lov om supplerende stønad ble satsen for alder endret fra minste pensjonsnivå til garantipensjon fra og med 2021-01-01.
+    //  Vi må legge inn minste pensjonsnivå og ta høyde for det før vi skal revurdere tilbake til før 2021-01-01.
+    //  På grunn av testene må vi sette sperren til 2020 (TODO jah: fiks testene)
+    private val tidligsteTilgjengeligeMåned: Måned = januar(2020),
+    private val datoTilFactory: MutableMap<Knekkpunkt, SatsFactoryForSupplerendeStønadPåKnekkpunkt> = mutableMapOf(),
     /** Se kommentarer på garantipensjon lav for lovreferanser. */
     private val grunnbeløpsendringer: Nel<Grunnbeløpsendring> = nonEmptyListOf(
         Grunnbeløpsendring(1.mai(2005), 1.mai(2005), 60699),
@@ -45,11 +51,7 @@ class SatsFactoryForSupplerendeStønad(
         Grunnbeløpsendring(1.mai(2020), 4.september(2020), 101351),
         Grunnbeløpsendring(1.mai(2021), 21.mai(2021), 106399),
         Grunnbeløpsendring(1.mai(2022), 20.mai(2022), 111477),
-    ).also {
-        it.map { it.ikrafttredelse }.erSortertOgUtenDuplikater()
-        // Dersom vi får duplikate virkningstidspunkter i loven, vil vi måtte skrive om blant annet periodiser-funksjonen.
-        it.map { it.virkningstidspunkt }.erSortertOgUtenDuplikater()
-    },
+    ),
     /**
      * Garantipensjon ble innført som konsept 2016-01-01: https://lovdata.no/forskrift/2015-11-20-1335/§1.
      * Satsene endres ofte sammen med grunnbeløpet.
@@ -78,11 +80,7 @@ class SatsFactoryForSupplerendeStønad(
 
         // https://lovdata.no/forskrift/2022-05-20-881/§5   kunngjort 20.05.2022 kl. 15.15
         GarantipensjonFactory.Garantipensjonsendring(1.mai(2022), 20.mai(2022), 193862),
-    ).also {
-        it.map { it.ikrafttredelse }.erSortertOgUtenDuplikater()
-        // Dersom vi får duplikate virkningstidspunkter i loven, vil vi måtte skrive om blant annet periodiser-funksjonen.
-        it.map { it.virkningstidspunkt }.erSortertOgUtenDuplikater()
-    },
+    ),
     /** Se kommentarer på garantipensjon lav for lovreferanser. */
     private val garantipensjonsendringerHøy: Nel<GarantipensjonFactory.Garantipensjonsendring> = nonEmptyListOf(
         GarantipensjonFactory.Garantipensjonsendring(1.januar(2016), 1.januar(2016), 175739),
@@ -93,11 +91,7 @@ class SatsFactoryForSupplerendeStønad(
         GarantipensjonFactory.Garantipensjonsendring(1.mai(2020), 4.september(2020), 192125),
         GarantipensjonFactory.Garantipensjonsendring(1.mai(2021), 21.mai(2021), 202425),
         GarantipensjonFactory.Garantipensjonsendring(1.mai(2022), 20.mai(2022), 209571),
-    ).also {
-        it.map { it.ikrafttredelse }.erSortertOgUtenDuplikater()
-        // Dersom vi får duplikate virkningstidspunkter i loven, vil vi måtte skrive om blant annet periodiser-funksjonen.
-        it.map { it.virkningstidspunkt }.erSortertOgUtenDuplikater()
-    },
+    ),
     private val minsteÅrligYtelseForUføretrygdedeOrdinær: Nel<MinsteÅrligYtelseForUføretrygdedeFactory.MinsteÅrligYtelseForUføretrygdedeEndring> = nonEmptyListOf(
         // https://lovdata.no/dokument/LTI/lov/2011-12-16-59 kunngjort 16.12.2011 kl. 15.40. Trådde i kraft 2015-01-01: https://lovdata.no/dokument/LTI/forskrift/2014-06-20-797 (kunngjort 23.06.2014 kl. 16.00)
         MinsteÅrligYtelseForUføretrygdedeFactory.MinsteÅrligYtelseForUføretrygdedeEndring(
@@ -105,11 +99,7 @@ class SatsFactoryForSupplerendeStønad(
             ikrafttredelse = 1.januar(2015),
             faktor = Faktor(2.28),
         ),
-    ).also {
-        it.map { it.ikrafttredelse }.erSortertOgUtenDuplikater()
-        // Dersom vi får duplikate virkningstidspunkter i loven, vil vi måtte skrive om blant annet periodiser-funksjonen.
-        it.map { it.virkningstidspunkt }.erSortertOgUtenDuplikater()
-    },
+    ),
     private val minsteÅrligYtelseForUføretrygdedeHøy: Nel<MinsteÅrligYtelseForUføretrygdedeFactory.MinsteÅrligYtelseForUføretrygdedeEndring> = nonEmptyListOf(
         // https://lovdata.no/dokument/LTI/lov/2011-12-16-59 kunngjort 16.12.2011 kl. 15.40 Trådde i kraft 2015-01-01: https://lovdata.no/dokument/LTI/forskrift/2014-06-20-797 (kunngjort 23.06.2014 kl. 16.00)
         MinsteÅrligYtelseForUføretrygdedeFactory.MinsteÅrligYtelseForUføretrygdedeEndring(
@@ -117,56 +107,84 @@ class SatsFactoryForSupplerendeStønad(
             ikrafttredelse = 1.januar(2015),
             faktor = Faktor(2.48),
         ),
-    ).also {
-        it.map { it.ikrafttredelse }.erSortertOgUtenDuplikater()
-        // Dersom vi får duplikate virkningstidspunkter i loven, vil vi måtte skrive om blant annet periodiser-funksjonen.
-        it.map { it.virkningstidspunkt }.erSortertOgUtenDuplikater()
-    },
+    ),
 ) {
-    private fun getOrAdd(påDato: LocalDate): SatsFactoryForSupplerendeStønadPåDato {
 
-        return datoTilFactory.getOrPut(påDato) {
-            val grunnbeløpFactoryPåDato = GrunnbeløpFactory(
-                påDato = påDato,
+    init {
+        // Dersom vi får duplikate virkningstidspunkter i loven, vil vi måtte skrive om blant annet periodiser-funksjonen.
+        grunnbeløpsendringer.map { it.ikrafttredelse }.erSortertOgUtenDuplikater()
+        grunnbeløpsendringer.map { it.virkningstidspunkt }.erSortertOgUtenDuplikater()
+
+        garantipensjonsendringerOrdinær.map { it.ikrafttredelse }.erSortertOgUtenDuplikater()
+        garantipensjonsendringerOrdinær.map { it.virkningstidspunkt }.erSortertOgUtenDuplikater()
+
+        garantipensjonsendringerHøy.map { it.ikrafttredelse }.erSortertOgUtenDuplikater()
+        garantipensjonsendringerHøy.map { it.virkningstidspunkt }.erSortertOgUtenDuplikater()
+
+        minsteÅrligYtelseForUføretrygdedeOrdinær.map { it.ikrafttredelse }.erSortertOgUtenDuplikater()
+        minsteÅrligYtelseForUføretrygdedeOrdinær.map { it.virkningstidspunkt }.erSortertOgUtenDuplikater()
+
+        minsteÅrligYtelseForUføretrygdedeHøy.map { it.ikrafttredelse }.erSortertOgUtenDuplikater()
+        minsteÅrligYtelseForUføretrygdedeHøy.map { it.virkningstidspunkt }.erSortertOgUtenDuplikater()
+    }
+
+    private fun getOrAdd(knekkpunkt: Knekkpunkt): SatsFactoryForSupplerendeStønadPåKnekkpunkt {
+
+        return datoTilFactory.getOrPut(knekkpunkt) {
+            val grunnbeløpFactoryPåKnekkpunkt = GrunnbeløpFactory(
                 grunnbeløpsendringer = grunnbeløpsendringer,
+                knekkpunkt = knekkpunkt,
+                tidligsteTilgjengeligeMåned = tidligsteTilgjengeligeMåned,
             )
-            val minsteÅrligYtelseForUføretrygdedeFactoryPåDato =
+            val minsteÅrligYtelseForUføretrygdedeFactoryPåKnekkpunkt =
                 MinsteÅrligYtelseForUføretrygdedeFactory.createFromFaktorer(
                     ordinær = minsteÅrligYtelseForUføretrygdedeOrdinær,
                     høy = minsteÅrligYtelseForUføretrygdedeHøy,
-                    påDato = påDato,
+                    knekkpunkt = knekkpunkt,
+                    tidligsteTilgjengeligeMåned = tidligsteTilgjengeligeMåned,
 
                 )
-            SatsFactoryForSupplerendeStønadPåDato(
-                grunnbeløpFactory = grunnbeløpFactoryPåDato,
+            SatsFactoryForSupplerendeStønadPåKnekkpunkt(
+                grunnbeløpFactory = grunnbeløpFactoryPåKnekkpunkt,
                 formuegrenserFactory = FormuegrenserFactory.createFromGrunnbeløp(
-                    Nel.fromListUnsafe(
-                        grunnbeløpFactoryPåDato.alle(),
-                    ),
+                    grunnbeløpFactory = grunnbeløpFactoryPåKnekkpunkt,
+                    knekkpunkt = knekkpunkt,
+                    tidligsteTilgjengeligeMåned = tidligsteTilgjengeligeMåned,
                 ),
                 uføreOrdinær = FullSupplerendeStønadFactory.Ordinær.Ufør(
-                    grunnbeløpFactory = grunnbeløpFactoryPåDato,
-                    minsteÅrligYtelseForUføretrygdedeFactory = minsteÅrligYtelseForUføretrygdedeFactoryPåDato,
+                    grunnbeløpFactory = grunnbeløpFactoryPåKnekkpunkt,
+                    minsteÅrligYtelseForUføretrygdedeFactory = minsteÅrligYtelseForUføretrygdedeFactoryPåKnekkpunkt,
+                    knekkpunkt = knekkpunkt,
+                    tidligsteTilgjengeligeMåned = tidligsteTilgjengeligeMåned,
                 ),
                 uføreHøy = FullSupplerendeStønadFactory.Høy.Ufør(
-                    grunnbeløpFactory = grunnbeløpFactoryPåDato,
-                    minsteÅrligYtelseForUføretrygdedeFactory = minsteÅrligYtelseForUføretrygdedeFactoryPåDato,
+                    grunnbeløpFactory = grunnbeløpFactoryPåKnekkpunkt,
+                    minsteÅrligYtelseForUføretrygdedeFactory = minsteÅrligYtelseForUføretrygdedeFactoryPåKnekkpunkt,
+                    knekkpunkt = knekkpunkt,
+                    tidligsteTilgjengeligeMåned = tidligsteTilgjengeligeMåned,
                 ),
                 alderOrdinær = FullSupplerendeStønadFactory.Ordinær.Alder(
                     garantipensjonFactory = GarantipensjonFactory.createFromSatser(
                         ordinær = garantipensjonsendringerOrdinær,
                         høy = garantipensjonsendringerHøy,
-                        påDato = påDato,
+                        knekkpunkt = knekkpunkt,
+                        tidligsteTilgjengeligeMåned = tidligsteTilgjengeligeMåned,
                     ),
+                    knekkpunkt = knekkpunkt,
+                    tidligsteTilgjengeligeMåned = tidligsteTilgjengeligeMåned,
                 ),
                 alderHøy = FullSupplerendeStønadFactory.Høy.Alder(
                     garantipensjonFactory = GarantipensjonFactory.createFromSatser(
                         ordinær = garantipensjonsendringerOrdinær,
                         høy = garantipensjonsendringerHøy,
-                        påDato = påDato,
+                        knekkpunkt = knekkpunkt,
+                        tidligsteTilgjengeligeMåned = tidligsteTilgjengeligeMåned,
                     ),
+                    knekkpunkt = knekkpunkt,
+                    tidligsteTilgjengeligeMåned = tidligsteTilgjengeligeMåned,
                 ),
-                gjeldendePåDato = påDato,
+                knekkpunkt = knekkpunkt,
+                tidligsteTilgjengeligeMåned = tidligsteTilgjengeligeMåned,
             )
         }
     }
@@ -179,7 +197,7 @@ class SatsFactoryForSupplerendeStønad(
     }
 
     /**
-     * Gir et [SatsFactory] som gjelder på en gitt dato.
+     * Gir et [SatsFactory] som gjelder på en gitt dato (regnes om til nærmeste knekkpunkt).
      * Dette baserer seg på lovenes ikrafttredelsesdato.
      * Dette gir oss mulighet til å finne ut hvilke satser på som gjaldt på en gitt dato (f.eks. opprettettidspunktet på beregningen)
      */
@@ -190,12 +208,14 @@ class SatsFactoryForSupplerendeStønad(
             // F.eks. sats for uføre er satt sammen av grunnbeløp og minste årlig ytelse for uføretrygdede den 2021-01-01.
             // Disse vil i teorien kunne ha forskjellige ikrafttredelsedatoen. F.eks. 2020-05-01 og 20220-10-01.
             // Da vil den nyeste av disse datoene være ikrafttredelsen til full supplerende stønad.
-            påDato = maxOf(
-                minsteÅrligYtelseForUføretrygdedeOrdinær.gjeldende(påDato).ikrafttredelse,
-                minsteÅrligYtelseForUføretrygdedeHøy.gjeldende(påDato).ikrafttredelse,
-                grunnbeløpsendringer.gjeldende(påDato).ikrafttredelse,
-                garantipensjonsendringerOrdinær.gjeldende(påDato).ikrafttredelse,
-                garantipensjonsendringerHøy.gjeldende(påDato).ikrafttredelse,
+            knekkpunkt = Knekkpunkt(
+                maxOf(
+                    minsteÅrligYtelseForUføretrygdedeOrdinær.gjeldende(påDato).ikrafttredelse,
+                    minsteÅrligYtelseForUføretrygdedeHøy.gjeldende(påDato).ikrafttredelse,
+                    grunnbeløpsendringer.gjeldende(påDato).ikrafttredelse,
+                    garantipensjonsendringerOrdinær.gjeldende(påDato).ikrafttredelse,
+                    garantipensjonsendringerHøy.gjeldende(påDato).ikrafttredelse,
+                ),
             ),
         )
     }

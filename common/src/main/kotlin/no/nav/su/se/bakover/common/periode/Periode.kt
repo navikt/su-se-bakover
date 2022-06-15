@@ -10,8 +10,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.erFørsteDagIMåned
 import no.nav.su.se.bakover.common.erSisteDagIMåned
-import no.nav.su.se.bakover.common.erSortert
-import no.nav.su.se.bakover.common.erSortertOgUtenDuplikater
 import no.nav.su.se.bakover.common.startOfMonth
 import java.time.LocalDate
 import java.time.Month
@@ -57,6 +55,7 @@ open class Periode protected constructor(
 
     infix fun fullstendigOverlapp(other: Periode): Boolean =
         this fullstendigOverlapp listOf(other)
+
     /**
      * Alle månedene i denne perioden overlapper fullstendig med settet av alle månedene i lista.
      * Dvs. at de må inneholde de nøyaktige samme måneder.
@@ -316,56 +315,6 @@ fun List<Periode>.erSammenhengendeSortertOgUtenDuplikater(): Boolean {
 
 fun <T> Map<Måned, T>.erSammenhengendeSortertOgUtenDuplikater(): Boolean {
     return this.keys.toList().erSammenhengendeSortertOgUtenDuplikater()
-}
-
-/**
- * Gjør om en liste med key-value par av ([LocalDate] - [Any]) til en avgrenset, sammenhengende liste hvor verdien [Any]
- * hvert element i [this] ekstrapoleres fra [LocalDate] til [LocalDate] for neste element i listen.
- * Verdien av [Any] for det siste elementet ekstrapoleres fra sin [LocalDate] frem til [endExclusive]
- *
- * Eksempelbruk er satser (f.eks. grunnbeløp, garantipensjon o.l.)
- *
- * Garanterer at tidslinjen er sammenhengende, sortert og ikke har duplikater.
- * @param endExclusive maks måned for ekstrapolering av
- * @throws IllegalArgumentException dersom listen inneholder duplikate datoer eller en dato ikke er den første i måneden.
- */
-fun <T> List<Pair<LocalDate, T>>.periodisert(
-    endExclusive: Måned = januar(2030),
-): List<Triple<LocalDate, Måned, T>> {
-    if (this.isEmpty()) return emptyList()
-
-    assert(this.all { it.first.erFørsteDagIMåned() }) { "Kan kun periodisere datoer som er første dag i måneden." }
-    assert(this.map { it.first }.erSortertOgUtenDuplikater()) {
-        // Dersom vi fjerner denne, trenger vi et konsept om kunngjøringsdato eller en form for siste element har presedens over første.
-        "Datoene må være sortert i stigende rekkefølge og uten duplikater: ${this.map { it.first }}"
-    }
-
-    val sortertStigendeDato: List<Triple<LocalDate, Måned, T>> =
-        this.sortedBy { it.first }
-            .map { Triple(it.first, Måned.fra(YearMonth.of(it.first.year, it.first.month)), it.second) }
-
-    val verdierMellomElementer = sortertStigendeDato
-        .zipWithNext()
-        .flatMap { (current, next) ->
-            current.second.until(next.second).map {
-                Triple(current.first, it, current.third)
-            }
-        }
-
-    val verdierFraSisteElementTilMaks = sortertStigendeDato
-        .maxByOrNull { it.first }!!
-        .let { lastElement ->
-            lastElement.second.until(endExclusive).map {
-                Triple(lastElement.first, it, lastElement.third)
-            }
-        }
-    return (verdierMellomElementer + verdierFraSisteElementTilMaks).apply {
-        this.map { it.second }.let {
-            assert(it.erSammenhengendeSortertOgUtenDuplikater()) {
-                "Kunne ikke periodisere. Sammenhengende: ${it.erSammenhengende()}, duplikate: ${it.harDuplikater()}, sortert: ${it.erSortert()}"
-            }
-        }
-    }
 }
 
 fun List<Periode>.harOverlappende(): Boolean {
