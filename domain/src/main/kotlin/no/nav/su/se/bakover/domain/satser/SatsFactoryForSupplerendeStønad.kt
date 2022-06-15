@@ -1,7 +1,9 @@
 package no.nav.su.se.bakover.domain.satser
 
 import arrow.core.Nel
+import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.erSortertOgUtenDuplikater
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.september
@@ -16,11 +18,15 @@ import java.time.ZoneId
  * For alle hensyn er dette en factory of factories knyttet til en gitt dato man ønsker å regne seg ut fra.
  * Denne vil i de fleste tilfeller være nå.
  * Men for ting som allerede er vedtatt, må vi mulighet til å gå tilbake til vedtakstidspunktet og gjøre beregningen på nytt.
+ *
+ * Satsendringene må legges til i lista på en slik måte at neste endring, kansellerer forrige endring.
+ * Per tidspunkt er alle virkningstidspunkt og ikrafttredelser i stigende rekkefølge, men det trenger ikke være tilfelle i framtiden.
+ * Da må vi skrive om denne logikken. På sikt bør nok disse gjøres om til en lenket liste, som modellerer virkeligheten bedre.
  */
 class SatsFactoryForSupplerendeStønad(
     private val datoTilFactory: MutableMap<LocalDate, SatsFactoryForSupplerendeStønadPåDato> = mutableMapOf(),
     /** Se kommentarer på garantipensjon lav for lovreferanser. */
-    private val grunnbeløpsendringer: List<Grunnbeløpsendring> = listOf(
+    private val grunnbeløpsendringer: Nel<Grunnbeløpsendring> = nonEmptyListOf(
         Grunnbeløpsendring(1.mai(2005), 1.mai(2005), 60699),
         Grunnbeløpsendring(1.mai(2006), 1.mai(2006), 62892),
         Grunnbeløpsendring(1.mai(2007), 1.mai(2007), 66812),
@@ -39,12 +45,16 @@ class SatsFactoryForSupplerendeStønad(
         Grunnbeløpsendring(1.mai(2020), 4.september(2020), 101351),
         Grunnbeløpsendring(1.mai(2021), 21.mai(2021), 106399),
         Grunnbeløpsendring(1.mai(2022), 20.mai(2022), 111477),
-    ),
+    ).also {
+        it.map { it.ikrafttredelse }.erSortertOgUtenDuplikater()
+        // Dersom vi får duplikate virkningstidspunkter i loven, vil vi måtte skrive om blant annet periodiser-funksjonen.
+        it.map { it.virkningstidspunkt }.erSortertOgUtenDuplikater()
+    },
     /**
      * Garantipensjon ble innført som konsept 2016-01-01: https://lovdata.no/forskrift/2015-11-20-1335/§1.
      * Satsene endres ofte sammen med grunnbeløpet.
      */
-    private val garantipensjonsendringerOrdinær: List<GarantipensjonFactory.Garantipensjonsendring> = listOf(
+    private val garantipensjonsendringerOrdinær: Nel<GarantipensjonFactory.Garantipensjonsendring> = nonEmptyListOf(
         // https://lovdata.no/forskrift/2015-11-20-1335/§1  kunngjort 23.11.2015 kl. 12.30
         GarantipensjonFactory.Garantipensjonsendring(1.januar(2016), 1.januar(2016), 162566),
 
@@ -68,9 +78,13 @@ class SatsFactoryForSupplerendeStønad(
 
         // https://lovdata.no/forskrift/2022-05-20-881/§5   kunngjort 20.05.2022 kl. 15.15
         GarantipensjonFactory.Garantipensjonsendring(1.mai(2022), 20.mai(2022), 193862),
-    ),
+    ).also {
+        it.map { it.ikrafttredelse }.erSortertOgUtenDuplikater()
+        // Dersom vi får duplikate virkningstidspunkter i loven, vil vi måtte skrive om blant annet periodiser-funksjonen.
+        it.map { it.virkningstidspunkt }.erSortertOgUtenDuplikater()
+    },
     /** Se kommentarer på garantipensjon lav for lovreferanser. */
-    private val garantipensjonsendringerHøy: List<GarantipensjonFactory.Garantipensjonsendring> = listOf(
+    private val garantipensjonsendringerHøy: Nel<GarantipensjonFactory.Garantipensjonsendring> = nonEmptyListOf(
         GarantipensjonFactory.Garantipensjonsendring(1.januar(2016), 1.januar(2016), 175739),
         GarantipensjonFactory.Garantipensjonsendring(1.mai(2016), 1.mai(2016), 179748),
         GarantipensjonFactory.Garantipensjonsendring(1.mai(2017), 1.mai(2017), 180744),
@@ -79,37 +93,50 @@ class SatsFactoryForSupplerendeStønad(
         GarantipensjonFactory.Garantipensjonsendring(1.mai(2020), 4.september(2020), 192125),
         GarantipensjonFactory.Garantipensjonsendring(1.mai(2021), 21.mai(2021), 202425),
         GarantipensjonFactory.Garantipensjonsendring(1.mai(2022), 20.mai(2022), 209571),
-    ),
-    private val minsteÅrligYtelseForUføretrygdedeOrdinær: List<MinsteÅrligYtelseForUføretrygdedeFactory.MinsteÅrligYtelseForUføretrygdedeEndring> = listOf(
+    ).also {
+        it.map { it.ikrafttredelse }.erSortertOgUtenDuplikater()
+        // Dersom vi får duplikate virkningstidspunkter i loven, vil vi måtte skrive om blant annet periodiser-funksjonen.
+        it.map { it.virkningstidspunkt }.erSortertOgUtenDuplikater()
+    },
+    private val minsteÅrligYtelseForUføretrygdedeOrdinær: Nel<MinsteÅrligYtelseForUføretrygdedeFactory.MinsteÅrligYtelseForUføretrygdedeEndring> = nonEmptyListOf(
         // https://lovdata.no/dokument/LTI/lov/2011-12-16-59 kunngjort 16.12.2011 kl. 15.40. Trådde i kraft 2015-01-01: https://lovdata.no/dokument/LTI/forskrift/2014-06-20-797 (kunngjort 23.06.2014 kl. 16.00)
         MinsteÅrligYtelseForUføretrygdedeFactory.MinsteÅrligYtelseForUføretrygdedeEndring(
             virkningstidspunkt = 1.januar(2015),
             ikrafttredelse = 1.januar(2015),
             faktor = Faktor(2.28),
         ),
-    ),
-    private val minsteÅrligYtelseForUføretrygdedeHøy: List<MinsteÅrligYtelseForUføretrygdedeFactory.MinsteÅrligYtelseForUføretrygdedeEndring> = listOf(
+    ).also {
+        it.map { it.ikrafttredelse }.erSortertOgUtenDuplikater()
+        // Dersom vi får duplikate virkningstidspunkter i loven, vil vi måtte skrive om blant annet periodiser-funksjonen.
+        it.map { it.virkningstidspunkt }.erSortertOgUtenDuplikater()
+    },
+    private val minsteÅrligYtelseForUføretrygdedeHøy: Nel<MinsteÅrligYtelseForUføretrygdedeFactory.MinsteÅrligYtelseForUføretrygdedeEndring> = nonEmptyListOf(
         // https://lovdata.no/dokument/LTI/lov/2011-12-16-59 kunngjort 16.12.2011 kl. 15.40 Trådde i kraft 2015-01-01: https://lovdata.no/dokument/LTI/forskrift/2014-06-20-797 (kunngjort 23.06.2014 kl. 16.00)
         MinsteÅrligYtelseForUføretrygdedeFactory.MinsteÅrligYtelseForUføretrygdedeEndring(
             virkningstidspunkt = 1.januar(2015),
             ikrafttredelse = 1.januar(2015),
             faktor = Faktor(2.48),
         ),
-    ),
+    ).also {
+        it.map { it.ikrafttredelse }.erSortertOgUtenDuplikater()
+        // Dersom vi får duplikate virkningstidspunkter i loven, vil vi måtte skrive om blant annet periodiser-funksjonen.
+        it.map { it.virkningstidspunkt }.erSortertOgUtenDuplikater()
+    },
 ) {
     private fun getOrAdd(påDato: LocalDate): SatsFactoryForSupplerendeStønadPåDato {
-        val grunnbeløpFactoryPåDato = GrunnbeløpFactory(
-            påDato = påDato,
-            grunnbeløpsendringer = grunnbeløpsendringer,
-        )
-        val minsteÅrligYtelseForUføretrygdedeFactoryPåDato =
-            MinsteÅrligYtelseForUføretrygdedeFactory.createFromFaktorer(
-                ordinær = minsteÅrligYtelseForUføretrygdedeOrdinær,
-                høy = minsteÅrligYtelseForUføretrygdedeHøy,
-                påDato = påDato,
 
-            )
         return datoTilFactory.getOrPut(påDato) {
+            val grunnbeløpFactoryPåDato = GrunnbeløpFactory(
+                påDato = påDato,
+                grunnbeløpsendringer = grunnbeløpsendringer,
+            )
+            val minsteÅrligYtelseForUføretrygdedeFactoryPåDato =
+                MinsteÅrligYtelseForUføretrygdedeFactory.createFromFaktorer(
+                    ordinær = minsteÅrligYtelseForUføretrygdedeOrdinær,
+                    høy = minsteÅrligYtelseForUføretrygdedeHøy,
+                    påDato = påDato,
+
+                )
             SatsFactoryForSupplerendeStønadPåDato(
                 grunnbeløpFactory = grunnbeløpFactoryPåDato,
                 formuegrenserFactory = FormuegrenserFactory.createFromGrunnbeløp(
@@ -174,14 +201,14 @@ class SatsFactoryForSupplerendeStønad(
     }
 
     private fun List<Grunnbeløpsendring>.gjeldende(påDato: LocalDate): Grunnbeløpsendring {
-        return sortedBy { it.ikrafttredelse }.last { it.ikrafttredelse <= påDato }
+        return this.last { it.ikrafttredelse <= påDato }
     }
 
     private fun List<GarantipensjonFactory.Garantipensjonsendring>.gjeldende(påDato: LocalDate): GarantipensjonFactory.Garantipensjonsendring {
-        return sortedBy { it.ikrafttredelse }.last { it.ikrafttredelse <= påDato }
+        return this.last { it.ikrafttredelse <= påDato }
     }
 
     private fun List<MinsteÅrligYtelseForUføretrygdedeFactory.MinsteÅrligYtelseForUføretrygdedeEndring>.gjeldende(påDato: LocalDate): MinsteÅrligYtelseForUføretrygdedeFactory.MinsteÅrligYtelseForUføretrygdedeEndring {
-        return sortedBy { it.ikrafttredelse }.last { it.ikrafttredelse <= påDato }
+        return this.last { it.ikrafttredelse <= påDato }
     }
 }

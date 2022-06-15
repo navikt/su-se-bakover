@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.grunnbeløp
 
+import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
@@ -12,7 +13,7 @@ import java.time.LocalDate
 internal class GrunnbeløpFactoryTest {
 
     private val factory = SatsFactoryForSupplerendeStønad(
-        grunnbeløpsendringer = listOf(
+        grunnbeløpsendringer = nonEmptyListOf(
             Grunnbeløpsendring(1.mai(2005), 1.mai(2005), 60699),
             Grunnbeløpsendring(1.mai(2006), 1.mai(2006), 62892),
             Grunnbeløpsendring(1.mai(2007), 1.mai(2007), 66812),
