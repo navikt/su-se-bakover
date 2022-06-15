@@ -3,13 +3,13 @@ package no.nav.su.se.bakover.database.grunnlag
 import arrow.core.Nel
 import arrow.core.getOrHandle
 import kotliquery.Row
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.TransactionalSession
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
+import no.nav.su.se.bakover.database.periode
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUtenlandsopphold
@@ -69,7 +69,7 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepo(
                     "opprettet" to vurderingsperiode.opprettet,
                     "behandlingId" to behandlingId,
                     "grunnlag_utland_id" to vurderingsperiode.grunnlag?.id,
-                    "resultat" to vurderingsperiode.resultat.toDto().toString(),
+                    "resultat" to vurderingsperiode.resultat.toDto(),
                     "fraOgMed" to vurderingsperiode.periode.fraOgMed,
                     "tilOgMed" to vurderingsperiode.periode.tilOgMed,
                 ),
@@ -121,10 +121,7 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepo(
             grunnlag = uuidOrNull("grunnlag_utland_id")?.let {
                 utenlandsoppholdgrunnlagRepo.hent(it, session)
             },
-            periode = Periode.create(
-                fraOgMed = localDate("fraOgMed"),
-                tilOgMed = localDate("tilOgMed"),
-            ),
+            periode = periode("fraOgMed", "tilOgMed")
         )
     }
 }

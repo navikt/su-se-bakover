@@ -38,6 +38,7 @@ internal class LeggTilPensjonsVilkårIT {
                         SharedRegressionTestData.epsFnr,
                     )
                     }]",
+                    expectedSakstype = "ALDER",
                 )
 
                 nySøknadsbehandling(
@@ -53,6 +54,7 @@ internal class LeggTilPensjonsVilkårIT {
                         expectedSøknad = JSONObject(nyBehandlingResponse).getJSONObject("søknad").toString(),
                         expectedSakId = sakId,
                         expectedGrunnlagsdataOgVilkårsvurderinger = tomGrunnlagsdataOgVilkårsvurderingerResponse(),
+                        expectedSakstype = "ALDER",
                     )
 
                     val fraOgMed: String = 1.januar(2022).toString()

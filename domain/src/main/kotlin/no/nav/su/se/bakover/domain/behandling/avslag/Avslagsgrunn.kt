@@ -46,7 +46,7 @@ enum class Avslagsgrunn {
         INNLAGT_PÅ_INSTITUSJON -> listOf(12)
         MANGLENDE_DOKUMENTASJON -> listOf(18)
         SØKNAD_MANGLER_DOKUMENTASJON -> listOf(18)
-        PENSJON -> listOf(3)
+        PENSJON -> listOf(3) //TODO("finn ut om denne er korrekt")
     }
 
     fun tilOpphørsgrunn(): Opphørsgrunn {
@@ -63,7 +63,7 @@ enum class Avslagsgrunn {
             INNLAGT_PÅ_INSTITUSJON -> TODO()
             MANGLENDE_DOKUMENTASJON -> Opphørsgrunn.MANGLENDE_DOKUMENTASJON
             SØKNAD_MANGLER_DOKUMENTASJON -> TODO()
-            PENSJON -> TODO()
+            PENSJON -> TODO("Gjør det mulig å revurdere vilkåret + brev + etc")
         }
     }
 }

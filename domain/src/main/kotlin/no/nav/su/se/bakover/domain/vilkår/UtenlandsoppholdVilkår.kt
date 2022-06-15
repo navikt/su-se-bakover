@@ -108,7 +108,7 @@ sealed class UtenlandsoppholdVilkår : Vilkår() {
         }
 
         override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): UtenlandsoppholdVilkår {
-            check(vurderingsperioder.count() == 1) { "Kan ikke oppdatere stønadsperiode for vilkår med med enn èn vurdering" }
+            check(vurderingsperioder.count() == 1) { "Kan ikke oppdatere stønadsperiode for vilkår med med enn én vurdering" }
             return copy(
                 vurderingsperioder = vurderingsperioder.map {
                     it.oppdaterStønadsperiode(stønadsperiode)

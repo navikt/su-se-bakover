@@ -49,6 +49,8 @@ sealed class PensjonsVilkår : Vilkår() {
         val vurderingsperioder: Nel<VurderingsperiodePensjon>,
     ) : PensjonsVilkår() {
 
+        //TODO("init som sjekker at perioder og stuff ikke overlapper - funksjonalitet fra Johns pr på innstrammende inits")
+
         override val grunnlag: List<Pensjonsgrunnlag> = vurderingsperioder.mapNotNull { it.grunnlag }
         override fun lagTidslinje(periode: Periode): PensjonsVilkår {
             return copy(
@@ -113,7 +115,7 @@ sealed class PensjonsVilkår : Vilkår() {
         }
 
         override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): PensjonsVilkår {
-            check(vurderingsperioder.count() == 1) { "Kan ikke oppdatere stønadsperiode for vilkår med med enn èn vurdering" }
+            check(vurderingsperioder.count() == 1) { "Kan ikke oppdatere stønadsperiode for vilkår med med enn én vurdering" }
             return copy(
                 vurderingsperioder = vurderingsperioder.map {
                     it.oppdaterStønadsperiode(stønadsperiode)
@@ -131,7 +133,7 @@ data class VurderingsperiodePensjon private constructor(
     override val id: UUID = UUID.randomUUID(),
     override val opprettet: Tidspunkt,
     override val resultat: Resultat,
-    override val grunnlag: Pensjonsgrunnlag?,
+    override val grunnlag: Pensjonsgrunnlag?, //TODO("forsøk å unngå null når vi har funnet ut hva grunnlaget skal inneholde")
     override val periode: Periode,
 ) : Vurderingsperiode(), KanPlasseresPåTidslinje<VurderingsperiodePensjon> {
 

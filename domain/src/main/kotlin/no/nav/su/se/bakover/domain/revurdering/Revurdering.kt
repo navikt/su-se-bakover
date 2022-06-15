@@ -210,11 +210,10 @@ sealed class Revurdering :
         if (!periode.fullstendigOverlapp(vilkår.minsteAntallSammenhengendePerioder())) {
             return KunneIkkeLeggeTilPensjonsVilkår.HeleBehandlingsperiodenErIkkeVurdert.left()
         }
-        TODO("legg til sakstype på revurdering og sjekk at det er alder")
-        // if(Sakstype.ALDER != sakstype){
-        //     return KunneIkkeLeggeTilPensjonsVilkår.VilkårKunRelevantForAlder.left()
-        // }
-        // oppdaterVilkårsvurderinger(vilkårsvurderinger = vilkårsvurderinger.leggTil(vilkår)).right()
+        if (Sakstype.ALDER != sakstype) {
+            return KunneIkkeLeggeTilPensjonsVilkår.VilkårKunRelevantForAlder.left()
+        }
+        return oppdaterVilkårsvurderinger(vilkårsvurderinger = vilkårsvurderinger.leggTil(vilkår)).right()
     }
 
     open fun oppdaterBosituasjonOgMarkerSomVurdert(bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>): Either<KunneIkkeLeggeTilBosituasjon, OpprettetRevurdering> =
@@ -604,6 +603,10 @@ data class OpprettetRevurdering(
     override fun oppdaterFradragOgMarkerSomVurdert(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>) =
         oppdaterFradragOgMarkerSomVurdertInternal(fradragsgrunnlag)
 
+    override fun oppdaterPensjonsvilkårOgMarkerSomVurdert(vilkår: PensjonsVilkår.Vurdert): Either<KunneIkkeLeggeTilPensjonsVilkår, OpprettetRevurdering> {
+        return oppdaterPensjonsVilkårOgMarkerSomVurdertInternal(vilkår)
+    }
+
     override fun oppdaterBosituasjonOgMarkerSomVurdert(bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>) =
         oppdaterBosituasjonOgMarkerSomVurdertInternal(bosituasjon)
 
@@ -657,6 +660,10 @@ sealed class BeregnetRevurdering : Revurdering() {
 
     override fun oppdaterFradragOgMarkerSomVurdert(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>) =
         oppdaterFradragOgMarkerSomVurdertInternal(fradragsgrunnlag)
+
+    override fun oppdaterPensjonsvilkårOgMarkerSomVurdert(vilkår: PensjonsVilkår.Vurdert): Either<KunneIkkeLeggeTilPensjonsVilkår, OpprettetRevurdering> {
+        return oppdaterPensjonsVilkårOgMarkerSomVurdertInternal(vilkår)
+    }
 
     override fun oppdaterFradrag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradrag, OpprettetRevurdering> {
         return oppdaterFradragInternal(fradragsgrunnlag)
@@ -1100,6 +1107,10 @@ sealed class SimulertRevurdering : Revurdering() {
 
     override fun oppdaterFradragOgMarkerSomVurdert(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>) =
         oppdaterFradragOgMarkerSomVurdertInternal(fradragsgrunnlag)
+
+    override fun oppdaterPensjonsvilkårOgMarkerSomVurdert(vilkår: PensjonsVilkår.Vurdert): Either<KunneIkkeLeggeTilPensjonsVilkår, OpprettetRevurdering> {
+        return oppdaterPensjonsVilkårOgMarkerSomVurdertInternal(vilkår)
+    }
 
     override fun oppdaterBosituasjonOgMarkerSomVurdert(bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>) =
         oppdaterBosituasjonOgMarkerSomVurdertInternal(bosituasjon)
@@ -1840,6 +1851,10 @@ sealed class UnderkjentRevurdering : Revurdering() {
 
     override fun oppdaterFradragOgMarkerSomVurdert(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>) =
         oppdaterFradragOgMarkerSomVurdertInternal(fradragsgrunnlag)
+
+    override fun oppdaterPensjonsvilkårOgMarkerSomVurdert(vilkår: PensjonsVilkår.Vurdert): Either<KunneIkkeLeggeTilPensjonsVilkår, OpprettetRevurdering> {
+        return oppdaterPensjonsVilkårOgMarkerSomVurdertInternal(vilkår)
+    }
 
     override fun oppdaterBosituasjonOgMarkerSomVurdert(bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>) =
         oppdaterBosituasjonOgMarkerSomVurdertInternal(bosituasjon)

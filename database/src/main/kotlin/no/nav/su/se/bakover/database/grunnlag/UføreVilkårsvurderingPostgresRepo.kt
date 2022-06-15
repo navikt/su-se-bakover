@@ -65,7 +65,7 @@ internal class UføreVilkårsvurderingPostgresRepo(
                     "behandlingId" to behandlingId,
                     "ufore_grunnlag_id" to vurderingsperiode.grunnlag?.id,
                     "vurdering" to "MANUELL",
-                    "resultat" to vurderingsperiode.resultat.toDto().toString(),
+                    "resultat" to vurderingsperiode.resultat.toDto(),
                     "fraOgMed" to vurderingsperiode.periode.fraOgMed,
                     "tilOgMed" to vurderingsperiode.periode.tilOgMed,
                 ),

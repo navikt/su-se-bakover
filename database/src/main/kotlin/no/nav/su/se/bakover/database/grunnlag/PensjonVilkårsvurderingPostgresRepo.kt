@@ -69,7 +69,7 @@ internal class PensjonVilkårsvurderingPostgresRepo(
                     "opprettet" to vurderingsperiode.opprettet,
                     "behandlingId" to behandlingId,
                     "grunnlag_id" to vurderingsperiode.grunnlag?.id,
-                    "resultat" to vurderingsperiode.resultat.toDto().toString(),
+                    "resultat" to vurderingsperiode.resultat.toDto(),
                     "fraOgMed" to vurderingsperiode.periode.fraOgMed,
                     "tilOgMed" to vurderingsperiode.periode.tilOgMed,
                 ),

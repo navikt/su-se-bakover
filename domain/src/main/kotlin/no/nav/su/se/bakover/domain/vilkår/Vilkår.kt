@@ -952,7 +952,7 @@ sealed class Vilkår {
                 stønadsperiode: Stønadsperiode,
                 formuegrenserFactory: FormuegrenserFactory,
             ): Formue {
-                check(vurderingsperioder.count() == 1) { "Kan ikke oppdatere stønadsperiode for vilkår med med enn èn vurdering" }
+                check(vurderingsperioder.count() == 1) { "Kan ikke oppdatere stønadsperiode for vilkår med med enn én vurdering" }
                 return this.copy(
                     vurderingsperioder = this.vurderingsperioder.map {
                         it.oppdaterStønadsperiode(stønadsperiode, formuegrenserFactory)

@@ -78,7 +78,7 @@ data class VurderOmBeregningGirOpphørVedRevurdering(
     private fun beregningGirOpphør(): OpphørVedRevurdering {
         return if (beregning.harAlleMånederMerknadForAvslag()) {
             beregning.finnFørsteMånedMedMerknadForAvslag()
-                .getOrHandle { throw IllegalStateException("Skal eksistere minste èn måned med avslag.") }
+                .getOrHandle { throw IllegalStateException("Skal eksistere minste én måned med avslag.") }
                 .let { (månedsberegning, merknad) ->
                     OpphørVedRevurdering.Ja(
                         opphørsgrunner = listOf(element = merknad.tilOpphørsgrunn()),

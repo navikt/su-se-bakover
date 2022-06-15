@@ -15,7 +15,7 @@ internal enum class ResultatDto {
 }
 
 internal fun Resultat.toDto() = when (this) {
-    Resultat.Avslag -> ResultatDto.AVSLAG
-    Resultat.Innvilget -> ResultatDto.INNVILGET
-    Resultat.Uavklart -> ResultatDto.UAVKLART
+    Resultat.Avslag -> ResultatDto.AVSLAG.toString()
+    Resultat.Innvilget -> ResultatDto.INNVILGET.toString()
+    Resultat.Uavklart -> ResultatDto.UAVKLART.toString()
 }
