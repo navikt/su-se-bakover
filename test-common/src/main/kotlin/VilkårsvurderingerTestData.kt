@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.test.vilkår.insitusjonsoppholdvilkårAvslag
 import no.nav.su.se.bakover.test.vilkår.insitusjonsoppholdvilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.lovligOppholdVilkårAvslag
 import no.nav.su.se.bakover.test.vilkår.lovligOppholdVilkårInnvilget
+import no.nav.su.se.bakover.test.vilkår.pensjonsVilkårAvslag
 import no.nav.su.se.bakover.test.vilkår.pensjonsVilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.tilstrekkeligDokumentert
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
@@ -55,6 +56,7 @@ fun vilkårsvurderingSøknadsbehandlingVurdertInnvilgetAlder() = Vilkårsvurderi
     personligOppmøte = personligOppmøtevilkårInnvilget(),
     opplysningsplikt = tilstrekkeligDokumentert(),
     familiegjenforening = familiegjenforeningVilkårInnvilget(),
+    pensjon = pensjonsVilkårInnvilget(),
 )
 
 fun vilkårsvurderingSøknadsbehandlingVurdertAvslagAlder() = Vilkårsvurderinger.Søknadsbehandling.Alder(
@@ -66,6 +68,7 @@ fun vilkårsvurderingSøknadsbehandlingVurdertAvslagAlder() = Vilkårsvurderinge
     personligOppmøte = personligOppmøtevilkårAvslag(),
     opplysningsplikt = utilstrekkeligDokumentert(),
     familiegjenforening = familiegjenforeningVilkårAvslag(),
+    pensjon = pensjonsVilkårAvslag(),
 )
 
 fun vilkårsvurderingRevurderingIkkeVurdert() = Vilkårsvurderinger.Revurdering.Uføre.ikkeVurdert()

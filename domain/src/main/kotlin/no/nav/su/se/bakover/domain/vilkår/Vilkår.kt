@@ -399,7 +399,7 @@ sealed class Vilkårsvurderinger {
             override val personligOppmøte: PersonligOppmøteVilkår,
             override val opplysningsplikt: OpplysningspliktVilkår,
             val familiegjenforening: FamiliegjenforeningVilkår,
-            val pensjon: PensjonsVilkår,
+            val pensjon: PensjonsVilkår = PensjonsVilkår.IkkeVurdert,
         ) : Søknadsbehandling() {
             override val vilkår: Set<Vilkår> = setOf(
                 formue,
