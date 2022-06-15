@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Fagområde
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.oversendtUtbetalingUtenKvittering
 import org.hamcrest.MatcherAssert
@@ -30,6 +31,7 @@ internal class KonsistensavstemmingXmlMappingTest {
             utbetaling,
         ),
         avstemmingXmlRequest = null,
+        fagområde = Fagområde.SUUFORE,
     )
 
     private val requestBuilder = KonsistensavstemmingRequestBuilder(avstemming = avstemming)

@@ -681,7 +681,7 @@ internal class RevurderingServiceImpl(
                     }
                     is BeregnetRevurdering.Innvilget -> {
                         utbetalingService.simulerUtbetaling(
-                            request = SimulerUtbetalingRequest.NyUtbetaling(
+                            request = SimulerUtbetalingRequest.NyUtbetaling.Uføre(
                                 sakId = beregnetRevurdering.sakId,
                                 saksbehandler = saksbehandler,
                                 beregning = beregnetRevurdering.beregning,
@@ -1232,7 +1232,7 @@ internal class RevurderingServiceImpl(
                 }.flatMap { iverksattRevurdering ->
                     utbetalingService.verifiserOgSimulerUtbetaling(
                         request = UtbetalRequest.NyUtbetaling(
-                            request = SimulerUtbetalingRequest.NyUtbetaling(
+                            request = SimulerUtbetalingRequest.NyUtbetaling.Uføre(
                                 sakId = revurdering.sakId,
                                 saksbehandler = attestant,
                                 beregning = revurdering.beregning,

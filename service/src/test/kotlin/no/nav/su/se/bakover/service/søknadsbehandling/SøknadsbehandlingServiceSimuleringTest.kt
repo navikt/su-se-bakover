@@ -87,7 +87,7 @@ internal class SøknadsbehandlingServiceSimuleringTest {
 
         verify(søknadsbehandlingRepoMock).hent(beregnetBehandling.id)
         verify(utbetalingServiceMock).simulerUtbetaling(
-            request = SimulerUtbetalingRequest.NyUtbetaling(
+            request = SimulerUtbetalingRequest.NyUtbetaling.Uføre(
                 sakId = beregnetBehandling.sakId,
                 saksbehandler = saksbehandler,
                 beregning = beregnetBehandling.beregning,
@@ -134,13 +134,14 @@ internal class SøknadsbehandlingServiceSimuleringTest {
             SøknadsbehandlingService.SimulerRequest(beregnetBehandling.id, saksbehandler),
         )
 
-        response shouldBe SøknadsbehandlingService.KunneIkkeSimulereBehandling.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL)
-            .left()
+        response shouldBe SøknadsbehandlingService.KunneIkkeSimulereBehandling.KunneIkkeSimulere(
+            Søknadsbehandling.KunneIkkeSimulereBehandling.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL),
+        ).left()
 
         verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe beregnetBehandling.id })
 
         verify(utbetalingServiceMock).simulerUtbetaling(
-            request = SimulerUtbetalingRequest.NyUtbetaling(
+            request = SimulerUtbetalingRequest.NyUtbetaling.Uføre(
                 sakId = beregnetBehandling.sakId,
                 saksbehandler = saksbehandler,
                 beregning = beregnetBehandling.beregning,
@@ -195,16 +196,17 @@ internal class SøknadsbehandlingServiceSimuleringTest {
         opprettet = fixedTidspunkt,
         sakId = sakId,
         saksnummer = saksnummer,
+        fnr = fnr,
         utbetalingslinjer = nonEmptyListOf(
             utbetalingslinje(
                 periode = januar(2021),
                 beløp = 0,
             ),
         ),
-        fnr = fnr,
         type = Utbetaling.UtbetalingsType.NY,
         behandler = Attestant("SU"),
         avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt),
+        sakstype = Sakstype.UFØRE,
     )
 
     private val simulertUtbetaling = utbetalingForSimulering.toSimulertUtbetaling(simulering)

@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.periode.oktober
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -242,8 +243,8 @@ internal class SimuleringSoapClientTest {
 
         val utenBeløp = Utbetaling.UtbetalingForSimulering(
             opprettet = fixedTidspunkt,
-            saksnummer = saksnummer,
             sakId = sakId,
+            saksnummer = saksnummer,
             fnr = FNR,
             utbetalingslinjer = nonEmptyListOf(
                 utbetalingslinje(
@@ -254,6 +255,7 @@ internal class SimuleringSoapClientTest {
             type = Utbetaling.UtbetalingsType.NY,
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt),
+            sakstype = Sakstype.UFØRE,
         )
 
         simuleringService.simulerUtbetaling(
@@ -280,16 +282,17 @@ internal class SimuleringSoapClientTest {
         opprettet = fixedTidspunkt,
         sakId = sakId,
         saksnummer = saksnummer,
+        fnr = Fnr("12345678910"),
         utbetalingslinjer = nonEmptyListOf(
             utbetalingslinje(
                 periode = år(2020),
                 beløp = 405,
             ),
         ),
-        fnr = Fnr("12345678910"),
         type = Utbetaling.UtbetalingsType.NY,
         behandler = NavIdentBruker.Saksbehandler("Z123"),
         avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt),
+        sakstype = Sakstype.UFØRE,
     )
 
     private fun okSimuleringResponse() = SimulerBeregningResponse().apply {

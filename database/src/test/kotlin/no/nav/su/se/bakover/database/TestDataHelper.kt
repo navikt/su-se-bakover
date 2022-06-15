@@ -45,6 +45,7 @@ import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
@@ -119,6 +120,7 @@ import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
 import no.nav.su.se.bakover.test.grunnlagsdataMedEpsMedFradrag
 import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
+import no.nav.su.se.bakover.test.simulerNyUtbetaling
 import no.nav.su.se.bakover.test.simulertUtbetaling
 import no.nav.su.se.bakover.test.simulertUtbetalingOpphør
 import no.nav.su.se.bakover.test.stønadsperiode2021
@@ -167,7 +169,7 @@ internal val avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt)
 
 internal fun utbetalingslinje(
     periode: Periode = stønadsperiode2021.periode,
-    kjøreplan: UtbetalingsinstruksjonForEtterbetalinger = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig
+    kjøreplan: UtbetalingsinstruksjonForEtterbetalinger = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
 ): Utbetalingslinje.Ny {
     return no.nav.su.se.bakover.test.utbetalingslinje(
         periode = periode,
@@ -216,7 +218,7 @@ internal fun oversendtUtbetalingUtenKvittering(
     utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(utbetalingslinje()),
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.database.avstemmingsnøkkel,
 ): Utbetaling.OversendtUtbetaling.UtenKvittering {
-    return Utbetaling.OversendtUtbetaling.UtenKvittering(
+    return Utbetaling.UtbetalingForSimulering(
         id = id,
         opprettet = fixedTidspunkt,
         sakId = sakId,
@@ -226,8 +228,11 @@ internal fun oversendtUtbetalingUtenKvittering(
         type = Utbetaling.UtbetalingsType.NY,
         behandler = attestant,
         avstemmingsnøkkel = avstemmingsnøkkel,
+        sakstype = Sakstype.UFØRE, // TODO("simulering_utbetaling_alder utled fra sak/behandling")
+    ).toSimulertUtbetaling(
         simulering = simulering(fnr),
-        utbetalingsrequest = Utbetalingsrequest("<xml></xml>"),
+    ).toOversendtUtbetaling(
+        oppdragsmelding = Utbetalingsrequest("<xml></xml>"),
     )
 }
 
@@ -1347,12 +1352,21 @@ internal class TestDataHelper(
             behandlingsinformasjon = behandlingsinformasjon,
             vilkårsvurderinger = vilkårsvurderinger,
             grunnlagsdata = grunnlagsdata,
-        ).let {
-            it.second.tilSimulert(simulering(it.second.fnr))
-        }.let {
-            søknadsbehandlingRepo.lagre(it)
-            Pair(sakRepo.hentSak(sakId)!!, it)
-        }
+        ).let { (sak, beregnet) ->
+            beregnet.simuler(
+                saksbehandler = saksbehandler,
+            ) {
+                simulerNyUtbetaling(
+                    sak = sak,
+                    request = it,
+                    clock = fixedClock,
+                )
+            }
+        }.getOrFail()
+            .let {
+                søknadsbehandlingRepo.lagre(it)
+                Pair(sakRepo.hentSak(sakId)!!, it)
+            }
     }
 
     internal fun persisterSøknadsbehandlingTilAttesteringInnvilget(

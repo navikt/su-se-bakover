@@ -183,9 +183,7 @@ sealed class Aksjonsdata {
     @Suppress("unused")
     protected val avleverendeKomponentKode: String = OppdragDefaults.KODE_KOMPONENT
 
-    @JacksonXmlProperty
-    @Suppress("unused")
-    protected val underkomponentKode: String = OppdragDefaults.KODE_FAGOMRÅDE
+    abstract val underkomponentKode: String
 
     abstract val aksjonType: AksjonType
     abstract val avstemmingType: AvstemmingType
@@ -215,6 +213,7 @@ sealed class Aksjonsdata {
     }
 
     internal data class Grensesnittsavstemming(
+        override val underkomponentKode: String,
         override val aksjonType: AksjonType = AksjonType.DATA,
         override val avleverendeAvstemmingId: String,
         val nokkelFom: String,
@@ -233,6 +232,7 @@ sealed class Aksjonsdata {
     }
 
     internal data class Konsistensavstemming(
+        override val underkomponentKode: String,
         override val aksjonType: AksjonType = AksjonType.DATA,
         override val avleverendeAvstemmingId: String,
         val tidspunktAvstemmingTom: String,

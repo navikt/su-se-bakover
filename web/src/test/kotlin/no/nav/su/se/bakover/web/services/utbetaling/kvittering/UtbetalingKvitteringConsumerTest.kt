@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -44,10 +45,11 @@ import org.mockito.kotlin.verify
 internal class UtbetalingKvitteringConsumerTest {
 
     private val avstemmingsnøkkel = Avstemmingsnøkkel.fromString(avstemmingsnøkkelIXml)
-    private val utbetalingUtenKvittering = Utbetaling.OversendtUtbetaling.UtenKvittering(
+    private val utbetalingUtenKvittering = Utbetaling.UtbetalingForSimulering(
         opprettet = fixedTidspunkt,
         sakId = sakId,
         saksnummer = saksnummer,
+        fnr = Fnr.generer(),
         utbetalingslinjer = nonEmptyListOf(
             Utbetalingslinje.Ny(
                 id = UUID30.randomUUID(),
@@ -59,8 +61,11 @@ internal class UtbetalingKvitteringConsumerTest {
                 uføregrad = Uføregrad.parse(50),
             ),
         ),
-        fnr = Fnr.generer(),
-        utbetalingsrequest = Utbetalingsrequest(""),
+        type = Utbetaling.UtbetalingsType.NY,
+        behandler = NavIdentBruker.Attestant("Z123"),
+        avstemmingsnøkkel = avstemmingsnøkkel,
+        sakstype = Sakstype.UFØRE,
+    ).toSimulertUtbetaling(
         simulering = Simulering(
             gjelderId = Fnr("12345678910"),
             gjelderNavn = "navn",
@@ -68,13 +73,13 @@ internal class UtbetalingKvitteringConsumerTest {
             nettoBeløp = 0,
             periodeList = listOf(),
         ),
-        type = Utbetaling.UtbetalingsType.NY,
-        behandler = NavIdentBruker.Attestant("Z123"),
+    ).toOversendtUtbetaling(
+        oppdragsmelding = Utbetalingsrequest(""),
     )
     private val kvittering = Kvittering(
         utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
         originalKvittering = "<xmlMessage>",
-        mottattTidspunkt = Tidspunkt.now(fixedClock)
+        mottattTidspunkt = Tidspunkt.now(fixedClock),
     )
 
     @Test
@@ -95,7 +100,12 @@ internal class UtbetalingKvitteringConsumerTest {
     @Test
     fun `kaster exception hvis vi ikke klarer å oppdatere vedtak`() {
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { oppdaterMedKvittering(eq(avstemmingsnøkkel), any()) } doReturn utbetalingUtenKvittering.toKvittertUtbetaling(kvittering).right()
+            on {
+                oppdaterMedKvittering(
+                    eq(avstemmingsnøkkel),
+                    any(),
+                )
+            } doReturn utbetalingUtenKvittering.toKvittertUtbetaling(kvittering).right()
         }
         val ferdigstillVedtakServiceMock = mock<FerdigstillVedtakService> {
             on { ferdigstillVedtakEtterUtbetaling(any()) } doReturn FantIkkeVedtakForUtbetalingId(UUID30.randomUUID()).left()
@@ -113,14 +123,13 @@ internal class UtbetalingKvitteringConsumerTest {
     @Test
     fun `kaster videre eventuelle exceptions fra kall til ferdigstill`() {
         val xmlMessage = kvitteringXml(UtbetalingKvitteringResponse.Alvorlighetsgrad.OK)
-        val utbetaling = utbetalingUtenKvittering.copy(type = Utbetaling.UtbetalingsType.NY)
 
         val kvittering = Kvittering(
             utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
             originalKvittering = xmlMessage,
             mottattTidspunkt = fixedTidspunkt,
         )
-        val utbetalingMedKvittering = utbetaling.toKvittertUtbetaling(kvittering)
+        val utbetalingMedKvittering = utbetalingUtenKvittering.toKvittertUtbetaling(kvittering)
 
         val utbetalingServiceMock = mock<UtbetalingService> {
             on { oppdaterMedKvittering(any(), any()) } doReturn utbetalingMedKvittering.right()
@@ -140,11 +149,11 @@ internal class UtbetalingKvitteringConsumerTest {
 
         verify(utbetalingServiceMock).oppdaterMedKvittering(
             avstemmingsnøkkel = argThat { it shouldBe avstemmingsnøkkel },
-            kvittering = argThat { it shouldBe kvittering }
+            kvittering = argThat { it shouldBe kvittering },
         )
 
         verify(ferdigstillVedtakServiceMock).ferdigstillVedtakEtterUtbetaling(
-            argThat { it shouldBe utbetalingMedKvittering }
+            argThat { it shouldBe utbetalingMedKvittering },
         )
     }
 }

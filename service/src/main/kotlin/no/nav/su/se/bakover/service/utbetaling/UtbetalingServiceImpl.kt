@@ -127,6 +127,7 @@ internal class UtbetalingServiceImpl(
             behandler = request.saksbehandler,
             opphørsDato = request.opphørsdato,
             clock = clock,
+            sakstype = sak.type,
         ).generate()
 
         val simuleringsperiode = Periode.create(
@@ -168,17 +169,50 @@ internal class UtbetalingServiceImpl(
     ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
         val sak: Sak = sakService.hentSak(request.sakId).orNull()!!
 
-        val utbetaling = Utbetalingsstrategi.Ny(
-            sakId = sak.id,
-            saksnummer = sak.saksnummer,
-            fnr = sak.fnr,
-            utbetalinger = sak.utbetalinger,
-            behandler = request.saksbehandler,
-            beregning = request.beregning,
-            uføregrunnlag = request.uføregrunnlag,
-            clock = clock,
-            kjøreplan = request.utbetalingsinstruksjonForEtterbetaling,
-        ).generate()
+        fun lagUtbetalingAlder(request: SimulerUtbetalingRequest.NyUtbetaling.Alder): Utbetaling.UtbetalingForSimulering {
+            TODO("simulering_utbetaling_alder deaktivert inntil videre")
+            // return Utbetalingsstrategi.NyAldersUtbetaling(
+            //     sakId = sak.id,
+            //     saksnummer = sak.saksnummer,
+            //     fnr = sak.fnr,
+            //     utbetalinger = sak.utbetalinger,
+            //     behandler = request.saksbehandler,
+            //     beregning = request.beregning,
+            //     clock = clock,
+            //     kjøreplan = request.utbetalingsinstruksjonForEtterbetaling,
+            //     sakstype = sak.type,
+            // ).generate()
+        }
+
+        fun lagUtbetalingUføre(request: SimulerUtbetalingRequest.NyUtbetaling.Uføre): Utbetaling.UtbetalingForSimulering {
+            return Utbetalingsstrategi.NyUføreUtbetaling(
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+                fnr = sak.fnr,
+                utbetalinger = sak.utbetalinger,
+                behandler = request.saksbehandler,
+                beregning = request.beregning,
+                uføregrunnlag = request.uføregrunnlag,
+                clock = clock,
+                kjøreplan = request.utbetalingsinstruksjonForEtterbetaling,
+                sakstype = sak.type,
+            ).generate()
+        }
+
+        val utbetaling = when (request) {
+            is SimulerUtbetalingRequest.NyUtbetaling.Alder -> {
+                lagUtbetalingAlder(request)
+            }
+            is SimulerUtbetalingRequest.NyUtbetaling.Uføre -> {
+                lagUtbetalingUføre(request)
+            }
+            is UtbetalRequest.NyUtbetaling -> {
+                when (val inner = request.request) {
+                    is SimulerUtbetalingRequest.NyUtbetaling.Alder -> lagUtbetalingAlder(inner)
+                    is SimulerUtbetalingRequest.NyUtbetaling.Uføre -> lagUtbetalingUføre(inner)
+                }
+            }
+        }
 
         val simuleringsperiode = request.beregning.periode
 
@@ -239,6 +273,7 @@ internal class UtbetalingServiceImpl(
             behandler = request.saksbehandler,
             stansDato = request.stansdato,
             clock = clock,
+            sakstype = sak.type,
         ).generer()
             .getOrHandle {
                 return SimulerStansFeilet.KunneIkkeGenerereUtbetaling(it).left()
@@ -300,6 +335,7 @@ internal class UtbetalingServiceImpl(
             utbetalinger = request.sak.utbetalinger,
             behandler = request.saksbehandler,
             clock = clock,
+            sakstype = request.sak.type,
         ).generer()
             .getOrHandle { return SimulerGjenopptakFeil.KunneIkkeGenerereUtbetaling(it).left() }
 

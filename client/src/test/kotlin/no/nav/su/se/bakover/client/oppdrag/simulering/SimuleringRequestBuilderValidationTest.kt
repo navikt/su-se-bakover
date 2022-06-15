@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingForPeriode
@@ -38,8 +39,9 @@ internal class SimuleringRequestBuilderValidationTest {
             request = SimulerUtbetalingForPeriode(
                 utbetaling = Utbetaling.UtbetalingForSimulering(
                     opprettet = fixedTidspunkt,
-                    saksnummer = saksnummer,
                     sakId = sakId,
+                    saksnummer = saksnummer,
+                    fnr = Fnr("12345678910"),
                     utbetalingslinjer = nonEmptyListOf(
                         utbetalingslinje(
                             periode = januar(2020),
@@ -47,11 +49,11 @@ internal class SimuleringRequestBuilderValidationTest {
                             forrigeUtbetalingslinjeId = eksisterendeOppdragslinjeid,
                         ),
                     ),
-                    fnr = Fnr("12345678910"),
                     type = Utbetaling.UtbetalingsType.NY,
 
                     behandler = NavIdentBruker.Saksbehandler("Z123"),
                     avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt),
+                    sakstype = Sakstype.UFØRE,
                 ),
                 simuleringsperiode = januar(2020),
             ),

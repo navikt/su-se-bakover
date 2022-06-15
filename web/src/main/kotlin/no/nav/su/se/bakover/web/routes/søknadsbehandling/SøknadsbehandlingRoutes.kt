@@ -34,7 +34,6 @@ import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLageBrev
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeOpprette
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeSendeTilAttestering
-import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeSimulereBehandling
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeUnderkjenne
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeVilkårsvurdere
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.OpprettRequest
@@ -375,11 +374,7 @@ internal fun Route.søknadsbehandlingRoutes(
                     ),
                 ).fold(
                     {
-                        val resultat = when (it) {
-                            KunneIkkeSimulereBehandling.FantIkkeBehandling -> fantIkkeBehandling
-                            is KunneIkkeSimulereBehandling.KunneIkkeSimulere -> it.simuleringFeilet.tilResultat()
-                        }
-                        call.svar(resultat)
+                        call.svar(it.tilResultat())
                     },
                     {
                         call.sikkerlogg("Oppdatert simulering for behandling med id $behandlingId")

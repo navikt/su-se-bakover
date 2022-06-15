@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.database.uuid30
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -25,7 +26,7 @@ import java.util.UUID
 
 internal object UtbetalingInternalRepo {
     fun hentUtbetalingInternal(utbetalingId: UUID30, session: Session): Utbetaling.OversendtUtbetaling? =
-        "select u.*, s.saksnummer from utbetaling u inner join sak s on s.id = u.sakId where u.id = :id".hent(
+        "select u.*, s.saksnummer, s.type as sakstype from utbetaling u inner join sak s on s.id = u.sakId where u.id = :id".hent(
             mapOf(
                 "id" to utbetalingId,
             ),
@@ -33,7 +34,7 @@ internal object UtbetalingInternalRepo {
         ) { it.toUtbetaling(session) }
 
     fun hentUtbetalinger(sakId: UUID, session: Session): List<Utbetaling.OversendtUtbetaling> =
-        "select u.*, s.saksnummer from utbetaling u inner join sak s on s.id = u.sakId where s.id = :id".hentListe(
+        "select u.*, s.saksnummer, s.type as sakstype from utbetaling u inner join sak s on s.id = u.sakId where s.id = :id".hentListe(
             mapOf(
                 "id" to sakId,
             ),
@@ -73,6 +74,7 @@ internal fun Row.toUtbetaling(session: Session): Utbetaling.OversendtUtbetaling 
     val type = Utbetaling.UtbetalingsType.valueOf(string("type"))
     val behandler = NavIdentBruker.Attestant(string("behandler"))
     val avstemmingsnøkkel = string("avstemmingsnøkkel").let { objectMapper.readValue<Avstemmingsnøkkel>(it) }
+    val sakstype = Sakstype.from(string("sakstype"))
 
     return UtbetalingMapper(
         id = utbetalingId,
@@ -88,6 +90,7 @@ internal fun Row.toUtbetaling(session: Session): Utbetaling.OversendtUtbetaling 
         kvittering = kvittering,
         avstemmingId = avstemmingId,
         behandler = behandler,
+        sakstype = sakstype
     ).map()
 }
 

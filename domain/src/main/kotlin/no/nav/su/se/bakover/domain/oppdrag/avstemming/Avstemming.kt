@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -22,15 +23,31 @@ sealed class Avstemming {
     abstract val id: UUID30
     abstract val opprettet: Tidspunkt
     abstract val avstemmingXmlRequest: String?
+    abstract val fagområde: Fagområde
 
     data class Grensesnittavstemming(
         override val id: UUID30 = UUID30.randomUUID(),
         override val opprettet: Tidspunkt,
+        override val fagområde: Fagområde,
+        override val avstemmingXmlRequest: String? = null,
         val fraOgMed: Tidspunkt,
         val tilOgMed: Tidspunkt,
         val utbetalinger: List<Utbetaling.OversendtUtbetaling>,
-        override val avstemmingXmlRequest: String? = null,
-    ) : Avstemming()
+    ) : Avstemming() {
+        init {
+            if (utbetalinger.isNotEmpty()) {
+                val byFagområde = utbetalinger
+                    .map { it.sakstype.toFagområde() }
+                    .groupBy { it }.keys
+                require(byFagområde.count() == 1) {
+                    "Avstemming kan kun gjøres for ett fagområde om gangen, fant utbetalinger for følgende fagområder: $byFagområde"
+                }
+                require(byFagområde.single() == fagområde) {
+                    "Utbetalingsliste inneholder utbetalinger fra andre fagområder enn valgt fagområde: $fagområde"
+                }
+            }
+        }
+    }
 
     /**
      * Plukker ut løpende/aktive utbetalinger per sak/oppdrag fra [løpendeFraOgMed] og framover i tid.
@@ -53,18 +70,34 @@ sealed class Avstemming {
     sealed class Konsistensavstemming : Avstemming() {
         abstract override val id: UUID30
         abstract override val opprettet: Tidspunkt
+        abstract override val fagområde: Fagområde
+        abstract override val avstemmingXmlRequest: String?
         abstract val løpendeFraOgMed: Tidspunkt
         abstract val opprettetTilOgMed: Tidspunkt
-        abstract override val avstemmingXmlRequest: String?
 
         data class Ny(
             override val id: UUID30 = UUID30.randomUUID(),
             override val opprettet: Tidspunkt,
             override val løpendeFraOgMed: Tidspunkt,
             override val opprettetTilOgMed: Tidspunkt,
-            private val utbetalinger: List<Utbetaling.OversendtUtbetaling>,
+            override val fagområde: Fagområde,
             override val avstemmingXmlRequest: String? = null,
+            private val utbetalinger: List<Utbetaling.OversendtUtbetaling>,
         ) : Konsistensavstemming() {
+
+            init {
+                if (utbetalinger.isNotEmpty()) {
+                    val byFagområde = utbetalinger
+                        .map { it.sakstype.toFagområde() }
+                        .groupBy { it }.keys
+                    require(byFagområde.count() == 1) {
+                        "Avstemming kan kun gjøres for ett fagområde om gangen, fant utbetalinger for følgende fagområder: $byFagområde"
+                    }
+                    require(byFagområde.single() == fagområde) {
+                        "Utbetalingsliste inneholder utbetalinger fra andre fagområder enn valgt fagområde: $fagområde"
+                    }
+                }
+            }
 
             val løpendeUtbetalinger = utbetalinger
                 .filter { it.opprettet <= opprettetTilOgMed.instant } // 1
@@ -73,6 +106,7 @@ sealed class Avstemming {
                     entry.value.map { utbetaling ->
                         UtbetalingslinjerPerSak(
                             saksnummer = utbetaling.saksnummer,
+                            fagområde = utbetaling.sakstype.toFagområde(),
                             fnr = utbetaling.fnr,
                             utbetalingslinjer = utbetaling.utbetalingslinjer,
                             utbetalingslinjerTilAttestanter = utbetaling.utbetalingslinjer.map { it.id }
@@ -82,7 +116,17 @@ sealed class Avstemming {
                         acc.copy(
                             utbetalingslinjer = acc.utbetalingslinjer + other.utbetalingslinjer,
                             utbetalingslinjerTilAttestanter = (acc.utbetalingslinjerTilAttestanter.keys + other.utbetalingslinjerTilAttestanter.keys)
-                                .associateWith { key -> NonEmptyList.fromListUnsafe((acc.utbetalingslinjerTilAttestanter[key] ?: emptyList()) + (other.utbetalingslinjerTilAttestanter[key] ?: emptyList())) },
+                                .associateWith { key ->
+                                    NonEmptyList.fromListUnsafe(
+                                        (
+                                            acc.utbetalingslinjerTilAttestanter[key]
+                                                ?: emptyList()
+                                            ) + (
+                                            other.utbetalingslinjerTilAttestanter[key]
+                                                ?: emptyList()
+                                            ),
+                                    )
+                                },
                         )
                     }
                 }
@@ -108,6 +152,7 @@ sealed class Avstemming {
                 .map { entry -> // 7
                     OppdragForKonsistensavstemming(
                         saksnummer = entry.value.first.saksnummer,
+                        fagområde = entry.value.first.fagområde,
                         fnr = entry.value.first.fnr,
                         utbetalingslinjer = entry.value.first.utbetalingslinjer
                             .filterIsInstance<Utbetalingslinje.Ny>()
@@ -122,8 +167,9 @@ sealed class Avstemming {
             override val opprettet: Tidspunkt,
             override val løpendeFraOgMed: Tidspunkt,
             override val opprettetTilOgMed: Tidspunkt,
-            val utbetalinger: Map<Saksnummer, List<Utbetalingslinje>>,
+            override val fagområde: Fagområde,
             override val avstemmingXmlRequest: String? = null,
+            val utbetalinger: Map<Saksnummer, List<Utbetalingslinje>>,
         ) : Konsistensavstemming()
     }
 }
@@ -137,12 +183,13 @@ internal fun Utbetalingslinje.toOppdragslinjeForKonsistensavstemming(attestanter
         forrigeUtbetalingslinjeId = forrigeUtbetalingslinjeId,
         beløp = beløp,
         attestanter = attestanter,
-        utbetalingsinstruksjonForEtterbetalinger = utbetalingsinstruksjonForEtterbetalinger
+        utbetalingsinstruksjonForEtterbetalinger = utbetalingsinstruksjonForEtterbetalinger,
     )
 }
 
 private data class UtbetalingslinjerPerSak(
     val saksnummer: Saksnummer,
+    val fagområde: Fagområde,
     val fnr: Fnr,
     val utbetalingslinjer: List<Utbetalingslinje>,
     val utbetalingslinjerTilAttestanter: Map<UUID30, NonEmptyList<NavIdentBruker>>,
@@ -154,6 +201,7 @@ private data class UtbetalingslinjerPerSak(
 
 data class OppdragForKonsistensavstemming(
     val saksnummer: Saksnummer,
+    val fagområde: Fagområde,
     val fnr: Fnr,
     val utbetalingslinjer: List<OppdragslinjeForKonsistensavstemming>,
 )
@@ -166,5 +214,24 @@ data class OppdragslinjeForKonsistensavstemming(
     var forrigeUtbetalingslinjeId: UUID30?,
     val beløp: Int,
     val attestanter: NonEmptyList<NavIdentBruker>,
-    val utbetalingsinstruksjonForEtterbetalinger: UtbetalingsinstruksjonForEtterbetalinger
+    val utbetalingsinstruksjonForEtterbetalinger: UtbetalingsinstruksjonForEtterbetalinger,
 )
+
+enum class Fagområde {
+    SUALDER,
+    SUUFORE;
+}
+
+fun Sakstype.toFagområde(): Fagområde {
+    return when (this) {
+        Sakstype.ALDER -> Fagområde.SUALDER
+        Sakstype.UFØRE -> Fagområde.SUUFORE
+    }
+}
+
+fun Fagområde.toSakstype(): Sakstype {
+    return when (this) {
+        Fagområde.SUALDER -> Sakstype.ALDER
+        Fagområde.SUUFORE -> Sakstype.UFØRE
+    }
+}

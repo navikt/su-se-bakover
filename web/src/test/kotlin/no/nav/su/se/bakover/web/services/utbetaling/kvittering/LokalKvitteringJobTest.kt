@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -38,7 +39,7 @@ internal class LokalKvitteringJobTest {
     val tidspunkt = fixedTidspunkt
     val fnr = Fnr.generer()
 
-    private val utbetaling = Utbetaling.OversendtUtbetaling.UtenKvittering(
+    private val utbetaling = Utbetaling.UtbetalingForSimulering(
         id = UUID30.randomUUID(),
         opprettet = tidspunkt,
         sakId = UUID.randomUUID(),
@@ -53,25 +54,28 @@ internal class LokalKvitteringJobTest {
                 forrigeUtbetalingslinjeId = null,
                 beløp = 0,
                 uføregrad = Uføregrad.parse(50),
-            )
+            ),
         ),
         type = Utbetaling.UtbetalingsType.NY,
         behandler = NavIdentBruker.Attestant("attestant"),
         avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.EPOCH),
+        sakstype = Sakstype.UFØRE,
+    ).toSimulertUtbetaling(
         simulering = Simulering(
             gjelderId = fnr,
             gjelderNavn = "ubrukt",
             datoBeregnet = LocalDate.now(fixedClock),
             nettoBeløp = 0,
-            periodeList = listOf()
+            periodeList = listOf(),
         ),
-        utbetalingsrequest = Utbetalingsrequest(value = "")
+    ).toOversendtUtbetaling(
+        oppdragsmelding = Utbetalingsrequest(value = ""),
     )
 
     private val kvittering = Kvittering(
         utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
         originalKvittering = "unused",
-        mottattTidspunkt = tidspunkt
+        mottattTidspunkt = tidspunkt,
     )
 
     @Test
@@ -80,7 +84,7 @@ internal class LokalKvitteringJobTest {
             on { hentUkvitterteUtbetalinger() } doReturn listOf(utbetaling)
         }
         val utbetalingMedKvittering = utbetaling.toKvittertUtbetaling(
-            kvittering = kvittering
+            kvittering = kvittering,
         )
         val utbetalingServiceMock = mock<UtbetalingService> {
             on { oppdaterMedKvittering(any(), any()) } doReturn utbetalingMedKvittering.right()

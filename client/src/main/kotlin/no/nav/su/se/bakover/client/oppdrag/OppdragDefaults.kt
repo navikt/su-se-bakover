@@ -7,7 +7,6 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 object OppdragDefaults {
-    const val KODE_FAGOMRÅDE = "SUUFORE"
     const val SAKSBEHANDLER_ID = "SU"
     const val KODE_KOMPONENT = "SU"
     val utbetalingsfrekvens = UtbetalingRequest.Utbetalingsfrekvens.MND
@@ -21,7 +20,6 @@ object OppdragDefaults {
 }
 
 object OppdragslinjeDefaults {
-    const val KODE_KLASSIFIK = "SUUFORE"
     const val SAKSBEHANDLER_ID = "SU"
     val fradragEllerTillegg = UtbetalingRequest.Oppdragslinje.FradragTillegg.TILLEGG
     val typeSats = UtbetalingRequest.Oppdragslinje.TypeSats.MND

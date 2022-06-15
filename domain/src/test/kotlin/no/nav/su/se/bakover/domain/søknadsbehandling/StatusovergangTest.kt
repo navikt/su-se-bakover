@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.withAvslåttFlyktning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.attesteringUnderkjent
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
@@ -22,6 +21,7 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.shouldBeType
+import no.nav.su.se.bakover.test.simulerNyUtbetaling
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknadsbehandlingSimulert
@@ -51,8 +51,6 @@ internal class StatusovergangTest {
     )
 
     private val opprettet = sakOgUavklart.second
-
-    private val simulering = no.nav.su.se.bakover.test.simuleringNy()
 
     private val attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant"), fixedTidspunkt)
 
@@ -89,7 +87,16 @@ internal class StatusovergangTest {
         ).getOrFail() as Søknadsbehandling.Beregnet.Avslag
 
     private val simulert: Søknadsbehandling.Simulert =
-        beregnetInnvilget.tilSimulert(simulering)
+        beregnetInnvilget.simuler(
+            saksbehandler = saksbehandler,
+            simuler = {
+                simulerNyUtbetaling(
+                    sak = sakOgUavklart.first,
+                    request = it,
+                    clock = fixedClock,
+                )
+            },
+        ).getOrFail()
 
     private val tilAttesteringInnvilget: Søknadsbehandling.TilAttestering.Innvilget =
         simulert.tilAttestering(saksbehandler, fritekstTilBrev)
@@ -500,99 +507,6 @@ internal class StatusovergangTest {
                     formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                     satsFactory = satsFactoryTestPåDato(),
                 ) shouldBe Søknadsbehandling.KunneIkkeBeregne.UgyldigTilstand(it::class).left()
-            }
-        }
-    }
-
-    @Nested
-    inner class TilSimulert {
-        @Test
-        fun `beregnet innvilget til kunne ikke simulere`() {
-            forsøkStatusovergang(
-                beregnetInnvilget,
-                Statusovergang.TilSimulert {
-                    SimuleringFeilet.TEKNISK_FEIL.left()
-                },
-            ) shouldBe SimuleringFeilet.TEKNISK_FEIL.left()
-        }
-
-        @Test
-        fun `beregnet innvilget til simulering`() {
-            forsøkStatusovergang(
-                beregnetInnvilget,
-                Statusovergang.TilSimulert {
-                    simulering.right()
-                },
-            ) shouldBe simulert.right()
-        }
-
-        @Test
-        fun `simulering til kunne ikke simulere`() {
-            forsøkStatusovergang(
-                simulert,
-                Statusovergang.TilSimulert {
-                    SimuleringFeilet.TEKNISK_FEIL.left()
-                },
-            ) shouldBe SimuleringFeilet.TEKNISK_FEIL.left()
-        }
-
-        @Test
-        fun `simulering til simulering`() {
-            forsøkStatusovergang(
-                simulert,
-                Statusovergang.TilSimulert {
-                    simulering.right()
-                },
-            ) shouldBe simulert.right()
-        }
-
-        @Test
-        fun `underkjent innvilgning  til kunne ikke simulere`() {
-            forsøkStatusovergang(
-                underkjentInnvilget,
-                Statusovergang.TilSimulert {
-                    SimuleringFeilet.TEKNISK_FEIL.left()
-                },
-            ) shouldBe SimuleringFeilet.TEKNISK_FEIL.left()
-        }
-
-        @Test
-        fun `underkjent innvilgning til simulering`() {
-            forsøkStatusovergang(
-                underkjentInnvilget,
-                Statusovergang.TilSimulert {
-                    simulering.right()
-                },
-            ) shouldBe simulert.copy(
-                fritekstTilBrev = "Fritekst til brev",
-                attesteringer = Attesteringshistorikk.create(listOf(underkjentInnvilget.attesteringer.hentSisteAttestering())),
-            )
-                .right()
-        }
-
-        @Test
-        fun `ulovlige overganger`() {
-            listOf(
-                opprettet,
-                vilkårsvurdertAvslag,
-                vilkårsvurdertInnvilget,
-                beregnetAvslag,
-                tilAttesteringAvslagBeregning,
-                tilAttesteringAvslagVilkår,
-                tilAttesteringInnvilget,
-                underkjentAvslagBeregning,
-                underkjentAvslagVilkår,
-                iverksattAvslagBeregning,
-                iverksattAvslagVilkår,
-                iverksattInnvilget,
-                lukketSøknadsbehandling,
-            ).forEach {
-                assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it.status}") {
-                    forsøkStatusovergang(
-                        it,
-                        Statusovergang.TilSimulert { simulering.right() },
-                    )
-                }
             }
         }
     }

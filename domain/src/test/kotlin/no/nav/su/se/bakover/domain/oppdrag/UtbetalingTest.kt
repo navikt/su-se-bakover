@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.test.fixedClock
@@ -94,14 +95,15 @@ internal class UtbetalingTest {
         opprettet: Tidspunkt = fixedTidspunkt,
         utbetalingsLinjer: NonEmptyList<Utbetalingslinje> = createUtbetalingslinjer(),
     ) = Utbetaling.UtbetalingForSimulering(
+        opprettet = opprettet,
         sakId = UUID.randomUUID(),
         saksnummer = Saksnummer(2021),
-        utbetalingslinjer = utbetalingsLinjer,
         fnr = Fnr.generer(),
-        opprettet = opprettet,
+        utbetalingslinjer = utbetalingsLinjer,
         type = Utbetaling.UtbetalingsType.NY,
         behandler = NavIdentBruker.Saksbehandler("Z123"),
         avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt),
+        sakstype = Sakstype.UFØRE,
     )
 
     private fun createUtbetalingslinje(

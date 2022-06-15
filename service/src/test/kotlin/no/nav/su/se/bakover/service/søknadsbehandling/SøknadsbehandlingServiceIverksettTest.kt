@@ -39,7 +39,7 @@ import no.nav.su.se.bakover.test.kontrollsamtale
 import no.nav.su.se.bakover.test.oversendtUtbetalingUtenKvittering
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
-import no.nav.su.se.bakover.test.simuleringNy
+import no.nav.su.se.bakover.test.simulerNyUtbetaling
 import no.nav.su.se.bakover.test.simulertUtbetaling
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringAvslagMedBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
@@ -110,7 +110,9 @@ internal class SøknadsbehandlingServiceIverksettTest {
 
         @Test
         fun `feiler hvis utestående avkortinger ikke kunne avkortes fullstendig`() {
-            val behandling = søknadsbehandlingVilkårsvurdertInnvilget().second.leggTilFradragsgrunnlag(
+            val (sak, vilkårsvurdert) = søknadsbehandlingVilkårsvurdertInnvilget()
+
+            val attestert = vilkårsvurdert.leggTilFradragsgrunnlag(
                 fradragsgrunnlag = listOf(fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 20000.0)),
                 formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             ).getOrFail().beregn(
@@ -118,9 +120,17 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(),
                 formuegrenserFactory = formuegrenserFactoryTestPåDato(),
-            ).getOrFail().let {
-                it.tilSimulert(simuleringNy(it.beregning))
-            }.tilAttestering(
+            ).getOrFail().let { beregnet ->
+                beregnet.simuler(
+                    saksbehandler = saksbehandler,
+                ) {
+                    simulerNyUtbetaling(
+                        sak = sak,
+                        request = it,
+                        clock = fixedClock,
+                    )
+                }
+            }.getOrFail().tilAttestering(
                 saksbehandler = saksbehandler,
                 fritekstTilBrev = "njet",
             )
@@ -129,7 +139,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
 
             val serviceAndMocks = SøknadsbehandlingServiceAndMocks(
                 søknadsbehandlingRepo = mock {
-                    on { hent(any()) } doReturn behandling.copy(
+                    on { hent(any()) } doReturn attestert.copy(
                         avkorting = AvkortingVedSøknadsbehandling.Håndtert.AvkortUtestående(
                             avkortingsvarsel,
                         ),
@@ -142,7 +152,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             )
             val response = serviceAndMocks.søknadsbehandlingService.iverksett(
                 SøknadsbehandlingService.IverksettRequest(
-                    behandling.id,
+                    vilkårsvurdert.id,
                     Attestering.Iverksatt(attestant, fixedTidspunkt),
                 ),
             )
@@ -511,11 +521,12 @@ internal class SøknadsbehandlingServiceIverksettTest {
             verify(serviceAndMocks.utbetalingService).verifiserOgSimulerUtbetaling(
                 request = argThat {
                     it shouldBe UtbetalRequest.NyUtbetaling(
-                        request = SimulerUtbetalingRequest.NyUtbetaling(
+                        request = SimulerUtbetalingRequest.NyUtbetaling.Uføre(
                             sakId = innvilgetTilAttestering.sakId,
                             saksbehandler = attestant,
                             beregning = innvilgetTilAttestering.beregning,
-                            uføregrunnlag = innvilgetTilAttestering.vilkårsvurderinger.uføreVilkår().getOrFail().grunnlag,
+                            uføregrunnlag = innvilgetTilAttestering.vilkårsvurderinger.uføreVilkår()
+                                .getOrFail().grunnlag,
                             utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
                         ),
                         simulering = innvilgetTilAttestering.simulering,

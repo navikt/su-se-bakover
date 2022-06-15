@@ -15,6 +15,7 @@ internal class GrensesnittavstemmingDataBuilder(
                 nokkelFom = Avstemmingsnøkkel(avstemming.fraOgMed).toString(),
                 nokkelTom = Avstemmingsnøkkel(avstemming.tilOgMed).toString(),
                 avleverendeAvstemmingId = avstemming.id.toString(),
+                underkomponentKode = avstemming.fagområde.toString(),
             ),
             total = Totaldata(
                 totalAntall = utbetalinger.size,

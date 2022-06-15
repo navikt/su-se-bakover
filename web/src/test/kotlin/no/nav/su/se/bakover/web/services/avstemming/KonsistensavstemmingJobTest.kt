@@ -6,6 +6,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.nais.LeaderPodLookupFeil
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Fagområde
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.web.services.erLeaderPod
@@ -59,15 +60,16 @@ internal class KonsistensavstemmingJobTest {
     fun `eksekveres ikke hvis allerede utført for aktuell dato`() {
         KonsistensavstemmingJob.Konsistensavstemming(
             avstemmingService = mock {
-                on { konsistensavstemming(any()) } doReturn Avstemming.Konsistensavstemming.Ny(
+                on { konsistensavstemming(any(), any()) } doReturn Avstemming.Konsistensavstemming.Ny(
                     id = UUID30.randomUUID(),
                     opprettet = fixedTidspunkt,
                     løpendeFraOgMed = fixedTidspunkt,
                     opprettetTilOgMed = fixedTidspunkt,
                     utbetalinger = listOf(),
                     avstemmingXmlRequest = null,
+                    fagområde = Fagområde.SUUFORE,
                 ).right()
-                on { konsistensavstemmingUtførtForOgPåDato(LocalDate.now(fixedClock)) } doReturn true
+                on { konsistensavstemmingUtførtForOgPåDato(LocalDate.now(fixedClock), Fagområde.SUUFORE) } doReturn true
             },
             leaderPodLookup = mock {
                 on { amITheLeader(any()) } doReturn true.right()
@@ -78,7 +80,7 @@ internal class KonsistensavstemmingJobTest {
         ).let {
             it.run()
             verify(it.leaderPodLookup).amITheLeader(any())
-            verify(it.avstemmingService).konsistensavstemmingUtførtForOgPåDato(LocalDate.now(fixedClock))
+            verify(it.avstemmingService).konsistensavstemmingUtførtForOgPåDato(LocalDate.now(fixedClock), Fagområde.SUUFORE)
             verifyNoMoreInteractions(it.avstemmingService)
             it.leaderPodLookup.erLeaderPod() shouldBe true
         }
@@ -88,15 +90,16 @@ internal class KonsistensavstemmingJobTest {
     fun `eksekveres hvis enda ikke utført for aktuell dato`() {
         KonsistensavstemmingJob.Konsistensavstemming(
             avstemmingService = mock {
-                on { konsistensavstemming(any()) } doReturn Avstemming.Konsistensavstemming.Ny(
+                on { konsistensavstemming(any(), any()) } doReturn Avstemming.Konsistensavstemming.Ny(
                     id = UUID30.randomUUID(),
                     opprettet = fixedTidspunkt,
                     løpendeFraOgMed = fixedTidspunkt,
                     opprettetTilOgMed = fixedTidspunkt,
                     utbetalinger = listOf(),
                     avstemmingXmlRequest = null,
+                    fagområde = Fagområde.SUUFORE,
                 ).right()
-                on { konsistensavstemmingUtførtForOgPåDato(LocalDate.now(fixedClock)) } doReturn false
+                on { konsistensavstemmingUtførtForOgPåDato(LocalDate.now(fixedClock), Fagområde.SUUFORE) } doReturn false
             },
             leaderPodLookup = mock {
                 on { amITheLeader(any()) } doReturn true.right()
@@ -107,8 +110,8 @@ internal class KonsistensavstemmingJobTest {
         ).let {
             it.run()
             verify(it.leaderPodLookup).amITheLeader(any())
-            verify(it.avstemmingService).konsistensavstemmingUtførtForOgPåDato(LocalDate.now(fixedClock))
-            verify(it.avstemmingService).konsistensavstemming(LocalDate.now(fixedClock))
+            verify(it.avstemmingService).konsistensavstemmingUtførtForOgPåDato(LocalDate.now(fixedClock), Fagområde.SUUFORE)
+            verify(it.avstemmingService).konsistensavstemming(LocalDate.now(fixedClock), Fagområde.SUUFORE)
             it.leaderPodLookup.erLeaderPod() shouldBe true
         }
     }

@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingRepo
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Fagområde
 import java.time.Clock
 import java.time.LocalDate
 
@@ -18,21 +19,24 @@ internal class AvstemmingServiceImpl(
     private val publisher: AvstemmingPublisher,
     private val clock: Clock,
 ) : AvstemmingService {
-    override fun grensesnittsavstemming(): Either<AvstemmingFeilet, Avstemming.Grensesnittavstemming> {
-        val periode = GrensesnittsavstemmingPeriodeBuilder(repo.hentSisteGrensesnittsavstemming(), clock).build()
-        return grensesnittsavstemming(periode)
+    override fun grensesnittsavstemming(fagområde: Fagområde): Either<AvstemmingFeilet, Avstemming.Grensesnittavstemming> {
+        val periode = GrensesnittsavstemmingPeriodeBuilder(repo.hentSisteGrensesnittsavstemming(fagområde), clock)
+            .build()
+        return grensesnittsavstemming(periode, fagområde)
     }
 
     override fun grensesnittsavstemming(
         fraOgMed: Tidspunkt,
         tilOgMed: Tidspunkt,
+        fagområde: Fagområde,
     ): Either<AvstemmingFeilet, Avstemming.Grensesnittavstemming> {
         val periode = AvstemmingsPeriode(fraOgMed, tilOgMed)
-        return grensesnittsavstemming(periode)
+        return grensesnittsavstemming(periode, fagområde)
     }
 
     override fun konsistensavstemming(
         løpendeFraOgMed: LocalDate,
+        fagområde: Fagområde,
     ): Either<AvstemmingFeilet, Avstemming.Konsistensavstemming.Ny> {
         val fraOgMed = løpendeFraOgMed.startOfDay(zoneIdOslo)
         val tilOgMed = løpendeFraOgMed.minusDays(1).endOfDay(zoneIdOslo)
@@ -40,6 +44,7 @@ internal class AvstemmingServiceImpl(
         val utbetalinger = repo.hentUtbetalingerForKonsistensavstemming(
             løpendeFraOgMed = fraOgMed,
             opprettetTilOgMed = tilOgMed,
+            fagområde = fagområde,
         )
 
         val avstemming = Avstemming.Konsistensavstemming.Ny(
@@ -47,6 +52,7 @@ internal class AvstemmingServiceImpl(
             løpendeFraOgMed = fraOgMed,
             opprettetTilOgMed = tilOgMed,
             utbetalinger = utbetalinger,
+            fagområde = fagområde,
         )
 
         return publisher.publish(avstemming).fold(
@@ -58,18 +64,22 @@ internal class AvstemmingServiceImpl(
         )
     }
 
-    override fun konsistensavstemmingUtførtForOgPåDato(dato: LocalDate): Boolean {
-        return repo.konsistensavstemmingUtførtForOgPåDato(dato)
+    override fun konsistensavstemmingUtførtForOgPåDato(dato: LocalDate, fagområde: Fagområde): Boolean {
+        return repo.konsistensavstemmingUtførtForOgPåDato(dato, fagområde)
     }
 
-    private fun grensesnittsavstemming(periode: AvstemmingsPeriode): Either<AvstemmingFeilet, Avstemming.Grensesnittavstemming> {
-        val utbetalinger = repo.hentUtbetalingerForGrensesnittsavstemming(periode.fraOgMed, periode.tilOgMed)
+    private fun grensesnittsavstemming(
+        periode: AvstemmingsPeriode,
+        fagområde: Fagområde,
+    ): Either<AvstemmingFeilet, Avstemming.Grensesnittavstemming> {
+        val utbetalinger = repo.hentUtbetalingerForGrensesnittsavstemming(periode.fraOgMed, periode.tilOgMed, fagområde)
 
         val avstemming = Avstemming.Grensesnittavstemming(
             opprettet = Tidspunkt.now(clock),
             fraOgMed = periode.fraOgMed,
             tilOgMed = periode.tilOgMed,
             utbetalinger = utbetalinger,
+            fagområde = fagområde,
         )
 
         return publisher.publish(avstemming).fold(

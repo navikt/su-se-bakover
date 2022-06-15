@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonIgnore
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Månedsbeløp
+import no.nav.su.se.bakover.domain.Sakstype
 import java.time.LocalDate
 
 data class Simulering(
@@ -134,7 +135,7 @@ enum class KlasseType {
 
 enum class KlasseKode {
     SUUFORE,
-    KL_KODE_FEIL_INNT,
+    KL_KODE_FEIL_INNT, // TODO("simulering_utbetaling_alder mistenker alder ikke er _INNT, men noe annet")
 
     @Deprecated("Filtreres ut av klient") // TODO flytt dette lenger ut
     TBMOTOBS,
@@ -143,5 +144,18 @@ enum class KlasseKode {
     FSKTSKAT,
 
     @Deprecated("Filtreres ut av klient, bakoverkompatabilitet")
-    UFOREUT
+    UFOREUT,
+
+    SUALDER;
+}
+
+fun Sakstype.toKlasseKode(): KlasseKode {
+    return when (this) {
+        Sakstype.ALDER -> {
+            KlasseKode.SUALDER
+        }
+        Sakstype.UFØRE -> {
+            KlasseKode.SUUFORE
+        }
+    }
 }

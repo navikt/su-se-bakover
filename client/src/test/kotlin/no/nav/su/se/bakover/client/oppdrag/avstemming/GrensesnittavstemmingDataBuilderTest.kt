@@ -16,11 +16,14 @@ import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Fagområde
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -39,6 +42,7 @@ internal class GrensesnittavstemmingDataBuilderTest {
                 nokkelFom = "1583017200000000000",
                 nokkelTom = "1583103600000000000",
                 avleverendeAvstemmingId = avstemmingId.toString(),
+                underkomponentKode = "SUUFORE",
             ),
             total = Totaldata(
                 totalAntall = 5,
@@ -93,6 +97,7 @@ internal class GrensesnittavstemmingDataBuilderTest {
                 tilOgMed = 2.mars(2020).atStartOfDay(zoneIdOslo).toTidspunkt(),
                 utbetalinger = alleUtbetalinger(),
                 avstemmingXmlRequest = null,
+                fagområde = Fagområde.SUUFORE,
             ),
         ).build() shouldBe expected
     }
@@ -110,35 +115,48 @@ internal fun lagUtbetaling(
         value = "Melding",
     ),
 ): Utbetaling.OversendtUtbetaling = when (status) {
-    null -> Utbetaling.OversendtUtbetaling.UtenKvittering(
-        id = id,
-        opprettet = opprettet.atStartOfDay(zoneIdOslo).toTidspunkt(),
-        sakId = sakId,
-        saksnummer = saksnummer,
-        simulering = simulering,
-        utbetalingsrequest = oppdragsmelding,
-        utbetalingslinjer = linjer,
-        fnr = fnr,
-        type = Utbetaling.UtbetalingsType.NY,
-        behandler = NavIdentBruker.Saksbehandler("Z123"),
-    )
-    else -> Utbetaling.OversendtUtbetaling.MedKvittering(
-        id = id,
-        opprettet = opprettet.atStartOfDay(zoneIdOslo).toTidspunkt(),
-        saksnummer = saksnummer,
-        sakId = sakId,
-        simulering = simulering,
-        kvittering = Kvittering(
-            utbetalingsstatus = status,
-            originalKvittering = "hallo",
-            mottattTidspunkt = fixedTidspunkt,
-        ),
-        utbetalingsrequest = oppdragsmelding,
-        utbetalingslinjer = linjer,
-        fnr = fnr,
-        type = Utbetaling.UtbetalingsType.NY,
-        behandler = NavIdentBruker.Saksbehandler("Z123"),
-    )
+    null -> {
+        Utbetaling.UtbetalingForSimulering(
+            id = id,
+            opprettet = opprettet.atStartOfDay(zoneIdOslo).toTidspunkt(),
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            utbetalingslinjer = linjer,
+            type = Utbetaling.UtbetalingsType.NY,
+            behandler = NavIdentBruker.Saksbehandler("Z123"),
+            avstemmingsnøkkel = Avstemmingsnøkkel(opprettet.atStartOfDay(zoneIdOslo).toTidspunkt()),
+            sakstype = Sakstype.UFØRE,
+        ).toSimulertUtbetaling(
+            simulering = simulering,
+        ).toOversendtUtbetaling(
+            oppdragsmelding = oppdragsmelding,
+        )
+    }
+    else -> {
+        Utbetaling.UtbetalingForSimulering(
+            id = id,
+            opprettet = opprettet.atStartOfDay(zoneIdOslo).toTidspunkt(),
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            utbetalingslinjer = linjer,
+            type = Utbetaling.UtbetalingsType.NY,
+            behandler = NavIdentBruker.Saksbehandler("Z123"),
+            avstemmingsnøkkel = Avstemmingsnøkkel(opprettet.atStartOfDay(zoneIdOslo).toTidspunkt()),
+            sakstype = Sakstype.UFØRE,
+        ).toSimulertUtbetaling(
+            simulering = simulering,
+        ).toOversendtUtbetaling(
+            oppdragsmelding = oppdragsmelding,
+        ).toKvittertUtbetaling(
+            kvittering = Kvittering(
+                utbetalingsstatus = status,
+                originalKvittering = "hallo",
+                mottattTidspunkt = fixedTidspunkt,
+            ),
+        )
+    }
 }
 
 internal val fnr = Fnr("12345678910")

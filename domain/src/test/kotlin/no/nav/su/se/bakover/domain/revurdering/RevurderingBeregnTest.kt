@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
@@ -618,7 +619,7 @@ internal class RevurderingBeregnTest {
 
     private fun lagUtbetaling(
         vararg utbetalingslinjer: Utbetalingslinje,
-    ) = Utbetaling.OversendtUtbetaling.MedKvittering(
+    ) = Utbetaling.UtbetalingForSimulering(
         opprettet = fixedTidspunkt,
         sakId = UUID.randomUUID(),
         saksnummer = Saksnummer(9999),
@@ -627,8 +628,12 @@ internal class RevurderingBeregnTest {
         type = Utbetaling.UtbetalingsType.NY,
         behandler = mock(),
         avstemmingsnøkkel = mock(),
+        sakstype = Sakstype.UFØRE,
+    ).toSimulertUtbetaling(
         simulering = mock(),
-        utbetalingsrequest = mock(),
+    ).toOversendtUtbetaling(
+        oppdragsmelding = mock(),
+    ).toKvittertUtbetaling(
         kvittering = mock(),
     )
 

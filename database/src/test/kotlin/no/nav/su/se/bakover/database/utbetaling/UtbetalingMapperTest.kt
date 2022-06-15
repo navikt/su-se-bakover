@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
@@ -50,6 +51,7 @@ internal class UtbetalingMapperTest {
             kvittering = null,
             avstemmingId = null,
             behandler = NavIdentBruker.Saksbehandler("Z123"),
+            sakstype = Sakstype.UFØRE,
         ).map().shouldBeInstanceOf<Utbetaling.OversendtUtbetaling.UtenKvittering>()
 
         UtbetalingMapper(
@@ -84,6 +86,7 @@ internal class UtbetalingMapperTest {
             ),
             avstemmingId = null,
             behandler = NavIdentBruker.Saksbehandler("Z123"),
+            sakstype = Sakstype.UFØRE,
         ).map().shouldBeInstanceOf<Utbetaling.OversendtUtbetaling.MedKvittering>()
     }
 }
