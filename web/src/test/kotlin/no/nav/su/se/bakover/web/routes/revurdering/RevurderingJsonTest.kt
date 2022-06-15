@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.web.routes.revurdering
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.deserialize
-import no.nav.su.se.bakover.common.fixedClock
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.serialize
@@ -143,7 +142,8 @@ internal class RevurderingJsonTest {
                   },
                   "utenlandsopphold": null,
                   "opplysningsplikt": null,
-                  "pensjon": null
+                  "pensjon": null,
+                  "familiegjenforening": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -229,7 +229,8 @@ internal class RevurderingJsonTest {
                   },
                   "utenlandsopphold": null,
                   "opplysningsplikt": null,
-                  "pensjon": null
+                  "pensjon": null,
+                  "familiegjenforening": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -314,7 +315,8 @@ internal class RevurderingJsonTest {
                   },
                   "utenlandsopphold": null,
                   "opplysningsplikt": null,
-                  "pensjon": null
+                  "pensjon": null,
+                  "familiegjenforening": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -393,7 +395,8 @@ internal class RevurderingJsonTest {
                   },
                   "utenlandsopphold": null,
                   "opplysningsplikt":null,
-                  "pensjon": null
+                  "pensjon": null,
+                  "familiegjenforening": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -484,7 +487,8 @@ internal class RevurderingJsonTest {
                   },
                   "utenlandsopphold": null,
                   "opplysningsplikt": null,
-                  "pensjon": null
+                  "pensjon": null,
+                  "familiegjenforening": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -573,7 +577,8 @@ internal class RevurderingJsonTest {
                   },
                   "utenlandsopphold": null,
                   "opplysningsplikt": null,
-                  "pensjon": null
+                  "pensjon": null,
+                  "familiegjenforening": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -661,7 +666,8 @@ internal class RevurderingJsonTest {
                   },
                   "utenlandsopphold": null,
                   "opplysningsplikt":null,
-                  "pensjon": null
+                  "pensjon": null,
+                  "familiegjenforening": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "Vurdert",
@@ -749,7 +755,8 @@ internal class RevurderingJsonTest {
                   },
                   "utenlandsopphold": null,
                   "opplysningsplikt": null,
-                  "pensjon": null
+                  "pensjon": null,
+                  "familiegjenforening": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -832,7 +839,8 @@ internal class RevurderingJsonTest {
                   },
                   "utenlandsopphold": null,
                   "opplysningsplikt": null,
-                  "pensjon": null
+                  "pensjon": null,
+                  "familiegjenforening": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -936,7 +944,8 @@ internal class RevurderingJsonTest {
                   },
                   "utenlandsopphold": null,
                   "opplysningsplikt": null,
-                  "pensjon": null
+                  "pensjon": null,
+                  "familiegjenforening": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -1038,7 +1047,8 @@ internal class RevurderingJsonTest {
                   },
                   "utenlandsopphold": null,
                   "opplysningsplikt": null,
-                  "pensjon": null
+                  "pensjon": null,
+                  "familiegjenforening": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -1136,7 +1146,8 @@ internal class RevurderingJsonTest {
                   },
                   "utenlandsopphold": null,
                   "opplysningsplikt": null,
-                  "pensjon": null
+                  "pensjon": null,
+                  "familiegjenforening": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -1237,7 +1248,8 @@ internal class RevurderingJsonTest {
                   },
                   "utenlandsopphold": null,
                   "opplysningsplikt": null,
-                  "pensjon": null
+                  "pensjon": null,
+                  "familiegjenforening": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -1333,7 +1345,8 @@ internal class RevurderingJsonTest {
                   },
                   "utenlandsopphold": null,
                   "opplysningsplikt": null,
-                  "pensjon": null
+                  "pensjon": null,
+                  "familiegjenforening": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -1423,7 +1436,8 @@ internal class RevurderingJsonTest {
                   },
                   "utenlandsopphold": null,
                   "opplysningsplikt": null,
-                  "pensjon": null
+                  "pensjon": null,
+                  "familiegjenforening": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -1469,7 +1483,8 @@ internal class RevurderingJsonTest {
                   "formue": ${serialize(simulertRevurdering.vilkårsvurderinger.formue.toJson(satsFactoryTestPåDato()))},
                   "utenlandsopphold": ${serialize(simulertRevurdering.vilkårsvurderinger.utenlandsopphold.toJson()!!)},
                   "opplysningsplikt": ${serialize(simulertRevurdering.vilkårsvurderinger.opplysningsplikt.toJson()!!)},
-                  "pensjon": null
+                  "pensjon": null,
+                  "familiegjenforening": null
                 },
                 "attesteringer": [],
                 "sakstype": "UFØRE"
@@ -1509,7 +1524,8 @@ internal class RevurderingJsonTest {
                   "formue": ${serialize(iverksattRevurdering.vilkårsvurderinger.formue.toJson(satsFactoryTestPåDato()))},
                   "utenlandsopphold": ${serialize(iverksattRevurdering.vilkårsvurderinger.utenlandsopphold.toJson()!!)},
                   "opplysningsplikt": ${serialize(simulertRevurdering.vilkårsvurderinger.opplysningsplikt.toJson()!!)},
-                  "pensjon": null
+                  "pensjon": null,
+                  "familiegjenforening": null
                 },
                 "attesteringer": [{"attestant": "attestant", "opprettet": "$fixedTidspunkt", "underkjennelse": null}],
                 "sakstype": "UFØRE"
@@ -1551,7 +1567,8 @@ internal class RevurderingJsonTest {
                   "formue": ${serialize(simulertRevurdering.vilkårsvurderinger.formue.toJson(satsFactoryTestPåDato()))},
                   "utenlandsopphold": ${serialize(simulertRevurdering.vilkårsvurderinger.utenlandsopphold.toJson()!!)},
                   "opplysningsplikt": ${serialize(simulertRevurdering.vilkårsvurderinger.opplysningsplikt.toJson()!!)},
-                  "pensjon": null
+                  "pensjon": null,
+                  "familiegjenforening": null
                 },
                 "attesteringer": [],
                 "sakstype": "UFØRE"
@@ -1591,7 +1608,8 @@ internal class RevurderingJsonTest {
                   "formue": ${serialize(iverksattRevurdering.vilkårsvurderinger.formue.toJson(satsFactoryTestPåDato()))},
                   "utenlandsopphold": ${serialize(iverksattRevurdering.vilkårsvurderinger.utenlandsopphold.toJson()!!)},
                   "opplysningsplikt": ${serialize(iverksattRevurdering.vilkårsvurderinger.opplysningsplikt.toJson()!!)},
-                  "pensjon": null
+                  "pensjon": null,
+                  "familiegjenforening": null
                 },
                 "attesteringer": [{"attestant": "attestant", "opprettet": "$fixedTidspunkt", "underkjennelse": null}],
                 "sakstype": "UFØRE"

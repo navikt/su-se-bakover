@@ -10,7 +10,7 @@ import java.time.Clock
 import java.util.UUID
 
 enum class FamiliegjenforeningvilkårStatus {
-    VilkårOppfylt, VilkårIkkeOppfylt, Uavklart
+    VilkårOppfylt, VilkårIkkeOppfylt, Uavklart;
 }
 
 data class LeggTilFamiliegjenforegningRequest(
