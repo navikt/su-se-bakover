@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.getOrHandle
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
-import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.endOfDay
@@ -25,8 +24,8 @@ private const val AVSTEMMING_PATH = "/avstemming"
 
 private fun String.toFagområde(): Fagområde {
     return when {
-        this == "ALDER" -> Fagområde.SUALDER
-        this == "UFORE" -> Fagområde.SUUFORE
+        this == "SUALDER" -> Fagområde.SUALDER
+        this == "SUUFORE" -> Fagområde.SUUFORE
         else -> throw IllegalArgumentException("Ukjent fagområde: $this")
     }
 }
@@ -85,9 +84,9 @@ internal fun Route.avstemmingRoutes(
                 fagområdeString?.toFagområde()
             }.getOrHandle {
                 return@authorize call.svar(
-                    HttpStatusCode.InternalServerError.errorJson(
-                        message = "$it",
-                        code = "ukjent_feil",
+                    HttpStatusCode.BadRequest.errorJson(
+                        message = "${it.message}",
+                        code = "ugyldig_input",
                     ),
                 )
             }!!
@@ -106,7 +105,14 @@ internal fun Route.avstemmingRoutes(
                         ),
                     )
                 },
-                { call.respondText("Avstemt ok") },
+                {
+                    call.svar(
+                        Resultat.json(
+                            httpCode = HttpStatusCode.Created,
+                            json = """{"message":"Grensesnittsavstemming fullført for fagområde:$fagområde, periode:${it.fraOgMed}-${it.tilOgMed}, antall:${it.utbetalinger.count()}"}""",
+                        ),
+                    )
+                },
             )
         }
     }
@@ -127,9 +133,9 @@ internal fun Route.avstemmingRoutes(
                 fagområdeString?.toFagområde()
             }.getOrHandle {
                 return@authorize call.svar(
-                    HttpStatusCode.InternalServerError.errorJson(
-                        message = "$it",
-                        code = "ukjent_feil",
+                    HttpStatusCode.BadRequest.errorJson(
+                        message = "${it.message}",
+                        code = "ugyldig_input",
                     ),
                 )
             }!!
@@ -148,7 +154,7 @@ internal fun Route.avstemmingRoutes(
                         call.svar(
                             Resultat.json(
                                 httpCode = HttpStatusCode.OK,
-                                json = """{"message":"Konsistensavstemming fullført for tidspunkt:${it.løpendeFraOgMed} for utbetalinger opprettet tilOgMed:${it.opprettetTilOgMed}"}""",
+                                json = """{"message":"Konsistensavstemming fullført for fagområde:$fagområde, tidspunkt:${it.løpendeFraOgMed} for utbetalinger opprettet tilOgMed:${it.opprettetTilOgMed}"}""",
                             ),
                         )
                     },

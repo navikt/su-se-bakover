@@ -83,10 +83,10 @@ internal class AvstemmingRoutesKtTest {
             }
             defaultRequest(
                 Post,
-                "/avstemming/grensesnitt?fagomrade=UFORE",
+                "/avstemming/grensesnitt?fagomrade=SUUFORE",
                 listOf(Brukerrolle.Drift),
             ).apply {
-                status shouldBe HttpStatusCode.OK
+                status shouldBe HttpStatusCode.Created
             }
         }
     }
@@ -99,7 +99,7 @@ internal class AvstemmingRoutesKtTest {
             }
             defaultRequest(
                 Post,
-                "/avstemming/grensesnitt?fraOgMed=2020-11-01&fagomrade=UFORE",
+                "/avstemming/grensesnitt?fraOgMed=2020-11-01&fagomrade=SUUFORE",
                 listOf(Brukerrolle.Drift),
             ).apply {
                 status shouldBe HttpStatusCode.BadRequest
@@ -107,7 +107,7 @@ internal class AvstemmingRoutesKtTest {
 
             defaultRequest(
                 Post,
-                "/avstemming/grensesnitt?tilOgMed=2020-11-01&fagomrade=UFORE",
+                "/avstemming/grensesnitt?tilOgMed=2020-11-01&fagomrade=SUUFORE",
                 listOf(Brukerrolle.Drift),
             ).apply {
                 status shouldBe HttpStatusCode.BadRequest
@@ -122,8 +122,8 @@ internal class AvstemmingRoutesKtTest {
                 testSusebakover(services = services())
             }
             listOf(
-                "/avstemming/grensesnitt?fraOgMed=2020-11-17T11:02:19Z&tilOgMed=2020-11-17&fagomrade=UFORE",
-                "/avstemming/grensesnitt?fraOgMed=2020-11-12T11:02:19Z&tilOgMed=2020-11-17T11:02:19Z&fagomrade=UFORE",
+                "/avstemming/grensesnitt?fraOgMed=2020-11-17T11:02:19Z&tilOgMed=2020-11-17&fagomrade=SUUFORE",
+                "/avstemming/grensesnitt?fraOgMed=2020-11-12T11:02:19Z&tilOgMed=2020-11-17T11:02:19Z&fagomrade=SUUFORE",
             ).forEach {
                 defaultRequest(
                     Post,
@@ -143,8 +143,8 @@ internal class AvstemmingRoutesKtTest {
                 testSusebakover(services = services())
             }
             listOf(
-                "/avstemming/grensesnitt?fraOgMed=2020-11-18&tilOgMed=2020-11-17&fagomrade=UFORE",
-                "/avstemming/grensesnitt?fraOgMed=2021-11-18&tilOgMed=2020-11-12&fagomrade=UFORE",
+                "/avstemming/grensesnitt?fraOgMed=2020-11-18&tilOgMed=2020-11-17&fagomrade=SUUFORE",
+                "/avstemming/grensesnitt?fraOgMed=2021-11-18&tilOgMed=2020-11-12&fagomrade=SUUFORE",
             ).forEach {
                 defaultRequest(
                     Post,
@@ -165,7 +165,7 @@ internal class AvstemmingRoutesKtTest {
             listOf(
                 "/avstemming/grensesnitt?fraOgMed=2020-11-11&tilOgMed=${
                 fixedLocalDate.plusDays(1).format(DateTimeFormatter.ISO_DATE)
-                }&fagomrade=UFORE",
+                }&fagomrade=SUUFORE",
             ).forEach {
                 defaultRequest(
                     Post,
@@ -204,7 +204,7 @@ internal class AvstemmingRoutesKtTest {
             application { testSusebakover(services = services()) }
 
             listOf(
-                "/avstemming/konsistens?fraOgMed=2021-01-01&fagomrade=UFORE",
+                "/avstemming/konsistens?fraOgMed=2021-01-01&fagomrade=SUUFORE",
             ).forEach {
                 defaultRequest(
                     Post,
@@ -227,7 +227,7 @@ internal class AvstemmingRoutesKtTest {
                 .forEach { _ ->
                     defaultRequest(
                         Post,
-                        "/avstemming/konsistens?fraOgMed=2021-01-01&fagomrade=UFORE",
+                        "/avstemming/konsistens?fraOgMed=2021-01-01&fagomrade=SUUFORE",
                         listOf(Brukerrolle.Veileder),
                     ).apply {
                         status shouldBe HttpStatusCode.Forbidden
