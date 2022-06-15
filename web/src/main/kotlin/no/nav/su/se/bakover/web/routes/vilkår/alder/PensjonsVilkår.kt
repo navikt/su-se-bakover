@@ -18,15 +18,15 @@ import no.nav.su.se.bakover.web.routes.Feilresponser
 import java.util.UUID
 
 internal enum class PensjonsVilkårResultat {
-    JA,
-    NEI,
-    UAVKLART;
+    VilkårOppfylt,
+    VilkårIkkeOppfylt,
+    HarAlderssakTilBehandling;
 
     fun toResultat(): Resultat {
         return when (this) {
-            JA -> Resultat.Innvilget
-            NEI -> Resultat.Avslag
-            UAVKLART -> Resultat.Uavklart
+            VilkårOppfylt -> Resultat.Innvilget
+            VilkårIkkeOppfylt -> Resultat.Avslag
+            HarAlderssakTilBehandling -> Resultat.Uavklart
         }
     }
 }
@@ -87,9 +87,9 @@ internal fun VurderingsperiodePensjon.toJson(): VurderingsperiodePensjonsVilkår
 
 internal fun Resultat.toPensjonsVilkårResultat(): PensjonsVilkårResultat {
     return when (this) {
-        Resultat.Avslag -> PensjonsVilkårResultat.NEI
-        Resultat.Innvilget -> PensjonsVilkårResultat.JA
-        Resultat.Uavklart -> PensjonsVilkårResultat.UAVKLART
+        Resultat.Avslag -> PensjonsVilkårResultat.VilkårIkkeOppfylt
+        Resultat.Innvilget -> PensjonsVilkårResultat.VilkårOppfylt
+        Resultat.Uavklart -> PensjonsVilkårResultat.HarAlderssakTilBehandling
     }
 }
 

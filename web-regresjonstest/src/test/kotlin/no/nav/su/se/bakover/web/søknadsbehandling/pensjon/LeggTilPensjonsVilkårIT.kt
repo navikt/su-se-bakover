@@ -80,14 +80,14 @@ internal class LeggTilPensjonsVilkårIT {
                                 {
                                   "vurderinger": [
                                     {
-                                      "resultat": "JA",
+                                      "resultat": "VilkårOppfylt",
                                       "periode": {
                                         "fraOgMed": "2022-01-01",
                                         "tilOgMed": "2022-12-31"
                                       }
                                     }
                                   ],
-                                  "resultat": "JA"
+                                  "resultat": "VilkårOppfylt"
                                 }
                             """.trimIndent(),
                             true,

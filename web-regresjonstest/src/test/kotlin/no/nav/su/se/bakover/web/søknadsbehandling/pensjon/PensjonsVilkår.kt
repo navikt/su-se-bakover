@@ -36,7 +36,7 @@ internal fun ApplicationTestBuilder.leggTilPensjonsVilkår(
                       "fraOgMed": "$fraOgMed",
                       "tilOgMed": "$tilOgMed"
                     },
-                    "resultat": "JA"
+                    "resultat": "VilkårOppfylt"
                   }
                 ]       
                 """.trimIndent(),
