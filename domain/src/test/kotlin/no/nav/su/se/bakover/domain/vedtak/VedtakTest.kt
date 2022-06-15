@@ -26,7 +26,14 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
+import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
+import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
+import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
+import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
+import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import no.nav.su.se.bakover.domain.vilkår.Resultat
+import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
@@ -129,7 +136,7 @@ internal class VedtakTest {
         val periode = år(2021)
         val bosituasjon = lagFullstendigBostiuasjon(periode)
 
-        val vedtak = lagVedtak(
+        val vedtak = lagVedtakInnvilgetSøknadsbehandling(
             rekkefølge = 1,
             fraDato = 1.januar(2021),
             tilDato = 31.desember(2021),
@@ -139,6 +146,13 @@ internal class VedtakTest {
             vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre(
                 uføre = lagVurdertUføreVilkår(periode),
                 formue = lagVurdertFormueVilkår(periode, bosituasjon),
+                lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
+                fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
+                institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
+                personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
+                flyktning = FlyktningVilkår.IkkeVurdert,
+                opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
+                utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
             ),
         )
         listOf(vedtak).lagTidslinje(
@@ -166,7 +180,7 @@ internal class VedtakTest {
     fun `lager tidslinje for flere vedtak`() {
         val periodeA = år(2021)
         val bosituasjonA = lagFullstendigBostiuasjon(periodeA)
-        val a = lagVedtak(
+        val a = lagVedtakInnvilgetSøknadsbehandling(
             rekkefølge = 1,
             fraDato = 1.januar(2021),
             tilDato = 31.desember(2021),
@@ -179,12 +193,20 @@ internal class VedtakTest {
                     periodeA,
                     bosituasjonA,
                 ),
+                // TODO jah: Ikke bra at dette ender opp som et innvilget vedtak
+                lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
+                fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
+                institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
+                personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
+                flyktning = FlyktningVilkår.IkkeVurdert,
+                opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
+                utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
             ),
         )
 
         val periodeB = Periode.create(1.mai(2021), 31.desember(2021))
         val bosituasjonB = lagFullstendigBostiuasjon(periodeB)
-        val b = lagVedtak(
+        val b = lagVedtakInnvilgetSøknadsbehandling(
             rekkefølge = 2,
             fraDato = 1.mai(2021),
             tilDato = 31.desember(2021),
@@ -192,6 +214,14 @@ internal class VedtakTest {
             vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre(
                 uføre = lagVurdertUføreVilkår(periodeB),
                 formue = lagVurdertFormueVilkår(periodeB, bosituasjonB),
+                // TODO jah: Ikke bra at dette ender opp som et innvilget vedtak
+                lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
+                fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
+                institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
+                personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
+                flyktning = FlyktningVilkår.IkkeVurdert,
+                opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
+                utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
             ),
         )
         listOf(a, b).lagTidslinje(
@@ -215,6 +245,14 @@ internal class VedtakTest {
                             Periode.create(1.januar(2021), 30.april(2021)),
                             lagFullstendigBostiuasjon(Periode.create(1.januar(2021), 30.april(2021))),
                         ),
+                        // TODO jah: Ikke bra at dette ender opp som et innvilget vedtak
+                        lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
+                        fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
+                        institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
+                        personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
+                        flyktning = FlyktningVilkår.IkkeVurdert,
+                        opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
+                        utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
                     ),
                     originaltVedtak = a,
                 ),
@@ -243,7 +281,7 @@ internal class VedtakTest {
     @Test
     fun `begrenser perioden på grunnlagene til samme perioden som vedtaket`() {
         val p1 = år(2021)
-        val a = lagVedtak(
+        val a = lagVedtakInnvilgetSøknadsbehandling(
             rekkefølge = 1,
             fraDato = p1.fraOgMed,
             tilDato = p1.tilOgMed,
@@ -253,11 +291,19 @@ internal class VedtakTest {
             vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre(
                 uføre = lagVurdertUføreVilkår(p1),
                 formue = lagVurdertFormueVilkår(p1, lagFullstendigBostiuasjon(p1)),
+                // TODO jah: Ikke bra at dette ender opp som et innvilget vedtak
+                lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
+                fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
+                institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
+                personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
+                flyktning = FlyktningVilkår.IkkeVurdert,
+                opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
+                utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
             ),
         )
 
         val p2 = Periode.create(1.mai(2021), 31.desember(2021))
-        val b = lagVedtak(
+        val b = lagVedtakInnvilgetSøknadsbehandling(
             rekkefølge = 2,
             fraDato = p2.fraOgMed,
             tilDato = p2.tilOgMed,
@@ -267,7 +313,14 @@ internal class VedtakTest {
             vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre(
                 uføre = lagVurdertUføreVilkår(p2),
                 formue = lagVurdertFormueVilkår(p2, lagFullstendigBostiuasjon(p2)),
-
+                // TODO jah: Ikke bra at dette ender opp som et innvilget vedtak
+                lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
+                fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
+                institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
+                personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
+                flyktning = FlyktningVilkår.IkkeVurdert,
+                opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
+                utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
             ),
         )
         listOf(a, b).lagTidslinje(
@@ -288,6 +341,13 @@ internal class VedtakTest {
                     vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre(
                         uføre = lagVurdertUføreVilkår(firstPeriode),
                         formue = lagVurdertFormueVilkår(firstPeriode, firstBosituasjon),
+                        lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
+                        fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
+                        institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
+                        personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
+                        flyktning = FlyktningVilkår.IkkeVurdert,
+                        opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
+                        utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
                     ),
                     originaltVedtak = a,
                 ),
@@ -306,6 +366,13 @@ internal class VedtakTest {
                     vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre(
                         uføre = lagVurdertUføreVilkår(lastPeriode),
                         formue = lagVurdertFormueVilkår(lastPeriode, lastBostiuasjon),
+                        lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
+                        fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
+                        institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
+                        personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
+                        flyktning = FlyktningVilkår.IkkeVurdert,
+                        opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
+                        utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
                     ),
                     originaltVedtak = b,
                 ),
@@ -325,7 +392,7 @@ internal class VedtakTest {
     fun `informasjon som overskrives av nyere vedtak forsvinner fra tidslinjen`() {
         val p1 = år(2021)
         val b1 = lagFullstendigBostiuasjon(p1)
-        val a = lagVedtak(
+        val a = lagVedtakInnvilgetSøknadsbehandling(
             rekkefølge = 1,
             fraDato = 1.januar(2021),
             tilDato = 31.desember(2021),
@@ -335,6 +402,14 @@ internal class VedtakTest {
             vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre(
                 uføre = lagVurdertUføreVilkår(p1),
                 formue = lagVurdertFormueVilkår(p1, b1),
+                // TODO jah: Ikke bra at dette ender opp som et innvilget vedtak
+                lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
+                fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
+                institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
+                personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
+                flyktning = FlyktningVilkår.IkkeVurdert,
+                opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
+                utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
             ),
         )
 
@@ -348,7 +423,7 @@ internal class VedtakTest {
             periode = p2,
         )
 
-        val b = lagVedtak(
+        val b = lagVedtakInnvilgetSøknadsbehandling(
             rekkefølge = 2,
             fraDato = 1.januar(2021),
             tilDato = 31.desember(2021),
@@ -358,6 +433,14 @@ internal class VedtakTest {
             vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre(
                 uføre = Vilkår.Uførhet.Vurdert.create(nonEmptyListOf(uføreVurderingB)),
                 formue = lagVurdertFormueVilkår(p2, b2),
+                // TODO jah: Ikke bra at dette ender opp som et innvilget vedtak
+                lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
+                fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
+                institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
+                personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
+                flyktning = FlyktningVilkår.IkkeVurdert,
+                opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
+                utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
             ),
         )
 
@@ -383,6 +466,13 @@ internal class VedtakTest {
                         nonEmptyListOf(uføreVurderingB),
                     ),
                     formue = lagVurdertFormueVilkår(p2, b2),
+                    lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
+                    fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
+                    institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
+                    personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
+                    flyktning = FlyktningVilkår.IkkeVurdert,
+                    opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
+                    utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
                 ),
                 originaltVedtak = b,
             ),
@@ -393,13 +483,13 @@ internal class VedtakTest {
         return Clock.fixed(clock.instant().plus(rekkefølge, ChronoUnit.DAYS), ZoneOffset.UTC)
     }
 
-    private fun lagVedtak(
+    private fun lagVedtakInnvilgetSøknadsbehandling(
         rekkefølge: Long,
         fraDato: LocalDate,
         tilDato: LocalDate,
         grunnlagsdata: Grunnlagsdata,
         vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre,
-    ): VedtakSomKanRevurderes.EndringIYtelse {
+    ): VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling {
         val clock = fixedClockWithRekkefølge(rekkefølge)
         return VedtakSomKanRevurderes.fromSøknadsbehandling(
             søknadsbehandling = Søknadsbehandling.Iverksatt.Innvilget(

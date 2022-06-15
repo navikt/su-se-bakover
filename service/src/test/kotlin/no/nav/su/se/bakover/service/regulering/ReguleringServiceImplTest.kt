@@ -4,7 +4,8 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
-import io.kotest.matchers.equality.shouldBeEqualToComparingFieldsExcept
+import io.kotest.matchers.equality.FieldsEqualityCheckConfig
+import io.kotest.matchers.equality.shouldBeEqualToComparingFields
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.matchers.types.shouldBeTypeOf
@@ -370,11 +371,14 @@ internal class ReguleringServiceImplTest {
             val reguleringService = lagReguleringServiceImpl(sak)
             reguleringService.startRegulering(1.mai(2021)).first().getOrFail().let {
                 it.shouldBeInstanceOf<Regulering.OpprettetRegulering>()
-                it.shouldBeEqualToComparingFieldsExcept(
+                shouldBeEqualToComparingFields(
                     regulering,
-                    Regulering.OpprettetRegulering::periode,
-                    Regulering.OpprettetRegulering::grunnlagsdataOgVilkårsvurderinger,
-                    Regulering.OpprettetRegulering::opprettet,
+                    FieldsEqualityCheckConfig(
+                        propertiesToExclude = listOf(
+                            Regulering.OpprettetRegulering::grunnlagsdataOgVilkårsvurderinger,
+                            Regulering.OpprettetRegulering::opprettet,
+                        ),
+                    ),
                 )
 
                 it.periode.fraOgMed shouldBe 1.mai(2021)
@@ -412,11 +416,15 @@ internal class ReguleringServiceImplTest {
             val reguleringService = lagReguleringServiceImpl(sak)
             reguleringService.startRegulering(1.mai(2021)).first().getOrFail().let {
                 it.shouldBeInstanceOf<Regulering.OpprettetRegulering>()
-                it.shouldBeEqualToComparingFieldsExcept(
+                it.shouldBeEqualToComparingFields(
                     regulering,
-                    Regulering.OpprettetRegulering::periode,
-                    Regulering.OpprettetRegulering::grunnlagsdataOgVilkårsvurderinger,
-                    Regulering.OpprettetRegulering::opprettet,
+                    FieldsEqualityCheckConfig(
+                        propertiesToExclude = listOf(
+                            Regulering.OpprettetRegulering::periode,
+                            Regulering.OpprettetRegulering::grunnlagsdataOgVilkårsvurderinger,
+                            Regulering.OpprettetRegulering::opprettet,
+                        ),
+                    ),
                 )
 
                 it.periode.fraOgMed shouldBe regulering.periode.fraOgMed

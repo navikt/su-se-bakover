@@ -30,6 +30,8 @@ sealed class PensjonsVilkår : Vilkår() {
         override val erAvslag = false
         override val erInnvilget = false
         override val grunnlag = emptyList<Pensjonsgrunnlag>()
+        override val perioder: List<Periode> = emptyList()
+
         override fun lagTidslinje(periode: Periode): PensjonsVilkår {
             return this
         }
@@ -64,11 +66,12 @@ sealed class PensjonsVilkår : Vilkår() {
         }
 
         override val erInnvilget: Boolean = vurderingsperioder.all { it.resultat == Resultat.Innvilget }
-
         override val erAvslag: Boolean = vurderingsperioder.any { it.resultat == Resultat.Avslag }
 
         override val resultat: Resultat =
             if (erInnvilget) Resultat.Innvilget else if (erAvslag) Resultat.Avslag else Resultat.Uavklart
+
+        override val perioder: Nel<Periode> = vurderingsperioder.minsteAntallSammenhengendePerioder()
 
         override fun hentTidligesteDatoForAvslag(): LocalDate? {
             return vurderingsperioder

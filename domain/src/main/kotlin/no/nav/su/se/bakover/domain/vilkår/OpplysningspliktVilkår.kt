@@ -8,7 +8,6 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.harOverlappende
-import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
 import no.nav.su.se.bakover.domain.grunnlag.Opplysningspliktgrunnlag
@@ -31,6 +30,8 @@ sealed class OpplysningspliktVilkår : Vilkår() {
         override val erAvslag = false
         override val erInnvilget = false
         override val grunnlag = emptyList<Opplysningspliktgrunnlag>()
+        override val perioder: List<Periode> = emptyList()
+
         override fun lagTidslinje(periode: Periode): OpplysningspliktVilkår {
             return this
         }
@@ -68,6 +69,12 @@ sealed class OpplysningspliktVilkår : Vilkår() {
         override val resultat: Resultat =
             if (erInnvilget) Resultat.Innvilget else if (erAvslag) Resultat.Avslag else Resultat.Uavklart
 
+        override val perioder: Nel<Periode> = vurderingsperioder.minsteAntallSammenhengendePerioder()
+
+        init {
+            kastHvisPerioderErUsortertEllerHarDuplikater()
+        }
+
         override fun hentTidligesteDatoForAvslag(): LocalDate? {
             return vurderingsperioder
                 .filter { it.resultat == Resultat.Avslag }
@@ -80,7 +87,7 @@ sealed class OpplysningspliktVilkår : Vilkår() {
         }
 
         fun minsteAntallSammenhengendePerioder(): List<Periode> {
-            return vurderingsperioder.map { it.periode }.minsteAntallSammenhengendePerioder()
+            return vurderingsperioder.minsteAntallSammenhengendePerioder()
         }
 
         companion object {

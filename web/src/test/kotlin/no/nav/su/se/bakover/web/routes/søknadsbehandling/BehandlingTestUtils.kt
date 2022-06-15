@@ -20,6 +20,11 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsinnholdAlder
+import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
+import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
+import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
+import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
+import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.create
@@ -103,7 +108,13 @@ object BehandlingTestUtils {
             formue = formuevilkårIkkeVurdert(),
             opplysningsplikt = tilstrekkeligDokumentert(
                 periode = stønadsperiode.periode
-            )
+            ),
+            // TODO jah: Ikke bra at dette ender opp som et innvilget vedtak uten å gå via oppdater(behandlingsinformasjon)-funksjonen.
+            lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
+            fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
+            institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
+            personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
+            flyktning = FlyktningVilkår.IkkeVurdert,
         ),
         avkorting = AvkortingVedSøknadsbehandling.Iverksatt.IngenUtestående,
         sakstype = Sakstype.UFØRE,

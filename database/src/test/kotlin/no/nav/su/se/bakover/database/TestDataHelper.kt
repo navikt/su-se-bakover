@@ -104,6 +104,13 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
+import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
+import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
+import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
+import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
+import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
+import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.behandlingsinformasjonAlleVilkårInnvilget
@@ -1263,6 +1270,13 @@ internal class TestDataHelper(
         vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre = Vilkårsvurderinger.Søknadsbehandling.Uføre(
             uføre = innvilgetUførevilkår(periode = stønadsperiode2021.periode),
             formue = formuevilkårIkkeVurdert(),
+            lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
+            fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
+            institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
+            personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
+            flyktning = FlyktningVilkår.IkkeVurdert,
+            opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
+            utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
         ),
         stønadsperiode: Stønadsperiode = stønadsperiode2021,
     ): Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Avslag> {

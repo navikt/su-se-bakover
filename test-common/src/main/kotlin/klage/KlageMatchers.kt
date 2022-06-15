@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.test.klage
 
 import io.kotest.assertions.eq.actualIsNull
 import io.kotest.assertions.eq.expectedIsNull
+import io.kotest.matchers.equality.FieldsEqualityCheckConfig
 import io.kotest.matchers.equality.shouldBeEqualToComparingFields
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
@@ -40,7 +41,7 @@ fun Klage?.shouldBeEqualComparingPublicFieldsAndInterface(expected: Klage?, igno
     if (ignoreProperty != null) {
         this!!.shouldBeEqualToIgnoringFields(expected!!, true, ignoreProperty)
     } else {
-        this!!.shouldBeEqualToComparingFields(other = expected!!, ignorePrivateFields = true)
+        this!!.shouldBeEqualToComparingFields(other = expected!!, FieldsEqualityCheckConfig(ignorePrivateFields = true))
     }
     when (this) {
         is OpprettetKlage -> this.shouldBe(expected)
