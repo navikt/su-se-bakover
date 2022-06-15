@@ -49,7 +49,7 @@ sealed class PensjonsVilkår : Vilkår() {
         val vurderingsperioder: Nel<VurderingsperiodePensjon>,
     ) : PensjonsVilkår() {
 
-        //TODO("init som sjekker at perioder og stuff ikke overlapper - funksjonalitet fra Johns pr på innstrammende inits")
+        // TODO("init som sjekker at perioder og stuff ikke overlapper - funksjonalitet fra Johns pr på innstrammende inits")
 
         override val grunnlag: List<Pensjonsgrunnlag> = vurderingsperioder.mapNotNull { it.grunnlag }
         override fun lagTidslinje(periode: Periode): PensjonsVilkår {
@@ -133,7 +133,7 @@ data class VurderingsperiodePensjon private constructor(
     override val id: UUID = UUID.randomUUID(),
     override val opprettet: Tidspunkt,
     override val resultat: Resultat,
-    override val grunnlag: Pensjonsgrunnlag?, //TODO("forsøk å unngå null når vi har funnet ut hva grunnlaget skal inneholde")
+    override val grunnlag: Pensjonsgrunnlag?, // TODO("forsøk å unngå null når vi har funnet ut hva grunnlaget skal inneholde")
     override val periode: Periode,
 ) : Vurderingsperiode(), KanPlasseresPåTidslinje<VurderingsperiodePensjon> {
 

@@ -45,7 +45,7 @@ data class Pensjonsgrunnlag(
             opprettet: Tidspunkt,
             periode: Periode,
         ): Either<KunneIkkeOpprettePensjonsgrunnlag, Pensjonsgrunnlag> {
-            //TODO("vurder behov for either")
+            // TODO("vurder behov for either")
             return Pensjonsgrunnlag(
                 id = id,
                 opprettet = opprettet,
