@@ -137,7 +137,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
     open fun leggTilFradragsgrunnlag(
         fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
-        formuegrenserFactory: FormuegrenserFactory,
     ): Either<KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> =
         KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen(this::class).left()
 
@@ -226,7 +225,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     open fun leggTilOpplysningspliktVilkår(
         opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
         clock: Clock,
-        formuegrenserFactory: FormuegrenserFactory,
     ): Either<KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
         return KunneIkkeLeggeTilOpplysningsplikt.UgyldigTilstand(this::class).left()
     }
@@ -243,7 +241,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     open fun leggTilPensjonsVilkår(
         vilkår: PensjonsVilkår.Vurdert,
         clock: Clock,
-        formuegrenserFactory: FormuegrenserFactory,
     ): Either<KunneIkkeLeggeTilPensjonsVilkår, Vilkårsvurdert> {
         return KunneIkkeLeggeTilPensjonsVilkår.UgyldigTilstand(this::class).left()
     }
@@ -262,7 +259,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         begrunnelse: String?,
         clock: Clock,
         satsFactory: SatsFactory,
-        formuegrenserFactory: FormuegrenserFactory,
     ): Either<KunneIkkeBeregne, Beregnet> {
         return KunneIkkeBeregne.UgyldigTilstand(this::class).left()
     }
@@ -300,7 +296,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     open fun leggTilUførevilkår(
         uførhet: Vilkår.Uførhet.Vurdert,
         clock: Clock,
-        formuegrenserFactory: FormuegrenserFactory,
     ): Either<KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
         return KunneIkkeLeggeTilUførevilkår.UgyldigTilstand(this::class, Vilkårsvurdert::class).left()
     }
@@ -387,14 +382,12 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         begrunnelse: String?,
         clock: Clock,
         beregningStrategyFactory: BeregningStrategyFactory,
-        formuegrenserFactory: FormuegrenserFactory,
     ): Either<KunneIkkeBeregne, Beregnet> {
         return when (val avkort = søknadsbehandling.avkorting) {
             is AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående -> {
                 beregnUtenAvkorting(
                     begrunnelse = begrunnelse,
                     beregningStrategyFactory = beregningStrategyFactory,
-                    formuegrenserFactory = formuegrenserFactory,
                 ).getOrHandle { return it.left() }
             }
             is AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere -> {
@@ -406,7 +399,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     begrunnelse = begrunnelse,
                     clock = clock,
                     beregningStrategyFactory = beregningStrategyFactory,
-                    formuegrenserFactory = formuegrenserFactory,
                 ).getOrHandle { return it.left() }
             }
         }.let { (behandling, beregning) ->
@@ -460,11 +452,9 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     private fun beregnUtenAvkorting(
         begrunnelse: String?,
         beregningStrategyFactory: BeregningStrategyFactory,
-        formuegrenserFactory: FormuegrenserFactory,
     ): Either<KunneIkkeBeregne, Pair<Vilkårsvurdert, Beregning>> {
         return leggTilFradragsgrunnlag(
             fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag.filterNot { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold },
-            formuegrenserFactory = formuegrenserFactory,
         ).getOrHandle {
             return KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag(it).left()
         }.let {
@@ -492,9 +482,8 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         begrunnelse: String?,
         clock: Clock,
         beregningStrategyFactory: BeregningStrategyFactory,
-        formuegrenserFactory: FormuegrenserFactory,
     ): Either<KunneIkkeBeregne, Pair<Vilkårsvurdert, Beregning>> {
-        return beregnUtenAvkorting(begrunnelse, beregningStrategyFactory, formuegrenserFactory)
+        return beregnUtenAvkorting(begrunnelse, beregningStrategyFactory)
             .map { (utenAvkorting, beregningUtenAvkorting) ->
                 val fradragForAvkorting = Avkortingsplan(
                     feilutbetaltBeløp = avkorting.avkortingsvarsel.hentUtbetalteBeløp().sum(),
@@ -510,7 +499,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
                 val medAvkorting = utenAvkorting.leggTilFradragsgrunnlag(
                     fradragsgrunnlag = utenAvkorting.grunnlagsdata.fradragsgrunnlag + fradragForAvkorting,
-                    formuegrenserFactory = formuegrenserFactory,
                 ).getOrHandle { return KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag(it).left() }
 
                 medAvkorting to gjørBeregning(
@@ -695,7 +683,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
             override fun leggTilFradragsgrunnlag(
                 fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
-                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeLeggeTilFradragsgrunnlag, Innvilget> {
                 validerFradragsgrunnlag(fradragsgrunnlag).mapLeft {
                     return it.left()
@@ -736,7 +723,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun leggTilOpplysningspliktVilkår(
                 opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
                 clock: Clock,
-                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
                 return valider(opplysningspliktVilkår)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
@@ -745,7 +731,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun leggTilPensjonsVilkår(
                 vilkår: PensjonsVilkår.Vurdert,
                 clock: Clock,
-                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeLeggeTilPensjonsVilkår, Vilkårsvurdert> {
                 return valider(vilkår)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(vilkår), clock) }
@@ -779,7 +764,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun leggTilUførevilkår(
                 uførhet: Vilkår.Uførhet.Vurdert,
                 clock: Clock,
-                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
                 return valider(uførhet)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
@@ -789,7 +773,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 begrunnelse: String?,
                 clock: Clock,
                 satsFactory: SatsFactory,
-                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeBeregne, Beregnet> {
                 return beregnInternal(
                     søknadsbehandling = vilkårsvurder(vilkårsvurderinger, clock),
@@ -799,7 +782,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         clock = clock,
                         satsFactory = satsFactory,
                     ),
-                    formuegrenserFactory = formuegrenserFactory,
                 )
             }
 
@@ -897,7 +879,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun leggTilOpplysningspliktVilkår(
                 opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
                 clock: Clock,
-                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
                 return valider(opplysningspliktVilkår)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
@@ -906,7 +887,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun leggTilPensjonsVilkår(
                 vilkår: PensjonsVilkår.Vurdert,
                 clock: Clock,
-                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeLeggeTilPensjonsVilkår, Vilkårsvurdert> {
                 return valider(vilkår)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(vilkår), clock) }
@@ -940,7 +920,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun leggTilUførevilkår(
                 uførhet: Vilkår.Uførhet.Vurdert,
                 clock: Clock,
-                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
                 return valider(uførhet)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
@@ -1010,7 +989,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun leggTilOpplysningspliktVilkår(
                 opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
                 clock: Clock,
-                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
                 return valider(opplysningspliktVilkår)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
@@ -1019,7 +997,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun leggTilPensjonsVilkår(
                 vilkår: PensjonsVilkår.Vurdert,
                 clock: Clock,
-                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeLeggeTilPensjonsVilkår, Vilkårsvurdert> {
                 return valider(vilkår)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(vilkår), clock) }
@@ -1053,7 +1030,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun leggTilUførevilkår(
                 uførhet: Vilkår.Uførhet.Vurdert,
                 clock: Clock,
-                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
                 return valider(uførhet)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
@@ -1120,7 +1096,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             begrunnelse: String?,
             clock: Clock,
             satsFactory: SatsFactory,
-            formuegrenserFactory: FormuegrenserFactory,
         ): Either<KunneIkkeBeregne, Beregnet>
 
         override fun simuler(
@@ -1190,7 +1165,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
             override fun leggTilFradragsgrunnlag(
                 fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
-                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> {
                 validerFradragsgrunnlag(fradragsgrunnlag).mapLeft {
                     return it.left()
@@ -1231,7 +1205,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun leggTilOpplysningspliktVilkår(
                 opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
                 clock: Clock,
-                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
                 return valider(opplysningspliktVilkår)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
@@ -1240,7 +1213,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun leggTilPensjonsVilkår(
                 vilkår: PensjonsVilkår.Vurdert,
                 clock: Clock,
-                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeLeggeTilPensjonsVilkår, Vilkårsvurdert> {
                 return valider(vilkår)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(vilkår), clock) }
@@ -1275,7 +1247,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 begrunnelse: String?,
                 clock: Clock,
                 satsFactory: SatsFactory,
-                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeBeregne, Beregnet> {
                 return beregnInternal(
                     søknadsbehandling = vilkårsvurder(vilkårsvurderinger, clock),
@@ -1285,14 +1256,12 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         clock = clock,
                         satsFactory = satsFactory,
                     ),
-                    formuegrenserFactory = formuegrenserFactory,
                 )
             }
 
             override fun leggTilUførevilkår(
                 uførhet: Vilkår.Uførhet.Vurdert,
                 clock: Clock,
-                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
                 return valider(uførhet)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
@@ -1354,7 +1323,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
             override fun leggTilFradragsgrunnlag(
                 fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
-                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> {
                 validerFradragsgrunnlag(fradragsgrunnlag).mapLeft {
                     return it.left()
@@ -1430,7 +1398,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun leggTilOpplysningspliktVilkår(
                 opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
                 clock: Clock,
-                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
                 return valider(opplysningspliktVilkår)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
@@ -1439,7 +1406,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun leggTilPensjonsVilkår(
                 vilkår: PensjonsVilkår.Vurdert,
                 clock: Clock,
-                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeLeggeTilPensjonsVilkår, Vilkårsvurdert> {
                 return valider(vilkår)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(vilkår), clock) }
@@ -1474,7 +1440,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 begrunnelse: String?,
                 clock: Clock,
                 satsFactory: SatsFactory,
-                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeBeregne, Beregnet> {
                 return beregnInternal(
                     søknadsbehandling = vilkårsvurder(vilkårsvurderinger, clock),
@@ -1484,14 +1449,12 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         clock = clock,
                         satsFactory = satsFactory,
                     ),
-                    formuegrenserFactory = formuegrenserFactory,
                 )
             }
 
             override fun leggTilUførevilkår(
                 uførhet: Vilkår.Uførhet.Vurdert,
                 clock: Clock,
-                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
                 return valider(uførhet)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
@@ -1553,7 +1516,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
         override fun leggTilFradragsgrunnlag(
             fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
-            formuegrenserFactory: FormuegrenserFactory,
         ): Either<KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> {
             validerFradragsgrunnlag(fradragsgrunnlag).mapLeft {
                 return it.left()
@@ -1610,7 +1572,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             begrunnelse: String?,
             clock: Clock,
             satsFactory: SatsFactory,
-            formuegrenserFactory: FormuegrenserFactory,
         ): Either<KunneIkkeBeregne, Beregnet> {
             return beregnInternal(
                 søknadsbehandling = this.vilkårsvurder(vilkårsvurderinger, clock),
@@ -1620,7 +1581,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     clock = clock,
                     satsFactory = satsFactory,
                 ),
-                formuegrenserFactory = formuegrenserFactory,
             )
         }
 
@@ -1703,7 +1663,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         override fun leggTilOpplysningspliktVilkår(
             opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
             clock: Clock,
-            formuegrenserFactory: FormuegrenserFactory,
         ): Either<KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
             return valider(opplysningspliktVilkår)
                 .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
@@ -1712,7 +1671,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         override fun leggTilPensjonsVilkår(
             vilkår: PensjonsVilkår.Vurdert,
             clock: Clock,
-            formuegrenserFactory: FormuegrenserFactory,
         ): Either<KunneIkkeLeggeTilPensjonsVilkår, Vilkårsvurdert> {
             return valider(vilkår)
                 .map { vilkårsvurder(vilkårsvurderinger.leggTil(vilkår), clock) }
@@ -1744,7 +1702,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         override fun leggTilUførevilkår(
             uførhet: Vilkår.Uførhet.Vurdert,
             clock: Clock,
-            formuegrenserFactory: FormuegrenserFactory,
         ): Either<KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
             return valider(uførhet)
                 .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
@@ -2121,7 +2078,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
             override fun leggTilFradragsgrunnlag(
                 fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
-                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> {
                 validerFradragsgrunnlag(fradragsgrunnlag).mapLeft {
                     return it.left()
@@ -2159,7 +2115,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 begrunnelse: String?,
                 clock: Clock,
                 satsFactory: SatsFactory,
-                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeBeregne, Beregnet> {
                 return beregnInternal(
                     søknadsbehandling = this.vilkårsvurder(vilkårsvurderinger, clock),
@@ -2169,7 +2124,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         clock = clock,
                         satsFactory = satsFactory,
                     ),
-                    formuegrenserFactory = formuegrenserFactory,
                 )
             }
 
@@ -2249,7 +2203,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun leggTilOpplysningspliktVilkår(
                 opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
                 clock: Clock,
-                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
                 return valider(opplysningspliktVilkår)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
@@ -2258,7 +2211,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun leggTilPensjonsVilkår(
                 vilkår: PensjonsVilkår.Vurdert,
                 clock: Clock,
-                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeLeggeTilPensjonsVilkår, Vilkårsvurdert> {
                 return valider(vilkår)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(vilkår), clock) }
@@ -2292,7 +2244,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun leggTilUførevilkår(
                 uførhet: Vilkår.Uførhet.Vurdert,
                 clock: Clock,
-                formuegrenserFactory: FormuegrenserFactory,
             ): Either<KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
                 return valider(uførhet)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
@@ -2356,7 +2307,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
                 override fun leggTilFradragsgrunnlag(
                     fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
-                    formuegrenserFactory: FormuegrenserFactory,
                 ): Either<KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> {
                     validerFradragsgrunnlag(fradragsgrunnlag).mapLeft {
                         return it.left()
@@ -2398,7 +2348,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     begrunnelse: String?,
                     clock: Clock,
                     satsFactory: SatsFactory,
-                    formuegrenserFactory: FormuegrenserFactory,
                 ): Either<KunneIkkeBeregne, Beregnet> {
                     return beregnInternal(
                         søknadsbehandling = this.vilkårsvurder(vilkårsvurderinger, clock),
@@ -2408,7 +2357,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                             clock = clock,
                             satsFactory = satsFactory,
                         ),
-                        formuegrenserFactory = formuegrenserFactory,
                     )
                 }
 
@@ -2451,7 +2399,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override fun leggTilOpplysningspliktVilkår(
                     opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
                     clock: Clock,
-                    formuegrenserFactory: FormuegrenserFactory,
                 ): Either<KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
                     return valider(opplysningspliktVilkår)
                         .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
@@ -2460,7 +2407,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override fun leggTilPensjonsVilkår(
                     vilkår: PensjonsVilkår.Vurdert,
                     clock: Clock,
-                    formuegrenserFactory: FormuegrenserFactory,
                 ): Either<KunneIkkeLeggeTilPensjonsVilkår, Vilkårsvurdert> {
                     return valider(vilkår)
                         .map { vilkårsvurder(vilkårsvurderinger.leggTil(vilkår), clock) }
@@ -2494,7 +2440,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override fun leggTilUførevilkår(
                     uførhet: Vilkår.Uførhet.Vurdert,
                     clock: Clock,
-                    formuegrenserFactory: FormuegrenserFactory,
                 ): Either<KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
                     return valider(uførhet)
                         .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
@@ -2594,7 +2539,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override fun leggTilOpplysningspliktVilkår(
                     opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
                     clock: Clock,
-                    formuegrenserFactory: FormuegrenserFactory,
                 ): Either<KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
                     return valider(opplysningspliktVilkår)
                         .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
@@ -2603,7 +2547,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override fun leggTilPensjonsVilkår(
                     vilkår: PensjonsVilkår.Vurdert,
                     clock: Clock,
-                    formuegrenserFactory: FormuegrenserFactory,
                 ): Either<KunneIkkeLeggeTilPensjonsVilkår, Vilkårsvurdert> {
                     return valider(vilkår)
                         .map { vilkårsvurder(vilkårsvurderinger.leggTil(vilkår), clock) }
@@ -2637,7 +2580,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override fun leggTilUførevilkår(
                     uførhet: Vilkår.Uførhet.Vurdert,
                     clock: Clock,
-                    formuegrenserFactory: FormuegrenserFactory,
                 ): Either<KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
                     return valider(uførhet)
                         .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }

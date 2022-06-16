@@ -77,7 +77,6 @@ internal class StatusovergangTest {
         vilkårsvurdertInnvilget.beregn(
             begrunnelse = null,
             clock = fixedClock,
-            formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             satsFactory = satsFactoryTestPåDato(),
         ).getOrFail() as Søknadsbehandling.Beregnet.Innvilget
 
@@ -85,11 +84,9 @@ internal class StatusovergangTest {
         vilkårsvurdertInnvilget.leggTilUførevilkår(
             uførhet = innvilgetUførevilkår(forventetInntekt = 11000000),
             clock = fixedClock,
-            formuegrenserFactory = formuegrenserFactoryTestPåDato(),
         ).getOrFail().beregn(
             begrunnelse = null,
             clock = fixedClock,
-            formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             satsFactory = satsFactoryTestPåDato(),
         ).getOrFail() as Søknadsbehandling.Beregnet.Avslag
 
@@ -180,7 +177,6 @@ internal class StatusovergangTest {
                 opprettet.leggTilOpplysningspliktVilkår(
                     opplysningspliktVilkår = utilstrekkeligDokumentert(),
                     clock = fixedClock,
-                    formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                 ).getOrFail(),
                 Statusovergang.TilVilkårsvurdert(
                     behandlingsinformasjon = Behandlingsinformasjon(),
@@ -459,7 +455,6 @@ internal class StatusovergangTest {
             vilkårsvurdertInnvilget.beregn(
                 begrunnelse = null,
                 clock = fixedClock,
-                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                 satsFactory = satsFactoryTestPåDato(),
             ).getOrFail() shouldBe beregnetInnvilget
         }
@@ -469,7 +464,6 @@ internal class StatusovergangTest {
             beregnetInnvilget.beregn(
                 begrunnelse = null,
                 clock = fixedClock,
-                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                 satsFactory = satsFactoryTestPåDato(),
             ).getOrFail() shouldBe beregnetInnvilget
         }
@@ -479,7 +473,6 @@ internal class StatusovergangTest {
             beregnetAvslag.beregn(
                 begrunnelse = null,
                 clock = fixedClock,
-                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                 satsFactory = satsFactoryTestPåDato(),
             ).getOrFail() shouldBe beregnetAvslag
         }
@@ -489,7 +482,6 @@ internal class StatusovergangTest {
             simulert.beregn(
                 begrunnelse = null,
                 clock = fixedClock,
-                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                 satsFactory = satsFactoryTestPåDato(),
             ).getOrFail() shouldBe beregnetInnvilget
         }
@@ -499,7 +491,6 @@ internal class StatusovergangTest {
             underkjentAvslagBeregning.beregn(
                 begrunnelse = null,
                 clock = fixedClock,
-                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                 satsFactory = satsFactoryTestPåDato(),
             ).getOrFail() shouldBe beregnetAvslag
                 .medFritekstTilBrev(underkjentAvslagBeregning.fritekstTilBrev)
@@ -511,7 +502,6 @@ internal class StatusovergangTest {
             underkjentInnvilget.beregn(
                 begrunnelse = null,
                 clock = fixedClock,
-                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                 satsFactory = satsFactoryTestPåDato(),
             ).getOrFail() shouldBe beregnetInnvilget
                 .medFritekstTilBrev(underkjentInnvilget.fritekstTilBrev)
@@ -535,7 +525,6 @@ internal class StatusovergangTest {
                 it.beregn(
                     begrunnelse = null,
                     clock = fixedClock,
-                    formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                     satsFactory = satsFactoryTestPåDato(),
                 ) shouldBe Søknadsbehandling.KunneIkkeBeregne.UgyldigTilstand(it::class).left()
             }

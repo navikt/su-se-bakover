@@ -171,7 +171,6 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     begrunnelse = null,
                     clock = fixedClock,
                     satsFactory = satsFactoryTestPåDato(),
-                    formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                 ).getOrFail()
                 .also {
                     repo.lagre(it)

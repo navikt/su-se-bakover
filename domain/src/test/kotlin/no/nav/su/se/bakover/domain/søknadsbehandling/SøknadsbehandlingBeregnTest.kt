@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.nåtidForSimuleringStub
 import no.nav.su.se.bakover.test.oversendtUtbetalingMedKvittering
@@ -31,7 +30,6 @@ internal class SøknadsbehandlingBeregnTest {
             førBeregning.beregn(
                 begrunnelse = "kakota",
                 clock = fixedClock,
-                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                 satsFactory = satsFactoryTestPåDato(),
             ).getOrFail().let { etterBeregning ->
                 etterBeregning.beregning.getFradrag() shouldHaveSize 1
@@ -61,13 +59,11 @@ internal class SøknadsbehandlingBeregnTest {
                         ),
                     ),
                 ),
-                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             )
         }.getOrFail().let { førBeregning ->
             førBeregning.beregn(
                 begrunnelse = "kakota",
                 clock = fixedClock,
-                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                 satsFactory = satsFactoryTestPåDato(),
             ).getOrFail().let { etterBeregning ->
                 etterBeregning.beregning.getFradrag() shouldHaveSize 1
@@ -96,13 +92,11 @@ internal class SøknadsbehandlingBeregnTest {
                         ),
                     ),
                 ),
-                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             )
         }.getOrFail().let { førBeregning ->
             førBeregning.beregn(
                 begrunnelse = "kakota",
                 clock = fixedClock,
-                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                 satsFactory = satsFactoryTestPåDato(),
             ).getOrFail().let { etterBeregning ->
                 etterBeregning.beregning.getFradrag() shouldHaveSize 2
@@ -143,7 +137,6 @@ internal class SøknadsbehandlingBeregnTest {
             ).beregn(
                 begrunnelse = "kakota",
                 clock = fixedClock,
-                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                 satsFactory = satsFactoryTestPåDato(),
             ).getOrFail().let { etterBeregning ->
                 etterBeregning.beregning.getFradrag() shouldHaveSize 4
@@ -181,7 +174,6 @@ internal class SøknadsbehandlingBeregnTest {
                         ),
                     ),
                 ),
-                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             ).getOrFail().copy(
                 avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
                     Avkortingsvarsel.Utenlandsopphold.Opprettet(
@@ -204,7 +196,6 @@ internal class SøknadsbehandlingBeregnTest {
                 begrunnelse = "kakota",
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(),
-                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             ).getOrFail().let { etterBeregning ->
                 etterBeregning.beregning.getFradrag() shouldHaveSize 4
                 etterBeregning.beregning.getFradrag()

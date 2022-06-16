@@ -6,19 +6,20 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.periode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
+import no.nav.su.se.bakover.domain.vilkår.PensjonsVilkår
 import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.vilkår.formuevilkårAvslåttPgrBrukersformue
 import no.nav.su.se.bakover.test.vilkår.formuevilkårUtenEps0Innvilget
+import no.nav.su.se.bakover.test.vilkår.pensjonsVilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.tilstrekkeligDokumentert
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdInnvilget
@@ -177,5 +178,46 @@ fun vilkårsvurderingerAvslåttUføreOgAndreInnvilget(
         ),
         utenlandsopphold = utenlandsoppholdInnvilget(periode = periode),
         opplysningsplikt = tilstrekkeligDokumentert(periode = periode),
+    )
+}
+
+fun vilkårsvurderingerAlderInnvilget(
+    stønadsperiode: Stønadsperiode = stønadsperiode2021,
+    behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
+    bosituasjon: NonEmptyList<Grunnlag.Bosituasjon.Fullstendig> = nonEmptyListOf(
+        bosituasjongrunnlagEnslig(
+            id = UUID.randomUUID(),
+            periode = stønadsperiode.periode,
+        ),
+    ),
+    utenlandsopphold: UtenlandsoppholdVilkår = utenlandsoppholdInnvilget(
+        id = UUID.randomUUID(),
+        periode = stønadsperiode.periode,
+    ),
+    opplysningsplikt: OpplysningspliktVilkår = tilstrekkeligDokumentert(
+        id = UUID.randomUUID(),
+        periode = stønadsperiode.periode,
+    ),
+    formue: Vilkår.Formue = formuevilkårUtenEps0Innvilget(
+        periode = stønadsperiode.periode,
+        bosituasjon = bosituasjon,
+    ),
+    pensjon: PensjonsVilkår = pensjonsVilkårInnvilget(
+        periode = stønadsperiode.periode,
+    ),
+): Vilkårsvurderinger.Søknadsbehandling.Alder {
+    return Vilkårsvurderinger.Søknadsbehandling.Alder(
+        utenlandsopphold = utenlandsopphold,
+        formue = formue,
+        opplysningsplikt = opplysningsplikt,
+        lovligOpphold = LovligOppholdVilkår.IkkeVurdert, // hentes behandlingsinformasjon
+        fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert, // hentes behandlingsinformasjon
+        institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert, // hentes behandlingsinformasjon
+        personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert, // hentes behandlingsinformasjon
+        pensjon = pensjon,
+    ).oppdater(
+        stønadsperiode = stønadsperiode,
+        behandlingsinformasjon = behandlingsinformasjon,
+        clock = fixedClock,
     )
 }

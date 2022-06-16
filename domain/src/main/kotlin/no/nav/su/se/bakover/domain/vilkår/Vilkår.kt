@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.InstitusjonsoppholdGrunnlag.Companion.equals
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
 import no.nav.su.se.bakover.domain.tidslinje.masker
@@ -497,6 +498,19 @@ sealed class Vilkårsvurderinger {
             override fun erLik(other: Vilkårsvurderinger): Boolean {
                 return other is Alder && vilkår.erLik(other.vilkår)
             }
+
+            companion object {
+                fun ikkeVurdert() = Alder(
+                    formue = Vilkår.Formue.IkkeVurdert,
+                    lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
+                    fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
+                    institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
+                    utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
+                    personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
+                    opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
+                    pensjon = PensjonsVilkår.IkkeVurdert,
+                )
+            }
         }
     }
 
@@ -608,7 +622,7 @@ sealed class Vilkårsvurderinger {
             override val formue: Vilkår.Formue = Vilkår.Formue.IkkeVurdert,
             override val utenlandsopphold: UtenlandsoppholdVilkår = UtenlandsoppholdVilkår.IkkeVurdert,
             override val opplysningsplikt: OpplysningspliktVilkår = OpplysningspliktVilkår.IkkeVurdert,
-            val pensjon: PensjonsVilkår
+            val pensjon: PensjonsVilkår,
         ) : Revurdering() {
             override val vilkår: Set<Vilkår> = setOf(
                 formue,
