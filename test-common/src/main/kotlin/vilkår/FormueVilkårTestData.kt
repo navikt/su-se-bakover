@@ -172,7 +172,7 @@ fun avslåttFormueVilkår(
     )
 }
 
-fun innvilgetFormueVilkårMedEnsligBosituasjon(
+fun innvilgetFormueVilkår(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = år(2021),
@@ -190,7 +190,7 @@ fun innvilgetFormueVilkårMedEnsligBosituasjon(
     )
 }
 
-fun innvilgetFormueVilkår(
+private fun innvilgetFormueVilkår(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode,

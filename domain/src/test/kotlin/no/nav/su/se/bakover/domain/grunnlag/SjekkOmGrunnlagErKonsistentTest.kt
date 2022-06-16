@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fullstendigMedEPS
 import no.nav.su.se.bakover.test.fullstendigUtenEPS
 import no.nav.su.se.bakover.test.ufullstendigEnslig
-import no.nav.su.se.bakover.test.vilkår.innvilgetFormueVilkårMedEnsligBosituasjon
+import no.nav.su.se.bakover.test.vilkår.innvilgetFormueVilkår
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
@@ -173,7 +173,7 @@ internal class SjekkOmGrunnlagErKonsistentTest {
         @Test
         fun `fullstendig sjekk variant`() {
             SjekkOmGrunnlagErKonsistent(
-                formuegrunnlag = innvilgetFormueVilkårMedEnsligBosituasjon(
+                formuegrunnlag = innvilgetFormueVilkår(
                     periode = periode,
                     bosituasjon = fullstendigMedEPS(periode),
                 ).grunnlag,
@@ -207,7 +207,7 @@ internal class SjekkOmGrunnlagErKonsistentTest {
             )
             val bosituasjon = fullstendigMedEPS(periode)
             SjekkOmGrunnlagErKonsistent(
-                formuegrunnlag = innvilgetFormueVilkårMedEnsligBosituasjon(periode = periode, bosituasjon = bosituasjon).grunnlag,
+                formuegrunnlag = innvilgetFormueVilkår(periode = periode, bosituasjon = bosituasjon).grunnlag,
                 uføregrunnlag = listOf(uføregrunnlag),
                 bosituasjongrunnlag = listOf(bosituasjon),
                 fradragsgrunnlag = listOf(arbeidsinntekt(periode, FradragTilhører.EPS)),
@@ -224,7 +224,7 @@ internal class SjekkOmGrunnlagErKonsistentTest {
 
             SjekkOmGrunnlagErKonsistent.BosituasjonOgFormue(
                 bosituasjon = listOf(fullstendigUtenEPS(janApr)),
-                formue = innvilgetFormueVilkårMedEnsligBosituasjon(
+                formue = innvilgetFormueVilkår(
                     periode = maiDes,
                     bosituasjon = fullstendigUtenEPS(maiDes),
                 ).grunnlag,
@@ -237,7 +237,7 @@ internal class SjekkOmGrunnlagErKonsistentTest {
 
             SjekkOmGrunnlagErKonsistent.BosituasjonOgFormue(
                 bosituasjon = listOf(),
-                formue = innvilgetFormueVilkårMedEnsligBosituasjon(
+                formue = innvilgetFormueVilkår(
                     periode = maiDes,
                     bosituasjon = fullstendigUtenEPS(maiDes),
                 ).grunnlag,
@@ -255,10 +255,10 @@ internal class SjekkOmGrunnlagErKonsistentTest {
 
             SjekkOmGrunnlagErKonsistent.BosituasjonOgFormue(
                 bosituasjon = listOf(fullstendigUtenEPS(maiDes)),
-                formue = innvilgetFormueVilkårMedEnsligBosituasjon(
+                formue = innvilgetFormueVilkår(
                     periode = maiDes,
                     bosituasjon = fullstendigUtenEPS(maiDes),
-                ).grunnlag + innvilgetFormueVilkårMedEnsligBosituasjon(
+                ).grunnlag + innvilgetFormueVilkår(
                     periode = maiDes,
                     bosituasjon = fullstendigUtenEPS(maiDes),
                 ).grunnlag,

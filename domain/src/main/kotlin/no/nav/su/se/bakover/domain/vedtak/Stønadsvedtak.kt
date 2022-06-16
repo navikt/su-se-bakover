@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.vedtak
 
 import arrow.core.Either
+import arrow.core.getOrHandle
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
@@ -416,6 +417,12 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
         fun opplysningspliktVilkår(): OpplysningspliktVilkår {
             return vilkårsvurderinger.opplysningspliktVilkår()
         }
+
+        fun pensjonsVilkår() =
+            vilkårsvurderinger.pensjonsVilkår().getOrHandle { throw IllegalArgumentException(it.toString()) }
+
+        fun familiegjenforeningvilkår() =
+            vilkårsvurderinger.familiegjenforening().getOrHandle { throw IllegalArgumentException(it.toString()) }
     }
 }
 

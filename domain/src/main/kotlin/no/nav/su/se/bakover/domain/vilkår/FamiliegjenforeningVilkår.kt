@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.vilkår
 
 import arrow.core.Nel
+import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.periode.Periode
@@ -10,6 +11,8 @@ import java.time.LocalDate
 
 sealed class FamiliegjenforeningVilkår : Vilkår() {
     override val vilkår: Inngangsvilkår = Inngangsvilkår.Familiegjenforening
+
+    abstract override fun lagTidslinje(periode: Periode): FamiliegjenforeningVilkår
 
     object IkkeVurdert : FamiliegjenforeningVilkår() {
         override val resultat: Resultat = Resultat.Uavklart
@@ -50,6 +53,10 @@ sealed class FamiliegjenforeningVilkår : Vilkår() {
             ) =
                 if (vurderingsperioder.harOverlappende()) UgyldigFamiliegjenforeningVilkår.OverlappendeVurderingsperioder.left()
                 else Vurdert(vurderingsperioder).right()
+
+            fun createFromVilkårsvurderinger(
+                vurderingsperioder: Nel<VurderingsperiodeFamiliegjenforening>,
+            ) = create(vurderingsperioder).getOrHandle { throw IllegalArgumentException(it.toString()) }
         }
     }
 }

@@ -97,6 +97,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
                         utenlandsopphold = utenlandsoppholdVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                         opplysningsplikt = opplysningspliktVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                         pensjon = pensjonVilkårsvurderingPostgresRepo.hent(behandlingId, session),
+                        familiegjenforening = familiegjenforeningVilkårsvurderingPostgresRepo.hent(behandlingId, session)
                     )
                 }
                 Sakstype.UFØRE -> {

@@ -24,7 +24,7 @@ data class VurderingsperiodeFamiliegjenforening private constructor(
     }
 
     override fun erLik(other: Vurderingsperiode) =
-        other is VurderingsperiodeFamiliegjenforening && resultat == other.resultat
+        other is VurderingsperiodeFamiliegjenforening && resultat == other.resultat && grunnlag == other.grunnlag
 
     companion object {
         fun create(

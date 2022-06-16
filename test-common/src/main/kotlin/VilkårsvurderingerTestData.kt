@@ -24,7 +24,7 @@ import no.nav.su.se.bakover.test.vilkår.fastOppholdVilkårAvslag
 import no.nav.su.se.bakover.test.vilkår.fastOppholdVilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.formuevilkårAvslåttPgrBrukersformue
 import no.nav.su.se.bakover.test.vilkår.formuevilkårUtenEps0Innvilget
-import no.nav.su.se.bakover.test.vilkår.innvilgetFormueVilkårMedEnsligBosituasjon
+import no.nav.su.se.bakover.test.vilkår.innvilgetFormueVilkår
 import no.nav.su.se.bakover.test.vilkår.insitusjonsoppholdvilkårAvslag
 import no.nav.su.se.bakover.test.vilkår.insitusjonsoppholdvilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.lovligOppholdVilkårAvslag
@@ -48,7 +48,7 @@ fun vilkårsvurderingSøknadsbehandlingIkkeVurdert(): Vilkårsvurderinger.Søkna
 fun vilkårsvurderingSøknadsbehandlingIkkeVurdertAlder() = Vilkårsvurderinger.Søknadsbehandling.Alder()
 
 fun vilkårsvurderingSøknadsbehandlingVurdertInnvilgetAlder() = Vilkårsvurderinger.Søknadsbehandling.Alder(
-    formue = innvilgetFormueVilkårMedEnsligBosituasjon(),
+    formue = innvilgetFormueVilkår(),
     lovligOpphold = lovligOppholdVilkårInnvilget(),
     fastOpphold = fastOppholdVilkårInnvilget(),
     institusjonsopphold = insitusjonsoppholdvilkårInnvilget(),

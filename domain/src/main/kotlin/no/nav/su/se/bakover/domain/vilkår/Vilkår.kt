@@ -107,7 +107,7 @@ sealed class Vilkårsvurderinger {
     }
 
     fun familiegjenforening() = when (this) {
-        is Revurdering.Alder -> VilkårEksistererIkke.left()
+        is Revurdering.Alder -> familiegjenforening.right()
         is Revurdering.Uføre -> VilkårEksistererIkke.left()
         is Søknadsbehandling.Alder -> familiegjenforening.right()
         is Søknadsbehandling.Uføre -> VilkårEksistererIkke.left()
@@ -501,6 +501,7 @@ sealed class Vilkårsvurderinger {
                     utenlandsopphold = utenlandsopphold,
                     opplysningsplikt = opplysningsplikt,
                     pensjon = pensjon,
+                    familiegjenforening = familiegjenforening,
                 )
             }
 
@@ -637,12 +638,14 @@ sealed class Vilkårsvurderinger {
             override val utenlandsopphold: UtenlandsoppholdVilkår = UtenlandsoppholdVilkår.IkkeVurdert,
             override val opplysningsplikt: OpplysningspliktVilkår = OpplysningspliktVilkår.IkkeVurdert,
             val pensjon: PensjonsVilkår,
+            val familiegjenforening: FamiliegjenforeningVilkår,
         ) : Revurdering() {
             override val vilkår: Set<Vilkår> = setOf(
                 formue,
                 utenlandsopphold,
                 opplysningsplikt,
                 pensjon,
+                familiegjenforening,
             )
 
             init {
@@ -655,6 +658,7 @@ sealed class Vilkårsvurderinger {
                     utenlandsopphold = utenlandsopphold.lagTidslinje(periode),
                     opplysningsplikt = opplysningsplikt.lagTidslinje(periode),
                     pensjon = pensjon.lagTidslinje(periode),
+                    familiegjenforening = familiegjenforening.lagTidslinje(periode),
                 )
             }
 
@@ -668,13 +672,13 @@ sealed class Vilkårsvurderinger {
                     is InstitusjonsoppholdVilkår,
                     is LovligOppholdVilkår,
                     is PersonligOppmøteVilkår,
-                    is FamiliegjenforeningVilkår,
                     -> {
                         throw IllegalArgumentException("Ukjent vilkår for revurdering av alder: ${vilkår::class}")
                     }
                     is Vilkår.Uførhet -> {
                         throw IllegalArgumentException("Kan ikke legge til ${vilkår::class} for ${this::class}")
                     }
+                    is FamiliegjenforeningVilkår -> copy(familiegjenforening = vilkår)
                     is PensjonsVilkår -> copy(pensjon = vilkår)
                 }
             }
@@ -689,6 +693,7 @@ sealed class Vilkårsvurderinger {
                     utenlandsopphold = utenlandsopphold,
                     opplysningsplikt = opplysningsplikt,
                     pensjon = pensjon,
+                    familiegjenforening = familiegjenforening,
                     lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
                     fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
                     institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
@@ -746,7 +751,7 @@ sealed class Vilkårsvurderingsresultat {
                 is UtenlandsoppholdVilkår -> {
                     Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER
                 }
-                is FamiliegjenforeningVilkår -> TODO()
+                is FamiliegjenforeningVilkår -> Avslagsgrunn.FAMILIEGJENFORENING
                 is PensjonsVilkår -> {
                     Avslagsgrunn.PENSJON
                 }

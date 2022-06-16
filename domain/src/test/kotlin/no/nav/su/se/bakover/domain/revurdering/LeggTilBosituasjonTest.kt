@@ -24,7 +24,7 @@ import no.nav.su.se.bakover.test.fullstendigMedEPS
 import no.nav.su.se.bakover.test.fullstendigUtenEPS
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.opprettetRevurdering
-import no.nav.su.se.bakover.test.vilkår.innvilgetFormueVilkårMedEnsligBosituasjon
+import no.nav.su.se.bakover.test.vilkår.innvilgetFormueVilkår
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -44,7 +44,7 @@ class LeggTilBosituasjonTest {
                 ),
             ),
             vilkårOverrides = listOf(
-                innvilgetFormueVilkårMedEnsligBosituasjon(
+                innvilgetFormueVilkår(
                     periode = år(2021),
                     bosituasjon = bosituasjon,
                 ),
@@ -105,7 +105,7 @@ class LeggTilBosituasjonTest {
                 ),
             ),
             vilkårOverrides = listOf(
-                innvilgetFormueVilkårMedEnsligBosituasjon(
+                innvilgetFormueVilkår(
                     periode = år(2021),
                     bosituasjon = bosituasjon,
                 ),
@@ -140,7 +140,7 @@ class LeggTilBosituasjonTest {
                 bosituasjon,
             ),
             vilkårOverrides = listOf(
-                innvilgetFormueVilkårMedEnsligBosituasjon(
+                innvilgetFormueVilkår(
                     periode = år(2021),
                     bosituasjon = bosituasjon,
                 ),

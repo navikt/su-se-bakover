@@ -14,13 +14,8 @@ import vurderingsperiode.vurderingsperiodeFamiliegjenforeningInnvilget
 
 private class FamiliegjenforeningTest {
 
-    @Test
-    fun `vurdert og ikke vurdert skal ikke være lik`() {
-    }
-
     @Nested
     inner class IkkeVurdert {
-
         @Test
         fun `resultat skal være uavklart`() {
             FamiliegjenforeningVilkår.IkkeVurdert.resultat shouldBe Resultat.Uavklart
@@ -61,7 +56,6 @@ private class FamiliegjenforeningTest {
 
     @Nested
     inner class Vurdert {
-
         @Test
         fun `er innvilget dersom alle perioder er innvilget`() {
             familiegjenforeningVilkårInnvilget(
@@ -113,6 +107,16 @@ private class FamiliegjenforeningTest {
                     vurderingsperiodeFamiliegjenforeningInnvilget(resultat = Resultat.Avslag, periode = år(2023)),
                 ),
             ).hentTidligesteDatoForAvslag() shouldBe 1.januar(2022)
+        }
+
+        @Test
+        fun `tidligste dato for avslag skal være null for innvilget`() {
+            familiegjenforeningVilkårInnvilget(
+                nonEmptyListOf(
+                    vurderingsperiodeFamiliegjenforeningInnvilget(resultat = Resultat.Innvilget),
+                    vurderingsperiodeFamiliegjenforeningInnvilget(resultat = Resultat.Innvilget, periode = år(2023)),
+                ),
+            ).hentTidligesteDatoForAvslag() shouldBe null
         }
     }
 

@@ -26,7 +26,7 @@ import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.grunnlag.formueGrunnlagUtenEpsAvslått
-import no.nav.su.se.bakover.test.vilkår.innvilgetFormueVilkårMedEnsligBosituasjon
+import no.nav.su.se.bakover.test.vilkår.innvilgetFormueVilkår
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -145,7 +145,7 @@ internal class FormueVilkårTest {
 
     @Test
     fun `fjerner formue for EPS for ønsket periode, og bevarer for resterende perioder`() {
-        innvilgetFormueVilkårMedEnsligBosituasjon(
+        innvilgetFormueVilkår(
             periode = Periode.create(1.januar(2021), 31.mai(2021)),
             bosituasjon = bosituasjongrunnlagEpsUførFlyktning(
                 periode = Periode.create(1.januar(2021), 31.mai(2021)),
@@ -181,7 +181,7 @@ internal class FormueVilkårTest {
 
     @Test
     fun `fjerner formue for EPS for ønsket periode fullstendig`() {
-        innvilgetFormueVilkårMedEnsligBosituasjon(
+        innvilgetFormueVilkår(
             periode = Periode.create(1.januar(2021), 31.mars(2021)),
             bosituasjon = bosituasjongrunnlagEpsUførFlyktning(
                 periode = Periode.create(1.januar(2021), 31.mars(2021)),
@@ -200,7 +200,7 @@ internal class FormueVilkårTest {
 
     @Test
     fun `fjerning av formue for EPS har ingen effekt hvis det ikke eksisterer EPS`() {
-        innvilgetFormueVilkårMedEnsligBosituasjon(
+        innvilgetFormueVilkår(
             periode = Periode.create(1.januar(2021), 31.mars(2021)),
             bosituasjon = bosituasjongrunnlagEnslig(
                 periode = Periode.create(1.januar(2021), 31.mars(2021)),
@@ -214,7 +214,7 @@ internal class FormueVilkårTest {
 
     @Test
     fun `fjerning av EPS uten å spesifisere perioder for fjerning har ingen effekt`() {
-        innvilgetFormueVilkårMedEnsligBosituasjon(
+        innvilgetFormueVilkår(
             periode = Periode.create(1.januar(2021), 31.mars(2021)),
             bosituasjon = bosituasjongrunnlagEpsUførFlyktning(
                 periode = Periode.create(1.januar(2021), 31.mars(2021)),
@@ -228,7 +228,7 @@ internal class FormueVilkårTest {
 
     @Test
     fun `fjerning av formue for EPS for perioder som ikke overlapper formue`() {
-        innvilgetFormueVilkårMedEnsligBosituasjon(
+        innvilgetFormueVilkår(
             periode = Periode.create(1.januar(2021), 31.mars(2021)),
             bosituasjon = bosituasjongrunnlagEpsUførFlyktning(
                 periode = Periode.create(1.januar(2021), 31.mars(2021)),
@@ -242,7 +242,7 @@ internal class FormueVilkårTest {
 
     @Test
     fun `legger til tom formue for EPS for ønsket periode`() {
-        innvilgetFormueVilkårMedEnsligBosituasjon(
+        innvilgetFormueVilkår(
             periode = Periode.create(1.januar(2021), 31.mars(2021)),
             bosituasjon = bosituasjongrunnlagEnslig(
                 periode = Periode.create(1.januar(2021), 31.mars(2021)),
@@ -263,7 +263,7 @@ internal class FormueVilkårTest {
 
     @Test
     fun `legger til tom formue for EPS for ønsket hele perioden`() {
-        innvilgetFormueVilkårMedEnsligBosituasjon(
+        innvilgetFormueVilkår(
             periode = Periode.create(1.januar(2021), 31.mars(2021)),
             bosituasjon = bosituasjongrunnlagEnslig(
                 periode = Periode.create(1.januar(2021), 31.mars(2021)),
@@ -281,7 +281,7 @@ internal class FormueVilkårTest {
 
     @Test
     fun `legg til tom formue har ingen effekt dersom den ikke mangler`() {
-        innvilgetFormueVilkårMedEnsligBosituasjon(
+        innvilgetFormueVilkår(
             periode = Periode.create(1.januar(2021), 31.mars(2021)),
             bosituasjon = bosituasjongrunnlagEpsUførFlyktning(
                 periode = Periode.create(1.januar(2021), 31.mars(2021)),
