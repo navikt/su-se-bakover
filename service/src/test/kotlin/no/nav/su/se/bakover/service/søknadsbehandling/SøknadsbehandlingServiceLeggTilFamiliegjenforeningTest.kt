@@ -5,7 +5,7 @@ import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.service.vilkår.FamiliegjenforeningvilkårStatus
-import no.nav.su.se.bakover.service.vilkår.LeggTilFamiliegjenforegningRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilFamiliegjenforeningRequest
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.vilkårsvurderingSøknadsbehandlingIkkeVurdertAlder
@@ -26,7 +26,7 @@ internal class SøknadsbehandlingServiceLeggTilFamiliegjenforeningTest {
             },
         ).let {
             it.søknadsbehandlingService.leggTilFamiliegjenforeningvilkår(
-                request = LeggTilFamiliegjenforegningRequest(
+                request = LeggTilFamiliegjenforeningRequest(
                     behandlingId = UUID.randomUUID(),
                     status = FamiliegjenforeningvilkårStatus.Uavklart,
                 ),
@@ -43,7 +43,7 @@ internal class SøknadsbehandlingServiceLeggTilFamiliegjenforeningTest {
         ).let { søknadsbehandlingServiceAndMocks ->
             val behandlingId = UUID.randomUUID()
             val actual = søknadsbehandlingServiceAndMocks.søknadsbehandlingService.leggTilFamiliegjenforeningvilkår(
-                request = LeggTilFamiliegjenforegningRequest(
+                request = LeggTilFamiliegjenforeningRequest(
                     behandlingId = behandlingId,
                     status = FamiliegjenforeningvilkårStatus.VilkårOppfylt,
                 ),

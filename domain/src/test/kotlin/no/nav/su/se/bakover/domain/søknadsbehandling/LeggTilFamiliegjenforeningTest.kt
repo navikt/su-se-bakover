@@ -37,8 +37,8 @@ internal class LeggTilFamiliegjenforeningTest {
         val uavklart =
             søknadsbehandlingVilkårsvurdertUavklart(vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingIkkeVurdertAlder())
 
-        uavklart.second.leggTilFamiliegjenforegningvilkår(
-            familiegjenforegning = familiegjenforeningVilkårInnvilget(),
+        uavklart.second.leggTilFamiliegjenforeningvilkår(
+            familiegjenforening = familiegjenforeningVilkårInnvilget(),
             clock = fixedClock,
         ).shouldBeRight()
     }
@@ -48,8 +48,8 @@ internal class LeggTilFamiliegjenforeningTest {
         val innvilget =
             søknadsbehandlingVilkårsvurdertInnvilget(vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingVurdertInnvilgetAlder())
 
-        innvilget.second.leggTilFamiliegjenforegningvilkår(
-            familiegjenforegning = familiegjenforeningVilkårInnvilget(
+        innvilget.second.leggTilFamiliegjenforeningvilkår(
+            familiegjenforening = familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(vurderingsperiodeFamiliegjenforeningInnvilget(periode = år(2039))),
             ),
             clock = fixedClock,
@@ -61,8 +61,8 @@ internal class LeggTilFamiliegjenforeningTest {
         val avslag =
             søknadsbehandlingVilkårsvurdertAvslag(vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingVurdertAvslagAlder())
 
-        avslag.second.leggTilFamiliegjenforegningvilkår(
-            familiegjenforegning = familiegjenforeningVilkårInnvilget(
+        avslag.second.leggTilFamiliegjenforeningvilkår(
+            familiegjenforening = familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(vurderingsperiodeFamiliegjenforeningInnvilget(periode = år(2039))),
             ),
             clock = fixedClock,
@@ -75,8 +75,8 @@ internal class LeggTilFamiliegjenforeningTest {
         val innvilget =
             søknadsbehandlingBeregnetInnvilget(vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingVurdertInnvilgetAlder())
 
-        innvilget.second.leggTilFamiliegjenforegningvilkår(
-            familiegjenforegning = familiegjenforeningVilkårInnvilget(
+        innvilget.second.leggTilFamiliegjenforeningvilkår(
+            familiegjenforening = familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(vurderingsperiodeFamiliegjenforeningInnvilget(periode = år(2039))),
             ),
             clock = fixedClock,
@@ -89,8 +89,8 @@ internal class LeggTilFamiliegjenforeningTest {
         val avslag =
             søknadsbehandlingBeregnetAvslag(vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingVurdertAvslagAlder())
 
-        avslag.second.leggTilFamiliegjenforegningvilkår(
-            familiegjenforegning = familiegjenforeningVilkårInnvilget(
+        avslag.second.leggTilFamiliegjenforeningvilkår(
+            familiegjenforening = familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(vurderingsperiodeFamiliegjenforeningAvslag(periode = år(2039))),
             ),
             clock = fixedClock,
@@ -103,8 +103,8 @@ internal class LeggTilFamiliegjenforeningTest {
         val simulert =
             søknadsbehandlingSimulert(vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingVurdertInnvilgetAlder())
 
-        simulert.second.leggTilFamiliegjenforegningvilkår(
-            familiegjenforegning = familiegjenforeningVilkårInnvilget(
+        simulert.second.leggTilFamiliegjenforeningvilkår(
+            familiegjenforening = familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(vurderingsperiodeFamiliegjenforeningAvslag(periode = år(2039))),
             ),
             clock = fixedClock,
@@ -117,12 +117,12 @@ internal class LeggTilFamiliegjenforeningTest {
         val attesteringInnvilget =
             søknadsbehandlingTilAttesteringInnvilget(vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingVurdertInnvilgetAlder())
 
-        attesteringInnvilget.second.leggTilFamiliegjenforegningvilkår(
-            familiegjenforegning = familiegjenforeningVilkårInnvilget(
+        attesteringInnvilget.second.leggTilFamiliegjenforeningvilkår(
+            familiegjenforening = familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(vurderingsperiodeFamiliegjenforeningAvslag(periode = år(2039))),
             ),
             clock = fixedClock,
-        ) shouldBe KunneIkkeLeggeTilFamiliegjenforegningVilkår.UgyldigTilstand(
+        ) shouldBe KunneIkkeLeggeTilFamiliegjenforeningVilkår.UgyldigTilstand(
             fra = Søknadsbehandling.TilAttestering::class,
             til = Søknadsbehandling.Vilkårsvurdert::class,
         ).left()
@@ -134,12 +134,12 @@ internal class LeggTilFamiliegjenforeningTest {
         val attesteringAvslagMedBeregning =
             søknadsbehandlingTilAttesteringAvslagMedBeregning(vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingVurdertAvslagAlder())
 
-        attesteringAvslagMedBeregning.second.leggTilFamiliegjenforegningvilkår(
-            familiegjenforegning = familiegjenforeningVilkårInnvilget(
+        attesteringAvslagMedBeregning.second.leggTilFamiliegjenforeningvilkår(
+            familiegjenforening = familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(vurderingsperiodeFamiliegjenforeningAvslag(periode = år(2039))),
             ),
             clock = fixedClock,
-        ) shouldBe KunneIkkeLeggeTilFamiliegjenforegningVilkår.UgyldigTilstand(
+        ) shouldBe KunneIkkeLeggeTilFamiliegjenforeningVilkår.UgyldigTilstand(
             fra = Søknadsbehandling.TilAttestering::class,
             til = Søknadsbehandling.Vilkårsvurdert::class,
         ).left()
@@ -150,12 +150,12 @@ internal class LeggTilFamiliegjenforeningTest {
         val attesteringAvslagMedBeregning =
             søknadsbehandlingTilAttesteringAvslagUtenBeregning(vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingVurdertAvslagAlder())
 
-        attesteringAvslagMedBeregning.second.leggTilFamiliegjenforegningvilkår(
-            familiegjenforegning = familiegjenforeningVilkårInnvilget(
+        attesteringAvslagMedBeregning.second.leggTilFamiliegjenforeningvilkår(
+            familiegjenforening = familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(vurderingsperiodeFamiliegjenforeningAvslag(periode = år(2039))),
             ),
             clock = fixedClock,
-        ) shouldBe KunneIkkeLeggeTilFamiliegjenforegningVilkår.UgyldigTilstand(
+        ) shouldBe KunneIkkeLeggeTilFamiliegjenforeningVilkår.UgyldigTilstand(
             fra = Søknadsbehandling.TilAttestering.Avslag.UtenBeregning::class,
             til = Søknadsbehandling.Vilkårsvurdert::class,
         ).left()
@@ -167,12 +167,12 @@ internal class LeggTilFamiliegjenforeningTest {
         val iverksattInnvilget =
             søknadsbehandlingIverksattInnvilget(vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingVurdertInnvilgetAlder())
 
-        iverksattInnvilget.second.leggTilFamiliegjenforegningvilkår(
-            familiegjenforegning = familiegjenforeningVilkårInnvilget(
+        iverksattInnvilget.second.leggTilFamiliegjenforeningvilkår(
+            familiegjenforening = familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(vurderingsperiodeFamiliegjenforeningAvslag(periode = år(2039))),
             ),
             clock = fixedClock,
-        ) shouldBe KunneIkkeLeggeTilFamiliegjenforegningVilkår.UgyldigTilstand(
+        ) shouldBe KunneIkkeLeggeTilFamiliegjenforeningVilkår.UgyldigTilstand(
             fra = Søknadsbehandling.Iverksatt::class,
             til = Søknadsbehandling.Vilkårsvurdert::class,
         ).left()
@@ -184,12 +184,12 @@ internal class LeggTilFamiliegjenforeningTest {
         val iverksattInnvilget =
             søknadsbehandlingIverksattAvslagMedBeregning(vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingVurdertAvslagAlder())
 
-        iverksattInnvilget.second.leggTilFamiliegjenforegningvilkår(
-            familiegjenforegning = familiegjenforeningVilkårInnvilget(
+        iverksattInnvilget.second.leggTilFamiliegjenforeningvilkår(
+            familiegjenforening = familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(vurderingsperiodeFamiliegjenforeningAvslag(periode = år(2039))),
             ),
             clock = fixedClock,
-        ) shouldBe KunneIkkeLeggeTilFamiliegjenforegningVilkår.UgyldigTilstand(
+        ) shouldBe KunneIkkeLeggeTilFamiliegjenforeningVilkår.UgyldigTilstand(
             fra = Søknadsbehandling.Iverksatt::class,
             til = Søknadsbehandling.Vilkårsvurdert::class,
         ).left()
@@ -200,12 +200,12 @@ internal class LeggTilFamiliegjenforeningTest {
         val iverksattInnvilget =
             søknadsbehandlingIverksattAvslagUtenBeregning(vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingVurdertAvslagAlder())
 
-        iverksattInnvilget.second.leggTilFamiliegjenforegningvilkår(
-            familiegjenforegning = familiegjenforeningVilkårInnvilget(
+        iverksattInnvilget.second.leggTilFamiliegjenforeningvilkår(
+            familiegjenforening = familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(vurderingsperiodeFamiliegjenforeningAvslag(periode = år(2039))),
             ),
             clock = fixedClock,
-        ) shouldBe KunneIkkeLeggeTilFamiliegjenforegningVilkår.UgyldigTilstand(
+        ) shouldBe KunneIkkeLeggeTilFamiliegjenforeningVilkår.UgyldigTilstand(
             fra = Søknadsbehandling.Iverksatt.Avslag.UtenBeregning::class,
             til = Søknadsbehandling.Vilkårsvurdert::class,
         ).left()
@@ -217,12 +217,12 @@ internal class LeggTilFamiliegjenforeningTest {
         val iverksattInnvilget =
             søknadsbehandlingUnderkjentInnvilget(vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingVurdertInnvilgetAlder())
 
-        iverksattInnvilget.second.leggTilFamiliegjenforegningvilkår(
-            familiegjenforegning = familiegjenforeningVilkårInnvilget(
+        iverksattInnvilget.second.leggTilFamiliegjenforeningvilkår(
+            familiegjenforening = familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(vurderingsperiodeFamiliegjenforeningAvslag(periode = år(2039))),
             ),
             clock = fixedClock,
-        ) shouldBe KunneIkkeLeggeTilFamiliegjenforegningVilkår.UgyldigTilstand(
+        ) shouldBe KunneIkkeLeggeTilFamiliegjenforeningVilkår.UgyldigTilstand(
             fra = Søknadsbehandling.Underkjent::class,
             til = Søknadsbehandling.Vilkårsvurdert::class,
         ).left()
@@ -234,12 +234,12 @@ internal class LeggTilFamiliegjenforeningTest {
         val iverksattInnvilget =
             søknadsbehandlingUnderkjentAvslagMedBeregning(vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingVurdertAvslagAlder())
 
-        iverksattInnvilget.second.leggTilFamiliegjenforegningvilkår(
-            familiegjenforegning = familiegjenforeningVilkårInnvilget(
+        iverksattInnvilget.second.leggTilFamiliegjenforeningvilkår(
+            familiegjenforening = familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(vurderingsperiodeFamiliegjenforeningAvslag(periode = år(2039))),
             ),
             clock = fixedClock,
-        ) shouldBe KunneIkkeLeggeTilFamiliegjenforegningVilkår.UgyldigTilstand(
+        ) shouldBe KunneIkkeLeggeTilFamiliegjenforeningVilkår.UgyldigTilstand(
             fra = Søknadsbehandling.Underkjent::class,
             til = Søknadsbehandling.Vilkårsvurdert::class,
         ).left()
@@ -250,8 +250,8 @@ internal class LeggTilFamiliegjenforeningTest {
         val iverksattInnvilget =
             søknadsbehandlingUnderkjentAvslagUtenBeregning(vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingVurdertAvslagAlder())
 
-        iverksattInnvilget.second.leggTilFamiliegjenforegningvilkår(
-            familiegjenforegning = familiegjenforeningVilkårInnvilget(
+        iverksattInnvilget.second.leggTilFamiliegjenforeningvilkår(
+            familiegjenforening = familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(vurderingsperiodeFamiliegjenforeningAvslag(periode = år(2039))),
             ),
             clock = fixedClock,

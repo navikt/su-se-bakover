@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.vilkår.UgyldigFamiliegjenforeningVilkår
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.vilkår.FamiliegjenforeningvilkårStatus
-import no.nav.su.se.bakover.service.vilkår.LeggTilFamiliegjenforegningRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilFamiliegjenforeningRequest
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.Feilresponser
@@ -27,7 +27,7 @@ internal fun Route.leggTilFamiliegjenforeningRoute(
             call.withBehandlingId { behandlingId ->
                 call.withBody<FamiliegjenforeningBody> { body ->
                     søknadsbehandlingService.leggTilFamiliegjenforeningvilkår(
-                        request = LeggTilFamiliegjenforegningRequest(
+                        request = LeggTilFamiliegjenforeningRequest(
                             behandlingId = behandlingId,
                             status = body.status,
                         ),

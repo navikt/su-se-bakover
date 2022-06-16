@@ -301,11 +301,11 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         return KunneIkkeLeggeTilUførevilkår.UgyldigTilstand(this::class, Vilkårsvurdert::class).left()
     }
 
-    open fun leggTilFamiliegjenforegningvilkår(
-        familiegjenforegning: FamiliegjenforeningVilkår.Vurdert,
+    open fun leggTilFamiliegjenforeningvilkår(
+        familiegjenforening: FamiliegjenforeningVilkår.Vurdert,
         clock: Clock,
-    ): Either<KunneIkkeLeggeTilFamiliegjenforegningVilkår, Vilkårsvurdert> =
-        KunneIkkeLeggeTilFamiliegjenforegningVilkår.UgyldigTilstand(this::class, Vilkårsvurdert::class).left()
+    ): Either<KunneIkkeLeggeTilFamiliegjenforeningVilkår, Vilkårsvurdert> =
+        KunneIkkeLeggeTilFamiliegjenforeningVilkår.UgyldigTilstand(this::class, Vilkårsvurdert::class).left()
 
     protected open fun valider(uførhet: Vilkår.Uførhet.Vurdert): Either<KunneIkkeLeggeTilUførevilkår, Unit> {
         return when {
@@ -776,10 +776,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
             }
 
-            override fun leggTilFamiliegjenforegningvilkår(
-                familiegjenforegning: FamiliegjenforeningVilkår.Vurdert,
+            override fun leggTilFamiliegjenforeningvilkår(
+                familiegjenforening: FamiliegjenforeningVilkår.Vurdert,
                 clock: Clock,
-            ) = vilkårsvurder(vilkårsvurderinger.leggTil(familiegjenforegning), clock).right()
+            ) = vilkårsvurder(vilkårsvurderinger.leggTil(familiegjenforening), clock).right()
 
             override fun beregn(
                 begrunnelse: String?,
@@ -937,10 +937,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
             }
 
-            override fun leggTilFamiliegjenforegningvilkår(
-                familiegjenforegning: FamiliegjenforeningVilkår.Vurdert,
+            override fun leggTilFamiliegjenforeningvilkår(
+                familiegjenforening: FamiliegjenforeningVilkår.Vurdert,
                 clock: Clock,
-            ) = vilkårsvurder(vilkårsvurderinger.leggTil(familiegjenforegning), clock).right()
+            ) = vilkårsvurder(vilkårsvurderinger.leggTil(familiegjenforening), clock).right()
 
             override fun oppdaterStønadsperiode(
                 oppdatertStønadsperiode: Stønadsperiode,
@@ -1052,10 +1052,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
             }
 
-            override fun leggTilFamiliegjenforegningvilkår(
-                familiegjenforegning: FamiliegjenforeningVilkår.Vurdert,
+            override fun leggTilFamiliegjenforeningvilkår(
+                familiegjenforening: FamiliegjenforeningVilkår.Vurdert,
                 clock: Clock,
-            ) = vilkårsvurder(vilkårsvurderinger.leggTil(familiegjenforegning), clock).right()
+            ) = vilkårsvurder(vilkårsvurderinger.leggTil(familiegjenforening), clock).right()
 
             override fun oppdaterStønadsperiode(
                 oppdatertStønadsperiode: Stønadsperiode,
@@ -1289,10 +1289,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
             }
 
-            override fun leggTilFamiliegjenforegningvilkår(
-                familiegjenforegning: FamiliegjenforeningVilkår.Vurdert,
+            override fun leggTilFamiliegjenforeningvilkår(
+                familiegjenforening: FamiliegjenforeningVilkår.Vurdert,
                 clock: Clock,
-            ) = vilkårsvurder(vilkårsvurderinger.leggTil(familiegjenforegning), clock).right()
+            ) = vilkårsvurder(vilkårsvurderinger.leggTil(familiegjenforening), clock).right()
 
             override fun oppdaterStønadsperiode(
                 oppdatertStønadsperiode: Stønadsperiode,
@@ -1487,10 +1487,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
             }
 
-            override fun leggTilFamiliegjenforegningvilkår(
-                familiegjenforegning: FamiliegjenforeningVilkår.Vurdert,
+            override fun leggTilFamiliegjenforeningvilkår(
+                familiegjenforening: FamiliegjenforeningVilkår.Vurdert,
                 clock: Clock,
-            ) = vilkårsvurder(vilkårsvurderinger.leggTil(familiegjenforegning), clock).right()
+            ) = vilkårsvurder(vilkårsvurderinger.leggTil(familiegjenforening), clock).right()
 
             override fun oppdaterStønadsperiode(
                 oppdatertStønadsperiode: Stønadsperiode,
@@ -1739,10 +1739,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
         }
 
-        override fun leggTilFamiliegjenforegningvilkår(
-            familiegjenforegning: FamiliegjenforeningVilkår.Vurdert,
+        override fun leggTilFamiliegjenforeningvilkår(
+            familiegjenforening: FamiliegjenforeningVilkår.Vurdert,
             clock: Clock,
-        ) = vilkårsvurder(vilkårsvurderinger.leggTil(familiegjenforegning), clock).right()
+        ) = vilkårsvurder(vilkårsvurderinger.leggTil(familiegjenforening), clock).right()
 
         override fun oppdaterStønadsperiode(
             oppdatertStønadsperiode: Stønadsperiode,
@@ -2286,10 +2286,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
             }
 
-            override fun leggTilFamiliegjenforegningvilkår(
-                familiegjenforegning: FamiliegjenforeningVilkår.Vurdert,
+            override fun leggTilFamiliegjenforeningvilkår(
+                familiegjenforening: FamiliegjenforeningVilkår.Vurdert,
                 clock: Clock,
-            ) = vilkårsvurder(vilkårsvurderinger.leggTil(familiegjenforegning), clock).right()
+            ) = vilkårsvurder(vilkårsvurderinger.leggTil(familiegjenforening), clock).right()
 
             override fun oppdaterStønadsperiode(
                 oppdatertStønadsperiode: Stønadsperiode,
@@ -2487,10 +2487,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
                 }
 
-                override fun leggTilFamiliegjenforegningvilkår(
-                    familiegjenforegning: FamiliegjenforeningVilkår.Vurdert,
+                override fun leggTilFamiliegjenforeningvilkår(
+                    familiegjenforening: FamiliegjenforeningVilkår.Vurdert,
                     clock: Clock,
-                ) = vilkårsvurder(vilkårsvurderinger.leggTil(familiegjenforegning), clock).right()
+                ) = vilkårsvurder(vilkårsvurderinger.leggTil(familiegjenforening), clock).right()
 
                 override fun oppdaterStønadsperiode(
                     oppdatertStønadsperiode: Stønadsperiode,
@@ -2632,10 +2632,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
                 }
 
-                override fun leggTilFamiliegjenforegningvilkår(
-                    familiegjenforegning: FamiliegjenforeningVilkår.Vurdert,
+                override fun leggTilFamiliegjenforeningvilkår(
+                    familiegjenforening: FamiliegjenforeningVilkår.Vurdert,
                     clock: Clock,
-                ) = vilkårsvurder(vilkårsvurderinger.leggTil(familiegjenforegning), clock).right()
+                ) = vilkårsvurder(vilkårsvurderinger.leggTil(familiegjenforening), clock).right()
 
                 override fun oppdaterStønadsperiode(
                     oppdatertStønadsperiode: Stønadsperiode,
@@ -2864,10 +2864,10 @@ fun <T : Søknadsbehandling> T.medFritekstTilBrev(fritekstTilBrev: String): T =
         // ... og så caster vi tilbake til T for at Kotlin skal henge med i svingene
         ) as T
 
-sealed interface KunneIkkeLeggeTilFamiliegjenforegningVilkår {
+sealed interface KunneIkkeLeggeTilFamiliegjenforeningVilkår {
     data class UgyldigTilstand(
         val fra: KClass<out Søknadsbehandling>,
         val til: KClass<out Søknadsbehandling.Vilkårsvurdert>,
     ) :
-        KunneIkkeLeggeTilFamiliegjenforegningVilkår
+        KunneIkkeLeggeTilFamiliegjenforeningVilkår
 }

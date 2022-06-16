@@ -13,7 +13,7 @@ enum class FamiliegjenforeningvilkårStatus {
     VilkårOppfylt, VilkårIkkeOppfylt, Uavklart;
 }
 
-data class LeggTilFamiliegjenforegningRequest(
+data class LeggTilFamiliegjenforeningRequest(
     val behandlingId: UUID,
     val status: FamiliegjenforeningvilkårStatus,
 ) {

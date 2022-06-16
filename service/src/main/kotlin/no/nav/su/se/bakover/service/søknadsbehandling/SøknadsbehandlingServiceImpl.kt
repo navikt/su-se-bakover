@@ -67,7 +67,7 @@ import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeTilPensjonsVilkår
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
-import no.nav.su.se.bakover.service.vilkår.LeggTilFamiliegjenforegningRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilFamiliegjenforeningRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilPensjonsVilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
@@ -581,7 +581,7 @@ internal class SøknadsbehandlingServiceImpl(
         return vilkårsvurdert.right()
     }
 
-    override fun leggTilFamiliegjenforeningvilkår(request: LeggTilFamiliegjenforegningRequest): Either<KunneIkkeLeggeTilFamiliegjenforeningVilkårService, Søknadsbehandling> {
+    override fun leggTilFamiliegjenforeningvilkår(request: LeggTilFamiliegjenforeningRequest): Either<KunneIkkeLeggeTilFamiliegjenforeningVilkårService, Søknadsbehandling> {
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilFamiliegjenforeningVilkårService.FantIkkeBehandling.left()
 
@@ -593,8 +593,8 @@ internal class SøknadsbehandlingServiceImpl(
                 .left()
         }
 
-        return søknadsbehandling.leggTilFamiliegjenforegningvilkår(
-            familiegjenforegning = familiegjenforeningVilkår,
+        return søknadsbehandling.leggTilFamiliegjenforeningvilkår(
+            familiegjenforening = familiegjenforeningVilkår,
             clock = clock,
         ).mapLeft {
             it.tilKunneIkkeLeggeTilFamiliegjenforeningVilkårService()
