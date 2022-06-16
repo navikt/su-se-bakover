@@ -111,7 +111,7 @@ internal class MånedTest {
                     fraOgMed = 2.januar(2021),
                     tilOgMed = 31.januar(2021),
                 )
-            }.message shouldBe "FraOgMedDatoMåVæreFørsteDagIMåneden"
+            }.message shouldBe "fraOgMed: 2021-01-02 må være den 1. i måneden for å mappes til en måned."
         }
 
         @Test
@@ -121,7 +121,7 @@ internal class MånedTest {
                     fraOgMed = 1.januar(2021),
                     tilOgMed = 1.januar(2021),
                 )
-            }.message shouldBe "TilOgMedDatoMåVæreSisteDagIMåneden"
+            }.message shouldBe "tilOgMed: 2021-01-01 må være den siste i måneden for å mappes til en måned."
         }
 
         @Test

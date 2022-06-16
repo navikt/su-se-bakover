@@ -4,21 +4,21 @@ import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.domain.grunnbeløp.GrunnbeløpFactory
 import no.nav.su.se.bakover.domain.grunnbeløp.GrunnbeløpForMåned
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
-import java.time.LocalDate
 
 /**
  * Satser for supplerende stønad som er gyldig på en gitt dato.
  * Denne er knyttet til ikrafttredelse-datoen i tilhørende lovendringer.
  * Vi ønsker å skille denne fra virkningstidspunktet, da disse har begynt å skille lag i senere år.
  */
-class SatsFactoryForSupplerendeStønadPåDato(
+class SatsFactoryForSupplerendeStønadPåKnekkpunkt(
     private val grunnbeløpFactory: GrunnbeløpFactory,
     override val formuegrenserFactory: FormuegrenserFactory,
     private val uføreOrdinær: FullSupplerendeStønadFactory.Ordinær.Ufør,
     private val uføreHøy: FullSupplerendeStønadFactory.Høy.Ufør,
     private val alderOrdinær: FullSupplerendeStønadFactory.Ordinær.Alder,
     private val alderHøy: FullSupplerendeStønadFactory.Høy.Alder,
-    override val gjeldendePåDato: LocalDate,
+    override val knekkpunkt: Knekkpunkt,
+    override val tidligsteTilgjengeligeMåned: Måned,
 ) : SatsFactory {
 
     /** full supplerende stønad for uføre*/

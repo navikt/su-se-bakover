@@ -1,7 +1,10 @@
 package no.nav.su.se.bakover.common.periode
 
+import no.nav.su.se.bakover.common.erFørsteDagIMåned
+import no.nav.su.se.bakover.common.erSisteDagIMåned
 import java.time.Clock
 import java.time.LocalDate
+import java.time.Month
 import java.time.YearMonth
 import java.time.temporal.ChronoUnit
 
@@ -40,7 +43,24 @@ data class Måned private constructor(
             return factory.fra(yearMonth)
         }
 
+        fun fra(year: Int, month: Month): Måned {
+            return factory.fra(YearMonth.of(year, month))
+        }
+
+        fun fra(dato: LocalDate): Måned {
+            require(dato.erFørsteDagIMåned()) {
+                "$dato må være den 1. i måneden for å mappes til en måned."
+            }
+            return factory.fra(YearMonth.of(dato.year, dato.month))
+        }
+
         fun fra(fraOgMed: LocalDate, tilOgMed: LocalDate): Måned {
+            require(fraOgMed.erFørsteDagIMåned()) {
+                "fraOgMed: $fraOgMed må være den 1. i måneden for å mappes til en måned."
+            }
+            require(tilOgMed.erSisteDagIMåned()) {
+                "tilOgMed: $tilOgMed må være den siste i måneden for å mappes til en måned."
+            }
             return factory.fra(fraOgMed, tilOgMed)
         }
 

@@ -5,6 +5,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.april
+import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import org.junit.jupiter.api.Test
@@ -13,6 +14,7 @@ import java.time.LocalDate
 internal class GrunnbeløpFactoryTest {
 
     private val factory = SatsFactoryForSupplerendeStønad(
+        tidligsteTilgjengeligeMåned = januar(2016),
         grunnbeløpsendringer = nonEmptyListOf(
             Grunnbeløpsendring(1.mai(2005), 1.mai(2005), 60699),
             Grunnbeløpsendring(1.mai(2006), 1.mai(2006), 62892),
