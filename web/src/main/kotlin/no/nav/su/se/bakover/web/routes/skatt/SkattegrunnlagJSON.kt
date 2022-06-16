@@ -7,6 +7,7 @@ internal data class SkattegrunnlagJSON(
     val inntektsår: Int,
     val grunnlag: List<Grunnlag>,
     val skatteoppgjørsdato: String?,
+    val hentetDato: String?,
 ) {
     data class Grunnlag(
         val navn: String,
@@ -22,4 +23,5 @@ internal fun Skattegrunnlag.toJSON() = SkattegrunnlagJSON(
         SkattegrunnlagJSON.Grunnlag(navn = it.navn, beløp = it.beløp, kategori = it.kategori.map { k -> k.stringVerdi })
     },
     skatteoppgjørsdato = skatteoppgjoersdato?.toString(),
+    hentetDato = hentetDato.toString()
 )

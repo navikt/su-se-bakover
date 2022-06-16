@@ -229,6 +229,12 @@ fun List<Periode>.minsteAntallSammenhengendePerioder(): List<Periode> {
     }
 }
 
+fun Nel<Periode>.minsteAntallSammenhengendePerioder(): Nel<Periode> {
+    return (this as List<Periode>).minsteAntallSammenhengendePerioder().let {
+        Nel.fromListUnsafe(it)
+    }
+}
+
 /**
  * Fjerner alle periodene inneholdt i [other] fra [this]. Eliminerer duplikater og slår sammen gjenstående
  * perioder i [this] til en minimum antall sammenhengende perioder.

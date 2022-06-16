@@ -6,6 +6,11 @@ import no.nav.su.se.bakover.database.TransactionalSession
 import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
+import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
+import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
+import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
+import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
+import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.util.UUID
 
@@ -124,6 +129,11 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
                         utenlandsopphold = utenlandsoppholdVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                         opplysningsplikt = opplysningspliktVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                         pensjon = pensjonVilkårsvurderingPostgresRepo.hent(behandlingId, session),
+                        // Disse ligger fremdeles på Behandlingsinformasjon.kt
+                        lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
+                        fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
+                        institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
+                        personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
                     )
                 }
                 Sakstype.UFØRE -> {
@@ -132,6 +142,12 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
                         formue = formueVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                         utenlandsopphold = utenlandsoppholdVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                         opplysningsplikt = opplysningspliktVilkårsvurderingPostgresRepo.hent(behandlingId, session),
+                        // Disse ligger fremdeles på Behandlingsinformasjon.kt
+                        lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
+                        fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
+                        institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
+                        personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
+                        flyktning = FlyktningVilkår.IkkeVurdert,
                     )
                 }
             }

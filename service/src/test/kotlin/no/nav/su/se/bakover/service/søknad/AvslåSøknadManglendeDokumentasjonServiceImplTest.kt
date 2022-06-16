@@ -247,10 +247,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 ),
             ).getOrFail("$serviceAndMocks")
 
-            val expectedPeriode = Periode.create(
-                fraOgMed = LocalDate.now(serviceAndMocks.clock).startOfMonth(),
-                tilOgMed = LocalDate.now(serviceAndMocks.clock).endOfMonth(),
-            )
+            val expectedPeriode = vilkårsvurdertInnvilget.periode
 
             val expectedSøknadsbehandling = Søknadsbehandling.Iverksatt.Avslag.UtenBeregning(
                 id = vilkårsvurdertInnvilget.id,

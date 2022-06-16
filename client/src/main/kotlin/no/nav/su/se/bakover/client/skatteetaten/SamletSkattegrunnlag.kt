@@ -1,9 +1,11 @@
 package no.nav.su.se.bakover.client.skatteetaten
 
 import arrow.core.Either
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Skattegrunnlag.Kategori
+import java.time.Clock
 import java.time.LocalDate
 
 /**
@@ -26,7 +28,7 @@ internal data class Skattegrunnlag(
     val kategori: List<String>,
 )
 
-internal fun SamletSkattegrunnlag.toDomain(): Either<Throwable, no.nav.su.se.bakover.domain.Skattegrunnlag> {
+internal fun SamletSkattegrunnlag.toDomain(clock: Clock): Either<Throwable, no.nav.su.se.bakover.domain.Skattegrunnlag> {
     return Either.catch {
         no.nav.su.se.bakover.domain.Skattegrunnlag(
             fnr = Fnr(personidentifikator),
@@ -52,6 +54,7 @@ internal fun SamletSkattegrunnlag.toDomain(): Either<Throwable, no.nav.su.se.bak
                 )
             },
             skatteoppgjoersdato = skatteoppgjoersdato?.let { LocalDate.parse(it) },
+            hentetDato = Tidspunkt.now(clock)
         )
     }
 }

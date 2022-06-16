@@ -29,6 +29,8 @@ sealed class FastOppholdINorgeVilkår : Vilkår() {
         override val erAvslag = false
         override val erInnvilget = false
         override val grunnlag = emptyList<FastOppholdINorgeGrunnlag>()
+        override val perioder: List<Periode> = emptyList()
+
         override fun lagTidslinje(periode: Periode): FastOppholdINorgeVilkår {
             return this
         }
@@ -65,6 +67,12 @@ sealed class FastOppholdINorgeVilkår : Vilkår() {
 
         override val resultat: Resultat =
             if (erInnvilget) Resultat.Innvilget else if (erAvslag) Resultat.Avslag else Resultat.Uavklart
+
+        override val perioder: Nel<Periode> = vurderingsperioder.minsteAntallSammenhengendePerioder()
+
+        init {
+            kastHvisPerioderErUsortertEllerHarDuplikater()
+        }
 
         override fun hentTidligesteDatoForAvslag(): LocalDate? {
             return vurderingsperioder

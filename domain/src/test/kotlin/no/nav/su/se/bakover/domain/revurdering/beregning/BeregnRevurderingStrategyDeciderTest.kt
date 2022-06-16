@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.revurdering.beregning
 
+import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.beOfType
@@ -17,10 +18,15 @@ import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
+import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
+import no.nav.su.se.bakover.domain.grunnlag.Opplysningspliktgrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
+import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOpplysningsplikt
 import no.nav.su.se.bakover.test.TikkendeKlokke
+import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
@@ -32,7 +38,6 @@ import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdInnvilget
-import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkår
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -313,11 +318,30 @@ internal class BeregnRevurderingStrategyDeciderTest {
                         ),
                         innvilgetUførevilkår(
                             opprettet = fixedTidspunkt,
-                            periode = Periode.create(1.mars(2021), 31.juli(2021)),
+                            periode = Periode.create(1.mars(2021), 31.desember(2021)),
                         ),
-                        avslåttUførevilkårUtenGrunnlag(
-                            opprettet = fixedTidspunkt,
-                            periode = Periode.create(1.august(2021), 31.desember(2021)),
+                        OpplysningspliktVilkår.Vurdert.createFromVilkårsvurderinger(
+                            vurderingsperioder = nonEmptyListOf(
+                                VurderingsperiodeOpplysningsplikt.create(
+                                    opprettet = fixedTidspunkt,
+                                    grunnlag = Opplysningspliktgrunnlag(
+                                        opprettet = fixedTidspunkt,
+                                        periode = Periode.create(1.mars(2021), 31.juli(2021)),
+                                        beskrivelse = OpplysningspliktBeskrivelse.TilstrekkeligDokumentasjon,
+                                    ),
+                                    periode = Periode.create(1.mars(2021), 31.juli(2021)),
+                                ),
+                                VurderingsperiodeOpplysningsplikt.create(
+                                    id = UUID.randomUUID(),
+                                    opprettet = fixedTidspunkt,
+                                    grunnlag = Opplysningspliktgrunnlag(
+                                        opprettet = fixedTidspunkt,
+                                        periode = Periode.create(1.august(2021), 31.desember(2021)),
+                                        beskrivelse = OpplysningspliktBeskrivelse.UtilstrekkeligDokumentasjon,
+                                    ),
+                                    periode = Periode.create(1.august(2021), 31.desember(2021)),
+                                ),
+                            ),
                         ),
                     ),
                 )
@@ -552,7 +576,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                 sakOgVedtakSomKanRevurderes = sak to opphørUtenlandsopphold,
                 revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
                 avkorting = AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting(
-                    avkortingsvarsel = opphørUtenlandsopphold.hentUteståendeAvkorting().avkortingsvarsel()
+                    avkortingsvarsel = opphørUtenlandsopphold.hentUteståendeAvkorting().avkortingsvarsel(),
                 ),
             )
 
@@ -587,7 +611,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                 sakOgVedtakSomKanRevurderes = sak to opphørUtenlandsopphold,
                 revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
                 avkorting = AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting(
-                    avkortingsvarsel = opphørUtenlandsopphold.hentUteståendeAvkorting().avkortingsvarsel()
+                    avkortingsvarsel = opphørUtenlandsopphold.hentUteståendeAvkorting().avkortingsvarsel(),
                 ),
                 vilkårOverrides = listOf(
                     utenlandsoppholdInnvilget(

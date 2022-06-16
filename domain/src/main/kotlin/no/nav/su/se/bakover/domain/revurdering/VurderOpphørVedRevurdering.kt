@@ -61,7 +61,7 @@ data class VurderOmVilkårGirOpphørVedRevurdering(
         return when (val resultat = vilkårsvurderinger.resultat) {
             is Vilkårsvurderingsresultat.Avslag -> OpphørVedRevurdering.Ja(
                 opphørsgrunner = resultat.avslagsgrunner.map { it.tilOpphørsgrunn() },
-                opphørsdato = resultat.dato,
+                opphørsdato = resultat.tidligsteDatoForAvslag,
             )
             is Vilkårsvurderingsresultat.Innvilget -> OpphørVedRevurdering.Nei
             is Vilkårsvurderingsresultat.Uavklart -> throw IllegalStateException("Et vurdert vilkår i revurdering kan ikke være uavklart. Siden vilkårene brukes på tvers av søknadsbehandling og revurdering, må den støtte at et vurdert vilkår kan være uavklart i søknadsbehandlingsøyemed.")

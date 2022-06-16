@@ -24,6 +24,14 @@ import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
+import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
+import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
+import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
+import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
+import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
+import no.nav.su.se.bakover.domain.vilkår.Vilkår
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -452,15 +460,16 @@ internal class SakTest {
                 ),
             )
 
+            val periode = år(2022)
             val nyStønadsperiode =
-                Stønadsperiode.create(år(2022))
+                Stønadsperiode.create(periode)
             val (_, nySøknadsbehandling) = søknadsbehandlingVilkårsvurdertUavklart(
                 clock = tikkendeKlokke,
                 stønadsperiode = nyStønadsperiode,
             )
 
             val nySøknadsbehandlingMedOpplysningsplikt = nySøknadsbehandling.copy(
-                vilkårsvurderinger = nySøknadsbehandling.vilkårsvurderinger.leggTil(tilstrekkeligDokumentert())
+                vilkårsvurderinger = nySøknadsbehandling.vilkårsvurderinger.leggTil(tilstrekkeligDokumentert(periode = periode)),
             )
 
             sakMedRevurderingOgSøknadVedtak.copy(
@@ -504,6 +513,17 @@ internal class SakTest {
                         formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                     ).getOrFail() shouldBe nySøknadsbehandlingMedOpplysningsplikt.copy(
                         stønadsperiode = stønadsperiode,
+                        vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre(
+                            formue = Vilkår.Formue.IkkeVurdert,
+                            utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
+                            opplysningsplikt = tilstrekkeligDokumentert(periode = stønadsperiode.periode),
+                            lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
+                            fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
+                            institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
+                            personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
+                            flyktning = FlyktningVilkår.IkkeVurdert,
+                            uføre = Vilkår.Uførhet.IkkeVurdert,
+                        ),
                     )
                 }
             }

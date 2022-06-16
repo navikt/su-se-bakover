@@ -14,7 +14,9 @@ import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.juni
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
@@ -22,7 +24,6 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingFerdigbehandlet
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
@@ -36,20 +37,16 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
-import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.formueVilkår
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.periodeNesteMånedOgTreMånederFram
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.stønadsperiodeNesteMånedOgTreMånederFram
 import no.nav.su.se.bakover.service.vedtak.KunneIkkeKopiereGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.aktørId
-import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -384,9 +381,16 @@ internal class OppdaterRevurderingServiceTest {
             oppdatertRevurdering.forhåndsvarsel shouldBe null
             oppdatertRevurdering.vilkårsvurderinger.uføreVilkår().getOrFail().grunnlag.let {
                 it shouldHaveSize 1
-                it[0].ekvivalentMed(sakOgIverksattInnvilgetSøknadsbehandlingsvedtak.second.behandling.vilkårsvurderinger.uføreVilkår().getOrFail().grunnlag.first())
+                it[0].ekvivalentMed(
+                    sakOgIverksattInnvilgetSøknadsbehandlingsvedtak.second.behandling.vilkårsvurderinger.uføreVilkår()
+                        .getOrFail().grunnlag.first(),
+                )
             }
-            oppdatertRevurdering.vilkårsvurderinger.uføreVilkår().getOrFail().ekvivalentMed(sakOgIverksattInnvilgetSøknadsbehandlingsvedtak.second.behandling.vilkårsvurderinger.uføreVilkår().getOrFail() as Vilkår.Uførhet.Vurdert)
+            oppdatertRevurdering.vilkårsvurderinger.uføreVilkår().getOrFail()
+                .ekvivalentMed(
+                    sakOgIverksattInnvilgetSøknadsbehandlingsvedtak.second.behandling.vilkårsvurderinger.uføreVilkår()
+                        .getOrFail() as Vilkår.Uførhet.Vurdert,
+                )
             oppdatertRevurdering.informasjonSomRevurderes shouldBe InformasjonSomRevurderes.create(mapOf(Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert))
         }
 
@@ -486,57 +490,29 @@ internal class OppdaterRevurderingServiceTest {
 
     @Test
     fun `støtter ikke tilfeller hvor gjeldende vedtaksdata ikke er sammenhengende i tid`() {
-        val førsteVedtak = vedtakSøknadsbehandlingIverksattInnvilget().second
-        val periodePlussEtÅr = Periode.create(
-            periodeNesteMånedOgTreMånederFram.fraOgMed.plusYears(1),
-            periodeNesteMånedOgTreMånederFram.tilOgMed.plusYears(1),
-        )
-        val andreVedtakFormueVilkår = formueVilkår(periodePlussEtÅr)
-        val andreVedtak = vedtakSøknadsbehandlingIverksattInnvilget().second.copy(
-            periode = periodePlussEtÅr,
-            behandling = vedtakSøknadsbehandlingIverksattInnvilget().second.behandling.copy(
-                stønadsperiode = Stønadsperiode.create(periodePlussEtÅr),
-                grunnlagsdata = Grunnlagsdata.create(
-                    bosituasjon = listOf(
-                        Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                            id = UUID.randomUUID(),
-                            opprettet = fixedTidspunkt,
-                            periode = periodePlussEtÅr,
-                        )
-                    )
-                ),
-                vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre(
-                    uføre = Vilkår.Uførhet.Vurdert.create(
-                        vurderingsperioder = nonEmptyListOf(
-                            Vurderingsperiode.Uføre.create(
-                                resultat = Resultat.Innvilget,
-                                grunnlag = Grunnlag.Uføregrunnlag(
-                                    periode = periodePlussEtÅr,
-                                    uføregrad = Uføregrad.parse(25),
-                                    forventetInntekt = 12000,
-                                    opprettet = fixedTidspunkt,
-                                ),
-                                periode = periodePlussEtÅr,
-                                opprettet = fixedTidspunkt,
-                            ),
-                        ),
-                    ),
-                    formue = andreVedtakFormueVilkår,
-                ),
-            ),
+        val (førsteSak, førsteVedtak) = vedtakSøknadsbehandlingIverksattInnvilget(
+            stønadsperiode = Stønadsperiode.create(år(2021)),
         )
 
-        val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
+        val (andreSak, andreVedtak) = vedtakSøknadsbehandlingIverksattInnvilget(
+            stønadsperiode = Stønadsperiode.create(februar(2022)),
+        )
+
+        // TODO jah: Burde kunne gjøre mer av dette via sak (her blir ikke sakId og fnr like)
+        val sak = førsteSak.copy(
+            utbetalinger = førsteSak.utbetalinger + andreSak.utbetalinger,
+            søknadsbehandlinger = førsteSak.søknadsbehandlinger + andreSak.søknadsbehandlinger,
+            vedtakListe = førsteSak.vedtakListe + andreSak.vedtakListe,
+            søknader = førsteSak.søknader + andreSak.søknader,
+        )
+
+        val gjeldendeVedtaksdata = sak.hentGjeldendeVedtaksdata(
             periode = Periode.create(
                 fraOgMed = førsteVedtak.periode.fraOgMed,
                 tilOgMed = andreVedtak.periode.tilOgMed,
             ),
-            vedtakListe = nonEmptyListOf(
-                førsteVedtak,
-                andreVedtak,
-            ),
             clock = fixedClock,
-        )
+        ).orNull()!!
 
         val vedtakServiceMock = mock<VedtakService> {
             on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn gjeldendeVedtaksdata.right()

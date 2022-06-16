@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
 import no.nav.su.se.bakover.domain.tidslinje.masker
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger.Søknadsbehandling.Uføre.Companion.equals
+import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode.Formue
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFastOppholdINorge.Companion.equals
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFlyktning.Companion.equals
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeInstitusjonsopphold.Companion.equals
@@ -72,6 +73,18 @@ sealed class Vilkårsvurderinger {
     abstract val utenlandsopphold: UtenlandsoppholdVilkår
     abstract val opplysningsplikt: OpplysningspliktVilkår
     val erVurdert: Boolean by lazy { vilkår.none { it.resultat is Resultat.Uavklart } }
+
+    protected fun kastHvisPerioderErUlike() {
+        // Merk at hvert enkelt [Vilkår] passer på sine egne data (som f.eks. at periodene er sorterte og uten duplikater)
+        vilkår.map { it.perioder }.zipWithNext { a, b ->
+            // Vilkår med tomme perioder har ikke blitt vurdert enda.
+            if (a.isNotEmpty() && b.isNotEmpty()) {
+                require(a == b) {
+                    "Periodene til Vilkårsvurderinger er ulike. $a vs $b."
+                }
+            }
+        }
+    }
 
     fun uføreVilkår(): Either<VilkårEksistererIkke, Vilkår.Uførhet> {
         return when (this) {
@@ -142,7 +155,23 @@ sealed class Vilkårsvurderinger {
                     is Vilkår.Uførhet.Vurdert -> {
                         vilkår.vurderingsperioder.map { it.periode }
                     }
-                    else -> emptyList()
+                    is OpplysningspliktVilkår.Vurdert -> {
+                        vilkår.vurderingsperioder.map { it.periode }
+                    }
+                    is PensjonsVilkår.Vurdert -> {
+                        vilkår.vurderingsperioder.map { it.periode }
+                    }
+                    FastOppholdINorgeVilkår.IkkeVurdert,
+                    FlyktningVilkår.IkkeVurdert,
+                    Vilkår.Formue.IkkeVurdert,
+                    InstitusjonsoppholdVilkår.IkkeVurdert,
+                    LovligOppholdVilkår.IkkeVurdert,
+                    OpplysningspliktVilkår.IkkeVurdert,
+                    PersonligOppmøteVilkår.IkkeVurdert,
+                    Vilkår.Uførhet.IkkeVurdert,
+                    UtenlandsoppholdVilkår.IkkeVurdert,
+                    PensjonsVilkår.IkkeVurdert,
+                    -> emptyList()
                 }
             }.ifNotEmpty { this.minAndMaxOf() }
         }
@@ -194,14 +223,14 @@ sealed class Vilkårsvurderinger {
 
         data class Uføre(
             override val formue: Vilkår.Formue,
-            override val lovligOpphold: LovligOppholdVilkår = LovligOppholdVilkår.IkkeVurdert,
-            override val fastOpphold: FastOppholdINorgeVilkår = FastOppholdINorgeVilkår.IkkeVurdert,
-            override val institusjonsopphold: InstitusjonsoppholdVilkår = InstitusjonsoppholdVilkår.IkkeVurdert,
-            override val utenlandsopphold: UtenlandsoppholdVilkår = UtenlandsoppholdVilkår.IkkeVurdert,
-            override val personligOppmøte: PersonligOppmøteVilkår = PersonligOppmøteVilkår.IkkeVurdert,
-            override val opplysningsplikt: OpplysningspliktVilkår = OpplysningspliktVilkår.IkkeVurdert,
-            val uføre: Vilkår.Uførhet = Vilkår.Uførhet.IkkeVurdert,
-            val flyktning: FlyktningVilkår = FlyktningVilkår.IkkeVurdert,
+            override val lovligOpphold: LovligOppholdVilkår,
+            override val fastOpphold: FastOppholdINorgeVilkår,
+            override val institusjonsopphold: InstitusjonsoppholdVilkår,
+            override val utenlandsopphold: UtenlandsoppholdVilkår,
+            override val personligOppmøte: PersonligOppmøteVilkår,
+            override val opplysningsplikt: OpplysningspliktVilkår,
+            val uføre: Vilkår.Uførhet,
+            val flyktning: FlyktningVilkår,
         ) : Søknadsbehandling() {
             override val vilkår: Set<Vilkår>
                 get() {
@@ -218,8 +247,12 @@ sealed class Vilkårsvurderinger {
                     )
                 }
 
+            init {
+                kastHvisPerioderErUlike()
+            }
+
             override fun lagTidslinje(periode: Periode): Uføre {
-                return copy(
+                return Uføre(
                     uføre = uføre.lagTidslinje(periode),
                     formue = formue.lagTidslinje(periode),
                     flyktning = flyktning.lagTidslinje(periode),
@@ -317,7 +350,7 @@ sealed class Vilkårsvurderinger {
             override fun oppdaterStønadsperiode(
                 stønadsperiode: Stønadsperiode,
                 formuegrenserFactory: FormuegrenserFactory,
-            ): Uføre = copy(
+            ): Uføre = Uføre(
                 uføre = uføre.oppdaterStønadsperiode(stønadsperiode),
                 formue = formue.oppdaterStønadsperiode(stønadsperiode, formuegrenserFactory),
                 flyktning = flyktning.oppdaterStønadsperiode(stønadsperiode),
@@ -326,6 +359,7 @@ sealed class Vilkårsvurderinger {
                 institusjonsopphold = institusjonsopphold.oppdaterStønadsperiode(stønadsperiode),
                 utenlandsopphold = utenlandsopphold.oppdaterStønadsperiode(stønadsperiode),
                 personligOppmøte = personligOppmøte.oppdaterStønadsperiode(stønadsperiode),
+                opplysningsplikt = opplysningsplikt.oppdaterStønadsperiode(stønadsperiode),
             )
 
             companion object {
@@ -345,13 +379,13 @@ sealed class Vilkårsvurderinger {
         }
 
         data class Alder(
-            override val formue: Vilkår.Formue = Vilkår.Formue.IkkeVurdert,
-            override val lovligOpphold: LovligOppholdVilkår = LovligOppholdVilkår.IkkeVurdert,
-            override val fastOpphold: FastOppholdINorgeVilkår = FastOppholdINorgeVilkår.IkkeVurdert,
-            override val institusjonsopphold: InstitusjonsoppholdVilkår = InstitusjonsoppholdVilkår.IkkeVurdert,
-            override val utenlandsopphold: UtenlandsoppholdVilkår = UtenlandsoppholdVilkår.IkkeVurdert,
-            override val personligOppmøte: PersonligOppmøteVilkår = PersonligOppmøteVilkår.IkkeVurdert,
-            override val opplysningsplikt: OpplysningspliktVilkår = OpplysningspliktVilkår.IkkeVurdert,
+            override val formue: Vilkår.Formue,
+            override val lovligOpphold: LovligOppholdVilkår,
+            override val fastOpphold: FastOppholdINorgeVilkår,
+            override val institusjonsopphold: InstitusjonsoppholdVilkår,
+            override val utenlandsopphold: UtenlandsoppholdVilkår,
+            override val personligOppmøte: PersonligOppmøteVilkår,
+            override val opplysningsplikt: OpplysningspliktVilkår,
             val pensjon: PensjonsVilkår,
         ) : Søknadsbehandling() {
             override val vilkår: Set<Vilkår> = setOf(
@@ -364,6 +398,10 @@ sealed class Vilkårsvurderinger {
                 opplysningsplikt,
                 pensjon,
             )
+
+            init {
+                kastHvisPerioderErUlike()
+            }
 
             override fun lagTidslinje(periode: Periode): Søknadsbehandling {
                 return Alder(
@@ -432,13 +470,14 @@ sealed class Vilkårsvurderinger {
             override fun oppdaterStønadsperiode(
                 stønadsperiode: Stønadsperiode,
                 formuegrenserFactory: FormuegrenserFactory,
-            ): Alder = copy(
+            ): Alder = Alder(
                 formue = formue.oppdaterStønadsperiode(stønadsperiode, formuegrenserFactory),
                 lovligOpphold = lovligOpphold.oppdaterStønadsperiode(stønadsperiode),
                 fastOpphold = fastOpphold.oppdaterStønadsperiode(stønadsperiode),
                 institusjonsopphold = institusjonsopphold.oppdaterStønadsperiode(stønadsperiode),
                 utenlandsopphold = utenlandsopphold.oppdaterStønadsperiode(stønadsperiode),
                 personligOppmøte = personligOppmøte.oppdaterStønadsperiode(stønadsperiode),
+                opplysningsplikt = opplysningsplikt.oppdaterStønadsperiode(stønadsperiode),
                 pensjon = pensjon.oppdaterStønadsperiode(stønadsperiode),
             )
 
@@ -474,14 +513,17 @@ sealed class Vilkårsvurderinger {
             override val utenlandsopphold: UtenlandsoppholdVilkår,
             override val opplysningsplikt: OpplysningspliktVilkår,
         ) : Revurdering() {
-            // TODO jah: Legg til en init her for Vilkår.Revurdering og Vilkår.Søknadsbehandling
-            //  slik at vi blant annet kan passe på at periodene enten er null eller like dersom utfylt.
+
             override val vilkår: Set<Vilkår> = setOf(
                 uføre,
                 formue,
                 utenlandsopphold,
                 opplysningsplikt,
             )
+
+            init {
+                kastHvisPerioderErUlike()
+            }
 
             override fun leggTil(vilkår: Vilkår): Uføre {
                 return when (vilkår) {
@@ -513,6 +555,11 @@ sealed class Vilkårsvurderinger {
                     formue = formue,
                     utenlandsopphold = utenlandsopphold,
                     opplysningsplikt = opplysningsplikt,
+                    lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
+                    institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
+                    personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
+                    flyktning = FlyktningVilkår.IkkeVurdert,
+                    fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
                 )
             }
 
@@ -529,7 +576,7 @@ sealed class Vilkårsvurderinger {
             }
 
             override fun lagTidslinje(periode: Periode): Uføre {
-                return copy(
+                return Uføre(
                     uføre = uføre.lagTidslinje(periode),
                     formue = formue.lagTidslinje(periode),
                     utenlandsopphold = utenlandsopphold.lagTidslinje(periode),
@@ -540,7 +587,7 @@ sealed class Vilkårsvurderinger {
             fun oppdaterStønadsperiode(
                 stønadsperiode: Stønadsperiode,
                 formuegrenserFactory: FormuegrenserFactory,
-            ): Uføre = copy(
+            ): Uføre = Uføre(
                 uføre = uføre.oppdaterStønadsperiode(stønadsperiode),
                 formue = formue.oppdaterStønadsperiode(stønadsperiode, formuegrenserFactory),
                 utenlandsopphold = utenlandsopphold.oppdaterStønadsperiode(stønadsperiode),
@@ -569,6 +616,10 @@ sealed class Vilkårsvurderinger {
                 opplysningsplikt,
                 pensjon,
             )
+
+            init {
+                kastHvisPerioderErUlike()
+            }
 
             override fun lagTidslinje(periode: Periode): Vilkårsvurderinger {
                 return Alder(
@@ -609,6 +660,10 @@ sealed class Vilkårsvurderinger {
                     utenlandsopphold = utenlandsopphold,
                     opplysningsplikt = opplysningsplikt,
                     pensjon = pensjon,
+                    lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
+                    fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
+                    institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
+                    personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
                 )
             }
 
@@ -631,7 +686,7 @@ sealed class Vilkårsvurderingsresultat {
         val vilkår: Set<Vilkår>,
     ) : Vilkårsvurderingsresultat() {
         val avslagsgrunner = vilkår.map { it.avslagsgrunn() }
-        val dato = vilkår.minOf { it.hentTidligesteDatoForAvslag()!! }
+        val tidligsteDatoForAvslag = vilkår.minOf { it.hentTidligesteDatoForAvslag()!! }
 
         private fun Vilkår.avslagsgrunn(): Avslagsgrunn {
             return when (this) {
@@ -684,7 +739,11 @@ sealed class Vilkårsvurderingsresultat {
 }
 
 /**
- * Vurderingen av et vilkår mot en eller flere grunnlagsdata
+ * Et [Vilkår], dersom det er vurdert, er delt opp i 1 eller flere [Vurderingsperiode].
+ * Hver enkelt [Vurderingsperiode] har en definert [Periode] og [Resultat], mens [Vilkår] har ikke disse entydige grensene:
+ * - [no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling]: Et vilkår for en stønadsperiode må ha et entydig resultat og en sammenhengende periode.
+ * - [no.nav.su.se.bakover.domain.revurdering.Revurdering] og [no.nav.su.se.bakover.domain.regulering.Regulering]: Kan gå på tvers av stønadsperioder og kan da bestå av flere enn et resultat og kan ha hull i periodene.
+ * Revurdering/Regulering kan ha strengere regler enn dette i sine respektive implementasjoner.
  */
 sealed class Vilkår {
     abstract val resultat: Resultat
@@ -692,11 +751,25 @@ sealed class Vilkår {
     abstract val erInnvilget: Boolean
     abstract val vilkår: Inngangsvilkår
 
+    /**
+     * Vurderte vilkår vil ha en eller flere [Periode], mens ikkevurderte vilkår vil ikke ha en [Periode].
+     * Periodene vil være sortert og vil ikke ha duplikater.
+     * De skal også være slått sammen, der det er mulig.
+     * Obs: Periodene kan fremdeles ha hull.
+     */
+    abstract val perioder: List<Periode>
+
     abstract fun hentTidligesteDatoForAvslag(): LocalDate?
 
     abstract fun erLik(other: Vilkår): Boolean
     abstract fun lagTidslinje(periode: Periode): Vilkår
     abstract fun slåSammenLikePerioder(): Vilkår
+
+    protected fun kastHvisPerioderErUsortertEllerHarDuplikater() {
+        require(perioder.erSortert())
+        require(!perioder.harDuplikater())
+        // TODO jah: Vurder å legg på require(perioder.minsteAntallSammenhengendePerioder() == perioder)
+    }
 
     sealed class Uførhet : Vilkår() {
         override val vilkår = Inngangsvilkår.Uførhet
@@ -711,6 +784,7 @@ sealed class Vilkår {
             override val erAvslag = false
             override val erInnvilget = false
             override val grunnlag = emptyList<Grunnlag.Uføregrunnlag>()
+            override val perioder: List<Periode> = emptyList()
 
             override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): IkkeVurdert = this
 
@@ -732,6 +806,7 @@ sealed class Vilkår {
         data class Vurdert private constructor(
             val vurderingsperioder: Nel<Vurderingsperiode.Uføre>,
         ) : Uførhet() {
+
             override val grunnlag: List<Grunnlag.Uføregrunnlag> = vurderingsperioder.mapNotNull {
                 it.grunnlag
             }
@@ -745,6 +820,12 @@ sealed class Vilkår {
             override val resultat: Resultat =
                 if (erInnvilget) Resultat.Innvilget else if (erAvslag) Resultat.Avslag else Resultat.Uavklart
 
+            override val perioder: Nel<Periode> = vurderingsperioder.minsteAntallSammenhengendePerioder()
+
+            init {
+                kastHvisPerioderErUsortertEllerHarDuplikater()
+            }
+
             override fun hentTidligesteDatoForAvslag(): LocalDate? {
                 return vurderingsperioder.filter { it.resultat == Resultat.Avslag }.map { it.periode.fraOgMed }
                     .minByOrNull { it }
@@ -755,7 +836,7 @@ sealed class Vilkår {
             }
 
             override fun slåSammenLikePerioder(): Vurdert {
-                return copy(vurderingsperioder = vurderingsperioder.slåSammenLikePerioder())
+                return Vurdert(vurderingsperioder = vurderingsperioder.slåSammenLikePerioder())
             }
 
             companion object {
@@ -828,7 +909,7 @@ sealed class Vilkår {
                     }.map {
                         it.second
                     }.let {
-                        copy(vurderingsperioder = it.slåSammenLikePerioder())
+                        Vurdert(vurderingsperioder = it.slåSammenLikePerioder())
                     }
                 } else {
                     val tidligere = stønadsperiode.periode.starterTidligere(
@@ -837,7 +918,7 @@ sealed class Vilkår {
                     )
 
                     if (tidligere) {
-                        copy(
+                        Vurdert(
                             vurderingsperioder = NonEmptyList.fromListUnsafe(
                                 listOf(
                                     vurderingsperioder.minByOrNull { it.periode.fraOgMed }!!
@@ -846,7 +927,7 @@ sealed class Vilkår {
                             ).slåSammenLikePerioder(),
                         )
                     } else {
-                        copy(
+                        Vurdert(
                             vurderingsperioder = NonEmptyList.fromListUnsafe(
                                 listOf(
                                     vurderingsperioder.maxByOrNull { it.periode.tilOgMed }!!
@@ -859,7 +940,7 @@ sealed class Vilkår {
             }
 
             override fun lagTidslinje(periode: Periode): Vurdert {
-                return copy(
+                return Vurdert(
                     vurderingsperioder = Nel.fromListUnsafe(
                         Tidslinje(
                             periode = periode,
@@ -899,6 +980,7 @@ sealed class Vilkår {
             override val resultat: Resultat = Resultat.Uavklart
             override val erAvslag = false
             override val erInnvilget = false
+            override val perioder: List<Periode> = emptyList()
 
             override fun hentTidligesteDatoForAvslag(): LocalDate? = null
             override fun erLik(other: Vilkår): Boolean {
@@ -933,16 +1015,10 @@ sealed class Vilkår {
             val vurderingsperioder: Nel<Vurderingsperiode.Formue>,
         ) : Formue() {
 
-            /**
-             * Garanterer at disse er sortert og uten duplikater.
-             * Merk, i noen tilfeller kan periodene være usammenhengende.
-             */
-            val perioder = vurderingsperioder.map { it.periode }
+            override val perioder: Nel<Periode> = vurderingsperioder.minsteAntallSammenhengendePerioder()
 
             init {
-                require(perioder.erSortert())
-                require(!perioder.harDuplikater())
-                // TODO jah + jacob: Diskuter hvorvidt denne kan være usammenhengende. Bytt denne evt. til en kommentar som forklarer hvorfor
+                kastHvisPerioderErUsortertEllerHarDuplikater()
             }
 
             /** Merk at vi ikke kan garantere at det er hull i perioden */
@@ -951,9 +1027,9 @@ sealed class Vilkår {
             override fun oppdaterStønadsperiode(
                 stønadsperiode: Stønadsperiode,
                 formuegrenserFactory: FormuegrenserFactory,
-            ): Formue {
+            ): Vurdert {
                 check(vurderingsperioder.count() == 1) { "Kan ikke oppdatere stønadsperiode for vilkår med med enn én vurdering" }
-                return this.copy(
+                return Vurdert(
                     vurderingsperioder = this.vurderingsperioder.map {
                         it.oppdaterStønadsperiode(stønadsperiode, formuegrenserFactory)
                     },
@@ -961,7 +1037,7 @@ sealed class Vilkår {
             }
 
             override fun lagTidslinje(periode: Periode): Vurdert {
-                return copy(
+                return Vurdert(
                     vurderingsperioder = Nel.fromListUnsafe(
                         Tidslinje(
                             periode = periode,
@@ -971,8 +1047,8 @@ sealed class Vilkår {
                 )
             }
 
-            override fun leggTilTomEPSFormueHvisDetMangler(perioder: List<Periode>): Formue {
-                return copy(
+            override fun leggTilTomEPSFormueHvisDetMangler(perioder: List<Periode>): Vurdert {
+                return Vurdert(
                     vurderingsperioder = vurderingsperioder.flatMap {
                         it.leggTilTomEPSFormueHvisDetMangler(perioder)
                     },
@@ -980,7 +1056,7 @@ sealed class Vilkår {
             }
 
             override fun fjernEPSFormue(perioder: List<Periode>): Vurdert {
-                return copy(vurderingsperioder = vurderingsperioder.flatMap { it.fjernEPSFormue(perioder) })
+                return Vurdert(vurderingsperioder = vurderingsperioder.flatMap { it.fjernEPSFormue(perioder) })
             }
 
             override val erInnvilget: Boolean =
@@ -1002,7 +1078,7 @@ sealed class Vilkår {
             }
 
             override fun slåSammenLikePerioder(): Vurdert {
-                return copy(vurderingsperioder = vurderingsperioder.slåSammenLikePerioder())
+                return Vurdert(vurderingsperioder = vurderingsperioder.slåSammenLikePerioder())
             }
 
             override val grunnlag: List<Formuegrunnlag> = vurderingsperioder.map {
@@ -1055,6 +1131,11 @@ sealed class Vilkår {
     }
 }
 
+/**
+ * Et [Vilkår], dersom det er vurdert, er delt opp i 1 eller flere [Vurderingsperiode].
+ * Hver vurderingsperiode har en definert [Periode] og [Resultat], men trenger ikke å ha et grunnlag knyttet til seg.
+ * I de fleste tilfeller er vurderingen gjort av en saksbehandler, men det finnes unntak, som [Formue] hvor systemet avgjør [Resultat] basert på grunnlagene.
+ */
 sealed class Vurderingsperiode {
     abstract val id: UUID
     abstract val opprettet: Tidspunkt
@@ -1159,8 +1240,7 @@ sealed class Vurderingsperiode {
 
     /**
      * En vurderingsperiode for formue er i dag splittet på resultat.
-     * Slik at en vurderingsperiode kun kan opprettes med ett resultat (innvilget eller avslag).
-     * Klassen støtter å hente uavklart fra databasen (TODO(satsfactory_formue): Sjekk om det finnes tilfeller at dette i preprod/prod-basen.
+     * Slik at en vurderingsperiode kun kan opprettes med ett [Resultat].
      * Resultatet er avhengig av formueverdiene i forhold til formuegrensene.
      * Dvs. at formuesummen vurderingsperioden må være mindre enn alle formuegrensene for at man skal få innvilget.
      * Formuegrensene kan variere innenfor perioden.
@@ -1340,6 +1420,9 @@ sealed class Vurderingsperiode {
         }
     }
 }
+
+fun Nel<Vurderingsperiode>.minsteAntallSammenhengendePerioder() =
+    this.map { it.periode }.minsteAntallSammenhengendePerioder()
 
 fun Periode.inneholderAlle(vurderingsperioder: NonEmptyList<Vurderingsperiode>): Boolean {
     return vurderingsperioder.all { this inneholder it.periode }

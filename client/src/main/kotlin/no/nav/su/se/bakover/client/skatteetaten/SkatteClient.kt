@@ -16,9 +16,10 @@ import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
+import java.time.Clock
 import java.time.Duration
 
-class SkatteClient(private val skatteetatenConfig: SkatteetatenConfig) : Skatteoppslag {
+class SkatteClient(private val skatteetatenConfig: SkatteetatenConfig, private val clock: Clock) : Skatteoppslag {
 
     private val client = HttpClient.newBuilder()
         .connectTimeout(Duration.ofSeconds(20))
@@ -67,7 +68,7 @@ class SkatteClient(private val skatteetatenConfig: SkatteetatenConfig) : Skatteo
                     }
                 } else {
                     return objectMapper.readValue(response.body(), SamletSkattegrunnlag::class.java)
-                        .toDomain()
+                        .toDomain(clock)
                         .tapLeft {
                             log.error("Feil skjedde under mapping av data fra skatteetaten.")
                             sikkerLogg.error("Feil skjedde under mapping av data fra skatteetaten.", it)
