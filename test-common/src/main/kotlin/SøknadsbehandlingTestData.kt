@@ -571,6 +571,7 @@ fun nySøknadsbehandlingAlder(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakAlder(søknadsInnhold = søknadsinnholdAlder()),
 ): Pair<Sak, Søknadsbehandling.Vilkårsvurdert> {
+    require(sakOgSøknad.first.type == Sakstype.ALDER) { "Bruk nySøknadsbehandlingUføre dersom du ønsker deg en uføresak." }
     return nySøknadsbehandling(
         clock = clock,
         stønadsperiode = stønadsperiode,
@@ -583,6 +584,7 @@ fun nySøknadsbehandlingUføre(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(clock = clock),
 ): Pair<Sak, Søknadsbehandling.Vilkårsvurdert> {
+    require(sakOgSøknad.first.type == Sakstype.UFØRE) { "Bruk nySøknadsbehandlingAlder dersom du ønsker deg en alderssak." }
     return nySøknadsbehandling(
         clock = clock,
         stønadsperiode = stønadsperiode,
@@ -698,6 +700,8 @@ fun vilkårsvurdertSøknadsbehandling(
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
 ): Pair<Sak, Søknadsbehandling.Vilkårsvurdert> {
+    require(customVilkår.groupBy { it::class }.values.count() == 1) { "Tillater bare et vilkår av hver type" }
+
     val vilkårFraBehandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget
     val (grunnlagsdata, vilkår) = GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling(
         grunnlagsdata = grunnlagsdataEnsligUtenFradrag(

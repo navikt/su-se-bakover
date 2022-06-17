@@ -7,6 +7,8 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.søknadinnhold.SøknadInnhold
+import no.nav.su.se.bakover.domain.søknadinnhold.SøknadsinnholdAlder
+import no.nav.su.se.bakover.domain.søknadinnhold.SøknadsinnholdUføre
 import no.nav.su.se.bakover.domain.søknadsinnholdAlder
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.time.Clock
@@ -39,7 +41,7 @@ fun Sak.hentGjeldendeVilkårOgGrunnlag(
 
 fun nySakUføre(
     clock: Clock = fixedClock,
-    søknadsInnhold: SøknadInnhold = søknadinnhold(fnr),
+    søknadsInnhold: SøknadsinnholdUføre = søknadinnhold(fnr),
 ): Pair<Sak, Søknad.Journalført.MedOppgave> {
     return nySak(
         clock = clock,
@@ -49,7 +51,7 @@ fun nySakUføre(
 
 fun nySakAlder(
     clock: Clock = fixedClock,
-    søknadsInnhold: SøknadInnhold = søknadsinnholdAlder(),
+    søknadsInnhold: SøknadsinnholdAlder = søknadsinnholdAlder(),
 ): Pair<Sak, Søknad.Journalført.MedOppgave> {
     return nySak(
         clock = clock,

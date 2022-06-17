@@ -115,7 +115,7 @@ fun nySakMedjournalførtSøknadOgOppgave(
 
 fun nySøknad(
     clock: Clock = fixedClock,
-    sakId: UUID = UUID.randomUUID(),
+    sakId: UUID,
     søknadInnhold: SøknadInnhold,
 ): Søknad.Ny {
     return Søknad.Ny(
@@ -128,7 +128,7 @@ fun nySøknad(
 
 fun nySøknadJournalført(
     clock: Clock = fixedClock,
-    sakId: UUID = UUID.randomUUID(),
+    sakId: UUID,
     søknadInnhold: SøknadInnhold,
 ): Søknad.Journalført.UtenOppgave {
     return nySøknad(
