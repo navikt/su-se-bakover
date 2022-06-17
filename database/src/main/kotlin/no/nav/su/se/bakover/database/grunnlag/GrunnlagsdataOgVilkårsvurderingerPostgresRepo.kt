@@ -134,6 +134,10 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
                         utenlandsopphold = utenlandsoppholdVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                         opplysningsplikt = opplysningspliktVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                         pensjon = pensjonVilkårsvurderingPostgresRepo.hent(behandlingId, session),
+                        familiegjenforening = familiegjenforeningVilkårsvurderingPostgresRepo.hent(
+                            behandlingId,
+                            session,
+                        ),
                         // Disse ligger fremdeles på Behandlingsinformasjon.kt
                         lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
                         fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,

@@ -6,6 +6,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.harOverlappende
+import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
 import java.time.LocalDate
 
@@ -13,12 +14,15 @@ sealed class FamiliegjenforeningVilkår : Vilkår() {
     override val vilkår: Inngangsvilkår = Inngangsvilkår.Familiegjenforening
 
     abstract override fun lagTidslinje(periode: Periode): FamiliegjenforeningVilkår
+    abstract fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): FamiliegjenforeningVilkår
 
     object IkkeVurdert : FamiliegjenforeningVilkår() {
         override val resultat: Resultat = Resultat.Uavklart
         override val erAvslag: Boolean = false
         override val erInnvilget: Boolean = false
+        override val perioder: List<Periode> = emptyList()
 
+        override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode) = this
         override fun hentTidligesteDatoForAvslag(): LocalDate? = null
         override fun erLik(other: Vilkår) = other is IkkeVurdert
         override fun lagTidslinje(periode: Periode) = this
@@ -33,6 +37,7 @@ sealed class FamiliegjenforeningVilkår : Vilkår() {
         override val resultat =
             if (erInnvilget) Resultat.Innvilget else if (erAvslag) Resultat.Avslag else Resultat.Uavklart
 
+        override val perioder: Nel<Periode> = vurderingsperioder.minsteAntallSammenhengendePerioder()
         override fun erLik(other: Vilkår) = other is Vurdert && vurderingsperioder.erLik(other.vurderingsperioder)
         override fun slåSammenLikePerioder() = copy(vurderingsperioder = vurderingsperioder.slåSammenLikePerioder())
 
@@ -46,6 +51,13 @@ sealed class FamiliegjenforeningVilkår : Vilkår() {
                 Tidslinje(periode = periode, objekter = vurderingsperioder).tidslinje,
             ),
         )
+
+        override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): FamiliegjenforeningVilkår {
+            check(vurderingsperioder.count() == 1) { "Kan ikke oppdatere stønadsperiode for vilkår med mer enn én vurdering" }
+            return copy(
+                vurderingsperioder = vurderingsperioder.map { it.oppdaterStønadsperiode(stønadsperiode) }
+            )
+        }
 
         companion object {
             fun create(

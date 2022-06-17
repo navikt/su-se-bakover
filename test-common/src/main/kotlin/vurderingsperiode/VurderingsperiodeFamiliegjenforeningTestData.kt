@@ -14,7 +14,7 @@ fun vurderingsperiodeFamiliegjenforeningInnvilget(
     opprettet: Tidspunkt = fixedTidspunkt,
     resultat: Resultat = Resultat.Innvilget,
     grunnlag: Grunnlag? = null,
-    periode: Periode = år(2022),
+    periode: Periode = år(2021),
 ) = VurderingsperiodeFamiliegjenforening.create(
     id = id,
     opprettet = opprettet,
@@ -28,7 +28,7 @@ fun vurderingsperiodeFamiliegjenforeningAvslag(
     opprettet: Tidspunkt = fixedTidspunkt,
     resultat: Resultat = Resultat.Avslag,
     grunnlag: Grunnlag? = null,
-    periode: Periode = år(2022),
+    periode: Periode = år(2021),
 ) = VurderingsperiodeFamiliegjenforening.create(
     id = id,
     opprettet = opprettet,

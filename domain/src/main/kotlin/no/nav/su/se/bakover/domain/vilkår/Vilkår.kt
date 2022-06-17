@@ -394,7 +394,7 @@ sealed class Vilkårsvurderinger {
             override val formue: Vilkår.Formue,
             override val lovligOpphold: LovligOppholdVilkår,
             override val fastOpphold: FastOppholdINorgeVilkår,
-            override val institusjonsopphold: InstitusjonsoppholdVilkår,,
+            override val institusjonsopphold: InstitusjonsoppholdVilkår,
             override val utenlandsopphold: UtenlandsoppholdVilkår,
             override val personligOppmøte: PersonligOppmøteVilkår,
             override val opplysningsplikt: OpplysningspliktVilkår,
@@ -410,6 +410,7 @@ sealed class Vilkårsvurderinger {
                 personligOppmøte,
                 opplysningsplikt,
                 pensjon,
+                familiegjenforening,
             )
 
             init {
@@ -426,6 +427,7 @@ sealed class Vilkårsvurderinger {
                     personligOppmøte = personligOppmøte.lagTidslinje(periode),
                     opplysningsplikt = opplysningsplikt.lagTidslinje(periode),
                     pensjon = pensjon.lagTidslinje(periode),
+                    familiegjenforening = familiegjenforening.lagTidslinje(periode),
                 )
             }
 
@@ -493,6 +495,7 @@ sealed class Vilkårsvurderinger {
                 personligOppmøte = personligOppmøte.oppdaterStønadsperiode(stønadsperiode),
                 opplysningsplikt = opplysningsplikt.oppdaterStønadsperiode(stønadsperiode),
                 pensjon = pensjon.oppdaterStønadsperiode(stønadsperiode),
+                familiegjenforening = familiegjenforening.oppdaterStønadsperiode(stønadsperiode)
             )
 
             override fun tilVilkårsvurderingerRevurdering(): Revurdering.Alder {

@@ -45,7 +45,18 @@ fun vilkårsvurderingSøknadsbehandlingIkkeVurdert(): Vilkårsvurderinger.Søkna
     return Vilkårsvurderinger.Søknadsbehandling.Uføre.ikkeVurdert()
 }
 
-fun vilkårsvurderingSøknadsbehandlingIkkeVurdertAlder() = Vilkårsvurderinger.Søknadsbehandling.Alder()
+fun vilkårsvurderingSøknadsbehandlingIkkeVurdertAlder() = Vilkårsvurderinger.Søknadsbehandling.Alder(
+    formue = avslåttFormueVilkår(),
+    lovligOpphold = lovligOppholdVilkårAvslag(),
+    fastOpphold = fastOppholdVilkårAvslag(),
+    institusjonsopphold = insitusjonsoppholdvilkårAvslag(),
+    utenlandsopphold = utenlandsoppholdAvslag(),
+    personligOppmøte = personligOppmøtevilkårAvslag(),
+    opplysningsplikt = utilstrekkeligDokumentert(),
+    familiegjenforening = familiegjenforeningVilkårAvslag(),
+    pensjon = pensjonsVilkårAvslag(),
+
+)
 
 fun vilkårsvurderingSøknadsbehandlingVurdertInnvilgetAlder() = Vilkårsvurderinger.Søknadsbehandling.Alder(
     formue = innvilgetFormueVilkår(),

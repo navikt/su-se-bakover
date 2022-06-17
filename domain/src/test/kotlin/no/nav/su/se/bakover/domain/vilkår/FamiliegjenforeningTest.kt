@@ -86,13 +86,13 @@ private class FamiliegjenforeningTest {
             familiegjenforeningVilkårInnvilget(
                 vurderingsperioder = nonEmptyListOf(
                     vurderingsperiodeFamiliegjenforeningInnvilget(),
-                    vurderingsperiodeFamiliegjenforeningInnvilget(periode = år(2023)),
+                    vurderingsperiodeFamiliegjenforeningInnvilget(periode = år(2022)),
                 ),
             ).slåSammenLikePerioder().vurderingsperioder.let {
                 it.size shouldBe 1
                 it.first().shouldBeEqualToIgnoringFields(
                     vurderingsperiodeFamiliegjenforeningInnvilget(
-                        periode = Periode.create(1.januar(2022), 31.desember(2023)),
+                        periode = Periode.create(1.januar(2021), 31.desember(2022)),
                     ),
                     Vurderingsperiode::id,
                 )
@@ -106,7 +106,7 @@ private class FamiliegjenforeningTest {
                     vurderingsperiodeFamiliegjenforeningInnvilget(resultat = Resultat.Avslag),
                     vurderingsperiodeFamiliegjenforeningInnvilget(resultat = Resultat.Avslag, periode = år(2023)),
                 ),
-            ).hentTidligesteDatoForAvslag() shouldBe 1.januar(2022)
+            ).hentTidligesteDatoForAvslag() shouldBe 1.januar(2021)
         }
 
         @Test
