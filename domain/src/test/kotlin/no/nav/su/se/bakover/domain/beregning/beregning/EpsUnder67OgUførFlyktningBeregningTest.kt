@@ -35,16 +35,16 @@ internal class EpsUnder67OgUførFlyktningBeregningTest {
 
     /**
      * Eksempel fra 01.05.2020
-    +----------------+----------+---------------------+----------+----------------------------+---------+
-    |     Bruker     |          |         EPS         |          |           Total            |         |
-    +----------------+----------+---------------------+----------+----------------------------+---------+
-    | Stønadssats    | 231.080  | Folketrygd          | 190.000  | SUM Bruker                 | =90.488 |
-    | Arbeidsinntekt | -12.000  | Annen norsk penjson | 45.000   | Fradrag EPS                | -3920   |
-    | Folketrygd     | -128.592 | Uføre Ordinær sats  | -231.080 | SUM SU/år                  | =86.568 |
-    | SUM            | =90.488  | SUM                 | =3920    | SUM SU/mnd                 | =7.214  |
-    |                |          |                     |          | Utbetalt SU/år (avrundet)  | =86.568 |
-    |                |          |                     |          | Utbetalt SU/mnd (avrundet) | =7.214  |
-    +----------------+----------+---------------------+----------+----------------------------+---------+
+     +----------------+----------+---------------------+----------+----------------------------+---------+
+     |     Bruker     |          |         EPS         |          |           Total            |         |
+     +----------------+----------+---------------------+----------+----------------------------+---------+
+     | Stønadssats    | 231.080  | Folketrygd          | 190.000  | SUM Bruker                 | =90.488 |
+     | Arbeidsinntekt | -12.000  | Annen norsk penjson | 45.000   | Fradrag EPS                | -3920   |
+     | Folketrygd     | -128.592 | Uføre Ordinær sats  | -231.080 | SUM SU/år                  | =86.568 |
+     | SUM            | =90.488  | SUM                 | =3920    | SUM SU/mnd                 | =7.214  |
+     |                |          |                     |          | Utbetalt SU/år (avrundet)  | =86.568 |
+     |                |          |                     |          | Utbetalt SU/mnd (avrundet) | =7.214  |
+     +----------------+----------+---------------------+----------+----------------------------+---------+
      */
     @Test
     fun `beregningseksempel fra fagsiden`() {

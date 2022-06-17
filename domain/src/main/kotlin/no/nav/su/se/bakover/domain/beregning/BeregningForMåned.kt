@@ -36,9 +36,9 @@ data class BeregningForMåned(
     /**
      * Obs: Denne returnerer grunnbeløp per år
      */
-    override fun getBenyttetGrunnbeløp(): Int = when (fullSupplerendeStønadForMåned) {
+    override fun getBenyttetGrunnbeløp(): Int? = when (fullSupplerendeStønadForMåned) {
         is FullSupplerendeStønadForMåned.Alder -> {
-            TODO("alder er ikke en faktor av g her, må finne på et eller annet")
+            null
         }
         is FullSupplerendeStønadForMåned.Uføre -> {
             fullSupplerendeStønadForMåned.grunnbeløp.grunnbeløpPerÅr

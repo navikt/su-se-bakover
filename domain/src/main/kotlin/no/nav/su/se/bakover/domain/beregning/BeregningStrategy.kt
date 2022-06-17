@@ -82,8 +82,10 @@ class BeregningStrategyFactory(
             Sakstype.UFØRE -> {
                 Beregningsgrunnlag.tryCreate(
                     beregningsperiode = totalBeregningsperiode,
-                    uføregrunnlag = when (val vilkårsvurderinger =
-                        grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger) {
+                    uføregrunnlag = when (
+                        val vilkårsvurderinger =
+                            grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger
+                    ) {
                         is Vilkårsvurderinger.Revurdering.Uføre -> {
                             vilkårsvurderinger.uføre.grunnlag
                         }

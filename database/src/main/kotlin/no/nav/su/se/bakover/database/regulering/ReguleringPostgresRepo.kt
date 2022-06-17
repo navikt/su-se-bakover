@@ -235,7 +235,11 @@ internal class ReguleringPostgresRepo(
             ReguleringstypeDb.AUTOMATISK -> Reguleringstype.AUTOMATISK
         }
 
-        val beregning: BeregningMedFradragBeregnetMånedsvis? = stringOrNull("beregning")?.deserialiserBeregning(satsFactory.gjeldende(opprettet))
+        val sakstype = Sakstype.from(string("type"))
+        val beregning: BeregningMedFradragBeregnetMånedsvis? = stringOrNull("beregning")?.deserialiserBeregning(
+            satsFactory = satsFactory.gjeldende(opprettet),
+            sakstype = sakstype,
+        )
         val simulering = stringOrNull("simulering")?.let { objectMapper.readValue<Simulering>(it) }
         val saksbehandler = NavIdentBruker.Saksbehandler(string("saksbehandler"))
         val periode = string("periode").let { objectMapper.readValue<Periode>(it) }
@@ -247,8 +251,6 @@ internal class ReguleringPostgresRepo(
         )
 
         val avsluttet = stringOrNull("avsluttet")?.let { objectMapper.readValue<AvsluttetReguleringJson>(it) }
-
-        val sakstype = string("type")
 
         return lagRegulering(
             status = status,
@@ -264,7 +266,7 @@ internal class ReguleringPostgresRepo(
             simulering = simulering,
             reguleringstype = type,
             avsluttetReguleringJson = avsluttet,
-            sakstype = Sakstype.from(sakstype)
+            sakstype = sakstype
         )
     }
 

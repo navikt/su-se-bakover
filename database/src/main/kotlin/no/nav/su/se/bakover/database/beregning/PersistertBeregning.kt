@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.periode.PeriodeJson
 import no.nav.su.se.bakover.common.periode.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningMedFradragBeregnetMånedsvis
 import no.nav.su.se.bakover.domain.satser.SatsFactory
@@ -24,7 +25,7 @@ private data class PersistertBeregning(
     val periode: PeriodeJson,
     val begrunnelse: String?,
 ) {
-    fun toBeregning(satsFactory: SatsFactory): BeregningMedFradragBeregnetMånedsvis {
+    fun toBeregning(satsFactory: SatsFactory, sakstype: Sakstype): BeregningMedFradragBeregnetMånedsvis {
         return BeregningMedFradragBeregnetMånedsvis(
             id = id,
             opprettet = opprettet,
@@ -37,6 +38,7 @@ private data class PersistertBeregning(
                 månedsberegninger.map {
                     it.toMånedsberegning(
                         satsFactory = satsFactory,
+                        sakstype = sakstype,
                     )
                 },
             ),
@@ -44,8 +46,8 @@ private data class PersistertBeregning(
     }
 }
 
-internal fun String.deserialiserBeregning(satsFactory: SatsFactory): BeregningMedFradragBeregnetMånedsvis {
-    return deserialize<PersistertBeregning>(this).toBeregning(satsFactory)
+internal fun String.deserialiserBeregning(satsFactory: SatsFactory, sakstype: Sakstype): BeregningMedFradragBeregnetMånedsvis {
+    return deserialize<PersistertBeregning>(this).toBeregning(satsFactory, sakstype)
 }
 
 /** Serialiserer til json-struktur til persistering */

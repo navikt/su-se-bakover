@@ -34,17 +34,17 @@ internal class EnsligBorMedVoksneBeregningTest {
 
     /**
      * Eksempel fra 01.05.2020
-    +----------------------------+-------------+
-    | Stønadssats                | 231.080     |
-    | Arbeidsinntekt             | -20.000     |
-    | Folketrygd                 | -14.256     |
-    | Utenlandsk inntekt         | -40.927     |
-    | -------------------------- | ----------- |
-    | SUM SU/år                  | =155.897    |
-    | SUM SU/mnd                 | 12.991,4167 |
-    | Utbetalt SU/år (avrundet)  | 155.892     |
-    | Utbetalt SU/mnd (avrundet) | 12.991      |
-    +----------------------------+-------------+
+     +----------------------------+-------------+
+     | Stønadssats                | 231.080     |
+     | Arbeidsinntekt             | -20.000     |
+     | Folketrygd                 | -14.256     |
+     | Utenlandsk inntekt         | -40.927     |
+     | -------------------------- | ----------- |
+     | SUM SU/år                  | =155.897    |
+     | SUM SU/mnd                 | 12.991,4167 |
+     | Utbetalt SU/år (avrundet)  | 155.892     |
+     | Utbetalt SU/mnd (avrundet) | 12.991      |
+     +----------------------------+-------------+
      */
     @Test
     fun `beregningseksempel fra fagsiden`() {
