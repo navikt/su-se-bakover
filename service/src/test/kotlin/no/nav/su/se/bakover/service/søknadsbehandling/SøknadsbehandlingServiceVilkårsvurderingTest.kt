@@ -80,7 +80,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
                     response.vilkårsvurderinger.utenlandsopphold,
                     response.vilkårsvurderinger.personligOppmøte,
                     response.vilkårsvurderinger.opplysningsplikt,
-                )
+                ),
             )
         }
 
@@ -122,7 +122,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
                     response.vilkårsvurderinger.utenlandsopphold,
                     response.vilkårsvurderinger.personligOppmøte,
                     response.vilkårsvurderinger.opplysningsplikt,
-                )
+                ),
             )
         }
 

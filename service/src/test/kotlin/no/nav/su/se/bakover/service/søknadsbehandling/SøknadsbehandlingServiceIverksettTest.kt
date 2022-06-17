@@ -32,7 +32,6 @@ import no.nav.su.se.bakover.test.avkortingsvarselUtenlandsopphold
 import no.nav.su.se.bakover.test.dokumentUtenMetadataVedtak
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.kontrollsamtale
@@ -114,12 +113,10 @@ internal class SøknadsbehandlingServiceIverksettTest {
 
             val attestert = vilkårsvurdert.leggTilFradragsgrunnlag(
                 fradragsgrunnlag = listOf(fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 20000.0)),
-                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             ).getOrFail().beregn(
                 begrunnelse = null,
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(),
-                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             ).getOrFail().let { beregnet ->
                 beregnet.simuler(
                     saksbehandler = saksbehandler,

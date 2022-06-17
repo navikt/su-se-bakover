@@ -4,20 +4,30 @@ import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
+import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårAvslått
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsinnholdAlder
+import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
+import no.nav.su.se.bakover.domain.vilkår.PensjonsVilkår
+import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
+import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt0
 import java.time.Clock
+import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 
@@ -163,7 +173,6 @@ fun søknadsbehandlingBeregnetInnvilget(
         val oppdatertSøknadsbehandling = søknadsbehandling.beregn(
             begrunnelse = null,
             clock = clock,
-            formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             satsFactory = satsFactoryTestPåDato(),
         ).getOrFail() as Søknadsbehandling.Beregnet.Innvilget
         Pair(
@@ -209,7 +218,6 @@ fun søknadsbehandlingBeregnetAvslag(
         val oppdatertSøknadsbehandling = søknadsbehandling.beregn(
             begrunnelse = null,
             clock = clock,
-            formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             satsFactory = satsFactoryTestPåDato(),
         ).getOrFail() as Søknadsbehandling.Beregnet.Avslag
         Pair(
@@ -556,4 +564,245 @@ fun søknadsbehandlingLukket(
     ).run {
         Pair(first, second.lukkSøknadsbehandling().orNull()!!)
     }
+}
+
+fun nySøknadsbehandlingAlder(
+    clock: Clock = fixedClock,
+    stønadsperiode: Stønadsperiode = stønadsperiode2021,
+    sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakAlder(søknadsInnhold = søknadsinnholdAlder()),
+): Pair<Sak, Søknadsbehandling.Vilkårsvurdert> {
+    require(sakOgSøknad.first.type == Sakstype.ALDER) { "Bruk nySøknadsbehandlingUføre dersom du ønsker deg en uføresak." }
+    return nySøknadsbehandling(
+        clock = clock,
+        stønadsperiode = stønadsperiode,
+        sakOgSøknad = sakOgSøknad,
+    )
+}
+
+fun nySøknadsbehandlingUføre(
+    clock: Clock = fixedClock,
+    stønadsperiode: Stønadsperiode = stønadsperiode2021,
+    sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(clock = clock),
+): Pair<Sak, Søknadsbehandling.Vilkårsvurdert> {
+    require(sakOgSøknad.first.type == Sakstype.UFØRE) { "Bruk nySøknadsbehandlingAlder dersom du ønsker deg en alderssak." }
+    return nySøknadsbehandling(
+        clock = clock,
+        stønadsperiode = stønadsperiode,
+        sakOgSøknad = sakOgSøknad,
+    )
+}
+
+/**
+ * Oppretter en søknadsbehandling med bagrunn i [sakOgSøknad]. Støtter både uføre og alder.
+ */
+fun nySøknadsbehandling(
+    clock: Clock = fixedClock,
+    stønadsperiode: Stønadsperiode = stønadsperiode2021,
+    sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave>,
+): Pair<Sak, Søknadsbehandling.Vilkårsvurdert> {
+    return sakOgSøknad.let { (sak, søknad) ->
+        val søknadsbehandling = Søknadsbehandling.Vilkårsvurdert.Uavklart(
+            id = UUID.randomUUID(),
+            opprettet = Tidspunkt.now(clock),
+            sakId = sak.id,
+            saksnummer = sak.saksnummer,
+            søknad = søknad,
+            oppgaveId = søknad.oppgaveId,
+            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
+            fnr = sak.fnr,
+            fritekstTilBrev = "",
+            stønadsperiode = stønadsperiode,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
+            vilkårsvurderinger = when (sak.type) {
+                Sakstype.ALDER -> {
+                    Vilkårsvurderinger.Søknadsbehandling.Alder.ikkeVurdert()
+                }
+                Sakstype.UFØRE -> {
+                    Vilkårsvurderinger.Søknadsbehandling.Uføre.ikkeVurdert()
+                }
+            },
+            attesteringer = Attesteringshistorikk.empty(),
+            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke(),
+            sakstype = sak.type,
+        )
+
+        // legg til for å oppdater stønadsperiode
+        val førOppdatertStønadsperiode = sak.copy(
+            søknader = sak.søknader.filterNot { it.id == søknad.id } + søknad, // replace hvis søknaden allerede er lagt til (f.eks hvis man først oppretter bare sak + søknad)
+            søknadsbehandlinger = sak.søknadsbehandlinger + søknadsbehandling,
+        )
+
+        // oppdater stønadsperiode via sak for å sjekke gyldigheten
+        val etterOppdatertStønadsperiode = førOppdatertStønadsperiode.oppdaterStønadsperiodeForSøknadsbehandling(
+            søknadsbehandlingId = søknadsbehandling.id,
+            stønadsperiode = stønadsperiode,
+            clock = clock,
+            formuegrenserFactory = formuegrenserFactoryTestPåDato(LocalDate.now(clock)),
+        ).getOrFail()
+
+        sak.copy(
+            søknader = sak.søknader.filterNot { it.id == søknad.id } + søknad, // replace hvis søknaden allerede er lagt til (f.eks hvis man først oppretter bare sak + søknad)
+            søknadsbehandlinger = sak.søknadsbehandlinger.filterNot { it.id == etterOppdatertStønadsperiode.id } + etterOppdatertStønadsperiode,
+        ) to etterOppdatertStønadsperiode
+    }
+}
+
+fun vilkårsvurdertSøknadsbehandlingAlder(
+    clock: Clock = fixedClock,
+    stønadsperiode: Stønadsperiode = stønadsperiode2021,
+    sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakAlder(
+        clock = clock,
+    ),
+    customGrunnlag: List<Grunnlag> = emptyList(),
+    customVilkår: List<Vilkår> = emptyList(),
+): Pair<Sak, Søknadsbehandling.Vilkårsvurdert> {
+    return vilkårsvurdertSøknadsbehandling(
+        clock = clock,
+        stønadsperiode = stønadsperiode,
+        sakOgSøknad = sakOgSøknad,
+        customGrunnlag = customGrunnlag,
+        customVilkår = customVilkår,
+    )
+}
+
+fun vilkårsvurdertSøknadsbehandlingUføre(
+    clock: Clock = fixedClock,
+    stønadsperiode: Stønadsperiode = stønadsperiode2021,
+    sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(
+        clock = clock,
+    ),
+    customGrunnlag: List<Grunnlag> = emptyList(),
+    customVilkår: List<Vilkår> = emptyList(),
+): Pair<Sak, Søknadsbehandling.Vilkårsvurdert> {
+    return vilkårsvurdertSøknadsbehandling(
+        clock = clock,
+        stønadsperiode = stønadsperiode,
+        sakOgSøknad = sakOgSøknad,
+        customGrunnlag = customGrunnlag,
+        customVilkår = customVilkår,
+    )
+}
+
+/**
+ * Returnerer en [Søknadsbehandling.Vilkårsvurdert] baset på [sakOgSøknad]. Støtter både uføre og alder.
+ * Default er at det opprettes en [Søknadsbehandling.Vilkårsvurdert.Innvilget], men funkjsonen støtter også opprettelse
+ * av alle typer [Søknadsbehandling.Vilkårsvurdert] - hvilken man ender opp med til slutt avhenger av utfallet av
+ * vilkårsvurderingen.
+ *
+ * @param sakOgSøknad sak og søknad det skal opprettes søknadsbehandling for
+ * @param customGrunnlag brukes for å spesifisere grunnlag som skal overstyre default
+ * @param customVilkår brukes for å overstyre vilkår som skal overstyre default
+ */
+fun vilkårsvurdertSøknadsbehandling(
+    clock: Clock = fixedClock,
+    stønadsperiode: Stønadsperiode = stønadsperiode2021,
+    sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave>,
+    customGrunnlag: List<Grunnlag> = emptyList(),
+    customVilkår: List<Vilkår> = emptyList(),
+): Pair<Sak, Søknadsbehandling.Vilkårsvurdert> {
+    require(customVilkår.groupBy { it::class }.values.count() == 1) { "Tillater bare et vilkår av hver type" }
+
+    val vilkårFraBehandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget
+    val (grunnlagsdata, vilkår) = GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling(
+        grunnlagsdata = grunnlagsdataEnsligUtenFradrag(
+            periode = stønadsperiode.periode,
+        ),
+        vilkårsvurderinger = when (sakOgSøknad.first.type) {
+            Sakstype.ALDER -> {
+                vilkårsvurderingerAlderInnvilget(
+                    stønadsperiode = stønadsperiode,
+                    behandlingsinformasjon = vilkårFraBehandlingsinformasjon,
+                )
+            }
+            Sakstype.UFØRE -> {
+                vilkårsvurderingerSøknadsbehandlingInnvilget(
+                    periode = stønadsperiode.periode,
+                    behandlingsinformasjon = vilkårFraBehandlingsinformasjon,
+                )
+            }
+        },
+    )
+    return nySøknadsbehandling(
+        clock = clock,
+        stønadsperiode = stønadsperiode,
+        sakOgSøknad = sakOgSøknad,
+    ).let { (sak, søknadsbehandling) ->
+        val etterOppdaterFraBehandlingsinformasjon = søknadsbehandling.tilVilkårsvurdert(
+            behandlingsinformasjon = vilkårFraBehandlingsinformasjon,
+            grunnlagsdataOgVilkårsvurderinger = søknadsbehandling.grunnlagsdataOgVilkårsvurderinger,
+            clock = clock,
+        )
+
+        val vilkårsvurdert = when (vilkår) {
+            is Vilkårsvurderinger.Søknadsbehandling.Alder -> {
+                etterOppdaterFraBehandlingsinformasjon.oppdaterBosituasjon(
+                    bosituasjon = grunnlagsdata.bosituasjon.single(),
+                    clock = clock,
+                )
+                    .getOrFail()
+                    .leggTilFormuevilkår(
+                        vilkår = customVilkår.customOrDefault { vilkår.formue as Vilkår.Formue.Vurdert },
+                        clock = clock,
+                    ).getOrFail()
+                    .leggTilUtenlandsopphold(
+                        utenlandsopphold = customVilkår.customOrDefault { vilkår.utenlandsopphold as UtenlandsoppholdVilkår.Vurdert },
+                        clock = clock,
+                    )
+                    .getOrFail()
+                    .leggTilOpplysningspliktVilkår(
+                        opplysningspliktVilkår = customVilkår.customOrDefault { vilkår.opplysningsplikt as OpplysningspliktVilkår.Vurdert },
+                        clock = clock,
+                    )
+                    .getOrFail()
+                    .leggTilPensjonsVilkår(
+                        vilkår = customVilkår.customOrDefault { vilkår.pensjon as PensjonsVilkår.Vurdert },
+                        clock = clock,
+                    )
+                    .getOrFail()
+            }
+            is Vilkårsvurderinger.Søknadsbehandling.Uføre -> {
+                etterOppdaterFraBehandlingsinformasjon.oppdaterBosituasjon(
+                    bosituasjon = grunnlagsdata.bosituasjon.single(),
+                    clock = clock,
+                )
+                    .getOrFail()
+                    .leggTilFormuevilkår(
+                        vilkår = customVilkår.customOrDefault { vilkår.formue as Vilkår.Formue.Vurdert },
+                        clock = clock,
+                    ).getOrFail()
+                    .leggTilUtenlandsopphold(
+                        utenlandsopphold = customVilkår.customOrDefault { vilkår.utenlandsopphold as UtenlandsoppholdVilkår.Vurdert },
+                        clock = clock,
+                    )
+                    .getOrFail()
+                    .leggTilOpplysningspliktVilkår(
+                        opplysningspliktVilkår = customVilkår.customOrDefault { vilkår.opplysningsplikt as OpplysningspliktVilkår.Vurdert },
+                        clock = clock,
+                    )
+                    .getOrFail()
+                    .leggTilUførevilkår(
+                        uførhet = customVilkår.customOrDefault { vilkår.uføre as Vilkår.Uførhet.Vurdert },
+                        clock = clock,
+                    )
+                    .getOrFail()
+            }
+        }
+
+        val medFradrag = if (customGrunnlag.customOrDefault { grunnlagsdata.fradragsgrunnlag }.isNotEmpty()) {
+            vilkårsvurdert.leggTilFradragsgrunnlag(fradragsgrunnlag = customGrunnlag.customOrDefault { grunnlagsdata.fradragsgrunnlag })
+                .getOrFail()
+        } else {
+            vilkårsvurdert
+        }
+
+        sak.copy(søknadsbehandlinger = sak.søknadsbehandlinger.filterNot { it.id == medFradrag.id } + medFradrag) to medFradrag
+    }
+}
+
+private inline fun <reified T : Vilkår> List<Vilkår>.customOrDefault(default: () -> T): T {
+    return filterIsInstance<T>().singleOrNull() ?: default()
+}
+
+private inline fun <reified T : Grunnlag> List<Grunnlag>.customOrDefault(default: () -> List<T>): List<T> {
+    return filterIsInstance<T>().ifEmpty { default() }
 }

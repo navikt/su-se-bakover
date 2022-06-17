@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.test
 
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUIDFactory
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
@@ -12,6 +13,8 @@ import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadinnhold.ForNav
 import no.nav.su.se.bakover.domain.søknadinnhold.Personopplysninger
+import no.nav.su.se.bakover.domain.søknadinnhold.SøknadInnhold
+import java.time.Clock
 import java.util.LinkedList
 import java.util.UUID
 
@@ -108,4 +111,41 @@ fun nySakMedjournalførtSøknadOgOppgave(
             journalførtSøknadMedOppgave,
         )
     }
+}
+
+fun nySøknad(
+    clock: Clock = fixedClock,
+    sakId: UUID,
+    søknadInnhold: SøknadInnhold,
+): Søknad.Ny {
+    return Søknad.Ny(
+        id = UUID.randomUUID(),
+        opprettet = Tidspunkt.now(clock),
+        sakId = sakId,
+        søknadInnhold = søknadInnhold,
+    )
+}
+
+fun nySøknadJournalført(
+    clock: Clock = fixedClock,
+    sakId: UUID,
+    søknadInnhold: SøknadInnhold,
+): Søknad.Journalført.UtenOppgave {
+    return nySøknad(
+        clock = clock,
+        sakId = sakId,
+        søknadInnhold = søknadInnhold,
+    ).journalfør(journalpostIdSøknad)
+}
+
+fun nySøknadJournalførtMedOppgave(
+    clock: Clock = fixedClock,
+    sakId: UUID,
+    søknadInnhold: SøknadInnhold,
+): Søknad.Journalført.MedOppgave.IkkeLukket {
+    return nySøknadJournalført(
+        clock = clock,
+        sakId = sakId,
+        søknadInnhold = søknadInnhold,
+    ).medOppgave(oppgaveIdSøknad)
 }

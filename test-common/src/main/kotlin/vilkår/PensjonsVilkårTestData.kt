@@ -27,3 +27,21 @@ fun pensjonsVilkårInnvilget(
         ),
     )
 }
+
+fun pensjonsVilkårAvslag(
+    id: UUID = UUID.randomUUID(),
+    opprettet: Tidspunkt = fixedTidspunkt,
+    periode: Periode = år(2021),
+): PensjonsVilkår.Vurdert {
+    return PensjonsVilkår.Vurdert.createFromVilkårsvurderinger(
+        vurderingsperioder = nonEmptyListOf(
+            VurderingsperiodePensjon.create(
+                id = id,
+                opprettet = opprettet,
+                resultat = Resultat.Avslag,
+                grunnlag = null,
+                periode = periode,
+            ),
+        ),
+    )
+}

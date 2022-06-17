@@ -202,7 +202,6 @@ internal class SøknadsbehandlingServiceImpl(
             begrunnelse = request.begrunnelse,
             clock = clock,
             satsFactory = satsFactory,
-            formuegrenserFactory = formuegrenserFactory,
         ).mapLeft { feil ->
             when (feil) {
                 is Søknadsbehandling.KunneIkkeBeregne.UgyldigTilstand -> {
@@ -563,7 +562,7 @@ internal class SøknadsbehandlingServiceImpl(
             return KunneIkkeLeggeTilUføreVilkår.UgyldigInput(it).left()
         }
 
-        val vilkårsvurdert = søknadsbehandling.leggTilUførevilkår(vilkår, clock, formuegrenserFactory)
+        val vilkårsvurdert = søknadsbehandling.leggTilUførevilkår(vilkår, clock)
             .getOrHandle {
                 return when (it) {
                     is Søknadsbehandling.KunneIkkeLeggeTilUførevilkår.UgyldigTilstand -> {
@@ -633,7 +632,7 @@ internal class SøknadsbehandlingServiceImpl(
          * Vi ønsker gradvis å gå over til sistenevnte måte å gjøre det på.
          */
         val oppdatertBehandling =
-            behandling.leggTilFradragsgrunnlag(request.fradragsgrunnlag, formuegrenserFactory).getOrHandle {
+            behandling.leggTilFradragsgrunnlag(request.fradragsgrunnlag).getOrHandle {
                 return it.toService().left()
             }
 
@@ -702,7 +701,7 @@ internal class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilOpplysningsplikt.FantIkkeBehandling.left()
 
-        return søknadsbehandling.leggTilOpplysningspliktVilkår(request.vilkår, clock, formuegrenserFactory)
+        return søknadsbehandling.leggTilOpplysningspliktVilkår(request.vilkår, clock)
             .mapLeft {
                 KunneIkkeLeggeTilOpplysningsplikt.Søknadsbehandling(it)
             }.map {
@@ -715,7 +714,7 @@ internal class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilPensjonsVilkår.FantIkkeBehandling.left()
 
-        return søknadsbehandling.leggTilPensjonsVilkår(request.vilkår, clock, formuegrenserFactory)
+        return søknadsbehandling.leggTilPensjonsVilkår(request.vilkår, clock)
             .mapLeft {
                 KunneIkkeLeggeTilPensjonsVilkår.Søknadsbehandling(it)
             }.map {

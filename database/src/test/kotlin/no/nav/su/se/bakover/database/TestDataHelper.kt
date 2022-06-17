@@ -1318,7 +1318,6 @@ internal class TestDataHelper(
             begrunnelse = null,
             clock = fixedClock,
             satsFactory = satsFactoryTestPåDato(),
-            formuegrenserFactory = formuegrenserFactoryTestPåDato(),
         ).getOrFail().let {
             søknadsbehandlingRepo.lagre(it)
             Pair(sakRepo.hentSak(sakId)!!, it as Søknadsbehandling.Beregnet.Innvilget)
@@ -1350,7 +1349,6 @@ internal class TestDataHelper(
             begrunnelse = null,
             clock = fixedClock,
             satsFactory = satsFactoryTestPåDato(),
-            formuegrenserFactory = formuegrenserFactoryTestPåDato(),
         ).getOrFail().let {
             søknadsbehandlingRepo.lagre(it as Søknadsbehandling.Beregnet.Avslag)
             Pair(sakRepo.hentSak(sakId)!!, it)

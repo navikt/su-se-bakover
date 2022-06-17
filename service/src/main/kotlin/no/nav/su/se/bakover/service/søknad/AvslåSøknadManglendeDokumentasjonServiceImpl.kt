@@ -166,7 +166,6 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImpl(
                 ),
             ).getOrHandle { throw IllegalArgumentException(it.toString()) },
             clock = clock,
-            formuegrenserFactory = satsFactory.formuegrenserFactory,
         ).getOrHandle { throw IllegalArgumentException(it.toString()) } as Søknadsbehandling.Vilkårsvurdert.Avslag
     }
 }

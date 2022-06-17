@@ -64,7 +64,6 @@ import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
@@ -114,7 +113,6 @@ internal class LagBrevRequestVisitorTest {
             begrunnelse = null,
             clock = fixedClock,
             satsFactory = satsFactoryTestPåDato(),
-            formuegrenserFactory = formuegrenserFactoryTestPåDato(),
         ).getOrFail()
             .simuler(
                 saksbehandler = saksbehandler,
@@ -176,7 +174,6 @@ internal class LagBrevRequestVisitorTest {
         vilkårsvurdertInnvilget.leggTilUførevilkår(
             uførhet = avslåttUførevilkårUtenGrunnlag(),
             clock = fixedClock,
-            formuegrenserFactory = formuegrenserFactoryTestPåDato(),
         ).getOrFail().let { søknadsbehandling ->
             LagBrevRequestVisitor(
                 hentPerson = { person.right() },
@@ -282,7 +279,6 @@ internal class LagBrevRequestVisitorTest {
             begrunnelse = null,
             clock = fixedClock,
             satsFactory = satsFactoryTestPåDato(),
-            formuegrenserFactory = formuegrenserFactoryTestPåDato(),
         ).getOrFail()
             .let { søknadsbehandling ->
                 LagBrevRequestVisitor(
@@ -323,12 +319,10 @@ internal class LagBrevRequestVisitorTest {
                     ),
                 ),
             ),
-            formuegrenserFactory = formuegrenserFactoryTestPåDato(),
         ).getOrFail().beregn(
             begrunnelse = null,
             clock = fixedClock,
             satsFactory = satsFactoryTestPåDato(),
-            formuegrenserFactory = formuegrenserFactoryTestPåDato(),
         ).getOrFail().let { søknadsbehandling ->
             LagBrevRequestVisitor(
                 hentPerson = { person.right() },
@@ -365,7 +359,6 @@ internal class LagBrevRequestVisitorTest {
             begrunnelse = null,
             clock = fixedClock,
             satsFactory = satsFactoryTestPåDato(),
-            formuegrenserFactory = formuegrenserFactoryTestPåDato(),
         ).getOrFail()
             .simuler(
                 saksbehandler = saksbehandler,
@@ -461,12 +454,10 @@ internal class LagBrevRequestVisitorTest {
                         ),
                     ),
                 ),
-                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             ).getOrFail().beregn(
                 begrunnelse = null,
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(),
-                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             ).getOrFail() as Søknadsbehandling.Beregnet.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
@@ -506,7 +497,6 @@ internal class LagBrevRequestVisitorTest {
             begrunnelse = null,
             clock = fixedClock,
             satsFactory = satsFactoryTestPåDato(),
-            formuegrenserFactory = formuegrenserFactoryTestPåDato(),
         ).getOrFail()
             .simuler(
                 saksbehandler = saksbehandler,
@@ -605,12 +595,10 @@ internal class LagBrevRequestVisitorTest {
                         ),
                     ),
                 ),
-                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             ).getOrFail().beregn(
                 begrunnelse = null,
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(),
-                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             ).getOrFail() as Søknadsbehandling.Beregnet.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
@@ -659,7 +647,6 @@ internal class LagBrevRequestVisitorTest {
             begrunnelse = null,
             clock = fixedClock,
             satsFactory = satsFactoryTestPåDato(),
-            formuegrenserFactory = formuegrenserFactoryTestPåDato(),
         ).getOrFail()
             .simuler(
                 saksbehandler = saksbehandler,
@@ -761,13 +748,11 @@ internal class LagBrevRequestVisitorTest {
                         ),
                     ),
                 ),
-                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             ).getOrFail()
                 .beregn(
                     begrunnelse = null,
                     clock = fixedClock,
                     satsFactory = satsFactoryTestPåDato(),
-                    formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                 ).getOrFail() as Søknadsbehandling.Beregnet.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
@@ -810,7 +795,6 @@ internal class LagBrevRequestVisitorTest {
             begrunnelse = null,
             clock = fixedClock,
             satsFactory = satsFactoryTestPåDato(),
-            formuegrenserFactory = formuegrenserFactoryTestPåDato(),
         ).getOrFail()
             .simuler(
                 saksbehandler = saksbehandler,
@@ -855,7 +839,6 @@ internal class LagBrevRequestVisitorTest {
                 begrunnelse = null,
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(),
-                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             ).getOrFail()
             .simuler(
                 saksbehandler = saksbehandler,
@@ -918,12 +901,10 @@ internal class LagBrevRequestVisitorTest {
                         ),
                     ),
                 ),
-                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             ).getOrFail().beregn(
                 begrunnelse = null,
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(),
-                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             ).getOrFail() as Søknadsbehandling.Beregnet.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
@@ -1100,7 +1081,6 @@ internal class LagBrevRequestVisitorTest {
                 begrunnelse = null,
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(),
-                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             ).getOrFail()
                 .simuler(
                     saksbehandler = saksbehandler,
@@ -1196,7 +1176,6 @@ internal class LagBrevRequestVisitorTest {
                     begrunnelse = null,
                     clock = fixedClock,
                     satsFactory = satsFactoryTestPåDato(),
-                    formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                 ).getOrFail()
                 .simuler(
                     saksbehandler = saksbehandler,
@@ -1449,7 +1428,6 @@ internal class LagBrevRequestVisitorTest {
                 begrunnelse = null,
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(),
-                formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             ).getOrFail()
                 .simuler(
                     saksbehandler = saksbehandler,

@@ -21,7 +21,6 @@ import no.nav.su.se.bakover.service.statistikk.mappers.BehandlingStatistikkMappe
 import no.nav.su.se.bakover.service.statistikk.mappers.ManglendeStatistikkMappingException
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattGjenopptakelseAvYtelseFraVedtakStansAvYtelse
 import no.nav.su.se.bakover.test.iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak
@@ -681,7 +680,6 @@ internal class BehandlingStatistikkMapperTest {
         begrunnelse = null,
         clock = fixedClock,
         satsFactory = satsFactoryTestPåDato(),
-        formuegrenserFactory = formuegrenserFactoryTestPåDato(),
     ).getOrFail()
     private val simulertSøknadsbehandling = beregnetSøknadsbehandling.simuler(
         saksbehandler = saksbehandler,
