@@ -70,9 +70,15 @@ internal class LeggTilFamiliegjenforeningRoutesTest {
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
+                    //language=JSON
                     """
                     {
-                        "status": "VilkårOppfylt"
+                        "vurderinger": [
+                            {
+                                "periode":{"fraOgMed":"2021-01-01","tilOgMed":"2021-12-31"},
+                                "status": "VilkårOppfylt"
+                            }
+                        ]
                     }
                     """.trimIndent(),
                 )

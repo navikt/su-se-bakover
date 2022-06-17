@@ -43,7 +43,10 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
                     { null },
                     { it.toJson() },
                 ),
-                familiegjenforening = vilkårsvurderinger.familiegjenforening().fold({ null }, { it.toJson() }),
+                familiegjenforening = vilkårsvurderinger.familiegjenforening().fold(
+                    { null },
+                    { it.toJson() },
+                ),
             )
         }
     }

@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.service.vilkår
 
-import arrow.core.nonEmptyListOf
+import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.vilkår.FamiliegjenforeningVilkår
@@ -13,28 +13,32 @@ enum class FamiliegjenforeningvilkårStatus {
     VilkårOppfylt, VilkårIkkeOppfylt, Uavklart;
 }
 
+data class FamiliegjenforeningVurderinger(
+    val periode: Periode,
+    val status: FamiliegjenforeningvilkårStatus,
+)
+
 data class LeggTilFamiliegjenforeningRequest(
     val behandlingId: UUID,
-    val status: FamiliegjenforeningvilkårStatus,
+    val vurderinger: List<FamiliegjenforeningVurderinger>,
 ) {
-
     fun toVilkår(
-        periode: Periode,
         clock: Clock,
     ) = FamiliegjenforeningVilkår.Vurdert.create(
-        vurderingsperioder = nonEmptyListOf(toVurderingsperiode(periode, clock)),
+        vurderingsperioder = NonEmptyList.fromListUnsafe(toVurderingsperiode(clock)),
     )
 
     private fun toVurderingsperiode(
-        vurderingsperiode: Periode,
         clock: Clock,
-    ) = VurderingsperiodeFamiliegjenforening.create(
-        opprettet = Tidspunkt.now(clock),
-        resultat = when (status) {
-            FamiliegjenforeningvilkårStatus.VilkårOppfylt -> Resultat.Innvilget
-            FamiliegjenforeningvilkårStatus.VilkårIkkeOppfylt -> Resultat.Avslag
-            FamiliegjenforeningvilkårStatus.Uavklart -> Resultat.Uavklart
-        },
-        periode = vurderingsperiode,
-    )
+    ) = vurderinger.map {
+        VurderingsperiodeFamiliegjenforening.create(
+            opprettet = Tidspunkt.now(clock),
+            resultat = when (it.status) {
+                FamiliegjenforeningvilkårStatus.VilkårOppfylt -> Resultat.Innvilget
+                FamiliegjenforeningvilkårStatus.VilkårIkkeOppfylt -> Resultat.Avslag
+                FamiliegjenforeningvilkårStatus.Uavklart -> Resultat.Uavklart
+            },
+            periode = it.periode,
+        )
+    }
 }

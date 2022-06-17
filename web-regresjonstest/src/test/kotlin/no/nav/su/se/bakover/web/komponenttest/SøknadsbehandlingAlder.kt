@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.service.revurdering.LeggTilOpplysningspliktRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.VilkårsvurderRequest
 import no.nav.su.se.bakover.service.vilkår.BosituasjonValg
+import no.nav.su.se.bakover.service.vilkår.FamiliegjenforeningVurderinger
 import no.nav.su.se.bakover.service.vilkår.FamiliegjenforeningvilkårStatus
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
@@ -113,7 +114,12 @@ internal class SøknadsbehandlingAlder {
             appComponents.services.søknadsbehandling.leggTilFamiliegjenforeningvilkår(
                 request = LeggTilFamiliegjenforeningRequest(
                     behandlingId = søknadsbehandling.id,
-                    status = FamiliegjenforeningvilkårStatus.VilkårOppfylt,
+                    vurderinger = listOf(
+                        FamiliegjenforeningVurderinger(
+                            stønadsperiode2022.periode,
+                            FamiliegjenforeningvilkårStatus.VilkårOppfylt,
+                        ),
+                    ),
                 ),
             )
 

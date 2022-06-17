@@ -586,12 +586,12 @@ internal class SøknadsbehandlingServiceImpl(
             ?: return KunneIkkeLeggeTilFamiliegjenforeningVilkårService.FantIkkeBehandling.left()
 
         val familiegjenforeningVilkår = request.toVilkår(
-            periode = søknadsbehandling.periode,
             clock = clock,
         ).getOrHandle {
             return KunneIkkeLeggeTilFamiliegjenforeningVilkårService.UgyldigFamiliegjenforeningVilkårService(it)
                 .left()
         }
+        familiegjenforeningVilkår.vurderingsperioder.single()
 
         return søknadsbehandling.leggTilFamiliegjenforeningvilkår(
             familiegjenforening = familiegjenforeningVilkår,

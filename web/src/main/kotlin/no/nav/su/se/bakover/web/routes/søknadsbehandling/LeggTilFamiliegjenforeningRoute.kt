@@ -4,11 +4,13 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
+import no.nav.su.se.bakover.common.periode.PeriodeJson
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.vilkår.UgyldigFamiliegjenforeningVilkår
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.service.vilkår.FamiliegjenforeningVurderinger
 import no.nav.su.se.bakover.service.vilkår.FamiliegjenforeningvilkårStatus
 import no.nav.su.se.bakover.service.vilkår.LeggTilFamiliegjenforeningRequest
 import no.nav.su.se.bakover.web.Resultat
@@ -29,7 +31,12 @@ internal fun Route.leggTilFamiliegjenforeningRoute(
                     søknadsbehandlingService.leggTilFamiliegjenforeningvilkår(
                         request = LeggTilFamiliegjenforeningRequest(
                             behandlingId = behandlingId,
-                            status = body.status,
+                            vurderinger = body.vurderinger.map {
+                                FamiliegjenforeningVurderinger(
+                                    it.periode.toPeriode(),
+                                    it.status,
+                                )
+                            },
                         ),
                     ).fold(
                         ifLeft = { call.svar(it.tilResultat()) },
@@ -44,6 +51,11 @@ internal fun Route.leggTilFamiliegjenforeningRoute(
 }
 
 private data class FamiliegjenforeningBody(
+    val vurderinger: List<FamiliegjenforeningVurderingBody>,
+)
+
+private data class FamiliegjenforeningVurderingBody(
+    val periode: PeriodeJson,
     val status: FamiliegjenforeningvilkårStatus,
 )
 

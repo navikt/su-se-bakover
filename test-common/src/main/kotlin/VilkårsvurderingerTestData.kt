@@ -48,16 +48,15 @@ fun vilkårsvurderingSøknadsbehandlingIkkeVurdert(): Vilkårsvurderinger.Søkna
 }
 
 fun vilkårsvurderingSøknadsbehandlingIkkeVurdertAlder() = Vilkårsvurderinger.Søknadsbehandling.Alder(
-    formue = avslåttFormueVilkår(),
-    lovligOpphold = lovligOppholdVilkårAvslag(),
-    fastOpphold = fastOppholdVilkårAvslag(),
-    institusjonsopphold = insitusjonsoppholdvilkårAvslag(),
-    utenlandsopphold = utenlandsoppholdAvslag(),
-    personligOppmøte = personligOppmøtevilkårAvslag(),
-    opplysningsplikt = utilstrekkeligDokumentert(),
-    familiegjenforening = familiegjenforeningVilkårAvslag(),
-    pensjon = pensjonsVilkårAvslag(),
-
+    formue = Vilkår.Formue.IkkeVurdert,
+    lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
+    fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
+    institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
+    utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
+    personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
+    opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
+    pensjon = PensjonsVilkår.IkkeVurdert,
+    familiegjenforening = FamiliegjenforeningVilkår.IkkeVurdert,
 )
 
 fun vilkårsvurderingSøknadsbehandlingVurdertInnvilgetAlder() = Vilkårsvurderinger.Søknadsbehandling.Alder(

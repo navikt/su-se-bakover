@@ -169,7 +169,9 @@ sealed class Vilkårsvurderinger {
                     is PensjonsVilkår.Vurdert -> {
                         vilkår.vurderingsperioder.map { it.periode }
                     }
-                    is FamiliegjenforeningVilkår.Vurdert -> vilkår.vurderingsperioder.map { it.periode }
+                    is FamiliegjenforeningVilkår.Vurdert -> {
+                        vilkår.vurderingsperioder.map { it.periode }
+                    }
                     FastOppholdINorgeVilkår.IkkeVurdert,
                     FlyktningVilkår.IkkeVurdert,
                     Vilkår.Formue.IkkeVurdert,
@@ -180,7 +182,7 @@ sealed class Vilkårsvurderinger {
                     Vilkår.Uførhet.IkkeVurdert,
                     UtenlandsoppholdVilkår.IkkeVurdert,
                     PensjonsVilkår.IkkeVurdert,
-                    FamiliegjenforeningVilkår.IkkeVurdert
+                    FamiliegjenforeningVilkår.IkkeVurdert,
                     -> emptyList()
                 }
             }.ifNotEmpty { this.minAndMaxOf() }
@@ -397,8 +399,8 @@ sealed class Vilkårsvurderinger {
             override val utenlandsopphold: UtenlandsoppholdVilkår,
             override val personligOppmøte: PersonligOppmøteVilkår,
             override val opplysningsplikt: OpplysningspliktVilkår,
-            val familiegjenforening: FamiliegjenforeningVilkår,
             val pensjon: PensjonsVilkår = PensjonsVilkår.IkkeVurdert,
+            val familiegjenforening: FamiliegjenforeningVilkår,
         ) : Søknadsbehandling() {
             override val vilkår: Set<Vilkår> = setOf(
                 formue,
@@ -567,11 +569,12 @@ sealed class Vilkårsvurderinger {
                     is InstitusjonsoppholdVilkår,
                     is LovligOppholdVilkår,
                     is PersonligOppmøteVilkår,
-                    is FamiliegjenforeningVilkår,
                     -> {
                         throw IllegalArgumentException("Ukjent vilkår for revurdering av uføre: ${vilkår::class}")
                     }
-                    is PensjonsVilkår -> {
+                    is FamiliegjenforeningVilkår,
+                    is PensjonsVilkår,
+                    -> {
                         throw IllegalArgumentException("Kan ikke legge til ${vilkår::class} for ${this::class}")
                     }
                 }
@@ -754,7 +757,9 @@ sealed class Vilkårsvurderingsresultat {
                 is UtenlandsoppholdVilkår -> {
                     Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER
                 }
-                is FamiliegjenforeningVilkår -> Avslagsgrunn.FAMILIEGJENFORENING
+                is FamiliegjenforeningVilkår -> {
+                    Avslagsgrunn.FAMILIEGJENFORENING
+                }
                 is PensjonsVilkår -> {
                     Avslagsgrunn.PENSJON
                 }

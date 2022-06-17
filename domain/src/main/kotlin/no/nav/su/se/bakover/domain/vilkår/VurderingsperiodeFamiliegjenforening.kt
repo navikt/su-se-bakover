@@ -12,7 +12,7 @@ data class VurderingsperiodeFamiliegjenforening private constructor(
     override val id: UUID,
     override val opprettet: Tidspunkt,
     override val resultat: Resultat,
-    override val grunnlag: Grunnlag? = null, // TODO - se om familiegjenforening skal ha et grunnlag
+    override val grunnlag: Grunnlag? = null,
     override val periode: Periode,
 ) : Vurderingsperiode(), KanPlasseresPåTidslinje<VurderingsperiodeFamiliegjenforening> {
 
@@ -25,7 +25,15 @@ data class VurderingsperiodeFamiliegjenforening private constructor(
     }
 
     override fun erLik(other: Vurderingsperiode) =
-        other is VurderingsperiodeFamiliegjenforening && resultat == other.resultat && grunnlag == other.grunnlag
+        other is VurderingsperiodeFamiliegjenforening && resultat == other.resultat && erGrunnlagLik(other.grunnlag)
+
+    private fun erGrunnlagLik(other: Grunnlag?): Boolean {
+        return if (grunnlag == null && other == null) {
+            true
+        } else if (grunnlag == null || other == null) {
+            false
+        } else grunnlag.erLik(other)
+    }
 
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): VurderingsperiodeFamiliegjenforening {
         return create(
@@ -42,7 +50,7 @@ data class VurderingsperiodeFamiliegjenforening private constructor(
             id: UUID = UUID.randomUUID(),
             opprettet: Tidspunkt,
             resultat: Resultat,
-            grunnlag: Grunnlag? = null, // TODO - se om familiegjenforening skal ha et grunnlag
+            grunnlag: Grunnlag? = null,
             periode: Periode,
         ) = VurderingsperiodeFamiliegjenforening(
             id = id, opprettet = opprettet, resultat = resultat, grunnlag = grunnlag, periode = periode,
