@@ -35,15 +35,15 @@ subprojects {
         implementation("net.logstash.logback:logstash-logback-encoder:7.2")
         implementation("io.github.cdimascio:dotenv-kotlin:6.3.1")
         implementation("org.apache.kafka:kafka-clients:3.1.0")
-        implementation("com.networknt:json-schema-validator:1.0.70")
+        implementation("com.networknt:json-schema-validator:1.0.71")
         implementation("no.finn.unleash:unleash-client-java:4.4.1")
 
         implementation("com.ibm.mq:com.ibm.mq.allclient:9.2.5.0")
         implementation("io.confluent:kafka-avro-serializer:7.1.0")
         implementation("org.apache.avro:avro:1.11.0")
         implementation("com.github.ben-manes.caffeine:caffeine:3.1.1")
-        implementation("io.micrometer:micrometer-core:1.9.0")
-        implementation("io.micrometer:micrometer-registry-prometheus:1.9.0")
+        implementation("io.micrometer:micrometer-core:1.9.1")
+        implementation("io.micrometer:micrometer-registry-prometheus:1.9.1")
 
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
 

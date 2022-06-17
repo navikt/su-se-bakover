@@ -1,31 +1,52 @@
 package no.nav.su.se.bakover.domain.vilkår
 
-import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.erSammenhengendeSortertOgUtenDuplikater
 import no.nav.su.se.bakover.common.startOfMonth
-import no.nav.su.se.bakover.domain.grunnbeløp.GrunnbeløpForMåned
+import no.nav.su.se.bakover.domain.grunnbeløp.GrunnbeløpFactory
+import no.nav.su.se.bakover.domain.satser.Knekkpunkt
+import no.nav.su.se.bakover.domain.satser.Knekkpunkt.Companion.compareTo
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.time.YearMonth
 
-class FormuegrenserFactory(
+/**
+ * @param knekkpunkt ikrafttredelsesdatoen til en gitt lov/sats. Brukes for å finne ut hvilke satser som gjaldt på en gitt dato.
+ * @param tidligsteTilgjengeligeMåned Tidligste tilgjengelige måned denne satsen er aktuell. Som for denne satsen er 2021-01-01, men siden vi har tester som antar den gjelder før dette er den dynamisk.
+ */
+class FormuegrenserFactory private constructor(
+    private val grunnbeløpFactory: GrunnbeløpFactory,
     private val månedTilFormuegrense: Map<Måned, FormuegrenseForMåned>,
+    val knekkpunkt: Knekkpunkt,
+    val tidligsteTilgjengeligeMåned: Måned,
 ) {
+    private val sisteMånedMedEndring: Måned = månedTilFormuegrense.keys.last()
 
     init {
-        assert(månedTilFormuegrense.erSammenhengendeSortertOgUtenDuplikater())
+        require(månedTilFormuegrense.values.all { it.ikrafttredelse <= knekkpunkt })
+        require(månedTilFormuegrense.isNotEmpty())
+        require(månedTilFormuegrense.erSammenhengendeSortertOgUtenDuplikater())
+        require(månedTilFormuegrense.keys.first() == tidligsteTilgjengeligeMåned)
     }
 
     companion object {
-        fun createFromGrunnbeløp(grunnbeløpForMåneder: NonEmptyList<GrunnbeløpForMåned>): FormuegrenserFactory {
+        fun createFromGrunnbeløp(
+            grunnbeløpFactory: GrunnbeløpFactory,
+            knekkpunkt: Knekkpunkt,
+            tidligsteTilgjengeligeMåned: Måned,
+        ): FormuegrenserFactory {
+            require(knekkpunkt == grunnbeløpFactory.knekkpunkt)
+            require(tidligsteTilgjengeligeMåned == grunnbeløpFactory.tidligsteTilgjengeligeMåned)
             return FormuegrenserFactory(
-                månedTilFormuegrense = grunnbeløpForMåneder.associate { grunnbeløpForMåned ->
-                    grunnbeløpForMåned.måned to FormuegrenseForMåned(
-                        grunnbeløpForMåned = grunnbeløpForMåned,
-                    )
-                },
+                månedTilFormuegrense = grunnbeløpFactory.alleGrunnbeløp(tidligsteTilgjengeligeMåned)
+                    .associate { grunnbeløpForMåned ->
+                        grunnbeløpForMåned.måned to FormuegrenseForMåned(
+                            grunnbeløpForMåned = grunnbeløpForMåned,
+                        )
+                    },
+                knekkpunkt = knekkpunkt,
+                tidligsteTilgjengeligeMåned = tidligsteTilgjengeligeMåned,
+                grunnbeløpFactory = grunnbeløpFactory,
             )
         }
     }
@@ -34,7 +55,16 @@ class FormuegrenserFactory(
      * @throws ArrayIndexOutOfBoundsException dersom måneden er utenfor tidslinjen
      */
     fun forMåned(måned: Måned): FormuegrenseForMåned {
-        return månedTilFormuegrense[måned]!!
+        return månedTilFormuegrense[måned]
+            ?: if (måned > sisteMånedMedEndring) månedTilFormuegrense[sisteMånedMedEndring]!!.let {
+                it.copy(
+                    grunnbeløpForMåned = it.grunnbeløpForMåned.copy(
+                        måned = måned,
+                    ),
+                )
+            } else throw IllegalArgumentException(
+                "Har ikke data for etterspurt måned: $måned. Vi har bare data fra og med måned: ${månedTilFormuegrense.keys.first()}",
+            )
     }
 
     fun forDato(dato: LocalDate): FormuegrenseForMåned {
@@ -46,10 +76,10 @@ class FormuegrenserFactory(
      * Hver dato gir tilhørende formuegrense per år.
      * E.g. (2021-05-01 to 53199.5) siden formuegrensen fom. 5. mai 2021 var en halv G. Grunnbeløpet var da 106399.
      */
-    fun virkningstidspunkt(fraOgMed: YearMonth): List<Pair<LocalDate, BigDecimal>> {
-        val førsteMåned = forMåned(Måned.fra(fraOgMed))
+    fun virkningstidspunkt(fraOgMed: Måned): List<Pair<LocalDate, BigDecimal>> {
+        val tidligsteTilgjengeligeMåned = forMåned(fraOgMed)
         return månedTilFormuegrense
-            .filter { it.value.virkningstidspunkt >= førsteMåned.virkningstidspunkt }
+            .filter { it.value.virkningstidspunkt >= tidligsteTilgjengeligeMåned.virkningstidspunkt }
             .map { it.value.virkningstidspunkt to it.value.formuegrense }
             .distinct()
             .sortedByDescending { it.first }

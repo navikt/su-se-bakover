@@ -26,6 +26,7 @@ data class FormuegrenseForMåned(
      * Når det kommer til lover kan ikrafttredesen være både før og etter virkningstidspunktet.
      */
     val virkningstidspunkt: LocalDate = grunnbeløpForMåned.virkningstidspunkt
+    val ikrafttredelse: LocalDate = grunnbeløpForMåned.ikrafttredelse
 
     val formuegrense: BigDecimal = grunnbeløpForMåned.grunnbeløpPerÅr.toBigDecimal().multiply(faktor.toBigDecimal())
     val formuegrenseMedToDesimaler: Double = grunnbeløpForMåned.grunnbeløpPerÅr.toBigDecimal().multiply(faktor.toBigDecimal()).roundToDecimals(2)

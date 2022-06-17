@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.domain.satser
 
+import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.erSortertOgUtenDuplikater
 import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.erSammenhengendeSortertOgUtenDuplikater
-import no.nav.su.se.bakover.common.periode.periode
-import no.nav.su.se.bakover.common.periode.periodisert
+import no.nav.su.se.bakover.domain.satser.Knekkpunkt.Companion.compareTo
 import java.time.LocalDate
 
 /**
@@ -19,16 +19,29 @@ import java.time.LocalDate
  * Dersom det hentes fra databasen, og en ønsker en append-only tabell, kan man legge til en opprettet timestamp i tabellen og la selecten velge den nyeste av de med lik dato f.eks.
  */
 data class MinsteÅrligYtelseForUføretrygdedeFactory(
-    val ordinær: Map<Måned, MinsteÅrligYtelseForUføretrygdedeForMåned>,
-    val høy: Map<Måned, MinsteÅrligYtelseForUføretrygdedeForMåned>,
-    val påDato: LocalDate,
+    private val ordinær: Map<Måned, MinsteÅrligYtelseForUføretrygdedeForMåned>,
+    private val høy: Map<Måned, MinsteÅrligYtelseForUføretrygdedeForMåned>,
+    val knekkpunkt: Knekkpunkt,
+    val tidligsteTilgjengeligeMåned: Måned,
 ) {
+    init {
+        require(ordinær.keys == høy.keys)
+        require(ordinær.values.all { it.ikrafttredelse <= knekkpunkt })
+        require(høy.values.all { it.ikrafttredelse <= knekkpunkt })
+        require(ordinær.isNotEmpty())
+        require(ordinær.erSammenhengendeSortertOgUtenDuplikater())
+        require(ordinær.keys.first() == tidligsteTilgjengeligeMåned)
+    }
+
+    private val sisteMånedMedEndring = ordinær.keys.last()
+
     companion object {
 
         fun createFromFaktorer(
-            ordinær: List<MinsteÅrligYtelseForUføretrygdedeEndring>,
-            høy: List<MinsteÅrligYtelseForUføretrygdedeEndring>,
-            påDato: LocalDate,
+            ordinær: NonEmptyList<MinsteÅrligYtelseForUføretrygdedeEndring>,
+            høy: NonEmptyList<MinsteÅrligYtelseForUføretrygdedeEndring>,
+            knekkpunkt: Knekkpunkt,
+            tidligsteTilgjengeligeMåned: Måned,
         ): MinsteÅrligYtelseForUføretrygdedeFactory {
             val ikrafttredelseMessage: () -> String = {
                 "Ikrafttredelse for minste årlig ytelse for uføretrygdede må være i stigende rekkefølge og uten duplikater, men var: ${ordinær.map { it.virkningstidspunkt }}"
@@ -43,19 +56,26 @@ data class MinsteÅrligYtelseForUføretrygdedeFactory(
             require(høy.map { it.virkningstidspunkt }.erSortertOgUtenDuplikater(), virkningstidspunktMessage)
 
             return MinsteÅrligYtelseForUføretrygdedeFactory(
-                ordinær = ordinær.periodiserIftVirkningstidspunkt(påDato, Satskategori.ORDINÆR),
-                høy = høy.periodiserIftVirkningstidspunkt(påDato, Satskategori.HØY),
-                påDato = påDato,
+                ordinær = ordinær.periodiserIftVirkningstidspunkt(
+                    knekkpunkt,
+                    tidligsteTilgjengeligeMåned,
+                    Satskategori.ORDINÆR,
+                ),
+                høy = høy.periodiserIftVirkningstidspunkt(knekkpunkt, tidligsteTilgjengeligeMåned, Satskategori.HØY),
+                knekkpunkt = knekkpunkt,
+                tidligsteTilgjengeligeMåned = tidligsteTilgjengeligeMåned,
             )
         }
 
-        private fun List<MinsteÅrligYtelseForUføretrygdedeEndring>.periodiserIftVirkningstidspunkt(
-            senesteIkrafttredelse: LocalDate,
+        private fun NonEmptyList<MinsteÅrligYtelseForUføretrygdedeEndring>.periodiserIftVirkningstidspunkt(
+            knekkpunkt: Knekkpunkt,
+            tidligsteTilgjengeligeMåned: Måned,
             satskategori: Satskategori,
         ): Map<Måned, MinsteÅrligYtelseForUføretrygdedeForMåned> {
-            return filterNot { it.ikrafttredelse > senesteIkrafttredelse }
-                .map { it.virkningstidspunkt to it }
-                .periodisert()
+            return filterNot { it.ikrafttredelse > knekkpunkt }
+                .map { RåSats(it.virkningstidspunkt, it) }
+                .let { RåSatser(NonEmptyList.fromListUnsafe(it)) }
+                .periodisert(tidligsteTilgjengeligeMåned)
                 .associate { (virkningstidspunkt, måned, minsteÅrligYtelseForUføretrygdedeEndring) ->
                     måned to MinsteÅrligYtelseForUføretrygdedeForMåned(
                         faktor = minsteÅrligYtelseForUføretrygdedeEndring.faktor,
@@ -70,23 +90,6 @@ data class MinsteÅrligYtelseForUføretrygdedeFactory(
         }
     }
 
-    init {
-        assert(ordinær.isNotEmpty())
-        assert(høy.isNotEmpty())
-
-        assert(ordinær.erSammenhengendeSortertOgUtenDuplikater())
-        assert(høy.erSammenhengendeSortertOgUtenDuplikater())
-
-        assert(ordinær.toSortedMap() == ordinær)
-        assert(høy.toSortedMap() == høy)
-
-        assert(ordinær.keys.distinct() == ordinær.keys.toList())
-        assert(høy.keys.distinct() == høy.keys.toList())
-
-        assert(ordinær.keys.first() == høy.keys.first())
-        assert(ordinær.keys.first().fraOgMed <= supplerendeStønadAlderFlyktningIkrafttredelse)
-    }
-
     val fraOgMed: LocalDate = ordinær.keys.first().fraOgMed
     val tilOgMed: LocalDate = ordinær.keys.last().tilOgMed
 
@@ -96,7 +99,11 @@ data class MinsteÅrligYtelseForUføretrygdedeFactory(
             Satskategori.HØY -> høy
         }
         return satser[måned]
-            ?: throw IllegalStateException("Har ikke minste årlige ytelse for uføretrygdede for måned: $måned. Vi har bare data for perioden: ${satser.periode()}")
+            ?: if (måned > sisteMånedMedEndring) satser[sisteMånedMedEndring]!!.copy(
+                måned = måned,
+            ) else throw IllegalArgumentException(
+                "Har ikke data for etterspurt måned: $måned. Vi har bare data fra og med måned: ${satser.keys.first()}",
+            )
     }
 
     override fun equals(other: Any?): Boolean {
