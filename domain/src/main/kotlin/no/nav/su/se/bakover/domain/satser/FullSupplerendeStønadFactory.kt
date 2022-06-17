@@ -20,6 +20,11 @@ sealed class FullSupplerendeStønadFactory {
     /** Inclusive */
     protected abstract val senesteTilgjengeligeMåned: Måned
 
+    companion object {
+        protected val TO_PROSENT = BigDecimal("0.02")
+        protected val MÅNEDER_PER_ÅR = BigDecimal("12")
+    }
+
     protected fun månedTilFullSupplerendeStønadForUføre(
         grunnbeløpFactory: GrunnbeløpFactory,
         minsteÅrligYtelseForUføretrygdedeFactory: MinsteÅrligYtelseForUføretrygdedeFactory,
@@ -44,8 +49,8 @@ sealed class FullSupplerendeStønadFactory {
                         minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdede,
                         toProsentAvHøyForMåned = BigDecimal(grunnbeløp.grunnbeløpPerÅr)
                             .multiply(minsteÅrligYtelseForUføretrygdedeHøy.faktorSomBigDecimal)
-                            .multiply(BigDecimal("0.02"))
-                            .divide(12.toBigDecimal(), MathContext.DECIMAL128),
+                            .multiply(TO_PROSENT)
+                            .divide(MÅNEDER_PER_ÅR, MathContext.DECIMAL128),
                     ),
                 )
             }
@@ -108,17 +113,18 @@ sealed class FullSupplerendeStønadFactory {
             override val tidligsteTilgjengeligeMåned: Måned,
         ) : Ordinær() {
             override val månedTilFullSupplerendeStønad: Map<Måned, FullSupplerendeStønadForMåned.Alder>
-                get() = garantipensjonFactory.ordinær.mapValues {
+                get() = garantipensjonFactory.ordinær.mapValues { (måned, garantipensjonForMåned) ->
                     FullSupplerendeStønadForMåned.Alder(
-                        måned = it.value.måned,
+                        måned = måned,
                         satskategori = Satskategori.ORDINÆR,
-                        garantipensjonForMåned = it.value,
+                        garantipensjonForMåned = garantipensjonForMåned,
                         toProsentAvHøyForMåned = garantipensjonFactory.forMåned(
-                            it.value.måned,
+                            måned,
                             Satskategori.HØY,
                         ).garantipensjonPerÅr
                             .toBigDecimal()
-                            .divide(12.toBigDecimal(), MathContext.DECIMAL128),
+                            .multiply(TO_PROSENT)
+                            .divide(MÅNEDER_PER_ÅR, MathContext.DECIMAL128),
                     )
                 }
 
@@ -195,14 +201,14 @@ sealed class FullSupplerendeStønadFactory {
             override val tidligsteTilgjengeligeMåned: Måned,
         ) : Høy() {
             override val månedTilFullSupplerendeStønad: Map<Måned, FullSupplerendeStønadForMåned.Alder>
-                get() = garantipensjonFactory.høy.mapValues {
+                get() = garantipensjonFactory.høy.mapValues { (måned, garantipensjonForMåned) ->
                     FullSupplerendeStønadForMåned.Alder(
-                        måned = it.value.måned,
+                        måned = måned,
                         satskategori = Satskategori.HØY,
-                        garantipensjonForMåned = it.value,
-                        toProsentAvHøyForMåned = it.value.garantipensjonPerÅr
-                            .toBigDecimal()
-                            .divide(12.toBigDecimal(), MathContext.DECIMAL128),
+                        garantipensjonForMåned = garantipensjonForMåned,
+                        toProsentAvHøyForMåned = garantipensjonForMåned.garantipensjonPerÅr.toBigDecimal()
+                            .multiply(TO_PROSENT)
+                            .divide(MÅNEDER_PER_ÅR, MathContext.DECIMAL128),
                     )
                 }
 

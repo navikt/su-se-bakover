@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.domain.satser.Satskategori
 data class BeregningForMåned(
     override val måned: Måned,
     private val fradrag: List<FradragForMåned>,
-    override val fullSupplerendeStønadForMåned: FullSupplerendeStønadForMåned.Uføre,
+    override val fullSupplerendeStønadForMåned: FullSupplerendeStønadForMåned,
     private val fribeløpForEps: Double = 0.0,
     private val merknader: Merknader.Beregningsmerknad = Merknader.Beregningsmerknad(),
     private val sumYtelse: Int,
@@ -36,7 +36,15 @@ data class BeregningForMåned(
     /**
      * Obs: Denne returnerer grunnbeløp per år
      */
-    override fun getBenyttetGrunnbeløp(): Int = fullSupplerendeStønadForMåned.grunnbeløp.grunnbeløpPerÅr
+    override fun getBenyttetGrunnbeløp(): Int = when (fullSupplerendeStønadForMåned) {
+        is FullSupplerendeStønadForMåned.Alder -> {
+            TODO("alder er ikke en faktor av g her, må finne på et eller annet")
+        }
+        is FullSupplerendeStønadForMåned.Uføre -> {
+            fullSupplerendeStønadForMåned.grunnbeløp.grunnbeløpPerÅr
+        }
+    }
+
     override fun getSats(): Satskategori = fullSupplerendeStønadForMåned.satskategori
     override fun getSatsbeløp(): Double = fullSupplerendeStønadForMåned.satsForMånedAsDouble
     override fun getFradrag(): List<FradragForMåned> = fradrag

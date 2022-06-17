@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.år
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
@@ -83,7 +84,15 @@ fun beregning(
         return BeregningFactory(clock = fixedClock).ny(
             fradrag = it.fradrag,
             begrunnelse = null,
-            beregningsperioder = listOf(Beregningsperiode(periode, bosituasjon.utledBeregningsstrategi(satsFactoryTestPåDato()))),
+            beregningsperioder = listOf(
+                Beregningsperiode(
+                    periode,
+                    bosituasjon.utledBeregningsstrategi(
+                        satsFactoryTestPåDato(),
+                        Sakstype.UFØRE, //TODO("endre oppsett av testdata slik at dette kan hentes fra aktuell behandling")
+                    ),
+                ),
+            ),
         )
     }
 }

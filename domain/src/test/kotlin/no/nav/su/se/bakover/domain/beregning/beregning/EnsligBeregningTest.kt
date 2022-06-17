@@ -3,8 +3,11 @@ package no.nav.su.se.bakover.domain.beregning.beregning
 import io.kotest.matchers.doubles.plusOrMinus
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.april
+import no.nav.su.se.bakover.common.fixedClock
+import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
@@ -13,24 +16,30 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.satser.Satskategori
+import no.nav.su.se.bakover.test.arbeidsinntekt
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
+import no.nav.su.se.bakover.test.stønadsperiode2021
+import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandlingAlder
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 
 internal class EnsligBeregningTest {
 
     /**
      * Eksempel fra 01.05.2020
-     +----------------+----------+----------------------------+----------+
-     |     Bruker     |          |           Total            |          |
-     +----------------+----------+----------------------------+----------+
-     | Stønadssats    | 251.350  | SUM SU/år                  | =5.027   |
-     | Arbeidsinntekt | -180.000 | SUM SU/mnd                 | =418,917 |
-     | Folketrygd     | -66.323  | Utbetalt SU/år (avrundet)  | =5.028   |
-     | SUM            | =5.027   | Utbetalt SU/mnd (avrundet) | =419     |
-     +----------------+----------+----------------------------+----------+
+    +----------------+----------+----------------------------+----------+
+    |     Bruker     |          |           Total            |          |
+    +----------------+----------+----------------------------+----------+
+    | Stønadssats    | 251.350  | SUM SU/år                  | =5.027   |
+    | Arbeidsinntekt | -180.000 | SUM SU/mnd                 | =418,917 |
+    | Folketrygd     | -66.323  | Utbetalt SU/år (avrundet)  | =5.028   |
+    | SUM            | =5.027   | Utbetalt SU/mnd (avrundet) | =419     |
+    +----------------+----------+----------------------------+----------+
      */
     @Test
     fun `beregningseksempel fra fagsiden`() {
@@ -64,7 +73,7 @@ internal class EnsligBeregningTest {
                     månedsbeløp = folketrygdPrMnd,
                     periode = periode,
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
+                    tilhører = FradragTilhører.BRUKER,
                 ),
             ),
         )
@@ -75,7 +84,7 @@ internal class EnsligBeregningTest {
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = beregningsgrunnlag.beregningsperiode,
-                    strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
+                    strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
                 ),
             ),
         ).let {
@@ -85,6 +94,41 @@ internal class EnsligBeregningTest {
                 it.getSumYtelse() shouldBe 419
             }
             it.getBegrunnelse() shouldBe null
+        }
+    }
+
+    @Test
+    fun alder() {
+        vilkårsvurdertSøknadsbehandlingAlder(
+            clock = fixedClock,
+            stønadsperiode = stønadsperiode2021,
+            customGrunnlag = listOf(
+                arbeidsinntekt(
+                    periode = stønadsperiode2021.periode,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            ),
+        ).also { (_, søknadsbehandling) ->
+            søknadsbehandling.beregn(
+                begrunnelse = "blabla",
+                clock = fixedClock,
+                satsFactory = satsFactoryTestPåDato(LocalDate.now(1.juni(2021).fixedClock())),
+            ).getOrFail().also {
+                it.beregning.getSumYtelse() shouldBe 138992
+                it.beregning.getSumFradrag() shouldBe 60000
+                it.beregning.getMånedsberegninger().first().also {
+                    it.getSumYtelse() shouldBe 11010
+                    it.getSumFradrag() shouldBe 5000
+                    it.getSats() shouldBe Satskategori.HØY
+                    it.getSatsbeløp() shouldBe 16010.416666666666
+                }
+                it.beregning.getMånedsberegninger().last().also {
+                    it.getSumYtelse() shouldBe 11869
+                    it.getSumFradrag() shouldBe 5000
+                    it.getSats() shouldBe Satskategori.HØY
+                    it.getSatsbeløp() shouldBe 16868.75
+                }
+            }
         }
     }
 }

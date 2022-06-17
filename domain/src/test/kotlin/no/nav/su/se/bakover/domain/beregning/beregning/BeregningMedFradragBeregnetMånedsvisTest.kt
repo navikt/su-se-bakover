@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.common.periode.tilMåned
 import no.nav.su.se.bakover.common.periode.år
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
@@ -65,7 +66,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = periode,
-                    strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
+                    strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
                 ),
             ),
         )
@@ -87,7 +88,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = periode,
-                    strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
+                    strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
                 ),
             ),
         )
@@ -115,7 +116,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = periode,
-                    strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
+                    strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
                 ),
             ),
         )
@@ -141,7 +142,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = periode,
-                    strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
+                    strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
                 ),
             ),
         )
@@ -176,7 +177,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = periode,
-                    strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
+                    strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
                 ),
             ),
         )
@@ -206,7 +207,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = periode,
-                    strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
+                    strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
                 ),
             ),
         )
@@ -252,7 +253,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = periode,
-                    strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
+                    strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
                 ),
             ),
         )
@@ -320,7 +321,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = periode,
-                    strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
+                    strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
                 ),
             ),
         )
@@ -352,7 +353,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = periode,
-                    strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
+                    strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
                 ),
             ),
         )
@@ -392,7 +393,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = periode,
-                    strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
+                    strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
                 ),
             ),
         )
@@ -415,7 +416,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = periode,
-                    strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
+                    strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
                 ),
             ),
         )
@@ -442,7 +443,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                 beregningsperioder = listOf(
                     Beregningsperiode(
                         periode = beregningsperiode,
-                        strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
+                        strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
                     ),
                 ),
             )
@@ -462,7 +463,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                 beregningsperioder = listOf(
                     Beregningsperiode(
                         periode = beregningsperiode,
-                        strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
+                        strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
                     ),
                 ),
             )
@@ -500,7 +501,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = periode,
-                    strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
+                    strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
                 ),
             ),
         )
@@ -532,7 +533,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = periode,
-                    strategy = BeregningStrategy.EpsUnder67År(satsFactoryTestPåDato()),
+                    strategy = BeregningStrategy.EpsUnder67År(satsFactoryTestPåDato(), Sakstype.UFØRE),
                 ),
             ),
         )
@@ -573,7 +574,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = år(2021),
-                    strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
+                    strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
                 ),
             ),
         ).let {
@@ -654,7 +655,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = år(2021),
-                    strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
+                    strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
                 ),
             ),
         ).let {
@@ -747,7 +748,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = år(2021),
-                    strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
+                    strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
                 ),
             ),
         ).let {
@@ -796,7 +797,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = periode,
-                    strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
+                    strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
                 ),
             ),
         )

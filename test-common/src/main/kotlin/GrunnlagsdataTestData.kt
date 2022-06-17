@@ -9,6 +9,8 @@ import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.fnrOver67
+import no.nav.su.se.bakover.domain.fnrUnder67
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import java.util.UUID
@@ -47,6 +49,44 @@ fun bosituasjongrunnlagEnslig(
         id = id,
         opprettet = opprettet,
         periode = periode,
+    )
+}
+
+fun bosituasjonBorMedAndreVoksne(
+    id: UUID = UUID.randomUUID(),
+    opprettet: Tidspunkt = fixedTidspunkt,
+    periode: Periode = år(2021),
+): Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen {
+    return Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen(
+        id = id,
+        opprettet = opprettet,
+        periode = periode,
+    )
+}
+
+fun bosituasjonEpsOver67(
+    id: UUID = UUID.randomUUID(),
+    opprettet: Tidspunkt = fixedTidspunkt,
+    periode: Periode = år(2021),
+): Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre {
+    return Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre(
+        id = id,
+        opprettet = opprettet,
+        periode = periode,
+        fnr = fnrOver67,
+    )
+}
+
+fun bosituasjonEpsUnder67(
+    id: UUID = UUID.randomUUID(),
+    opprettet: Tidspunkt = fixedTidspunkt,
+    periode: Periode = år(2021),
+): Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning {
+    return Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
+        id = id,
+        opprettet = opprettet,
+        periode = periode,
+        fnr = fnrUnder67(),
     )
 }
 

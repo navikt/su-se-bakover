@@ -68,7 +68,10 @@ internal class AnnullerAvkorting(
     }
 }
 
-private fun beregnUtenAvkorting(revurdering: Revurdering, beregningStrategyFactory: BeregningStrategyFactory): Pair<OpprettetRevurdering, Beregning> {
+private fun beregnUtenAvkorting(
+    revurdering: Revurdering,
+    beregningStrategyFactory: BeregningStrategyFactory,
+): Pair<OpprettetRevurdering, Beregning> {
     return revurdering.oppdaterFradrag(
         fradragsgrunnlag = revurdering.grunnlagsdata.fradragsgrunnlag.filterNot { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold },
     ).getOrHandle {
@@ -90,5 +93,6 @@ private fun gjørBeregning(
         ),
         // kan ikke legge til begrunnelse for inntekt/fradrag
         begrunnelse = null,
+        sakstype = revurdering.sakstype,
     )
 }

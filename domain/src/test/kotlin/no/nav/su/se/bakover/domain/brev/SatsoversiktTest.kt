@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.år
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEpsUførFlyktning
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
@@ -21,6 +22,7 @@ internal class SatsoversiktTest {
                 bosituasjongrunnlagEnslig(periode = år(2021)),
             ),
             satsFactory = satsFactoryTestPåDato(påDato = LocalDate.now()),
+            sakstype = Sakstype.UFØRE,
         ) shouldBe Satsoversikt(
             perioder = listOf(
                 Satsoversikt.Satsperiode(
@@ -49,6 +51,7 @@ internal class SatsoversiktTest {
                 bosituasjongrunnlagEpsUførFlyktning(periode = Periode.create(1.juni(2021), 31.desember(2021))),
             ),
             satsFactory = satsFactoryTestPåDato(påDato = LocalDate.now()),
+            sakstype = Sakstype.UFØRE,
         ) shouldBe Satsoversikt(
             perioder = listOf(
                 Satsoversikt.Satsperiode(

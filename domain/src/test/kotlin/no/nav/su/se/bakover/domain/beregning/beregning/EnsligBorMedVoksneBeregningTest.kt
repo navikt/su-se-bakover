@@ -3,8 +3,11 @@ package no.nav.su.se.bakover.domain.beregning.beregning
 import io.kotest.matchers.doubles.plusOrMinus
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.april
+import no.nav.su.se.bakover.common.fixedClock
+import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
@@ -14,27 +17,34 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.satser.Satskategori
+import no.nav.su.se.bakover.test.arbeidsinntekt
+import no.nav.su.se.bakover.test.bosituasjonBorMedAndreVoksne
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
+import no.nav.su.se.bakover.test.stønadsperiode2021
+import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandlingAlder
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 
 internal class EnsligBorMedVoksneBeregningTest {
 
     /**
      * Eksempel fra 01.05.2020
-     +----------------------------+-------------+
-     | Stønadssats                | 231.080     |
-     | Arbeidsinntekt             | -20.000     |
-     | Folketrygd                 | -14.256     |
-     | Utenlandsk inntekt         | -40.927     |
-     | -------------------------- | ----------- |
-     | SUM SU/år                  | =155.897    |
-     | SUM SU/mnd                 | 12.991,4167 |
-     | Utbetalt SU/år (avrundet)  | 155.892     |
-     | Utbetalt SU/mnd (avrundet) | 12.991      |
-     +----------------------------+-------------+
+    +----------------------------+-------------+
+    | Stønadssats                | 231.080     |
+    | Arbeidsinntekt             | -20.000     |
+    | Folketrygd                 | -14.256     |
+    | Utenlandsk inntekt         | -40.927     |
+    | -------------------------- | ----------- |
+    | SUM SU/år                  | =155.897    |
+    | SUM SU/mnd                 | 12.991,4167 |
+    | Utbetalt SU/år (avrundet)  | 155.892     |
+    | Utbetalt SU/mnd (avrundet) | 12.991      |
+    +----------------------------+-------------+
      */
     @Test
     fun `beregningseksempel fra fagsiden`() {
@@ -64,14 +74,14 @@ internal class EnsligBorMedVoksneBeregningTest {
                     månedsbeløp = arbeidsinntektPrMnd,
                     periode = periode,
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
+                    tilhører = FradragTilhører.BRUKER,
                 ),
                 lagFradragsgrunnlag(
                     type = Fradragstype.OffentligPensjon,
                     månedsbeløp = folketrygdPrMnd,
                     periode = periode,
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
+                    tilhører = FradragTilhører.BRUKER,
                 ),
                 lagFradragsgrunnlag(
                     type = Fradragstype.OffentligPensjon,
@@ -80,9 +90,9 @@ internal class EnsligBorMedVoksneBeregningTest {
                     utenlandskInntekt = UtenlandskInntekt.create(
                         beløpIUtenlandskValuta = 10,
                         valuta = "Andebydollars",
-                        kurs = 3.0
+                        kurs = 3.0,
                     ),
-                    tilhører = FradragTilhører.BRUKER
+                    tilhører = FradragTilhører.BRUKER,
                 ),
             ),
         )
@@ -93,8 +103,8 @@ internal class EnsligBorMedVoksneBeregningTest {
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = beregningsgrunnlag.beregningsperiode,
-                    strategy = BeregningStrategy.BorMedVoksne(satsFactoryTestPåDato()),
-                )
+                    strategy = BeregningStrategy.BorMedVoksne(satsFactoryTestPåDato(), Sakstype.UFØRE),
+                ),
             ),
         ).let {
             it.getSumYtelse() shouldBe 155892
@@ -103,6 +113,44 @@ internal class EnsligBorMedVoksneBeregningTest {
                 it.getSumYtelse() shouldBe 12991
             }
             it.getBegrunnelse() shouldBe "bor med voksen"
+        }
+    }
+
+    @Test
+    fun alder() {
+        vilkårsvurdertSøknadsbehandlingAlder(
+            clock = fixedClock,
+            stønadsperiode = stønadsperiode2021,
+            customGrunnlag = listOf(
+                arbeidsinntekt(
+                    periode = stønadsperiode2021.periode,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+                bosituasjonBorMedAndreVoksne(
+                    periode = stønadsperiode2021.periode,
+                ),
+            ),
+        ).also { (_, vilkårsvurdert) ->
+            vilkårsvurdert.beregn(
+                begrunnelse = null,
+                clock = fixedClock,
+                satsFactory = satsFactoryTestPåDato(LocalDate.now(1.juni(2021).fixedClock())),
+            ).getOrFail().also {
+                it.beregning.getSumYtelse() shouldBe 124072
+                it.beregning.getSumFradrag() shouldBe 60000
+                it.beregning.getMånedsberegninger().first().also {
+                    it.getSumYtelse() shouldBe 9810
+                    it.getSumFradrag() shouldBe 5000
+                    it.getSats() shouldBe Satskategori.ORDINÆR
+                    it.getSatsbeløp() shouldBe 14810.333333333334
+                }
+                it.beregning.getMånedsberegninger().last().also {
+                    it.getSumYtelse() shouldBe 10604
+                    it.getSumFradrag() shouldBe 5000
+                    it.getSats() shouldBe Satskategori.ORDINÆR
+                    it.getSatsbeløp() shouldBe 15604.333333333334
+                }
+            }
         }
     }
 }

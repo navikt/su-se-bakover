@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt0
+import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import java.time.Clock
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
@@ -700,7 +701,9 @@ fun vilkårsvurdertSøknadsbehandling(
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
 ): Pair<Sak, Søknadsbehandling.Vilkårsvurdert> {
-    require(customVilkår.groupBy { it::class }.values.count() == 1) { "Tillater bare et vilkår av hver type" }
+    customVilkår.ifNotEmpty {
+        require(this.groupBy { it::class }.values.count() == 1) { "Tillater bare et vilkår av hver type" }
+    }
 
     val vilkårFraBehandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget
     val (grunnlagsdata, vilkår) = GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling(
@@ -736,7 +739,7 @@ fun vilkårsvurdertSøknadsbehandling(
         val vilkårsvurdert = when (vilkår) {
             is Vilkårsvurderinger.Søknadsbehandling.Alder -> {
                 etterOppdaterFraBehandlingsinformasjon.oppdaterBosituasjon(
-                    bosituasjon = grunnlagsdata.bosituasjon.single(),
+                    bosituasjon = customGrunnlag.customOrDefault { grunnlagsdata.bosituasjon }.single(),
                     clock = clock,
                 )
                     .getOrFail()
@@ -762,7 +765,7 @@ fun vilkårsvurdertSøknadsbehandling(
             }
             is Vilkårsvurderinger.Søknadsbehandling.Uføre -> {
                 etterOppdaterFraBehandlingsinformasjon.oppdaterBosituasjon(
-                    bosituasjon = grunnlagsdata.bosituasjon.single(),
+                    bosituasjon = customGrunnlag.customOrDefault { grunnlagsdata.bosituasjon }.single(),
                     clock = clock,
                 )
                     .getOrFail()
