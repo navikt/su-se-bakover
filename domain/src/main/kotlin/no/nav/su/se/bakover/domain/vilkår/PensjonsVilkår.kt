@@ -51,10 +51,6 @@ sealed class PensjonsVilkår : Vilkår() {
         val vurderingsperioder: Nel<VurderingsperiodePensjon>,
     ) : PensjonsVilkår() {
 
-        init {
-            kastHvisPerioderErUsortertEllerHarDuplikater()
-        }
-
         override val grunnlag: List<Pensjonsgrunnlag> = vurderingsperioder.mapNotNull { it.grunnlag }
         override fun lagTidslinje(periode: Periode): PensjonsVilkår {
             return copy(
@@ -130,6 +126,10 @@ sealed class PensjonsVilkår : Vilkår() {
 
         override fun slåSammenLikePerioder(): PensjonsVilkår {
             return copy(vurderingsperioder = vurderingsperioder.slåSammenLikePerioder())
+        }
+
+        init {
+            kastHvisPerioderErUsortertEllerHarDuplikater()
         }
     }
 }
