@@ -216,6 +216,7 @@ internal class SøknadsbehandlingAlder {
                 }
             }
 
+            // TODO merge inn branch for beregning av alder, så skal denne testen fungere
             assertThrows<NotImplementedError> {
                 appComponents.services.søknadsbehandling.beregn(
                     request = SøknadsbehandlingService.BeregnRequest(
@@ -226,6 +227,17 @@ internal class SøknadsbehandlingAlder {
             }.also {
                 it.message shouldContain "vilkårsvurdering_alder Beregning av alder er ikke implementert enda"
             }
+
+            // TODO merge inn branch for beregning av alder, så skal denne testen fungere
+            // appComponents.services.søknadsbehandling.simuler(
+            //     request = SøknadsbehandlingService.SimulerRequest(
+            //         behandlingId = søknadsbehandling.id,
+            //         saksbehandler = saksbehandler,
+            //     ),
+            // ).getOrFail().also {
+            //     it.simulering.bruttoYtelse() shouldBe 195188
+            //     it.simulering.tolk().simulertePerioder.all { it.utbetalinger.all { it is TolketUtbetaling.Ordinær } }
+            // }
 
             appComponents.services.søknadsbehandling.leggTilOpplysningspliktVilkår(
                 request = LeggTilOpplysningspliktRequest.Søknadsbehandling(

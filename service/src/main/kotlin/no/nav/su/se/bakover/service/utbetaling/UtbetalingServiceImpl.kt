@@ -170,18 +170,17 @@ internal class UtbetalingServiceImpl(
         val sak: Sak = sakService.hentSak(request.sakId).orNull()!!
 
         fun lagUtbetalingAlder(request: SimulerUtbetalingRequest.NyUtbetaling.Alder): Utbetaling.UtbetalingForSimulering {
-            TODO("simulering_utbetaling_alder deaktivert inntil videre")
-            // return Utbetalingsstrategi.NyAldersUtbetaling(
-            //     sakId = sak.id,
-            //     saksnummer = sak.saksnummer,
-            //     fnr = sak.fnr,
-            //     utbetalinger = sak.utbetalinger,
-            //     behandler = request.saksbehandler,
-            //     beregning = request.beregning,
-            //     clock = clock,
-            //     kjøreplan = request.utbetalingsinstruksjonForEtterbetaling,
-            //     sakstype = sak.type,
-            // ).generate()
+            return Utbetalingsstrategi.NyAldersUtbetaling(
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+                fnr = sak.fnr,
+                utbetalinger = sak.utbetalinger,
+                behandler = request.saksbehandler,
+                beregning = request.beregning,
+                clock = clock,
+                kjøreplan = request.utbetalingsinstruksjonForEtterbetaling,
+                sakstype = sak.type,
+            ).generate()
         }
 
         fun lagUtbetalingUføre(request: SimulerUtbetalingRequest.NyUtbetaling.Uføre): Utbetaling.UtbetalingForSimulering {

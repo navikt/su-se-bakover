@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
-import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -18,7 +17,8 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
-import no.nav.su.se.bakover.domain.oppdrag.simulering.toKlasseKode
+import no.nav.su.se.bakover.domain.oppdrag.simulering.toFeilkode
+import no.nav.su.se.bakover.domain.oppdrag.simulering.toYtelsekode
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
 import java.time.Clock
@@ -101,6 +101,7 @@ class SimuleringStub(
                                                 fraOgMed = måned.fraOgMed,
                                                 tilOgMed = måned.tilOgMed,
                                                 beløp = utbetaltLinje.beløp - nyLinje.beløp,
+                                                sakstype = utbetaling.sakstype,
                                             )
                                         } else {
                                             it
@@ -146,6 +147,7 @@ class SimuleringStub(
                                             fraOgMed = måned.fraOgMed,
                                             tilOgMed = måned.tilOgMed,
                                             beløp = utbetaltLinje.beløp,
+                                            sakstype = utbetaling.sakstype,
                                         ),
                                     ),
                                 )
@@ -191,6 +193,7 @@ class SimuleringStub(
                                             fraOgMed = måned.fraOgMed,
                                             tilOgMed = måned.tilOgMed,
                                             beløp = utbetaltLinje.beløp,
+                                            sakstype = utbetaling.sakstype,
                                         ),
                                     ),
                                 )
@@ -248,7 +251,7 @@ private fun createOrdinær(fraOgMed: LocalDate, tilOgMed: LocalDate, beløp: Int
     typeSats = "MND",
     antallSats = 1,
     uforegrad = 0,
-    klassekode = sakstype.toKlasseKode(),
+    klassekode = sakstype.toYtelsekode(),
     klassekodeBeskrivelse = "Supplerende stønad $sakstype",
     klasseType = KlasseType.YTEL,
 )
@@ -264,12 +267,12 @@ private fun createTidligereUtbetalt(fraOgMed: LocalDate, tilOgMed: LocalDate, be
         typeSats = "",
         antallSats = 0,
         uforegrad = 0,
-        klassekode = sakstype.toKlasseKode(),
+        klassekode = sakstype.toYtelsekode(),
         klassekodeBeskrivelse = "Supplerende stønad $sakstype",
         klasseType = KlasseType.YTEL,
     )
 
-private fun createFeilutbetaling(fraOgMed: LocalDate, tilOgMed: LocalDate, beløp: Int) = SimulertDetaljer(
+private fun createFeilutbetaling(fraOgMed: LocalDate, tilOgMed: LocalDate, beløp: Int, sakstype: Sakstype) = SimulertDetaljer(
     faktiskFraOgMed = fraOgMed,
     faktiskTilOgMed = tilOgMed,
     konto = "4952000",
@@ -279,7 +282,7 @@ private fun createFeilutbetaling(fraOgMed: LocalDate, tilOgMed: LocalDate, belø
     typeSats = "",
     antallSats = 0,
     uforegrad = 0,
-    klassekode = KlasseKode.KL_KODE_FEIL_INNT, // TODO("simulering_utbetaling_alder mistenker alder ikke er _INNT, men noe annet")
-    klassekodeBeskrivelse = "Feilutbetaling Inntektsytelser",
+    klassekode = sakstype.toFeilkode(),
+    klassekodeBeskrivelse = "Feilutbetaling $sakstype",
     klasseType = KlasseType.FEIL,
 )

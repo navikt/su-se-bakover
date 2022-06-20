@@ -236,7 +236,7 @@ sealed class TolketDetalj {
         private fun SimulertDetaljer.erFeilutbetaling() = klasseType == KlasseType.FEIL
 
         private fun SimulertDetaljer.erTidligereUtbetalt() = klasseType == KlasseType.YTEL &&
-            klassekode == KlasseKode.SUUFORE &&
+            (klassekode == KlasseKode.SUUFORE || klassekode == KlasseKode.SUALDER) &&
             typeSats == "" &&
             antallSats == 0 &&
             tilbakeforing &&
@@ -244,7 +244,7 @@ sealed class TolketDetalj {
             belop < 0
 
         private fun SimulertDetaljer.erØnsketUtbetalt() = klasseType == KlasseType.YTEL &&
-            klassekode == KlasseKode.SUUFORE &&
+            (klassekode == KlasseKode.SUUFORE || klassekode == KlasseKode.SUALDER) &&
             typeSats == "MND" &&
             antallSats == 1 &&
             sats >= 0 &&

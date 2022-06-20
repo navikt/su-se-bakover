@@ -128,14 +128,11 @@ enum class KlasseType {
 
     @Deprecated("Filtreres ut av klient") // TODO flytt dette lenger ut
     MOTP;
-
-    fun erFeil() = this == FEIL
-    fun erYtelse() = this == YTEL
 }
 
 enum class KlasseKode {
     SUUFORE,
-    KL_KODE_FEIL_INNT, // TODO("simulering_utbetaling_alder mistenker alder ikke er _INNT, men noe annet")
+    KL_KODE_FEIL_INNT,
 
     @Deprecated("Filtreres ut av klient") // TODO flytt dette lenger ut
     TBMOTOBS,
@@ -146,16 +143,28 @@ enum class KlasseKode {
     @Deprecated("Filtreres ut av klient, bakoverkompatabilitet")
     UFOREUT,
 
-    SUALDER;
+    SUALDER,
+    KL_KODE_FEIL;
 }
 
-fun Sakstype.toKlasseKode(): KlasseKode {
+fun Sakstype.toYtelsekode(): KlasseKode {
     return when (this) {
         Sakstype.ALDER -> {
             KlasseKode.SUALDER
         }
         Sakstype.UFØRE -> {
             KlasseKode.SUUFORE
+        }
+    }
+}
+
+fun Sakstype.toFeilkode(): KlasseKode {
+    return when (this) {
+        Sakstype.ALDER -> {
+            KlasseKode.KL_KODE_FEIL
+        }
+        Sakstype.UFØRE -> {
+            KlasseKode.KL_KODE_FEIL_INNT
         }
     }
 }

@@ -51,7 +51,7 @@ internal class GrensesnittsavstemingJob(
                     Fagområde.values().forEach { fagområde ->
                         when (fagområde) {
                             Fagområde.SUALDER -> {
-                                // TODO("simulering_utbetaling_alder legg til ALDER for konsistensavstemming")
+                                // TODO("simulering_utbetaling_alder legg til ALDER for grensesnittsavstemming")
                             }
                             Fagområde.SUUFORE -> {
                                 log.info("Executing $jobName")
