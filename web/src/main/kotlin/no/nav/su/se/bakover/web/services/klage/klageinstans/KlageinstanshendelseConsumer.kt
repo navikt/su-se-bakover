@@ -17,7 +17,7 @@ import java.time.Clock
 import java.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
-internal class KlageinstanshendelseConsumer(
+class KlageinstanshendelseConsumer(
     private val consumer: Consumer<String, String>,
     private val klageinstanshendelseService: KlageinstanshendelseService,
     private val topicName: String = "klage.behandling-events.v1",

@@ -37,7 +37,7 @@ private const val TOPIC1 = "kafkaTopic1"
 private const val TOPIC2 = "kafkaTopic2"
 
 @Isolated
-internal class KlageinstansBehandlingshendelseConsumerTest {
+internal class KlageinstansBehandlingshendelseConsumerKafkaTest {
 
     private val PARTITION = 0
     private val key = UUID.randomUUID().toString()
@@ -64,6 +64,7 @@ internal class KlageinstansBehandlingshendelseConsumerTest {
             // Venter til alle meldingene er sendt før vi prøver consume
             it.get()
         }
+
         val hendelser = argumentCaptor<UprosessertKlageinstanshendelse>()
         // Kunne alternativt brukt awaitility for å vente til currentOffset ble 3
         verify(klageinstanshendelseService, timeout(20000).times(2)).lagre(any())

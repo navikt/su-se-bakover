@@ -1,3 +1,5 @@
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+
 plugins {
     kotlin("jvm")
     // Støtter unicode filer (i motsetning til https://github.com/JLLeitschuh/ktlint-gradle 10.0.0) og har nyere dependencies som gradle. Virker som den oppdateres hyppigere.
@@ -121,16 +123,19 @@ subprojects {
     task("allDeps", DependencyReportTask::class) {}
 }
 
+
 configure(listOf(project(":client"))) {
-    // TODO jah: We can't parallelize client at this point because of static usage of wiremockServer
-    tasks.withType<Test> {
-        useJUnitPlatform()
-        testLogging {
-            // We only want to log failed and skipped tests when running Gradle.
-            events("skipped", "failed")
-            exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
-        }
-        failFast = false
+// :client er vanskelig å parallellisere så lenge den bruker Wiremock på en statisk måte. Samtidig gir det ikke så mye mening siden testene er raske og ikke? feiler på timing issues.
+    tasks.test {
+        sharedTestSetup()
+    }
+}
+
+configure(listOf(project(":web-kafka-test"))) {
+    // :web-kafka-test denne gir veldig ofte timing issues. Prøver å kjøre denne ikke-parallellt.
+    tasks.test {
+        sharedTestSetup()
+        skipHeavyInfrastructureTestsIfToggled(this)
     }
 }
 
@@ -145,15 +150,8 @@ configure(
         project(":web-regresjonstest"),
     ),
 ) {
-    tasks.withType<Test> {
-        useJUnitPlatform()
-        testLogging {
-            // We only want to log failed and skipped tests when running Gradle.
-            events("skipped", "failed")
-            exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
-        }
-        // https://docs.gradle.org/current/userguide/performance.html#suggestions_for_java_projects
-        failFast = false
+    tasks.test {
+        sharedTestSetup()
         maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).takeIf { it > 0 } ?: 1
         // https://junit.org/junit5/docs/snapshot/user-guide/#writing-tests-parallel-execution
         systemProperties["junit.jupiter.execution.parallel.enabled"] = true
@@ -171,4 +169,25 @@ configurations {
         // Vi bruker logback og mener vi kan trygt sette en exclude på log4j: https://security.snyk.io/vuln/SNYK-JAVA-ORGAPACHELOGGINGLOG4J-2314720
         exclude(group = "org.apache.logging.log4j", module = "log4j-core")
     }
+}
+
+fun Project.skipHeavyInfrastructureTestsIfToggled(test: Test) {
+    if (findProperty("skip-heavy-infrastructure-tests") == "true") {
+        println("Skipping heavy infrastructure tests like Kafka.")
+        test.filter {
+            excludeTestsMatching("*KafkaTest*")
+            isFailOnNoMatchingTests = false
+        }
+    }
+}
+
+fun Test.sharedTestSetup() {
+    useJUnitPlatform()
+    testLogging {
+        // We only want to log failed and skipped tests when running Gradle.
+        events("skipped", "failed")
+        exceptionFormat = TestExceptionFormat.FULL
+    }
+    // https://docs.gradle.org/current/userguide/performance.html#suggestions_for_java_projects
+    failFast = false
 }
