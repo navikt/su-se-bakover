@@ -19,6 +19,7 @@ internal fun ApplicationTestBuilder.leggTilPensjonsVilkår(
     fraOgMed: String = "2021-01-01",
     tilOgMed: String = "2021-12-31",
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
+    body: () -> String = { innvilgetPensjonsvilkårJson(fraOgMed, tilOgMed) },
     url: String = "/saker/$sakId/behandlinger/$behandlingId/pensjon",
 ): String {
     return runBlocking {
@@ -27,20 +28,7 @@ internal fun ApplicationTestBuilder.leggTilPensjonsVilkår(
             url,
             listOf(brukerrolle),
         ) {
-            setBody(
-                //language=JSON
-                """
-                [
-                  {
-                    "periode": {
-                      "fraOgMed": "$fraOgMed",
-                      "tilOgMed": "$tilOgMed"
-                    },
-                    "resultat": "VilkårOppfylt"
-                  }
-                ]       
-                """.trimIndent(),
-            )
+            setBody(body())
         }.apply {
             withClue("body=${this.bodyAsText()}") {
                 status shouldBe HttpStatusCode.Created
@@ -48,4 +36,40 @@ internal fun ApplicationTestBuilder.leggTilPensjonsVilkår(
             }
         }.bodyAsText()
     }
+}
+
+internal fun innvilgetPensjonsvilkårJson(fraOgMed: String, tilOgMed: String): String {
+    return """
+       [
+          {
+            "periode": {
+              "fraOgMed": "$fraOgMed",
+              "tilOgMed": "$tilOgMed"
+            },
+            "pensjonsopplysninger": {
+              "folketrygd": "JA",
+              "andreNorske": "IKKE_AKTUELT",
+              "utenlandske": "JA"
+            }
+          }
+        ]
+    """.trimIndent()
+}
+
+internal fun avslåttPensjonsvilkårJson(fraOgMed: String, tilOgMed: String): String {
+    return """
+       [
+          {
+            "periode": {
+              "fraOgMed": "$fraOgMed",
+              "tilOgMed": "$tilOgMed"
+            },
+            "pensjonsopplysninger": {
+              "folketrygd": "NEI",
+              "andreNorske": "IKKE_AKTUELT",
+              "utenlandske": "JA"
+            }
+          }
+        ]
+    """.trimIndent()
 }
