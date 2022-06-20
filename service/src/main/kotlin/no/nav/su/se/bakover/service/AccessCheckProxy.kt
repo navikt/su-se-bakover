@@ -170,6 +170,7 @@ import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeTilPensjonsVilkår
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilFamiliegjenforeningRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFlereUtenlandsoppholdRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilPensjonsVilkårRequest
@@ -337,7 +338,10 @@ open class AccessCheckProxy(
                 }
             },
             søknad = object : SøknadService {
-                override fun nySøknad(søknadInnhold: SøknadInnhold, identBruker: NavIdentBruker): Either<KunneIkkeOppretteSøknad, Pair<Saksnummer, Søknad>> {
+                override fun nySøknad(
+                    søknadInnhold: SøknadInnhold,
+                    identBruker: NavIdentBruker
+                ): Either<KunneIkkeOppretteSøknad, Pair<Saksnummer, Søknad>> {
                     assertHarTilgangTilPerson(søknadInnhold.personopplysninger.fnr)
 
                     return services.søknad.nySøknad(søknadInnhold, identBruker)
@@ -503,6 +507,11 @@ open class AccessCheckProxy(
                 override fun leggTilUførevilkår(request: LeggTilUførevurderingerRequest): Either<SøknadsbehandlingService.KunneIkkeLeggeTilUføreVilkår, Søknadsbehandling> {
                     assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.leggTilUførevilkår(request)
+                }
+
+                override fun leggTilFamiliegjenforeningvilkår(request: LeggTilFamiliegjenforeningRequest): Either<SøknadsbehandlingService.KunneIkkeLeggeTilFamiliegjenforeningVilkårService, Søknadsbehandling> {
+                    assertHarTilgangTilBehandling(request.behandlingId)
+                    return services.søknadsbehandling.leggTilFamiliegjenforeningvilkår(request)
                 }
 
                 override fun leggTilBosituasjonEpsgrunnlag(request: LeggTilBosituasjonEpsRequest): Either<SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag, Søknadsbehandling> {
@@ -970,7 +979,7 @@ open class AccessCheckProxy(
                     assertHarTilgangTilPerson(fnr)
                     return services.skatteService.hentSamletSkattegrunnlag(fnr)
                 }
-            }
+            },
         )
     }
 

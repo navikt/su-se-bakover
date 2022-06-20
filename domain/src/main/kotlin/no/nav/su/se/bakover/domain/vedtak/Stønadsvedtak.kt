@@ -416,6 +416,10 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
         fun opplysningspliktVilkår(): OpplysningspliktVilkår {
             return vilkårsvurderinger.opplysningspliktVilkår()
         }
+
+        fun pensjonsVilkår() = vilkårsvurderinger.pensjonsVilkår()
+
+        fun familiegjenforeningvilkår() = vilkårsvurderinger.familiegjenforening()
     }
 }
 

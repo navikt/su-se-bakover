@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.database.avkorting.AvkortingsvarselPostgresRepo
 import no.nav.su.se.bakover.database.avstemming.AvstemmingPostgresRepo
 import no.nav.su.se.bakover.database.dokument.DokumentPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.FamiliegjenforeningVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FormueVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FormuegrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
@@ -309,6 +310,7 @@ internal class TestDataHelper(
         dbMetrics = dbMetrics,
         pensjonsgrunnlagPostgresRepo = pensjonsgrunnlagPostgresRepo,
     )
+    internal val familiegjenforeningVilkårsvurderingPostgresRepo = FamiliegjenforeningVilkårsvurderingPostgresRepo(dbMetrics)
     internal val grunnlagsdataOgVilkårsvurderingerPostgresRepo = GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
         dbMetrics = dbMetrics,
         bosituasjongrunnlagPostgresRepo = bosituasjongrunnlagPostgresRepo,
@@ -318,6 +320,7 @@ internal class TestDataHelper(
         utenlandsoppholdVilkårsvurderingPostgresRepo = utenlandsoppholdVilkårsvurderingRepo,
         opplysningspliktVilkårsvurderingPostgresRepo = opplysningspliktVilkårsvurderingPostgresRepo,
         pensjonVilkårsvurderingPostgresRepo = vilkårsvurderingPensjonPostgresRepo,
+        familiegjenforeningVilkårsvurderingPostgresRepo = familiegjenforeningVilkårsvurderingPostgresRepo,
     )
     internal val søknadsbehandlingRepo = SøknadsbehandlingPostgresRepo(
         sessionFactory = sessionFactory,
@@ -1240,7 +1243,7 @@ internal class TestDataHelper(
         søknadId: UUID = UUID.randomUUID(),
         stønadsperiode: Stønadsperiode = stønadsperiode2021,
         behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
-        vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre = vilkårsvurderingerSøknadsbehandlingInnvilget(
+        vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerSøknadsbehandlingInnvilget(
             periode = stønadsperiode.periode,
         ),
         grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligMedFradrag(periode = stønadsperiode.periode),

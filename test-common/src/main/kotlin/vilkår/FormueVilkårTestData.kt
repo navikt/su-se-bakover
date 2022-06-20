@@ -135,7 +135,7 @@ fun formuevilkårAvslåttPgrBrukersformue(
 fun avslåttFormueVilkår(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
-    periode: Periode,
+    periode: Periode = år(2021),
     bosituasjon: NonEmptyList<Grunnlag.Bosituasjon.Fullstendig> = nonEmptyListOf(
         Grunnlag.Bosituasjon.Fullstendig.Enslig(
             id = UUID.randomUUID(),
@@ -175,7 +175,7 @@ fun avslåttFormueVilkår(
 fun innvilgetFormueVilkår(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
-    periode: Periode,
+    periode: Periode = år(2021),
     bosituasjon: Grunnlag.Bosituasjon.Fullstendig = Grunnlag.Bosituasjon.Fullstendig.Enslig(
         id = UUID.randomUUID(),
         opprettet = fixedTidspunkt,
@@ -190,7 +190,7 @@ fun innvilgetFormueVilkår(
     )
 }
 
-fun innvilgetFormueVilkår(
+private fun innvilgetFormueVilkår(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode,

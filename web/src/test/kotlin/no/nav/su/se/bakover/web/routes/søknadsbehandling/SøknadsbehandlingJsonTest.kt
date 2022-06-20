@@ -100,7 +100,8 @@ internal class SøknadsbehandlingJsonTest {
                   }
                  ]     
               },
-              "pensjon": null
+              "pensjon": null,
+               "familiegjenforening": null
           },
           "fritekstTilBrev": "",
           "erLukket": false,
@@ -181,7 +182,8 @@ internal class SøknadsbehandlingJsonTest {
             },
             "utenlandsopphold": null,
             "opplysningsplikt":null,
-            "pensjon": null
+            "pensjon": null,
+            "familiegjenforening": null
           },
           "fritekstTilBrev": "",
           "erLukket": false,
