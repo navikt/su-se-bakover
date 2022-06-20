@@ -587,6 +587,7 @@ internal class SøknadsbehandlingServiceImpl(
 
         val familiegjenforeningVilkår = request.toVilkår(
             clock = clock,
+            stønadsperiode = søknadsbehandling.stønadsperiode?.periode,
         ).getOrHandle {
             return KunneIkkeLeggeTilFamiliegjenforeningVilkårService.UgyldigFamiliegjenforeningVilkårService(it)
                 .left()

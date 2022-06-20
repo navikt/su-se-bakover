@@ -4,7 +4,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
-import no.nav.su.se.bakover.common.periode.PeriodeJson
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.satser.SatsFactory
@@ -19,6 +18,7 @@ import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBehandlingId
 import no.nav.su.se.bakover.web.withBody
+import java.util.UUID
 
 internal fun Route.leggTilFamiliegjenforeningRoute(
     søknadsbehandlingService: SøknadsbehandlingService,
@@ -29,15 +29,7 @@ internal fun Route.leggTilFamiliegjenforeningRoute(
             call.withBehandlingId { behandlingId ->
                 call.withBody<FamiliegjenforeningBody> { body ->
                     søknadsbehandlingService.leggTilFamiliegjenforeningvilkår(
-                        request = LeggTilFamiliegjenforeningRequest(
-                            behandlingId = behandlingId,
-                            vurderinger = body.vurderinger.map {
-                                FamiliegjenforeningVurderinger(
-                                    it.periode.toPeriode(),
-                                    it.status,
-                                )
-                            },
-                        ),
+                        request = body.toLeggTilFamiliegjenforeningRequest(behandlingId),
                     ).fold(
                         ifLeft = { call.svar(it.tilResultat()) },
                         ifRight = {
@@ -50,12 +42,16 @@ internal fun Route.leggTilFamiliegjenforeningRoute(
     }
 }
 
-private data class FamiliegjenforeningBody(
+internal data class FamiliegjenforeningBody(
     val vurderinger: List<FamiliegjenforeningVurderingBody>,
-)
+) {
+    fun toLeggTilFamiliegjenforeningRequest(behandlingId: UUID) =
+        LeggTilFamiliegjenforeningRequest(
+            behandlingId = behandlingId, vurderinger = vurderinger.map { FamiliegjenforeningVurderinger(it.status) },
+        )
+}
 
-private data class FamiliegjenforeningVurderingBody(
-    val periode: PeriodeJson,
+internal data class FamiliegjenforeningVurderingBody(
     val status: FamiliegjenforeningvilkårStatus,
 )
 

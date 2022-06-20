@@ -115,10 +115,7 @@ internal class SøknadsbehandlingAlder {
                 request = LeggTilFamiliegjenforeningRequest(
                     behandlingId = søknadsbehandling.id,
                     vurderinger = listOf(
-                        FamiliegjenforeningVurderinger(
-                            stønadsperiode2022.periode,
-                            FamiliegjenforeningvilkårStatus.VilkårOppfylt,
-                        ),
+                        FamiliegjenforeningVurderinger(FamiliegjenforeningvilkårStatus.VilkårOppfylt),
                     ),
                 ),
             )

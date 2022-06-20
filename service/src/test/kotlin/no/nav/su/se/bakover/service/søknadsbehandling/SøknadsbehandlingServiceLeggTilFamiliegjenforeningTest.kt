@@ -8,8 +8,6 @@ import no.nav.su.se.bakover.service.vilkår.FamiliegjenforeningVurderinger
 import no.nav.su.se.bakover.service.vilkår.FamiliegjenforeningvilkårStatus
 import no.nav.su.se.bakover.service.vilkår.LeggTilFamiliegjenforeningRequest
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.stønadsperiode2021
-import no.nav.su.se.bakover.test.stønadsperiode2022
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.vilkårsvurderingSøknadsbehandlingIkkeVurdertAlder
 import org.junit.jupiter.api.Test
@@ -33,10 +31,7 @@ internal class SøknadsbehandlingServiceLeggTilFamiliegjenforeningTest {
                 request = LeggTilFamiliegjenforeningRequest(
                     behandlingId = UUID.randomUUID(),
                     vurderinger = listOf(
-                        FamiliegjenforeningVurderinger(
-                            stønadsperiode2021.periode,
-                            FamiliegjenforeningvilkårStatus.Uavklart,
-                        ),
+                        FamiliegjenforeningVurderinger(FamiliegjenforeningvilkårStatus.Uavklart),
                     ),
                 ),
             ) shouldBe SøknadsbehandlingService.KunneIkkeLeggeTilFamiliegjenforeningVilkårService.FantIkkeBehandling.left()
@@ -55,10 +50,7 @@ internal class SøknadsbehandlingServiceLeggTilFamiliegjenforeningTest {
                 request = LeggTilFamiliegjenforeningRequest(
                     behandlingId = behandlingId,
                     vurderinger = listOf(
-                        FamiliegjenforeningVurderinger(
-                            stønadsperiode2021.periode,
-                            FamiliegjenforeningvilkårStatus.VilkårOppfylt,
-                        ),
+                        FamiliegjenforeningVurderinger(FamiliegjenforeningvilkårStatus.VilkårOppfylt),
                     ),
                 ),
             ).getOrFail()
@@ -86,34 +78,6 @@ internal class SøknadsbehandlingServiceLeggTilFamiliegjenforeningTest {
                     request = LeggTilFamiliegjenforeningRequest(
                         behandlingId = behandlingId,
                         vurderinger = emptyList(),
-                    ),
-                )
-            }
-        }
-    }
-
-    @Test
-    fun `kaster hvis vurderinger mer enn 1 element`() {
-        assertThrows<IllegalArgumentException> {
-            SøknadsbehandlingServiceAndMocks(
-                søknadsbehandlingRepo = mock {
-                    on { hent(any()) } doReturn søknadsbehandlingVilkårsvurdertUavklart(vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingIkkeVurdertAlder()).second
-                },
-            ).let { søknadsbehandlingServiceAndMocks ->
-                val behandlingId = UUID.randomUUID()
-                søknadsbehandlingServiceAndMocks.søknadsbehandlingService.leggTilFamiliegjenforeningvilkår(
-                    request = LeggTilFamiliegjenforeningRequest(
-                        behandlingId = behandlingId,
-                        vurderinger = listOf(
-                            FamiliegjenforeningVurderinger(
-                                stønadsperiode2021.periode,
-                                FamiliegjenforeningvilkårStatus.VilkårOppfylt,
-                            ),
-                            FamiliegjenforeningVurderinger(
-                                stønadsperiode2022.periode,
-                                FamiliegjenforeningvilkårStatus.VilkårOppfylt,
-                            ),
-                        ),
                     ),
                 )
             }
