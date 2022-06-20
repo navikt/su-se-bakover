@@ -18,7 +18,8 @@ enum class Avslagsgrunn {
     INNLAGT_PÅ_INSTITUSJON,
     MANGLENDE_DOKUMENTASJON,
     SØKNAD_MANGLER_DOKUMENTASJON,
-    PENSJON;
+    PENSJON,
+    FAMILIEGJENFORENING;
 
     companion object {
         fun List<Avslagsgrunn>.getDistinkteParagrafer(): List<Int> =
@@ -47,6 +48,7 @@ enum class Avslagsgrunn {
         MANGLENDE_DOKUMENTASJON -> listOf(18)
         SØKNAD_MANGLER_DOKUMENTASJON -> listOf(18)
         PENSJON -> listOf(3) // TODO("finn ut om denne er korrekt")
+        FAMILIEGJENFORENING -> listOf(3)
     }
 
     fun tilOpphørsgrunn(): Opphørsgrunn {
@@ -64,6 +66,7 @@ enum class Avslagsgrunn {
             MANGLENDE_DOKUMENTASJON -> Opphørsgrunn.MANGLENDE_DOKUMENTASJON
             SØKNAD_MANGLER_DOKUMENTASJON -> TODO()
             PENSJON -> TODO("Gjør det mulig å revurdere vilkåret + brev + etc")
+            FAMILIEGJENFORENING -> TODO("legg inn opphørsgrunn når det skal revurderes")
         }
     }
 }

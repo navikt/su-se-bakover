@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.database.avkorting.AvkortingsvarselPostgresRepo
 import no.nav.su.se.bakover.database.avstemming.AvstemmingPostgresRepo
 import no.nav.su.se.bakover.database.dokument.DokumentPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.FamiliegjenforeningVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FormueVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FormuegrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
@@ -139,6 +140,7 @@ object DatabaseBuilder {
                 dbMetrics = dbMetrics,
                 pensjonsgrunnlagPostgresRepo = PensjonsgrunnlagPostgresRepo(dbMetrics),
             ),
+            familiegjenforeningVilkårsvurderingPostgresRepo = FamiliegjenforeningVilkårsvurderingPostgresRepo(dbMetrics),
         )
 
         val søknadsbehandlingRepo = SøknadsbehandlingPostgresRepo(

@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
+import no.nav.su.se.bakover.domain.vilkår.FamiliegjenforeningVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.PensjonsVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
@@ -70,6 +71,7 @@ data class GjeldendeVedtaksdata(
                         utenlandsopphold = it.utenlandsoppholdVilkår(),
                         opplysningsplikt = it.opplysningspliktVilkår(),
                         pensjon = it.pensjonsVilkår(),
+                        familiegjenforening = it.familiegjenforeningvilkår(),
                     )
                 }
                 else -> {
@@ -202,7 +204,7 @@ private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.opplysningspliktVilk
 }
 
 private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.pensjonsVilkår(): PensjonsVilkår {
-    return map { it.opplysningspliktVilkår() }
+    return map { it.pensjonsVilkår() }
         .filterIsInstance<PensjonsVilkår.Vurdert>()
         .flatMap { it.vurderingsperioder }
         .let {
@@ -211,6 +213,20 @@ private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.pensjonsVilkår(): P
                     .slåSammenLikePerioder()
             } else {
                 PensjonsVilkår.IkkeVurdert
+            }
+        }
+}
+
+private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.familiegjenforeningvilkår(): FamiliegjenforeningVilkår {
+    return map { it.familiegjenforeningvilkår() }
+        .filterIsInstance<FamiliegjenforeningVilkår.Vurdert>()
+        .flatMap { it.vurderingsperioder }
+        .let {
+            if (it.isNotEmpty()) {
+                FamiliegjenforeningVilkår.Vurdert.createFromVilkårsvurderinger(NonEmptyList.fromListUnsafe(it))
+                    .slåSammenLikePerioder()
+            } else {
+                FamiliegjenforeningVilkår.IkkeVurdert
             }
         }
 }
