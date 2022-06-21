@@ -156,6 +156,7 @@ configure(
         // https://junit.org/junit5/docs/snapshot/user-guide/#writing-tests-parallel-execution
         systemProperties["junit.jupiter.execution.parallel.enabled"] = true
         systemProperties["junit.jupiter.execution.parallel.mode.default"] = "concurrent"
+        systemProperties["junit.jupiter.execution.parallel.mode.classes.default"] = "concurrent"
     }
 }
 
