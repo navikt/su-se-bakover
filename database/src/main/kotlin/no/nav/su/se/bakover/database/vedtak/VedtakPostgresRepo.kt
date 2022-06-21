@@ -223,7 +223,10 @@ internal class VedtakPostgresRepo(
         val attestant = stringOrNull("attestant")?.let { NavIdentBruker.Attestant(it) }!!
         val utbetalingId = uuid30OrNull("utbetalingId")
         val beregning: BeregningMedFradragBeregnetMånedsvis? =
-            stringOrNull("beregning")?.deserialiserBeregning(satsFactory.gjeldende(opprettet))
+            stringOrNull("beregning")?.deserialiserBeregning(
+                satsFactory = satsFactory.gjeldende(opprettet),
+                sakstype = behandling!!.sakstype,
+            )
         val simulering = stringOrNull("simulering")?.let { objectMapper.readValue<Simulering>(it) }
         val avslagsgrunner = stringOrNull("avslagsgrunner")?.let { objectMapper.readValue<List<Avslagsgrunn>>(it) }
 

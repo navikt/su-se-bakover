@@ -29,6 +29,13 @@ class SatsFactoryForSupplerendeStønadPåKnekkpunkt(
         }
     }
 
+    override fun forSatskategoriAlder(måned: Måned, satskategori: Satskategori): FullSupplerendeStønadForMåned.Alder {
+        return when (satskategori) {
+            Satskategori.ORDINÆR -> alderOrdinær.forMåned(måned)
+            Satskategori.HØY -> alderHøy.forMåned(måned)
+        }
+    }
+
     override fun høyUføre(måned: Måned): FullSupplerendeStønadForMåned.Uføre {
         return uføreHøy.forMåned(måned)
     }

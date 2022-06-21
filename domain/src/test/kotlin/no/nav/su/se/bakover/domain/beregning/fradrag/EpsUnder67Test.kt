@@ -33,7 +33,7 @@ internal class EpsUnder67Test {
         val expectedKontantstøtte =
             lagPeriodisertFradrag(Kontantstøtte, 500.0, januar(2020))
 
-        FradragStrategy.EpsUnder67År.beregn(
+        FradragStrategy.Uføre.EpsUnder67År.beregn(
             fradrag = listOf(arbeidsinntekt, kontantstøtte, forventetInntekt),
             beregningsperiode = periode
         ).let {
@@ -58,7 +58,7 @@ internal class EpsUnder67Test {
         val expectedKontantstøtte =
             lagPeriodisertFradrag(Kontantstøtte, 500.0, januar(2020))
 
-        FradragStrategy.EpsUnder67År.beregn(
+        FradragStrategy.Uføre.EpsUnder67År.beregn(
             fradrag = listOf(arbeidsinntekt, kontantstøtte, forventetInntekt),
             beregningsperiode = periode
         ).let {
@@ -83,7 +83,7 @@ internal class EpsUnder67Test {
             BeregnetFradragEPS, 2000.0, januar(2020), EPS
         )
 
-        FradragStrategy.EpsUnder67År.beregn(
+        FradragStrategy.Uføre.EpsUnder67År.beregn(
             fradrag = listOf(epsArbeidsinntekt, forventetInntekt),
             beregningsperiode = periode
         ).let {
@@ -107,7 +107,7 @@ internal class EpsUnder67Test {
         val epsKapitalinntekt = lagFradrag(Kapitalinntekt, 60000.0, periode, tilhører = EPS)
         val epsPensjon = lagFradrag(PrivatPensjon, 15000.0, periode, tilhører = EPS)
 
-        FradragStrategy.EpsUnder67År.beregn(
+        FradragStrategy.Uføre.EpsUnder67År.beregn(
             fradrag = listOf(
                 forventetInntekt,
                 epsForventetInntekt,
@@ -132,7 +132,7 @@ internal class EpsUnder67Test {
     fun `sosialstønad for EPS går til fradrag uavhengig av om det eksisterer et fribeløp`() {
         val periode = Periode.create(1.mai(2021), 31.desember(2021))
 
-        FradragStrategy.EpsUnder67År.beregn(
+        FradragStrategy.Uføre.EpsUnder67År.beregn(
             fradrag = listOf(
                 lagFradrag(ForventetInntekt, 0.0, periode),
                 lagFradrag(Fradragstype.Sosialstønad, 5000.0, periode, EPS),

@@ -20,7 +20,7 @@ internal class FradragStrategyTest {
     fun `hver måned må inneholde nøyaktig ett fradrag for brukers forventede inntekt`() {
         val periode = år(2020)
         assertThrows<IllegalArgumentException> {
-            FradragStrategy.Enslig.beregn(
+            FradragStrategy.Uføre.Enslig.beregn(
                 fradrag = listOf(
                     lagFradrag(
                         Fradragstype.ForventetInntekt,
@@ -35,7 +35,7 @@ internal class FradragStrategyTest {
         }
 
         assertThrows<IllegalArgumentException> {
-            FradragStrategy.Enslig.beregn(
+            FradragStrategy.Uføre.Enslig.beregn(
                 fradrag = listOf(
                     lagFradrag(
                         Fradragstype.ForventetInntekt,
@@ -55,7 +55,7 @@ internal class FradragStrategyTest {
         }
 
         assertThrows<IllegalArgumentException> {
-            FradragStrategy.EpsOver67År(satsFactoryTestPåDato()).beregn(
+            FradragStrategy.Uføre.EpsOver67År(satsFactoryTestPåDato()).beregn(
                 fradrag = listOf(
                     lagFradrag(
                         Fradragstype.ForventetInntekt,
@@ -70,7 +70,7 @@ internal class FradragStrategyTest {
         }
 
         assertThrows<IllegalArgumentException> {
-            FradragStrategy.EpsOver67År(satsFactoryTestPåDato()).beregn(
+            FradragStrategy.Uføre.EpsOver67År(satsFactoryTestPåDato()).beregn(
                 fradrag = listOf(
                     lagFradrag(
                         Fradragstype.ForventetInntekt,
@@ -90,7 +90,7 @@ internal class FradragStrategyTest {
         }
 
         assertThrows<IllegalArgumentException> {
-            FradragStrategy.EpsUnder67ÅrOgUførFlyktning(satsFactoryTestPåDato()).beregn(
+            FradragStrategy.Uføre.EpsUnder67ÅrOgUførFlyktning(satsFactoryTestPåDato()).beregn(
                 fradrag = listOf(
                     lagFradrag(
                         Fradragstype.ForventetInntekt,
@@ -105,7 +105,7 @@ internal class FradragStrategyTest {
         }
 
         assertThrows<IllegalArgumentException> {
-            FradragStrategy.EpsUnder67ÅrOgUførFlyktning(satsFactoryTestPåDato()).beregn(
+            FradragStrategy.Uføre.EpsUnder67ÅrOgUførFlyktning(satsFactoryTestPåDato()).beregn(
                 fradrag = listOf(
                     lagFradrag(
                         Fradragstype.ForventetInntekt,
@@ -125,7 +125,7 @@ internal class FradragStrategyTest {
         }
 
         assertThrows<IllegalArgumentException> {
-            FradragStrategy.EpsUnder67År.beregn(
+            FradragStrategy.Uføre.EpsUnder67År.beregn(
                 fradrag = listOf(
                     lagFradrag(
                         Fradragstype.ForventetInntekt,
@@ -140,7 +140,7 @@ internal class FradragStrategyTest {
         }
 
         assertThrows<IllegalArgumentException> {
-            FradragStrategy.EpsUnder67År.beregn(
+            FradragStrategy.Uføre.EpsUnder67År.beregn(
                 fradrag = listOf(
                     lagFradrag(
                         Fradragstype.ForventetInntekt,
@@ -166,25 +166,25 @@ internal class FradragStrategyTest {
 
         @Test
         fun `EPS over 67 år bruker garantipensjonsnivå`() {
-            FradragStrategy.EpsOver67År(satsFactoryTestPåDato())
+            FradragStrategy.Uføre.EpsOver67År(satsFactoryTestPåDato())
                 .getEpsFribeløp(periode) shouldBe 14674.9166666.plusOrMinus(0.5)
         }
 
         @Test
         fun `EPS under 67 år ufør flyktning bruker ordinær SU-sats`() {
-            FradragStrategy.EpsUnder67ÅrOgUførFlyktning(satsFactoryTestPåDato())
+            FradragStrategy.Uføre.EpsUnder67ÅrOgUførFlyktning(satsFactoryTestPåDato())
                 .getEpsFribeløp(periode) shouldBe 18973.0.plusOrMinus(0.5)
         }
 
         @Test
         fun `Enslig gir ikke fribeløp EPS`() {
-            FradragStrategy.Enslig
+            FradragStrategy.Uføre.Enslig
                 .getEpsFribeløp(periode) shouldBe 0.0
         }
 
         @Test
         fun `EPS under 67 ikke ufør flyktning gir ikke fribeløp EPS`() {
-            FradragStrategy.EpsUnder67År
+            FradragStrategy.Uføre.EpsUnder67År
                 .getEpsFribeløp(periode) shouldBe 0.0
         }
     }

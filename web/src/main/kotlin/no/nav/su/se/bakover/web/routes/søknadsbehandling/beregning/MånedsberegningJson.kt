@@ -10,7 +10,7 @@ internal data class MånedsberegningJson(
     val fraOgMed: String,
     val tilOgMed: String,
     val sats: String,
-    val grunnbeløp: Int,
+    val grunnbeløp: Int?, // bare relevant for uføre
     val beløp: Int,
     val fradrag: List<FradragJson>,
     val satsbeløp: Int,

@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.desember
 import no.nav.su.se.bakover.common.periode.januar
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.beregning.MånedsberegningFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
@@ -29,7 +30,7 @@ internal class PeriodisertBeregningTest {
     fun `summerer måned uten fradrag`() {
         val månedsberegning = MånedsberegningFactory.ny(
             måned = januar(2020),
-            strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
+            strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
             fradrag = listOf(forventetInntekt),
         )
         månedsberegning.getSumYtelse() shouldBe 20637
@@ -40,7 +41,7 @@ internal class PeriodisertBeregningTest {
     fun `summerer måned med fradrag`() {
         val månedsberegning = MånedsberegningFactory.ny(
             måned = januar(2020),
-            strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
+            strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
             fradrag = listOf(
                 forventetInntekt,
                 FradragForMåned(
@@ -60,7 +61,7 @@ internal class PeriodisertBeregningTest {
         val periode = januar(2020)
         val månedsberegning = MånedsberegningFactory.ny(
             måned = periode,
-            strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
+            strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
             fradrag = listOf(
                 forventetInntekt,
                 FradragForMåned(
@@ -79,7 +80,7 @@ internal class PeriodisertBeregningTest {
         val periode = januar(2020)
         val månedsberegning = MånedsberegningFactory.ny(
             måned = periode,
-            strategy = BeregningStrategy.BorMedVoksne(satsFactoryTestPåDato()),
+            strategy = BeregningStrategy.BorMedVoksne(satsFactoryTestPåDato(), Sakstype.UFØRE),
             fradrag = listOf(
                 forventetInntekt,
                 FradragForMåned(
@@ -98,14 +99,14 @@ internal class PeriodisertBeregningTest {
     fun `henter aktuelt grunnbeløp for periode`() {
         val m1 = MånedsberegningFactory.ny(
             måned = januar(2020),
-            strategy = BeregningStrategy.BorMedVoksne(satsFactoryTestPåDato()),
+            strategy = BeregningStrategy.BorMedVoksne(satsFactoryTestPåDato(), Sakstype.UFØRE),
             fradrag = listOf(forventetInntekt),
         )
         m1.getBenyttetGrunnbeløp() shouldBe 99858
 
         val m2 = MånedsberegningFactory.ny(
             måned = desember(2020),
-            strategy = BeregningStrategy.BorMedVoksne(satsFactoryTestPåDato()),
+            strategy = BeregningStrategy.BorMedVoksne(satsFactoryTestPåDato(), Sakstype.UFØRE),
             fradrag = listOf(forventetInntekt),
         )
         m2.getBenyttetGrunnbeløp() shouldBe 101351
@@ -122,7 +123,7 @@ internal class PeriodisertBeregningTest {
         )
         val m1 = MånedsberegningFactory.ny(
             måned = januar(2020),
-            strategy = BeregningStrategy.BorMedVoksne(satsFactoryTestPåDato()),
+            strategy = BeregningStrategy.BorMedVoksne(satsFactoryTestPåDato(), Sakstype.UFØRE),
             fradrag = listOf(
                 forventetInntekt,
                 f1,
@@ -142,7 +143,7 @@ internal class PeriodisertBeregningTest {
         )
         val m1 = MånedsberegningFactory.ny(
             måned = januar(2020),
-            strategy = BeregningStrategy.EpsUnder67År(satsFactoryTestPåDato()),
+            strategy = BeregningStrategy.EpsUnder67År(satsFactoryTestPåDato(), Sakstype.UFØRE),
             fradrag = listOf(
                 forventetInntekt,
                 f1,
@@ -159,7 +160,7 @@ internal class PeriodisertBeregningTest {
         )
         val m2 = MånedsberegningFactory.ny(
             måned = januar(2020),
-            strategy = BeregningStrategy.BorMedVoksne(satsFactoryTestPåDato()),
+            strategy = BeregningStrategy.BorMedVoksne(satsFactoryTestPåDato(), Sakstype.UFØRE),
             fradrag = listOf(
                 forventetInntekt,
                 f2,

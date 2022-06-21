@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.desember
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
@@ -37,7 +38,7 @@ internal class LagBrevinnholdForBeregningTest {
             beregningsperioder = listOf(
                 no.nav.su.se.bakover.domain.beregning.Beregningsperiode(
                     periode = periode,
-                    strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
+                    strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
                 ),
             ),
         )
@@ -94,7 +95,7 @@ internal class LagBrevinnholdForBeregningTest {
             beregningsperioder = listOf(
                 no.nav.su.se.bakover.domain.beregning.Beregningsperiode(
                     periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
-                    strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
+                    strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
                 ),
             ),
         )
@@ -196,7 +197,7 @@ internal class LagBrevinnholdForBeregningTest {
             beregningsperioder = listOf(
                 no.nav.su.se.bakover.domain.beregning.Beregningsperiode(
                     periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
-                    strategy = BeregningStrategy.Eps67EllerEldre(satsFactoryTestPåDato()),
+                    strategy = BeregningStrategy.Eps67EllerEldre(satsFactoryTestPåDato(), Sakstype.UFØRE),
 
                 ),
             ),
@@ -428,7 +429,7 @@ internal class LagBrevinnholdForBeregningTest {
             beregningsperioder = listOf(
                 no.nav.su.se.bakover.domain.beregning.Beregningsperiode(
                     periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
-                    strategy = BeregningStrategy.Eps67EllerEldre(satsFactoryTestPåDato()),
+                    strategy = BeregningStrategy.Eps67EllerEldre(satsFactoryTestPåDato(), Sakstype.UFØRE),
                 )
             ),
 
@@ -496,7 +497,7 @@ internal class LagBrevinnholdForBeregningTest {
             beregningsperioder = listOf(
                 no.nav.su.se.bakover.domain.beregning.Beregningsperiode(
                     periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
-                    strategy = BeregningStrategy.Eps67EllerEldre(satsFactoryTestPåDato()),
+                    strategy = BeregningStrategy.Eps67EllerEldre(satsFactoryTestPåDato(), Sakstype.UFØRE),
                 ),
             ),
         )

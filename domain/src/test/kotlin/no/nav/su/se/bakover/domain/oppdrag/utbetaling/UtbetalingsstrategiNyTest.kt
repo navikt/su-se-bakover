@@ -424,7 +424,7 @@ internal class UtbetalingsstrategiNyTest {
                 beregningsperioder = listOf(
                     Beregningsperiode(
                         periode = Periode.create(1.januar(2020), 30.april(2020)),
-                        strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
+                        strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
                     ),
                 ),
             ),
@@ -614,7 +614,7 @@ internal class UtbetalingsstrategiNyTest {
                     beregningsperioder = listOf(
                         Beregningsperiode(
                             periode = periode,
-                            strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
+                            strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
                         ),
                     ),
                 ),
@@ -771,7 +771,7 @@ internal class UtbetalingsstrategiNyTest {
                 beregningsperioder = listOf(
                     Beregningsperiode(
                         periode = periode,
-                        strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
+                        strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
                     ),
                 ),
             ),
@@ -859,7 +859,7 @@ internal class UtbetalingsstrategiNyTest {
                 beregningsperioder = listOf(
                     Beregningsperiode(
                         periode = periode,
-                        strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
+                        strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
                     ),
                 ),
             ),
@@ -1073,7 +1073,7 @@ internal class UtbetalingsstrategiNyTest {
         beregningsperioder = listOf(
             Beregningsperiode(
                 periode = Periode.create(fraOgMed, tilOgMed),
-                strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
+                strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
             ),
         ),
     )

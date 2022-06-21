@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.år
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
@@ -32,7 +33,7 @@ internal class PersistertBeregningTest {
         val actualBeregning = createBeregning(
             opprettet = Tidspunkt.now(påDato.fixedClock()),
             periode = mai(2021),
-            strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(påDato)),
+            strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(påDato), Sakstype.UFØRE),
         )
         //language=json
         val expectedJson = """
@@ -117,12 +118,12 @@ internal class PersistertBeregningTest {
         """.trimIndent()
         val actualJson: String = actualBeregning.serialiser()
         JSONAssert.assertEquals(expectedJson, actualJson, true)
-        actualJson.deserialiserBeregning(satsFactoryTestPåDato(påDato)) shouldBe actualBeregning
+        actualJson.deserialiserBeregning(satsFactoryTestPåDato(påDato), Sakstype.UFØRE) shouldBe actualBeregning
     }
 
     @Test
     fun `serialisering av domenemodellen og den persisterte modellen er ikke lik`() {
-        val beregning = createBeregning(strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()))
+        val beregning = createBeregning(strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE))
 
         JSONAssert.assertNotEquals(
             objectMapper.writeValueAsString(beregning),
@@ -137,14 +138,15 @@ internal class PersistertBeregningTest {
             createBeregning(
                 opprettet = fixedTidspunkt, begrunnelse = "a",
                 strategy = BeregningStrategy.BorAlene(
-                    satsFactoryTestPåDato(),
+                    satsFactory = satsFactoryTestPåDato(),
+                    sakstype = Sakstype.UFØRE,
                 ),
             )
         val b: Beregning =
             createBeregning(
                 opprettet = fixedTidspunkt.plus(1, ChronoUnit.SECONDS),
                 begrunnelse = "b",
-                strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
+                strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
             )
         a shouldBe b
         a.getId() shouldNotBe b.getId()

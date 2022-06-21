@@ -13,7 +13,7 @@ import no.nav.su.se.bakover.domain.satser.Satskategori
 interface Månedsberegning : PeriodisertInformasjon {
     fun getSumYtelse(): Int
     fun getSumFradrag(): Double
-    fun getBenyttetGrunnbeløp(): Int
+    fun getBenyttetGrunnbeløp(): Int? // bare relevant for uføre
     fun getSats(): Satskategori
     fun getSatsbeløp(): Double
     fun getFradrag(): List<FradragForMåned>

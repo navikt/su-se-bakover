@@ -4,6 +4,7 @@ import arrow.core.getOrHandle
 import no.nav.su.se.bakover.common.ddMMyyyy
 import no.nav.su.se.bakover.common.ddMMyyyyFormatter
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.beregning.utledBeregningsstrategi
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.fullstendigOrThrow
@@ -53,21 +54,21 @@ data class Satsoversikt(
 
     companion object {
         fun fra(søknadsbehandling: Søknadsbehandling, satsFactory: SatsFactory): Satsoversikt {
-            return fra(søknadsbehandling.grunnlagsdata.bosituasjon, satsFactory)
+            return fra(søknadsbehandling.grunnlagsdata.bosituasjon, satsFactory, søknadsbehandling.sakstype)
         }
 
         fun fra(revurdering: Revurdering, satsFactory: SatsFactory): Satsoversikt {
-            return fra(revurdering.grunnlagsdata.bosituasjon, satsFactory)
+            return fra(revurdering.grunnlagsdata.bosituasjon, satsFactory, revurdering.sakstype)
         }
 
-        fun fra(bosituasjoner: List<Grunnlag.Bosituasjon>, satsFactory: SatsFactory): Satsoversikt {
+        fun fra(bosituasjoner: List<Grunnlag.Bosituasjon>, satsFactory: SatsFactory, sakstype: Sakstype): Satsoversikt {
             return bosituasjoner
                 .map { it.fullstendigOrThrow() }
                 .flatMap { bosituasjon ->
                     bosituasjon.periode.måneder()
                         .map { måned -> måned to bosituasjon }
                         .map { (måned, bosituasjon) ->
-                            val (strategi, sats) = bosituasjon.utledBeregningsstrategi(satsFactory)
+                            val (strategi, sats) = bosituasjon.utledBeregningsstrategi(satsFactory, sakstype)
                                 .let { it to it.beregn(måned) }
                             Satsperiode(
                                 fraOgMed = måned.fraOgMed.ddMMyyyy(),

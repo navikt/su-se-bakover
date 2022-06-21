@@ -70,7 +70,7 @@ internal class GarantipensjonFactoryTest {
                 ikrafttredelse = 4.september(2020),
                 virkningstidspunkt = 1.mai(2020),
             ),
-            toProsentAvHøyForMåned = BigDecimal("16010.41666666666666666666666666667"),
+            toProsentAvHøyForMåned = BigDecimal("320.2083333333333333333333333333333"),
         )
         satsFactoryTestPåDato().ordinærAlder(mai(2020)) shouldBe expected(mai(2020))
         satsFactoryTestPåDato().ordinærAlder(juli(2020)) shouldBe expected(juli(2020))

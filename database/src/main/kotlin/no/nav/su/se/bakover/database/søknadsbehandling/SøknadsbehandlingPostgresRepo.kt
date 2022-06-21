@@ -226,14 +226,17 @@ internal class SøknadsbehandlingPostgresRepo(
         val behandlingsinformasjon = objectMapper.readValue<Behandlingsinformasjon>(string("behandlingsinformasjon"))
         val status = BehandlingsStatus.valueOf(string("status"))
         val oppgaveId = OppgaveId(string("oppgaveId"))
-        val beregning: BeregningMedFradragBeregnetMånedsvis? = stringOrNull("beregning")?.deserialiserBeregning(satsFactory.gjeldende(opprettet))
+        val sakstype = Sakstype.from(string("type"))
+        val beregning: BeregningMedFradragBeregnetMånedsvis? = stringOrNull("beregning")?.deserialiserBeregning(
+            satsFactory = satsFactory.gjeldende(opprettet),
+            sakstype = sakstype,
+        )
         val simulering = stringOrNull("simulering")?.let { objectMapper.readValue<Simulering>(it) }
         val attesteringer = Attesteringshistorikk.create(objectMapper.readValue(string("attestering")))
         val saksbehandler = stringOrNull("saksbehandler")?.let { NavIdentBruker.Saksbehandler(it) }
         val saksnummer = Saksnummer(long("saksnummer"))
         val fritekstTilBrev = stringOrNull("fritekstTilBrev") ?: ""
         val stønadsperiode = stringOrNull("stønadsperiode")?.let { objectMapper.readValue<Stønadsperiode>(it) }
-        val sakstype = Sakstype.from(string("type"))
 
         val fnr = Fnr(string("fnr"))
         val (grunnlagsdata, vilkårsvurderinger) = grunnlagsdataOgVilkårsvurderingerPostgresRepo.hentForSøknadsbehandling(

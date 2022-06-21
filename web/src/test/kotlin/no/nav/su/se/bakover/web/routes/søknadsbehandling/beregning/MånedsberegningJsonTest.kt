@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning
 
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.beregning.MånedsberegningFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragForMåned
@@ -44,7 +45,7 @@ internal class MånedsberegningJsonTest {
 
         internal val månedsberegning = MånedsberegningFactory.ny(
             måned = januar(2020),
-            strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
+            strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
             fradrag = listOf(
                 FradragForMåned(
                     fradragstype = Fradragstype.ForventetInntekt,

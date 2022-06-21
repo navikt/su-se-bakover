@@ -24,7 +24,7 @@ internal class EnsligStrategyTest {
         val expectedKontantstøtte =
             lagPeriodisertFradrag(Kontantstøtte, 500.0, januar(2020))
 
-        FradragStrategy.Enslig.beregn(
+        FradragStrategy.Uføre.Enslig.beregn(
             fradrag = listOf(arbeidsinntekt, kontantstøtte, forventetInntekt),
             beregningsperiode = periode
         ).let {
@@ -49,7 +49,7 @@ internal class EnsligStrategyTest {
         val expectedKontantstøtte =
             lagPeriodisertFradrag(Kontantstøtte, 500.0, januar(2020))
 
-        FradragStrategy.Enslig.beregn(
+        FradragStrategy.Uføre.Enslig.beregn(
             fradrag = listOf(arbeidsinntekt, kontantstøtte, forventetInntekt),
             beregningsperiode = periode
         ).let {
@@ -69,7 +69,7 @@ internal class EnsligStrategyTest {
         val kontantstøtte = lagFradrag(Kontantstøtte, 5000.0, periode)
         val forventetInntekt = lagFradrag(ForventetInntekt, 15000.0, periode)
 
-        FradragStrategy.Enslig.beregn(
+        FradragStrategy.Uføre.Enslig.beregn(
             fradrag = listOf(arbeidsinntekt, kontantstøtte, forventetInntekt),
             beregningsperiode = periode
         ).let {
@@ -88,7 +88,7 @@ internal class EnsligStrategyTest {
         val expectedInntektJuni =
             lagPeriodisertFradrag(ForventetInntekt, 2000.0, juni(2020))
 
-        FradragStrategy.Enslig.beregn(
+        FradragStrategy.Uføre.Enslig.beregn(
             fradrag = listOf(arbeidsinntektJanuar, forventetInntekt, arbeidsinntektJuni),
             beregningsperiode = år(2020),
         ).let {
