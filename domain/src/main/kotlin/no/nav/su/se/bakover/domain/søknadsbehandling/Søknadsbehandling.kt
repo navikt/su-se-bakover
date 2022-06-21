@@ -211,6 +211,9 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     }
 
     interface KanLeggeTilVilkår
+    interface KanBeregnes {
+        val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert
+    }
 
     fun leggTilFormuevilkår(
         vilkår: Vilkår.Formue.Vurdert,
@@ -291,12 +294,34 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             .map { copyInternal(grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår)).vilkårsvurder(clock) }
     }
 
-    open fun beregn(
+    fun beregn(
         begrunnelse: String?,
         clock: Clock,
         satsFactory: SatsFactory,
     ): Either<KunneIkkeBeregne, Beregnet> {
-        return KunneIkkeBeregne.UgyldigTilstand(this::class).left()
+        return when (this) {
+            is KanLeggeTilVilkår -> {
+                when (val vilkårsvurdert = vilkårsvurder(clock)) {
+                    is KanBeregnes -> {
+                        beregnInternal(
+                            søknadsbehandling = vilkårsvurdert,
+                            begrunnelse = begrunnelse,
+                            clock = clock,
+                            beregningStrategyFactory = BeregningStrategyFactory(
+                                clock = clock,
+                                satsFactory = satsFactory,
+                            ),
+                        )
+                    }
+                    else -> {
+                        KunneIkkeBeregne.UgyldigTilstand(this::class).left()
+                    }
+                }
+            }
+            else -> {
+                KunneIkkeBeregne.UgyldigTilstand(this::class).left()
+            }
+        }
     }
 
     sealed class KunneIkkeBeregne {
@@ -461,8 +486,8 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         }
     }
 
-    protected fun beregnInternal(
-        søknadsbehandling: Vilkårsvurdert,
+    private fun beregnInternal(
+        søknadsbehandling: KanBeregnes,
         begrunnelse: String?,
         clock: Clock,
         beregningStrategyFactory: BeregningStrategyFactory,
@@ -751,7 +776,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val attesteringer: Attesteringshistorikk,
             override val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert,
             override val sakstype: Sakstype,
-        ) : Vilkårsvurdert() {
+        ) : Vilkårsvurdert(), KanBeregnes {
 
             override val status: BehandlingsStatus = BehandlingsStatus.VILKÅRSVURDERT_INNVILGET
 
@@ -815,22 +840,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         vilkårsvurderinger = vilkårsvurderinger,
                     ),
                     clock = clock,
-                )
-            }
-
-            override fun beregn(
-                begrunnelse: String?,
-                clock: Clock,
-                satsFactory: SatsFactory,
-            ): Either<KunneIkkeBeregne, Beregnet> {
-                return beregnInternal(
-                    søknadsbehandling = vilkårsvurder(vilkårsvurderinger, clock),
-                    begrunnelse = begrunnelse,
-                    clock = clock,
-                    beregningStrategyFactory = BeregningStrategyFactory(
-                        clock = clock,
-                        satsFactory = satsFactory,
-                    ),
                 )
             }
 
@@ -924,7 +933,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 is Vilkårsvurderingsresultat.Innvilget -> emptyList()
                 is Vilkårsvurderingsresultat.Uavklart -> emptyList()
             }
-
 
             private fun vilkårsvurder(
                 vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
@@ -1069,12 +1077,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 sakstype = sakstype,
             )
 
-        abstract override fun beregn(
-            begrunnelse: String?,
-            clock: Clock,
-            satsFactory: SatsFactory,
-        ): Either<KunneIkkeBeregne, Beregnet>
-
         override fun simuler(
             saksbehandler: NavIdentBruker,
             simuler: (request: SimulerUtbetalingRequest.NyUtbetaling) -> Either<SimuleringFeilet, Simulering>,
@@ -1190,22 +1192,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         vilkårsvurderinger = vilkårsvurderinger,
                     ),
                     clock = clock,
-                )
-            }
-
-            override fun beregn(
-                begrunnelse: String?,
-                clock: Clock,
-                satsFactory: SatsFactory,
-            ): Either<KunneIkkeBeregne, Beregnet> {
-                return beregnInternal(
-                    søknadsbehandling = vilkårsvurder(vilkårsvurderinger, clock),
-                    begrunnelse = begrunnelse,
-                    clock = clock,
-                    beregningStrategyFactory = BeregningStrategyFactory(
-                        clock = clock,
-                        satsFactory = satsFactory,
-                    ),
                 )
             }
 
@@ -1351,22 +1337,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 )
             }
 
-            override fun beregn(
-                begrunnelse: String?,
-                clock: Clock,
-                satsFactory: SatsFactory,
-            ): Either<KunneIkkeBeregne, Beregnet> {
-                return beregnInternal(
-                    søknadsbehandling = vilkårsvurder(vilkårsvurderinger, clock),
-                    begrunnelse = begrunnelse,
-                    clock = clock,
-                    beregningStrategyFactory = BeregningStrategyFactory(
-                        clock = clock,
-                        satsFactory = satsFactory,
-                    ),
-                )
-            }
-
             override fun oppdaterStønadsperiode(
                 oppdatertStønadsperiode: Stønadsperiode,
                 clock: Clock,
@@ -1443,7 +1413,9 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     fradragsgrunnlag = fradragsgrunnlag,
                     bosituasjon = this.grunnlagsdata.bosituasjon,
                 ).getOrHandle {
-                    return KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag(it)
+                    return KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag(
+                        it,
+                    )
                         .left()
                 },
                 vilkårsvurderinger,
@@ -1482,22 +1454,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 avkorting = avkorting.uhåndtert(),
                 sakstype = sakstype,
             )
-
-        override fun beregn(
-            begrunnelse: String?,
-            clock: Clock,
-            satsFactory: SatsFactory,
-        ): Either<KunneIkkeBeregne, Beregnet> {
-            return beregnInternal(
-                søknadsbehandling = this.vilkårsvurder(vilkårsvurderinger, clock),
-                begrunnelse = begrunnelse,
-                clock = clock,
-                beregningStrategyFactory = BeregningStrategyFactory(
-                    clock = clock,
-                    satsFactory = satsFactory,
-                ),
-            )
-        }
 
         override fun simuler(
             saksbehandler: NavIdentBruker,
@@ -2013,22 +1969,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 visitor.visit(this)
             }
 
-            override fun beregn(
-                begrunnelse: String?,
-                clock: Clock,
-                satsFactory: SatsFactory,
-            ): Either<KunneIkkeBeregne, Beregnet> {
-                return beregnInternal(
-                    søknadsbehandling = this.vilkårsvurder(vilkårsvurderinger, clock),
-                    begrunnelse = begrunnelse,
-                    clock = clock,
-                    beregningStrategyFactory = BeregningStrategyFactory(
-                        clock = clock,
-                        satsFactory = satsFactory,
-                    ),
-                )
-            }
-
             override fun simuler(
                 saksbehandler: NavIdentBruker,
                 simuler: (request: SimulerUtbetalingRequest.NyUtbetaling) -> Either<SimuleringFeilet, Simulering>,
@@ -2211,22 +2151,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     visitor.visit(this)
                 }
 
-                override fun beregn(
-                    begrunnelse: String?,
-                    clock: Clock,
-                    satsFactory: SatsFactory,
-                ): Either<KunneIkkeBeregne, Beregnet> {
-                    return beregnInternal(
-                        søknadsbehandling = this.vilkårsvurder(vilkårsvurderinger, clock),
-                        begrunnelse = begrunnelse,
-                        clock = clock,
-                        beregningStrategyFactory = BeregningStrategyFactory(
-                            clock = clock,
-                            satsFactory = satsFactory,
-                        ),
-                    )
-                }
-
                 fun tilAttestering(saksbehandler: NavIdentBruker.Saksbehandler): TilAttestering.Avslag.MedBeregning =
                     TilAttestering.Avslag.MedBeregning(
                         id,
@@ -2254,7 +2178,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     is Vilkårsvurderingsresultat.Innvilget -> emptyList()
                     is Vilkårsvurderingsresultat.Uavklart -> emptyList()
                 } + avslagsgrunnForBeregning
-
 
                 private fun vilkårsvurder(
                     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
