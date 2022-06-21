@@ -10,9 +10,6 @@ sealed class FradragStrategy {
     abstract fun beregn(fradrag: List<Fradrag>, beregningsperiode: Periode): Map<Måned, List<FradragForMåned>>
     abstract fun getEpsFribeløp(måned: Måned): Double
     protected abstract fun beregnFradrag(fradrag: Map<Måned, List<FradragForMåned>>): Map<Måned, List<FradragForMåned>>
-    protected fun periodisertSumGarantipensjonsnivå(måned: Måned, satsfactory: SatsFactory): Double {
-        return satsfactory.ordinærAlder(måned = måned).satsForMånedAsDouble
-    }
 
     abstract class Uføre : FradragStrategy() {
         override fun beregn(fradrag: List<Fradrag>, beregningsperiode: Periode): Map<Måned, List<FradragForMåned>> {
@@ -67,13 +64,13 @@ sealed class FradragStrategy {
                     .`fjern EPS fradrag opp til garantipensjonsnivå`()
             }
 
-            override fun getEpsFribeløp(måned: Måned): Double = periodisertSumGarantipensjonsnivå(måned, satsfactory)
+            override fun getEpsFribeløp(måned: Måned): Double = satsfactory.ordinærAlder(måned).satsForMånedAsDouble
 
             private fun Map<Måned, List<FradragForMåned>>.`fjern EPS fradrag opp til garantipensjonsnivå`(): Map<Måned, List<FradragForMåned>> {
                 return mapValues { (måned, fradrag) ->
                     `fjern EPS fradrag opp til beløpsgrense`(
                         måned = måned,
-                        beløpsgrense = periodisertSumGarantipensjonsnivå(måned, satsfactory),
+                        beløpsgrense = getEpsFribeløp(måned),
                         fradrag = fradrag,
                     )
                 }
@@ -157,13 +154,13 @@ sealed class FradragStrategy {
                 return fradrag.`fjern EPS fradrag opp til garantipensjonsnivå`()
             }
 
-            override fun getEpsFribeløp(måned: Måned): Double = periodisertSumGarantipensjonsnivå(måned, satsfactory)
+            override fun getEpsFribeløp(måned: Måned): Double = satsfactory.ordinærAlder(måned).satsForMånedAsDouble
 
             private fun Map<Måned, List<FradragForMåned>>.`fjern EPS fradrag opp til garantipensjonsnivå`(): Map<Måned, List<FradragForMåned>> {
                 return mapValues { (måned, fradrag) ->
                     `fjern EPS fradrag opp til beløpsgrense`(
                         måned = måned,
-                        beløpsgrense = periodisertSumGarantipensjonsnivå(måned, satsfactory),
+                        beløpsgrense = getEpsFribeløp(måned),
                         fradrag = fradrag,
                     )
                 }
