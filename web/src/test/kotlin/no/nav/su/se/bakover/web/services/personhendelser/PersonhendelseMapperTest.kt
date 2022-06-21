@@ -56,7 +56,7 @@ internal class PersonhendelseMapperTest {
             endringstype = Personhendelse.Endringstype.OPPRETTET,
             hendelse = Personhendelse.Hendelse.Dødsfall(fixedLocalDate),
             metadata = Personhendelse.Metadata(
-                personidenter = NonEmptyList.fromListUnsafe(personhendelse.getPersonidenter()),
+                personidenter = NonEmptyList.fromListUnsafe(personhendelse.personidenter),
                 hendelseId = "hendelseId",
                 tidligereHendelseId = null,
                 offset = OFFSET,
@@ -90,7 +90,7 @@ internal class PersonhendelseMapperTest {
             endringstype = Personhendelse.Endringstype.OPPRETTET,
             hendelse = Personhendelse.Hendelse.Dødsfall.EMPTY,
             metadata = Personhendelse.Metadata(
-                personidenter = NonEmptyList.fromListUnsafe(personhendelse.getPersonidenter()),
+                personidenter = NonEmptyList.fromListUnsafe(personhendelse.personidenter),
                 hendelseId = "hendelseId",
                 tidligereHendelseId = null,
                 offset = OFFSET,
@@ -124,7 +124,7 @@ internal class PersonhendelseMapperTest {
             endringstype = Personhendelse.Endringstype.OPPRETTET,
             hendelse = Personhendelse.Hendelse.UtflyttingFraNorge(fixedLocalDate),
             metadata = Personhendelse.Metadata(
-                personidenter = NonEmptyList.fromListUnsafe(personhendelse.getPersonidenter()),
+                personidenter = NonEmptyList.fromListUnsafe(personhendelse.personidenter),
                 hendelseId = "hendelseId",
                 tidligereHendelseId = null,
                 offset = OFFSET,
@@ -158,7 +158,7 @@ internal class PersonhendelseMapperTest {
             endringstype = Personhendelse.Endringstype.OPPRETTET,
             hendelse = Personhendelse.Hendelse.UtflyttingFraNorge.EMPTY,
             metadata = Personhendelse.Metadata(
-                personidenter = NonEmptyList.fromListUnsafe(personhendelse.getPersonidenter()),
+                personidenter = NonEmptyList.fromListUnsafe(personhendelse.personidenter),
                 hendelseId = "hendelseId",
                 tidligereHendelseId = null,
                 offset = OFFSET,
@@ -193,7 +193,7 @@ internal class PersonhendelseMapperTest {
             hendelse = Personhendelse.Hendelse.Sivilstand(SivilstandTyper.UGIFT, null, null, null),
             metadata = Personhendelse.Metadata(
                 hendelseId = "hendelseId",
-                personidenter = NonEmptyList.fromListUnsafe(personhendelse.getPersonidenter()),
+                personidenter = NonEmptyList.fromListUnsafe(personhendelse.personidenter),
                 tidligereHendelseId = null,
                 offset = OFFSET,
                 partisjon = PARTITION,
@@ -227,7 +227,7 @@ internal class PersonhendelseMapperTest {
             hendelse = Personhendelse.Hendelse.Sivilstand.EMPTY,
             metadata = Personhendelse.Metadata(
                 hendelseId = "hendelseId",
-                personidenter = NonEmptyList.fromListUnsafe(personhendelse.getPersonidenter()),
+                personidenter = NonEmptyList.fromListUnsafe(personhendelse.personidenter),
                 tidligereHendelseId = null,
                 offset = OFFSET,
                 partisjon = PARTITION,
@@ -261,7 +261,7 @@ internal class PersonhendelseMapperTest {
             hendelse = Personhendelse.Hendelse.UtflyttingFraNorge(fixedLocalDate),
             metadata = Personhendelse.Metadata(
                 hendelseId = "hendelseId",
-                personidenter = NonEmptyList.fromListUnsafe(personhendelse.getPersonidenter()),
+                personidenter = NonEmptyList.fromListUnsafe(personhendelse.personidenter),
                 tidligereHendelseId = null,
                 offset = OFFSET,
                 partisjon = PARTITION,
@@ -332,7 +332,7 @@ internal class PersonhendelseMapperTest {
             hendelse = Personhendelse.Hendelse.Bostedsadresse,
             metadata = Personhendelse.Metadata(
                 hendelseId = "hendelseId",
-                personidenter = NonEmptyList.fromListUnsafe(personhendelse.getPersonidenter()),
+                personidenter = NonEmptyList.fromListUnsafe(personhendelse.personidenter),
                 tidligereHendelseId = null,
                 offset = OFFSET,
                 partisjon = PARTITION,
@@ -382,7 +382,7 @@ internal class PersonhendelseMapperTest {
             hendelse = Personhendelse.Hendelse.Kontaktadresse,
             metadata = Personhendelse.Metadata(
                 hendelseId = "hendelseId",
-                personidenter = NonEmptyList.fromListUnsafe(personhendelse.getPersonidenter()),
+                personidenter = NonEmptyList.fromListUnsafe(personhendelse.personidenter),
                 tidligereHendelseId = null,
                 offset = OFFSET,
                 partisjon = PARTITION,
