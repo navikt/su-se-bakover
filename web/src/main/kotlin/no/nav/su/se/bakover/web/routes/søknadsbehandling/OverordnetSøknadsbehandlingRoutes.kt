@@ -22,5 +22,7 @@ internal fun Route.overordnetSøknadsbehandligRoutes(
 
     leggTilFormueForSøknadsbehandlingRoute(søknadsbehandlingService, satsFactory)
 
+    leggTilFamiliegjenforeningRoute(søknadsbehandlingService, satsFactory)
+
     pensjonsVilkårRoutes(søknadsbehandlingService, satsFactory)
 }

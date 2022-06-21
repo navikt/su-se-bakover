@@ -21,7 +21,7 @@
     "SKJERMING_URL": "https://skjermede-personer-pip.nais.adeo.no",
     "MQ_QUEUE_MANAGER": "MPLS02",
     "MQ_PORT": 1414,
-    "MQ_HOSTNAME": "a01apvl269.adeo.no",
+    "MQ_HOSTNAME": "mpls02.adeo.no",
     "MQ_CHANNEL": "P_SU_SE_BAKOVER",
     "MQ_SEND_QUEUE_UTBETALING": "QA.P231.OB04_OPPDRAG_XML",
     "MQ_REPLY_TO": "QA.P_SU_SE_BAKOVER.OPPDRAG_KVITTERING",

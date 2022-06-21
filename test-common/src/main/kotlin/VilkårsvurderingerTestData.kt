@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
+import no.nav.su.se.bakover.domain.vilkår.FamiliegjenforeningVilkår
 import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
@@ -17,8 +18,19 @@ import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.test.vilkår.avslåttFormueVilkår
+import no.nav.su.se.bakover.test.vilkår.familiegjenforeningVilkårAvslag
+import no.nav.su.se.bakover.test.vilkår.familiegjenforeningVilkårInnvilget
+import no.nav.su.se.bakover.test.vilkår.fastOppholdVilkårAvslag
+import no.nav.su.se.bakover.test.vilkår.fastOppholdVilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.formuevilkårAvslåttPgrBrukersformue
 import no.nav.su.se.bakover.test.vilkår.formuevilkårUtenEps0Innvilget
+import no.nav.su.se.bakover.test.vilkår.innvilgetFormueVilkår
+import no.nav.su.se.bakover.test.vilkår.insitusjonsoppholdvilkårAvslag
+import no.nav.su.se.bakover.test.vilkår.insitusjonsoppholdvilkårInnvilget
+import no.nav.su.se.bakover.test.vilkår.lovligOppholdVilkårAvslag
+import no.nav.su.se.bakover.test.vilkår.lovligOppholdVilkårInnvilget
+import no.nav.su.se.bakover.test.vilkår.pensjonsVilkårAvslag
 import no.nav.su.se.bakover.test.vilkår.pensjonsVilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.tilstrekkeligDokumentert
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
@@ -26,15 +38,52 @@ import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdInnvilget
 import no.nav.su.se.bakover.test.vilkår.utilstrekkeligDokumentert
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt0
+import vilkår.personligOppmøtevilkårAvslag
+import vilkår.personligOppmøtevilkårInnvilget
+import vurderingsperiode.vurderingsperiodeFamiliegjenforeningInnvilget
 import java.util.UUID
 
 fun vilkårsvurderingSøknadsbehandlingIkkeVurdert(): Vilkårsvurderinger.Søknadsbehandling.Uføre {
     return Vilkårsvurderinger.Søknadsbehandling.Uføre.ikkeVurdert()
 }
 
-fun vilkårsvurderingRevurderingIkkeVurdert(): Vilkårsvurderinger.Revurdering.Uføre {
-    return Vilkårsvurderinger.Revurdering.Uføre.ikkeVurdert()
-}
+fun vilkårsvurderingSøknadsbehandlingIkkeVurdertAlder() = Vilkårsvurderinger.Søknadsbehandling.Alder(
+    formue = Vilkår.Formue.IkkeVurdert,
+    lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
+    fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
+    institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
+    utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
+    personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
+    opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
+    pensjon = PensjonsVilkår.IkkeVurdert,
+    familiegjenforening = FamiliegjenforeningVilkår.IkkeVurdert,
+)
+
+fun vilkårsvurderingSøknadsbehandlingVurdertInnvilgetAlder() = Vilkårsvurderinger.Søknadsbehandling.Alder(
+    formue = innvilgetFormueVilkår(),
+    lovligOpphold = lovligOppholdVilkårInnvilget(),
+    fastOpphold = fastOppholdVilkårInnvilget(),
+    institusjonsopphold = insitusjonsoppholdvilkårInnvilget(),
+    utenlandsopphold = utenlandsoppholdInnvilget(),
+    personligOppmøte = personligOppmøtevilkårInnvilget(),
+    opplysningsplikt = tilstrekkeligDokumentert(),
+    familiegjenforening = familiegjenforeningVilkårInnvilget(),
+    pensjon = pensjonsVilkårInnvilget(),
+)
+
+fun vilkårsvurderingSøknadsbehandlingVurdertAvslagAlder() = Vilkårsvurderinger.Søknadsbehandling.Alder(
+    formue = avslåttFormueVilkår(),
+    lovligOpphold = lovligOppholdVilkårAvslag(),
+    fastOpphold = fastOppholdVilkårAvslag(),
+    institusjonsopphold = insitusjonsoppholdvilkårAvslag(),
+    utenlandsopphold = utenlandsoppholdAvslag(),
+    personligOppmøte = personligOppmøtevilkårAvslag(),
+    opplysningsplikt = utilstrekkeligDokumentert(),
+    familiegjenforening = familiegjenforeningVilkårAvslag(),
+    pensjon = pensjonsVilkårAvslag(),
+)
+
+fun vilkårsvurderingRevurderingIkkeVurdert() = Vilkårsvurderinger.Revurdering.Uføre.ikkeVurdert()
 
 /**
  * periode: 2021
@@ -205,6 +254,9 @@ fun vilkårsvurderingerAlderInnvilget(
     pensjon: PensjonsVilkår = pensjonsVilkårInnvilget(
         periode = stønadsperiode.periode,
     ),
+    familiegjenforeningVilkår: FamiliegjenforeningVilkår = familiegjenforeningVilkårInnvilget(
+        vurderingsperioder = nonEmptyListOf(vurderingsperiodeFamiliegjenforeningInnvilget(periode = stønadsperiode.periode)),
+    ),
 ): Vilkårsvurderinger.Søknadsbehandling.Alder {
     return Vilkårsvurderinger.Søknadsbehandling.Alder(
         utenlandsopphold = utenlandsopphold,
@@ -215,6 +267,7 @@ fun vilkårsvurderingerAlderInnvilget(
         institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert, // hentes behandlingsinformasjon
         personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert, // hentes behandlingsinformasjon
         pensjon = pensjon,
+        familiegjenforening = familiegjenforeningVilkår,
     ).oppdater(
         stønadsperiode = stønadsperiode,
         behandlingsinformasjon = behandlingsinformasjon,

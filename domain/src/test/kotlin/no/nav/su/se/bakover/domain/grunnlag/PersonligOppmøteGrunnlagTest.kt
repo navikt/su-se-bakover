@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.domain.grunnlag
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.år
