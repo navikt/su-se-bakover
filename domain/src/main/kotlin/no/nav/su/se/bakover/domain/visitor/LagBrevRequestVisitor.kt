@@ -754,6 +754,7 @@ class LagBrevRequestVisitor(
             saksnummer = saksnummer,
             // Ikke inkluder satsoversikt dersom beregning ikke er utført
             satsoversikt = beregning?.let { Satsoversikt.fra(bosituasjon, satsFactory, sakstype) },
+            sakstype = sakstype
         )
     }
 
@@ -776,6 +777,7 @@ class LagBrevRequestVisitor(
         dagensDato = LocalDate.now(clock),
         saksnummer = saksnummer,
         satsoversikt = Satsoversikt.fra(bosituasjon, satsFactory, sakstype),
+        sakstype = sakstype
     )
 
     private data class PersonOgNavn(
