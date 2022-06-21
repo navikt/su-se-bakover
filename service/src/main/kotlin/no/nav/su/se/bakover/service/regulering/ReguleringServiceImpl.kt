@@ -11,10 +11,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.hentGjeldendeUtbetaling
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringMerknad
@@ -290,51 +287,32 @@ class ReguleringServiceImpl(
     }
 
     private fun lagVedtakOgUtbetal(regulering: Regulering.IverksattRegulering): Either<KunneIkkeFerdigstilleOgIverksette.KunneIkkeUtbetale, Pair<Regulering.IverksattRegulering, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering>> {
-        // TODO("simulering_utbetaling_alder trenger sakstype på reguleringer)
-        return utbetalingService.verifiserOgSimulerUtbetaling(
-            request = UtbetalRequest.NyUtbetaling(
-                request = SimulerUtbetalingRequest.NyUtbetaling.Uføre(
-                    sakId = regulering.sakId,
-                    saksbehandler = regulering.saksbehandler,
-                    beregning = regulering.beregning,
-                    uføregrunnlag = regulering.vilkårsvurderinger.tilVilkårsvurderingerRevurdering().uføreVilkår().fold(
-                        {
-                            TODO("vilkårsvurdering_alder utbetaling av alder ikke implementert")
-                        },
-                        {
-                            it.grunnlag
-                        }
-                    ),
-                    // Spesielt for regulering, ved etterbetaling, ønsker vi å utbetale disse sammen med neste kjøring, da disse beløpene bruker å være relativt små.
-                    utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SammenMedNestePlanlagteUtbetaling,
-                ),
-                simulering = regulering.simulering,
-            ),
-        ).mapLeft {
-            log.error("Regulering for saksnummer ${regulering.saksnummer}: Kunne ikke verifisere og simulere utbetaling for regulering med underliggende grunn: $it")
-            KunneIkkeFerdigstilleOgIverksette.KunneIkkeUtbetale
-        }.flatMap {
-            val vedtak = VedtakSomKanRevurderes.from(regulering, it.id, clock)
-
-            Either.catch {
-                sessionFactory.withTransactionContext { tx ->
-                    utbetalingService.lagreUtbetaling(it, tx)
-                    vedtakService.lagre(vedtak, tx)
-                    reguleringRepo.lagre(regulering, tx)
-                    utbetalingService.publiserUtbetaling(it).getOrHandle { utbetalingsfeil ->
-                        throw KunneIkkeSendeTilUtbetalingException(utbetalingsfeil)
-                    }
-                }
-
-                Pair(regulering, vedtak)
-            }.mapLeft {
-                log.error(
-                    "Regulering for saksnummer ${regulering.saksnummer}: En feil skjedde mens vi prøvde lagre utbetalingen og vedtaket; og sende utbetalingen til oppdrag for regulering",
-                    it,
-                )
+        return regulering.verifiserOgSimulerUtbetaling(utbetalingService::verifiserOgSimulerUtbetaling)
+            .mapLeft {
+                log.error("Regulering for saksnummer ${regulering.saksnummer}: Kunne ikke verifisere og simulere utbetaling for regulering med underliggende grunn: $it")
                 KunneIkkeFerdigstilleOgIverksette.KunneIkkeUtbetale
+            }.flatMap {
+                val vedtak = VedtakSomKanRevurderes.from(regulering, it.id, clock)
+
+                Either.catch {
+                    sessionFactory.withTransactionContext { tx ->
+                        utbetalingService.lagreUtbetaling(it, tx)
+                        vedtakService.lagre(vedtak, tx)
+                        reguleringRepo.lagre(regulering, tx)
+                        utbetalingService.publiserUtbetaling(it).getOrHandle { utbetalingsfeil ->
+                            throw KunneIkkeSendeTilUtbetalingException(utbetalingsfeil)
+                        }
+                    }
+
+                    Pair(regulering, vedtak)
+                }.mapLeft {
+                    log.error(
+                        "Regulering for saksnummer ${regulering.saksnummer}: En feil skjedde mens vi prøvde lagre utbetalingen og vedtaket; og sende utbetalingen til oppdrag for regulering",
+                        it,
+                    )
+                    KunneIkkeFerdigstilleOgIverksette.KunneIkkeUtbetale
+                }
             }
-        }
     }
 
     private data class KunneIkkeSendeTilUtbetalingException(val feil: UtbetalingFeilet) : RuntimeException()
