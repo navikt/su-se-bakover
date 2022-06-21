@@ -68,6 +68,7 @@ class SøknadsbehandlingServiceBeregningTest {
                         ),
                     ),
                 ),
+                clock = fixedClock,
             ).getOrFail()
         }
 
@@ -206,6 +207,7 @@ class SøknadsbehandlingServiceBeregningTest {
                         tilhører = FradragTilhører.BRUKER,
                     ),
                 ),
+                clock = fixedClock,
             ).getOrFail()
         }
 

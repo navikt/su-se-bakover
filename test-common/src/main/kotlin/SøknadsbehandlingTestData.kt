@@ -798,7 +798,8 @@ fun vilkårsvurdertSøknadsbehandling(
         }
 
         val medFradrag = if (customGrunnlag.customOrDefault { grunnlagsdata.fradragsgrunnlag }.isNotEmpty()) {
-            vilkårsvurdert.leggTilFradragsgrunnlag(fradragsgrunnlag = customGrunnlag.customOrDefault { grunnlagsdata.fradragsgrunnlag })
+            vilkårsvurdert.leggTilFradragsgrunnlag(fradragsgrunnlag = customGrunnlag.customOrDefault { grunnlagsdata.fradragsgrunnlag },
+                clock = clock)
                 .getOrFail()
         } else {
             vilkårsvurdert

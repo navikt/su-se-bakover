@@ -660,7 +660,7 @@ internal class SøknadsbehandlingServiceImpl(
          * Vi ønsker gradvis å gå over til sistenevnte måte å gjøre det på.
          */
         val oppdatertBehandling =
-            behandling.leggTilFradragsgrunnlag(request.fradragsgrunnlag).getOrHandle {
+            behandling.leggTilFradragsgrunnlag(request.fradragsgrunnlag, clock).getOrHandle {
                 return it.toService().left()
             }
 

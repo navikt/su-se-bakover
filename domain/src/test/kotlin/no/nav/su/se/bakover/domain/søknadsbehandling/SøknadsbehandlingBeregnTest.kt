@@ -59,6 +59,7 @@ internal class SøknadsbehandlingBeregnTest {
                         ),
                     ),
                 ),
+                clock = fixedClock,
             )
         }.getOrFail().let { førBeregning ->
             førBeregning.beregn(
@@ -92,6 +93,7 @@ internal class SøknadsbehandlingBeregnTest {
                         ),
                     ),
                 ),
+                clock = fixedClock,
             )
         }.getOrFail().let { førBeregning ->
             førBeregning.beregn(
@@ -174,6 +176,7 @@ internal class SøknadsbehandlingBeregnTest {
                         ),
                     ),
                 ),
+                clock = fixedClock,
             ).getOrFail().copy(
                 avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
                     Avkortingsvarsel.Utenlandsopphold.Opprettet(

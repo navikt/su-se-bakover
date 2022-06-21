@@ -113,6 +113,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
 
             val attestert = vilkårsvurdert.leggTilFradragsgrunnlag(
                 fradragsgrunnlag = listOf(fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 20000.0)),
+                clock = fixedClock,
             ).getOrFail().beregn(
                 begrunnelse = null,
                 clock = fixedClock,

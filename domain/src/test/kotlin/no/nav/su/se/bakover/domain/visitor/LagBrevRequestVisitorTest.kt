@@ -320,6 +320,7 @@ internal class LagBrevRequestVisitorTest {
                     ),
                 ),
             ),
+            clock = fixedClock,
         ).getOrFail().beregn(
             begrunnelse = null,
             clock = fixedClock,
@@ -455,6 +456,7 @@ internal class LagBrevRequestVisitorTest {
                         ),
                     ),
                 ),
+                clock = fixedClock,
             ).getOrFail().beregn(
                 begrunnelse = null,
                 clock = fixedClock,
@@ -596,6 +598,7 @@ internal class LagBrevRequestVisitorTest {
                         ),
                     ),
                 ),
+                clock = fixedClock,
             ).getOrFail().beregn(
                 begrunnelse = null,
                 clock = fixedClock,
@@ -749,6 +752,7 @@ internal class LagBrevRequestVisitorTest {
                         ),
                     ),
                 ),
+                clock = fixedClock,
             ).getOrFail()
                 .beregn(
                     begrunnelse = null,
@@ -902,6 +906,7 @@ internal class LagBrevRequestVisitorTest {
                         ),
                     ),
                 ),
+                clock = fixedClock,
             ).getOrFail().beregn(
                 begrunnelse = null,
                 clock = fixedClock,

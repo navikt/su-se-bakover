@@ -31,7 +31,6 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.perioder
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
-import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
 import no.nav.su.se.bakover.domain.grunnlag.Opplysningspliktgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
@@ -115,13 +114,13 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
     fun leggTilFradragsgrunnlag(
         fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
-        //TODO clock
+        clock: Clock,
     ): Either<KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> {
         return if (this is KanLeggeTilVilkår) {
-            vilkårsvurder(Clock.systemUTC()).let {
+            vilkårsvurder(clock).let {
                 when (it) {
                     is KanLeggeTilFradrag -> {
-                        leggTilFradragsgrunnlagInternal(fradragsgrunnlag)
+                        leggTilFradragsgrunnlagInternal(fradragsgrunnlag, clock)
                     }
                     else -> {
                         KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen(
@@ -138,6 +137,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
     private fun leggTilFradragsgrunnlagInternal(
         fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
+        clock: Clock,
     ): Either<KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> {
         return validerFradragsgrunnlag(fradragsgrunnlag)
             .map {
@@ -145,9 +145,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTilFradragsgrunnlag(
                         fradragsgrunnlag,
                     ),
-                ).vilkårsvurder(
-                    Clock.systemUTC(),
-                ) as Vilkårsvurdert.Innvilget //TODO clock + cast
+                ).vilkårsvurder(clock) as Vilkårsvurdert.Innvilget //TODO cast
             }
     }
 
@@ -158,7 +156,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         bosituasjon: Grunnlag.Bosituasjon,
         clock: Clock,
     ): Either<KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon, Vilkårsvurdert> {
-        return if(this is KanLeggeTilBosituasjon){
+        return if (this is KanLeggeTilBosituasjon) {
             oppdaterBosituasjonInternal(bosituasjon, clock).right()
         } else {
             KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon.UgyldigTilstand(
@@ -287,7 +285,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         ).mapLeft {
             KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it)
         }.map {
-            copyInternal(stønadsperiode = oppdatertStønadsperiode, grunnlagsdataOgVilkårsvurderinger = it).vilkårsvurder(clock)
+            copyInternal(
+                stønadsperiode = oppdatertStønadsperiode,
+                grunnlagsdataOgVilkårsvurderinger = it,
+            ).vilkårsvurder(clock)
         }
     }
 
@@ -548,6 +549,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 beregnUtenAvkorting(
                     begrunnelse = begrunnelse,
                     beregningStrategyFactory = beregningStrategyFactory,
+                    clock = clock,
                 ).getOrHandle { return it.left() }
             }
             is AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere -> {
@@ -612,9 +614,11 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     private fun beregnUtenAvkorting(
         begrunnelse: String?,
         beregningStrategyFactory: BeregningStrategyFactory,
+        clock: Clock,
     ): Either<KunneIkkeBeregne, Pair<Vilkårsvurdert, Beregning>> {
         return leggTilFradragsgrunnlag(
             fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag.filterNot { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold },
+            clock = clock,
         ).getOrHandle {
             return KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag(it).left()
         }.let {
@@ -643,7 +647,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         clock: Clock,
         beregningStrategyFactory: BeregningStrategyFactory,
     ): Either<KunneIkkeBeregne, Pair<Vilkårsvurdert, Beregning>> {
-        return beregnUtenAvkorting(begrunnelse, beregningStrategyFactory)
+        return beregnUtenAvkorting(begrunnelse, beregningStrategyFactory, clock)
             .map { (utenAvkorting, beregningUtenAvkorting) ->
                 val fradragForAvkorting = Avkortingsplan(
                     feilutbetaltBeløp = avkorting.avkortingsvarsel.hentUtbetalteBeløp().sum(),
@@ -659,6 +663,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
                 val medAvkorting = utenAvkorting.leggTilFradragsgrunnlag(
                     fradragsgrunnlag = utenAvkorting.grunnlagsdata.fradragsgrunnlag + fradragForAvkorting,
+                    clock = clock,
                 ).getOrHandle { return KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag(it).left() }
 
                 medAvkorting to gjørBeregning(
@@ -669,7 +674,8 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             }
     }
 
-    sealed class Vilkårsvurdert : Søknadsbehandling(), KanOppdatereStønadsperiode, KanLeggeTilVilkår, KanLeggeTilBosituasjon {
+    sealed class Vilkårsvurdert : Søknadsbehandling(), KanOppdatereStønadsperiode, KanLeggeTilVilkår,
+        KanLeggeTilBosituasjon {
 
         abstract override val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert
 
@@ -1599,7 +1605,8 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         }
     }
 
-    sealed class Underkjent : Søknadsbehandling(), KanOppdatereStønadsperiode, KanLeggeTilVilkår, KanLeggeTilBosituasjon {
+    sealed class Underkjent : Søknadsbehandling(), KanOppdatereStønadsperiode, KanLeggeTilVilkår,
+        KanLeggeTilBosituasjon {
         abstract override val id: UUID
         abstract override val opprettet: Tidspunkt
         abstract override val sakId: UUID
