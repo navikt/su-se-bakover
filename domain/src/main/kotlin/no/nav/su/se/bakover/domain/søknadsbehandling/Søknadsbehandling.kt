@@ -876,19 +876,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                 )
             }
-
-            private fun vilkårsvurder(
-                vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
-                clock: Clock,
-            ): Vilkårsvurdert {
-                return tilVilkårsvurdert(
-                    behandlingsinformasjon = behandlingsinformasjon,
-                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.copy(
-                        vilkårsvurderinger = vilkårsvurderinger,
-                    ),
-                    clock = clock,
-                )
-            }
         }
 
         data class Avslag(
@@ -961,19 +948,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 is Vilkårsvurderingsresultat.Innvilget -> emptyList()
                 is Vilkårsvurderingsresultat.Uavklart -> emptyList()
             }
-
-            private fun vilkårsvurder(
-                vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
-                clock: Clock,
-            ): Vilkårsvurdert {
-                return tilVilkårsvurdert(
-                    behandlingsinformasjon,
-                    grunnlagsdataOgVilkårsvurderinger.copy(
-                        vilkårsvurderinger = vilkårsvurderinger,
-                    ),
-                    clock,
-                )
-            }
         }
 
         data class Uavklart(
@@ -1015,19 +989,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
             override fun accept(visitor: SøknadsbehandlingVisitor) {
                 visitor.visit(this)
-            }
-
-            private fun vilkårsvurder(
-                vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
-                clock: Clock,
-            ): Vilkårsvurdert {
-                return tilVilkårsvurdert(
-                    behandlingsinformasjon,
-                    grunnlagsdataOgVilkårsvurderinger.copy(
-                        vilkårsvurderinger = vilkårsvurderinger,
-                    ),
-                    clock,
-                )
             }
 
             data class StønadsperiodeIkkeDefinertException(
@@ -1140,19 +1101,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                 )
             }
-
-            private fun vilkårsvurder(
-                vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
-                clock: Clock,
-            ): Vilkårsvurdert {
-                return tilVilkårsvurdert(
-                    behandlingsinformasjon = behandlingsinformasjon,
-                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.copy(
-                        vilkårsvurderinger = vilkårsvurderinger,
-                    ),
-                    clock = clock,
-                )
-            }
         }
 
         data class Avslag(
@@ -1231,19 +1179,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 is Vilkårsvurderingsresultat.Innvilget -> emptyList()
                 is Vilkårsvurderingsresultat.Uavklart -> emptyList()
             } + avslagsgrunnForBeregning
-
-            private fun vilkårsvurder(
-                vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
-                clock: Clock,
-            ): Vilkårsvurdert {
-                return tilVilkårsvurdert(
-                    behandlingsinformasjon = behandlingsinformasjon,
-                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.copy(
-                        vilkårsvurderinger = vilkårsvurderinger,
-                    ),
-                    clock = clock,
-                )
-            }
         }
     }
 
@@ -1376,17 +1311,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 attesteringer,
                 avkorting,
                 sakstype,
-            )
-        }
-
-        private fun vilkårsvurder(
-            vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
-            clock: Clock,
-        ): Vilkårsvurdert {
-            return tilVilkårsvurdert(
-                behandlingsinformasjon,
-                grunnlagsdataOgVilkårsvurderinger.copy(vilkårsvurderinger = vilkårsvurderinger),
-                clock,
             )
         }
     }
@@ -1850,19 +1774,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     sakstype,
                 )
             }
-
-            private fun vilkårsvurder(
-                vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
-                clock: Clock,
-            ): Vilkårsvurdert {
-                return tilVilkårsvurdert(
-                    behandlingsinformasjon,
-                    grunnlagsdataOgVilkårsvurderinger.copy(
-                        vilkårsvurderinger = vilkårsvurderinger,
-                    ),
-                    clock,
-                )
-            }
         }
 
         sealed class Avslag : Underkjent(), ErAvslag {
@@ -1944,19 +1855,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     is Vilkårsvurderingsresultat.Innvilget -> emptyList()
                     is Vilkårsvurderingsresultat.Uavklart -> emptyList()
                 } + avslagsgrunnForBeregning
-
-                private fun vilkårsvurder(
-                    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
-                    clock: Clock,
-                ): Vilkårsvurdert {
-                    return tilVilkårsvurdert(
-                        behandlingsinformasjon,
-                        grunnlagsdataOgVilkårsvurderinger.copy(
-                            vilkårsvurderinger = vilkårsvurderinger,
-                        ),
-                        clock,
-                    )
-                }
             }
 
             data class UtenBeregning(
@@ -2029,19 +1927,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     is Vilkårsvurderingsresultat.Avslag -> vilkår.avslagsgrunner
                     is Vilkårsvurderingsresultat.Innvilget -> emptyList()
                     is Vilkårsvurderingsresultat.Uavklart -> emptyList()
-                }
-
-                private fun vilkårsvurder(
-                    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
-                    clock: Clock,
-                ): Vilkårsvurdert {
-                    return tilVilkårsvurdert(
-                        behandlingsinformasjon,
-                        grunnlagsdataOgVilkårsvurderinger.copy(
-                            vilkårsvurderinger = vilkårsvurderinger,
-                        ),
-                        clock,
-                    )
                 }
             }
         }
