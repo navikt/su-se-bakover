@@ -113,11 +113,39 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         return Unit.right()
     }
 
-    open fun leggTilFradragsgrunnlag(
+    fun leggTilFradragsgrunnlag(
         fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
-    ): Either<KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> =
-        KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen(this::class)
-            .left()
+        //TODO clock
+    ): Either<KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> {
+        return if (this is KanLeggeTilVilkår) {
+            vilkårsvurder(Clock.systemUTC()).let {
+                when (it) {
+                    is KanLeggeTilFradrag -> {
+                        leggTilFradragsgrunnlagInternal(fradragsgrunnlag)
+                    }
+                    else -> {
+                        KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen(
+                            this::class,
+                        ).left()
+                    }
+                }
+            }
+        } else {
+            KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen(this::class)
+                .left()
+        }
+    }
+
+    private fun leggTilFradragsgrunnlagInternal(
+        fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
+    ): Either<KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> {
+        return validerFradragsgrunnlag(fradragsgrunnlag)
+            .map {
+                copyInternal(grunnlagsdataOgVilkårsvurderinger.leggTilFradragsgrunnlag(fradragsgrunnlag)).vilkårsvurder(
+                    Clock.systemUTC(),
+                ) as Vilkårsvurdert.Innvilget //TODO clock + cast
+            }
+    }
 
     /**
      * TODO("bør vi skille på oppdatering og fullføring (ufullstendig vs fullstendig bosituasjon)")
@@ -166,7 +194,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         return this
     }
 
-    open fun leggTilUtenlandsopphold(
+    fun leggTilUtenlandsopphold(
         utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
         clock: Clock,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
@@ -211,6 +239,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     }
 
     interface KanLeggeTilVilkår
+    interface KanLeggeTilFradrag
     interface KanBeregnes {
         val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert
     }
@@ -776,7 +805,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val attesteringer: Attesteringshistorikk,
             override val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert,
             override val sakstype: Sakstype,
-        ) : Vilkårsvurdert(), KanBeregnes {
+        ) : Vilkårsvurdert(), KanLeggeTilFradrag, KanBeregnes {
 
             override val status: BehandlingsStatus = BehandlingsStatus.VILKÅRSVURDERT_INNVILGET
 
@@ -788,39 +817,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
             override fun accept(visitor: SøknadsbehandlingVisitor) {
                 visitor.visit(this)
-            }
-
-            override fun leggTilFradragsgrunnlag(
-                fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
-            ): Either<KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag, Innvilget> {
-                validerFradragsgrunnlag(fradragsgrunnlag).mapLeft {
-                    return it.left()
-                }
-
-                return Innvilget(
-                    id,
-                    opprettet,
-                    sakId,
-                    saksnummer,
-                    søknad,
-                    oppgaveId,
-                    this.behandlingsinformasjon.patch(behandlingsinformasjon),
-                    fnr,
-                    fritekstTilBrev,
-                    stønadsperiode,
-                    grunnlagsdata = Grunnlagsdata.tryCreateTillatUfullstendigBosituasjon(
-                        fradragsgrunnlag = fradragsgrunnlag,
-                        bosituasjon = this.grunnlagsdata.bosituasjon,
-                    ).getOrHandle {
-                        return KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag(
-                            it,
-                        ).left()
-                    },
-                    vilkårsvurderinger,
-                    attesteringer,
-                    avkorting,
-                    sakstype,
-                ).right()
             }
 
             override fun copyInternal(grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling): Vilkårsvurdert {
@@ -1142,39 +1138,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 visitor.visit(this)
             }
 
-            override fun leggTilFradragsgrunnlag(
-                fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
-            ): Either<KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> {
-                validerFradragsgrunnlag(fradragsgrunnlag).mapLeft {
-                    return it.left()
-                }
-
-                return Vilkårsvurdert.Innvilget(
-                    id,
-                    opprettet,
-                    sakId,
-                    saksnummer,
-                    søknad,
-                    oppgaveId,
-                    this.behandlingsinformasjon.patch(behandlingsinformasjon),
-                    fnr,
-                    fritekstTilBrev,
-                    stønadsperiode,
-                    grunnlagsdata = Grunnlagsdata.tryCreate(
-                        fradragsgrunnlag = fradragsgrunnlag,
-                        bosituasjon = this.grunnlagsdata.bosituasjon,
-                    ).getOrHandle {
-                        return KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag(
-                            it,
-                        ).left()
-                    },
-                    vilkårsvurderinger,
-                    attesteringer,
-                    avkorting.uhåndtert(),
-                    sakstype,
-                ).right()
-            }
-
             override fun copyInternal(grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling): Innvilget {
                 return copy(
                     grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
@@ -1247,39 +1210,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
             init {
                 kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
-            }
-
-            override fun leggTilFradragsgrunnlag(
-                fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
-            ): Either<KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> {
-                validerFradragsgrunnlag(fradragsgrunnlag).mapLeft {
-                    return it.left()
-                }
-
-                return Vilkårsvurdert.Innvilget(
-                    id,
-                    opprettet,
-                    sakId,
-                    saksnummer,
-                    søknad,
-                    oppgaveId,
-                    this.behandlingsinformasjon.patch(behandlingsinformasjon),
-                    fnr,
-                    fritekstTilBrev,
-                    stønadsperiode,
-                    grunnlagsdata = Grunnlagsdata.tryCreate(
-                        fradragsgrunnlag = fradragsgrunnlag,
-                        bosituasjon = this.grunnlagsdata.bosituasjon,
-                    ).getOrHandle {
-                        return KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag(
-                            it,
-                        ).left()
-                    },
-                    vilkårsvurderinger,
-                    attesteringer,
-                    avkorting.uhåndtert(),
-                    sakstype,
-                ).right()
             }
 
             override fun copyInternal(grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling): Avslag {
@@ -1389,40 +1319,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
         override fun accept(visitor: SøknadsbehandlingVisitor) {
             visitor.visit(this)
-        }
-
-        override fun leggTilFradragsgrunnlag(
-            fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
-        ): Either<KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> {
-            validerFradragsgrunnlag(fradragsgrunnlag).mapLeft {
-                return it.left()
-            }
-
-            return Vilkårsvurdert.Innvilget(
-                id,
-                opprettet,
-                sakId,
-                saksnummer,
-                søknad,
-                oppgaveId,
-                this.behandlingsinformasjon.patch(behandlingsinformasjon),
-                fnr,
-                fritekstTilBrev,
-                stønadsperiode,
-                grunnlagsdata = Grunnlagsdata.tryCreate(
-                    fradragsgrunnlag = fradragsgrunnlag,
-                    bosituasjon = this.grunnlagsdata.bosituasjon,
-                ).getOrHandle {
-                    return KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag(
-                        it,
-                    )
-                        .left()
-                },
-                vilkårsvurderinger,
-                attesteringer,
-                avkorting.uhåndtert(),
-                sakstype,
-            ).right()
         }
 
         override fun copyInternal(grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling): Simulert {
@@ -1925,39 +1821,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 return this.copy(oppgaveId = nyOppgaveId)
             }
 
-            override fun leggTilFradragsgrunnlag(
-                fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
-            ): Either<KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> {
-                validerFradragsgrunnlag(fradragsgrunnlag).mapLeft {
-                    return it.left()
-                }
-
-                return Vilkårsvurdert.Innvilget(
-                    id = id,
-                    opprettet = opprettet,
-                    sakId = sakId,
-                    saksnummer = saksnummer,
-                    søknad = søknad,
-                    oppgaveId = oppgaveId,
-                    behandlingsinformasjon = this.behandlingsinformasjon.patch(behandlingsinformasjon),
-                    fnr = fnr,
-                    fritekstTilBrev = fritekstTilBrev,
-                    stønadsperiode = stønadsperiode,
-                    grunnlagsdata = Grunnlagsdata.tryCreate(
-                        fradragsgrunnlag = fradragsgrunnlag,
-                        bosituasjon = this.grunnlagsdata.bosituasjon,
-                    ).getOrHandle {
-                        return KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag(
-                            it,
-                        ).left()
-                    },
-                    vilkårsvurderinger = vilkårsvurderinger,
-                    attesteringer = attesteringer,
-                    avkorting = avkorting.uhåndtert(),
-                    sakstype,
-                ).right()
-            }
-
             override fun copyInternal(grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling): Innvilget {
                 return copy(
                     grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
@@ -2101,39 +1964,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
                 init {
                     kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
-                }
-
-                override fun leggTilFradragsgrunnlag(
-                    fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
-                ): Either<KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> {
-                    validerFradragsgrunnlag(fradragsgrunnlag).mapLeft {
-                        return it.left()
-                    }
-
-                    return Vilkårsvurdert.Innvilget(
-                        id,
-                        opprettet,
-                        sakId,
-                        saksnummer,
-                        søknad,
-                        oppgaveId,
-                        this.behandlingsinformasjon.patch(behandlingsinformasjon),
-                        fnr,
-                        fritekstTilBrev,
-                        stønadsperiode,
-                        grunnlagsdata = Grunnlagsdata.tryCreate(
-                            fradragsgrunnlag = fradragsgrunnlag,
-                            bosituasjon = this.grunnlagsdata.bosituasjon,
-                        ).getOrHandle {
-                            return KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag(
-                                it,
-                            ).left()
-                        },
-                        vilkårsvurderinger,
-                        attesteringer,
-                        avkorting.uhåndtert(),
-                        sakstype,
-                    ).right()
                 }
 
                 override fun copyInternal(grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling): MedBeregning {

@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import org.jetbrains.kotlin.backend.jvm.lower.fragmentSharedVariablesLowering
 
 sealed class GrunnlagsdataOgVilkårsvurderinger {
     abstract val grunnlagsdata: Grunnlagsdata
@@ -25,6 +26,7 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
     fun erVurdert(): Boolean = vilkårsvurderinger.erVurdert && grunnlagsdata.erUtfylt
 
     abstract fun leggTil(vilkår: Vilkår): GrunnlagsdataOgVilkårsvurderinger
+    abstract fun leggTilFradragsgrunnlag(grunnlag: List<Grunnlag.Fradragsgrunnlag>): GrunnlagsdataOgVilkårsvurderinger
 
     protected fun kastHvisPerioderIkkeErLike() {
         if (grunnlagsdata.periode != null && vilkårsvurderinger.periode != null) {
@@ -136,6 +138,10 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
             return copy(vilkårsvurderinger = vilkårsvurderinger.leggTil(vilkår))
         }
 
+        override fun leggTilFradragsgrunnlag(grunnlag: List<Grunnlag.Fradragsgrunnlag>): Søknadsbehandling {
+            return copy(grunnlagsdata = grunnlagsdata.copy(fradragsgrunnlag = grunnlag))
+        }
+
         override fun oppdaterBosituasjon(bosituasjon: List<Grunnlag.Bosituasjon>): Søknadsbehandling {
             return super.oppdaterBosituasjon(bosituasjon) as Søknadsbehandling
         }
@@ -220,6 +226,10 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
 
         override fun leggTil(vilkår: Vilkår): Revurdering {
             return copy(vilkårsvurderinger = vilkårsvurderinger.leggTil(vilkår))
+        }
+
+        override fun leggTilFradragsgrunnlag(grunnlag: List<Grunnlag.Fradragsgrunnlag>): Revurdering {
+            return copy(grunnlagsdata = grunnlagsdata.copy(fradragsgrunnlag = grunnlag))
         }
     }
 }
