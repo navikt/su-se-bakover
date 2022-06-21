@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
@@ -95,7 +96,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
         )
 
         actual shouldBe KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeOppdatereBosituasjon(
-            feil = Søknadsbehandling.KunneIkkeOppdatereBosituasjon.UgyldigTilstand(
+            feil = KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon.UgyldigTilstand(
                 Søknadsbehandling.TilAttestering.Avslag.UtenBeregning::class,
                 Søknadsbehandling.Vilkårsvurdert::class,
             ),
@@ -313,7 +314,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
 
             ),
         ) shouldBe KunneIkkeFullføreBosituasjonGrunnlag.KunneIkkeEndreBosituasjongrunnlag(
-            Søknadsbehandling.KunneIkkeOppdatereBosituasjon.UgyldigTilstand(
+            KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon.UgyldigTilstand(
                 fra = Søknadsbehandling.TilAttestering.Avslag.UtenBeregning::class,
                 til = Søknadsbehandling.Vilkårsvurdert::class,
             )

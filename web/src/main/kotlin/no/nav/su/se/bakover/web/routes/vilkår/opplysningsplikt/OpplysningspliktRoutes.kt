@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.satser.SatsFactory
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vilkår.KunneIkkeLageOpplysningspliktVilkår
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilOpplysningsplikt
 import no.nav.su.se.bakover.service.revurdering.LeggTilOpplysningspliktRequest
@@ -100,10 +100,10 @@ internal fun KunneIkkeLeggeTilOpplysningsplikt.tilResultat(): Resultat {
         }
         is KunneIkkeLeggeTilOpplysningsplikt.Søknadsbehandling -> {
             when (val feil = this.feil) {
-                Søknadsbehandling.KunneIkkeLeggeTilOpplysningsplikt.HeleBehandlingsperiodenErIkkeVurdert -> {
+                KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt.HeleBehandlingsperiodenErIkkeVurdert -> {
                     Feilresponser.vilkårMåVurderesForHeleBehandlingsperioden
                 }
-                is Søknadsbehandling.KunneIkkeLeggeTilOpplysningsplikt.UgyldigTilstand -> {
+                is KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt.UgyldigTilstand -> {
                     Feilresponser.ugyldigTilstand(feil.fra, feil.til)
                 }
             }

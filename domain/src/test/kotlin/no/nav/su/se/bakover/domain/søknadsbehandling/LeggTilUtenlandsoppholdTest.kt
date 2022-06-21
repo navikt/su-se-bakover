@@ -37,14 +37,14 @@ class LeggTilUtenlandsoppholdTest {
                 periode = januar(2020),
             ),
             clock = fixedClock,
-        ) shouldBe Søknadsbehandling.KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode.left()
+        ) shouldBe KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode.left()
 
         uavklart.leggTilUtenlandsopphold(
             utenlandsopphold = utenlandsoppholdInnvilget(
                 periode = Periode.create(1.januar(2020), 31.januar(2025)),
             ),
             clock = fixedClock,
-        ) shouldBe Søknadsbehandling.KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode.left()
+        ) shouldBe KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode.left()
 
         uavklart.leggTilUtenlandsopphold(
             utenlandsopphold = utenlandsoppholdInnvilget(
@@ -91,7 +91,7 @@ class LeggTilUtenlandsoppholdTest {
             it.leggTilUtenlandsopphold(
                 utenlandsopphold = utenlandsoppholdInnvilget(),
                 clock = fixedClock,
-            ) shouldBe Søknadsbehandling.KunneIkkeLeggeTilUtenlandsopphold.IkkeLovÅLeggeTilUtenlandsoppholdIDenneStatusen(fra = it::class, til = Søknadsbehandling.Vilkårsvurdert::class).left()
+            ) shouldBe KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold.IkkeLovÅLeggeTilUtenlandsoppholdIDenneStatusen(fra = it::class, til = Søknadsbehandling.Vilkårsvurdert::class).left()
         }
     }
 }
