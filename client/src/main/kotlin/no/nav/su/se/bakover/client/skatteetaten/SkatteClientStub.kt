@@ -13,9 +13,9 @@ class SkatteClientStub : Skatteoppslag {
             fnr = Fnr(fnr = "04900148157"),
             inntektsår = 2021,
             grunnlag = listOf(
-                Skattegrunnlag.Grunnlag(navn = "a", beløp = 1000, kategori = listOf(Skattegrunnlag.Kategori.INNTEKT)),
-                Skattegrunnlag.Grunnlag(navn = "b", beløp = 1238, kategori = listOf(Skattegrunnlag.Kategori.FORMUE)),
-                Skattegrunnlag.Grunnlag(navn = "c", beløp = 1238, kategori = listOf(Skattegrunnlag.Kategori.FORMUESFRADRAG)),
+                Skattegrunnlag.Grunnlag(navn = "alminneligInntektFoerSaerfradrag", beløp = 1000, kategori = listOf(Skattegrunnlag.Kategori.INNTEKT)),
+                Skattegrunnlag.Grunnlag(navn = "bruttoformue", beløp = 1238, kategori = listOf(Skattegrunnlag.Kategori.FORMUE)),
+                Skattegrunnlag.Grunnlag(navn = "fradragForFagforeningskontingent", beløp = 1238, kategori = listOf(Skattegrunnlag.Kategori.FORMUESFRADRAG)),
             ),
             skatteoppgjoersdato = null,
             hentetDato = Tidspunkt.now()
