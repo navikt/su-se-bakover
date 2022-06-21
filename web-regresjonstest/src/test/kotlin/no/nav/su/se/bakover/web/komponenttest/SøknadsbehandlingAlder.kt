@@ -1,8 +1,11 @@
 package no.nav.su.se.bakover.web.komponenttest
 
 import arrow.core.nonEmptyListOf
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import no.nav.su.se.bakover.common.fixedClock
+import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
@@ -11,6 +14,8 @@ import no.nav.su.se.bakover.domain.fnrOver67
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.oppdrag.simulering.TolketUtbetaling
+import no.nav.su.se.bakover.domain.satser.Satskategori
 import no.nav.su.se.bakover.domain.søknadsinnholdAlder
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
@@ -46,7 +51,9 @@ import org.junit.jupiter.api.assertThrows
 internal class SøknadsbehandlingAlder {
     @Test
     fun `sanity check`() {
-        withKomptestApplication { appComponents ->
+        withKomptestApplication(
+            clock = 17.juni(2022).fixedClock(),
+        ) { appComponents ->
             appComponents.services.søknad.nySøknad(
                 søknadInnhold = søknadsinnholdAlder(),
                 identBruker = saksbehandler,
@@ -216,28 +223,29 @@ internal class SøknadsbehandlingAlder {
                 }
             }
 
-            // TODO merge inn branch for beregning av alder, så skal denne testen fungere
-            assertThrows<NotImplementedError> {
-                appComponents.services.søknadsbehandling.beregn(
-                    request = SøknadsbehandlingService.BeregnRequest(
-                        behandlingId = søknadsbehandling.id,
-                        begrunnelse = null,
-                    ),
-                )
-            }.also {
-                it.message shouldContain "vilkårsvurdering_alder Beregning av alder er ikke implementert enda"
+            appComponents.services.søknadsbehandling.beregn(
+                request = SøknadsbehandlingService.BeregnRequest(
+                    behandlingId = søknadsbehandling.id,
+                    begrunnelse = null,
+                ),
+            ).getOrFail().also {
+                it.beregning.getSumYtelse() shouldBe 195188
+                it.beregning.getSumFradrag() shouldBe 12000
+                it.beregning.getMånedsberegninger().all { it.getSats() == Satskategori.HØY } shouldBe true
+                it.beregning.getMånedsberegninger().count { it.getSatsbeløp() == 16868.75 } shouldBe 4
+                it.beregning.getMånedsberegninger().count { it.getSatsbeløp() == 17464.25 } shouldBe 8
+                it.beregning.getMånedsberegninger() shouldHaveSize 12
             }
 
-            // TODO merge inn branch for beregning av alder, så skal denne testen fungere
-            // appComponents.services.søknadsbehandling.simuler(
-            //     request = SøknadsbehandlingService.SimulerRequest(
-            //         behandlingId = søknadsbehandling.id,
-            //         saksbehandler = saksbehandler,
-            //     ),
-            // ).getOrFail().also {
-            //     it.simulering.bruttoYtelse() shouldBe 195188
-            //     it.simulering.tolk().simulertePerioder.all { it.utbetalinger.all { it is TolketUtbetaling.Ordinær } }
-            // }
+            appComponents.services.søknadsbehandling.simuler(
+                request = SøknadsbehandlingService.SimulerRequest(
+                    behandlingId = søknadsbehandling.id,
+                    saksbehandler = saksbehandler,
+                ),
+            ).getOrFail().also {
+                it.simulering.bruttoYtelse() shouldBe 195188
+                it.simulering.tolk().simulertePerioder.all { it.utbetalinger.all { it is TolketUtbetaling.Ordinær } }
+            }
 
             appComponents.services.søknadsbehandling.leggTilOpplysningspliktVilkår(
                 request = LeggTilOpplysningspliktRequest.Søknadsbehandling(

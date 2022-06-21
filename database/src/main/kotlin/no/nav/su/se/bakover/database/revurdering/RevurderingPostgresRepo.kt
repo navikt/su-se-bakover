@@ -247,8 +247,10 @@ internal class RevurderingPostgresRepo(
         val periode = string("periode").let { objectMapper.readValue<Periode>(it) }
         val opprettet = tidspunkt("opprettet")
         val tilRevurdering = vedtakRepo.hent(uuid("vedtakSomRevurderesId"), session)!! as VedtakSomKanRevurderes
-        val beregning: BeregningMedFradragBeregnetMånedsvis? =
-            stringOrNull("beregning")?.deserialiserBeregning(satsFactory.gjeldende(opprettet))
+        val beregning: BeregningMedFradragBeregnetMånedsvis? = stringOrNull("beregning")?.deserialiserBeregning(
+            satsFactory = satsFactory.gjeldende(opprettet),
+            sakstype = sakstype,
+        )
         val simulering = stringOrNull("simulering")?.let { objectMapper.readValue<Simulering>(it) }
         val saksbehandler = string("saksbehandler")
         val oppgaveId = stringOrNull("oppgaveid")

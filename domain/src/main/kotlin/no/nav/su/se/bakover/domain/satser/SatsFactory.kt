@@ -18,6 +18,11 @@ interface SatsFactory {
         satskategori: Satskategori,
     ): FullSupplerendeStønadForMåned.Uføre
 
+    fun forSatskategoriAlder(
+        måned: Måned,
+        satskategori: Satskategori,
+    ): FullSupplerendeStønadForMåned.Alder
+
     /**  Hvordan verden så ut på denne datoen. */
     val knekkpunkt: Knekkpunkt
 

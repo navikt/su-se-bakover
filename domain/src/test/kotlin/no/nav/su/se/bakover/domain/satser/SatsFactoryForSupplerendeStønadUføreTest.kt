@@ -413,7 +413,7 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
                         ikrafttredelse = 1.januar(2022),
                         virkningstidspunkt = 1.januar(2022),
                     ),
-                    toProsentAvHøyForMåned = BigDecimal("0.8333333333333333333333333333333333"),
+                    toProsentAvHøyForMåned = BigDecimal("0.01666666666666666666666666666666667"),
                 )
                 it.grunnbeløp(januar(2022)) shouldBe GrunnbeløpForMåned(
                     måned = januar(2022),

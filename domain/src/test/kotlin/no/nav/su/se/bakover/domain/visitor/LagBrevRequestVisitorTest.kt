@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
@@ -1558,7 +1559,7 @@ internal class LagBrevRequestVisitorTest {
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = år(2021),
-                    strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
+                    strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
                 ),
             ),
         )
@@ -1587,7 +1588,7 @@ internal class LagBrevRequestVisitorTest {
             beregningsperioder = listOf(
                 Beregningsperiode(
                     periode = år(2021),
-                    strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato()),
+                    strategy = BeregningStrategy.BorAlene(satsFactoryTestPåDato(), Sakstype.UFØRE),
                 ),
             ),
         )

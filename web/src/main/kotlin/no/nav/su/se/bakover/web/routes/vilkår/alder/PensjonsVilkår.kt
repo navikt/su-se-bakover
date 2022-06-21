@@ -7,6 +7,8 @@ import arrow.core.sequence
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.PeriodeJson
 import no.nav.su.se.bakover.common.periode.PeriodeJson.Companion.toJson
+import no.nav.su.se.bakover.domain.grunnlag.Pensjonsgrunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Pensjonsopplysninger
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.KunneIkkeLagePensjonsVilkår
@@ -17,41 +19,161 @@ import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeTilPensjonsVilkår
 import no.nav.su.se.bakover.web.routes.Feilresponser
 import java.util.UUID
 
-internal enum class PensjonsVilkårResultat {
-    VilkårOppfylt,
-    VilkårIkkeOppfylt,
-    HarAlderssakTilBehandling;
+internal data class PensjonsopplysningerJson(
+    val folketrygd: PensjonsoppysningerSvarJson,
+    val andreNorske: PensjonsoppysningerSvarJson,
+    val utenlandske: PensjonsoppysningerSvarJson,
+) {
+    fun toDomain(): Pensjonsopplysninger {
+        return Pensjonsopplysninger(
+            søktPensjonFolketrygd = Pensjonsopplysninger.SøktPensjonFolketrygd(
+                svar = folketrygd.toFolketrygdSvar(),
+            ),
+            søktAndreNorskePensjoner = Pensjonsopplysninger.SøktAndreNorskePensjoner(
+                svar = andreNorske.toAndrePensjonerSvar(),
+            ),
+            søktUtenlandskePensjoner = Pensjonsopplysninger.SøktUtenlandskePensjoner(
+                svar = utenlandske.toUtenlandskePensjonerSvar(),
+            ),
+        )
+    }
+}
 
-    fun toResultat(): Resultat {
+internal fun Pensjonsopplysninger.toJson(): PensjonsopplysningerJson {
+    return PensjonsopplysningerJson(
+        folketrygd = søktPensjonFolketrygd.svar.toJson(),
+        andreNorske = søktAndreNorskePensjoner.svar.toJson(),
+        utenlandske = søktUtenlandskePensjoner.svar.toJson(),
+    )
+}
+
+private fun Pensjonsopplysninger.SøktUtenlandskePensjoner.Svar.toJson(): PensjonsoppysningerSvarJson {
+    return when (this) {
+        Pensjonsopplysninger.SøktUtenlandskePensjoner.Svar.HarIkkeSøktUtenlandskePensjoner -> {
+            PensjonsoppysningerSvarJson.NEI
+        }
+        Pensjonsopplysninger.SøktUtenlandskePensjoner.Svar.HarSøktUtenlandskePensjoner -> {
+            PensjonsoppysningerSvarJson.JA
+        }
+        Pensjonsopplysninger.SøktUtenlandskePensjoner.Svar.IkkeAktuelt -> {
+            PensjonsoppysningerSvarJson.IKKE_AKTUELT
+        }
+    }
+}
+
+private fun Pensjonsopplysninger.SøktAndreNorskePensjoner.Svar.toJson(): PensjonsoppysningerSvarJson {
+    return when (this) {
+        Pensjonsopplysninger.SøktAndreNorskePensjoner.Svar.HarIkkeSøktAndreNorskePensjonerEnnFolketrygden -> {
+            PensjonsoppysningerSvarJson.NEI
+        }
+        Pensjonsopplysninger.SøktAndreNorskePensjoner.Svar.HarSøktAndreNorskePensjonerEnnFolketrygden -> {
+            PensjonsoppysningerSvarJson.JA
+        }
+        Pensjonsopplysninger.SøktAndreNorskePensjoner.Svar.IkkeAktuelt -> {
+            PensjonsoppysningerSvarJson.IKKE_AKTUELT
+        }
+    }
+}
+
+private fun Pensjonsopplysninger.SøktPensjonFolketrygd.Svar.toJson(): PensjonsoppysningerSvarJson {
+    return when (this) {
+        Pensjonsopplysninger.SøktPensjonFolketrygd.Svar.HarIkkeSøktPensjonFraFolketrygden -> {
+            PensjonsoppysningerSvarJson.NEI
+        }
+        Pensjonsopplysninger.SøktPensjonFolketrygd.Svar.HarSøktPensjonFraFolketrygden -> {
+            PensjonsoppysningerSvarJson.JA
+        }
+    }
+}
+
+enum class PensjonsoppysningerSvarJson {
+    JA,
+    NEI,
+    IKKE_AKTUELT;
+
+    fun toFolketrygdSvar(): Pensjonsopplysninger.SøktPensjonFolketrygd.Svar {
         return when (this) {
-            VilkårOppfylt -> Resultat.Innvilget
-            VilkårIkkeOppfylt -> Resultat.Avslag
-            HarAlderssakTilBehandling -> Resultat.Uavklart
+            JA -> {
+                Pensjonsopplysninger.SøktPensjonFolketrygd.Svar.HarSøktPensjonFraFolketrygden
+            }
+            NEI -> {
+                Pensjonsopplysninger.SøktPensjonFolketrygd.Svar.HarIkkeSøktPensjonFraFolketrygden
+            }
+            IKKE_AKTUELT -> {
+                throw IllegalArgumentException("Ugyldig argument $this for ${Pensjonsopplysninger.SøktPensjonFolketrygd.Svar::class}")
+            }
+        }
+    }
+
+    fun toAndrePensjonerSvar(): Pensjonsopplysninger.SøktAndreNorskePensjoner.Svar {
+        return when (this) {
+            JA -> {
+                Pensjonsopplysninger.SøktAndreNorskePensjoner.Svar.HarSøktAndreNorskePensjonerEnnFolketrygden
+            }
+            NEI -> {
+                Pensjonsopplysninger.SøktAndreNorskePensjoner.Svar.HarIkkeSøktAndreNorskePensjonerEnnFolketrygden
+            }
+            IKKE_AKTUELT -> {
+                Pensjonsopplysninger.SøktAndreNorskePensjoner.Svar.IkkeAktuelt
+            }
+        }
+    }
+
+    fun toUtenlandskePensjonerSvar(): Pensjonsopplysninger.SøktUtenlandskePensjoner.Svar {
+        return when (this) {
+            JA -> {
+                Pensjonsopplysninger.SøktUtenlandskePensjoner.Svar.HarSøktUtenlandskePensjoner
+            }
+            NEI -> {
+                Pensjonsopplysninger.SøktUtenlandskePensjoner.Svar.HarIkkeSøktUtenlandskePensjoner
+            }
+            IKKE_AKTUELT -> {
+                Pensjonsopplysninger.SøktUtenlandskePensjoner.Svar.IkkeAktuelt
+            }
         }
     }
 }
 
 internal data class PensjonsVilkårJson(
-    val vurderinger: List<VurderingsperiodePensjonsVilkårJson>,
-    val resultat: PensjonsVilkårResultat,
+    val vurderinger: List<VurderingsperiodePensjonsvilkårJson>,
+    val resultat: String,
 )
 
-internal data class VurderingsperiodePensjonsVilkårJson(
+private fun Resultat.toJson(): String {
+    return when (this) {
+        Resultat.Avslag -> "VilkårIkkeOppfylt"
+        Resultat.Innvilget -> "VilkårOppfylt"
+        Resultat.Uavklart -> "Uavklart"
+    }
+}
+
+internal data class VurderingsperiodePensjonsvilkårJson(
+    val resultat: String,
     val periode: PeriodeJson,
-    val resultat: PensjonsVilkårResultat,
+    val pensjonsopplysninger: PensjonsopplysningerJson,
+)
+
+internal data class LeggTilVurderingsperiodePensjonsvilkårJson(
+    val periode: PeriodeJson,
+    val pensjonsopplysninger: PensjonsopplysningerJson,
 ) {
     fun toDomain(): Either<KunneIkkeLagePensjonsVilkår.Vurderingsperiode, VurderingsperiodePensjon> {
+        val opprettet = Tidspunkt.now()
         return VurderingsperiodePensjon.tryCreate(
             id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(),
+            opprettet = opprettet,
             vurderingsperiode = periode.toPeriode(),
-            grunnlag = null,
-            resultat = resultat.toResultat(),
+            grunnlag = Pensjonsgrunnlag(
+                id = UUID.randomUUID(),
+                opprettet = opprettet,
+                periode = periode.toPeriode(),
+                pensjonsopplysninger = pensjonsopplysninger.toDomain(),
+            ),
         )
     }
 }
 
-internal fun List<VurderingsperiodePensjonsVilkårJson>.toDomain(): Either<KunneIkkeLeggeTilPensjonsVilkår, PensjonsVilkår.Vurdert> {
+internal fun List<LeggTilVurderingsperiodePensjonsvilkårJson>.toDomain(): Either<KunneIkkeLeggeTilPensjonsVilkår, PensjonsVilkår.Vurdert> {
     return map { it.toDomain() }.sequence()
         .mapLeft { KunneIkkeLeggeTilPensjonsVilkår.UgyldigPensjonsVilkår(it) }
         .flatMap { vurderingsperioder ->
@@ -74,23 +196,16 @@ internal fun PensjonsVilkår.toJson(): PensjonsVilkårJson? {
 internal fun PensjonsVilkår.Vurdert.toJson(): PensjonsVilkårJson {
     return PensjonsVilkårJson(
         vurderinger = vurderingsperioder.map { it.toJson() },
-        resultat = resultat.toPensjonsVilkårResultat(),
+        resultat = resultat.toJson(),
     )
 }
 
-internal fun VurderingsperiodePensjon.toJson(): VurderingsperiodePensjonsVilkårJson {
-    return VurderingsperiodePensjonsVilkårJson(
+internal fun VurderingsperiodePensjon.toJson(): VurderingsperiodePensjonsvilkårJson {
+    return VurderingsperiodePensjonsvilkårJson(
+        resultat = resultat.toJson(),
         periode = periode.toJson(),
-        resultat = resultat.toPensjonsVilkårResultat(),
+        pensjonsopplysninger = grunnlag.pensjonsopplysninger.toJson(),
     )
-}
-
-internal fun Resultat.toPensjonsVilkårResultat(): PensjonsVilkårResultat {
-    return when (this) {
-        Resultat.Avslag -> PensjonsVilkårResultat.VilkårIkkeOppfylt
-        Resultat.Innvilget -> PensjonsVilkårResultat.VilkårOppfylt
-        Resultat.Uavklart -> PensjonsVilkårResultat.HarAlderssakTilBehandling
-    }
 }
 
 internal fun KunneIkkeLeggeTilPensjonsVilkår.tilResultat(): no.nav.su.se.bakover.web.Resultat {

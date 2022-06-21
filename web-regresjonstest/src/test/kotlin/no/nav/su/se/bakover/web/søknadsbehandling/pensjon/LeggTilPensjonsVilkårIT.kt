@@ -4,6 +4,8 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.web.SharedRegressionTestData
+import no.nav.su.se.bakover.web.avslåttPensjonsvilkårJson
+import no.nav.su.se.bakover.web.innvilgetPensjonsvilkårJson
 import no.nav.su.se.bakover.web.leggTilPensjonsVilkår
 import no.nav.su.se.bakover.web.sak.assertSakJson
 import no.nav.su.se.bakover.web.sak.hent.hentSak
@@ -72,10 +74,12 @@ internal class LeggTilPensjonsVilkårIT {
                         behandlingId = behandlingId,
                         fraOgMed = fraOgMed,
                         tilOgMed = tilOgMed,
+                        body = { innvilgetPensjonsvilkårJson(fraOgMed, tilOgMed) },
                         brukerrolle = Brukerrolle.Saksbehandler,
                     ).also {
                         JSONAssert.assertEquals(
                             JSONObject(BehandlingJson.hentPensjonsVilkår(it)).toString(),
+                            //language=JSON
                             """
                                 {
                                   "vurderinger": [
@@ -84,10 +88,49 @@ internal class LeggTilPensjonsVilkårIT {
                                       "periode": {
                                         "fraOgMed": "2022-01-01",
                                         "tilOgMed": "2022-12-31"
+                                      },
+                                      "pensjonsopplysninger": {
+                                        "folketrygd": "JA",
+                                        "andreNorske": "IKKE_AKTUELT",
+                                        "utenlandske": "JA"
                                       }
                                     }
                                   ],
                                   "resultat": "VilkårOppfylt"
+                                }
+                            """.trimIndent(),
+                            true,
+                        )
+                    }
+
+                    leggTilPensjonsVilkår(
+                        sakId = sakId,
+                        behandlingId = behandlingId,
+                        fraOgMed = fraOgMed,
+                        tilOgMed = tilOgMed,
+                        body = { avslåttPensjonsvilkårJson(fraOgMed, tilOgMed) },
+                        brukerrolle = Brukerrolle.Saksbehandler,
+                    ).also {
+                        JSONAssert.assertEquals(
+                            JSONObject(BehandlingJson.hentPensjonsVilkår(it)).toString(),
+                            //language=JSON
+                            """
+                                {
+                                  "vurderinger": [
+                                    {
+                                      "resultat": "VilkårIkkeOppfylt",
+                                      "periode": {
+                                        "fraOgMed": "2022-01-01",
+                                        "tilOgMed": "2022-12-31"
+                                      },
+                                      "pensjonsopplysninger": {
+                                        "folketrygd": "NEI",
+                                        "andreNorske": "IKKE_AKTUELT",
+                                        "utenlandske": "JA"
+                                      }
+                                    }
+                                  ],
+                                  "resultat": "VilkårIkkeOppfylt"
                                 }
                             """.trimIndent(),
                             true,

@@ -68,7 +68,7 @@ internal class PensjonVilkårsvurderingPostgresRepo(
                     "id" to vurderingsperiode.id,
                     "opprettet" to vurderingsperiode.opprettet,
                     "behandlingId" to behandlingId,
-                    "grunnlag_id" to vurderingsperiode.grunnlag?.id,
+                    "grunnlag_id" to vurderingsperiode.grunnlag.id,
                     "resultat" to vurderingsperiode.resultat.toDto(),
                     "fraOgMed" to vurderingsperiode.periode.fraOgMed,
                     "tilOgMed" to vurderingsperiode.periode.tilOgMed,
@@ -117,14 +117,11 @@ internal class PensjonVilkårsvurderingPostgresRepo(
         return VurderingsperiodePensjon.create(
             id = uuid("id"),
             opprettet = tidspunkt("opprettet"),
-            resultat = ResultatDto.valueOf(string("resultat")).toDomain(),
-            grunnlag = uuidOrNull("grunnlag_id")?.let {
-                pensjonsgrunnlagPostgresRepo.hent(it, session)
-            },
             periode = Periode.create(
                 fraOgMed = localDate("fraOgMed"),
                 tilOgMed = localDate("tilOgMed"),
             ),
+            grunnlag = pensjonsgrunnlagPostgresRepo.hent((uuid("grunnlag_id")), session)!!,
         )
     }
 }

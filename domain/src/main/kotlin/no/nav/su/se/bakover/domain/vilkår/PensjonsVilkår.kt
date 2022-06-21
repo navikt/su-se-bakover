@@ -51,8 +51,6 @@ sealed class PensjonsVilkår : Vilkår() {
         val vurderingsperioder: Nel<VurderingsperiodePensjon>,
     ) : PensjonsVilkår() {
 
-        // TODO("init som sjekker at perioder og stuff ikke overlapper - funksjonalitet fra Johns pr på innstrammende inits")
-
         override val grunnlag: List<Pensjonsgrunnlag> = vurderingsperioder.mapNotNull { it.grunnlag }
         override fun lagTidslinje(periode: Periode): PensjonsVilkår {
             return copy(
@@ -129,6 +127,10 @@ sealed class PensjonsVilkår : Vilkår() {
         override fun slåSammenLikePerioder(): PensjonsVilkår {
             return copy(vurderingsperioder = vurderingsperioder.slåSammenLikePerioder())
         }
+
+        init {
+            kastHvisPerioderErUsortertEllerHarDuplikater()
+        }
     }
 }
 
@@ -136,7 +138,7 @@ data class VurderingsperiodePensjon private constructor(
     override val id: UUID = UUID.randomUUID(),
     override val opprettet: Tidspunkt,
     override val resultat: Resultat,
-    override val grunnlag: Pensjonsgrunnlag?, // TODO("forsøk å unngå null når vi har funnet ut hva grunnlaget skal inneholde")
+    override val grunnlag: Pensjonsgrunnlag,
     override val periode: Periode,
 ) : Vurderingsperiode(), KanPlasseresPåTidslinje<VurderingsperiodePensjon> {
 
@@ -144,9 +146,8 @@ data class VurderingsperiodePensjon private constructor(
         return create(
             id = id,
             opprettet = opprettet,
-            resultat = resultat,
             periode = stønadsperiode.periode,
-            grunnlag = this.grunnlag?.oppdaterPeriode(stønadsperiode.periode),
+            grunnlag = grunnlag,
         )
     }
 
@@ -154,14 +155,14 @@ data class VurderingsperiodePensjon private constructor(
         CopyArgs.Tidslinje.Full -> {
             copy(
                 id = UUID.randomUUID(),
-                grunnlag = grunnlag?.copy(args),
+                grunnlag = grunnlag.copy(args),
             )
         }
         is CopyArgs.Tidslinje.NyPeriode -> {
             copy(
                 id = UUID.randomUUID(),
                 periode = args.periode,
-                grunnlag = grunnlag?.copy(args),
+                grunnlag = grunnlag.copy(args),
             )
         }
         is CopyArgs.Tidslinje.Maskert -> {
@@ -172,18 +173,17 @@ data class VurderingsperiodePensjon private constructor(
     override fun erLik(other: Vurderingsperiode): Boolean {
         return other is VurderingsperiodePensjon &&
             resultat == other.resultat &&
-            grunnlag == other.grunnlag
+            grunnlag.erLik(other.grunnlag)
     }
 
     companion object {
         fun create(
             id: UUID = UUID.randomUUID(),
             opprettet: Tidspunkt,
-            resultat: Resultat,
-            grunnlag: Pensjonsgrunnlag?,
             periode: Periode,
+            grunnlag: Pensjonsgrunnlag,
         ): VurderingsperiodePensjon {
-            return tryCreate(id, opprettet, resultat, grunnlag, periode).getOrHandle {
+            return tryCreate(id, opprettet, periode, grunnlag).getOrHandle {
                 throw IllegalArgumentException(it.toString())
             }
         }
@@ -191,19 +191,18 @@ data class VurderingsperiodePensjon private constructor(
         fun tryCreate(
             id: UUID = UUID.randomUUID(),
             opprettet: Tidspunkt,
-            resultat: Resultat,
-            grunnlag: Pensjonsgrunnlag?,
             vurderingsperiode: Periode,
+            grunnlag: Pensjonsgrunnlag,
         ): Either<KunneIkkeLagePensjonsVilkår.Vurderingsperiode, VurderingsperiodePensjon> {
 
-            grunnlag?.let {
+            grunnlag.let {
                 if (vurderingsperiode != it.periode) return KunneIkkeLagePensjonsVilkår.Vurderingsperiode.PeriodeForGrunnlagOgVurderingErForskjellig.left()
             }
 
             return VurderingsperiodePensjon(
                 id = id,
                 opprettet = opprettet,
-                resultat = resultat,
+                resultat = grunnlag.tilResultat(),
                 grunnlag = grunnlag,
                 periode = vurderingsperiode,
             ).right()

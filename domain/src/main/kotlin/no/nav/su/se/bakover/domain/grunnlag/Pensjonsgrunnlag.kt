@@ -1,26 +1,25 @@
 package no.nav.su.se.bakover.domain.grunnlag
 
-import arrow.core.Either
-import arrow.core.getOrHandle
-import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
+import no.nav.su.se.bakover.domain.vilkår.Resultat
 import java.util.UUID
 
 data class Pensjonsgrunnlag(
     override val id: UUID = UUID.randomUUID(),
     override val opprettet: Tidspunkt,
     override val periode: Periode,
+    val pensjonsopplysninger: Pensjonsopplysninger,
 ) : Grunnlag(), KanPlasseresPåTidslinje<Pensjonsgrunnlag> {
 
     fun oppdaterPeriode(periode: Periode): Pensjonsgrunnlag {
-        return tryCreate(
-            id = id,
-            opprettet = opprettet,
-            periode = periode,
-        ).getOrHandle { throw IllegalArgumentException(it.toString()) }
+        return copy(periode = periode)
+    }
+
+    fun tilResultat(): Resultat {
+        return pensjonsopplysninger.resultat()
     }
 
     override fun copy(args: CopyArgs.Tidslinje): Pensjonsgrunnlag = when (args) {
@@ -36,23 +35,96 @@ data class Pensjonsgrunnlag(
     }
 
     override fun erLik(other: Grunnlag): Boolean {
-        return other is Pensjonsgrunnlag
-    }
-
-    companion object {
-        fun tryCreate(
-            id: UUID = UUID.randomUUID(),
-            opprettet: Tidspunkt,
-            periode: Periode,
-        ): Either<KunneIkkeOpprettePensjonsgrunnlag, Pensjonsgrunnlag> {
-            // TODO("vurder behov for either")
-            return Pensjonsgrunnlag(
-                id = id,
-                opprettet = opprettet,
-                periode = periode,
-            ).right()
-        }
+        return other is Pensjonsgrunnlag &&
+            other.pensjonsopplysninger == pensjonsopplysninger
     }
 }
 
-sealed class KunneIkkeOpprettePensjonsgrunnlag
+data class Pensjonsopplysninger(
+    val søktPensjonFolketrygd: SøktPensjonFolketrygd,
+    val søktAndreNorskePensjoner: SøktAndreNorskePensjoner,
+    val søktUtenlandskePensjoner: SøktUtenlandskePensjoner,
+) {
+    fun resultat(): Resultat {
+        return when {
+            setOf(
+                søktPensjonFolketrygd.resultat(),
+                søktAndreNorskePensjoner.resultat(),
+                søktUtenlandskePensjoner.resultat(),
+            ) == setOf(Resultat.Innvilget) -> {
+                Resultat.Innvilget
+            }
+            else -> {
+                Resultat.Avslag
+            }
+        }
+    }
+
+    data class SøktPensjonFolketrygd(
+        val svar: Svar,
+    ) {
+        fun resultat(): Resultat {
+            return when (svar) {
+                Svar.HarIkkeSøktPensjonFraFolketrygden -> {
+                    Resultat.Avslag
+                }
+                Svar.HarSøktPensjonFraFolketrygden -> {
+                    Resultat.Innvilget
+                }
+            }
+        }
+
+        sealed class Svar {
+            object HarSøktPensjonFraFolketrygden : Svar()
+            object HarIkkeSøktPensjonFraFolketrygden : Svar()
+        }
+    }
+
+    data class SøktAndreNorskePensjoner(
+        val svar: Svar,
+    ) {
+        fun resultat(): Resultat {
+            return when (svar) {
+                Svar.IkkeAktuelt -> {
+                    Resultat.Innvilget
+                }
+                Svar.HarSøktAndreNorskePensjonerEnnFolketrygden -> {
+                    Resultat.Innvilget
+                }
+                Svar.HarIkkeSøktAndreNorskePensjonerEnnFolketrygden -> {
+                    Resultat.Avslag
+                }
+            }
+        }
+
+        sealed class Svar {
+            object HarSøktAndreNorskePensjonerEnnFolketrygden : Svar()
+            object HarIkkeSøktAndreNorskePensjonerEnnFolketrygden : Svar()
+            object IkkeAktuelt : Svar()
+        }
+    }
+
+    data class SøktUtenlandskePensjoner(
+        val svar: Svar,
+    ) {
+        fun resultat(): Resultat {
+            return when (svar) {
+                Svar.IkkeAktuelt -> {
+                    Resultat.Innvilget
+                }
+                Svar.HarSøktUtenlandskePensjoner -> {
+                    Resultat.Innvilget
+                }
+                Svar.HarIkkeSøktUtenlandskePensjoner -> {
+                    Resultat.Avslag
+                }
+            }
+        }
+
+        sealed class Svar {
+            object HarSøktUtenlandskePensjoner : Svar()
+            object HarIkkeSøktUtenlandskePensjoner : Svar()
+            object IkkeAktuelt : Svar()
+        }
+    }
+}
