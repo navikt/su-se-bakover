@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsinnholdAlder
+import no.nav.su.se.bakover.domain.vilkår.FamiliegjenforeningVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.PensjonsVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
@@ -759,6 +760,11 @@ fun vilkårsvurdertSøknadsbehandling(
                     .getOrFail()
                     .leggTilPensjonsVilkår(
                         vilkår = customVilkår.customOrDefault { vilkår.pensjon as PensjonsVilkår.Vurdert },
+                        clock = clock,
+                    )
+                    .getOrFail()
+                    .leggTilFamiliegjenforeningvilkår(
+                        familiegjenforening = customVilkår.customOrDefault { vilkår.familiegjenforening as FamiliegjenforeningVilkår.Vurdert },
                         clock = clock,
                     )
                     .getOrFail()
