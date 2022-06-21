@@ -51,6 +51,14 @@ sealed class KunneIkkeLeggeTilVilkår {
             val til: KClass<out Søknadsbehandling>,
         ) : KunneIkkeLeggeTilFormuevilkår()
     }
+
+    sealed class KunneIkkeLeggeTilFamiliegjenforeningVilkår : KunneIkkeLeggeTilVilkår() {
+        data class UgyldigTilstand(
+            val fra: KClass<out Søknadsbehandling>,
+            val til: KClass<out Søknadsbehandling.Vilkårsvurdert>,
+        ) :
+            KunneIkkeLeggeTilFamiliegjenforeningVilkår()
+    }
 }
 
 sealed class KunneIkkeLeggeTilGrunnlag {

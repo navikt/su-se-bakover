@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.periode.erSammenhengendeSortertOgUtenDuplikat
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.perioderMedEPS
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.perioderUtenEPS
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -22,6 +23,8 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
     }
 
     fun erVurdert(): Boolean = vilkårsvurderinger.erVurdert && grunnlagsdata.erUtfylt
+
+    abstract fun leggTil(vilkår: Vilkår): GrunnlagsdataOgVilkårsvurderinger
 
     protected fun kastHvisPerioderIkkeErLike() {
         if (grunnlagsdata.periode != null && vilkårsvurderinger.periode != null) {
@@ -129,6 +132,9 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
     ) : GrunnlagsdataOgVilkårsvurderinger() {
+        override fun leggTil(vilkår: Vilkår): Søknadsbehandling {
+            return copy(vilkårsvurderinger = vilkårsvurderinger.leggTil(vilkår))
+        }
 
         override fun oppdaterBosituasjon(bosituasjon: List<Grunnlag.Bosituasjon>): Søknadsbehandling {
             return super.oppdaterBosituasjon(bosituasjon) as Søknadsbehandling
@@ -191,11 +197,7 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
                 }
             }
 
-            return vilkårsvurderinger.leggTil(vilkår).let {
-                this.copy(
-                    vilkårsvurderinger = it,
-                )
-            }
+            return leggTil(vilkår)
         }
 
         init {
@@ -214,6 +216,10 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
 
         init {
             kastHvisPerioderIkkeErLike()
+        }
+
+        override fun leggTil(vilkår: Vilkår): Revurdering {
+            return copy(vilkårsvurderinger = vilkårsvurderinger.leggTil(vilkår))
         }
     }
 }

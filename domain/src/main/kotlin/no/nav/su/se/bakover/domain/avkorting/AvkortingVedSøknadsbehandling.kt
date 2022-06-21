@@ -8,13 +8,15 @@ import java.util.UUID
  */
 sealed class AvkortingVedSøknadsbehandling {
 
+    abstract fun uhåndtert(): Uhåndtert
+
     /**
      * Tilstand før vi har foretatt oss noe for å håndtere en eventuell utestående avkorting - hvis relevant.
      */
     sealed class Uhåndtert : AvkortingVedSøknadsbehandling() {
 
         abstract fun håndter(): Håndtert
-        abstract fun uhåndtert(): Uhåndtert
+        abstract override fun uhåndtert(): Uhåndtert
         abstract fun kanIkke(): KanIkkeHåndtere
 
         /**
@@ -78,7 +80,7 @@ sealed class AvkortingVedSøknadsbehandling {
      */
     sealed class Håndtert : AvkortingVedSøknadsbehandling() {
 
-        abstract fun uhåndtert(): Uhåndtert
+        abstract override fun uhåndtert(): Uhåndtert
         abstract fun iverksett(behandlingId: UUID): Iverksatt
         abstract fun kanIkke(): KanIkkeHåndtere
 
@@ -130,6 +132,11 @@ sealed class AvkortingVedSøknadsbehandling {
     }
 
     sealed class Iverksatt : AvkortingVedSøknadsbehandling() {
+
+        override fun uhåndtert(): Uhåndtert {
+            throw IllegalStateException("Kan ikke gå tilbake til uhåndtert etter iverksettelse!")
+        }
+
         /**
          * Represnterer at søknadsbehandlingen har klart å gjennomføre avkorting av et utestående varsel.
          * Som et ledd i denne prosessen oppdateres også status for [avkortingsvarsel].
