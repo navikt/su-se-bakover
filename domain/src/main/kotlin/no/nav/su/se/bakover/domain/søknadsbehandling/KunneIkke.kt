@@ -80,3 +80,14 @@ sealed class KunneIkkeLeggeTilGrunnlag {
             KunneIkkeOppdatereBosituasjon()
     }
 }
+
+sealed class KunneIkkeOppdatereStønadsperiode {
+    data class UgyldigTilstand(
+        val fra: KClass<out Søknadsbehandling>,
+        val til: KClass<out Søknadsbehandling.Vilkårsvurdert> = Søknadsbehandling.Vilkårsvurdert::class,
+    ) : KunneIkkeOppdatereStønadsperiode()
+
+    data class KunneIkkeOppdatereGrunnlagsdata(
+        val feil: KunneIkkeLageGrunnlagsdata,
+    ) : KunneIkkeOppdatereStønadsperiode()
+}

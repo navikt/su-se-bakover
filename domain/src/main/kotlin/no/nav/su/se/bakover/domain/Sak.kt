@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.søknadinnhold.SøknadInnhold
+import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeOppdatereStønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
@@ -307,10 +308,10 @@ data class Sak(
             formuegrenserFactory = formuegrenserFactory,
         ).mapLeft {
             when (it) {
-                is Søknadsbehandling.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata -> {
+                is no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata -> {
                     KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it)
                 }
-                is Søknadsbehandling.KunneIkkeOppdatereStønadsperiode.UgyldigTilstand -> {
+                is no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeOppdatereStønadsperiode.UgyldigTilstand -> {
                     KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it)
                 }
             }
@@ -393,7 +394,7 @@ data class Sak(
         object FantIkkeBehandling : KunneIkkeOppdatereStønadsperiode()
         object StønadsperiodeOverlapperMedLøpendeStønadsperiode : KunneIkkeOppdatereStønadsperiode()
         object StønadsperiodeForSenerePeriodeEksisterer : KunneIkkeOppdatereStønadsperiode()
-        data class KunneIkkeOppdatereGrunnlagsdata(val feil: Søknadsbehandling.KunneIkkeOppdatereStønadsperiode) :
+        data class KunneIkkeOppdatereGrunnlagsdata(val feil: no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeOppdatereStønadsperiode) :
             KunneIkkeOppdatereStønadsperiode()
 
         data class KunneIkkeHenteGjeldendeVedtaksdata(val feil: Sak.KunneIkkeHenteGjeldendeVedtaksdata) :
@@ -452,7 +453,7 @@ class SakFactory(
 
 data class AlleredeGjeldendeSakForBruker(
     val uføre: BegrensetSakinfo,
-    val alder: BegrensetSakinfo
+    val alder: BegrensetSakinfo,
 )
 
 data class BegrensetSakinfo(

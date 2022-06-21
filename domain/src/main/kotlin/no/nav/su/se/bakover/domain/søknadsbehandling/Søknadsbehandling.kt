@@ -158,37 +158,22 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         bosituasjon: Grunnlag.Bosituasjon,
         clock: Clock,
     ): Either<KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon, Vilkårsvurdert> {
-        grunnlagsdataOgVilkårsvurderinger.oppdaterBosituasjon(listOf(bosituasjon)).let { grunnlagOgVilkår ->
-            return when (this) {
-                is Vilkårsvurdert -> tilVilkårsvurdert(
-                    this.behandlingsinformasjon,
-                    grunnlagOgVilkår,
-                    clock,
-                ).right()
-                is Beregnet -> tilVilkårsvurdert(
-                    this.behandlingsinformasjon,
-                    grunnlagOgVilkår,
-                    clock,
-                ).right()
-                is Simulert -> tilVilkårsvurdert(
-                    this.behandlingsinformasjon,
-                    grunnlagOgVilkår,
-                    clock,
-                ).right()
-                is Underkjent -> tilVilkårsvurdert(
-                    this.behandlingsinformasjon,
-                    grunnlagOgVilkår,
-                    clock,
-                ).right()
+        return if(this is KanLeggeTilBosituasjon){
+            oppdaterBosituasjonInternal(bosituasjon, clock).right()
+        } else {
+            KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon.UgyldigTilstand(
+                this::class,
+                Vilkårsvurdert::class,
+            ).left()
+        }
+    }
 
-                is TilAttestering,
-                is LukketSøknadsbehandling,
-                is Iverksatt,
-                -> KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon.UgyldigTilstand(
-                    this::class,
-                    Vilkårsvurdert::class,
-                ).left()
-            }
+    private fun oppdaterBosituasjonInternal(
+        bosituasjon: Grunnlag.Bosituasjon,
+        clock: Clock,
+    ): Vilkårsvurdert {
+        return grunnlagsdataOgVilkårsvurderinger.oppdaterBosituasjon(listOf(bosituasjon)).let {
+            copyInternal(grunnlagsdataOgVilkårsvurderinger = it).vilkårsvurder(clock)
         }
     }
 
@@ -248,6 +233,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     interface KanOppdatereStønadsperiode
     interface KanLeggeTilVilkår
     interface KanLeggeTilFradrag
+    interface KanLeggeTilBosituasjon
     interface KanBeregnes {
         val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert
     }
@@ -303,17 +289,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         }.map {
             copyInternal(stønadsperiode = oppdatertStønadsperiode, grunnlagsdataOgVilkårsvurderinger = it).vilkårsvurder(clock)
         }
-    }
-
-    sealed class KunneIkkeOppdatereStønadsperiode {
-        data class UgyldigTilstand(
-            val fra: KClass<out Søknadsbehandling>,
-            val til: KClass<out Vilkårsvurdert> = Vilkårsvurdert::class,
-        ) : KunneIkkeOppdatereStønadsperiode()
-
-        data class KunneIkkeOppdatereGrunnlagsdata(
-            val feil: KunneIkkeLageGrunnlagsdata,
-        ) : KunneIkkeOppdatereStønadsperiode()
     }
 
     fun leggTilOpplysningspliktVilkår(
@@ -694,7 +669,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             }
     }
 
-    sealed class Vilkårsvurdert : Søknadsbehandling(), KanOppdatereStønadsperiode, KanLeggeTilVilkår {
+    sealed class Vilkårsvurdert : Søknadsbehandling(), KanOppdatereStønadsperiode, KanLeggeTilVilkår, KanLeggeTilBosituasjon {
 
         abstract override val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert
 
@@ -997,7 +972,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         }
     }
 
-    sealed class Beregnet : Søknadsbehandling(), KanOppdatereStønadsperiode, KanLeggeTilVilkår {
+    sealed class Beregnet : Søknadsbehandling(), KanOppdatereStønadsperiode, KanLeggeTilVilkår, KanLeggeTilBosituasjon {
         abstract override val behandlingsinformasjon: Behandlingsinformasjon
         abstract val beregning: Beregning
         abstract override val stønadsperiode: Stønadsperiode
@@ -1200,7 +1175,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedSøknadsbehandling.Håndtert,
         override val sakstype: Sakstype,
-    ) : Søknadsbehandling(), KanOppdatereStønadsperiode, KanLeggeTilVilkår {
+    ) : Søknadsbehandling(), KanOppdatereStønadsperiode, KanLeggeTilVilkår, KanLeggeTilBosituasjon {
         override val status: BehandlingsStatus = BehandlingsStatus.SIMULERT
         override val periode: Periode = stønadsperiode.periode
 
@@ -1624,7 +1599,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         }
     }
 
-    sealed class Underkjent : Søknadsbehandling(), KanOppdatereStønadsperiode, KanLeggeTilVilkår {
+    sealed class Underkjent : Søknadsbehandling(), KanOppdatereStønadsperiode, KanLeggeTilVilkår, KanLeggeTilBosituasjon {
         abstract override val id: UUID
         abstract override val opprettet: Tidspunkt
         abstract override val sakId: UUID
