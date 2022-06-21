@@ -26,14 +26,14 @@ internal data class PensjonsopplysningerJson(
 ) {
     fun toDomain(): Pensjonsopplysninger {
         return Pensjonsopplysninger(
-            folketrygd = Pensjonsopplysninger.Folketrygd(
-                svar = folketrygd.toDomain(),
+            søktPensjonFolketrygd = Pensjonsopplysninger.SøktPensjonFolketrygd(
+                svar = folketrygd.toFolketrygdSvar(),
             ),
-            andreNorske = Pensjonsopplysninger.AndreNorske(
-                svar = andreNorske.toDomain(),
+            søktAndreNorskePensjoner = Pensjonsopplysninger.SøktAndreNorskePensjoner(
+                svar = andreNorske.toAndrePensjonerSvar(),
             ),
-            utenlandske = Pensjonsopplysninger.Utenlandske(
-                svar = utenlandske.toDomain(),
+            søktUtenlandskePensjoner = Pensjonsopplysninger.SøktUtenlandskePensjoner(
+                svar = utenlandske.toUtenlandskePensjonerSvar(),
             ),
         )
     }
@@ -41,10 +41,49 @@ internal data class PensjonsopplysningerJson(
 
 internal fun Pensjonsopplysninger.toJson(): PensjonsopplysningerJson {
     return PensjonsopplysningerJson(
-        folketrygd = folketrygd.svar.toJson(),
-        andreNorske = andreNorske.svar.toJson(),
-        utenlandske = utenlandske.svar.toJson(),
+        folketrygd = søktPensjonFolketrygd.svar.toJson(),
+        andreNorske = søktAndreNorskePensjoner.svar.toJson(),
+        utenlandske = søktUtenlandskePensjoner.svar.toJson(),
     )
+}
+
+private fun Pensjonsopplysninger.SøktUtenlandskePensjoner.Svar.toJson(): PensjonsoppysningerSvarJson {
+    return when (this) {
+        Pensjonsopplysninger.SøktUtenlandskePensjoner.Svar.HarIkkeSøktUtenlandskePensjoner -> {
+            PensjonsoppysningerSvarJson.NEI
+        }
+        Pensjonsopplysninger.SøktUtenlandskePensjoner.Svar.HarSøktUtenlandskePensjoner -> {
+            PensjonsoppysningerSvarJson.JA
+        }
+        Pensjonsopplysninger.SøktUtenlandskePensjoner.Svar.IkkeAktuelt -> {
+            PensjonsoppysningerSvarJson.IKKE_AKTUELT
+        }
+    }
+}
+
+private fun Pensjonsopplysninger.SøktAndreNorskePensjoner.Svar.toJson(): PensjonsoppysningerSvarJson {
+    return when (this) {
+        Pensjonsopplysninger.SøktAndreNorskePensjoner.Svar.HarIkkeSøktAndreNorskePensjonerEnnFolketrygden -> {
+            PensjonsoppysningerSvarJson.NEI
+        }
+        Pensjonsopplysninger.SøktAndreNorskePensjoner.Svar.HarSøktAndreNorskePensjonerEnnFolketrygden -> {
+            PensjonsoppysningerSvarJson.JA
+        }
+        Pensjonsopplysninger.SøktAndreNorskePensjoner.Svar.IkkeAktuelt -> {
+            PensjonsoppysningerSvarJson.IKKE_AKTUELT
+        }
+    }
+}
+
+private fun Pensjonsopplysninger.SøktPensjonFolketrygd.Svar.toJson(): PensjonsoppysningerSvarJson {
+    return when (this) {
+        Pensjonsopplysninger.SøktPensjonFolketrygd.Svar.HarIkkeSøktPensjonFraFolketrygden -> {
+            PensjonsoppysningerSvarJson.NEI
+        }
+        Pensjonsopplysninger.SøktPensjonFolketrygd.Svar.HarSøktPensjonFraFolketrygden -> {
+            PensjonsoppysningerSvarJson.JA
+        }
+    }
 }
 
 enum class PensjonsoppysningerSvarJson {
@@ -52,25 +91,45 @@ enum class PensjonsoppysningerSvarJson {
     NEI,
     IKKE_AKTUELT;
 
-    fun toDomain(): Pensjonsopplysninger.Svar {
+    fun toFolketrygdSvar(): Pensjonsopplysninger.SøktPensjonFolketrygd.Svar {
         return when (this) {
-            JA -> Pensjonsopplysninger.Svar.Ja
-            NEI -> Pensjonsopplysninger.Svar.Nei
-            IKKE_AKTUELT -> Pensjonsopplysninger.Svar.IkkeAktuelt
+            JA -> {
+                Pensjonsopplysninger.SøktPensjonFolketrygd.Svar.HarSøktPensjonFraFolketrygden
+            }
+            NEI -> {
+                Pensjonsopplysninger.SøktPensjonFolketrygd.Svar.HarIkkeSøktPensjonFraFolketrygden
+            }
+            IKKE_AKTUELT -> {
+                throw IllegalArgumentException("Ugyldig argument $this for ${Pensjonsopplysninger.SøktPensjonFolketrygd.Svar::class}")
+            }
         }
     }
-}
 
-internal fun Pensjonsopplysninger.Svar.toJson(): PensjonsoppysningerSvarJson {
-    return when (this) {
-        Pensjonsopplysninger.Svar.IkkeAktuelt -> {
-            PensjonsoppysningerSvarJson.IKKE_AKTUELT
+    fun toAndrePensjonerSvar(): Pensjonsopplysninger.SøktAndreNorskePensjoner.Svar {
+        return when (this) {
+            JA -> {
+                Pensjonsopplysninger.SøktAndreNorskePensjoner.Svar.HarSøktAndreNorskePensjonerEnnFolketrygden
+            }
+            NEI -> {
+                Pensjonsopplysninger.SøktAndreNorskePensjoner.Svar.HarIkkeSøktAndreNorskePensjonerEnnFolketrygden
+            }
+            IKKE_AKTUELT -> {
+                Pensjonsopplysninger.SøktAndreNorskePensjoner.Svar.IkkeAktuelt
+            }
         }
-        Pensjonsopplysninger.Svar.Ja -> {
-            PensjonsoppysningerSvarJson.JA
-        }
-        Pensjonsopplysninger.Svar.Nei -> {
-            PensjonsoppysningerSvarJson.NEI
+    }
+
+    fun toUtenlandskePensjonerSvar(): Pensjonsopplysninger.SøktUtenlandskePensjoner.Svar {
+        return when (this) {
+            JA -> {
+                Pensjonsopplysninger.SøktUtenlandskePensjoner.Svar.HarSøktUtenlandskePensjoner
+            }
+            NEI -> {
+                Pensjonsopplysninger.SøktUtenlandskePensjoner.Svar.HarIkkeSøktUtenlandskePensjoner
+            }
+            IKKE_AKTUELT -> {
+                Pensjonsopplysninger.SøktUtenlandskePensjoner.Svar.IkkeAktuelt
+            }
         }
     }
 }

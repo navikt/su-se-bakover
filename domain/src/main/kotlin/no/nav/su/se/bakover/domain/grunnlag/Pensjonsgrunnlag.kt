@@ -41,16 +41,16 @@ data class Pensjonsgrunnlag(
 }
 
 data class Pensjonsopplysninger(
-    val folketrygd: Folketrygd,
-    val andreNorske: AndreNorske,
-    val utenlandske: Utenlandske,
+    val søktPensjonFolketrygd: SøktPensjonFolketrygd,
+    val søktAndreNorskePensjoner: SøktAndreNorskePensjoner,
+    val søktUtenlandskePensjoner: SøktUtenlandskePensjoner,
 ) {
     fun resultat(): Resultat {
         return when {
             setOf(
-                folketrygd.resultat(),
-                andreNorske.resultat(),
-                utenlandske.resultat(),
+                søktPensjonFolketrygd.resultat(),
+                søktAndreNorskePensjoner.resultat(),
+                søktUtenlandskePensjoner.resultat(),
             ) == setOf(Resultat.Innvilget) -> {
                 Resultat.Innvilget
             }
@@ -60,47 +60,27 @@ data class Pensjonsopplysninger(
         }
     }
 
-    data class Folketrygd(
-        val svar: Svar,
-    ) {
-        init {
-            require(svar !is Svar.IkkeAktuelt) { "Må være vurdert" }
-        }
-
-        fun resultat(): Resultat {
-            return when (svar) {
-                Svar.IkkeAktuelt -> {
-                    throw IllegalStateException("Skal være ja/nei")
-                }
-                Svar.Ja -> {
-                    Resultat.Innvilget
-                }
-                Svar.Nei -> {
-                    Resultat.Avslag
-                }
-            }
-        }
-    }
-
-    data class AndreNorske(
+    data class SøktPensjonFolketrygd(
         val svar: Svar,
     ) {
         fun resultat(): Resultat {
             return when (svar) {
-                Svar.IkkeAktuelt -> {
-                    Resultat.Innvilget
-                }
-                Svar.Ja -> {
-                    Resultat.Innvilget
-                }
-                Svar.Nei -> {
+                Svar.HarIkkeSøktPensjonFraFolketrygden -> {
                     Resultat.Avslag
+                }
+                Svar.HarSøktPensjonFraFolketrygden -> {
+                    Resultat.Innvilget
                 }
             }
         }
+
+        sealed class Svar {
+            object HarSøktPensjonFraFolketrygden : Svar()
+            object HarIkkeSøktPensjonFraFolketrygden : Svar()
+        }
     }
 
-    data class Utenlandske(
+    data class SøktAndreNorskePensjoner(
         val svar: Svar,
     ) {
         fun resultat(): Resultat {
@@ -108,19 +88,43 @@ data class Pensjonsopplysninger(
                 Svar.IkkeAktuelt -> {
                     Resultat.Innvilget
                 }
-                Svar.Ja -> {
+                Svar.HarSøktAndreNorskePensjonerEnnFolketrygden -> {
                     Resultat.Innvilget
                 }
-                Svar.Nei -> {
+                Svar.HarIkkeSøktAndreNorskePensjonerEnnFolketrygden -> {
                     Resultat.Avslag
                 }
             }
         }
+
+        sealed class Svar {
+            object HarSøktAndreNorskePensjonerEnnFolketrygden : Svar()
+            object HarIkkeSøktAndreNorskePensjonerEnnFolketrygden : Svar()
+            object IkkeAktuelt : Svar()
+        }
     }
 
-    sealed class Svar {
-        object Ja : Svar()
-        object Nei : Svar()
-        object IkkeAktuelt : Svar()
+    data class SøktUtenlandskePensjoner(
+        val svar: Svar,
+    ) {
+        fun resultat(): Resultat {
+            return when (svar) {
+                Svar.IkkeAktuelt -> {
+                    Resultat.Innvilget
+                }
+                Svar.HarSøktUtenlandskePensjoner -> {
+                    Resultat.Innvilget
+                }
+                Svar.HarIkkeSøktUtenlandskePensjoner -> {
+                    Resultat.Avslag
+                }
+            }
+        }
+
+        sealed class Svar {
+            object HarSøktUtenlandskePensjoner : Svar()
+            object HarIkkeSøktUtenlandskePensjoner : Svar()
+            object IkkeAktuelt : Svar()
+        }
     }
 }

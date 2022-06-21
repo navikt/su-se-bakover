@@ -27,14 +27,14 @@ fun pensjonsVilkårInnvilget(
                     opprettet = opprettet,
                     periode = periode,
                     pensjonsopplysninger = Pensjonsopplysninger(
-                        folketrygd = Pensjonsopplysninger.Folketrygd(
-                            svar = Pensjonsopplysninger.Svar.Ja,
+                        søktPensjonFolketrygd = Pensjonsopplysninger.SøktPensjonFolketrygd(
+                            svar = Pensjonsopplysninger.SøktPensjonFolketrygd.Svar.HarSøktPensjonFraFolketrygden,
                         ),
-                        andreNorske = Pensjonsopplysninger.AndreNorske(
-                            svar = Pensjonsopplysninger.Svar.IkkeAktuelt,
+                        søktAndreNorskePensjoner = Pensjonsopplysninger.SøktAndreNorskePensjoner(
+                            svar = Pensjonsopplysninger.SøktAndreNorskePensjoner.Svar.IkkeAktuelt,
                         ),
-                        utenlandske = Pensjonsopplysninger.Utenlandske(
-                            svar = Pensjonsopplysninger.Svar.Ja,
+                        søktUtenlandskePensjoner = Pensjonsopplysninger.SøktUtenlandskePensjoner(
+                            svar = Pensjonsopplysninger.SøktUtenlandskePensjoner.Svar.HarSøktUtenlandskePensjoner,
                         ),
                     ),
                 ),
@@ -59,14 +59,14 @@ fun pensjonsVilkårAvslag(
                     opprettet = opprettet,
                     periode = periode,
                     pensjonsopplysninger = Pensjonsopplysninger(
-                        folketrygd = Pensjonsopplysninger.Folketrygd(
-                            svar = Pensjonsopplysninger.Svar.Ja,
+                        søktPensjonFolketrygd = Pensjonsopplysninger.SøktPensjonFolketrygd(
+                            svar = Pensjonsopplysninger.SøktPensjonFolketrygd.Svar.HarSøktPensjonFraFolketrygden,
                         ),
-                        andreNorske = Pensjonsopplysninger.AndreNorske(
-                            svar = Pensjonsopplysninger.Svar.IkkeAktuelt,
+                        søktAndreNorskePensjoner = Pensjonsopplysninger.SøktAndreNorskePensjoner(
+                            svar = Pensjonsopplysninger.SøktAndreNorskePensjoner.Svar.IkkeAktuelt,
                         ),
-                        utenlandske = Pensjonsopplysninger.Utenlandske(
-                            svar = Pensjonsopplysninger.Svar.Nei,
+                        søktUtenlandskePensjoner = Pensjonsopplysninger.SøktUtenlandskePensjoner(
+                            svar = Pensjonsopplysninger.SøktUtenlandskePensjoner.Svar.HarIkkeSøktUtenlandskePensjoner,
                         ),
                     ),
                 ),

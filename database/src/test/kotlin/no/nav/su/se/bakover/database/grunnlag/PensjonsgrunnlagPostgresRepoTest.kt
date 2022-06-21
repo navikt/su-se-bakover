@@ -12,16 +12,16 @@ internal class PensjonsgrunnlagPostgresRepoTest {
         JSONAssert.assertEquals(
             objectMapper.writeValueAsString(
                 Pensjonsopplysninger(
-                    folketrygd = Pensjonsopplysninger.Folketrygd(svar = Pensjonsopplysninger.Svar.Nei),
-                    andreNorske = Pensjonsopplysninger.AndreNorske(svar = Pensjonsopplysninger.Svar.IkkeAktuelt),
-                    utenlandske = Pensjonsopplysninger.Utenlandske(svar = Pensjonsopplysninger.Svar.Ja),
+                    søktPensjonFolketrygd = Pensjonsopplysninger.SøktPensjonFolketrygd(svar = Pensjonsopplysninger.SøktPensjonFolketrygd.Svar.HarIkkeSøktPensjonFraFolketrygden),
+                    søktAndreNorskePensjoner = Pensjonsopplysninger.SøktAndreNorskePensjoner(svar = Pensjonsopplysninger.SøktAndreNorskePensjoner.Svar.IkkeAktuelt),
+                    søktUtenlandskePensjoner = Pensjonsopplysninger.SøktUtenlandskePensjoner(svar = Pensjonsopplysninger.SøktUtenlandskePensjoner.Svar.HarSøktUtenlandskePensjoner),
                 ).toDb(),
             ),
             """
             {
-                "folketrygd": "NEI",
+                "folketrygd": "HAR_IKKE_SØKT_PENSJON_FRA_FOLKETRYGDEN",
                 "andreNorske": "IKKE_AKTUELT",
-                "utenlandske": "JA"
+                "utenlandske": "HAR_SØKT_UTENLANDSKE_PENSJONER"
             }
         """,
             true,
