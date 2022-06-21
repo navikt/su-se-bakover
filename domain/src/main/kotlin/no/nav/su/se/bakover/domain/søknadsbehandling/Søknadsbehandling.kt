@@ -104,7 +104,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         return LukketSøknadsbehandling.tryCreate(this)
     }
 
-    internal fun validerFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag, Unit> {
+    private fun validerFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag, Unit> {
         if (fradragsgrunnlag.isNotEmpty()) {
             if (!periode.inneholderAlle(fradragsgrunnlag.perioder())) {
                 return KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInnenforBehandlingsperioden.left()
@@ -141,7 +141,11 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     ): Either<KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> {
         return validerFradragsgrunnlag(fradragsgrunnlag)
             .map {
-                copyInternal(grunnlagsdataOgVilkårsvurderinger.leggTilFradragsgrunnlag(fradragsgrunnlag)).vilkårsvurder(
+                copyInternal(
+                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTilFradragsgrunnlag(
+                        fradragsgrunnlag,
+                    ),
+                ).vilkårsvurder(
                     Clock.systemUTC(),
                 ) as Vilkårsvurdert.Innvilget //TODO clock + cast
             }
@@ -189,6 +193,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     }
 
     protected open fun copyInternal(
+        stønadsperiode: Stønadsperiode = this.stønadsperiode!!,
         grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
     ): Søknadsbehandling {
         return this
@@ -214,7 +219,9 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
         return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold>(vilkår)
             .map {
-                copyInternal(grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår)).vilkårsvurder(clock)
+                copyInternal(
+                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
+                ).vilkårsvurder(clock)
             }
     }
 
@@ -238,6 +245,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         )
     }
 
+    interface KanOppdatereStønadsperiode
     interface KanLeggeTilVilkår
     interface KanLeggeTilFradrag
     interface KanBeregnes {
@@ -263,15 +271,38 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         clock: Clock,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFormuevilkår, Vilkårsvurdert> {
         return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFormuevilkår>(vilkår)
-            .map { copyInternal(grunnlagsdataOgVilkårsvurderinger.oppdaterFormuevilkår(vilkår)).vilkårsvurder(clock) }
+            .map {
+                copyInternal(
+                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.oppdaterFormuevilkår(vilkår),
+                ).vilkårsvurder(clock)
+            }
     }
 
-    open fun oppdaterStønadsperiode(
+    fun oppdaterStønadsperiode(
         oppdatertStønadsperiode: Stønadsperiode,
         clock: Clock,
         formuegrenserFactory: FormuegrenserFactory,
     ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
-        return KunneIkkeOppdatereStønadsperiode.UgyldigTilstand(this::class).left()
+        return if (this is KanOppdatereStønadsperiode) {
+            oppdaterStønadsperiodeInternal(oppdatertStønadsperiode, clock, formuegrenserFactory)
+        } else {
+            KunneIkkeOppdatereStønadsperiode.UgyldigTilstand(this::class).left()
+        }
+    }
+
+    private fun oppdaterStønadsperiodeInternal(
+        oppdatertStønadsperiode: Stønadsperiode,
+        clock: Clock,
+        formuegrenserFactory: FormuegrenserFactory,
+    ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
+        return grunnlagsdataOgVilkårsvurderinger.oppdaterStønadsperiode(
+            stønadsperiode = oppdatertStønadsperiode,
+            formuegrenserFactory = formuegrenserFactory,
+        ).mapLeft {
+            KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it)
+        }.map {
+            copyInternal(stønadsperiode = oppdatertStønadsperiode, grunnlagsdataOgVilkårsvurderinger = it).vilkårsvurder(clock)
+        }
     }
 
     sealed class KunneIkkeOppdatereStønadsperiode {
@@ -301,7 +332,11 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         clock: Clock,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
         return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt>(vilkår)
-            .map { copyInternal(grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår)).vilkårsvurder(clock) }
+            .map {
+                copyInternal(
+                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
+                ).vilkårsvurder(clock)
+            }
     }
 
     fun leggTilPensjonsVilkår(
@@ -320,7 +355,11 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         clock: Clock,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår, Vilkårsvurdert> {
         return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår>(vilkår)
-            .map { copyInternal(grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår)).vilkårsvurder(clock) }
+            .map {
+                copyInternal(
+                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
+                ).vilkårsvurder(clock)
+            }
     }
 
     fun beregn(
@@ -420,7 +459,11 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         clock: Clock,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
         return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår>(vilkår)
-            .map { copyInternal(grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår)).vilkårsvurder(clock) }
+            .map {
+                copyInternal(
+                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
+                ).vilkårsvurder(clock)
+            }
     }
 
     fun leggTilFamiliegjenforeningvilkår(
@@ -442,7 +485,11 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         clock: Clock,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFamiliegjenforeningVilkår, Vilkårsvurdert> {
         return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFamiliegjenforeningVilkår>(vilkår)
-            .map { copyInternal(grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår)).vilkårsvurder(clock) }
+            .map {
+                copyInternal(
+                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
+                ).vilkårsvurder(clock)
+            }
     }
 
     private fun valider(uførhet: Vilkår.Uførhet.Vurdert): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår, Unit> {
@@ -647,7 +694,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             }
     }
 
-    sealed class Vilkårsvurdert : Søknadsbehandling(), KanLeggeTilVilkår {
+    sealed class Vilkårsvurdert : Søknadsbehandling(), KanOppdatereStønadsperiode, KanLeggeTilVilkår {
 
         abstract override val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert
 
@@ -819,8 +866,12 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 visitor.visit(this)
             }
 
-            override fun copyInternal(grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling): Vilkårsvurdert {
+            override fun copyInternal(
+                stønadsperiode: Stønadsperiode,
+                grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
+            ): Vilkårsvurdert {
                 return copy(
+                    stønadsperiode = stønadsperiode,
                     grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                     vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                 )
@@ -837,29 +888,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     ),
                     clock = clock,
                 )
-            }
-
-            // TODO("flere_satser det gir egentlig ikke mening at vi oppdaterer flere verdier på denne måten, bør sees på/vurderes fjernet")
-            override fun oppdaterStønadsperiode(
-                oppdatertStønadsperiode: Stønadsperiode,
-                clock: Clock,
-                formuegrenserFactory: FormuegrenserFactory,
-            ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
-                return grunnlagsdataOgVilkårsvurderinger.oppdaterStønadsperiode(
-                    stønadsperiode = oppdatertStønadsperiode,
-                    formuegrenserFactory = formuegrenserFactory,
-                ).mapLeft {
-                    KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it)
-                }.map {
-                    copy(
-                        stønadsperiode = oppdatertStønadsperiode,
-                        grunnlagsdata = it.grunnlagsdata,
-                        vilkårsvurderinger = it.vilkårsvurderinger,
-                    ).vilkårsvurder(
-                        vilkårsvurderinger = it.vilkårsvurderinger,
-                        clock = clock,
-                    )
-                }
             }
         }
 
@@ -883,8 +911,12 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
             override val status: BehandlingsStatus = BehandlingsStatus.VILKÅRSVURDERT_AVSLAG
 
-            override fun copyInternal(grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling): Avslag {
+            override fun copyInternal(
+                stønadsperiode: Stønadsperiode,
+                grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
+            ): Avslag {
                 return copy(
+                    stønadsperiode = stønadsperiode,
                     grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                     vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                 )
@@ -942,28 +974,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     clock,
                 )
             }
-
-            override fun oppdaterStønadsperiode(
-                oppdatertStønadsperiode: Stønadsperiode,
-                clock: Clock,
-                formuegrenserFactory: FormuegrenserFactory,
-            ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
-                return grunnlagsdataOgVilkårsvurderinger.oppdaterStønadsperiode(
-                    stønadsperiode = oppdatertStønadsperiode,
-                    formuegrenserFactory = formuegrenserFactory,
-                ).mapLeft {
-                    KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it)
-                }.map {
-                    copy(
-                        stønadsperiode = oppdatertStønadsperiode,
-                        grunnlagsdata = it.grunnlagsdata,
-                        vilkårsvurderinger = it.vilkårsvurderinger,
-                    ).vilkårsvurder(
-                        vilkårsvurderinger = it.vilkårsvurderinger,
-                        clock = clock,
-                    )
-                }
-            }
         }
 
         data class Uavklart(
@@ -985,8 +995,12 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         ) : Vilkårsvurdert() {
 
             override val status: BehandlingsStatus = BehandlingsStatus.OPPRETTET
-            override fun copyInternal(grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling): Uavklart {
+            override fun copyInternal(
+                stønadsperiode: Stønadsperiode,
+                grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
+            ): Uavklart {
                 return copy(
+                    stønadsperiode = stønadsperiode,
                     grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                     vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                 )
@@ -1016,35 +1030,13 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 )
             }
 
-            override fun oppdaterStønadsperiode(
-                oppdatertStønadsperiode: Stønadsperiode,
-                clock: Clock,
-                formuegrenserFactory: FormuegrenserFactory,
-            ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
-                return grunnlagsdataOgVilkårsvurderinger.oppdaterStønadsperiode(
-                    stønadsperiode = oppdatertStønadsperiode,
-                    formuegrenserFactory = formuegrenserFactory,
-                ).mapLeft {
-                    KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it)
-                }.map {
-                    copy(
-                        stønadsperiode = oppdatertStønadsperiode,
-                        grunnlagsdata = it.grunnlagsdata,
-                        vilkårsvurderinger = it.vilkårsvurderinger,
-                    ).vilkårsvurder(
-                        vilkårsvurderinger = it.vilkårsvurderinger,
-                        clock = clock,
-                    )
-                }
-            }
-
             data class StønadsperiodeIkkeDefinertException(
                 val id: UUID,
             ) : RuntimeException("Sønadsperiode er ikke definert for søknadsbehandling:$id")
         }
     }
 
-    sealed class Beregnet : Søknadsbehandling(), KanLeggeTilVilkår {
+    sealed class Beregnet : Søknadsbehandling(), KanOppdatereStønadsperiode, KanLeggeTilVilkår {
         abstract override val behandlingsinformasjon: Behandlingsinformasjon
         abstract val beregning: Beregning
         abstract override val stønadsperiode: Stønadsperiode
@@ -1138,8 +1130,12 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 visitor.visit(this)
             }
 
-            override fun copyInternal(grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling): Innvilget {
+            override fun copyInternal(
+                stønadsperiode: Stønadsperiode,
+                grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
+            ): Innvilget {
                 return copy(
+                    stønadsperiode = stønadsperiode,
                     grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                     vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                 )
@@ -1156,28 +1152,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     ),
                     clock = clock,
                 )
-            }
-
-            override fun oppdaterStønadsperiode(
-                oppdatertStønadsperiode: Stønadsperiode,
-                clock: Clock,
-                formuegrenserFactory: FormuegrenserFactory,
-            ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
-                return grunnlagsdataOgVilkårsvurderinger.oppdaterStønadsperiode(
-                    stønadsperiode = oppdatertStønadsperiode,
-                    formuegrenserFactory = formuegrenserFactory,
-                ).mapLeft {
-                    KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it)
-                }.map {
-                    copy(
-                        stønadsperiode = oppdatertStønadsperiode,
-                        grunnlagsdata = it.grunnlagsdata,
-                        vilkårsvurderinger = it.vilkårsvurderinger,
-                    ).vilkårsvurder(
-                        vilkårsvurderinger = it.vilkårsvurderinger,
-                        clock = clock,
-                    )
-                }
             }
         }
 
@@ -1212,8 +1186,12 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
             }
 
-            override fun copyInternal(grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling): Avslag {
+            override fun copyInternal(
+                stønadsperiode: Stønadsperiode,
+                grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
+            ): Avslag {
                 return copy(
+                    stønadsperiode = stønadsperiode,
                     grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                     vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                 )
@@ -1266,28 +1244,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     clock = clock,
                 )
             }
-
-            override fun oppdaterStønadsperiode(
-                oppdatertStønadsperiode: Stønadsperiode,
-                clock: Clock,
-                formuegrenserFactory: FormuegrenserFactory,
-            ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
-                return grunnlagsdataOgVilkårsvurderinger.oppdaterStønadsperiode(
-                    stønadsperiode = oppdatertStønadsperiode,
-                    formuegrenserFactory = formuegrenserFactory,
-                ).mapLeft {
-                    KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it)
-                }.map {
-                    copy(
-                        stønadsperiode = oppdatertStønadsperiode,
-                        grunnlagsdata = it.grunnlagsdata,
-                        vilkårsvurderinger = it.vilkårsvurderinger,
-                    ).vilkårsvurder(
-                        vilkårsvurderinger = it.vilkårsvurderinger,
-                        clock = clock,
-                    )
-                }
-            }
         }
     }
 
@@ -1309,7 +1265,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedSøknadsbehandling.Håndtert,
         override val sakstype: Sakstype,
-    ) : Søknadsbehandling(), KanLeggeTilVilkår {
+    ) : Søknadsbehandling(), KanOppdatereStønadsperiode, KanLeggeTilVilkår {
         override val status: BehandlingsStatus = BehandlingsStatus.SIMULERT
         override val periode: Periode = stønadsperiode.periode
 
@@ -1321,8 +1277,12 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             visitor.visit(this)
         }
 
-        override fun copyInternal(grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling): Simulert {
+        override fun copyInternal(
+            stønadsperiode: Stønadsperiode,
+            grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
+        ): Simulert {
             return copy(
+                stønadsperiode = stønadsperiode,
                 grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                 vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
             )
@@ -1429,28 +1389,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 clock,
             )
         }
-
-        override fun oppdaterStønadsperiode(
-            oppdatertStønadsperiode: Stønadsperiode,
-            clock: Clock,
-            formuegrenserFactory: FormuegrenserFactory,
-        ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
-            return grunnlagsdataOgVilkårsvurderinger.oppdaterStønadsperiode(
-                stønadsperiode = oppdatertStønadsperiode,
-                formuegrenserFactory = formuegrenserFactory,
-            ).mapLeft {
-                KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it)
-            }.map {
-                copy(
-                    stønadsperiode = oppdatertStønadsperiode,
-                    grunnlagsdata = it.grunnlagsdata,
-                    vilkårsvurderinger = it.vilkårsvurderinger,
-                ).vilkårsvurder(
-                    vilkårsvurderinger = it.vilkårsvurderinger,
-                    clock = clock,
-                )
-            }
-        }
     }
 
     sealed class TilAttestering : Søknadsbehandling() {
@@ -1483,8 +1421,12 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         ) : TilAttestering() {
             override val status: BehandlingsStatus = BehandlingsStatus.TIL_ATTESTERING_INNVILGET
 
-            override fun copyInternal(grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling): TilAttestering {
+            override fun copyInternal(
+                stønadsperiode: Stønadsperiode,
+                grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
+            ): TilAttestering {
                 return copy(
+                    stønadsperiode = stønadsperiode,
                     grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                     vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                 )
@@ -1616,8 +1558,12 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     )
                 }
 
-                override fun copyInternal(grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling): UtenBeregning {
+                override fun copyInternal(
+                    stønadsperiode: Stønadsperiode,
+                    grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
+                ): UtenBeregning {
                     return copy(
+                        stønadsperiode = stønadsperiode,
                         grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                         vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                     )
@@ -1716,8 +1662,12 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     )
                 }
 
-                override fun copyInternal(grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling): MedBeregning {
+                override fun copyInternal(
+                    stønadsperiode: Stønadsperiode,
+                    grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
+                ): MedBeregning {
                     return copy(
+                        stønadsperiode = stønadsperiode,
                         grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                         vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                     )
@@ -1750,7 +1700,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         }
     }
 
-    sealed class Underkjent : Søknadsbehandling(), KanLeggeTilVilkår {
+    sealed class Underkjent : Søknadsbehandling(), KanOppdatereStønadsperiode, KanLeggeTilVilkår {
         abstract override val id: UUID
         abstract override val opprettet: Tidspunkt
         abstract override val sakId: UUID
@@ -1821,8 +1771,12 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 return this.copy(oppgaveId = nyOppgaveId)
             }
 
-            override fun copyInternal(grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling): Innvilget {
+            override fun copyInternal(
+                stønadsperiode: Stønadsperiode,
+                grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
+            ): Innvilget {
                 return copy(
+                    stønadsperiode = stønadsperiode,
                     grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                     vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                 )
@@ -1909,28 +1863,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     clock,
                 )
             }
-
-            override fun oppdaterStønadsperiode(
-                oppdatertStønadsperiode: Stønadsperiode,
-                clock: Clock,
-                formuegrenserFactory: FormuegrenserFactory,
-            ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
-                return grunnlagsdataOgVilkårsvurderinger.oppdaterStønadsperiode(
-                    stønadsperiode = oppdatertStønadsperiode,
-                    formuegrenserFactory = formuegrenserFactory,
-                ).mapLeft {
-                    KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it)
-                }.map {
-                    copy(
-                        stønadsperiode = oppdatertStønadsperiode,
-                        grunnlagsdata = it.grunnlagsdata,
-                        vilkårsvurderinger = it.vilkårsvurderinger,
-                    ).vilkårsvurder(
-                        vilkårsvurderinger = it.vilkårsvurderinger,
-                        clock = clock,
-                    )
-                }
-            }
         }
 
         sealed class Avslag : Underkjent(), ErAvslag {
@@ -1966,8 +1898,12 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
                 }
 
-                override fun copyInternal(grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling): MedBeregning {
+                override fun copyInternal(
+                    stønadsperiode: Stønadsperiode,
+                    grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
+                ): MedBeregning {
                     return copy(
+                        stønadsperiode = stønadsperiode,
                         grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                         vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                     )
@@ -2021,28 +1957,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         clock,
                     )
                 }
-
-                override fun oppdaterStønadsperiode(
-                    oppdatertStønadsperiode: Stønadsperiode,
-                    clock: Clock,
-                    formuegrenserFactory: FormuegrenserFactory,
-                ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
-                    return grunnlagsdataOgVilkårsvurderinger.oppdaterStønadsperiode(
-                        stønadsperiode = oppdatertStønadsperiode,
-                        formuegrenserFactory = formuegrenserFactory,
-                    ).mapLeft {
-                        KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it)
-                    }.map {
-                        copy(
-                            stønadsperiode = oppdatertStønadsperiode,
-                            grunnlagsdata = it.grunnlagsdata,
-                            vilkårsvurderinger = it.vilkårsvurderinger,
-                        ).vilkårsvurder(
-                            vilkårsvurderinger = it.vilkårsvurderinger,
-                            clock = clock,
-                        )
-                    }
-                }
             }
 
             data class UtenBeregning(
@@ -2065,8 +1979,12 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             ) : Avslag() {
                 override val status: BehandlingsStatus = BehandlingsStatus.UNDERKJENT_AVSLAG
 
-                override fun copyInternal(grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling): UtenBeregning {
+                override fun copyInternal(
+                    stønadsperiode: Stønadsperiode,
+                    grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
+                ): UtenBeregning {
                     return copy(
+                        stønadsperiode = stønadsperiode,
                         grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                         vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                     )
@@ -2124,28 +2042,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         ),
                         clock,
                     )
-                }
-
-                override fun oppdaterStønadsperiode(
-                    oppdatertStønadsperiode: Stønadsperiode,
-                    clock: Clock,
-                    formuegrenserFactory: FormuegrenserFactory,
-                ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
-                    return grunnlagsdataOgVilkårsvurderinger.oppdaterStønadsperiode(
-                        stønadsperiode = oppdatertStønadsperiode,
-                        formuegrenserFactory = formuegrenserFactory,
-                    ).mapLeft {
-                        KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it)
-                    }.map {
-                        copy(
-                            stønadsperiode = oppdatertStønadsperiode,
-                            grunnlagsdata = it.grunnlagsdata,
-                            vilkårsvurderinger = it.vilkårsvurderinger,
-                        ).vilkårsvurder(
-                            vilkårsvurderinger = it.vilkårsvurderinger,
-                            clock = clock,
-                        )
-                    }
                 }
             }
         }
