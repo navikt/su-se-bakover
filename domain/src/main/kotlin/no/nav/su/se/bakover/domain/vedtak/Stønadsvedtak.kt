@@ -85,18 +85,17 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget,
             utbetalingId: UUID30,
             clock: Clock,
-        ) =
-            EndringIYtelse.InnvilgetSøknadsbehandling(
-                id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(clock),
-                periode = søknadsbehandling.periode,
-                behandling = søknadsbehandling,
-                beregning = søknadsbehandling.beregning,
-                simulering = søknadsbehandling.simulering,
-                saksbehandler = søknadsbehandling.saksbehandler,
-                attestant = søknadsbehandling.attesteringer.hentSisteAttestering().attestant,
-                utbetalingId = utbetalingId,
-            )
+        ) = EndringIYtelse.InnvilgetSøknadsbehandling(
+            id = UUID.randomUUID(),
+            opprettet = Tidspunkt.now(clock),
+            periode = søknadsbehandling.periode,
+            behandling = søknadsbehandling,
+            beregning = søknadsbehandling.beregning,
+            simulering = søknadsbehandling.simulering,
+            saksbehandler = søknadsbehandling.saksbehandler,
+            attestant = søknadsbehandling.attesteringer.hentSisteAttestering().attestant,
+            utbetalingId = utbetalingId,
+        )
 
         fun from(revurdering: IverksattRevurdering.IngenEndring, clock: Clock) = IngenEndringIYtelse(
             id = UUID.randomUUID(),
@@ -483,7 +482,6 @@ sealed interface Avslagsvedtak : Stønadsvedtak, Visitable<VedtakVisitor>, ErAvs
         override val periode: Periode,
     ) : Avslagsvedtak {
         override fun harIdentifisertBehovForFremtidigAvkorting() = false
-
         override fun accept(visitor: VedtakVisitor) {
             visitor.visit(this)
         }

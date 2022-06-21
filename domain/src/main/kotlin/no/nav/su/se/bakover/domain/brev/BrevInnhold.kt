@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn.Companion.getDistinkteParagrafer
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
@@ -17,6 +18,10 @@ abstract class BrevInnhold {
     abstract val brevTemplate: BrevTemplate
     // TODO CHM 05.05.2021: Se på å samle mer av det som er felles for brevinnholdene, f.eks. personalia
 
+    // TODO ØH 21.06.2022: Denne bør være abstract på sikt, og settes for alle brev eksplisitt
+    @get:JsonIgnore
+    open val sakstype: Sakstype = Sakstype.UFØRE
+
     data class AvslagsBrevInnhold(
         val personalia: Personalia,
         val avslagsgrunner: List<Avslagsgrunn>,
@@ -29,6 +34,7 @@ abstract class BrevInnhold {
         val forventetInntektStørreEnn0: Boolean,
         val formueVerdier: FormueForBrev?,
         val satsoversikt: Satsoversikt?,
+        override val sakstype: Sakstype,
     ) : BrevInnhold() {
         @Suppress("unused")
         @JsonInclude
@@ -52,6 +58,7 @@ abstract class BrevInnhold {
         val attestantNavn: String,
         val fritekst: String,
         val satsoversikt: Satsoversikt,
+        override val sakstype: Sakstype
     ) : BrevInnhold() {
         override val brevTemplate: BrevTemplate = BrevTemplate.InnvilgetVedtak
 
@@ -207,7 +214,7 @@ abstract class BrevInnhold {
     data class PåminnelseNyStønadsperiode(
         val personalia: Personalia,
         val utløpsdato: String,
-        val halvtGrunnbeløp: Int
+        val halvtGrunnbeløp: Int,
     ) : BrevInnhold() {
         override val brevTemplate = BrevTemplate.PåminnelseNyStønadsperiode
     }
