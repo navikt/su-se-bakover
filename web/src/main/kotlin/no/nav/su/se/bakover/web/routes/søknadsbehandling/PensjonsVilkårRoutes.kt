@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.vilkår.LeggTilPensjonsVilkårRequest
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.features.authorize
-import no.nav.su.se.bakover.web.routes.vilkår.alder.VurderingsperiodePensjonsVilkårJson
+import no.nav.su.se.bakover.web.routes.vilkår.alder.LeggTilVurderingsperiodePensjonsvilkårJson
 import no.nav.su.se.bakover.web.routes.vilkår.alder.tilResultat
 import no.nav.su.se.bakover.web.routes.vilkår.alder.toDomain
 import no.nav.su.se.bakover.web.svar
@@ -25,7 +25,7 @@ internal fun Route.pensjonsVilkårRoutes(
     post("$behandlingPath/{behandlingId}/pensjon") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withBehandlingId {
-                call.withBody<List<VurderingsperiodePensjonsVilkårJson>> { body ->
+                call.withBody<List<LeggTilVurderingsperiodePensjonsvilkårJson>> { body ->
                     call.svar(
                         søknadsbehandlingService.leggTilPensjonsVilkår(
                             request = LeggTilPensjonsVilkårRequest(
