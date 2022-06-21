@@ -229,8 +229,27 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
         object AvkortingErUfullstendig : KunneIkkeBeregne()
     }
+    
+    @Suppress("UNCHECKED_CAST")
+    protected fun <T: KunneIkkeLeggeTilVilkår> valider(vilkår: Vilkår): Either<T, Unit>{
+        return when(vilkår){
+            is FamiliegjenforeningVilkår.Vurdert -> Unit.right()
+            is FastOppholdINorgeVilkår.Vurdert -> Unit.right()
+            is FlyktningVilkår.Vurdert -> Unit.right()
+            is Vilkår.Formue.Vurdert -> Unit.right()
+            is InstitusjonsoppholdVilkår.Vurdert -> Unit.right()
+            is LovligOppholdVilkår.Vurdert -> Unit.right()
+            is OpplysningspliktVilkår.Vurdert -> valider(vilkår).mapLeft { it as T }
+            is PensjonsVilkår.Vurdert -> valider(vilkår).mapLeft { it as T }
+            is PersonligOppmøteVilkår.Vurdert -> Unit.right()
+            is Vilkår.Uførhet.Vurdert -> valider(vilkår).mapLeft { it as T }
+            is UtenlandsoppholdVilkår.Vurdert -> valider(vilkår).mapLeft { it as T }
+            else -> throw IllegalStateException("Ukjent vilkår: $vilkår")
+        }
+    }
+    
 
-    protected open fun valider(utenlandsopphold: UtenlandsoppholdVilkår.Vurdert): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold, Unit> {
+    private fun valider(utenlandsopphold: UtenlandsoppholdVilkår.Vurdert): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold, Unit> {
         return when {
             utenlandsopphold.vurderingsperioder.size != 1 -> {
                 KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold.MåInneholdeKunEnVurderingsperiode.left()
@@ -264,7 +283,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     ): Either<KunneIkkeLeggeTilFamiliegjenforeningVilkår, Vilkårsvurdert> =
         KunneIkkeLeggeTilFamiliegjenforeningVilkår.UgyldigTilstand(this::class, Vilkårsvurdert::class).left()
 
-    protected open fun valider(uførhet: Vilkår.Uførhet.Vurdert): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår, Unit> {
+    private fun valider(uførhet: Vilkår.Uførhet.Vurdert): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår, Unit> {
         return when {
             !periode.inneholderAlle(uførhet.vurderingsperioder) -> {
                 KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår.VurderingsperiodeUtenforBehandlingsperiode.left()
@@ -273,7 +292,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         }
     }
 
-    protected open fun valider(opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt, Unit> {
+    private fun valider(opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt, Unit> {
         return when {
             !periode.fullstendigOverlapp(opplysningspliktVilkår.minsteAntallSammenhengendePerioder()) -> {
                 KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt.HeleBehandlingsperiodenErIkkeVurdert.left()
@@ -282,7 +301,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         }
     }
 
-    protected open fun valider(vilkår: PensjonsVilkår.Vurdert): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår, Unit> {
+    private fun valider(vilkår: PensjonsVilkår.Vurdert): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår, Unit> {
         return when {
             Sakstype.ALDER != sakstype -> {
                 KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår.VilkårKunRelevantForAlder.left()
@@ -675,7 +694,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
                 clock: Clock,
             ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
-                return super.valider(utenlandsopphold)
+                return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold>(utenlandsopphold)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock) }
             }
 
@@ -683,7 +702,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
                 clock: Clock,
             ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
-                return valider(opplysningspliktVilkår)
+                return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt>(opplysningspliktVilkår)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
             }
 
@@ -691,7 +710,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 vilkår: PensjonsVilkår.Vurdert,
                 clock: Clock,
             ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår, Vilkårsvurdert> {
-                return valider(vilkår)
+                return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår>(vilkår)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(vilkår), clock) }
             }
 
@@ -724,7 +743,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 uførhet: Vilkår.Uførhet.Vurdert,
                 clock: Clock,
             ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
-                return valider(uførhet)
+                return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår>(uførhet)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
             }
 
@@ -836,7 +855,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
                 clock: Clock,
             ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
-                return valider(utenlandsopphold)
+                return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold>(utenlandsopphold)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock) }
             }
 
@@ -844,7 +863,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
                 clock: Clock,
             ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
-                return valider(opplysningspliktVilkår)
+                return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt>(opplysningspliktVilkår)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
             }
 
@@ -852,7 +871,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 vilkår: PensjonsVilkår.Vurdert,
                 clock: Clock,
             ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår, Vilkårsvurdert> {
-                return valider(vilkår)
+                return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår>(vilkår)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(vilkår), clock) }
             }
 
@@ -885,7 +904,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 uførhet: Vilkår.Uførhet.Vurdert,
                 clock: Clock,
             ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
-                return valider(uførhet)
+                return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår>(uførhet)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
             }
 
@@ -951,7 +970,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
                 clock: Clock,
             ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
-                return valider(utenlandsopphold)
+                return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold>(utenlandsopphold)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock) }
             }
 
@@ -959,7 +978,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
                 clock: Clock,
             ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
-                return valider(opplysningspliktVilkår)
+                return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt>(opplysningspliktVilkår)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
             }
 
@@ -967,7 +986,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 vilkår: PensjonsVilkår.Vurdert,
                 clock: Clock,
             ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår, Vilkårsvurdert> {
-                return valider(vilkår)
+                return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår>(vilkår)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(vilkår), clock) }
             }
 
@@ -1000,7 +1019,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 uførhet: Vilkår.Uførhet.Vurdert,
                 clock: Clock,
             ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
-                return valider(uførhet)
+                return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår>(uførhet)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
             }
 
@@ -1174,7 +1193,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
                 clock: Clock,
             ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
-                return valider(utenlandsopphold)
+                return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold>(utenlandsopphold)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock) }
             }
 
@@ -1182,7 +1201,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
                 clock: Clock,
             ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
-                return valider(opplysningspliktVilkår)
+                return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt>(opplysningspliktVilkår)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
             }
 
@@ -1190,7 +1209,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 vilkår: PensjonsVilkår.Vurdert,
                 clock: Clock,
             ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår, Vilkårsvurdert> {
-                return valider(vilkår)
+                return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår>(vilkår)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(vilkår), clock) }
             }
 
@@ -1239,7 +1258,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 uførhet: Vilkår.Uførhet.Vurdert,
                 clock: Clock,
             ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
-                return valider(uførhet)
+                return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår>(uførhet)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
             }
 
@@ -1374,7 +1393,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
                 clock: Clock,
             ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
-                return valider(utenlandsopphold)
+                return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold>(utenlandsopphold)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock) }
             }
 
@@ -1382,7 +1401,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
                 clock: Clock,
             ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
-                return valider(opplysningspliktVilkår)
+                return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt>(opplysningspliktVilkår)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
             }
 
@@ -1390,7 +1409,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 vilkår: PensjonsVilkår.Vurdert,
                 clock: Clock,
             ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår, Vilkårsvurdert> {
-                return valider(vilkår)
+                return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår>(vilkår)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(vilkår), clock) }
             }
 
@@ -1439,7 +1458,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 uførhet: Vilkår.Uførhet.Vurdert,
                 clock: Clock,
             ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
-                return valider(uførhet)
+                return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår>(uførhet)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
             }
 
@@ -1645,7 +1664,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
             clock: Clock,
         ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
-            return valider(utenlandsopphold)
+            return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold>(utenlandsopphold)
                 .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock) }
         }
 
@@ -1653,7 +1672,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
             clock: Clock,
         ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
-            return valider(opplysningspliktVilkår)
+            return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt>(opplysningspliktVilkår)
                 .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
         }
 
@@ -1661,7 +1680,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             vilkår: PensjonsVilkår.Vurdert,
             clock: Clock,
         ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår, Vilkårsvurdert> {
-            return valider(vilkår)
+            return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår>(vilkår)
                 .map { vilkårsvurder(vilkårsvurderinger.leggTil(vilkår), clock) }
         }
 
@@ -1692,7 +1711,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             uførhet: Vilkår.Uførhet.Vurdert,
             clock: Clock,
         ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
-            return valider(uførhet)
+            return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår>(uførhet)
                 .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
         }
 
@@ -2192,7 +2211,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
                 clock: Clock,
             ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
-                return valider(utenlandsopphold)
+                return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold>(utenlandsopphold)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock) }
             }
 
@@ -2200,7 +2219,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
                 clock: Clock,
             ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
-                return valider(opplysningspliktVilkår)
+                return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt>(opplysningspliktVilkår)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
             }
 
@@ -2208,7 +2227,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 vilkår: PensjonsVilkår.Vurdert,
                 clock: Clock,
             ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår, Vilkårsvurdert> {
-                return valider(vilkår)
+                return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår>(vilkår)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(vilkår), clock) }
             }
 
@@ -2241,7 +2260,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 uførhet: Vilkår.Uførhet.Vurdert,
                 clock: Clock,
             ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
-                return valider(uførhet)
+                return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår>(uførhet)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
             }
 
@@ -2395,7 +2414,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
                     clock: Clock,
                 ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
-                    return valider(utenlandsopphold)
+                    return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold>(utenlandsopphold)
                         .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock) }
                 }
 
@@ -2403,7 +2422,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
                     clock: Clock,
                 ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
-                    return valider(opplysningspliktVilkår)
+                    return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt>(opplysningspliktVilkår)
                         .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
                 }
 
@@ -2411,7 +2430,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     vilkår: PensjonsVilkår.Vurdert,
                     clock: Clock,
                 ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår, Vilkårsvurdert> {
-                    return valider(vilkår)
+                    return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår>(vilkår)
                         .map { vilkårsvurder(vilkårsvurderinger.leggTil(vilkår), clock) }
                 }
 
@@ -2444,7 +2463,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     uførhet: Vilkår.Uførhet.Vurdert,
                     clock: Clock,
                 ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
-                    return valider(uførhet)
+                    return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår>(uførhet)
                         .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
                 }
 
@@ -2540,7 +2559,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
                     clock: Clock,
                 ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
-                    return valider(utenlandsopphold)
+                    return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold>(utenlandsopphold)
                         .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock) }
                 }
 
@@ -2548,7 +2567,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
                     clock: Clock,
                 ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
-                    return valider(opplysningspliktVilkår)
+                    return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt>(opplysningspliktVilkår)
                         .map { vilkårsvurder(vilkårsvurderinger.leggTil(opplysningspliktVilkår), clock) }
                 }
 
@@ -2556,7 +2575,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     vilkår: PensjonsVilkår.Vurdert,
                     clock: Clock,
                 ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår, Vilkårsvurdert> {
-                    return valider(vilkår)
+                    return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår>(vilkår)
                         .map { vilkårsvurder(vilkårsvurderinger.leggTil(vilkår), clock) }
                 }
 
@@ -2589,7 +2608,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     uførhet: Vilkår.Uførhet.Vurdert,
                     clock: Clock,
                 ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
-                    return valider(uførhet)
+                    return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår>(uførhet)
                         .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
                 }
 
