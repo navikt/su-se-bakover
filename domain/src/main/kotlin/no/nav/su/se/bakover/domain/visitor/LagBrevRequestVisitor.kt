@@ -564,7 +564,7 @@ class LagBrevRequestVisitor(
             is Vilkårsvurderinger.Revurdering.Uføre -> this.uføre.grunnlag
             is Vilkårsvurderinger.Søknadsbehandling.Uføre -> this.uføre.grunnlag
             is Vilkårsvurderinger.Revurdering.Alder -> TODO("vilkårsvurdering_alder brev for alder ikke implementert enda")
-            is Vilkårsvurderinger.Søknadsbehandling.Alder -> TODO("vilkårsvurdering_alder brev for alder ikke implementert enda")
+            is Vilkårsvurderinger.Søknadsbehandling.Alder -> emptyList() // TODO("vilkårsvurdering_alder brev for alder ikke implementert enda")
         }
     }
 
