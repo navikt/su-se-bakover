@@ -1,8 +1,5 @@
 package no.nav.su.se.bakover.domain.grunnlag
 
-import arrow.core.Either
-import arrow.core.getOrHandle
-import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
@@ -20,7 +17,7 @@ data class LovligOppholdGrunnlag(
             id = id,
             opprettet = opprettet,
             periode = periode,
-        ).getOrHandle { throw IllegalArgumentException(it.toString()) }
+        )
     }
 
     override fun copy(args: CopyArgs.Tidslinje): LovligOppholdGrunnlag = when (args) {
@@ -44,14 +41,10 @@ data class LovligOppholdGrunnlag(
             id: UUID = UUID.randomUUID(),
             opprettet: Tidspunkt,
             periode: Periode,
-        ): Either<KunneIkkeLageFlyktningGrunnlag, LovligOppholdGrunnlag> {
-            return LovligOppholdGrunnlag(
-                id = id,
-                opprettet = opprettet,
-                periode = periode,
-            ).right()
-        }
+        ): LovligOppholdGrunnlag = LovligOppholdGrunnlag(
+            id = id,
+            opprettet = opprettet,
+            periode = periode,
+        )
     }
 }
-
-sealed class KunneIkkeLageLovligOppholdGrunnlag

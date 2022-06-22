@@ -404,6 +404,8 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             return vilkårsvurderinger.uføreVilkår()
         }
 
+        fun lovligOppholdVilkår() = vilkårsvurderinger.lovligOppholdVilkår()
+
         fun formueVilkår(): Vilkår.Formue {
             return vilkårsvurderinger.formueVilkår()
         }

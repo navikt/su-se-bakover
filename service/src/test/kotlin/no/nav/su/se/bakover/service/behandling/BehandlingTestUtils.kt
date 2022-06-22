@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.FastOppholdINorge
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Flyktning
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Flyktning.Status
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.LovligOpphold
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.PersonligOppmøte
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.PersonligOppmøte.Status.MøttPersonlig
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -41,9 +40,6 @@ object BehandlingTestUtils {
     internal val behandlingsinformasjon = Behandlingsinformasjon(
         flyktning = Flyktning(
             status = Status.VilkårOppfylt,
-        ),
-        lovligOpphold = LovligOpphold(
-            status = LovligOpphold.Status.VilkårOppfylt,
         ),
         fastOppholdINorge = FastOppholdINorge(
             status = FastOppholdINorge.Status.VilkårOppfylt,

@@ -38,6 +38,8 @@ import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdInnvilget
 import no.nav.su.se.bakover.test.vilkår.utilstrekkeligDokumentert
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt0
+import no.nav.su.se.bakover.test.vurderingsperiode.vurderingsperiodeLovligOppholdAvslag
+import no.nav.su.se.bakover.test.vurderingsperiode.vurderingsperiodeLovligOppholdInnvilget
 import vilkår.personligOppmøtevilkårAvslag
 import vilkår.personligOppmøtevilkårInnvilget
 import vurderingsperiode.vurderingsperiodeFamiliegjenforeningInnvilget
@@ -98,6 +100,9 @@ fun vilkårsvurderingerSøknadsbehandlingInnvilget(
         id = UUID.randomUUID(),
         periode = periode,
     ),
+    lovligOppholdVilkår: LovligOppholdVilkår = lovligOppholdVilkårInnvilget(
+        nonEmptyListOf(vurderingsperiodeLovligOppholdInnvilget(vurderingsperiode = periode)),
+    ),
     bosituasjon: NonEmptyList<Grunnlag.Bosituasjon.Fullstendig> = nonEmptyListOf(
         bosituasjongrunnlagEnslig(
             id = UUID.randomUUID(),
@@ -120,7 +125,7 @@ fun vilkårsvurderingerSøknadsbehandlingInnvilget(
         utenlandsopphold = utenlandsopphold,
         formue = formue,
         opplysningsplikt = opplysningsplikt,
-        lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
+        lovligOpphold = lovligOppholdVilkår,
         fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
         institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
         personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
@@ -136,15 +141,16 @@ fun vilkårsvurderingerRevurderingInnvilget(
     periode: Periode = år(2021),
     uføre: Vilkår.Uførhet = innvilgetUførevilkårForventetInntekt0(periode = periode),
     bosituasjon: NonEmptyList<Grunnlag.Bosituasjon.Fullstendig> = nonEmptyListOf(bosituasjongrunnlagEnslig(periode = periode)),
-    formue: Vilkår.Formue = formuevilkårUtenEps0Innvilget(
-        periode = periode,
-        bosituasjon = bosituasjon,
+    lovligOpphold: LovligOppholdVilkår = lovligOppholdVilkårInnvilget(
+        nonEmptyListOf(vurderingsperiodeLovligOppholdInnvilget(vurderingsperiode = periode))
     ),
+    formue: Vilkår.Formue = formuevilkårUtenEps0Innvilget(periode = periode, bosituasjon = bosituasjon),
     utenlandsopphold: UtenlandsoppholdVilkår = utenlandsoppholdInnvilget(periode = periode),
     opplysningsplikt: OpplysningspliktVilkår = tilstrekkeligDokumentert(periode = periode),
 ): Vilkårsvurderinger.Revurdering.Uføre {
     return Vilkårsvurderinger.Revurdering.Uføre(
         uføre = uføre,
+        lovligOpphold = lovligOpphold,
         formue = formue,
         utenlandsopphold = utenlandsopphold,
         opplysningsplikt = opplysningsplikt,
@@ -155,6 +161,9 @@ fun vilkårsvurderingerAvslåttAlleRevurdering(
     periode: Periode = år(2021),
     uføre: Vilkår.Uførhet = avslåttUførevilkårUtenGrunnlag(periode = periode),
     bosituasjon: NonEmptyList<Grunnlag.Bosituasjon.Fullstendig> = nonEmptyListOf(bosituasjongrunnlagEnslig(periode = periode)),
+    lovligOpphold: LovligOppholdVilkår = lovligOppholdVilkårAvslag(
+        nonEmptyListOf(vurderingsperiodeLovligOppholdAvslag(vurderingsperiode = periode))
+    ),
     formue: Vilkår.Formue = formuevilkårAvslåttPgrBrukersformue(
         periode = periode,
         bosituasjon = NonEmptyList.fromListUnsafe(bosituasjon.toList()),
@@ -164,6 +173,7 @@ fun vilkårsvurderingerAvslåttAlleRevurdering(
 ): Vilkårsvurderinger.Revurdering.Uføre {
     return Vilkårsvurderinger.Revurdering.Uføre(
         uføre = uføre,
+        lovligOpphold = lovligOpphold,
         formue = formue,
         utenlandsopphold = utenlandsopphold,
         opplysningsplikt = opplysningsplikt,
@@ -193,8 +203,8 @@ fun vilkårsvurderingerAvslåttAlle(
             bosituasjon = bosituasjongrunnlagEnslig(periode = periode),
         ),
         opplysningsplikt = utilstrekkeligDokumentert(periode = periode),
+        lovligOpphold = lovligOppholdVilkårAvslag(),
         // Disse blir oppdatert fra [behandlingsinformasjonAlleVilkårAvslått]
-        lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
         fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
         institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
         personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
@@ -221,6 +231,9 @@ fun vilkårsvurderingerAvslåttUføreOgAndreInnvilget(
 ): Vilkårsvurderinger.Revurdering.Uføre {
     return Vilkårsvurderinger.Revurdering.Uføre(
         uføre = avslåttUførevilkårUtenGrunnlag(periode = periode),
+        lovligOpphold = lovligOppholdVilkårInnvilget(
+            nonEmptyListOf(vurderingsperiodeLovligOppholdInnvilget(vurderingsperiode = periode))
+        ),
         formue = formuevilkårUtenEps0Innvilget(
             periode = periode,
             bosituasjon = bosituasjon,
@@ -233,6 +246,7 @@ fun vilkårsvurderingerAvslåttUføreOgAndreInnvilget(
 fun vilkårsvurderingerAlderInnvilget(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
+    lovligOpphold: LovligOppholdVilkår = lovligOppholdVilkårInnvilget(),
     bosituasjon: NonEmptyList<Grunnlag.Bosituasjon.Fullstendig> = nonEmptyListOf(
         bosituasjongrunnlagEnslig(
             id = UUID.randomUUID(),
@@ -262,7 +276,7 @@ fun vilkårsvurderingerAlderInnvilget(
         utenlandsopphold = utenlandsopphold,
         formue = formue,
         opplysningsplikt = opplysningsplikt,
-        lovligOpphold = LovligOppholdVilkår.IkkeVurdert, // hentes behandlingsinformasjon
+        lovligOpphold = lovligOpphold,
         fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert, // hentes behandlingsinformasjon
         institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert, // hentes behandlingsinformasjon
         personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert, // hentes behandlingsinformasjon

@@ -7,26 +7,22 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.FastOppholdINorgeGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.FlyktningGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.InstitusjonsoppholdGrunnlag
-import no.nav.su.se.bakover.domain.grunnlag.LovligOppholdGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.PersonligOppmøteGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFastOppholdINorge
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFlyktning
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeInstitusjonsopphold
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeLovligOpphold
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodePersonligOppmøte
 import java.time.Clock
 import java.util.UUID
 
 data class Behandlingsinformasjon(
     val flyktning: Flyktning? = null,
-    val lovligOpphold: LovligOpphold? = null,
     val fastOppholdINorge: FastOppholdINorge? = null,
     val institusjonsopphold: Institusjonsopphold? = null,
     val personligOppmøte: PersonligOppmøte? = null,
@@ -34,7 +30,6 @@ data class Behandlingsinformasjon(
     @JsonIgnore
     val vilkår = listOf(
         flyktning,
-        lovligOpphold,
         fastOppholdINorge,
         institusjonsopphold,
         personligOppmøte,
@@ -44,7 +39,6 @@ data class Behandlingsinformasjon(
         b: Behandlingsinformasjon,
     ) = Behandlingsinformasjon(
         flyktning = b.flyktning ?: this.flyktning,
-        lovligOpphold = b.lovligOpphold ?: this.lovligOpphold,
         fastOppholdINorge = b.fastOppholdINorge ?: this.fastOppholdINorge,
         institusjonsopphold = b.institusjonsopphold ?: this.institusjonsopphold,
         personligOppmøte = b.personligOppmøte ?: this.personligOppmøte,
@@ -101,56 +95,6 @@ data class Behandlingsinformasjon(
                     }
                 }
                 Status.Uavklart -> FlyktningVilkår.IkkeVurdert
-            }
-        }
-    }
-
-    data class LovligOpphold(
-        val status: Status,
-    ) : Base() {
-        enum class Status {
-            VilkårOppfylt,
-            VilkårIkkeOppfylt,
-            Uavklart
-        }
-
-        override fun erVilkårOppfylt(): Boolean = status == Status.VilkårOppfylt
-        override fun erVilkårIkkeOppfylt(): Boolean = status == Status.VilkårIkkeOppfylt
-
-        fun tilVilkår(
-            stønadsperiode: Stønadsperiode,
-            clock: Clock,
-        ): LovligOppholdVilkår {
-            return when (status) {
-                Status.VilkårOppfylt,
-                Status.VilkårIkkeOppfylt,
-                -> {
-                    LovligOppholdVilkår.Vurdert.tryCreate(
-                        vurderingsperioder = nonEmptyListOf(
-                            VurderingsperiodeLovligOpphold.tryCreate(
-                                id = UUID.randomUUID(),
-                                opprettet = Tidspunkt.now(clock),
-                                resultat = when (erVilkårOppfylt()) {
-                                    true -> Resultat.Innvilget
-                                    false -> Resultat.Avslag
-                                },
-                                grunnlag = LovligOppholdGrunnlag.tryCreate(
-                                    id = UUID.randomUUID(),
-                                    opprettet = Tidspunkt.now(clock),
-                                    periode = stønadsperiode.periode,
-                                ).getOrHandle {
-                                    throw IllegalArgumentException("Kunne ikke instansiere ${LovligOppholdGrunnlag::class.simpleName}. Melding: $it")
-                                },
-                                vurderingsperiode = stønadsperiode.periode,
-                            ).getOrHandle {
-                                throw IllegalArgumentException("Kunne ikke instansiere ${VurderingsperiodeLovligOpphold::class.simpleName}. Melding: $it")
-                            },
-                        ),
-                    ).getOrHandle {
-                        throw IllegalArgumentException("Kunne ikke instansiere ${LovligOppholdVilkår.Vurdert::class.simpleName}. Melding: $it")
-                    }
-                }
-                Status.Uavklart -> LovligOppholdVilkår.IkkeVurdert
             }
         }
     }
@@ -324,7 +268,6 @@ data class Behandlingsinformasjon(
     companion object {
         fun lagTomBehandlingsinformasjon() = Behandlingsinformasjon(
             flyktning = null,
-            lovligOpphold = null,
             fastOppholdINorge = null,
             institusjonsopphold = null,
             personligOppmøte = null,

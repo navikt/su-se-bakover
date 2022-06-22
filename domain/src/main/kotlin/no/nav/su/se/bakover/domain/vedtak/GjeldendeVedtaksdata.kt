@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
 import no.nav.su.se.bakover.domain.vilkår.FamiliegjenforeningVilkår
+import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.PensjonsVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
@@ -57,6 +58,7 @@ data class GjeldendeVedtaksdata(
                 } -> {
                     Vilkårsvurderinger.Revurdering.Uføre(
                         uføre = it.uføreVilkår(),
+                        lovligOpphold = it.lovligoppholdVilkår(),
                         formue = it.formueVilkår(),
                         utenlandsopphold = it.utenlandsoppholdVilkår(),
                         opplysningsplikt = it.opplysningspliktVilkår(),
@@ -67,6 +69,7 @@ data class GjeldendeVedtaksdata(
                         it.vilkårsvurderinger is Vilkårsvurderinger.Revurdering.Alder
                 } -> {
                     Vilkårsvurderinger.Revurdering.Alder(
+                        lovligOpphold = it.lovligoppholdVilkår(),
                         formue = it.formueVilkår(),
                         utenlandsopphold = it.utenlandsoppholdVilkår(),
                         opplysningsplikt = it.opplysningspliktVilkår(),
@@ -159,6 +162,20 @@ private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.uføreVilkår(): Vil
             Vilkår.Uførhet.IkkeVurdert
         }
     }
+}
+
+private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.lovligoppholdVilkår(): LovligOppholdVilkår {
+    return map { it.lovligOppholdVilkår() }
+        .filterIsInstance<LovligOppholdVilkår.Vurdert>()
+        .flatMap { it.vurderingsperioder }
+        .let {
+            if (it.isNotEmpty()) {
+                LovligOppholdVilkår.Vurdert.createFromVilkårsvurderinger(NonEmptyList.fromListUnsafe(it))
+                    .slåSammenLikePerioder()
+            } else {
+                LovligOppholdVilkår.IkkeVurdert
+            }
+        }
 }
 
 private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.formueVilkår(): Vilkår.Formue {

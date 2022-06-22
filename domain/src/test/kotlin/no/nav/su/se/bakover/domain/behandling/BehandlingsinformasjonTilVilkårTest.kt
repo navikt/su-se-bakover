@@ -6,12 +6,10 @@ import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.domain.grunnlag.FastOppholdINorgeGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.FlyktningGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.InstitusjonsoppholdGrunnlag
-import no.nav.su.se.bakover.domain.grunnlag.LovligOppholdGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.PersonligOppmøteGrunnlag
 import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.test.fixedClock
@@ -67,56 +65,6 @@ class BehandlingsinformasjonTilVilkårTest {
                         periode = stønadsperiode2021.periode,
                     ),
                     FlyktningGrunnlag::id,
-                )
-            }
-        }
-    }
-
-    @Test
-    fun `konverterer lovlig opphold til lovlig vilkår`() {
-        Behandlingsinformasjon.LovligOpphold(
-            status = Behandlingsinformasjon.LovligOpphold.Status.Uavklart,
-        ).tilVilkår(
-            stønadsperiode = stønadsperiode2021,
-            clock = fixedClock,
-        ) shouldBe LovligOppholdVilkår.IkkeVurdert
-
-        Behandlingsinformasjon.LovligOpphold(
-            status = Behandlingsinformasjon.LovligOpphold.Status.VilkårOppfylt,
-        ).tilVilkår(
-            stønadsperiode = stønadsperiode2021,
-            clock = fixedClock,
-        ).let { vilkår ->
-            vilkår shouldBe beOfType<LovligOppholdVilkår.Vurdert>()
-            (vilkår as LovligOppholdVilkår.Vurdert).let {
-                it.resultat shouldBe Resultat.Innvilget
-                it.grunnlag.single().shouldBeEqualToIgnoringFields(
-                    LovligOppholdGrunnlag(
-                        id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
-                        periode = stønadsperiode2021.periode,
-                    ),
-                    LovligOppholdGrunnlag::id,
-                )
-            }
-        }
-
-        Behandlingsinformasjon.LovligOpphold(
-            status = Behandlingsinformasjon.LovligOpphold.Status.VilkårIkkeOppfylt,
-        ).tilVilkår(
-            stønadsperiode = stønadsperiode2021,
-            clock = fixedClock,
-        ).let { vilkår ->
-            vilkår shouldBe beOfType<LovligOppholdVilkår.Vurdert>()
-            (vilkår as LovligOppholdVilkår.Vurdert).let {
-                it.resultat shouldBe Resultat.Avslag
-                it.grunnlag.single().shouldBeEqualToIgnoringFields(
-                    LovligOppholdGrunnlag(
-                        id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
-                        periode = stønadsperiode2021.periode,
-                    ),
-                    LovligOppholdGrunnlag::id,
                 )
             }
         }

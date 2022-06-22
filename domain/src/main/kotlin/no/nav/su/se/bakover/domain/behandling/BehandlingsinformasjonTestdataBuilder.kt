@@ -12,9 +12,6 @@ fun Behandlingsinformasjon.withAlleVilkårOppfylt() =
         flyktning = Behandlingsinformasjon.Flyktning(
             status = Behandlingsinformasjon.Flyktning.Status.VilkårOppfylt,
         ),
-        lovligOpphold = Behandlingsinformasjon.LovligOpphold(
-            status = Behandlingsinformasjon.LovligOpphold.Status.VilkårOppfylt,
-        ),
         fastOppholdINorge = Behandlingsinformasjon.FastOppholdINorge(
             status = Behandlingsinformasjon.FastOppholdINorge.Status.VilkårOppfylt,
         ),
@@ -31,9 +28,6 @@ fun Behandlingsinformasjon.withAlleVilkårAvslått() =
     Behandlingsinformasjon(
         flyktning = Behandlingsinformasjon.Flyktning(
             status = Behandlingsinformasjon.Flyktning.Status.VilkårIkkeOppfylt,
-        ),
-        lovligOpphold = Behandlingsinformasjon.LovligOpphold(
-            status = Behandlingsinformasjon.LovligOpphold.Status.VilkårIkkeOppfylt,
         ),
         fastOppholdINorge = Behandlingsinformasjon.FastOppholdINorge(
             status = Behandlingsinformasjon.FastOppholdINorge.Status.VilkårIkkeOppfylt,

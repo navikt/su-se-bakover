@@ -173,6 +173,7 @@ import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFamiliegjenforeningRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFlereUtenlandsoppholdRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilLovligOppholdRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilPensjonsVilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
@@ -507,6 +508,11 @@ open class AccessCheckProxy(
                 override fun leggTilUførevilkår(request: LeggTilUførevurderingerRequest): Either<SøknadsbehandlingService.KunneIkkeLeggeTilUføreVilkår, Søknadsbehandling> {
                     assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.leggTilUførevilkår(request)
+                }
+
+                override fun leggTilLovligOpphold(request: LeggTilLovligOppholdRequest): Either<SøknadsbehandlingService.KunneIkkeLeggetilLovligOppholdVilkår, Søknadsbehandling> {
+                    assertHarTilgangTilBehandling(request.behandlingId)
+                    return services.søknadsbehandling.leggTilLovligOpphold(request)
                 }
 
                 override fun leggTilFamiliegjenforeningvilkår(request: LeggTilFamiliegjenforeningRequest): Either<SøknadsbehandlingService.KunneIkkeLeggeTilFamiliegjenforeningVilkårService, Søknadsbehandling> {

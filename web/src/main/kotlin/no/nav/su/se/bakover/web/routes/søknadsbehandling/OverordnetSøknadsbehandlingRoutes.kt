@@ -14,6 +14,8 @@ internal fun Route.overordnetSøknadsbehandligRoutes(
 
     leggTilUføregrunnlagRoutes(søknadsbehandlingService, satsFactory)
 
+    leggTilLovligOppholdRoute(søknadsbehandlingService, satsFactory)
+
     leggTilGrunnlagBosituasjonRoutes(søknadsbehandlingService, satsFactory)
 
     leggTilGrunnlagFradrag(søknadsbehandlingService, clock, satsFactory)

@@ -30,10 +30,13 @@ import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFamiliegjenforeningRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilLovligOppholdRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilPensjonsVilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
+import no.nav.su.se.bakover.service.vilkår.LovligOppholdVilkårStatus
+import no.nav.su.se.bakover.service.vilkår.LovligOppholdVurderinger
 import no.nav.su.se.bakover.service.vilkår.UførevilkårStatus
 import no.nav.su.se.bakover.service.vilkår.UtenlandsoppholdStatus
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
@@ -122,6 +125,15 @@ internal class SøknadsbehandlingAlder {
                     behandlingId = søknadsbehandling.id,
                     vurderinger = listOf(
                         FamiliegjenforeningVurderinger(FamiliegjenforeningvilkårStatus.VilkårOppfylt),
+                    ),
+                ),
+            )
+
+            appComponents.services.søknadsbehandling.leggTilLovligOpphold(
+                request = LeggTilLovligOppholdRequest(
+                    behandlingId = søknadsbehandling.id,
+                    vurderinger = listOf(
+                        LovligOppholdVurderinger(LovligOppholdVilkårStatus.VilkårOppfylt),
                     ),
                 ),
             )

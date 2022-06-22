@@ -23,13 +23,13 @@ import no.nav.su.se.bakover.domain.søknadsinnholdAlder
 import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.vilkår.formuevilkårIkkeVurdert
+import no.nav.su.se.bakover.test.vilkår.lovligOppholdVilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.tilstrekkeligDokumentert
 import no.nav.su.se.bakover.web.routes.grunnlag.BosituasjonJsonTest.Companion.bosituasjon
 import no.nav.su.se.bakover.web.routes.grunnlag.UføreVilkårJsonTest.Companion.vurderingsperiodeUføre
@@ -70,9 +70,6 @@ object BehandlingTestUtils {
             flyktning = Behandlingsinformasjon.Flyktning(
                 status = Behandlingsinformasjon.Flyktning.Status.VilkårOppfylt,
             ),
-            lovligOpphold = Behandlingsinformasjon.LovligOpphold(
-                status = Behandlingsinformasjon.LovligOpphold.Status.VilkårOppfylt,
-            ),
             fastOppholdINorge = Behandlingsinformasjon.FastOppholdINorge(
                 status = Behandlingsinformasjon.FastOppholdINorge.Status.VilkårOppfylt,
             ),
@@ -109,8 +106,8 @@ object BehandlingTestUtils {
             opplysningsplikt = tilstrekkeligDokumentert(
                 periode = stønadsperiode.periode
             ),
+            lovligOpphold = lovligOppholdVilkårInnvilget(),
             // TODO jah: Ikke bra at dette ender opp som et innvilget vedtak uten å gå via oppdater(behandlingsinformasjon)-funksjonen.
-            lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
             fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
             institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
             personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,

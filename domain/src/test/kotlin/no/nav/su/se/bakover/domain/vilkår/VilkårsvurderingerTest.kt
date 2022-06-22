@@ -130,15 +130,15 @@ internal class VilkårsvurderingerTest {
             vilkårsvurderingerSøknadsbehandlingInnvilget(
                 behandlingsinformasjon = Behandlingsinformasjon().withAlleVilkårOppfylt().patch(
                     Behandlingsinformasjon(
-                        lovligOpphold = Behandlingsinformasjon.LovligOpphold(
-                            status = Behandlingsinformasjon.LovligOpphold.Status.Uavklart,
+                        flyktning = Behandlingsinformasjon.Flyktning(
+                            status = Behandlingsinformasjon.Flyktning.Status.Uavklart,
                         ),
                     ),
                 ),
             ).let {
                 it.resultat shouldBe Vilkårsvurderingsresultat.Uavklart(
                     setOf(
-                        LovligOppholdVilkår.IkkeVurdert,
+                        FlyktningVilkår.IkkeVurdert,
                     ),
                 )
             }

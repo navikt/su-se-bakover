@@ -41,9 +41,12 @@ import no.nav.su.se.bakover.service.vilkår.BosituasjonValg
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilLovligOppholdRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
+import no.nav.su.se.bakover.service.vilkår.LovligOppholdVilkårStatus
+import no.nav.su.se.bakover.service.vilkår.LovligOppholdVurderinger
 import no.nav.su.se.bakover.service.vilkår.UførevilkårStatus
 import no.nav.su.se.bakover.service.vilkår.UtenlandsoppholdStatus
 import no.nav.su.se.bakover.test.empty
@@ -294,6 +297,13 @@ internal class BeregnRoutesKtTest {
                     ),
                 ),
             ),
+        )
+        services.søknadsbehandling.leggTilLovligOpphold(
+            LeggTilLovligOppholdRequest(
+                behandlingId = objects.søknadsbehandling.id,
+                vurderinger = listOf(LovligOppholdVurderinger(LovligOppholdVilkårStatus.VilkårOppfylt))
+
+            )
         )
         services.søknadsbehandling.leggTilUtenlandsopphold(
             request = LeggTilUtenlandsoppholdRequest(

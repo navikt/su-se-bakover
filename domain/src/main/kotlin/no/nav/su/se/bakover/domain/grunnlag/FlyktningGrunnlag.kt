@@ -44,7 +44,7 @@ data class FlyktningGrunnlag(
             id: UUID = UUID.randomUUID(),
             opprettet: Tidspunkt,
             periode: Periode,
-        ): Either<KunneIkkeLageLovligOppholdGrunnlag, FlyktningGrunnlag> {
+        ): Either<KunneIkkeLageFlyktningGrunnlag, FlyktningGrunnlag> {
             return FlyktningGrunnlag(
                 id = id,
                 opprettet = opprettet,

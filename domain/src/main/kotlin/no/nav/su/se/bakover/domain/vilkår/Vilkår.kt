@@ -71,6 +71,7 @@ fun Nel<Vurderingsperiode>.erLik(other: Nel<Vurderingsperiode>): Boolean {
 sealed class Vilkårsvurderinger {
     abstract val vilkår: Set<Vilkår>
 
+    abstract val lovligOpphold: LovligOppholdVilkår
     abstract val formue: Vilkår.Formue
     abstract val utenlandsopphold: UtenlandsoppholdVilkår
     abstract val opplysningsplikt: OpplysningspliktVilkår
@@ -114,6 +115,8 @@ sealed class Vilkårsvurderinger {
     }
 
     object VilkårEksistererIkke
+
+    fun lovligOppholdVilkår() = lovligOpphold
 
     fun formueVilkår(): Vilkår.Formue {
         return formue
@@ -176,8 +179,8 @@ sealed class Vilkårsvurderinger {
                     FastOppholdINorgeVilkår.IkkeVurdert,
                     FlyktningVilkår.IkkeVurdert,
                     Vilkår.Formue.IkkeVurdert,
-                    InstitusjonsoppholdVilkår.IkkeVurdert,
                     LovligOppholdVilkår.IkkeVurdert,
+                    InstitusjonsoppholdVilkår.IkkeVurdert,
                     OpplysningspliktVilkår.IkkeVurdert,
                     PersonligOppmøteVilkår.IkkeVurdert,
                     Vilkår.Uførhet.IkkeVurdert,
@@ -215,7 +218,7 @@ sealed class Vilkårsvurderinger {
 
     sealed class Søknadsbehandling : Vilkårsvurderinger() {
         abstract override val formue: Vilkår.Formue
-        abstract val lovligOpphold: LovligOppholdVilkår
+        abstract override val lovligOpphold: LovligOppholdVilkår
         abstract val fastOpphold: FastOppholdINorgeVilkår
         abstract val institusjonsopphold: InstitusjonsoppholdVilkår
         abstract override val utenlandsopphold: UtenlandsoppholdVilkår
@@ -299,6 +302,7 @@ sealed class Vilkårsvurderinger {
             override fun tilVilkårsvurderingerRevurdering(): Revurdering.Uføre {
                 return Revurdering.Uføre(
                     uføre = uføre,
+                    lovligOpphold = lovligOpphold,
                     formue = formue,
                     utenlandsopphold = utenlandsopphold,
                     opplysningsplikt = opplysningsplikt,
@@ -338,9 +342,6 @@ sealed class Vilkårsvurderinger {
                         is Behandlingsinformasjon.Flyktning -> {
                             it.tilVilkår(stønadsperiode, clock)
                         }
-                        is Behandlingsinformasjon.LovligOpphold -> {
-                            it.tilVilkår(stønadsperiode, clock)
-                        }
                         is Behandlingsinformasjon.FastOppholdINorge -> {
                             it.tilVilkår(stønadsperiode, clock)
                         }
@@ -377,18 +378,17 @@ sealed class Vilkårsvurderinger {
             )
 
             companion object {
-                fun ikkeVurdert() =
-                    Uføre(
-                        uføre = Vilkår.Uførhet.IkkeVurdert,
-                        formue = Vilkår.Formue.IkkeVurdert,
-                        flyktning = FlyktningVilkår.IkkeVurdert,
-                        lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
-                        fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
-                        institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
-                        utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
-                        personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
-                        opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
-                    )
+                fun ikkeVurdert() = Uføre(
+                    uføre = Vilkår.Uførhet.IkkeVurdert,
+                    formue = Vilkår.Formue.IkkeVurdert,
+                    flyktning = FlyktningVilkår.IkkeVurdert,
+                    lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
+                    fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
+                    institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
+                    utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
+                    personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
+                    opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
+                )
             }
         }
 
@@ -463,9 +463,6 @@ sealed class Vilkårsvurderinger {
                         is Behandlingsinformasjon.Flyktning -> {
                             null // TODO("vilkårsvurdering_alder tålererer dette inntil vi har fått denne ut av behandlingsinformasjon")
                         }
-                        is Behandlingsinformasjon.LovligOpphold -> {
-                            it.tilVilkår(stønadsperiode, clock)
-                        }
                         is Behandlingsinformasjon.FastOppholdINorge -> {
                             it.tilVilkår(stønadsperiode, clock)
                         }
@@ -502,6 +499,7 @@ sealed class Vilkårsvurderinger {
 
             override fun tilVilkårsvurderingerRevurdering(): Revurdering.Alder {
                 return Revurdering.Alder(
+                    lovligOpphold = lovligOpphold,
                     formue = formue,
                     utenlandsopphold = utenlandsopphold,
                     opplysningsplikt = opplysningsplikt,
@@ -535,6 +533,7 @@ sealed class Vilkårsvurderinger {
     }
 
     sealed class Revurdering : Vilkårsvurderinger() {
+        abstract override val lovligOpphold: LovligOppholdVilkår
         abstract override val formue: Vilkår.Formue
         abstract override val utenlandsopphold: UtenlandsoppholdVilkår
         abstract override val opplysningsplikt: OpplysningspliktVilkår
@@ -543,6 +542,7 @@ sealed class Vilkårsvurderinger {
 
         data class Uføre(
             val uføre: Vilkår.Uførhet,
+            override val lovligOpphold: LovligOppholdVilkår,
             override val formue: Vilkår.Formue,
             override val utenlandsopphold: UtenlandsoppholdVilkår,
             override val opplysningsplikt: OpplysningspliktVilkår,
@@ -565,10 +565,10 @@ sealed class Vilkårsvurderinger {
                     is Vilkår.Uførhet -> copy(uføre = vilkår)
                     is UtenlandsoppholdVilkår -> copy(utenlandsopphold = vilkår)
                     is OpplysningspliktVilkår -> copy(opplysningsplikt = vilkår)
+                    is LovligOppholdVilkår -> copy(lovligOpphold = vilkår)
                     is FastOppholdINorgeVilkår,
                     is FlyktningVilkår,
                     is InstitusjonsoppholdVilkår,
-                    is LovligOppholdVilkår,
                     is PersonligOppmøteVilkår,
                     -> {
                         throw IllegalArgumentException("Ukjent vilkår for revurdering av uføre: ${vilkår::class}")
@@ -591,7 +591,7 @@ sealed class Vilkårsvurderinger {
                     formue = formue,
                     utenlandsopphold = utenlandsopphold,
                     opplysningsplikt = opplysningsplikt,
-                    lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
+                    lovligOpphold = lovligOpphold,
                     institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
                     personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
                     flyktning = FlyktningVilkår.IkkeVurdert,
@@ -614,6 +614,7 @@ sealed class Vilkårsvurderinger {
             override fun lagTidslinje(periode: Periode): Uføre {
                 return Uføre(
                     uføre = uføre.lagTidslinje(periode),
+                    lovligOpphold = lovligOpphold.lagTidslinje(periode),
                     formue = formue.lagTidslinje(periode),
                     utenlandsopphold = utenlandsopphold.lagTidslinje(periode),
                     opplysningsplikt = opplysningsplikt.lagTidslinje(periode),
@@ -625,6 +626,7 @@ sealed class Vilkårsvurderinger {
                 formuegrenserFactory: FormuegrenserFactory,
             ): Uføre = Uføre(
                 uføre = uføre.oppdaterStønadsperiode(stønadsperiode),
+                lovligOpphold = lovligOpphold.oppdaterStønadsperiode(stønadsperiode),
                 formue = formue.oppdaterStønadsperiode(stønadsperiode, formuegrenserFactory),
                 utenlandsopphold = utenlandsopphold.oppdaterStønadsperiode(stønadsperiode),
                 opplysningsplikt = opplysningsplikt.oppdaterStønadsperiode(stønadsperiode),
@@ -633,6 +635,7 @@ sealed class Vilkårsvurderinger {
             companion object {
                 fun ikkeVurdert() = Uføre(
                     uføre = Vilkår.Uførhet.IkkeVurdert,
+                    lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
                     formue = Vilkår.Formue.IkkeVurdert,
                     utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
                     opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
@@ -641,6 +644,7 @@ sealed class Vilkårsvurderinger {
         }
 
         data class Alder(
+            override val lovligOpphold: LovligOppholdVilkår,
             override val formue: Vilkår.Formue = Vilkår.Formue.IkkeVurdert,
             override val utenlandsopphold: UtenlandsoppholdVilkår = UtenlandsoppholdVilkår.IkkeVurdert,
             override val opplysningsplikt: OpplysningspliktVilkår = OpplysningspliktVilkår.IkkeVurdert,
@@ -661,6 +665,7 @@ sealed class Vilkårsvurderinger {
 
             override fun lagTidslinje(periode: Periode): Vilkårsvurderinger {
                 return Alder(
+                    lovligOpphold = lovligOpphold.lagTidslinje(periode),
                     formue = formue.lagTidslinje(periode),
                     utenlandsopphold = utenlandsopphold.lagTidslinje(periode),
                     opplysningsplikt = opplysningsplikt.lagTidslinje(periode),
@@ -674,10 +679,10 @@ sealed class Vilkårsvurderinger {
                     is Vilkår.Formue -> copy(formue = vilkår)
                     is UtenlandsoppholdVilkår -> copy(utenlandsopphold = vilkår)
                     is OpplysningspliktVilkår -> copy(opplysningsplikt = vilkår)
+                    is LovligOppholdVilkår -> copy(lovligOpphold = vilkår)
                     is FastOppholdINorgeVilkår,
                     is FlyktningVilkår,
                     is InstitusjonsoppholdVilkår,
-                    is LovligOppholdVilkår,
                     is PersonligOppmøteVilkår,
                     -> {
                         throw IllegalArgumentException("Ukjent vilkår for revurdering av alder: ${vilkår::class}")

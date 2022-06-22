@@ -21,6 +21,8 @@ import no.nav.su.se.bakover.database.grunnlag.FormueVilkårsvurderingPostgresRep
 import no.nav.su.se.bakover.database.grunnlag.FormuegrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagsdataOgVilkårsvurderingerPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.LovligOppholdVilkårsvurderingPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.LovligOppholdgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.OpplysningspliktGrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.OpplysningspliktVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.PensjonVilkårsvurderingPostgresRepo
@@ -290,6 +292,7 @@ internal class TestDataHelper(
         dbMetrics = dbMetrics,
         uføregrunnlagRepo = uføregrunnlagPostgresRepo,
     )
+    internal val lovligOppholdGrunnlagPostgresRepo = LovligOppholdgrunnlagPostgresRepo(dbMetrics)
     internal val utenlandsoppholdVilkårsvurderingRepo = UtenlandsoppholdVilkårsvurderingPostgresRepo(
         utenlandsoppholdgrunnlagRepo = utenlandsoppholdgrunnlagPostgresRepo,
         dbMetrics = dbMetrics,
@@ -310,7 +313,12 @@ internal class TestDataHelper(
         dbMetrics = dbMetrics,
         pensjonsgrunnlagPostgresRepo = pensjonsgrunnlagPostgresRepo,
     )
-    internal val familiegjenforeningVilkårsvurderingPostgresRepo = FamiliegjenforeningVilkårsvurderingPostgresRepo(dbMetrics)
+    internal val lovligOppholdVilkårsvurderingPostgresRepo = LovligOppholdVilkårsvurderingPostgresRepo(
+        dbMetrics = dbMetrics,
+        lovligOppholdGrunnlagPostgresRepo = lovligOppholdGrunnlagPostgresRepo,
+    )
+    internal val familiegjenforeningVilkårsvurderingPostgresRepo =
+        FamiliegjenforeningVilkårsvurderingPostgresRepo(dbMetrics)
     internal val grunnlagsdataOgVilkårsvurderingerPostgresRepo = GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
         dbMetrics = dbMetrics,
         bosituasjongrunnlagPostgresRepo = bosituasjongrunnlagPostgresRepo,
@@ -321,6 +329,7 @@ internal class TestDataHelper(
         opplysningspliktVilkårsvurderingPostgresRepo = opplysningspliktVilkårsvurderingPostgresRepo,
         pensjonVilkårsvurderingPostgresRepo = vilkårsvurderingPensjonPostgresRepo,
         familiegjenforeningVilkårsvurderingPostgresRepo = familiegjenforeningVilkårsvurderingPostgresRepo,
+        lovligOppholdVilkårsvurderingPostgresRepo = lovligOppholdVilkårsvurderingPostgresRepo,
     )
     internal val søknadsbehandlingRepo = SøknadsbehandlingPostgresRepo(
         sessionFactory = sessionFactory,

@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeSimulereBehandlin
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.vilkår.KunneIkkeLageLovligOppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.UgyldigFamiliegjenforeningVilkår
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilOpplysningsplikt
@@ -23,6 +24,7 @@ import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeTilPensjonsVilkår
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFamiliegjenforeningRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilLovligOppholdRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilPensjonsVilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
@@ -41,6 +43,7 @@ interface SøknadsbehandlingService {
     fun hent(request: HentRequest): Either<FantIkkeBehandling, Søknadsbehandling>
     fun oppdaterStønadsperiode(request: OppdaterStønadsperiodeRequest): Either<KunneIkkeOppdatereStønadsperiode, Søknadsbehandling>
     fun leggTilUførevilkår(request: LeggTilUførevurderingerRequest): Either<KunneIkkeLeggeTilUføreVilkår, Søknadsbehandling>
+    fun leggTilLovligOpphold(request: LeggTilLovligOppholdRequest): Either<KunneIkkeLeggetilLovligOppholdVilkår, Søknadsbehandling>
     fun leggTilFamiliegjenforeningvilkår(request: LeggTilFamiliegjenforeningRequest): Either<KunneIkkeLeggeTilFamiliegjenforeningVilkårService, Søknadsbehandling>
     fun leggTilBosituasjonEpsgrunnlag(request: LeggTilBosituasjonEpsRequest): Either<KunneIkkeLeggeTilBosituasjonEpsGrunnlag, Søknadsbehandling>
     fun fullførBosituasjongrunnlag(request: FullførBosituasjonRequest): Either<KunneIkkeFullføreBosituasjonGrunnlag, Søknadsbehandling>
@@ -247,5 +250,15 @@ interface SøknadsbehandlingService {
 
         data class KunneIkkeLeggeTilFormuegrunnlagTilSøknadsbehandling(val feil: KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFormuevilkår) :
             KunneIkkeLeggeTilFormuegrunnlag
+    }
+
+    sealed interface KunneIkkeLeggetilLovligOppholdVilkår {
+        object FantIkkeBehandling : KunneIkkeLeggetilLovligOppholdVilkår
+
+        data class UgyldigLovligOppholdVilkår(val feil: KunneIkkeLageLovligOppholdVilkår) :
+            KunneIkkeLeggetilLovligOppholdVilkår
+
+        data class FeilVedSøknadsbehandling(val feil: Søknadsbehandling.KunneIkkeLeggeTilLovligOpphold) :
+            KunneIkkeLeggetilLovligOppholdVilkår
     }
 }

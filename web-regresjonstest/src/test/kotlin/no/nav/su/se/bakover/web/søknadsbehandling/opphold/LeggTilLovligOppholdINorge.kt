@@ -24,27 +24,25 @@ internal fun ApplicationTestBuilder.leggTilLovligOppholdINorge(
 ): String {
     return runBlocking {
         defaultRequest(
-            HttpMethod.Patch,
-            "/saker/$sakId/behandlinger/$behandlingId/informasjon",
+            HttpMethod.Post,
+            "/saker/$sakId/behandlinger/$behandlingId/lovligOpphold",
             listOf(brukerrolle),
         ) {
             setBody(
                 //language=JSON
                 """
-                  {
-                    "flyktning":null,
-                    "lovligOpphold":{
-                      "status":"$vurdering"
-                    },
-                    "fastOppholdINorge":null,
-                    "institusjonsopphold":null,
-                    "personligOppmøte":null
-                  }
+                    {
+                        "vurderinger": [
+                            {
+                                "status": "$vurdering"
+                            }
+                        ]
+                    }
                 """.trimIndent(),
             )
         }.apply {
             withClue("body=${this.bodyAsText()}") {
-                status shouldBe HttpStatusCode.OK
+                status shouldBe HttpStatusCode.Created
                 contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
             }
         }.bodyAsText()
