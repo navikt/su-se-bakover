@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsinnholdAlder
 import no.nav.su.se.bakover.domain.vilkår.FamiliegjenforeningVilkår
+import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.PensjonsVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
@@ -980,6 +981,10 @@ fun vilkårsvurdertSøknadsbehandling(
                     .leggTilFormuevilkår(
                         vilkår = customVilkår.customOrDefault { vilkår.formue as Vilkår.Formue.Vurdert },
                         clock = clock,
+                    ).getOrFail()
+                    .leggTilLovligOpphold(
+                        lovligOppholdVilkår = customVilkår.customOrDefault { vilkår.lovligOpphold as LovligOppholdVilkår.Vurdert },
+                        clock = clock
                     ).getOrFail()
                     .leggTilUtenlandsopphold(
                         utenlandsopphold = customVilkår.customOrDefault { vilkår.utenlandsopphold as UtenlandsoppholdVilkår.Vurdert },
