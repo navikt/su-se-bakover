@@ -2,15 +2,14 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 plugins {
     kotlin("jvm")
-    // Støtter unicode filer (i motsetning til https://github.com/JLLeitschuh/ktlint-gradle 10.0.0) og har nyere dependencies som gradle. Virker som den oppdateres hyppigere.
-    id("org.jmailen.kotlinter") version "3.10.0"
+    id("com.diffplug.spotless") version "6.7.2"
 }
 
 version = "0.0.1"
 
 subprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
-    apply(plugin = "org.jmailen.kotlinter")
+    apply(plugin = "com.diffplug.spotless")
     repositories {
         mavenCentral()
         maven("https://jitpack.io")
@@ -121,6 +120,19 @@ subprojects {
 
     // Run `./gradlew allDeps` to get a dependency graph
     task("allDeps", DependencyReportTask::class) {}
+
+    configure<com.diffplug.gradle.spotless.SpotlessExtension> {
+        kotlin {
+            ktlint()
+            // TODO jah: prøv å enable ktfmt()
+            // TODO jah: prøv å enable diktat()
+            // TODO jah: prøv å enable prettier()
+        }
+        kotlinGradle {
+            target("*.gradle.kts") // default target for kotlinGradle
+            ktlint() // or ktfmt() or prettier()
+        }
+    }
 }
 
 
@@ -160,11 +172,6 @@ configure(
     }
 }
 
-tasks.check {
-    // Må ligge på root nivå
-    dependsOn("installKotlinterPrePushHook")
-}
-
 configurations {
     all {
         // Vi bruker logback og mener vi kan trygt sette en exclude på log4j: https://security.snyk.io/vuln/SNYK-JAVA-ORGAPACHELOGGINGLOG4J-2314720
@@ -192,3 +199,13 @@ fun Test.sharedTestSetup() {
     // https://docs.gradle.org/current/userguide/performance.html#suggestions_for_java_projects
     failFast = false
 }
+
+tasks.register<Copy>("gitHooks") {
+    from("scripts/hooks/pre-commit")
+    into(".git/hooks")
+}
+
+tasks.named("build") {
+    dependsOn(":gitHooks")
+}
+

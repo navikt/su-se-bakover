@@ -1,8 +1,6 @@
 val ktorVersion: String by project
 
 plugins {
-    /** Det ser ut som disse genererte filene ikke blir ekskludert av ktlint-tasken.
-     * Gradle gir oss noen warnings om at vi ikke kan oppdatere til Gradle 8. */
     id("com.github.davidmc24.gradle.plugin.avro") version "1.3.0"
 }
 
@@ -40,7 +38,6 @@ dependencies {
         exclude(group = "org.eclipse.jetty") // conflicts with WireMock
         exclude(group = "org.eclipse.jetty.http2") // conflicts with WireMock
     }
-
 }
 
 tasks.named<Jar>("jar") {
