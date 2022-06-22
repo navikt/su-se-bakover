@@ -6,7 +6,7 @@ import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLukkeSøknadsbehandling
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.web.errorJson
 import org.junit.jupiter.api.Test
@@ -33,7 +33,7 @@ internal class LukkSøknadErrorHandlerTest {
 
             LukkSøknadErrorHandler.kunneIkkeLukkeSøknadResponse(
                 request = medBrevRequest,
-                error = KunneIkkeLukkeSøknad.BehandlingErIFeilTilstand(Søknadsbehandling.KunneIkkeLukkeSøknadsbehandling.KanIkkeLukkeEnAlleredeLukketSøknadsbehandling),
+                error = KunneIkkeLukkeSøknad.BehandlingErIFeilTilstand(KunneIkkeLukkeSøknadsbehandling.KanIkkeLukkeEnAlleredeLukketSøknadsbehandling),
             ) shouldBe HttpStatusCode.BadRequest.errorJson(
                 "Behandlingen tilknyttet søknad med id ${medBrevRequest.søknadId} er allerede lukket og kan derfor ikke lukkes",
                 "kan_ikke_lukke_en_allerede_lukket_søknadsbehandling"
@@ -41,7 +41,7 @@ internal class LukkSøknadErrorHandlerTest {
 
             LukkSøknadErrorHandler.kunneIkkeLukkeSøknadResponse(
                 request = medBrevRequest,
-                error = KunneIkkeLukkeSøknad.BehandlingErIFeilTilstand(Søknadsbehandling.KunneIkkeLukkeSøknadsbehandling.KanIkkeLukkeEnIverksattSøknadsbehandling),
+                error = KunneIkkeLukkeSøknad.BehandlingErIFeilTilstand(KunneIkkeLukkeSøknadsbehandling.KanIkkeLukkeEnIverksattSøknadsbehandling),
             ) shouldBe HttpStatusCode.BadRequest.errorJson(
                 "Behandlingen tilknyttet søknad med id ${medBrevRequest.søknadId} er iverksatt og kan derfor ikke lukkes",
                 "kan_ikke_lukke_en_iverksatt_søknadsbehandling"
@@ -49,7 +49,7 @@ internal class LukkSøknadErrorHandlerTest {
 
             LukkSøknadErrorHandler.kunneIkkeLukkeSøknadResponse(
                 request = medBrevRequest,
-                error = KunneIkkeLukkeSøknad.BehandlingErIFeilTilstand(Søknadsbehandling.KunneIkkeLukkeSøknadsbehandling.KanIkkeLukkeEnSøknadsbehandlingTilAttestering),
+                error = KunneIkkeLukkeSøknad.BehandlingErIFeilTilstand(KunneIkkeLukkeSøknadsbehandling.KanIkkeLukkeEnSøknadsbehandlingTilAttestering),
             ) shouldBe HttpStatusCode.BadRequest.errorJson(
                 "Behandlingen tilknyttet søknad med id ${medBrevRequest.søknadId} er til attestering og kan derfor ikke lukkes",
                 "kan_ikke_lukke_en_søknadsbehandling_til_attestering"

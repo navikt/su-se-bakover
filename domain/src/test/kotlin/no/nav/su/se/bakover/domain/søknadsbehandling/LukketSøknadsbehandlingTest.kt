@@ -12,17 +12,17 @@ internal class LukketSøknadsbehandlingTest {
 
     @Test
     fun `skal ikke kunne lukke en lukket søknadsbehandling`() {
-        LukketSøknadsbehandling.tryCreate(søknadsbehandlingLukket().second) shouldBe Søknadsbehandling.KunneIkkeLukkeSøknadsbehandling.KanIkkeLukkeEnAlleredeLukketSøknadsbehandling.left()
+        LukketSøknadsbehandling.tryCreate(søknadsbehandlingLukket().second) shouldBe KunneIkkeLukkeSøknadsbehandling.KanIkkeLukkeEnAlleredeLukketSøknadsbehandling.left()
     }
 
     @Test
     fun `skal ikke kunne lukke en søknadsbehandling til attestering`() {
-        LukketSøknadsbehandling.tryCreate(søknadsbehandlingTilAttesteringInnvilget().second) shouldBe Søknadsbehandling.KunneIkkeLukkeSøknadsbehandling.KanIkkeLukkeEnSøknadsbehandlingTilAttestering.left()
+        LukketSøknadsbehandling.tryCreate(søknadsbehandlingTilAttesteringInnvilget().second) shouldBe KunneIkkeLukkeSøknadsbehandling.KanIkkeLukkeEnSøknadsbehandlingTilAttestering.left()
     }
 
     @Test
     fun `skal ikke kunne lukke en iverksatt søknadsbehandling`() {
-        LukketSøknadsbehandling.tryCreate(søknadsbehandlingTilAttesteringInnvilget().second) shouldBe Søknadsbehandling.KunneIkkeLukkeSøknadsbehandling.KanIkkeLukkeEnSøknadsbehandlingTilAttestering.left()
+        LukketSøknadsbehandling.tryCreate(søknadsbehandlingTilAttesteringInnvilget().second) shouldBe KunneIkkeLukkeSøknadsbehandling.KanIkkeLukkeEnSøknadsbehandlingTilAttestering.left()
     }
 
     @Test

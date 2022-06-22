@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
+import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeSimulereBehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -92,7 +93,7 @@ interface SøknadsbehandlingService {
     )
 
     sealed class KunneIkkeSimulereBehandling {
-        data class KunneIkkeSimulere(val feil: Søknadsbehandling.KunneIkkeSimulereBehandling) : KunneIkkeSimulereBehandling()
+        data class KunneIkkeSimulere(val feil: no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeSimulereBehandling) : KunneIkkeSimulereBehandling()
         object FantIkkeBehandling : KunneIkkeSimulereBehandling()
     }
 

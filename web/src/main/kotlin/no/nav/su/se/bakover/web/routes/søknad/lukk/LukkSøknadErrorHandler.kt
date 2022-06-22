@@ -4,7 +4,7 @@ import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLukkeSøknadsbehandling
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad.FantIkkePerson
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad.FantIkkeSøknad
@@ -35,15 +35,15 @@ internal object LukkSøknadErrorHandler {
             )
             KunneIkkeLukkeSøknad.KunneIkkeGenerereDokument -> feilVedGenereringAvDokument
             is KunneIkkeLukkeSøknad.BehandlingErIFeilTilstand -> when (error.feil) {
-                Søknadsbehandling.KunneIkkeLukkeSøknadsbehandling.KanIkkeLukkeEnAlleredeLukketSøknadsbehandling -> BadRequest.errorJson(
+                KunneIkkeLukkeSøknadsbehandling.KanIkkeLukkeEnAlleredeLukketSøknadsbehandling -> BadRequest.errorJson(
                     "Behandlingen tilknyttet søknad med id $søknadId er allerede lukket og kan derfor ikke lukkes",
                     "kan_ikke_lukke_en_allerede_lukket_søknadsbehandling",
                 )
-                Søknadsbehandling.KunneIkkeLukkeSøknadsbehandling.KanIkkeLukkeEnIverksattSøknadsbehandling -> BadRequest.errorJson(
+                KunneIkkeLukkeSøknadsbehandling.KanIkkeLukkeEnIverksattSøknadsbehandling -> BadRequest.errorJson(
                     "Behandlingen tilknyttet søknad med id $søknadId er iverksatt og kan derfor ikke lukkes",
                     "kan_ikke_lukke_en_iverksatt_søknadsbehandling",
                 )
-                Søknadsbehandling.KunneIkkeLukkeSøknadsbehandling.KanIkkeLukkeEnSøknadsbehandlingTilAttestering -> BadRequest.errorJson(
+                KunneIkkeLukkeSøknadsbehandling.KanIkkeLukkeEnSøknadsbehandlingTilAttestering -> BadRequest.errorJson(
                     "Behandlingen tilknyttet søknad med id $søknadId er til attestering og kan derfor ikke lukkes",
                     "kan_ikke_lukke_en_søknadsbehandling_til_attestering",
                 )

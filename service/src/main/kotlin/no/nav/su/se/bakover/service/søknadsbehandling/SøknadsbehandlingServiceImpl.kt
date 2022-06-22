@@ -211,14 +211,14 @@ internal class SøknadsbehandlingServiceImpl(
             satsFactory = satsFactory,
         ).mapLeft { feil ->
             when (feil) {
-                is Søknadsbehandling.KunneIkkeBeregne.UgyldigTilstand -> {
+                no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeBeregne.AvkortingErUfullstendig -> {
+                    KunneIkkeBeregne.AvkortingErUfullstendig
+                }
+                is no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeBeregne.UgyldigTilstand -> {
                     KunneIkkeBeregne.UgyldigTilstand(feil.fra, feil.til)
                 }
-                is Søknadsbehandling.KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag -> {
+                is no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag -> {
                     KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag(feil.feil.toService())
-                }
-                Søknadsbehandling.KunneIkkeBeregne.AvkortingErUfullstendig -> {
-                    KunneIkkeBeregne.AvkortingErUfullstendig
                 }
             }
         }.map {

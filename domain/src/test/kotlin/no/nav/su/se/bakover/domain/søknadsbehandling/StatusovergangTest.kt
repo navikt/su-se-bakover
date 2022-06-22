@@ -550,7 +550,7 @@ internal class StatusovergangTest {
                     begrunnelse = null,
                     clock = fixedClock,
                     satsFactory = satsFactoryTestPåDato(),
-                ) shouldBe Søknadsbehandling.KunneIkkeBeregne.UgyldigTilstand(it::class).left()
+                ) shouldBe KunneIkkeBeregne.UgyldigTilstand(it::class).left()
             }
         }
     }

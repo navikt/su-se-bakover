@@ -34,7 +34,6 @@ import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
 import no.nav.su.se.bakover.domain.grunnlag.Opplysningspliktgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -58,7 +57,6 @@ import no.nav.su.se.bakover.domain.vilkår.inneholderAlle
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.time.Clock
 import java.util.UUID
-import kotlin.reflect.KClass
 
 sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering, Visitable<SøknadsbehandlingVisitor> {
     abstract val søknad: Søknad.Journalført.MedOppgave
@@ -91,12 +89,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             // sin periode tilsvarer søknadbehandlingens periode.
             throw IllegalArgumentException("Perioden til søknadsbehandlingen: $periode var ulik grunnlagene/vilkårsvurderingene sin periode: ${grunnlagsdataOgVilkårsvurderinger.periode()}")
         }
-    }
-
-    sealed class KunneIkkeLukkeSøknadsbehandling {
-        object KanIkkeLukkeEnAlleredeLukketSøknadsbehandling : KunneIkkeLukkeSøknadsbehandling()
-        object KanIkkeLukkeEnIverksattSøknadsbehandling : KunneIkkeLukkeSøknadsbehandling()
-        object KanIkkeLukkeEnSøknadsbehandlingTilAttestering : KunneIkkeLukkeSøknadsbehandling()
     }
 
     fun lukkSøknadsbehandling(): Either<KunneIkkeLukkeSøknadsbehandling, LukketSøknadsbehandling> {
@@ -394,18 +386,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             .vilkårsvurder(clock).right()
     }
 
-    sealed class KunneIkkeBeregne {
-        data class UgyldigTilstand(
-            val fra: KClass<out Søknadsbehandling>,
-            val til: KClass<out Beregnet> = Beregnet::class,
-        ) : KunneIkkeBeregne()
-
-        data class UgyldigTilstandForEndringAvFradrag(val feil: KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag) :
-            KunneIkkeBeregne()
-
-        object AvkortingErUfullstendig : KunneIkkeBeregne()
-    }
-
     @Suppress("UNCHECKED_CAST")
     protected fun <T : KunneIkkeLeggeTilVilkår> valider(vilkår: Vilkår): Either<T, Unit> {
         return when (vilkår) {
@@ -529,14 +509,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         simuler: (request: SimulerUtbetalingRequest.NyUtbetaling) -> Either<SimuleringFeilet, Simulering>,
     ): Either<KunneIkkeSimulereBehandling, Simulert> {
         return KunneIkkeSimulereBehandling.UgyldigTilstand(this::class).left()
-    }
-
-    sealed class KunneIkkeSimulereBehandling {
-        data class KunneIkkeSimulere(val feil: SimuleringFeilet) : KunneIkkeSimulereBehandling()
-        data class UgyldigTilstand(
-            val fra: KClass<out Søknadsbehandling>,
-            val til: KClass<out Simulert> = Simulert::class,
-        ) : KunneIkkeSimulereBehandling()
     }
 
     fun lagSimulerUtbetalingRequest(
@@ -2038,18 +2010,6 @@ enum class BehandlingsStatus {
         fun åpneBeregnetSøknadsbehandlingerKommaseparert(): String =
             åpneBeregnetSøknadsbehandlinger().joinToString(",") { "'$it'" }
     }
-}
-
-sealed interface KunneIkkeIverksette {
-    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksette
-    data class KunneIkkeUtbetale(val utbetalingFeilet: UtbetalingFeilet) : KunneIkkeIverksette
-    object FantIkkeBehandling : KunneIkkeIverksette
-    object KunneIkkeGenerereVedtaksbrev : KunneIkkeIverksette
-    object AvkortingErUfullstendig : KunneIkkeIverksette
-    object HarBlittAnnullertAvEnAnnen : KunneIkkeIverksette
-    object HarAlleredeBlittAvkortetAvEnAnnen : KunneIkkeIverksette
-    object KunneIkkeOpprettePlanlagtKontrollsamtale : KunneIkkeIverksette
-    object LagringFeilet : KunneIkkeIverksette
 }
 
 // Her trikses det litt for å få til at funksjonen returnerer den samme konkrete typen som den kalles på.

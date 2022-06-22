@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling
 
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import kotlin.reflect.KClass
 
 sealed class KunneIkkeLeggeTilVilkår {
@@ -97,4 +99,42 @@ sealed class KunneIkkeOppdatereStønadsperiode {
     data class KunneIkkeOppdatereGrunnlagsdata(
         val feil: KunneIkkeLageGrunnlagsdata,
     ) : KunneIkkeOppdatereStønadsperiode()
+}
+
+sealed interface KunneIkkeIverksette {
+    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksette
+    data class KunneIkkeUtbetale(val utbetalingFeilet: UtbetalingFeilet) : KunneIkkeIverksette
+    object FantIkkeBehandling : KunneIkkeIverksette
+    object KunneIkkeGenerereVedtaksbrev : KunneIkkeIverksette
+    object AvkortingErUfullstendig : KunneIkkeIverksette
+    object HarBlittAnnullertAvEnAnnen : KunneIkkeIverksette
+    object HarAlleredeBlittAvkortetAvEnAnnen : KunneIkkeIverksette
+    object KunneIkkeOpprettePlanlagtKontrollsamtale : KunneIkkeIverksette
+    object LagringFeilet : KunneIkkeIverksette
+}
+
+sealed class KunneIkkeBeregne {
+    data class UgyldigTilstand(
+        val fra: KClass<out Søknadsbehandling>,
+        val til: KClass<out Søknadsbehandling.Beregnet> = Søknadsbehandling.Beregnet::class,
+    ) : KunneIkkeBeregne()
+
+    data class UgyldigTilstandForEndringAvFradrag(val feil: KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag) :
+        KunneIkkeBeregne()
+
+    object AvkortingErUfullstendig : KunneIkkeBeregne()
+}
+
+sealed class KunneIkkeLukkeSøknadsbehandling {
+    object KanIkkeLukkeEnAlleredeLukketSøknadsbehandling : KunneIkkeLukkeSøknadsbehandling()
+    object KanIkkeLukkeEnIverksattSøknadsbehandling : KunneIkkeLukkeSøknadsbehandling()
+    object KanIkkeLukkeEnSøknadsbehandlingTilAttestering : KunneIkkeLukkeSøknadsbehandling()
+}
+
+sealed class KunneIkkeSimulereBehandling {
+    data class KunneIkkeSimulere(val feil: SimuleringFeilet) : KunneIkkeSimulereBehandling()
+    data class UgyldigTilstand(
+        val fra: KClass<out Søknadsbehandling>,
+        val til: KClass<out Søknadsbehandling.Simulert> = Søknadsbehandling.Simulert::class,
+    ) : KunneIkkeSimulereBehandling()
 }

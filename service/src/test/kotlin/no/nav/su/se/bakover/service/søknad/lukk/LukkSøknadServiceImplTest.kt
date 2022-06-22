@@ -24,8 +24,8 @@ import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
+import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLukkeSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
@@ -495,7 +495,7 @@ internal class LukkSøknadServiceImplTest {
                     søknadId = søknad.id,
                     saksbehandler = saksbehandler,
                 ),
-            ) shouldBe KunneIkkeLukkeSøknad.BehandlingErIFeilTilstand(Søknadsbehandling.KunneIkkeLukkeSøknadsbehandling.KanIkkeLukkeEnSøknadsbehandlingTilAttestering)
+            ) shouldBe KunneIkkeLukkeSøknad.BehandlingErIFeilTilstand(KunneIkkeLukkeSøknadsbehandling.KanIkkeLukkeEnSøknadsbehandlingTilAttestering)
                 .left()
 
             verify(søknadServiceMock).hentSøknad(argThat { it shouldBe søknad.id })
@@ -523,7 +523,7 @@ internal class LukkSøknadServiceImplTest {
                     søknadId = søknad.id,
                     saksbehandler = saksbehandler,
                 ),
-            ) shouldBe KunneIkkeLukkeSøknad.BehandlingErIFeilTilstand(Søknadsbehandling.KunneIkkeLukkeSøknadsbehandling.KanIkkeLukkeEnIverksattSøknadsbehandling)
+            ) shouldBe KunneIkkeLukkeSøknad.BehandlingErIFeilTilstand(KunneIkkeLukkeSøknadsbehandling.KanIkkeLukkeEnIverksattSøknadsbehandling)
                 .left()
 
             verify(søknadServiceMock).hentSøknad(argThat { it shouldBe søknad.id })
@@ -551,7 +551,7 @@ internal class LukkSøknadServiceImplTest {
                     søknadId = søknad.id,
                     saksbehandler = saksbehandler,
                 ),
-            ) shouldBe KunneIkkeLukkeSøknad.BehandlingErIFeilTilstand(Søknadsbehandling.KunneIkkeLukkeSøknadsbehandling.KanIkkeLukkeEnAlleredeLukketSøknadsbehandling)
+            ) shouldBe KunneIkkeLukkeSøknad.BehandlingErIFeilTilstand(KunneIkkeLukkeSøknadsbehandling.KanIkkeLukkeEnAlleredeLukketSøknadsbehandling)
                 .left()
 
             verify(søknadServiceMock).hentSøknad(argThat { it shouldBe søknad.id })
