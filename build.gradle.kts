@@ -124,13 +124,13 @@ subprojects {
     configure<com.diffplug.gradle.spotless.SpotlessExtension> {
         kotlin {
             ktlint()
-            // TODO jah: prøv å enable ktfmt()
-            // TODO jah: prøv å enable diktat()
-            // TODO jah: prøv å enable prettier()
+            // jah: diktat er veldig intrusive - virker ikke som den gir så stor verdi uten å disable veldig mange regler.
+            // jah: ktfmt er et alternativ til ktlint som vi kan vurdere bytte til på sikt. Skal være strengere som vil gjøre kodebasen mer enhetlig.
+            // jah: prettier for kotlin virker umodent.
         }
         kotlinGradle {
-            target("*.gradle.kts") // default target for kotlinGradle
-            ktlint() // or ktfmt() or prettier()
+            target("*.gradle.kts")
+            ktlint()
         }
     }
 }
