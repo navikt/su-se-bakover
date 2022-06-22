@@ -145,7 +145,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTilFradragsgrunnlag(
                         fradragsgrunnlag,
                     ),
-                ).vilkårsvurder(clock) as Vilkårsvurdert.Innvilget //TODO cast
+                ).vilkårsvurder(clock) as Vilkårsvurdert.Innvilget // TODO cast
             }
     }
 
@@ -175,9 +175,13 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         }
     }
 
+    /**
+     * Eksponerer deler av subklassenes copy-konstruktør slik at vi kan eliminere behovet for duplikate implementasjoner i hver subklasse.
+     */
     protected open fun copyInternal(
         stønadsperiode: Stønadsperiode = this.stønadsperiode!!,
-        grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
+        behandlingsinformasjon: Behandlingsinformasjon = this.behandlingsinformasjon,
+        grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling = this.grunnlagsdataOgVilkårsvurderinger,
     ): Søknadsbehandling {
         return this
     }
@@ -208,7 +212,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             }
     }
 
-    private fun vilkårsvurder(clock: Clock): Vilkårsvurdert {
+    fun vilkårsvurder(clock: Clock): Vilkårsvurdert {
         return opprett(
             id = id,
             opprettet = opprettet,
@@ -366,6 +370,28 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 KunneIkkeBeregne.UgyldigTilstand(this::class).left()
             }
         }
+    }
+
+    fun leggTilVilkårFraBehandlingsinformasjon(
+        behandlingsinformasjon: Behandlingsinformasjon,
+        clock: Clock,
+    ): Either<KunneIkkeLeggeTilVilkår.KunnIkkeLeggeTilVilkårFraBehandlingsinformasjon, Vilkårsvurdert> {
+        return if (this is KanLeggeTilVilkår) {
+            leggTilVilkårFraBehandlingsinformasjonInternal(behandlingsinformasjon, clock)
+        } else {
+            KunneIkkeLeggeTilVilkår.KunnIkkeLeggeTilVilkårFraBehandlingsinformasjon.UgyldigTilstand(
+                fra = this::class,
+                til = Vilkårsvurdert::class,
+            ).left()
+        }
+    }
+
+    private fun leggTilVilkårFraBehandlingsinformasjonInternal(
+        behandlingsinformasjon: Behandlingsinformasjon,
+        clock: Clock,
+    ): Either<KunneIkkeLeggeTilVilkår.KunnIkkeLeggeTilVilkårFraBehandlingsinformasjon, Vilkårsvurdert> {
+        return copyInternal(behandlingsinformasjon = this.behandlingsinformasjon.patch(behandlingsinformasjon))
+            .vilkårsvurder(clock).right()
     }
 
     sealed class KunneIkkeBeregne {
@@ -674,33 +700,13 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             }
     }
 
-    sealed class Vilkårsvurdert : Søknadsbehandling(), KanOppdatereStønadsperiode, KanLeggeTilVilkår,
+    sealed class Vilkårsvurdert :
+        Søknadsbehandling(),
+        KanOppdatereStønadsperiode,
+        KanLeggeTilVilkår,
         KanLeggeTilBosituasjon {
 
         abstract override val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert
-
-        fun tilVilkårsvurdert(
-            behandlingsinformasjon: Behandlingsinformasjon = this.behandlingsinformasjon,
-            grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling = this.grunnlagsdataOgVilkårsvurderinger,
-            clock: Clock,
-        ): Vilkårsvurdert =
-            opprett(
-                id = id,
-                opprettet = opprettet,
-                sakId = sakId,
-                saksnummer = saksnummer,
-                søknad = søknad,
-                oppgaveId = oppgaveId,
-                behandlingsinformasjon = this.behandlingsinformasjon.patch(behandlingsinformasjon),
-                fnr = fnr,
-                fritekstTilBrev = fritekstTilBrev,
-                stønadsperiode = stønadsperiode,
-                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
-                attesteringer = attesteringer,
-                clock = clock,
-                avkorting = avkorting,
-                sakstype = sakstype,
-            )
 
         companion object {
             fun opprett(
@@ -849,10 +855,12 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
             override fun copyInternal(
                 stønadsperiode: Stønadsperiode,
+                behandlingsinformasjon: Behandlingsinformasjon,
                 grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
             ): Vilkårsvurdert {
                 return copy(
                     stønadsperiode = stønadsperiode,
+                    behandlingsinformasjon = behandlingsinformasjon,
                     grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                     vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                 )
@@ -881,10 +889,12 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
             override fun copyInternal(
                 stønadsperiode: Stønadsperiode,
+                behandlingsinformasjon: Behandlingsinformasjon,
                 grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
             ): Avslag {
                 return copy(
                     stønadsperiode = stønadsperiode,
+                    behandlingsinformasjon = behandlingsinformasjon,
                     grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                     vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                 )
@@ -952,10 +962,12 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val status: BehandlingsStatus = BehandlingsStatus.OPPRETTET
             override fun copyInternal(
                 stønadsperiode: Stønadsperiode,
+                behandlingsinformasjon: Behandlingsinformasjon,
                 grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
             ): Uavklart {
                 return copy(
                     stønadsperiode = stønadsperiode,
+                    behandlingsinformasjon = behandlingsinformasjon,
                     grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                     vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                 )
@@ -983,29 +995,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         abstract val beregning: Beregning
         abstract override val stønadsperiode: Stønadsperiode
         abstract override val avkorting: AvkortingVedSøknadsbehandling.Håndtert
-
-        fun tilVilkårsvurdert(
-            behandlingsinformasjon: Behandlingsinformasjon = this.behandlingsinformasjon,
-            grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling = this.grunnlagsdataOgVilkårsvurderinger,
-            clock: Clock,
-        ): Vilkårsvurdert =
-            opprett(
-                id = id,
-                opprettet = opprettet,
-                sakId = sakId,
-                saksnummer = saksnummer,
-                søknad = søknad,
-                oppgaveId = oppgaveId,
-                behandlingsinformasjon = this.behandlingsinformasjon.patch(behandlingsinformasjon),
-                fnr = fnr,
-                fritekstTilBrev = fritekstTilBrev,
-                stønadsperiode = stønadsperiode,
-                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
-                attesteringer = attesteringer,
-                clock = clock,
-                avkorting = avkorting.uhåndtert(),
-                sakstype = sakstype,
-            )
 
         override fun simuler(
             saksbehandler: NavIdentBruker,
@@ -1074,10 +1063,12 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
             override fun copyInternal(
                 stønadsperiode: Stønadsperiode,
+                behandlingsinformasjon: Behandlingsinformasjon,
                 grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
             ): Innvilget {
                 return copy(
                     stønadsperiode = stønadsperiode,
+                    behandlingsinformasjon = behandlingsinformasjon,
                     grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                     vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                 )
@@ -1117,10 +1108,12 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
             override fun copyInternal(
                 stønadsperiode: Stønadsperiode,
+                behandlingsinformasjon: Behandlingsinformasjon,
                 grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
             ): Avslag {
                 return copy(
                     stønadsperiode = stønadsperiode,
+                    behandlingsinformasjon = behandlingsinformasjon,
                     grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                     vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                 )
@@ -1195,37 +1188,16 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
         override fun copyInternal(
             stønadsperiode: Stønadsperiode,
+            behandlingsinformasjon: Behandlingsinformasjon,
             grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
         ): Simulert {
             return copy(
                 stønadsperiode = stønadsperiode,
+                behandlingsinformasjon = behandlingsinformasjon,
                 grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                 vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
             )
         }
-
-        fun tilVilkårsvurdert(
-            behandlingsinformasjon: Behandlingsinformasjon = this.behandlingsinformasjon,
-            grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling = this.grunnlagsdataOgVilkårsvurderinger,
-            clock: Clock,
-        ): Vilkårsvurdert =
-            opprett(
-                id = id,
-                opprettet = opprettet,
-                sakId = sakId,
-                saksnummer = saksnummer,
-                søknad = søknad,
-                oppgaveId = oppgaveId,
-                behandlingsinformasjon = this.behandlingsinformasjon.patch(behandlingsinformasjon),
-                fnr = fnr,
-                fritekstTilBrev = fritekstTilBrev,
-                stønadsperiode = stønadsperiode,
-                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
-                attesteringer = attesteringer,
-                clock = clock,
-                avkorting = avkorting.uhåndtert(),
-                sakstype = sakstype,
-            )
 
         override fun simuler(
             saksbehandler: NavIdentBruker,
@@ -1328,10 +1300,12 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
             override fun copyInternal(
                 stønadsperiode: Stønadsperiode,
+                behandlingsinformasjon: Behandlingsinformasjon,
                 grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
             ): TilAttestering {
                 return copy(
                     stønadsperiode = stønadsperiode,
+                    behandlingsinformasjon = behandlingsinformasjon,
                     grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                     vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                 )
@@ -1465,10 +1439,12 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
                 override fun copyInternal(
                     stønadsperiode: Stønadsperiode,
+                    behandlingsinformasjon: Behandlingsinformasjon,
                     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
                 ): UtenBeregning {
                     return copy(
                         stønadsperiode = stønadsperiode,
+                        behandlingsinformasjon = behandlingsinformasjon,
                         grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                         vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                     )
@@ -1569,10 +1545,12 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
                 override fun copyInternal(
                     stønadsperiode: Stønadsperiode,
+                    behandlingsinformasjon: Behandlingsinformasjon,
                     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
                 ): MedBeregning {
                     return copy(
                         stønadsperiode = stønadsperiode,
+                        behandlingsinformasjon = behandlingsinformasjon,
                         grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                         vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                     )
@@ -1605,7 +1583,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         }
     }
 
-    sealed class Underkjent : Søknadsbehandling(), KanOppdatereStønadsperiode, KanLeggeTilVilkår,
+    sealed class Underkjent :
+        Søknadsbehandling(),
+        KanOppdatereStønadsperiode,
+        KanLeggeTilVilkår,
         KanLeggeTilBosituasjon {
         abstract override val id: UUID
         abstract override val opprettet: Tidspunkt
@@ -1621,29 +1602,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         abstract override val avkorting: AvkortingVedSøknadsbehandling.Håndtert
 
         abstract fun nyOppgaveId(nyOppgaveId: OppgaveId): Underkjent
-
-        fun tilVilkårsvurdert(
-            behandlingsinformasjon: Behandlingsinformasjon = this.behandlingsinformasjon,
-            grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling = this.grunnlagsdataOgVilkårsvurderinger,
-            clock: Clock,
-        ): Vilkårsvurdert =
-            opprett(
-                id = id,
-                opprettet = opprettet,
-                sakId = sakId,
-                saksnummer = saksnummer,
-                søknad = søknad,
-                oppgaveId = oppgaveId,
-                behandlingsinformasjon = this.behandlingsinformasjon.patch(behandlingsinformasjon),
-                fnr = fnr,
-                fritekstTilBrev = fritekstTilBrev,
-                stønadsperiode = stønadsperiode,
-                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
-                attesteringer = attesteringer,
-                clock = clock,
-                avkorting = avkorting.uhåndtert(),
-                sakstype = sakstype,
-            )
 
         data class Innvilget(
             override val id: UUID,
@@ -1679,10 +1637,12 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
             override fun copyInternal(
                 stønadsperiode: Stønadsperiode,
+                behandlingsinformasjon: Behandlingsinformasjon,
                 grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
             ): Innvilget {
                 return copy(
                     stønadsperiode = stønadsperiode,
+                    behandlingsinformasjon = behandlingsinformasjon,
                     grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                     vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                 )
@@ -1793,10 +1753,12 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
                 override fun copyInternal(
                     stønadsperiode: Stønadsperiode,
+                    behandlingsinformasjon: Behandlingsinformasjon,
                     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
                 ): MedBeregning {
                     return copy(
                         stønadsperiode = stønadsperiode,
+                        behandlingsinformasjon = behandlingsinformasjon,
                         grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                         vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                     )
@@ -1861,10 +1823,12 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
                 override fun copyInternal(
                     stønadsperiode: Stønadsperiode,
+                    behandlingsinformasjon: Behandlingsinformasjon,
                     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
                 ): UtenBeregning {
                     return copy(
                         stønadsperiode = stønadsperiode,
+                        behandlingsinformasjon = behandlingsinformasjon,
                         grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                         vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                     )
@@ -2115,4 +2079,3 @@ fun <T : Søknadsbehandling> T.medFritekstTilBrev(fritekstTilBrev: String): T =
         }
         // ... og så caster vi tilbake til T for at Kotlin skal henge med i svingene
         ) as T
-

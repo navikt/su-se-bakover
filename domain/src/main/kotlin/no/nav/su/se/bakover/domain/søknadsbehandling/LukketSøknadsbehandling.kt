@@ -6,7 +6,6 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
-import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 
 data class LukketSøknadsbehandling private constructor(
     val lukketSøknadsbehandling: Søknadsbehandling,

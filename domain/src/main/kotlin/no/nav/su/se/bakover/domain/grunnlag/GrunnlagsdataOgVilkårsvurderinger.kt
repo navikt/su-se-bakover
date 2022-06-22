@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import org.jetbrains.kotlin.backend.jvm.lower.fragmentSharedVariablesLowering
 
 sealed class GrunnlagsdataOgVilkårsvurderinger {
     abstract val grunnlagsdata: Grunnlagsdata

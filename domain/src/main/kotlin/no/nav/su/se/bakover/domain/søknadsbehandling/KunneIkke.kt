@@ -59,6 +59,13 @@ sealed class KunneIkkeLeggeTilVilkår {
         ) :
             KunneIkkeLeggeTilFamiliegjenforeningVilkår()
     }
+
+    sealed class KunnIkkeLeggeTilVilkårFraBehandlingsinformasjon : KunneIkkeLeggeTilVilkår() {
+        data class UgyldigTilstand(
+            val fra: KClass<out Søknadsbehandling>,
+            val til: KClass<out Søknadsbehandling.Vilkårsvurdert>,
+        ) : KunnIkkeLeggeTilVilkårFraBehandlingsinformasjon()
+    }
 }
 
 sealed class KunneIkkeLeggeTilGrunnlag {

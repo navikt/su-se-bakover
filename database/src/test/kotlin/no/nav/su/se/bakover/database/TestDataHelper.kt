@@ -1253,12 +1253,10 @@ internal class TestDataHelper(
             søknadId = søknadId,
             stønadsperiode = stønadsperiode,
         ).second.copy(
-            vilkårsvurderinger = vilkårsvurderinger,
-            grunnlagsdata = grunnlagsdata,
-        ).tilVilkårsvurdert(
             behandlingsinformasjon = behandlingsinformasjon,
-            clock = fixedClock,
-        ).let {
+            grunnlagsdata = grunnlagsdata,
+            vilkårsvurderinger = vilkårsvurderinger,
+        ).vilkårsvurder(clock).let {
             søknadsbehandlingRepo.lagre(it)
             Pair(sakRepo.hentSak(sakId)!!, it as Søknadsbehandling.Vilkårsvurdert.Innvilget)
         }
@@ -1288,12 +1286,10 @@ internal class TestDataHelper(
             søknadId = søknadId,
             stønadsperiode = stønadsperiode,
         ).second.copy(
+            behandlingsinformasjon = behandlingsinformasjonMedAvslag,
             grunnlagsdata = grunnlagsdata,
             vilkårsvurderinger = vilkårsvurderinger,
-        ).tilVilkårsvurdert(
-            behandlingsinformasjon = behandlingsinformasjonMedAvslag,
-            clock = fixedClock,
-        )
+        ).vilkårsvurder(clock)
             .let {
                 søknadsbehandlingRepo.lagre(it)
                 Pair(sakRepo.hentSak(sakId)!!, it as Søknadsbehandling.Vilkårsvurdert.Avslag)

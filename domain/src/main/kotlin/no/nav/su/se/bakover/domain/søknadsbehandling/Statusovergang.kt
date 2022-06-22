@@ -7,56 +7,12 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import java.time.Clock
 import java.util.UUID
 
 abstract class Statusovergang<L, T> : StatusovergangVisitor {
 
     protected lateinit var result: Either<L, T>
     fun get(): Either<L, T> = result
-
-    class TilVilkårsvurdert(
-        private val behandlingsinformasjon: Behandlingsinformasjon,
-        private val clock: Clock,
-    ) : Statusovergang<Nothing, Søknadsbehandling.Vilkårsvurdert>() {
-
-        override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Uavklart) {
-            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock = clock).right()
-        }
-
-        override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Innvilget) {
-            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock = clock).right()
-        }
-
-        override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Avslag) {
-            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock = clock).right()
-        }
-
-        override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Innvilget) {
-            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock = clock).right()
-        }
-
-        override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Avslag) {
-            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock = clock).right()
-        }
-
-        override fun visit(søknadsbehandling: Søknadsbehandling.Simulert) {
-            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock = clock).right()
-        }
-
-        override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Innvilget) {
-            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock = clock).right()
-        }
-
-        override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Avslag.MedBeregning) {
-            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock = clock).right()
-        }
-
-        override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Avslag.UtenBeregning) {
-            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock = clock).right()
-        }
-    }
 
     class TilAttestering(
         private val saksbehandler: NavIdentBruker.Saksbehandler,

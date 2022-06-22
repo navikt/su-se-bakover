@@ -1,35 +1,34 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling
 
+import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.behandling.withAlleVilkårAvslått
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.withAvslåttFlyktning
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
-import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
-import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
-import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
-import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.domain.vilkår.Vilkår
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import no.nav.su.se.bakover.test.attesteringUnderkjent
-import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
+import no.nav.su.se.bakover.test.beregnetSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
+import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.nySøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.simulerNyUtbetaling
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
+import no.nav.su.se.bakover.test.simulertSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknadsbehandlingSimulert
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
@@ -37,14 +36,17 @@ import no.nav.su.se.bakover.test.søknadsbehandlingUnderkjentInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertAvslag
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
-import no.nav.su.se.bakover.test.vilkår.formuevilkårIkkeVurdert
-import no.nav.su.se.bakover.test.vilkår.formuevilkårUtenEps0Innvilget
+import no.nav.su.se.bakover.test.underkjentSøknadsbehandlingUføre
+import no.nav.su.se.bakover.test.vilkår.avslåttFormueVilkår
 import no.nav.su.se.bakover.test.vilkår.tilstrekkeligDokumentert
+import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdInnvilget
 import no.nav.su.se.bakover.test.vilkår.utilstrekkeligDokumentert
+import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkår
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt12000
 import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
+import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandlingUføre
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -130,289 +132,325 @@ internal class StatusovergangTest {
 
     @Nested
     inner class TilVilkårsvurdert {
-        @Test
-        fun `opprettet til vilkårsvurdert innvilget`() {
-            statusovergang(
-                opprettet.copy(
-                    grunnlagsdata = vilkårsvurdertInnvilget.grunnlagsdata,
-                    vilkårsvurderinger = vilkårsvurdertInnvilget.vilkårsvurderinger,
-                ),
-                Statusovergang.TilVilkårsvurdert(
-                    behandlingsinformasjon = Behandlingsinformasjon().withAlleVilkårOppfylt(),
-                    clock = fixedClock,
-                ),
-            ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
-        }
-
+        // @Test
+        // fun `opprettet til vilkårsvurdert innvilget`() {
+        //     statusovergang(
+        //         opprettet.copy(
+        //             grunnlagsdata = vilkårsvurdertInnvilget.grunnlagsdata,
+        //             vilkårsvurderinger = vilkårsvurdertInnvilget.vilkårsvurderinger,
+        //         ),
+        //     ).let { (_, uavklart) ->
+        //         uavklart.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Uavklart>().also {
+        //             it.leggTilOpplysningspliktVilkår(tilstrekkeligDokumentert(), fixedClock).getOrFail()
+        //                 .shouldBeType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
+        //         }
+        //     }
+        //
+        // }
+        //
         @Test
         fun `opprettet til vilkårsvurdert avslag`() {
-            statusovergang(
-                opprettet.copy(
-                    grunnlagsdata = vilkårsvurdertInnvilget.grunnlagsdata,
-                    vilkårsvurderinger = vilkårsvurdertInnvilget.vilkårsvurderinger,
-                ),
-                Statusovergang.TilVilkårsvurdert(
-                    behandlingsinformasjon = Behandlingsinformasjon().withAvslåttFlyktning(),
-                    clock = fixedClock,
-                ),
-            ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
+            nySøknadsbehandlingUføre().also { (_, ny) ->
+                ny.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Uavklart>().also {
+                    it.leggTilVilkårFraBehandlingsinformasjon(
+                        Behandlingsinformasjon().withAvslåttFlyktning(),
+                        fixedClock,
+                    ).getOrFail().also {
+                        it.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
+                    }
+                }
+            }
         }
 
         @Test
         fun `opprettet til vilkårsvurdert uavklart (opprettet)`() {
-            statusovergang(
-                opprettet,
-                Statusovergang.TilVilkårsvurdert(
-                    behandlingsinformasjon = Behandlingsinformasjon(),
-                    clock = fixedClock,
-                ),
-            ) shouldBe opprettet.copy(
-                vilkårsvurderinger = opprettet.vilkårsvurderinger.leggTil(tilstrekkeligDokumentert()),
-            )
+            nySøknadsbehandlingUføre().also { (_, ny) ->
+                ny.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Uavklart>().also {
+                    it.leggTilVilkårFraBehandlingsinformasjon(Behandlingsinformasjon(), fixedClock).getOrFail().also {
+                        it.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Uavklart>()
+                    }
+                }
+            }
         }
 
         @Test
-        fun `vurdert opplysningsplikt forblir vurdert`() {
-            statusovergang(
-                opprettet.leggTilOpplysningspliktVilkår(
-                    opplysningspliktVilkår = utilstrekkeligDokumentert(),
-                    clock = fixedClock,
-                ).getOrFail(),
-                Statusovergang.TilVilkårsvurdert(
-                    behandlingsinformasjon = Behandlingsinformasjon(),
-                    clock = fixedClock,
-                ),
-            ).shouldBeType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
+        fun `håndtering av opplysningsplikt`() {
+            nySøknadsbehandlingUføre().also { (_, uavklart) ->
+                uavklart.leggTilUførevilkår(innvilgetUførevilkår(), fixedClock).getOrFail().also { vilkårsvurdert ->
+                    vilkårsvurdert.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Uavklart>()
+                    vilkårsvurdert.vilkårsvurderinger.uføreVilkår().getOrFail().shouldBeType<Vilkår.Uførhet.Vurdert>()
+                    // skal legges til implisitt hvis det ikke er vurdert fra før
+                    vilkårsvurdert.vilkårsvurderinger.opplysningspliktVilkår()
+                        .shouldBeType<OpplysningspliktVilkår.Vurdert>()
+                }
+            }
+
+            vilkårsvurdertSøknadsbehandlingUføre(
+                customVilkår = listOf(utilstrekkeligDokumentert()),
+            ).also { (_, uavklart) ->
+                uavklart.leggTilUførevilkår(innvilgetUførevilkår(), fixedClock).getOrFail().also { vilkårsvurdert ->
+                    vilkårsvurdert.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
+                    vilkårsvurdert.vilkårsvurderinger.uføreVilkår().getOrFail().shouldBeType<Vilkår.Uførhet.Vurdert>()
+                    // skal ikke legges til implisitt ved oppdatering av andre vilkår da dette allerede er vurdert
+                    vilkårsvurdert.vilkårsvurderinger.opplysningspliktVilkår()
+                        .shouldBeType<OpplysningspliktVilkår.Vurdert>()
+                    vilkårsvurdert.vilkårsvurderinger.resultat shouldBe Vilkårsvurderingsresultat.Avslag(
+                        setOf(
+                            vilkårsvurdert.vilkårsvurderinger.opplysningspliktVilkår(),
+                        ),
+                    )
+                }
+            }
         }
 
         @Test
         fun `vilkårsvurdert innvilget til vilkårsvurdert innvilget`() {
-            statusovergang(
-                vilkårsvurdertInnvilget,
-                Statusovergang.TilVilkårsvurdert(
-                    behandlingsinformasjon = Behandlingsinformasjon().withAlleVilkårOppfylt(),
-                    clock = fixedClock,
-                ),
-            ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
+            vilkårsvurdertSøknadsbehandlingUføre().also { (_, innvilget) ->
+                innvilget.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Innvilget>().also {
+                    it.leggTilVilkårFraBehandlingsinformasjon(
+                        Behandlingsinformasjon().withAlleVilkårOppfylt(),
+                        fixedClock,
+                    ).getOrFail().also {
+                        it.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
+                    }
+                }
+            }
         }
 
         @Test
         fun `vilkårsvurdert innvilget til vilkårsvurdert avslag`() {
-            statusovergang(
-                vilkårsvurdertInnvilget,
-                Statusovergang.TilVilkårsvurdert(
-                    behandlingsinformasjon = Behandlingsinformasjon().withAvslåttFlyktning(),
-                    clock = fixedClock,
-                ),
-            ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
+            vilkårsvurdertSøknadsbehandlingUføre().also { (_, innvilget) ->
+                innvilget.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Innvilget>().also {
+                    it.leggTilVilkårFraBehandlingsinformasjon(
+                        Behandlingsinformasjon().withAvslåttFlyktning(),
+                        fixedClock,
+                    ).getOrFail().also { avslag ->
+                        avslag.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
+                    }
+                }
+            }
+
+            vilkårsvurdertSøknadsbehandlingUføre().also { (_, innvilget) ->
+                innvilget.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Innvilget>().also {
+                    it.leggTilOpplysningspliktVilkår(utilstrekkeligDokumentert(), fixedClock).getOrFail()
+                        .also { avslag ->
+                            avslag.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
+                        }
+                }
+            }
         }
 
         @Test
         fun `vilkårsvurdert avslag til vilkårsvurdert innvilget`() {
-            statusovergang(
-                vilkårsvurdertAvslag.copy(
-                    grunnlagsdata = Grunnlagsdata.create(bosituasjon = listOf(bosituasjongrunnlagEnslig())),
-                    vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre(
-                        uføre = innvilgetUførevilkår(),
-                        utenlandsopphold = utenlandsoppholdInnvilget(),
-                        formue = formuevilkårUtenEps0Innvilget(),
-                        opplysningsplikt = tilstrekkeligDokumentert(),
-                        lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
-                        fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
-                        institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
-                        personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
-                        flyktning = FlyktningVilkår.IkkeVurdert,
-                    ),
-                ),
-                Statusovergang.TilVilkårsvurdert(
-                    behandlingsinformasjon = Behandlingsinformasjon().withAlleVilkårOppfylt(),
-                    clock = fixedClock,
-                ),
-            ).shouldBeType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
+            vilkårsvurdertSøknadsbehandlingUføre(customBehandlingsinformasjon = Behandlingsinformasjon().withAvslåttFlyktning()).also { (_, avslag) ->
+                avslag.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Avslag>().also {
+                    it.leggTilVilkårFraBehandlingsinformasjon(
+                        Behandlingsinformasjon().withAlleVilkårOppfylt(),
+                        fixedClock,
+                    ).getOrFail().also { innvilget ->
+                        innvilget.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
+                    }
+                }
+            }
+
+            vilkårsvurdertSøknadsbehandlingUføre(customVilkår = listOf(avslåttUførevilkårUtenGrunnlag())).also { (_, avslag) ->
+                avslag.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Avslag>().also {
+                    it.leggTilUførevilkår(innvilgetUførevilkår(), fixedClock).getOrFail().also { innvilget ->
+                        innvilget.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
+                    }
+                }
+            }
         }
 
         @Test
         fun `vilkårsvurdert avslag til vilkårsvurdert avslag`() {
-            statusovergang(
-                vilkårsvurdertAvslag,
-                Statusovergang.TilVilkårsvurdert(
-                    behandlingsinformasjon = Behandlingsinformasjon().withAvslåttFlyktning(),
-                    clock = fixedClock,
-                ),
-            ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
+            vilkårsvurdertSøknadsbehandlingUføre(customVilkår = listOf(avslåttUførevilkårUtenGrunnlag())).also { (_, avslag) ->
+                avslag.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Avslag>().also {
+                    it.leggTilFormuevilkår(avslåttFormueVilkår(), fixedClock).getOrFail().also { avslag ->
+                        avslag.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
+                    }
+                }
+            }
         }
 
         @Test
         fun `beregnet innvilget til vilkårsvurdert innvilget`() {
-            statusovergang(
-                beregnetInnvilget,
-                Statusovergang.TilVilkårsvurdert(
-                    behandlingsinformasjon = Behandlingsinformasjon().withAlleVilkårOppfylt(),
-                    clock = fixedClock,
-                ),
-            ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
+            beregnetSøknadsbehandlingUføre().also { (_, beregnet) ->
+                beregnet.shouldBeType<Søknadsbehandling.Beregnet.Innvilget>().also {
+                    beregnet.leggTilVilkårFraBehandlingsinformasjon(
+                        Behandlingsinformasjon().withAlleVilkårOppfylt(),
+                        fixedClock,
+                    ).getOrFail().also { innvilget ->
+                        innvilget.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
+                    }
+                }
+            }
+
+            beregnetSøknadsbehandlingUføre().also { (_, beregnet) ->
+                beregnet.shouldBeType<Søknadsbehandling.Beregnet.Innvilget>().also {
+                    beregnet.leggTilUtenlandsopphold(utenlandsoppholdInnvilget(), fixedClock).getOrFail()
+                        .also { innvilget ->
+                            innvilget.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
+                        }
+                }
+            }
         }
 
         @Test
         fun `beregnet innvilget til vilkårsvurdert avslag`() {
-            statusovergang(
-                beregnetInnvilget,
-                Statusovergang.TilVilkårsvurdert(
-                    behandlingsinformasjon = Behandlingsinformasjon().withAvslåttFlyktning(),
-                    clock = fixedClock,
-                ),
-            ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
+            beregnetSøknadsbehandlingUføre().also { (_, beregnet) ->
+                beregnet.shouldBeType<Søknadsbehandling.Beregnet.Innvilget>().also {
+                    beregnet.leggTilUtenlandsopphold(utenlandsoppholdAvslag(), fixedClock).getOrFail().also { avslag ->
+                        avslag.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
+                    }
+                }
+            }
         }
 
         @Test
         fun `beregnet avslag til vilkårsvurdert innvilget`() {
-            statusovergang(
-                beregnetAvslag,
-                Statusovergang.TilVilkårsvurdert(
-                    behandlingsinformasjon = Behandlingsinformasjon().withAlleVilkårOppfylt(),
-                    clock = fixedClock,
+            beregnetSøknadsbehandlingUføre(
+                customGrunnlag = listOf(
+                    fradragsgrunnlagArbeidsinntekt(
+                        arbeidsinntekt = 50000.0,
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
                 ),
-            ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
+            ).also { (_, beregnet) ->
+                beregnet.shouldBeType<Søknadsbehandling.Beregnet.Avslag>().also {
+                    beregnet.leggTilUtenlandsopphold(utenlandsoppholdInnvilget(), fixedClock).getOrFail()
+                        .also { innvilget -> innvilget.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Innvilget>() }
+                }
+            }
         }
 
         @Test
         fun `beregnet avslag til vilkårsvurdert avslag`() {
-            statusovergang(
-                beregnetAvslag,
-                Statusovergang.TilVilkårsvurdert(
-                    behandlingsinformasjon = Behandlingsinformasjon().withAvslåttFlyktning(),
-                    clock = fixedClock,
+            beregnetSøknadsbehandlingUføre(
+                customGrunnlag = listOf(
+                    fradragsgrunnlagArbeidsinntekt(
+                        arbeidsinntekt = 50000.0,
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
                 ),
-            ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
+            ).also { (_, beregnet) ->
+                beregnet.shouldBeType<Søknadsbehandling.Beregnet.Avslag>().also {
+                    beregnet.leggTilVilkårFraBehandlingsinformasjon(
+                        Behandlingsinformasjon().withAlleVilkårAvslått(),
+                        fixedClock,
+                    ).getOrFail()
+                        .also { innvilget -> innvilget.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Avslag>() }
+                }
+            }
         }
 
         @Test
         fun `simulert til vilkårsvurdert innvilget`() {
-            statusovergang(
-                simulert,
-                Statusovergang.TilVilkårsvurdert(
-                    behandlingsinformasjon = Behandlingsinformasjon().withAlleVilkårOppfylt(),
-                    clock = fixedClock,
-                ),
-            ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
+            simulertSøknadsbehandlingUføre().also { (_, simulert) ->
+                simulert.shouldBeType<Søknadsbehandling.Simulert>().also {
+                    simulert.leggTilOpplysningspliktVilkår(tilstrekkeligDokumentert(), fixedClock).getOrFail()
+                        .also { innvilget ->
+                            innvilget.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
+                        }
+                }
+            }
         }
 
         @Test
         fun `simulert til vilkårsvurdert avslag`() {
-            statusovergang(
-                simulert,
-                Statusovergang.TilVilkårsvurdert(
-                    behandlingsinformasjon = Behandlingsinformasjon().withAvslåttFlyktning(),
-                    clock = fixedClock,
-                ),
-            ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
+            simulertSøknadsbehandlingUføre().also { (_, simulert) ->
+                simulert.shouldBeType<Søknadsbehandling.Simulert>().also {
+                    simulert.leggTilOpplysningspliktVilkår(utilstrekkeligDokumentert(), fixedClock).getOrFail()
+                        .also { avslag ->
+                            avslag.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
+                        }
+                }
+            }
         }
 
         @Test
         fun `underkjent innvilget til vilkårsvurdert innvilget`() {
-            statusovergang(
-                underkjentInnvilget,
-                Statusovergang.TilVilkårsvurdert(
-                    behandlingsinformasjon = Behandlingsinformasjon().withAlleVilkårOppfylt(),
-                    clock = fixedClock,
-                ),
-            ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
+            underkjentSøknadsbehandlingUføre().also { (_, underkjent) ->
+                underkjent.shouldBeType<Søknadsbehandling.Underkjent.Innvilget>().also {
+                    underkjent.leggTilOpplysningspliktVilkår(tilstrekkeligDokumentert(), fixedClock).getOrFail()
+                        .also { innvilget ->
+                            innvilget.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
+                        }
+                }
+            }
         }
 
         @Test
         fun `underkjent innvilget til vilkårsvurdert avslag`() {
-            statusovergang(
-                underkjentInnvilget,
-                Statusovergang.TilVilkårsvurdert(
-                    behandlingsinformasjon = Behandlingsinformasjon().withAvslåttFlyktning(),
-                    clock = fixedClock,
-                ),
-            ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
+            underkjentSøknadsbehandlingUføre().also { (_, underkjent) ->
+                underkjent.shouldBeType<Søknadsbehandling.Underkjent.Innvilget>().also {
+                    underkjent.leggTilVilkårFraBehandlingsinformasjon(
+                        Behandlingsinformasjon().withAvslåttFlyktning(),
+                        fixedClock,
+                    ).getOrFail().also { avslag ->
+                        avslag.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
+                    }
+                }
+            }
         }
 
         @Test
         fun `underkjent avslag vilkår til vilkårsvurdert innvilget`() {
-            statusovergang(
-                underkjentAvslagVilkår.copy(
-                    grunnlagsdata = Grunnlagsdata.create(bosituasjon = listOf(bosituasjongrunnlagEnslig())),
-                    vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre(
-                        uføre = innvilgetUførevilkår(),
-                        utenlandsopphold = utenlandsoppholdInnvilget(),
-                        formue = formuevilkårUtenEps0Innvilget(),
-                        opplysningsplikt = tilstrekkeligDokumentert(),
-                        // Disse kommer inn fra behandlingsinformasjonen
-                        lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
-                        fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
-                        institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
-                        personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
-                        flyktning = FlyktningVilkår.IkkeVurdert,
-                    ),
-                ),
-                Statusovergang.TilVilkårsvurdert(
-                    behandlingsinformasjon = Behandlingsinformasjon().withAlleVilkårOppfylt(),
-                    clock = fixedClock,
-                ),
-            ).shouldBeType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
+            underkjentSøknadsbehandlingUføre(
+                customVilkår = listOf(avslåttUførevilkårUtenGrunnlag()),
+            ).also { (_, underkjent) ->
+                underkjent.shouldBeType<Søknadsbehandling.Underkjent.Avslag.UtenBeregning>().also {
+                    underkjent.leggTilUførevilkår(innvilgetUførevilkår(), fixedClock).getOrFail().also { innvilget ->
+                        innvilget.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
+                    }
+                }
+            }
         }
 
         @Test
         fun `underkjent avslag vilkår til vilkårsvurdert avslag`() {
-            statusovergang(
-                underkjentAvslagVilkår,
-                Statusovergang.TilVilkårsvurdert(
-                    behandlingsinformasjon = Behandlingsinformasjon().withAvslåttFlyktning(),
-                    clock = fixedClock,
-                ),
-            ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
+            underkjentSøknadsbehandlingUføre(
+                customVilkår = listOf(avslåttUførevilkårUtenGrunnlag()),
+            ).also { (_, underkjent) ->
+                underkjent.shouldBeType<Søknadsbehandling.Underkjent.Avslag.UtenBeregning>().also {
+                    underkjent.leggTilUførevilkår(avslåttUførevilkårUtenGrunnlag(), fixedClock).getOrFail()
+                        .also { avslag ->
+                            avslag.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
+                        }
+                }
+            }
         }
 
         @Test
         fun `underkjent avslag beregning til vilkårsvurdert innvilget`() {
-            statusovergang(
-                // TODO jah: Det føles ikke som en naturlig test når vi må bruke copy for å endre tilstand.
-                underkjentAvslagBeregning.copy(
-                    grunnlagsdata = Grunnlagsdata.create(bosituasjon = listOf(bosituasjongrunnlagEnslig())),
-                    vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre(
-                        uføre = innvilgetUførevilkår(),
-                        utenlandsopphold = utenlandsoppholdInnvilget(),
-                        formue = formuevilkårUtenEps0Innvilget(),
-                        opplysningsplikt = tilstrekkeligDokumentert(),
-                        lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
-                        fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
-                        institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
-                        personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
-                        flyktning = FlyktningVilkår.IkkeVurdert,
-                    ),
-                ),
-                Statusovergang.TilVilkårsvurdert(
-                    behandlingsinformasjon = Behandlingsinformasjon().withAlleVilkårOppfylt(),
-                    clock = fixedClock,
-                ),
-            ).shouldBeType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
+            underkjentSøknadsbehandlingUføre(
+                customGrunnlag = listOf(fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 50000.0)),
+            ).also { (_, underkjent) ->
+                underkjent.shouldBeType<Søknadsbehandling.Underkjent.Avslag.MedBeregning>().also {
+                    underkjent.leggTilVilkårFraBehandlingsinformasjon(
+                        Behandlingsinformasjon().withAlleVilkårOppfylt(),
+                        fixedClock,
+                    ).getOrFail().also { innvilget ->
+                        innvilget.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
+                    }
+                }
+            }
         }
 
         @Test
         fun `underkjent avslag beregning til vilkårsvurdert avslag`() {
-            statusovergang(
-                underkjentAvslagBeregning.copy(
-                    grunnlagsdata = Grunnlagsdata.create(bosituasjon = listOf(bosituasjongrunnlagEnslig())),
-                    vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre(
-                        uføre = innvilgetUførevilkår(),
-                        formue = formuevilkårIkkeVurdert(),
-                        lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
-                        fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
-                        institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
-                        personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
-                        flyktning = FlyktningVilkår.IkkeVurdert,
-                        opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
-                        utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
-                    ),
-                ),
-                Statusovergang.TilVilkårsvurdert(
-                    behandlingsinformasjon = Behandlingsinformasjon().withAvslåttFlyktning(),
-                    clock = fixedClock,
-                ),
-            ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
+            underkjentSøknadsbehandlingUføre(
+                customGrunnlag = listOf(fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 50000.0)),
+            ).also { (_, underkjent) ->
+                underkjent.shouldBeType<Søknadsbehandling.Underkjent.Avslag.MedBeregning>().also {
+                    underkjent.leggTilVilkårFraBehandlingsinformasjon(
+                        Behandlingsinformasjon().withAvslåttFlyktning(),
+                        fixedClock,
+                    ).getOrFail().also { avslag ->
+                        avslag.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
+                    }
+                }
+            }
         }
 
         @Test
@@ -426,24 +464,10 @@ internal class StatusovergangTest {
                 iverksattAvslagBeregning,
                 lukketSøknadsbehandling,
             ).forEach {
-                assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it.status}") {
-                    statusovergang(
-                        it,
-                        Statusovergang.TilVilkårsvurdert(
-                            behandlingsinformasjon = Behandlingsinformasjon().withAlleVilkårOppfylt(),
-                            clock = fixedClock,
-                        ),
-                    )
-                }
-                assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it.status}") {
-                    statusovergang(
-                        it,
-                        Statusovergang.TilVilkårsvurdert(
-                            behandlingsinformasjon = Behandlingsinformasjon().withAvslåttFlyktning(),
-                            clock = fixedClock,
-                        ),
-                    )
-                }
+                it.leggTilVilkårFraBehandlingsinformasjon(Behandlingsinformasjon().withAlleVilkårOppfylt(), fixedClock)
+                    .shouldBeType<Either.Left<KunneIkkeLeggeTilVilkår.KunnIkkeLeggeTilVilkårFraBehandlingsinformasjon.UgyldigTilstand>>()
+                it.leggTilFormuevilkår(avslåttFormueVilkår(), fixedClock)
+                    .shouldBeType<Either.Left<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFormuevilkår.UgyldigTilstand>>()
             }
         }
     }
