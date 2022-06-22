@@ -156,7 +156,7 @@ internal class VedtakServiceImplTest {
 
     @Test
     fun `kopier gjeldende vedtaksdata - ugyldig periode`() {
-        val vedtakMock = mock<VedtakSomKanRevurderes.EndringIYtelse> {
+        val vedtakMock = mock<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling> {
             on { periode } doReturn år(2021)
         }
         val sakServiceMock = mock<SakService> {

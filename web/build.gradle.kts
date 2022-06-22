@@ -57,3 +57,7 @@ tasks.named<Jar>("jar") {
         }
     }
 }
+
+// Pluginen burde sette opp dette selv, men den virker discontinued.
+tasks.named("compileKotlin").get().dependsOn(":web:generateAvroJava")
+tasks.named("compileTestKotlin").get().dependsOn(":web:generateTestAvroJava")

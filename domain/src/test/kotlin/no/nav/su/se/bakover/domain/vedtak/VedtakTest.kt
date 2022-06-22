@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
+import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
@@ -497,7 +498,7 @@ internal class VedtakTest {
                 opprettet = Tidspunkt.now(clock),
                 sakId = UUID.randomUUID(),
                 saksnummer = Saksnummer(2222),
-                søknad = mock(),
+                søknad = mock<Søknad.Journalført.MedOppgave.IkkeLukket>(),
                 oppgaveId = mock(),
                 behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
                 fnr = Fnr.generer(),

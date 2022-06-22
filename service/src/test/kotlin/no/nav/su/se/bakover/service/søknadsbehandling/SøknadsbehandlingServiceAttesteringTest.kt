@@ -19,7 +19,7 @@ import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.AvventerKravgrunnlag
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeOppretteOppgave
@@ -357,7 +357,7 @@ class SøknadsbehandlingServiceAttesteringTest {
     @Test
     fun `får ikke sendt til attestering dersom det eksisterer revurderinger som avventer kravgrunnlag`() {
         val søknadsbehandling = søknadsbehandlingSimulert().second
-        val mock = mock<Tilbakekrevingsbehandling.Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag>()
+        val mock = mock<AvventerKravgrunnlag>()
 
         SøknadsbehandlingServiceAndMocks(
             søknadsbehandlingRepo = mock {

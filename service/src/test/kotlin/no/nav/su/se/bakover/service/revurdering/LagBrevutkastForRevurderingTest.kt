@@ -238,7 +238,7 @@ internal class LagBrevutkastForRevurderingTest {
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn revurdering
         }
-        val utbetalingMock = mock<Utbetaling> {
+        val utbetalingMock = mock<Utbetaling.OversendtUtbetaling.MedKvittering> {
             on { utbetalingslinjer } doReturn nonEmptyListOf(
                 utbetalingslinje(
                     periode = RevurderingTestUtils.periodeNesteMånedOgTreMånederFram,
