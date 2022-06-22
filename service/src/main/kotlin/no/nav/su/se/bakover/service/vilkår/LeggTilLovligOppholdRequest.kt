@@ -23,7 +23,7 @@ enum class LovligOppholdVilkårStatus {
         return when (this) {
             VilkårOppfylt -> Resultat.Innvilget
             VilkårIkkeOppfylt -> Resultat.Avslag
-            Uavklart -> Resultat.Avslag
+            Uavklart -> Resultat.Uavklart
         }
     }
 }
