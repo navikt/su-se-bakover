@@ -3,11 +3,9 @@ package no.nav.su.se.bakover.service.søknadsbehandling
 import arrow.core.left
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
-import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
@@ -142,7 +140,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
             on { hent(any()) } doReturn iverksatt
         }
 
-        shouldThrow<StatusovergangVisitor.UgyldigStatusovergangException> {
+        shouldThrow<IllegalStateException> {
             createSøknadsbehandlingService(
                 søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             ).vilkårsvurder(
@@ -152,7 +150,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
                         .withAlleVilkårOppfylt(),
                 ),
             )
-        }.message shouldContain Regex("Ugyldig statusovergang.*Søknadsbehandling.Iverksatt.Innvilget")
+        }
 
         inOrder(søknadsbehandlingRepoMock) {
             verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe iverksatt.id })
