@@ -30,7 +30,6 @@ import no.nav.su.se.bakover.web.services.kontrollsamtale.Kontrollsamtaleinnkalli
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseConsumer
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseOppgaveJob
 import no.nav.su.se.bakover.web.services.tilbakekreving.LokalMottaKravgrunnlagJob
-import no.nav.su.se.bakover.web.services.tilbakekreving.TilbakekrevingConsumer
 import no.nav.su.se.bakover.web.services.tilbakekreving.TilbakekrevingIbmMqConsumer
 import no.nav.su.se.bakover.web.services.tilbakekreving.TilbakekrevingJob
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.LokalKvitteringJob
@@ -46,13 +45,14 @@ import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 import java.util.Date
 
-fun startJobberOgConsumers(
+internal fun startJobberOgConsumers(
     services: Services,
     clients: Clients,
     databaseRepos: DatabaseRepos,
     applicationConfig: ApplicationConfig,
     jmsConfig: JmsConfig,
     clock: Clock,
+    consumers: Consumers,
 ) {
     val utbetalingKvitteringConsumer = UtbetalingKvitteringConsumer(
         utbetalingService = services.utbetaling,
@@ -64,11 +64,6 @@ fun startJobberOgConsumers(
         personhendelseRepo = databaseRepos.personhendelseRepo,
         oppgaveServiceImpl = services.oppgave,
         personService = services.person,
-        clock = clock,
-    )
-    val tilbakekrevingConsumer = TilbakekrevingConsumer(
-        tilbakekrevingService = services.tilbakekrevingService,
-        revurderingService = services.revurdering,
         clock = clock,
     )
     if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais) {
@@ -171,7 +166,7 @@ fun startJobberOgConsumers(
             TilbakekrevingIbmMqConsumer(
                 queueName = applicationConfig.oppdrag.tilbakekreving.mq.mottak,
                 globalJmsContext = jmsConfig.jmsContext,
-                tilbakekrevingConsumer = tilbakekrevingConsumer,
+                tilbakekrevingConsumer = consumers.tilbakekrevingConsumer,
             )
 
             TilbakekrevingJob(
@@ -253,7 +248,7 @@ fun startJobberOgConsumers(
         ).schedule()
 
         LokalMottaKravgrunnlagJob(
-            tilbakekrevingConsumer = tilbakekrevingConsumer,
+            tilbakekrevingConsumer = consumers.tilbakekrevingConsumer,
             tilbakekrevingService = services.tilbakekrevingService,
             vedtakService = services.vedtakService,
             initialDelay = initialDelay.next(),

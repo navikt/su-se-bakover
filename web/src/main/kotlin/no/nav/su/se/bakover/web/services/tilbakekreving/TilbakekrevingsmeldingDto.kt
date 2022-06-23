@@ -6,12 +6,12 @@ import com.fasterxml.jackson.annotation.JsonRootName
 sealed class TilbakekrevingsmeldingDto
 
 @JsonRootName("endringKravOgVedtakstatus")
-internal data class KravgrunnlagStatusendringRootDto(
+data class KravgrunnlagStatusendringRootDto(
     @field:JsonProperty(value = "kravOgVedtakstatus")
     val endringKravOgVedtakstatus: KravgrunnlagStatusendringDto,
 ) : TilbakekrevingsmeldingDto()
 
-internal data class KravgrunnlagStatusendringDto(
+data class KravgrunnlagStatusendringDto(
     @field:JsonProperty(value = "vedtakId")
     val vedtakId: String,
     @field:JsonProperty(value = "kodeStatusKrav")
@@ -31,7 +31,7 @@ internal data class KravgrunnlagStatusendringDto(
  * Kan hende det finnes noen triks for å strippe bort rot-noden i xml.
  */
 @JsonRootName(value = "detaljertKravgrunnlagMelding")
-internal data class KravgrunnlagRootDto(
+data class KravgrunnlagRootDto(
     @field:JsonProperty(value = "detaljertKravgrunnlag")
     val kravgrunnlagDto: KravgrunnlagDto,
 ) : TilbakekrevingsmeldingDto()
@@ -44,7 +44,7 @@ internal data class KravgrunnlagRootDto(
  *
  * Feltene er dokumenter som: Nr - Datafelt - Format - Kommentar
  */
-internal data class KravgrunnlagDto(
+data class KravgrunnlagDto(
     /**
      * 1 - Kravgrunnlag-id - 9(10) - Identifikasjon av tilbakekrevingsgrunnlaget
      *

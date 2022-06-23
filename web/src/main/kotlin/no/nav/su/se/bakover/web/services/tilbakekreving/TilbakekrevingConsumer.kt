@@ -10,14 +10,14 @@ import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import org.slf4j.LoggerFactory
 import java.time.Clock
 
-internal class TilbakekrevingConsumer(
+class TilbakekrevingConsumer(
     private val tilbakekrevingService: TilbakekrevingService,
     private val revurderingService: RevurderingService,
     private val clock: Clock,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    internal fun onMessage(xmlMessage: String) {
+    fun onMessage(xmlMessage: String) {
         val mottattMelding = TilbakekrevingsmeldingMapper.toDto(xmlMessage)
             .getOrHandle { throw it }
 

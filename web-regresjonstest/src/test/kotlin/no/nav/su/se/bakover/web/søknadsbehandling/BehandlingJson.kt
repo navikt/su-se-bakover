@@ -15,3 +15,9 @@ object BehandlingJson {
         return JSONObject(json).getJSONObject("grunnlagsdataOgVilkårsvurderinger").getJSONObject("pensjon").toString()
     }
 }
+
+object RevurderingJson {
+    fun hentRevurderingId(json: String): String {
+        return JSONObject(json).getString("id").toString()
+    }
+}

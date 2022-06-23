@@ -71,6 +71,7 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.overordnetSøknadsbeha
 import no.nav.su.se.bakover.web.routes.togglePaths
 import no.nav.su.se.bakover.web.routes.toggleRoutes
 import no.nav.su.se.bakover.web.routes.vilkår.opplysningsplikt.opplysningspliktRoutes
+import no.nav.su.se.bakover.web.services.tilbakekreving.TilbakekrevingConsumer
 import org.slf4j.event.Level
 import java.time.Clock
 import java.time.LocalDate
@@ -121,6 +122,13 @@ fun Application.susebakover(
         satsFactory = satsFactory.gjeldende(LocalDate.now(clock)),
     ),
     accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services),
+    consumers: Consumers = Consumers(
+        tilbakekrevingConsumer = TilbakekrevingConsumer(
+            tilbakekrevingService = services.tilbakekrevingService,
+            revurderingService = services.revurdering,
+            clock = clock,
+        ),
+    ),
 ) {
     val satsFactoryIDag = satsFactory.gjeldende(LocalDate.now(clock))
     install(StatusPages) {
@@ -238,7 +246,12 @@ fun Application.susebakover(
                     overordnetSøknadsbehandligRoutes(accessProtectedServices.søknadsbehandling, clock, satsFactoryIDag)
                     avstemmingRoutes(accessProtectedServices.avstemming, clock)
                     driftRoutes(accessProtectedServices.søknad)
-                    revurderingRoutes(accessProtectedServices.revurdering, accessProtectedServices.vedtakService, clock, satsFactoryIDag)
+                    revurderingRoutes(
+                        accessProtectedServices.revurdering,
+                        accessProtectedServices.vedtakService,
+                        clock,
+                        satsFactoryIDag,
+                    )
                     klageRoutes(accessProtectedServices.klageService, clock)
                     dokumentRoutes(accessProtectedServices.brev)
                     nøkkeltallRoutes(accessProtectedServices.nøkkeltallService)
@@ -261,6 +274,7 @@ fun Application.susebakover(
         applicationConfig = applicationConfig,
         jmsConfig = jmsConfig,
         clock = clock,
+        consumers = consumers,
     )
 }
 
