@@ -75,8 +75,8 @@ enum class SakstypeJson {
 
 internal fun Sakstype.toJson(): String {
     return when (this) {
-        Sakstype.ALDER -> SakstypeJson.ALDER.toString()
-        Sakstype.UFØRE -> SakstypeJson.UFØRE.toString()
+        Sakstype.ALDER -> SakstypeJson.ALDER.toString().lowercase()
+        Sakstype.UFØRE -> SakstypeJson.UFØRE.toString().lowercase()
     }
 }
 
