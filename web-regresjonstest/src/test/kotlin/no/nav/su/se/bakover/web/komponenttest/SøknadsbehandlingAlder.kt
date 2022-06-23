@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.web.komponenttest
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.fixedClock
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.domain.Sakstype
@@ -260,17 +259,6 @@ internal class SøknadsbehandlingAlder {
                 request = SøknadsbehandlingService.HentRequest(behandlingId = søknadsbehandling.id),
             ).getOrFail().also { oppdatert ->
                 oppdatert.vilkårsvurderinger.resultat.shouldBeType<Vilkårsvurderingsresultat.Avslag>()
-            }
-
-            assertThrows<NotImplementedError> {
-                appComponents.services.søknadsbehandling.brev(
-                    request = SøknadsbehandlingService.BrevRequest.MedFritekst(
-                        behandling = avslag,
-                        fritekst = "",
-                    ),
-                )
-            }.also {
-                it.message shouldContain "vilkårsvurdering_alder brev for alder ikke implementert enda"
             }
         }
     }

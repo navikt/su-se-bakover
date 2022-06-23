@@ -1,2 +1,2 @@
 #!/bin/bash
-./gradlew formatKotlin build
+./gradlew spotlessApply build -Pskip-heavy-infrastructure-tests=true

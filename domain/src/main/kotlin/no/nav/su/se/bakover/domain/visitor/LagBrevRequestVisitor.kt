@@ -564,7 +564,7 @@ class LagBrevRequestVisitor(
             is Vilkårsvurderinger.Revurdering.Uføre -> this.uføre.grunnlag
             is Vilkårsvurderinger.Søknadsbehandling.Uføre -> this.uføre.grunnlag
             is Vilkårsvurderinger.Revurdering.Alder -> TODO("vilkårsvurdering_alder brev for alder ikke implementert enda")
-            is Vilkårsvurderinger.Søknadsbehandling.Alder -> TODO("vilkårsvurdering_alder brev for alder ikke implementert enda")
+            is Vilkårsvurderinger.Søknadsbehandling.Alder -> emptyList() // TODO("vilkårsvurdering_alder brev for alder ikke implementert enda")
         }
     }
 
@@ -754,6 +754,7 @@ class LagBrevRequestVisitor(
             saksnummer = saksnummer,
             // Ikke inkluder satsoversikt dersom beregning ikke er utført
             satsoversikt = beregning?.let { Satsoversikt.fra(bosituasjon, satsFactory, sakstype) },
+            sakstype = sakstype
         )
     }
 
@@ -776,6 +777,7 @@ class LagBrevRequestVisitor(
         dagensDato = LocalDate.now(clock),
         saksnummer = saksnummer,
         satsoversikt = Satsoversikt.fra(bosituasjon, satsFactory, sakstype),
+        sakstype = sakstype
     )
 
     private data class PersonOgNavn(

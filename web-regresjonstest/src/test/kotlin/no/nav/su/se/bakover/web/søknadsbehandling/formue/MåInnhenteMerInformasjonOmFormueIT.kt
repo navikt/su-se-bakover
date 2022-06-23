@@ -90,7 +90,6 @@ internal class MåInnhenteMerInformasjonOmFormueIT {
             }
             """.trimIndent()
             val actual = hentFormueVilkår(hentSøknadsbehandling(sakId, behandlingId))
-            println(actual)
             JSONAssert.assertEquals(
                 exptected,
                 actual,

@@ -37,7 +37,7 @@ private const val TOPIC1 = "kafkaTopic1"
 private const val TOPIC2 = "kafkaTopic2"
 
 @Isolated
-internal class KlageinstansBehandlingshendelseConsumerTest {
+internal class KlageinstanshendelseConsumerKafkaTest {
 
     private val PARTITION = 0
     private val key = UUID.randomUUID().toString()
@@ -64,6 +64,7 @@ internal class KlageinstansBehandlingshendelseConsumerTest {
             // Venter til alle meldingene er sendt før vi prøver consume
             it.get()
         }
+
         val hendelser = argumentCaptor<UprosessertKlageinstanshendelse>()
         // Kunne alternativt brukt awaitility for å vente til currentOffset ble 3
         verify(klageinstanshendelseService, timeout(20000).times(2)).lagre(any())
@@ -135,8 +136,7 @@ internal class KlageinstansBehandlingshendelseConsumerTest {
     }
 
     private fun currentOffset(topic: String): Long {
-        return kafkaServer.adminClient!!.listConsumerGroupOffsets("funKafkaConsumeGrpID")
-            .partitionsToOffsetAndMetadata().get()[TopicPartition(topic, PARTITION)]!!.offset()
+        return kafkaServer.adminClient!!.listConsumerGroupOffsets("funKafkaConsumeGrpID").partitionsToOffsetAndMetadata().get()[TopicPartition(topic, PARTITION)]!!.offset()
     }
 
     private fun genererKlageinstanshendelseMelding(
@@ -186,23 +186,22 @@ internal class KlageinstansBehandlingshendelseConsumerTest {
         private const val user = "srvkafkaclient"
         private const val pwd = "kafkaclient"
 
-        private fun kafkaConsumer(kafkaServer: KafkaEnvironment, groupId: String) =
-            KafkaConsumer<String, String>(
-                // Borrowed from: https://github.com/navikt/kafka-embedded-env/blob/master/src/test/kotlin/no/nav/common/test/common/Utilities.kt
-                mapOf(
-                    ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG to kafkaServer.brokersURL,
-                    ConsumerConfig.CLIENT_ID_CONFIG to groupId,
-                    ConsumerConfig.GROUP_ID_CONFIG to "funKafkaConsumeGrpID",
-                    ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
-                    ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
-                    ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG to "false",
-                    ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to "earliest",
-                    ConsumerConfig.MAX_POLL_RECORDS_CONFIG to 2,
-                    CommonClientConfigs.SECURITY_PROTOCOL_CONFIG to "SASL_PLAINTEXT",
-                    SaslConfigs.SASL_MECHANISM to "PLAIN",
-                    SaslConfigs.SASL_JAAS_CONFIG to "$JAAS_PLAIN_LOGIN $JAAS_REQUIRED username=\"$user\" password=\"$pwd\";",
-                ),
-            )
+        private fun kafkaConsumer(kafkaServer: KafkaEnvironment, groupId: String) = KafkaConsumer<String, String>(
+            // Borrowed from: https://github.com/navikt/kafka-embedded-env/blob/master/src/test/kotlin/no/nav/common/test/common/Utilities.kt
+            mapOf(
+                ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG to kafkaServer.brokersURL,
+                ConsumerConfig.CLIENT_ID_CONFIG to groupId,
+                ConsumerConfig.GROUP_ID_CONFIG to "funKafkaConsumeGrpID",
+                ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
+                ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
+                ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG to "false",
+                ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to "earliest",
+                ConsumerConfig.MAX_POLL_RECORDS_CONFIG to 2,
+                CommonClientConfigs.SECURITY_PROTOCOL_CONFIG to "SASL_PLAINTEXT",
+                SaslConfigs.SASL_MECHANISM to "PLAIN",
+                SaslConfigs.SASL_JAAS_CONFIG to "$JAAS_PLAIN_LOGIN $JAAS_REQUIRED username=\"$user\" password=\"$pwd\";",
+            ),
+        )
 
         private fun kafkaProducer(kafkaServer: KafkaEnvironment) = KafkaProducer<String, String>(
             // Borrowed from: https://github.com/navikt/kafka-embedded-env/blob/master/src/test/kotlin/no/nav/common/test/common/Utilities.kt

@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.ddMMyyyy
 import no.nav.su.se.bakover.common.toBrevformat
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn.Companion.getDistinkteParagrafer
@@ -51,6 +52,7 @@ interface LagBrevRequest {
         override val dagensDato: LocalDate,
         override val saksnummer: Saksnummer,
         private val satsoversikt: Satsoversikt,
+        private val sakstype: Sakstype
     ) : LagBrevRequest {
         override val brevInnhold = BrevInnhold.InnvilgetVedtak(
             personalia = lagPersonalia(),
@@ -62,7 +64,8 @@ interface LagBrevRequest {
             saksbehandlerNavn = saksbehandlerNavn,
             attestantNavn = attestantNavn,
             fritekst = fritekst,
-            satsoversikt = satsoversikt
+            satsoversikt = satsoversikt,
+            sakstype = sakstype,
         )
 
         override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Vedtak> {
@@ -87,7 +90,8 @@ interface LagBrevRequest {
         private val forventetInntektStørreEnn0: Boolean,
         override val dagensDato: LocalDate,
         override val saksnummer: Saksnummer,
-        private val satsoversikt: Satsoversikt?
+        private val satsoversikt: Satsoversikt?,
+        private val sakstype: Sakstype,
     ) : LagBrevRequest {
         override val brevInnhold = BrevInnhold.AvslagsBrevInnhold(
             personalia = lagPersonalia(),
@@ -102,6 +106,7 @@ interface LagBrevRequest {
             forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
             formueVerdier = avslag.formuegrunnlag?.tilFormueForBrev(),
             satsoversikt = satsoversikt,
+            sakstype = sakstype
         )
 
         override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Vedtak> {
@@ -191,7 +196,7 @@ interface LagBrevRequest {
         private val gjeldendeMånedsutbetaling: Int,
         override val dagensDato: LocalDate,
         override val saksnummer: Saksnummer,
-        private val satsoversikt: Satsoversikt
+        private val satsoversikt: Satsoversikt,
     ) : LagBrevRequest {
         override val brevInnhold = BrevInnhold.VedtakIngenEndring(
             personalia = lagPersonalia(),
@@ -329,7 +334,7 @@ interface LagBrevRequest {
         override val forventetInntektStørreEnn0: Boolean,
         override val dagensDato: LocalDate,
         override val saksnummer: Saksnummer,
-        private val satsoversikt: Satsoversikt
+        private val satsoversikt: Satsoversikt,
     ) : LagBrevRequest, Revurdering {
         override val brevInnhold = BrevInnhold.RevurderingAvInntekt(
             personalia = lagPersonalia(),
@@ -339,7 +344,7 @@ interface LagBrevRequest {
             fritekst = fritekst,
             harEktefelle = harEktefelle,
             forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
-            satsoversikt = satsoversikt
+            satsoversikt = satsoversikt,
         )
 
         override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Vedtak> {
@@ -358,7 +363,7 @@ interface LagBrevRequest {
     data class TilbakekrevingAvPenger(
         private val ordinærtRevurderingBrev: Inntekt,
         private val tilbakekreving: Tilbakekreving,
-        private val satsoversikt: Satsoversikt
+        private val satsoversikt: Satsoversikt,
     ) : LagBrevRequest, Revurdering by ordinærtRevurderingBrev {
         override val brevInnhold: BrevInnhold = BrevInnhold.RevurderingMedTilbakekrevingAvPenger(
             personalia = lagPersonalia(),
@@ -371,7 +376,7 @@ interface LagBrevRequest {
             tilbakekreving = tilbakekreving.tilbakekrevingavdrag,
             periodeStart = tilbakekreving.periodeStart,
             periodeSlutt = tilbakekreving.periodeSlutt,
-            satsoversikt = satsoversikt
+            satsoversikt = satsoversikt,
         )
 
         override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Vedtak> {

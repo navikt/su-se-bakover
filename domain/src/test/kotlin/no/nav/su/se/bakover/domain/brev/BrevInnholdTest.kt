@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.domain.Beløp
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.MånedBeløp
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.brev.beregning.BrevPeriode
@@ -90,6 +91,7 @@ internal class BrevInnholdTest {
                     ),
                 ),
             ),
+            sakstype = Sakstype.UFØRE
         )
 
         val actualJson = objectMapper.writeValueAsString(innvilgetVedtak)

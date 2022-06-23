@@ -1,8 +1,6 @@
 val ktorVersion: String by project
 
 plugins {
-    /** Det ser ut som disse genererte filene ikke blir ekskludert av ktlint-tasken.
-     * Gradle gir oss noen warnings om at vi ikke kan oppdatere til Gradle 8. */
     id("com.github.davidmc24.gradle.plugin.avro") version "1.3.0"
 }
 
@@ -39,16 +37,6 @@ dependencies {
         exclude(group = "junit")
         exclude(group = "org.eclipse.jetty") // conflicts with WireMock
         exclude(group = "org.eclipse.jetty.http2") // conflicts with WireMock
-    }
-    testImplementation("no.nav:kafka-embedded-env:3.1.6") {
-        // Breaks build: exclude(group = "org.glassfish.jersey.ext", module = "jersey-bean-validation")
-        // Breaks build: exclude(group = "org.glassfish", module = "jakarta.el")
-        // Breaks build: exclude(group = "org.eclipse.jetty", module = "jetty-server")
-        // Breaks build: exclude(group = "org.eclipse.jetty", module = "jetty-servlets")
-        exclude(group = "org.eclipse.jetty", module = "jetty-webapp")
-        exclude(group = "log4j") // module = "log4j"
-        exclude(group = "io.netty") // module = "netty-handler"
-        exclude(group = "io.grpc") // module = "grpc-core"
     }
 }
 

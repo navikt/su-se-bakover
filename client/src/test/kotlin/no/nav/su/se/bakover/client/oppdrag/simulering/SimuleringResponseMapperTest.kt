@@ -124,6 +124,52 @@ internal class SimuleringResponseMapperTest {
         )
     }
 
+    @Test
+    fun `mapper fremtidige simulerte utbetalinger - alder`() {
+        val responseMedFremtidigUtbetaling =
+            XmlMapper.readValue(
+                xmlResponseMedFremtidigUtbetaling.replace("SUUFORE", "SUALDER"),
+                GrensesnittResponse::class.java,
+            ).response
+        SimuleringResponseMapper(responseMedFremtidigUtbetaling, fixedClock).simulering shouldBe Simulering(
+            gjelderId = fnr,
+            gjelderNavn = navn,
+            datoBeregnet = 14.april(2021),
+            nettoBeløp = 10390,
+            periodeList = listOf(
+                SimulertPeriode(
+                    fraOgMed = 1.april(2021),
+                    tilOgMed = 30.april(2021),
+                    utbetaling = listOf(
+                        SimulertUtbetaling(
+                            fagSystemId = fagsystemId,
+                            utbetalesTilId = fnr,
+                            utbetalesTilNavn = navn,
+                            forfall = 19.april(2021),
+                            feilkonto = false,
+                            detaljer = listOf(
+                                SimulertDetaljer(
+                                    faktiskFraOgMed = 1.april(2021),
+                                    faktiskTilOgMed = 30.april(2021),
+                                    konto = konto,
+                                    belop = 20779,
+                                    tilbakeforing = false,
+                                    sats = 20779,
+                                    typeSats = typeSats,
+                                    antallSats = 1,
+                                    uforegrad = 0,
+                                    klassekode = KlasseKode.SUALDER,
+                                    klassekodeBeskrivelse = suBeskrivelse,
+                                    klasseType = KlasseType.YTEL,
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+    }
+
     //language=xml
     private val xmlResponseMedFremtidigUtbetaling = """
     <simulerBeregningResponse xmlns="http://nav.no/system/os/tjenester/simulerFpService/simulerFpServiceGrensesnitt">

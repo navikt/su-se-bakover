@@ -1,14 +1,15 @@
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+
 plugins {
     kotlin("jvm")
-    // Støtter unicode filer (i motsetning til https://github.com/JLLeitschuh/ktlint-gradle 10.0.0) og har nyere dependencies som gradle. Virker som den oppdateres hyppigere.
-    id("org.jmailen.kotlinter") version "3.10.0"
+    id("com.diffplug.spotless") version "6.7.2"
 }
 
 version = "0.0.1"
 
 subprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
-    apply(plugin = "org.jmailen.kotlinter")
+    apply(plugin = "com.diffplug.spotless")
     repositories {
         mavenCentral()
         maven("https://jitpack.io")
@@ -25,7 +26,7 @@ subprojects {
         implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
         implementation("org.jetbrains.kotlin:kotlin-script-runtime:$kotlinVersion")
         implementation("org.jetbrains.kotlin:kotlin-compiler-embeddable:$kotlinVersion")
-        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.2")
+        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.3")
         implementation("io.arrow-kt:arrow-core:1.1.2")
         implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
         implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:$jacksonVersion")
@@ -119,18 +120,34 @@ subprojects {
 
     // Run `./gradlew allDeps` to get a dependency graph
     task("allDeps", DependencyReportTask::class) {}
+
+    configure<com.diffplug.gradle.spotless.SpotlessExtension> {
+        kotlin {
+            ktlint()
+            // jah: diktat er veldig intrusive - virker ikke som den gir så stor verdi uten å disable veldig mange regler.
+            // jah: ktfmt er et alternativ til ktlint som vi kan vurdere bytte til på sikt. Skal være strengere som vil gjøre kodebasen mer enhetlig.
+            // jah: prettier for kotlin virker umodent.
+        }
+        kotlinGradle {
+            target("*.gradle.kts")
+            ktlint()
+        }
+    }
 }
 
+
 configure(listOf(project(":client"))) {
-    // TODO jah: We can't parallelize client at this point because of static usage of wiremockServer
-    tasks.withType<Test> {
-        useJUnitPlatform()
-        testLogging {
-            // We only want to log failed and skipped tests when running Gradle.
-            events("skipped", "failed")
-            exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
-        }
-        failFast = false
+// :client er vanskelig å parallellisere så lenge den bruker Wiremock på en statisk måte. Samtidig gir det ikke så mye mening siden testene er raske og ikke? feiler på timing issues.
+    tasks.test {
+        sharedTestSetup()
+    }
+}
+
+configure(listOf(project(":web-kafka-test"))) {
+    // :web-kafka-test denne gir veldig ofte timing issues. Prøver å kjøre denne ikke-parallellt.
+    tasks.test {
+        sharedTestSetup()
+        skipHeavyInfrastructureTestsIfToggled(this)
     }
 }
 
@@ -145,25 +162,14 @@ configure(
         project(":web-regresjonstest"),
     ),
 ) {
-    tasks.withType<Test> {
-        useJUnitPlatform()
-        testLogging {
-            // We only want to log failed and skipped tests when running Gradle.
-            events("skipped", "failed")
-            exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
-        }
-        // https://docs.gradle.org/current/userguide/performance.html#suggestions_for_java_projects
-        failFast = false
+    tasks.test {
+        sharedTestSetup()
         maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).takeIf { it > 0 } ?: 1
         // https://junit.org/junit5/docs/snapshot/user-guide/#writing-tests-parallel-execution
         systemProperties["junit.jupiter.execution.parallel.enabled"] = true
         systemProperties["junit.jupiter.execution.parallel.mode.default"] = "concurrent"
+        systemProperties["junit.jupiter.execution.parallel.mode.classes.default"] = "concurrent"
     }
-}
-
-tasks.check {
-    // Må ligge på root nivå
-    dependsOn("installKotlinterPrePushHook")
 }
 
 configurations {
@@ -172,3 +178,34 @@ configurations {
         exclude(group = "org.apache.logging.log4j", module = "log4j-core")
     }
 }
+
+fun Project.skipHeavyInfrastructureTestsIfToggled(test: Test) {
+    if (findProperty("skip-heavy-infrastructure-tests") == "true") {
+        println("Skipping heavy infrastructure tests like Kafka.")
+        test.filter {
+            excludeTestsMatching("*KafkaTest*")
+            isFailOnNoMatchingTests = false
+        }
+    }
+}
+
+fun Test.sharedTestSetup() {
+    useJUnitPlatform()
+    testLogging {
+        // We only want to log failed and skipped tests when running Gradle.
+        events("skipped", "failed")
+        exceptionFormat = TestExceptionFormat.FULL
+    }
+    // https://docs.gradle.org/current/userguide/performance.html#suggestions_for_java_projects
+    failFast = false
+}
+
+tasks.register<Copy>("gitHooks") {
+    from("scripts/hooks/pre-commit")
+    into(".git/hooks")
+}
+
+tasks.named("build") {
+    dependsOn(":gitHooks")
+}
+
