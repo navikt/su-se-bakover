@@ -128,6 +128,10 @@ enum class KlasseType {
 
     @Deprecated("Filtreres ut av klient") // TODO flytt dette lenger ut
     MOTP;
+
+    companion object {
+        fun skalIkkeFiltreres() = setOf(YTEL, FEIL)
+    }
 }
 
 enum class KlasseKode {
@@ -145,6 +149,10 @@ enum class KlasseKode {
 
     SUALDER,
     KL_KODE_FEIL;
+
+    companion object {
+        fun skalIkkeFiltreres() = setOf(SUUFORE, KL_KODE_FEIL_INNT, SUALDER, KL_KODE_FEIL)
+    }
 }
 
 fun Sakstype.toYtelsekode(): KlasseKode {
