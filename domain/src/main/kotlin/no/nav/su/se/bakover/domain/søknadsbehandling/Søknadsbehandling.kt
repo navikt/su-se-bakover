@@ -108,22 +108,17 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
         clock: Clock,
     ): Either<KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> {
-        return if (this is KanLeggeTilVilkår) {
-            vilkårsvurder(clock).let {
-                when (it) {
-                    is KanLeggeTilFradrag -> {
-                        leggTilFradragsgrunnlagInternal(fradragsgrunnlag, clock)
-                    }
-                    else -> {
-                        KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen(
-                            this::class,
-                        ).left()
-                    }
+        return vilkårsvurder(clock).let {
+            when (it) {
+                is KanBeregnes -> {
+                    leggTilFradragsgrunnlagInternal(fradragsgrunnlag, clock)
+                }
+                else -> {
+                    KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen(
+                        this::class,
+                    ).left()
                 }
             }
-        } else {
-            KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen(this::class)
-                .left()
         }
     }
 
@@ -148,7 +143,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         bosituasjon: Grunnlag.Bosituasjon,
         clock: Clock,
     ): Either<KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon, Vilkårsvurdert> {
-        return if (this is KanLeggeTilBosituasjon) {
+        return if (this is KanOppdaterePeriodeGrunnlagVilkår) {
             oppdaterBosituasjonInternal(bosituasjon, clock).right()
         } else {
             KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon.UgyldigTilstand(
@@ -182,7 +177,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
         clock: Clock,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
-        return if (this is KanLeggeTilVilkår) {
+        return if (this is KanOppdaterePeriodeGrunnlagVilkår) {
             leggTilUtenlandsoppholdInternal(utenlandsopphold, clock)
         } else {
             KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold.IkkeLovÅLeggeTilUtenlandsoppholdIDenneStatusen(
@@ -224,11 +219,8 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         )
     }
 
-    interface KanOppdatereStønadsperiode
-    interface KanLeggeTilVilkår
-    interface KanLeggeTilFradrag
-    interface KanLeggeTilBosituasjon
-    interface KanBeregnes {
+    interface KanOppdaterePeriodeGrunnlagVilkår
+    interface KanBeregnes : KanOppdaterePeriodeGrunnlagVilkår {
         val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert
     }
 
@@ -236,7 +228,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         vilkår: Vilkår.Formue.Vurdert,
         clock: Clock,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFormuevilkår, Vilkårsvurdert> {
-        return if (this is KanLeggeTilVilkår) {
+        return if (this is KanOppdaterePeriodeGrunnlagVilkår) {
             leggTilFormuevilkårInternal(vilkår, clock)
         } else {
             return KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFormuevilkår.UgyldigTilstand(
@@ -263,7 +255,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         clock: Clock,
         formuegrenserFactory: FormuegrenserFactory,
     ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
-        return if (this is KanOppdatereStønadsperiode) {
+        return if (this is KanOppdaterePeriodeGrunnlagVilkår) {
             oppdaterStønadsperiodeInternal(oppdatertStønadsperiode, clock, formuegrenserFactory)
         } else {
             KunneIkkeOppdatereStønadsperiode.UgyldigTilstand(this::class).left()
@@ -292,7 +284,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
         clock: Clock,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
-        return if (this is KanLeggeTilVilkår) {
+        return if (this is KanOppdaterePeriodeGrunnlagVilkår) {
             leggTilOpplysningspliktVilkårInternal(opplysningspliktVilkår, clock)
         } else {
             KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt.UgyldigTilstand(this::class).left()
@@ -315,7 +307,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         vilkår: PensjonsVilkår.Vurdert,
         clock: Clock,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår, Vilkårsvurdert> {
-        return if (this is KanLeggeTilVilkår) {
+        return if (this is KanOppdaterePeriodeGrunnlagVilkår) {
             leggTilPensjonsVilkårInternal(vilkår, clock)
         } else {
             KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår.UgyldigTilstand(this::class).left()
@@ -340,7 +332,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         satsFactory: SatsFactory,
     ): Either<KunneIkkeBeregne, Beregnet> {
         return when (this) {
-            is KanLeggeTilVilkår -> {
+            is KanOppdaterePeriodeGrunnlagVilkår -> {
                 when (val vilkårsvurdert = vilkårsvurder(clock)) {
                     is KanBeregnes -> {
                         beregnInternal(
@@ -368,7 +360,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         behandlingsinformasjon: Behandlingsinformasjon,
         clock: Clock,
     ): Either<KunneIkkeLeggeTilVilkår.KunnIkkeLeggeTilVilkårFraBehandlingsinformasjon, Vilkårsvurdert> {
-        return if (this is KanLeggeTilVilkår) {
+        return if (this is KanOppdaterePeriodeGrunnlagVilkår) {
             leggTilVilkårFraBehandlingsinformasjonInternal(behandlingsinformasjon, clock)
         } else {
             KunneIkkeLeggeTilVilkår.KunnIkkeLeggeTilVilkårFraBehandlingsinformasjon.UgyldigTilstand(
@@ -400,7 +392,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             is PersonligOppmøteVilkår.Vurdert -> Unit.right()
             is Vilkår.Uførhet.Vurdert -> valider(vilkår).mapLeft { it as T }
             is UtenlandsoppholdVilkår.Vurdert -> valider(vilkår).mapLeft { it as T }
-            else -> throw IllegalStateException("Ukjent vilkår: $vilkår")
+            else -> throw IllegalStateException("Vet ikke hvordan man validerer vilkår av type: ${vilkår::class}")
         }
     }
 
@@ -428,7 +420,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         uførhet: Vilkår.Uførhet.Vurdert,
         clock: Clock,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
-        return if (this is KanLeggeTilVilkår) {
+        return if (this is KanOppdaterePeriodeGrunnlagVilkår) {
             leggTilUførevilkårInternal(uførhet, clock)
         } else {
             KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår.UgyldigTilstand(this::class, Vilkårsvurdert::class)
@@ -452,7 +444,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         familiegjenforening: FamiliegjenforeningVilkår.Vurdert,
         clock: Clock,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFamiliegjenforeningVilkår, Vilkårsvurdert> {
-        return if (this is KanLeggeTilVilkår) {
+        return if (this is KanOppdaterePeriodeGrunnlagVilkår) {
             leggTilFamiliegjenforeningvilkårInternal(familiegjenforening, clock)
         } else {
             KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFamiliegjenforeningVilkår.UgyldigTilstand(
@@ -674,9 +666,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
     sealed class Vilkårsvurdert :
         Søknadsbehandling(),
-        KanOppdatereStønadsperiode,
-        KanLeggeTilVilkår,
-        KanLeggeTilBosituasjon {
+        KanOppdaterePeriodeGrunnlagVilkår {
 
         abstract override val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert
 
@@ -811,7 +801,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val attesteringer: Attesteringshistorikk,
             override val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert,
             override val sakstype: Sakstype,
-        ) : Vilkårsvurdert(), KanLeggeTilFradrag, KanBeregnes {
+        ) : Vilkårsvurdert(), KanBeregnes {
 
             override val status: BehandlingsStatus = BehandlingsStatus.VILKÅRSVURDERT_INNVILGET
 
@@ -962,7 +952,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         }
     }
 
-    sealed class Beregnet : Søknadsbehandling(), KanOppdatereStønadsperiode, KanLeggeTilVilkår, KanLeggeTilBosituasjon {
+    sealed class Beregnet : Søknadsbehandling(), KanOppdaterePeriodeGrunnlagVilkår {
         abstract override val behandlingsinformasjon: Behandlingsinformasjon
         abstract val beregning: Beregning
         abstract override val stønadsperiode: Stønadsperiode
@@ -1146,7 +1136,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedSøknadsbehandling.Håndtert,
         override val sakstype: Sakstype,
-    ) : Søknadsbehandling(), KanOppdatereStønadsperiode, KanLeggeTilVilkår, KanLeggeTilBosituasjon {
+    ) : Søknadsbehandling(), KanOppdaterePeriodeGrunnlagVilkår {
         override val status: BehandlingsStatus = BehandlingsStatus.SIMULERT
         override val periode: Periode = stønadsperiode.periode
 
@@ -1557,9 +1547,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
     sealed class Underkjent :
         Søknadsbehandling(),
-        KanOppdatereStønadsperiode,
-        KanLeggeTilVilkår,
-        KanLeggeTilBosituasjon {
+        KanOppdaterePeriodeGrunnlagVilkår {
         abstract override val id: UUID
         abstract override val opprettet: Tidspunkt
         abstract override val sakId: UUID

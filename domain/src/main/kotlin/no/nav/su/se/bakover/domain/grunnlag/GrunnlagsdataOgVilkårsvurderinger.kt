@@ -138,7 +138,12 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
         }
 
         override fun leggTilFradragsgrunnlag(grunnlag: List<Grunnlag.Fradragsgrunnlag>): Søknadsbehandling {
-            return copy(grunnlagsdata = grunnlagsdata.copy(fradragsgrunnlag = grunnlag))
+            return copy(
+                grunnlagsdata = Grunnlagsdata.tryCreate(
+                    fradragsgrunnlag = grunnlag,
+                    bosituasjon = grunnlagsdata.bosituasjon,
+                ).getOrHandle { throw IllegalArgumentException(it.toString()) },
+            )
         }
 
         override fun oppdaterBosituasjon(bosituasjon: List<Grunnlag.Bosituasjon>): Søknadsbehandling {
