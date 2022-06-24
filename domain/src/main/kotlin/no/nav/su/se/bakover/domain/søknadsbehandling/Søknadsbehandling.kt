@@ -332,8 +332,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     ) = if (this is KanOppdaterePeriodeGrunnlagVilkår) {
         leggTilLovligOppholdInternal(lovligOppholdVilkår, clock)
     } else {
-        KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilLovligOpphold.UgyldigTilstand(this::class, Vilkårsvurdert::class)
-            .left()
+        KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilLovligOpphold.UgyldigTilstand.Søknadsbehandling(
+            this::class,
+            Vilkårsvurdert::class,
+        ).left()
     }
 
     fun leggTilLovligOppholdInternal(

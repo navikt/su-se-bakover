@@ -918,7 +918,12 @@ internal class SøknadsbehandlingRoutesKtTest {
         services.søknadsbehandling.leggTilLovligOpphold(
             LeggTilLovligOppholdRequest(
                 behandlingId = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
-                vurderinger = listOf(LovligOppholdVurderinger(LovligOppholdVilkårStatus.VilkårOppfylt)),
+                vurderinger = listOf(
+                    LovligOppholdVurderinger(
+                        uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.periode,
+                        LovligOppholdVilkårStatus.VilkårOppfylt,
+                    ),
+                ),
             ),
         )
 

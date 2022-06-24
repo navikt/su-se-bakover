@@ -19,6 +19,8 @@ import no.nav.su.se.bakover.web.SharedRegressionTestData.defaultRequest
 internal fun ApplicationTestBuilder.leggTilLovligOppholdINorge(
     sakId: String,
     behandlingId: String,
+    fraOgMed: String = "2021-01-01",
+    tilOgMed: String = "2021-12-31",
     vurdering: String = "VilkårOppfylt",
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
 ): String {
@@ -34,6 +36,10 @@ internal fun ApplicationTestBuilder.leggTilLovligOppholdINorge(
                     {
                         "vurderinger": [
                             {
+                                "periode":{
+                                  "fraOgMed":"$fraOgMed",
+                                  "tilOgMed":"$tilOgMed"
+                                },
                                 "status": "$vurdering"
                             }
                         ]

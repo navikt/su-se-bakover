@@ -17,10 +17,11 @@ with sbehandling (behandlingid, opprettet, fraogmed, tilogmed, resultat, begrunn
 )
 
 insert
-into vilkårsvurdering_lovligopphold(id, opprettet, behandlingid, fraogmed, tilogmed, resultat, begrunnelse)
+into vilkårsvurdering_lovligopphold(id, opprettet, behandlingid, grunnlag_id, fraogmed, tilogmed, resultat, begrunnelse)
     (select uuid_generate_v4(),
             opprettet,
             behandlingId,
+            null,
             fraogmed,
             tilogmed,
             resultat,
@@ -38,13 +39,36 @@ with rev (behandlingid, opprettet, fraogmed, tilogmed, resultat, begrunnelse) as
     from revurdering
 )
 insert
-into vilkårsvurdering_lovligOpphold(id, opprettet, behandlingid, fraogmed, tilogmed, resultat, begrunnelse)
+into vilkårsvurdering_lovligOpphold(id, opprettet, behandlingid, grunnlag_id, fraogmed, tilogmed, resultat, begrunnelse)
     (select uuid_generate_v4(),
             opprettet,
             behandlingId,
+            null,
             fraogmed,
             tilogmed,
             resultat,
             begrunnelse
      from rev
+    );
+
+with reg (behandlingId, opprettet, fraogmed, tilogmed, resultat, begrunnelse) as (
+    select id,
+           opprettet,
+           (periode ->> 'fraOgMed')::date,
+           (periode ->> 'tilOgMed')::date,
+           'INNVILGET',
+           null
+    from regulering
+)
+insert
+into vilkårsvurdering_lovligOpphold(id, opprettet, behandlingid, grunnlag_id, fraogmed, tilogmed, resultat, begrunnelse)
+    (select uuid_generate_v4(),
+            opprettet,
+            behandlingId,
+            null,
+            fraogmed,
+            tilogmed,
+            resultat,
+            begrunnelse
+     from reg
     );

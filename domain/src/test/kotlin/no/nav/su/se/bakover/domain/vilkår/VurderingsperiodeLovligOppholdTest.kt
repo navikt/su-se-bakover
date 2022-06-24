@@ -5,7 +5,6 @@ import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
-import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.vurderingsperiode.vurderingsperiodeFastOppholdAvslag
 import no.nav.su.se.bakover.test.vurderingsperiode.vurderingsperiodeLovligOppholdInnvilget
 import org.junit.jupiter.api.Test
@@ -15,7 +14,7 @@ internal class VurderingsperiodeLovligOppholdTest {
     fun `oppdaterer periode`() {
         vurderingsperiodeLovligOppholdInnvilget().oppdaterStønadsperiode(
             Stønadsperiode.create(februar(2021)),
-        ).getOrFail().periode shouldBe februar(2021)
+        ).periode shouldBe februar(2021)
     }
 
     @Test

@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.routes.vilkår
+package no.nav.su.se.bakover.web.routes.vilkår.lovligopphold
 
 import no.nav.su.se.bakover.common.periode.PeriodeJson
 import no.nav.su.se.bakover.common.periode.PeriodeJson.Companion.toJson
@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeLovligOpphold
 import no.nav.su.se.bakover.service.vilkår.LovligOppholdVilkårStatus
-import no.nav.su.se.bakover.web.routes.vilkår.VurderingsperiodeLovligOppholdJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.vilkår.lovligopphold.VurderingsperiodeLovligOppholdJson.Companion.toJson
 
 data class LovligOppholdVilkårJson(
     val vurderinger: List<VurderingsperiodeLovligOppholdJson>,
@@ -16,7 +16,7 @@ data class LovligOppholdVilkårJson(
         fun LovligOppholdVilkår.toJson() = when (this) {
             LovligOppholdVilkår.IkkeVurdert -> null
             is LovligOppholdVilkår.Vurdert -> LovligOppholdVilkårJson(
-                vurderingsperioder.map { it.toJson() },
+                this.vurderingsperioder.map { it.toJson() },
                 resultat.tilLovligOppholdVilkårstatus(),
             )
         }

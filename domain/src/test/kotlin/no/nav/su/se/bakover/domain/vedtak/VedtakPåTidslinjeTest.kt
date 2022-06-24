@@ -180,6 +180,7 @@ internal class VedtakPåTidslinjeTest {
                             vilkårsvurdering.formue,
                             vilkårsvurdering.utenlandsopphold,
                             vilkårsvurdering.opplysningsplikt,
+                            vilkårsvurdering.lovligOpphold,
                         ),
                     )
                 }
@@ -346,6 +347,7 @@ internal class VedtakPåTidslinjeTest {
                                 vilkårsvurdering.formue,
                                 vilkårsvurdering.utenlandsopphold,
                                 vilkårsvurdering.opplysningsplikt,
+                                vilkårsvurdering.lovligOpphold,
                             ),
                         )
                     }

@@ -8,10 +8,10 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.vilkår.FamiliegjenforeningVilkårJson
 import no.nav.su.se.bakover.web.routes.vilkår.FamiliegjenforeningVilkårJson.Companion.toJson
-import no.nav.su.se.bakover.web.routes.vilkår.LovligOppholdVilkårJson
-import no.nav.su.se.bakover.web.routes.vilkår.LovligOppholdVilkårJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.vilkår.alder.PensjonsVilkårJson
 import no.nav.su.se.bakover.web.routes.vilkår.alder.toJson
+import no.nav.su.se.bakover.web.routes.vilkår.lovligopphold.LovligOppholdVilkårJson
+import no.nav.su.se.bakover.web.routes.vilkår.lovligopphold.LovligOppholdVilkårJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.vilkår.opplysningsplikt.OpplysningspliktVilkårJson
 import no.nav.su.se.bakover.web.routes.vilkår.opplysningsplikt.toJson
 

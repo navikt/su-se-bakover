@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.søknadsbehandling
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import kotlin.reflect.KClass
 
 sealed class KunneIkkeLeggeTilVilkår {
@@ -28,11 +29,22 @@ sealed class KunneIkkeLeggeTilVilkår {
     }
 
     sealed class KunneIkkeLeggeTilLovligOpphold : KunneIkkeLeggeTilVilkår() {
-        data class UgyldigTilstand(
-            val fra: KClass<out Søknadsbehandling>,
-            val til: KClass<out Søknadsbehandling.Vilkårsvurdert>,
-        ) :
-            KunneIkkeLeggeTilLovligOpphold()
+
+        sealed class UgyldigTilstand : KunneIkkeLeggeTilLovligOpphold() {
+            data class Søknadsbehandling(
+                val fra: KClass<out no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling>,
+                val til: KClass<out no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling.Vilkårsvurdert>,
+            ) :
+                UgyldigTilstand()
+
+            data class Revurdering(
+                val fra: KClass<out no.nav.su.se.bakover.domain.revurdering.Revurdering>,
+                val til: KClass<out OpprettetRevurdering>,
+            ) :
+                UgyldigTilstand()
+        }
+
+        object HeleBehandlingsperiodenErIkkeVurdert : KunneIkkeLeggeTilLovligOpphold()
     }
 
     sealed class KunneIkkeLeggeTilPensjonsVilkår : KunneIkkeLeggeTilVilkår() {

@@ -100,7 +100,7 @@ internal class LovligOppholdVilkårsvurderingPostgresRepo(
                     ),
                     session,
                 ) {
-                    it.toVurderingsperiode(session)
+                    it.toVurderingsperiode()
                 }.let {
                     when (it.isNotEmpty()) {
                         true -> LovligOppholdVilkår.Vurdert.tryCreate(vurderingsperioder = Nel.fromListUnsafe(it))
@@ -113,20 +113,15 @@ internal class LovligOppholdVilkårsvurderingPostgresRepo(
         }
     }
 
-    private fun Row.toVurderingsperiode(session: Session): VurderingsperiodeLovligOpphold {
+    private fun Row.toVurderingsperiode(): VurderingsperiodeLovligOpphold {
         return VurderingsperiodeLovligOpphold.tryCreate(
             id = uuid("id"),
             opprettet = tidspunkt("opprettet"),
             resultat = ResultatDto.valueOf(string("resultat")).toDomain(),
-            grunnlag = uuidOrNull("grunnlag_id")?.let {
-                lovligOppholdGrunnlagPostgresRepo.hent(it, session)
-            },
             vurderingsperiode = Periode.create(
                 fraOgMed = localDate("fraOgMed"),
                 tilOgMed = localDate("tilOgMed"),
             ),
-        ).getOrHandle {
-            throw IllegalStateException(it.toString())
-        }
+        )
     }
 }

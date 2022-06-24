@@ -301,9 +301,10 @@ internal class BeregnRoutesKtTest {
         services.søknadsbehandling.leggTilLovligOpphold(
             LeggTilLovligOppholdRequest(
                 behandlingId = objects.søknadsbehandling.id,
-                vurderinger = listOf(LovligOppholdVurderinger(LovligOppholdVilkårStatus.VilkårOppfylt))
-
-            )
+                vurderinger = listOf(
+                    LovligOppholdVurderinger(periode = år(2021), status = LovligOppholdVilkårStatus.VilkårOppfylt),
+                ),
+            ),
         )
         services.søknadsbehandling.leggTilUtenlandsopphold(
             request = LeggTilUtenlandsoppholdRequest(

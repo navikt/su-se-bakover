@@ -1,14 +1,9 @@
 package no.nav.su.se.bakover.service.vilkår
 
-import arrow.core.Either
 import arrow.core.NonEmptyList
-import arrow.core.getOrHandle
-import arrow.core.left
-import arrow.core.right
-import arrow.core.sequence
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.domain.grunnlag.LovligOppholdGrunnlag
-import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
+import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vilkår.KunneIkkeLageLovligOppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Resultat
@@ -29,6 +24,7 @@ enum class LovligOppholdVilkårStatus {
 }
 
 data class LovligOppholdVurderinger(
+    val periode: Periode,
     val status: LovligOppholdVilkårStatus,
 )
 
@@ -38,33 +34,28 @@ data class LeggTilLovligOppholdRequest(
 ) {
 
     fun toVilkår(
-        stønadsperiode: Stønadsperiode?,
         clock: Clock,
-    ): Either<KunneIkkeLageLovligOppholdVilkår, LovligOppholdVilkår.Vurdert> = if (stønadsperiode == null)
-        throw IllegalArgumentException("Stønadsperiode er ikke lagt i søknadsbehandling for å legge til familiegjenforening vilkår. id $behandlingId")
-    else
-        toVurderingsperiode(stønadsperiode, clock).mapLeft {
-            return it.left()
-        }.map {
-            return LovligOppholdVilkår.Vurdert.tryCreate(
-                vurderingsperioder = NonEmptyList.fromListUnsafe(it),
-            )
-        }
+    ) = LovligOppholdVilkår.Vurdert.tryCreate(
+        vurderingsperioder = NonEmptyList.fromListUnsafe(toVurderingsperiode(clock)),
+    )
 
     private fun toVurderingsperiode(
-        stønadsperiode: Stønadsperiode,
         clock: Clock,
-    ): Either<KunneIkkeLageLovligOppholdVilkår, List<VurderingsperiodeLovligOpphold>> = vurderinger.map {
+    ) = vurderinger.map {
         VurderingsperiodeLovligOpphold.tryCreate(
             opprettet = Tidspunkt.now(clock),
             resultat = it.status.toResultat(),
-            vurderingsperiode = stønadsperiode.periode,
-            grunnlag = LovligOppholdGrunnlag.tryCreate(
-                opprettet = Tidspunkt.now(),
-                periode = stønadsperiode.periode,
-            ),
+            vurderingsperiode = it.periode,
         )
-    }.sequence().getOrHandle {
-        return it.left()
-    }.right()
+    }
+}
+
+sealed interface KunneIkkeLeggetilLovligOppholdVilkår {
+    object FantIkkeBehandling : KunneIkkeLeggetilLovligOppholdVilkår
+
+    data class UgyldigLovligOppholdVilkår(val feil: KunneIkkeLageLovligOppholdVilkår) :
+        KunneIkkeLeggetilLovligOppholdVilkår
+
+    data class FeilVedSøknadsbehandling(val feil: KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilLovligOpphold) :
+        KunneIkkeLeggetilLovligOppholdVilkår
 }

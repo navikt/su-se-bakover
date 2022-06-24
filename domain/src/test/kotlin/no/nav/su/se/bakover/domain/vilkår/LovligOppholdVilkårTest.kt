@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.common.periode.juli
 import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.år
-import no.nav.su.se.bakover.domain.grunnlag.LovligOppholdGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
@@ -43,25 +42,15 @@ internal class LovligOppholdVilkårTest {
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(fixedClock),
             resultat = Resultat.Innvilget,
-            grunnlag = LovligOppholdGrunnlag.tryCreate(
-                id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(fixedClock),
-                periode = mai(2021),
-            ),
             vurderingsperiode = mai(2021),
-        ).getOrFail()
+        )
 
         val v2 = VurderingsperiodeLovligOpphold.tryCreate(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(fixedClock),
             resultat = Resultat.Innvilget,
-            grunnlag = LovligOppholdGrunnlag.tryCreate(
-                id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(fixedClock),
-                periode = juni(2021),
-            ),
             vurderingsperiode = juni(2021),
-        ).getOrFail()
+        )
 
         LovligOppholdVilkår.Vurdert.tryCreate(
             vurderingsperioder = nonEmptyListOf(v1, v2),

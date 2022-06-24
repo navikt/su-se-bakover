@@ -8,6 +8,7 @@ import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.harOverlappende
+import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.domain.grunnlag.LovligOppholdGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
@@ -83,6 +84,10 @@ sealed class LovligOppholdVilkår : Vilkår() {
             return other is Vurdert && vurderingsperioder.erLik(other.vurderingsperioder)
         }
 
+        fun minsteAntallSammenhengendePerioder(): List<Periode> {
+            return vurderingsperioder.map { it.periode }.minsteAntallSammenhengendePerioder()
+        }
+
         companion object {
             fun tryCreate(
                 vurderingsperioder: Nel<VurderingsperiodeLovligOpphold>,
@@ -102,9 +107,7 @@ sealed class LovligOppholdVilkår : Vilkår() {
             check(vurderingsperioder.count() == 1) { "Kan ikke oppdatere stønadsperiode for vilkår med med enn én vurdering" }
             return copy(
                 vurderingsperioder = nonEmptyListOf(
-                    vurderingsperioder.first().oppdaterStønadsperiode(stønadsperiode).getOrHandle {
-                        throw IllegalArgumentException("feilet med $it")
-                    },
+                    vurderingsperioder.first().oppdaterStønadsperiode(stønadsperiode),
                 ),
             )
         }

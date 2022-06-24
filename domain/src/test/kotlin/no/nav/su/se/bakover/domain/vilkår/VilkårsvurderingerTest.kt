@@ -277,6 +277,7 @@ internal class VilkårsvurderingerTest {
                         it.formue,
                         it.utenlandsopphold,
                         it.opplysningsplikt,
+                        it.lovligOpphold,
                     ),
                 )
             }
@@ -328,7 +329,8 @@ internal class VilkårsvurderingerTest {
                             Avslagsgrunn.UFØRHET,
                             Avslagsgrunn.FORMUE,
                             Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER,
-                            Avslagsgrunn.MANGLENDE_DOKUMENTASJON
+                            Avslagsgrunn.MANGLENDE_DOKUMENTASJON,
+                            Avslagsgrunn.OPPHOLDSTILLATELSE,
                         )
                         it.tidligsteDatoForAvslag shouldBe 1.januar(2021)
                     }
@@ -364,6 +366,7 @@ internal class VilkårsvurderingerTest {
                     formuevilkårIkkeVurdert(),
                     UtenlandsoppholdVilkår.IkkeVurdert,
                     OpplysningspliktVilkår.IkkeVurdert,
+                    LovligOppholdVilkår.IkkeVurdert,
                 ),
             )
         }

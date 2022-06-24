@@ -1,8 +1,5 @@
 package no.nav.su.se.bakover.domain.vilkår
 
-import arrow.core.Either
-import arrow.core.left
-import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
@@ -16,7 +13,7 @@ data class VurderingsperiodeLovligOpphold private constructor(
     override val id: UUID = UUID.randomUUID(),
     override val opprettet: Tidspunkt,
     override val resultat: Resultat,
-    override val grunnlag: LovligOppholdGrunnlag?,
+    override val grunnlag: LovligOppholdGrunnlag? = null,
     override val periode: Periode,
 ) : Vurderingsperiode(), KanPlasseresPåTidslinje<VurderingsperiodeLovligOpphold> {
 
@@ -25,7 +22,6 @@ data class VurderingsperiodeLovligOpphold private constructor(
         opprettet = opprettet,
         resultat = resultat,
         vurderingsperiode = stønadsperiode.periode,
-        grunnlag = grunnlag?.oppdaterPeriode(stønadsperiode.periode),
     )
 
     override fun copy(args: CopyArgs.Tidslinje): VurderingsperiodeLovligOpphold = when (args) {
@@ -63,20 +59,12 @@ data class VurderingsperiodeLovligOpphold private constructor(
             id: UUID = UUID.randomUUID(),
             opprettet: Tidspunkt,
             resultat: Resultat,
-            grunnlag: LovligOppholdGrunnlag?,
             vurderingsperiode: Periode,
-        ): Either<KunneIkkeLageLovligOppholdVilkår, VurderingsperiodeLovligOpphold> {
-            grunnlag?.let {
-                if (vurderingsperiode != it.periode) return KunneIkkeLageLovligOppholdVilkår.Vurderingsperiode.PeriodeForGrunnlagOgVurderingErForskjellig.left()
-            }
-
-            return VurderingsperiodeLovligOpphold(
-                id = id,
-                opprettet = opprettet,
-                resultat = resultat,
-                grunnlag = grunnlag,
-                periode = vurderingsperiode,
-            ).right()
-        }
+        ) = VurderingsperiodeLovligOpphold(
+            id = id,
+            opprettet = opprettet,
+            resultat = resultat,
+            periode = vurderingsperiode,
+        )
     }
 }

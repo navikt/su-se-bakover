@@ -133,7 +133,7 @@ internal class SøknadsbehandlingAlder {
                 request = LeggTilLovligOppholdRequest(
                     behandlingId = søknadsbehandling.id,
                     vurderinger = listOf(
-                        LovligOppholdVurderinger(LovligOppholdVilkårStatus.VilkårOppfylt),
+                        LovligOppholdVurderinger(stønadsperiode2022.periode, LovligOppholdVilkårStatus.VilkårOppfylt),
                     ),
                 ),
             )
