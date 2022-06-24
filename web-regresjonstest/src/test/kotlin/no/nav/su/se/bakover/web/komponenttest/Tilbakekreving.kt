@@ -178,7 +178,7 @@ class Tilbakekreving {
 
             assertThrows<IllegalStateException> {
                 appComponents.consumers.tilbakekrevingConsumer.onMessage(
-                    //tuller litt med utbetalingsid
+                    // tuller litt med utbetalingsid
                     lagKravgrunnlag(vedtak.copy(utbetalingId = UUID30.randomUUID())) {
                         lagPerioder(
                             mai(2021).until(oktober(2021)).map {
@@ -382,7 +382,7 @@ class Tilbakekreving {
                         <urn:skattProsent>${it.skattProsent}</urn:skattProsent>
                     </urn:tilbakekrevingsBelop>
             </urn:tilbakekrevingsPeriode>
-            """.trimIndent(),
+                    """.trimIndent(),
                 )
             }
         }.toString()
