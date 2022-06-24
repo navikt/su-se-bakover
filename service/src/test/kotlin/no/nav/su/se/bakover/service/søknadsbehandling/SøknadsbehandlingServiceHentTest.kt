@@ -26,7 +26,7 @@ internal class SøknadsbehandlingServiceHentTest {
 
     @Test
     fun `svarer med behandling dersom alt er ok`() {
-        val behandlingMock = mock<Søknadsbehandling>()
+        val behandlingMock = mock<Søknadsbehandling.Vilkårsvurdert.Uavklart>()
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn behandlingMock
         }

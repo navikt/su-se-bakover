@@ -255,7 +255,7 @@ internal class SøknadsbehandlingAlder {
                 it.vilkårsvurderinger.resultat.shouldBeType<Vilkårsvurderingsresultat.Avslag>()
             }
 
-            val avslag = appComponents.services.søknadsbehandling.hent(
+            appComponents.services.søknadsbehandling.hent(
                 request = SøknadsbehandlingService.HentRequest(behandlingId = søknadsbehandling.id),
             ).getOrFail().also { oppdatert ->
                 oppdatert.vilkårsvurderinger.resultat.shouldBeType<Vilkårsvurderingsresultat.Avslag>()
