@@ -39,7 +39,7 @@ subprojects {
         implementation("com.networknt:json-schema-validator:1.0.71")
         implementation("no.finn.unleash:unleash-client-java:4.4.1")
 
-        implementation("com.ibm.mq:com.ibm.mq.allclient:9.2.5.0")
+        implementation("com.ibm.mq:com.ibm.mq.allclient:9.3.0.0")
         implementation("io.confluent:kafka-avro-serializer:7.1.0")
         implementation("org.apache.avro:avro:1.11.0")
         implementation("com.github.ben-manes.caffeine:caffeine:3.1.1")
