@@ -19,7 +19,7 @@ fun assertSakJson(
     expectedVedtak: String = "[]",
     expectedKlager: String = "[]",
     expectedReguleringer: String = "[]",
-    expectedSakstype: String = "UFØRE",
+    expectedSakstype: String = "uføre",
 ) {
     // language=JSON
     val expectedSakJson = """
