@@ -150,7 +150,7 @@ internal class RevurderingJsonTest {
                   "Inntekt": "IkkeVurdert"
                 },
                 "attesteringer": [],
-                "sakstype": "UFØRE"
+                "sakstype": "uføre"
             }
             """.trimIndent()
 
@@ -237,7 +237,7 @@ internal class RevurderingJsonTest {
                   "Inntekt": "IkkeVurdert"
                 },
                 "attesteringer": [],
-                "sakstype": "UFØRE"
+                "sakstype": "uføre"
             }
             """.trimIndent()
 
@@ -323,7 +323,7 @@ internal class RevurderingJsonTest {
                   "Inntekt": "IkkeVurdert"
                 },
                 "attesteringer": [],
-                "sakstype": "UFØRE"
+                "sakstype": "uføre"
             }
             """.trimIndent()
 
@@ -403,7 +403,7 @@ internal class RevurderingJsonTest {
                   "Inntekt": "IkkeVurdert"
                 },
                 "attesteringer": [],
-                "sakstype": "UFØRE"
+                "sakstype": "uføre"
             }
             """.trimIndent()
 
@@ -495,7 +495,7 @@ internal class RevurderingJsonTest {
                   "Inntekt": "IkkeVurdert"
                 },
                 "attesteringer": [],
-                "sakstype": "UFØRE",
+                "sakstype": "uføre",
                 "simuleringForAvkortingsvarsel": null,
                 "tilbakekrevingsbehandling": {
                   "avgjørelse": "IKKE_AVGJORT"
@@ -585,7 +585,7 @@ internal class RevurderingJsonTest {
                   "Inntekt": "IkkeVurdert"
                 },
                 "attesteringer": [],
-                "sakstype": "UFØRE",
+                "sakstype": "uføre",
                 "simuleringForAvkortingsvarsel": null,
                 "tilbakekrevingsbehandling": null
             }
@@ -674,7 +674,7 @@ internal class RevurderingJsonTest {
                   "Inntekt": "Vurdert"
                 },
                 "attesteringer": [],
-                "sakstype": "UFØRE",
+                "sakstype": "uføre",
                 "simuleringForAvkortingsvarsel": null,
                 "tilbakekrevingsbehandling": null
             }
@@ -763,7 +763,7 @@ internal class RevurderingJsonTest {
                   "Inntekt": "IkkeVurdert"
                 },
                 "attesteringer": [],
-                "sakstype": "UFØRE",
+                "sakstype": "uføre",
                 "simuleringForAvkortingsvarsel": null,
                 "tilbakekrevingsbehandling": null
             }
@@ -847,7 +847,7 @@ internal class RevurderingJsonTest {
                   "Inntekt": "IkkeVurdert"
                 },
                 "attesteringer": [],
-                "sakstype": "UFØRE",
+                "sakstype": "uføre",
                 "simuleringForAvkortingsvarsel": null,
                 "tilbakekrevingsbehandling": null
             }
@@ -922,7 +922,7 @@ internal class RevurderingJsonTest {
                         "kommentar": "Dokumentasjon mangler"
                     }
                 }],
-                "sakstype": "UFØRE",
+                "sakstype": "uføre",
                 "fritekstTilBrev": "",
                 "skalFøreTilBrevutsending": true,
                 "årsak": "MELDING_FRA_BRUKER",
@@ -1025,7 +1025,7 @@ internal class RevurderingJsonTest {
                         "kommentar": "Dokumentasjon mangler"
                     }
                 }],
-                "sakstype": "UFØRE",
+                "sakstype": "uføre",
                 "fritekstTilBrev": "",
                 "skalFøreTilBrevutsending": true,
                 "årsak": "MELDING_FRA_BRUKER",
@@ -1124,7 +1124,7 @@ internal class RevurderingJsonTest {
                         "kommentar": "Dokumentasjon mangler"
                     }
                 }],
-                "sakstype": "UFØRE",
+                "sakstype": "uføre",
                 "fritekstTilBrev": "",
                 "skalFøreTilBrevutsending": false,
                 "årsak": "MELDING_FRA_BRUKER",
@@ -1256,7 +1256,7 @@ internal class RevurderingJsonTest {
                   "Inntekt": "IkkeVurdert"
                 },
                 "attesteringer": [{"attestant":"attestant", "opprettet": "$attesteringOpprettet", "underkjennelse": null}],
-                "sakstype": "UFØRE",
+                "sakstype": "uføre",
                 "simuleringForAvkortingsvarsel": null,
                 "tilbakekrevingsbehandling": {
                   "avgjørelse": "TILBAKEKREV"
@@ -1353,7 +1353,7 @@ internal class RevurderingJsonTest {
                   "Inntekt": "IkkeVurdert"
                 },
                 "attesteringer": [{"attestant": "attestant", "opprettet": "$attesteringOpprettet", "underkjennelse": null}],
-                "sakstype": "UFØRE",
+                "sakstype": "uføre",
                 "simuleringForAvkortingsvarsel": null,
                 "tilbakekrevingsbehandling": null
             }
@@ -1444,7 +1444,7 @@ internal class RevurderingJsonTest {
                   "Inntekt": "IkkeVurdert"
                 },
                 "attesteringer": [{"attestant": "attestant", "opprettet": "$attesteringOpprettet", "underkjennelse": null}],
-                "sakstype": "UFØRE",
+                "sakstype": "uføre",
                 "simuleringForAvkortingsvarsel": null,
                 "tilbakekrevingsbehandling": null
             }
@@ -1487,7 +1487,7 @@ internal class RevurderingJsonTest {
                   "familiegjenforening": null
                 },
                 "attesteringer": [],
-                "sakstype": "UFØRE"
+                "sakstype": "uføre"
             }
             """.trimIndent()
 
@@ -1528,7 +1528,7 @@ internal class RevurderingJsonTest {
                   "familiegjenforening": null
                 },
                 "attesteringer": [{"attestant": "attestant", "opprettet": "$fixedTidspunkt", "underkjennelse": null}],
-                "sakstype": "UFØRE"
+                "sakstype": "uføre"
             }
             """.trimIndent()
 
@@ -1571,7 +1571,7 @@ internal class RevurderingJsonTest {
                   "familiegjenforening": null
                 },
                 "attesteringer": [],
-                "sakstype": "UFØRE"
+                "sakstype": "uføre"
 
             }
             """.trimIndent()
@@ -1612,7 +1612,7 @@ internal class RevurderingJsonTest {
                   "familiegjenforening": null
                 },
                 "attesteringer": [{"attestant": "attestant", "opprettet": "$fixedTidspunkt", "underkjennelse": null}],
-                "sakstype": "UFØRE"
+                "sakstype": "uføre"
             }
             """.trimIndent()
 

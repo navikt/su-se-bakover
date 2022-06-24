@@ -106,7 +106,7 @@ internal class SøknadsbehandlingJsonTest {
           "fritekstTilBrev": "",
           "erLukket": false,
           "simuleringForAvkortingsvarsel": null,
-          "sakstype": "UFØRE"
+          "sakstype": "uføre"
         }
             """.trimIndent()
     }
@@ -188,7 +188,7 @@ internal class SøknadsbehandlingJsonTest {
           "fritekstTilBrev": "",
           "erLukket": false,
           "simuleringForAvkortingsvarsel": null,
-          "sakstype": "UFØRE"
+          "sakstype": "uføre"
         }
             """
 

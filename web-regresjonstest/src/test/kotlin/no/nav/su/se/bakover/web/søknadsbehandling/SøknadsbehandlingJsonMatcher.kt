@@ -25,7 +25,7 @@ fun assertSøknadsbehandlingJson(
     expectedGrunnlagsdataOgVilkårsvurderinger: String,
     expectedErLukket: Boolean = false,
     expectedSimuleringForAvkortingsvarsel: String? = null,
-    expectedSakstype: String = "UFØRE",
+    expectedSakstype: String = "uføre",
 ) {
     val expectedSakJson = """
     {
