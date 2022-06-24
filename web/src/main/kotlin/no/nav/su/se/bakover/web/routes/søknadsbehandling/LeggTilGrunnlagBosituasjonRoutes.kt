@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.satser.SatsFactory
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilGrunnlag
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.vilkår.BosituasjonValg
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
@@ -159,9 +159,9 @@ internal fun SøknadsbehandlingService.KunneIkkeVilkårsvurdere.tilResultat(): R
     }
 }
 
-internal fun Søknadsbehandling.KunneIkkeOppdatereBosituasjon.tilResultat(): Resultat {
+internal fun KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon.tilResultat(): Resultat {
     return when (this) {
-        is Søknadsbehandling.KunneIkkeOppdatereBosituasjon.UgyldigTilstand -> ugyldigTilstand(this.fra, this.til)
+        is KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon.UgyldigTilstand -> ugyldigTilstand(this.fra, this.til)
     }
 }
 

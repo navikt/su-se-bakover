@@ -92,10 +92,10 @@ internal class LagBrevRequestVisitorTest {
 
     @Test
     fun `responderer med feil dersom vi ikke får til å hente person`() {
-        vilkårsvurdertInnvilget.tilVilkårsvurdert(
+        vilkårsvurdertInnvilget.leggTilVilkårFraBehandlingsinformasjon(
             Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(),
             clock = fixedClock,
-        ).let { søknadsbehandling ->
+        ).getOrFail().let { søknadsbehandling ->
             LagBrevRequestVisitor(
                 hentPerson = { LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson.left() },
                 hentNavn = { hentNavn(it) },
@@ -154,19 +154,18 @@ internal class LagBrevRequestVisitorTest {
         }
 
         assertThrows<LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans> {
-            vilkårsvurdertInnvilget.tilVilkårsvurdert(
+            vilkårsvurdertInnvilget.leggTilVilkårFraBehandlingsinformasjon(
                 Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
                 clock = fixedClock,
-            )
-                .let {
-                    LagBrevRequestVisitor(
-                        hentPerson = { person.right() },
-                        hentNavn = { hentNavn(it) },
-                        hentGjeldendeUtbetaling = { _, _ -> 0.right() },
-                        clock = Clock.systemUTC(),
-                        satsFactory = satsFactoryTestPåDato(),
-                    ).apply { it.accept(this) }
-                }
+            ).getOrFail().let {
+                LagBrevRequestVisitor(
+                    hentPerson = { person.right() },
+                    hentNavn = { hentNavn(it) },
+                    hentGjeldendeUtbetaling = { _, _ -> 0.right() },
+                    clock = Clock.systemUTC(),
+                    satsFactory = satsFactoryTestPåDato(),
+                ).apply { it.accept(this) }
+            }
         }
     }
 
@@ -323,6 +322,7 @@ internal class LagBrevRequestVisitorTest {
                     ),
                 ),
             ),
+            clock = fixedClock,
         ).getOrFail().beregn(
             begrunnelse = null,
             clock = fixedClock,
@@ -408,10 +408,10 @@ internal class LagBrevRequestVisitorTest {
     @Test
     fun `lager request for avslag til attestering uten beregning`() {
         (
-            vilkårsvurdertInnvilget.tilVilkårsvurdert(
+            vilkårsvurdertInnvilget.leggTilVilkårFraBehandlingsinformasjon(
                 behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(),
                 clock = fixedClock,
-            ) as Søknadsbehandling.Vilkårsvurdert.Avslag
+            ).getOrFail() as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
             .let { søknadsbehandling ->
@@ -461,6 +461,7 @@ internal class LagBrevRequestVisitorTest {
                         ),
                     ),
                 ),
+                clock = fixedClock,
             ).getOrFail().beregn(
                 begrunnelse = null,
                 clock = fixedClock,
@@ -544,10 +545,10 @@ internal class LagBrevRequestVisitorTest {
     @Test
     fun `lager request for underkjent avslag uten beregning`() {
         (
-            vilkårsvurdertInnvilget.tilVilkårsvurdert(
+            vilkårsvurdertInnvilget.leggTilVilkårFraBehandlingsinformasjon(
                 behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(),
                 clock = fixedClock,
-            ) as Søknadsbehandling.Vilkårsvurdert.Avslag
+            ).getOrFail() as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
             .tilUnderkjent(
@@ -605,6 +606,7 @@ internal class LagBrevRequestVisitorTest {
                         ),
                     ),
                 ),
+                clock = fixedClock,
             ).getOrFail().beregn(
                 begrunnelse = null,
                 clock = fixedClock,
@@ -705,10 +707,10 @@ internal class LagBrevRequestVisitorTest {
     @Test
     fun `lager request for iverksatt avslag uten beregning`() {
         (
-            vilkårsvurdertInnvilget.tilVilkårsvurdert(
+            vilkårsvurdertInnvilget.leggTilVilkårFraBehandlingsinformasjon(
                 behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(),
                 clock = fixedClock,
-            ) as Søknadsbehandling.Vilkårsvurdert.Avslag
+            ).getOrFail() as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
             .tilIverksatt(
@@ -761,6 +763,7 @@ internal class LagBrevRequestVisitorTest {
                         ),
                     ),
                 ),
+                clock = fixedClock,
             ).getOrFail()
                 .beregn(
                     begrunnelse = null,
@@ -917,6 +920,7 @@ internal class LagBrevRequestVisitorTest {
                         ),
                     ),
                 ),
+                clock = fixedClock,
             ).getOrFail().beregn(
                 begrunnelse = null,
                 clock = fixedClock,
@@ -969,10 +973,10 @@ internal class LagBrevRequestVisitorTest {
     @Test
     fun `lager request for vedtak om avslått stønad uten beregning`() {
         val søknadsbehandling = (
-            vilkårsvurdertInnvilget.tilVilkårsvurdert(
+            vilkårsvurdertInnvilget.leggTilVilkårFraBehandlingsinformasjon(
                 behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(),
                 clock = fixedClock,
-            ) as Søknadsbehandling.Vilkårsvurdert.Avslag
+            ).getOrFail() as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
             .tilIverksatt(Attestering.Iverksatt(attestant, fixedTidspunkt))

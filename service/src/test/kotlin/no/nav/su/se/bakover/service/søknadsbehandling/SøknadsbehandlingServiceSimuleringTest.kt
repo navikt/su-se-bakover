@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeSimulereBehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
@@ -135,7 +136,7 @@ internal class SøknadsbehandlingServiceSimuleringTest {
         )
 
         response shouldBe SøknadsbehandlingService.KunneIkkeSimulereBehandling.KunneIkkeSimulere(
-            Søknadsbehandling.KunneIkkeSimulereBehandling.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL),
+            KunneIkkeSimulereBehandling.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL),
         ).left()
 
         verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe beregnetBehandling.id })

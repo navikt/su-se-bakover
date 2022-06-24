@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.common.periode.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.domain.grunnlag.Pensjonsgrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Pensjonsopplysninger
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vilkår.KunneIkkeLagePensjonsVilkår
 import no.nav.su.se.bakover.domain.vilkår.PensjonsVilkår
 import no.nav.su.se.bakover.domain.vilkår.Resultat
@@ -238,13 +238,13 @@ internal fun KunneIkkeLeggeTilPensjonsVilkår.tilResultat(): no.nav.su.se.bakove
         }
         is KunneIkkeLeggeTilPensjonsVilkår.Søknadsbehandling -> {
             when (val feil = this.feil) {
-                is Søknadsbehandling.KunneIkkeLeggeTilPensjonsVilkår.HeleBehandlingsperiodenErIkkeVurdert -> {
+                is KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår.HeleBehandlingsperiodenErIkkeVurdert -> {
                     Feilresponser.vilkårMåVurderesForHeleBehandlingsperioden
                 }
-                is Søknadsbehandling.KunneIkkeLeggeTilPensjonsVilkår.UgyldigTilstand -> {
+                is KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår.UgyldigTilstand -> {
                     Feilresponser.ugyldigTilstand(feil.fra, feil.til)
                 }
-                is Søknadsbehandling.KunneIkkeLeggeTilPensjonsVilkår.VilkårKunRelevantForAlder -> {
+                is KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår.VilkårKunRelevantForAlder -> {
                     Feilresponser.vilkårKunRelevantForAlder
                 }
             }

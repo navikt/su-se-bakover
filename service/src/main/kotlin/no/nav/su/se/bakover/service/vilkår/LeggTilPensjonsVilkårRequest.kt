@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.service.vilkår
 
+import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vilkår.KunneIkkeLagePensjonsVilkår
 import no.nav.su.se.bakover.domain.vilkår.PensjonsVilkår
 import java.util.UUID
@@ -10,7 +11,7 @@ data class LeggTilPensjonsVilkårRequest(
 )
 
 sealed interface KunneIkkeLeggeTilPensjonsVilkår {
-    data class Søknadsbehandling(val feil: no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling.KunneIkkeLeggeTilPensjonsVilkår) :
+    data class Søknadsbehandling(val feil: KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår) :
         KunneIkkeLeggeTilPensjonsVilkår
 
     data class Revurdering(val feil: no.nav.su.se.bakover.domain.revurdering.Revurdering.KunneIkkeLeggeTilPensjonsVilkår) :

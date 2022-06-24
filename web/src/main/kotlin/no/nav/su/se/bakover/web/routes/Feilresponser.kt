@@ -7,7 +7,7 @@ import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeSimulereBehandling
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
@@ -330,10 +330,10 @@ internal object Feilresponser {
             }
             is SøknadsbehandlingService.KunneIkkeSimulereBehandling.KunneIkkeSimulere -> {
                 when (val nested = this.feil) {
-                    is Søknadsbehandling.KunneIkkeSimulereBehandling.KunneIkkeSimulere -> {
+                    is KunneIkkeSimulereBehandling.KunneIkkeSimulere -> {
                         nested.feil.tilResultat()
                     }
-                    is Søknadsbehandling.KunneIkkeSimulereBehandling.UgyldigTilstand -> {
+                    is KunneIkkeSimulereBehandling.UgyldigTilstand -> {
                         ugyldigTilstand(nested.fra, nested.til)
                     }
                 }

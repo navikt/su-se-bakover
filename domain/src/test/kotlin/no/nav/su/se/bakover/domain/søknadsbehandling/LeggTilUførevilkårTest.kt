@@ -36,14 +36,14 @@ internal class LeggTilUførevilkårTest {
                 periode = januar(2020),
             ),
             clock = fixedClock,
-        ) shouldBe Søknadsbehandling.KunneIkkeLeggeTilUførevilkår.VurderingsperiodeUtenforBehandlingsperiode.left()
+        ) shouldBe KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår.VurderingsperiodeUtenforBehandlingsperiode.left()
 
         uavklart.leggTilUførevilkår(
             uførhet = innvilgetUførevilkår(
                 periode = Periode.create(1.januar(2020), 31.januar(2025)),
             ),
             clock = fixedClock,
-        ) shouldBe Søknadsbehandling.KunneIkkeLeggeTilUførevilkår.VurderingsperiodeUtenforBehandlingsperiode.left()
+        ) shouldBe KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår.VurderingsperiodeUtenforBehandlingsperiode.left()
 
         uavklart.leggTilUførevilkår(
             uførhet = innvilgetUførevilkår(
@@ -90,7 +90,7 @@ internal class LeggTilUførevilkårTest {
             it.leggTilUførevilkår(
                 uførhet = innvilgetUførevilkår(),
                 clock = fixedClock,
-            ) shouldBe Søknadsbehandling.KunneIkkeLeggeTilUførevilkår.UgyldigTilstand(
+            ) shouldBe KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår.UgyldigTilstand(
                 fra = it::class,
                 til = Søknadsbehandling.Vilkårsvurdert::class,
             ).left()

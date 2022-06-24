@@ -209,23 +209,22 @@ internal class SøknadsbehandlingPostgresRepoTest {
             }
 
             // Tilbake til vilkårsvurdert
-            simulert.tilVilkårsvurdert(
+            simulert.leggTilVilkårFraBehandlingsinformasjon(
                 behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
                 clock = fixedClock,
-            )
-                .also { vilkårsvurdert ->
-                    repo.lagre(vilkårsvurdert)
-                    repo.hent(vilkårsvurdert.id) shouldBe vilkårsvurdert
-                    dataSource.withSession {
-                        "select * from behandling where id = :id".hent(
-                            mapOf("id" to innvilgetVilkårsvurdering.id),
-                            it,
-                        ) { row ->
-                            row.stringOrNull("beregning") shouldBe null
-                            row.stringOrNull("simulering") shouldBe null
-                        }
+            ).getOrFail().also { vilkårsvurdert ->
+                repo.lagre(vilkårsvurdert)
+                repo.hent(vilkårsvurdert.id) shouldBe vilkårsvurdert
+                dataSource.withSession {
+                    "select * from behandling where id = :id".hent(
+                        mapOf("id" to innvilgetVilkårsvurdering.id),
+                        it,
+                    ) { row ->
+                        row.stringOrNull("beregning") shouldBe null
+                        row.stringOrNull("simulering") shouldBe null
                     }
                 }
+            }
         }
     }
 

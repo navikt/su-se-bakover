@@ -8,7 +8,9 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
-import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilFamiliegjenforeningVilkår
+import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilGrunnlag
+import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
+import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeSimulereBehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -91,7 +93,7 @@ interface SøknadsbehandlingService {
     )
 
     sealed class KunneIkkeSimulereBehandling {
-        data class KunneIkkeSimulere(val feil: Søknadsbehandling.KunneIkkeSimulereBehandling) : KunneIkkeSimulereBehandling()
+        data class KunneIkkeSimulere(val feil: no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeSimulereBehandling) : KunneIkkeSimulereBehandling()
         object FantIkkeBehandling : KunneIkkeSimulereBehandling()
     }
 
@@ -187,9 +189,9 @@ interface SøknadsbehandlingService {
         data class UgyldigFamiliegjenforeningVilkårService(val feil: UgyldigFamiliegjenforeningVilkår) :
             KunneIkkeLeggeTilFamiliegjenforeningVilkårService
 
-        fun KunneIkkeLeggeTilFamiliegjenforeningVilkår.tilKunneIkkeLeggeTilFamiliegjenforeningVilkårService() =
+        fun KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFamiliegjenforeningVilkår.tilKunneIkkeLeggeTilFamiliegjenforeningVilkårService() =
             when (this) {
-                is KunneIkkeLeggeTilFamiliegjenforeningVilkår.UgyldigTilstand -> UgyldigTilstand(
+                is KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFamiliegjenforeningVilkår.UgyldigTilstand -> UgyldigTilstand(
                     fra = this.fra,
                     til = this.til,
                 )
@@ -201,7 +203,7 @@ interface SøknadsbehandlingService {
 
         object KlarteIkkeHentePersonIPdl : KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
 
-        data class KunneIkkeOppdatereBosituasjon(val feil: Søknadsbehandling.KunneIkkeOppdatereBosituasjon) :
+        data class KunneIkkeOppdatereBosituasjon(val feil: KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon) :
             KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
     }
 
@@ -210,7 +212,7 @@ interface SøknadsbehandlingService {
 
         object KlarteIkkeLagreBosituasjon : KunneIkkeFullføreBosituasjonGrunnlag()
         object KlarteIkkeHentePersonIPdl : KunneIkkeFullføreBosituasjonGrunnlag()
-        data class KunneIkkeEndreBosituasjongrunnlag(val feil: Søknadsbehandling.KunneIkkeOppdatereBosituasjon) :
+        data class KunneIkkeEndreBosituasjongrunnlag(val feil: KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon) :
             KunneIkkeFullføreBosituasjonGrunnlag()
     }
 
@@ -243,7 +245,7 @@ interface SøknadsbehandlingService {
         data class KunneIkkeMappeTilDomenet(val feil: LeggTilFormuevilkårRequest.KunneIkkeMappeTilDomenet) :
             KunneIkkeLeggeTilFormuegrunnlag
 
-        data class KunneIkkeLeggeTilFormuegrunnlagTilSøknadsbehandling(val feil: Søknadsbehandling.KunneIkkeLeggeTilFormuegrunnlag) :
+        data class KunneIkkeLeggeTilFormuegrunnlagTilSøknadsbehandling(val feil: KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFormuevilkår) :
             KunneIkkeLeggeTilFormuegrunnlag
     }
 }

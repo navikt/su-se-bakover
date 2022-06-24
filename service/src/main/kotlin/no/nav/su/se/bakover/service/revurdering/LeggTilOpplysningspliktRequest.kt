@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.service.revurdering
 
+import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vilkår.KunneIkkeLageOpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import java.util.UUID
@@ -20,7 +21,7 @@ sealed class LeggTilOpplysningspliktRequest {
 }
 
 sealed interface KunneIkkeLeggeTilOpplysningsplikt {
-    data class Søknadsbehandling(val feil: no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling.KunneIkkeLeggeTilOpplysningsplikt) :
+    data class Søknadsbehandling(val feil: KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt) :
         KunneIkkeLeggeTilOpplysningsplikt
 
     data class Revurdering(val feil: no.nav.su.se.bakover.domain.revurdering.Revurdering.KunneIkkeLeggeTilOpplysningsplikt) :
