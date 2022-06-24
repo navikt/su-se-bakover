@@ -27,6 +27,14 @@ sealed class KunneIkkeLeggeTilVilkår {
         object HeleBehandlingsperiodenErIkkeVurdert : KunneIkkeLeggeTilOpplysningsplikt()
     }
 
+    sealed class KunneIkkeLeggeTilLovligOpphold : KunneIkkeLeggeTilVilkår() {
+        data class UgyldigTilstand(
+            val fra: KClass<out Søknadsbehandling>,
+            val til: KClass<out Søknadsbehandling.Vilkårsvurdert>,
+        ) :
+            KunneIkkeLeggeTilLovligOpphold()
+    }
+
     sealed class KunneIkkeLeggeTilPensjonsVilkår : KunneIkkeLeggeTilVilkår() {
         data class UgyldigTilstand(
             val fra: KClass<out Søknadsbehandling>,

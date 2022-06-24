@@ -57,7 +57,6 @@ import no.nav.su.se.bakover.domain.vilkår.inneholderAlle
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.time.Clock
 import java.util.UUID
-import kotlin.reflect.KClass
 
 sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering, Visitable<SøknadsbehandlingVisitor> {
     abstract val søknad: Søknad.Journalført.MedOppgave
@@ -184,26 +183,9 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold.IkkeLovÅLeggeTilUtenlandsoppholdIDenneStatusen(
                 fra = this::class,
                 til = Vilkårsvurdert::class,
-                    )t()
+            ).left()
         }
     }
-
-    open fun leggTilLovligOpphold(
-        lovligOppholdVilkår: LovligOppholdVilkår.Vurdert,
-        clock: Clock,
-    ): Either<KunneIkkeLeggeTilLovligOpphold, Vilkårsvurdert> {
-        return KunneIkkeLeggeTilLovligOpphold.UgyldigTilstand(
-            fra = this::class,
-            til = Vilkårsvurdert::class,
-        ).left()
-    }
-
-    sealed interface KunneIkkeLeggeTilLovligOpphold {
-        data class UgyldigTilstand(val fra: KClass<out Søknadsbehandling>, val til: KClass<out Vilkårsvurdert>) :
-            KunneIkkeLeggeTilLovligOpphold
-    }
-
-
 
     private fun leggTilUtenlandsoppholdInternal(
         vilkår: UtenlandsoppholdVilkår.Vurdert,
@@ -342,6 +324,25 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
                 ).vilkårsvurder(clock)
             }
+    }
+
+    fun leggTilLovligOpphold(
+        lovligOppholdVilkår: LovligOppholdVilkår.Vurdert,
+        clock: Clock,
+    ) = if (this is KanOppdaterePeriodeGrunnlagVilkår) {
+        leggTilLovligOppholdInternal(lovligOppholdVilkår, clock)
+    } else {
+        KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilLovligOpphold.UgyldigTilstand(this::class, Vilkårsvurdert::class)
+            .left()
+    }
+
+    fun leggTilLovligOppholdInternal(
+        lovligOppholdVilkår: LovligOppholdVilkår.Vurdert,
+        clock: Clock,
+    ) = valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilLovligOpphold>(lovligOppholdVilkår).map {
+        copyInternal(
+            grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(lovligOppholdVilkår),
+        ).vilkårsvurder(clock)
     }
 
     fun beregn(

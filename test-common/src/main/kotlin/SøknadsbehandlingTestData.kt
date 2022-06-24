@@ -856,9 +856,7 @@ fun simulertSøknadsbehandling(
 fun beregnetSøknadsbehandlingUføre(
     clock: Clock = fixedClock,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
-    sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(
-        clock = clock,
-    ),
+    sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(clock = clock),
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
     customBehandlingsinformasjon: Behandlingsinformasjon = Behandlingsinformasjon().withAlleVilkårOppfylt(),
@@ -1016,6 +1014,10 @@ fun vilkårsvurdertSøknadsbehandling(
                     .leggTilFormuevilkår(
                         vilkår = customVilkår.customOrDefault { vilkår.formue as Vilkår.Formue.Vurdert },
                         clock = clock,
+                    ).getOrFail()
+                    .leggTilLovligOpphold(
+                        lovligOppholdVilkår = customVilkår.customOrDefault { vilkår.lovligOpphold as LovligOppholdVilkår.Vurdert },
+                        clock = clock
                     ).getOrFail()
                     .leggTilUtenlandsopphold(
                         utenlandsopphold = customVilkår.customOrDefault { vilkår.utenlandsopphold as UtenlandsoppholdVilkår.Vurdert },

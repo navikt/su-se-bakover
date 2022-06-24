@@ -7,7 +7,7 @@ import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.satser.SatsFactory
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vilkår.KunneIkkeLageLovligOppholdVilkår
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.vilkår.LeggTilLovligOppholdRequest
@@ -61,8 +61,8 @@ internal fun SøknadsbehandlingService.KunneIkkeLeggetilLovligOppholdVilkår.til
     is SøknadsbehandlingService.KunneIkkeLeggetilLovligOppholdVilkår.UgyldigLovligOppholdVilkår -> this.feil.tilResultat()
 }
 
-internal fun Søknadsbehandling.KunneIkkeLeggeTilLovligOpphold.tilResultat() = when (this) {
-    is Søknadsbehandling.KunneIkkeLeggeTilLovligOpphold.UgyldigTilstand -> Feilresponser.ugyldigTilstand(
+internal fun KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilLovligOpphold.tilResultat() = when (this) {
+    is KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilLovligOpphold.UgyldigTilstand -> Feilresponser.ugyldigTilstand(
         fra = this.fra,
         til = this.til,
     )
