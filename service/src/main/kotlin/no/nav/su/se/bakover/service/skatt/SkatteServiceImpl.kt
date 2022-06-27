@@ -2,6 +2,10 @@ package no.nav.su.se.bakover.service.skatt
 
 import arrow.core.Either
 import arrow.core.flatMap
+import arrow.core.right
+import no.nav.su.se.bakover.client.ExpiringTokenResponse
+import no.nav.su.se.bakover.client.isValid
+import no.nav.su.se.bakover.client.maskinporten.KunneIkkeHenteToken
 import no.nav.su.se.bakover.client.maskinporten.MaskinportenClient
 import no.nav.su.se.bakover.client.skatteetaten.Skatteoppslag
 import no.nav.su.se.bakover.domain.Fnr
@@ -12,8 +16,19 @@ class SkatteServiceImpl(
     private val maskinportenClient: MaskinportenClient,
 ) : SkatteService {
 
-    override fun hentSamletSkattegrunnlag(fnr: Fnr): Either<KunneIkkeHenteSkattemelding, Skattegrunnlag> {
+    private var maskinportenToken: ExpiringTokenResponse? = null
+
+    @Synchronized
+    private fun hentMaskinportenToken(): Either<KunneIkkeHenteToken, ExpiringTokenResponse> {
+        if (maskinportenToken.isValid()) {
+            return maskinportenToken!!.right()
+        }
         return maskinportenClient.hentNyttToken()
+            .tap { maskinportenToken = it }
+    }
+
+    override fun hentSamletSkattegrunnlag(fnr: Fnr): Either<KunneIkkeHenteSkattemelding, Skattegrunnlag> {
+        return hentMaskinportenToken()
             .mapLeft { KunneIkkeHenteSkattemelding.KunneIkkeHenteAccessToken(it) }
             .flatMap { tokenResponse ->
                 skatteClient.hentSamletSkattegrunnlag(tokenResponse.accessToken, fnr)
