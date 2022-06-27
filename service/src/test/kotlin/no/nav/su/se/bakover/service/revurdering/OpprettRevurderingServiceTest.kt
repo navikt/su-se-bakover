@@ -51,7 +51,6 @@ import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.aktørId
-import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -67,6 +66,7 @@ import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
+import no.nav.su.se.bakover.test.vilkår.lovligOppholdVilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.tilstrekkeligDokumentert
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdInnvilget
@@ -456,6 +456,7 @@ internal class OpprettRevurderingServiceTest {
                 formue = formueVilkår(periode = vedtaksperiode),
                 utenlandsopphold = utenlandsoppholdInnvilget(periode = vedtaksperiode),
                 opplysningsplikt = tilstrekkeligDokumentert(periode = vedtaksperiode),
+                lovligOpphold = lovligOppholdVilkårInnvilget()
             )
         }
         val vedtakForFørsteJanuarLagetNå = mock<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering> {

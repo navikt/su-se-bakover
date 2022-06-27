@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.vilkår.innvilgetFormueVilkår
+import no.nav.su.se.bakover.test.vilkår.lovligOppholdVilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.tilstrekkeligDokumentert
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdInnvilget
 import org.junit.jupiter.api.Test
@@ -104,6 +105,7 @@ internal class VedtakPåTidslinjeTest {
                 formue = formuevilkår,
                 utenlandsopphold = utenlandsoppholdInnvilget(periode = periode),
                 opplysningsplikt = tilstrekkeligDokumentert(periode = periode),
+                lovligOpphold = lovligOppholdVilkårInnvilget(),
             ),
             originaltVedtak = originaltVedtak,
         )
@@ -178,6 +180,7 @@ internal class VedtakPåTidslinjeTest {
                             vilkårsvurdering.formue,
                             vilkårsvurdering.utenlandsopphold,
                             vilkårsvurdering.opplysningsplikt,
+                            vilkårsvurdering.lovligOpphold,
                         ),
                     )
                 }
@@ -265,6 +268,7 @@ internal class VedtakPåTidslinjeTest {
                 formue = formuevilkår,
                 utenlandsopphold = utenlandsoppholdInnvilget(periode = periode),
                 opplysningsplikt = tilstrekkeligDokumentert(periode = periode),
+                lovligOpphold = lovligOppholdVilkårInnvilget(),
             ),
             originaltVedtak = originaltVedtak,
         )
@@ -343,6 +347,7 @@ internal class VedtakPåTidslinjeTest {
                                 vilkårsvurdering.formue,
                                 vilkårsvurdering.utenlandsopphold,
                                 vilkårsvurdering.opplysningsplikt,
+                                vilkårsvurdering.lovligOpphold,
                             ),
                         )
                     }

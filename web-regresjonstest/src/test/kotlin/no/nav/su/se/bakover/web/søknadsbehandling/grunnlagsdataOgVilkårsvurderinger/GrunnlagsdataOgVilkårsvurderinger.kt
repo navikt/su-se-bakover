@@ -8,6 +8,7 @@ fun tomGrunnlagsdataOgVilkårsvurderingerResponse(): String {
     return """
     {
       "uføre":null,
+      "lovligOpphold": null,
       "fradrag":[],
       "bosituasjon":[],
       "formue":{

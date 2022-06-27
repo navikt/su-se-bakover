@@ -77,6 +77,7 @@ import no.nav.su.se.bakover.test.simulertUtbetalingOpphør
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.vilkår.formuevilkårAvslåttPgrBrukersformue
 import no.nav.su.se.bakover.test.vilkår.innvilgetFormueVilkår
+import no.nav.su.se.bakover.test.vilkår.lovligOppholdVilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.tilstrekkeligDokumentert
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
@@ -1253,6 +1254,7 @@ internal class LagBrevRequestVisitorTest {
                 formue = innvilgetFormueVilkår(periode = revurderingsperiode),
                 utenlandsopphold = utenlandsoppholdInnvilget(periode = revurderingsperiode),
                 opplysningsplikt = tilstrekkeligDokumentert(periode = revurderingsperiode),
+                lovligOpphold = lovligOppholdVilkårInnvilget(),
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,

@@ -4,17 +4,15 @@ import arrow.core.Either
 import arrow.core.Nel
 import arrow.core.getOrHandle
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.harOverlappende
-import no.nav.su.se.bakover.domain.CopyArgs
+import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.domain.grunnlag.LovligOppholdGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
-import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
 import java.time.LocalDate
-import java.util.UUID
 
 sealed class LovligOppholdVilkår : Vilkår() {
     override val vilkår = Inngangsvilkår.LovligOpphold
@@ -86,27 +84,31 @@ sealed class LovligOppholdVilkår : Vilkår() {
             return other is Vurdert && vurderingsperioder.erLik(other.vurderingsperioder)
         }
 
+        fun minsteAntallSammenhengendePerioder(): List<Periode> {
+            return vurderingsperioder.map { it.periode }.minsteAntallSammenhengendePerioder()
+        }
+
         companion object {
             fun tryCreate(
                 vurderingsperioder: Nel<VurderingsperiodeLovligOpphold>,
-            ): Either<UgyldigLovligOppholdVilkår, Vurdert> {
+            ): Either<KunneIkkeLageLovligOppholdVilkår.OverlappendeVurderingsperioder, Vurdert> {
                 if (vurderingsperioder.harOverlappende()) {
-                    return UgyldigLovligOppholdVilkår.OverlappendeVurderingsperioder.left()
+                    return KunneIkkeLageLovligOppholdVilkår.OverlappendeVurderingsperioder.left()
                 }
                 return Vurdert(vurderingsperioder.kronologisk()).right()
             }
-        }
 
-        sealed class UgyldigLovligOppholdVilkår {
-            object OverlappendeVurderingsperioder : UgyldigLovligOppholdVilkår()
+            fun createFromVilkårsvurderinger(
+                vurderingsperioder: Nel<VurderingsperiodeLovligOpphold>,
+            ) = tryCreate(vurderingsperioder).getOrHandle { throw IllegalArgumentException(it.toString()) }
         }
 
         override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): LovligOppholdVilkår {
             check(vurderingsperioder.count() == 1) { "Kan ikke oppdatere stønadsperiode for vilkår med med enn én vurdering" }
             return copy(
-                vurderingsperioder = vurderingsperioder.map {
-                    it.oppdaterStønadsperiode(stønadsperiode)
-                },
+                vurderingsperioder = nonEmptyListOf(
+                    vurderingsperioder.first().oppdaterStønadsperiode(stønadsperiode),
+                ),
             )
         }
 
@@ -116,89 +118,10 @@ sealed class LovligOppholdVilkår : Vilkår() {
     }
 }
 
-data class VurderingsperiodeLovligOpphold private constructor(
-    override val id: UUID = UUID.randomUUID(),
-    override val opprettet: Tidspunkt,
-    override val resultat: Resultat,
-    override val grunnlag: LovligOppholdGrunnlag?,
-    override val periode: Periode,
-) : Vurderingsperiode(), KanPlasseresPåTidslinje<VurderingsperiodeLovligOpphold> {
-
-    fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): VurderingsperiodeLovligOpphold {
-        return create(
-            id = id,
-            opprettet = opprettet,
-            resultat = resultat,
-            periode = stønadsperiode.periode,
-            grunnlag = this.grunnlag?.oppdaterPeriode(stønadsperiode.periode),
-        )
+sealed interface KunneIkkeLageLovligOppholdVilkår {
+    sealed interface Vurderingsperiode : KunneIkkeLageLovligOppholdVilkår {
+        object PeriodeForGrunnlagOgVurderingErForskjellig : Vurderingsperiode
     }
 
-    override fun copy(args: CopyArgs.Tidslinje): VurderingsperiodeLovligOpphold = when (args) {
-        CopyArgs.Tidslinje.Full -> {
-            copy(
-                id = UUID.randomUUID(),
-                grunnlag = grunnlag?.copy(args),
-            )
-        }
-        is CopyArgs.Tidslinje.NyPeriode -> {
-            copy(
-                id = UUID.randomUUID(),
-                periode = args.periode,
-                grunnlag = grunnlag?.copy(args),
-            )
-        }
-        is CopyArgs.Tidslinje.Maskert -> {
-            copy(args.args).copy(opprettet = opprettet.plusUnits(1))
-        }
-    }
-
-    override fun erLik(other: Vurderingsperiode): Boolean {
-        return other is VurderingsperiodeLovligOpphold &&
-            resultat == other.resultat &&
-            when {
-                grunnlag != null && other.grunnlag != null -> grunnlag.erLik(other.grunnlag)
-                grunnlag == null && other.grunnlag == null -> true
-                else -> false
-            }
-    }
-
-    companion object {
-        fun create(
-            id: UUID = UUID.randomUUID(),
-            opprettet: Tidspunkt,
-            resultat: Resultat,
-            grunnlag: LovligOppholdGrunnlag?,
-            periode: Periode,
-        ): VurderingsperiodeLovligOpphold {
-            return tryCreate(id, opprettet, resultat, grunnlag, periode).getOrHandle {
-                throw IllegalArgumentException(it.toString())
-            }
-        }
-
-        fun tryCreate(
-            id: UUID = UUID.randomUUID(),
-            opprettet: Tidspunkt,
-            resultat: Resultat,
-            grunnlag: LovligOppholdGrunnlag?,
-            vurderingsperiode: Periode,
-        ): Either<UgyldigVurderingsperiode, VurderingsperiodeLovligOpphold> {
-
-            grunnlag?.let {
-                if (vurderingsperiode != it.periode) return UgyldigVurderingsperiode.PeriodeForGrunnlagOgVurderingErForskjellig.left()
-            }
-
-            return VurderingsperiodeLovligOpphold(
-                id = id,
-                opprettet = opprettet,
-                resultat = resultat,
-                grunnlag = grunnlag,
-                periode = vurderingsperiode,
-            ).right()
-        }
-    }
-
-    sealed class UgyldigVurderingsperiode {
-        object PeriodeForGrunnlagOgVurderingErForskjellig : UgyldigVurderingsperiode()
-    }
+    object OverlappendeVurderingsperioder : KunneIkkeLageLovligOppholdVilkår
 }

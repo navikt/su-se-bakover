@@ -4,7 +4,6 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 
 internal data class BehandlingsinformasjonJson(
     val flyktning: FlyktningJson? = null,
-    val lovligOpphold: LovligOppholdJson? = null,
     val fastOppholdINorge: FastOppholdINorgeJson? = null,
     val institusjonsopphold: InstitusjonsoppholdJson? = null,
     val personligOppmøte: PersonligOppmøteJson? = null,
@@ -13,7 +12,6 @@ internal data class BehandlingsinformasjonJson(
         internal fun Behandlingsinformasjon.toJson() =
             BehandlingsinformasjonJson(
                 flyktning = flyktning?.toJson(),
-                lovligOpphold = lovligOpphold?.toJson(),
                 fastOppholdINorge = fastOppholdINorge?.toJson(),
                 institusjonsopphold = institusjonsopphold?.toJson(),
                 personligOppmøte = personligOppmøte?.toJson(),
@@ -26,11 +24,6 @@ internal fun behandlingsinformasjonFromJson(b: BehandlingsinformasjonJson) =
         flyktning = b.flyktning?.let { f ->
             Behandlingsinformasjon.Flyktning(
                 status = Behandlingsinformasjon.Flyktning.Status.valueOf(f.status),
-            )
-        },
-        lovligOpphold = b.lovligOpphold?.let { l ->
-            Behandlingsinformasjon.LovligOpphold(
-                status = Behandlingsinformasjon.LovligOpphold.Status.valueOf(l.status),
             )
         },
         fastOppholdINorge = b.fastOppholdINorge?.let { f ->
@@ -52,8 +45,6 @@ internal fun behandlingsinformasjonFromJson(b: BehandlingsinformasjonJson) =
 
 internal fun Behandlingsinformasjon.Flyktning.toJson() = FlyktningJson(status = status.name)
 
-internal fun Behandlingsinformasjon.LovligOpphold.toJson() = LovligOppholdJson(status = status.name)
-
 internal fun Behandlingsinformasjon.FastOppholdINorge.toJson() = FastOppholdINorgeJson(status = status.name)
 
 internal fun Behandlingsinformasjon.Institusjonsopphold.toJson() = InstitusjonsoppholdJson(status = status.name)
@@ -63,8 +54,6 @@ internal fun Behandlingsinformasjon.PersonligOppmøte.toJson() = PersonligOppmø
 internal inline fun <reified T : Enum<T>> enumContains(s: String) = enumValues<T>().any { it.name == s }
 
 internal data class FlyktningJson(val status: String)
-
-internal data class LovligOppholdJson(val status: String)
 
 internal data class FastOppholdINorgeJson(val status: String)
 

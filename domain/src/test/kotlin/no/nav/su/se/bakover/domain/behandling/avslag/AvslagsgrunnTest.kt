@@ -12,10 +12,10 @@ internal class AvslagsgrunnTest {
         Avslagsgrunn.FORMUE.tilOpphørsgrunn() shouldBe Opphørsgrunn.FORMUE
         Avslagsgrunn.SU_UNDER_MINSTEGRENSE.tilOpphørsgrunn() shouldBe Opphørsgrunn.SU_UNDER_MINSTEGRENSE
         Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER.tilOpphørsgrunn() shouldBe Opphørsgrunn.UTENLANDSOPPHOLD
+        Avslagsgrunn.OPPHOLDSTILLATELSE.tilOpphørsgrunn() shouldBe Opphørsgrunn.OPPHOLDSTILLATELSE
 
         listOf(
             Avslagsgrunn.PERSONLIG_OPPMØTE,
-            Avslagsgrunn.OPPHOLDSTILLATELSE,
             Avslagsgrunn.FLYKTNING,
             Avslagsgrunn.INNLAGT_PÅ_INSTITUSJON,
             Avslagsgrunn.BOR_OG_OPPHOLDER_SEG_I_NORGE,

@@ -8,6 +8,7 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.client.request.header
 import io.ktor.client.request.patch
 import io.ktor.client.request.setBody
@@ -67,9 +68,12 @@ import no.nav.su.se.bakover.service.vilkår.BosituasjonValg
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilLovligOppholdRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
+import no.nav.su.se.bakover.service.vilkår.LovligOppholdVilkårStatus
+import no.nav.su.se.bakover.service.vilkår.LovligOppholdVurderinger
 import no.nav.su.se.bakover.service.vilkår.UførevilkårStatus
 import no.nav.su.se.bakover.service.vilkår.UtenlandsoppholdStatus
 import no.nav.su.se.bakover.test.empty
@@ -862,9 +866,12 @@ internal class SøknadsbehandlingRoutesKtTest {
             ),
         )
 
+        val hentet = repos.søknadsbehandling.hent(nySøknadsbehandling.id)
+            .shouldBeInstanceOf<Søknadsbehandling.Vilkårsvurdert.Uavklart>()
+
         return UavklartVilkårsvurdertSøknadsbehandling(
             repos.sak.hentSak(sak.id)!!,
-            repos.søknadsbehandling.hent(nySøknadsbehandling.id) as Søknadsbehandling.Vilkårsvurdert.Uavklart,
+            hentet,
         )
     }
 
@@ -907,6 +914,19 @@ internal class SøknadsbehandlingRoutesKtTest {
                 ),
             ),
         )
+
+        services.søknadsbehandling.leggTilLovligOpphold(
+            LeggTilLovligOppholdRequest(
+                behandlingId = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
+                vurderinger = listOf(
+                    LovligOppholdVurderinger(
+                        uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.periode,
+                        LovligOppholdVilkårStatus.VilkårOppfylt,
+                    ),
+                ),
+            ),
+        )
+
         services.søknadsbehandling.leggTilUtenlandsopphold(
             LeggTilUtenlandsoppholdRequest(
                 behandlingId = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
@@ -992,9 +1012,12 @@ internal class SøknadsbehandlingRoutesKtTest {
                 ),
             )
         }
+        val hentet = repos.søknadsbehandling.hent(uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id)
+            .shouldBeInstanceOf<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
+
         return InnvilgetVilkårsvurdertSøknadsbehandling(
             sak = repos.sak.hentSak(uavklartVilkårsvurdertSøknadsbehandling.sak.id)!!,
-            søknadsbehandling = repos.søknadsbehandling.hent(uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id) as Søknadsbehandling.Vilkårsvurdert.Innvilget,
+            søknadsbehandling = hentet,
         )
     }
 

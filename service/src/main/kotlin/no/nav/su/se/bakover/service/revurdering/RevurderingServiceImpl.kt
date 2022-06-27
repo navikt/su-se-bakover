@@ -78,8 +78,10 @@ import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.KunneIkkeKopiereGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeTilPensjonsVilkår
+import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggetilLovligOppholdVilkår
 import no.nav.su.se.bakover.service.vilkår.LeggTilFlereUtenlandsoppholdRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilLovligOppholdRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilPensjonsVilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
@@ -391,6 +393,21 @@ internal class RevurderingServiceImpl(
                     revurderingRepo.lagre(it)
                     identifiserFeilOgLagResponse(it)
                 }
+        }
+    }
+
+    override fun leggTilLovligOppholdVilkår(request: LeggTilLovligOppholdRequest): Either<KunneIkkeLeggetilLovligOppholdVilkår, RevurderingOgFeilmeldingerResponse> {
+        val revurdering =
+            hent(request.behandlingId).getOrHandle { return KunneIkkeLeggetilLovligOppholdVilkår.FantIkkeBehandling.left() }
+
+        val vilkår = request.toVilkår(clock)
+            .getOrHandle { return KunneIkkeLeggetilLovligOppholdVilkår.UgyldigLovligOppholdVilkår(it).left() }
+
+        return revurdering.oppdaterLovligOppholdOgMarkerSomVurdert(vilkår).mapLeft {
+            KunneIkkeLeggetilLovligOppholdVilkår.FeilVedSøknadsbehandling(it)
+        }.map {
+            revurderingRepo.lagre(it)
+            identifiserFeilOgLagResponse(it)
         }
     }
 

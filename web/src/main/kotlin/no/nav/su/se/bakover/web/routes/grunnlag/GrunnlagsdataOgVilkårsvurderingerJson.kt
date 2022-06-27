@@ -10,11 +10,14 @@ import no.nav.su.se.bakover.web.routes.vilkår.FamiliegjenforeningVilkårJson
 import no.nav.su.se.bakover.web.routes.vilkår.FamiliegjenforeningVilkårJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.vilkår.alder.PensjonsVilkårJson
 import no.nav.su.se.bakover.web.routes.vilkår.alder.toJson
+import no.nav.su.se.bakover.web.routes.vilkår.lovligopphold.LovligOppholdVilkårJson
+import no.nav.su.se.bakover.web.routes.vilkår.lovligopphold.LovligOppholdVilkårJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.vilkår.opplysningsplikt.OpplysningspliktVilkårJson
 import no.nav.su.se.bakover.web.routes.vilkår.opplysningsplikt.toJson
 
 internal data class GrunnlagsdataOgVilkårsvurderingerJson(
     val uføre: UføreVilkårJson?,
+    val lovligOpphold: LovligOppholdVilkårJson?,
     val fradrag: List<FradragJson>,
     val bosituasjon: List<BosituasjonJson>,
     val formue: FormuevilkårJson?,
@@ -34,6 +37,7 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
                     { null },
                     { it.toJson() },
                 ),
+                lovligOpphold = vilkårsvurderinger.lovligOppholdVilkår().toJson(),
                 fradrag = grunnlagsdata.fradragsgrunnlag.map { it.fradrag.toJson() },
                 bosituasjon = grunnlagsdata.bosituasjon.toJson(),
                 formue = vilkårsvurderinger.formueVilkår().toJson(satsFactory),

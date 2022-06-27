@@ -19,32 +19,36 @@ import no.nav.su.se.bakover.web.SharedRegressionTestData.defaultRequest
 internal fun ApplicationTestBuilder.leggTilLovligOppholdINorge(
     sakId: String,
     behandlingId: String,
+    fraOgMed: String = "2021-01-01",
+    tilOgMed: String = "2021-12-31",
     vurdering: String = "VilkårOppfylt",
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
 ): String {
     return runBlocking {
         defaultRequest(
-            HttpMethod.Patch,
-            "/saker/$sakId/behandlinger/$behandlingId/informasjon",
+            HttpMethod.Post,
+            "/saker/$sakId/behandlinger/$behandlingId/lovligOpphold",
             listOf(brukerrolle),
         ) {
             setBody(
                 //language=JSON
                 """
-                  {
-                    "flyktning":null,
-                    "lovligOpphold":{
-                      "status":"$vurdering"
-                    },
-                    "fastOppholdINorge":null,
-                    "institusjonsopphold":null,
-                    "personligOppmøte":null
-                  }
+                    {
+                        "vurderinger": [
+                            {
+                                "periode":{
+                                  "fraOgMed":"$fraOgMed",
+                                  "tilOgMed":"$tilOgMed"
+                                },
+                                "status": "$vurdering"
+                            }
+                        ]
+                    }
                 """.trimIndent(),
             )
         }.apply {
             withClue("body=${this.bodyAsText()}") {
-                status shouldBe HttpStatusCode.OK
+                status shouldBe HttpStatusCode.Created
                 contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
             }
         }.bodyAsText()

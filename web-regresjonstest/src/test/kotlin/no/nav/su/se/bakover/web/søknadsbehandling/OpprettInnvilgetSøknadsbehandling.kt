@@ -88,6 +88,8 @@ internal fun ApplicationTestBuilder.opprettInnvilgetSøknadsbehandling(
     leggTilLovligOppholdINorge(
         sakId = sakId,
         behandlingId = behandlingId,
+        fraOgMed = fraOgMed,
+        tilOgMed = tilOgMed,
     )
     leggTilFastOppholdINorge(
         sakId = sakId,

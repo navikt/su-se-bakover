@@ -130,15 +130,15 @@ internal class VilkårsvurderingerTest {
             vilkårsvurderingerSøknadsbehandlingInnvilget(
                 behandlingsinformasjon = Behandlingsinformasjon().withAlleVilkårOppfylt().patch(
                     Behandlingsinformasjon(
-                        lovligOpphold = Behandlingsinformasjon.LovligOpphold(
-                            status = Behandlingsinformasjon.LovligOpphold.Status.Uavklart,
+                        flyktning = Behandlingsinformasjon.Flyktning(
+                            status = Behandlingsinformasjon.Flyktning.Status.Uavklart,
                         ),
                     ),
                 ),
             ).let {
                 it.resultat shouldBe Vilkårsvurderingsresultat.Uavklart(
                     setOf(
-                        LovligOppholdVilkår.IkkeVurdert,
+                        FlyktningVilkår.IkkeVurdert,
                     ),
                 )
             }
@@ -277,6 +277,7 @@ internal class VilkårsvurderingerTest {
                         it.formue,
                         it.utenlandsopphold,
                         it.opplysningsplikt,
+                        it.lovligOpphold,
                     ),
                 )
             }
@@ -328,7 +329,8 @@ internal class VilkårsvurderingerTest {
                             Avslagsgrunn.UFØRHET,
                             Avslagsgrunn.FORMUE,
                             Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER,
-                            Avslagsgrunn.MANGLENDE_DOKUMENTASJON
+                            Avslagsgrunn.MANGLENDE_DOKUMENTASJON,
+                            Avslagsgrunn.OPPHOLDSTILLATELSE,
                         )
                         it.tidligsteDatoForAvslag shouldBe 1.januar(2021)
                     }
@@ -364,6 +366,7 @@ internal class VilkårsvurderingerTest {
                     formuevilkårIkkeVurdert(),
                     UtenlandsoppholdVilkår.IkkeVurdert,
                     OpplysningspliktVilkår.IkkeVurdert,
+                    LovligOppholdVilkår.IkkeVurdert,
                 ),
             )
         }

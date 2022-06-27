@@ -326,6 +326,27 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             }
     }
 
+    fun leggTilLovligOpphold(
+        lovligOppholdVilkår: LovligOppholdVilkår.Vurdert,
+        clock: Clock,
+    ) = if (this is KanOppdaterePeriodeGrunnlagVilkår) {
+        leggTilLovligOppholdInternal(lovligOppholdVilkår, clock)
+    } else {
+        KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilLovligOpphold.UgyldigTilstand.Søknadsbehandling(
+            this::class,
+            Vilkårsvurdert::class,
+        ).left()
+    }
+
+    fun leggTilLovligOppholdInternal(
+        lovligOppholdVilkår: LovligOppholdVilkår.Vurdert,
+        clock: Clock,
+    ) = valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilLovligOpphold>(lovligOppholdVilkår).map {
+        copyInternal(
+            grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(lovligOppholdVilkår),
+        ).vilkårsvurder(clock)
+    }
+
     fun beregn(
         begrunnelse: String?,
         clock: Clock,
