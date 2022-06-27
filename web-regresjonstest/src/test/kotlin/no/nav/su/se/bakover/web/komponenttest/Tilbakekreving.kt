@@ -171,7 +171,7 @@ class Tilbakekreving {
         withKomptestApplication(
             clock = 1.oktober(2021).fixedClock(),
         ) { appComponents ->
-            val (sakid, revurderingId) = vedtakMedTilbakekreving(avgjørelse = TilbakekrevingsbehandlingJson.TilbakekrevingsAvgjørelseJson.TILBAKEKREV)
+            val (_, revurderingId) = vedtakMedTilbakekreving(avgjørelse = TilbakekrevingsbehandlingJson.TilbakekrevingsAvgjørelseJson.TILBAKEKREV)
 
             val vedtak =
                 appComponents.services.vedtakService.hentForRevurderingId(UUID.fromString(revurderingId))!! as VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering
@@ -202,7 +202,7 @@ class Tilbakekreving {
         withKomptestApplication(
             clock = 1.oktober(2021).fixedClock(),
         ) { appComponents ->
-            val (sakid, revurderingId) = vedtakMedTilbakekreving(avgjørelse = TilbakekrevingsbehandlingJson.TilbakekrevingsAvgjørelseJson.TILBAKEKREV)
+            val (_, revurderingId) = vedtakMedTilbakekreving(avgjørelse = TilbakekrevingsbehandlingJson.TilbakekrevingsAvgjørelseJson.TILBAKEKREV)
 
             val vedtak =
                 appComponents.services.vedtakService.hentForRevurderingId(UUID.fromString(revurderingId))!! as VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering
@@ -232,7 +232,7 @@ class Tilbakekreving {
         withKomptestApplication(
             clock = 1.oktober(2021).fixedClock(),
         ) { appComponents ->
-            val (sakid, revurderingId) = vedtakMedTilbakekreving(avgjørelse = TilbakekrevingsbehandlingJson.TilbakekrevingsAvgjørelseJson.TILBAKEKREV)
+            val (_, revurderingId) = vedtakMedTilbakekreving(avgjørelse = TilbakekrevingsbehandlingJson.TilbakekrevingsAvgjørelseJson.TILBAKEKREV)
 
             val vedtak =
                 appComponents.services.vedtakService.hentForRevurderingId(UUID.fromString(revurderingId))!! as VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering
