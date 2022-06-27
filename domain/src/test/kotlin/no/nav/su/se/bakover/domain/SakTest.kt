@@ -38,9 +38,12 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
+import no.nav.su.se.bakover.test.nySøknadJournalførtMedOppgave
 import no.nav.su.se.bakover.test.plus
 import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.stønadsperiode2021
+import no.nav.su.se.bakover.test.søknadinnhold
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.vedtakIverksattGjenopptakAvYtelseFraIverksattStans
@@ -76,7 +79,7 @@ internal class SakTest {
                 utbetalinger = listOf(),
                 revurderinger = listOf(),
                 vedtakListe = listOf(),
-                type = Sakstype.UFØRE
+                type = Sakstype.UFØRE,
             ).hentPerioderMedLøpendeYtelse() shouldBe emptyList()
         }
 
@@ -302,45 +305,51 @@ internal class SakTest {
 
         @Test
         fun `utbetalinger kan ikke stanses dersom det er fremtidig hull i stønadsperiodene`() {
-            val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget(
+            val (førHull, _) = iverksattSøknadsbehandlingUføre(
                 stønadsperiode = Stønadsperiode.create(
                     periode = januar(2021),
                 ),
             )
 
-            val (sak2, _) = vedtakSøknadsbehandlingIverksattInnvilget(
+            val (etterHull, _) = iverksattSøknadsbehandlingUføre(
                 stønadsperiode = Stønadsperiode.create(
                     periode = mars(2021),
                 ),
+                sakOgSøknad = førHull to nySøknadJournalførtMedOppgave(
+                    clock = fixedClock,
+                    sakId = førHull.id,
+                    søknadInnhold = søknadinnhold(
+                        fnr = førHull.fnr,
+                    ),
+                ),
             )
 
-            sak.copy(
-                utbetalinger = sak.utbetalinger + sak2.utbetalinger,
-            ).let {
-                it.kanUtbetalingerStansesEllerGjenopptas(fixedClock) shouldBe KanStansesEllerGjenopptas.INGEN
-            }
+            etterHull.kanUtbetalingerStansesEllerGjenopptas(fixedClock) shouldBe KanStansesEllerGjenopptas.INGEN
         }
 
         @Test
         fun `utbetalinger kan stanses dersom det er et historisk hull i stønadsperiodene`() {
             val juni2021 = Clock.fixed(1.juni(2021).atTime(0, 0).toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
-            val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget(
+            val (førHull, _) = iverksattSøknadsbehandlingUføre(
                 stønadsperiode = Stønadsperiode.create(
                     periode = januar(2021),
                 ),
             )
 
-            val (sak2, _) = vedtakSøknadsbehandlingIverksattInnvilget(
+            val (etterHull, _) = iverksattSøknadsbehandlingUføre(
                 stønadsperiode = Stønadsperiode.create(
                     periode = mars(2021),
                 ),
+                sakOgSøknad = førHull to nySøknadJournalførtMedOppgave(
+                    clock = fixedClock,
+                    sakId = førHull.id,
+                    søknadInnhold = søknadinnhold(
+                        fnr = førHull.fnr,
+                    ),
+                ),
             )
 
-            sak.copy(
-                utbetalinger = sak.utbetalinger + sak2.utbetalinger,
-            ).let {
-                it.kanUtbetalingerStansesEllerGjenopptas(juni2021) shouldBe KanStansesEllerGjenopptas.STANS
-            }
+            etterHull.kanUtbetalingerStansesEllerGjenopptas(juni2021) shouldBe KanStansesEllerGjenopptas.STANS
         }
 
         @Test

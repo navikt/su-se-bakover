@@ -16,10 +16,14 @@ import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
+import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsinnholdAlder
+import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
+import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.FamiliegjenforeningVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.PensjonsVilkår
@@ -575,12 +579,14 @@ fun nySøknadsbehandlingAlder(
     clock: Clock = fixedClock,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakAlder(søknadsInnhold = søknadsinnholdAlder()),
+    avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
 ): Pair<Sak, Søknadsbehandling.Vilkårsvurdert> {
     require(sakOgSøknad.first.type == Sakstype.ALDER) { "Bruk nySøknadsbehandlingUføre dersom du ønsker deg en uføresak." }
     return nySøknadsbehandling(
         clock = clock,
         stønadsperiode = stønadsperiode,
         sakOgSøknad = sakOgSøknad,
+        avkorting = avkorting,
     )
 }
 
@@ -588,12 +594,14 @@ fun nySøknadsbehandlingUføre(
     clock: Clock = fixedClock,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(clock = clock),
+    avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
 ): Pair<Sak, Søknadsbehandling.Vilkårsvurdert> {
     require(sakOgSøknad.first.type == Sakstype.UFØRE) { "Bruk nySøknadsbehandlingAlder dersom du ønsker deg en alderssak." }
     return nySøknadsbehandling(
         clock = clock,
         stønadsperiode = stønadsperiode,
         sakOgSøknad = sakOgSøknad,
+        avkorting = avkorting,
     )
 }
 
@@ -604,6 +612,7 @@ fun nySøknadsbehandling(
     clock: Clock = fixedClock,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave>,
+    avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
 ): Pair<Sak, Søknadsbehandling.Vilkårsvurdert> {
     return sakOgSøknad.let { (sak, søknad) ->
         val søknadsbehandling = Søknadsbehandling.Vilkårsvurdert.Uavklart(
@@ -627,7 +636,7 @@ fun nySøknadsbehandling(
                 }
             },
             attesteringer = Attesteringshistorikk.empty(),
-            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke(),
+            avkorting = avkorting.kanIkke(),
             sakstype = sak.type,
         )
 
@@ -661,6 +670,7 @@ fun vilkårsvurdertSøknadsbehandlingAlder(
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
     customBehandlingsinformasjon: Behandlingsinformasjon = Behandlingsinformasjon().withAlleVilkårOppfylt(),
+    avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
 ): Pair<Sak, Søknadsbehandling.Vilkårsvurdert> {
     return vilkårsvurdertSøknadsbehandling(
         clock = clock,
@@ -669,6 +679,7 @@ fun vilkårsvurdertSøknadsbehandlingAlder(
         customGrunnlag = customGrunnlag,
         customVilkår = customVilkår,
         customBehandlingsinformasjon = customBehandlingsinformasjon,
+        avkorting = avkorting,
     )
 }
 
@@ -681,6 +692,7 @@ fun underkjentSøknadsbehandlingUføre(
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
     customBehandlingsinformasjon: Behandlingsinformasjon = Behandlingsinformasjon().withAlleVilkårOppfylt(),
+    avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
 ): Pair<Sak, Søknadsbehandling.Underkjent> {
     return underkjentSøknadsbehandling(
         clock = clock,
@@ -689,6 +701,7 @@ fun underkjentSøknadsbehandlingUføre(
         customGrunnlag = customGrunnlag,
         customVilkår = customVilkår,
         customBehandlingsinformasjon = customBehandlingsinformasjon,
+        avkorting = avkorting,
     )
 }
 
@@ -699,6 +712,7 @@ fun underkjentSøknadsbehandling(
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
     customBehandlingsinformasjon: Behandlingsinformasjon = Behandlingsinformasjon().withAlleVilkårOppfylt(),
+    avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
 ): Pair<Sak, Søknadsbehandling.Underkjent> {
     return tilAttesteringSøknadsbehandling(
         clock = clock,
@@ -707,9 +721,113 @@ fun underkjentSøknadsbehandling(
         customGrunnlag = customGrunnlag,
         customVilkår = customVilkår,
         customBehandlingsinformasjon = customBehandlingsinformasjon,
+        avkorting = avkorting,
     ).let { (sak, tilAttestering) ->
         val underkjent = tilAttestering.tilUnderkjent(attestering = attesteringUnderkjent(clock))
         sak.copy(søknadsbehandlinger = sak.søknadsbehandlinger.filterNot { it.id == tilAttestering.id } + underkjent) to underkjent
+    }
+}
+
+fun iverksattSøknadsbehandlingUføre(
+    clock: Clock = fixedClock,
+    sakInfo: SakInfo = SakInfo(
+        sakId = sakId,
+        saksnummer = saksnummer,
+        fnr = fnr,
+        type = Sakstype.UFØRE
+    ),
+    stønadsperiode: Stønadsperiode = stønadsperiode2021,
+    sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(
+        clock = clock,
+        sakInfo = sakInfo,
+    ),
+    customGrunnlag: List<Grunnlag> = emptyList(),
+    customVilkår: List<Vilkår> = emptyList(),
+    customBehandlingsinformasjon: Behandlingsinformasjon = Behandlingsinformasjon().withAlleVilkårOppfylt(),
+    avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
+): Triple<Sak, Søknadsbehandling.Iverksatt, Vedtak> {
+    return iverksattSøknadsbehandling(
+        clock = clock,
+        stønadsperiode = stønadsperiode,
+        sakOgSøknad = sakOgSøknad,
+        customGrunnlag = customGrunnlag,
+        customVilkår = customVilkår,
+        customBehandlingsinformasjon = customBehandlingsinformasjon,
+        avkorting = avkorting,
+    )
+}
+
+fun iverksattSøknadsbehandling(
+    clock: Clock = fixedClock,
+    stønadsperiode: Stønadsperiode = stønadsperiode2021,
+    sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave>,
+    customGrunnlag: List<Grunnlag> = emptyList(),
+    customVilkår: List<Vilkår> = emptyList(),
+    customBehandlingsinformasjon: Behandlingsinformasjon = Behandlingsinformasjon().withAlleVilkårOppfylt(),
+    attestering: Attestering.Iverksatt = attesteringIverksatt(clock),
+    avkorting: AvkortingVedSøknadsbehandling.Uhåndtert,
+): Triple<Sak, Søknadsbehandling.Iverksatt, Vedtak> {
+    return tilAttesteringSøknadsbehandling(
+        clock = clock,
+        stønadsperiode = stønadsperiode,
+        sakOgSøknad = sakOgSøknad,
+        customGrunnlag = customGrunnlag,
+        customVilkår = customVilkår,
+        customBehandlingsinformasjon = customBehandlingsinformasjon,
+        avkorting = avkorting,
+    ).let { (sak, tilAttestering) ->
+        val (iverksatt, vedtak, utbetaling) = when (tilAttestering) {
+            is Søknadsbehandling.TilAttestering.Avslag.MedBeregning -> {
+                tilAttestering.tilIverksatt(attestering).let {
+                    Triple(
+                        it,
+                        Avslagsvedtak.fromSøknadsbehandlingMedBeregning(
+                            avslag = it,
+                            clock = clock,
+                        ),
+                        null,
+                    )
+                }
+            }
+            is Søknadsbehandling.TilAttestering.Avslag.UtenBeregning -> {
+                tilAttestering.tilIverksatt(attestering).let {
+                    Triple(
+                        it,
+                        Avslagsvedtak.fromSøknadsbehandlingUtenBeregning(
+                            avslag = it,
+                            clock = clock,
+                        ),
+                        null,
+                    )
+                }
+            }
+            is Søknadsbehandling.TilAttestering.Innvilget -> {
+                val utbetaling = nyUtbetalingOversendtMedKvittering(
+                    sakOgBehandling = sak to tilAttestering,
+                    beregning = tilAttestering.beregning,
+                    clock = clock,
+                )
+                tilAttestering.tilIverksatt(attestering).let {
+                    Triple(
+                        it,
+                        VedtakSomKanRevurderes.fromSøknadsbehandling(
+                            søknadsbehandling = it,
+                            clock = clock,
+                            utbetalingId = utbetaling.id,
+                        ),
+                        utbetaling,
+                    )
+                }
+            }
+        }
+        Triple(
+            sak.copy(
+                søknadsbehandlinger = sak.søknadsbehandlinger.filterNot { it.id == iverksatt.id } + iverksatt,
+                vedtakListe = sak.vedtakListe + vedtak,
+                utbetalinger = utbetaling?.let { sak.utbetalinger + it } ?: sak.utbetalinger,
+            ),
+            iverksatt, vedtak,
+        )
     }
 }
 
@@ -722,6 +840,7 @@ fun tilAttesteringSøknadsbehandlingUføre(
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
     customBehandlingsinformasjon: Behandlingsinformasjon = Behandlingsinformasjon().withAlleVilkårOppfylt(),
+    avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
 ): Pair<Sak, Søknadsbehandling.TilAttestering> {
     return tilAttesteringSøknadsbehandling(
         clock = clock,
@@ -730,6 +849,7 @@ fun tilAttesteringSøknadsbehandlingUføre(
         customGrunnlag = customGrunnlag,
         customVilkår = customVilkår,
         customBehandlingsinformasjon = customBehandlingsinformasjon,
+        avkorting = avkorting,
     )
 }
 
@@ -740,6 +860,7 @@ fun tilAttesteringSøknadsbehandling(
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
     customBehandlingsinformasjon: Behandlingsinformasjon = Behandlingsinformasjon().withAlleVilkårOppfylt(),
+    avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
 ): Pair<Sak, Søknadsbehandling.TilAttestering> {
     return vilkårsvurdertSøknadsbehandling(
         clock = clock,
@@ -748,6 +869,7 @@ fun tilAttesteringSøknadsbehandling(
         customGrunnlag = customGrunnlag,
         customVilkår = customVilkår,
         customBehandlingsinformasjon = customBehandlingsinformasjon,
+        avkorting = avkorting,
     ).let { (sak, vilkårsvurdert) ->
         val tilAttestering = when (vilkårsvurdert) {
             // avslag for vilkår går rett til attestering
@@ -765,6 +887,7 @@ fun tilAttesteringSøknadsbehandling(
                     customGrunnlag = customGrunnlag,
                     customVilkår = customVilkår,
                     customBehandlingsinformasjon = customBehandlingsinformasjon,
+                    avkorting = avkorting,
                 ).let { (_, beregnet) ->
                     when (beregnet) {
                         // beregnet avslag går til attestering
@@ -783,6 +906,7 @@ fun tilAttesteringSøknadsbehandling(
                                 customGrunnlag = customGrunnlag,
                                 customVilkår = customVilkår,
                                 customBehandlingsinformasjon = customBehandlingsinformasjon,
+                                avkorting = avkorting,
                             ).let { (_, simulert) ->
                                 simulert.tilAttestering(
                                     saksbehandler = saksbehandler,
@@ -810,6 +934,7 @@ fun simulertSøknadsbehandlingUføre(
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
     customBehandlingsinformasjon: Behandlingsinformasjon = Behandlingsinformasjon().withAlleVilkårOppfylt(),
+    avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
 ): Pair<Sak, Søknadsbehandling.Simulert> {
     return simulertSøknadsbehandling(
         clock = clock,
@@ -818,6 +943,7 @@ fun simulertSøknadsbehandlingUføre(
         customGrunnlag = customGrunnlag,
         customVilkår = customVilkår,
         customBehandlingsinformasjon = customBehandlingsinformasjon,
+        avkorting = avkorting,
     )
 }
 
@@ -828,6 +954,7 @@ fun simulertSøknadsbehandling(
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
     customBehandlingsinformasjon: Behandlingsinformasjon = Behandlingsinformasjon().withAlleVilkårOppfylt(),
+    avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
 ): Pair<Sak, Søknadsbehandling.Simulert> {
     return beregnetSøknadsbehandling(
         clock = clock,
@@ -836,6 +963,7 @@ fun simulertSøknadsbehandling(
         customGrunnlag = customGrunnlag,
         customVilkår = customVilkår,
         customBehandlingsinformasjon = customBehandlingsinformasjon,
+        avkorting = avkorting,
     ).let { (sak, beregnet) ->
         beregnet.simuler(
             saksbehandler = saksbehandler,
@@ -861,6 +989,7 @@ fun beregnetSøknadsbehandlingUføre(
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
     customBehandlingsinformasjon: Behandlingsinformasjon = Behandlingsinformasjon().withAlleVilkårOppfylt(),
+    avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
 ): Pair<Sak, Søknadsbehandling.Beregnet> {
     return beregnetSøknadsbehandling(
         clock = clock,
@@ -869,6 +998,7 @@ fun beregnetSøknadsbehandlingUføre(
         customGrunnlag = customGrunnlag,
         customVilkår = customVilkår,
         customBehandlingsinformasjon = customBehandlingsinformasjon,
+        avkorting = avkorting,
     )
 }
 
@@ -879,6 +1009,7 @@ fun beregnetSøknadsbehandling(
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
     customBehandlingsinformasjon: Behandlingsinformasjon = Behandlingsinformasjon().withAlleVilkårOppfylt(),
+    avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
 ): Pair<Sak, Søknadsbehandling.Beregnet> {
     return vilkårsvurdertSøknadsbehandling(
         clock = clock,
@@ -887,6 +1018,7 @@ fun beregnetSøknadsbehandling(
         customGrunnlag = customGrunnlag,
         customVilkår = customVilkår,
         customBehandlingsinformasjon = customBehandlingsinformasjon,
+        avkorting = avkorting,
     ).let { (sak, vilkårsvurdert) ->
         vilkårsvurdert.beregn(
             begrunnelse = null,
@@ -907,6 +1039,7 @@ fun vilkårsvurdertSøknadsbehandlingUføre(
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
     customBehandlingsinformasjon: Behandlingsinformasjon = Behandlingsinformasjon().withAlleVilkårOppfylt(),
+    avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
 ): Pair<Sak, Søknadsbehandling.Vilkårsvurdert> {
     return vilkårsvurdertSøknadsbehandling(
         clock = clock,
@@ -915,6 +1048,7 @@ fun vilkårsvurdertSøknadsbehandlingUføre(
         customGrunnlag = customGrunnlag,
         customVilkår = customVilkår,
         customBehandlingsinformasjon = customBehandlingsinformasjon,
+        avkorting = avkorting,
     )
 }
 
@@ -935,9 +1069,10 @@ fun vilkårsvurdertSøknadsbehandling(
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
     customBehandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
+    avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
 ): Pair<Sak, Søknadsbehandling.Vilkårsvurdert> {
     customVilkår.ifNotEmpty {
-        require(this.groupBy { it::class }.values.count() == 1) { "Tillater bare et vilkår av hver type" }
+        require(this.groupBy { it::class }.all { it.value.count() == 1 }) { "Tillater bare et vilkår av hver type" }
     }
 
     val vilkårFraBehandlingsinformasjon = customBehandlingsinformasjon
@@ -964,6 +1099,7 @@ fun vilkårsvurdertSøknadsbehandling(
         clock = clock,
         stønadsperiode = stønadsperiode,
         sakOgSøknad = sakOgSøknad,
+        avkorting = avkorting,
     ).let { (sak, søknadsbehandling) ->
         val etterOppdaterFraBehandlingsinformasjon = søknadsbehandling.leggTilVilkårFraBehandlingsinformasjon(
             behandlingsinformasjon = vilkårFraBehandlingsinformasjon,

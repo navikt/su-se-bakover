@@ -50,7 +50,7 @@ fun vedtakSøknadsbehandlingIverksattInnvilget(
     avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
 ): Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling> {
     require(
-        grunnlagsdata.bosituasjon.all { it is Grunnlag.Bosituasjon.Fullstendig }
+        grunnlagsdata.bosituasjon.all { it is Grunnlag.Bosituasjon.Fullstendig },
     )
     return søknadsbehandlingIverksattInnvilget(
         saksnummer = saksnummer,
