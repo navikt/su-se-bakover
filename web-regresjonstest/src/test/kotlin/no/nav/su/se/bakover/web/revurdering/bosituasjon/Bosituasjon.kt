@@ -21,17 +21,8 @@ internal fun ApplicationTestBuilder.leggTilBosituasjon(
     fraOgMed: String,
     tilOgMed: String,
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
-    url: String = "/saker/$sakId/revurderinger/$behandlingId/bosituasjongrunnlag",
-): String {
-    return runBlocking {
-        defaultRequest(
-            HttpMethod.Post,
-            url,
-            listOf(brukerrolle),
-        ) {
-            setBody(
-                //language=JSON
-                """
+    body: () -> String = {
+        """
                   {
                       "bosituasjoner": [
                           {
@@ -46,8 +37,17 @@ internal fun ApplicationTestBuilder.leggTilBosituasjon(
                           }
                       ]
                   }
-                """.trimIndent(),
-            )
+                """
+    },
+    url: String = "/saker/$sakId/revurderinger/$behandlingId/bosituasjongrunnlag",
+): String {
+    return runBlocking {
+        defaultRequest(
+            HttpMethod.Post,
+            url,
+            listOf(brukerrolle),
+        ) {
+            setBody(body())
         }.apply {
             withClue("body=${this.bodyAsText()}") {
                 status shouldBe HttpStatusCode.OK

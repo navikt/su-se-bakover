@@ -14,8 +14,10 @@ import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
+import no.nav.su.se.bakover.web.Consumers
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.TestClientsBuilder
+import no.nav.su.se.bakover.web.services.tilbakekreving.TilbakekrevingConsumer
 import no.nav.su.se.bakover.web.susebakover
 import org.mockito.kotlin.mock
 import java.time.Clock
@@ -29,6 +31,7 @@ class AppComponents private constructor(
     val unleash: Unleash,
     val services: Services,
     val accessCheckProxy: AccessCheckProxy,
+    val consumers: Consumers,
 ) {
     companion object {
         fun instance(clock: Clock, dataSource: DataSource): AppComponents {
@@ -56,6 +59,13 @@ class AppComponents private constructor(
                 personRepo = databaseRepos.person,
                 services = services,
             )
+            val consumers = Consumers(
+                tilbakekrevingConsumer = TilbakekrevingConsumer(
+                    tilbakekrevingService = services.tilbakekrevingService,
+                    revurderingService = services.revurdering,
+                    clock = clock,
+                )
+            )
             return AppComponents(
                 clock = clock,
                 databaseRepos = databaseRepos,
@@ -63,6 +73,7 @@ class AppComponents private constructor(
                 unleash = unleash,
                 services = services,
                 accessCheckProxy = accessCheckProxy,
+                consumers = consumers,
             )
         }
     }
