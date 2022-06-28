@@ -5,36 +5,27 @@ import arrow.core.right
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
-import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.journal.JournalpostId
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.statistikk.Event
@@ -42,7 +33,7 @@ import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
-import no.nav.su.se.bakover.test.vilkårsvurderingSøknadsbehandlingIkkeVurdert
+import no.nav.su.se.bakover.test.tilAttesteringSøknadsbehandlingUføre
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
@@ -55,16 +46,9 @@ import org.mockito.kotlin.verifyNoMoreInteractions
 import java.util.UUID
 
 class SøknadsbehandlingServiceUnderkjennTest {
-    private val sakId = UUID.randomUUID()
-    private val saksnummer = Saksnummer(2021)
-    private val søknadId = UUID.randomUUID()
     private val fnr = Fnr.generer()
-    private val oppgaveId = OppgaveId("o")
-    private val journalpostId = JournalpostId("j")
     private val nyOppgaveId = OppgaveId("999")
     private val aktørId = AktørId("12345")
-    private val saksbehandler = NavIdentBruker.Saksbehandler("s")
-    private val stønadsperiode = Stønadsperiode.create(år(2021))
 
     private val underkjentAttestering = Attestering.Underkjent(
         attestant = NavIdentBruker.Attestant("a"),
@@ -73,46 +57,22 @@ class SøknadsbehandlingServiceUnderkjennTest {
         opprettet = fixedTidspunkt,
     )
 
-    private val innvilgetBehandlingTilAttestering = Søknadsbehandling.TilAttestering.Innvilget(
-        id = UUID.randomUUID(),
-        opprettet = fixedTidspunkt,
-        behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-        søknad = Søknad.Journalført.MedOppgave.IkkeLukket(
-            id = søknadId,
-            opprettet = Tidspunkt.EPOCH,
-            sakId = sakId,
-            søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-            oppgaveId = oppgaveId,
-            journalpostId = journalpostId,
+    private val innvilgetBehandlingTilAttestering = tilAttesteringSøknadsbehandlingUføre(
+        sakInfo = SakInfo(
+            sakId = UUID.randomUUID(),
+            saksnummer = Saksnummer(2021),
+            fnr = fnr,
+            type = Sakstype.UFØRE,
         ),
-        beregning = TestBeregning,
-        simulering = Simulering(
-            gjelderId = fnr,
-            gjelderNavn = "NAVN",
-            datoBeregnet = idag(fixedClock),
-            nettoBeløp = 191500,
-            periodeList = listOf(),
-        ),
-        saksbehandler = saksbehandler,
-        sakId = sakId,
-        saksnummer = saksnummer,
-        fnr = fnr,
-        oppgaveId = oppgaveId,
-        fritekstTilBrev = "",
-        stønadsperiode = stønadsperiode,
-        grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-        vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingIkkeVurdert(),
-        attesteringer = Attesteringshistorikk.empty(),
-        avkorting = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
-        sakstype = Sakstype.UFØRE,
-    )
+        stønadsperiode = Stønadsperiode.create(år(2021)),
+    ).second as Søknadsbehandling.TilAttestering.Innvilget
 
     private val oppgaveConfig = OppgaveConfig.Søknad(
-        sakstype = Sakstype.UFØRE,
-        journalpostId = journalpostId,
-        søknadId = søknadId,
+        sakstype = innvilgetBehandlingTilAttestering.sakstype,
+        journalpostId = innvilgetBehandlingTilAttestering.søknad.journalpostId,
+        søknadId = innvilgetBehandlingTilAttestering.søknad.id,
         aktørId = aktørId,
-        tilordnetRessurs = saksbehandler,
+        tilordnetRessurs = innvilgetBehandlingTilAttestering.saksbehandler,
         clock = fixedClock,
     )
 
@@ -130,12 +90,12 @@ class SøknadsbehandlingServiceUnderkjennTest {
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
-            behandlingMetrics = behandlingMetricsMock
+            behandlingMetrics = behandlingMetricsMock,
         ).underkjenn(
             SøknadsbehandlingService.UnderkjennRequest(
                 behandlingId = innvilgetBehandlingTilAttestering.id,
-                attestering = underkjentAttestering
-            )
+                attestering = underkjentAttestering,
+            ),
         )
 
         actual shouldBe SøknadsbehandlingService.KunneIkkeUnderkjenne.FantIkkeBehandling.left()
@@ -174,12 +134,12 @@ class SøknadsbehandlingServiceUnderkjennTest {
                 søknadsbehandlingRepo = søknadsbehandlingRepoMock,
                 oppgaveService = oppgaveServiceMock,
                 personService = personServiceMock,
-                behandlingMetrics = behandlingMetricsMock
+                behandlingMetrics = behandlingMetricsMock,
             ).underkjenn(
                 SøknadsbehandlingService.UnderkjennRequest(
                     behandlingId = behandling.id,
-                    attestering = underkjentAttestering
-                )
+                    attestering = underkjentAttestering,
+                ),
             )
         }.msg shouldContain "Ugyldig statusovergang"
 
@@ -201,7 +161,8 @@ class SøknadsbehandlingServiceUnderkjennTest {
             on { hent(any()) } doReturn innvilgetBehandlingTilAttestering
         }
 
-        val attestantSomErLikSaksbehandler = NavIdentBruker.Attestant(saksbehandler.navIdent)
+        val attestantSomErLikSaksbehandler =
+            NavIdentBruker.Attestant(innvilgetBehandlingTilAttestering.saksbehandler.navIdent)
 
         val personServiceMock = mock<PersonService>()
         val oppgaveServiceMock = mock<OppgaveService>()
@@ -213,7 +174,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
             behandlingMetrics = behandlingMetricsMock,
-            observer = observerMock
+            observer = observerMock,
         ).underkjenn(
             SøknadsbehandlingService.UnderkjennRequest(
                 behandlingId = innvilgetBehandlingTilAttestering.id,
@@ -257,12 +218,12 @@ class SøknadsbehandlingServiceUnderkjennTest {
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
-            behandlingMetrics = behandlingMetricsMock
+            behandlingMetrics = behandlingMetricsMock,
         ).underkjenn(
             SøknadsbehandlingService.UnderkjennRequest(
                 behandlingId = innvilgetBehandlingTilAttestering.id,
-                attestering = underkjentAttestering
-            )
+                attestering = underkjentAttestering,
+            ),
         )
 
         actual shouldBe SøknadsbehandlingService.KunneIkkeUnderkjenne.FantIkkeAktørId.left()
@@ -298,12 +259,12 @@ class SøknadsbehandlingServiceUnderkjennTest {
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
-            behandlingMetrics = behandlingMetricsMock
+            behandlingMetrics = behandlingMetricsMock,
         ).underkjenn(
             SøknadsbehandlingService.UnderkjennRequest(
                 behandlingId = innvilgetBehandlingTilAttestering.id,
-                attestering = underkjentAttestering
-            )
+                attestering = underkjentAttestering,
+            ),
         )
 
         actual shouldBe SøknadsbehandlingService.KunneIkkeUnderkjenne.KunneIkkeOppretteOppgave.left()
@@ -345,12 +306,12 @@ class SøknadsbehandlingServiceUnderkjennTest {
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
             behandlingMetrics = behandlingMetricsMock,
-            observer = observerMock
+            observer = observerMock,
         ).underkjenn(
             SøknadsbehandlingService.UnderkjennRequest(
                 behandlingId = innvilgetBehandlingTilAttestering.id,
-                attestering = underkjentAttestering
-            )
+                attestering = underkjentAttestering,
+            ),
         )
 
         val underkjentMedNyOppgaveIdOgAttestering = Søknadsbehandling.Underkjent.Innvilget(
@@ -368,8 +329,8 @@ class SøknadsbehandlingServiceUnderkjennTest {
             attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(underkjentAttestering),
             fritekstTilBrev = "",
             stønadsperiode = innvilgetBehandlingTilAttestering.stønadsperiode,
-            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingIkkeVurdert(),
+            grunnlagsdata = innvilgetBehandlingTilAttestering.grunnlagsdata,
+            vilkårsvurderinger = innvilgetBehandlingTilAttestering.vilkårsvurderinger,
             avkorting = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
             sakstype = innvilgetBehandlingTilAttestering.sakstype,
         )
@@ -381,7 +342,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             personServiceMock,
             oppgaveServiceMock,
             behandlingMetricsMock,
-            observerMock
+            observerMock,
         ) {
             verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
             verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
@@ -398,7 +359,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             )
 
             verify(behandlingMetricsMock).incrementUnderkjentCounter(argThat { it shouldBe BehandlingMetrics.UnderkjentHandlinger.PERSISTERT })
-            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
+            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe innvilgetBehandlingTilAttestering.oppgaveId })
             verify(observerMock).handle(
                 argThat {
                     it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingUnderkjent(
@@ -438,12 +399,12 @@ class SøknadsbehandlingServiceUnderkjennTest {
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
-            behandlingMetrics = behandlingMetricsMock
+            behandlingMetrics = behandlingMetricsMock,
         ).underkjenn(
             SøknadsbehandlingService.UnderkjennRequest(
                 behandlingId = innvilgetBehandlingTilAttestering.id,
-                attestering = underkjentAttestering
-            )
+                attestering = underkjentAttestering,
+            ),
         )
 
         val underkjentMedNyOppgaveIdOgAttestering = Søknadsbehandling.Underkjent.Innvilget(
@@ -461,8 +422,8 @@ class SøknadsbehandlingServiceUnderkjennTest {
             attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(underkjentAttestering),
             fritekstTilBrev = "",
             stønadsperiode = innvilgetBehandlingTilAttestering.stønadsperiode,
-            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingIkkeVurdert(),
+            grunnlagsdata = innvilgetBehandlingTilAttestering.grunnlagsdata,
+            vilkårsvurderinger = innvilgetBehandlingTilAttestering.vilkårsvurderinger,
             avkorting = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
             sakstype = innvilgetBehandlingTilAttestering.sakstype,
         )
@@ -480,13 +441,13 @@ class SøknadsbehandlingServiceUnderkjennTest {
             verify(oppgaveServiceMock).opprettOppgave(
                 argThat {
                     it shouldBe oppgaveConfig
-                }
+                },
             )
             verify(behandlingMetricsMock).incrementUnderkjentCounter(BehandlingMetrics.UnderkjentHandlinger.OPPRETTET_OPPGAVE)
             verify(søknadsbehandlingRepoMock).defaultTransactionContext()
             verify(søknadsbehandlingRepoMock).lagre(eq(underkjentMedNyOppgaveIdOgAttestering), anyOrNull())
             verify(behandlingMetricsMock).incrementUnderkjentCounter(BehandlingMetrics.UnderkjentHandlinger.PERSISTERT)
-            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
+            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe innvilgetBehandlingTilAttestering.oppgaveId })
             verify(behandlingMetricsMock).incrementUnderkjentCounter(BehandlingMetrics.UnderkjentHandlinger.LUKKET_OPPGAVE)
         }
 

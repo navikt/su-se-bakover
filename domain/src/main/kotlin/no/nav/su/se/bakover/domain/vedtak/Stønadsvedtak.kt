@@ -14,6 +14,8 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.fullstendigOrThrow
+import no.nav.su.se.bakover.domain.grunnlag.krevAlleVilkårInnvilget
+import no.nav.su.se.bakover.domain.grunnlag.krevMinstEttAvslag
 import no.nav.su.se.bakover.domain.grunnlag.lagTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.regulering.Regulering
@@ -207,6 +209,9 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             override val simulering: Simulering,
             override val utbetalingId: UUID30,
         ) : EndringIYtelse {
+            init {
+                behandling.grunnlagsdataOgVilkårsvurderinger.krevAlleVilkårInnvilget()
+            }
             override fun harIdentifisertBehovForFremtidigAvkorting() = false
 
             override fun accept(visitor: VedtakVisitor) {
@@ -483,6 +488,9 @@ sealed interface Avslagsvedtak : Stønadsvedtak, Visitable<VedtakVisitor>, ErAvs
         override val behandling: Søknadsbehandling.Iverksatt.Avslag.UtenBeregning,
         override val periode: Periode,
     ) : Avslagsvedtak {
+        init {
+            behandling.grunnlagsdataOgVilkårsvurderinger.krevMinstEttAvslag()
+        }
         override fun harIdentifisertBehovForFremtidigAvkorting() = false
         override fun accept(visitor: VedtakVisitor) {
             visitor.visit(this)
@@ -499,6 +507,9 @@ sealed interface Avslagsvedtak : Stønadsvedtak, Visitable<VedtakVisitor>, ErAvs
         val beregning: Beregning,
         override val avslagsgrunner: List<Avslagsgrunn>,
     ) : Avslagsvedtak {
+        init {
+            behandling.grunnlagsdataOgVilkårsvurderinger.krevAlleVilkårInnvilget()
+        }
         override fun harIdentifisertBehovForFremtidigAvkorting() = false
 
         override fun accept(visitor: VedtakVisitor) {

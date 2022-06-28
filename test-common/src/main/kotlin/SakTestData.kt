@@ -92,7 +92,7 @@ fun nySak(
         },
     ).let { sakFactory ->
         sakFactory.nySakMedNySøknad(
-            fnr = fnr,
+            fnr = sakInfo.fnr,
             søknadInnhold = søknadsinnhold,
         ).let {
             val søknad = it.søknad.journalfør(journalpostIdSøknad).medOppgave(oppgaveIdSøknad)

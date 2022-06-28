@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
@@ -39,6 +40,7 @@ import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.plus
 import no.nav.su.se.bakover.test.vedtakRevurderingIverksattInnvilget
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
@@ -59,7 +61,14 @@ internal class VedtakServiceImplTest {
     fun `kan hente ett fnr`() {
         val dato = 1.mars(2021)
         val fnr = Fnr.generer()
-        val vedtak = innvilgetVedtak(fnr)
+        val vedtak = iverksattSøknadsbehandlingUføre(
+            sakInfo = SakInfo(
+                sakId = UUID.randomUUID(),
+                saksnummer = Saksnummer(5555),
+                fnr = fnr,
+                type = Sakstype.UFØRE,
+            ),
+        ).third as VedtakSomKanRevurderes.EndringIYtelse
 
         val vedtakRepoMock = mock<VedtakRepo> {
             on { hentAktive(any()) } doReturn listOf(vedtak)
@@ -79,7 +88,14 @@ internal class VedtakServiceImplTest {
     fun `test distinct`() {
         val dato = 1.mars(2021)
         val fnr = Fnr.generer()
-        val vedtak = innvilgetVedtak(fnr)
+        val vedtak = iverksattSøknadsbehandlingUføre(
+            sakInfo = SakInfo(
+                sakId = UUID.randomUUID(),
+                saksnummer = Saksnummer(5555),
+                fnr = fnr,
+                type = Sakstype.UFØRE,
+            ),
+        ).third as VedtakSomKanRevurderes.EndringIYtelse
 
         val vedtakRepoMock = mock<VedtakRepo> {
             on { hentAktive(any()) } doReturn listOf(vedtak, vedtak)
@@ -100,8 +116,23 @@ internal class VedtakServiceImplTest {
         val dato = 1.mars(2021)
         val fnrFørst = Fnr("01010112345")
         val fnrSist = Fnr("01010212345")
-        val vedtakFørst = innvilgetVedtak(fnrSist)
-        val vedtakSist = innvilgetVedtak(fnrFørst)
+        val vedtakFørst = iverksattSøknadsbehandlingUføre(
+            sakInfo = SakInfo(
+                sakId = UUID.randomUUID(),
+                saksnummer = Saksnummer(5555),
+                fnr = fnrFørst,
+                type = Sakstype.UFØRE,
+            ),
+        ).third as VedtakSomKanRevurderes.EndringIYtelse
+
+        val vedtakSist = iverksattSøknadsbehandlingUføre(
+            sakInfo = SakInfo(
+                sakId = UUID.randomUUID(),
+                saksnummer = Saksnummer(6666),
+                fnr = fnrSist,
+                type = Sakstype.UFØRE,
+            ),
+        ).third as VedtakSomKanRevurderes.EndringIYtelse
 
         val vedtakRepoMock = mock<VedtakRepo> {
             on { hentAktive(any()) } doReturn listOf(vedtakFørst, vedtakSist)

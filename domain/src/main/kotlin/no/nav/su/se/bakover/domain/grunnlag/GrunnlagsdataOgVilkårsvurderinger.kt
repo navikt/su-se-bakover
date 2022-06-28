@@ -9,10 +9,10 @@ import no.nav.su.se.bakover.common.periode.erSammenhengendeSortertOgUtenDuplikat
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.perioderMedEPS
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.perioderUtenEPS
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 
 sealed class GrunnlagsdataOgVilkårsvurderinger {
     abstract val grunnlagsdata: Grunnlagsdata
@@ -235,5 +235,17 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
         override fun leggTilFradragsgrunnlag(grunnlag: List<Grunnlag.Fradragsgrunnlag>): Revurdering {
             return copy(grunnlagsdata = grunnlagsdata.copy(fradragsgrunnlag = grunnlag))
         }
+    }
+}
+
+fun GrunnlagsdataOgVilkårsvurderinger.krevAlleVilkårInnvilget() {
+    vilkårsvurderinger.resultat.also {
+        check(it is Vilkårsvurderingsresultat.Innvilget) { "Ugyldig tilstand, alle vilkår må være innvilget, var: $it" }
+    }
+}
+
+fun GrunnlagsdataOgVilkårsvurderinger.krevMinstEttAvslag() {
+    vilkårsvurderinger.resultat.also {
+        check(it is Vilkårsvurderingsresultat.Avslag) { "Ugyldig tilstand, minst et vilkår må være avslått, var: $it" }
     }
 }
