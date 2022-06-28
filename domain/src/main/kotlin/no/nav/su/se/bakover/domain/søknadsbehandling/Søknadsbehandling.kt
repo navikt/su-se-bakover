@@ -33,6 +33,8 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
 import no.nav.su.se.bakover.domain.grunnlag.Opplysningspliktgrunnlag
+import no.nav.su.se.bakover.domain.grunnlag.krevAlleVilkårInnvilget
+import no.nav.su.se.bakover.domain.grunnlag.krevMinstEttAvslag
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
@@ -1897,6 +1899,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val periode: Periode = stønadsperiode.periode
 
             init {
+                grunnlagsdataOgVilkårsvurderinger.krevAlleVilkårInnvilget()
                 kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
             }
 
@@ -1929,6 +1932,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val periode: Periode = stønadsperiode.periode
 
                 init {
+                    grunnlagsdataOgVilkårsvurderinger.krevAlleVilkårInnvilget()
                     kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
                 }
 
@@ -1972,6 +1976,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val periode: Periode = stønadsperiode.periode
 
                 init {
+                    grunnlagsdataOgVilkårsvurderinger.krevMinstEttAvslag()
                     kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
                 }
 

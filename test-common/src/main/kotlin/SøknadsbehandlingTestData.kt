@@ -22,7 +22,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsinnholdAlder
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.FamiliegjenforeningVilkår
 import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
@@ -746,7 +746,7 @@ fun iverksattSøknadsbehandlingUføre(
     customVilkår: List<Vilkår> = emptyList(),
     customBehandlingsinformasjon: Behandlingsinformasjon = Behandlingsinformasjon().withAlleVilkårOppfylt(),
     avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
-): Triple<Sak, Søknadsbehandling.Iverksatt, Vedtak> {
+): Triple<Sak, Søknadsbehandling.Iverksatt, Stønadsvedtak> {
     return iverksattSøknadsbehandling(
         clock = clock,
         stønadsperiode = stønadsperiode,
@@ -767,7 +767,7 @@ fun iverksattSøknadsbehandling(
     customBehandlingsinformasjon: Behandlingsinformasjon = Behandlingsinformasjon().withAlleVilkårOppfylt(),
     attestering: Attestering.Iverksatt = attesteringIverksatt(clock),
     avkorting: AvkortingVedSøknadsbehandling.Uhåndtert,
-): Triple<Sak, Søknadsbehandling.Iverksatt, Vedtak> {
+): Triple<Sak, Søknadsbehandling.Iverksatt, Stønadsvedtak> {
     return tilAttesteringSøknadsbehandling(
         clock = clock,
         stønadsperiode = stønadsperiode,
@@ -834,9 +834,16 @@ fun iverksattSøknadsbehandling(
 
 fun tilAttesteringSøknadsbehandlingUføre(
     clock: Clock = fixedClock,
+    sakInfo: SakInfo = SakInfo(
+        sakId = sakId,
+        saksnummer = saksnummer,
+        fnr = fnr,
+        type = Sakstype.UFØRE
+    ),
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(
         clock = clock,
+        sakInfo = sakInfo,
     ),
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),

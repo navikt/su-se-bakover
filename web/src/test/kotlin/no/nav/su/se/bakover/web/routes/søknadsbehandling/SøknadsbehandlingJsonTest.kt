@@ -1,208 +1,592 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.Sakstype
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
-import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.domain.vilkår.Vilkår
+import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
+import no.nav.su.se.bakover.test.nySøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
-import no.nav.su.se.bakover.test.vilkårsvurderingSøknadsbehandlingIkkeVurdert
-import no.nav.su.se.bakover.web.routes.grunnlag.BosituasjonJsonTest.Companion.expectedBosituasjonJson
-import no.nav.su.se.bakover.web.routes.grunnlag.UføreVilkårJsonTest.Companion.expectedVurderingUføreJson
-import no.nav.su.se.bakover.web.routes.grunnlag.UtenlandsoppholdVilkårJsonTest.Companion.expectedUtenlandsoppholdVurdert
-import no.nav.su.se.bakover.web.routes.søknad.UføresøknadJsonTest.Companion.søknadJsonString
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.behandlingId
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.innvilgetSøknadsbehandling
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.journalførtSøknadMedOppgave
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.oppgaveId
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.sakId
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.saksnummer
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.BeregningJsonTest.Companion.expectedBeregningJson
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
-import java.time.format.DateTimeFormatter
 
 internal class SøknadsbehandlingJsonTest {
 
-    companion object {
-
-        private val søknadsbehandling = innvilgetSøknadsbehandling()
+    @Test
+    fun `should serialize to json string`() {
+        val søknadsbehandling = iverksattSøknadsbehandlingUføre(
+            stønadsperiode = Stønadsperiode.create(januar(2021)),
+        ).second as Søknadsbehandling.Iverksatt.Innvilget
 
         //language=JSON
-        internal val behandlingJsonString =
-            """
-        {
-          "id": "$behandlingId",
-          "opprettet": "${DateTimeFormatter.ISO_INSTANT.format(søknadsbehandling.opprettet)}",
-          "behandlingsinformasjon": {
+        val expected = """
+            {
+              "id": "${søknadsbehandling.id}",
+              "behandlingsinformasjon": {
                 "flyktning": {
-                    "status" : "VilkårOppfylt"
+                  "status": "VilkårOppfylt"
                 },
                 "fastOppholdINorge": {
-                    "status": "VilkårOppfylt"
+                  "status": "VilkårOppfylt"
                 },
                 "institusjonsopphold": {
-                    "status": "VilkårOppfylt"
+                  "status": "VilkårOppfylt"
                 },
                 "personligOppmøte": {
-                    "status": "MøttPersonlig"
+                  "status": "MøttPersonlig"
                 }
-          },
-          "søknad": $søknadJsonString,
-          "beregning": $expectedBeregningJson,
-          "status": "IVERKSATT_INNVILGET",
-          "simulering": {
-            "totalBruttoYtelse": 0,
-            "perioder": []
-          },
-          "attesteringer" : [{ "attestant" : "kjella", "underkjennelse":  null, "opprettet": "${Tidspunkt.EPOCH}"}],
-          "saksbehandler" : "pro-saksbehandler",
-          "sakId": "$sakId",
-          "stønadsperiode": {
-            "periode": {
-              "fraOgMed": "2021-01-01",
-              "tilOgMed": "2021-12-31"
-            }
-          },
-          "grunnlagsdataOgVilkårsvurderinger": {
-            "uføre": $expectedVurderingUføreJson,
-            "fradrag": [],
-            "bosituasjon": $expectedBosituasjonJson,
-            "formue": {
-                "resultat": null,
-                "formuegrenser": [
+              },
+              "søknad": {
+                "id": "${søknadsbehandling.søknad.id}",
+                "sakId": "${søknadsbehandling.sakId}",
+                "søknadInnhold": {
+                  "type": "uføre",
+                  "uførevedtak": {
+                    "harUførevedtak": true
+                  },
+                  "flyktningsstatus": {
+                    "registrertFlyktning": false
+                  },
+                  "personopplysninger": {
+                    "fnr": "${søknadsbehandling.fnr}"
+                  },
+                  "boforhold": {
+                    "borOgOppholderSegINorge": true,
+                    "delerBoligMedVoksne": true,
+                    "delerBoligMed": "EKTEMAKE_SAMBOER",
+                    "ektefellePartnerSamboer": {
+                      "erUførFlyktning": false,
+                      "fnr": "01017001337"
+                    },
+                    "innlagtPåInstitusjon": {
+                      "datoForInnleggelse": "2020-01-01",
+                      "datoForUtskrivelse": "2020-01-31",
+                      "fortsattInnlagt": false
+                    },
+                    "borPåAdresse": null,
+                    "ingenAdresseGrunn": "HAR_IKKE_FAST_BOSTED"
+                  },
+                  "utenlandsopphold": {
+                    "registrertePerioder": [
+                      {
+                        "utreisedato": "2020-01-01",
+                        "innreisedato": "2020-01-31"
+                      },
+                      {
+                        "utreisedato": "2020-02-01",
+                        "innreisedato": "2020-02-05"
+                      }
+                    ],
+                    "planlagtePerioder": [
+                      {
+                        "utreisedato": "2020-07-01",
+                        "innreisedato": "2020-07-31"
+                      }
+                    ]
+                  },
+                  "oppholdstillatelse": {
+                    "erNorskStatsborger": false,
+                    "harOppholdstillatelse": true,
+                    "typeOppholdstillatelse": "midlertidig",
+                    "statsborgerskapAndreLand": false,
+                    "statsborgerskapAndreLandFritekst": null
+                  },
+                  "inntektOgPensjon": {
+                    "forventetInntekt": 2500,
+                    "andreYtelserINav": "sosialstønad",
+                    "andreYtelserINavBeløp": 33,
+                    "søktAndreYtelserIkkeBehandletBegrunnelse": "uføre",
+                    "trygdeytelserIUtlandet": [
+                      {
+                        "beløp": 200,
+                        "type": "trygd",
+                        "valuta": "En valuta"
+                      },
+                      {
+                        "beløp": 500,
+                        "type": "Annen trygd",
+                        "valuta": "En annen valuta"
+                      }
+                    ],
+                    "pensjon": [
+                      {
+                        "ordning": "KLP",
+                        "beløp": 2000.0
+                      },
+                      {
+                        "ordning": "SPK",
+                        "beløp": 5000.0
+                      }
+                    ]
+                  },
+                  "formue": {
+                    "eierBolig": true,
+                    "borIBolig": false,
+                    "verdiPåBolig": 600000,
+                    "boligBrukesTil": "Mine barn bor der",
+                    "depositumsBeløp": 1000.0,
+                    "verdiPåEiendom": 3,
+                    "eiendomBrukesTil": "",
+                    "kjøretøy": [
+                      {
+                        "verdiPåKjøretøy": 25000,
+                        "kjøretøyDeEier": "bil"
+                      }
+                    ],
+                    "innskuddsBeløp": 25000,
+                    "verdipapirBeløp": 25000,
+                    "skylderNoenMegPengerBeløp": 25000,
+                    "kontanterBeløp": 25000
+                  },
+                  "forNav": {
+                    "type": "DigitalSøknad",
+                    "harFullmektigEllerVerge": "verge"
+                  },
+                  "ektefelle": {
+                    "formue": {
+                      "eierBolig": true,
+                      "borIBolig": false,
+                      "verdiPåBolig": 0,
+                      "boligBrukesTil": "",
+                      "depositumsBeløp": 0,
+                      "verdiPåEiendom": 0,
+                      "eiendomBrukesTil": "",
+                      "kjøretøy": [],
+                      "innskuddsBeløp": 0,
+                      "verdipapirBeløp": 0,
+                      "skylderNoenMegPengerBeløp": 0,
+                      "kontanterBeløp": 0
+                    },
+                    "inntektOgPensjon": {
+                      "forventetInntekt": null,
+                      "andreYtelserINav": null,
+                      "andreYtelserINavBeløp": null,
+                      "søktAndreYtelserIkkeBehandletBegrunnelse": null,
+                      "trygdeytelserIUtlandet": null,
+                      "pensjon": null
+                    }
+                  }
+                },
+                "opprettet": "2021-01-01T01:02:03.456789Z",
+                "lukket": null
+              },
+              "beregning": {
+                "id": "${søknadsbehandling.beregning.getId()}",
+                "opprettet": "${søknadsbehandling.beregning.getOpprettet()}",
+                "fraOgMed": "2021-01-01",
+                "tilOgMed": "2021-01-31",
+                "månedsberegninger": [
                   {
-                      "gyldigFra": "2020-05-01",
-                      "beløp": 50676
+                    "fraOgMed": "2021-01-01",
+                    "tilOgMed": "2021-01-31",
+                    "sats": "HØY",
+                    "grunnbeløp": 101351,
+                    "beløp": 20946,
+                    "fradrag": [
+                      {
+                        "periode": {
+                          "fraOgMed": "2021-01-01",
+                          "tilOgMed": "2021-01-31"
+                        },
+                        "type": "ForventetInntekt",
+                        "beskrivelse": null,
+                        "beløp": 0.0,
+                        "utenlandskInntekt": null,
+                        "tilhører": "BRUKER"
+                      }
+                    ],
+                    "satsbeløp": 20946,
+                    "epsFribeløp": 0.0,
+                    "epsInputFradrag": [],
+                    "merknader": []
                   }
                 ],
-                "vurderinger": []
-              },
-              "utenlandsopphold": $expectedUtenlandsoppholdVurdert,
-              "opplysningsplikt": {
-                 "vurderinger": [
+                "fradrag": [
                   {
                     "periode": {
                       "fraOgMed": "2021-01-01",
-                      "tilOgMed": "2021-12-31"
+                      "tilOgMed": "2021-01-31"
                     },
-                    "beskrivelse": "TilstrekkeligDokumentasjon"
+                    "type": "ForventetInntekt",
+                    "beskrivelse": null,
+                    "beløp": 0.0,
+                    "utenlandskInntekt": null,
+                    "tilhører": "BRUKER"
                   }
-                 ]     
+                ],
+                "begrunnelse": null
               },
-              "lovligOpphold": {
-                    "resultat": "VilkårOppfylt",
-                    "vurderinger": [
-                     {
-                      "periode": {
+              "status": "IVERKSATT_INNVILGET",
+              "simulering": {
+                "perioder": [
+                  {
+                    "fraOgMed": "2021-01-01",
+                    "tilOgMed": "2021-01-31",
+                    "type": "ETTERBETALING",
+                    "bruttoYtelse": 20946
+                  }
+                ],
+                "totalBruttoYtelse": 20946
+              },
+              "opprettet": "${søknadsbehandling.opprettet}",
+              "attesteringer": [
+                {
+                  "attestant": "attestant",
+                  "underkjennelse": null,
+                  "opprettet": "${søknadsbehandling.attesteringer.hentSisteAttestering().opprettet}"
+                }
+              ],
+              "saksbehandler": "saksbehandler",
+              "fritekstTilBrev": "",
+              "sakId": "${søknadsbehandling.sakId}",
+              "stønadsperiode": {
+                "periode": {
+                  "fraOgMed": "2021-01-01",
+                  "tilOgMed": "2021-01-31"
+                }
+              },
+              "grunnlagsdataOgVilkårsvurderinger": {
+                "uføre": {
+                  "vurderinger": [
+                    {
+                      "id": "${
+        (
+            søknadsbehandling.vilkårsvurderinger.uføreVilkår()
+                .getOrFail() as Vilkår.Uførhet.Vurdert
+            ).vurderingsperioder.single().id
+        }",
+                      "opprettet": "${
+        (
+            søknadsbehandling.vilkårsvurderinger.uføreVilkår()
+                .getOrFail() as Vilkår.Uførhet.Vurdert
+            ).vurderingsperioder.single().opprettet
+        }",
+                      "resultat": "VilkårOppfylt",
+                      "grunnlag": {
+                        "id": "${
+        (
+            søknadsbehandling.vilkårsvurderinger.uføreVilkår()
+                .getOrFail() as Vilkår.Uførhet.Vurdert
+            ).vurderingsperioder.single().grunnlag!!.id
+        }",
+                        "opprettet": "${
+        (
+            søknadsbehandling.vilkårsvurderinger.uføreVilkår()
+                .getOrFail() as Vilkår.Uførhet.Vurdert
+            ).vurderingsperioder.single().grunnlag!!.opprettet
+        }",
+                        "periode": {
                           "fraOgMed": "2021-01-01",
-                          "tilOgMed": "2021-12-31"
+                          "tilOgMed": "2021-01-31"
                         },
-                      "resultat": "VilkårOppfylt"
-                     }
-                    ]
+                        "uføregrad": 100,
+                        "forventetInntekt": 0
+                      },
+                      "periode": {
+                        "fraOgMed": "2021-01-01",
+                        "tilOgMed": "2021-01-31"
+                      }
+                    }
+                  ],
+                  "resultat": "VilkårOppfylt"
                 },
-              "pensjon": null,
-              "familiegjenforening": null
-          },
-          "fritekstTilBrev": "",
-          "erLukket": false,
-          "simuleringForAvkortingsvarsel": null,
-          "sakstype": "uføre"
-        }
-            """.trimIndent()
-    }
-
-    @Test
-    fun `should serialize to json string`() {
-        JSONAssert.assertEquals(
-            behandlingJsonString,
-            serialize(søknadsbehandling.toJson(satsFactoryTestPåDato())), true,
-        )
-    }
-
-    @Test
-    fun `should deserialize json string`() {
-        deserialize<BehandlingJson>(behandlingJsonString) shouldBe søknadsbehandling.toJson(satsFactoryTestPåDato())
+                "lovligOpphold": {
+                  "vurderinger": [
+                    {
+                      "periode": {
+                        "fraOgMed": "2021-01-01",
+                        "tilOgMed": "2021-01-31"
+                      },
+                      "resultat": "VilkårOppfylt"
+                    }
+                  ],
+                  "resultat": "VilkårOppfylt"
+                },
+                "fradrag": [],
+                "bosituasjon": [
+                  {
+                    "type": "ENSLIG",
+                    "fnr": null,
+                    "delerBolig": false,
+                    "ektemakeEllerSamboerUførFlyktning": null,
+                    "sats": "HØY",
+                    "periode": {
+                      "fraOgMed": "2021-01-01",
+                      "tilOgMed": "2021-01-31"
+                    }
+                  }
+                ],
+                "formue": {
+                  "vurderinger": [
+                    {
+                      "id": "${(søknadsbehandling.vilkårsvurderinger.formueVilkår() as Vilkår.Formue.Vurdert).vurderingsperioder.single().id}",
+                      "opprettet": "${(søknadsbehandling.vilkårsvurderinger.formueVilkår() as Vilkår.Formue.Vurdert).vurderingsperioder.single().opprettet}",
+                      "resultat": "VilkårOppfylt",
+                      "grunnlag": {
+                        "epsFormue": null,
+                        "søkersFormue": {
+                          "verdiIkkePrimærbolig": 0,
+                          "verdiEiendommer": 0,
+                          "verdiKjøretøy": 0,
+                          "innskudd": 0,
+                          "verdipapir": 0,
+                          "pengerSkyldt": 0,
+                          "kontanter": 0,
+                          "depositumskonto": 0
+                        }
+                      },
+                      "periode": {
+                        "fraOgMed": "2021-01-01",
+                        "tilOgMed": "2021-01-31"
+                      }
+                    }
+                  ],
+                  "resultat": "VilkårOppfylt",
+                  "formuegrenser": [
+                    {
+                      "gyldigFra": "2020-05-01",
+                      "beløp": 50676
+                    }
+                  ]
+                },
+                "utenlandsopphold": {
+                  "vurderinger": [
+                    {
+                      "status": "SkalHoldeSegINorge",
+                      "periode": {
+                        "fraOgMed": "2021-01-01",
+                        "tilOgMed": "2021-01-31"
+                      }
+                    }
+                  ],
+                  "status": "SkalHoldeSegINorge"
+                },
+                "opplysningsplikt": {
+                  "vurderinger": [
+                    {
+                      "periode": {
+                        "fraOgMed": "2021-01-01",
+                        "tilOgMed": "2021-01-31"
+                      },
+                      "beskrivelse": "TilstrekkeligDokumentasjon"
+                    }
+                  ]
+                },
+                "pensjon": null,
+                "familiegjenforening": null
+              },
+              "erLukket": false,
+              "simuleringForAvkortingsvarsel": null,
+              "sakstype": "uføre"
+            }
+        """.trimIndent()
+        JSONAssert.assertEquals(expected, serialize(søknadsbehandling.toJson(satsFactoryTestPåDato())), true)
+        deserialize<BehandlingJson>(expected) shouldBe søknadsbehandling.toJson(satsFactoryTestPåDato())
     }
 
     @Test
     fun nullables() {
-        val behandlingWithNulls = Søknadsbehandling.Vilkårsvurdert.Uavklart(
-            id = behandlingId,
-            opprettet = Tidspunkt.EPOCH,
-            sakId = sakId,
-            saksnummer = saksnummer,
-            søknad = journalførtSøknadMedOppgave,
-            oppgaveId = oppgaveId,
-            behandlingsinformasjon = Behandlingsinformasjon(),
-            fnr = Fnr.generer(),
-            fritekstTilBrev = "",
-            stønadsperiode = null,
-            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingIkkeVurdert(),
-            attesteringer = Attesteringshistorikk.empty(),
-            avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke(),
-            sakstype = Sakstype.UFØRE,
-        )
-        val opprettetTidspunkt = DateTimeFormatter.ISO_INSTANT.format(behandlingWithNulls.opprettet)
+        val søknadsbehandling = nySøknadsbehandlingUføre().second as Søknadsbehandling.Vilkårsvurdert.Uavklart
 
         //language=JSON
-        val expectedNullsJson =
-            """
-        {
-          "id": "$behandlingId",
-          "behandlingsinformasjon": {
-            "flyktning": null,
-            "fastOppholdINorge": null,
-            "institusjonsopphold": null,
-            "personligOppmøte": null
-          },
-          "søknad": $søknadJsonString,
-          "beregning": null,
-          "status": "OPPRETTET",
-          "simulering": null,
-          "opprettet": "$opprettetTidspunkt",
-          "attesteringer": [],
-          "saksbehandler": null,
-          "sakId": "$sakId",
-          "stønadsperiode": null,
-          "grunnlagsdataOgVilkårsvurderinger": {
-            "uføre": null,
-            "fradrag": [],
-            "bosituasjon": [],
-            "formue": {
-                "resultat": null,
-                "formuegrenser": [
-                  {
+        val expected = """
+            {
+              "id": "${søknadsbehandling.id}",
+              "behandlingsinformasjon": {
+                "flyktning": null,
+                "fastOppholdINorge": null,
+                "institusjonsopphold": null,
+                "personligOppmøte": null
+              },
+              "søknad": {
+                "id": "${søknadsbehandling.søknad.id}",
+                "sakId": "${søknadsbehandling.sakId}",
+                "søknadInnhold": {
+                  "type": "uføre",
+                  "uførevedtak": {
+                    "harUførevedtak": true
+                  },
+                  "flyktningsstatus": {
+                    "registrertFlyktning": false
+                  },
+                  "personopplysninger": {
+                    "fnr": "${søknadsbehandling.fnr}"
+                  },
+                  "boforhold": {
+                    "borOgOppholderSegINorge": true,
+                    "delerBoligMedVoksne": true,
+                    "delerBoligMed": "EKTEMAKE_SAMBOER",
+                    "ektefellePartnerSamboer": {
+                      "erUførFlyktning": false,
+                      "fnr": "01017001337"
+                    },
+                    "innlagtPåInstitusjon": {
+                      "datoForInnleggelse": "2020-01-01",
+                      "datoForUtskrivelse": "2020-01-31",
+                      "fortsattInnlagt": false
+                    },
+                    "borPåAdresse": null,
+                    "ingenAdresseGrunn": "HAR_IKKE_FAST_BOSTED"
+                  },
+                  "utenlandsopphold": {
+                    "registrertePerioder": [
+                      {
+                        "utreisedato": "2020-01-01",
+                        "innreisedato": "2020-01-31"
+                      },
+                      {
+                        "utreisedato": "2020-02-01",
+                        "innreisedato": "2020-02-05"
+                      }
+                    ],
+                    "planlagtePerioder": [
+                      {
+                        "utreisedato": "2020-07-01",
+                        "innreisedato": "2020-07-31"
+                      }
+                    ]
+                  },
+                  "oppholdstillatelse": {
+                    "erNorskStatsborger": false,
+                    "harOppholdstillatelse": true,
+                    "typeOppholdstillatelse": "midlertidig",
+                    "statsborgerskapAndreLand": false,
+                    "statsborgerskapAndreLandFritekst": null
+                  },
+                  "inntektOgPensjon": {
+                    "forventetInntekt": 2500,
+                    "andreYtelserINav": "sosialstønad",
+                    "andreYtelserINavBeløp": 33,
+                    "søktAndreYtelserIkkeBehandletBegrunnelse": "uføre",
+                    "trygdeytelserIUtlandet": [
+                      {
+                        "beløp": 200,
+                        "type": "trygd",
+                        "valuta": "En valuta"
+                      },
+                      {
+                        "beløp": 500,
+                        "type": "Annen trygd",
+                        "valuta": "En annen valuta"
+                      }
+                    ],
+                    "pensjon": [
+                      {
+                        "ordning": "KLP",
+                        "beløp": 2000.0
+                      },
+                      {
+                        "ordning": "SPK",
+                        "beløp": 5000.0
+                      }
+                    ]
+                  },
+                  "formue": {
+                    "eierBolig": true,
+                    "borIBolig": false,
+                    "verdiPåBolig": 600000,
+                    "boligBrukesTil": "Mine barn bor der",
+                    "depositumsBeløp": 1000.0,
+                    "verdiPåEiendom": 3,
+                    "eiendomBrukesTil": "",
+                    "kjøretøy": [
+                      {
+                        "verdiPåKjøretøy": 25000,
+                        "kjøretøyDeEier": "bil"
+                      }
+                    ],
+                    "innskuddsBeløp": 25000,
+                    "verdipapirBeløp": 25000,
+                    "skylderNoenMegPengerBeløp": 25000,
+                    "kontanterBeløp": 25000
+                  },
+                  "forNav": {
+                    "type": "DigitalSøknad",
+                    "harFullmektigEllerVerge": "verge"
+                  },
+                  "ektefelle": {
+                    "formue": {
+                      "eierBolig": true,
+                      "borIBolig": false,
+                      "verdiPåBolig": 0,
+                      "boligBrukesTil": "",
+                      "depositumsBeløp": 0,
+                      "verdiPåEiendom": 0,
+                      "eiendomBrukesTil": "",
+                      "kjøretøy": [],
+                      "innskuddsBeløp": 0,
+                      "verdipapirBeløp": 0,
+                      "skylderNoenMegPengerBeløp": 0,
+                      "kontanterBeløp": 0
+                    },
+                    "inntektOgPensjon": {
+                      "forventetInntekt": null,
+                      "andreYtelserINav": null,
+                      "andreYtelserINavBeløp": null,
+                      "søktAndreYtelserIkkeBehandletBegrunnelse": null,
+                      "trygdeytelserIUtlandet": null,
+                      "pensjon": null
+                    }
+                  }
+                },
+                "opprettet": "${søknadsbehandling.søknad.opprettet}",
+                "lukket": null
+              },
+              "beregning": null,
+              "status": "OPPRETTET",
+              "simulering": null,
+              "opprettet": "${søknadsbehandling.opprettet}",
+              "attesteringer": [],
+              "saksbehandler": null,
+              "fritekstTilBrev": "",
+              "sakId": "${søknadsbehandling.sakId}",
+              "stønadsperiode": {
+                "periode": {
+                  "fraOgMed": "2021-01-01",
+                  "tilOgMed": "2021-12-31"
+                }
+              },
+              "grunnlagsdataOgVilkårsvurderinger": {
+                "uføre": null,
+                "lovligOpphold": null,
+                "fradrag": [],
+                "bosituasjon": [],
+                "formue": {
+                  "vurderinger": [],
+                  "resultat": null,
+                  "formuegrenser": [
+                    {
                       "gyldigFra": "2020-05-01",
                       "beløp": 50676
-                  }
-                ],
-                "vurderinger": []
-            },
-            "lovligOpphold": null,
-            "utenlandsopphold": null,
-            "opplysningsplikt":null,
-            "pensjon": null,
-            "familiegjenforening": null
-          },
-          "fritekstTilBrev": "",
-          "erLukket": false,
-          "simuleringForAvkortingsvarsel": null,
-          "sakstype": "uføre"
-        }
-            """
+                    }
+                  ]
+                },
+                "utenlandsopphold": null,
+                "opplysningsplikt": {
+                  "vurderinger": [
+                    {
+                      "periode": {
+                        "fraOgMed": "2021-01-01",
+                        "tilOgMed": "2021-12-31"
+                      },
+                      "beskrivelse": "TilstrekkeligDokumentasjon"
+                    }
+                  ]
+                },
+                "pensjon": null,
+                "familiegjenforening": null
+              },
+              "erLukket": false,
+              "simuleringForAvkortingsvarsel": null,
+              "sakstype": "uføre"
+            }
+        """.trimIndent()
 
-        val serialize = serialize(behandlingWithNulls.toJson(satsFactoryTestPåDato()))
-        JSONAssert.assertEquals(expectedNullsJson, serialize, true)
-        deserialize<BehandlingJson>(expectedNullsJson) shouldBe behandlingWithNulls.toJson(satsFactoryTestPåDato())
+        JSONAssert.assertEquals(expected, serialize(søknadsbehandling.toJson(satsFactoryTestPåDato())), true)
+        deserialize<BehandlingJson>(expected) shouldBe søknadsbehandling.toJson(satsFactoryTestPåDato())
     }
 }
