@@ -11,11 +11,12 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
 import no.nav.su.se.bakover.domain.vilkår.FamiliegjenforeningVilkår
+import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.PensjonsVilkår
+import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.time.Clock
 import java.time.LocalDate
@@ -140,7 +141,7 @@ data class GjeldendeVedtaksdata(
     }
 }
 
-private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.uføreVilkår(): Vilkår.Uførhet {
+private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.uføreVilkår(): UføreVilkår {
     return flatMap { vedtak ->
         vedtak.uføreVilkår().fold(
             {
@@ -148,18 +149,18 @@ private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.uføreVilkår(): Vil
             },
             {
                 when (it) {
-                    Vilkår.Uførhet.IkkeVurdert -> emptyList()
-                    is Vilkår.Uførhet.Vurdert -> it.vurderingsperioder
+                    UføreVilkår.IkkeVurdert -> emptyList()
+                    is UføreVilkår.Vurdert -> it.vurderingsperioder
                 }
             },
         )
     }.let {
         if (it.isNotEmpty()) {
-            Vilkår.Uførhet.Vurdert.fromVurderingsperioder(vurderingsperioder = NonEmptyList.fromListUnsafe(it))
-                .getOrHandle { throw IllegalArgumentException("Kunne ikke instansiere ${Vilkår.Uførhet.Vurdert::class.simpleName}. Melding: $it") }
+            UføreVilkår.Vurdert.fromVurderingsperioder(vurderingsperioder = NonEmptyList.fromListUnsafe(it))
+                .getOrHandle { throw IllegalArgumentException("Kunne ikke instansiere ${UføreVilkår.Vurdert::class.simpleName}. Melding: $it") }
                 .slåSammenLikePerioder()
         } else {
-            Vilkår.Uførhet.IkkeVurdert
+            UføreVilkår.IkkeVurdert
         }
     }
 }
@@ -178,16 +179,16 @@ private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.lovligoppholdVilkår
         }
 }
 
-private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.formueVilkår(): Vilkår.Formue {
+private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.formueVilkår(): FormueVilkår {
     return map { it.formueVilkår() }
-        .filterIsInstance<Vilkår.Formue.Vurdert>()
+        .filterIsInstance<FormueVilkår.Vurdert>()
         .flatMap { it.vurderingsperioder }
         .let {
             if (it.isNotEmpty()) {
-                Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(NonEmptyList.fromListUnsafe(it))
+                FormueVilkår.Vurdert.createFromVilkårsvurderinger(NonEmptyList.fromListUnsafe(it))
                     .slåSammenLikePerioder()
             } else {
-                Vilkår.Formue.IkkeVurdert
+                FormueVilkår.IkkeVurdert
             }
         }
 }

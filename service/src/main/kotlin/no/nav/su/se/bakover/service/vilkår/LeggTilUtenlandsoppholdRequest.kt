@@ -7,8 +7,8 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
+import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUtenlandsopphold
 import java.time.Clock
 import java.util.UUID
@@ -63,7 +63,7 @@ data class LeggTilUtenlandsoppholdRequest(
         return when (status) {
             UtenlandsoppholdStatus.SkalVæreMerEnn90DagerIUtlandet -> {
                 lagVurderingsperiode(
-                    resultat = Resultat.Avslag,
+                    vurdering = Vurdering.Avslag,
                     clock = clock,
                 ).getOrHandle {
                     return it.left()
@@ -72,7 +72,7 @@ data class LeggTilUtenlandsoppholdRequest(
 
             UtenlandsoppholdStatus.SkalHoldeSegINorge -> {
                 lagVurderingsperiode(
-                    resultat = Resultat.Innvilget,
+                    vurdering = Vurdering.Innvilget,
                     clock = clock,
                 ).getOrHandle {
                     return it.left()
@@ -81,7 +81,7 @@ data class LeggTilUtenlandsoppholdRequest(
 
             UtenlandsoppholdStatus.Uavklart -> {
                 lagVurderingsperiode(
-                    resultat = Resultat.Uavklart,
+                    vurdering = Vurdering.Uavklart,
                     clock = clock,
                 ).getOrHandle {
                     return it.left()
@@ -91,12 +91,12 @@ data class LeggTilUtenlandsoppholdRequest(
     }
 
     private fun lagVurderingsperiode(
-        resultat: Resultat,
+        vurdering: Vurdering,
         clock: Clock,
     ): Either<UgyldigUtenlandsopphold, VurderingsperiodeUtenlandsopphold> {
         return VurderingsperiodeUtenlandsopphold.tryCreate(
             opprettet = Tidspunkt.now(clock),
-            resultat = resultat,
+            vurdering = vurdering,
             grunnlag = null,
             vurderingsperiode = periode,
         ).getOrHandle {

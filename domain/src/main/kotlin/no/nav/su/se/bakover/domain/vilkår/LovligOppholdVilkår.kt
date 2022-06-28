@@ -23,7 +23,7 @@ sealed class LovligOppholdVilkår : Vilkår() {
     abstract override fun slåSammenLikePerioder(): LovligOppholdVilkår
 
     object IkkeVurdert : LovligOppholdVilkår() {
-        override val resultat: Resultat = Resultat.Uavklart
+        override val vurdering: Vurdering = Vurdering.Uavklart
         override val erAvslag = false
         override val erInnvilget = false
         override val grunnlag = emptyList<LovligOppholdGrunnlag>()
@@ -60,12 +60,12 @@ sealed class LovligOppholdVilkår : Vilkår() {
             )
         }
 
-        override val erInnvilget: Boolean = vurderingsperioder.all { it.resultat == Resultat.Innvilget }
+        override val erInnvilget: Boolean = vurderingsperioder.all { it.vurdering == Vurdering.Innvilget }
 
-        override val erAvslag: Boolean = vurderingsperioder.any { it.resultat == Resultat.Avslag }
+        override val erAvslag: Boolean = vurderingsperioder.any { it.vurdering == Vurdering.Avslag }
 
-        override val resultat: Resultat =
-            if (erInnvilget) Resultat.Innvilget else if (erAvslag) Resultat.Avslag else Resultat.Uavklart
+        override val vurdering: Vurdering =
+            if (erInnvilget) Vurdering.Innvilget else if (erAvslag) Vurdering.Avslag else Vurdering.Uavklart
 
         override val perioder: Nel<Periode> = vurderingsperioder.minsteAntallSammenhengendePerioder()
 
@@ -75,7 +75,7 @@ sealed class LovligOppholdVilkår : Vilkår() {
 
         override fun hentTidligesteDatoForAvslag(): LocalDate? {
             return vurderingsperioder
-                .filter { it.resultat == Resultat.Avslag }
+                .filter { it.vurdering == Vurdering.Avslag }
                 .map { it.periode.fraOgMed }
                 .minByOrNull { it }
         }

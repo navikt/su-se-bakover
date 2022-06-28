@@ -10,9 +10,9 @@ import no.nav.su.se.bakover.database.withTransaction
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.vilkår.Resultat
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
-import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
+import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
+import no.nav.su.se.bakover.domain.vilkår.Vurdering
+import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFormue
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.createFromGrunnlag
@@ -38,7 +38,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
                     it shouldBe vilkår
                     it.erAvslag shouldBe false
                     it.erInnvilget shouldBe false
-                    it.resultat shouldBe Resultat.Uavklart
+                    it.vurdering shouldBe Vurdering.Uavklart
                 }
             }
         }
@@ -92,7 +92,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.formueVilkårsvurderingPostgresRepo
             val behandlingId = UUID.randomUUID()
-            val vilkår = Vilkår.Formue.Vurdert.createFromGrunnlag(
+            val vilkår = FormueVilkår.Vurdert.createFromGrunnlag(
                 grunnlag = nonEmptyListOf(formuegrunnlag(periode)),
             )
             dataSource.withTransaction { session ->
@@ -101,7 +101,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
                     it shouldBe vilkår
                     it.erAvslag shouldBe false
                     it.erInnvilget shouldBe true
-                    it.resultat shouldBe Resultat.Innvilget
+                    it.vurdering shouldBe Vurdering.Innvilget
                 }
             }
         }
@@ -115,7 +115,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.formueVilkårsvurderingPostgresRepo
             val behandlingId = UUID.randomUUID()
-            val vilkår = Vilkår.Formue.Vurdert.createFromGrunnlag(
+            val vilkår = FormueVilkår.Vurdert.createFromGrunnlag(
                 grunnlag = nonEmptyListOf(
                     formuegrunnlag(
                         periode = periode,
@@ -130,7 +130,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
                     it shouldBe vilkår
                     it.erAvslag shouldBe false
                     it.erInnvilget shouldBe true
-                    it.resultat shouldBe Resultat.Innvilget
+                    it.vurdering shouldBe Vurdering.Innvilget
                 }
             }
         }
@@ -144,7 +144,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.formueVilkårsvurderingPostgresRepo
             val behandlingId = UUID.randomUUID()
-            val vilkår = Vilkår.Formue.Vurdert.createFromGrunnlag(
+            val vilkår = FormueVilkår.Vurdert.createFromGrunnlag(
                 grunnlag = nonEmptyListOf(
                     formuegrunnlag(
                         periode = periode,
@@ -167,7 +167,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
                     it shouldBe vilkår
                     it.erAvslag shouldBe true
                     it.erInnvilget shouldBe false
-                    it.resultat shouldBe Resultat.Avslag
+                    it.vurdering shouldBe Vurdering.Avslag
                 }
             }
         }
@@ -181,13 +181,13 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.formueVilkårsvurderingPostgresRepo
             val behandlingId = UUID.randomUUID()
-            val vilkår = Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(
+            val vilkår = FormueVilkår.Vurdert.createFromVilkårsvurderinger(
                 nonEmptyListOf(
-                    Vurderingsperiode.Formue.create(
+                    VurderingsperiodeFormue.create(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
                         // TODO(satsfactory_formue) jah: Man kan ikke opprette formuevilkår/vurdering/grunnlag som uavklart lenger. Kan sjekke at det ikke finnes spor av denne i basen og fjerne muligheten?
-                        resultat = Resultat.Uavklart,
+                        vurdering = Vurdering.Uavklart,
                         grunnlag = formuegrunnlag(
                             periode = periode,
                             bosituasjon = bosituasjongrunnlagEnslig(periode = periode),
@@ -203,7 +203,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
                     it shouldBe vilkår
                     it.erAvslag shouldBe false
                     it.erInnvilget shouldBe false
-                    it.resultat shouldBe Resultat.Uavklart
+                    it.vurdering shouldBe Vurdering.Uavklart
                 }
             }
         }

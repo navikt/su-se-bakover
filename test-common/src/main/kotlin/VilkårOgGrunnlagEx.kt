@@ -13,19 +13,21 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
+import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
+import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
+import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUføre
 import java.util.UUID
 
-fun Vilkår.Uførhet.Vurdert.Companion.create(
-    vurderingsperioder: Nel<Vurderingsperiode.Uføre>,
-): Vilkår.Uførhet.Vurdert {
+fun UføreVilkår.Vurdert.Companion.create(
+    vurderingsperioder: Nel<VurderingsperiodeUføre>,
+): UføreVilkår.Vurdert {
     return tryCreate(vurderingsperioder)
         .getOrHandle { throw IllegalArgumentException(it.toString()) }
 }
@@ -33,9 +35,9 @@ fun Vilkår.Uførhet.Vurdert.Companion.create(
 /**
  * Setter måInnhenteMerInformasjon for alle grunnlagene til 'false'
  */
-fun Vilkår.Formue.Vurdert.Companion.createFromGrunnlag(
+fun FormueVilkår.Vurdert.Companion.createFromGrunnlag(
     grunnlag: Nel<Formuegrunnlag>,
-): Vilkår.Formue.Vurdert =
+): FormueVilkår.Vurdert =
     tryCreateFromGrunnlag(
         grunnlag = grunnlag.map { false to it },
         formuegrenserFactory = formuegrenserFactoryTestPåDato(),
@@ -110,13 +112,13 @@ fun Formuegrunnlag.Verdier.Companion.empty() = create(
  * checking that all the objects are deeply equal, except id, which should be not equal
  * if the ids are equal, this will fail. use another shouldBe
  */
-fun Vilkår.Formue.shouldBeEqualToExceptId(expected: Vilkår.Formue) {
+fun FormueVilkår.shouldBeEqualToExceptId(expected: FormueVilkår) {
     when (this) {
-        is Vilkår.Formue.IkkeVurdert -> {
+        is FormueVilkår.IkkeVurdert -> {
             this shouldBe expected
         }
-        is Vilkår.Formue.Vurdert -> {
-            expected.shouldBeTypeOf<Vilkår.Formue.Vurdert>()
+        is FormueVilkår.Vurdert -> {
+            expected.shouldBeTypeOf<FormueVilkår.Vurdert>()
             this.vurderingsperioder.zip(expected.vurderingsperioder).map { (actual, expected) ->
                 actual.shouldBeEqualToIgnoringFields(expected, Vurderingsperiode::id, Vurderingsperiode::grunnlag)
                 actual.id shouldNotBe expected.id
@@ -128,13 +130,13 @@ fun Vilkår.Formue.shouldBeEqualToExceptId(expected: Vilkår.Formue) {
     }
 }
 
-fun Vilkår.Uførhet.shouldBeEqualToExceptId(expected: Vilkår.Uførhet) {
+fun UføreVilkår.shouldBeEqualToExceptId(expected: UføreVilkår) {
     when (this) {
-        Vilkår.Uførhet.IkkeVurdert -> {
+        UføreVilkår.IkkeVurdert -> {
             this shouldBe expected
         }
-        is Vilkår.Uførhet.Vurdert -> {
-            expected.shouldBeTypeOf<Vilkår.Uførhet.Vurdert>()
+        is UføreVilkår.Vurdert -> {
+            expected.shouldBeTypeOf<UføreVilkår.Vurdert>()
             this.vurderingsperioder.zip(expected.vurderingsperioder).map { (actual, expected) ->
                 actual.shouldBeEqualToIgnoringFields(expected, Vurderingsperiode::id, Vurderingsperiode::grunnlag)
                 actual.id shouldNotBe expected.id

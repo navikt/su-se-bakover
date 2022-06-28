@@ -9,8 +9,8 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Konsistensproblem
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageFormueGrunnlag
+import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import java.time.Clock
 import java.util.UUID
 
@@ -23,8 +23,8 @@ data class LeggTilFormuevilkårRequest(
         behandlingsperiode: Periode,
         clock: Clock,
         formuegrenserFactory: FormuegrenserFactory,
-    ): Either<KunneIkkeMappeTilDomenet, Vilkår.Formue.Vurdert> {
-        return Vilkår.Formue.Vurdert.tryCreateFromGrunnlag(
+    ): Either<KunneIkkeMappeTilDomenet, FormueVilkår.Vurdert> {
+        return FormueVilkår.Vurdert.tryCreateFromGrunnlag(
             grunnlag = formuegrunnlag.map { element ->
                 element.måInnhenteMerInformasjon to Formuegrunnlag.tryCreate(
                     opprettet = Tidspunkt.now(clock),
@@ -47,7 +47,7 @@ data class LeggTilFormuevilkårRequest(
             formuegrenserFactory = formuegrenserFactory,
         ).mapLeft {
             when (it) {
-                Vilkår.Formue.Vurdert.UgyldigFormuevilkår.OverlappendeVurderingsperioder -> return KunneIkkeMappeTilDomenet.IkkeLovMedOverlappendePerioder.left()
+                FormueVilkår.Vurdert.UgyldigFormuevilkår.OverlappendeVurderingsperioder -> return KunneIkkeMappeTilDomenet.IkkeLovMedOverlappendePerioder.left()
             }
         }
     }
@@ -64,8 +64,8 @@ data class LeggTilFormuevilkårRequest(
         behandlingsperiode: Periode,
         clock: Clock,
         formuegrenserFactory: FormuegrenserFactory,
-    ): Either<KunneIkkeMappeTilDomenet, Vilkår.Formue.Vurdert> {
-        return Vilkår.Formue.Vurdert.tryCreateFromGrunnlag(
+    ): Either<KunneIkkeMappeTilDomenet, FormueVilkår.Vurdert> {
+        return FormueVilkår.Vurdert.tryCreateFromGrunnlag(
             grunnlag = formuegrunnlag.map { element ->
                 element.måInnhenteMerInformasjon to Formuegrunnlag.tryCreate(
                     opprettet = Tidspunkt.now(clock),
@@ -88,7 +88,7 @@ data class LeggTilFormuevilkårRequest(
             formuegrenserFactory = formuegrenserFactory,
         ).mapLeft {
             when (it) {
-                Vilkår.Formue.Vurdert.UgyldigFormuevilkår.OverlappendeVurderingsperioder -> return KunneIkkeMappeTilDomenet.IkkeLovMedOverlappendePerioder.left()
+                FormueVilkår.Vurdert.UgyldigFormuevilkår.OverlappendeVurderingsperioder -> return KunneIkkeMappeTilDomenet.IkkeLovMedOverlappendePerioder.left()
             }
         }
     }

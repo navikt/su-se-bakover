@@ -23,7 +23,7 @@ internal class VurderingsperiodeInstitusjonsoppholdTest {
         VurderingsperiodeInstitusjonsopphold.tryCreate(
             id = vilkårId,
             opprettet = fixedTidspunkt,
-            resultat = Resultat.Innvilget,
+            vurdering = Vurdering.Innvilget,
             grunnlag = InstitusjonsoppholdGrunnlag(
                 id = grunnlagId,
                 opprettet = fixedTidspunkt,
@@ -37,7 +37,7 @@ internal class VurderingsperiodeInstitusjonsoppholdTest {
                 ) shouldBe VurderingsperiodeInstitusjonsopphold.tryCreate(
                     id = vilkårId,
                     opprettet = fixedTidspunkt,
-                    resultat = Resultat.Innvilget,
+                    vurdering = Vurdering.Innvilget,
                     grunnlag = InstitusjonsoppholdGrunnlag(
                         id = grunnlagId,
                         opprettet = fixedTidspunkt,
@@ -53,7 +53,7 @@ internal class VurderingsperiodeInstitusjonsoppholdTest {
         VurderingsperiodeInstitusjonsopphold.tryCreate(
             id = vilkårId,
             opprettet = fixedTidspunkt,
-            resultat = Resultat.Innvilget,
+            vurdering = Vurdering.Innvilget,
             grunnlag = InstitusjonsoppholdGrunnlag(
                 id = grunnlagId,
                 opprettet = fixedTidspunkt,
@@ -68,7 +68,7 @@ internal class VurderingsperiodeInstitusjonsoppholdTest {
         VurderingsperiodeInstitusjonsopphold.tryCreate(
             id = vilkårId,
             opprettet = fixedTidspunkt,
-            resultat = Resultat.Innvilget,
+            vurdering = Vurdering.Innvilget,
             grunnlag = InstitusjonsoppholdGrunnlag(
                 id = grunnlagId,
                 opprettet = fixedTidspunkt,
@@ -85,7 +85,7 @@ internal class VurderingsperiodeInstitusjonsoppholdTest {
         VurderingsperiodeInstitusjonsopphold.tryCreate(
             id = vilkårId,
             opprettet = fixedTidspunkt,
-            resultat = Resultat.Innvilget,
+            vurdering = Vurdering.Innvilget,
             grunnlag = InstitusjonsoppholdGrunnlag(
                 id = grunnlagId,
                 opprettet = fixedTidspunkt,
@@ -97,7 +97,7 @@ internal class VurderingsperiodeInstitusjonsoppholdTest {
                 VurderingsperiodeInstitusjonsopphold.tryCreate(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(),
-                    resultat = Resultat.Innvilget,
+                    vurdering = Vurdering.Innvilget,
                     grunnlag = InstitusjonsoppholdGrunnlag(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(),
@@ -110,7 +110,7 @@ internal class VurderingsperiodeInstitusjonsoppholdTest {
         VurderingsperiodeInstitusjonsopphold.tryCreate(
             id = vilkårId,
             opprettet = fixedTidspunkt,
-            resultat = Resultat.Innvilget,
+            vurdering = Vurdering.Innvilget,
             grunnlag = InstitusjonsoppholdGrunnlag(
                 id = grunnlagId,
                 opprettet = fixedTidspunkt,
@@ -122,7 +122,7 @@ internal class VurderingsperiodeInstitusjonsoppholdTest {
                 VurderingsperiodeInstitusjonsopphold.tryCreate(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(),
-                    resultat = Resultat.Avslag,
+                    vurdering = Vurdering.Avslag,
                     grunnlag = InstitusjonsoppholdGrunnlag(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(),

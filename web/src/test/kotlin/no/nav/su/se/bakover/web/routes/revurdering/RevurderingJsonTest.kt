@@ -33,8 +33,8 @@ import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
+import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.attesteringIverksatt
 import no.nav.su.se.bakover.test.create
@@ -93,7 +93,7 @@ internal class RevurderingJsonTest {
                 bosituasjon = listOf(bosituasjon),
             ),
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering.Uføre(
-                uføre = Vilkår.Uførhet.Vurdert.create(
+                uføre = UføreVilkår.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(vurderingsperiodeUføre),
                 ),
                 formue = formuevilkårIkkeVurdert(),
@@ -1495,7 +1495,7 @@ internal class RevurderingJsonTest {
                 "forhåndsvarsel": { "type": "INGEN_FORHÅNDSVARSEL" },
                 "begrunnelse": "valid",
                 "grunnlagsdataOgVilkårsvurderinger": {
-                  "uføre": ${serialize((simulertRevurdering.vilkårsvurderinger.uføreVilkår().getOrFail() as Vilkår.Uførhet.Vurdert).toJson())},
+                  "uføre": ${serialize((simulertRevurdering.vilkårsvurderinger.uføreVilkår().getOrFail() as UføreVilkår.Vurdert).toJson())},
                   "lovligOpphold": ${serialize(simulertRevurdering.vilkårsvurderinger.lovligOpphold.toJson()!!)},
                   "fradrag": [],
                   "bosituasjon": ${serialize(simulertRevurdering.grunnlagsdata.bosituasjon.toJson())},
@@ -1537,7 +1537,7 @@ internal class RevurderingJsonTest {
                 "forhåndsvarsel": { "type": "INGEN_FORHÅNDSVARSEL" },
                 "begrunnelse": "valid",
                 "grunnlagsdataOgVilkårsvurderinger": {
-                  "uføre": ${serialize((iverksattRevurdering.vilkårsvurderinger.uføreVilkår().getOrFail() as Vilkår.Uførhet.Vurdert).toJson())},
+                  "uføre": ${serialize((iverksattRevurdering.vilkårsvurderinger.uføreVilkår().getOrFail() as UføreVilkår.Vurdert).toJson())},
                   "lovligOpphold": ${serialize(simulertRevurdering.vilkårsvurderinger.lovligOpphold.toJson()!!)},
                   "fradrag": [],
                   "bosituasjon": ${serialize(iverksattRevurdering.grunnlagsdata.bosituasjon.toJson())},
@@ -1581,7 +1581,7 @@ internal class RevurderingJsonTest {
                 "begrunnelse": "valid",
                 "forhåndsvarsel": { "type": "INGEN_FORHÅNDSVARSEL" },
                 "grunnlagsdataOgVilkårsvurderinger": {
-                  "uføre": ${serialize((simulertRevurdering.vilkårsvurderinger.uføreVilkår().getOrFail() as Vilkår.Uførhet.Vurdert).toJson())},
+                  "uføre": ${serialize((simulertRevurdering.vilkårsvurderinger.uføreVilkår().getOrFail() as UføreVilkår.Vurdert).toJson())},
                   "lovligOpphold": ${serialize(simulertRevurdering.vilkårsvurderinger.lovligOpphold.toJson()!!)},
                   "fradrag": [],
                   "bosituasjon": ${serialize(simulertRevurdering.grunnlagsdata.bosituasjon.toJson())},
@@ -1623,7 +1623,7 @@ internal class RevurderingJsonTest {
                 "begrunnelse": "valid",
                 "forhåndsvarsel": { "type": "INGEN_FORHÅNDSVARSEL" },
                 "grunnlagsdataOgVilkårsvurderinger": {
-                  "uføre": ${serialize((iverksattRevurdering.vilkårsvurderinger.uføreVilkår().getOrFail() as Vilkår.Uførhet.Vurdert).toJson())},
+                  "uføre": ${serialize((iverksattRevurdering.vilkårsvurderinger.uføreVilkår().getOrFail() as UføreVilkår.Vurdert).toJson())},
                   "lovligOpphold": ${serialize(iverksattRevurdering.vilkårsvurderinger.lovligOpphold.toJson()!!)},
                   "fradrag": [],
                   "bosituasjon": ${serialize(iverksattRevurdering.grunnlagsdata.bosituasjon.toJson())},

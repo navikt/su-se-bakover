@@ -67,7 +67,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
 
         response shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
         response.let {
-            it.vilkårsvurderinger.resultat shouldBe Vilkårsvurderingsresultat.Innvilget(
+            it.vilkårsvurderinger.vurdering shouldBe Vilkårsvurderingsresultat.Innvilget(
                 vilkår = setOf(
                     response.vilkårsvurderinger.uføreVilkår().getOrFail(),
                     response.vilkårsvurderinger.formue,
@@ -109,7 +109,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
 
         response shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
         response.let {
-            it.vilkårsvurderinger.resultat shouldBe Vilkårsvurderingsresultat.Avslag(
+            it.vilkårsvurderinger.vurdering shouldBe Vilkårsvurderingsresultat.Avslag(
                 vilkår = setOf(
                     response.vilkårsvurderinger.uføreVilkår().getOrFail(),
                     response.vilkårsvurderinger.formue,

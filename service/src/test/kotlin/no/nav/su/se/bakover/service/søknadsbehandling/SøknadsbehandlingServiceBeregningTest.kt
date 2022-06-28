@@ -30,9 +30,9 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.domain.vilkår.Resultat
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
-import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
+import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
+import no.nav.su.se.bakover.domain.vilkår.Vurdering
+import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUføre
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -253,12 +253,12 @@ class SøknadsbehandlingServiceBeregningTest {
             søknadsbehandlingRepo = mock {
                 on { hent(any()) } doReturn søknadsbehandlingVilkårsvurdertInnvilget().let { (_, innvilget) ->
                     innvilget.leggTilUførevilkår(
-                        uførhet = Vilkår.Uførhet.Vurdert.create(
+                        uførhet = UføreVilkår.Vurdert.create(
                             vurderingsperioder = nonEmptyListOf(
-                                Vurderingsperiode.Uføre.create(
+                                VurderingsperiodeUføre.create(
                                     id = UUID.randomUUID(),
                                     opprettet = fixedTidspunkt,
-                                    resultat = Resultat.Innvilget,
+                                    vurdering = Vurdering.Innvilget,
                                     grunnlag = Grunnlag.Uføregrunnlag(
                                         id = UUID.randomUUID(),
                                         opprettet = fixedTidspunkt,
@@ -268,10 +268,10 @@ class SøknadsbehandlingServiceBeregningTest {
                                     ),
                                     periode = Periode.create(1.januar(2021), 30.april(2021)),
                                 ),
-                                Vurderingsperiode.Uføre.create(
+                                VurderingsperiodeUføre.create(
                                     id = UUID.randomUUID(),
                                     opprettet = fixedTidspunkt,
-                                    resultat = Resultat.Innvilget,
+                                    vurdering = Vurdering.Innvilget,
                                     grunnlag = Grunnlag.Uføregrunnlag(
                                         id = UUID.randomUUID(),
                                         opprettet = fixedTidspunkt,

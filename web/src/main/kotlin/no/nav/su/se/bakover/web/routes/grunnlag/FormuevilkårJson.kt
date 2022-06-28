@@ -5,9 +5,9 @@ import no.nav.su.se.bakover.common.periode.PeriodeJson
 import no.nav.su.se.bakover.common.periode.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.domain.satser.SatsFactory
-import no.nav.su.se.bakover.domain.vilkår.Resultat
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
-import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
+import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
+import no.nav.su.se.bakover.domain.vilkår.Vurdering
+import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFormue
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -26,16 +26,16 @@ internal data class VurderingsperiodeFormueJson(
     val periode: PeriodeJson,
 )
 
-internal fun Vilkår.Formue.toJson(satsFactory: SatsFactory): FormuevilkårJson {
+internal fun FormueVilkår.toJson(satsFactory: SatsFactory): FormuevilkårJson {
 
     return FormuevilkårJson(
         vurderinger = when (this) {
-            is Vilkår.Formue.IkkeVurdert -> emptyList()
-            is Vilkår.Formue.Vurdert -> vurderingsperioder.map { it.toJson() }
+            is FormueVilkår.IkkeVurdert -> emptyList()
+            is FormueVilkår.Vurdert -> vurderingsperioder.map { it.toJson() }
         },
         resultat = when (this) {
-            is Vilkår.Formue.IkkeVurdert -> null
-            is Vilkår.Formue.Vurdert -> resultat.toFormueStatusString()
+            is FormueVilkår.IkkeVurdert -> null
+            is FormueVilkår.Vurdert -> vurdering.toFormueStatusString()
         },
         // TODO("håndter_formue egentlig knyttet til formuegrenser")
         // TODO jah + jacob:  Denne bør flyttes til et eget endepunkt i de tilfellene vi ikke har fylt ut formuegrunnlaget/vilkåret enda.
@@ -45,10 +45,10 @@ internal fun Vilkår.Formue.toJson(satsFactory: SatsFactory): FormuevilkårJson 
     )
 }
 
-internal fun Resultat.toFormueStatusString() = when (this) {
-    Resultat.Avslag -> FormuevilkårStatus.VilkårIkkeOppfylt
-    Resultat.Innvilget -> FormuevilkårStatus.VilkårOppfylt
-    Resultat.Uavklart -> FormuevilkårStatus.MåInnhenteMerInformasjon
+internal fun Vurdering.toFormueStatusString() = when (this) {
+    Vurdering.Avslag -> FormuevilkårStatus.VilkårIkkeOppfylt
+    Vurdering.Innvilget -> FormuevilkårStatus.VilkårOppfylt
+    Vurdering.Uavklart -> FormuevilkårStatus.MåInnhenteMerInformasjon
 }
 
 internal enum class FormuevilkårStatus {
@@ -57,11 +57,11 @@ internal enum class FormuevilkårStatus {
     MåInnhenteMerInformasjon
 }
 
-internal fun Vurderingsperiode.Formue.toJson(): VurderingsperiodeFormueJson {
+internal fun VurderingsperiodeFormue.toJson(): VurderingsperiodeFormueJson {
     return VurderingsperiodeFormueJson(
         id = id.toString(),
         opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
-        resultat = resultat.toFormueStatusString(),
+        resultat = vurdering.toFormueStatusString(),
         grunnlag = grunnlag.toJson(),
         periode = periode.toJson(),
     )

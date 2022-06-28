@@ -23,7 +23,7 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingsutfallSomIkkeStøttes
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
+import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.beregnetRevurdering
@@ -397,7 +397,7 @@ internal class RevurderingBeregnOgSimulerTest {
     fun `uavklarte vilkår kaster exception`() {
         val (sak, opprettet) = opprettetRevurdering(
             vilkårOverrides = listOf(
-                Vilkår.Uførhet.IkkeVurdert,
+                UføreVilkår.IkkeVurdert,
             ),
         )
 

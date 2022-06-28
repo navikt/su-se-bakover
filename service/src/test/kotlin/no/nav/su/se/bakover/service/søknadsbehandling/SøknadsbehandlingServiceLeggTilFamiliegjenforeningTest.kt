@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.service.søknadsbehandling
 import arrow.core.left
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.domain.vilkår.Resultat
+import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.service.vilkår.FamiliegjenforeningVurderinger
 import no.nav.su.se.bakover.service.vilkår.FamiliegjenforeningvilkårStatus
 import no.nav.su.se.bakover.service.vilkår.LeggTilFamiliegjenforeningRequest
@@ -57,7 +57,7 @@ internal class SøknadsbehandlingServiceLeggTilFamiliegjenforeningTest {
 
             actual.let {
                 it.vilkårsvurderinger.familiegjenforening().shouldBeRight().let {
-                    it.resultat shouldBe Resultat.Innvilget
+                    it.vurdering shouldBe Vurdering.Innvilget
                 }
             }
 

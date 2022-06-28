@@ -9,8 +9,8 @@ import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.grunnlag.Utenlandsoppholdgrunnlag
-import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
+import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUtenlandsopphold
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
@@ -39,7 +39,7 @@ internal class UtenlandsoppholdVilkårJsonTest {
                 VurderingsperiodeUtenlandsopphold.create(
                     id = UUID.randomUUID(),
                     opprettet = fixedTidspunkt,
-                    resultat = Resultat.Avslag,
+                    vurdering = Vurdering.Avslag,
                     grunnlag = Utenlandsoppholdgrunnlag(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
@@ -50,7 +50,7 @@ internal class UtenlandsoppholdVilkårJsonTest {
                 VurderingsperiodeUtenlandsopphold.create(
                     id = UUID.randomUUID(),
                     opprettet = fixedTidspunkt,
-                    resultat = Resultat.Innvilget,
+                    vurdering = Vurdering.Innvilget,
                     grunnlag = null,
                     periode = Periode.create(1.mai(2021), 31.desember(2021)),
                 ),

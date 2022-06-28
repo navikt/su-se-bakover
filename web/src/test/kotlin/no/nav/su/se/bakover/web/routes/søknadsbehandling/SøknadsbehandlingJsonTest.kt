@@ -6,7 +6,8 @@ import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
+import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
+import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.nySøknadsbehandlingUføre
@@ -256,13 +257,13 @@ internal class SøknadsbehandlingJsonTest {
                       "id": "${
         (
             søknadsbehandling.vilkårsvurderinger.uføreVilkår()
-                .getOrFail() as Vilkår.Uførhet.Vurdert
+                .getOrFail() as UføreVilkår.Vurdert
             ).vurderingsperioder.single().id
         }",
                       "opprettet": "${
         (
             søknadsbehandling.vilkårsvurderinger.uføreVilkår()
-                .getOrFail() as Vilkår.Uførhet.Vurdert
+                .getOrFail() as UføreVilkår.Vurdert
             ).vurderingsperioder.single().opprettet
         }",
                       "resultat": "VilkårOppfylt",
@@ -270,13 +271,13 @@ internal class SøknadsbehandlingJsonTest {
                         "id": "${
         (
             søknadsbehandling.vilkårsvurderinger.uføreVilkår()
-                .getOrFail() as Vilkår.Uførhet.Vurdert
+                .getOrFail() as UføreVilkår.Vurdert
             ).vurderingsperioder.single().grunnlag!!.id
         }",
                         "opprettet": "${
         (
             søknadsbehandling.vilkårsvurderinger.uføreVilkår()
-                .getOrFail() as Vilkår.Uførhet.Vurdert
+                .getOrFail() as UføreVilkår.Vurdert
             ).vurderingsperioder.single().grunnlag!!.opprettet
         }",
                         "periode": {
@@ -323,8 +324,8 @@ internal class SøknadsbehandlingJsonTest {
                 "formue": {
                   "vurderinger": [
                     {
-                      "id": "${(søknadsbehandling.vilkårsvurderinger.formueVilkår() as Vilkår.Formue.Vurdert).vurderingsperioder.single().id}",
-                      "opprettet": "${(søknadsbehandling.vilkårsvurderinger.formueVilkår() as Vilkår.Formue.Vurdert).vurderingsperioder.single().opprettet}",
+                      "id": "${(søknadsbehandling.vilkårsvurderinger.formueVilkår() as FormueVilkår.Vurdert).vurderingsperioder.single().id}",
+                      "opprettet": "${(søknadsbehandling.vilkårsvurderinger.formueVilkår() as FormueVilkår.Vurdert).vurderingsperioder.single().opprettet}",
                       "resultat": "VilkårOppfylt",
                       "grunnlag": {
                         "epsFormue": null,

@@ -44,12 +44,14 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.FamiliegjenforeningVilkår
 import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
+import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.PensjonsVilkår
 import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
+import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -227,7 +229,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     }
 
     fun leggTilFormuevilkår(
-        vilkår: Vilkår.Formue.Vurdert,
+        vilkår: FormueVilkår.Vurdert,
         clock: Clock,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFormuevilkår, Vilkårsvurdert> {
         return if (this is KanOppdaterePeriodeGrunnlagVilkår) {
@@ -241,7 +243,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     }
 
     private fun leggTilFormuevilkårInternal(
-        vilkår: Vilkår.Formue.Vurdert,
+        vilkår: FormueVilkår.Vurdert,
         clock: Clock,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFormuevilkår, Vilkårsvurdert> {
         return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFormuevilkår>(vilkår)
@@ -407,13 +409,13 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             is FamiliegjenforeningVilkår.Vurdert -> Unit.right()
             is FastOppholdINorgeVilkår.Vurdert -> Unit.right()
             is FlyktningVilkår.Vurdert -> Unit.right()
-            is Vilkår.Formue.Vurdert -> Unit.right()
+            is FormueVilkår.Vurdert -> Unit.right()
             is InstitusjonsoppholdVilkår.Vurdert -> Unit.right()
             is LovligOppholdVilkår.Vurdert -> Unit.right()
             is OpplysningspliktVilkår.Vurdert -> valider(vilkår).mapLeft { it as T }
             is PensjonsVilkår.Vurdert -> valider(vilkår).mapLeft { it as T }
             is PersonligOppmøteVilkår.Vurdert -> Unit.right()
-            is Vilkår.Uførhet.Vurdert -> valider(vilkår).mapLeft { it as T }
+            is UføreVilkår.Vurdert -> valider(vilkår).mapLeft { it as T }
             is UtenlandsoppholdVilkår.Vurdert -> valider(vilkår).mapLeft { it as T }
             else -> throw IllegalStateException("Vet ikke hvordan man validerer vilkår av type: ${vilkår::class}")
         }
@@ -428,7 +430,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode.left()
             }
             !utenlandsopphold.vurderingsperioder.all {
-                it.resultat == utenlandsopphold.vurderingsperioder.first().resultat
+                it.vurdering == utenlandsopphold.vurderingsperioder.first().vurdering
             } -> {
                 KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold.AlleVurderingsperioderMåHaSammeResultat.left()
             }
@@ -440,7 +442,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     }
 
     fun leggTilUførevilkår(
-        uførhet: Vilkår.Uførhet.Vurdert,
+        uførhet: UføreVilkår.Vurdert,
         clock: Clock,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
         return if (this is KanOppdaterePeriodeGrunnlagVilkår) {
@@ -452,7 +454,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     }
 
     private fun leggTilUførevilkårInternal(
-        vilkår: Vilkår.Uførhet.Vurdert,
+        vilkår: UføreVilkår.Vurdert,
         clock: Clock,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
         return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår>(vilkår)
@@ -489,7 +491,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             }
     }
 
-    private fun valider(uførhet: Vilkår.Uførhet.Vurdert): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår, Unit> {
+    private fun valider(uførhet: UføreVilkår.Vurdert): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår, Unit> {
         return when {
             !periode.inneholderAlle(uførhet.vurderingsperioder) -> {
                 KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår.VurderingsperiodeUtenforBehandlingsperiode.left()
@@ -746,7 +748,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         it
                     }
                 }
-                return when (oppdaterteVilkårsvurderinger.resultat) {
+                return when (oppdaterteVilkårsvurderinger.vurdering) {
                     is Vilkårsvurderingsresultat.Avslag -> {
                         Avslag(
                             id,
@@ -919,7 +921,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 )
 
             // TODO fiks typing/gyldig tilstand/vilkår fradrag?
-            override val avslagsgrunner: List<Avslagsgrunn> = when (val vilkår = vilkårsvurderinger.resultat) {
+            override val avslagsgrunner: List<Avslagsgrunn> = when (val vilkår = vilkårsvurderinger.vurdering) {
                 is Vilkårsvurderingsresultat.Avslag -> vilkår.avslagsgrunner
                 is Vilkårsvurderingsresultat.Innvilget -> emptyList()
                 is Vilkårsvurderingsresultat.Uavklart -> emptyList()
@@ -1133,7 +1135,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 )
 
             // TODO fiks typing/gyldig tilstand/vilkår fradrag?
-            override val avslagsgrunner: List<Avslagsgrunn> = when (val vilkår = vilkårsvurderinger.resultat) {
+            override val avslagsgrunner: List<Avslagsgrunn> = when (val vilkår = vilkårsvurderinger.vurdering) {
                 is Vilkårsvurderingsresultat.Avslag -> vilkår.avslagsgrunner
                 is Vilkårsvurderingsresultat.Innvilget -> emptyList()
                 is Vilkårsvurderingsresultat.Uavklart -> emptyList()
@@ -1381,7 +1383,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             ) : Avslag() {
 
                 // TODO fiks typing/gyldig tilstand/vilkår fradrag?
-                override val avslagsgrunner: List<Avslagsgrunn> = when (val vilkår = vilkårsvurderinger.resultat) {
+                override val avslagsgrunner: List<Avslagsgrunn> = when (val vilkår = vilkårsvurderinger.vurdering) {
                     is Vilkårsvurderingsresultat.Avslag -> vilkår.avslagsgrunner
                     is Vilkårsvurderingsresultat.Innvilget -> emptyList()
                     is Vilkårsvurderingsresultat.Uavklart -> emptyList()
@@ -1486,7 +1488,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     }
 
                 // TODO fiks typing/gyldig tilstand/vilkår fradrag?
-                override val avslagsgrunner: List<Avslagsgrunn> = when (val vilkår = vilkårsvurderinger.resultat) {
+                override val avslagsgrunner: List<Avslagsgrunn> = when (val vilkår = vilkårsvurderinger.vurdering) {
                     is Vilkårsvurderingsresultat.Avslag -> vilkår.avslagsgrunner
                     is Vilkårsvurderingsresultat.Innvilget -> emptyList()
                     is Vilkårsvurderingsresultat.Uavklart -> emptyList()
@@ -1777,7 +1779,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     )
 
                 // TODO fiks typing/gyldig tilstand/vilkår fradrag?
-                override val avslagsgrunner: List<Avslagsgrunn> = when (val vilkår = vilkårsvurderinger.resultat) {
+                override val avslagsgrunner: List<Avslagsgrunn> = when (val vilkår = vilkårsvurderinger.vurdering) {
                     is Vilkårsvurderingsresultat.Avslag -> vilkår.avslagsgrunner
                     is Vilkårsvurderingsresultat.Innvilget -> emptyList()
                     is Vilkårsvurderingsresultat.Uavklart -> emptyList()
@@ -1852,7 +1854,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     )
 
                 // TODO fiks typing/gyldig tilstand/vilkår fradrag?
-                override val avslagsgrunner: List<Avslagsgrunn> = when (val vilkår = vilkårsvurderinger.resultat) {
+                override val avslagsgrunner: List<Avslagsgrunn> = when (val vilkår = vilkårsvurderinger.vurdering) {
                     is Vilkårsvurderingsresultat.Avslag -> vilkår.avslagsgrunner
                     is Vilkårsvurderingsresultat.Innvilget -> emptyList()
                     is Vilkårsvurderingsresultat.Uavklart -> emptyList()
@@ -1947,7 +1949,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     }
 
                 // TODO fiks typing/gyldig tilstand/vilkår fradrag?
-                override val avslagsgrunner: List<Avslagsgrunn> = when (val vilkår = vilkårsvurderinger.resultat) {
+                override val avslagsgrunner: List<Avslagsgrunn> = when (val vilkår = vilkårsvurderinger.vurdering) {
                     is Vilkårsvurderingsresultat.Avslag -> vilkår.avslagsgrunner
                     is Vilkårsvurderingsresultat.Innvilget -> emptyList()
                     is Vilkårsvurderingsresultat.Uavklart -> emptyList()
@@ -1985,7 +1987,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 }
 
                 // TODO fiks typing/gyldig tilstand/vilkår fradrag?
-                override val avslagsgrunner: List<Avslagsgrunn> = when (val vilkår = vilkårsvurderinger.resultat) {
+                override val avslagsgrunner: List<Avslagsgrunn> = when (val vilkår = vilkårsvurderinger.vurdering) {
                     is Vilkårsvurderingsresultat.Avslag -> vilkår.avslagsgrunner
                     is Vilkårsvurderingsresultat.Innvilget -> emptyList()
                     is Vilkårsvurderingsresultat.Uavklart -> emptyList()

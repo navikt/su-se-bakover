@@ -24,10 +24,10 @@ internal class VurderingsperiodeTest {
 
     @Test
     fun `bevarer korrekte verdier ved kopiering for plassering på tidslinje - full kopi`() {
-        val original = Vurderingsperiode.Uføre.create(
+        val original = VurderingsperiodeUføre.create(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
-            resultat = Resultat.Innvilget,
+            vurdering = Vurdering.Innvilget,
             grunnlag = Grunnlag.Uføregrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
@@ -56,10 +56,10 @@ internal class VurderingsperiodeTest {
 
     @Test
     fun `bevarer korrekte verdier ved kopiering for plassering på tidslinje - ny periode`() {
-        val original = Vurderingsperiode.Uføre.create(
+        val original = VurderingsperiodeUføre.create(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
-            resultat = Resultat.Innvilget,
+            vurdering = Vurdering.Innvilget,
             grunnlag = Grunnlag.Uføregrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
@@ -87,10 +87,10 @@ internal class VurderingsperiodeTest {
 
     @Test
     fun `kan lage tidslinje for vurderingsperioder`() {
-        val a = Vurderingsperiode.Uføre.create(
+        val a = VurderingsperiodeUføre.create(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
-            resultat = Resultat.Innvilget,
+            vurdering = Vurdering.Innvilget,
             grunnlag = Grunnlag.Uføregrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
@@ -101,10 +101,10 @@ internal class VurderingsperiodeTest {
             periode = år(2021),
         )
 
-        val b = Vurderingsperiode.Uføre.create(
+        val b = VurderingsperiodeUføre.create(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt.plus(1, ChronoUnit.DAYS),
-            resultat = Resultat.Innvilget,
+            vurdering = Vurdering.Innvilget,
             grunnlag = Grunnlag.Uføregrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt.plus(1, ChronoUnit.DAYS),
@@ -115,10 +115,10 @@ internal class VurderingsperiodeTest {
             periode = Periode.create(1.mai(2021), 31.desember(2021)),
         )
 
-        val c = Vurderingsperiode.Uføre.create(
+        val c = VurderingsperiodeUføre.create(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt.plus(2, ChronoUnit.DAYS),
-            resultat = Resultat.Innvilget,
+            vurdering = Vurdering.Innvilget,
             grunnlag = null,
             periode = desember(2021),
         )
@@ -161,10 +161,10 @@ internal class VurderingsperiodeTest {
 
     @Test
     fun `krever samsvar med periode for grunnlag dersom det eksisterer`() {
-        Vurderingsperiode.Uføre.tryCreate(
+        VurderingsperiodeUføre.tryCreate(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
-            resultat = Resultat.Innvilget,
+            vurdering = Vurdering.Innvilget,
             grunnlag = Grunnlag.Uføregrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
@@ -173,15 +173,15 @@ internal class VurderingsperiodeTest {
                 forventetInntekt = 500,
             ),
             vurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
-        ) shouldBe Vurderingsperiode.Uføre.UgyldigVurderingsperiode.PeriodeForGrunnlagOgVurderingErForskjellig.left()
+        ) shouldBe VurderingsperiodeUføre.UgyldigVurderingsperiode.PeriodeForGrunnlagOgVurderingErForskjellig.left()
     }
 
     @Test
     fun `kan opprettes selv om grunnlag ikke eksisterer`() {
-        Vurderingsperiode.Uføre.tryCreate(
+        VurderingsperiodeUføre.tryCreate(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
-            resultat = Resultat.Innvilget,
+            vurdering = Vurdering.Innvilget,
             grunnlag = null,
             vurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
         ).isRight() shouldBe true

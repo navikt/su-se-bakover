@@ -13,7 +13,7 @@ import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vilkår.KunneIkkeLagePensjonsVilkår
 import no.nav.su.se.bakover.domain.vilkår.PensjonsVilkår
-import no.nav.su.se.bakover.domain.vilkår.Resultat
+import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodePensjon
 import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeTilPensjonsVilkår
 import no.nav.su.se.bakover.web.routes.Feilresponser
@@ -139,11 +139,11 @@ internal data class PensjonsVilkårJson(
     val resultat: String,
 )
 
-private fun Resultat.toJson(): String {
+private fun Vurdering.toJson(): String {
     return when (this) {
-        Resultat.Avslag -> "VilkårIkkeOppfylt"
-        Resultat.Innvilget -> "VilkårOppfylt"
-        Resultat.Uavklart -> "Uavklart"
+        Vurdering.Avslag -> "VilkårIkkeOppfylt"
+        Vurdering.Innvilget -> "VilkårOppfylt"
+        Vurdering.Uavklart -> "Uavklart"
     }
 }
 
@@ -196,13 +196,13 @@ internal fun PensjonsVilkår.toJson(): PensjonsVilkårJson? {
 internal fun PensjonsVilkår.Vurdert.toJson(): PensjonsVilkårJson {
     return PensjonsVilkårJson(
         vurderinger = vurderingsperioder.map { it.toJson() },
-        resultat = resultat.toJson(),
+        resultat = vurdering.toJson(),
     )
 }
 
 internal fun VurderingsperiodePensjon.toJson(): VurderingsperiodePensjonsvilkårJson {
     return VurderingsperiodePensjonsvilkårJson(
-        resultat = resultat.toJson(),
+        resultat = vurdering.toJson(),
         periode = periode.toJson(),
         pensjonsopplysninger = grunnlag.pensjonsopplysninger.toJson(),
     )

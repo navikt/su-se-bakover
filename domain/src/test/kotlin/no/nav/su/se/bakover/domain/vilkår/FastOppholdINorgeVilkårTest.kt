@@ -31,7 +31,7 @@ internal class FastOppholdINorgeVilkårTest {
                     VurderingsperiodeFastOppholdINorge.tryCreate(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
-                        resultat = Resultat.Innvilget,
+                        vurdering = Vurdering.Innvilget,
                         grunnlag = FastOppholdINorgeGrunnlag(
                             id = UUID.randomUUID(),
                             opprettet = Tidspunkt.now(fixedClock),
@@ -57,7 +57,7 @@ internal class FastOppholdINorgeVilkårTest {
                     VurderingsperiodeFastOppholdINorge.tryCreate(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
-                        resultat = Resultat.Avslag,
+                        vurdering = Vurdering.Avslag,
                         grunnlag = FastOppholdINorgeGrunnlag(
                             id = UUID.randomUUID(),
                             opprettet = Tidspunkt.now(fixedClock),
@@ -87,7 +87,7 @@ internal class FastOppholdINorgeVilkårTest {
                 VurderingsperiodeFastOppholdINorge.tryCreate(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(fixedClock),
-                    resultat = Resultat.Innvilget,
+                    vurdering = Vurdering.Innvilget,
                     grunnlag = FastOppholdINorgeGrunnlag(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
@@ -102,7 +102,7 @@ internal class FastOppholdINorgeVilkårTest {
                     VurderingsperiodeFastOppholdINorge.tryCreate(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
-                        resultat = Resultat.Innvilget,
+                        vurdering = Vurdering.Innvilget,
                         grunnlag = FastOppholdINorgeGrunnlag(
                             id = UUID.randomUUID(),
                             opprettet = Tidspunkt.now(fixedClock),
@@ -122,7 +122,7 @@ internal class FastOppholdINorgeVilkårTest {
                 VurderingsperiodeFastOppholdINorge.tryCreate(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(fixedClock),
-                    resultat = Resultat.Innvilget,
+                    vurdering = Vurdering.Innvilget,
                     grunnlag = FastOppholdINorgeGrunnlag(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
@@ -133,7 +133,7 @@ internal class FastOppholdINorgeVilkårTest {
                 VurderingsperiodeFastOppholdINorge.tryCreate(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(fixedClock),
-                    resultat = Resultat.Innvilget,
+                    vurdering = Vurdering.Innvilget,
                     grunnlag = FastOppholdINorgeGrunnlag(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
@@ -150,7 +150,7 @@ internal class FastOppholdINorgeVilkårTest {
         val v1 = VurderingsperiodeFastOppholdINorge.tryCreate(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(fixedClock),
-            resultat = Resultat.Innvilget,
+            vurdering = Vurdering.Innvilget,
             grunnlag = FastOppholdINorgeGrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(fixedClock),
@@ -162,7 +162,7 @@ internal class FastOppholdINorgeVilkårTest {
         val v2 = VurderingsperiodeFastOppholdINorge.tryCreate(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(fixedClock),
-            resultat = Resultat.Innvilget,
+            vurdering = Vurdering.Innvilget,
             grunnlag = FastOppholdINorgeGrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(fixedClock),

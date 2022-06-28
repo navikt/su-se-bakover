@@ -4,7 +4,7 @@ import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.vilkår.FamiliegjenforeningVilkår
-import no.nav.su.se.bakover.domain.vilkår.Resultat
+import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFamiliegjenforening
 import java.time.Clock
 import java.util.UUID
@@ -38,10 +38,10 @@ data class LeggTilFamiliegjenforeningRequest(
     ) = vurderinger.map {
         VurderingsperiodeFamiliegjenforening.create(
             opprettet = Tidspunkt.now(clock),
-            resultat = when (it.status) {
-                FamiliegjenforeningvilkårStatus.VilkårOppfylt -> Resultat.Innvilget
-                FamiliegjenforeningvilkårStatus.VilkårIkkeOppfylt -> Resultat.Avslag
-                FamiliegjenforeningvilkårStatus.Uavklart -> Resultat.Uavklart
+            vurdering = when (it.status) {
+                FamiliegjenforeningvilkårStatus.VilkårOppfylt -> Vurdering.Innvilget
+                FamiliegjenforeningvilkårStatus.VilkårIkkeOppfylt -> Vurdering.Avslag
+                FamiliegjenforeningvilkårStatus.Uavklart -> Vurdering.Uavklart
             },
             periode = stønadsperiode,
         )

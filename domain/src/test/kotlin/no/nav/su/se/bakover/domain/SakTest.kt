@@ -26,11 +26,12 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
+import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
+import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
@@ -523,7 +524,7 @@ internal class SakTest {
                     ).getOrFail() shouldBe nySøknadsbehandlingMedOpplysningsplikt.copy(
                         stønadsperiode = stønadsperiode,
                         vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre(
-                            formue = Vilkår.Formue.IkkeVurdert,
+                            formue = FormueVilkår.IkkeVurdert,
                             utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
                             opplysningsplikt = tilstrekkeligDokumentert(periode = stønadsperiode.periode),
                             lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
@@ -531,7 +532,7 @@ internal class SakTest {
                             institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
                             personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
                             flyktning = FlyktningVilkår.IkkeVurdert,
-                            uføre = Vilkår.Uførhet.IkkeVurdert,
+                            uføre = UføreVilkår.IkkeVurdert,
                         ),
                     )
                 }
