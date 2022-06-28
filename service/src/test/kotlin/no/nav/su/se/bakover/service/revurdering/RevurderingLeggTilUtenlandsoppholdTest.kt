@@ -7,9 +7,9 @@ import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
-import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
+import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUtenlandsopphold
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.vilkår.LeggTilFlereUtenlandsoppholdRequest
@@ -34,7 +34,7 @@ internal class RevurderingLeggTilUtenlandsoppholdTest {
             vilkårsvurderinger = opprettetRevurdering.vilkårsvurderinger.leggTil(UtenlandsoppholdVilkår.IkkeVurdert),
         )
 
-        revurderingIkkeVurdert.vilkårsvurderinger.resultat shouldBe Vilkårsvurderingsresultat.Uavklart(
+        revurderingIkkeVurdert.vilkårsvurderinger.vurdering shouldBe Vilkårsvurderingsresultat.Uavklart(
             setOf(UtenlandsoppholdVilkår.IkkeVurdert),
         )
 
@@ -45,7 +45,7 @@ internal class RevurderingLeggTilUtenlandsoppholdTest {
                     vurderingsperioder = nonEmptyListOf(
                         VurderingsperiodeUtenlandsopphold.tryCreate(
                             opprettet = opprettetRevurdering.opprettet,
-                            resultat = Resultat.Innvilget,
+                            vurdering = Vurdering.Innvilget,
                             grunnlag = null,
                             vurderingsperiode = opprettetRevurdering.periode,
                         ).getOrFail(),
@@ -81,7 +81,7 @@ internal class RevurderingLeggTilUtenlandsoppholdTest {
             verify(it.revurderingRepo).lagre(
                 argThat { lagret ->
                     lagret shouldBe expected
-                    lagret.vilkårsvurderinger.resultat shouldBe Vilkårsvurderingsresultat.Innvilget(
+                    lagret.vilkårsvurderinger.vurdering shouldBe Vilkårsvurderingsresultat.Innvilget(
                         lagret.vilkårsvurderinger.vilkår,
                     )
                 },

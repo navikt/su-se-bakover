@@ -11,7 +11,7 @@ import java.util.UUID
 data class VurderingsperiodeFamiliegjenforening private constructor(
     override val id: UUID,
     override val opprettet: Tidspunkt,
-    override val resultat: Resultat,
+    override val vurdering: Vurdering,
     override val grunnlag: Grunnlag? = null,
     override val periode: Periode,
 ) : Vurderingsperiode(), KanPlasseresPåTidslinje<VurderingsperiodeFamiliegjenforening> {
@@ -25,7 +25,7 @@ data class VurderingsperiodeFamiliegjenforening private constructor(
     }
 
     override fun erLik(other: Vurderingsperiode) =
-        other is VurderingsperiodeFamiliegjenforening && resultat == other.resultat && erGrunnlagLik(other.grunnlag)
+        other is VurderingsperiodeFamiliegjenforening && vurdering == other.vurdering && erGrunnlagLik(other.grunnlag)
 
     private fun erGrunnlagLik(other: Grunnlag?): Boolean {
         return if (grunnlag == null && other == null) {
@@ -39,7 +39,7 @@ data class VurderingsperiodeFamiliegjenforening private constructor(
         return create(
             id = id,
             opprettet = opprettet,
-            resultat = resultat,
+            vurdering = vurdering,
             periode = stønadsperiode.periode,
             grunnlag = null,
         )
@@ -49,11 +49,11 @@ data class VurderingsperiodeFamiliegjenforening private constructor(
         fun create(
             id: UUID = UUID.randomUUID(),
             opprettet: Tidspunkt,
-            resultat: Resultat,
+            vurdering: Vurdering,
             grunnlag: Grunnlag? = null,
             periode: Periode,
         ) = VurderingsperiodeFamiliegjenforening(
-            id = id, opprettet = opprettet, resultat = resultat, grunnlag = grunnlag, periode = periode,
+            id = id, opprettet = opprettet, vurdering = vurdering, grunnlag = grunnlag, periode = periode,
         )
     }
 }

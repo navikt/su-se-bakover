@@ -26,9 +26,9 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.RevurderingsutfallSomIkkeStøttes
 import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
-import no.nav.su.se.bakover.domain.vilkår.Resultat
+import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
+import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.test.empty
@@ -96,10 +96,10 @@ internal class RevurderingLeggTilFormueServiceTest {
                 response.revurdering.informasjonSomRevurderes shouldBe InformasjonSomRevurderes.create(
                     mapOf(Revurderingsteg.Formue to Vurderingstatus.Vurdert),
                 )
-                response.revurdering.vilkårsvurderinger.formue.shouldBeType<Vilkår.Formue.Vurdert>().let {
+                response.revurdering.vilkårsvurderinger.formue.shouldBeType<FormueVilkår.Vurdert>().let {
                     it.vurderingsperioder shouldHaveSize 1
                     it.vurderingsperioder.single().periode shouldBe nyFormue.periode
-                    it.resultat shouldBe Resultat.Innvilget
+                    it.vurdering shouldBe Vurdering.Innvilget
                     it.grunnlag shouldHaveSize 1
                     it.grunnlag.single().periode shouldBe nyFormue.periode
                     it.grunnlag.single().epsFormue shouldBe nyFormue.epsFormue

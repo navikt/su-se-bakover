@@ -4,7 +4,6 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.juli
 import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.common.periode.mai
@@ -32,7 +31,7 @@ internal class InstitusjonsoppholdVilkårTest {
                     VurderingsperiodeInstitusjonsopphold.tryCreate(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
-                        resultat = Resultat.Innvilget,
+                        vurdering = Vurdering.Innvilget,
                         grunnlag = InstitusjonsoppholdGrunnlag(
                             id = UUID.randomUUID(),
                             opprettet = Tidspunkt.now(fixedClock),
@@ -58,7 +57,7 @@ internal class InstitusjonsoppholdVilkårTest {
                     VurderingsperiodeInstitusjonsopphold.tryCreate(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
-                        resultat = Resultat.Avslag,
+                        vurdering = Vurdering.Avslag,
                         grunnlag = InstitusjonsoppholdGrunnlag(
                             id = UUID.randomUUID(),
                             opprettet = Tidspunkt.now(fixedClock),
@@ -88,7 +87,7 @@ internal class InstitusjonsoppholdVilkårTest {
                 VurderingsperiodeInstitusjonsopphold.tryCreate(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(fixedClock),
-                    resultat = Resultat.Innvilget,
+                    vurdering = Vurdering.Innvilget,
                     grunnlag = InstitusjonsoppholdGrunnlag(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
@@ -103,7 +102,7 @@ internal class InstitusjonsoppholdVilkårTest {
                     VurderingsperiodeInstitusjonsopphold.tryCreate(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
-                        resultat = Resultat.Innvilget,
+                        vurdering = Vurdering.Innvilget,
                         grunnlag = InstitusjonsoppholdGrunnlag(
                             id = UUID.randomUUID(),
                             opprettet = Tidspunkt.now(fixedClock),
@@ -123,7 +122,7 @@ internal class InstitusjonsoppholdVilkårTest {
                 VurderingsperiodeInstitusjonsopphold.tryCreate(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(fixedClock),
-                    resultat = Resultat.Innvilget,
+                    vurdering = Vurdering.Innvilget,
                     grunnlag = InstitusjonsoppholdGrunnlag(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
@@ -134,7 +133,7 @@ internal class InstitusjonsoppholdVilkårTest {
                 VurderingsperiodeInstitusjonsopphold.tryCreate(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(fixedClock),
-                    resultat = Resultat.Innvilget,
+                    vurdering = Vurdering.Innvilget,
                     grunnlag = InstitusjonsoppholdGrunnlag(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
@@ -151,7 +150,7 @@ internal class InstitusjonsoppholdVilkårTest {
         val v1 = VurderingsperiodeInstitusjonsopphold.tryCreate(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(fixedClock),
-            resultat = Resultat.Innvilget,
+            vurdering = Vurdering.Innvilget,
             grunnlag = InstitusjonsoppholdGrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(fixedClock),
@@ -163,7 +162,7 @@ internal class InstitusjonsoppholdVilkårTest {
         val v2 = VurderingsperiodeInstitusjonsopphold.tryCreate(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(fixedClock),
-            resultat = Resultat.Innvilget,
+            vurdering = Vurdering.Innvilget,
             grunnlag = InstitusjonsoppholdGrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(fixedClock),

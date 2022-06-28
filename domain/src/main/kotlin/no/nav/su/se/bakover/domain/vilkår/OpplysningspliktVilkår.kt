@@ -26,7 +26,7 @@ sealed class OpplysningspliktVilkår : Vilkår() {
     abstract override fun slåSammenLikePerioder(): OpplysningspliktVilkår
 
     object IkkeVurdert : OpplysningspliktVilkår() {
-        override val resultat: Resultat = Resultat.Uavklart
+        override val vurdering: Vurdering = Vurdering.Uavklart
         override val erAvslag = false
         override val erInnvilget = false
         override val grunnlag = emptyList<Opplysningspliktgrunnlag>()
@@ -62,12 +62,12 @@ sealed class OpplysningspliktVilkår : Vilkår() {
             )
         }
 
-        override val erInnvilget: Boolean = vurderingsperioder.all { it.resultat == Resultat.Innvilget }
+        override val erInnvilget: Boolean = vurderingsperioder.all { it.vurdering == Vurdering.Innvilget }
 
-        override val erAvslag: Boolean = vurderingsperioder.any { it.resultat == Resultat.Avslag }
+        override val erAvslag: Boolean = vurderingsperioder.any { it.vurdering == Vurdering.Avslag }
 
-        override val resultat: Resultat =
-            if (erInnvilget) Resultat.Innvilget else if (erAvslag) Resultat.Avslag else Resultat.Uavklart
+        override val vurdering: Vurdering =
+            if (erInnvilget) Vurdering.Innvilget else if (erAvslag) Vurdering.Avslag else Vurdering.Uavklart
 
         override val perioder: Nel<Periode> = vurderingsperioder.minsteAntallSammenhengendePerioder()
 
@@ -77,7 +77,7 @@ sealed class OpplysningspliktVilkår : Vilkår() {
 
         override fun hentTidligesteDatoForAvslag(): LocalDate? {
             return vurderingsperioder
-                .filter { it.resultat == Resultat.Avslag }
+                .filter { it.vurdering == Vurdering.Avslag }
                 .map { it.periode.fraOgMed }
                 .minByOrNull { it }
         }
@@ -126,7 +126,7 @@ data class VurderingsperiodeOpplysningsplikt private constructor(
     override val id: UUID = UUID.randomUUID(),
     override val opprettet: Tidspunkt,
     override val grunnlag: Opplysningspliktgrunnlag,
-    override val resultat: Resultat,
+    override val vurdering: Vurdering,
     override val periode: Periode,
 ) : Vurderingsperiode(), KanPlasseresPåTidslinje<VurderingsperiodeOpplysningsplikt> {
 
@@ -160,7 +160,7 @@ data class VurderingsperiodeOpplysningsplikt private constructor(
 
     override fun erLik(other: Vurderingsperiode): Boolean {
         return other is VurderingsperiodeOpplysningsplikt &&
-            resultat == other.resultat &&
+            vurdering == other.vurdering &&
             grunnlag.erLik(other.grunnlag)
     }
 
@@ -189,18 +189,18 @@ data class VurderingsperiodeOpplysningsplikt private constructor(
                 id = id,
                 opprettet = opprettet,
                 grunnlag = grunnlag,
-                resultat = resultatFraBeskrivelse(grunnlag),
+                vurdering = resultatFraBeskrivelse(grunnlag),
                 periode = vurderingsperiode,
             ).right()
         }
 
-        private fun resultatFraBeskrivelse(grunnlag: Opplysningspliktgrunnlag): Resultat {
+        private fun resultatFraBeskrivelse(grunnlag: Opplysningspliktgrunnlag): Vurdering {
             return when (grunnlag.beskrivelse) {
                 OpplysningspliktBeskrivelse.UtilstrekkeligDokumentasjon -> {
-                    Resultat.Avslag
+                    Vurdering.Avslag
                 }
                 OpplysningspliktBeskrivelse.TilstrekkeligDokumentasjon -> {
-                    Resultat.Innvilget
+                    Vurdering.Innvilget
                 }
             }
         }

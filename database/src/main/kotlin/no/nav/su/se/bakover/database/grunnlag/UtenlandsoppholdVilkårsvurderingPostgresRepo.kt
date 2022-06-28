@@ -69,7 +69,7 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepo(
                     "opprettet" to vurderingsperiode.opprettet,
                     "behandlingId" to behandlingId,
                     "grunnlag_utland_id" to vurderingsperiode.grunnlag?.id,
-                    "resultat" to vurderingsperiode.resultat.toDto(),
+                    "resultat" to vurderingsperiode.vurdering.toDto(),
                     "fraOgMed" to vurderingsperiode.periode.fraOgMed,
                     "tilOgMed" to vurderingsperiode.periode.tilOgMed,
                 ),
@@ -117,7 +117,7 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepo(
         return VurderingsperiodeUtenlandsopphold.create(
             id = uuid("id"),
             opprettet = tidspunkt("opprettet"),
-            resultat = ResultatDto.valueOf(string("resultat")).toDomain(),
+            vurdering = ResultatDto.valueOf(string("resultat")).toDomain(),
             grunnlag = uuidOrNull("grunnlag_utland_id")?.let {
                 utenlandsoppholdgrunnlagRepo.hent(it, session)
             },

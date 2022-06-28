@@ -42,7 +42,7 @@ internal class FormueVilkårTest {
         )
         val f3 = lagFormueVurderingsperiode(
             periodeInnenfor2021 = mars(2021),
-            resultat = Resultat.Avslag,
+            vurdering = Vurdering.Avslag,
             bosituasjon = bosituasjon,
             grunnlag = formueGrunnlagUtenEpsAvslått(bosituasjon = bosituasjon, periode = mars(2021)),
         )
@@ -87,7 +87,7 @@ internal class FormueVilkårTest {
         )
         val f2 = lagFormueVurderingsperiode(
             periodeInnenfor2021 = februar(2021),
-            resultat = Resultat.Avslag,
+            vurdering = Vurdering.Avslag,
             bosituasjon = bosituasjon,
             grunnlag = formueGrunnlagUtenEpsAvslått(bosituasjon = bosituasjon, periode = februar(2021)),
         )
@@ -298,7 +298,7 @@ internal class FormueVilkårTest {
     private fun lagFormueVurderingsperiode(
         id: UUID = UUID.randomUUID(),
         tidspunkt: Tidspunkt = fixedTidspunkt,
-        resultat: Resultat = Resultat.Innvilget,
+        vurdering: Vurdering = Vurdering.Innvilget,
         periodeInnenfor2021: Periode,
         bosituasjon: Grunnlag.Bosituasjon.Fullstendig = Grunnlag.Bosituasjon.Fullstendig.Enslig(
             id = id,
@@ -315,14 +315,14 @@ internal class FormueVilkårTest {
             behandlingsPeriode = år(2021),
             bosituasjon = bosituasjon,
         ),
-    ): Vurderingsperiode.Formue {
+    ): VurderingsperiodeFormue {
         assert(år(2021).inneholder(periodeInnenfor2021))
-        return Vurderingsperiode.Formue.tryCreateFromGrunnlag(
+        return VurderingsperiodeFormue.tryCreateFromGrunnlag(
             id = id,
             grunnlag = grunnlag,
             formuegrenserFactory = formuegrenserFactoryTestPåDato(),
         ).also {
-            assert(it.resultat == resultat)
+            assert(it.vurdering == vurdering)
         }
     }
 }

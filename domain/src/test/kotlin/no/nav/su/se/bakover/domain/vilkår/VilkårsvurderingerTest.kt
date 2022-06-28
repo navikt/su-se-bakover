@@ -43,7 +43,7 @@ internal class VilkårsvurderingerTest {
         @Test
         fun `alle vilkår innvilget gir resultat innvilget`() {
             vilkårsvurderingerSøknadsbehandlingInnvilget().let {
-                it.resultat shouldBe Vilkårsvurderingsresultat.Innvilget(
+                it.vurdering shouldBe Vilkårsvurderingsresultat.Innvilget(
                     setOf(
                         it.uføre,
                         it.formue,
@@ -62,12 +62,12 @@ internal class VilkårsvurderingerTest {
         @Test
         fun `alle vilkår innvilget bortsett fra en enkelt vurderingsperiode gir avslag`() {
             vilkårsvurderingerSøknadsbehandlingInnvilget(
-                uføre = Vilkår.Uførhet.Vurdert.tryCreate(
+                uføre = UføreVilkår.Vurdert.tryCreate(
                     vurderingsperioder = nonEmptyListOf(
-                        Vurderingsperiode.Uføre.tryCreate(
+                        VurderingsperiodeUføre.tryCreate(
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
-                            resultat = Resultat.Innvilget,
+                            vurdering = Vurdering.Innvilget,
                             grunnlag = Grunnlag.Uføregrunnlag(
                                 id = UUID.randomUUID(),
                                 opprettet = fixedTidspunkt,
@@ -77,17 +77,17 @@ internal class VilkårsvurderingerTest {
                             ),
                             vurderingsperiode = Periode.create(1.januar(2021), 31.august(2021)),
                         ).getOrFail(),
-                        Vurderingsperiode.Uføre.tryCreate(
+                        VurderingsperiodeUføre.tryCreate(
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
-                            resultat = Resultat.Avslag,
+                            vurdering = Vurdering.Avslag,
                             grunnlag = null,
                             vurderingsperiode = Periode.create(1.september(2021), 31.desember(2021)),
                         ).getOrFail(),
                     ),
                 ).getOrFail(),
             ).let { vilkårsvurdering ->
-                (vilkårsvurdering.resultat as Vilkårsvurderingsresultat.Avslag).let {
+                (vilkårsvurdering.vurdering as Vilkårsvurderingsresultat.Avslag).let {
                     it.vilkår shouldBe setOf(vilkårsvurdering.uføre)
                     it.avslagsgrunner shouldBe listOf(Avslagsgrunn.UFØRHET)
                     it.tidligsteDatoForAvslag shouldBe 1.september(2021)
@@ -99,7 +99,7 @@ internal class VilkårsvurderingerTest {
         fun `alle vilkår avslått gir avslag`() {
             vilkårsvurderingerAvslåttAlle()
                 .let { vilkårsvurdering ->
-                    (vilkårsvurdering.resultat as Vilkårsvurderingsresultat.Avslag).let {
+                    (vilkårsvurdering.vurdering as Vilkårsvurderingsresultat.Avslag).let {
                         it.vilkår shouldBe vilkårsvurdering.vilkår
                         it.avslagsgrunner shouldBe listOf(
                             Avslagsgrunn.UFØRHET,
@@ -121,7 +121,7 @@ internal class VilkårsvurderingerTest {
         fun `alle vilkår uavklart gir uavklart`() {
             vilkårsvurderingSøknadsbehandlingIkkeVurdert()
                 .let {
-                    it.resultat shouldBe Vilkårsvurderingsresultat.Uavklart(it.vilkår)
+                    it.vurdering shouldBe Vilkårsvurderingsresultat.Uavklart(it.vilkår)
                 }
         }
 
@@ -136,7 +136,7 @@ internal class VilkårsvurderingerTest {
                     ),
                 ),
             ).let {
-                it.resultat shouldBe Vilkårsvurderingsresultat.Uavklart(
+                it.vurdering shouldBe Vilkårsvurderingsresultat.Uavklart(
                     setOf(
                         FlyktningVilkår.IkkeVurdert,
                     ),
@@ -146,9 +146,9 @@ internal class VilkårsvurderingerTest {
 
         @Test
         fun `ingen vurderingsperioder gir uavklart vilkår`() {
-            vilkårsvurderingSøknadsbehandlingIkkeVurdert().resultat shouldBe Vilkårsvurderingsresultat.Uavklart(
+            vilkårsvurderingSøknadsbehandlingIkkeVurdert().vurdering shouldBe Vilkårsvurderingsresultat.Uavklart(
                 setOf(
-                    Vilkår.Uførhet.IkkeVurdert,
+                    UføreVilkår.IkkeVurdert,
                     formuevilkårIkkeVurdert(),
                     FlyktningVilkår.IkkeVurdert,
                     LovligOppholdVilkår.IkkeVurdert,
@@ -205,14 +205,14 @@ internal class VilkårsvurderingerTest {
         @Test
         fun `oppdaterer vilkårsvurderinger med informasjon fra behandlingsinformasjon`() {
             val innvilget = vilkårsvurderingerSøknadsbehandlingInnvilget()
-            innvilget.resultat shouldBe beOfType<Vilkårsvurderingsresultat.Innvilget>()
+            innvilget.vurdering shouldBe beOfType<Vilkårsvurderingsresultat.Innvilget>()
 
             innvilget.oppdater(
                 stønadsperiode = Stønadsperiode.create(år(2021)),
                 behandlingsinformasjon = Behandlingsinformasjon().withAvslåttFlyktning(),
                 clock = fixedClock,
             ).let {
-                it.resultat shouldBe Vilkårsvurderingsresultat.Avslag(
+                it.vurdering shouldBe Vilkårsvurderingsresultat.Avslag(
                     vilkår = setOf(it.flyktning),
                 )
             }
@@ -224,7 +224,7 @@ internal class VilkårsvurderingerTest {
             val uavklart = vilkårsvurderingSøknadsbehandlingIkkeVurdert()
 
             uavklart.vilkår shouldBe setOf(
-                Vilkår.Uførhet.IkkeVurdert,
+                UføreVilkår.IkkeVurdert,
                 formuevilkårIkkeVurdert(),
                 FlyktningVilkår.IkkeVurdert,
                 LovligOppholdVilkår.IkkeVurdert,
@@ -252,7 +252,7 @@ internal class VilkårsvurderingerTest {
             val uavklartUtenUføreIgjen = uavklartMedUføre.leggTil(uavklart.uføre)
 
             uavklartUtenUføreIgjen.vilkår shouldBe setOf(
-                Vilkår.Uførhet.IkkeVurdert,
+                UføreVilkår.IkkeVurdert,
                 formuevilkårIkkeVurdert(),
                 FlyktningVilkår.IkkeVurdert,
                 LovligOppholdVilkår.IkkeVurdert,
@@ -271,7 +271,7 @@ internal class VilkårsvurderingerTest {
         @Test
         fun `alle vilkår innvilget gir resultat innvilget`() {
             vilkårsvurderingerRevurderingInnvilget().let {
-                it.resultat shouldBe Vilkårsvurderingsresultat.Innvilget(
+                it.vurdering shouldBe Vilkårsvurderingsresultat.Innvilget(
                     setOf(
                         it.uføre,
                         it.formue,
@@ -286,12 +286,12 @@ internal class VilkårsvurderingerTest {
         @Test
         fun `alle vilkår innvilget bortsett fra en enkelt vurderingsperiode gir avslag`() {
             vilkårsvurderingerRevurderingInnvilget(
-                uføre = Vilkår.Uførhet.Vurdert.tryCreate(
+                uføre = UføreVilkår.Vurdert.tryCreate(
                     vurderingsperioder = nonEmptyListOf(
-                        Vurderingsperiode.Uføre.tryCreate(
+                        VurderingsperiodeUføre.tryCreate(
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
-                            resultat = Resultat.Innvilget,
+                            vurdering = Vurdering.Innvilget,
                             grunnlag = Grunnlag.Uføregrunnlag(
                                 id = UUID.randomUUID(),
                                 opprettet = fixedTidspunkt,
@@ -301,17 +301,17 @@ internal class VilkårsvurderingerTest {
                             ),
                             vurderingsperiode = Periode.create(1.januar(2021), 31.august(2021)),
                         ).getOrFail(),
-                        Vurderingsperiode.Uføre.tryCreate(
+                        VurderingsperiodeUføre.tryCreate(
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
-                            resultat = Resultat.Avslag,
+                            vurdering = Vurdering.Avslag,
                             grunnlag = null,
                             vurderingsperiode = Periode.create(1.september(2021), 31.desember(2021)),
                         ).getOrFail(),
                     ),
                 ).getOrFail(),
             ).let { vilkårsvurdering ->
-                (vilkårsvurdering.resultat as Vilkårsvurderingsresultat.Avslag).let {
+                (vilkårsvurdering.vurdering as Vilkårsvurderingsresultat.Avslag).let {
                     it.vilkår shouldBe setOf(vilkårsvurdering.uføre)
                     it.avslagsgrunner shouldBe listOf(Avslagsgrunn.UFØRHET)
                     it.tidligsteDatoForAvslag shouldBe 1.september(2021)
@@ -323,7 +323,7 @@ internal class VilkårsvurderingerTest {
         fun `alle vilkår avslått gir avslag`() {
             vilkårsvurderingerAvslåttAlleRevurdering()
                 .let { vilkårsvurdering ->
-                    (vilkårsvurdering.resultat as Vilkårsvurderingsresultat.Avslag).let {
+                    (vilkårsvurdering.vurdering as Vilkårsvurderingsresultat.Avslag).let {
                         it.vilkår shouldBe vilkårsvurdering.vilkår
                         it.avslagsgrunner shouldBe listOf(
                             Avslagsgrunn.UFØRHET,
@@ -341,18 +341,18 @@ internal class VilkårsvurderingerTest {
         fun `alle vilkår uavklart gir uavklart`() {
             vilkårsvurderingRevurderingIkkeVurdert()
                 .let {
-                    it.resultat shouldBe Vilkårsvurderingsresultat.Uavklart(it.vilkår)
+                    it.vurdering shouldBe Vilkårsvurderingsresultat.Uavklart(it.vilkår)
                 }
         }
 
         @Test
         fun `et vilkår uavklart gir uavklart`() {
             vilkårsvurderingerRevurderingInnvilget(
-                uføre = Vilkår.Uførhet.IkkeVurdert,
+                uføre = UføreVilkår.IkkeVurdert,
             ).let {
-                it.resultat shouldBe Vilkårsvurderingsresultat.Uavklart(
+                it.vurdering shouldBe Vilkårsvurderingsresultat.Uavklart(
                     setOf(
-                        Vilkår.Uførhet.IkkeVurdert,
+                        UføreVilkår.IkkeVurdert,
                     ),
                 )
             }
@@ -360,9 +360,9 @@ internal class VilkårsvurderingerTest {
 
         @Test
         fun `ingen vurderingsperioder gir uavklart vilkår`() {
-            vilkårsvurderingRevurderingIkkeVurdert().resultat shouldBe Vilkårsvurderingsresultat.Uavklart(
+            vilkårsvurderingRevurderingIkkeVurdert().vurdering shouldBe Vilkårsvurderingsresultat.Uavklart(
                 setOf(
-                    Vilkår.Uførhet.IkkeVurdert,
+                    UføreVilkår.IkkeVurdert,
                     formuevilkårIkkeVurdert(),
                     UtenlandsoppholdVilkår.IkkeVurdert,
                     OpplysningspliktVilkår.IkkeVurdert,

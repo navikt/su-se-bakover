@@ -30,22 +30,22 @@ import java.util.UUID
 internal class UførhetTest {
     @Test
     fun `validerer at vurderingsperioder ikke overlapper`() {
-        Vilkår.Uførhet.Vurdert.tryCreate(
+        UføreVilkår.Vurdert.tryCreate(
             vurderingsperioder = nonEmptyListOf(
-                Vurderingsperiode.Uføre.create(
-                    resultat = Resultat.Innvilget,
+                VurderingsperiodeUføre.create(
+                    vurdering = Vurdering.Innvilget,
                     opprettet = fixedTidspunkt,
                     grunnlag = null,
                     periode = år(2021),
                 ),
-                Vurderingsperiode.Uføre.create(
-                    resultat = Resultat.Avslag,
+                VurderingsperiodeUføre.create(
+                    vurdering = Vurdering.Avslag,
                     opprettet = fixedTidspunkt,
                     grunnlag = null,
                     periode = år(2021),
                 ),
             ),
-        ) shouldBe Vilkår.Uførhet.Vurdert.UgyldigUførevilkår.OverlappendeVurderingsperioder.left()
+        ) shouldBe UføreVilkår.Vurdert.UgyldigUførevilkår.OverlappendeVurderingsperioder.left()
     }
 
     @Test
@@ -53,21 +53,21 @@ internal class UførhetTest {
         val v1 = lagUføreVurderingsperiode(periode = januar(2021))
         val v2 = lagUføreVurderingsperiode(periode = februar(2021))
         val v3 =
-            lagUføreVurderingsperiode(resultat = Resultat.Avslag, periode = mars(2021))
+            lagUføreVurderingsperiode(vurdering = Vurdering.Avslag, periode = mars(2021))
 
         val actual = nonEmptyListOf(v1, v2, v3).slåSammenLikePerioder()
         actual.size shouldBe 2
-        actual.first() shouldBe Vurderingsperiode.Uføre.create(
+        actual.first() shouldBe VurderingsperiodeUføre.create(
             id = actual.first().id,
             opprettet = fixedTidspunkt,
-            resultat = Resultat.Innvilget,
+            vurdering = Vurdering.Innvilget,
             grunnlag = null,
             periode = Periode.create(1.januar(2021), 28.februar(2021)),
         )
-        actual.last() shouldBe Vurderingsperiode.Uføre.create(
+        actual.last() shouldBe VurderingsperiodeUføre.create(
             id = actual.last().id,
             opprettet = fixedTidspunkt,
-            resultat = Resultat.Avslag,
+            vurdering = Vurdering.Avslag,
             grunnlag = null,
             periode = mars(2021),
         )
@@ -117,7 +117,7 @@ internal class UførhetTest {
             grunnlag = uføregrunnlagForventetInntekt12000(periode = februar(2021)),
         )
 
-        Vilkår.Uførhet.Vurdert.fromVurderingsperioder(
+        UføreVilkår.Vurdert.fromVurderingsperioder(
             nonEmptyListOf(januar, februar),
         ).getOrFail().let { vilkår ->
             vilkår.oppdaterStønadsperiode(
@@ -139,7 +139,7 @@ internal class UførhetTest {
             periode = Periode.create(1.april(2021), 31.august(2021)),
             grunnlag = uføregrunnlagForventetInntekt12000(periode = Periode.create(1.april(2021), 31.august(2021))),
         )
-        Vilkår.Uførhet.Vurdert.fromVurderingsperioder(
+        UføreVilkår.Vurdert.fromVurderingsperioder(
             nonEmptyListOf(janMars, aprAug),
         ).getOrFail().let { vilkår ->
             vilkår.oppdaterStønadsperiode(
@@ -177,7 +177,7 @@ internal class UførhetTest {
             periode = april(2021),
             grunnlag = uføregrunnlagForventetInntekt12000(periode = april(2021)),
         )
-        Vilkår.Uførhet.Vurdert.fromVurderingsperioder(
+        UføreVilkår.Vurdert.fromVurderingsperioder(
             nonEmptyListOf(februar, april),
         ).getOrFail().let { vilkår ->
             vilkår.oppdaterStønadsperiode(
@@ -218,7 +218,7 @@ internal class UførhetTest {
             periode = mars(2022),
             grunnlag = uføregrunnlagForventetInntekt12000(periode = mars(2022)),
         )
-        Vilkår.Uførhet.Vurdert.fromVurderingsperioder(
+        UføreVilkår.Vurdert.fromVurderingsperioder(
             nonEmptyListOf(februar, mars),
         ).getOrFail().let { vilkår ->
             vilkår.oppdaterStønadsperiode(
@@ -246,7 +246,7 @@ internal class UførhetTest {
             periode = mars(2022),
             grunnlag = uføregrunnlagForventetInntekt12000(periode = mars(2022)),
         )
-        Vilkår.Uførhet.Vurdert.fromVurderingsperioder(
+        UføreVilkår.Vurdert.fromVurderingsperioder(
             nonEmptyListOf(februar, mars),
         ).getOrFail().let { vilkår ->
             vilkår.oppdaterStønadsperiode(
@@ -267,12 +267,12 @@ internal class UførhetTest {
     private fun lagUføreVurderingsperiode(
         periode: Periode,
         tidspunkt: Tidspunkt = fixedTidspunkt,
-        resultat: Resultat = Resultat.Innvilget,
+        vurdering: Vurdering = Vurdering.Innvilget,
         grunnlag: Grunnlag.Uføregrunnlag? = null,
-    ): Vurderingsperiode.Uføre {
-        return Vurderingsperiode.Uføre.create(
+    ): VurderingsperiodeUføre {
+        return VurderingsperiodeUføre.create(
             opprettet = tidspunkt,
-            resultat = resultat,
+            vurdering = vurdering,
             grunnlag = grunnlag,
             periode = periode,
         )

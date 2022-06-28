@@ -22,7 +22,7 @@ internal class VurderingsperiodeUtenlandsoppholdTest {
         VurderingsperiodeUtenlandsopphold.tryCreate(
             id = vilkårId,
             opprettet = fixedTidspunkt,
-            resultat = Resultat.Innvilget,
+            vurdering = Vurdering.Innvilget,
             grunnlag = Utenlandsoppholdgrunnlag(
                 id = grunnlagId,
                 opprettet = fixedTidspunkt,
@@ -36,7 +36,7 @@ internal class VurderingsperiodeUtenlandsoppholdTest {
                 ) shouldBe VurderingsperiodeUtenlandsopphold.tryCreate(
                     id = vilkårId,
                     opprettet = fixedTidspunkt,
-                    resultat = Resultat.Innvilget,
+                    vurdering = Vurdering.Innvilget,
                     grunnlag = Utenlandsoppholdgrunnlag(
                         id = grunnlagId,
                         opprettet = fixedTidspunkt,
@@ -52,7 +52,7 @@ internal class VurderingsperiodeUtenlandsoppholdTest {
         VurderingsperiodeUtenlandsopphold.tryCreate(
             id = vilkårId,
             opprettet = fixedTidspunkt,
-            resultat = Resultat.Innvilget,
+            vurdering = Vurdering.Innvilget,
             grunnlag = Utenlandsoppholdgrunnlag(
                 id = grunnlagId,
                 opprettet = fixedTidspunkt,
@@ -67,7 +67,7 @@ internal class VurderingsperiodeUtenlandsoppholdTest {
         VurderingsperiodeUtenlandsopphold.tryCreate(
             id = vilkårId,
             opprettet = fixedTidspunkt,
-            resultat = Resultat.Innvilget,
+            vurdering = Vurdering.Innvilget,
             grunnlag = Utenlandsoppholdgrunnlag(
                 id = grunnlagId,
                 opprettet = fixedTidspunkt,
@@ -84,7 +84,7 @@ internal class VurderingsperiodeUtenlandsoppholdTest {
         VurderingsperiodeUtenlandsopphold.tryCreate(
             id = vilkårId,
             opprettet = fixedTidspunkt,
-            resultat = Resultat.Innvilget,
+            vurdering = Vurdering.Innvilget,
             grunnlag = Utenlandsoppholdgrunnlag(
                 id = grunnlagId,
                 opprettet = fixedTidspunkt,
@@ -96,7 +96,7 @@ internal class VurderingsperiodeUtenlandsoppholdTest {
                 VurderingsperiodeUtenlandsopphold.tryCreate(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(),
-                    resultat = Resultat.Innvilget,
+                    vurdering = Vurdering.Innvilget,
                     grunnlag = Utenlandsoppholdgrunnlag(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(),
@@ -109,7 +109,7 @@ internal class VurderingsperiodeUtenlandsoppholdTest {
         VurderingsperiodeUtenlandsopphold.tryCreate(
             id = vilkårId,
             opprettet = fixedTidspunkt,
-            resultat = Resultat.Innvilget,
+            vurdering = Vurdering.Innvilget,
             grunnlag = Utenlandsoppholdgrunnlag(
                 id = grunnlagId,
                 opprettet = fixedTidspunkt,
@@ -121,7 +121,7 @@ internal class VurderingsperiodeUtenlandsoppholdTest {
                 VurderingsperiodeUtenlandsopphold.tryCreate(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(),
-                    resultat = Resultat.Avslag,
+                    vurdering = Vurdering.Avslag,
                     grunnlag = Utenlandsoppholdgrunnlag(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(),

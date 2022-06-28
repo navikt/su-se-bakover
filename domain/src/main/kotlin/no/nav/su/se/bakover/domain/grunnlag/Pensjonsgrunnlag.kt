@@ -4,7 +4,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
-import no.nav.su.se.bakover.domain.vilkår.Resultat
+import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import java.util.UUID
 
 data class Pensjonsgrunnlag(
@@ -18,7 +18,7 @@ data class Pensjonsgrunnlag(
         return copy(periode = periode)
     }
 
-    fun tilResultat(): Resultat {
+    fun tilResultat(): Vurdering {
         return pensjonsopplysninger.resultat()
     }
 
@@ -45,17 +45,17 @@ data class Pensjonsopplysninger(
     val søktAndreNorskePensjoner: SøktAndreNorskePensjoner,
     val søktUtenlandskePensjoner: SøktUtenlandskePensjoner,
 ) {
-    fun resultat(): Resultat {
+    fun resultat(): Vurdering {
         return when {
             setOf(
                 søktPensjonFolketrygd.resultat(),
                 søktAndreNorskePensjoner.resultat(),
                 søktUtenlandskePensjoner.resultat(),
-            ) == setOf(Resultat.Innvilget) -> {
-                Resultat.Innvilget
+            ) == setOf(Vurdering.Innvilget) -> {
+                Vurdering.Innvilget
             }
             else -> {
-                Resultat.Avslag
+                Vurdering.Avslag
             }
         }
     }
@@ -63,13 +63,13 @@ data class Pensjonsopplysninger(
     data class SøktPensjonFolketrygd(
         val svar: Svar,
     ) {
-        fun resultat(): Resultat {
+        fun resultat(): Vurdering {
             return when (svar) {
                 Svar.HarIkkeSøktPensjonFraFolketrygden -> {
-                    Resultat.Avslag
+                    Vurdering.Avslag
                 }
                 Svar.HarSøktPensjonFraFolketrygden -> {
-                    Resultat.Innvilget
+                    Vurdering.Innvilget
                 }
             }
         }
@@ -83,16 +83,16 @@ data class Pensjonsopplysninger(
     data class SøktAndreNorskePensjoner(
         val svar: Svar,
     ) {
-        fun resultat(): Resultat {
+        fun resultat(): Vurdering {
             return when (svar) {
                 Svar.IkkeAktuelt -> {
-                    Resultat.Innvilget
+                    Vurdering.Innvilget
                 }
                 Svar.HarSøktAndreNorskePensjonerEnnFolketrygden -> {
-                    Resultat.Innvilget
+                    Vurdering.Innvilget
                 }
                 Svar.HarIkkeSøktAndreNorskePensjonerEnnFolketrygden -> {
-                    Resultat.Avslag
+                    Vurdering.Avslag
                 }
             }
         }
@@ -107,16 +107,16 @@ data class Pensjonsopplysninger(
     data class SøktUtenlandskePensjoner(
         val svar: Svar,
     ) {
-        fun resultat(): Resultat {
+        fun resultat(): Vurdering {
             return when (svar) {
                 Svar.IkkeAktuelt -> {
-                    Resultat.Innvilget
+                    Vurdering.Innvilget
                 }
                 Svar.HarSøktUtenlandskePensjoner -> {
-                    Resultat.Innvilget
+                    Vurdering.Innvilget
                 }
                 Svar.HarIkkeSøktUtenlandskePensjoner -> {
-                    Resultat.Avslag
+                    Vurdering.Avslag
                 }
             }
         }

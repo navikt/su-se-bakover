@@ -11,9 +11,9 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.vilkår.Resultat
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
-import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
+import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
+import no.nav.su.se.bakover.domain.vilkår.Vurdering
+import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFormue
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
@@ -39,12 +39,12 @@ internal class FormuevilkårJsonTest {
             opprettet = fixedTidspunkt,
             periode = janDes,
         )
-        val vilkår = Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(
+        val vilkår = FormueVilkår.Vurdert.createFromVilkårsvurderinger(
             nonEmptyListOf(
-                Vurderingsperiode.Formue.create(
+                VurderingsperiodeFormue.create(
                     id = UUID.fromString("2e9a75ea-20ca-47e9-8c31-0c091bb4e316"),
                     opprettet = fixedTidspunkt,
-                    resultat = Resultat.Innvilget,
+                    vurdering = Vurdering.Innvilget,
                     grunnlag = Formuegrunnlag.create(
                         id = UUID.fromString("5441d6ef-08c7-4a4f-8e4c-d17e1ab95789"),
                         opprettet = fixedTidspunkt,
@@ -74,10 +74,10 @@ internal class FormuevilkårJsonTest {
                     ),
                     periode = janJun,
                 ),
-                Vurderingsperiode.Formue.create(
+                VurderingsperiodeFormue.create(
                     id = UUID.fromString("2403e105-b3fc-435a-a38b-e0a76ef9a73c"),
                     opprettet = fixedTidspunkt,
-                    resultat = Resultat.Innvilget,
+                    vurdering = Vurdering.Innvilget,
                     grunnlag = Formuegrunnlag.create(
                         id = UUID.fromString("36ba42b1-c919-4ba6-a90f-9505db28f04d"),
                         opprettet = fixedTidspunkt,

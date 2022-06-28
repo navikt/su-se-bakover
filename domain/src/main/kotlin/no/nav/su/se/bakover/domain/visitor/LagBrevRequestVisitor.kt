@@ -47,7 +47,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingVisitor
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.VedtakVisitor
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
+import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import java.time.Clock
@@ -728,7 +728,7 @@ class LagBrevRequestVisitor(
         beregning: Beregning?,
         fritekst: String,
         uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
-        formuevilkår: Vilkår.Formue,
+        formuevilkår: FormueVilkår,
         saksnummer: Saksnummer,
         bosituasjon: List<Grunnlag.Bosituasjon>,
         sakstype: Sakstype,
@@ -1005,10 +1005,10 @@ class LagBrevRequestVisitor(
     )
 }
 
-private fun Vilkår.Formue.hentFormueGrunnlagForSøknadsbehandling(avslagsgrunner: List<Avslagsgrunn>): Formuegrunnlag? {
+private fun FormueVilkår.hentFormueGrunnlagForSøknadsbehandling(avslagsgrunner: List<Avslagsgrunn>): Formuegrunnlag? {
     return when (this) {
-        is Vilkår.Formue.IkkeVurdert -> null
+        is FormueVilkår.IkkeVurdert -> null
         // TODO(satsfactory_formue) jah: jeg har ikke endret funksjonaliteten i Sats-omskrivningsrunden, men hvorfor sjekker vi avslagsgrunn for å avgjøre dette? De burde jo uansett henge sammen.
-        is Vilkår.Formue.Vurdert -> if (avslagsgrunner.contains(Avslagsgrunn.FORMUE)) this.grunnlag.firstOrThrowIfMultipleOrEmpty() else null
+        is FormueVilkår.Vurdert -> if (avslagsgrunner.contains(Avslagsgrunn.FORMUE)) this.grunnlag.firstOrThrowIfMultipleOrEmpty() else null
     }
 }

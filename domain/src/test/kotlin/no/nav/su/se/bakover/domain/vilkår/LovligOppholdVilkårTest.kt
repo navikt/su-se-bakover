@@ -41,14 +41,14 @@ internal class LovligOppholdVilkårTest {
         val v1 = VurderingsperiodeLovligOpphold.tryCreate(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(fixedClock),
-            resultat = Resultat.Innvilget,
+            vurdering = Vurdering.Innvilget,
             vurderingsperiode = mai(2021),
         )
 
         val v2 = VurderingsperiodeLovligOpphold.tryCreate(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(fixedClock),
-            resultat = Resultat.Innvilget,
+            vurdering = Vurdering.Innvilget,
             vurderingsperiode = juni(2021),
         )
 

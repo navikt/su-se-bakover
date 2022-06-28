@@ -5,7 +5,7 @@ import arrow.core.Nel
 import arrow.core.getOrHandle
 import arrow.core.left
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
+import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import java.time.Clock
 import java.util.UUID
 
@@ -26,7 +26,7 @@ data class LeggTilUførevurderingerRequest(
     fun toVilkår(
         behandlingsperiode: Periode,
         clock: Clock,
-    ): Either<UgyldigUførevurdering, Vilkår.Uførhet.Vurdert> {
+    ): Either<UgyldigUførevurdering, UføreVilkår.Vurdert> {
         return vurderinger.map { vurdering ->
             vurdering.toVurderingsperiode(clock).getOrHandle {
                 return when (it) {
@@ -45,10 +45,10 @@ data class LeggTilUførevurderingerRequest(
                 }.left()
             }
         }.let { vurderingsperioder ->
-            Vilkår.Uførhet.Vurdert.tryCreate(Nel.fromListUnsafe(vurderingsperioder))
+            UføreVilkår.Vurdert.tryCreate(Nel.fromListUnsafe(vurderingsperioder))
                 .mapLeft {
                     when (it) {
-                        Vilkår.Uførhet.Vurdert.UgyldigUførevilkår.OverlappendeVurderingsperioder -> {
+                        UføreVilkår.Vurdert.UgyldigUførevilkår.OverlappendeVurderingsperioder -> {
                             UgyldigUførevurdering.OverlappendeVurderingsperioder
                         }
                     }

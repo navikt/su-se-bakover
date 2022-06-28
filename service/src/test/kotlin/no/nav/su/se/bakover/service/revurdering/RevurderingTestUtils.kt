@@ -16,8 +16,9 @@ import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
+import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
-import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
+import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUføre
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
@@ -150,9 +151,9 @@ internal fun Grunnlag.Uføregrunnlag.ekvivalentMed(other: Grunnlag.Uføregrunnla
 }
 
 @Suppress("UNCHECKED_CAST")
-internal fun Vilkår.ekvivalentMed(other: Vilkår.Uførhet.Vurdert) {
-    this should beOfType<Vilkår.Uførhet.Vurdert>()
-    (this as Vilkår.Uførhet.Vurdert).let {
+internal fun Vilkår.ekvivalentMed(other: UføreVilkår.Vurdert) {
+    this should beOfType<UføreVilkår.Vurdert>()
+    (this as UføreVilkår.Vurdert).let {
         (vurderingsperioder).let {
             it shouldHaveSize other.vurderingsperioder.size
             it.forEachIndexed { index, vurderingsperiode ->
@@ -162,9 +163,9 @@ internal fun Vilkår.ekvivalentMed(other: Vilkår.Uførhet.Vurdert) {
     }
 }
 
-internal fun Vurderingsperiode.Uføre.ekvivalentMed(other: Vurderingsperiode.Uføre) {
+internal fun VurderingsperiodeUføre.ekvivalentMed(other: VurderingsperiodeUføre) {
     opprettet shouldBe other.opprettet
-    resultat shouldBe other.resultat
+    vurdering shouldBe other.vurdering
     grunnlag!!.ekvivalentMed(other.grunnlag!!)
     periode shouldBe other.periode
 }

@@ -58,7 +58,7 @@ data class VurderOmVilkårGirOpphørVedRevurdering(
     val resultat = vilkårGirOpphør()
 
     private fun vilkårGirOpphør(): OpphørVedRevurdering {
-        return when (val resultat = vilkårsvurderinger.resultat) {
+        return when (val resultat = vilkårsvurderinger.vurdering) {
             is Vilkårsvurderingsresultat.Avslag -> OpphørVedRevurdering.Ja(
                 opphørsgrunner = resultat.avslagsgrunner.map { it.tilOpphørsgrunn() },
                 opphørsdato = resultat.tidligsteDatoForAvslag,

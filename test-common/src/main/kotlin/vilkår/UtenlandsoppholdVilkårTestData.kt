@@ -5,8 +5,8 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.grunnlag.Utenlandsoppholdgrunnlag
-import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
+import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUtenlandsopphold
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
@@ -23,7 +23,7 @@ fun utenlandsoppholdInnvilget(
             VurderingsperiodeUtenlandsopphold.create(
                 id = id,
                 opprettet = opprettet,
-                resultat = Resultat.Innvilget,
+                vurdering = Vurdering.Innvilget,
                 grunnlag = grunnlag,
                 periode = periode,
             ),
@@ -41,7 +41,7 @@ fun utenlandsoppholdAvslag(
             VurderingsperiodeUtenlandsopphold.create(
                 id = id,
                 opprettet = opprettet,
-                resultat = Resultat.Avslag,
+                vurdering = Vurdering.Avslag,
                 grunnlag = null,
                 periode = periode,
             ),

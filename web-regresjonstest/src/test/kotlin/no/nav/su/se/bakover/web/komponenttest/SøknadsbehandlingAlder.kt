@@ -16,8 +16,8 @@ import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.simulering.TolketUtbetaling
 import no.nav.su.se.bakover.domain.satser.Satskategori
 import no.nav.su.se.bakover.domain.søknadsinnholdAlder
+import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.revurdering.LeggTilOpplysningspliktRequest
@@ -156,9 +156,9 @@ internal class SøknadsbehandlingAlder {
                 request = SøknadsbehandlingService.HentRequest(behandlingId = søknadsbehandling.id),
             ).getOrFail().also { oppdatert ->
                 oppdatert.vilkårsvurderinger.opplysningspliktVilkår()
-                oppdatert.vilkårsvurderinger.resultat shouldBe Vilkårsvurderingsresultat.Uavklart(
+                oppdatert.vilkårsvurderinger.vurdering shouldBe Vilkårsvurderingsresultat.Uavklart(
                     vilkår = setOf(
-                        Vilkår.Formue.IkkeVurdert,
+                        FormueVilkår.IkkeVurdert,
                         UtenlandsoppholdVilkår.IkkeVurdert,
                     ),
                 )
@@ -223,7 +223,7 @@ internal class SøknadsbehandlingAlder {
             appComponents.services.søknadsbehandling.hent(
                 request = SøknadsbehandlingService.HentRequest(behandlingId = søknadsbehandling.id),
             ).getOrFail().also { oppdatert ->
-                oppdatert.vilkårsvurderinger.resultat.shouldBeType<Vilkårsvurderingsresultat.Innvilget>()
+                oppdatert.vilkårsvurderinger.vurdering.shouldBeType<Vilkårsvurderingsresultat.Innvilget>()
 
                 oppdatert.grunnlagsdata.also {
                     it.fradragsgrunnlag.single().also {
@@ -264,13 +264,13 @@ internal class SøknadsbehandlingAlder {
                     vilkår = utilstrekkeligDokumentert(periode = stønadsperiode2022.periode),
                 ),
             ).getOrFail().also {
-                it.vilkårsvurderinger.resultat.shouldBeType<Vilkårsvurderingsresultat.Avslag>()
+                it.vilkårsvurderinger.vurdering.shouldBeType<Vilkårsvurderingsresultat.Avslag>()
             }
 
             appComponents.services.søknadsbehandling.hent(
                 request = SøknadsbehandlingService.HentRequest(behandlingId = søknadsbehandling.id),
             ).getOrFail().also { oppdatert ->
-                oppdatert.vilkårsvurderinger.resultat.shouldBeType<Vilkårsvurderingsresultat.Avslag>()
+                oppdatert.vilkårsvurderinger.vurdering.shouldBeType<Vilkårsvurderingsresultat.Avslag>()
             }
         }
     }

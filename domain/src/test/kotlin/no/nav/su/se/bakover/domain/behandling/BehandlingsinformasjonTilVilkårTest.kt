@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
-import no.nav.su.se.bakover.domain.vilkår.Resultat
+import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.stønadsperiode2021
@@ -37,7 +37,7 @@ class BehandlingsinformasjonTilVilkårTest {
         ).let { vilkår ->
             vilkår shouldBe beOfType<FlyktningVilkår.Vurdert>()
             (vilkår as FlyktningVilkår.Vurdert).let {
-                it.resultat shouldBe Resultat.Innvilget
+                it.vurdering shouldBe Vurdering.Innvilget
                 it.grunnlag.single().shouldBeEqualToIgnoringFields(
                     FlyktningGrunnlag(
                         id = UUID.randomUUID(),
@@ -57,7 +57,7 @@ class BehandlingsinformasjonTilVilkårTest {
         ).let { vilkår ->
             vilkår shouldBe beOfType<FlyktningVilkår.Vurdert>()
             (vilkår as FlyktningVilkår.Vurdert).let {
-                it.resultat shouldBe Resultat.Avslag
+                it.vurdering shouldBe Vurdering.Avslag
                 it.grunnlag.single().shouldBeEqualToIgnoringFields(
                     FlyktningGrunnlag(
                         id = UUID.randomUUID(),
@@ -87,7 +87,7 @@ class BehandlingsinformasjonTilVilkårTest {
         ).let { vilkår ->
             vilkår shouldBe beOfType<FastOppholdINorgeVilkår.Vurdert>()
             (vilkår as FastOppholdINorgeVilkår.Vurdert).let {
-                it.resultat shouldBe Resultat.Innvilget
+                it.vurdering shouldBe Vurdering.Innvilget
                 it.grunnlag.single().shouldBeEqualToIgnoringFields(
                     FastOppholdINorgeGrunnlag(
                         id = UUID.randomUUID(),
@@ -107,7 +107,7 @@ class BehandlingsinformasjonTilVilkårTest {
         ).let { vilkår ->
             vilkår shouldBe beOfType<FastOppholdINorgeVilkår.Vurdert>()
             (vilkår as FastOppholdINorgeVilkår.Vurdert).let {
-                it.resultat shouldBe Resultat.Avslag
+                it.vurdering shouldBe Vurdering.Avslag
                 it.grunnlag.single().shouldBeEqualToIgnoringFields(
                     FastOppholdINorgeGrunnlag(
                         id = UUID.randomUUID(),
@@ -137,7 +137,7 @@ class BehandlingsinformasjonTilVilkårTest {
         ).let { vilkår ->
             vilkår shouldBe beOfType<InstitusjonsoppholdVilkår.Vurdert>()
             (vilkår as InstitusjonsoppholdVilkår.Vurdert).let {
-                it.resultat shouldBe Resultat.Innvilget
+                it.vurdering shouldBe Vurdering.Innvilget
                 it.grunnlag.single().shouldBeEqualToIgnoringFields(
                     InstitusjonsoppholdGrunnlag(
                         id = UUID.randomUUID(),
@@ -157,7 +157,7 @@ class BehandlingsinformasjonTilVilkårTest {
         ).let { vilkår ->
             vilkår shouldBe beOfType<InstitusjonsoppholdVilkår.Vurdert>()
             (vilkår as InstitusjonsoppholdVilkår.Vurdert).let {
-                it.resultat shouldBe Resultat.Avslag
+                it.vurdering shouldBe Vurdering.Avslag
                 it.grunnlag.single().shouldBeEqualToIgnoringFields(
                     InstitusjonsoppholdGrunnlag(
                         id = UUID.randomUUID(),
@@ -187,7 +187,7 @@ class BehandlingsinformasjonTilVilkårTest {
         ).let { vilkår ->
             vilkår shouldBe beOfType<PersonligOppmøteVilkår.Vurdert>()
             (vilkår as PersonligOppmøteVilkår.Vurdert).let {
-                it.resultat shouldBe Resultat.Innvilget
+                it.vurdering shouldBe Vurdering.Innvilget
                 it.grunnlag.single().shouldBeEqualToIgnoringFields(
                     PersonligOppmøteGrunnlag(
                         id = UUID.randomUUID(),
@@ -207,7 +207,7 @@ class BehandlingsinformasjonTilVilkårTest {
         ).let { vilkår ->
             vilkår shouldBe beOfType<PersonligOppmøteVilkår.Vurdert>()
             (vilkår as PersonligOppmøteVilkår.Vurdert).let {
-                it.resultat shouldBe Resultat.Avslag
+                it.vurdering shouldBe Vurdering.Avslag
                 it.grunnlag.single().shouldBeEqualToIgnoringFields(
                     PersonligOppmøteGrunnlag(
                         id = UUID.randomUUID(),

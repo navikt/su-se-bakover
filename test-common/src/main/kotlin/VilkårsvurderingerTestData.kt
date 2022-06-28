@@ -10,13 +10,14 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.FamiliegjenforeningVilkår
 import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
+import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.PensjonsVilkår
 import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
+import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.vilkår.avslåttFormueVilkår
 import no.nav.su.se.bakover.test.vilkår.familiegjenforeningVilkårAvslag
@@ -50,7 +51,7 @@ fun vilkårsvurderingSøknadsbehandlingIkkeVurdert(): Vilkårsvurderinger.Søkna
 }
 
 fun vilkårsvurderingSøknadsbehandlingIkkeVurdertAlder() = Vilkårsvurderinger.Søknadsbehandling.Alder(
-    formue = Vilkår.Formue.IkkeVurdert,
+    formue = FormueVilkår.IkkeVurdert,
     lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
     fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
     institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
@@ -96,7 +97,7 @@ fun vilkårsvurderingRevurderingIkkeVurdert() = Vilkårsvurderinger.Revurdering.
  */
 fun vilkårsvurderingerSøknadsbehandlingInnvilget(
     periode: Periode = år(2021),
-    uføre: Vilkår.Uførhet = innvilgetUførevilkårForventetInntekt0(
+    uføre: UføreVilkår = innvilgetUførevilkårForventetInntekt0(
         id = UUID.randomUUID(),
         periode = periode,
     ),
@@ -118,7 +119,7 @@ fun vilkårsvurderingerSøknadsbehandlingInnvilget(
         id = UUID.randomUUID(),
         periode = periode,
     ),
-    formue: Vilkår.Formue = formuevilkårUtenEps0Innvilget(periode = periode, bosituasjon = bosituasjon),
+    formue: FormueVilkår = formuevilkårUtenEps0Innvilget(periode = periode, bosituasjon = bosituasjon),
 ): Vilkårsvurderinger.Søknadsbehandling.Uføre {
     return Vilkårsvurderinger.Søknadsbehandling.Uføre(
         uføre = uføre,
@@ -139,12 +140,12 @@ fun vilkårsvurderingerSøknadsbehandlingInnvilget(
 
 fun vilkårsvurderingerRevurderingInnvilget(
     periode: Periode = år(2021),
-    uføre: Vilkår.Uførhet = innvilgetUførevilkårForventetInntekt0(periode = periode),
+    uføre: UføreVilkår = innvilgetUførevilkårForventetInntekt0(periode = periode),
     bosituasjon: NonEmptyList<Grunnlag.Bosituasjon.Fullstendig> = nonEmptyListOf(bosituasjongrunnlagEnslig(periode = periode)),
     lovligOpphold: LovligOppholdVilkår = lovligOppholdVilkårInnvilget(
         nonEmptyListOf(vurderingsperiodeLovligOppholdInnvilget(vurderingsperiode = periode))
     ),
-    formue: Vilkår.Formue = formuevilkårUtenEps0Innvilget(periode = periode, bosituasjon = bosituasjon),
+    formue: FormueVilkår = formuevilkårUtenEps0Innvilget(periode = periode, bosituasjon = bosituasjon),
     utenlandsopphold: UtenlandsoppholdVilkår = utenlandsoppholdInnvilget(periode = periode),
     opplysningsplikt: OpplysningspliktVilkår = tilstrekkeligDokumentert(periode = periode),
 ): Vilkårsvurderinger.Revurdering.Uføre {
@@ -159,12 +160,12 @@ fun vilkårsvurderingerRevurderingInnvilget(
 
 fun vilkårsvurderingerAvslåttAlleRevurdering(
     periode: Periode = år(2021),
-    uføre: Vilkår.Uførhet = avslåttUførevilkårUtenGrunnlag(periode = periode),
+    uføre: UføreVilkår = avslåttUførevilkårUtenGrunnlag(periode = periode),
     bosituasjon: NonEmptyList<Grunnlag.Bosituasjon.Fullstendig> = nonEmptyListOf(bosituasjongrunnlagEnslig(periode = periode)),
     lovligOpphold: LovligOppholdVilkår = lovligOppholdVilkårAvslag(
         nonEmptyListOf(vurderingsperiodeLovligOppholdAvslag(vurderingsperiode = periode))
     ),
-    formue: Vilkår.Formue = formuevilkårAvslåttPgrBrukersformue(
+    formue: FormueVilkår = formuevilkårAvslåttPgrBrukersformue(
         periode = periode,
         bosituasjon = NonEmptyList.fromListUnsafe(bosituasjon.toList()),
     ),
@@ -261,7 +262,7 @@ fun vilkårsvurderingerAlderInnvilget(
         id = UUID.randomUUID(),
         periode = stønadsperiode.periode,
     ),
-    formue: Vilkår.Formue = formuevilkårUtenEps0Innvilget(
+    formue: FormueVilkår = formuevilkårUtenEps0Innvilget(
         periode = stønadsperiode.periode,
         bosituasjon = bosituasjon,
     ),

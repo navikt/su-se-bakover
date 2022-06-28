@@ -8,9 +8,9 @@ import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withTransaction
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
-import no.nav.su.se.bakover.domain.vilkår.Resultat
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
-import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
+import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
+import no.nav.su.se.bakover.domain.vilkår.Vurdering
+import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUføre
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkår
@@ -24,12 +24,12 @@ internal class UføreVilkårsvurderingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
-            val vurderingUførhet = Vilkår.Uførhet.Vurdert.create(
+            val vurderingUførhet = UføreVilkår.Vurdert.create(
                 vurderingsperioder = nonEmptyListOf(
-                    Vurderingsperiode.Uføre.create(
+                    VurderingsperiodeUføre.create(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
-                        resultat = Resultat.Avslag,
+                        vurdering = Vurdering.Avslag,
                         grunnlag = null,
                         periode = år(2021),
                     ),
@@ -56,12 +56,12 @@ internal class UføreVilkårsvurderingPostgresRepoTest {
                 forventetInntekt = 12000,
             )
 
-            val vurderingUførhet = Vilkår.Uførhet.Vurdert.create(
+            val vurderingUførhet = UføreVilkår.Vurdert.create(
                 vurderingsperioder = nonEmptyListOf(
-                    Vurderingsperiode.Uføre.create(
+                    VurderingsperiodeUføre.create(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
-                        resultat = Resultat.Avslag,
+                        vurdering = Vurdering.Avslag,
                         grunnlag = uføregrunnlag,
                         periode = år(2021),
                     ),
@@ -88,12 +88,12 @@ internal class UføreVilkårsvurderingPostgresRepoTest {
                 forventetInntekt = 12000,
             )
 
-            val vurderingUførhet = Vilkår.Uførhet.Vurdert.create(
+            val vurderingUførhet = UføreVilkår.Vurdert.create(
                 vurderingsperioder = nonEmptyListOf(
-                    Vurderingsperiode.Uføre.create(
+                    VurderingsperiodeUføre.create(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
-                        resultat = Resultat.Avslag,
+                        vurdering = Vurdering.Avslag,
                         grunnlag = uføregrunnlag,
                         periode = år(2021),
                     ),
@@ -121,13 +121,13 @@ internal class UføreVilkårsvurderingPostgresRepoTest {
                 testDataHelper.uføreVilkårsvurderingRepo.hent(søknadsbehandling.id, session) shouldBe vilkår
                 testDataHelper.uføreVilkårsvurderingRepo.lagre(
                     behandlingId = søknadsbehandling.id,
-                    vilkår = Vilkår.Uførhet.IkkeVurdert,
+                    vilkår = UføreVilkår.IkkeVurdert,
                     tx = session,
                 )
                 testDataHelper.uføreVilkårsvurderingRepo.hent(
                     behandlingId = søknadsbehandling.id,
                     session = session,
-                ) shouldBe Vilkår.Uførhet.IkkeVurdert
+                ) shouldBe UføreVilkår.IkkeVurdert
 
                 testDataHelper.uføregrunnlagPostgresRepo.hentForUføregrunnlagForId(
                     uføregrunnlagId = grunnlag.first().id,

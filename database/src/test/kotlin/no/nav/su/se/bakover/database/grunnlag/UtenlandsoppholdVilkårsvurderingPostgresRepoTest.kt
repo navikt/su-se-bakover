@@ -11,8 +11,8 @@ import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.grunnlag.Utenlandsoppholdgrunnlag
-import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
+import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUtenlandsopphold
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
@@ -32,7 +32,7 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepoTest {
                     VurderingsperiodeUtenlandsopphold.create(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
-                        resultat = Resultat.Avslag,
+                        vurdering = Vurdering.Avslag,
                         grunnlag = null,
                         periode = år(2021),
                     ),
@@ -59,7 +59,7 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepoTest {
                     VurderingsperiodeUtenlandsopphold.create(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
-                        resultat = Resultat.Innvilget,
+                        vurdering = Vurdering.Innvilget,
                         grunnlag = Utenlandsoppholdgrunnlag(
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
@@ -70,7 +70,7 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepoTest {
                     VurderingsperiodeUtenlandsopphold.create(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
-                        resultat = Resultat.Avslag,
+                        vurdering = Vurdering.Avslag,
                         grunnlag = Utenlandsoppholdgrunnlag(
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
@@ -101,7 +101,7 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepoTest {
                     VurderingsperiodeUtenlandsopphold.create(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
-                        resultat = Resultat.Avslag,
+                        vurdering = Vurdering.Avslag,
                         grunnlag = Utenlandsoppholdgrunnlag(
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
@@ -117,7 +117,7 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepoTest {
                     VurderingsperiodeUtenlandsopphold.create(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
-                        resultat = Resultat.Innvilget,
+                        vurdering = Vurdering.Innvilget,
                         grunnlag = Utenlandsoppholdgrunnlag(
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,

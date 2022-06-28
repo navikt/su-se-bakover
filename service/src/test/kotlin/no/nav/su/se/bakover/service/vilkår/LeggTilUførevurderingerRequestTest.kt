@@ -14,9 +14,9 @@ import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
-import no.nav.su.se.bakover.domain.vilkår.Resultat
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
-import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
+import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
+import no.nav.su.se.bakover.domain.vilkår.Vurdering
+import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUføre
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
 import org.junit.jupiter.api.Test
@@ -238,12 +238,12 @@ internal class LeggTilUførevurderingerRequestTest {
             ),
             fixedClock,
         ).orNull()!!
-        actual shouldBe Vilkår.Uførhet.Vurdert.create(
+        actual shouldBe UføreVilkår.Vurdert.create(
             vurderingsperioder = nonEmptyListOf(
-                Vurderingsperiode.Uføre.create(
+                VurderingsperiodeUføre.create(
                     id = actual.vurderingsperioder[0].id,
                     opprettet = actual.vurderingsperioder[0].opprettet,
-                    resultat = Resultat.Innvilget,
+                    vurdering = Vurdering.Innvilget,
                     grunnlag = Grunnlag.Uføregrunnlag(
                         id = actual.vurderingsperioder[0].grunnlag!!.id,
                         opprettet = actual.vurderingsperioder[0].grunnlag!!.opprettet,
@@ -253,10 +253,10 @@ internal class LeggTilUførevurderingerRequestTest {
                     ),
                     periode = januar(2021),
                 ),
-                Vurderingsperiode.Uføre.create(
+                VurderingsperiodeUføre.create(
                     id = actual.vurderingsperioder[1].id,
                     opprettet = actual.vurderingsperioder[1].opprettet,
-                    resultat = Resultat.Innvilget,
+                    vurdering = Vurdering.Innvilget,
                     grunnlag = Grunnlag.Uføregrunnlag(
                         id = actual.vurderingsperioder[1].grunnlag!!.id,
                         opprettet = actual.vurderingsperioder[1].grunnlag!!.opprettet,
@@ -300,12 +300,12 @@ internal class LeggTilUførevurderingerRequestTest {
             ),
             fixedClock,
         ).orNull()!!
-        actual shouldBe Vilkår.Uførhet.Vurdert.create(
+        actual shouldBe UføreVilkår.Vurdert.create(
             vurderingsperioder = nonEmptyListOf(
-                Vurderingsperiode.Uføre.create(
+                VurderingsperiodeUføre.create(
                     id = actual.vurderingsperioder[0].id,
                     opprettet = actual.vurderingsperioder[0].opprettet,
-                    resultat = Resultat.Innvilget,
+                    vurdering = Vurdering.Innvilget,
                     grunnlag = Grunnlag.Uføregrunnlag(
                         id = actual.vurderingsperioder[0].grunnlag!!.id,
                         opprettet = actual.vurderingsperioder[0].grunnlag!!.opprettet,
@@ -315,10 +315,10 @@ internal class LeggTilUførevurderingerRequestTest {
                     ),
                     periode = januar(2021),
                 ),
-                Vurderingsperiode.Uføre.create(
+                VurderingsperiodeUføre.create(
                     id = actual.vurderingsperioder[1].id,
                     opprettet = actual.vurderingsperioder[1].opprettet,
-                    resultat = Resultat.Innvilget,
+                    vurdering = Vurdering.Innvilget,
                     grunnlag = Grunnlag.Uføregrunnlag(
                         id = actual.vurderingsperioder[1].grunnlag!!.id,
                         opprettet = actual.vurderingsperioder[1].grunnlag!!.opprettet,
@@ -349,12 +349,12 @@ internal class LeggTilUførevurderingerRequestTest {
             ),
         ).toVilkår(januar(2021), fixedClock).orNull()!!
             .let { request ->
-                Vilkår.Uførhet.Vurdert.create(
+                UføreVilkår.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
-                        Vurderingsperiode.Uføre.create(
+                        VurderingsperiodeUføre.create(
                             id = request.vurderingsperioder[0].id,
                             opprettet = request.vurderingsperioder[0].opprettet,
-                            resultat = Resultat.Innvilget,
+                            vurdering = Vurdering.Innvilget,
                             grunnlag = null,
                             periode = januar(2021),
                         ),
@@ -376,12 +376,12 @@ internal class LeggTilUførevurderingerRequestTest {
             ),
         ).toVilkår(januar(2021), fixedClock).orNull()!!
             .let { request ->
-                Vilkår.Uførhet.Vurdert.create(
+                UføreVilkår.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
-                        Vurderingsperiode.Uføre.create(
+                        VurderingsperiodeUføre.create(
                             id = request.vurderingsperioder[0].id,
                             opprettet = request.vurderingsperioder[0].opprettet,
-                            resultat = Resultat.Uavklart,
+                            vurdering = Vurdering.Uavklart,
                             grunnlag = null,
                             periode = januar(2021),
                         ),

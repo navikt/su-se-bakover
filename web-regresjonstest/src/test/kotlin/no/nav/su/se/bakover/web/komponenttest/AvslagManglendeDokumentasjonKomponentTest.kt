@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
 import no.nav.su.se.bakover.domain.grunnlag.Opplysningspliktgrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
+import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOpplysningsplikt
@@ -84,7 +84,7 @@ class AvslagManglendeDokumentasjonKomponentTest {
                                 ).getOrFail(),
                             )
                         }
-                    avslag.vilkårsvurderinger.resultat shouldBe Vilkårsvurderingsresultat.Avslag(
+                    avslag.vilkårsvurderinger.vurdering shouldBe Vilkårsvurderingsresultat.Avslag(
                         setOf(avslag.vilkårsvurderinger.opplysningspliktVilkår()),
                     )
                     appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.Sak(avslag.sakId))
@@ -167,9 +167,9 @@ class AvslagManglendeDokumentasjonKomponentTest {
                                         ),
                                     ).getOrFail(),
                                 )
-                                avslag.vilkårsvurderinger.uføreVilkår().getOrFail().shouldBeType<Vilkår.Uførhet.Vurdert>()
+                                avslag.vilkårsvurderinger.uføreVilkår().getOrFail().shouldBeType<UføreVilkår.Vurdert>()
                             }
-                        avslag.vilkårsvurderinger.resultat shouldBe Vilkårsvurderingsresultat.Avslag(
+                        avslag.vilkårsvurderinger.vurdering shouldBe Vilkårsvurderingsresultat.Avslag(
                             setOf(avslag.vilkårsvurderinger.opplysningspliktVilkår()),
                         )
                         appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.Sak(avslag.sakId))

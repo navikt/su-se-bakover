@@ -10,21 +10,21 @@ import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.tidspunkt
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
-import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
+import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
+import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFormue
 import java.util.UUID
 
 internal class FormueVilkårsvurderingPostgresRepo(
     private val formuegrunnlagPostgresRepo: FormuegrunnlagPostgresRepo,
     private val dbMetrics: DbMetrics,
 ) {
-    internal fun lagre(behandlingId: UUID, vilkår: Vilkår.Formue, tx: TransactionalSession) {
+    internal fun lagre(behandlingId: UUID, vilkår: FormueVilkår, tx: TransactionalSession) {
         slettForBehandlingId(behandlingId, tx)
         when (vilkår) {
-            is Vilkår.Formue.IkkeVurdert -> {
+            is FormueVilkår.IkkeVurdert -> {
                 formuegrunnlagPostgresRepo.lagreFormuegrunnlag(behandlingId, emptyList(), tx)
             }
-            is Vilkår.Formue.Vurdert -> {
+            is FormueVilkår.Vurdert -> {
                 formuegrunnlagPostgresRepo.lagreFormuegrunnlag(
                     behandlingId = behandlingId,
                     formuegrunnlag = vilkår.grunnlag,
@@ -37,7 +37,7 @@ internal class FormueVilkårsvurderingPostgresRepo(
         }
     }
 
-    private fun lagre(behandlingId: UUID, vurderingsperiode: Vurderingsperiode.Formue, tx: TransactionalSession) {
+    private fun lagre(behandlingId: UUID, vurderingsperiode: VurderingsperiodeFormue, tx: TransactionalSession) {
         """
                 insert into vilkårsvurdering_formue
                 (
@@ -68,7 +68,7 @@ internal class FormueVilkårsvurderingPostgresRepo(
                     "behandlingId" to behandlingId,
                     "formue_grunnlag_id" to vurderingsperiode.grunnlag.id,
                     "vurdering" to "AUTOMATISK",
-                    "resultat" to vurderingsperiode.resultat.toDto(),
+                    "resultat" to vurderingsperiode.vurdering.toDto(),
                     "fraOgMed" to vurderingsperiode.periode.fraOgMed,
                     "tilOgMed" to vurderingsperiode.periode.tilOgMed,
                 ),
@@ -88,7 +88,7 @@ internal class FormueVilkårsvurderingPostgresRepo(
             )
     }
 
-    internal fun hent(behandlingId: UUID, session: Session): Vilkår.Formue {
+    internal fun hent(behandlingId: UUID, session: Session): FormueVilkår {
         return dbMetrics.timeQuery("hentVilkårsvurderingFormue") {
             """
                 select * from vilkårsvurdering_formue where behandlingId = :behandlingId
@@ -102,26 +102,26 @@ internal class FormueVilkårsvurderingPostgresRepo(
                     it.toVurderingsperioder(session)
                 }.let {
                     when (it.isNotEmpty()) {
-                        true -> Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(
+                        true -> FormueVilkår.Vurdert.createFromVilkårsvurderinger(
                             vurderingsperioder = Nel.fromListUnsafe(
                                 it,
                             ),
                         )
-                        false -> Vilkår.Formue.IkkeVurdert
+                        false -> FormueVilkår.IkkeVurdert
                     }
                 }
         }
     }
 
-    private fun Row.toVurderingsperioder(session: Session): Vurderingsperiode.Formue {
+    private fun Row.toVurderingsperioder(session: Session): VurderingsperiodeFormue {
         val periode = Periode.create(
             fraOgMed = localDate("fraOgMed"),
             tilOgMed = localDate("tilOgMed"),
         )
-        return Vurderingsperiode.Formue.create(
+        return VurderingsperiodeFormue.create(
             id = uuid("id"),
             opprettet = tidspunkt("opprettet"),
-            resultat = ResultatDto.valueOf(string("resultat")).toDomain(),
+            vurdering = ResultatDto.valueOf(string("resultat")).toDomain(),
             grunnlag = uuid("formue_grunnlag_id").let {
                 formuegrunnlagPostgresRepo.hentFormuegrunnlag(it, session)!!
             },

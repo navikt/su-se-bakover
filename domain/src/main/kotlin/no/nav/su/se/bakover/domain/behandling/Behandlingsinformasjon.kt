@@ -13,7 +13,7 @@ import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
-import no.nav.su.se.bakover.domain.vilkår.Resultat
+import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFastOppholdINorge
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFlyktning
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeInstitusjonsopphold
@@ -74,9 +74,9 @@ data class Behandlingsinformasjon(
                             VurderingsperiodeFlyktning.tryCreate(
                                 id = UUID.randomUUID(),
                                 opprettet = Tidspunkt.now(clock),
-                                resultat = when (erVilkårOppfylt()) {
-                                    true -> Resultat.Innvilget
-                                    false -> Resultat.Avslag
+                                vurdering = when (erVilkårOppfylt()) {
+                                    true -> Vurdering.Innvilget
+                                    false -> Vurdering.Avslag
                                 },
                                 grunnlag = FlyktningGrunnlag.tryCreate(
                                     id = UUID.randomUUID(),
@@ -124,9 +124,9 @@ data class Behandlingsinformasjon(
                             VurderingsperiodeFastOppholdINorge.tryCreate(
                                 id = UUID.randomUUID(),
                                 opprettet = Tidspunkt.now(clock),
-                                resultat = when (erVilkårOppfylt()) {
-                                    true -> Resultat.Innvilget
-                                    false -> Resultat.Avslag
+                                vurdering = when (erVilkårOppfylt()) {
+                                    true -> Vurdering.Innvilget
+                                    false -> Vurdering.Avslag
                                 },
                                 grunnlag = FastOppholdINorgeGrunnlag.tryCreate(
                                     id = UUID.randomUUID(),
@@ -174,9 +174,9 @@ data class Behandlingsinformasjon(
                             VurderingsperiodeInstitusjonsopphold.tryCreate(
                                 id = UUID.randomUUID(),
                                 opprettet = Tidspunkt.now(clock),
-                                resultat = when (erVilkårOppfylt()) {
-                                    true -> Resultat.Innvilget
-                                    false -> Resultat.Avslag
+                                vurdering = when (erVilkårOppfylt()) {
+                                    true -> Vurdering.Innvilget
+                                    false -> Vurdering.Avslag
                                 },
                                 grunnlag = InstitusjonsoppholdGrunnlag.tryCreate(
                                     id = UUID.randomUUID(),
@@ -240,9 +240,9 @@ data class Behandlingsinformasjon(
                             VurderingsperiodePersonligOppmøte.tryCreate(
                                 id = UUID.randomUUID(),
                                 opprettet = Tidspunkt.now(clock),
-                                resultat = when (erVilkårOppfylt()) {
-                                    true -> Resultat.Innvilget
-                                    false -> Resultat.Avslag
+                                vurdering = when (erVilkårOppfylt()) {
+                                    true -> Vurdering.Innvilget
+                                    false -> Vurdering.Avslag
                                 },
                                 grunnlag = PersonligOppmøteGrunnlag.tryCreate(
                                     id = UUID.randomUUID(),

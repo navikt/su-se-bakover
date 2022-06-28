@@ -7,11 +7,11 @@ import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
-import no.nav.su.se.bakover.domain.vilkår.Resultat
+import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
+import no.nav.su.se.bakover.domain.vilkår.Vurdering
+import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUføre
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.vilkår.formuevilkårIkkeVurdert
@@ -54,15 +54,15 @@ class UføreVilkårJsonTest {
         }
         """.trimIndent()
 
-        internal val vurderingsperiodeUføre = Vurderingsperiode.Uføre.create(
+        internal val vurderingsperiodeUføre = VurderingsperiodeUføre.create(
             id = vilkårsvurderingUføreId,
             opprettet = vilkårsvurderingUføreOpprettet,
-            resultat = Resultat.Innvilget,
+            vurdering = Vurdering.Innvilget,
             grunnlag = uføregrunnlag,
             periode = år(2021),
         )
 
-        internal val uførevurdering = Vilkår.Uførhet.Vurdert.create(
+        internal val uførevurdering = UføreVilkår.Vurdert.create(
             vurderingsperioder = nonEmptyListOf(vurderingsperiodeUføre),
         )
 

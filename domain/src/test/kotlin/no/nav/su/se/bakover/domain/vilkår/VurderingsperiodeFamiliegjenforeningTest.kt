@@ -13,7 +13,7 @@ private class VurderingsperiodeFamiliegjenforeningTest {
     @Test
     fun `er lik`() {
         vurderingsperiodeFamiliegjenforeningInnvilget().erLik(vurderingsperiodeFamiliegjenforeningInnvilget()) shouldBe true
-        vurderingsperiodeFamiliegjenforeningInnvilget().erLik(vurderingsperiodeFamiliegjenforeningInnvilget(resultat = Resultat.Avslag)) shouldBe false
+        vurderingsperiodeFamiliegjenforeningInnvilget().erLik(vurderingsperiodeFamiliegjenforeningInnvilget(vurdering = Vurdering.Avslag)) shouldBe false
         vurderingsperiodeFamiliegjenforeningInnvilget().erLik(vurderingsperiodeFlyktning()) shouldBe false
     }
 

@@ -35,7 +35,7 @@ internal class PersonligOppmøteVilkårTest {
                             VurderingsperiodePersonligOppmøte.tryCreate(
                                 id = UUID.randomUUID(),
                                 opprettet = Tidspunkt.now(fixedClock),
-                                resultat = Resultat.Innvilget,
+                                vurdering = Vurdering.Innvilget,
                                 grunnlag = PersonligOppmøteGrunnlag(
                                     id = UUID.randomUUID(),
                                     opprettet = Tidspunkt.now(fixedClock),
@@ -62,7 +62,7 @@ internal class PersonligOppmøteVilkårTest {
                     VurderingsperiodePersonligOppmøte.tryCreate(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
-                        resultat = Resultat.Avslag,
+                        vurdering = Vurdering.Avslag,
                         grunnlag = PersonligOppmøteGrunnlag(
                             id = UUID.randomUUID(),
                             opprettet = Tidspunkt.now(fixedClock),
@@ -92,7 +92,7 @@ internal class PersonligOppmøteVilkårTest {
                 VurderingsperiodePersonligOppmøte.tryCreate(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(fixedClock),
-                    resultat = Resultat.Innvilget,
+                    vurdering = Vurdering.Innvilget,
                     grunnlag = PersonligOppmøteGrunnlag(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
@@ -107,7 +107,7 @@ internal class PersonligOppmøteVilkårTest {
                     VurderingsperiodePersonligOppmøte.tryCreate(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
-                        resultat = Resultat.Innvilget,
+                        vurdering = Vurdering.Innvilget,
                         grunnlag = PersonligOppmøteGrunnlag(
                             id = UUID.randomUUID(),
                             opprettet = Tidspunkt.now(fixedClock),
@@ -127,7 +127,7 @@ internal class PersonligOppmøteVilkårTest {
                 VurderingsperiodePersonligOppmøte.tryCreate(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(fixedClock),
-                    resultat = Resultat.Innvilget,
+                    vurdering = Vurdering.Innvilget,
                     grunnlag = PersonligOppmøteGrunnlag(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
@@ -138,7 +138,7 @@ internal class PersonligOppmøteVilkårTest {
                 VurderingsperiodePersonligOppmøte.tryCreate(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(fixedClock),
-                    resultat = Resultat.Innvilget,
+                    vurdering = Vurdering.Innvilget,
                     grunnlag = PersonligOppmøteGrunnlag(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
@@ -155,7 +155,7 @@ internal class PersonligOppmøteVilkårTest {
         val v1 = VurderingsperiodePersonligOppmøte.tryCreate(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(fixedClock),
-            resultat = Resultat.Innvilget,
+            vurdering = Vurdering.Innvilget,
             grunnlag = PersonligOppmøteGrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(fixedClock),
@@ -167,7 +167,7 @@ internal class PersonligOppmøteVilkårTest {
         val v2 = VurderingsperiodePersonligOppmøte.tryCreate(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(fixedClock),
-            resultat = Resultat.Innvilget,
+            vurdering = Vurdering.Innvilget,
             grunnlag = PersonligOppmøteGrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(fixedClock),

@@ -25,7 +25,7 @@ sealed class UtenlandsoppholdVilkår : Vilkår() {
     abstract override fun slåSammenLikePerioder(): UtenlandsoppholdVilkår
 
     object IkkeVurdert : UtenlandsoppholdVilkår() {
-        override val resultat: Resultat = Resultat.Uavklart
+        override val vurdering: Vurdering = Vurdering.Uavklart
         override val erAvslag = false
         override val erInnvilget = false
         override val grunnlag = emptyList<Utenlandsoppholdgrunnlag>()
@@ -62,12 +62,12 @@ sealed class UtenlandsoppholdVilkår : Vilkår() {
             )
         }
 
-        override val erInnvilget: Boolean = vurderingsperioder.all { it.resultat == Resultat.Innvilget }
+        override val erInnvilget: Boolean = vurderingsperioder.all { it.vurdering == Vurdering.Innvilget }
 
-        override val erAvslag: Boolean = vurderingsperioder.any { it.resultat == Resultat.Avslag }
+        override val erAvslag: Boolean = vurderingsperioder.any { it.vurdering == Vurdering.Avslag }
 
-        override val resultat: Resultat =
-            if (erInnvilget) Resultat.Innvilget else if (erAvslag) Resultat.Avslag else Resultat.Uavklart
+        override val vurdering: Vurdering =
+            if (erInnvilget) Vurdering.Innvilget else if (erAvslag) Vurdering.Avslag else Vurdering.Uavklart
 
         override val perioder: Nel<Periode> = vurderingsperioder.minsteAntallSammenhengendePerioder()
 
@@ -77,7 +77,7 @@ sealed class UtenlandsoppholdVilkår : Vilkår() {
 
         override fun hentTidligesteDatoForAvslag(): LocalDate? {
             return vurderingsperioder
-                .filter { it.resultat == Resultat.Avslag }
+                .filter { it.vurdering == Vurdering.Avslag }
                 .map { it.periode.fraOgMed }
                 .minByOrNull { it }
         }
@@ -133,7 +133,7 @@ sealed class UtenlandsoppholdVilkår : Vilkår() {
 data class VurderingsperiodeUtenlandsopphold private constructor(
     override val id: UUID = UUID.randomUUID(),
     override val opprettet: Tidspunkt,
-    override val resultat: Resultat,
+    override val vurdering: Vurdering,
     override val grunnlag: Utenlandsoppholdgrunnlag?,
     override val periode: Periode,
 ) : Vurderingsperiode(), KanPlasseresPåTidslinje<VurderingsperiodeUtenlandsopphold> {
@@ -142,7 +142,7 @@ data class VurderingsperiodeUtenlandsopphold private constructor(
         return create(
             id = id,
             opprettet = opprettet,
-            resultat = resultat,
+            vurdering = vurdering,
             periode = stønadsperiode.periode,
             grunnlag = this.grunnlag?.oppdaterPeriode(stønadsperiode.periode),
         )
@@ -169,7 +169,7 @@ data class VurderingsperiodeUtenlandsopphold private constructor(
 
     override fun erLik(other: Vurderingsperiode): Boolean {
         return other is VurderingsperiodeUtenlandsopphold &&
-            resultat == other.resultat &&
+            vurdering == other.vurdering &&
             when {
                 grunnlag != null && other.grunnlag != null -> grunnlag.erLik(other.grunnlag)
                 grunnlag == null && other.grunnlag == null -> true
@@ -181,11 +181,11 @@ data class VurderingsperiodeUtenlandsopphold private constructor(
         fun create(
             id: UUID = UUID.randomUUID(),
             opprettet: Tidspunkt,
-            resultat: Resultat,
+            vurdering: Vurdering,
             grunnlag: Utenlandsoppholdgrunnlag?,
             periode: Periode,
         ): VurderingsperiodeUtenlandsopphold {
-            return tryCreate(id, opprettet, resultat, grunnlag, periode).getOrHandle {
+            return tryCreate(id, opprettet, vurdering, grunnlag, periode).getOrHandle {
                 throw IllegalArgumentException(it.toString())
             }
         }
@@ -193,7 +193,7 @@ data class VurderingsperiodeUtenlandsopphold private constructor(
         fun tryCreate(
             id: UUID = UUID.randomUUID(),
             opprettet: Tidspunkt,
-            resultat: Resultat,
+            vurdering: Vurdering,
             grunnlag: Utenlandsoppholdgrunnlag?,
             vurderingsperiode: Periode,
         ): Either<UgyldigVurderingsperiode, VurderingsperiodeUtenlandsopphold> {
@@ -205,7 +205,7 @@ data class VurderingsperiodeUtenlandsopphold private constructor(
             return VurderingsperiodeUtenlandsopphold(
                 id = id,
                 opprettet = opprettet,
-                resultat = resultat,
+                vurdering = vurdering,
                 grunnlag = grunnlag,
                 periode = vurderingsperiode,
             ).right()

@@ -30,17 +30,17 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
-import no.nav.su.se.bakover.domain.vilkår.Resultat
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
+import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
-import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
+import no.nav.su.se.bakover.domain.vilkår.Vurdering
+import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUføre
 import java.time.Clock
 import java.util.UUID
 import kotlin.reflect.KClass
 
 fun Regulering.inneholderAvslag(): Boolean =
-    this.grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.resultat is Vilkårsvurderingsresultat.Avslag
+    this.grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.vurdering is Vilkårsvurderingsresultat.Avslag
 
 interface Reguleringsfelter : Behandling {
     val beregning: Beregning?
@@ -138,7 +138,7 @@ sealed interface Regulering : Reguleringsfelter {
 
         init {
             if (reguleringstype == Reguleringstype.AUTOMATISK) {
-                assert(vilkårsvurderinger.resultat is Vilkårsvurderingsresultat.Innvilget)
+                assert(vilkårsvurderinger.vurdering is Vilkårsvurderingsresultat.Innvilget)
             }
             assert(grunnlagsdataOgVilkårsvurderinger.erVurdert())
             assert(periode == grunnlagsdataOgVilkårsvurderinger.periode())
@@ -161,12 +161,12 @@ sealed interface Regulering : Reguleringsfelter {
                 grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger.leggTil(
-                        Vilkår.Uførhet.Vurdert.tryCreate(
+                        UføreVilkår.Vurdert.tryCreate(
                             Nel.fromListUnsafe(
                                 uføregrunnlag.map {
-                                    Vurderingsperiode.Uføre.tryCreate(
+                                    VurderingsperiodeUføre.tryCreate(
                                         opprettet = Tidspunkt.now(clock),
-                                        resultat = Resultat.Innvilget,
+                                        vurdering = Vurdering.Innvilget,
                                         grunnlag = it,
                                         vurderingsperiode = it.periode,
                                     ).getOrHandle { throw RuntimeException("$it") }

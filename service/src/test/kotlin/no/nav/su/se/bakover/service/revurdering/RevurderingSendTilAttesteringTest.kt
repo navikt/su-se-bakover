@@ -27,7 +27,7 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingsutfallSomIkkeStøttes
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
+import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
@@ -449,7 +449,7 @@ internal class RevurderingSendTilAttesteringTest {
 
             val vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget(
                 periode = revurderingsperiode,
-                formue = Vilkår.Formue.Vurdert.createFromGrunnlag(
+                formue = FormueVilkår.Vurdert.createFromGrunnlag(
                     grunnlag = nonEmptyListOf(
                         formueGrunnlagUtenEps0Innvilget(
                             periode = førsteUførevurderingsperiode,

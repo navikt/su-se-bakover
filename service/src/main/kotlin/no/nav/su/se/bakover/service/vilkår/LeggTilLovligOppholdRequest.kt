@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vilkår.KunneIkkeLageLovligOppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.Resultat
+import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeLovligOpphold
 import java.time.Clock
 import java.util.UUID
@@ -14,11 +14,11 @@ import java.util.UUID
 enum class LovligOppholdVilkårStatus {
     VilkårOppfylt, VilkårIkkeOppfylt, Uavklart;
 
-    fun toResultat(): Resultat {
+    fun toResultat(): Vurdering {
         return when (this) {
-            VilkårOppfylt -> Resultat.Innvilget
-            VilkårIkkeOppfylt -> Resultat.Avslag
-            Uavklart -> Resultat.Uavklart
+            VilkårOppfylt -> Vurdering.Innvilget
+            VilkårIkkeOppfylt -> Vurdering.Avslag
+            Uavklart -> Vurdering.Uavklart
         }
     }
 }
@@ -44,7 +44,7 @@ data class LeggTilLovligOppholdRequest(
     ) = vurderinger.map {
         VurderingsperiodeLovligOpphold.tryCreate(
             opprettet = Tidspunkt.now(clock),
-            resultat = it.status.toResultat(),
+            vurdering = it.status.toResultat(),
             vurderingsperiode = it.periode,
         )
     }

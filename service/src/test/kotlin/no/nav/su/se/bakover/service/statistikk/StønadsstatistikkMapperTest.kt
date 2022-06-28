@@ -13,9 +13,9 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
-import no.nav.su.se.bakover.domain.vilkår.Resultat
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
-import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
+import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
+import no.nav.su.se.bakover.domain.vilkår.Vurdering
+import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUføre
 import no.nav.su.se.bakover.service.statistikk.mappers.StønadsstatistikkMapper
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
@@ -35,12 +35,12 @@ internal class StønadsstatistikkMapperTest {
     private val testdata = vedtakSøknadsbehandlingIverksattInnvilget().let { (_, vedtak) ->
         vedtakSøknadsbehandlingIverksattInnvilget(
             vilkårsvurderinger = vedtak.behandling.vilkårsvurderinger.leggTil(
-                Vilkår.Uførhet.Vurdert.create(
+                UføreVilkår.Vurdert.create(
                     vurderingsperioder = arrow.core.nonEmptyListOf(
-                        Vurderingsperiode.Uføre.create(
+                        VurderingsperiodeUføre.create(
                             id = java.util.UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
-                            resultat = Resultat.Innvilget,
+                            vurdering = Vurdering.Innvilget,
                             grunnlag = Grunnlag.Uføregrunnlag(
                                 id = java.util.UUID.randomUUID(),
                                 opprettet = fixedTidspunkt,

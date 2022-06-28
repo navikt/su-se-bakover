@@ -18,7 +18,7 @@ private class FamiliegjenforeningTest {
     inner class IkkeVurdert {
         @Test
         fun `resultat skal være uavklart`() {
-            FamiliegjenforeningVilkår.IkkeVurdert.resultat shouldBe Resultat.Uavklart
+            FamiliegjenforeningVilkår.IkkeVurdert.vurdering shouldBe Vurdering.Uavklart
         }
 
         @Test
@@ -71,7 +71,7 @@ private class FamiliegjenforeningTest {
             familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(
                     vurderingsperiodeFamiliegjenforeningInnvilget(),
-                    vurderingsperiodeFamiliegjenforeningInnvilget(resultat = Resultat.Avslag, periode = år(2023)),
+                    vurderingsperiodeFamiliegjenforeningInnvilget(vurdering = Vurdering.Avslag, periode = år(2023)),
                 ),
             ).erAvslag shouldBe true
         }
@@ -103,8 +103,8 @@ private class FamiliegjenforeningTest {
         fun `henter tidligste dato for avslag`() {
             familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(
-                    vurderingsperiodeFamiliegjenforeningInnvilget(resultat = Resultat.Avslag),
-                    vurderingsperiodeFamiliegjenforeningInnvilget(resultat = Resultat.Avslag, periode = år(2023)),
+                    vurderingsperiodeFamiliegjenforeningInnvilget(vurdering = Vurdering.Avslag),
+                    vurderingsperiodeFamiliegjenforeningInnvilget(vurdering = Vurdering.Avslag, periode = år(2023)),
                 ),
             ).hentTidligesteDatoForAvslag() shouldBe 1.januar(2021)
         }
@@ -113,8 +113,8 @@ private class FamiliegjenforeningTest {
         fun `tidligste dato for avslag skal være null for innvilget`() {
             familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(
-                    vurderingsperiodeFamiliegjenforeningInnvilget(resultat = Resultat.Innvilget),
-                    vurderingsperiodeFamiliegjenforeningInnvilget(resultat = Resultat.Innvilget, periode = år(2023)),
+                    vurderingsperiodeFamiliegjenforeningInnvilget(vurdering = Vurdering.Innvilget),
+                    vurderingsperiodeFamiliegjenforeningInnvilget(vurdering = Vurdering.Innvilget, periode = år(2023)),
                 ),
             ).hentTidligesteDatoForAvslag() shouldBe null
         }

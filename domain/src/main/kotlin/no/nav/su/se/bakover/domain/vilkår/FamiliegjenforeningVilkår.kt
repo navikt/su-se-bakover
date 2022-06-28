@@ -17,7 +17,7 @@ sealed class FamiliegjenforeningVilkår : Vilkår() {
     abstract fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): FamiliegjenforeningVilkår
 
     object IkkeVurdert : FamiliegjenforeningVilkår() {
-        override val resultat: Resultat = Resultat.Uavklart
+        override val vurdering: Vurdering = Vurdering.Uavklart
         override val erAvslag: Boolean = false
         override val erInnvilget: Boolean = false
         override val perioder: List<Periode> = emptyList()
@@ -32,17 +32,17 @@ sealed class FamiliegjenforeningVilkår : Vilkår() {
     data class Vurdert private constructor(
         val vurderingsperioder: Nel<VurderingsperiodeFamiliegjenforening>,
     ) : FamiliegjenforeningVilkår() {
-        override val erInnvilget = vurderingsperioder.all { it.resultat == Resultat.Innvilget }
-        override val erAvslag = vurderingsperioder.any { it.resultat == Resultat.Avslag }
-        override val resultat =
-            if (erInnvilget) Resultat.Innvilget else if (erAvslag) Resultat.Avslag else Resultat.Uavklart
+        override val erInnvilget = vurderingsperioder.all { it.vurdering == Vurdering.Innvilget }
+        override val erAvslag = vurderingsperioder.any { it.vurdering == Vurdering.Avslag }
+        override val vurdering =
+            if (erInnvilget) Vurdering.Innvilget else if (erAvslag) Vurdering.Avslag else Vurdering.Uavklart
 
         override val perioder: Nel<Periode> = vurderingsperioder.minsteAntallSammenhengendePerioder()
         override fun erLik(other: Vilkår) = other is Vurdert && vurderingsperioder.erLik(other.vurderingsperioder)
         override fun slåSammenLikePerioder() = copy(vurderingsperioder = vurderingsperioder.slåSammenLikePerioder())
 
         override fun hentTidligesteDatoForAvslag() = vurderingsperioder
-            .filter { it.resultat == Resultat.Avslag }
+            .filter { it.vurdering == Vurdering.Avslag }
             .map { it.periode.fraOgMed }
             .minByOrNull { it }
 

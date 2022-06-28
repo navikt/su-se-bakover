@@ -56,10 +56,10 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
-import no.nav.su.se.bakover.domain.vilkår.Resultat
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
+import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
+import no.nav.su.se.bakover.domain.vilkår.Vurdering
+import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUføre
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
@@ -1241,10 +1241,10 @@ internal class LagBrevRequestVisitorTest {
                 ),
             ),
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering.Uføre(
-                uføre = Vilkår.Uførhet.Vurdert.create(
+                uføre = UføreVilkår.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
-                        Vurderingsperiode.Uføre.create(
-                            resultat = Resultat.Innvilget,
+                        VurderingsperiodeUføre.create(
+                            vurdering = Vurdering.Innvilget,
                             grunnlag = null,
                             periode = revurderingsperiode,
                             opprettet = fixedTidspunkt,

@@ -62,7 +62,7 @@ internal class FamiliegjenforeningVilkårsvurderingPostgresRepo(
                     "id" to vurderingsperiode.id,
                     "opprettet" to vurderingsperiode.opprettet,
                     "behandlingId" to behandlingId,
-                    "resultat" to vurderingsperiode.resultat.toDto(),
+                    "resultat" to vurderingsperiode.vurdering.toDto(),
                     "fraOgMed" to vurderingsperiode.periode.fraOgMed,
                     "tilOgMed" to vurderingsperiode.periode.tilOgMed,
                 ),
@@ -110,7 +110,7 @@ internal class FamiliegjenforeningVilkårsvurderingPostgresRepo(
         return VurderingsperiodeFamiliegjenforening.create(
             id = uuid("id"),
             opprettet = tidspunkt("opprettet"),
-            resultat = ResultatDto.valueOf(string("resultat")).toDomain(),
+            vurdering = ResultatDto.valueOf(string("resultat")).toDomain(),
             periode = Periode.create(
                 fraOgMed = localDate("fraOgMed"),
                 tilOgMed = localDate("tilOgMed"),

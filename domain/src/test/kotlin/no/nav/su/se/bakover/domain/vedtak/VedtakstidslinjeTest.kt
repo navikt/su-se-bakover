@@ -28,12 +28,13 @@ import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
-import no.nav.su.se.bakover.domain.vilkår.Resultat
+import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
+import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
-import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
+import no.nav.su.se.bakover.domain.vilkår.Vurdering
+import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUføre
 import no.nav.su.se.bakover.test.bosituasjonEpsOver67
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.create
@@ -67,10 +68,10 @@ internal class VedtakstidslinjeTest {
             forventetInntekt = 100,
         )
 
-        val uføreVurderingsperiode = Vurderingsperiode.Uføre.create(
+        val uføreVurderingsperiode = VurderingsperiodeUføre.create(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
-            resultat = Resultat.Innvilget,
+            vurdering = Vurdering.Innvilget,
             grunnlag = uføregrunnlag,
             periode = periode,
         )
@@ -106,7 +107,7 @@ internal class VedtakstidslinjeTest {
         val (sak, _, vedtak) = iverksattSøknadsbehandlingUføre(
             stønadsperiode = Stønadsperiode.create(periode),
             customVilkår = listOf(
-                Vilkår.Uførhet.Vurdert.create(
+                UføreVilkår.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         uføreVurderingsperiode,
                     ),
@@ -137,12 +138,12 @@ internal class VedtakstidslinjeTest {
                                 it.uføregrad shouldBe uføregrunnlag.uføregrad
                                 it.forventetInntekt shouldBe uføregrunnlag.forventetInntekt
                             }
-                            vilkårsvurdering.uføre.shouldBeType<Vilkår.Uførhet.Vurdert>()
+                            vilkårsvurdering.uføre.shouldBeType<UføreVilkår.Vurdert>()
                                 .let { vilkårcopy ->
                                     vilkårcopy.vurderingsperioder shouldHaveSize 1
                                     vilkårcopy.vurderingsperioder[0].let { vurderingsperiodecopy ->
                                         vurderingsperiodecopy.id shouldNotBe uføreVurderingsperiode.id
-                                        vurderingsperiodecopy.resultat shouldBe uføreVurderingsperiode.resultat
+                                        vurderingsperiodecopy.vurdering shouldBe uføreVurderingsperiode.vurdering
                                         vurderingsperiodecopy.periode shouldBe uføreVurderingsperiode.periode
                                         vurderingsperiodecopy.grunnlag!!.let {
                                             it.id shouldNotBe uføregrunnlag.id
@@ -160,13 +161,13 @@ internal class VedtakstidslinjeTest {
                                 it.epsFormue shouldBe expectedFormuegrunnlag.epsFormue
                                 it.søkersFormue shouldBe expectedFormuegrunnlag.søkersFormue
                             }
-                            vilkårsvurdering.formue.shouldBeType<Vilkår.Formue.Vurdert>()
+                            vilkårsvurdering.formue.shouldBeType<FormueVilkår.Vurdert>()
                                 .let { vilkårcopy ->
                                     vilkårcopy.vurderingsperioder shouldHaveSize 1
                                     val expectedVurderingsperiode = formuevilkår.vurderingsperioder.first()
                                     vilkårcopy.vurderingsperioder[0].let { vurderingsperiodecopy ->
                                         vurderingsperiodecopy.id shouldNotBe expectedVurderingsperiode.id
-                                        vurderingsperiodecopy.resultat shouldBe expectedVurderingsperiode.resultat
+                                        vurderingsperiodecopy.vurdering shouldBe expectedVurderingsperiode.vurdering
                                         vurderingsperiodecopy.periode shouldBe expectedVurderingsperiode.periode
                                         vurderingsperiodecopy.grunnlag.let {
                                             val expectedFormuegrunnlag = formuevilkår.grunnlag.first()
@@ -184,13 +185,13 @@ internal class VedtakstidslinjeTest {
                                     vilkårcopy.vurderingsperioder[0].let { vurderingsperiodecopy ->
                                         val expectedVurderingsperiode = formuevilkår.vurderingsperioder.first()
                                         vurderingsperiodecopy.id shouldNotBe expectedVurderingsperiode.id
-                                        vurderingsperiodecopy.resultat shouldBe expectedVurderingsperiode.resultat
+                                        vurderingsperiodecopy.vurdering shouldBe expectedVurderingsperiode.vurdering
                                         vurderingsperiodecopy.periode shouldBe expectedVurderingsperiode.periode
                                         vurderingsperiodecopy.grunnlag shouldBe null
                                     }
                                 }
 
-                            vilkårsvurdering.resultat shouldBe Vilkårsvurderingsresultat.Innvilget(
+                            vilkårsvurdering.vurdering shouldBe Vilkårsvurderingsresultat.Innvilget(
                                 setOf(
                                     vilkårsvurdering.uføre,
                                     vilkårsvurdering.formue,
@@ -237,10 +238,10 @@ internal class VedtakstidslinjeTest {
             fnr = epsFnr,
         )
 
-        val vurderingsperiode = Vurderingsperiode.Uføre.create(
+        val vurderingsperiode = VurderingsperiodeUføre.create(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
-            resultat = Resultat.Innvilget,
+            vurdering = Vurdering.Innvilget,
             grunnlag = uføregrunnlag,
             periode = periode,
         )
@@ -269,7 +270,7 @@ internal class VedtakstidslinjeTest {
             tilhører = FradragTilhører.EPS,
         )
 
-        val formueVilkår = Vilkår.Formue.Vurdert.createFromGrunnlag(
+        val formueVilkår = FormueVilkår.Vurdert.createFromGrunnlag(
             nonEmptyListOf(
                 Formuegrunnlag.create(
                     id = UUID.randomUUID(),
@@ -295,7 +296,7 @@ internal class VedtakstidslinjeTest {
         val (sak, vedtak) = vedtakRevurdering(
             stønadsperiode = Stønadsperiode.create(periode),
             vilkårOverrides = listOf(
-                Vilkår.Uførhet.Vurdert.create(
+                UføreVilkår.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         vurderingsperiode,
                     ),
@@ -331,12 +332,12 @@ internal class VedtakstidslinjeTest {
                                     it.forventetInntekt shouldBe uføregrunnlag.forventetInntekt
                                 }
 
-                                vilkårsvurdering.uføre.shouldBeType<Vilkår.Uførhet.Vurdert>()
+                                vilkårsvurdering.uføre.shouldBeType<UføreVilkår.Vurdert>()
                                     .let { vilkårcopy ->
                                         vilkårcopy.vurderingsperioder shouldHaveSize 1
                                         vilkårcopy.vurderingsperioder[0].let { vurderingsperiodecopy ->
                                             vurderingsperiodecopy.id shouldNotBe vurderingsperiode.id
-                                            vurderingsperiodecopy.resultat shouldBe vurderingsperiode.resultat
+                                            vurderingsperiodecopy.vurdering shouldBe vurderingsperiode.vurdering
                                             vurderingsperiodecopy.periode shouldBe Periode.create(
                                                 1.mai(2021),
                                                 31.juli(2021),
@@ -349,7 +350,7 @@ internal class VedtakstidslinjeTest {
                                             }
                                         }
                                     }
-                                vilkårsvurdering.formue.shouldBeType<Vilkår.Formue.Vurdert>()
+                                vilkårsvurdering.formue.shouldBeType<FormueVilkår.Vurdert>()
                                     .let { vilkårcopy ->
                                         vilkårcopy.vurderingsperioder shouldHaveSize 2
                                         vilkårsvurdering.formue.grunnlag shouldHaveSize 2
@@ -357,7 +358,7 @@ internal class VedtakstidslinjeTest {
                                         vilkårcopy.vurderingsperioder[0].let { vurderingsperiodecopy ->
                                             val expectedVurderingsperiode = formueVilkår.vurderingsperioder.first()
                                             vurderingsperiodecopy.id shouldNotBe expectedVurderingsperiode.id
-                                            vurderingsperiodecopy.resultat shouldBe expectedVurderingsperiode.resultat
+                                            vurderingsperiodecopy.vurdering shouldBe expectedVurderingsperiode.vurdering
                                             vurderingsperiodecopy.periode shouldBe Periode.create(
                                                 1.mai(2021), 30.juni(2021),
                                             )
@@ -373,7 +374,7 @@ internal class VedtakstidslinjeTest {
                                         vilkårcopy.vurderingsperioder[1].let { vurderingsperiodecopy ->
                                             val expectedVurderingsperiode = formueVilkår.vurderingsperioder.first()
                                             vurderingsperiodecopy.id shouldNotBe expectedVurderingsperiode.id
-                                            vurderingsperiodecopy.resultat shouldBe expectedVurderingsperiode.resultat
+                                            vurderingsperiodecopy.vurdering shouldBe expectedVurderingsperiode.vurdering
                                             vurderingsperiodecopy.periode shouldBe Periode.create(
                                                 1.juli(2021), 31.juli(2021),
                                             )
@@ -394,7 +395,7 @@ internal class VedtakstidslinjeTest {
                                         vilkårcopy.vurderingsperioder[0].let { vurderingsperiodecopy ->
                                             val expectedVurderingsperiode = formueVilkår.vurderingsperioder.first()
                                             vurderingsperiodecopy.id shouldNotBe expectedVurderingsperiode.id
-                                            vurderingsperiodecopy.resultat shouldBe expectedVurderingsperiode.resultat
+                                            vurderingsperiodecopy.vurdering shouldBe expectedVurderingsperiode.vurdering
                                             vurderingsperiodecopy.periode shouldBe Periode.create(
                                                 1.mai(2021),
                                                 31.juli(2021),
@@ -403,7 +404,7 @@ internal class VedtakstidslinjeTest {
                                         }
                                     }
 
-                                vilkårsvurdering.resultat shouldBe Vilkårsvurderingsresultat.Innvilget(
+                                vilkårsvurdering.vurdering shouldBe Vilkårsvurderingsresultat.Innvilget(
                                     setOf(
                                         vilkårsvurdering.uføre,
                                         vilkårsvurdering.formue,

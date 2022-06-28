@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.periode.erSammenhengendeSortertOgUtenDuplikat
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.perioderMedEPS
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.perioderUtenEPS
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
+import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -169,7 +170,7 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
          * Bytt til en Either dersom man ikke ønsker kaste exceptions herfra lenger.
          */
         fun oppdaterFormuevilkår(
-            vilkår: Vilkår.Formue.Vurdert,
+            vilkår: FormueVilkår.Vurdert,
         ): Søknadsbehandling {
             // TODO jah: Dette er sjekker som alltid bør gjøres før man får en instans av denne typen.
             //  både for ctor og copy (kun init som kan garantere dette).
@@ -239,13 +240,13 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
 }
 
 fun GrunnlagsdataOgVilkårsvurderinger.krevAlleVilkårInnvilget() {
-    vilkårsvurderinger.resultat.also {
+    vilkårsvurderinger.vurdering.also {
         check(it is Vilkårsvurderingsresultat.Innvilget) { "Ugyldig tilstand, alle vilkår må være innvilget, var: $it" }
     }
 }
 
 fun GrunnlagsdataOgVilkårsvurderinger.krevMinstEttAvslag() {
-    vilkårsvurderinger.resultat.also {
+    vilkårsvurderinger.vurdering.also {
         check(it is Vilkårsvurderingsresultat.Avslag) { "Ugyldig tilstand, minst et vilkår må være avslått, var: $it" }
     }
 }

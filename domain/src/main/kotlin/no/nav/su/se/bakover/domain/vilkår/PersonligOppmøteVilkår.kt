@@ -25,7 +25,7 @@ sealed class PersonligOppmøteVilkår : Vilkår() {
     abstract override fun slåSammenLikePerioder(): PersonligOppmøteVilkår
 
     object IkkeVurdert : PersonligOppmøteVilkår() {
-        override val resultat: Resultat = Resultat.Uavklart
+        override val vurdering: Vurdering = Vurdering.Uavklart
         override val erAvslag = false
         override val erInnvilget = false
         override val grunnlag = emptyList<PersonligOppmøteGrunnlag>()
@@ -62,12 +62,12 @@ sealed class PersonligOppmøteVilkår : Vilkår() {
             )
         }
 
-        override val erInnvilget: Boolean = vurderingsperioder.all { it.resultat == Resultat.Innvilget }
+        override val erInnvilget: Boolean = vurderingsperioder.all { it.vurdering == Vurdering.Innvilget }
 
-        override val erAvslag: Boolean = vurderingsperioder.any { it.resultat == Resultat.Avslag }
+        override val erAvslag: Boolean = vurderingsperioder.any { it.vurdering == Vurdering.Avslag }
 
-        override val resultat: Resultat =
-            if (erInnvilget) Resultat.Innvilget else if (erAvslag) Resultat.Avslag else Resultat.Uavklart
+        override val vurdering: Vurdering =
+            if (erInnvilget) Vurdering.Innvilget else if (erAvslag) Vurdering.Avslag else Vurdering.Uavklart
 
         override val perioder: Nel<Periode> = vurderingsperioder.minsteAntallSammenhengendePerioder()
 
@@ -77,7 +77,7 @@ sealed class PersonligOppmøteVilkår : Vilkår() {
 
         override fun hentTidligesteDatoForAvslag(): LocalDate? {
             return vurderingsperioder
-                .filter { it.resultat == Resultat.Avslag }
+                .filter { it.vurdering == Vurdering.Avslag }
                 .map { it.periode.fraOgMed }
                 .minByOrNull { it }
         }
@@ -119,7 +119,7 @@ sealed class PersonligOppmøteVilkår : Vilkår() {
 data class VurderingsperiodePersonligOppmøte private constructor(
     override val id: UUID = UUID.randomUUID(),
     override val opprettet: Tidspunkt,
-    override val resultat: Resultat,
+    override val vurdering: Vurdering,
     override val grunnlag: PersonligOppmøteGrunnlag?,
     override val periode: Periode,
 ) : Vurderingsperiode(), KanPlasseresPåTidslinje<VurderingsperiodePersonligOppmøte> {
@@ -128,7 +128,7 @@ data class VurderingsperiodePersonligOppmøte private constructor(
         return create(
             id = id,
             opprettet = opprettet,
-            resultat = resultat,
+            vurdering = vurdering,
             periode = stønadsperiode.periode,
             grunnlag = this.grunnlag?.oppdaterPeriode(stønadsperiode.periode),
         )
@@ -155,7 +155,7 @@ data class VurderingsperiodePersonligOppmøte private constructor(
 
     override fun erLik(other: Vurderingsperiode): Boolean {
         return other is VurderingsperiodePersonligOppmøte &&
-            resultat == other.resultat &&
+            vurdering == other.vurdering &&
             when {
                 grunnlag != null && other.grunnlag != null -> grunnlag.erLik(other.grunnlag)
                 grunnlag == null && other.grunnlag == null -> true
@@ -167,11 +167,11 @@ data class VurderingsperiodePersonligOppmøte private constructor(
         fun create(
             id: UUID = UUID.randomUUID(),
             opprettet: Tidspunkt,
-            resultat: Resultat,
+            vurdering: Vurdering,
             grunnlag: PersonligOppmøteGrunnlag?,
             periode: Periode,
         ): VurderingsperiodePersonligOppmøte {
-            return tryCreate(id, opprettet, resultat, grunnlag, periode).getOrHandle {
+            return tryCreate(id, opprettet, vurdering, grunnlag, periode).getOrHandle {
                 throw IllegalArgumentException(it.toString())
             }
         }
@@ -179,7 +179,7 @@ data class VurderingsperiodePersonligOppmøte private constructor(
         fun tryCreate(
             id: UUID = UUID.randomUUID(),
             opprettet: Tidspunkt,
-            resultat: Resultat,
+            vurdering: Vurdering,
             grunnlag: PersonligOppmøteGrunnlag?,
             vurderingsperiode: Periode,
         ): Either<UgyldigVurderingsperiode, VurderingsperiodePersonligOppmøte> {
@@ -191,7 +191,7 @@ data class VurderingsperiodePersonligOppmøte private constructor(
             return VurderingsperiodePersonligOppmøte(
                 id = id,
                 opprettet = opprettet,
-                resultat = resultat,
+                vurdering = vurdering,
                 grunnlag = grunnlag,
                 periode = vurderingsperiode,
             ).right()

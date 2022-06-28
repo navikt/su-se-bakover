@@ -13,7 +13,7 @@ import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.withAvslåttFlyktning
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
+import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import no.nav.su.se.bakover.test.attesteringUnderkjent
 import no.nav.su.se.bakover.test.beregnetSøknadsbehandlingUføre
@@ -178,7 +178,7 @@ internal class StatusovergangTest {
             nySøknadsbehandlingUføre().also { (_, uavklart) ->
                 uavklart.leggTilUførevilkår(innvilgetUførevilkår(), fixedClock).getOrFail().also { vilkårsvurdert ->
                     vilkårsvurdert.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Uavklart>()
-                    vilkårsvurdert.vilkårsvurderinger.uføreVilkår().getOrFail().shouldBeType<Vilkår.Uførhet.Vurdert>()
+                    vilkårsvurdert.vilkårsvurderinger.uføreVilkår().getOrFail().shouldBeType<UføreVilkår.Vurdert>()
                     // skal legges til implisitt hvis det ikke er vurdert fra før
                     vilkårsvurdert.vilkårsvurderinger.opplysningspliktVilkår()
                         .shouldBeType<OpplysningspliktVilkår.Vurdert>()
@@ -190,11 +190,11 @@ internal class StatusovergangTest {
             ).also { (_, uavklart) ->
                 uavklart.leggTilUførevilkår(innvilgetUførevilkår(), fixedClock).getOrFail().also { vilkårsvurdert ->
                     vilkårsvurdert.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
-                    vilkårsvurdert.vilkårsvurderinger.uføreVilkår().getOrFail().shouldBeType<Vilkår.Uførhet.Vurdert>()
+                    vilkårsvurdert.vilkårsvurderinger.uføreVilkår().getOrFail().shouldBeType<UføreVilkår.Vurdert>()
                     // skal ikke legges til implisitt ved oppdatering av andre vilkår da dette allerede er vurdert
                     vilkårsvurdert.vilkårsvurderinger.opplysningspliktVilkår()
                         .shouldBeType<OpplysningspliktVilkår.Vurdert>()
-                    vilkårsvurdert.vilkårsvurderinger.resultat shouldBe Vilkårsvurderingsresultat.Avslag(
+                    vilkårsvurdert.vilkårsvurderinger.vurdering shouldBe Vilkårsvurderingsresultat.Avslag(
                         setOf(
                             vilkårsvurdert.vilkårsvurderinger.opplysningspliktVilkår(),
                         ),

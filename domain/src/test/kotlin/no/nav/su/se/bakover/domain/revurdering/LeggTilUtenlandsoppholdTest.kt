@@ -9,8 +9,8 @@ import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.januar
-import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
+import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUtenlandsopphold
 import no.nav.su.se.bakover.test.avsluttetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
@@ -45,13 +45,13 @@ class LeggTilUtenlandsoppholdTest {
                 vurderingsperioder = nonEmptyListOf(
                     VurderingsperiodeUtenlandsopphold.create(
                         opprettet = fixedTidspunkt,
-                        resultat = Resultat.Innvilget,
+                        vurdering = Vurdering.Innvilget,
                         grunnlag = null,
                         periode = uavklart.periode,
                     ),
                     VurderingsperiodeUtenlandsopphold.create(
                         opprettet = fixedTidspunkt,
-                        resultat = Resultat.Innvilget,
+                        vurdering = Vurdering.Innvilget,
                         grunnlag = null,
                         periode = januar(2020),
                     ),
@@ -117,13 +117,13 @@ class LeggTilUtenlandsoppholdTest {
                 vurderingsperioder = nonEmptyListOf(
                     VurderingsperiodeUtenlandsopphold.create(
                         opprettet = fixedTidspunkt,
-                        resultat = Resultat.Innvilget,
+                        vurdering = Vurdering.Innvilget,
                         grunnlag = null,
                         periode = januar(2021),
                     ),
                     VurderingsperiodeUtenlandsopphold.create(
                         opprettet = fixedTidspunkt,
-                        resultat = Resultat.Avslag,
+                        vurdering = Vurdering.Avslag,
                         grunnlag = null,
                         periode = Periode.create(1.februar(2021), 31.desember(2021)),
                     ),
@@ -141,13 +141,13 @@ class LeggTilUtenlandsoppholdTest {
                 vurderingsperioder = nonEmptyListOf(
                     VurderingsperiodeUtenlandsopphold.create(
                         opprettet = fixedTidspunkt,
-                        resultat = Resultat.Innvilget,
+                        vurdering = Vurdering.Innvilget,
                         grunnlag = null,
                         periode = januar(2021),
                     ),
                     VurderingsperiodeUtenlandsopphold.create(
                         opprettet = fixedTidspunkt,
-                        resultat = Resultat.Innvilget,
+                        vurdering = Vurdering.Innvilget,
                         grunnlag = null,
                         periode = februar(2021),
                     ),

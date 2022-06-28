@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.database.grunnlag
 
-import no.nav.su.se.bakover.domain.vilkår.Resultat
+import no.nav.su.se.bakover.domain.vilkår.Vurdering
 
 internal enum class ResultatDto {
     AVSLAG,
@@ -8,14 +8,14 @@ internal enum class ResultatDto {
     UAVKLART;
 
     fun toDomain() = when (this) {
-        AVSLAG -> Resultat.Avslag
-        INNVILGET -> Resultat.Innvilget
-        UAVKLART -> Resultat.Uavklart
+        AVSLAG -> Vurdering.Avslag
+        INNVILGET -> Vurdering.Innvilget
+        UAVKLART -> Vurdering.Uavklart
     }
 }
 
-internal fun Resultat.toDto() = when (this) {
-    Resultat.Avslag -> ResultatDto.AVSLAG.toString()
-    Resultat.Innvilget -> ResultatDto.INNVILGET.toString()
-    Resultat.Uavklart -> ResultatDto.UAVKLART.toString()
+internal fun Vurdering.toDto() = when (this) {
+    Vurdering.Avslag -> ResultatDto.AVSLAG.toString()
+    Vurdering.Innvilget -> ResultatDto.INNVILGET.toString()
+    Vurdering.Uavklart -> ResultatDto.UAVKLART.toString()
 }

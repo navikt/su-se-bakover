@@ -12,11 +12,11 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.RevurderingsutfallSomIkkeStøttes
 import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
-import no.nav.su.se.bakover.domain.vilkår.Resultat
+import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
+import no.nav.su.se.bakover.domain.vilkår.Vurdering
+import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUføre
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
@@ -52,12 +52,12 @@ internal class RevurderingLeggTilUføregrunnlagTest {
                     ),
                 ),
                 vilkårsvurderinger = Vilkårsvurderinger.Revurdering.Uføre(
-                    uføre = Vilkår.Uførhet.Vurdert.create(
+                    uføre = UføreVilkår.Vurdert.create(
                         vurderingsperioder = nonEmptyListOf(
-                            Vurderingsperiode.Uføre.create(
+                            VurderingsperiodeUføre.create(
                                 id = UUID.randomUUID(),
                                 opprettet = fixedTidspunkt,
-                                resultat = Resultat.Innvilget,
+                                vurdering = Vurdering.Innvilget,
                                 grunnlag = null,
                                 periode = stønadsperiode2021.periode,
                             ),

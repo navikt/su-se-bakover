@@ -25,9 +25,11 @@ import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.FamiliegjenforeningVilkår
+import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.PensjonsVilkår
+import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -1120,7 +1122,7 @@ fun vilkårsvurdertSøknadsbehandling(
                 )
                     .getOrFail()
                     .leggTilFormuevilkår(
-                        vilkår = customVilkår.customOrDefault { vilkår.formue as Vilkår.Formue.Vurdert },
+                        vilkår = customVilkår.customOrDefault { vilkår.formue as FormueVilkår.Vurdert },
                         clock = clock,
                     ).getOrFail()
                     .leggTilLovligOpphold(
@@ -1155,7 +1157,7 @@ fun vilkårsvurdertSøknadsbehandling(
                 )
                     .getOrFail()
                     .leggTilFormuevilkår(
-                        vilkår = customVilkår.customOrDefault { vilkår.formue as Vilkår.Formue.Vurdert },
+                        vilkår = customVilkår.customOrDefault { vilkår.formue as FormueVilkår.Vurdert },
                         clock = clock,
                     ).getOrFail()
                     .leggTilLovligOpphold(
@@ -1173,7 +1175,7 @@ fun vilkårsvurdertSøknadsbehandling(
                     )
                     .getOrFail()
                     .leggTilUførevilkår(
-                        uførhet = customVilkår.customOrDefault { vilkår.uføre as Vilkår.Uførhet.Vurdert },
+                        uførhet = customVilkår.customOrDefault { vilkår.uføre as UføreVilkår.Vurdert },
                         clock = clock,
                     )
                     .getOrFail()

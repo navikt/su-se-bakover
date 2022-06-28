@@ -26,9 +26,10 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.ErAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
+import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
+import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.visitor.SkalSendeBrevVisitor
 import no.nav.su.se.bakover.domain.visitor.Visitable
@@ -405,13 +406,13 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             return originaltVedtak.erGjenopptak()
         }
 
-        fun uføreVilkår(): Either<Vilkårsvurderinger.VilkårEksistererIkke, Vilkår.Uførhet> {
+        fun uføreVilkår(): Either<Vilkårsvurderinger.VilkårEksistererIkke, UføreVilkår> {
             return vilkårsvurderinger.uføreVilkår()
         }
 
         fun lovligOppholdVilkår() = vilkårsvurderinger.lovligOppholdVilkår()
 
-        fun formueVilkår(): Vilkår.Formue {
+        fun formueVilkår(): FormueVilkår {
             return vilkårsvurderinger.formueVilkår()
         }
 

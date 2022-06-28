@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
+import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.service.vilkår.UførevilkårStatus
@@ -51,7 +51,7 @@ internal class SøknadsbehandlingLeggTilUførevilkårTest {
                     ),
                 ),
             ).getOrFail().let { medUførevilkår ->
-                (medUførevilkår.vilkårsvurderinger.uføreVilkår().getOrFail() as Vilkår.Uførhet.Vurdert).let {
+                (medUførevilkår.vilkårsvurderinger.uføreVilkår().getOrFail() as UføreVilkår.Vurdert).let {
                     it.vurderingsperioder shouldHaveSize 2
                     it.grunnlag shouldHaveSize 2
                 }

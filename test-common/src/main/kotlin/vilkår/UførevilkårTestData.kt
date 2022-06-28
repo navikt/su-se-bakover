@@ -6,9 +6,9 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
-import no.nav.su.se.bakover.domain.vilkår.Resultat
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
-import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
+import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
+import no.nav.su.se.bakover.domain.vilkår.Vurdering
+import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUføre
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.grunnlag.uføregrunnlag
@@ -25,13 +25,13 @@ fun innvilgetUførevilkårForventetInntekt0(
         opprettet = opprettet,
         periode = periode,
     ),
-): Vilkår.Uførhet.Vurdert {
-    return Vilkår.Uførhet.Vurdert.create(
+): UføreVilkår.Vurdert {
+    return UføreVilkår.Vurdert.create(
         vurderingsperioder = nonEmptyListOf(
-            Vurderingsperiode.Uføre.create(
+            VurderingsperiodeUføre.create(
                 id = id,
                 opprettet = opprettet,
-                resultat = Resultat.Innvilget,
+                vurdering = Vurdering.Innvilget,
                 grunnlag = uføregrunnlag,
                 periode = periode,
             ),
@@ -42,13 +42,13 @@ fun innvilgetUførevilkårForventetInntekt0(
 fun innvilgetUførevilkårForventetInntekt12000(
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = år(2021),
-): Vilkår.Uførhet.Vurdert {
-    return Vilkår.Uførhet.Vurdert.create(
+): UføreVilkår.Vurdert {
+    return UføreVilkår.Vurdert.create(
         vurderingsperioder = nonEmptyListOf(
-            Vurderingsperiode.Uføre.create(
+            VurderingsperiodeUføre.create(
                 id = UUID.randomUUID(),
                 opprettet = opprettet,
-                resultat = Resultat.Innvilget,
+                vurdering = Vurdering.Innvilget,
                 grunnlag = uføregrunnlagForventetInntekt12000(opprettet = opprettet, periode = periode),
                 periode = periode,
             ),
@@ -63,13 +63,13 @@ fun innvilgetUførevilkår(
     periode: Periode = år(2021),
     forventetInntekt: Int = 0,
     uføregrad: Uføregrad = Uføregrad.parse(100),
-): Vilkår.Uførhet.Vurdert {
-    return Vilkår.Uførhet.Vurdert.create(
+): UføreVilkår.Vurdert {
+    return UføreVilkår.Vurdert.create(
         vurderingsperioder = nonEmptyListOf(
-            Vurderingsperiode.Uføre.create(
+            VurderingsperiodeUføre.create(
                 id = vurderingsperiodeId,
                 opprettet = opprettet,
-                resultat = Resultat.Innvilget,
+                vurdering = Vurdering.Innvilget,
                 grunnlag = uføregrunnlag(
                     id = grunnlagsId,
                     opprettet = opprettet,
@@ -86,13 +86,13 @@ fun innvilgetUførevilkår(
 fun avslåttUførevilkårUtenGrunnlag(
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = år(2021),
-): Vilkår.Uførhet.Vurdert {
-    return Vilkår.Uførhet.Vurdert.create(
+): UføreVilkår.Vurdert {
+    return UføreVilkår.Vurdert.create(
         vurderingsperioder = nonEmptyListOf(
-            Vurderingsperiode.Uføre.create(
+            VurderingsperiodeUføre.create(
                 id = UUID.randomUUID(),
                 opprettet = opprettet,
-                resultat = Resultat.Avslag,
+                vurdering = Vurdering.Avslag,
                 grunnlag = null,
                 periode = periode,
             ),

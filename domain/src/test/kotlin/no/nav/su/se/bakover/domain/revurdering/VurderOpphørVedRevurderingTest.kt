@@ -16,9 +16,9 @@ import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.common.periode.november
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
-import no.nav.su.se.bakover.domain.vilkår.Resultat
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
-import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
+import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
+import no.nav.su.se.bakover.domain.vilkår.Vurdering
+import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUføre
 import no.nav.su.se.bakover.test.beregning
 import no.nav.su.se.bakover.test.beregningAvslagForHøyInntekt
 import no.nav.su.se.bakover.test.beregningAvslagUnderMinstebeløp
@@ -43,19 +43,19 @@ internal class VurderOpphørVedRevurderingTest {
     @Test
     fun `vilkår som ikke er oppfylt gir opphør`() {
         val vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget(
-            uføre = Vilkår.Uførhet.Vurdert.create(
+            uføre = UføreVilkår.Vurdert.create(
                 vurderingsperioder = nonEmptyListOf(
-                    Vurderingsperiode.Uføre.create(
+                    VurderingsperiodeUføre.create(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
-                        resultat = Resultat.Innvilget,
+                        vurdering = Vurdering.Innvilget,
                         grunnlag = null,
                         periode = Periode.create(1.januar(2021), 31.mai(2021)),
                     ),
-                    Vurderingsperiode.Uføre.create(
+                    VurderingsperiodeUføre.create(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
-                        resultat = Resultat.Avslag,
+                        vurdering = Vurdering.Avslag,
                         grunnlag = null,
                         periode = Periode.create(1.juni(2021), 31.desember(2021)),
                     ),

@@ -2,8 +2,8 @@ package no.nav.su.se.bakover.web.routes.grunnlag
 
 import no.nav.su.se.bakover.common.periode.PeriodeJson
 import no.nav.su.se.bakover.common.periode.PeriodeJson.Companion.toJson
-import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
+import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUtenlandsopphold
 import no.nav.su.se.bakover.service.vilkår.UtenlandsoppholdStatus
 
@@ -22,22 +22,22 @@ internal fun UtenlandsoppholdVilkår.toJson(): UtenlandsoppholdVilkårJson? {
 internal fun UtenlandsoppholdVilkår.Vurdert.toJson(): UtenlandsoppholdVilkårJson {
     return UtenlandsoppholdVilkårJson(
         vurderinger = vurderingsperioder.map { it.toJson() },
-        status = resultat.tilUtenlandsoppholdStatus(),
+        status = vurdering.tilUtenlandsoppholdStatus(),
     )
 }
 
 internal fun VurderingsperiodeUtenlandsopphold.toJson(): VurderingsperiodeUtenlandsoppholdJson {
     return VurderingsperiodeUtenlandsoppholdJson(
-        status = resultat.tilUtenlandsoppholdStatus(),
+        status = vurdering.tilUtenlandsoppholdStatus(),
         periode = periode.toJson(),
     )
 }
 
-internal fun Resultat.tilUtenlandsoppholdStatus(): UtenlandsoppholdStatus {
+internal fun Vurdering.tilUtenlandsoppholdStatus(): UtenlandsoppholdStatus {
     return when (this) {
-        Resultat.Avslag -> UtenlandsoppholdStatus.SkalVæreMerEnn90DagerIUtlandet
-        Resultat.Innvilget -> UtenlandsoppholdStatus.SkalHoldeSegINorge
-        Resultat.Uavklart -> UtenlandsoppholdStatus.Uavklart
+        Vurdering.Avslag -> UtenlandsoppholdStatus.SkalVæreMerEnn90DagerIUtlandet
+        Vurdering.Innvilget -> UtenlandsoppholdStatus.SkalHoldeSegINorge
+        Vurdering.Uavklart -> UtenlandsoppholdStatus.Uavklart
     }
 }
 

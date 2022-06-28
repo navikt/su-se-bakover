@@ -31,7 +31,7 @@ internal class FlyktningVilkårTest {
                     VurderingsperiodeFlyktning.tryCreate(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
-                        resultat = Resultat.Innvilget,
+                        vurdering = Vurdering.Innvilget,
                         grunnlag = FlyktningGrunnlag(
                             id = UUID.randomUUID(),
                             opprettet = Tidspunkt.now(fixedClock),
@@ -57,7 +57,7 @@ internal class FlyktningVilkårTest {
                     VurderingsperiodeFlyktning.tryCreate(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
-                        resultat = Resultat.Avslag,
+                        vurdering = Vurdering.Avslag,
                         grunnlag = FlyktningGrunnlag(
                             id = UUID.randomUUID(),
                             opprettet = Tidspunkt.now(fixedClock),
@@ -88,7 +88,7 @@ internal class FlyktningVilkårTest {
                 VurderingsperiodeFlyktning.tryCreate(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(fixedClock),
-                    resultat = Resultat.Innvilget,
+                    vurdering = Vurdering.Innvilget,
                     grunnlag = FlyktningGrunnlag(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
@@ -103,7 +103,7 @@ internal class FlyktningVilkårTest {
                     VurderingsperiodeFlyktning.tryCreate(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
-                        resultat = Resultat.Innvilget,
+                        vurdering = Vurdering.Innvilget,
                         grunnlag = FlyktningGrunnlag(
                             id = UUID.randomUUID(),
                             opprettet = Tidspunkt.now(fixedClock),
@@ -123,7 +123,7 @@ internal class FlyktningVilkårTest {
                 VurderingsperiodeFlyktning.tryCreate(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(fixedClock),
-                    resultat = Resultat.Innvilget,
+                    vurdering = Vurdering.Innvilget,
                     grunnlag = FlyktningGrunnlag(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
@@ -134,7 +134,7 @@ internal class FlyktningVilkårTest {
                 VurderingsperiodeFlyktning.tryCreate(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(fixedClock),
-                    resultat = Resultat.Innvilget,
+                    vurdering = Vurdering.Innvilget,
                     grunnlag = FlyktningGrunnlag(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
@@ -151,7 +151,7 @@ internal class FlyktningVilkårTest {
         val v1 = VurderingsperiodeFlyktning.tryCreate(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(fixedClock),
-            resultat = Resultat.Innvilget,
+            vurdering = Vurdering.Innvilget,
             grunnlag = FlyktningGrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(fixedClock),
@@ -163,7 +163,7 @@ internal class FlyktningVilkårTest {
         val v2 = VurderingsperiodeFlyktning.tryCreate(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(fixedClock),
-            resultat = Resultat.Innvilget,
+            vurdering = Vurdering.Innvilget,
             grunnlag = FlyktningGrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(fixedClock),

@@ -26,7 +26,7 @@ sealed class PensjonsVilkår : Vilkår() {
     abstract override fun slåSammenLikePerioder(): PensjonsVilkår
 
     object IkkeVurdert : PensjonsVilkår() {
-        override val resultat: Resultat = Resultat.Uavklart
+        override val vurdering: Vurdering = Vurdering.Uavklart
         override val erAvslag = false
         override val erInnvilget = false
         override val grunnlag = emptyList<Pensjonsgrunnlag>()
@@ -63,17 +63,17 @@ sealed class PensjonsVilkår : Vilkår() {
             )
         }
 
-        override val erInnvilget: Boolean = vurderingsperioder.all { it.resultat == Resultat.Innvilget }
-        override val erAvslag: Boolean = vurderingsperioder.any { it.resultat == Resultat.Avslag }
+        override val erInnvilget: Boolean = vurderingsperioder.all { it.vurdering == Vurdering.Innvilget }
+        override val erAvslag: Boolean = vurderingsperioder.any { it.vurdering == Vurdering.Avslag }
 
-        override val resultat: Resultat =
-            if (erInnvilget) Resultat.Innvilget else if (erAvslag) Resultat.Avslag else Resultat.Uavklart
+        override val vurdering: Vurdering =
+            if (erInnvilget) Vurdering.Innvilget else if (erAvslag) Vurdering.Avslag else Vurdering.Uavklart
 
         override val perioder: Nel<Periode> = vurderingsperioder.minsteAntallSammenhengendePerioder()
 
         override fun hentTidligesteDatoForAvslag(): LocalDate? {
             return vurderingsperioder
-                .filter { it.resultat == Resultat.Avslag }
+                .filter { it.vurdering == Vurdering.Avslag }
                 .map { it.periode.fraOgMed }
                 .minByOrNull { it }
         }
@@ -137,7 +137,7 @@ sealed class PensjonsVilkår : Vilkår() {
 data class VurderingsperiodePensjon private constructor(
     override val id: UUID = UUID.randomUUID(),
     override val opprettet: Tidspunkt,
-    override val resultat: Resultat,
+    override val vurdering: Vurdering,
     override val grunnlag: Pensjonsgrunnlag,
     override val periode: Periode,
 ) : Vurderingsperiode(), KanPlasseresPåTidslinje<VurderingsperiodePensjon> {
@@ -172,7 +172,7 @@ data class VurderingsperiodePensjon private constructor(
 
     override fun erLik(other: Vurderingsperiode): Boolean {
         return other is VurderingsperiodePensjon &&
-            resultat == other.resultat &&
+            vurdering == other.vurdering &&
             grunnlag.erLik(other.grunnlag)
     }
 
@@ -202,7 +202,7 @@ data class VurderingsperiodePensjon private constructor(
             return VurderingsperiodePensjon(
                 id = id,
                 opprettet = opprettet,
-                resultat = grunnlag.tilResultat(),
+                vurdering = grunnlag.tilResultat(),
                 grunnlag = grunnlag,
                 periode = vurderingsperiode,
             ).right()
