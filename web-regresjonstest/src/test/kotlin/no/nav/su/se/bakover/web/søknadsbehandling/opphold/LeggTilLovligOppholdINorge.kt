@@ -13,9 +13,6 @@ import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.web.SharedRegressionTestData.defaultRequest
 
-/**
-- [vurdering] se [no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.LovligOpphold.Status]
- */
 internal fun ApplicationTestBuilder.leggTilLovligOppholdINorge(
     sakId: String,
     behandlingId: String,

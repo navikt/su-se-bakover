@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurdering
 import no.nav.su.se.bakover.web.routes.sak.toJson
 import no.nav.su.se.bakover.web.routes.søknad.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.AttesteringJson.Companion.toJson
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingsinformasjonJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.StønadsperiodeJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.toJson
@@ -23,14 +22,12 @@ internal fun Søknadsbehandling.json(satsFactory: SatsFactory): String {
 
 internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson {
 
-    val behandlingsinformasjonJson = behandlingsinformasjon.toJson()
     return when (this) {
         is Søknadsbehandling.Vilkårsvurdert -> BehandlingJson(
             id = id.toString(),
             opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
             sakId = sakId,
             søknad = søknad.toJson(),
-            behandlingsinformasjon = behandlingsinformasjonJson,
             status = status.toString(),
             attesteringer = attesteringer.toJson(),
             saksbehandler = null,
@@ -49,7 +46,6 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 sakId = sakId,
                 søknad = søknad.toJson(),
-                behandlingsinformasjon = behandlingsinformasjonJson,
                 status = status.toString(),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = null,
@@ -69,7 +65,6 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 sakId = sakId,
                 søknad = søknad.toJson(),
-                behandlingsinformasjon = behandlingsinformasjonJson,
                 status = status.toString(),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = null,
@@ -89,7 +84,6 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 sakId = sakId,
                 søknad = søknad.toJson(),
-                behandlingsinformasjon = behandlingsinformasjonJson,
                 status = status.toString(),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = saksbehandler.toString(),
@@ -109,7 +103,6 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 sakId = sakId,
                 søknad = søknad.toJson(),
-                behandlingsinformasjon = behandlingsinformasjonJson,
                 status = status.toString(),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = saksbehandler.toString(),
@@ -129,7 +122,6 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 sakId = sakId,
                 søknad = søknad.toJson(),
-                behandlingsinformasjon = behandlingsinformasjonJson,
                 status = status.toString(),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = saksbehandler.toString(),
@@ -149,7 +141,6 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 sakId = sakId,
                 søknad = søknad.toJson(),
-                behandlingsinformasjon = behandlingsinformasjonJson,
                 status = status.toString(),
                 attesteringer = attesteringer.map {
                     when (it) {
@@ -185,7 +176,6 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 sakId = sakId,
                 søknad = søknad.toJson(),
-                behandlingsinformasjon = behandlingsinformasjonJson,
                 status = status.toString(),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = saksbehandler.toString(),
@@ -205,7 +195,6 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 sakId = sakId,
                 søknad = søknad.toJson(),
-                behandlingsinformasjon = behandlingsinformasjonJson,
                 status = status.toString(),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = saksbehandler.toString(),
@@ -225,7 +214,6 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 sakId = sakId,
                 søknad = søknad.toJson(),
-                behandlingsinformasjon = behandlingsinformasjonJson,
                 status = status.toString(),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = saksbehandler.toString(),
@@ -245,7 +233,6 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 sakId = sakId,
                 søknad = søknad.toJson(),
-                behandlingsinformasjon = behandlingsinformasjonJson,
                 status = status.toString(),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = saksbehandler.toString(),
@@ -265,7 +252,6 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 sakId = sakId,
                 søknad = søknad.toJson(),
-                behandlingsinformasjon = behandlingsinformasjonJson,
                 status = status.toString(),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = saksbehandler.toString(),

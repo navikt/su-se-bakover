@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.vilkår.FamiliegjenforeningVilkår
 import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
+import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.PensjonsVilkår
@@ -69,6 +70,7 @@ data class GjeldendeVedtaksdata(
                         flyktning = it.flyktningVilkår(),
                         fastOpphold = it.fastOppholdINorgeVilkår(),
                         personligOppmøte = it.personligOppmøteVilkår(),
+                        institusjonsopphold = it.institusjonsoppholdVilkår(),
                     )
                 }
                 vedtakPåTidslinje.all {
@@ -321,6 +323,19 @@ private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.personligOppmøteVil
                 PersonligOppmøteVilkår.Vurdert(NonEmptyList.fromListUnsafe(it)).slåSammenLikePerioder()
             } else {
                 PersonligOppmøteVilkår.IkkeVurdert
+            }
+        }
+}
+
+private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.institusjonsoppholdVilkår(): InstitusjonsoppholdVilkår {
+    return map { it.vilkårsvurderinger.institusjonsopphold }
+        .filterIsInstance<InstitusjonsoppholdVilkår.Vurdert>()
+        .flatMap { it.vurderingsperioder }
+        .let {
+            if (it.isNotEmpty()) {
+                InstitusjonsoppholdVilkår.Vurdert.create(NonEmptyList.fromListUnsafe(it)).slåSammenLikePerioder()
+            } else {
+                InstitusjonsoppholdVilkår.IkkeVurdert
             }
         }
 }

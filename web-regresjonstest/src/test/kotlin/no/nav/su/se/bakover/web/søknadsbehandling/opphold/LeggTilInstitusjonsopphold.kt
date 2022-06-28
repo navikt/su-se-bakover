@@ -13,38 +13,41 @@ import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.web.SharedRegressionTestData.defaultRequest
 
-/**
-- [vurdering] se [no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Institusjonsopphold.Status]
- */
 internal fun ApplicationTestBuilder.leggTilInstitusjonsopphold(
     sakId: String,
     behandlingId: String,
     vurdering: String = "VilkårOppfylt",
+    fraOgMed: String,
+    tilOgMed: String,
+    url: String = "/saker/$sakId/behandlinger/$behandlingId/institusjonsopphold",
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
 ): String {
+
     return runBlocking {
         defaultRequest(
-            HttpMethod.Patch,
-            "/saker/$sakId/behandlinger/$behandlingId/informasjon",
-            listOf(brukerrolle),
+            method = HttpMethod.Post,
+            uri = url,
+            roller = listOf(brukerrolle),
         ) {
             setBody(
                 //language=JSON
                 """
                   {
-                    "flyktning":null,
-                    "lovligOpphold":null,
-                    "fastOppholdINorge":null,
-                    "institusjonsopphold":{
-                      "status":"$vurdering"
-                    },
-                    "personligOppmøte":null
+                    "vurderingsperioder":[
+                      {
+                        "periode":{
+                          "fraOgMed": "$fraOgMed",
+                          "tilOgMed": "$tilOgMed"
+                        },
+                        "vurdering": "$vurdering"
+                      }
+                    ]
                   }
                 """.trimIndent(),
             )
         }.apply {
             withClue("body=${this.bodyAsText()}") {
-                status shouldBe HttpStatusCode.OK
+                status shouldBe HttpStatusCode.Created
                 contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
             }
         }.bodyAsText()

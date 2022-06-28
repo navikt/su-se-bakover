@@ -111,7 +111,6 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 saksnummer = uavklart.saksnummer,
                 søknad = uavklart.søknad,
                 oppgaveId = uavklart.oppgaveId,
-                behandlingsinformasjon = uavklart.behandlingsinformasjon,
                 fnr = uavklart.fnr,
                 saksbehandler = NavIdentBruker.Saksbehandler("saksemannen"),
                 attesteringer = Attesteringshistorikk.create(
@@ -256,7 +255,6 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 saksnummer = vilkårsvurdertInnvilget.saksnummer,
                 søknad = vilkårsvurdertInnvilget.søknad,
                 oppgaveId = vilkårsvurdertInnvilget.oppgaveId,
-                behandlingsinformasjon = vilkårsvurdertInnvilget.behandlingsinformasjon,
                 fnr = vilkårsvurdertInnvilget.fnr,
                 saksbehandler = NavIdentBruker.Saksbehandler("saksemannen"),
                 attesteringer = Attesteringshistorikk.create(

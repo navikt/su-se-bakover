@@ -44,3 +44,20 @@ fun fastOppholdVilkårAvslag(
         ),
     ).getOrFail()
 }
+
+fun fastOppholdVilkårVurdertTilUavklart(
+    id: UUID = UUID.randomUUID(),
+    opprettet: Tidspunkt = fixedTidspunkt,
+    periode: Periode = år(2021),
+): FastOppholdINorgeVilkår.Vurdert {
+    return FastOppholdINorgeVilkår.Vurdert.tryCreate(
+        vurderingsperioder = nonEmptyListOf(
+            VurderingsperiodeFastOppholdINorge.create(
+                id = id,
+                opprettet = opprettet,
+                periode = periode,
+                vurdering = Vurdering.Uavklart,
+            ),
+        ),
+    ).getOrFail()
+}

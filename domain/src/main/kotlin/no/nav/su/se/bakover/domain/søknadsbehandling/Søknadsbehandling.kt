@@ -20,7 +20,6 @@ import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.AvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedAttestering
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn.Companion.toAvslagsgrunn
@@ -64,7 +63,6 @@ import java.util.UUID
 
 sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering, Visitable<SøknadsbehandlingVisitor> {
     abstract val søknad: Søknad.Journalført.MedOppgave
-    abstract val behandlingsinformasjon: Behandlingsinformasjon
 
     // TODO jah: Denne kan fjernes fra domenet og heller la mappingen ligge i infrastruktur-laget
     abstract val status: BehandlingsStatus
@@ -110,12 +108,11 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
     fun leggTilFradragsgrunnlag(
         fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
-        clock: Clock,
     ): Either<KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> {
-        return vilkårsvurder(clock).let {
+        return vilkårsvurder().let {
             when (it) {
                 is KanBeregnes -> {
-                    leggTilFradragsgrunnlagInternal(fradragsgrunnlag, clock)
+                    leggTilFradragsgrunnlagInternal(fradragsgrunnlag)
                 }
                 else -> {
                     KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen(
@@ -128,7 +125,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
     private fun leggTilFradragsgrunnlagInternal(
         fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
-        clock: Clock,
     ): Either<KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> {
         return validerFradragsgrunnlag(fradragsgrunnlag)
             .map {
@@ -136,7 +132,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTilFradragsgrunnlag(
                         fradragsgrunnlag,
                     ),
-                ).vilkårsvurder(clock) as Vilkårsvurdert.Innvilget // TODO cast
+                ).vilkårsvurder() as Vilkårsvurdert.Innvilget // TODO cast
             }
     }
 
@@ -145,10 +141,9 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
      */
     fun oppdaterBosituasjon(
         bosituasjon: Grunnlag.Bosituasjon,
-        clock: Clock,
     ): Either<KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon, Vilkårsvurdert> {
         return if (this is KanOppdaterePeriodeGrunnlagVilkår) {
-            oppdaterBosituasjonInternal(bosituasjon, clock).right()
+            oppdaterBosituasjonInternal(bosituasjon).right()
         } else {
             KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon.UgyldigTilstand(
                 this::class,
@@ -159,10 +154,9 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
     private fun oppdaterBosituasjonInternal(
         bosituasjon: Grunnlag.Bosituasjon,
-        clock: Clock,
     ): Vilkårsvurdert {
         return grunnlagsdataOgVilkårsvurderinger.oppdaterBosituasjon(listOf(bosituasjon)).let {
-            copyInternal(grunnlagsdataOgVilkårsvurderinger = it).vilkårsvurder(clock)
+            copyInternal(grunnlagsdataOgVilkårsvurderinger = it).vilkårsvurder()
         }
     }
 
@@ -171,7 +165,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
      */
     protected open fun copyInternal(
         stønadsperiode: Stønadsperiode = this.stønadsperiode!!,
-        behandlingsinformasjon: Behandlingsinformasjon = this.behandlingsinformasjon,
         grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling = this.grunnlagsdataOgVilkårsvurderinger,
     ): Søknadsbehandling {
         return this
@@ -179,10 +172,9 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
     fun leggTilUtenlandsopphold(
         utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
-        clock: Clock,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
         return if (this is KanOppdaterePeriodeGrunnlagVilkår) {
-            leggTilUtenlandsoppholdInternal(utenlandsopphold, clock)
+            leggTilUtenlandsoppholdInternal(utenlandsopphold)
         } else {
             KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold.IkkeLovÅLeggeTilUtenlandsoppholdIDenneStatusen(
                 fra = this::class,
@@ -193,17 +185,16 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
     private fun leggTilUtenlandsoppholdInternal(
         vilkår: UtenlandsoppholdVilkår.Vurdert,
-        clock: Clock,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
         return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold>(vilkår)
             .map {
                 copyInternal(
                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
-                ).vilkårsvurder(clock)
+                ).vilkårsvurder()
             }
     }
 
-    fun vilkårsvurder(clock: Clock): Vilkårsvurdert {
+    fun vilkårsvurder(): Vilkårsvurdert {
         return opprett(
             id = id,
             opprettet = opprettet,
@@ -211,13 +202,11 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             saksnummer = saksnummer,
             søknad = søknad,
             oppgaveId = oppgaveId,
-            behandlingsinformasjon = behandlingsinformasjon,
             fnr = fnr,
             fritekstTilBrev = fritekstTilBrev,
-            stønadsperiode = stønadsperiode,
+            stønadsperiode = stønadsperiode!!,
             grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
             attesteringer = attesteringer,
-            clock = clock,
             avkorting = avkorting.uhåndtert(),
             sakstype = sakstype,
         )
@@ -230,10 +219,9 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
     fun leggTilFormuevilkår(
         vilkår: FormueVilkår.Vurdert,
-        clock: Clock,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFormuevilkår, Vilkårsvurdert> {
         return if (this is KanOppdaterePeriodeGrunnlagVilkår) {
-            leggTilFormuevilkårInternal(vilkår, clock)
+            leggTilFormuevilkårInternal(vilkår)
         } else {
             return KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFormuevilkår.UgyldigTilstand(
                 fra = this::class,
@@ -244,23 +232,21 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
     private fun leggTilFormuevilkårInternal(
         vilkår: FormueVilkår.Vurdert,
-        clock: Clock,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFormuevilkår, Vilkårsvurdert> {
         return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFormuevilkår>(vilkår)
             .map {
                 copyInternal(
                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.oppdaterFormuevilkår(vilkår),
-                ).vilkårsvurder(clock)
+                ).vilkårsvurder()
             }
     }
 
     fun oppdaterStønadsperiode(
         oppdatertStønadsperiode: Stønadsperiode,
-        clock: Clock,
         formuegrenserFactory: FormuegrenserFactory,
     ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
         return if (this is KanOppdaterePeriodeGrunnlagVilkår) {
-            oppdaterStønadsperiodeInternal(oppdatertStønadsperiode, clock, formuegrenserFactory)
+            oppdaterStønadsperiodeInternal(oppdatertStønadsperiode, formuegrenserFactory)
         } else {
             KunneIkkeOppdatereStønadsperiode.UgyldigTilstand(this::class).left()
         }
@@ -268,7 +254,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
     private fun oppdaterStønadsperiodeInternal(
         oppdatertStønadsperiode: Stønadsperiode,
-        clock: Clock,
         formuegrenserFactory: FormuegrenserFactory,
     ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
         return grunnlagsdataOgVilkårsvurderinger.oppdaterStønadsperiode(
@@ -280,16 +265,15 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             copyInternal(
                 stønadsperiode = oppdatertStønadsperiode,
                 grunnlagsdataOgVilkårsvurderinger = it,
-            ).vilkårsvurder(clock)
+            ).vilkårsvurder()
         }
     }
 
     fun leggTilOpplysningspliktVilkår(
         opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
-        clock: Clock,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
         return if (this is KanOppdaterePeriodeGrunnlagVilkår) {
-            leggTilOpplysningspliktVilkårInternal(opplysningspliktVilkår, clock)
+            leggTilOpplysningspliktVilkårInternal(opplysningspliktVilkår)
         } else {
             KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt.UgyldigTilstand(this::class).left()
         }
@@ -297,22 +281,20 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
     private fun leggTilOpplysningspliktVilkårInternal(
         vilkår: OpplysningspliktVilkår.Vurdert,
-        clock: Clock,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
         return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt>(vilkår)
             .map {
                 copyInternal(
                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
-                ).vilkårsvurder(clock)
+                ).vilkårsvurder()
             }
     }
 
     fun leggTilPensjonsVilkår(
         vilkår: PensjonsVilkår.Vurdert,
-        clock: Clock,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår, Vilkårsvurdert> {
         return if (this is KanOppdaterePeriodeGrunnlagVilkår) {
-            leggTilPensjonsVilkårInternal(vilkår, clock)
+            leggTilPensjonsVilkårInternal(vilkår)
         } else {
             KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår.UgyldigTilstand(this::class).left()
         }
@@ -320,44 +302,43 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
     private fun leggTilPensjonsVilkårInternal(
         vilkår: PensjonsVilkår.Vurdert,
-        clock: Clock,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår, Vilkårsvurdert> {
         return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår>(vilkår)
             .map {
                 copyInternal(
                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
-                ).vilkårsvurder(clock)
+                ).vilkårsvurder()
             }
     }
 
     fun leggTilPersonligOppmøteVilkår(
         vilkår: PersonligOppmøteVilkår.Vurdert,
-        clock: Clock,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPersonligOppmøteVilkår, Vilkårsvurdert> {
         return if (this is KanOppdaterePeriodeGrunnlagVilkår) {
-            leggTilPersonligOppmøteVilkårInternal(vilkår, clock)
+            leggTilPersonligOppmøteVilkårInternal(vilkår)
         } else {
-            KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPersonligOppmøteVilkår.UgyldigTilstand(this::class, Vilkårsvurdert::class).left()
+            KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPersonligOppmøteVilkår.UgyldigTilstand(
+                this::class,
+                Vilkårsvurdert::class,
+            ).left()
         }
     }
 
     private fun leggTilPersonligOppmøteVilkårInternal(
         vilkår: PersonligOppmøteVilkår.Vurdert,
-        clock: Clock,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPersonligOppmøteVilkår, Vilkårsvurdert> {
         return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPersonligOppmøteVilkår>(vilkår)
             .map {
                 copyInternal(
                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
-                ).vilkårsvurder(clock)
+                ).vilkårsvurder()
             }
     }
 
     fun leggTilLovligOpphold(
         lovligOppholdVilkår: LovligOppholdVilkår.Vurdert,
-        clock: Clock,
     ) = if (this is KanOppdaterePeriodeGrunnlagVilkår) {
-        leggTilLovligOppholdInternal(lovligOppholdVilkår, clock)
+        leggTilLovligOppholdInternal(lovligOppholdVilkår)
     } else {
         KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilLovligOpphold.UgyldigTilstand.Søknadsbehandling(
             this::class,
@@ -365,13 +346,12 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         ).left()
     }
 
-    fun leggTilLovligOppholdInternal(
+    private fun leggTilLovligOppholdInternal(
         lovligOppholdVilkår: LovligOppholdVilkår.Vurdert,
-        clock: Clock,
     ) = valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilLovligOpphold>(lovligOppholdVilkår).map {
         copyInternal(
             grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(lovligOppholdVilkår),
-        ).vilkårsvurder(clock)
+        ).vilkårsvurder()
     }
 
     fun beregn(
@@ -381,7 +361,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     ): Either<KunneIkkeBeregne, Beregnet> {
         return when (this) {
             is KanOppdaterePeriodeGrunnlagVilkår -> {
-                when (val vilkårsvurdert = vilkårsvurder(clock)) {
+                when (val vilkårsvurdert = vilkårsvurder()) {
                     is KanBeregnes -> {
                         beregnInternal(
                             søknadsbehandling = vilkårsvurdert,
@@ -404,26 +384,23 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         }
     }
 
-    fun leggTilVilkårFraBehandlingsinformasjon(
-        behandlingsinformasjon: Behandlingsinformasjon,
-        clock: Clock,
-    ): Either<KunneIkkeLeggeTilVilkår.KunnIkkeLeggeTilVilkårFraBehandlingsinformasjon, Vilkårsvurdert> {
-        return if (this is KanOppdaterePeriodeGrunnlagVilkår) {
-            leggTilVilkårFraBehandlingsinformasjonInternal(behandlingsinformasjon, clock)
-        } else {
-            KunneIkkeLeggeTilVilkår.KunnIkkeLeggeTilVilkårFraBehandlingsinformasjon.UgyldigTilstand(
-                fra = this::class,
-                til = Vilkårsvurdert::class,
-            ).left()
+    fun leggTilInstitusjonsoppholdVilkår(
+        vilkår: InstitusjonsoppholdVilkår.Vurdert,
+    ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilInstitusjonsoppholdVilkår, Vilkårsvurdert> {
+        require(vilkår.vurderingsperioder.size == 1) {
+            // TODO jah: Flytt denne litt mer sentralt for hele søknadsbehandling eller bytt til en mer felles left.
+            "Vi støtter ikke flere enn 1 vurderingsperiode for søknadsbehandling"
         }
-    }
-
-    private fun leggTilVilkårFraBehandlingsinformasjonInternal(
-        behandlingsinformasjon: Behandlingsinformasjon,
-        clock: Clock,
-    ): Either<KunneIkkeLeggeTilVilkår.KunnIkkeLeggeTilVilkårFraBehandlingsinformasjon, Vilkårsvurdert> {
-        return copyInternal(behandlingsinformasjon = this.behandlingsinformasjon.patch(behandlingsinformasjon))
-            .vilkårsvurder(clock).right()
+        if (vilkår.perioder.first() != periode) {
+            return KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilInstitusjonsoppholdVilkår.BehandlingsperiodeOgVurderingsperiodeMåVæreLik.left()
+        }
+        return if (this is KanOppdaterePeriodeGrunnlagVilkår) {
+            copyInternal(
+                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
+            ).vilkårsvurder().right()
+        } else {
+            KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilInstitusjonsoppholdVilkår.UgyldigTilstand(this::class).left()
+        }
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -472,10 +449,9 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
     fun leggTilUførevilkår(
         uførhet: UføreVilkår.Vurdert,
-        clock: Clock,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
         return if (this is KanOppdaterePeriodeGrunnlagVilkår) {
-            leggTilUførevilkårInternal(uførhet, clock)
+            leggTilUførevilkårInternal(uførhet)
         } else {
             KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår.UgyldigTilstand(this::class, Vilkårsvurdert::class)
                 .left()
@@ -484,22 +460,20 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
     private fun leggTilUførevilkårInternal(
         vilkår: UføreVilkår.Vurdert,
-        clock: Clock,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
         return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår>(vilkår)
             .map {
                 copyInternal(
                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
-                ).vilkårsvurder(clock)
+                ).vilkårsvurder()
             }
     }
 
     fun leggTilFamiliegjenforeningvilkår(
         familiegjenforening: FamiliegjenforeningVilkår.Vurdert,
-        clock: Clock,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFamiliegjenforeningVilkår, Vilkårsvurdert> {
         return if (this is KanOppdaterePeriodeGrunnlagVilkår) {
-            leggTilFamiliegjenforeningvilkårInternal(familiegjenforening, clock)
+            leggTilFamiliegjenforeningvilkårInternal(familiegjenforening)
         } else {
             KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFamiliegjenforeningVilkår.UgyldigTilstand(
                 this::class,
@@ -510,22 +484,20 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
     private fun leggTilFamiliegjenforeningvilkårInternal(
         vilkår: FamiliegjenforeningVilkår.Vurdert,
-        clock: Clock,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFamiliegjenforeningVilkår, Vilkårsvurdert> {
         return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFamiliegjenforeningVilkår>(vilkår)
             .map {
                 copyInternal(
                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
-                ).vilkårsvurder(clock)
+                ).vilkårsvurder()
             }
     }
 
     fun leggTilFlyktningVilkår(
         vilkår: FlyktningVilkår.Vurdert,
-        clock: Clock,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFlyktningVilkår, Vilkårsvurdert> {
         return if (this is KanOppdaterePeriodeGrunnlagVilkår) {
-            leggTilFlyktningVilkårInternal(vilkår, clock)
+            leggTilFlyktningVilkårInternal(vilkår)
         } else {
             KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFlyktningVilkår.UgyldigTilstand(
                 fra = this::class,
@@ -536,19 +508,17 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
     private fun leggTilFlyktningVilkårInternal(
         vilkår: FlyktningVilkår.Vurdert,
-        clock: Clock,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFlyktningVilkår, Vilkårsvurdert> {
         return copyInternal(
             grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
-        ).vilkårsvurder(clock).right()
+        ).vilkårsvurder().right()
     }
 
     fun leggTilFastOppholdINorgeVilkår(
         vilkår: FastOppholdINorgeVilkår.Vurdert,
-        clock: Clock,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFastOppholdINorgeVilkår, Vilkårsvurdert> {
         return if (this is KanOppdaterePeriodeGrunnlagVilkår) {
-            leggTilFastOppholdINorgeVilkårInternal(vilkår, clock)
+            leggTilFastOppholdINorgeVilkårInternal(vilkår)
         } else {
             KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFastOppholdINorgeVilkår.UgyldigTilstand(
                 fra = this::class,
@@ -559,11 +529,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
     private fun leggTilFastOppholdINorgeVilkårInternal(
         vilkår: FastOppholdINorgeVilkår.Vurdert,
-        clock: Clock,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFastOppholdINorgeVilkår, Vilkårsvurdert> {
         return copyInternal(
             grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
-        ).vilkårsvurder(clock).right()
+        ).vilkårsvurder().right()
     }
 
     private fun valider(uførhet: UføreVilkår.Vurdert): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår, Unit> {
@@ -639,7 +608,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 beregnUtenAvkorting(
                     begrunnelse = begrunnelse,
                     beregningStrategyFactory = beregningStrategyFactory,
-                    clock = clock,
                 ).getOrHandle { return it.left() }
             }
             is AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere -> {
@@ -662,7 +630,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     saksnummer = behandling.saksnummer,
                     søknad = behandling.søknad,
                     oppgaveId = behandling.oppgaveId,
-                    behandlingsinformasjon = behandling.behandlingsinformasjon,
                     fnr = behandling.fnr,
                     beregning = beregning,
                     fritekstTilBrev = behandling.fritekstTilBrev,
@@ -681,7 +648,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         saksnummer = behandling.saksnummer,
                         søknad = behandling.søknad,
                         oppgaveId = behandling.oppgaveId,
-                        behandlingsinformasjon = behandling.behandlingsinformasjon,
                         fnr = behandling.fnr,
                         beregning = beregning,
                         fritekstTilBrev = behandling.fritekstTilBrev,
@@ -704,11 +670,9 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     private fun beregnUtenAvkorting(
         begrunnelse: String?,
         beregningStrategyFactory: BeregningStrategyFactory,
-        clock: Clock,
     ): Either<KunneIkkeBeregne, Pair<Vilkårsvurdert, Beregning>> {
         return leggTilFradragsgrunnlag(
             fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag.filterNot { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold },
-            clock = clock,
         ).getOrHandle {
             return KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag(it).left()
         }.let {
@@ -737,7 +701,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         clock: Clock,
         beregningStrategyFactory: BeregningStrategyFactory,
     ): Either<KunneIkkeBeregne, Pair<Vilkårsvurdert, Beregning>> {
-        return beregnUtenAvkorting(begrunnelse, beregningStrategyFactory, clock)
+        return beregnUtenAvkorting(begrunnelse, beregningStrategyFactory)
             .map { (utenAvkorting, beregningUtenAvkorting) ->
                 val fradragForAvkorting = Avkortingsplan(
                     feilutbetaltBeløp = avkorting.avkortingsvarsel.hentUtbetalteBeløp().sum(),
@@ -753,7 +717,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
                 val medAvkorting = utenAvkorting.leggTilFradragsgrunnlag(
                     fradragsgrunnlag = utenAvkorting.grunnlagsdata.fradragsgrunnlag + fradragForAvkorting,
-                    clock = clock,
                 ).getOrHandle { return KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag(it).left() }
 
                 medAvkorting to gjørBeregning(
@@ -778,24 +741,17 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 saksnummer: Saksnummer,
                 søknad: Søknad.Journalført.MedOppgave,
                 oppgaveId: OppgaveId,
-                behandlingsinformasjon: Behandlingsinformasjon,
                 fnr: Fnr,
                 fritekstTilBrev: String,
-                // TODO jah: Hvorfor er denne nullable når vi krever at den ikke er det noen få linjer ned.
-                stønadsperiode: Stønadsperiode?,
+                stønadsperiode: Stønadsperiode,
                 grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
                 attesteringer: Attesteringshistorikk,
-                clock: Clock,
                 avkorting: AvkortingVedSøknadsbehandling.Uhåndtert,
                 sakstype: Sakstype,
             ): Vilkårsvurdert {
                 val grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata
                 val vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger
-                val oppdaterteVilkårsvurderinger = vilkårsvurderinger.oppdater(
-                    stønadsperiode = stønadsperiode!!,
-                    behandlingsinformasjon = behandlingsinformasjon,
-                    clock = clock,
-                ).let {
+                val oppdaterteVilkårsvurderinger = vilkårsvurderinger.let {
                     if (vilkårsvurderinger.opplysningspliktVilkår() !is OpplysningspliktVilkår.Vurdert) {
                         it.leggTil(
                             /**
@@ -832,7 +788,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                             saksnummer,
                             søknad,
                             oppgaveId,
-                            behandlingsinformasjon,
                             fnr,
                             fritekstTilBrev,
                             stønadsperiode,
@@ -851,7 +806,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                             saksnummer,
                             søknad,
                             oppgaveId,
-                            behandlingsinformasjon,
                             fnr,
                             fritekstTilBrev,
                             stønadsperiode,
@@ -864,21 +818,20 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     }
                     is Vilkårsvurderingsresultat.Uavklart -> {
                         Uavklart(
-                            id,
-                            opprettet,
-                            sakId,
-                            saksnummer,
-                            søknad,
-                            oppgaveId,
-                            behandlingsinformasjon,
-                            fnr,
-                            fritekstTilBrev,
-                            stønadsperiode,
-                            grunnlagsdata,
-                            oppdaterteVilkårsvurderinger,
-                            attesteringer,
-                            avkorting.kanIkke(),
-                            sakstype,
+                            id = id,
+                            opprettet = opprettet,
+                            sakId = sakId,
+                            saksnummer = saksnummer,
+                            søknad = søknad,
+                            oppgaveId = oppgaveId,
+                            fnr = fnr,
+                            fritekstTilBrev = fritekstTilBrev,
+                            stønadsperiode = stønadsperiode,
+                            grunnlagsdata = grunnlagsdata,
+                            vilkårsvurderinger = oppdaterteVilkårsvurderinger,
+                            attesteringer = attesteringer,
+                            avkorting = avkorting.kanIkke(),
+                            sakstype = sakstype,
                         )
                     }
                 }
@@ -892,7 +845,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val saksnummer: Saksnummer,
             override val søknad: Søknad.Journalført.MedOppgave,
             override val oppgaveId: OppgaveId,
-            override val behandlingsinformasjon: Behandlingsinformasjon,
             override val fnr: Fnr,
             override val fritekstTilBrev: String,
             override val stønadsperiode: Stønadsperiode,
@@ -917,12 +869,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
             override fun copyInternal(
                 stønadsperiode: Stønadsperiode,
-                behandlingsinformasjon: Behandlingsinformasjon,
                 grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
             ): Vilkårsvurdert {
                 return copy(
                     stønadsperiode = stønadsperiode,
-                    behandlingsinformasjon = behandlingsinformasjon,
                     grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                     vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                 )
@@ -936,7 +886,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val saksnummer: Saksnummer,
             override val søknad: Søknad.Journalført.MedOppgave,
             override val oppgaveId: OppgaveId,
-            override val behandlingsinformasjon: Behandlingsinformasjon,
             override val fnr: Fnr,
             override val fritekstTilBrev: String,
             override val stønadsperiode: Stønadsperiode,
@@ -951,12 +900,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
             override fun copyInternal(
                 stønadsperiode: Stønadsperiode,
-                behandlingsinformasjon: Behandlingsinformasjon,
                 grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
             ): Avslag {
                 return copy(
                     stønadsperiode = stønadsperiode,
-                    behandlingsinformasjon = behandlingsinformasjon,
                     grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                     vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                 )
@@ -977,22 +924,21 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 fritekstTilBrev: String,
             ): TilAttestering.Avslag.UtenBeregning =
                 TilAttestering.Avslag.UtenBeregning(
-                    id,
-                    opprettet,
-                    sakId,
-                    saksnummer,
-                    søknad,
-                    oppgaveId,
-                    behandlingsinformasjon,
-                    fnr,
-                    saksbehandler,
-                    fritekstTilBrev,
-                    stønadsperiode,
-                    grunnlagsdata,
-                    vilkårsvurderinger,
-                    attesteringer,
-                    avkorting.håndter().kanIkke(),
-                    sakstype,
+                    id = id,
+                    opprettet = opprettet,
+                    sakId = sakId,
+                    saksnummer = saksnummer,
+                    søknad = søknad,
+                    oppgaveId = oppgaveId,
+                    fnr = fnr,
+                    saksbehandler = saksbehandler,
+                    fritekstTilBrev = fritekstTilBrev,
+                    stønadsperiode = stønadsperiode,
+                    grunnlagsdata = grunnlagsdata,
+                    vilkårsvurderinger = vilkårsvurderinger,
+                    attesteringer = attesteringer,
+                    avkorting = avkorting.håndter().kanIkke(),
+                    sakstype = sakstype,
                 )
 
             // TODO fiks typing/gyldig tilstand/vilkår fradrag?
@@ -1010,7 +956,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val saksnummer: Saksnummer,
             override val søknad: Søknad.Journalført.MedOppgave,
             override val oppgaveId: OppgaveId,
-            override val behandlingsinformasjon: Behandlingsinformasjon,
             override val fnr: Fnr,
             override val fritekstTilBrev: String,
             override val stønadsperiode: Stønadsperiode?,
@@ -1024,12 +969,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val status: BehandlingsStatus = BehandlingsStatus.OPPRETTET
             override fun copyInternal(
                 stønadsperiode: Stønadsperiode,
-                behandlingsinformasjon: Behandlingsinformasjon,
                 grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
             ): Uavklart {
                 return copy(
                     stønadsperiode = stønadsperiode,
-                    behandlingsinformasjon = behandlingsinformasjon,
                     grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                     vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                 )
@@ -1053,7 +996,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     }
 
     sealed class Beregnet : Søknadsbehandling(), KanOppdaterePeriodeGrunnlagVilkår {
-        abstract override val behandlingsinformasjon: Behandlingsinformasjon
         abstract val beregning: Beregning
         abstract override val stønadsperiode: Stønadsperiode
         abstract override val avkorting: AvkortingVedSøknadsbehandling.Håndtert
@@ -1072,23 +1014,22 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     }
                     .map { simulering ->
                         Simulert(
-                            id,
-                            opprettet,
-                            sakId,
-                            saksnummer,
-                            søknad,
-                            oppgaveId,
-                            behandlingsinformasjon,
-                            fnr,
-                            beregning,
-                            simulering,
-                            fritekstTilBrev,
-                            stønadsperiode,
-                            grunnlagsdata,
-                            vilkårsvurderinger,
-                            attesteringer,
-                            avkorting,
-                            sakstype,
+                            id = id,
+                            opprettet = opprettet,
+                            sakId = sakId,
+                            saksnummer = saksnummer,
+                            søknad = søknad,
+                            oppgaveId = oppgaveId,
+                            fnr = fnr,
+                            beregning = beregning,
+                            simulering = simulering,
+                            fritekstTilBrev = fritekstTilBrev,
+                            stønadsperiode = stønadsperiode,
+                            grunnlagsdata = grunnlagsdata,
+                            vilkårsvurderinger = vilkårsvurderinger,
+                            attesteringer = attesteringer,
+                            avkorting = avkorting,
+                            sakstype = sakstype,
                         )
                     }
             }
@@ -1101,7 +1042,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val saksnummer: Saksnummer,
             override val søknad: Søknad.Journalført.MedOppgave,
             override val oppgaveId: OppgaveId,
-            override val behandlingsinformasjon: Behandlingsinformasjon,
             override val fnr: Fnr,
             override val beregning: Beregning,
             override val fritekstTilBrev: String,
@@ -1125,12 +1065,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
             override fun copyInternal(
                 stønadsperiode: Stønadsperiode,
-                behandlingsinformasjon: Behandlingsinformasjon,
                 grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
             ): Innvilget {
                 return copy(
                     stønadsperiode = stønadsperiode,
-                    behandlingsinformasjon = behandlingsinformasjon,
                     grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                     vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                 )
@@ -1144,7 +1082,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val saksnummer: Saksnummer,
             override val søknad: Søknad.Journalført.MedOppgave,
             override val oppgaveId: OppgaveId,
-            override val behandlingsinformasjon: Behandlingsinformasjon,
             override val fnr: Fnr,
             override val beregning: Beregning,
             override val fritekstTilBrev: String,
@@ -1170,12 +1107,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
             override fun copyInternal(
                 stønadsperiode: Stønadsperiode,
-                behandlingsinformasjon: Behandlingsinformasjon,
                 grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
             ): Avslag {
                 return copy(
                     stønadsperiode = stønadsperiode,
-                    behandlingsinformasjon = behandlingsinformasjon,
                     grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                     vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                 )
@@ -1190,23 +1125,22 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 fritekstTilBrev: String,
             ): TilAttestering.Avslag.MedBeregning =
                 TilAttestering.Avslag.MedBeregning(
-                    id,
-                    opprettet,
-                    sakId,
-                    saksnummer,
-                    søknad,
-                    oppgaveId,
-                    behandlingsinformasjon,
-                    fnr,
-                    beregning,
-                    saksbehandler,
-                    fritekstTilBrev,
-                    stønadsperiode,
-                    grunnlagsdata,
-                    vilkårsvurderinger,
-                    attesteringer,
-                    avkorting.kanIkke(),
-                    sakstype,
+                    id = id,
+                    opprettet = opprettet,
+                    sakId = sakId,
+                    saksnummer = saksnummer,
+                    søknad = søknad,
+                    oppgaveId = oppgaveId,
+                    fnr = fnr,
+                    beregning = beregning,
+                    saksbehandler = saksbehandler,
+                    fritekstTilBrev = fritekstTilBrev,
+                    stønadsperiode = stønadsperiode,
+                    grunnlagsdata = grunnlagsdata,
+                    vilkårsvurderinger = vilkårsvurderinger,
+                    attesteringer = attesteringer,
+                    avkorting = avkorting.kanIkke(),
+                    sakstype = sakstype,
                 )
 
             // TODO fiks typing/gyldig tilstand/vilkår fradrag?
@@ -1225,7 +1159,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         override val saksnummer: Saksnummer,
         override val søknad: Søknad.Journalført.MedOppgave,
         override val oppgaveId: OppgaveId,
-        override val behandlingsinformasjon: Behandlingsinformasjon,
         override val fnr: Fnr,
         val beregning: Beregning,
         val simulering: Simulering,
@@ -1250,12 +1183,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
         override fun copyInternal(
             stønadsperiode: Stønadsperiode,
-            behandlingsinformasjon: Behandlingsinformasjon,
             grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
         ): Simulert {
             return copy(
                 stønadsperiode = stønadsperiode,
-                behandlingsinformasjon = behandlingsinformasjon,
                 grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                 vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
             )
@@ -1275,23 +1206,22 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     }
                     .map { simulering ->
                         Simulert(
-                            id,
-                            opprettet,
-                            sakId,
-                            saksnummer,
-                            søknad,
-                            oppgaveId,
-                            behandlingsinformasjon,
-                            fnr,
-                            beregning,
-                            simulering,
-                            fritekstTilBrev,
-                            stønadsperiode,
-                            grunnlagsdata,
-                            vilkårsvurderinger,
-                            attesteringer,
-                            avkorting,
-                            sakstype,
+                            id = id,
+                            opprettet = opprettet,
+                            sakId = sakId,
+                            saksnummer = saksnummer,
+                            søknad = søknad,
+                            oppgaveId = oppgaveId,
+                            fnr = fnr,
+                            beregning = beregning,
+                            simulering = simulering,
+                            fritekstTilBrev = fritekstTilBrev,
+                            stønadsperiode = stønadsperiode,
+                            grunnlagsdata = grunnlagsdata,
+                            vilkårsvurderinger = vilkårsvurderinger,
+                            attesteringer = attesteringer,
+                            avkorting = avkorting,
+                            sakstype = sakstype,
                         )
                     }
             }
@@ -1308,24 +1238,23 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 throw IllegalStateException("Simulering inneholder feilutbetalinger")
             }
             return TilAttestering.Innvilget(
-                id,
-                opprettet,
-                sakId,
-                saksnummer,
-                søknad,
-                oppgaveId,
-                behandlingsinformasjon,
-                fnr,
-                beregning,
-                simulering,
-                saksbehandler,
-                fritekstTilBrev,
-                stønadsperiode,
-                grunnlagsdata,
-                vilkårsvurderinger,
-                attesteringer,
-                avkorting,
-                sakstype,
+                id = id,
+                opprettet = opprettet,
+                sakId = sakId,
+                saksnummer = saksnummer,
+                søknad = søknad,
+                oppgaveId = oppgaveId,
+                fnr = fnr,
+                beregning = beregning,
+                simulering = simulering,
+                saksbehandler = saksbehandler,
+                fritekstTilBrev = fritekstTilBrev,
+                stønadsperiode = stønadsperiode,
+                grunnlagsdata = grunnlagsdata,
+                vilkårsvurderinger = vilkårsvurderinger,
+                attesteringer = attesteringer,
+                avkorting = avkorting,
+                sakstype = sakstype,
             )
         }
     }
@@ -1345,7 +1274,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val saksnummer: Saksnummer,
             override val søknad: Søknad.Journalført.MedOppgave,
             override val oppgaveId: OppgaveId,
-            override val behandlingsinformasjon: Behandlingsinformasjon,
             override val fnr: Fnr,
             val beregning: Beregning,
             val simulering: Simulering,
@@ -1362,12 +1290,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
             override fun copyInternal(
                 stønadsperiode: Stønadsperiode,
-                behandlingsinformasjon: Behandlingsinformasjon,
                 grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
             ): TilAttestering {
                 return copy(
                     stønadsperiode = stønadsperiode,
-                    behandlingsinformasjon = behandlingsinformasjon,
                     grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                     vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                 )
@@ -1389,47 +1315,45 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
             override fun tilUnderkjent(attestering: Attestering): Underkjent.Innvilget {
                 return Underkjent.Innvilget(
-                    id,
-                    opprettet,
-                    sakId,
-                    saksnummer,
-                    søknad,
-                    oppgaveId,
-                    behandlingsinformasjon,
-                    fnr,
-                    beregning,
-                    simulering,
-                    saksbehandler,
-                    attesteringer.leggTilNyAttestering(attestering),
-                    fritekstTilBrev,
-                    stønadsperiode,
-                    grunnlagsdata,
-                    vilkårsvurderinger,
-                    avkorting,
-                    sakstype,
+                    id = id,
+                    opprettet = opprettet,
+                    sakId = sakId,
+                    saksnummer = saksnummer,
+                    søknad = søknad,
+                    oppgaveId = oppgaveId,
+                    fnr = fnr,
+                    beregning = beregning,
+                    simulering = simulering,
+                    saksbehandler = saksbehandler,
+                    attesteringer = attesteringer.leggTilNyAttestering(attestering),
+                    fritekstTilBrev = fritekstTilBrev,
+                    stønadsperiode = stønadsperiode,
+                    grunnlagsdata = grunnlagsdata,
+                    vilkårsvurderinger = vilkårsvurderinger,
+                    avkorting = avkorting,
+                    sakstype = sakstype,
                 )
             }
 
             fun tilIverksatt(attestering: Attestering): Iverksatt.Innvilget {
                 return Iverksatt.Innvilget(
-                    id,
-                    opprettet,
-                    sakId,
-                    saksnummer,
-                    søknad,
-                    oppgaveId,
-                    behandlingsinformasjon,
-                    fnr,
-                    beregning,
-                    simulering,
-                    saksbehandler,
-                    attesteringer.leggTilNyAttestering(attestering),
-                    fritekstTilBrev,
-                    stønadsperiode,
-                    grunnlagsdata,
-                    vilkårsvurderinger,
-                    avkorting.iverksett(id),
-                    sakstype,
+                    id = id,
+                    opprettet = opprettet,
+                    sakId = sakId,
+                    saksnummer = saksnummer,
+                    søknad = søknad,
+                    oppgaveId = oppgaveId,
+                    fnr = fnr,
+                    beregning = beregning,
+                    simulering = simulering,
+                    saksbehandler = saksbehandler,
+                    attesteringer = attesteringer.leggTilNyAttestering(attestering),
+                    fritekstTilBrev = fritekstTilBrev,
+                    stønadsperiode = stønadsperiode,
+                    grunnlagsdata = grunnlagsdata,
+                    vilkårsvurderinger = vilkårsvurderinger,
+                    avkorting = avkorting.iverksett(id),
+                    sakstype = sakstype,
                 )
             }
         }
@@ -1445,7 +1369,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val saksnummer: Saksnummer,
                 override val søknad: Søknad.Journalført.MedOppgave,
                 override val oppgaveId: OppgaveId,
-                override val behandlingsinformasjon: Behandlingsinformasjon,
                 override val fnr: Fnr,
                 override val saksbehandler: NavIdentBruker.Saksbehandler,
                 override val fritekstTilBrev: String,
@@ -1480,33 +1403,30 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
                 override fun tilUnderkjent(attestering: Attestering): Underkjent.Avslag.UtenBeregning {
                     return Underkjent.Avslag.UtenBeregning(
-                        id,
-                        opprettet,
-                        sakId,
-                        saksnummer,
-                        søknad,
-                        oppgaveId,
-                        behandlingsinformasjon,
-                        fnr,
-                        saksbehandler,
-                        attesteringer.leggTilNyAttestering(attestering),
-                        fritekstTilBrev,
-                        stønadsperiode,
-                        grunnlagsdata,
-                        vilkårsvurderinger,
-                        avkorting,
-                        sakstype,
+                        id = id,
+                        opprettet = opprettet,
+                        sakId = sakId,
+                        saksnummer = saksnummer,
+                        søknad = søknad,
+                        oppgaveId = oppgaveId,
+                        fnr = fnr,
+                        saksbehandler = saksbehandler,
+                        attesteringer = attesteringer.leggTilNyAttestering(attestering),
+                        fritekstTilBrev = fritekstTilBrev,
+                        stønadsperiode = stønadsperiode,
+                        grunnlagsdata = grunnlagsdata,
+                        vilkårsvurderinger = vilkårsvurderinger,
+                        avkorting = avkorting,
+                        sakstype = sakstype,
                     )
                 }
 
                 override fun copyInternal(
                     stønadsperiode: Stønadsperiode,
-                    behandlingsinformasjon: Behandlingsinformasjon,
                     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
                 ): UtenBeregning {
                     return copy(
                         stønadsperiode = stønadsperiode,
-                        behandlingsinformasjon = behandlingsinformasjon,
                         grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                         vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                     )
@@ -1516,22 +1436,21 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     attestering: Attestering,
                 ): Iverksatt.Avslag.UtenBeregning {
                     return Iverksatt.Avslag.UtenBeregning(
-                        id,
-                        opprettet,
-                        sakId,
-                        saksnummer,
-                        søknad,
-                        oppgaveId,
-                        behandlingsinformasjon,
-                        fnr,
-                        saksbehandler,
-                        attesteringer.leggTilNyAttestering(attestering),
-                        fritekstTilBrev,
-                        stønadsperiode,
-                        grunnlagsdata,
-                        vilkårsvurderinger,
-                        avkorting.iverksett(id),
-                        sakstype,
+                        id = id,
+                        opprettet = opprettet,
+                        sakId = sakId,
+                        saksnummer = saksnummer,
+                        søknad = søknad,
+                        oppgaveId = oppgaveId,
+                        fnr = fnr,
+                        saksbehandler = saksbehandler,
+                        attesteringer = attesteringer.leggTilNyAttestering(attestering),
+                        fritekstTilBrev = fritekstTilBrev,
+                        stønadsperiode = stønadsperiode,
+                        grunnlagsdata = grunnlagsdata,
+                        vilkårsvurderinger = vilkårsvurderinger,
+                        avkorting = avkorting.iverksett(id),
+                        sakstype = sakstype,
                     )
                 }
             }
@@ -1543,7 +1462,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val saksnummer: Saksnummer,
                 override val søknad: Søknad.Journalført.MedOppgave,
                 override val oppgaveId: OppgaveId,
-                override val behandlingsinformasjon: Behandlingsinformasjon,
                 override val fnr: Fnr,
                 val beregning: Beregning,
                 override val saksbehandler: NavIdentBruker.Saksbehandler,
@@ -1585,34 +1503,31 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
                 override fun tilUnderkjent(attestering: Attestering): Underkjent.Avslag.MedBeregning {
                     return Underkjent.Avslag.MedBeregning(
-                        id,
-                        opprettet,
-                        sakId,
-                        saksnummer,
-                        søknad,
-                        oppgaveId,
-                        behandlingsinformasjon,
-                        fnr,
-                        beregning,
-                        saksbehandler,
-                        attesteringer.leggTilNyAttestering(attestering),
-                        fritekstTilBrev,
-                        stønadsperiode,
-                        grunnlagsdata,
-                        vilkårsvurderinger,
-                        avkorting,
-                        sakstype,
+                        id = id,
+                        opprettet = opprettet,
+                        sakId = sakId,
+                        saksnummer = saksnummer,
+                        søknad = søknad,
+                        oppgaveId = oppgaveId,
+                        fnr = fnr,
+                        beregning = beregning,
+                        saksbehandler = saksbehandler,
+                        attesteringer = attesteringer.leggTilNyAttestering(attestering),
+                        fritekstTilBrev = fritekstTilBrev,
+                        stønadsperiode = stønadsperiode,
+                        grunnlagsdata = grunnlagsdata,
+                        vilkårsvurderinger = vilkårsvurderinger,
+                        avkorting = avkorting,
+                        sakstype = sakstype,
                     )
                 }
 
                 override fun copyInternal(
                     stønadsperiode: Stønadsperiode,
-                    behandlingsinformasjon: Behandlingsinformasjon,
                     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
                 ): MedBeregning {
                     return copy(
                         stønadsperiode = stønadsperiode,
-                        behandlingsinformasjon = behandlingsinformasjon,
                         grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                         vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                     )
@@ -1622,23 +1537,22 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     attestering: Attestering,
                 ): Iverksatt.Avslag.MedBeregning {
                     return Iverksatt.Avslag.MedBeregning(
-                        id,
-                        opprettet,
-                        sakId,
-                        saksnummer,
-                        søknad,
-                        oppgaveId,
-                        behandlingsinformasjon,
-                        fnr,
-                        beregning,
-                        saksbehandler,
-                        attesteringer.leggTilNyAttestering(attestering),
-                        fritekstTilBrev,
-                        stønadsperiode,
-                        grunnlagsdata,
-                        vilkårsvurderinger,
-                        avkorting.iverksett(id),
-                        sakstype,
+                        id = id,
+                        opprettet = opprettet,
+                        sakId = sakId,
+                        saksnummer = saksnummer,
+                        søknad = søknad,
+                        oppgaveId = oppgaveId,
+                        fnr = fnr,
+                        beregning = beregning,
+                        saksbehandler = saksbehandler,
+                        attesteringer = attesteringer.leggTilNyAttestering(attestering),
+                        fritekstTilBrev = fritekstTilBrev,
+                        stønadsperiode = stønadsperiode,
+                        grunnlagsdata = grunnlagsdata,
+                        vilkårsvurderinger = vilkårsvurderinger,
+                        avkorting = avkorting.iverksett(id),
+                        sakstype = sakstype,
                     )
                 }
             }
@@ -1654,7 +1568,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         abstract override val saksnummer: Saksnummer
         abstract override val søknad: Søknad.Journalført.MedOppgave
         abstract override val oppgaveId: OppgaveId
-        abstract override val behandlingsinformasjon: Behandlingsinformasjon
         abstract override val fnr: Fnr
         abstract val saksbehandler: NavIdentBruker.Saksbehandler
         abstract override val attesteringer: Attesteringshistorikk
@@ -1670,7 +1583,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val saksnummer: Saksnummer,
             override val søknad: Søknad.Journalført.MedOppgave,
             override val oppgaveId: OppgaveId,
-            override val behandlingsinformasjon: Behandlingsinformasjon,
             override val fnr: Fnr,
             val beregning: Beregning,
             val simulering: Simulering,
@@ -1697,12 +1609,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
             override fun copyInternal(
                 stønadsperiode: Stønadsperiode,
-                behandlingsinformasjon: Behandlingsinformasjon,
                 grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
             ): Innvilget {
                 return copy(
                     stønadsperiode = stønadsperiode,
-                    behandlingsinformasjon = behandlingsinformasjon,
                     grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                     vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                 )
@@ -1726,23 +1636,22 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         }
                         .map { simulering ->
                             Simulert(
-                                id,
-                                opprettet,
-                                sakId,
-                                saksnummer,
-                                søknad,
-                                oppgaveId,
-                                behandlingsinformasjon,
-                                fnr,
-                                beregning,
-                                simulering,
-                                fritekstTilBrev,
-                                stønadsperiode,
-                                grunnlagsdata,
-                                vilkårsvurderinger,
-                                attesteringer,
-                                avkorting,
-                                sakstype,
+                                id = id,
+                                opprettet = opprettet,
+                                sakId = sakId,
+                                saksnummer = saksnummer,
+                                søknad = søknad,
+                                oppgaveId = oppgaveId,
+                                fnr = fnr,
+                                beregning = beregning,
+                                simulering = simulering,
+                                fritekstTilBrev = fritekstTilBrev,
+                                stønadsperiode = stønadsperiode,
+                                grunnlagsdata = grunnlagsdata,
+                                vilkårsvurderinger = vilkårsvurderinger,
+                                attesteringer = attesteringer,
+                                avkorting = avkorting,
+                                sakstype = sakstype,
                             )
                         }
                 }
@@ -1756,24 +1665,23 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     throw IllegalStateException("Simulering inneholder feilutbetalinger")
                 }
                 return TilAttestering.Innvilget(
-                    id,
-                    opprettet,
-                    sakId,
-                    saksnummer,
-                    søknad,
-                    oppgaveId,
-                    behandlingsinformasjon,
-                    fnr,
-                    beregning,
-                    simulering,
-                    saksbehandler,
-                    fritekstTilBrev,
-                    stønadsperiode,
-                    grunnlagsdata,
-                    vilkårsvurderinger,
-                    attesteringer,
-                    avkorting,
-                    sakstype,
+                    id = id,
+                    opprettet = opprettet,
+                    sakId = sakId,
+                    saksnummer = saksnummer,
+                    søknad = søknad,
+                    oppgaveId = oppgaveId,
+                    fnr = fnr,
+                    beregning = beregning,
+                    simulering = simulering,
+                    saksbehandler = saksbehandler,
+                    fritekstTilBrev = fritekstTilBrev,
+                    stønadsperiode = stønadsperiode,
+                    grunnlagsdata = grunnlagsdata,
+                    vilkårsvurderinger = vilkårsvurderinger,
+                    attesteringer = attesteringer,
+                    avkorting = avkorting,
+                    sakstype = sakstype,
                 )
             }
         }
@@ -1786,7 +1694,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val saksnummer: Saksnummer,
                 override val søknad: Søknad.Journalført.MedOppgave,
                 override val oppgaveId: OppgaveId,
-                override val behandlingsinformasjon: Behandlingsinformasjon,
                 override val fnr: Fnr,
                 val beregning: Beregning,
                 override val saksbehandler: NavIdentBruker.Saksbehandler,
@@ -1813,12 +1720,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
                 override fun copyInternal(
                     stønadsperiode: Stønadsperiode,
-                    behandlingsinformasjon: Behandlingsinformasjon,
                     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
                 ): MedBeregning {
                     return copy(
                         stønadsperiode = stønadsperiode,
-                        behandlingsinformasjon = behandlingsinformasjon,
                         grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                         vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                     )
@@ -1834,23 +1739,22 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
                 fun tilAttestering(saksbehandler: NavIdentBruker.Saksbehandler): TilAttestering.Avslag.MedBeregning =
                     TilAttestering.Avslag.MedBeregning(
-                        id,
-                        opprettet,
-                        sakId,
-                        saksnummer,
-                        søknad,
-                        oppgaveId,
-                        behandlingsinformasjon,
-                        fnr,
-                        beregning,
-                        saksbehandler,
-                        fritekstTilBrev,
-                        stønadsperiode,
-                        grunnlagsdata,
-                        vilkårsvurderinger,
-                        attesteringer,
-                        avkorting,
-                        sakstype,
+                        id = id,
+                        opprettet = opprettet,
+                        sakId = sakId,
+                        saksnummer = saksnummer,
+                        søknad = søknad,
+                        oppgaveId = oppgaveId,
+                        fnr = fnr,
+                        beregning = beregning,
+                        saksbehandler = saksbehandler,
+                        fritekstTilBrev = fritekstTilBrev,
+                        stønadsperiode = stønadsperiode,
+                        grunnlagsdata = grunnlagsdata,
+                        vilkårsvurderinger = vilkårsvurderinger,
+                        attesteringer = attesteringer,
+                        avkorting = avkorting,
+                        sakstype = sakstype,
                     )
 
                 // TODO fiks typing/gyldig tilstand/vilkår fradrag?
@@ -1868,7 +1772,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val saksnummer: Saksnummer,
                 override val søknad: Søknad.Journalført.MedOppgave,
                 override val oppgaveId: OppgaveId,
-                override val behandlingsinformasjon: Behandlingsinformasjon,
                 override val fnr: Fnr,
                 override val saksbehandler: NavIdentBruker.Saksbehandler,
                 override val attesteringer: Attesteringshistorikk,
@@ -1883,12 +1786,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
                 override fun copyInternal(
                     stønadsperiode: Stønadsperiode,
-                    behandlingsinformasjon: Behandlingsinformasjon,
                     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
                 ): UtenBeregning {
                     return copy(
                         stønadsperiode = stønadsperiode,
-                        behandlingsinformasjon = behandlingsinformasjon,
                         grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
                         vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                     )
@@ -1910,22 +1811,21 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
                 fun tilAttestering(saksbehandler: NavIdentBruker.Saksbehandler): TilAttestering.Avslag.UtenBeregning =
                     TilAttestering.Avslag.UtenBeregning(
-                        id,
-                        opprettet,
-                        sakId,
-                        saksnummer,
-                        søknad,
-                        oppgaveId,
-                        behandlingsinformasjon,
-                        fnr,
-                        saksbehandler,
-                        fritekstTilBrev,
-                        stønadsperiode,
-                        grunnlagsdata,
-                        vilkårsvurderinger,
-                        attesteringer,
-                        avkorting,
-                        sakstype,
+                        id = id,
+                        opprettet = opprettet,
+                        sakId = sakId,
+                        saksnummer = saksnummer,
+                        søknad = søknad,
+                        oppgaveId = oppgaveId,
+                        fnr = fnr,
+                        saksbehandler = saksbehandler,
+                        fritekstTilBrev = fritekstTilBrev,
+                        stønadsperiode = stønadsperiode,
+                        grunnlagsdata = grunnlagsdata,
+                        vilkårsvurderinger = vilkårsvurderinger,
+                        attesteringer = attesteringer,
+                        avkorting = avkorting,
+                        sakstype = sakstype,
                     )
 
                 // TODO fiks typing/gyldig tilstand/vilkår fradrag?
@@ -1945,7 +1845,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         abstract override val saksnummer: Saksnummer
         abstract override val søknad: Søknad.Journalført.MedOppgave
         abstract override val oppgaveId: OppgaveId
-        abstract override val behandlingsinformasjon: Behandlingsinformasjon
         abstract override val fnr: Fnr
         abstract val saksbehandler: NavIdentBruker.Saksbehandler
         abstract override val attesteringer: Attesteringshistorikk
@@ -1959,7 +1858,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val saksnummer: Saksnummer,
             override val søknad: Søknad.Journalført.MedOppgave,
             override val oppgaveId: OppgaveId,
-            override val behandlingsinformasjon: Behandlingsinformasjon,
             override val fnr: Fnr,
             val beregning: Beregning,
             val simulering: Simulering,
@@ -1993,7 +1891,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val saksnummer: Saksnummer,
                 override val søknad: Søknad.Journalført.MedOppgave,
                 override val oppgaveId: OppgaveId,
-                override val behandlingsinformasjon: Behandlingsinformasjon,
                 override val fnr: Fnr,
                 val beregning: Beregning,
                 override val saksbehandler: NavIdentBruker.Saksbehandler,
@@ -2038,7 +1935,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val saksnummer: Saksnummer,
                 override val søknad: Søknad.Journalført.MedOppgave,
                 override val oppgaveId: OppgaveId,
-                override val behandlingsinformasjon: Behandlingsinformasjon,
                 override val fnr: Fnr,
                 override val saksbehandler: NavIdentBruker.Saksbehandler,
                 override val attesteringer: Attesteringshistorikk,

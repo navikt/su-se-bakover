@@ -13,9 +13,6 @@ import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.web.SharedRegressionTestData.defaultRequest
 
-/**
-- [vurdering] se [no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.FastOppholdINorge.Status]
- */
 internal fun ApplicationTestBuilder.leggTilFastOppholdINorge(
     sakId: String,
     behandlingId: String,

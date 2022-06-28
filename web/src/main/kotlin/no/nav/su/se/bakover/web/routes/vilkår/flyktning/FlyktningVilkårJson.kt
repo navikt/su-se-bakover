@@ -31,7 +31,7 @@ internal fun KunneIkkeLeggeTilFlyktningVilkår.tilResultat(): Resultat {
         is KunneIkkeLeggeTilFlyktningVilkår.Revurdering -> {
             when (val feil = this.feil) {
                 Revurdering.KunneIkkeLeggeTilFlyktningVilkår.HeleBehandlingsperiodenErIkkeVurdert -> {
-                    Feilresponser.heleBehandlingsperiodeMåHaVurderinger
+                    Feilresponser.heleBehandlingsperiodenMåHaVurderinger
                 }
                 is Revurdering.KunneIkkeLeggeTilFlyktningVilkår.UgyldigTilstand -> {
                     Feilresponser.ugyldigTilstand(feil.fra, feil.til)

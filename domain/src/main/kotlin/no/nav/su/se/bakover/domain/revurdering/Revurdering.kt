@@ -53,6 +53,7 @@ import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.Inngangsvilkår
+import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.PensjonsVilkår
@@ -191,6 +192,15 @@ sealed class Revurdering :
         ).left()
     }
 
+    open fun oppdaterInstitusjonsoppholdOgMarkerSomVurdert(
+        institusjonsoppholdVilkår: InstitusjonsoppholdVilkår.Vurdert
+    ): Either<KunneIkkeLeggeTilInstitusjonsoppholdVilkår, OpprettetRevurdering> {
+        return KunneIkkeLeggeTilInstitusjonsoppholdVilkår.UgyldigTilstand(
+            this::class,
+            OpprettetRevurdering::class,
+        ).left()
+    }
+
     sealed interface KunneIkkeLeggeTilOpplysningsplikt {
         data class UgyldigTilstand(
             val fra: KClass<out Revurdering>,
@@ -227,6 +237,15 @@ sealed class Revurdering :
         ) : KunneIkkeLeggeTilPersonligOppmøteVilkår
 
         object HeleBehandlingsperiodenErIkkeVurdert : KunneIkkeLeggeTilPersonligOppmøteVilkår
+    }
+
+    sealed interface KunneIkkeLeggeTilInstitusjonsoppholdVilkår {
+        data class UgyldigTilstand(
+            val fra: KClass<out Revurdering>,
+            val til: KClass<out Revurdering> = OpprettetRevurdering::class,
+        ) : KunneIkkeLeggeTilInstitusjonsoppholdVilkår
+
+        object HeleBehandlingsperiodenErIkkeVurdert : KunneIkkeLeggeTilInstitusjonsoppholdVilkår
     }
 
     private fun oppdaterOpplysnigspliktInternal(opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert): Either<KunneIkkeLeggeTilOpplysningsplikt, OpprettetRevurdering> {
@@ -436,6 +455,20 @@ sealed class Revurdering :
             return KunneIkkeLeggeTilFastOppholdINorgeVilkår.AlleVurderingsperioderMåHaSammeResultat.left()
         }
         return oppdaterVilkårsvurderinger(vilkårsvurderinger = vilkårsvurderinger.leggTil(vilkår)).right()
+    }
+
+    protected fun oppdaterInstitusjonsoppholdOgMarkerSomVurdertInternal(
+        vilkår: InstitusjonsoppholdVilkår.Vurdert,
+    ): Either<KunneIkkeLeggeTilInstitusjonsoppholdVilkår.HeleBehandlingsperiodenErIkkeVurdert, OpprettetRevurdering> {
+        if (vilkår.perioder.size != 1 || vilkår.perioder.first() != periode) {
+            // TODO jah: vilkår.perioder.size != 1 - Vi støtter foreløpig ikke hull i revurderingsperioden
+            return KunneIkkeLeggeTilInstitusjonsoppholdVilkår.HeleBehandlingsperiodenErIkkeVurdert.left()
+        }
+        return oppdaterVilkårsvurderinger(
+            vilkårsvurderinger = vilkårsvurderinger.leggTil(vilkår),
+        ).oppdaterInformasjonSomRevurderes(
+            informasjonSomRevurderes = informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Institusjonsopphold),
+        ).right()
     }
 
     private fun oppdaterVilkårsvurderinger(
@@ -745,6 +778,10 @@ data class OpprettetRevurdering(
         return oppdaterLovligOppholdOgMarkerSomVurdertInternal(lovligOppholdVilkår)
     }
 
+    override fun oppdaterInstitusjonsoppholdOgMarkerSomVurdert(institusjonsoppholdVilkår: InstitusjonsoppholdVilkår.Vurdert): Either<KunneIkkeLeggeTilInstitusjonsoppholdVilkår, OpprettetRevurdering> {
+        return oppdaterInstitusjonsoppholdOgMarkerSomVurdertInternal(institusjonsoppholdVilkår)
+    }
+
     fun oppdaterInformasjonSomRevurderes(informasjonSomRevurderes: InformasjonSomRevurderes): OpprettetRevurdering {
         return copy(informasjonSomRevurderes = informasjonSomRevurderes)
     }
@@ -825,6 +862,10 @@ sealed class BeregnetRevurdering : Revurdering() {
 
     override fun oppdaterFastOppholdINorgeOgMarkerSomVurdert(vilkår: FastOppholdINorgeVilkår.Vurdert): Either<KunneIkkeLeggeTilFastOppholdINorgeVilkår, OpprettetRevurdering> {
         return oppdaterFastOppholdINorgeOgMarkerSomVurdertInternal(vilkår)
+    }
+
+    override fun oppdaterInstitusjonsoppholdOgMarkerSomVurdert(institusjonsoppholdVilkår: InstitusjonsoppholdVilkår.Vurdert): Either<KunneIkkeLeggeTilInstitusjonsoppholdVilkår, OpprettetRevurdering> {
+        return oppdaterInstitusjonsoppholdOgMarkerSomVurdertInternal(institusjonsoppholdVilkår)
     }
 
     fun oppdater(
@@ -1268,6 +1309,10 @@ sealed class SimulertRevurdering : Revurdering() {
 
     override fun oppdaterLovligOppholdOgMarkerSomVurdert(lovligOppholdVilkår: LovligOppholdVilkår.Vurdert): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilLovligOpphold, OpprettetRevurdering> {
         return oppdaterLovligOppholdOgMarkerSomVurdertInternal(lovligOppholdVilkår)
+    }
+
+    override fun oppdaterInstitusjonsoppholdOgMarkerSomVurdert(institusjonsoppholdVilkår: InstitusjonsoppholdVilkår.Vurdert): Either<KunneIkkeLeggeTilInstitusjonsoppholdVilkår, OpprettetRevurdering> {
+        return oppdaterInstitusjonsoppholdOgMarkerSomVurdertInternal(institusjonsoppholdVilkår)
     }
 
     override fun oppdaterFradrag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradrag, OpprettetRevurdering> {
@@ -2039,6 +2084,10 @@ sealed class UnderkjentRevurdering : Revurdering() {
         return oppdaterLovligOppholdOgMarkerSomVurdertInternal(lovligOppholdVilkår)
     }
 
+    override fun oppdaterInstitusjonsoppholdOgMarkerSomVurdert(institusjonsoppholdVilkår: InstitusjonsoppholdVilkår.Vurdert): Either<KunneIkkeLeggeTilInstitusjonsoppholdVilkår, OpprettetRevurdering> {
+        return oppdaterInstitusjonsoppholdOgMarkerSomVurdertInternal(institusjonsoppholdVilkår)
+    }
+
     override fun oppdaterFradrag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradrag, OpprettetRevurdering> {
         return oppdaterFradragInternal(fradragsgrunnlag)
     }
@@ -2293,7 +2342,7 @@ enum class Revurderingsteg(val vilkår: String) {
     Uførhet("Uførhet"),
     Bosituasjon("Bosituasjon"),
 
-    // InnlagtPåInstitusjon("InnlagtPåInstitusjon"),
+    Institusjonsopphold("Institusjonsopphold"),
     Utenlandsopphold("Utenlandsopphold"),
     Inntekt("Inntekt"),
     Opplysningsplikt("Opplysningsplikt"),

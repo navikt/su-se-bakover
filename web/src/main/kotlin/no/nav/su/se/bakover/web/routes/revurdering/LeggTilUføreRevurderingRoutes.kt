@@ -55,7 +55,7 @@ internal fun LeggTilUførevurderingerRequest.UgyldigUførevurdering.tilResultat(
             Feilresponser.alleVurderingsperioderMåHaSammeResultat
         }
         LeggTilUførevurderingerRequest.UgyldigUførevurdering.HeleBehandlingsperiodenMåHaVurderinger -> {
-            Feilresponser.heleBehandlingsperiodeMåHaVurderinger
+            Feilresponser.heleBehandlingsperiodenMåHaVurderinger
         }
         LeggTilUførevurderingerRequest.UgyldigUførevurdering.OverlappendeVurderingsperioder -> {
             Feilresponser.overlappendeVurderingsperioder

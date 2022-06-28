@@ -31,7 +31,7 @@ internal fun KunneIkkeLeggeFastOppholdINorgeVilkår.tilResultat(): Resultat {
         is KunneIkkeLeggeFastOppholdINorgeVilkår.Revurdering -> {
             when (val feil = this.feil) {
                 Revurdering.KunneIkkeLeggeTilFastOppholdINorgeVilkår.HeleBehandlingsperiodenErIkkeVurdert -> {
-                    Feilresponser.heleBehandlingsperiodeMåHaVurderinger
+                    Feilresponser.heleBehandlingsperiodenMåHaVurderinger
                 }
                 is Revurdering.KunneIkkeLeggeTilFastOppholdINorgeVilkår.UgyldigTilstand -> {
                     Feilresponser.ugyldigTilstand(feil.fra, feil.til)

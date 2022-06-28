@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -218,7 +217,6 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                 saksnummer = saksnummer,
                 søknad = søknad,
                 oppgaveId = søknad.oppgaveId,
-                behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
                 fnr = søknad.søknadInnhold.personopplysninger.fnr,
                 fritekstTilBrev = "",
                 stønadsperiode = null,
@@ -266,7 +264,6 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                         saksnummer = saksnummer,
                         søknad = søknad,
                         oppgaveId = søknad.oppgaveId,
-                        behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
                         fnr = søknad.søknadInnhold.personopplysninger.fnr,
                         fritekstTilBrev = "",
                         stønadsperiode = null,

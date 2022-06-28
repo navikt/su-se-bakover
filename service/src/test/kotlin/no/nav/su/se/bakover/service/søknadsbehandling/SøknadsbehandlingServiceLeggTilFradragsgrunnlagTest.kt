@@ -57,24 +57,23 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
         val actual = søknadsbehandlingService.leggTilFradragsgrunnlag(request).getOrHandle { fail { "uventet respons" } }
 
         actual shouldBe Søknadsbehandling.Vilkårsvurdert.Innvilget(
-            behandling.id,
-            behandling.opprettet,
-            behandling.sakId,
-            behandling.saksnummer,
-            behandling.søknad,
-            behandling.oppgaveId,
-            behandling.behandlingsinformasjon,
-            behandling.fnr,
-            behandling.fritekstTilBrev,
-            behandling.stønadsperiode,
+            id = behandling.id,
+            opprettet = behandling.opprettet,
+            sakId = behandling.sakId,
+            saksnummer = behandling.saksnummer,
+            søknad = behandling.søknad,
+            oppgaveId = behandling.oppgaveId,
+            fnr = behandling.fnr,
+            fritekstTilBrev = behandling.fritekstTilBrev,
+            stønadsperiode = behandling.stønadsperiode,
             grunnlagsdata = Grunnlagsdata.create(
                 fradragsgrunnlag = fradragsgrunnlag,
                 bosituasjon = behandling.grunnlagsdata.bosituasjon,
             ),
-            behandling.vilkårsvurderinger,
-            behandling.attesteringer,
-            behandling.avkorting,
-            behandling.sakstype,
+            vilkårsvurderinger = behandling.vilkårsvurderinger,
+            attesteringer = behandling.attesteringer,
+            avkorting = behandling.avkorting,
+            sakstype = behandling.sakstype,
         )
 
         verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandling.id })

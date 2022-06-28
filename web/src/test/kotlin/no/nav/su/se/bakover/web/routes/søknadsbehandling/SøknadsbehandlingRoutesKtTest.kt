@@ -38,8 +38,6 @@ import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
@@ -63,13 +61,13 @@ import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.BeregnRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.SendTilAttesteringRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.SimulerRequest
-import no.nav.su.se.bakover.service.søknadsbehandling.VilkårsvurderRequest
 import no.nav.su.se.bakover.service.vilkår.BosituasjonValg
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFastOppholdINorgeRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFlyktningVilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilInstitusjonsoppholdVilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilLovligOppholdRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilPersonligOppmøteVilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
@@ -88,6 +86,7 @@ import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.vilkår.fastOppholdVilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.flyktningVilkårInnvilget
+import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårInnvilget
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.applicationConfig
@@ -321,12 +320,6 @@ internal class SøknadsbehandlingRoutesKtTest {
                 val innvilgetVilkårsvurdertSøknadsbehandling =
                     setupMedAlleVilkårOppfylt(services, repos, uavklartVilkårsvurdertSøknadsbehandling)
 
-                services.søknadsbehandling.vilkårsvurder(
-                    VilkårsvurderRequest(
-                        innvilgetVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
-                        Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-                    ),
-                )
                 services.søknadsbehandling.beregn(
                     BeregnRequest(
                         behandlingId = innvilgetVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
@@ -895,7 +888,6 @@ internal class SøknadsbehandlingRoutesKtTest {
         val uavklartVilkårsvurdertSøknadsbehandling =
             nullableUavklartVilkårsvurdertSøknadsbehandling ?: setup(services, repos)
 
-        val behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
         /**
          *  Legges til automatisk dersom det ikke er eksplisitt lagt til fra før.
          services.søknadsbehandling.leggTilOpplysningspliktVilkår(
@@ -964,20 +956,20 @@ internal class SøknadsbehandlingRoutesKtTest {
         services.søknadsbehandling.leggTilFlyktningVilkår(
             request = LeggTilFlyktningVilkårRequest(
                 behandlingId = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
-                vilkår = flyktningVilkårInnvilget(periode = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.periode)
-            )
+                vilkår = flyktningVilkårInnvilget(periode = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.periode),
+            ),
         )
         services.søknadsbehandling.leggTilFastOppholdINorgeVilkår(
             request = LeggTilFastOppholdINorgeRequest(
                 behandlingId = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
-                vilkår = fastOppholdVilkårInnvilget(periode = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.periode)
-            )
+                vilkår = fastOppholdVilkårInnvilget(periode = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.periode),
+            ),
         )
         services.søknadsbehandling.leggTilPersonligOppmøteVilkår(
             request = LeggTilPersonligOppmøteVilkårRequest(
                 behandlingId = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
-                vilkår = personligOppmøtevilkårInnvilget(periode = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.periode)
-            )
+                vilkår = personligOppmøtevilkårInnvilget(periode = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.periode),
+            ),
         )
         services.søknadsbehandling.fullførBosituasjongrunnlag(
             FullførBosituasjonRequest(
@@ -985,10 +977,10 @@ internal class SøknadsbehandlingRoutesKtTest {
                 bosituasjon = if (epsFnr == null) BosituasjonValg.BOR_ALENE else BosituasjonValg.EPS_IKKE_UFØR_FLYKTNING,
             ),
         )
-        services.søknadsbehandling.vilkårsvurder(
-            VilkårsvurderRequest(
-                uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
-                behandlingsinformasjon = behandlingsinformasjon,
+        services.søknadsbehandling.leggTilInstitusjonsoppholdVilkår(
+            LeggTilInstitusjonsoppholdVilkårRequest(
+                behandlingId = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
+                vilkår = institusjonsoppholdvilkårInnvilget(),
             ),
         )
         if (epsFnr == null) {

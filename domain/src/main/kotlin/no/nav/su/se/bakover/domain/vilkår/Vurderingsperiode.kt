@@ -21,6 +21,10 @@ sealed class Vurderingsperiode {
         return this.periode.tilstøter(other.periode)
     }
 
+    /**
+     * Denne skal ignorere id, opprettet og periode, men bør sjekke vurdering og periode + custom fields.
+     * Brukes til å determinere om vi kan slå sammen like vurderingsperioder.
+     */
     abstract fun erLik(other: Vurderingsperiode): Boolean
 
     fun tilstøterOgErLik(other: Vurderingsperiode) = this.tilstøter(other) && this.erLik(other)

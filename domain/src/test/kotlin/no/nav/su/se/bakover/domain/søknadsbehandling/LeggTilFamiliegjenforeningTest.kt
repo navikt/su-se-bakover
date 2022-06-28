@@ -4,7 +4,6 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.søknadsbehandlingBeregnetAvslag
 import no.nav.su.se.bakover.test.søknadsbehandlingBeregnetInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagMedBeregning
@@ -38,7 +37,6 @@ internal class LeggTilFamiliegjenforeningTest {
 
         uavklart.second.leggTilFamiliegjenforeningvilkår(
             familiegjenforening = familiegjenforeningVilkårInnvilget(),
-            clock = fixedClock,
         ).shouldBeRight()
     }
 
@@ -51,7 +49,6 @@ internal class LeggTilFamiliegjenforeningTest {
             familiegjenforening = familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(vurderingsperiodeFamiliegjenforeningAvslag()),
             ),
-            clock = fixedClock,
         )
     }
 
@@ -64,7 +61,6 @@ internal class LeggTilFamiliegjenforeningTest {
             familiegjenforening = familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(vurderingsperiodeFamiliegjenforeningInnvilget()),
             ),
-            clock = fixedClock,
         ).shouldBeRight()
     }
 
@@ -78,7 +74,6 @@ internal class LeggTilFamiliegjenforeningTest {
             familiegjenforening = familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(vurderingsperiodeFamiliegjenforeningAvslag()),
             ),
-            clock = fixedClock,
         ).shouldBeRight()
     }
 
@@ -92,7 +87,6 @@ internal class LeggTilFamiliegjenforeningTest {
             familiegjenforening = familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(vurderingsperiodeFamiliegjenforeningInnvilget()),
             ),
-            clock = fixedClock,
         ).shouldBeRight()
     }
 
@@ -106,7 +100,6 @@ internal class LeggTilFamiliegjenforeningTest {
             familiegjenforening = familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(vurderingsperiodeFamiliegjenforeningInnvilget()),
             ),
-            clock = fixedClock,
         ).shouldBeRight()
     }
 
@@ -120,7 +113,6 @@ internal class LeggTilFamiliegjenforeningTest {
             familiegjenforening = familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(vurderingsperiodeFamiliegjenforeningAvslag()),
             ),
-            clock = fixedClock,
         ) shouldBe KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFamiliegjenforeningVilkår.UgyldigTilstand(
             fra = Søknadsbehandling.TilAttestering::class,
             til = Søknadsbehandling.Vilkårsvurdert::class,
@@ -137,7 +129,6 @@ internal class LeggTilFamiliegjenforeningTest {
             familiegjenforening = familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(vurderingsperiodeFamiliegjenforeningInnvilget()),
             ),
-            clock = fixedClock,
         ) shouldBe KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFamiliegjenforeningVilkår.UgyldigTilstand(
             fra = Søknadsbehandling.TilAttestering::class,
             til = Søknadsbehandling.Vilkårsvurdert::class,
@@ -153,7 +144,6 @@ internal class LeggTilFamiliegjenforeningTest {
             familiegjenforening = familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(vurderingsperiodeFamiliegjenforeningInnvilget()),
             ),
-            clock = fixedClock,
         ) shouldBe KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFamiliegjenforeningVilkår.UgyldigTilstand(
             fra = Søknadsbehandling.TilAttestering.Avslag.UtenBeregning::class,
             til = Søknadsbehandling.Vilkårsvurdert::class,
@@ -170,7 +160,6 @@ internal class LeggTilFamiliegjenforeningTest {
             familiegjenforening = familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(vurderingsperiodeFamiliegjenforeningAvslag()),
             ),
-            clock = fixedClock,
         ) shouldBe KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFamiliegjenforeningVilkår.UgyldigTilstand(
             fra = Søknadsbehandling.Iverksatt::class,
             til = Søknadsbehandling.Vilkårsvurdert::class,
@@ -187,7 +176,6 @@ internal class LeggTilFamiliegjenforeningTest {
             familiegjenforening = familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(vurderingsperiodeFamiliegjenforeningInnvilget()),
             ),
-            clock = fixedClock,
         ) shouldBe KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFamiliegjenforeningVilkår.UgyldigTilstand(
             fra = Søknadsbehandling.Iverksatt::class,
             til = Søknadsbehandling.Vilkårsvurdert::class,
@@ -203,7 +191,6 @@ internal class LeggTilFamiliegjenforeningTest {
             familiegjenforening = familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(vurderingsperiodeFamiliegjenforeningInnvilget()),
             ),
-            clock = fixedClock,
         ) shouldBe KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFamiliegjenforeningVilkår.UgyldigTilstand(
             fra = Søknadsbehandling.Iverksatt.Avslag.UtenBeregning::class,
             til = Søknadsbehandling.Vilkårsvurdert::class,
@@ -220,7 +207,6 @@ internal class LeggTilFamiliegjenforeningTest {
             familiegjenforening = familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(vurderingsperiodeFamiliegjenforeningAvslag()),
             ),
-            clock = fixedClock,
         ).shouldBeRight()
     }
 
@@ -234,7 +220,6 @@ internal class LeggTilFamiliegjenforeningTest {
             familiegjenforening = familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(vurderingsperiodeFamiliegjenforeningInnvilget()),
             ),
-            clock = fixedClock,
         ).shouldBeRight()
     }
 
@@ -247,7 +232,6 @@ internal class LeggTilFamiliegjenforeningTest {
             familiegjenforening = familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(vurderingsperiodeFamiliegjenforeningInnvilget()),
             ),
-            clock = fixedClock,
         ).shouldBeRight()
     }
 }
