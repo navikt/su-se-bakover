@@ -6,10 +6,8 @@ import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.CopyArgs
-import no.nav.su.se.bakover.domain.grunnlag.FlyktningGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.getOrFail
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -20,116 +18,72 @@ internal class VurderingsperiodeFlyktningTest {
 
     @Test
     fun `oppdaterer periode`() {
-        VurderingsperiodeFlyktning.tryCreate(
+        VurderingsperiodeFlyktning.create(
             id = vilkårId,
             opprettet = fixedTidspunkt,
             vurdering = Vurdering.Innvilget,
-            grunnlag = FlyktningGrunnlag(
-                id = grunnlagId,
+            periode = år(2021),
+        ).let {
+            it.oppdaterStønadsperiode(
+                Stønadsperiode.create(februar(2021)),
+            ) shouldBe VurderingsperiodeFlyktning.create(
+                id = vilkårId,
                 opprettet = fixedTidspunkt,
-                periode = år(2021),
-            ),
-            vurderingsperiode = år(2021),
-        ).getOrFail()
-            .let {
-                it.oppdaterStønadsperiode(
-                    Stønadsperiode.create(februar(2021)),
-                ) shouldBe VurderingsperiodeFlyktning.tryCreate(
-                    id = vilkårId,
-                    opprettet = fixedTidspunkt,
-                    vurdering = Vurdering.Innvilget,
-                    grunnlag = FlyktningGrunnlag(
-                        id = grunnlagId,
-                        opprettet = fixedTidspunkt,
-                        periode = februar(2021),
-                    ),
-                    vurderingsperiode = februar(2021),
-                ).getOrFail()
-            }
+                vurdering = Vurdering.Innvilget,
+                periode = februar(2021),
+            )
+        }
     }
 
     @Test
     fun `kopierer korrekte verdier`() {
-        VurderingsperiodeFlyktning.tryCreate(
+        VurderingsperiodeFlyktning.create(
             id = vilkårId,
             opprettet = fixedTidspunkt,
             vurdering = Vurdering.Innvilget,
-            grunnlag = FlyktningGrunnlag(
-                id = grunnlagId,
-                opprettet = fixedTidspunkt,
-                periode = år(2021),
-            ),
-            vurderingsperiode = år(2021),
-        ).getOrFail()
-            .copy(CopyArgs.Tidslinje.Full).let {
-                it shouldBe it.copy()
-            }
+            periode = år(2021),
+        ).copy(CopyArgs.Tidslinje.Full).let {
+            it shouldBe it.copy()
+        }
 
-        VurderingsperiodeFlyktning.tryCreate(
+        VurderingsperiodeFlyktning.create(
             id = vilkårId,
             opprettet = fixedTidspunkt,
             vurdering = Vurdering.Innvilget,
-            grunnlag = FlyktningGrunnlag(
-                id = grunnlagId,
-                opprettet = fixedTidspunkt,
-                periode = år(2021),
-            ),
-            vurderingsperiode = år(2021),
-        ).getOrFail().copy(CopyArgs.Tidslinje.NyPeriode(mai(2021))).let {
+            periode = år(2021),
+        ).copy(CopyArgs.Tidslinje.NyPeriode(mai(2021))).let {
             it shouldBe it.copy(periode = mai(2021))
         }
     }
 
     @Test
     fun `er lik ser kun på funksjonelle verdier`() {
-        VurderingsperiodeFlyktning.tryCreate(
+        VurderingsperiodeFlyktning.create(
             id = vilkårId,
             opprettet = fixedTidspunkt,
             vurdering = Vurdering.Innvilget,
-            grunnlag = FlyktningGrunnlag(
-                id = grunnlagId,
-                opprettet = fixedTidspunkt,
-                periode = år(2021),
+            periode = år(2021),
+        ).erLik(
+            VurderingsperiodeFlyktning.create(
+                id = UUID.randomUUID(),
+                opprettet = Tidspunkt.now(),
+                vurdering = Vurdering.Innvilget,
+                periode = februar(2021),
             ),
-            vurderingsperiode = år(2021),
-        ).getOrFail()
-            .erLik(
-                VurderingsperiodeFlyktning.tryCreate(
-                    id = UUID.randomUUID(),
-                    opprettet = Tidspunkt.now(),
-                    vurdering = Vurdering.Innvilget,
-                    grunnlag = FlyktningGrunnlag(
-                        id = UUID.randomUUID(),
-                        opprettet = Tidspunkt.now(),
-                        periode = februar(2021),
-                    ),
-                    vurderingsperiode = februar(2021),
-                ).getOrFail(),
-            ) shouldBe true
+        ) shouldBe true
 
-        VurderingsperiodeFlyktning.tryCreate(
+        VurderingsperiodeFlyktning.create(
             id = vilkårId,
             opprettet = fixedTidspunkt,
             vurdering = Vurdering.Innvilget,
-            grunnlag = FlyktningGrunnlag(
-                id = grunnlagId,
-                opprettet = fixedTidspunkt,
-                periode = år(2021),
+            periode = år(2021),
+        ).erLik(
+            VurderingsperiodeFlyktning.create(
+                id = UUID.randomUUID(),
+                opprettet = Tidspunkt.now(),
+                vurdering = Vurdering.Avslag,
+                periode = februar(2021),
             ),
-            vurderingsperiode = år(2021),
-        ).getOrFail()
-            .erLik(
-                VurderingsperiodeFlyktning.tryCreate(
-                    id = UUID.randomUUID(),
-                    opprettet = Tidspunkt.now(),
-                    vurdering = Vurdering.Avslag,
-                    grunnlag = FlyktningGrunnlag(
-                        id = UUID.randomUUID(),
-                        opprettet = Tidspunkt.now(),
-                        periode = februar(2021),
-                    ),
-                    vurderingsperiode = februar(2021),
-                ).getOrFail(),
-            ) shouldBe false
+        ) shouldBe false
     }
 }

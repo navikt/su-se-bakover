@@ -7,7 +7,8 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.søknad.ny.NySøknadJson
 import no.nav.su.se.bakover.web.søknad.ny.nyDigitalSøknad
-import no.nav.su.se.bakover.web.søknadsbehandling.flyktning.leggTilFlyktningstatus
+import no.nav.su.se.bakover.web.søknadsbehandling.flyktning.avslåttFlyktningVilkårJson
+import no.nav.su.se.bakover.web.søknadsbehandling.flyktning.leggTilFlyktningVilkår
 import no.nav.su.se.bakover.web.søknadsbehandling.iverksett.iverksett
 import no.nav.su.se.bakover.web.søknadsbehandling.ny.nySøknadsbehandling
 import no.nav.su.se.bakover.web.søknadsbehandling.sendTilAttestering.sendTilAttestering
@@ -65,9 +66,9 @@ internal fun ApplicationTestBuilder.opprettAvslåttSøknadsbehandling(
         fraOgMed = fraOgMed,
         tilOgMed = tilOgMed,
     )
-    leggTilFlyktningstatus(
+    leggTilFlyktningVilkår(
         sakId = sakId,
-        resultat = "VilkårIkkeOppfylt",
+        body = { avslåttFlyktningVilkårJson(fraOgMed, tilOgMed) },
         behandlingId = behandlingId,
     )
     sendTilAttestering(

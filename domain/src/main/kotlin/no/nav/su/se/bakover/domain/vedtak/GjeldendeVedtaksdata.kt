@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
 import no.nav.su.se.bakover.domain.vilkår.FamiliegjenforeningVilkår
+import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
@@ -63,6 +64,7 @@ data class GjeldendeVedtaksdata(
                         formue = it.formueVilkår(),
                         utenlandsopphold = it.utenlandsoppholdVilkår(),
                         opplysningsplikt = it.opplysningspliktVilkår(),
+                        flyktning = it.flyktningVilkår(),
                     )
                 }
                 vedtakPåTidslinje.all {
@@ -222,29 +224,69 @@ private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.opplysningspliktVilk
 }
 
 private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.pensjonsVilkår(): PensjonsVilkår {
-    return map { it.pensjonsVilkår() }
-        .filterIsInstance<PensjonsVilkår.Vurdert>()
-        .flatMap { it.vurderingsperioder }
-        .let {
-            if (it.isNotEmpty()) {
-                PensjonsVilkår.Vurdert.createFromVilkårsvurderinger(NonEmptyList.fromListUnsafe(it))
-                    .slåSammenLikePerioder()
-            } else {
-                PensjonsVilkår.IkkeVurdert
-            }
+    return flatMap { vedtak ->
+        vedtak.pensjonsVilkår().fold(
+            {
+                emptyList()
+            },
+            {
+                when (it) {
+                    PensjonsVilkår.IkkeVurdert -> emptyList()
+                    is PensjonsVilkår.Vurdert -> it.vurderingsperioder
+                }
+            },
+        )
+    }.let {
+        if (it.isNotEmpty()) {
+            PensjonsVilkår.Vurdert.createFromVilkårsvurderinger(NonEmptyList.fromListUnsafe(it))
+                .slåSammenLikePerioder()
+        } else {
+            PensjonsVilkår.IkkeVurdert
         }
+    }
 }
 
 private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.familiegjenforeningvilkår(): FamiliegjenforeningVilkår {
-    return map { it.familiegjenforeningvilkår() }
-        .filterIsInstance<FamiliegjenforeningVilkår.Vurdert>()
-        .flatMap { it.vurderingsperioder }
-        .let {
-            if (it.isNotEmpty()) {
-                FamiliegjenforeningVilkår.Vurdert.createFromVilkårsvurderinger(NonEmptyList.fromListUnsafe(it))
-                    .slåSammenLikePerioder()
-            } else {
-                FamiliegjenforeningVilkår.IkkeVurdert
-            }
+    return flatMap { vedtak ->
+        vedtak.familiegjenforeningvilkår().fold(
+            {
+                emptyList()
+            },
+            {
+                when (it) {
+                    FamiliegjenforeningVilkår.IkkeVurdert -> emptyList()
+                    is FamiliegjenforeningVilkår.Vurdert -> it.vurderingsperioder
+                }
+            },
+        )
+    }.let {
+        if (it.isNotEmpty()) {
+            FamiliegjenforeningVilkår.Vurdert.createFromVilkårsvurderinger(NonEmptyList.fromListUnsafe(it))
+                .slåSammenLikePerioder()
+        } else {
+            FamiliegjenforeningVilkår.IkkeVurdert
         }
+    }
+}
+
+private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.flyktningVilkår(): FlyktningVilkår {
+    return flatMap { vedtak ->
+        vedtak.flyktningVilkår().fold(
+            {
+                emptyList()
+            },
+            {
+                when (it) {
+                    FlyktningVilkår.IkkeVurdert -> emptyList()
+                    is FlyktningVilkår.Vurdert -> it.vurderingsperioder
+                }
+            },
+        )
+    }.let {
+        if (it.isNotEmpty()) {
+            FlyktningVilkår.Vurdert.create(NonEmptyList.fromListUnsafe(it)).slåSammenLikePerioder()
+        } else {
+            FlyktningVilkår.IkkeVurdert
+        }
+    }
 }

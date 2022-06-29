@@ -87,6 +87,11 @@ sealed class FlyktningVilkår : Vilkår() {
         }
 
         companion object {
+
+            fun create(vurderingsperioder: Nel<VurderingsperiodeFlyktning>): Vurdert {
+                return tryCreate(vurderingsperioder).getOrHandle { throw IllegalArgumentException(it.toString()) }
+            }
+
             fun tryCreate(
                 vurderingsperioder: Nel<VurderingsperiodeFlyktning>,
             ): Either<UgyldigFlyktningVilkår, Vurdert> {
@@ -130,7 +135,6 @@ data class VurderingsperiodeFlyktning private constructor(
             opprettet = opprettet,
             vurdering = vurdering,
             periode = stønadsperiode.periode,
-            grunnlag = this.grunnlag?.oppdaterPeriode(stønadsperiode.periode),
         )
     }
 
@@ -168,33 +172,15 @@ data class VurderingsperiodeFlyktning private constructor(
             id: UUID = UUID.randomUUID(),
             opprettet: Tidspunkt,
             vurdering: Vurdering,
-            grunnlag: FlyktningGrunnlag?,
             periode: Periode,
         ): VurderingsperiodeFlyktning {
-            return tryCreate(id, opprettet, vurdering, grunnlag, periode).getOrHandle {
-                throw IllegalArgumentException(it.toString())
-            }
-        }
-
-        fun tryCreate(
-            id: UUID = UUID.randomUUID(),
-            opprettet: Tidspunkt,
-            vurdering: Vurdering,
-            grunnlag: FlyktningGrunnlag?,
-            vurderingsperiode: Periode,
-        ): Either<UgyldigVurderingsperiode, VurderingsperiodeFlyktning> {
-
-            grunnlag?.let {
-                if (vurderingsperiode != it.periode) return UgyldigVurderingsperiode.PeriodeForGrunnlagOgVurderingErForskjellig.left()
-            }
-
             return VurderingsperiodeFlyktning(
                 id = id,
                 opprettet = opprettet,
+                grunnlag = null,
                 vurdering = vurdering,
-                grunnlag = grunnlag,
-                periode = vurderingsperiode,
-            ).right()
+                periode = periode,
+            )
         }
     }
 }
