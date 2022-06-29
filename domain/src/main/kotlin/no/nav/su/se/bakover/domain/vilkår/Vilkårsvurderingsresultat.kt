@@ -12,43 +12,47 @@ sealed class Vilkårsvurderingsresultat {
     data class Avslag(
         val vilkår: Set<Vilkår>,
     ) : Vilkårsvurderingsresultat() {
-        val avslagsgrunner = vilkår.map { it.avslagsgrunn() }
+        val avslagsgrunner: List<Avslagsgrunn> = vilkår.flatMap { it.avslagsgrunner() }
         val tidligsteDatoForAvslag = vilkår.minOf { it.hentTidligesteDatoForAvslag()!! }
 
-        private fun Vilkår.avslagsgrunn(): Avslagsgrunn {
+        private fun Vilkår.avslagsgrunner(): List<Avslagsgrunn> {
             return when (this) {
                 is FastOppholdINorgeVilkår -> {
-                    Avslagsgrunn.BOR_OG_OPPHOLDER_SEG_I_NORGE
+                    listOf(Avslagsgrunn.BOR_OG_OPPHOLDER_SEG_I_NORGE)
                 }
                 is FlyktningVilkår -> {
-                    Avslagsgrunn.FLYKTNING
+                    listOf(Avslagsgrunn.FLYKTNING)
                 }
                 is FormueVilkår -> {
-                    Avslagsgrunn.FORMUE
+                    listOf(Avslagsgrunn.FORMUE)
                 }
                 is InstitusjonsoppholdVilkår -> {
-                    Avslagsgrunn.INNLAGT_PÅ_INSTITUSJON
+                    listOf(Avslagsgrunn.INNLAGT_PÅ_INSTITUSJON)
                 }
                 is LovligOppholdVilkår -> {
-                    Avslagsgrunn.OPPHOLDSTILLATELSE
+                    listOf(Avslagsgrunn.OPPHOLDSTILLATELSE)
                 }
                 is OpplysningspliktVilkår -> {
-                    Avslagsgrunn.MANGLENDE_DOKUMENTASJON
+                    listOf(Avslagsgrunn.MANGLENDE_DOKUMENTASJON)
                 }
                 is PersonligOppmøteVilkår -> {
-                    Avslagsgrunn.PERSONLIG_OPPMØTE
+                    listOf(Avslagsgrunn.PERSONLIG_OPPMØTE)
                 }
                 is UføreVilkår -> {
-                    Avslagsgrunn.UFØRHET
+                    listOf(Avslagsgrunn.UFØRHET)
                 }
                 is UtenlandsoppholdVilkår -> {
-                    Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER
+                    listOf(Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER)
                 }
                 is FamiliegjenforeningVilkår -> {
-                    Avslagsgrunn.FAMILIEGJENFORENING
+                    listOf(Avslagsgrunn.FAMILIEGJENFORENING)
                 }
                 is PensjonsVilkår -> {
-                    Avslagsgrunn.PENSJON
+                    listOfNotNull(
+                        this.grunnlag.find { it.pensjonsopplysninger.søktUtenlandskePensjoner.resultat() == Vurdering.Avslag }?.let { Avslagsgrunn.MANGLER_VEDTAK_UTENLANDSKE_PENSJONSORDNINGER },
+                        this.grunnlag.find { it.pensjonsopplysninger.søktPensjonFolketrygd.resultat() == Vurdering.Avslag }?.let { Avslagsgrunn.MANGLER_VEDTAK_ALDERSPENSJON_FOLKETRYGDEN },
+                        this.grunnlag.find { it.pensjonsopplysninger.søktAndreNorskePensjoner.resultat() == Vurdering.Avslag }?.let { Avslagsgrunn.MANGLER_VEDTAK_ANDRE_NORSKE_PENSJONSORDNINGER },
+                    )
                 }
             }
         }

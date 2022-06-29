@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.brev
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonProperty
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sakstype
@@ -21,6 +22,9 @@ abstract class BrevInnhold {
     // TODO ØH 21.06.2022: Denne bør være abstract på sikt, og settes for alle brev eksplisitt
     @get:JsonIgnore
     open val sakstype: Sakstype = Sakstype.UFØRE
+
+    @JsonProperty
+    fun erAldersbrev(): Boolean = this.sakstype == Sakstype.ALDER
 
     data class AvslagsBrevInnhold(
         val personalia: Personalia,
