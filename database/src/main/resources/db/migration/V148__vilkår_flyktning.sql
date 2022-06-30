@@ -1,18 +1,8 @@
-create table if not exists grunnlag_flyktning
-(
-    id uuid primary key,
-    opprettet timestamptz not null,
-    behandlingId uuid not null,
-    fraOgMed date not null,
-    tilOgMed date not null
-);
-
 create table if not exists vilkårsvurdering_flyktning
 (
     id uuid primary key,
     opprettet timestamptz not null,
     behandlingId uuid not null,
-    grunnlag_id uuid references grunnlag_flyktning(id),
     resultat text not null,
     fraOgMed date not null,
     tilOgMed date not null
@@ -33,11 +23,10 @@ with søknadsbehandlinger (behandlingid, opprettet, fraogmed, tilogmed, resultat
     where behandlingsinformasjon ->> 'flyktning' is not null
 )
 
-insert into vilkårsvurdering_flyktning(id, opprettet, behandlingid, grunnlag_id, fraogmed, tilogmed, resultat)
+insert into vilkårsvurdering_flyktning(id, opprettet, behandlingid, fraogmed, tilogmed, resultat)
     (select uuid_generate_v4(),
             opprettet,
             behandlingId,
-            null,
             fraogmed,
             tilogmed,
             resultat
@@ -53,11 +42,10 @@ with revurderinger (behandlingid, opprettet, fraogmed, tilogmed, resultat) as (
     from revurdering
 )
 
-insert into vilkårsvurdering_flyktning(id, opprettet, behandlingid, grunnlag_id, fraogmed, tilogmed, resultat)
+insert into vilkårsvurdering_flyktning(id, opprettet, behandlingid, fraogmed, tilogmed, resultat)
     (select uuid_generate_v4(),
             opprettet,
             behandlingId,
-            null,
             fraogmed,
             tilogmed,
             resultat
@@ -73,11 +61,10 @@ with reguleringer (behandlingId, opprettet, fraogmed, tilogmed, resultat) as (
     from regulering
 )
 
-insert into vilkårsvurdering_flyktning(id, opprettet, behandlingid, grunnlag_id, fraogmed, tilogmed, resultat)
+insert into vilkårsvurdering_flyktning(id, opprettet, behandlingid, fraogmed, tilogmed, resultat)
     (select uuid_generate_v4(),
             opprettet,
             behandlingId,
-            null,
             fraogmed,
             tilogmed,
             resultat

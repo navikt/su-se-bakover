@@ -13,9 +13,6 @@ import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.web.SharedRegressionTestData.defaultRequest
 
-/**
-- [resultat] se [no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Flyktning.Status]
- */
 internal fun ApplicationTestBuilder.leggTilFlyktningVilkår(
     sakId: String,
     behandlingId: String,

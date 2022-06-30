@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.database.dokument.DokumentPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FamiliegjenforeningVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FlyktningVilkårsvurderingPostgresRepo
-import no.nav.su.se.bakover.database.grunnlag.FlyktningrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FormueVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FormuegrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
@@ -321,10 +320,8 @@ internal class TestDataHelper(
     )
     internal val familiegjenforeningVilkårsvurderingPostgresRepo =
         FamiliegjenforeningVilkårsvurderingPostgresRepo(dbMetrics)
-    internal val flyktninggrunnlagPostgresRepo = FlyktningrunnlagPostgresRepo(dbMetrics)
     internal val flyktningVilkårsvurderingPostgresRepo = FlyktningVilkårsvurderingPostgresRepo(
         dbMetrics = dbMetrics,
-        flyktninggrunnlagPostgresRepo = flyktninggrunnlagPostgresRepo,
     )
     internal val grunnlagsdataOgVilkårsvurderingerPostgresRepo = GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
         dbMetrics = dbMetrics,

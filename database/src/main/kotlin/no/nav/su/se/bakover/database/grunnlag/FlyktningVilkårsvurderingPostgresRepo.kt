@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFlyktning
 import java.util.UUID
 
 internal class FlyktningVilkårsvurderingPostgresRepo(
-    private val flyktninggrunnlagPostgresRepo: FlyktningrunnlagPostgresRepo,
     private val dbMetrics: DbMetrics,
 ) {
 
@@ -24,11 +23,8 @@ internal class FlyktningVilkårsvurderingPostgresRepo(
         dbMetrics.timeQuery("lagreVilkårsvurderingFlyktning") {
             slettForBehandlingId(behandlingId, tx)
             when (vilkår) {
-                FlyktningVilkår.IkkeVurdert -> {
-                    flyktninggrunnlagPostgresRepo.lagre(behandlingId, emptyList(), tx)
-                }
+                FlyktningVilkår.IkkeVurdert -> {}
                 is FlyktningVilkår.Vurdert -> {
-                    flyktninggrunnlagPostgresRepo.lagre(behandlingId, vilkår.grunnlag, tx)
                     vilkår.vurderingsperioder.forEach {
                         lagre(behandlingId, it, tx)
                     }
@@ -48,7 +44,6 @@ internal class FlyktningVilkårsvurderingPostgresRepo(
                     id,
                     opprettet,
                     behandlingId,
-                    grunnlag_id,
                     resultat,
                     fraOgMed,
                     tilOgMed
@@ -56,8 +51,7 @@ internal class FlyktningVilkårsvurderingPostgresRepo(
                 (
                     :id,
                     :opprettet,
-                    :behandlingId,
-                    :grunnlag_id,
+                    :behandlingId,               
                     :resultat,
                     :fraOgMed,
                     :tilOgMed
@@ -68,7 +62,6 @@ internal class FlyktningVilkårsvurderingPostgresRepo(
                     "id" to vurderingsperiode.id,
                     "opprettet" to vurderingsperiode.opprettet,
                     "behandlingId" to behandlingId,
-                    "grunnlag_id" to vurderingsperiode.grunnlag?.id,
                     "resultat" to vurderingsperiode.vurdering.toDto(),
                     "fraOgMed" to vurderingsperiode.periode.fraOgMed,
                     "tilOgMed" to vurderingsperiode.periode.tilOgMed,

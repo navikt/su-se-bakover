@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.database.dokument.DokumentPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FamiliegjenforeningVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FlyktningVilkårsvurderingPostgresRepo
-import no.nav.su.se.bakover.database.grunnlag.FlyktningrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FormueVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FormuegrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
@@ -150,9 +149,6 @@ object DatabaseBuilder {
                 lovligOppholdGrunnlagPostgresRepo = LovligOppholdgrunnlagPostgresRepo(dbMetrics),
             ),
             flyktningVilkårsvurderingPostgresRepo = FlyktningVilkårsvurderingPostgresRepo(
-                flyktninggrunnlagPostgresRepo = FlyktningrunnlagPostgresRepo(
-                    dbMetrics = dbMetrics
-                ),
                 dbMetrics = dbMetrics
             )
         )

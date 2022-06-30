@@ -243,7 +243,7 @@ sealed class Revurdering :
 
     protected fun oppdaterFlyktningVilkårOgMarkerSomVurdertInternal(vilkår: FlyktningVilkår.Vurdert): Either<KunneIkkeLeggeTilFlyktningVilkår, OpprettetRevurdering> {
         return oppdaterFlyktningVilkårInternal(vilkår)
-            .map { it.oppdaterInformasjonSomRevurderes(informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Pensjon)) }
+            .map { it.oppdaterInformasjonSomRevurderes(informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Flyktning)) }
     }
 
     private fun oppdaterFlyktningVilkårInternal(vilkår: FlyktningVilkår.Vurdert): Either<KunneIkkeLeggeTilFlyktningVilkår, OpprettetRevurdering> {
@@ -2188,7 +2188,7 @@ enum class Vurderingstatus(val status: String) {
 
 enum class Revurderingsteg(val vilkår: String) {
     // BorOgOppholderSegINorge("BorOgOppholderSegINorge"),
-    // Flyktning("Flyktning"),
+    Flyktning("Flyktning"),
     Formue("Formue"),
 
     Oppholdstillatelse("Oppholdstillatelse"),
