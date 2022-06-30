@@ -155,11 +155,17 @@ internal suspend fun ApplicationCall.withKlageId(ifRight: suspend (UUID) -> Unit
 }
 
 internal suspend inline fun <reified T> ApplicationCall.withBody(ifRight: (T) -> Unit) {
-    Either.catch { deserialize<T>(this) }.fold(
-        ifLeft = {
-            log.error("Feil ved deserialisering", it)
+    Either.catch { this.receiveTextUTF8() }
+        .tapLeft {
+            log.error("Feil ved transformering av json-body til UTF-8 inn mot web-laget, se sikkerlogg for detaljer.")
+            sikkerLogg.error("Feil ved transformering av json-body til UTF-8.", it)
             this.svar(Feilresponser.ugyldigBody)
-        },
-        ifRight = { ifRight(it) },
-    )
+        }.map { body ->
+            Either.catch { deserialize<T>(body) }
+                .tapLeft {
+                    log.error("Feil ved deserialisering av json-body inn mot web-laget, se sikkerlogg for detaljer.")
+                    sikkerLogg.error("Feil ved deserialisering av json-body: $body", it)
+                    this.svar(Feilresponser.ugyldigBody)
+                }.tap(ifRight)
+        }
 }

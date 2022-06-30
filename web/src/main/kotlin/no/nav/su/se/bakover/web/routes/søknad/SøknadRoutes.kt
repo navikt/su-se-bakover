@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.web.routes.søknad
 
-import arrow.core.Either
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Created
@@ -13,10 +12,8 @@ import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
-import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.metrics.SuMetrics
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.satser.SatsFactory
@@ -38,7 +35,6 @@ import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.web.AuditLogEvent
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
-import no.nav.su.se.bakover.web.deserialize
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
@@ -74,49 +70,42 @@ internal fun Route.søknadRoutes(
     post("$søknadPath/{type}") {
         authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler) {
             call.withStringParam("type") { type ->
-                Either.catch { deserialize<SøknadsinnholdJson>(call) }.fold(
-                    ifLeft = {
-                        log.error("Feil skjedde ved deserializering av søknad ved innsending")
-                        sikkerLogg.error(it.message, it)
-                        call.svar(Feilresponser.ugyldigBody)
-                    },
-                    ifRight = { søknadsinnholdJson ->
-                        søknadsinnholdJson.toSøknadsinnhold().fold(
-                            { call.svar(it.tilResultat()) },
-                            {
-                                søknadService.nySøknad(it, søknadsinnholdJson.forNav.identBruker(call))
-                                    .fold(
-                                        { call.svar(it.tilResultat(type)) },
-                                        { (saksnummer, søknad) ->
-                                            call.audit(
-                                                søknad.søknadInnhold.personopplysninger.fnr,
-                                                AuditLogEvent.Action.CREATE,
-                                                null,
-                                            )
-                                            call.sikkerlogg("Lagrer søknad ${søknad.id} på sak ${søknad.sakId}")
-                                            SuMetrics.søknadMottatt(
-                                                if (søknad.søknadInnhold.forNav is ForNav.Papirsøknad)
-                                                    SuMetrics.Søknadstype.PAPIR
-                                                else
-                                                    SuMetrics.Søknadstype.DIGITAL,
-                                            )
-                                            call.svar(
-                                                Resultat.json(
-                                                    Created,
-                                                    serialize(
-                                                        OpprettetSøknadJson(
-                                                            saksnummer = saksnummer.nummer,
-                                                            søknad = søknad.toJson(),
-                                                        ),
+                call.withBody<SøknadsinnholdJson> { søknadsinnholdJson ->
+                    søknadsinnholdJson.toSøknadsinnhold().fold(
+                        { call.svar(it.tilResultat()) },
+                        {
+                            søknadService.nySøknad(it, søknadsinnholdJson.forNav.identBruker(call))
+                                .fold(
+                                    { call.svar(it.tilResultat(type)) },
+                                    { (saksnummer, søknad) ->
+                                        call.audit(
+                                            søknad.søknadInnhold.personopplysninger.fnr,
+                                            AuditLogEvent.Action.CREATE,
+                                            null,
+                                        )
+                                        call.sikkerlogg("Lagrer søknad ${søknad.id} på sak ${søknad.sakId}")
+                                        SuMetrics.søknadMottatt(
+                                            if (søknad.søknadInnhold.forNav is ForNav.Papirsøknad)
+                                                SuMetrics.Søknadstype.PAPIR
+                                            else
+                                                SuMetrics.Søknadstype.DIGITAL,
+                                        )
+                                        call.svar(
+                                            Resultat.json(
+                                                Created,
+                                                serialize(
+                                                    OpprettetSøknadJson(
+                                                        saksnummer = saksnummer.nummer,
+                                                        søknad = søknad.toJson(),
                                                     ),
                                                 ),
-                                            )
-                                        },
-                                    )
-                            },
-                        )
-                    },
-                )
+                                            ),
+                                        )
+                                    },
+                                )
+                        },
+                    )
+                }
             }
         }
     }
