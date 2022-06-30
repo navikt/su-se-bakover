@@ -4,7 +4,6 @@ fun tomBehandlingsinformasjonResponse(): String {
     return """
       {
         "flyktning":null,
-        "fastOppholdINorge":null,
         "institusjonsopphold":null,
         "personligOppmøte":null
       }

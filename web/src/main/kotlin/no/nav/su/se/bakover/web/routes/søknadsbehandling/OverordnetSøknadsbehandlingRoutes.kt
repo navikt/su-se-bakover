@@ -28,4 +28,6 @@ internal fun Route.overordnetSøknadsbehandligRoutes(
     leggTilFamiliegjenforeningRoute(søknadsbehandlingService, satsFactory)
 
     pensjonsVilkårRoutes(søknadsbehandlingService, satsFactory)
+
+    fastOppholdVilkårRoutes(søknadsbehandlingService, satsFactory)
 }

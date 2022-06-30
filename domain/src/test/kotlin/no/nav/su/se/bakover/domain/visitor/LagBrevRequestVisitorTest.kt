@@ -75,6 +75,7 @@ import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulerNyUtbetaling
 import no.nav.su.se.bakover.test.simulertUtbetalingOpphør
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
+import no.nav.su.se.bakover.test.vilkår.fastOppholdVilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.formuevilkårAvslåttPgrBrukersformue
 import no.nav.su.se.bakover.test.vilkår.innvilgetFormueVilkår
 import no.nav.su.se.bakover.test.vilkår.lovligOppholdVilkårInnvilget
@@ -200,7 +201,7 @@ internal class LagBrevRequestVisitorTest {
                     dagensDato = fixedLocalDate,
                     saksnummer = vilkårsvurdertInnvilget.saksnummer,
                     satsoversikt = null,
-                    sakstype = Sakstype.UFØRE
+                    sakstype = Sakstype.UFØRE,
                 ).right()
 
                 it.brevRequest.map { brevRequest ->
@@ -263,7 +264,7 @@ internal class LagBrevRequestVisitorTest {
                     dagensDato = fixedLocalDate,
                     saksnummer = vilkårsvurdertInnvilget.saksnummer,
                     satsoversikt = null,
-                    sakstype = Sakstype.UFØRE
+                    sakstype = Sakstype.UFØRE,
                 ).right()
 
                 it.brevRequest.map { brevRequest ->
@@ -302,7 +303,7 @@ internal class LagBrevRequestVisitorTest {
                         dagensDato = fixedLocalDate,
                         saksnummer = vilkårsvurdertInnvilget.saksnummer,
                         satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
-                        sakstype = Sakstype.UFØRE
+                        sakstype = Sakstype.UFØRE,
                     ).right()
                 }
             }
@@ -353,7 +354,7 @@ internal class LagBrevRequestVisitorTest {
                     dagensDato = fixedLocalDate,
                     saksnummer = vilkårsvurdertInnvilget.saksnummer,
                     satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
-                    sakstype = Sakstype.UFØRE
+                    sakstype = Sakstype.UFØRE,
                 ).right()
             }
         }
@@ -393,7 +394,7 @@ internal class LagBrevRequestVisitorTest {
                         dagensDato = fixedLocalDate,
                         saksnummer = vilkårsvurdertInnvilget.saksnummer,
                         satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
-                        sakstype = Sakstype.UFØRE
+                        sakstype = Sakstype.UFØRE,
                     ).right()
 
                     it.brevRequest.map { brevRequest ->
@@ -440,7 +441,7 @@ internal class LagBrevRequestVisitorTest {
                         dagensDato = fixedLocalDate,
                         saksnummer = vilkårsvurdertInnvilget.saksnummer,
                         satsoversikt = null,
-                        sakstype = Sakstype.UFØRE
+                        sakstype = Sakstype.UFØRE,
                     ).right()
                 }
             }
@@ -495,7 +496,7 @@ internal class LagBrevRequestVisitorTest {
                         dagensDato = fixedLocalDate,
                         saksnummer = vilkårsvurdertInnvilget.saksnummer,
                         satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
-                        sakstype = Sakstype.UFØRE
+                        sakstype = Sakstype.UFØRE,
                     ).right()
                 }
             }
@@ -537,7 +538,7 @@ internal class LagBrevRequestVisitorTest {
                         dagensDato = fixedLocalDate,
                         saksnummer = vilkårsvurdertInnvilget.saksnummer,
                         satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
-                        sakstype = Sakstype.UFØRE
+                        sakstype = Sakstype.UFØRE,
                     ).right()
                 }
             }
@@ -585,7 +586,7 @@ internal class LagBrevRequestVisitorTest {
                         dagensDato = fixedLocalDate,
                         saksnummer = vilkårsvurdertInnvilget.saksnummer,
                         satsoversikt = null,
-                        sakstype = Sakstype.UFØRE
+                        sakstype = Sakstype.UFØRE,
                     ).right()
                 }
             }
@@ -649,7 +650,7 @@ internal class LagBrevRequestVisitorTest {
                         dagensDato = fixedLocalDate,
                         saksnummer = vilkårsvurdertInnvilget.saksnummer,
                         satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
-                        sakstype = Sakstype.UFØRE
+                        sakstype = Sakstype.UFØRE,
                     ).right()
                 }
             }
@@ -699,7 +700,7 @@ internal class LagBrevRequestVisitorTest {
                         dagensDato = fixedLocalDate,
                         saksnummer = vilkårsvurdertInnvilget.saksnummer,
                         satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
-                        sakstype = Sakstype.UFØRE
+                        sakstype = Sakstype.UFØRE,
                     ).right()
                 }
             }
@@ -742,7 +743,7 @@ internal class LagBrevRequestVisitorTest {
                         dagensDato = fixedLocalDate,
                         saksnummer = vilkårsvurdertInnvilget.saksnummer,
                         satsoversikt = null,
-                        sakstype = Sakstype.UFØRE
+                        sakstype = Sakstype.UFØRE,
                     ).right()
                 }
             }
@@ -801,7 +802,7 @@ internal class LagBrevRequestVisitorTest {
                         dagensDato = fixedLocalDate,
                         saksnummer = vilkårsvurdertInnvilget.saksnummer,
                         satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
-                        sakstype = Sakstype.UFØRE
+                        sakstype = Sakstype.UFØRE,
                     ).right()
                 }
             }
@@ -844,7 +845,7 @@ internal class LagBrevRequestVisitorTest {
                         dagensDato = fixedLocalDate,
                         saksnummer = vilkårsvurdertInnvilget.saksnummer,
                         satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
-                        sakstype = Sakstype.UFØRE
+                        sakstype = Sakstype.UFØRE,
                     ).right()
                 }
             }
@@ -901,7 +902,7 @@ internal class LagBrevRequestVisitorTest {
             dagensDato = fixedLocalDate,
             saksnummer = søknadsbehandling.saksnummer,
             satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
-            sakstype = Sakstype.UFØRE
+            sakstype = Sakstype.UFØRE,
         ).right()
     }
 
@@ -967,7 +968,7 @@ internal class LagBrevRequestVisitorTest {
             dagensDato = fixedLocalDate,
             saksnummer = søknadsbehandling.saksnummer,
             satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
-            sakstype = Sakstype.UFØRE
+            sakstype = Sakstype.UFØRE,
         ).right()
     }
 
@@ -1021,7 +1022,7 @@ internal class LagBrevRequestVisitorTest {
             dagensDato = fixedLocalDate,
             saksnummer = søknadsbehandling.saksnummer,
             satsoversikt = null,
-            sakstype = Sakstype.UFØRE
+            sakstype = Sakstype.UFØRE,
         ).right()
     }
 
@@ -1093,7 +1094,7 @@ internal class LagBrevRequestVisitorTest {
             dagensDato = fixedLocalDate,
             saksnummer = søknadsbehandling.saksnummer,
             satsoversikt = null,
-            sakstype = Sakstype.UFØRE
+            sakstype = Sakstype.UFØRE,
         ).right()
     }
 
@@ -1255,6 +1256,7 @@ internal class LagBrevRequestVisitorTest {
                 utenlandsopphold = utenlandsoppholdInnvilget(periode = revurderingsperiode),
                 opplysningsplikt = tilstrekkeligDokumentert(periode = revurderingsperiode),
                 lovligOpphold = lovligOppholdVilkårInnvilget(),
+                fastOpphold = fastOppholdVilkårInnvilget(periode = revurderingsperiode),
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,

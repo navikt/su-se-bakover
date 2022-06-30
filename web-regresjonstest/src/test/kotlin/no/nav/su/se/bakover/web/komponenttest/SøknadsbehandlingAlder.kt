@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.service.vilkår.FamiliegjenforeningvilkårStatus
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFamiliegjenforeningRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilFastOppholdINorgeRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilLovligOppholdRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilPensjonsVilkårRequest
@@ -44,6 +45,7 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.stønadsperiode2022
+import no.nav.su.se.bakover.test.vilkår.fastOppholdVilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.pensjonsVilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.tilstrekkeligDokumentert
 import no.nav.su.se.bakover.test.vilkår.utilstrekkeligDokumentert
@@ -136,6 +138,13 @@ internal class SøknadsbehandlingAlder {
                         LovligOppholdVurderinger(stønadsperiode2022.periode, LovligOppholdVilkårStatus.VilkårOppfylt),
                     ),
                 ),
+            )
+
+            appComponents.services.søknadsbehandling.leggTilFastOppholdINorgeVilkår(
+                request = LeggTilFastOppholdINorgeRequest(
+                    behandlingId = søknadsbehandling.id,
+                    vilkår = fastOppholdVilkårInnvilget(periode = stønadsperiode2022.periode)
+                )
             )
 
             appComponents.services.søknadsbehandling.leggTilBosituasjonEpsgrunnlag(

@@ -11,11 +11,11 @@ import no.nav.su.se.bakover.web.søknad.ny.nyDigitalSøknad
 import no.nav.su.se.bakover.web.søknadsbehandling.beregning.beregn
 import no.nav.su.se.bakover.web.søknadsbehandling.bosituasjon.fullførBosituasjon
 import no.nav.su.se.bakover.web.søknadsbehandling.bosituasjon.taStillingTilEps
+import no.nav.su.se.bakover.web.søknadsbehandling.fastopphold.leggTilFastOppholdINorge
 import no.nav.su.se.bakover.web.søknadsbehandling.flyktning.leggTilFlyktningstatus
 import no.nav.su.se.bakover.web.søknadsbehandling.formue.leggTilFormue
 import no.nav.su.se.bakover.web.søknadsbehandling.iverksett.iverksett
 import no.nav.su.se.bakover.web.søknadsbehandling.ny.nySøknadsbehandling
-import no.nav.su.se.bakover.web.søknadsbehandling.opphold.leggTilFastOppholdINorge
 import no.nav.su.se.bakover.web.søknadsbehandling.opphold.leggTilInstitusjonsopphold
 import no.nav.su.se.bakover.web.søknadsbehandling.opphold.leggTilLovligOppholdINorge
 import no.nav.su.se.bakover.web.søknadsbehandling.opphold.leggTilUtenlandsopphold
@@ -94,6 +94,8 @@ internal fun ApplicationTestBuilder.opprettInnvilgetSøknadsbehandling(
     leggTilFastOppholdINorge(
         sakId = sakId,
         behandlingId = behandlingId,
+        fraOgMed = fraOgMed,
+        tilOgMed = tilOgMed
     )
     leggTilInstitusjonsopphold(
         sakId = sakId,

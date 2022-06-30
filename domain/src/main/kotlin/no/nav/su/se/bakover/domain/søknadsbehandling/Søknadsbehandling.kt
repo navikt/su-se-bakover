@@ -491,6 +491,29 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             }
     }
 
+    fun leggTilFastOppholdINorgeVilkår(
+        vilkår: FastOppholdINorgeVilkår.Vurdert,
+        clock: Clock,
+    ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFastOppholdINorgeVilkår, Vilkårsvurdert> {
+        return if (this is KanOppdaterePeriodeGrunnlagVilkår) {
+            leggTilFastOppholdINorgeVilkårInternal(vilkår, clock)
+        } else {
+            KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFastOppholdINorgeVilkår.UgyldigTilstand(
+                fra = this::class,
+                til = Vilkårsvurdert::class,
+            ).left()
+        }
+    }
+
+    private fun leggTilFastOppholdINorgeVilkårInternal(
+        vilkår: FastOppholdINorgeVilkår.Vurdert,
+        clock: Clock,
+    ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFastOppholdINorgeVilkår, Vilkårsvurdert> {
+        return copyInternal(
+            grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
+        ).vilkårsvurder(clock).right()
+    }
+
     private fun valider(uførhet: UføreVilkår.Vurdert): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår, Unit> {
         return when {
             !periode.inneholderAlle(uførhet.vurderingsperioder) -> {

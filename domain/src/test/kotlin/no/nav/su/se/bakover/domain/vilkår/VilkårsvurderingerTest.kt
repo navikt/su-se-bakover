@@ -278,6 +278,7 @@ internal class VilkårsvurderingerTest {
                         it.utenlandsopphold,
                         it.opplysningsplikt,
                         it.lovligOpphold,
+                        it.fastOpphold,
                     ),
                 )
             }
@@ -331,6 +332,7 @@ internal class VilkårsvurderingerTest {
                             Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER,
                             Avslagsgrunn.MANGLENDE_DOKUMENTASJON,
                             Avslagsgrunn.OPPHOLDSTILLATELSE,
+                            Avslagsgrunn.BOR_OG_OPPHOLDER_SEG_I_NORGE
                         )
                         it.tidligsteDatoForAvslag shouldBe 1.januar(2021)
                     }
@@ -367,6 +369,7 @@ internal class VilkårsvurderingerTest {
                     UtenlandsoppholdVilkår.IkkeVurdert,
                     OpplysningspliktVilkår.IkkeVurdert,
                     LovligOppholdVilkår.IkkeVurdert,
+                    FastOppholdINorgeVilkår.IkkeVurdert,
                 ),
             )
         }

@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database
 
+import FastOppholdINorgeVilkårsvurderingPostgresRepo
 import arrow.core.NonEmptyList
 import arrow.core.getOrHandle
 import arrow.core.nonEmptyListOf
@@ -319,6 +320,9 @@ internal class TestDataHelper(
     )
     internal val familiegjenforeningVilkårsvurderingPostgresRepo =
         FamiliegjenforeningVilkårsvurderingPostgresRepo(dbMetrics)
+    internal val fastOppholdVilkårsvurderingRepo = FastOppholdINorgeVilkårsvurderingPostgresRepo(
+        dbMetrics = dbMetrics,
+    )
     internal val grunnlagsdataOgVilkårsvurderingerPostgresRepo = GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
         dbMetrics = dbMetrics,
         bosituasjongrunnlagPostgresRepo = bosituasjongrunnlagPostgresRepo,
@@ -330,6 +334,7 @@ internal class TestDataHelper(
         pensjonVilkårsvurderingPostgresRepo = vilkårsvurderingPensjonPostgresRepo,
         familiegjenforeningVilkårsvurderingPostgresRepo = familiegjenforeningVilkårsvurderingPostgresRepo,
         lovligOppholdVilkårsvurderingPostgresRepo = lovligOppholdVilkårsvurderingPostgresRepo,
+        fastOppholdINorgeVilkårsvurderingPostgresRepo = fastOppholdVilkårsvurderingRepo,
     )
     internal val søknadsbehandlingRepo = SøknadsbehandlingPostgresRepo(
         sessionFactory = sessionFactory,

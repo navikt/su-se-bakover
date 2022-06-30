@@ -120,6 +120,7 @@ fun vilkårsvurderingerSøknadsbehandlingInnvilget(
         periode = periode,
     ),
     formue: FormueVilkår = formuevilkårUtenEps0Innvilget(periode = periode, bosituasjon = bosituasjon),
+    fastOpphold: FastOppholdINorgeVilkår = fastOppholdVilkårInnvilget(periode = periode),
 ): Vilkårsvurderinger.Søknadsbehandling.Uføre {
     return Vilkårsvurderinger.Søknadsbehandling.Uføre(
         uføre = uføre,
@@ -127,7 +128,7 @@ fun vilkårsvurderingerSøknadsbehandlingInnvilget(
         formue = formue,
         opplysningsplikt = opplysningsplikt,
         lovligOpphold = lovligOppholdVilkår,
-        fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
+        fastOpphold = fastOpphold,
         institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
         personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
         flyktning = FlyktningVilkår.IkkeVurdert,
@@ -143,11 +144,12 @@ fun vilkårsvurderingerRevurderingInnvilget(
     uføre: UføreVilkår = innvilgetUførevilkårForventetInntekt0(periode = periode),
     bosituasjon: NonEmptyList<Grunnlag.Bosituasjon.Fullstendig> = nonEmptyListOf(bosituasjongrunnlagEnslig(periode = periode)),
     lovligOpphold: LovligOppholdVilkår = lovligOppholdVilkårInnvilget(
-        nonEmptyListOf(vurderingsperiodeLovligOppholdInnvilget(vurderingsperiode = periode))
+        nonEmptyListOf(vurderingsperiodeLovligOppholdInnvilget(vurderingsperiode = periode)),
     ),
     formue: FormueVilkår = formuevilkårUtenEps0Innvilget(periode = periode, bosituasjon = bosituasjon),
     utenlandsopphold: UtenlandsoppholdVilkår = utenlandsoppholdInnvilget(periode = periode),
     opplysningsplikt: OpplysningspliktVilkår = tilstrekkeligDokumentert(periode = periode),
+    fastOpphold: FastOppholdINorgeVilkår = fastOppholdVilkårInnvilget(periode = periode),
 ): Vilkårsvurderinger.Revurdering.Uføre {
     return Vilkårsvurderinger.Revurdering.Uføre(
         uføre = uføre,
@@ -155,6 +157,7 @@ fun vilkårsvurderingerRevurderingInnvilget(
         formue = formue,
         utenlandsopphold = utenlandsopphold,
         opplysningsplikt = opplysningsplikt,
+        fastOpphold = fastOpphold,
     )
 }
 
@@ -163,7 +166,7 @@ fun vilkårsvurderingerAvslåttAlleRevurdering(
     uføre: UføreVilkår = avslåttUførevilkårUtenGrunnlag(periode = periode),
     bosituasjon: NonEmptyList<Grunnlag.Bosituasjon.Fullstendig> = nonEmptyListOf(bosituasjongrunnlagEnslig(periode = periode)),
     lovligOpphold: LovligOppholdVilkår = lovligOppholdVilkårAvslag(
-        nonEmptyListOf(vurderingsperiodeLovligOppholdAvslag(vurderingsperiode = periode))
+        nonEmptyListOf(vurderingsperiodeLovligOppholdAvslag(vurderingsperiode = periode)),
     ),
     formue: FormueVilkår = formuevilkårAvslåttPgrBrukersformue(
         periode = periode,
@@ -171,6 +174,7 @@ fun vilkårsvurderingerAvslåttAlleRevurdering(
     ),
     utenlandsopphold: UtenlandsoppholdVilkår = utenlandsoppholdAvslag(periode = periode),
     opplysningsplikt: OpplysningspliktVilkår = utilstrekkeligDokumentert(periode = periode),
+    fastOpphold: FastOppholdINorgeVilkår = fastOppholdVilkårAvslag(periode = periode),
 ): Vilkårsvurderinger.Revurdering.Uføre {
     return Vilkårsvurderinger.Revurdering.Uføre(
         uføre = uføre,
@@ -178,6 +182,7 @@ fun vilkårsvurderingerAvslåttAlleRevurdering(
         formue = formue,
         utenlandsopphold = utenlandsopphold,
         opplysningsplikt = opplysningsplikt,
+        fastOpphold = fastOpphold,
     )
 }
 
@@ -205,8 +210,8 @@ fun vilkårsvurderingerAvslåttAlle(
         ),
         opplysningsplikt = utilstrekkeligDokumentert(periode = periode),
         lovligOpphold = lovligOppholdVilkårAvslag(),
+        fastOpphold = fastOppholdVilkårAvslag(periode = periode),
         // Disse blir oppdatert fra [behandlingsinformasjonAlleVilkårAvslått]
-        fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
         institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
         personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
         flyktning = FlyktningVilkår.IkkeVurdert,
@@ -233,7 +238,7 @@ fun vilkårsvurderingerAvslåttUføreOgAndreInnvilget(
     return Vilkårsvurderinger.Revurdering.Uføre(
         uføre = avslåttUførevilkårUtenGrunnlag(periode = periode),
         lovligOpphold = lovligOppholdVilkårInnvilget(
-            nonEmptyListOf(vurderingsperiodeLovligOppholdInnvilget(vurderingsperiode = periode))
+            nonEmptyListOf(vurderingsperiodeLovligOppholdInnvilget(vurderingsperiode = periode)),
         ),
         formue = formuevilkårUtenEps0Innvilget(
             periode = periode,
@@ -241,6 +246,7 @@ fun vilkårsvurderingerAvslåttUføreOgAndreInnvilget(
         ),
         utenlandsopphold = utenlandsoppholdInnvilget(periode = periode),
         opplysningsplikt = tilstrekkeligDokumentert(periode = periode),
+        fastOpphold = fastOppholdVilkårInnvilget(periode = periode),
     )
 }
 
@@ -272,13 +278,16 @@ fun vilkårsvurderingerAlderInnvilget(
     familiegjenforeningVilkår: FamiliegjenforeningVilkår = familiegjenforeningVilkårInnvilget(
         vurderingsperioder = nonEmptyListOf(vurderingsperiodeFamiliegjenforeningInnvilget(periode = stønadsperiode.periode)),
     ),
+    fastOpphold: FastOppholdINorgeVilkår = fastOppholdVilkårInnvilget(
+        periode = stønadsperiode.periode,
+    ),
 ): Vilkårsvurderinger.Søknadsbehandling.Alder {
     return Vilkårsvurderinger.Søknadsbehandling.Alder(
         utenlandsopphold = utenlandsopphold,
         formue = formue,
         opplysningsplikt = opplysningsplikt,
         lovligOpphold = lovligOpphold,
-        fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert, // hentes behandlingsinformasjon
+        fastOpphold = fastOpphold,
         institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert, // hentes behandlingsinformasjon
         personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert, // hentes behandlingsinformasjon
         pensjon = pensjon,

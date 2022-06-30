@@ -427,6 +427,8 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
         fun pensjonsVilkår() = vilkårsvurderinger.pensjonsVilkår()
 
         fun familiegjenforeningvilkår() = vilkårsvurderinger.familiegjenforening()
+
+        fun fastOppholdVilkår() = vilkårsvurderinger.fastOppholdVilkår()
     }
 }
 

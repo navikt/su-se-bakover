@@ -56,4 +56,6 @@ internal fun Route.revurderingRoutes(
     pensjonsVilkårRoutes(revurderingService, satsFactory)
 
     leggTilLovligOppholdRoute(revurderingService, satsFactory)
+
+    fastOppholdVilkårRoutes(revurderingService, satsFactory)
 }
