@@ -54,7 +54,7 @@ subprojects {
         testImplementation("io.kotest:kotest-assertions-json:$kotestVersion")
         testImplementation("io.kotest.extensions:kotest-assertions-arrow:1.2.5")
         testImplementation("io.kotest:kotest-extensions:$kotestVersion")
-        testImplementation("org.skyscreamer:jsonassert:1.5.0")
+        testImplementation("org.skyscreamer:jsonassert:1.5.1")
         testImplementation("org.mockito.kotlin:mockito-kotlin:4.0.0")
         // Embedded database brukes av modulene: web og database
         testImplementation(

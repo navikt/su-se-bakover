@@ -9,5 +9,5 @@ dependencies {
     implementation("io.kotest:kotest-assertions-core:$kotestVersion")
     // TODO jah: Finn en måte å gjenbruke de versjonene her på.
     implementation("org.mockito.kotlin:mockito-kotlin:4.0.0")
-    implementation("org.skyscreamer:jsonassert:1.5.0")
+    implementation("org.skyscreamer:jsonassert:1.5.1")
 }
