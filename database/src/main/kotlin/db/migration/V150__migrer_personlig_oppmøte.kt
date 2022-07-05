@@ -31,20 +31,19 @@ internal class V150__migrer_personlig_oppmøte : BaseJavaMigration() {
         val migrerteSøknadsbehandlinger = statement.executeQuery(
             """
                 with søknadsbehandling_personligOppmøte as (
-                	select 
-                	b.id as vedtak_id,
-                	(b.stønadsperiode->'periode'->>'fraOgMed')::date as vedtak_fom,
-                	(b.stønadsperiode->'periode'->>'tilOgMed')::date as vedtak_tom,
-                	b.opprettet as vedtak_opprettet,
-                	b.id as behandling_id,
-                	b.behandlingsinformasjon->'personligOppmøte'->>'status' as personlig_oppmøte,
-                	s.saksnummer as saksnummer,
-                	s.id as sak_id
-                	from behandling b
-                	join sak s on s.id = b.sakid
-                	where b.stønadsperiode is not null
-                	and b.behandlingsinformasjon->>'personligOppmøte' is not null
-                ) select * from søknadsbehandling_personligOppmøte;
+                select 
+                b.id as behandling_id,
+                (b.stønadsperiode->'periode'->>'fraOgMed')::date as behandling_fom,
+                (b.stønadsperiode->'periode'->>'tilOgMed')::date as behandling_tom,
+                b.opprettet as behandling_opprettet,
+                b.behandlingsinformasjon->'personligOppmøte'->>'status' as personligOppmøte,
+                s.saksnummer as saksnummer,
+                s.id as sak_id
+                from behandling b
+                join sak s on s.id = b.sakid
+                where b.stønadsperiode is not null
+                and b.behandlingsinformasjon->>'personligOppmøte' is not null
+            ) select * from søknadsbehandling_personligOppmøte;
             """.trimIndent(),
         ).let {
             val resultSøknadsbehandling = mutableListOf<QueryRadSøknadsbehandlong>()
@@ -57,7 +56,7 @@ internal class V150__migrer_personlig_oppmøte : BaseJavaMigration() {
                         behandlingId = UUID.fromString(it.getString("behandling_id")),
                         behandlingFom = LocalDate.parse(it.getString("behandling_fom")),
                         behandlingTom = LocalDate.parse(it.getString("behandling_tom")),
-                        behandlingOpprettet = Instant.parse(it.getString("behandling_opprettet")),
+                        behandlingOpprettet = it.getTimestamp("behandling_opprettet").toInstant(),
                         personligOppmøte = it.getString("personligOppmøte"),
                     ),
                 )
@@ -108,7 +107,7 @@ internal class V150__migrer_personlig_oppmøte : BaseJavaMigration() {
             	greatest(sv.vedtak_fom, r.revurdering_fom) as grlFom,
             	least(sv.vedtak_tom, r.revurdering_tom) as grlTom,
             	sv.vedtak_opprettet as grlOpprettet,
-            	sv.personlig_oppmøte
+            	sv.personlig_oppmøte as personligOppmøte
             	from søknadsbehandling_vedtak sv 
             	join revurderinger r on sv.sak_id = r.sak_id
             	where 1=1
@@ -132,7 +131,7 @@ internal class V150__migrer_personlig_oppmøte : BaseJavaMigration() {
                         revurderingTom = LocalDate.parse(it.getString("revurdering_tom")),
                         grunnlagFom = LocalDate.parse(it.getString("grlFom")),
                         grunnlagTom = LocalDate.parse(it.getString("grlTom")),
-                        grunnlagOpprettet = Instant.parse(it.getString("grlOpprettet")),
+                        grunnlagOpprettet = it.getTimestamp("grlOpprettet").toInstant(),
                         personligOppmøte = it.getString("personligOppmøte"),
                     ),
                 )
@@ -182,7 +181,7 @@ internal class V150__migrer_personlig_oppmøte : BaseJavaMigration() {
             	greatest(sv.vedtak_fom, r.revurdering_fom) as grlFom,
             	least(sv.vedtak_tom, r.revurdering_tom) as grlTom,
             	sv.vedtak_opprettet as grlOpprettet,
-            	sv.personlig_oppmøte
+            	sv.personlig_oppmøte as personligOppmøte
             	from søknadsbehandling_vedtak sv 
             	join revurderinger r on sv.sak_id = r.sak_id
             	where 1=1
@@ -205,7 +204,7 @@ internal class V150__migrer_personlig_oppmøte : BaseJavaMigration() {
                         revurderingTom = LocalDate.parse(it.getString("revurdering_tom")),
                         grunnlagFom = LocalDate.parse(it.getString("grlFom")),
                         grunnlagTom = LocalDate.parse(it.getString("grlTom")),
-                        grunnlagOpprettet = Instant.parse(it.getString("grlOpprettet")),
+                        grunnlagOpprettet = it.getTimestamp("grlOpprettet").toInstant(),
                         personligOppmøte = it.getString("personligOppmøte"),
                     ),
                 )
