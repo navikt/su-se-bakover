@@ -42,6 +42,7 @@ import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilLovligOppholdRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilPersonligOppmøteVilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
@@ -63,6 +64,7 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
+import vilkår.personligOppmøtevilkårInnvilget
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -333,6 +335,12 @@ internal class BeregnRoutesKtTest {
                     ),
                 ),
             ),
+        )
+        services.søknadsbehandling.leggTilPersonligOppmøteVilkår(
+            request = LeggTilPersonligOppmøteVilkårRequest(
+                behandlingId = objects.søknadsbehandling.id,
+                vilkår = personligOppmøtevilkårInnvilget(periode = objects.søknadsbehandling.periode)
+            )
         )
         services.søknadsbehandling.fullførBosituasjongrunnlag(
             FullførBosituasjonRequest(

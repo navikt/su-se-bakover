@@ -1,197 +1,130 @@
 package no.nav.su.se.bakover.domain.vilkår
 
-import arrow.core.left
 import arrow.core.nonEmptyListOf
-import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.juli
 import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.år
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.PersonligOppmøteGrunnlag
+import no.nav.su.se.bakover.domain.grunnlag.PersonligOppmøteÅrsak
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.stønadsperiode2021
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import java.util.UUID
 
 internal class PersonligOppmøteVilkårTest {
-    @Test
-    fun `mapper behandlingsinformasjon for oppfylt til vilkår og grunnlag`() {
-        Behandlingsinformasjon.PersonligOppmøte.Status.values().toList()
-            .minus(Behandlingsinformasjon.PersonligOppmøte.Status.IkkeMøttPersonlig)
-            .minus(Behandlingsinformasjon.PersonligOppmøte.Status.Uavklart)
-            .forEach {
-                Behandlingsinformasjon.PersonligOppmøte(
-                    status = it,
-                ).tilVilkår(
-                    stønadsperiode = stønadsperiode2021,
-                    clock = fixedClock,
-                ).erLik(
-                    PersonligOppmøteVilkår.Vurdert.tryCreate(
-                        vurderingsperioder = nonEmptyListOf(
-                            VurderingsperiodePersonligOppmøte.tryCreate(
-                                id = UUID.randomUUID(),
-                                opprettet = Tidspunkt.now(fixedClock),
-                                vurdering = Vurdering.Innvilget,
-                                grunnlag = PersonligOppmøteGrunnlag(
-                                    id = UUID.randomUUID(),
-                                    opprettet = Tidspunkt.now(fixedClock),
-                                    periode = år(2021),
-                                ),
-                                vurderingsperiode = år(2021),
-                            ).getOrFail(),
-                        ),
-                    ).getOrFail(),
-                ) shouldBe true
-            }
-    }
-
-    @Test
-    fun `mapper behandlingsinformasjon for avslag til vilkår og grunnlag`() {
-        Behandlingsinformasjon.PersonligOppmøte(
-            status = Behandlingsinformasjon.PersonligOppmøte.Status.IkkeMøttPersonlig,
-        ).tilVilkår(
-            stønadsperiode = stønadsperiode2021,
-            clock = fixedClock,
-        ).erLik(
-            PersonligOppmøteVilkår.Vurdert.tryCreate(
-                vurderingsperioder = nonEmptyListOf(
-                    VurderingsperiodePersonligOppmøte.tryCreate(
-                        id = UUID.randomUUID(),
-                        opprettet = Tidspunkt.now(fixedClock),
-                        vurdering = Vurdering.Avslag,
-                        grunnlag = PersonligOppmøteGrunnlag(
-                            id = UUID.randomUUID(),
-                            opprettet = Tidspunkt.now(fixedClock),
-                            periode = år(2021),
-                        ),
-                        vurderingsperiode = år(2021),
-                    ).getOrFail(),
-                ),
-            ).getOrFail(),
-        ) shouldBe true
-    }
-
-    @Test
-    fun `mapper behandlingsinformasjon for uavklart til vilkår og grunnlag`() {
-        Behandlingsinformasjon.PersonligOppmøte(
-            status = Behandlingsinformasjon.PersonligOppmøte.Status.Uavklart,
-        ).tilVilkår(
-            stønadsperiode = stønadsperiode2021,
-            clock = fixedClock,
-        ).erLik(PersonligOppmøteVilkår.IkkeVurdert) shouldBe true
-    }
 
     @Test
     fun `oppdaterer periode på vurderingsperioder og grunnlag`() {
-        PersonligOppmøteVilkår.Vurdert.tryCreate(
+        PersonligOppmøteVilkår.Vurdert(
             vurderingsperioder = nonEmptyListOf(
-                VurderingsperiodePersonligOppmøte.tryCreate(
+                VurderingsperiodePersonligOppmøte(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(fixedClock),
-                    vurdering = Vurdering.Innvilget,
                     grunnlag = PersonligOppmøteGrunnlag(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
                         periode = år(2021),
+                        årsak = PersonligOppmøteÅrsak.MøttPersonlig,
                     ),
-                    vurderingsperiode = år(2021),
-                ).getOrFail(),
+                    periode = år(2021),
+                ),
             ),
-        ).getOrFail().oppdaterStønadsperiode(Stønadsperiode.create(juli(2021))).erLik(
-            PersonligOppmøteVilkår.Vurdert.tryCreate(
+        ).oppdaterStønadsperiode(Stønadsperiode.create(juli(2021))).erLik(
+            PersonligOppmøteVilkår.Vurdert(
                 vurderingsperioder = nonEmptyListOf(
-                    VurderingsperiodePersonligOppmøte.tryCreate(
+                    VurderingsperiodePersonligOppmøte(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
-                        vurdering = Vurdering.Innvilget,
                         grunnlag = PersonligOppmøteGrunnlag(
                             id = UUID.randomUUID(),
                             opprettet = Tidspunkt.now(fixedClock),
                             periode = juli(2021),
+                            årsak = PersonligOppmøteÅrsak.MøttPersonlig,
                         ),
-                        vurderingsperiode = juli(2021),
-                    ).getOrFail(),
+                        periode = juli(2021),
+                    ),
                 ),
-            ).getOrFail(),
+            ),
         )
     }
 
     @Test
     fun `godtar ikke overlappende vurderingsperioder`() {
-        PersonligOppmøteVilkår.Vurdert.tryCreate(
-            vurderingsperioder = nonEmptyListOf(
-                VurderingsperiodePersonligOppmøte.tryCreate(
-                    id = UUID.randomUUID(),
-                    opprettet = Tidspunkt.now(fixedClock),
-                    vurdering = Vurdering.Innvilget,
-                    grunnlag = PersonligOppmøteGrunnlag(
+        assertThrows<IllegalArgumentException> {
+            PersonligOppmøteVilkår.Vurdert(
+                vurderingsperioder = nonEmptyListOf(
+                    VurderingsperiodePersonligOppmøte(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
+                        grunnlag = PersonligOppmøteGrunnlag(
+                            id = UUID.randomUUID(),
+                            opprettet = Tidspunkt.now(fixedClock),
+                            periode = år(2021),
+                            årsak = PersonligOppmøteÅrsak.MøttPersonlig
+                        ),
                         periode = år(2021),
                     ),
-                    vurderingsperiode = år(2021),
-                ).getOrFail(),
-                VurderingsperiodePersonligOppmøte.tryCreate(
-                    id = UUID.randomUUID(),
-                    opprettet = Tidspunkt.now(fixedClock),
-                    vurdering = Vurdering.Innvilget,
-                    grunnlag = PersonligOppmøteGrunnlag(
+                    VurderingsperiodePersonligOppmøte(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
+                        grunnlag = PersonligOppmøteGrunnlag(
+                            id = UUID.randomUUID(),
+                            opprettet = Tidspunkt.now(fixedClock),
+                            periode = år(2021),
+                            årsak = PersonligOppmøteÅrsak.MøttPersonlig
+                        ),
                         periode = år(2021),
                     ),
-                    vurderingsperiode = år(2021),
-                ).getOrFail(),
-            ),
-        ) shouldBe PersonligOppmøteVilkår.Vurdert.UgyldigPersonligOppmøteVilkår.OverlappendeVurderingsperioder.left()
+                ),
+            )
+        }
     }
 
     @Test
     fun `lager tidslinje for vilkår, vurderingsperioder og grunnlag`() {
-        val v1 = VurderingsperiodePersonligOppmøte.tryCreate(
+        val v1 = VurderingsperiodePersonligOppmøte(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(fixedClock),
-            vurdering = Vurdering.Innvilget,
             grunnlag = PersonligOppmøteGrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(fixedClock),
                 periode = mai(2021),
+                årsak = PersonligOppmøteÅrsak.IkkeMøttMenKortvarigSykMedLegeerklæring
             ),
-            vurderingsperiode = mai(2021),
-        ).getOrFail()
+            periode = mai(2021),
+        )
 
-        val v2 = VurderingsperiodePersonligOppmøte.tryCreate(
+        val v2 = VurderingsperiodePersonligOppmøte(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(fixedClock),
-            vurdering = Vurdering.Innvilget,
             grunnlag = PersonligOppmøteGrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(fixedClock),
                 periode = juni(2021),
+                årsak = PersonligOppmøteÅrsak.IkkeMøttMenMidlertidigUnntakFraOppmøteplikt
             ),
-            vurderingsperiode = juni(2021),
-        ).getOrFail()
+            periode = juni(2021),
+        )
 
-        PersonligOppmøteVilkår.Vurdert.tryCreate(
+        PersonligOppmøteVilkår.Vurdert(
             vurderingsperioder = nonEmptyListOf(v1, v2),
-        ).getOrFail()
+        )
             .lagTidslinje(mai(2021))
-            .erLik(PersonligOppmøteVilkår.Vurdert.tryCreate(vurderingsperioder = nonEmptyListOf(v1)).getOrFail())
+            .erLik(PersonligOppmøteVilkår.Vurdert(vurderingsperioder = nonEmptyListOf(v1)))
 
-        PersonligOppmøteVilkår.Vurdert.tryCreate(
+        PersonligOppmøteVilkår.Vurdert(
             vurderingsperioder = nonEmptyListOf(v1, v2),
-        ).getOrFail()
+        )
             .lagTidslinje(juni(2021))
-            .erLik(PersonligOppmøteVilkår.Vurdert.tryCreate(vurderingsperioder = nonEmptyListOf(v2)).getOrFail())
+            .erLik(PersonligOppmøteVilkår.Vurdert(vurderingsperioder = nonEmptyListOf(v2)))
 
-        PersonligOppmøteVilkår.Vurdert.tryCreate(
+        PersonligOppmøteVilkår.Vurdert(
             vurderingsperioder = nonEmptyListOf(v1, v2),
-        ).getOrFail()
+        )
             .lagTidslinje(år(2021))
-            .erLik(PersonligOppmøteVilkår.Vurdert.tryCreate(vurderingsperioder = nonEmptyListOf(v1, v2)).getOrFail())
+            .erLik(PersonligOppmøteVilkår.Vurdert(vurderingsperioder = nonEmptyListOf(v1, v2)))
     }
 }

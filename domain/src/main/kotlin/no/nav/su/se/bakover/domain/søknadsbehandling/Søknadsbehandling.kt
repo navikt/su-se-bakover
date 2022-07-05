@@ -330,6 +330,29 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             }
     }
 
+    fun leggTilPersonligOppmøteVilkår(
+        vilkår: PersonligOppmøteVilkår.Vurdert,
+        clock: Clock,
+    ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPersonligOppmøteVilkår, Vilkårsvurdert> {
+        return if (this is KanOppdaterePeriodeGrunnlagVilkår) {
+            leggTilPersonligOppmøteVilkårInternal(vilkår, clock)
+        } else {
+            KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPersonligOppmøteVilkår.UgyldigTilstand(this::class, Vilkårsvurdert::class).left()
+        }
+    }
+
+    private fun leggTilPersonligOppmøteVilkårInternal(
+        vilkår: PersonligOppmøteVilkår.Vurdert,
+        clock: Clock,
+    ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPersonligOppmøteVilkår, Vilkårsvurdert> {
+        return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPersonligOppmøteVilkår>(vilkår)
+            .map {
+                copyInternal(
+                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
+                ).vilkårsvurder(clock)
+            }
+    }
+
     fun leggTilLovligOpphold(
         lovligOppholdVilkår: LovligOppholdVilkår.Vurdert,
         clock: Clock,
@@ -414,7 +437,13 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             is LovligOppholdVilkår.Vurdert -> Unit.right()
             is OpplysningspliktVilkår.Vurdert -> valider(vilkår).mapLeft { it as T }
             is PensjonsVilkår.Vurdert -> valider(vilkår).mapLeft { it as T }
-            is PersonligOppmøteVilkår.Vurdert -> Unit.right()
+            is PersonligOppmøteVilkår.Vurdert -> {
+                if (!periode.fullstendigOverlapp(vilkår.perioder)) {
+                    (KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår.HeleBehandlingsperiodenErIkkeVurdert as T).left()
+                } else {
+                    Unit.right()
+                }
+            }
             is UføreVilkår.Vurdert -> valider(vilkår).mapLeft { it as T }
             is UtenlandsoppholdVilkår.Vurdert -> valider(vilkår).mapLeft { it as T }
             else -> throw IllegalStateException("Vet ikke hvordan man validerer vilkår av type: ${vilkår::class}")

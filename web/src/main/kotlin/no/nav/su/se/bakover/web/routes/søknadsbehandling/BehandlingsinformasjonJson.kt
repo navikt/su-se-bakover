@@ -6,7 +6,6 @@ internal data class BehandlingsinformasjonJson(
     val flyktning: FlyktningJson? = null,
     val fastOppholdINorge: FastOppholdINorgeJson? = null,
     val institusjonsopphold: InstitusjonsoppholdJson? = null,
-    val personligOppmøte: PersonligOppmøteJson? = null,
 ) {
     companion object {
         internal fun Behandlingsinformasjon.toJson() =
@@ -14,7 +13,6 @@ internal data class BehandlingsinformasjonJson(
                 flyktning = flyktning?.toJson(),
                 fastOppholdINorge = fastOppholdINorge?.toJson(),
                 institusjonsopphold = institusjonsopphold?.toJson(),
-                personligOppmøte = personligOppmøte?.toJson(),
             )
     }
 }
@@ -36,11 +34,6 @@ internal fun behandlingsinformasjonFromJson(b: BehandlingsinformasjonJson) =
                 status = Behandlingsinformasjon.Institusjonsopphold.Status.valueOf(i.status),
             )
         },
-        personligOppmøte = b.personligOppmøte?.let { p ->
-            Behandlingsinformasjon.PersonligOppmøte(
-                status = Behandlingsinformasjon.PersonligOppmøte.Status.valueOf(p.status),
-            )
-        },
     )
 
 internal fun Behandlingsinformasjon.Flyktning.toJson() = FlyktningJson(status = status.name)
@@ -49,8 +42,6 @@ internal fun Behandlingsinformasjon.FastOppholdINorge.toJson() = FastOppholdINor
 
 internal fun Behandlingsinformasjon.Institusjonsopphold.toJson() = InstitusjonsoppholdJson(status = status.name)
 
-internal fun Behandlingsinformasjon.PersonligOppmøte.toJson() = PersonligOppmøteJson(status = status.name)
-
 internal inline fun <reified T : Enum<T>> enumContains(s: String) = enumValues<T>().any { it.name == s }
 
 internal data class FlyktningJson(val status: String)
@@ -58,5 +49,3 @@ internal data class FlyktningJson(val status: String)
 internal data class FastOppholdINorgeJson(val status: String)
 
 internal data class InstitusjonsoppholdJson(val status: String)
-
-internal data class PersonligOppmøteJson(val status: String)

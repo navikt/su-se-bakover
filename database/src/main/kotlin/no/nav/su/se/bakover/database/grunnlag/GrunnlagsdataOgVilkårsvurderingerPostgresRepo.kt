@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.util.UUID
 
@@ -24,6 +23,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
     private val pensjonVilkårsvurderingPostgresRepo: PensjonVilkårsvurderingPostgresRepo,
     private val familiegjenforeningVilkårsvurderingPostgresRepo: FamiliegjenforeningVilkårsvurderingPostgresRepo,
     private val lovligOppholdVilkårsvurderingPostgresRepo: LovligOppholdVilkårsvurderingPostgresRepo,
+    private val personligOppmøteVilkårsvurderingPostgresRepo: PersonligOppmøteVilkårsvurderingPostgresRepo,
 ) {
     fun lagre(
         behandlingId: UUID,
@@ -83,6 +83,11 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
             grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.familiegjenforening().map {
                 familiegjenforeningVilkårsvurderingPostgresRepo.lagre(behandlingId = behandlingId, vilkår = it, tx = tx)
             }
+            personligOppmøteVilkårsvurderingPostgresRepo.lagre(
+                behandlingId = behandlingId,
+                vilkår = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.personligOppmøteVilkår(),
+                tx = tx,
+            )
         }
     }
 
@@ -108,6 +113,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
                             behandlingId,
                             session,
                         ),
+                        personligOppmøte = personligOppmøteVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                     )
                 }
                 Sakstype.UFØRE -> {
@@ -117,6 +123,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
                         formue = formueVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                         utenlandsopphold = utenlandsoppholdVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                         opplysningsplikt = opplysningspliktVilkårsvurderingPostgresRepo.hent(behandlingId, session),
+                        personligOppmøte = personligOppmøteVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                     )
                 }
             }
@@ -150,10 +157,10 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
                             session,
                         ),
                         lovligOpphold = lovligOppholdVilkårsvurderingPostgresRepo.hent(behandlingId, session),
+                        personligOppmøte = personligOppmøteVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                         // Disse ligger fremdeles på Behandlingsinformasjon.kt
                         fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
                         institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
-                        personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
                     )
                 }
                 Sakstype.UFØRE -> {
@@ -163,10 +170,10 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
                         utenlandsopphold = utenlandsoppholdVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                         opplysningsplikt = opplysningspliktVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                         lovligOpphold = lovligOppholdVilkårsvurderingPostgresRepo.hent(behandlingId, session),
+                        personligOppmøte = personligOppmøteVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                         // Disse ligger fremdeles på Behandlingsinformasjon.kt
                         fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
                         institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
-                        personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
                         flyktning = FlyktningVilkår.IkkeVurdert,
                     )
                 }

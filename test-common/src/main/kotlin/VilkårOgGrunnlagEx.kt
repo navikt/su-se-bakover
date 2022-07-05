@@ -272,13 +272,8 @@ fun PersonligOppmøteVilkår.shouldBeEqualToExceptId(expected: PersonligOppmøte
             this.vurderingsperioder.zip(expected.vurderingsperioder).map { (actual, expected) ->
                 actual.shouldBeEqualToIgnoringFields(expected, Vurderingsperiode::id, Vurderingsperiode::grunnlag)
                 actual.id shouldNotBe expected.id
-
-                if (actual.grunnlag == null) {
-                    expected.grunnlag shouldBe null
-                } else {
-                    actual.grunnlag!!.shouldBeEqualToIgnoringFields(expected.grunnlag!!, Formuegrunnlag::id)
-                    actual.grunnlag!!.id shouldNotBe expected.grunnlag!!.id
-                }
+                actual.grunnlag.shouldBeEqualToIgnoringFields(expected.grunnlag, Formuegrunnlag::id)
+                actual.grunnlag.id shouldNotBe expected.grunnlag.id
             }
         }
     }

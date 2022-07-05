@@ -36,9 +36,6 @@ internal class SøknadsbehandlingJsonTest {
                 },
                 "institusjonsopphold": {
                   "status": "VilkårOppfylt"
-                },
-                "personligOppmøte": {
-                  "status": "MøttPersonlig"
                 }
               },
               "søknad": {
@@ -378,7 +375,20 @@ internal class SøknadsbehandlingJsonTest {
                   ]
                 },
                 "pensjon": null,
-                "familiegjenforening": null
+                "familiegjenforening": null,
+                "personligOppmøte": {
+                  "vurderinger": [
+                    {
+                      "resultat": "VilkårOppfylt",
+                      "vurdering": "IkkeMøttMenMidlertidigUnntakFraOppmøteplikt",
+                      "periode": {
+                        "fraOgMed": "2021-01-01",
+                        "tilOgMed": "2021-01-31"
+                      }
+                    }
+                  ],
+                  "resultat": "VilkårOppfylt"
+                }
               },
               "erLukket": false,
               "simuleringForAvkortingsvarsel": null,
@@ -400,8 +410,7 @@ internal class SøknadsbehandlingJsonTest {
               "behandlingsinformasjon": {
                 "flyktning": null,
                 "fastOppholdINorge": null,
-                "institusjonsopphold": null,
-                "personligOppmøte": null
+                "institusjonsopphold": null
               },
               "søknad": {
                 "id": "${søknadsbehandling.søknad.id}",
@@ -579,7 +588,8 @@ internal class SøknadsbehandlingJsonTest {
                   ]
                 },
                 "pensjon": null,
-                "familiegjenforening": null
+                "familiegjenforening": null,
+                "personligOppmøte": null
               },
               "erLukket": false,
               "simuleringForAvkortingsvarsel": null,

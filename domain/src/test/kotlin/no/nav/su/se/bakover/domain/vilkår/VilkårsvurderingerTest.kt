@@ -54,6 +54,7 @@ internal class VilkårsvurderingerTest {
                         it.utenlandsopphold,
                         it.personligOppmøte,
                         it.opplysningsplikt,
+                        it.personligOppmøte,
                     ),
                 )
             }
@@ -278,6 +279,7 @@ internal class VilkårsvurderingerTest {
                         it.utenlandsopphold,
                         it.opplysningsplikt,
                         it.lovligOpphold,
+                        it.personligOppmøte,
                     ),
                 )
             }
@@ -331,6 +333,7 @@ internal class VilkårsvurderingerTest {
                             Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER,
                             Avslagsgrunn.MANGLENDE_DOKUMENTASJON,
                             Avslagsgrunn.OPPHOLDSTILLATELSE,
+                            Avslagsgrunn.PERSONLIG_OPPMØTE,
                         )
                         it.tidligsteDatoForAvslag shouldBe 1.januar(2021)
                     }
@@ -367,6 +370,7 @@ internal class VilkårsvurderingerTest {
                     UtenlandsoppholdVilkår.IkkeVurdert,
                     OpplysningspliktVilkår.IkkeVurdert,
                     LovligOppholdVilkår.IkkeVurdert,
+                    PersonligOppmøteVilkår.IkkeVurdert,
                 ),
             )
         }

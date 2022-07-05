@@ -27,6 +27,8 @@ import no.nav.su.se.bakover.database.grunnlag.OpplysningspliktGrunnlagPostgresRe
 import no.nav.su.se.bakover.database.grunnlag.OpplysningspliktVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.PensjonVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.PensjonsgrunnlagPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.PersonligOppmøteGrunnlagPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.PersonligOppmøteVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UtenlandsoppholdVilkårsvurderingPostgresRepo
@@ -319,6 +321,12 @@ internal class TestDataHelper(
     )
     internal val familiegjenforeningVilkårsvurderingPostgresRepo =
         FamiliegjenforeningVilkårsvurderingPostgresRepo(dbMetrics)
+
+    internal val personligOppmøteGrunnlagPostgresRepo = PersonligOppmøteGrunnlagPostgresRepo(dbMetrics)
+    internal val personligOppmøteVilkårsvurderingPostgresRepo = PersonligOppmøteVilkårsvurderingPostgresRepo(
+        personligOppmøteGrunnlagPostgresRepo = personligOppmøteGrunnlagPostgresRepo,
+        dbMetrics = dbMetrics,
+    )
     internal val grunnlagsdataOgVilkårsvurderingerPostgresRepo = GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
         dbMetrics = dbMetrics,
         bosituasjongrunnlagPostgresRepo = bosituasjongrunnlagPostgresRepo,
@@ -330,6 +338,7 @@ internal class TestDataHelper(
         pensjonVilkårsvurderingPostgresRepo = vilkårsvurderingPensjonPostgresRepo,
         familiegjenforeningVilkårsvurderingPostgresRepo = familiegjenforeningVilkårsvurderingPostgresRepo,
         lovligOppholdVilkårsvurderingPostgresRepo = lovligOppholdVilkårsvurderingPostgresRepo,
+        personligOppmøteVilkårsvurderingPostgresRepo = personligOppmøteVilkårsvurderingPostgresRepo,
     )
     internal val søknadsbehandlingRepo = SøknadsbehandlingPostgresRepo(
         sessionFactory = sessionFactory,

@@ -62,7 +62,7 @@ enum class Avslagsgrunn {
             UFØRHET -> Opphørsgrunn.UFØRHET
             FLYKTNING -> TODO()
             OPPHOLDSTILLATELSE -> Opphørsgrunn.OPPHOLDSTILLATELSE
-            PERSONLIG_OPPMØTE -> TODO()
+            PERSONLIG_OPPMØTE -> Opphørsgrunn.PERSONLIG_OPPMØTE
             FORMUE -> Opphørsgrunn.FORMUE
             BOR_OG_OPPHOLDER_SEG_I_NORGE -> TODO()
             FOR_HØY_INNTEKT -> Opphørsgrunn.FOR_HØY_INNTEKT
@@ -91,7 +91,8 @@ enum class Opphørsgrunn {
     FORMUE,
     UTENLANDSOPPHOLD,
     MANGLENDE_DOKUMENTASJON,
-    OPPHOLDSTILLATELSE;
+    OPPHOLDSTILLATELSE,
+    PERSONLIG_OPPMØTE;
 
     companion object {
         fun List<Opphørsgrunn>.getDistinkteParagrafer(): List<Int> =
@@ -107,5 +108,6 @@ enum class Opphørsgrunn {
         UTENLANDSOPPHOLD -> listOf(1, 2, 4)
         MANGLENDE_DOKUMENTASJON -> listOf(18)
         OPPHOLDSTILLATELSE -> TODO("Revurdering av oppholdstillatelse er ikke mulig enda")
+        PERSONLIG_OPPMØTE -> listOf(17)
     }
 }

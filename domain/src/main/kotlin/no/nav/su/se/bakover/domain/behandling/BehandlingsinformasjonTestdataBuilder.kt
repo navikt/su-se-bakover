@@ -18,9 +18,6 @@ fun Behandlingsinformasjon.withAlleVilkårOppfylt() =
         institusjonsopphold = Behandlingsinformasjon.Institusjonsopphold(
             status = Behandlingsinformasjon.Institusjonsopphold.Status.VilkårOppfylt,
         ),
-        personligOppmøte = Behandlingsinformasjon.PersonligOppmøte(
-            status = Behandlingsinformasjon.PersonligOppmøte.Status.MøttPersonlig,
-        ),
     )
 
 @TestOnly
@@ -34,9 +31,6 @@ fun Behandlingsinformasjon.withAlleVilkårAvslått() =
         ),
         institusjonsopphold = Behandlingsinformasjon.Institusjonsopphold(
             status = Behandlingsinformasjon.Institusjonsopphold.Status.VilkårIkkeOppfylt,
-        ),
-        personligOppmøte = Behandlingsinformasjon.PersonligOppmøte(
-            status = Behandlingsinformasjon.PersonligOppmøte.Status.IkkeMøttPersonlig,
         ),
     )
 

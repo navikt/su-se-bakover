@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.PensjonsVilkår
+import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -63,6 +64,7 @@ data class GjeldendeVedtaksdata(
                         formue = it.formueVilkår(),
                         utenlandsopphold = it.utenlandsoppholdVilkår(),
                         opplysningsplikt = it.opplysningspliktVilkår(),
+                        personligOppmøte = it.personligOppmøteVilkår(),
                     )
                 }
                 vedtakPåTidslinje.all {
@@ -76,6 +78,7 @@ data class GjeldendeVedtaksdata(
                         opplysningsplikt = it.opplysningspliktVilkår(),
                         pensjon = it.pensjonsVilkår(),
                         familiegjenforening = it.familiegjenforeningvilkår(),
+                        personligOppmøte = it.personligOppmøteVilkår(),
                     )
                 }
                 else -> {
@@ -245,6 +248,19 @@ private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.familiegjenforeningv
                     .slåSammenLikePerioder()
             } else {
                 FamiliegjenforeningVilkår.IkkeVurdert
+            }
+        }
+}
+
+private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.personligOppmøteVilkår(): PersonligOppmøteVilkår {
+    return map { it.personligOppmøteVilkår() }
+        .filterIsInstance<PersonligOppmøteVilkår.Vurdert>()
+        .flatMap { it.vurderingsperioder }
+        .let {
+            if (it.isNotEmpty()) {
+                PersonligOppmøteVilkår.Vurdert(NonEmptyList.fromListUnsafe(it)).slåSammenLikePerioder()
+            } else {
+                PersonligOppmøteVilkår.IkkeVurdert
             }
         }
 }

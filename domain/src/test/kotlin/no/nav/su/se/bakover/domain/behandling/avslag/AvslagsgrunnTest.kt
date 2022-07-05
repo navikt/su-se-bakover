@@ -15,7 +15,6 @@ internal class AvslagsgrunnTest {
         Avslagsgrunn.OPPHOLDSTILLATELSE.tilOpphørsgrunn() shouldBe Opphørsgrunn.OPPHOLDSTILLATELSE
 
         listOf(
-            Avslagsgrunn.PERSONLIG_OPPMØTE,
             Avslagsgrunn.FLYKTNING,
             Avslagsgrunn.INNLAGT_PÅ_INSTITUSJON,
             Avslagsgrunn.BOR_OG_OPPHOLDER_SEG_I_NORGE,
