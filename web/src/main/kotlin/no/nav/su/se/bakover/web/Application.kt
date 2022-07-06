@@ -72,6 +72,7 @@ import no.nav.su.se.bakover.web.routes.togglePaths
 import no.nav.su.se.bakover.web.routes.toggleRoutes
 import no.nav.su.se.bakover.web.routes.vilkår.opplysningsplikt.opplysningspliktRoutes
 import no.nav.su.se.bakover.web.services.tilbakekreving.TilbakekrevingConsumer
+import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringConsumer
 import org.slf4j.event.Level
 import java.time.Clock
 import java.time.LocalDate
@@ -126,6 +127,11 @@ fun Application.susebakover(
         tilbakekrevingConsumer = TilbakekrevingConsumer(
             tilbakekrevingService = services.tilbakekrevingService,
             revurderingService = services.revurdering,
+            clock = clock,
+        ),
+        utbetalingKvitteringConsumer = UtbetalingKvitteringConsumer(
+            utbetalingService = services.utbetaling,
+            ferdigstillVedtakService = services.ferdigstillVedtak,
             clock = clock,
         ),
     ),

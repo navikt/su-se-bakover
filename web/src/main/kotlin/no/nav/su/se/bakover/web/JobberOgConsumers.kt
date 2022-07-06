@@ -34,7 +34,6 @@ import no.nav.su.se.bakover.web.services.tilbakekreving.TilbakekrevingIbmMqConsu
 import no.nav.su.se.bakover.web.services.tilbakekreving.TilbakekrevingJob
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.LokalKvitteringJob
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.LokalKvitteringService
-import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringConsumer
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringIbmMqConsumer
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import java.time.Clock
@@ -54,11 +53,6 @@ internal fun startJobberOgConsumers(
     clock: Clock,
     consumers: Consumers,
 ) {
-    val utbetalingKvitteringConsumer = UtbetalingKvitteringConsumer(
-        utbetalingService = services.utbetaling,
-        ferdigstillVedtakService = services.ferdigstillVedtak,
-        clock = clock,
-    )
     val personhendelseService = PersonhendelseService(
         sakRepo = databaseRepos.sak,
         personhendelseRepo = databaseRepos.personhendelseRepo,
@@ -80,7 +74,7 @@ internal fun startJobberOgConsumers(
         UtbetalingKvitteringIbmMqConsumer(
             kvitteringQueueName = applicationConfig.oppdrag.utbetaling.mqReplyTo,
             globalJmsContext = jmsConfig.jmsContext,
-            kvitteringConsumer = utbetalingKvitteringConsumer,
+            kvitteringConsumer = consumers.utbetalingKvitteringConsumer,
         )
         PersonhendelseConsumer(
             consumer = KafkaConsumer(applicationConfig.kafkaConfig.consumerCfg.kafkaConfig),
@@ -197,7 +191,7 @@ internal fun startJobberOgConsumers(
         LokalKvitteringJob(
             lokalKvitteringService = LokalKvitteringService(
                 utbetalingRepo = databaseRepos.utbetaling,
-                utbetalingKvitteringConsumer = utbetalingKvitteringConsumer,
+                utbetalingKvitteringConsumer = consumers.utbetalingKvitteringConsumer,
             ),
             initialDelay = initialDelay.next(),
             periode = Duration.ofSeconds(10),

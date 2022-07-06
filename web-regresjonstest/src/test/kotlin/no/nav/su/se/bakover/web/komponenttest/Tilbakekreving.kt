@@ -1,8 +1,10 @@
 package no.nav.su.se.bakover.web.komponenttest
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.server.testing.ApplicationTestBuilder
+import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.fixedClock
@@ -14,11 +16,15 @@ import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.oktober
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.toYtelsekode
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.AvventerKravgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.MottattKravgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.SendtTilbakekrevingsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.service.brev.HentDokumenterForIdType
+import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.shouldBeType
@@ -31,6 +37,8 @@ import no.nav.su.se.bakover.web.revurdering.iverksett.iverksett
 import no.nav.su.se.bakover.web.revurdering.opprett.opprettRevurdering
 import no.nav.su.se.bakover.web.routes.revurdering.TilbakekrevingsbehandlingJson
 import no.nav.su.se.bakover.web.services.tilbakekreving.TilbakekrevingsmeldingMapper
+import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringConsumer
+import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringResponse
 import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.RevurderingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
@@ -43,7 +51,7 @@ class Tilbakekreving {
     @Test
     fun `happy path full tilbakekreving`() {
         withKomptestApplication(
-            clock = 1.oktober(2021).fixedClock(),
+            clock = TikkendeKlokke(1.oktober(2021).fixedClock()),
         ) { appComponents ->
             val (sakid, revurderingId) = vedtakMedTilbakekreving(avgjørelse = TilbakekrevingsbehandlingJson.TilbakekrevingsAvgjørelseJson.TILBAKEKREV)
 
@@ -57,6 +65,22 @@ class Tilbakekreving {
                     }
                     revurdering
                 }
+
+            val kvittering = appComponents.services.utbetaling.hentUtbetaling(vedtak.utbetalingId).getOrFail()
+                .shouldBeType<Utbetaling.OversendtUtbetaling.UtenKvittering>().let {
+                    lagKvittering(it.utbetalingsrequest)
+                }
+
+            appComponents.consumers.utbetalingKvitteringConsumer.onMessage(kvittering)
+
+            appComponents.services.utbetaling.hentUtbetaling(vedtak.utbetalingId).getOrFail()
+                .shouldBeType<Utbetaling.OversendtUtbetaling.MedKvittering>()
+
+            appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.Vedtak(vedtak.id)).also {
+                it.single().also { brev ->
+                    brev.tittel shouldBe "Vi har vurdert den supplerende stønaden din på nytt og vil kreve tilbake penger"
+                }
+            }
 
             appComponents.services.tilbakekrevingService.hentAvventerKravgrunnlag(UUID.fromString(sakid))
                 .single() shouldBe vedtak.behandling.tilbakekrevingsbehandling
@@ -101,6 +125,31 @@ class Tilbakekreving {
                     """.replace("\n", "").filterNot { it.isWhitespace() }
                 }
         }
+    }
+
+    private fun lagKvittering(utbetalingsrequest: Utbetalingsrequest): String {
+        val request =
+            UtbetalingKvitteringConsumer.xmlMapper.readValue<UtbetalingRequest>(utbetalingsrequest.value)
+        val kvittering = UtbetalingKvitteringResponse.Mmel(
+            systemId = null,
+            kodeMelding = null,
+            alvorlighetsgrad = UtbetalingKvitteringResponse.Alvorlighetsgrad.OK,
+            beskrMelding = null,
+            sqlKode = null,
+            sqlState = null,
+            sqlMelding = null,
+            mqCompletionKode = null,
+            mqReasonKode = null,
+            programId = null,
+            sectionNavn = null,
+
+        )
+        return UtbetalingKvitteringConsumer.xmlMapper.writeValueAsString(
+            UtbetalingKvitteringResponse(
+                kvittering,
+                request.oppdragRequest,
+            ),
+        )
     }
 
     @Test

@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.web.Consumers
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.services.tilbakekreving.TilbakekrevingConsumer
+import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringConsumer
 import no.nav.su.se.bakover.web.susebakover
 import org.mockito.kotlin.mock
 import java.time.Clock
@@ -64,7 +65,12 @@ class AppComponents private constructor(
                     tilbakekrevingService = services.tilbakekrevingService,
                     revurderingService = services.revurdering,
                     clock = clock,
-                )
+                ),
+                utbetalingKvitteringConsumer = UtbetalingKvitteringConsumer(
+                    utbetalingService = services.utbetaling,
+                    ferdigstillVedtakService = services.ferdigstillVedtak,
+                    clock = clock,
+                ),
             )
             return AppComponents(
                 clock = clock,
