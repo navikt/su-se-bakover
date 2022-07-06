@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.harOverlappende
 import no.nav.su.se.bakover.domain.CopyArgs
-import no.nav.su.se.bakover.domain.grunnlag.FlyktningGrunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
@@ -18,7 +18,6 @@ import java.util.UUID
 
 sealed class FlyktningVilkår : Vilkår() {
     override val vilkår = Inngangsvilkår.Flyktning
-    abstract val grunnlag: List<FlyktningGrunnlag>
 
     abstract override fun lagTidslinje(periode: Periode): FlyktningVilkår
     abstract fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): FlyktningVilkår
@@ -28,7 +27,6 @@ sealed class FlyktningVilkår : Vilkår() {
         override val vurdering: Vurdering = Vurdering.Uavklart
         override val erAvslag = false
         override val erInnvilget = false
-        override val grunnlag = emptyList<FlyktningGrunnlag>()
         override val perioder: List<Periode> = emptyList()
 
         override fun lagTidslinje(periode: Periode): FlyktningVilkår {
@@ -50,7 +48,6 @@ sealed class FlyktningVilkår : Vilkår() {
         val vurderingsperioder: Nel<VurderingsperiodeFlyktning>,
     ) : FlyktningVilkår() {
 
-        override val grunnlag: List<FlyktningGrunnlag> = vurderingsperioder.mapNotNull { it.grunnlag }
         override fun lagTidslinje(periode: Periode): FlyktningVilkår {
             return copy(
                 vurderingsperioder = Nel.fromListUnsafe(
@@ -125,9 +122,9 @@ data class VurderingsperiodeFlyktning private constructor(
     override val id: UUID = UUID.randomUUID(),
     override val opprettet: Tidspunkt,
     override val vurdering: Vurdering,
-    override val grunnlag: FlyktningGrunnlag?,
     override val periode: Periode,
 ) : Vurderingsperiode(), KanPlasseresPåTidslinje<VurderingsperiodeFlyktning> {
+    override val grunnlag: Grunnlag? = null
 
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): VurderingsperiodeFlyktning {
         return create(
@@ -142,14 +139,12 @@ data class VurderingsperiodeFlyktning private constructor(
         CopyArgs.Tidslinje.Full -> {
             copy(
                 id = UUID.randomUUID(),
-                grunnlag = grunnlag?.copy(args),
             )
         }
         is CopyArgs.Tidslinje.NyPeriode -> {
             copy(
                 id = UUID.randomUUID(),
                 periode = args.periode,
-                grunnlag = grunnlag?.copy(args),
             )
         }
         is CopyArgs.Tidslinje.Maskert -> {
@@ -158,13 +153,7 @@ data class VurderingsperiodeFlyktning private constructor(
     }
 
     override fun erLik(other: Vurderingsperiode): Boolean {
-        return other is VurderingsperiodeFlyktning &&
-            vurdering == other.vurdering &&
-            when {
-                grunnlag != null && other.grunnlag != null -> grunnlag.erLik(other.grunnlag)
-                grunnlag == null && other.grunnlag == null -> true
-                else -> false
-            }
+        return other is VurderingsperiodeFlyktning && vurdering == other.vurdering
     }
 
     companion object {
@@ -177,14 +166,9 @@ data class VurderingsperiodeFlyktning private constructor(
             return VurderingsperiodeFlyktning(
                 id = id,
                 opprettet = opprettet,
-                grunnlag = null,
                 vurdering = vurdering,
                 periode = periode,
             )
         }
     }
-}
-
-sealed class UgyldigVurderingsperiode {
-    object PeriodeForGrunnlagOgVurderingErForskjellig : UgyldigVurderingsperiode()
 }

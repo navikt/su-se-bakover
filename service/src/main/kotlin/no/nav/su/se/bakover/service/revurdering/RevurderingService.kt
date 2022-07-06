@@ -164,7 +164,7 @@ interface RevurderingService {
         request: LeggTilLovligOppholdRequest,
     ): Either<KunneIkkeLeggetilLovligOppholdVilkår, RevurderingOgFeilmeldingerResponse>
 
-    fun leggTilFlyktningVikår(
+    fun leggTilFlyktningVilkår(
         request: LeggTilFlyktningVilkårRequest,
     ): Either<KunneIkkeLeggeTilFlyktningVilkår, RevurderingOgFeilmeldingerResponse>
 }

@@ -413,7 +413,7 @@ internal class RevurderingServiceImpl(
         }
     }
 
-    override fun leggTilFlyktningVikår(request: LeggTilFlyktningVilkårRequest): Either<KunneIkkeLeggeTilFlyktningVilkår, RevurderingOgFeilmeldingerResponse> {
+    override fun leggTilFlyktningVilkår(request: LeggTilFlyktningVilkårRequest): Either<KunneIkkeLeggeTilFlyktningVilkår, RevurderingOgFeilmeldingerResponse> {
         return hent(request.behandlingId).mapLeft {
             KunneIkkeLeggeTilFlyktningVilkår.FantIkkeBehandling
         }.flatMap { revurdering ->

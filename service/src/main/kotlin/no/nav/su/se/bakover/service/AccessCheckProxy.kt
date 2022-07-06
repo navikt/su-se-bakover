@@ -570,9 +570,9 @@ open class AccessCheckProxy(
                     return services.søknadsbehandling.leggTilPensjonsVilkår(request)
                 }
 
-                override fun leggTilFlyktningVikår(request: LeggTilFlyktningVilkårRequest): Either<KunneIkkeLeggeTilFlyktningVilkår, Søknadsbehandling.Vilkårsvurdert> {
+                override fun leggTilFlyktningVilkår(request: LeggTilFlyktningVilkårRequest): Either<KunneIkkeLeggeTilFlyktningVilkår, Søknadsbehandling.Vilkårsvurdert> {
                     assertHarTilgangTilBehandling(request.behandlingId)
-                    return services.søknadsbehandling.leggTilFlyktningVikår(request)
+                    return services.søknadsbehandling.leggTilFlyktningVilkår(request)
                 }
             },
             ferdigstillVedtak = object : FerdigstillVedtakService {
@@ -756,9 +756,9 @@ open class AccessCheckProxy(
                     return services.revurdering.leggTilLovligOppholdVilkår(request)
                 }
 
-                override fun leggTilFlyktningVikår(request: LeggTilFlyktningVilkårRequest): Either<KunneIkkeLeggeTilFlyktningVilkår, RevurderingOgFeilmeldingerResponse> {
+                override fun leggTilFlyktningVilkår(request: LeggTilFlyktningVilkårRequest): Either<KunneIkkeLeggeTilFlyktningVilkår, RevurderingOgFeilmeldingerResponse> {
                     assertHarTilgangTilRevurdering(request.behandlingId)
-                    return services.revurdering.leggTilFlyktningVikår(request)
+                    return services.revurdering.leggTilFlyktningVilkår(request)
                 }
 
                 override fun lagBrevutkastForAvslutting(

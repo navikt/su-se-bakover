@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.vilkår.LeggTilFlyktningVilkårRequest
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.features.authorize
-import no.nav.su.se.bakover.web.routes.vilkår.alder.tilResultat
 import no.nav.su.se.bakover.web.routes.vilkår.flyktning.LeggTilVurderingsperiodeFlyktningVilkårJson
 import no.nav.su.se.bakover.web.routes.vilkår.flyktning.tilResultat
 import no.nav.su.se.bakover.web.routes.vilkår.flyktning.toDomain
@@ -28,7 +27,7 @@ internal fun Route.flyktningVilkårRoutes(
             call.withRevurderingId {
                 call.withBody<List<LeggTilVurderingsperiodeFlyktningVilkårJson>> { body ->
                     call.svar(
-                        revurderingService.leggTilFlyktningVikår(
+                        revurderingService.leggTilFlyktningVilkår(
                             request = LeggTilFlyktningVilkårRequest(
                                 behandlingId = it,
                                 vilkår = body.toDomain().getOrHandle { return@withBody call.svar(it.tilResultat()) },

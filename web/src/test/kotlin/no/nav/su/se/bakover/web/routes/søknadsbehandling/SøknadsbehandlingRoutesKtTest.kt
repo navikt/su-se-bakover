@@ -957,7 +957,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                 ),
             ),
         )
-        services.søknadsbehandling.leggTilFlyktningVikår(
+        services.søknadsbehandling.leggTilFlyktningVilkår(
             request = LeggTilFlyktningVilkårRequest(
                 behandlingId = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
                 vilkår = flyktningVilkårInnvilget(periode = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.periode)

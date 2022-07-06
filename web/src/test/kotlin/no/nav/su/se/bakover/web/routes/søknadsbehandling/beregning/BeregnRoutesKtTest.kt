@@ -336,7 +336,7 @@ internal class BeregnRoutesKtTest {
                 ),
             ),
         )
-        services.søknadsbehandling.leggTilFlyktningVikår(
+        services.søknadsbehandling.leggTilFlyktningVilkår(
             request = LeggTilFlyktningVilkårRequest(
                 behandlingId = objects.søknadsbehandling.id,
                 vilkår = flyktningVilkårInnvilget(periode = objects.søknadsbehandling.periode)
