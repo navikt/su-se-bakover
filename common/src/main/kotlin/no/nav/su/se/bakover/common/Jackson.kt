@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.common
 
 import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
@@ -48,4 +49,29 @@ inline fun <reified T> String.deserializeList(): List<T> {
 
 inline fun <reified T> deserialize(value: String): T {
     return objectMapper.readValue(value)
+}
+
+inline fun <reified T> deserializeNullable(value: String?): T? {
+    return value?.let { deserialize(it) }
+}
+
+inline fun <reified K, reified V> deserializeMap(value: String): Map<K, V> {
+    return objectMapper.readMap(value)
+}
+
+inline fun <reified K, reified V> deserializeMapNullable(value: String?): Map<K, V>? {
+    return value?.let { deserializeMap(it) }
+}
+
+@JvmName("deserializeListValue")
+inline fun <reified T> deserializeList(value: String): List<T> {
+    return value.deserializeList()
+}
+
+inline fun <reified T> deserializeListNullable(value: String?): List<T>? {
+    return value?.let { deserializeList(it) }
+}
+
+fun lesTre(value: String): JsonNode {
+    return objectMapper.readTree(value)
 }

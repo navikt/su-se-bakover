@@ -4,8 +4,7 @@ import kotliquery.Row
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.deserializeList
-import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.common.readMap
+import no.nav.su.se.bakover.common.deserializeMapNullable
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.database.DbMetrics
@@ -221,8 +220,7 @@ internal class AvstemmingPostgresRepo(
         val oppretettTilOgMed = tidspunkt("opprettetTilOgMed")
         val avstemmingXmlRequest = stringOrNull("avstemmingXmlRequest")
 
-        val utbetalingerPerSak: Map<Long, List<String>> = stringOrNull("utbetalinger")
-            ?.let { objectMapper.readMap(it) } ?: emptyMap()
+        val utbetalingerPerSak: Map<Long, List<String>> = deserializeMapNullable(stringOrNull("utbetalinger")) ?: emptyMap()
 
         val utbetalinger = utbetalingerPerSak
             .mapKeys { Saksnummer(it.key) }

@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.database.vedtak
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.deserializeListNullable
+import no.nav.su.se.bakover.common.deserializeNullable
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.serialize
@@ -227,8 +227,8 @@ internal class VedtakPostgresRepo(
                 satsFactory = satsFactory.gjeldende(opprettet),
                 sakstype = behandling!!.sakstype,
             )
-        val simulering = stringOrNull("simulering")?.let { objectMapper.readValue<Simulering>(it) }
-        val avslagsgrunner = stringOrNull("avslagsgrunner")?.let { objectMapper.readValue<List<Avslagsgrunn>>(it) }
+        val simulering = deserializeNullable<Simulering>(stringOrNull("simulering"))
+        val avslagsgrunner = deserializeListNullable<Avslagsgrunn>(stringOrNull("avslagsgrunner"))
 
         return when (VedtakType.valueOf(string("vedtaktype"))) {
             VedtakType.SØKNAD -> {

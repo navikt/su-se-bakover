@@ -1,9 +1,8 @@
 package no.nav.su.se.bakover.database.tilbakekreving
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.PostgresSessionFactory
@@ -173,7 +172,7 @@ internal class TilbakekrevingPostgresRepo(private val sessionFactory: PostgresSe
         val kravgrunnlagMottatt = tidspunktOrNull("kravgrunnlagMottatt")
         val tilbakekrevingsvedtakForsendelse =
             stringOrNull("tilbakekrevingsvedtakForsendelse")?.let { forsendelseJson ->
-                objectMapper.readValue<RåTilbakekrevingsvedtakForsendelseDb>(forsendelseJson).let {
+                deserialize<RåTilbakekrevingsvedtakForsendelseDb>(forsendelseJson).let {
                     RåTilbakekrevingsvedtakForsendelse(
                         requestXml = it.requestXml,
                         tidspunkt = it.requestSendt,

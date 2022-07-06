@@ -1,7 +1,7 @@
 package db.migration
 
 import com.fasterxml.jackson.databind.node.ObjectNode
-import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.lesTre
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import org.flywaydb.core.api.migration.BaseJavaMigration
@@ -38,7 +38,7 @@ internal class V47__add_tilhørighet_to_fradrag : BaseJavaMigration() {
 
 internal object AddTilhørerToFradrag {
     fun migrate(beregninger: Map<String, String>): Map<String, String> {
-        val beregningerJson = beregninger.map { it.key to objectMapper.readTree(it.value) }.toMap()
+        val beregningerJson = beregninger.map { it.key to lesTre(it.value) }.toMap()
         beregningerJson.values.forEach { beregning ->
             beregning.path("fradrag").forEach {
                 (it as ObjectNode).put("tilhører", FradragTilhører.BRUKER.name)

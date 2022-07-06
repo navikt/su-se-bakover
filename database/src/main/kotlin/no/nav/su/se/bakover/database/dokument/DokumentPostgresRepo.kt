@@ -1,9 +1,8 @@
 package no.nav.su.se.bakover.database.dokument
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.DbMetrics
@@ -240,7 +239,7 @@ internal class DokumentPostgresRepo(
         val id = uuid("id")
         val opprettet = tidspunkt("opprettet")
         val innhold = bytes("generertDokument")
-        val request = objectMapper.readValue<String>(string("generertDokumentJson"))
+        val request = deserialize<String>(string("generertDokumentJson"))
         val sakId = uuid("sakid")
         val søknadId = uuidOrNull("søknadId")
         val vedtakId = uuidOrNull("vedtakId")

@@ -1,10 +1,12 @@
 package no.nav.su.se.bakover.database.revurdering
 
 import arrow.core.getOrHandle
-import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.deserializeList
+import no.nav.su.se.bakover.common.deserializeMapNullable
+import no.nav.su.se.bakover.common.deserializeNullable
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.serialize
@@ -245,17 +247,17 @@ internal class RevurderingPostgresRepo(
     private fun Row.toRevurdering(session: Session, sakstype: Sakstype): AbstraktRevurdering {
         val id = uuid("id")
         val status = RevurderingsType.valueOf(string("revurderingsType"))
-        val periode = string("periode").let { objectMapper.readValue<Periode>(it) }
+        val periode = deserialize<Periode>(string("periode"))
         val opprettet = tidspunkt("opprettet")
         val tilRevurdering = vedtakRepo.hent(uuid("vedtakSomRevurderesId"), session)!! as VedtakSomKanRevurderes
         val beregning: BeregningMedFradragBeregnetMånedsvis? = stringOrNull("beregning")?.deserialiserBeregning(
             satsFactory = satsFactory.gjeldende(opprettet),
             sakstype = sakstype,
         )
-        val simulering = stringOrNull("simulering")?.let { objectMapper.readValue<Simulering>(it) }
+        val simulering = deserializeNullable<Simulering>(stringOrNull("simulering"))
         val saksbehandler = string("saksbehandler")
         val oppgaveId = stringOrNull("oppgaveid")
-        val attesteringer = Attesteringshistorikk.create(objectMapper.readValue(string("attestering")))
+        val attesteringer = Attesteringshistorikk.create(deserializeList(string("attestering")))
         val fritekstTilBrev = stringOrNull("fritekstTilBrev")
         val årsak = string("årsak")
         val begrunnelse = string("begrunnelse")
@@ -264,12 +266,10 @@ internal class RevurderingPostgresRepo(
             begrunnelse = begrunnelse,
         )
         val skalFøreTilBrevutsending = boolean("skalFøreTilBrevutsending")
-        val forhåndsvarsel = stringOrNull("forhåndsvarsel")?.let {
-            objectMapper.readValue<ForhåndsvarselDatabaseJson>(it).toDomain()
-        }
+        val forhåndsvarsel = deserializeNullable<ForhåndsvarselDatabaseJson>(stringOrNull("forhåndsvarsel"))?.toDomain()
 
-        val informasjonSomRevurderes = stringOrNull("informasjonSomRevurderes")?.let {
-            InformasjonSomRevurderes.create(objectMapper.readValue<Map<Revurderingsteg, Vurderingstatus>>(it))
+        val informasjonSomRevurderes = deserializeMapNullable<Revurderingsteg, Vurderingstatus>(stringOrNull("informasjonSomRevurderes"))?.let {
+            InformasjonSomRevurderes.create(it)
         }
 
         val (grunnlagsdata, vilkårsvurderinger) = grunnlagsdataOgVilkårsvurderingerPostgresRepo.hentForRevurdering(
@@ -278,9 +278,7 @@ internal class RevurderingPostgresRepo(
             sakstype = sakstype,
         )
 
-        val avkorting = stringOrNull("avkorting")?.let {
-            objectMapper.readValue<AvkortingVedRevurderingDb>(it).toDomain()
-        }
+        val avkorting = deserializeNullable<AvkortingVedRevurderingDb>(stringOrNull("avkorting"))?.toDomain()
 
         val tilbakekrevingsbehandling = tilbakekrevingRepo.hentTilbakekrevingsbehandling(
             revurderingId = id,
@@ -309,9 +307,7 @@ internal class RevurderingPostgresRepo(
             tilbakekrevingsbehandling = tilbakekrevingsbehandling,
         )
 
-        val avsluttet = stringOrNull("avsluttet")?.let {
-            objectMapper.readValue<AvsluttetRevurderingInfo>(it)
-        }
+        val avsluttet = deserializeNullable<AvsluttetRevurderingInfo>(stringOrNull("avsluttet"))
 
         if (avsluttet != null) {
             return when (revurdering) {
@@ -410,7 +406,13 @@ internal class RevurderingPostgresRepo(
                     "fritekstTilBrev" to revurdering.fritekstTilBrev,
                     "arsak" to revurdering.revurderingsårsak.årsak.toString(),
                     "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
-                    "forhandsvarsel" to serializeNullable(revurdering.forhåndsvarsel?.let { ForhåndsvarselDatabaseJson.from(it) }),
+                    "forhandsvarsel" to serializeNullable(
+                        revurdering.forhåndsvarsel?.let {
+                            ForhåndsvarselDatabaseJson.from(
+                                it,
+                            )
+                        },
+                    ),
                     "informasjonSomRevurderes" to serialize(revurdering.informasjonSomRevurderes),
                     "attestering" to revurdering.attesteringer.serialize(),
                     "avkorting" to serialize(revurdering.avkorting.toDb()),
@@ -474,7 +476,13 @@ internal class RevurderingPostgresRepo(
                     "arsak" to revurdering.revurderingsårsak.årsak.toString(),
                     "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
                     "revurderingsType" to revurdering.toRevurderingsType(),
-                    "forhandsvarsel" to serializeNullable(revurdering.forhåndsvarsel?.let { ForhåndsvarselDatabaseJson.from(it) }),
+                    "forhandsvarsel" to serializeNullable(
+                        revurdering.forhåndsvarsel?.let {
+                            ForhåndsvarselDatabaseJson.from(
+                                it,
+                            )
+                        },
+                    ),
                     "avkorting" to serialize(revurdering.avkorting.toDb()),
                 ),
                 tx,
@@ -537,7 +545,13 @@ internal class RevurderingPostgresRepo(
                     "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
                     "revurderingsType" to revurdering.toRevurderingsType(),
                     "skalFoereTilBrevutsending" to revurdering.skalFøreTilUtsendingAvVedtaksbrev,
-                    "forhandsvarsel" to serializeNullable(revurdering.forhåndsvarsel?.let { ForhåndsvarselDatabaseJson.from(it) }),
+                    "forhandsvarsel" to serializeNullable(
+                        revurdering.forhåndsvarsel?.let {
+                            ForhåndsvarselDatabaseJson.from(
+                                it,
+                            )
+                        },
+                    ),
                     "avkorting" to serialize(revurdering.avkorting.toDb()),
                 ),
                 session,
@@ -716,7 +730,13 @@ internal class RevurderingPostgresRepo(
                     "fritekstTilBrev" to revurdering.fritekstTilBrev,
                     "arsak" to revurdering.revurderingsårsak.årsak.toString(),
                     "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
-                    "forhandsvarsel" to serializeNullable(revurdering.forhåndsvarsel?.let { ForhåndsvarselDatabaseJson.from(it) }),
+                    "forhandsvarsel" to serializeNullable(
+                        revurdering.forhåndsvarsel?.let {
+                            ForhåndsvarselDatabaseJson.from(
+                                it,
+                            )
+                        },
+                    ),
                     "informasjonSomRevurderes" to serialize(revurdering.informasjonSomRevurderes),
                     "attestering" to revurdering.attesteringer.serialize(),
                     "avsluttet" to serialize(
