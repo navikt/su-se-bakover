@@ -2,6 +2,7 @@ package db.migration
 
 import com.fasterxml.jackson.databind.node.ObjectNode
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import org.flywaydb.core.api.migration.BaseJavaMigration
 import org.flywaydb.core.api.migration.Context
@@ -48,6 +49,6 @@ internal object AddTilhørerToFradrag {
                 }
             }
         }
-        return beregningerJson.map { it.key to objectMapper.writeValueAsString(it.value) }.toMap()
+        return beregningerJson.map { it.key to serialize(it.value) }.toMap()
     }
 }

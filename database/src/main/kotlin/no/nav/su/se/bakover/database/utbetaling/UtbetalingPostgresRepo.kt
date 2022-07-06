@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.database.utbetaling
 
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.persistence.TransactionContext
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.PostgresTransactionContext.Companion.withTransaction
@@ -68,7 +68,7 @@ internal class UtbetalingPostgresRepo(
                 "update utbetaling set kvittering = to_json(:kvittering::json) where id = :id".oppdatering(
                     mapOf(
                         "id" to utbetaling.id,
-                        "kvittering" to objectMapper.writeValueAsString(utbetaling.kvittering),
+                        "kvittering" to serialize(utbetaling.kvittering),
                     ),
                     session,
                 )
@@ -89,9 +89,9 @@ internal class UtbetalingPostgresRepo(
                         "sakId" to utbetaling.sakId,
                         "fnr" to utbetaling.fnr,
                         "type" to utbetaling.type.name,
-                        "avstemmingsnokkel" to objectMapper.writeValueAsString(utbetaling.avstemmingsnøkkel),
-                        "simulering" to objectMapper.writeValueAsString(utbetaling.simulering),
-                        "utbetalingsrequest" to objectMapper.writeValueAsString(utbetaling.utbetalingsrequest),
+                        "avstemmingsnokkel" to serialize(utbetaling.avstemmingsnøkkel),
+                        "simulering" to serialize(utbetaling.simulering),
+                        "utbetalingsrequest" to serialize(utbetaling.utbetalingsrequest),
                         "behandler" to utbetaling.behandler.navIdent,
                     ),
                     session,

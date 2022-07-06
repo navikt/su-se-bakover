@@ -5,6 +5,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.hent
@@ -54,10 +55,10 @@ internal class PersonhendelsePostgresRepo(
                         "opprettet" to tidspunkt,
                         "endret" to tidspunkt,
                         "endringstype" to personhendelse.endringstype.toDatabasetype(),
-                        "hendelse" to objectMapper.writeValueAsString(personhendelse.hendelse.toJson()),
+                        "hendelse" to serialize(personhendelse.hendelse.toJson()),
                         "oppgaveId" to null,
                         "type" to personhendelse.hendelse.toDatabasetype(),
-                        "metadata" to objectMapper.writeValueAsString(personhendelse.metadata.toJson()),
+                        "metadata" to serialize(personhendelse.metadata.toJson()),
                     ),
                     session,
                 )

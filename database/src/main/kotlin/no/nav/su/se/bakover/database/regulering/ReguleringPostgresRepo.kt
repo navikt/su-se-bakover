@@ -190,7 +190,7 @@ internal class ReguleringPostgresRepo(
                             }.toString(),
                             "avsluttet" to when (regulering) {
                                 is Regulering.AvsluttetRegulering -> {
-                                    objectMapper.writeValueAsString(AvsluttetReguleringJson(regulering.avsluttetTidspunkt))
+                                    serialize(AvsluttetReguleringJson(regulering.avsluttetTidspunkt))
                                 }
                                 is Regulering.IverksattRegulering -> null
                                 is Regulering.OpprettetRegulering -> null

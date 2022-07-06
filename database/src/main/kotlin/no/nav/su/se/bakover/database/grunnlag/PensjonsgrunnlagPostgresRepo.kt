@@ -4,6 +4,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.TransactionalSession
@@ -91,7 +92,7 @@ internal class PensjonsgrunnlagPostgresRepo(
                     "behandlingId" to behandlingId,
                     "fraOgMed" to grunnlag.periode.fraOgMed,
                     "tilOgMed" to grunnlag.periode.tilOgMed,
-                    "pensjonsopplysninger" to objectMapper.writeValueAsString(grunnlag.pensjonsopplysninger.toDb()),
+                    "pensjonsopplysninger" to serialize(grunnlag.pensjonsopplysninger.toDb()),
                 ),
                 tx,
             )

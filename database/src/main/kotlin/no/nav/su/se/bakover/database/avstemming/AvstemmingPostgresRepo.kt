@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.deserializeList
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.readMap
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.PostgresSessionFactory
@@ -43,7 +44,7 @@ internal class AvstemmingPostgresRepo(
                         "opprettet" to avstemming.opprettet,
                         "fom" to avstemming.fraOgMed,
                         "tom" to avstemming.tilOgMed,
-                        "utbetalinger" to objectMapper.writeValueAsString(
+                        "utbetalinger" to serialize(
                             avstemming.utbetalinger
                                 .map { it.id.toString() },
                         ),
@@ -68,7 +69,7 @@ internal class AvstemmingPostgresRepo(
                         "opprettet" to avstemming.opprettet,
                         "lopendeFraOgMed" to avstemming.løpendeFraOgMed,
                         "opprettetTilOgMed" to avstemming.opprettetTilOgMed,
-                        "utbetalinger" to objectMapper.writeValueAsString(
+                        "utbetalinger" to serialize(
                             avstemming.løpendeUtbetalinger
                                 .map { oppdrag ->
                                     mapOf(oppdrag.saksnummer to oppdrag.utbetalingslinjer.map { it.id })

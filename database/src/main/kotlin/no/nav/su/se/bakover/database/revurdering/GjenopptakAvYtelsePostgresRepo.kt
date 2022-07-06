@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.database.revurdering
 
-import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.TransactionalSession
@@ -56,8 +55,8 @@ internal class GjenopptakAvYtelsePostgresRepo(
                             mapOf(
                                 "id" to revurdering.id,
                                 "opprettet" to revurdering.opprettet,
-                                "periode" to objectMapper.writeValueAsString(revurdering.periode),
-                                "simulering" to objectMapper.writeValueAsString(revurdering.simulering),
+                                "periode" to serialize(revurdering.periode),
+                                "simulering" to serialize(revurdering.simulering),
                                 "saksbehandler" to revurdering.saksbehandler,
                                 "revurderingsType" to RevurderingsType.SIMULERT_GJENOPPTAK,
                                 "vedtakSomRevurderesId" to revurdering.tilRevurdering.id,
@@ -101,7 +100,7 @@ internal class GjenopptakAvYtelsePostgresRepo(
                     """.trimIndent().oppdatering(
                         params = mapOf(
                             "id" to revurdering.id,
-                            "avsluttet" to objectMapper.writeValueAsString(
+                            "avsluttet" to serialize(
                                 AvsluttetRevurderingInfo(
                                     begrunnelse = revurdering.begrunnelse,
                                     fritekst = null,

@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.common.serializeNullable
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.database.PostgresSessionFactory
@@ -111,9 +112,9 @@ internal class SøknadsbehandlingPostgresRepo(
                         "soknadId" to søknadsbehandling.søknad.id,
                         "opprettet" to søknadsbehandling.opprettet,
                         "status" to BehandlingsStatus.OPPRETTET.toString(),
-                        "behandlingsinformasjon" to objectMapper.writeValueAsString(søknadsbehandling.behandlingsinformasjon),
+                        "behandlingsinformasjon" to serialize(søknadsbehandling.behandlingsinformasjon),
                         "oppgaveId" to søknadsbehandling.oppgaveId.toString(),
-                        "avkorting" to objectMapper.writeValueAsString(søknadsbehandling.avkorting.toDb()),
+                        "avkorting" to serialize(søknadsbehandling.avkorting.toDb()),
                     ),
                     session = session,
                 )
@@ -144,16 +145,16 @@ internal class SøknadsbehandlingPostgresRepo(
                     ).insert(
                     params = avslag.søknadsbehandling.let {
                         mapOf(
-                            "behandlingsinformasjon" to objectMapper.writeValueAsString(it.behandlingsinformasjon),
+                            "behandlingsinformasjon" to serialize(it.behandlingsinformasjon),
                             "saksbehandler" to it.saksbehandler,
                             "attestering" to it.attesteringer.serialize(),
                             "fritekstTilBrev" to it.fritekstTilBrev,
-                            "stonadsperiode" to objectMapper.writeValueAsString(it.stønadsperiode),
+                            "stonadsperiode" to serialize(it.stønadsperiode),
                             "status" to it.status.toString(),
                             "id" to it.id,
                             "beregning" to null,
                             "simulering" to null,
-                            "avkorting" to objectMapper.writeValueAsString(it.avkorting.toDb()),
+                            "avkorting" to serialize(it.avkorting.toDb()),
                         )
                     },
                     session = tx,
@@ -599,7 +600,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 defaultParams(søknadsbehandling).plus(
                     listOf(
                         "beregning" to søknadsbehandling.beregning,
-                        "simulering" to objectMapper.writeValueAsString(søknadsbehandling.simulering),
+                        "simulering" to serialize(søknadsbehandling.simulering),
                     ),
                 ),
                 tx,
@@ -708,23 +709,23 @@ internal class SøknadsbehandlingPostgresRepo(
             .oppdatering(
                 params = mapOf(
                     "id" to søknadsbehandling.lukketSøknadsbehandling.id,
-                    "avkorting" to objectMapper.writeValueAsString(søknadsbehandling.avkorting.toDb()),
+                    "avkorting" to serialize(søknadsbehandling.avkorting.toDb()),
                 ),
                 session = tx,
             )
     }
 
-    private fun defaultParams(søknadsbehandling: Søknadsbehandling): Map<String, Any> {
+    private fun defaultParams(søknadsbehandling: Søknadsbehandling): Map<String, Any?> {
         return mapOf(
             "id" to søknadsbehandling.id,
             "sakId" to søknadsbehandling.sakId,
             "soknadId" to søknadsbehandling.søknad.id,
             "opprettet" to søknadsbehandling.opprettet,
             "status" to søknadsbehandling.status.name,
-            "behandlingsinformasjon" to objectMapper.writeValueAsString(søknadsbehandling.behandlingsinformasjon),
+            "behandlingsinformasjon" to serialize(søknadsbehandling.behandlingsinformasjon),
             "oppgaveId" to søknadsbehandling.oppgaveId.toString(),
-            "stonadsperiode" to objectMapper.writeValueAsString(søknadsbehandling.stønadsperiode),
-            "avkorting" to objectMapper.writeValueAsString(søknadsbehandling.avkorting.toDb()),
+            "stonadsperiode" to serializeNullable(søknadsbehandling.stønadsperiode),
+            "avkorting" to serialize(søknadsbehandling.avkorting.toDb()),
         )
     }
 }

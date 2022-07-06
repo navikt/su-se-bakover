@@ -2,8 +2,8 @@ package no.nav.su.se.bakover.database.sak
 
 import arrow.core.NonEmptyList
 import kotliquery.Row
-import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.database.PostgresSessionFactory
@@ -118,7 +118,7 @@ internal class SakPostgresRepo(
                         "fnr" to sak.fnr,
                         "opprettet" to sak.opprettet,
                         "soknadId" to sak.søknad.id,
-                        "soknad" to objectMapper.writeValueAsString(sak.søknad.søknadInnhold),
+                        "soknad" to serialize(sak.søknad.søknadInnhold),
                         "type" to sak.søknad.type.value
                     ),
                     session,

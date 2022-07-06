@@ -385,7 +385,7 @@ internal class VedtakPostgresRepo(
                     "saksbehandler" to vedtak.saksbehandler,
                     "attestant" to vedtak.attestant,
                     "utbetalingid" to vedtak.utbetalingId,
-                    "simulering" to objectMapper.writeValueAsString(vedtak.simulering),
+                    "simulering" to serialize(vedtak.simulering),
                     "beregning" to when (vedtak) {
                         is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse ->
                             null

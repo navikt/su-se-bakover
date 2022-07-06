@@ -24,18 +24,28 @@ inline fun <reified K, reified V> ObjectMapper.readMap(value: String): Map<K, V>
     typeFactory.constructMapType(
         HashMap::class.java,
         K::class.java,
-        V::class.java
-    )
+        V::class.java,
+    ),
 )
 
-fun serialize(value: Any): String = objectMapper.writeValueAsString(value)
+fun serialize(value: Any): String {
+    return objectMapper.writeValueAsString(value)
+}
+
+fun serializeNullable(value: Any?): String? {
+    return value?.let { serialize(it) }
+}
+
 inline fun <reified T> List<T>.serialize(): String {
     val listType = objectMapper.typeFactory.constructCollectionLikeType(List::class.java, T::class.java)
     return objectMapper.writerFor(listType).writeValueAsString(this)
 }
+
 inline fun <reified T> String.deserializeList(): List<T> {
     val listType = objectMapper.typeFactory.constructCollectionLikeType(List::class.java, T::class.java)
     return objectMapper.readerFor(listType).readValue(this)
 }
 
-inline fun <reified T> deserialize(value: String): T = objectMapper.readValue(value)
+inline fun <reified T> deserialize(value: String): T {
+    return objectMapper.readValue(value)
+}

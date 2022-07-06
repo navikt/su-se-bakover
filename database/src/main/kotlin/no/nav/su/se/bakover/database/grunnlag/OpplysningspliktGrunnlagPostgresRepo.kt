@@ -6,6 +6,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.TransactionalSession
@@ -123,7 +124,7 @@ private sealed class OpplysningspliktBeskrivelseDb {
 }
 
 internal fun OpplysningspliktBeskrivelse.toDb(): String {
-    return objectMapper.writeValueAsString(
+    return serialize(
         when (this) {
             is OpplysningspliktBeskrivelse.UtilstrekkeligDokumentasjon -> {
                 OpplysningspliktBeskrivelseDb.UtilstrekkeligDokumentasjon

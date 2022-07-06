@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.common.serializeNullable
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.PostgresTransactionContext.Companion.withTransaction
@@ -401,7 +402,7 @@ internal class RevurderingPostgresRepo(
             .insert(
                 mapOf(
                     "id" to revurdering.id,
-                    "periode" to objectMapper.writeValueAsString(revurdering.periode),
+                    "periode" to serialize(revurdering.periode),
                     "opprettet" to revurdering.opprettet,
                     "saksbehandler" to revurdering.saksbehandler.navIdent,
                     "oppgaveId" to revurdering.oppgaveId.toString(),
@@ -409,12 +410,10 @@ internal class RevurderingPostgresRepo(
                     "fritekstTilBrev" to revurdering.fritekstTilBrev,
                     "arsak" to revurdering.revurderingsårsak.årsak.toString(),
                     "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
-                    "forhandsvarsel" to revurdering.forhåndsvarsel?.let {
-                        objectMapper.writeValueAsString(ForhåndsvarselDatabaseJson.from(it))
-                    },
-                    "informasjonSomRevurderes" to objectMapper.writeValueAsString(revurdering.informasjonSomRevurderes),
+                    "forhandsvarsel" to serializeNullable(revurdering.forhåndsvarsel?.let { ForhåndsvarselDatabaseJson.from(it) }),
+                    "informasjonSomRevurderes" to serialize(revurdering.informasjonSomRevurderes),
                     "attestering" to revurdering.attesteringer.serialize(),
-                    "avkorting" to objectMapper.writeValueAsString(revurdering.avkorting.toDb()),
+                    "avkorting" to serialize(revurdering.avkorting.toDb()),
                 ),
                 session,
             )
@@ -444,8 +443,8 @@ internal class RevurderingPostgresRepo(
                     "revurderingsType" to revurdering.toRevurderingsType(),
                     "arsak" to revurdering.revurderingsårsak.årsak.toString(),
                     "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
-                    "informasjonSomRevurderes" to objectMapper.writeValueAsString(revurdering.informasjonSomRevurderes),
-                    "avkorting" to objectMapper.writeValueAsString(revurdering.avkorting.toDb()),
+                    "informasjonSomRevurderes" to serialize(revurdering.informasjonSomRevurderes),
+                    "avkorting" to serialize(revurdering.avkorting.toDb()),
                 ),
                 tx,
             )
@@ -471,14 +470,12 @@ internal class RevurderingPostgresRepo(
                     "id" to revurdering.id,
                     "saksbehandler" to revurdering.saksbehandler.navIdent,
                     "beregning" to revurdering.beregning,
-                    "simulering" to objectMapper.writeValueAsString(revurdering.simulering),
+                    "simulering" to serialize(revurdering.simulering),
                     "arsak" to revurdering.revurderingsårsak.årsak.toString(),
                     "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
                     "revurderingsType" to revurdering.toRevurderingsType(),
-                    "forhandsvarsel" to revurdering.forhåndsvarsel?.let {
-                        objectMapper.writeValueAsString(ForhåndsvarselDatabaseJson.from(it))
-                    },
-                    "avkorting" to objectMapper.writeValueAsString(revurdering.avkorting.toDb()),
+                    "forhandsvarsel" to serializeNullable(revurdering.forhåndsvarsel?.let { ForhåndsvarselDatabaseJson.from(it) }),
+                    "avkorting" to serialize(revurdering.avkorting.toDb()),
                 ),
                 tx,
             )
@@ -531,8 +528,8 @@ internal class RevurderingPostgresRepo(
                     "beregning" to revurdering.beregning,
                     "simulering" to when (revurdering) {
                         is RevurderingTilAttestering.IngenEndring -> null
-                        is RevurderingTilAttestering.Innvilget -> objectMapper.writeValueAsString(revurdering.simulering)
-                        is RevurderingTilAttestering.Opphørt -> objectMapper.writeValueAsString(revurdering.simulering)
+                        is RevurderingTilAttestering.Innvilget -> serialize(revurdering.simulering)
+                        is RevurderingTilAttestering.Opphørt -> serialize(revurdering.simulering)
                     },
                     "oppgaveId" to revurdering.oppgaveId.toString(),
                     "fritekstTilBrev" to revurdering.fritekstTilBrev,
@@ -540,10 +537,8 @@ internal class RevurderingPostgresRepo(
                     "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
                     "revurderingsType" to revurdering.toRevurderingsType(),
                     "skalFoereTilBrevutsending" to revurdering.skalFøreTilUtsendingAvVedtaksbrev,
-                    "forhandsvarsel" to revurdering.forhåndsvarsel?.let {
-                        objectMapper.writeValueAsString(ForhåndsvarselDatabaseJson.from(it))
-                    },
-                    "avkorting" to objectMapper.writeValueAsString(revurdering.avkorting.toDb()),
+                    "forhandsvarsel" to serializeNullable(revurdering.forhåndsvarsel?.let { ForhåndsvarselDatabaseJson.from(it) }),
+                    "avkorting" to serialize(revurdering.avkorting.toDb()),
                 ),
                 session,
             )
@@ -572,15 +567,15 @@ internal class RevurderingPostgresRepo(
                     "beregning" to revurdering.beregning,
                     "simulering" to when (revurdering) {
                         is IverksattRevurdering.IngenEndring -> null
-                        is IverksattRevurdering.Innvilget -> objectMapper.writeValueAsString(revurdering.simulering)
-                        is IverksattRevurdering.Opphørt -> objectMapper.writeValueAsString(revurdering.simulering)
+                        is IverksattRevurdering.Innvilget -> serialize(revurdering.simulering)
+                        is IverksattRevurdering.Opphørt -> serialize(revurdering.simulering)
                     },
                     "oppgaveId" to revurdering.oppgaveId.toString(),
                     "attestering" to revurdering.attesteringer.serialize(),
                     "arsak" to revurdering.revurderingsårsak.årsak.toString(),
                     "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
                     "revurderingsType" to revurdering.toRevurderingsType(),
-                    "avkorting" to objectMapper.writeValueAsString(revurdering.avkorting.toDb()),
+                    "avkorting" to serialize(revurdering.avkorting.toDb()),
                 ),
                 tx,
             )
@@ -677,7 +672,7 @@ internal class RevurderingPostgresRepo(
                     "arsak" to revurdering.revurderingsårsak.årsak.toString(),
                     "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
                     "revurderingsType" to revurdering.toRevurderingsType(),
-                    "avkorting" to objectMapper.writeValueAsString(revurdering.avkorting.toDb()),
+                    "avkorting" to serialize(revurdering.avkorting.toDb()),
                 ),
                 session,
             )
@@ -711,9 +706,9 @@ internal class RevurderingPostgresRepo(
                 params = mapOf(
                     "id" to revurdering.id,
                     "opprettet" to revurdering.opprettet,
-                    "periode" to objectMapper.writeValueAsString(revurdering.periode),
+                    "periode" to serialize(revurdering.periode),
                     "beregning" to revurdering.beregning,
-                    "simulering" to revurdering.simulering?.let { objectMapper.writeValueAsString(it) },
+                    "simulering" to serializeNullable(revurdering.simulering),
                     "saksbehandler" to revurdering.saksbehandler.navIdent,
                     "oppgaveId" to revurdering.oppgaveId.toString(),
                     "revurderingsType" to revurdering.toRevurderingsType(),
@@ -721,19 +716,17 @@ internal class RevurderingPostgresRepo(
                     "fritekstTilBrev" to revurdering.fritekstTilBrev,
                     "arsak" to revurdering.revurderingsårsak.årsak.toString(),
                     "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
-                    "forhandsvarsel" to revurdering.forhåndsvarsel?.let {
-                        objectMapper.writeValueAsString(ForhåndsvarselDatabaseJson.from(it))
-                    },
-                    "informasjonSomRevurderes" to objectMapper.writeValueAsString(revurdering.informasjonSomRevurderes),
+                    "forhandsvarsel" to serializeNullable(revurdering.forhåndsvarsel?.let { ForhåndsvarselDatabaseJson.from(it) }),
+                    "informasjonSomRevurderes" to serialize(revurdering.informasjonSomRevurderes),
                     "attestering" to revurdering.attesteringer.serialize(),
-                    "avsluttet" to objectMapper.writeValueAsString(
+                    "avsluttet" to serialize(
                         AvsluttetRevurderingInfo(
                             begrunnelse = revurdering.begrunnelse,
                             fritekst = revurdering.fritekst,
                             tidspunktAvsluttet = revurdering.tidspunktAvsluttet,
                         ),
                     ),
-                    "avkorting" to objectMapper.writeValueAsString(revurdering.avkorting.toDb()),
+                    "avkorting" to serialize(revurdering.avkorting.toDb()),
                 ),
                 session = session,
             )
