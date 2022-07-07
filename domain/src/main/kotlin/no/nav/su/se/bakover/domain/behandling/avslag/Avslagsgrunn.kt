@@ -107,7 +107,7 @@ enum class Opphørsgrunn {
         FORMUE -> listOf(8)
         UTENLANDSOPPHOLD -> listOf(1, 2, 4)
         MANGLENDE_DOKUMENTASJON -> listOf(18)
-        OPPHOLDSTILLATELSE -> TODO("Revurdering av oppholdstillatelse er ikke mulig enda")
+        OPPHOLDSTILLATELSE -> listOf(3)
         FLYKTNING -> listOf(3)
     }
 }
