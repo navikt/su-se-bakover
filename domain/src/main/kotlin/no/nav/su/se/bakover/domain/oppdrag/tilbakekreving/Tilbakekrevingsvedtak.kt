@@ -1,6 +1,9 @@
 package no.nav.su.se.bakover.domain.oppdrag.tilbakekreving
 
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.Beløp
+import no.nav.su.se.bakover.domain.MånedBeløp
+import no.nav.su.se.bakover.domain.Månedsbeløp
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
 import java.math.BigDecimal
@@ -11,6 +14,18 @@ sealed interface Tilbakekrevingsvedtak {
     val kontrollFelt: String
     val behandler: NavIdentBruker
     val tilbakekrevingsperioder: List<Tilbakekrevingsperiode>
+
+    fun netto(): Månedsbeløp {
+        return Månedsbeløp(månedbeløp = tilbakekrevingsperioder.map { it.netto() })
+    }
+
+    fun brutto(): Månedsbeløp {
+        return Månedsbeløp(månedbeløp = tilbakekrevingsperioder.map { it.brutto() })
+    }
+
+    fun skatt(): Månedsbeløp {
+        return Månedsbeløp(månedbeløp = tilbakekrevingsperioder.map { it.skatt() })
+    }
 
     data class FullTilbakekreving(
         override val vedtakId: String,
@@ -34,6 +49,30 @@ sealed interface Tilbakekrevingsvedtak {
         val beløpRenter: BigDecimal,
         val tilbakekrevingsbeløp: List<Tilbakekrevingsbeløp>,
     ) {
+        fun brutto(): MånedBeløp {
+            return MånedBeløp(
+                periode,
+                tilbakekrevingsbeløp.filterIsInstance<Tilbakekrevingsbeløp.TilbakekrevingsbeløpYtelse>()
+                    .fold(Beløp.zero()) { acc, tilbakekrevingsbeløpYtelse -> acc + tilbakekrevingsbeløpYtelse.brutto() },
+            )
+        }
+
+        fun netto(): MånedBeløp {
+            return MånedBeløp(
+                periode,
+                tilbakekrevingsbeløp.filterIsInstance<Tilbakekrevingsbeløp.TilbakekrevingsbeløpYtelse>()
+                    .fold(Beløp.zero()) { acc, tilbakekrevingsbeløpYtelse -> acc + tilbakekrevingsbeløpYtelse.netto() },
+            )
+        }
+
+        fun skatt(): MånedBeløp {
+            return MånedBeløp(
+                periode,
+                tilbakekrevingsbeløp.filterIsInstance<Tilbakekrevingsbeløp.TilbakekrevingsbeløpYtelse>()
+                    .fold(Beløp.zero()) { acc, tilbakekrevingsbeløpYtelse -> acc + tilbakekrevingsbeløpYtelse.skatt() },
+            )
+        }
+
         sealed interface Tilbakekrevingsbeløp {
             val kodeKlasse: KlasseKode
             val beløpTidligereUtbetaling: BigDecimal
@@ -65,6 +104,18 @@ sealed interface Tilbakekrevingsvedtak {
             ) : Tilbakekrevingsbeløp {
                 init {
                     require(kodeKlasse == KlasseKode.SUUFORE)
+                }
+
+                fun brutto(): Beløp {
+                    return Beløp(beløpSomSkalTilbakekreves.intValueExact())
+                }
+
+                fun netto(): Beløp {
+                    return Beløp(beløpSomSkalTilbakekreves.intValueExact() - beløpSkatt.intValueExact())
+                }
+
+                fun skatt(): Beløp {
+                    return Beløp(beløpSkatt.intValueExact())
                 }
             }
         }

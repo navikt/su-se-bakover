@@ -119,6 +119,10 @@ object ServiceBuilder {
         val tilbakekrevingService = TilbakekrevingServiceImpl(
             tilbakekrevingRepo = databaseRepos.tilbakekrevingRepo,
             tilbakekrevingClient = clients.tilbakekrevingClient,
+            vedtakService = vedtakService,
+            brevService = brevService,
+            sessionFactory = databaseRepos.sessionFactory,
+            clock = clock,
         )
 
         val revurderingService = RevurderingServiceImpl(

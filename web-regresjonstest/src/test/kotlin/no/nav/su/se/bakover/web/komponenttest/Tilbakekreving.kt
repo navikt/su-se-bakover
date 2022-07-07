@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.web.komponenttest
 
+import arrow.core.left
 import com.fasterxml.jackson.module.kotlin.readValue
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.server.testing.ApplicationTestBuilder
@@ -15,6 +17,7 @@ import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.oktober
+import no.nav.su.se.bakover.common.trimWhitespace
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
@@ -22,12 +25,15 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.toYtelsekode
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.AvventerKravgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.MottattKravgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.SendtTilbakekrevingsvedtak
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingsvedtakForsendelseFeil
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.brev.HentDokumenterForIdType
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.shouldBeType
+import no.nav.su.se.bakover.web.SharedRegressionTestData
+import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.revurdering.attestering.sendTilAttestering
 import no.nav.su.se.bakover.web.revurdering.avgjørTilbakekreving
 import no.nav.su.se.bakover.web.revurdering.beregnOgSimuler
@@ -42,8 +48,12 @@ import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitter
 import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.RevurderingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
+import org.json.JSONObject
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
 import java.math.BigDecimal
 import java.util.UUID
 
@@ -76,6 +86,7 @@ class Tilbakekreving {
             appComponents.services.utbetaling.hentUtbetaling(vedtak.utbetalingId).getOrFail()
                 .shouldBeType<Utbetaling.OversendtUtbetaling.MedKvittering>()
 
+            // TODO ikke opprett brev i det vi mottar kvittering
             appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.Vedtak(vedtak.id)).also {
                 it.single().also { brev ->
                     brev.tittel shouldBe "Vi har vurdert den supplerende stønaden din på nytt og vil kreve tilbake penger"
@@ -122,7 +133,22 @@ class Tilbakekreving {
                             <kodeAarsak>ANNET</kodeAarsak>
                             <kodeSkyld>BRUKER</kodeSkyld>
                         </tilbakekrevingsbelop>
-                    """.replace("\n", "").filterNot { it.isWhitespace() }
+                    """.replace("\n", "").trimWhitespace()
+                }
+
+            @Suppress("UNCHECKED_CAST")
+            appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.Vedtak(vedtak.id))
+                .also { dokumenter ->
+                    dokumenter shouldHaveSize 2 // TODO 1 etter flytting av brevopprettelse
+                    dokumenter.last().also { brev ->
+                        (
+                            JSONObject(brev.generertDokumentJson).getJSONArray("tilbakekreving")
+                                .map { it } as List<JSONObject>
+                            )
+                            .map { it.getString("beløp") }
+                            .all { it == "13 579" } // 18308 - 4729 = 13579
+                        brev.tittel shouldBe "Vi har vurdert den supplerende stønaden din på nytt og vil kreve tilbake penger"
+                    }
                 }
         }
     }
@@ -155,7 +181,7 @@ class Tilbakekreving {
     @Test
     fun `happy path ingen tilbakekreving`() {
         withKomptestApplication(
-            clock = 1.oktober(2021).fixedClock(),
+            clock = TikkendeKlokke(1.oktober(2021).fixedClock()),
         ) { appComponents ->
             val (sakid, revurderingId) = vedtakMedTilbakekreving(avgjørelse = TilbakekrevingsbehandlingJson.TilbakekrevingsAvgjørelseJson.IKKE_TILBAKEKREV)
 
@@ -169,6 +195,20 @@ class Tilbakekreving {
                     }
                     revurdering
                 }
+
+            val kvittering = appComponents.services.utbetaling.hentUtbetaling(vedtak.utbetalingId).getOrFail()
+                .shouldBeType<Utbetaling.OversendtUtbetaling.UtenKvittering>().let {
+                    lagKvittering(it.utbetalingsrequest)
+                }
+
+            appComponents.consumers.utbetalingKvitteringConsumer.onMessage(kvittering)
+
+            // TODO dette er en bug - diff i hvilket brev som forhåndsvises kontra det som genereres for vedtaket
+            appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.Vedtak(vedtak.id)).also {
+                it.single().also { brev ->
+                    brev.tittel shouldBe "Vi har vurdert den supplerende stønaden din på nytt og vil kreve tilbake penger"
+                }
+            }
 
             appComponents.services.tilbakekrevingService.hentAvventerKravgrunnlag(UUID.fromString(sakid))
                 .single() shouldBe vedtak.behandling.tilbakekrevingsbehandling
@@ -210,7 +250,22 @@ class Tilbakekreving {
                             <kodeAarsak>ANNET</kodeAarsak>
                             <kodeSkyld>IKKE_FORDELT</kodeSkyld>
                         </tilbakekrevingsbelop>
-                    """.replace("\n", "").filterNot { it.isWhitespace() }
+                    """.replace("\n", "").trimWhitespace()
+                }
+
+            @Suppress("UNCHECKED_CAST")
+            appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.Vedtak(vedtak.id))
+                .also { dokumenter ->
+                    dokumenter shouldHaveSize 2 // TODO 1 etter flytting av brevopprettelse
+                    dokumenter.last().also { brev ->
+                        (
+                            JSONObject(brev.generertDokumentJson).getJSONArray("tilbakekreving")
+                                .map { it } as List<JSONObject>
+                            )
+                            .map { it.getString("beløp") }
+                            .all { it == "0" }
+                        brev.tittel shouldBe "Vi har vurdert den supplerende stønaden din på nytt og vil kreve tilbake penger"
+                    }
                 }
         }
     }
@@ -303,6 +358,65 @@ class Tilbakekreving {
             }.also {
                 it.message shouldContain "Ikke samsvar mellom perioder og beløp i simulering og kravgrunnlag for revurdering:"
             }
+        }
+    }
+
+    @Test
+    fun `send tilbakekrevingsvedtak lagrer ingenting dersom kall til økonomi feiler`() {
+        val clock = 1.oktober(2021).fixedClock()
+        withKomptestApplication(
+            clock = clock,
+            clients = {
+                TestClientsBuilder(
+                    clock = clock,
+                    databaseRepos = it,
+                ).build(SharedRegressionTestData.applicationConfig).copy(
+                    tilbakekrevingClient = mock {
+                        on { sendTilbakekrevingsvedtak(any()) } doReturn TilbakekrevingsvedtakForsendelseFeil.left()
+                    },
+                )
+            },
+        ) { appComponents ->
+            val (_, revurderingId) = vedtakMedTilbakekreving(avgjørelse = TilbakekrevingsbehandlingJson.TilbakekrevingsAvgjørelseJson.TILBAKEKREV)
+
+            val vedtak = appComponents.services.vedtakService.hentForRevurderingId(UUID.fromString(revurderingId))!!
+                .shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering>().also {
+                    it.behandling.tilbakekrevingsbehandling.shouldBeType<AvventerKravgrunnlag>()
+                }
+
+            appComponents.consumers.tilbakekrevingConsumer.onMessage(
+                lagKravgrunnlag(vedtak) {
+                    lagPerioder(
+                        mai(2021).until(oktober(2021)).map {
+                            Feilutbetaling(
+                                måned = it,
+                                gammelUtbetaling = 21989,
+                                nyUtbetaling = 3681,
+                            )
+                        },
+                    )
+                },
+            )
+
+            appComponents.services.vedtakService.hentForRevurderingId(UUID.fromString(revurderingId))!!
+                .shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering>().also {
+                    it.behandling.tilbakekrevingsbehandling.shouldBeType<MottattKravgrunnlag>()
+                }
+
+            assertThrows<RuntimeException> {
+                appComponents.services.tilbakekrevingService.sendTilbakekrevingsvedtak {
+                    TilbakekrevingsmeldingMapper.toKravgrunnlg(it).getOrFail()
+                }
+            }.also {
+                it.message shouldContain "Feil ved oversendelse av tilbakekrevingsvedtak for tilbakekrevingsbehandling"
+            }
+
+            appComponents.services.vedtakService.hentForRevurderingId(UUID.fromString(revurderingId))!!
+                .shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering>().also {
+                    it.behandling.tilbakekrevingsbehandling.shouldBeType<MottattKravgrunnlag>()
+                }
+
+            appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.Vedtak(vedtak.id)) shouldBe emptyList()
         }
     }
 

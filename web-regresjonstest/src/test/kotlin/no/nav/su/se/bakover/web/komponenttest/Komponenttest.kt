@@ -35,17 +35,18 @@ class AppComponents private constructor(
     val consumers: Consumers,
 ) {
     companion object {
-        fun instance(clock: Clock, dataSource: DataSource): AppComponents {
+        fun instance(
+            clock: Clock,
+            dataSource: DataSource,
+            clientBuilder: (databaseRepos: DatabaseRepos) -> Clients,
+        ): AppComponents {
             val satsFactory = satsFactoryTestPåDato(LocalDate.now(clock))
             val databaseRepos: DatabaseRepos = SharedRegressionTestData.databaseRepos(
                 dataSource = dataSource,
                 clock = clock,
                 satsFactory = satsFactoryTest,
             )
-            val clients: Clients = TestClientsBuilder(
-                clock = clock,
-                databaseRepos = databaseRepos,
-            ).build(SharedRegressionTestData.applicationConfig)
+            val clients = clientBuilder(databaseRepos)
             val unleash: Unleash = FakeUnleash().apply { enableAll() }
             val services: Services = ServiceBuilder.build(
                 databaseRepos = databaseRepos,
@@ -87,10 +88,16 @@ class AppComponents private constructor(
 
 internal fun withKomptestApplication(
     clock: Clock = fixedClock,
+    clients: (databaseRepos: DatabaseRepos) -> Clients = {
+        TestClientsBuilder(
+            clock = clock,
+            databaseRepos = it,
+        ).build(SharedRegressionTestData.applicationConfig)
+    },
     test: ApplicationTestBuilder.(appComponents: AppComponents) -> Unit,
 ) {
     withMigratedDb { dataSource ->
-        val appComponents = AppComponents.instance(clock, dataSource)
+        val appComponents = AppComponents.instance(clock, dataSource, clients)
         testApplication(
             appComponents = appComponents,
             test = test,
