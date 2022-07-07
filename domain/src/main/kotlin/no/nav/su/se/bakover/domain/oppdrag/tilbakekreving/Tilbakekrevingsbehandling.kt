@@ -264,7 +264,11 @@ object IkkeBehovForTilbakekrevingFerdigbehandlet :
 
 sealed interface Tilbakekrevingsbehandling {
 
+    fun skalTilbakekreve(): Either<Unit, UnderBehandling.VurderTilbakekreving.Avgjort>
+
     sealed interface UnderBehandling : Tilbakekrevingsbehandling {
+
+        override fun skalTilbakekreve(): Either<Unit, VurderTilbakekreving.Avgjort>
 
         fun fullførBehandling(): Ferdigbehandlet
 
@@ -277,28 +281,56 @@ sealed interface Tilbakekrevingsbehandling {
 
             sealed interface Avgjort : VurderTilbakekreving {
                 override fun fullførBehandling(): Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag
+
+                override fun skalTilbakekreve(): Either<Unit, Avgjort> {
+                    return when (this) {
+                        is IkkeTilbakekrev -> Unit.left()
+                        is Tilbakekrev -> this.right()
+                    }
+                }
             }
 
             sealed interface IkkeAvgjort : VurderTilbakekreving {
                 override fun fullførBehandling(): Ferdigbehandlet.UtenKravgrunnlag.AvventerKravgrunnlag {
                     throw IllegalStateException("Må avgjøres før vurdering kan ferdigbehandles")
                 }
+
+                override fun skalTilbakekreve(): Either<Unit, Avgjort> {
+                    return Unit.left()
+                }
             }
         }
 
         interface IkkeBehovForTilbakekreving : UnderBehandling {
             override fun fullførBehandling(): Ferdigbehandlet.UtenKravgrunnlag.IkkeBehovForTilbakekreving
+
+            override fun skalTilbakekreve(): Either<Unit, VurderTilbakekreving.Avgjort> {
+                return Unit.left()
+            }
         }
     }
 
     sealed interface Ferdigbehandlet : Tilbakekrevingsbehandling {
 
+        override fun skalTilbakekreve(): Either<Unit, UnderBehandling.VurderTilbakekreving.Avgjort>
+
         sealed interface UtenKravgrunnlag : Ferdigbehandlet {
 
-            interface IkkeBehovForTilbakekreving : UtenKravgrunnlag
+            interface IkkeBehovForTilbakekreving : UtenKravgrunnlag {
+                override fun skalTilbakekreve(): Either<Unit, UnderBehandling.VurderTilbakekreving.Avgjort> {
+                    return Unit.left()
+                }
+            }
 
             sealed interface AvventerKravgrunnlag : UtenKravgrunnlag {
                 val avgjort: UnderBehandling.VurderTilbakekreving.Avgjort
+
+                override fun skalTilbakekreve(): Either<Unit, UnderBehandling.VurderTilbakekreving.Avgjort> {
+                    return when (avgjort) {
+                        is IkkeTilbakekrev -> Unit.left()
+                        is Tilbakekrev -> avgjort.right()
+                    }
+                }
 
                 fun mottattKravgrunnlag(
                     kravgrunnlag: RåttKravgrunnlag,
@@ -313,6 +345,13 @@ sealed interface Tilbakekrevingsbehandling {
             val avgjort: UnderBehandling.VurderTilbakekreving.Avgjort
             val kravgrunnlag: RåttKravgrunnlag
             val kravgrunnlagMottatt: Tidspunkt
+
+            override fun skalTilbakekreve(): Either<Unit, UnderBehandling.VurderTilbakekreving.Avgjort> {
+                return when (avgjort) {
+                    is IkkeTilbakekrev -> Unit.left()
+                    is Tilbakekrev -> avgjort.right()
+                }
+            }
 
             sealed interface MottattKravgrunnlag : MedKravgrunnlag {
                 fun lagTilbakekrevingsvedtak(mapper: (RåttKravgrunnlag) -> Kravgrunnlag): Tilbakekrevingsvedtak

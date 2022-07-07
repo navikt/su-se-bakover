@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.web.komponenttest
 
 import arrow.core.left
 import com.fasterxml.jackson.module.kotlin.readValue
-import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.server.testing.ApplicationTestBuilder
@@ -86,11 +85,8 @@ class Tilbakekreving {
             appComponents.services.utbetaling.hentUtbetaling(vedtak.utbetalingId).getOrFail()
                 .shouldBeType<Utbetaling.OversendtUtbetaling.MedKvittering>()
 
-            // TODO ikke opprett brev i det vi mottar kvittering
             appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.Vedtak(vedtak.id)).also {
-                it.single().also { brev ->
-                    brev.tittel shouldBe "Vi har vurdert den supplerende stønaden din på nytt og vil kreve tilbake penger"
-                }
+                it shouldBe emptyList()
             }
 
             appComponents.services.tilbakekrevingService.hentAvventerKravgrunnlag(UUID.fromString(sakid))
@@ -139,8 +135,7 @@ class Tilbakekreving {
             @Suppress("UNCHECKED_CAST")
             appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.Vedtak(vedtak.id))
                 .also { dokumenter ->
-                    dokumenter shouldHaveSize 2 // TODO 1 etter flytting av brevopprettelse
-                    dokumenter.last().also { brev ->
+                    dokumenter.single().also { brev ->
                         (
                             JSONObject(brev.generertDokumentJson).getJSONArray("tilbakekreving")
                                 .map { it } as List<JSONObject>
@@ -203,11 +198,8 @@ class Tilbakekreving {
 
             appComponents.consumers.utbetalingKvitteringConsumer.onMessage(kvittering)
 
-            // TODO dette er en bug - diff i hvilket brev som forhåndsvises kontra det som genereres for vedtaket
             appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.Vedtak(vedtak.id)).also {
-                it.single().also { brev ->
-                    brev.tittel shouldBe "Vi har vurdert den supplerende stønaden din på nytt og vil kreve tilbake penger"
-                }
+                it shouldBe emptyList()
             }
 
             appComponents.services.tilbakekrevingService.hentAvventerKravgrunnlag(UUID.fromString(sakid))
@@ -256,15 +248,8 @@ class Tilbakekreving {
             @Suppress("UNCHECKED_CAST")
             appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.Vedtak(vedtak.id))
                 .also { dokumenter ->
-                    dokumenter shouldHaveSize 2 // TODO 1 etter flytting av brevopprettelse
-                    dokumenter.last().also { brev ->
-                        (
-                            JSONObject(brev.generertDokumentJson).getJSONArray("tilbakekreving")
-                                .map { it } as List<JSONObject>
-                            )
-                            .map { it.getString("beløp") }
-                            .all { it == "0" }
-                        brev.tittel shouldBe "Vi har vurdert den supplerende stønaden din på nytt og vil kreve tilbake penger"
+                    dokumenter.single().also { brev ->
+                        brev.tittel shouldBe "Vi har vurdert den supplerende stønaden din på nytt"
                     }
                 }
         }

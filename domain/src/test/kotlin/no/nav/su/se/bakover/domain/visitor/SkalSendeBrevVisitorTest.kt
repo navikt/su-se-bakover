@@ -2,15 +2,20 @@ package no.nav.su.se.bakover.domain.visitor
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.periode.desember
+import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagMedBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagUtenBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
+import no.nav.su.se.bakover.test.vedtakRevurdering
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
@@ -125,5 +130,23 @@ internal class SkalSendeBrevVisitorTest {
             it.sendBrev
         } shouldBe true
         vedtak.skalSendeBrev() shouldBe true
+    }
+
+    @Test
+    fun `vedtak med vurdert tilbakekrevingsbehandling sender ikke brev`() {
+        val vedtak = vedtakRevurdering(
+            revurderingsperiode = mai(2021)..desember(2021),
+            grunnlagsdataOverrides = listOf(
+                fradragsgrunnlagArbeidsinntekt(periode = mai(2021)..desember(2021), arbeidsinntekt = 5000.0),
+            ),
+        ).second.shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering>().also {
+            it.behandling.tilbakekrevingsbehandling.skalTilbakekreve().isRight() shouldBe true
+        }
+
+        SkalSendeBrevVisitor().let {
+            vedtak.accept(it)
+            it.sendBrev
+        } shouldBe false
+        vedtak.skalSendeBrev() shouldBe false
     }
 }

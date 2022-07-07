@@ -15,7 +15,7 @@ internal class SkalSendeBrevVisitor : VedtakVisitor {
     }
 
     override fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering) {
-        sendBrev = !vedtak.innvilgetGRegulering()
+        sendBrev = !vedtak.innvilgetGRegulering() && vedtak.behandling.tilbakekrevingErVurdert().isLeft()
     }
 
     override fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering) {
@@ -23,7 +23,7 @@ internal class SkalSendeBrevVisitor : VedtakVisitor {
     }
 
     override fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering) {
-        sendBrev = !vedtak.innvilgetGRegulering()
+        sendBrev = !vedtak.innvilgetGRegulering() && vedtak.behandling.tilbakekrevingErVurdert().isLeft()
     }
 
     override fun visit(vedtak: Avslagsvedtak.AvslagVilkår) {

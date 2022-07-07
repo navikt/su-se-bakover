@@ -57,14 +57,23 @@ class TilbakekrevingServiceImpl(
         tilbakekrevingRepo.hentMottattKravgrunnlag()
             .forEach { tilbakekrevingsbehandling ->
                 val tilbakekrevingsvedtak = tilbakekrevingsbehandling.lagTilbakekrevingsvedtak(mapper)
-                val vedtak = vedtakService.hentForRevurderingId(tilbakekrevingsbehandling.avgjort.revurderingId)!! as Stønadsvedtak
+                val vedtak =
+                    vedtakService.hentForRevurderingId(tilbakekrevingsbehandling.avgjort.revurderingId)!! as Stønadsvedtak
+
                 val brevRequest = brevService.lagBrevRequest(vedtak).fold(
                     {
                         throw RuntimeException("Kunne ikke lage brev, feil: $it")
                     },
-                    {
-                        check(it is LagBrevRequest.TilbakekrevingAvPenger) { "Generert brev for vedtak:${vedtak.id} er ikke et tilbakekrevingsbrev!" }
-                        it.erstattBruttoMedNettoFeilutbetaling(tilbakekrevingsvedtak.netto())
+                    { brevRequest ->
+                        tilbakekrevingsbehandling.skalTilbakekreve().fold(
+                            {
+                                brevRequest
+                            },
+                            {
+                                check(brevRequest is LagBrevRequest.TilbakekrevingAvPenger) { "Generert tilbakekrevingsbrev for vedtak:${vedtak.id} er ikke et tilbakekrevingsbrev!" }
+                                brevRequest.erstattBruttoMedNettoFeilutbetaling(tilbakekrevingsvedtak.netto())
+                            },
+                        )
                     },
                 )
 
