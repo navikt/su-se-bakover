@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.web.routes.revurdering.forhåndsvarsel.forhåndsvarslingRoute
 import no.nav.su.se.bakover.web.routes.sak.sakPath
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.flyktningVilkårRoutes
 import no.nav.su.se.bakover.web.routes.vilkår.lovligopphold.leggTilLovligOppholdRoute
 import java.time.Clock
 
@@ -56,4 +57,6 @@ internal fun Route.revurderingRoutes(
     pensjonsVilkårRoutes(revurderingService, satsFactory)
 
     leggTilLovligOppholdRoute(revurderingService, satsFactory)
+
+    flyktningVilkårRoutes(revurderingService, satsFactory)
 }

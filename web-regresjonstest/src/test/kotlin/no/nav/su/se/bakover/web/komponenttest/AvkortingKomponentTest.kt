@@ -67,11 +67,13 @@ class AvkortingKomponentTest {
             // Sjekk at Revurderingen førte til Opphør med Avkorting
             appComponents.databaseRepos.avkortingsvarselRepo.hentUtestående(sakId) shouldBe beOfType<Avkortingsvarsel.Utenlandsopphold.SkalAvkortes>()
 
-            opprettInnvilgetSøknadsbehandling(
+            val søknadsbehandlingMedAvkortingId = opprettInnvilgetSøknadsbehandling(
                 fnr = fnr,
                 fraOgMed = nyBehandlingStartDato.toString(),
                 tilOgMed = nyBehandlingSluttDato.toString(),
-            )
+            ).let {
+                BehandlingJson.hentBehandlingId(it)
+            }
 
             val saken = appComponents.services.sak.hentSak(sakId = sakId).getOrFail()
 
@@ -116,7 +118,7 @@ class AvkortingKomponentTest {
             }
 
             // Sjekk at den nye behandlingen bruker opp det som ligger til avkorting
-            saken.søknadsbehandlinger.last().grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.fradragsgrunnlag.filter {
+            saken.søknadsbehandlinger.single { it.id == UUID.fromString(søknadsbehandlingMedAvkortingId) }.grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.fradragsgrunnlag.filter {
                 it.fradragstype == Fradragstype.AvkortingUtenlandsopphold
             }.size shouldBe 1
 

@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.minAndMaxOf
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.FastOppholdINorgeGrunnlag.Companion.equals
-import no.nav.su.se.bakover.domain.grunnlag.FlyktningGrunnlag.Companion.equals
 import no.nav.su.se.bakover.domain.grunnlag.InstitusjonsoppholdGrunnlag.Companion.equals
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFastOppholdINorge.Companion.equals
@@ -49,7 +48,7 @@ sealed class Vilkårsvurderinger {
     fun flyktningVilkår(): Either<VilkårEksistererIkke, FlyktningVilkår> {
         return when (this) {
             is Revurdering.Alder -> VilkårEksistererIkke.left()
-            is Revurdering.Uføre -> VilkårEksistererIkke.left()
+            is Revurdering.Uføre -> flyktning.right()
             is Søknadsbehandling.Alder -> VilkårEksistererIkke.left()
             is Søknadsbehandling.Uføre -> flyktning.right()
         }
@@ -254,6 +253,7 @@ sealed class Vilkårsvurderinger {
                     formue = formue,
                     utenlandsopphold = utenlandsopphold,
                     opplysningsplikt = opplysningsplikt,
+                    flyktning = flyktning,
                 )
             }
 
@@ -287,9 +287,6 @@ sealed class Vilkårsvurderinger {
             ): Uføre {
                 return behandlingsinformasjon.vilkår.mapNotNull {
                     when (it) {
-                        is Behandlingsinformasjon.Flyktning -> {
-                            it.tilVilkår(stønadsperiode, clock)
-                        }
                         is Behandlingsinformasjon.FastOppholdINorge -> {
                             it.tilVilkår(stønadsperiode, clock)
                         }
@@ -408,9 +405,6 @@ sealed class Vilkårsvurderinger {
             ): Alder {
                 return behandlingsinformasjon.vilkår.mapNotNull {
                     when (it) {
-                        is Behandlingsinformasjon.Flyktning -> {
-                            null // TODO("vilkårsvurdering_alder tålererer dette inntil vi har fått denne ut av behandlingsinformasjon")
-                        }
                         is Behandlingsinformasjon.FastOppholdINorge -> {
                             it.tilVilkår(stønadsperiode, clock)
                         }
@@ -494,6 +488,7 @@ sealed class Vilkårsvurderinger {
             override val formue: FormueVilkår,
             override val utenlandsopphold: UtenlandsoppholdVilkår,
             override val opplysningsplikt: OpplysningspliktVilkår,
+            val flyktning: FlyktningVilkår,
         ) : Revurdering() {
 
             override val vilkår: Set<Vilkår> = setOf(
@@ -502,6 +497,7 @@ sealed class Vilkårsvurderinger {
                 utenlandsopphold,
                 opplysningsplikt,
                 lovligOpphold,
+                flyktning,
             )
 
             init {
@@ -515,8 +511,8 @@ sealed class Vilkårsvurderinger {
                     is UtenlandsoppholdVilkår -> copy(utenlandsopphold = vilkår)
                     is OpplysningspliktVilkår -> copy(opplysningsplikt = vilkår)
                     is LovligOppholdVilkår -> copy(lovligOpphold = vilkår)
+                    is FlyktningVilkår -> copy(flyktning = vilkår)
                     is FastOppholdINorgeVilkår,
-                    is FlyktningVilkår,
                     is InstitusjonsoppholdVilkår,
                     is PersonligOppmøteVilkår,
                     -> {
@@ -543,7 +539,7 @@ sealed class Vilkårsvurderinger {
                     lovligOpphold = lovligOpphold,
                     institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
                     personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
-                    flyktning = FlyktningVilkår.IkkeVurdert,
+                    flyktning = flyktning,
                     fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
                 )
             }
@@ -567,6 +563,7 @@ sealed class Vilkårsvurderinger {
                     formue = formue.lagTidslinje(periode),
                     utenlandsopphold = utenlandsopphold.lagTidslinje(periode),
                     opplysningsplikt = opplysningsplikt.lagTidslinje(periode),
+                    flyktning = flyktning.lagTidslinje(periode),
                 )
             }
 
@@ -579,6 +576,7 @@ sealed class Vilkårsvurderinger {
                 formue = formue.oppdaterStønadsperiode(stønadsperiode, formuegrenserFactory),
                 utenlandsopphold = utenlandsopphold.oppdaterStønadsperiode(stønadsperiode),
                 opplysningsplikt = opplysningsplikt.oppdaterStønadsperiode(stønadsperiode),
+                flyktning = flyktning.oppdaterStønadsperiode(stønadsperiode),
             )
 
             companion object {
@@ -588,6 +586,7 @@ sealed class Vilkårsvurderinger {
                     formue = FormueVilkår.IkkeVurdert,
                     utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
                     opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
+                    flyktning = FlyktningVilkår.IkkeVurdert,
                 )
             }
         }

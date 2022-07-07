@@ -24,7 +24,7 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
-import no.nav.su.se.bakover.domain.behandling.withAvslåttFlyktning
+import no.nav.su.se.bakover.domain.behandling.withAvslåttPersonligOppmøte
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
@@ -75,6 +75,7 @@ import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulerNyUtbetaling
 import no.nav.su.se.bakover.test.simulertUtbetalingOpphør
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
+import no.nav.su.se.bakover.test.vilkår.flyktningVilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.formuevilkårAvslåttPgrBrukersformue
 import no.nav.su.se.bakover.test.vilkår.innvilgetFormueVilkår
 import no.nav.su.se.bakover.test.vilkår.lovligOppholdVilkårInnvilget
@@ -94,7 +95,7 @@ internal class LagBrevRequestVisitorTest {
     @Test
     fun `responderer med feil dersom vi ikke får til å hente person`() {
         vilkårsvurdertInnvilget.leggTilVilkårFraBehandlingsinformasjon(
-            Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(),
+            Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttPersonligOppmøte(),
             clock = fixedClock,
         ).getOrFail().let { søknadsbehandling ->
             LagBrevRequestVisitor(
@@ -410,7 +411,7 @@ internal class LagBrevRequestVisitorTest {
     fun `lager request for avslag til attestering uten beregning`() {
         (
             vilkårsvurdertInnvilget.leggTilVilkårFraBehandlingsinformasjon(
-                behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(),
+                behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttPersonligOppmøte(),
                 clock = fixedClock,
             ).getOrFail() as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
@@ -427,7 +428,7 @@ internal class LagBrevRequestVisitorTest {
                         person = person,
                         avslag = Avslag(
                             opprettet = fixedTidspunkt,
-                            avslagsgrunner = listOf(Avslagsgrunn.FLYKTNING),
+                            avslagsgrunner = listOf(Avslagsgrunn.PERSONLIG_OPPMØTE),
                             harEktefelle = false,
                             beregning = null,
                             formuegrunnlag = null,
@@ -547,7 +548,7 @@ internal class LagBrevRequestVisitorTest {
     fun `lager request for underkjent avslag uten beregning`() {
         (
             vilkårsvurdertInnvilget.leggTilVilkårFraBehandlingsinformasjon(
-                behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(),
+                behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttPersonligOppmøte(),
                 clock = fixedClock,
             ).getOrFail() as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
@@ -572,7 +573,7 @@ internal class LagBrevRequestVisitorTest {
                         person = person,
                         avslag = Avslag(
                             opprettet = fixedTidspunkt,
-                            avslagsgrunner = listOf(Avslagsgrunn.FLYKTNING),
+                            avslagsgrunner = listOf(Avslagsgrunn.PERSONLIG_OPPMØTE),
                             harEktefelle = false,
                             beregning = null,
                             formuegrunnlag = null,
@@ -709,7 +710,7 @@ internal class LagBrevRequestVisitorTest {
     fun `lager request for iverksatt avslag uten beregning`() {
         (
             vilkårsvurdertInnvilget.leggTilVilkårFraBehandlingsinformasjon(
-                behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(),
+                behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttPersonligOppmøte(),
                 clock = fixedClock,
             ).getOrFail() as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
@@ -729,7 +730,7 @@ internal class LagBrevRequestVisitorTest {
                         person = person,
                         avslag = Avslag(
                             opprettet = fixedTidspunkt,
-                            avslagsgrunner = listOf(Avslagsgrunn.FLYKTNING),
+                            avslagsgrunner = listOf(Avslagsgrunn.PERSONLIG_OPPMØTE),
                             harEktefelle = false,
                             beregning = null,
                             formuegrunnlag = null,
@@ -975,7 +976,7 @@ internal class LagBrevRequestVisitorTest {
     fun `lager request for vedtak om avslått stønad uten beregning`() {
         val søknadsbehandling = (
             vilkårsvurdertInnvilget.leggTilVilkårFraBehandlingsinformasjon(
-                behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(),
+                behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttPersonligOppmøte(),
                 clock = fixedClock,
             ).getOrFail() as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
@@ -1008,7 +1009,7 @@ internal class LagBrevRequestVisitorTest {
             person = person,
             avslag = Avslag(
                 opprettet = fixedTidspunkt,
-                avslagsgrunner = listOf(Avslagsgrunn.FLYKTNING),
+                avslagsgrunner = listOf(Avslagsgrunn.PERSONLIG_OPPMØTE),
                 harEktefelle = false,
                 beregning = null,
                 formuegrunnlag = null,
@@ -1255,6 +1256,7 @@ internal class LagBrevRequestVisitorTest {
                 utenlandsopphold = utenlandsoppholdInnvilget(periode = revurderingsperiode),
                 opplysningsplikt = tilstrekkeligDokumentert(periode = revurderingsperiode),
                 lovligOpphold = lovligOppholdVilkårInnvilget(),
+                flyktning = flyktningVilkårInnvilget(periode = revurderingsperiode),
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
