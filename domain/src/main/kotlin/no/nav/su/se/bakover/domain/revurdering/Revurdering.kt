@@ -1106,47 +1106,29 @@ sealed class SimulertRevurdering : Revurdering() {
     ): Either<Forhåndsvarsel.UgyldigTilstandsovergang, LagBrevRequest> {
         return forhåndsvarsel.prøvOvergangTilSendt() // brukes for å verifisere tilstanden på forhåndsvarsel, resultatet ignoreres
             .map {
-                if (lagForhåndsvarselForTilbakekreving()) {
-                    LagBrevRequest.ForhåndsvarselTilbakekreving(
-                        person = person,
-                        saksbehandlerNavn = saksbehandlerNavn,
-                        fritekst = fritekst,
-                        dagensDato = LocalDate.now(clock),
-                        saksnummer = saksnummer,
-                        bruttoTilbakekreving = simulering.hentFeilutbetalteBeløp().sum(),
-                        tilbakekreving = Tilbakekreving(simulering.hentFeilutbetalteBeløp().månedbeløp),
-                    )
-                } else {
-                    LagBrevRequest.Forhåndsvarsel(
-                        person = person,
-                        saksbehandlerNavn = saksbehandlerNavn,
-                        fritekst = fritekst,
-                        dagensDato = LocalDate.now(clock),
-                        saksnummer = saksnummer,
-                    )
-                }
+                tilbakekrevingsbehandling.skalTilbakekreve().fold(
+                    {
+                        LagBrevRequest.Forhåndsvarsel(
+                            person = person,
+                            saksbehandlerNavn = saksbehandlerNavn,
+                            fritekst = fritekst,
+                            dagensDato = LocalDate.now(clock),
+                            saksnummer = saksnummer,
+                        )
+                    },
+                    {
+                        LagBrevRequest.ForhåndsvarselTilbakekreving(
+                            person = person,
+                            saksbehandlerNavn = saksbehandlerNavn,
+                            fritekst = fritekst,
+                            dagensDato = LocalDate.now(clock),
+                            saksnummer = saksnummer,
+                            bruttoTilbakekreving = simulering.hentFeilutbetalteBeløp().sum(),
+                            tilbakekreving = Tilbakekreving(simulering.hentFeilutbetalteBeløp().månedbeløp),
+                        )
+                    },
+                )
             }
-    }
-
-    fun tilbakekrevingErVurdert(): Either<Unit, Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort> {
-        return tilbakekrevingsbehandling.tilbakekrevingErVurdert()
-    }
-
-    private fun lagForhåndsvarselForTilbakekreving(): Boolean {
-        return when (tilbakekrevingsbehandling) {
-            is Tilbakekrevingsbehandling.UnderBehandling.IkkeBehovForTilbakekreving -> {
-                false
-            }
-            is IkkeTilbakekrev -> {
-                false
-            }
-            is Tilbakekrev -> {
-                true
-            }
-            is IkkeAvgjort -> {
-                throw IllegalStateException("Må ta stilling til tilbakekreving før forhåndsvarsel kan sendes!")
-            }
-        }
     }
 
     abstract fun markerForhåndsvarselSomSendt(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, SimulertRevurdering>

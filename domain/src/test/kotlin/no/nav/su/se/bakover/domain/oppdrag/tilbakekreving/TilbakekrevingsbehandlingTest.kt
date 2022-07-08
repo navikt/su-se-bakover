@@ -1,8 +1,10 @@
 package no.nav.su.se.bakover.domain.oppdrag.tilbakekreving
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.mai
+import no.nav.su.se.bakover.domain.Beløp
+import no.nav.su.se.bakover.domain.MånedBeløp
+import no.nav.su.se.bakover.domain.Månedsbeløp
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
@@ -74,7 +76,23 @@ internal class TilbakekrevingsbehandlingTest {
                     ),
                 ),
             ),
-        )
+        ).also {
+            it.brutto() shouldBe Månedsbeløp(
+                listOf(
+                    MånedBeløp(mai(2021), Beløp(12500)),
+                ),
+            )
+            it.netto() shouldBe Månedsbeløp(
+                listOf(
+                    MånedBeløp(mai(2021), Beløp(12500 - 4395)),
+                ),
+            )
+            it.skatt() shouldBe Månedsbeløp(
+                listOf(
+                    MånedBeløp(mai(2021), Beløp(4395)),
+                ),
+            )
+        }
     }
 
     @Test
@@ -205,6 +223,22 @@ internal class TilbakekrevingsbehandlingTest {
                     ),
                 ),
             ),
-        )
+        ).also {
+            it.brutto() shouldBe Månedsbeløp(
+                listOf(
+                    MånedBeløp(mai(2021), Beløp(0)),
+                ),
+            )
+            it.netto() shouldBe Månedsbeløp(
+                listOf(
+                    MånedBeløp(mai(2021), Beløp(0)),
+                ),
+            )
+            it.skatt() shouldBe Månedsbeløp(
+                listOf(
+                    MånedBeløp(mai(2021), Beløp(0)),
+                ),
+            )
+        }
     }
 }
