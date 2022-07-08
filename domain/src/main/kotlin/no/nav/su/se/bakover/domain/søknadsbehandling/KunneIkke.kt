@@ -95,6 +95,13 @@ sealed class KunneIkkeLeggeTilVilkår {
             val til: KClass<out Søknadsbehandling.Vilkårsvurdert>,
         ) : KunneIkkeLeggeTilFlyktningVilkår()
     }
+
+    sealed class KunneIkkeLeggeTilFastOppholdINorgeVilkår : KunneIkkeLeggeTilVilkår() {
+        data class UgyldigTilstand(
+            val fra: KClass<out Søknadsbehandling>,
+            val til: KClass<out Søknadsbehandling.Vilkårsvurdert>,
+        ) : KunneIkkeLeggeTilFastOppholdINorgeVilkår()
+    }
 }
 
 sealed class KunneIkkeLeggeTilGrunnlag {

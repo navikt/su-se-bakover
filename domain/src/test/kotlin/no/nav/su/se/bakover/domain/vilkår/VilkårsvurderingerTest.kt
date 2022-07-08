@@ -262,6 +262,7 @@ internal class VilkårsvurderingerTest {
                         it.opplysningsplikt,
                         it.lovligOpphold,
                         it.flyktning,
+                        it.fastOpphold,
                     ),
                 )
             }
@@ -316,6 +317,7 @@ internal class VilkårsvurderingerTest {
                             Avslagsgrunn.MANGLENDE_DOKUMENTASJON,
                             Avslagsgrunn.OPPHOLDSTILLATELSE,
                             Avslagsgrunn.FLYKTNING,
+                            Avslagsgrunn.BOR_OG_OPPHOLDER_SEG_I_NORGE
                         )
                         it.tidligsteDatoForAvslag shouldBe 1.januar(2021)
                     }
@@ -353,6 +355,7 @@ internal class VilkårsvurderingerTest {
                     OpplysningspliktVilkår.IkkeVurdert,
                     LovligOppholdVilkår.IkkeVurdert,
                     FlyktningVilkår.IkkeVurdert,
+                    FastOppholdINorgeVilkår.IkkeVurdert,
                 ),
             )
         }

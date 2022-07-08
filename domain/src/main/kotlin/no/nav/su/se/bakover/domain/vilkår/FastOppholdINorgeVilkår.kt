@@ -129,7 +129,6 @@ data class VurderingsperiodeFastOppholdINorge private constructor(
             opprettet = opprettet,
             vurdering = vurdering,
             periode = stønadsperiode.periode,
-            grunnlag = this.grunnlag?.oppdaterPeriode(stønadsperiode.periode),
         )
     }
 
@@ -167,10 +166,9 @@ data class VurderingsperiodeFastOppholdINorge private constructor(
             id: UUID = UUID.randomUUID(),
             opprettet: Tidspunkt,
             vurdering: Vurdering,
-            grunnlag: FastOppholdINorgeGrunnlag?,
             periode: Periode,
         ): VurderingsperiodeFastOppholdINorge {
-            return tryCreate(id, opprettet, vurdering, grunnlag, periode).getOrHandle {
+            return tryCreate(id, opprettet, vurdering, periode).getOrHandle {
                 throw IllegalArgumentException(it.toString())
             }
         }
@@ -179,20 +177,14 @@ data class VurderingsperiodeFastOppholdINorge private constructor(
             id: UUID = UUID.randomUUID(),
             opprettet: Tidspunkt,
             vurdering: Vurdering,
-            grunnlag: FastOppholdINorgeGrunnlag?,
             vurderingsperiode: Periode,
         ): Either<UgyldigVurderingsperiode, VurderingsperiodeFastOppholdINorge> {
-
-            grunnlag?.let {
-                if (vurderingsperiode != it.periode) return UgyldigVurderingsperiode.PeriodeForGrunnlagOgVurderingErForskjellig.left()
-            }
-
             return VurderingsperiodeFastOppholdINorge(
                 id = id,
                 opprettet = opprettet,
                 vurdering = vurdering,
-                grunnlag = grunnlag,
                 periode = vurderingsperiode,
+                grunnlag = null,
             ).right()
         }
     }

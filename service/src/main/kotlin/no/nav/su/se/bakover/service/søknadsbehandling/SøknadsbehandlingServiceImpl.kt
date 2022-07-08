@@ -85,11 +85,13 @@ import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
+import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeFastOppholdINorgeVilkår
 import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeTilFlyktningVilkår
 import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeTilPensjonsVilkår
 import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggetilLovligOppholdVilkår
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFamiliegjenforeningRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilFastOppholdINorgeRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFlyktningVilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilLovligOppholdRequest
@@ -800,6 +802,19 @@ internal class SøknadsbehandlingServiceImpl(
         return søknadsbehandling.leggTilFlyktningVilkår(request.vilkår, clock)
             .mapLeft {
                 KunneIkkeLeggeTilFlyktningVilkår.Søknadsbehandling(it)
+            }.map {
+                søknadsbehandlingRepo.lagre(it)
+                it
+            }
+    }
+
+    override fun leggTilFastOppholdINorgeVilkår(request: LeggTilFastOppholdINorgeRequest): Either<KunneIkkeLeggeFastOppholdINorgeVilkår, Søknadsbehandling.Vilkårsvurdert> {
+        val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
+            ?: return KunneIkkeLeggeFastOppholdINorgeVilkår.FantIkkeBehandling.left()
+
+        return søknadsbehandling.leggTilFastOppholdINorgeVilkår(request.vilkår, clock)
+            .mapLeft {
+                KunneIkkeLeggeFastOppholdINorgeVilkår.Søknadsbehandling(it)
             }.map {
                 søknadsbehandlingRepo.lagre(it)
                 it
