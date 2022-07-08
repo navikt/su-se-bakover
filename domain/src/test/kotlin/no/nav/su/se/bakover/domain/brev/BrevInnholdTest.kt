@@ -131,6 +131,7 @@ internal class BrevInnholdTest {
                 "saksbehandlerNavn": "Hei",
                 "attestantNavn": "Hopp",
                 "fritekst": "",
+                "erAldersbrev": false,
                 "harAvkorting": false,
                 "satsoversikt": {
                   "perioder": [
@@ -168,6 +169,7 @@ internal class BrevInnholdTest {
                   "etternavn": "Strømøy",
                   "saksnummer": 2021
               },
+              "erAldersbrev": false,
               "datoSøknadOpprettet": "01.01.2020",
               "trukketDato": "01.02.2020",
               "saksbehandlerNavn": "saksbehandler"
@@ -245,6 +247,7 @@ internal class BrevInnholdTest {
                 "saksbehandlerNavn": "Hei",
                 "attestantNavn": "Hopp",
                 "fritekst": "",
+                "erAldersbrev": false,
                 "opphørsgrunner" : ["FOR_HØY_INNTEKT"],
                 "avslagsparagrafer" : [1],
                 "forventetInntektStørreEnn0" : false,
@@ -288,6 +291,7 @@ internal class BrevInnholdTest {
                     "etternavn": "Strømøy",
                     "saksnummer": 12345676
                 },
+                "erAldersbrev": false,
                 "saksbehandlerNavn": "saks",
                 "fritekst": "fri",
             }
@@ -317,6 +321,7 @@ internal class BrevInnholdTest {
                     "etternavn": "Strømøy",
                     "saksnummer": 12345676
                 },
+                "erAldersbrev": false,
                 "saksbehandlerNavn": "saks",
                 "fritekst": "fri",
                 "bruttoTilbakekreving":"5${nbsp}000${nbsp}000",

@@ -12,7 +12,8 @@ import no.nav.su.se.bakover.web.søknadsbehandling.beregning.beregn
 import no.nav.su.se.bakover.web.søknadsbehandling.bosituasjon.fullførBosituasjon
 import no.nav.su.se.bakover.web.søknadsbehandling.bosituasjon.taStillingTilEps
 import no.nav.su.se.bakover.web.søknadsbehandling.fastopphold.leggTilFastOppholdINorge
-import no.nav.su.se.bakover.web.søknadsbehandling.flyktning.leggTilFlyktningstatus
+import no.nav.su.se.bakover.web.søknadsbehandling.flyktning.innvilgetFlyktningVilkårJson
+import no.nav.su.se.bakover.web.søknadsbehandling.flyktning.leggTilFlyktningVilkår
 import no.nav.su.se.bakover.web.søknadsbehandling.formue.leggTilFormue
 import no.nav.su.se.bakover.web.søknadsbehandling.iverksett.iverksett
 import no.nav.su.se.bakover.web.søknadsbehandling.ny.nySøknadsbehandling
@@ -81,9 +82,10 @@ internal fun ApplicationTestBuilder.opprettInnvilgetSøknadsbehandling(
         fraOgMed = fraOgMed,
         tilOgMed = tilOgMed,
     )
-    leggTilFlyktningstatus(
+    leggTilFlyktningVilkår(
         sakId = sakId,
         behandlingId = behandlingId,
+        body = { innvilgetFlyktningVilkårJson(fraOgMed, tilOgMed) },
     )
     leggTilLovligOppholdINorge(
         sakId = sakId,

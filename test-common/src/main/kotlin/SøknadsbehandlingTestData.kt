@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.FamiliegjenforeningVilkår
 import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
+import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
@@ -1182,6 +1183,11 @@ fun vilkårsvurdertSøknadsbehandling(
                     .getOrFail()
                     .leggTilUførevilkår(
                         uførhet = customVilkår.customOrDefault { vilkår.uføre as UføreVilkår.Vurdert },
+                        clock = clock,
+                    )
+                    .getOrFail()
+                    .leggTilFlyktningVilkår(
+                        vilkår = customVilkår.customOrDefault { vilkår.flyktning as FlyktningVilkår.Vurdert },
                         clock = clock,
                     )
                     .getOrFail()

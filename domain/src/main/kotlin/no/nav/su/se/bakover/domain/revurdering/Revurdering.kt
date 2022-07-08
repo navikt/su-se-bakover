@@ -50,6 +50,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
+import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.Inngangsvilkår
 import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
@@ -173,6 +174,10 @@ sealed class Revurdering :
         return KunneIkkeLeggeTilPensjonsVilkår.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
     }
 
+    open fun oppdaterFlyktningvilkårOgMarkerSomVurdert(vilkår: FlyktningVilkår.Vurdert): Either<KunneIkkeLeggeTilFlyktningVilkår, OpprettetRevurdering> {
+        return KunneIkkeLeggeTilFlyktningVilkår.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
+    }
+
     open fun oppdaterLovligOppholdOgMarkerSomVurdert(lovligOppholdVilkår: LovligOppholdVilkår.Vurdert): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilLovligOpphold, OpprettetRevurdering> {
         return KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilLovligOpphold.UgyldigTilstand.Revurdering(
             this::class,
@@ -199,6 +204,16 @@ sealed class Revurdering :
         object VilkårKunRelevantForAlder : KunneIkkeLeggeTilPensjonsVilkår
     }
 
+    sealed interface KunneIkkeLeggeTilFlyktningVilkår {
+        data class UgyldigTilstand(
+            val fra: KClass<out Revurdering>,
+            val til: KClass<out Revurdering> = OpprettetRevurdering::class,
+        ) : KunneIkkeLeggeTilFlyktningVilkår
+
+        object HeleBehandlingsperiodenErIkkeVurdert : KunneIkkeLeggeTilFlyktningVilkår
+        object VilkårKunRelevantForUføre : KunneIkkeLeggeTilFlyktningVilkår
+    }
+
     private fun oppdaterOpplysnigspliktInternal(opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert): Either<KunneIkkeLeggeTilOpplysningsplikt, OpprettetRevurdering> {
         if (!periode.fullstendigOverlapp(opplysningspliktVilkår.minsteAntallSammenhengendePerioder())) {
             return KunneIkkeLeggeTilOpplysningsplikt.HeleBehandlingsperiodenErIkkeVurdert.left()
@@ -223,6 +238,21 @@ sealed class Revurdering :
         }
         if (Sakstype.ALDER != sakstype) {
             return KunneIkkeLeggeTilPensjonsVilkår.VilkårKunRelevantForAlder.left()
+        }
+        return oppdaterVilkårsvurderinger(vilkårsvurderinger = vilkårsvurderinger.leggTil(vilkår)).right()
+    }
+
+    protected fun oppdaterFlyktningVilkårOgMarkerSomVurdertInternal(vilkår: FlyktningVilkår.Vurdert): Either<KunneIkkeLeggeTilFlyktningVilkår, OpprettetRevurdering> {
+        return oppdaterFlyktningVilkårInternal(vilkår)
+            .map { it.oppdaterInformasjonSomRevurderes(informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Flyktning)) }
+    }
+
+    private fun oppdaterFlyktningVilkårInternal(vilkår: FlyktningVilkår.Vurdert): Either<KunneIkkeLeggeTilFlyktningVilkår, OpprettetRevurdering> {
+        if (!periode.fullstendigOverlapp(vilkår.perioder)) {
+            return KunneIkkeLeggeTilFlyktningVilkår.HeleBehandlingsperiodenErIkkeVurdert.left()
+        }
+        if (Sakstype.UFØRE != sakstype) {
+            return KunneIkkeLeggeTilFlyktningVilkår.VilkårKunRelevantForUføre.left()
         }
         return oppdaterVilkårsvurderinger(vilkårsvurderinger = vilkårsvurderinger.leggTil(vilkår)).right()
     }
@@ -656,6 +686,10 @@ data class OpprettetRevurdering(
         return oppdaterPensjonsVilkårOgMarkerSomVurdertInternal(vilkår)
     }
 
+    override fun oppdaterFlyktningvilkårOgMarkerSomVurdert(vilkår: FlyktningVilkår.Vurdert): Either<KunneIkkeLeggeTilFlyktningVilkår, OpprettetRevurdering> {
+        return oppdaterFlyktningVilkårOgMarkerSomVurdertInternal(vilkår)
+    }
+
     override fun oppdaterBosituasjonOgMarkerSomVurdert(bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>) =
         oppdaterBosituasjonOgMarkerSomVurdertInternal(bosituasjon)
 
@@ -720,6 +754,10 @@ sealed class BeregnetRevurdering : Revurdering() {
 
     override fun oppdaterPensjonsvilkårOgMarkerSomVurdert(vilkår: PensjonsVilkår.Vurdert): Either<KunneIkkeLeggeTilPensjonsVilkår, OpprettetRevurdering> {
         return oppdaterPensjonsVilkårOgMarkerSomVurdertInternal(vilkår)
+    }
+
+    override fun oppdaterFlyktningvilkårOgMarkerSomVurdert(vilkår: FlyktningVilkår.Vurdert): Either<KunneIkkeLeggeTilFlyktningVilkår, OpprettetRevurdering> {
+        return oppdaterFlyktningVilkårOgMarkerSomVurdertInternal(vilkår)
     }
 
     override fun oppdaterFradrag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradrag, OpprettetRevurdering> {
@@ -1175,6 +1213,10 @@ sealed class SimulertRevurdering : Revurdering() {
 
     override fun oppdaterPensjonsvilkårOgMarkerSomVurdert(vilkår: PensjonsVilkår.Vurdert): Either<KunneIkkeLeggeTilPensjonsVilkår, OpprettetRevurdering> {
         return oppdaterPensjonsVilkårOgMarkerSomVurdertInternal(vilkår)
+    }
+
+    override fun oppdaterFlyktningvilkårOgMarkerSomVurdert(vilkår: FlyktningVilkår.Vurdert): Either<KunneIkkeLeggeTilFlyktningVilkår, OpprettetRevurdering> {
+        return oppdaterFlyktningVilkårOgMarkerSomVurdertInternal(vilkår)
     }
 
     override fun oppdaterBosituasjonOgMarkerSomVurdert(bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>) =
@@ -1929,6 +1971,10 @@ sealed class UnderkjentRevurdering : Revurdering() {
         return oppdaterPensjonsVilkårOgMarkerSomVurdertInternal(vilkår)
     }
 
+    override fun oppdaterFlyktningvilkårOgMarkerSomVurdert(vilkår: FlyktningVilkår.Vurdert): Either<KunneIkkeLeggeTilFlyktningVilkår, OpprettetRevurdering> {
+        return oppdaterFlyktningVilkårOgMarkerSomVurdertInternal(vilkår)
+    }
+
     override fun oppdaterBosituasjonOgMarkerSomVurdert(bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>) =
         oppdaterBosituasjonOgMarkerSomVurdertInternal(bosituasjon)
 
@@ -2184,7 +2230,7 @@ enum class Vurderingstatus(val status: String) {
 
 enum class Revurderingsteg(val vilkår: String) {
     // BorOgOppholderSegINorge("BorOgOppholderSegINorge"),
-    // Flyktning("Flyktning"),
+    Flyktning("Flyktning"),
     Formue("Formue"),
 
     Oppholdstillatelse("Oppholdstillatelse"),

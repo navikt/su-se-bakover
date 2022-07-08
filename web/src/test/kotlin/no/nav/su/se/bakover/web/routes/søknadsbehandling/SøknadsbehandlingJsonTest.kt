@@ -28,9 +28,6 @@ internal class SøknadsbehandlingJsonTest {
             {
               "id": "${søknadsbehandling.id}",
               "behandlingsinformasjon": {
-                "flyktning": {
-                  "status": "VilkårOppfylt"
-                },                
                 "institusjonsopphold": {
                   "status": "VilkårOppfylt"
                 },
@@ -376,7 +373,19 @@ internal class SøknadsbehandlingJsonTest {
                 },
                 "pensjon": null,
                 "familiegjenforening": null,
-                "fastOpphold": {
+                "flyktning": {
+                  "vurderinger": [
+                    {
+                      "resultat": "VilkårOppfylt",
+                      "periode": {
+                        "fraOgMed": "2021-01-01",
+                        "tilOgMed": "2021-01-31"
+                      }
+                    }
+                  ],
+                  "resultat": "VilkårOppfylt"
+                },
+                  "fastOpphold": {
                   "vurderinger": [
                     {
                       "periode": {
@@ -387,7 +396,7 @@ internal class SøknadsbehandlingJsonTest {
                     }
                   ],
                   "resultat": "VilkårOppfylt"
-                }
+                }                
               },
               "erLukket": false,
               "simuleringForAvkortingsvarsel": null,
@@ -407,7 +416,6 @@ internal class SøknadsbehandlingJsonTest {
             {
               "id": "${søknadsbehandling.id}",
               "behandlingsinformasjon": {
-                "flyktning": null,
                 "institusjonsopphold": null,
                 "personligOppmøte": null
               },
@@ -588,6 +596,7 @@ internal class SøknadsbehandlingJsonTest {
                 },
                 "pensjon": null,
                 "familiegjenforening": null,
+                "flyktning": null,
                 "fastOpphold": null
               },
               "erLukket": false,

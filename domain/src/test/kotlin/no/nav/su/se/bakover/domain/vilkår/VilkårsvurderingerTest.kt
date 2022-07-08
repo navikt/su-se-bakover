@@ -15,8 +15,7 @@ import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
-import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
-import no.nav.su.se.bakover.domain.behandling.withAvslåttFlyktning
+import no.nav.su.se.bakover.domain.behandling.withAvslåttPersonligOppmøte
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
@@ -110,7 +109,7 @@ internal class VilkårsvurderingerTest {
                             Avslagsgrunn.INNLAGT_PÅ_INSTITUSJON,
                             Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER,
                             Avslagsgrunn.PERSONLIG_OPPMØTE,
-                            Avslagsgrunn.MANGLENDE_DOKUMENTASJON
+                            Avslagsgrunn.MANGLENDE_DOKUMENTASJON,
                         )
                         it.tidligsteDatoForAvslag shouldBe 1.januar(2021)
                     }
@@ -126,25 +125,6 @@ internal class VilkårsvurderingerTest {
         }
 
         @Test
-        fun `et vilkår uavklart gir uavklart`() {
-            vilkårsvurderingerSøknadsbehandlingInnvilget(
-                behandlingsinformasjon = Behandlingsinformasjon().withAlleVilkårOppfylt().patch(
-                    Behandlingsinformasjon(
-                        flyktning = Behandlingsinformasjon.Flyktning(
-                            status = Behandlingsinformasjon.Flyktning.Status.Uavklart,
-                        ),
-                    ),
-                ),
-            ).let {
-                it.vurdering shouldBe Vilkårsvurderingsresultat.Uavklart(
-                    setOf(
-                        FlyktningVilkår.IkkeVurdert,
-                    ),
-                )
-            }
-        }
-
-        @Test
         fun `ingen vurderingsperioder gir uavklart vilkår`() {
             vilkårsvurderingSøknadsbehandlingIkkeVurdert().vurdering shouldBe Vilkårsvurderingsresultat.Uavklart(
                 setOf(
@@ -156,7 +136,7 @@ internal class VilkårsvurderingerTest {
                     InstitusjonsoppholdVilkår.IkkeVurdert,
                     UtenlandsoppholdVilkår.IkkeVurdert,
                     PersonligOppmøteVilkår.IkkeVurdert,
-                    OpplysningspliktVilkår.IkkeVurdert
+                    OpplysningspliktVilkår.IkkeVurdert,
                 ),
             )
         }
@@ -169,7 +149,10 @@ internal class VilkårsvurderingerTest {
             vilkårsvurderingerSøknadsbehandlingInnvilget(periode = gammel)
                 .let {
                     it.periode shouldBe gammel
-                    it.oppdaterStønadsperiode(Stønadsperiode.create(ny), formuegrenserFactoryTestPåDato()).periode shouldBe ny
+                    it.oppdaterStønadsperiode(
+                        Stønadsperiode.create(ny),
+                        formuegrenserFactoryTestPåDato(),
+                    ).periode shouldBe ny
                 }
         }
 
@@ -209,11 +192,11 @@ internal class VilkårsvurderingerTest {
 
             innvilget.oppdater(
                 stønadsperiode = Stønadsperiode.create(år(2021)),
-                behandlingsinformasjon = Behandlingsinformasjon().withAvslåttFlyktning(),
+                behandlingsinformasjon = Behandlingsinformasjon().withAvslåttPersonligOppmøte(),
                 clock = fixedClock,
             ).let {
                 it.vurdering shouldBe Vilkårsvurderingsresultat.Avslag(
-                    vilkår = setOf(it.flyktning),
+                    vilkår = setOf(it.personligOppmøte),
                 )
             }
         }
@@ -246,7 +229,7 @@ internal class VilkårsvurderingerTest {
                 InstitusjonsoppholdVilkår.IkkeVurdert,
                 UtenlandsoppholdVilkår.IkkeVurdert,
                 PersonligOppmøteVilkår.IkkeVurdert,
-                OpplysningspliktVilkår.IkkeVurdert
+                OpplysningspliktVilkår.IkkeVurdert,
             )
 
             val uavklartUtenUføreIgjen = uavklartMedUføre.leggTil(uavklart.uføre)
@@ -260,7 +243,7 @@ internal class VilkårsvurderingerTest {
                 InstitusjonsoppholdVilkår.IkkeVurdert,
                 UtenlandsoppholdVilkår.IkkeVurdert,
                 PersonligOppmøteVilkår.IkkeVurdert,
-                OpplysningspliktVilkår.IkkeVurdert
+                OpplysningspliktVilkår.IkkeVurdert,
             )
         }
     }
@@ -278,6 +261,7 @@ internal class VilkårsvurderingerTest {
                         it.utenlandsopphold,
                         it.opplysningsplikt,
                         it.lovligOpphold,
+                        it.flyktning,
                         it.fastOpphold,
                     ),
                 )
@@ -332,6 +316,7 @@ internal class VilkårsvurderingerTest {
                             Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER,
                             Avslagsgrunn.MANGLENDE_DOKUMENTASJON,
                             Avslagsgrunn.OPPHOLDSTILLATELSE,
+                            Avslagsgrunn.FLYKTNING,
                             Avslagsgrunn.BOR_OG_OPPHOLDER_SEG_I_NORGE
                         )
                         it.tidligsteDatoForAvslag shouldBe 1.januar(2021)
@@ -369,6 +354,7 @@ internal class VilkårsvurderingerTest {
                     UtenlandsoppholdVilkår.IkkeVurdert,
                     OpplysningspliktVilkår.IkkeVurdert,
                     LovligOppholdVilkår.IkkeVurdert,
+                    FlyktningVilkår.IkkeVurdert,
                     FastOppholdINorgeVilkår.IkkeVurdert,
                 ),
             )
@@ -382,7 +368,10 @@ internal class VilkårsvurderingerTest {
             vilkårsvurderingerRevurderingInnvilget(periode = gammel)
                 .let {
                     it.periode shouldBe gammel
-                    it.oppdaterStønadsperiode(Stønadsperiode.create(ny), formuegrenserFactoryTestPåDato()).periode shouldBe ny
+                    it.oppdaterStønadsperiode(
+                        Stønadsperiode.create(ny),
+                        formuegrenserFactoryTestPåDato(),
+                    ).periode shouldBe ny
                 }
         }
 

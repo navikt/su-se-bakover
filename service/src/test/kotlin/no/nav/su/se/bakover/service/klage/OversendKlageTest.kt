@@ -300,7 +300,7 @@ internal class OversendKlageTest {
                         opprettet = it.opprettet,
                         tittel = "Oversendelsesbrev til klager",
                         generertDokument = pdfAsBytes,
-                        generertDokumentJson = "{\"personalia\":{\"dato\":\"01.01.2021\",\"fødselsnummer\":\"${sak.fnr}\",\"fornavn\":\"Tore\",\"etternavn\":\"Strømøy\",\"saksnummer\":12345676},\"saksbehandlerNavn\":\"Some name\",\"fritekst\":\"fritekstTilBrev\",\"klageDato\":\"01.12.2021\",\"vedtakDato\":\"01.01.2021\",\"saksnummer\":12345676}",
+                        generertDokumentJson = "{\"personalia\":{\"dato\":\"01.01.2021\",\"fødselsnummer\":\"${sak.fnr}\",\"fornavn\":\"Tore\",\"etternavn\":\"Strømøy\",\"saksnummer\":12345676},\"saksbehandlerNavn\":\"Some name\",\"fritekst\":\"fritekstTilBrev\",\"klageDato\":\"01.12.2021\",\"vedtakDato\":\"01.01.2021\",\"saksnummer\":12345676,\"erAldersbrev\":false}",
                     ),
                     metadata = Dokument.Metadata(
                         sakId = sak.id,
@@ -537,7 +537,7 @@ internal class OversendKlageTest {
                         opprettet = it.opprettet,
                         tittel = "Oversendelsesbrev til klager",
                         generertDokument = pdfAsBytes,
-                        generertDokumentJson = "{\"personalia\":{\"dato\":\"01.01.2021\",\"fødselsnummer\":\"${sak.fnr}\",\"fornavn\":\"Tore\",\"etternavn\":\"Strømøy\",\"saksnummer\":12345676},\"saksbehandlerNavn\":\"Some name\",\"fritekst\":\"fritekstTilBrev\",\"klageDato\":\"01.12.2021\",\"vedtakDato\":\"01.01.2021\",\"saksnummer\":12345676}",
+                        generertDokumentJson = "{\"personalia\":{\"dato\":\"01.01.2021\",\"fødselsnummer\":\"${sak.fnr}\",\"fornavn\":\"Tore\",\"etternavn\":\"Strømøy\",\"saksnummer\":12345676},\"saksbehandlerNavn\":\"Some name\",\"fritekst\":\"fritekstTilBrev\",\"klageDato\":\"01.12.2021\",\"vedtakDato\":\"01.01.2021\",\"saksnummer\":12345676,\"erAldersbrev\":false}",
                     ),
                     metadata = Dokument.Metadata(
                         sakId = sak.id,

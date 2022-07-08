@@ -57,6 +57,7 @@ class AvslagsBrevInnholdTest {
                   "saksnummer": 2021
               },
               "avslagsgrunner": ["FLYKTNING"],
+              "erAldersbrev": false,
               "harFlereAvslagsgrunner": false,
               "halvGrunnbeløp": 10,
               "harEktefelle": false,
@@ -146,6 +147,7 @@ class AvslagsBrevInnholdTest {
                   "saksnummer": 2021
               },
               "avslagsgrunner": ["FORMUE"],
+              "erAldersbrev": false,
               "harFlereAvslagsgrunner": false,
               "halvGrunnbeløp": 10,
               "harEktefelle": false,
@@ -223,6 +225,7 @@ class AvslagsBrevInnholdTest {
                   "saksnummer": 2021
               },
               "avslagsgrunner": ["FORMUE"],
+              "erAldersbrev": false,
               "harFlereAvslagsgrunner": false,
               "halvGrunnbeløp": 10,
               "harEktefelle": false,

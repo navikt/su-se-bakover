@@ -3,10 +3,8 @@ package no.nav.su.se.bakover.domain.behandling
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
-import no.nav.su.se.bakover.domain.grunnlag.FlyktningGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.InstitusjonsoppholdGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.PersonligOppmøteGrunnlag
-import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurdering
@@ -17,56 +15,6 @@ import org.junit.jupiter.api.Test
 import java.util.UUID
 
 class BehandlingsinformasjonTilVilkårTest {
-
-    @Test
-    fun `konverterer flyktning til vilkår`() {
-        Behandlingsinformasjon.Flyktning(
-            status = Behandlingsinformasjon.Flyktning.Status.Uavklart,
-        ).tilVilkår(
-            stønadsperiode = stønadsperiode2021,
-            clock = fixedClock,
-        ) shouldBe FlyktningVilkår.IkkeVurdert
-
-        Behandlingsinformasjon.Flyktning(
-            status = Behandlingsinformasjon.Flyktning.Status.VilkårOppfylt,
-        ).tilVilkår(
-            stønadsperiode = stønadsperiode2021,
-            clock = fixedClock,
-        ).let { vilkår ->
-            vilkår shouldBe beOfType<FlyktningVilkår.Vurdert>()
-            (vilkår as FlyktningVilkår.Vurdert).let {
-                it.vurdering shouldBe Vurdering.Innvilget
-                it.grunnlag.single().shouldBeEqualToIgnoringFields(
-                    FlyktningGrunnlag(
-                        id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
-                        periode = stønadsperiode2021.periode,
-                    ),
-                    FlyktningGrunnlag::id,
-                )
-            }
-        }
-
-        Behandlingsinformasjon.Flyktning(
-            status = Behandlingsinformasjon.Flyktning.Status.VilkårIkkeOppfylt,
-        ).tilVilkår(
-            stønadsperiode = stønadsperiode2021,
-            clock = fixedClock,
-        ).let { vilkår ->
-            vilkår shouldBe beOfType<FlyktningVilkår.Vurdert>()
-            (vilkår as FlyktningVilkår.Vurdert).let {
-                it.vurdering shouldBe Vurdering.Avslag
-                it.grunnlag.single().shouldBeEqualToIgnoringFields(
-                    FlyktningGrunnlag(
-                        id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
-                        periode = stønadsperiode2021.periode,
-                    ),
-                    FlyktningGrunnlag::id,
-                )
-            }
-        }
-    }
 
     @Test
     fun `konverterer institusjonsopphold til vilkår`() {

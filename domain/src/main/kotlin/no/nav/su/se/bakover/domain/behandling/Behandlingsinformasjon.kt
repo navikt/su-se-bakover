@@ -4,28 +4,23 @@ import arrow.core.getOrHandle
 import arrow.core.nonEmptyListOf
 import com.fasterxml.jackson.annotation.JsonIgnore
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.domain.grunnlag.FlyktningGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.InstitusjonsoppholdGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.PersonligOppmøteGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
-import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurdering
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFlyktning
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeInstitusjonsopphold
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodePersonligOppmøte
 import java.time.Clock
 import java.util.UUID
 
 data class Behandlingsinformasjon(
-    val flyktning: Flyktning? = null,
     val institusjonsopphold: Institusjonsopphold? = null,
     val personligOppmøte: PersonligOppmøte? = null,
 ) {
     @JsonIgnore
     val vilkår = listOf(
-        flyktning,
         institusjonsopphold,
         personligOppmøte,
     )
@@ -33,7 +28,6 @@ data class Behandlingsinformasjon(
     fun patch(
         b: Behandlingsinformasjon,
     ) = Behandlingsinformasjon(
-        flyktning = b.flyktning ?: this.flyktning,
         institusjonsopphold = b.institusjonsopphold ?: this.institusjonsopphold,
         personligOppmøte = b.personligOppmøte ?: this.personligOppmøte,
     )
@@ -41,56 +35,6 @@ data class Behandlingsinformasjon(
     abstract class Base {
         abstract fun erVilkårOppfylt(): Boolean
         abstract fun erVilkårIkkeOppfylt(): Boolean
-    }
-
-    data class Flyktning(
-        val status: Status,
-    ) : Base() {
-        enum class Status {
-            VilkårOppfylt,
-            VilkårIkkeOppfylt,
-            Uavklart
-        }
-
-        override fun erVilkårOppfylt(): Boolean = status == Status.VilkårOppfylt
-        override fun erVilkårIkkeOppfylt(): Boolean = status == Status.VilkårIkkeOppfylt
-
-        fun tilVilkår(
-            stønadsperiode: Stønadsperiode,
-            clock: Clock,
-        ): FlyktningVilkår {
-            return when (status) {
-                Status.VilkårOppfylt,
-                Status.VilkårIkkeOppfylt,
-                -> {
-                    FlyktningVilkår.Vurdert.tryCreate(
-                        vurderingsperioder = nonEmptyListOf(
-                            VurderingsperiodeFlyktning.tryCreate(
-                                id = UUID.randomUUID(),
-                                opprettet = Tidspunkt.now(clock),
-                                vurdering = when (erVilkårOppfylt()) {
-                                    true -> Vurdering.Innvilget
-                                    false -> Vurdering.Avslag
-                                },
-                                grunnlag = FlyktningGrunnlag.tryCreate(
-                                    id = UUID.randomUUID(),
-                                    opprettet = Tidspunkt.now(clock),
-                                    periode = stønadsperiode.periode,
-                                ).getOrHandle {
-                                    throw IllegalArgumentException("Kunne ikke instansiere ${FlyktningGrunnlag::class.simpleName}. Melding: $it")
-                                },
-                                vurderingsperiode = stønadsperiode.periode,
-                            ).getOrHandle {
-                                throw IllegalArgumentException("Kunne ikke instansiere ${VurderingsperiodeFlyktning::class.simpleName}. Melding: $it")
-                            },
-                        ),
-                    ).getOrHandle {
-                        throw IllegalArgumentException("Kunne ikke instansiere ${FlyktningVilkår.Vurdert::class.simpleName}. Melding: $it")
-                    }
-                }
-                Status.Uavklart -> FlyktningVilkår.IkkeVurdert
-            }
-        }
     }
 
     data class Institusjonsopphold(
@@ -211,7 +155,6 @@ data class Behandlingsinformasjon(
 
     companion object {
         fun lagTomBehandlingsinformasjon() = Behandlingsinformasjon(
-            flyktning = null,
             institusjonsopphold = null,
             personligOppmøte = null,
         )

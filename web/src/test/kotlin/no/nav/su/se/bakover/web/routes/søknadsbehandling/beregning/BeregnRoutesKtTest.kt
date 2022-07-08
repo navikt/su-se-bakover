@@ -41,6 +41,7 @@ import no.nav.su.se.bakover.service.vilkår.BosituasjonValg
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFastOppholdINorgeRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilFlyktningVilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilLovligOppholdRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
@@ -56,6 +57,7 @@ import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.vilkår.fastOppholdVilkårInnvilget
+import no.nav.su.se.bakover.test.vilkår.flyktningVilkårInnvilget
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.applicationConfig
 import no.nav.su.se.bakover.web.dbMetricsStub
@@ -335,6 +337,12 @@ internal class BeregnRoutesKtTest {
                     ),
                 ),
             ),
+        )
+        services.søknadsbehandling.leggTilFlyktningVilkår(
+            request = LeggTilFlyktningVilkårRequest(
+                behandlingId = objects.søknadsbehandling.id,
+                vilkår = flyktningVilkårInnvilget(periode = objects.søknadsbehandling.periode)
+            )
         )
         services.søknadsbehandling.leggTilFastOppholdINorgeVilkår(
             request = LeggTilFastOppholdINorgeRequest(

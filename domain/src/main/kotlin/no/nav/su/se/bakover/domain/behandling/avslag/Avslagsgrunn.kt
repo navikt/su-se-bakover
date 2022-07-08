@@ -18,7 +18,10 @@ enum class Avslagsgrunn {
     INNLAGT_PÅ_INSTITUSJON,
     MANGLENDE_DOKUMENTASJON,
     SØKNAD_MANGLER_DOKUMENTASJON,
-    PENSJON,
+    PENSJON, // TODO: Fjern denne fra listen, og rydd opp i basen i dev
+    MANGLER_VEDTAK_ALDERSPENSJON_FOLKETRYGDEN,
+    MANGLER_VEDTAK_ANDRE_NORSKE_PENSJONSORDNINGER,
+    MANGLER_VEDTAK_UTENLANDSKE_PENSJONSORDNINGER,
     FAMILIEGJENFORENING;
 
     companion object {
@@ -46,15 +49,18 @@ enum class Avslagsgrunn {
         UTENLANDSOPPHOLD_OVER_90_DAGER -> listOf(1, 2, 4)
         INNLAGT_PÅ_INSTITUSJON -> listOf(12)
         MANGLENDE_DOKUMENTASJON -> listOf(18)
+        PENSJON -> TODO("SKAL FJERNES")
         SØKNAD_MANGLER_DOKUMENTASJON -> listOf(18)
-        PENSJON -> listOf(3) // TODO("finn ut om denne er korrekt")
+        MANGLER_VEDTAK_ALDERSPENSJON_FOLKETRYGDEN -> listOf(3)
+        MANGLER_VEDTAK_ANDRE_NORSKE_PENSJONSORDNINGER -> listOf(3)
+        MANGLER_VEDTAK_UTENLANDSKE_PENSJONSORDNINGER -> listOf(3)
         FAMILIEGJENFORENING -> listOf(3)
     }
 
     fun tilOpphørsgrunn(): Opphørsgrunn {
         return when (this) {
             UFØRHET -> Opphørsgrunn.UFØRHET
-            FLYKTNING -> TODO()
+            FLYKTNING -> Opphørsgrunn.FLYKTNING
             OPPHOLDSTILLATELSE -> Opphørsgrunn.OPPHOLDSTILLATELSE
             PERSONLIG_OPPMØTE -> TODO()
             FORMUE -> Opphørsgrunn.FORMUE
@@ -65,8 +71,11 @@ enum class Avslagsgrunn {
             INNLAGT_PÅ_INSTITUSJON -> TODO()
             MANGLENDE_DOKUMENTASJON -> Opphørsgrunn.MANGLENDE_DOKUMENTASJON
             SØKNAD_MANGLER_DOKUMENTASJON -> TODO()
-            PENSJON -> TODO("Gjør det mulig å revurdere vilkåret + brev + etc")
             FAMILIEGJENFORENING -> TODO("legg inn opphørsgrunn når det skal revurderes")
+            PENSJON -> TODO("SKAL FJERNES")
+            MANGLER_VEDTAK_ALDERSPENSJON_FOLKETRYGDEN -> TODO("Gjør det mulig å revurdere vilkåret + brev + etc")
+            MANGLER_VEDTAK_ANDRE_NORSKE_PENSJONSORDNINGER -> TODO("Gjør det mulig å revurdere vilkåret + brev + etc")
+            MANGLER_VEDTAK_UTENLANDSKE_PENSJONSORDNINGER -> TODO("Gjør det mulig å revurdere vilkåret + brev + etc")
         }
     }
 }
@@ -83,6 +92,7 @@ enum class Opphørsgrunn {
     UTENLANDSOPPHOLD,
     MANGLENDE_DOKUMENTASJON,
     OPPHOLDSTILLATELSE,
+    FLYKTNING,
     BOR_OG_OPPHOLDER_SEG_I_NORGE;
 
     companion object {
@@ -98,7 +108,8 @@ enum class Opphørsgrunn {
         FORMUE -> listOf(8)
         UTENLANDSOPPHOLD -> listOf(1, 2, 4)
         MANGLENDE_DOKUMENTASJON -> listOf(18)
-        OPPHOLDSTILLATELSE -> TODO("Revurdering av oppholdstillatelse er ikke mulig enda")
+        OPPHOLDSTILLATELSE -> listOf(3)
+        FLYKTNING -> listOf(3)
         BOR_OG_OPPHOLDER_SEG_I_NORGE -> listOf(1, 2, 3, 4)
     }
 }

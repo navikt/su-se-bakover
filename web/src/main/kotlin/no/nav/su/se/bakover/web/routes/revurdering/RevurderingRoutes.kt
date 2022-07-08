@@ -57,5 +57,7 @@ internal fun Route.revurderingRoutes(
 
     leggTilLovligOppholdRoute(revurderingService, satsFactory)
 
+    flyktningVilkårRoutes(revurderingService, satsFactory)
+
     fastOppholdVilkårRoutes(revurderingService, satsFactory)
 }

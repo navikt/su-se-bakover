@@ -24,6 +24,8 @@ import no.nav.su.se.bakover.test.vilkår.familiegjenforeningVilkårAvslag
 import no.nav.su.se.bakover.test.vilkår.familiegjenforeningVilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.fastOppholdVilkårAvslag
 import no.nav.su.se.bakover.test.vilkår.fastOppholdVilkårInnvilget
+import no.nav.su.se.bakover.test.vilkår.flyktningVilkårAvslått
+import no.nav.su.se.bakover.test.vilkår.flyktningVilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.formuevilkårAvslåttPgrBrukersformue
 import no.nav.su.se.bakover.test.vilkår.formuevilkårUtenEps0Innvilget
 import no.nav.su.se.bakover.test.vilkår.innvilgetFormueVilkår
@@ -120,6 +122,7 @@ fun vilkårsvurderingerSøknadsbehandlingInnvilget(
         periode = periode,
     ),
     formue: FormueVilkår = formuevilkårUtenEps0Innvilget(periode = periode, bosituasjon = bosituasjon),
+    flyktning: FlyktningVilkår = flyktningVilkårInnvilget(periode = periode),
     fastOpphold: FastOppholdINorgeVilkår = fastOppholdVilkårInnvilget(periode = periode),
 ): Vilkårsvurderinger.Søknadsbehandling.Uføre {
     return Vilkårsvurderinger.Søknadsbehandling.Uføre(
@@ -131,7 +134,7 @@ fun vilkårsvurderingerSøknadsbehandlingInnvilget(
         fastOpphold = fastOpphold,
         institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
         personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
-        flyktning = FlyktningVilkår.IkkeVurdert,
+        flyktning = flyktning,
     ).oppdater(
         stønadsperiode = Stønadsperiode.create(periode = periode),
         behandlingsinformasjon = behandlingsinformasjon,
@@ -149,6 +152,7 @@ fun vilkårsvurderingerRevurderingInnvilget(
     formue: FormueVilkår = formuevilkårUtenEps0Innvilget(periode = periode, bosituasjon = bosituasjon),
     utenlandsopphold: UtenlandsoppholdVilkår = utenlandsoppholdInnvilget(periode = periode),
     opplysningsplikt: OpplysningspliktVilkår = tilstrekkeligDokumentert(periode = periode),
+    flyktningVilkår: FlyktningVilkår = flyktningVilkårInnvilget(periode = periode),
     fastOpphold: FastOppholdINorgeVilkår = fastOppholdVilkårInnvilget(periode = periode),
 ): Vilkårsvurderinger.Revurdering.Uføre {
     return Vilkårsvurderinger.Revurdering.Uføre(
@@ -157,6 +161,7 @@ fun vilkårsvurderingerRevurderingInnvilget(
         formue = formue,
         utenlandsopphold = utenlandsopphold,
         opplysningsplikt = opplysningsplikt,
+        flyktning = flyktningVilkår,
         fastOpphold = fastOpphold,
     )
 }
@@ -174,6 +179,7 @@ fun vilkårsvurderingerAvslåttAlleRevurdering(
     ),
     utenlandsopphold: UtenlandsoppholdVilkår = utenlandsoppholdAvslag(periode = periode),
     opplysningsplikt: OpplysningspliktVilkår = utilstrekkeligDokumentert(periode = periode),
+    flyktningVilkår: FlyktningVilkår = flyktningVilkårAvslått(periode = periode),
     fastOpphold: FastOppholdINorgeVilkår = fastOppholdVilkårAvslag(periode = periode),
 ): Vilkårsvurderinger.Revurdering.Uføre {
     return Vilkårsvurderinger.Revurdering.Uføre(
@@ -182,6 +188,7 @@ fun vilkårsvurderingerAvslåttAlleRevurdering(
         formue = formue,
         utenlandsopphold = utenlandsopphold,
         opplysningsplikt = opplysningsplikt,
+        flyktning = flyktningVilkår,
         fastOpphold = fastOpphold,
     )
 }
@@ -214,7 +221,7 @@ fun vilkårsvurderingerAvslåttAlle(
         // Disse blir oppdatert fra [behandlingsinformasjonAlleVilkårAvslått]
         institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
         personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
-        flyktning = FlyktningVilkår.IkkeVurdert,
+        flyktning = flyktningVilkårAvslått(periode = periode),
     ).oppdater(
         stønadsperiode = Stønadsperiode.create(periode = periode),
         behandlingsinformasjon = behandlingsinformasjonAlleVilkårAvslått,
@@ -246,6 +253,7 @@ fun vilkårsvurderingerAvslåttUføreOgAndreInnvilget(
         ),
         utenlandsopphold = utenlandsoppholdInnvilget(periode = periode),
         opplysningsplikt = tilstrekkeligDokumentert(periode = periode),
+        flyktning = flyktningVilkårInnvilget(periode = periode),
         fastOpphold = fastOppholdVilkårInnvilget(periode = periode),
     )
 }

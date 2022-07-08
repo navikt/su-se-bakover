@@ -86,11 +86,13 @@ import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeFastOppholdINorgeVilkår
+import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeTilFlyktningVilkår
 import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeTilPensjonsVilkår
 import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggetilLovligOppholdVilkår
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFamiliegjenforeningRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFastOppholdINorgeRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilFlyktningVilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilLovligOppholdRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilPensjonsVilkårRequest
@@ -787,6 +789,19 @@ internal class SøknadsbehandlingServiceImpl(
         return søknadsbehandling.leggTilPensjonsVilkår(request.vilkår, clock)
             .mapLeft {
                 KunneIkkeLeggeTilPensjonsVilkår.Søknadsbehandling(it)
+            }.map {
+                søknadsbehandlingRepo.lagre(it)
+                it
+            }
+    }
+
+    override fun leggTilFlyktningVilkår(request: LeggTilFlyktningVilkårRequest): Either<KunneIkkeLeggeTilFlyktningVilkår, Søknadsbehandling.Vilkårsvurdert> {
+        val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
+            ?: return KunneIkkeLeggeTilFlyktningVilkår.FantIkkeBehandling.left()
+
+        return søknadsbehandling.leggTilFlyktningVilkår(request.vilkår, clock)
+            .mapLeft {
+                KunneIkkeLeggeTilFlyktningVilkår.Søknadsbehandling(it)
             }.map {
                 søknadsbehandlingRepo.lagre(it)
                 it

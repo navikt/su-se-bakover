@@ -37,34 +37,39 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImpl(
                 log.info("Fant ${it.count()} saker for mulig utsendelse av påminnelse om ny stønadsperiode")
             }
             .fold(initialContext) { context, saksnummer ->
-                val sak = sakRepo.hentSak(saksnummer)!!
+                try {
+                    val sak = sakRepo.hentSak(saksnummer)!!
 
-                context.håndter(
-                    sak = sak,
-                    clock = clock,
-                    hentPerson = { fnr ->
-                        personService.hentPersonMedSystembruker(fnr)
-                            .mapLeft { SendPåminnelseNyStønadsperiodeContext.KunneIkkeSendePåminnelse.FantIkkePerson }
-                    },
-                    sessionFactory = sessionFactory,
-                    lagDokument = { request ->
-                        brevService.lagDokument(request)
-                            .mapLeft { SendPåminnelseNyStønadsperiodeContext.KunneIkkeSendePåminnelse.KunneIkkeLageBrev }
-                    },
-                    lagreDokument = { dokument, tx ->
-                        brevService.lagreDokument(dokument, tx)
-                    },
-                    lagreContext = { ctx, tx ->
-                        jobContextRepo.lagre(ctx, tx)
-                    },
-                    formuegrenserFactory = formuegrenserFactory,
-                ).fold(
-                    {
-                        log.error("Feil: ${it::class} ved utsending av påminnelse for sak: ${sak.saksnummer}, hopper over.")
-                        context
-                    },
-                    { it },
-                )
+                    context.håndter(
+                        sak = sak,
+                        clock = clock,
+                        hentPerson = { fnr ->
+                            personService.hentPersonMedSystembruker(fnr)
+                                .mapLeft { SendPåminnelseNyStønadsperiodeContext.KunneIkkeSendePåminnelse.FantIkkePerson }
+                        },
+                        sessionFactory = sessionFactory,
+                        lagDokument = { request ->
+                            brevService.lagDokument(request)
+                                .mapLeft { SendPåminnelseNyStønadsperiodeContext.KunneIkkeSendePåminnelse.KunneIkkeLageBrev }
+                        },
+                        lagreDokument = { dokument, tx ->
+                            brevService.lagreDokument(dokument, tx)
+                        },
+                        lagreContext = { ctx, tx ->
+                            jobContextRepo.lagre(ctx, tx)
+                        },
+                        formuegrenserFactory = formuegrenserFactory,
+                    ).fold(
+                        {
+                            log.error("Feil: ${it::class} ved utsending av påminnelse for sak: ${sak.saksnummer}, hopper over.")
+                            context
+                        },
+                        { it },
+                    )
+                } catch (ex: Throwable) {
+                    log.error("Ukjent feil: $ex oppstod ved utsending av påminnelse for sak: $saksnummer")
+                    throw ex
+                }
             }.also {
                 log.info(it.oppsummering())
             }

@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
+import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
@@ -63,6 +64,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
                     utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
                     opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
                     lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
+                    flyktning = FlyktningVilkår.IkkeVurdert,
                     fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
                 ),
             )
@@ -103,6 +105,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
                 utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
                 opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
                 lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
+                flyktning = FlyktningVilkår.IkkeVurdert,
                 fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
             ),
         )
@@ -123,6 +126,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
                 utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
                 opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
                 lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
+                flyktning = FlyktningVilkår.IkkeVurdert,
                 fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
             ),
         )
