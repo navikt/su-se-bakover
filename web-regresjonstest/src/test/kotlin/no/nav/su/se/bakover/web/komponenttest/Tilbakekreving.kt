@@ -1,26 +1,21 @@
 package no.nav.su.se.bakover.web.komponenttest
 
 import arrow.core.left
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.server.testing.ApplicationTestBuilder
-import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.fixedClock
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.oktober
-import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.oktober
 import no.nav.su.se.bakover.common.trimWhitespace
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
-import no.nav.su.se.bakover.domain.oppdrag.simulering.toYtelsekode
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.AvventerKravgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.MottattKravgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.SendtTilbakekrevingsvedtak
@@ -42,8 +37,6 @@ import no.nav.su.se.bakover.web.revurdering.iverksett.iverksett
 import no.nav.su.se.bakover.web.revurdering.opprett.opprettRevurdering
 import no.nav.su.se.bakover.web.routes.revurdering.TilbakekrevingsbehandlingJson
 import no.nav.su.se.bakover.web.services.tilbakekreving.TilbakekrevingsmeldingMapper
-import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringConsumer
-import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringResponse
 import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.RevurderingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
@@ -53,7 +46,6 @@ import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
-import java.math.BigDecimal
 import java.util.UUID
 
 class Tilbakekreving {
@@ -75,12 +67,7 @@ class Tilbakekreving {
                     revurdering
                 }
 
-            val kvittering = appComponents.services.utbetaling.hentUtbetaling(vedtak.utbetalingId).getOrFail()
-                .shouldBeType<Utbetaling.OversendtUtbetaling.UtenKvittering>().let {
-                    lagKvittering(it.utbetalingsrequest)
-                }
-
-            appComponents.consumers.utbetalingKvitteringConsumer.onMessage(kvittering)
+            appComponents.mottaKvitteringForUtbetalingFraØkonomi(vedtak.utbetalingId)
 
             appComponents.services.utbetaling.hentUtbetaling(vedtak.utbetalingId).getOrFail()
                 .shouldBeType<Utbetaling.OversendtUtbetaling.MedKvittering>()
@@ -95,7 +82,7 @@ class Tilbakekreving {
 
             appComponents.consumers.tilbakekrevingConsumer.onMessage(
                 lagKravgrunnlag(vedtak) {
-                    lagPerioder(
+                    lagKravgrunnlagPerioder(
                         mai(2021).until(oktober(2021)).map {
                             Feilutbetaling(
                                 måned = it,
@@ -148,31 +135,6 @@ class Tilbakekreving {
         }
     }
 
-    private fun lagKvittering(utbetalingsrequest: Utbetalingsrequest): String {
-        val request =
-            UtbetalingKvitteringConsumer.xmlMapper.readValue<UtbetalingRequest>(utbetalingsrequest.value)
-        val kvittering = UtbetalingKvitteringResponse.Mmel(
-            systemId = null,
-            kodeMelding = null,
-            alvorlighetsgrad = UtbetalingKvitteringResponse.Alvorlighetsgrad.OK,
-            beskrMelding = null,
-            sqlKode = null,
-            sqlState = null,
-            sqlMelding = null,
-            mqCompletionKode = null,
-            mqReasonKode = null,
-            programId = null,
-            sectionNavn = null,
-
-        )
-        return UtbetalingKvitteringConsumer.xmlMapper.writeValueAsString(
-            UtbetalingKvitteringResponse(
-                kvittering,
-                request.oppdragRequest,
-            ),
-        )
-    }
-
     @Test
     fun `happy path ingen tilbakekreving`() {
         withKomptestApplication(
@@ -191,12 +153,7 @@ class Tilbakekreving {
                     revurdering
                 }
 
-            val kvittering = appComponents.services.utbetaling.hentUtbetaling(vedtak.utbetalingId).getOrFail()
-                .shouldBeType<Utbetaling.OversendtUtbetaling.UtenKvittering>().let {
-                    lagKvittering(it.utbetalingsrequest)
-                }
-
-            appComponents.consumers.utbetalingKvitteringConsumer.onMessage(kvittering)
+            appComponents.mottaKvitteringForUtbetalingFraØkonomi(vedtak.utbetalingId)
 
             appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.Vedtak(vedtak.id)).also {
                 it shouldBe emptyList()
@@ -208,7 +165,7 @@ class Tilbakekreving {
 
             appComponents.consumers.tilbakekrevingConsumer.onMessage(
                 lagKravgrunnlag(vedtak) {
-                    lagPerioder(
+                    lagKravgrunnlagPerioder(
                         mai(2021).until(oktober(2021)).map {
                             Feilutbetaling(
                                 måned = it,
@@ -223,9 +180,7 @@ class Tilbakekreving {
             appComponents.services.vedtakService.hentForRevurderingId(UUID.fromString(revurderingId))!!
                 .shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering>().behandling.tilbakekrevingsbehandling.shouldBeType<MottattKravgrunnlag>()
 
-            appComponents.services.tilbakekrevingService.sendTilbakekrevingsvedtak {
-                TilbakekrevingsmeldingMapper.toKravgrunnlg(it).getOrFail()
-            }
+            appComponents.sendTilbakekrevingsvedtakTilØkonomi()
 
             appComponents.services.vedtakService.hentForRevurderingId(UUID.fromString(revurderingId))!!
                 .shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering>().behandling.tilbakekrevingsbehandling.shouldBeType<SendtTilbakekrevingsvedtak>()
@@ -269,7 +224,7 @@ class Tilbakekreving {
                 appComponents.consumers.tilbakekrevingConsumer.onMessage(
                     // tuller litt med utbetalingsid
                     lagKravgrunnlag(vedtak.copy(utbetalingId = UUID30.randomUUID())) {
-                        lagPerioder(
+                        lagKravgrunnlagPerioder(
                             mai(2021).until(oktober(2021)).map {
                                 Feilutbetaling(
                                     måned = it,
@@ -299,7 +254,7 @@ class Tilbakekreving {
             assertThrows<IllegalStateException> {
                 appComponents.consumers.tilbakekrevingConsumer.onMessage(
                     lagKravgrunnlag(vedtak) {
-                        lagPerioder(
+                        lagKravgrunnlagPerioder(
                             mai(2021).until(oktober(2021)).map {
                                 Feilutbetaling(
                                     måned = it,
@@ -329,7 +284,7 @@ class Tilbakekreving {
             assertThrows<IllegalStateException> {
                 appComponents.consumers.tilbakekrevingConsumer.onMessage(
                     lagKravgrunnlag(vedtak) {
-                        lagPerioder(
+                        lagKravgrunnlagPerioder(
                             mai(2021).until(juni(2021)).map {
                                 Feilutbetaling(
                                     måned = it,
@@ -371,7 +326,7 @@ class Tilbakekreving {
 
             appComponents.consumers.tilbakekrevingConsumer.onMessage(
                 lagKravgrunnlag(vedtak) {
-                    lagPerioder(
+                    lagKravgrunnlagPerioder(
                         mai(2021).until(oktober(2021)).map {
                             Feilutbetaling(
                                 måned = it,
@@ -389,9 +344,7 @@ class Tilbakekreving {
                 }
 
             assertThrows<RuntimeException> {
-                appComponents.services.tilbakekrevingService.sendTilbakekrevingsvedtak {
-                    TilbakekrevingsmeldingMapper.toKravgrunnlg(it).getOrFail()
-                }
+                appComponents.sendTilbakekrevingsvedtakTilØkonomi()
             }.also {
                 it.message shouldContain "Feil ved oversendelse av tilbakekrevingsvedtak for tilbakekrevingsbehandling"
             }
@@ -469,80 +422,5 @@ class Tilbakekreving {
 
             sakId to revurderingId
         }
-    }
-
-    private fun lagKravgrunnlag(
-        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering,
-        lagPerioder: () -> String,
-    ): String {
-        return """
-        <urn:detaljertKravgrunnlagMelding xmlns:mmel="urn:no:nav:tilbakekreving:typer:v1" xmlns:urn="urn:no:nav:tilbakekreving:kravgrunnlag:detalj:v1">
-            <urn:detaljertKravgrunnlag>
-                <urn:kravgrunnlagId>298606</urn:kravgrunnlagId>
-                <urn:vedtakId>436206</urn:vedtakId>
-                <urn:kodeStatusKrav>NY</urn:kodeStatusKrav>
-                <urn:kodeFagomraade>${vedtak.behandling.sakstype.toYtelsekode()}</urn:kodeFagomraade>
-                <urn:fagsystemId>${vedtak.behandling.saksnummer}</urn:fagsystemId>
-                <urn:vedtakIdOmgjort>0</urn:vedtakIdOmgjort>
-                <urn:vedtakGjelderId>${vedtak.behandling.fnr}</urn:vedtakGjelderId>
-                <urn:typeGjelderId>PERSON</urn:typeGjelderId>
-                <urn:utbetalesTilId>${vedtak.behandling.fnr}</urn:utbetalesTilId>
-                <urn:typeUtbetId>PERSON</urn:typeUtbetId>
-                <urn:enhetAnsvarlig>8020</urn:enhetAnsvarlig>
-                <urn:enhetBosted>8020</urn:enhetBosted>
-                <urn:enhetBehandl>8020</urn:enhetBehandl>
-                <urn:kontrollfelt>2022-02-07-18.39.47.693011</urn:kontrollfelt>
-                <urn:saksbehId>K231B433</urn:saksbehId>
-                <urn:referanse>${vedtak.utbetalingId}</urn:referanse>
-                ${lagPerioder()}
-            </urn:detaljertKravgrunnlag>
-        </urn:detaljertKravgrunnlagMelding><?xml version="1.0" encoding="utf-8"?>
-    """
-    }
-
-    private fun lagPerioder(feilutbetalinger: List<Feilutbetaling>): String {
-        return StringBuffer().apply {
-            feilutbetalinger.forEach {
-                append(
-                    """
-                <urn:tilbakekrevingsPeriode>
-                    <urn:periode>
-                        <mmel:fom>${it.måned.fraOgMed}</mmel:fom>
-                        <mmel:tom>${it.måned.tilOgMed}</mmel:tom>
-                    </urn:periode>
-                    <urn:belopSkattMnd>${it.skattMnd}</urn:belopSkattMnd>
-                    <urn:tilbakekrevingsBelop>
-                        <urn:kodeKlasse>KL_KODE_FEIL_INNT</urn:kodeKlasse>
-                        <urn:typeKlasse>FEIL</urn:typeKlasse>
-                        <urn:belopOpprUtbet>0.00</urn:belopOpprUtbet>
-                        <urn:belopNy>${it.feilutbetalt()}</urn:belopNy>
-                        <urn:belopTilbakekreves>0.00</urn:belopTilbakekreves>
-                        <urn:belopUinnkrevd>0.00</urn:belopUinnkrevd>
-                        <urn:skattProsent>0.0000</urn:skattProsent>
-                    </urn:tilbakekrevingsBelop>
-                    <urn:tilbakekrevingsBelop>
-                        <urn:kodeKlasse>SUUFORE</urn:kodeKlasse>
-                        <urn:typeKlasse>YTEL</urn:typeKlasse>
-                        <urn:belopOpprUtbet>${it.gammelUtbetaling}</urn:belopOpprUtbet>
-                        <urn:belopNy>${it.nyUtbetaling}</urn:belopNy>
-                        <urn:belopTilbakekreves>${it.feilutbetalt()}</urn:belopTilbakekreves>
-                        <urn:belopUinnkrevd>0.00</urn:belopUinnkrevd>
-                        <urn:skattProsent>${it.skattProsent}</urn:skattProsent>
-                    </urn:tilbakekrevingsBelop>
-            </urn:tilbakekrevingsPeriode>
-                    """.trimIndent(),
-                )
-            }
-        }.toString()
-    }
-
-    private data class Feilutbetaling(
-        val måned: Måned,
-        var gammelUtbetaling: Int,
-        val nyUtbetaling: Int,
-        val skattMnd: BigDecimal = BigDecimal("4729.00"),
-        val skattProsent: BigDecimal = BigDecimal("43.9983"),
-    ) {
-        fun feilutbetalt() = gammelUtbetaling - nyUtbetaling
     }
 }

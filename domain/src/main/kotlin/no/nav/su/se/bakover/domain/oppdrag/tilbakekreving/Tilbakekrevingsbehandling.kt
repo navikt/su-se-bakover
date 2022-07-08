@@ -264,6 +264,9 @@ object IkkeBehovForTilbakekrevingFerdigbehandlet :
 
 sealed interface Tilbakekrevingsbehandling {
 
+    /**
+     * Har saksbehandler vurdert saken dithen at penger skal tilbakekreves?
+     */
     fun skalTilbakekreve(): Either<Unit, UnderBehandling.VurderTilbakekreving.Avgjort>
 
     sealed interface UnderBehandling : Tilbakekrevingsbehandling {
@@ -296,7 +299,7 @@ sealed interface Tilbakekrevingsbehandling {
                 }
 
                 override fun skalTilbakekreve(): Either<Unit, Avgjort> {
-                    return Unit.left()
+                    throw IllegalStateException("Må avgjøres før vi vet om tilbakekreving skal gjennomføres!")
                 }
             }
         }
