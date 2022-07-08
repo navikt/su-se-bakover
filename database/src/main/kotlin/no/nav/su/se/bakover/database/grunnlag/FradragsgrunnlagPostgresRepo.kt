@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.database.grunnlag
 import arrow.core.getOrHandle
 import kotliquery.Row
 import no.nav.su.se.bakover.common.deserialize
-import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.serializeNullable
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.TransactionalSession
@@ -120,7 +120,7 @@ internal class FradragsgrunnlagPostgresRepo(
                         else -> null
                     },
                     "manedsbelop" to fradragsgrunnlag.fradrag.månedsbeløp,
-                    "utenlandskInntekt" to objectMapper.writeValueAsString(fradragsgrunnlag.fradrag.utenlandskInntekt),
+                    "utenlandskInntekt" to serializeNullable(fradragsgrunnlag.fradrag.utenlandskInntekt),
                     "tilhorer" to fradragsgrunnlag.fradrag.tilhører,
                 ),
                 tx,

@@ -2,11 +2,11 @@ package no.nav.su.se.bakover.database
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.persistence.TransactionContext
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.JobContextPostgresRepo.JobContextDb.SendPåminnelseNyStønadsperiodeContextDb.Companion.toDb
 import no.nav.su.se.bakover.database.JobContextPostgresRepo.JobContextDb.SendPåminnelseNyStønadsperiodeContextDb.Companion.toDomain
 import no.nav.su.se.bakover.database.JobContextPostgresRepo.JobContextDb.SendPåminnelseNyStønadsperiodeContextDb.Companion.toJson
@@ -108,11 +108,11 @@ internal class JobContextPostgresRepo(
                 }
 
                 fun SendPåminnelseNyStønadsperiodeContextDb.toJson(): String {
-                    return objectMapper.writeValueAsString(this)
+                    return serialize(this)
                 }
 
                 fun String.toDomain(): SendPåminnelseNyStønadsperiodeContext {
-                    return objectMapper.readValue<SendPåminnelseNyStønadsperiodeContextDb>(this).let {
+                    return deserialize<SendPåminnelseNyStønadsperiodeContextDb>(this).let {
                         SendPåminnelseNyStønadsperiodeContext(
                             id = NameAndYearMonthId(
                                 jobName = it.jobName,

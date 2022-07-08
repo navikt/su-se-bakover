@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.database.personhendelse
 
 import arrow.core.NonEmptyList
-import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.hent
@@ -54,10 +54,10 @@ internal class PersonhendelsePostgresRepo(
                         "opprettet" to tidspunkt,
                         "endret" to tidspunkt,
                         "endringstype" to personhendelse.endringstype.toDatabasetype(),
-                        "hendelse" to objectMapper.writeValueAsString(personhendelse.hendelse.toJson()),
+                        "hendelse" to serialize(personhendelse.hendelse.toJson()),
                         "oppgaveId" to null,
                         "type" to personhendelse.hendelse.toDatabasetype(),
-                        "metadata" to objectMapper.writeValueAsString(personhendelse.metadata.toJson()),
+                        "metadata" to serialize(personhendelse.metadata.toJson()),
                     ),
                     session,
                 )
@@ -144,7 +144,7 @@ internal class PersonhendelsePostgresRepo(
         endringstype = PersonhendelseEndringstype.tryParse(string("endringstype")).toDomain(),
         hendelse = hentHendelse(),
         saksnummer = Saksnummer(long("saksnummer")),
-        metadata = objectMapper.readValue<MetadataJson>(string("metadata")).toDomain(),
+        metadata = deserialize<MetadataJson>(string("metadata")).toDomain(),
         antallFeiledeForsøk = int("antallFeiledeForsøk"),
     )
 
@@ -154,7 +154,7 @@ internal class PersonhendelsePostgresRepo(
         endringstype = PersonhendelseEndringstype.tryParse(string("endringstype")).toDomain(),
         hendelse = hentHendelse(),
         saksnummer = Saksnummer(long("saksnummer")),
-        metadata = objectMapper.readValue<MetadataJson>(string("metadata")).toDomain(),
+        metadata = deserialize<MetadataJson>(string("metadata")).toDomain(),
         oppgaveId = oppgaveId,
         antallFeiledeForsøk = int("antallFeiledeForsøk"),
     )
@@ -167,13 +167,13 @@ internal class PersonhendelsePostgresRepo(
 
     private fun Row.hentHendelse(): Personhendelse.Hendelse = when (val type = string("type")) {
         PersonhendelseType.DØDSFALL.value -> {
-            objectMapper.readValue<HendelseJson.DødsfallJson>(string("hendelse")).toDomain()
+            deserialize<HendelseJson.DødsfallJson>(string("hendelse")).toDomain()
         }
         PersonhendelseType.UTFLYTTING_FRA_NORGE.value -> {
-            objectMapper.readValue<HendelseJson.UtflyttingFraNorgeJson>(string("hendelse")).toDomain()
+            deserialize<HendelseJson.UtflyttingFraNorgeJson>(string("hendelse")).toDomain()
         }
         PersonhendelseType.SIVILSTAND.value -> {
-            objectMapper.readValue<HendelseJson.SivilstandJson>(string("hendelse")).toDomain()
+            deserialize<HendelseJson.SivilstandJson>(string("hendelse")).toDomain()
         }
         PersonhendelseType.BOSTEDSADRESSE.value -> Personhendelse.Hendelse.Bostedsadresse
         PersonhendelseType.KONTAKTADRESSE.value -> Personhendelse.Hendelse.Kontaktadresse

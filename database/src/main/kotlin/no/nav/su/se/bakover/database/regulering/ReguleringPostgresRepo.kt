@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.database.regulering
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.deserializeList
-import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.deserializeNullable
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
@@ -190,7 +190,7 @@ internal class ReguleringPostgresRepo(
                             }.toString(),
                             "avsluttet" to when (regulering) {
                                 is Regulering.AvsluttetRegulering -> {
-                                    objectMapper.writeValueAsString(AvsluttetReguleringJson(regulering.avsluttetTidspunkt))
+                                    serialize(AvsluttetReguleringJson(regulering.avsluttetTidspunkt))
                                 }
                                 is Regulering.IverksattRegulering -> null
                                 is Regulering.OpprettetRegulering -> null
@@ -240,9 +240,9 @@ internal class ReguleringPostgresRepo(
             satsFactory = satsFactory.gjeldende(opprettet),
             sakstype = sakstype,
         )
-        val simulering = stringOrNull("simulering")?.let { objectMapper.readValue<Simulering>(it) }
+        val simulering = deserializeNullable<Simulering>(stringOrNull("simulering"))
         val saksbehandler = NavIdentBruker.Saksbehandler(string("saksbehandler"))
-        val periode = string("periode").let { objectMapper.readValue<Periode>(it) }
+        val periode = deserialize<Periode>(string("periode"))
 
         val grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderingerPostgresRepo.hentForRevurdering(
             behandlingId = id,
@@ -250,7 +250,7 @@ internal class ReguleringPostgresRepo(
             sakstype = Sakstype.from(string("type")),
         )
 
-        val avsluttet = stringOrNull("avsluttet")?.let { objectMapper.readValue<AvsluttetReguleringJson>(it) }
+        val avsluttet = deserializeNullable<AvsluttetReguleringJson>(stringOrNull("avsluttet"))
 
         return lagRegulering(
             status = status,

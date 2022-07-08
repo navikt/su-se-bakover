@@ -1,11 +1,13 @@
 package no.nav.su.se.bakover.database.søknadsbehandling
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
-import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.deserializeList
+import no.nav.su.se.bakover.common.deserializeNullable
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.common.serializeNullable
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.database.PostgresSessionFactory
@@ -111,9 +113,9 @@ internal class SøknadsbehandlingPostgresRepo(
                         "soknadId" to søknadsbehandling.søknad.id,
                         "opprettet" to søknadsbehandling.opprettet,
                         "status" to BehandlingsStatus.OPPRETTET.toString(),
-                        "behandlingsinformasjon" to objectMapper.writeValueAsString(søknadsbehandling.behandlingsinformasjon),
+                        "behandlingsinformasjon" to serialize(søknadsbehandling.behandlingsinformasjon),
                         "oppgaveId" to søknadsbehandling.oppgaveId.toString(),
-                        "avkorting" to objectMapper.writeValueAsString(søknadsbehandling.avkorting.toDb()),
+                        "avkorting" to serialize(søknadsbehandling.avkorting.toDb()),
                     ),
                     session = session,
                 )
@@ -144,16 +146,16 @@ internal class SøknadsbehandlingPostgresRepo(
                     ).insert(
                     params = avslag.søknadsbehandling.let {
                         mapOf(
-                            "behandlingsinformasjon" to objectMapper.writeValueAsString(it.behandlingsinformasjon),
+                            "behandlingsinformasjon" to serialize(it.behandlingsinformasjon),
                             "saksbehandler" to it.saksbehandler,
                             "attestering" to it.attesteringer.serialize(),
                             "fritekstTilBrev" to it.fritekstTilBrev,
-                            "stonadsperiode" to objectMapper.writeValueAsString(it.stønadsperiode),
+                            "stonadsperiode" to serialize(it.stønadsperiode),
                             "status" to it.status.toString(),
                             "id" to it.id,
                             "beregning" to null,
                             "simulering" to null,
-                            "avkorting" to objectMapper.writeValueAsString(it.avkorting.toDb()),
+                            "avkorting" to serialize(it.avkorting.toDb()),
                         )
                     },
                     session = tx,
@@ -223,7 +225,7 @@ internal class SøknadsbehandlingPostgresRepo(
         }
         val sakId = uuid("sakId")
         val opprettet = tidspunkt("opprettet")
-        val behandlingsinformasjon = objectMapper.readValue<Behandlingsinformasjon>(string("behandlingsinformasjon"))
+        val behandlingsinformasjon = deserialize<Behandlingsinformasjon>(string("behandlingsinformasjon"))
         val status = BehandlingsStatus.valueOf(string("status"))
         val oppgaveId = OppgaveId(string("oppgaveId"))
         val sakstype = Sakstype.from(string("type"))
@@ -231,18 +233,18 @@ internal class SøknadsbehandlingPostgresRepo(
             satsFactory = satsFactory.gjeldende(opprettet),
             sakstype = sakstype,
         )
-        val simulering = stringOrNull("simulering")?.let { objectMapper.readValue<Simulering>(it) }
-        val attesteringer = Attesteringshistorikk.create(objectMapper.readValue(string("attestering")))
+        val simulering = deserializeNullable<Simulering>(stringOrNull("simulering"))
+        val attesteringer = Attesteringshistorikk.create(deserializeList((string("attestering"))))
         val saksbehandler = stringOrNull("saksbehandler")?.let { NavIdentBruker.Saksbehandler(it) }
         val saksnummer = Saksnummer(long("saksnummer"))
         val fritekstTilBrev = stringOrNull("fritekstTilBrev") ?: ""
-        val stønadsperiode = stringOrNull("stønadsperiode")?.let { objectMapper.readValue<Stønadsperiode>(it) }
+        val stønadsperiode = deserializeNullable<Stønadsperiode>(stringOrNull("stønadsperiode"))
 
         val fnr = Fnr(string("fnr"))
         val (grunnlagsdata, vilkårsvurderinger) = grunnlagsdataOgVilkårsvurderingerPostgresRepo.hentForSøknadsbehandling(
             behandlingId = behandlingId,
             session = session,
-            sakstype = Sakstype.from(string("type"))
+            sakstype = Sakstype.from(string("type")),
         ).let { grunnlagsdataOgVilkårsvurderinger ->
             stønadsperiode?.let {
                 grunnlagsdataOgVilkårsvurderinger.copy(
@@ -255,9 +257,7 @@ internal class SøknadsbehandlingPostgresRepo(
             } ?: grunnlagsdataOgVilkårsvurderinger
         }
 
-        val avkorting = stringOrNull("avkorting")?.let {
-            objectMapper.readValue<AvkortingVedSøknadsbehandlingDb>(it).toDomain()
-        }
+        val avkorting = deserializeNullable<AvkortingVedSøknadsbehandlingDb>(stringOrNull("avkorting"))?.toDomain()
 
         val søknadsbehandling = when (status) {
             BehandlingsStatus.OPPRETTET -> Søknadsbehandling.Vilkårsvurdert.Uavklart(
@@ -275,7 +275,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 vilkårsvurderinger = vilkårsvurderinger,
                 attesteringer = attesteringer,
                 avkorting = avkorting as AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere,
-                sakstype = sakstype
+                sakstype = sakstype,
             )
             BehandlingsStatus.VILKÅRSVURDERT_INNVILGET -> Søknadsbehandling.Vilkårsvurdert.Innvilget(
                 id = behandlingId,
@@ -292,7 +292,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 vilkårsvurderinger = vilkårsvurderinger,
                 attesteringer = attesteringer,
                 avkorting = avkorting as AvkortingVedSøknadsbehandling.Uhåndtert,
-                sakstype = sakstype
+                sakstype = sakstype,
             )
             BehandlingsStatus.VILKÅRSVURDERT_AVSLAG -> Søknadsbehandling.Vilkårsvurdert.Avslag(
                 id = behandlingId,
@@ -309,7 +309,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 vilkårsvurderinger = vilkårsvurderinger,
                 attesteringer = attesteringer,
                 avkorting = avkorting as AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere,
-                sakstype = sakstype
+                sakstype = sakstype,
             )
             BehandlingsStatus.BEREGNET_INNVILGET -> Søknadsbehandling.Beregnet.Innvilget(
                 id = behandlingId,
@@ -327,7 +327,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 vilkårsvurderinger = vilkårsvurderinger,
                 attesteringer = attesteringer,
                 avkorting = avkorting as AvkortingVedSøknadsbehandling.Håndtert,
-                sakstype = sakstype
+                sakstype = sakstype,
             )
             BehandlingsStatus.BEREGNET_AVSLAG -> Søknadsbehandling.Beregnet.Avslag(
                 id = behandlingId,
@@ -345,7 +345,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 vilkårsvurderinger = vilkårsvurderinger,
                 attesteringer = attesteringer,
                 avkorting = avkorting as AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
-                sakstype = sakstype
+                sakstype = sakstype,
             )
             BehandlingsStatus.SIMULERT -> Søknadsbehandling.Simulert(
                 id = behandlingId,
@@ -364,7 +364,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 vilkårsvurderinger = vilkårsvurderinger,
                 attesteringer = attesteringer,
                 avkorting = avkorting as AvkortingVedSøknadsbehandling.Håndtert,
-                sakstype = sakstype
+                sakstype = sakstype,
             )
             BehandlingsStatus.TIL_ATTESTERING_INNVILGET -> Søknadsbehandling.TilAttestering.Innvilget(
                 id = behandlingId,
@@ -384,7 +384,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 vilkårsvurderinger = vilkårsvurderinger,
                 attesteringer = attesteringer,
                 avkorting = avkorting as AvkortingVedSøknadsbehandling.Håndtert,
-                sakstype = sakstype
+                sakstype = sakstype,
             )
             BehandlingsStatus.TIL_ATTESTERING_AVSLAG -> when (beregning) {
                 null -> Søknadsbehandling.TilAttestering.Avslag.UtenBeregning(
@@ -403,7 +403,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     vilkårsvurderinger = vilkårsvurderinger,
                     attesteringer = attesteringer,
                     avkorting = avkorting as AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
-                    sakstype = sakstype
+                    sakstype = sakstype,
                 )
                 else -> Søknadsbehandling.TilAttestering.Avslag.MedBeregning(
                     id = behandlingId,
@@ -422,7 +422,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     vilkårsvurderinger = vilkårsvurderinger,
                     attesteringer = attesteringer,
                     avkorting = avkorting as AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
-                    sakstype = sakstype
+                    sakstype = sakstype,
                 )
             }
             BehandlingsStatus.UNDERKJENT_INNVILGET -> Søknadsbehandling.Underkjent.Innvilget(
@@ -443,7 +443,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 avkorting = avkorting as AvkortingVedSøknadsbehandling.Håndtert,
-                sakstype = sakstype
+                sakstype = sakstype,
             )
             BehandlingsStatus.UNDERKJENT_AVSLAG -> when (beregning) {
                 null -> Søknadsbehandling.Underkjent.Avslag.UtenBeregning(
@@ -462,7 +462,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger,
                     avkorting = avkorting as AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
-                    sakstype = sakstype
+                    sakstype = sakstype,
                 )
                 else -> Søknadsbehandling.Underkjent.Avslag.MedBeregning(
                     id = behandlingId,
@@ -481,7 +481,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger,
                     avkorting = avkorting as AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
-                    sakstype = sakstype
+                    sakstype = sakstype,
                 )
             }
             BehandlingsStatus.IVERKSATT_INNVILGET -> {
@@ -503,7 +503,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger,
                     avkorting = avkorting as AvkortingVedSøknadsbehandling.Iverksatt,
-                    sakstype = sakstype
+                    sakstype = sakstype,
                 )
             }
             BehandlingsStatus.IVERKSATT_AVSLAG -> {
@@ -524,7 +524,7 @@ internal class SøknadsbehandlingPostgresRepo(
                         grunnlagsdata = grunnlagsdata,
                         vilkårsvurderinger = vilkårsvurderinger,
                         avkorting = avkorting as AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere,
-                        sakstype = sakstype
+                        sakstype = sakstype,
                     )
                     else -> Søknadsbehandling.Iverksatt.Avslag.MedBeregning(
                         id = behandlingId,
@@ -543,7 +543,7 @@ internal class SøknadsbehandlingPostgresRepo(
                         grunnlagsdata = grunnlagsdata,
                         vilkårsvurderinger = vilkårsvurderinger,
                         avkorting = avkorting as AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere,
-                        sakstype = sakstype
+                        sakstype = sakstype,
                     )
                 }
             }
@@ -599,7 +599,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 defaultParams(søknadsbehandling).plus(
                     listOf(
                         "beregning" to søknadsbehandling.beregning,
-                        "simulering" to objectMapper.writeValueAsString(søknadsbehandling.simulering),
+                        "simulering" to serialize(søknadsbehandling.simulering),
                     ),
                 ),
                 tx,
@@ -708,23 +708,23 @@ internal class SøknadsbehandlingPostgresRepo(
             .oppdatering(
                 params = mapOf(
                     "id" to søknadsbehandling.lukketSøknadsbehandling.id,
-                    "avkorting" to objectMapper.writeValueAsString(søknadsbehandling.avkorting.toDb()),
+                    "avkorting" to serialize(søknadsbehandling.avkorting.toDb()),
                 ),
                 session = tx,
             )
     }
 
-    private fun defaultParams(søknadsbehandling: Søknadsbehandling): Map<String, Any> {
+    private fun defaultParams(søknadsbehandling: Søknadsbehandling): Map<String, Any?> {
         return mapOf(
             "id" to søknadsbehandling.id,
             "sakId" to søknadsbehandling.sakId,
             "soknadId" to søknadsbehandling.søknad.id,
             "opprettet" to søknadsbehandling.opprettet,
             "status" to søknadsbehandling.status.name,
-            "behandlingsinformasjon" to objectMapper.writeValueAsString(søknadsbehandling.behandlingsinformasjon),
+            "behandlingsinformasjon" to serialize(søknadsbehandling.behandlingsinformasjon),
             "oppgaveId" to søknadsbehandling.oppgaveId.toString(),
-            "stonadsperiode" to objectMapper.writeValueAsString(søknadsbehandling.stønadsperiode),
-            "avkorting" to objectMapper.writeValueAsString(søknadsbehandling.avkorting.toDb()),
+            "stonadsperiode" to serializeNullable(søknadsbehandling.stønadsperiode),
+            "avkorting" to serialize(søknadsbehandling.avkorting.toDb()),
         )
     }
 }

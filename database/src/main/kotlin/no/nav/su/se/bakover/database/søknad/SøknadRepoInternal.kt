@@ -1,10 +1,9 @@
 package no.nav.su.se.bakover.database.søknad
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.deserialize
-import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.deserializeNullable
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
@@ -33,7 +32,7 @@ internal fun Row.toSøknad(): Søknad {
     val id: UUID = uuid("id")
     val søknadInnhold: SøknadInnhold = deserialize(string("søknadInnhold"))
     val opprettet: Tidspunkt = tidspunkt("opprettet")
-    val lukket: LukketJson? = stringOrNull("lukket")?.let { objectMapper.readValue(it) }
+    val lukket: LukketJson? = deserializeNullable(stringOrNull("lukket"))
     val oppgaveId: OppgaveId? = stringOrNull("oppgaveId")?.let { OppgaveId(it) }
     val journalpostId: JournalpostId? = stringOrNull("journalpostId")?.let { JournalpostId(it) }
 
