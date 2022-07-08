@@ -14,10 +14,22 @@ object BehandlingJson {
     fun hentPensjonsVilkår(json: String): String {
         return JSONObject(json).getJSONObject("grunnlagsdataOgVilkårsvurderinger").getJSONObject("pensjon").toString()
     }
+
+    fun hentFlyktningVilkår(json: String): String {
+        return JSONObject(json).getJSONObject("grunnlagsdataOgVilkårsvurderinger").getJSONObject("flyktning").toString()
+    }
+
+    fun hentStatus(json: String): String {
+        return JSONObject(json).getString("status").toString()
+    }
 }
 
 object RevurderingJson {
     fun hentRevurderingId(json: String): String {
         return JSONObject(json).getString("id").toString()
+    }
+
+    fun hentFlyktningVilkår(json: String): String {
+        return JSONObject(json).getJSONObject("revurdering").getJSONObject("grunnlagsdataOgVilkårsvurderinger").getJSONObject("flyktning").toString()
     }
 }

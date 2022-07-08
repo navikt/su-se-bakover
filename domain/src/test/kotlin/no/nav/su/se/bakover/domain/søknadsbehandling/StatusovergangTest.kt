@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårAvslått
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
-import no.nav.su.se.bakover.domain.behandling.withAvslåttFlyktning
+import no.nav.su.se.bakover.domain.behandling.withAvslåttPersonligOppmøte
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
@@ -153,7 +153,7 @@ internal class StatusovergangTest {
             nySøknadsbehandlingUføre().also { (_, ny) ->
                 ny.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Uavklart>().also {
                     it.leggTilVilkårFraBehandlingsinformasjon(
-                        Behandlingsinformasjon().withAvslåttFlyktning(),
+                        Behandlingsinformasjon().withAvslåttPersonligOppmøte(),
                         fixedClock,
                     ).getOrFail().also {
                         it.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
@@ -222,7 +222,7 @@ internal class StatusovergangTest {
             vilkårsvurdertSøknadsbehandlingUføre().also { (_, innvilget) ->
                 innvilget.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Innvilget>().also {
                     it.leggTilVilkårFraBehandlingsinformasjon(
-                        Behandlingsinformasjon().withAvslåttFlyktning(),
+                        Behandlingsinformasjon().withAvslåttPersonligOppmøte(),
                         fixedClock,
                     ).getOrFail().also { avslag ->
                         avslag.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
@@ -242,7 +242,7 @@ internal class StatusovergangTest {
 
         @Test
         fun `vilkårsvurdert avslag til vilkårsvurdert innvilget`() {
-            vilkårsvurdertSøknadsbehandlingUføre(customBehandlingsinformasjon = Behandlingsinformasjon().withAvslåttFlyktning()).also { (_, avslag) ->
+            vilkårsvurdertSøknadsbehandlingUføre(customBehandlingsinformasjon = Behandlingsinformasjon().withAvslåttPersonligOppmøte()).also { (_, avslag) ->
                 avslag.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Avslag>().also {
                     it.leggTilVilkårFraBehandlingsinformasjon(
                         Behandlingsinformasjon().withAlleVilkårOppfylt(),
@@ -385,7 +385,7 @@ internal class StatusovergangTest {
             underkjentSøknadsbehandlingUføre().also { (_, underkjent) ->
                 underkjent.shouldBeType<Søknadsbehandling.Underkjent.Innvilget>().also {
                     underkjent.leggTilVilkårFraBehandlingsinformasjon(
-                        Behandlingsinformasjon().withAvslåttFlyktning(),
+                        Behandlingsinformasjon().withAvslåttPersonligOppmøte(),
                         fixedClock,
                     ).getOrFail().also { avslag ->
                         avslag.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
@@ -444,7 +444,7 @@ internal class StatusovergangTest {
             ).also { (_, underkjent) ->
                 underkjent.shouldBeType<Søknadsbehandling.Underkjent.Avslag.MedBeregning>().also {
                     underkjent.leggTilVilkårFraBehandlingsinformasjon(
-                        Behandlingsinformasjon().withAvslåttFlyktning(),
+                        Behandlingsinformasjon().withAvslåttPersonligOppmøte(),
                         fixedClock,
                     ).getOrFail().also { avslag ->
                         avslag.shouldBeType<Søknadsbehandling.Vilkårsvurdert.Avslag>()

@@ -88,6 +88,13 @@ sealed class KunneIkkeLeggeTilVilkår {
             val til: KClass<out Søknadsbehandling.Vilkårsvurdert>,
         ) : KunnIkkeLeggeTilVilkårFraBehandlingsinformasjon()
     }
+
+    sealed class KunneIkkeLeggeTilFlyktningVilkår : KunneIkkeLeggeTilVilkår() {
+        data class UgyldigTilstand(
+            val fra: KClass<out Søknadsbehandling>,
+            val til: KClass<out Søknadsbehandling.Vilkårsvurdert>,
+        ) : KunneIkkeLeggeTilFlyktningVilkår()
+    }
 }
 
 sealed class KunneIkkeLeggeTilGrunnlag {

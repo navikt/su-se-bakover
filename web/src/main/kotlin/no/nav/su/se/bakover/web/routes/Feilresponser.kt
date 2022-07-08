@@ -71,6 +71,11 @@ internal object Feilresponser {
         "vilkår_kun_relevant_for_alder"
     )
 
+    val vilkårKunRelevantForUføre = BadRequest.errorJson(
+        "Vilkår er kun relevant for uføresaker!",
+        "vilkår_kun_relevant_for_uføre"
+    )
+
     val søknadHarBehandlingFraFør = BadRequest.errorJson(
         "Søknad har en behandling fra før",
         "søknad_har_behandling_fra_før",

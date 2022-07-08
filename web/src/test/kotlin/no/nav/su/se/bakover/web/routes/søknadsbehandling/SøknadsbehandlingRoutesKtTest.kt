@@ -67,6 +67,7 @@ import no.nav.su.se.bakover.service.søknadsbehandling.VilkårsvurderRequest
 import no.nav.su.se.bakover.service.vilkår.BosituasjonValg
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilFlyktningVilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilLovligOppholdRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
@@ -83,6 +84,7 @@ import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
+import no.nav.su.se.bakover.test.vilkår.flyktningVilkårInnvilget
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.applicationConfig
@@ -954,6 +956,12 @@ internal class SøknadsbehandlingRoutesKtTest {
                     ),
                 ),
             ),
+        )
+        services.søknadsbehandling.leggTilFlyktningVilkår(
+            request = LeggTilFlyktningVilkårRequest(
+                behandlingId = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
+                vilkår = flyktningVilkårInnvilget(periode = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.periode)
+            )
         )
         services.søknadsbehandling.fullførBosituasjongrunnlag(
             FullførBosituasjonRequest(

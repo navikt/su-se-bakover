@@ -10,6 +10,8 @@ import no.nav.su.se.bakover.web.revurdering.fradrag.leggTilFradrag
 import no.nav.su.se.bakover.web.revurdering.iverksett.iverksett
 import no.nav.su.se.bakover.web.revurdering.opprett.opprettRevurdering
 import no.nav.su.se.bakover.web.revurdering.utenlandsopphold.leggTilUtenlandsoppholdRevurdering
+import no.nav.su.se.bakover.web.søknadsbehandling.flyktning.innvilgetFlyktningVilkårJson
+import no.nav.su.se.bakover.web.søknadsbehandling.flyktning.leggTilFlyktningVilkår
 import no.nav.su.se.bakover.web.søknadsbehandling.uførhet.leggTilUføregrunnlag
 
 internal fun ApplicationTestBuilder.opprettIverksattRevurdering(
@@ -51,6 +53,14 @@ internal fun ApplicationTestBuilder.opprettIverksattRevurdering(
             fraOgMed = fraOgMed,
             tilOgMed = tilOgMed,
             vurdering = utenlandsOpphold.toString(),
+        )
+        leggTilFlyktningVilkår(
+            sakId = sakId,
+            behandlingId = revurderingId,
+            fraOgMed = fraOgMed,
+            tilOgMed = tilOgMed,
+            body = { innvilgetFlyktningVilkårJson(fraOgMed, tilOgMed) },
+            url = "/saker/$sakId/revurderinger/$revurderingId/flyktning",
         )
         leggTilFradrag(
             sakId = sakId,
