@@ -46,8 +46,7 @@ internal class FerdigeBehandlingerRepo(
                             'REVURDERING'                                              as type,
                             (select (obj->>'opprettet')::timestamptz from jsonb_array_elements(r.attestering) obj where obj->>'type' = 'Iverksatt') as iverksattOpprettet
                      from sak
-                              join behandling_vedtak bv on bv.sakid = sak.sakId
-                              join revurdering r on r.vedtaksomrevurderesid = bv.vedtakid
+                              join revurdering r on r.sakid = sak.sakid
                      where r.revurderingstype like ('IVERKSATT%')
                  ),
                  klage as (

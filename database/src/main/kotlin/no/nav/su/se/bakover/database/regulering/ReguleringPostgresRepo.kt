@@ -85,7 +85,7 @@ internal class ReguleringPostgresRepo(
                 union
 
                 select saksnummer
-                from ( revurdering r left join behandling_vedtak bv on r.vedtaksomrevurderesid = bv.vedtakid )
+                from revurdering                                           
                          left join sak s on s.id = sakid
                 where revurderingstype in (${RevurderingsType.åpneRevurderingstyperKommaseparert()}) and avsluttet is null
 

@@ -33,7 +33,9 @@ import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgr
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.tilbakekreving.TilbakekrevingPostgresRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakPostgresRepo
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
@@ -64,6 +66,7 @@ import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
+import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -176,16 +179,16 @@ internal class RevurderingPostgresRepo(
         return """
                     SELECT 
                         r.*,
+                        s.saksnummer,
+                        s.fnr,
                         s.type
-                    FROM revurdering r
-                        INNER JOIN behandling_vedtak bv ON r.vedtakSomRevurderesId = bv.vedtakId
-                        JOIN sak s ON s.id = bv.sakid 
+                    FROM revurdering r                        
+                        JOIN sak s ON s.id = r.sakid 
                     WHERE r.id = :id
         """.trimIndent()
             .hent(mapOf("id" to id), session) { row ->
                 row.toRevurdering(
                     session = session,
-                    sakstype = Sakstype.from(row.string("type")),
                 )
             }
     }
@@ -230,29 +233,36 @@ internal class RevurderingPostgresRepo(
         }
     }
 
-    internal fun hentRevurderingerForSak(sakId: UUID, session: Session, sakstype: Sakstype): List<AbstraktRevurdering> =
+    internal fun hentRevurderingerForSak(sakId: UUID, session: Session): List<AbstraktRevurdering> =
         """
             SELECT
-                r.*
-            FROM
-                revurdering r
-                INNER JOIN behandling_vedtak bv
-                    ON r.vedtakSomRevurderesId = bv.vedtakId               
-            WHERE bv.sakid=:sakId
+                r.*,
+                s.saksnummer,
+                s.fnr,
+                s.type
+            FROM revurdering r
+                JOIN sak s on s.id = r.sakid             
+            WHERE r.sakid=:sakId
         """.trimIndent()
             .hentListe(mapOf("sakId" to sakId), session) {
-                it.toRevurdering(session, sakstype)
+                it.toRevurdering(session)
             }
 
-    private fun Row.toRevurdering(session: Session, sakstype: Sakstype): AbstraktRevurdering {
+    private fun Row.toRevurdering(session: Session): AbstraktRevurdering {
         val id = uuid("id")
         val status = RevurderingsType.valueOf(string("revurderingsType"))
         val periode = deserialize<Periode>(string("periode"))
         val opprettet = tidspunkt("opprettet")
         val tilRevurdering = vedtakRepo.hent(uuid("vedtakSomRevurderesId"), session)!! as VedtakSomKanRevurderes
+        val sakinfo = SakInfo(
+            sakId = uuid("sakid"),
+            saksnummer = Saksnummer(long("saksnummer")),
+            fnr = Fnr(string("fnr")),
+            type = Sakstype.from(string("type")),
+        )
         val beregning: BeregningMedFradragBeregnetMånedsvis? = stringOrNull("beregning")?.deserialiserBeregning(
             satsFactory = satsFactory.gjeldende(opprettet),
-            sakstype = sakstype,
+            sakstype = sakinfo.type,
         )
         val simulering = deserializeNullable<Simulering>(stringOrNull("simulering"))
         val saksbehandler = string("saksbehandler")
@@ -268,14 +278,15 @@ internal class RevurderingPostgresRepo(
         val skalFøreTilBrevutsending = boolean("skalFøreTilBrevutsending")
         val forhåndsvarsel = deserializeNullable<ForhåndsvarselDatabaseJson>(stringOrNull("forhåndsvarsel"))?.toDomain()
 
-        val informasjonSomRevurderes = deserializeMapNullable<Revurderingsteg, Vurderingstatus>(stringOrNull("informasjonSomRevurderes"))?.let {
-            InformasjonSomRevurderes.create(it)
-        }
+        val informasjonSomRevurderes =
+            deserializeMapNullable<Revurderingsteg, Vurderingstatus>(stringOrNull("informasjonSomRevurderes"))?.let {
+                InformasjonSomRevurderes.create(it)
+            }
 
         val (grunnlagsdata, vilkårsvurderinger) = grunnlagsdataOgVilkårsvurderingerPostgresRepo.hentForRevurdering(
             behandlingId = id,
             session = session,
-            sakstype = sakstype,
+            sakstype = sakinfo.type,
         )
 
         val avkorting = deserializeNullable<AvkortingVedRevurderingDb>(stringOrNull("avkorting"))?.toDomain()
@@ -305,6 +316,7 @@ internal class RevurderingPostgresRepo(
             informasjonSomRevurderes = informasjonSomRevurderes,
             avkorting = avkorting,
             tilbakekrevingsbehandling = tilbakekrevingsbehandling,
+            sakinfo = sakinfo,
         )
 
         val avsluttet = deserializeNullable<AvsluttetRevurderingInfo>(stringOrNull("avsluttet"))
@@ -358,7 +370,8 @@ internal class RevurderingPostgresRepo(
                         begrunnelse,
                         forhåndsvarsel,
                         informasjonSomRevurderes,
-                        avkorting
+                        avkorting,
+                        sakid
                     ) values (
                         :id,
                         :opprettet,
@@ -375,7 +388,8 @@ internal class RevurderingPostgresRepo(
                         :begrunnelse,
                         to_json(:forhandsvarsel::json),
                         to_json(:informasjonSomRevurderes::json),
-                        to_json(:avkorting::json)
+                        to_json(:avkorting::json),
+                        :sakid
                     )
                         ON CONFLICT(id) do update set
                         id=:id,
@@ -416,6 +430,7 @@ internal class RevurderingPostgresRepo(
                     "informasjonSomRevurderes" to serialize(revurdering.informasjonSomRevurderes),
                     "attestering" to revurdering.attesteringer.serialize(),
                     "avkorting" to serialize(revurdering.avkorting.toDb()),
+                    "sakid" to revurdering.sakId,
                 ),
                 session,
             )
@@ -772,8 +787,8 @@ internal class RevurderingPostgresRepo(
         informasjonSomRevurderes: InformasjonSomRevurderes?,
         avkorting: AvkortingVedRevurdering?,
         tilbakekrevingsbehandling: Tilbakekrevingsbehandling?,
+        sakinfo: SakInfo,
     ): AbstraktRevurdering {
-        val sakinfo = tilRevurdering.sakinfo()
 
         return when (status) {
             RevurderingsType.UNDERKJENT_INNVILGET -> UnderkjentRevurdering.Innvilget(

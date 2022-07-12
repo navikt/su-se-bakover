@@ -22,8 +22,7 @@ internal class PersonPostgresRepo(
                     eps_fnr epsFnr
                   FROM sak s
                     LEFT JOIN behandling b ON b.sakid = s.id
-                    LEFT JOIN behandling_vedtak bv on bv.sakId = s.id
-                    LEFT JOIN revurdering r ON r.vedtaksomrevurderesid = bv.vedtakid
+                    LEFT JOIN revurdering r ON r.sakid = s.id
                     LEFT JOIN grunnlag_bosituasjon gb ON gb.behandlingId IN (b.id, r.id)
                   WHERE s.id=:sakId
                 """

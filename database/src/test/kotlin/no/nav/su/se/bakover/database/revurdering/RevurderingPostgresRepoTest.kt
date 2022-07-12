@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
-import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -41,7 +40,6 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.sakId
-import no.nav.su.se.bakover.test.sakinfo
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.stønadsperiode2021
@@ -416,7 +414,7 @@ internal class RevurderingPostgresRepoTest {
 
             repo.hent(iverksatt.id) shouldBe iverksatt
             dataSource.withSession {
-                repo.hentRevurderingerForSak(iverksatt.sakId, it, Sakstype.UFØRE) shouldBe listOf(iverksatt)
+                repo.hentRevurderingerForSak(iverksatt.sakId, it) shouldBe listOf(iverksatt)
             }
         }
     }

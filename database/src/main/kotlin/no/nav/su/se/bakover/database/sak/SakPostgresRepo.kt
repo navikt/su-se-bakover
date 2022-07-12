@@ -119,7 +119,7 @@ internal class SakPostgresRepo(
                         "opprettet" to sak.opprettet,
                         "soknadId" to sak.søknad.id,
                         "soknad" to serialize(sak.søknad.søknadInnhold),
-                        "type" to sak.søknad.type.value
+                        "type" to sak.søknad.type.value,
                     ),
                     session,
                 )
@@ -208,9 +208,7 @@ internal class SakPostgresRepo(
 
     private fun Row.toSak(sessionContext: SessionContext): Sak {
         return sessionContext.withSession { session ->
-
             val sakId = UUID.fromString(string("id"))
-            val sakstype = Sakstype.from(string("type"))
             Sak(
                 id = sakId,
                 saksnummer = Saksnummer(long("saksnummer")),
@@ -219,7 +217,7 @@ internal class SakPostgresRepo(
                 søknader = SøknadRepoInternal.hentSøknaderInternal(sakId, session),
                 søknadsbehandlinger = søknadsbehandlingRepo.hentForSak(sakId, sessionContext),
                 utbetalinger = UtbetalingInternalRepo.hentUtbetalinger(sakId, session),
-                revurderinger = revurderingRepo.hentRevurderingerForSak(sakId, session, sakstype),
+                revurderinger = revurderingRepo.hentRevurderingerForSak(sakId, session),
                 vedtakListe = vedtakPostgresRepo.hentForSakId(sakId, session),
                 klager = klageRepo.hentKlager(sakId, sessionContext),
                 reguleringer = reguleringRepo.hentForSakId(sakId, sessionContext),
