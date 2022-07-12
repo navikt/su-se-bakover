@@ -9,46 +9,37 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.år
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
-import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.brev.beregning.Tilbakekreving
 import no.nav.su.se.bakover.domain.dokument.Dokument
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
-import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
-import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
-import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
-import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
-import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.test.aktørId
+import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
-import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.oppgaveIdRevurdering
+import no.nav.su.se.bakover.test.opprettetRevurdering
+import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksbehandlerNavn
 import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
-import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
-import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
@@ -80,7 +71,7 @@ internal class LagreOgSendForhåndsvarselTest {
                 on { lagBrev(any()) } doReturn "pdf".toByteArray().right()
             },
             personService = mock {
-                on { hentPerson(any()) } doReturn BehandlingTestUtils.person.right()
+                on { hentPerson(any()) } doReturn person(fnr, aktørId).right()
             },
             revurderingRepo = mock {
                 on { hent(any()) } doReturn simulertRevurdering
@@ -104,7 +95,7 @@ internal class LagreOgSendForhåndsvarselTest {
         verify(mocks.brevService).lagBrev(
             argThat {
                 it shouldBe LagBrevRequest.Forhåndsvarsel(
-                    person = BehandlingTestUtils.person,
+                    person = person(fnr, aktørId),
                     saksbehandlerNavn = saksbehandlerNavn,
                     fritekst = "",
                     dagensDato = fixedLocalDate,
@@ -155,7 +146,7 @@ internal class LagreOgSendForhåndsvarselTest {
                 on { hent(any()) } doReturn simulertRevurdering
             },
             personService = mock {
-                on { hentPerson(any()) } doReturn BehandlingTestUtils.person.right()
+                on { hentPerson(any()) } doReturn person(fnr, aktørId).right()
             },
             identClient = mock {
                 on { hentNavnForNavIdent(any()) } doReturn saksbehandler.navIdent.right()
@@ -180,7 +171,7 @@ internal class LagreOgSendForhåndsvarselTest {
                 on { hent(any()) } doReturn simulertRevurdering
             },
             personService = mock {
-                on { hentPerson(any()) } doReturn BehandlingTestUtils.person.right()
+                on { hentPerson(any()) } doReturn person(fnr, aktørId).right()
             },
             brevService = mock {
                 on { lagBrev(any()) } doReturn "pdf".toByteArray().right()
@@ -262,44 +253,9 @@ internal class LagreOgSendForhåndsvarselTest {
 
     @Test
     fun `forhåndsvarsler bare simulerte revurderinger`() {
-        val tilRevurdering = vedtakSøknadsbehandlingIverksattInnvilget().second
-        val opprettet = OpprettetRevurdering(
-            id = revurderingId,
-            periode = RevurderingTestUtils.periodeNesteMånedOgTreMånederFram,
-            opprettet = fixedTidspunkt,
-            tilRevurdering = tilRevurdering,
-            saksbehandler = saksbehandler,
-            oppgaveId = OppgaveId("oppgaveid"),
-            fritekstTilBrev = "",
-            revurderingsårsak = RevurderingTestUtils.revurderingsårsak,
-            forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            avkorting = AvkortingVedRevurdering.Uhåndtert.IngenUtestående,
-            sakinfo = tilRevurdering.sakinfo(),
-        )
-        testForhåndsvarslerIkkeGittRevurdering(opprettet)
-
-        val beregnet = BeregnetRevurdering.Innvilget(
-            id = revurderingId,
-            periode = RevurderingTestUtils.periodeNesteMånedOgTreMånederFram,
-            opprettet = fixedTidspunkt,
-            tilRevurdering = tilRevurdering,
-            saksbehandler = saksbehandler,
-            beregning = TestBeregning,
-            oppgaveId = OppgaveId("oppgaveid"),
-            fritekstTilBrev = "",
-            revurderingsårsak = RevurderingTestUtils.revurderingsårsak,
-            forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            attesteringer = Attesteringshistorikk.empty(),
-            avkorting = AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående,
-            sakinfo = tilRevurdering.sakinfo(),
-        )
-        testForhåndsvarslerIkkeGittRevurdering(beregnet)
+        testForhåndsvarslerIkkeGittRevurdering(opprettetRevurdering().second)
+        testForhåndsvarslerIkkeGittRevurdering(beregnetRevurdering().second)
+        testForhåndsvarslerIkkeGittRevurdering(iverksattRevurdering().second)
     }
 
     @Test
@@ -342,7 +298,7 @@ internal class LagreOgSendForhåndsvarselTest {
 
         val personServiceMock = mock<PersonService> {
             on { hentAktørId(any()) } doReturn aktørId.right()
-            on { hentPerson(any()) } doReturn BehandlingTestUtils.person.right()
+            on { hentPerson(any()) } doReturn person(fnr, aktørId).right()
         }
 
         val brevServiceMock = mock<BrevService> {
@@ -380,7 +336,7 @@ internal class LagreOgSendForhåndsvarselTest {
             },
             personService = mock {
                 on { hentAktørId(any()) } doReturn aktørId.right()
-                on { hentPerson(any()) } doReturn BehandlingTestUtils.person.right()
+                on { hentPerson(any()) } doReturn person(fnr, aktørId).right()
             },
             brevService = mock {
                 on { lagBrev(any()) } doReturn "pdf".toByteArray().right()
@@ -454,7 +410,7 @@ internal class LagreOgSendForhåndsvarselTest {
                 )
             },
             personService = mock {
-                on { hentPerson(any()) } doReturn BehandlingTestUtils.person.right()
+                on { hentPerson(any()) } doReturn person(fnr, aktørId).right()
             },
             brevService = mock {
                 on { lagBrev(any()) } doReturn "".toByteArray().right()
@@ -473,7 +429,7 @@ internal class LagreOgSendForhåndsvarselTest {
                 verify(it.brevService).lagBrev(
                     argThat {
                         it shouldBe LagBrevRequest.ForhåndsvarselTilbakekreving(
-                            person = BehandlingTestUtils.person,
+                            person = person(fnr, aktørId),
                             dagensDato = LocalDate.now(fixedClock),
                             saksnummer = simulertMedTilbakekreving.saksnummer,
                             saksbehandlerNavn = "saksbehandler",
@@ -490,7 +446,7 @@ internal class LagreOgSendForhåndsvarselTest {
                 verify(it.brevService).lagBrev(
                     argThat {
                         it shouldBe LagBrevRequest.Forhåndsvarsel(
-                            person = BehandlingTestUtils.person,
+                            person = person(fnr, aktørId),
                             dagensDato = LocalDate.now(fixedClock),
                             saksnummer = simulertMedTilbakekreving.saksnummer,
                             saksbehandlerNavn = "saksbehandler",

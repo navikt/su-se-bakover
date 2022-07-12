@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingUnderBehandling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
@@ -28,7 +27,6 @@ import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.createRevurderingService
@@ -38,6 +36,8 @@ import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.service.vilkår.UførevilkårStatus
 import no.nav.su.se.bakover.test.aktørId
+import no.nav.su.se.bakover.test.beregnetRevurdering
+import no.nav.su.se.bakover.test.beregning
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
@@ -47,6 +47,7 @@ import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandl
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
@@ -110,8 +111,14 @@ internal class RegulerGrunnbeløpServiceImplTest {
                 it shouldBe opprettetRevurdering.copy(
                     vilkårsvurderinger = opprettetRevurdering.vilkårsvurderinger.leggTil(
                         innvilgetUførevilkår(
-                            vurderingsperiodeId = (it.vilkårsvurderinger.uføreVilkår().getOrFail() as UføreVilkår.Vurdert).vurderingsperioder.first().id,
-                            grunnlagsId = (it.vilkårsvurderinger.uføreVilkår().getOrFail() as UføreVilkår.Vurdert).grunnlag.first().id,
+                            vurderingsperiodeId = (
+                                it.vilkårsvurderinger.uføreVilkår()
+                                    .getOrFail() as UføreVilkår.Vurdert
+                                ).vurderingsperioder.first().id,
+                            grunnlagsId = (
+                                it.vilkårsvurderinger.uføreVilkår()
+                                    .getOrFail() as UføreVilkår.Vurdert
+                                ).grunnlag.first().id,
                             opprettet = fixedTidspunkt,
                             periode = nyttUføregrunnlag.periode,
                             forventetInntekt = nyttUføregrunnlag.forventetInntekt,
@@ -121,7 +128,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
                     informasjonSomRevurderes = informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Uførhet),
                 )
             },
-            anyOrNull()
+            anyOrNull(),
         )
     }
 
@@ -182,9 +189,9 @@ internal class RegulerGrunnbeløpServiceImplTest {
             revurderingsårsak = revurderingsårsakRegulerGrunnbeløp,
             vilkårOverrides = listOf(
                 avslåttUførevilkårUtenGrunnlag(
-                    periode = Periode.create(1.august(2021), 31.desember(2021))
-                )
-            )
+                    periode = Periode.create(1.august(2021), 31.desember(2021)),
+                ),
+            ),
         ).second
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -232,7 +239,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsakRegulerGrunnbeløp,
-            beregning = TestBeregning,
+            beregning = beregning(),
             simulering = mock(),
             attesteringer = mock(),
             forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
@@ -282,27 +289,9 @@ internal class RegulerGrunnbeløpServiceImplTest {
 
     @Test
     fun `En attestert beregnet revurdering skal ikke sende brev`() {
-        val tilRevurdering = vedtakSøknadsbehandlingIverksattInnvilget().second
-        val beregnetRevurdering = BeregnetRevurdering.IngenEndring(
-            id = revurderingId,
-            periode = periodeNesteMånedOgTreMånederFram,
-            opprettet = Tidspunkt.EPOCH,
-            tilRevurdering = tilRevurdering,
-            saksbehandler = saksbehandler,
-            beregning = TestBeregning,
-            oppgaveId = OppgaveId("oppgaveid"),
-            fritekstTilBrev = "",
+        val beregnetRevurdering = beregnetRevurdering(
             revurderingsårsak = revurderingsårsakRegulerGrunnbeløp,
-            forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = mock<Vilkårsvurderinger.Revurdering.Uføre> {
-                on { vurdering } doReturn Vilkårsvurderingsresultat.Innvilget(emptySet())
-            },
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            attesteringer = Attesteringshistorikk.empty(),
-            avkorting = AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående,
-            sakinfo = tilRevurdering.sakinfo(),
-        )
+        ).second
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn beregnetRevurdering
@@ -326,27 +315,9 @@ internal class RegulerGrunnbeløpServiceImplTest {
                 fritekstTilBrev = "Fritekst",
                 skalFøreTilBrevutsending = true,
             ),
-        ).orNull()!! as RevurderingTilAttestering.IngenEndring
-
-        actual shouldBe RevurderingTilAttestering.IngenEndring(
-            tilRevurdering = tilRevurdering,
-            id = revurderingId,
-            periode = periodeNesteMånedOgTreMånederFram,
-            opprettet = Tidspunkt.EPOCH,
-            saksbehandler = saksbehandler,
-            oppgaveId = OppgaveId("oppgaveid"),
-            fritekstTilBrev = "Fritekst",
-            revurderingsårsak = revurderingsårsakRegulerGrunnbeløp,
-            beregning = actual.beregning,
-            skalFøreTilUtsendingAvVedtaksbrev = false,
-            forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = actual.vilkårsvurderinger,
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            attesteringer = Attesteringshistorikk.empty(),
-            avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
-            sakinfo = tilRevurdering.sakinfo(),
-        )
+        ).getOrFail().shouldBeType<RevurderingTilAttestering.IngenEndring>().also {
+            it.skalFøreTilUtsendingAvVedtaksbrev shouldBe false
+        }
 
         inOrder(revurderingRepoMock, personServiceMock, oppgaveServiceMock) {
             verify(revurderingRepoMock).hent(revurderingId)
@@ -373,7 +344,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsakRegulerGrunnbeløp,
-            beregning = TestBeregning,
+            beregning = beregning(),
             attesteringer = Attesteringshistorikk.empty(),
             skalFøreTilUtsendingAvVedtaksbrev = true,
             forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
@@ -408,27 +379,9 @@ internal class RegulerGrunnbeløpServiceImplTest {
                 fritekstTilBrev = "Fritekst",
                 skalFøreTilBrevutsending = true,
             ),
-        ).orNull()!! as RevurderingTilAttestering.IngenEndring
-
-        actual shouldBe RevurderingTilAttestering.IngenEndring(
-            tilRevurdering = tilRevurdering,
-            id = revurderingId,
-            periode = periodeNesteMånedOgTreMånederFram,
-            opprettet = Tidspunkt.EPOCH,
-            saksbehandler = saksbehandler,
-            oppgaveId = OppgaveId("oppgaveid"),
-            fritekstTilBrev = "Fritekst",
-            revurderingsårsak = revurderingsårsakRegulerGrunnbeløp,
-            beregning = actual.beregning,
-            skalFøreTilUtsendingAvVedtaksbrev = false,
-            forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
-            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = actual.vilkårsvurderinger,
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            attesteringer = Attesteringshistorikk.empty(),
-            avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
-            sakinfo = tilRevurdering.sakinfo(),
-        )
+        ).getOrFail().shouldBeType<RevurderingTilAttestering.IngenEndring>().also {
+            it.skalFøreTilUtsendingAvVedtaksbrev shouldBe false
+        }
 
         inOrder(revurderingRepoMock, personServiceMock, oppgaveServiceMock) {
             verify(revurderingRepoMock).hent(revurderingId)

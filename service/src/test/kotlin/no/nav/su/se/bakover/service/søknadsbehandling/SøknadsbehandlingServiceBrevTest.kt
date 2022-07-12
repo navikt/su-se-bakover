@@ -6,11 +6,14 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.domain.visitor.Visitable
-import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.person
 import no.nav.su.se.bakover.service.brev.BrevService
+import no.nav.su.se.bakover.service.brev.BrevServiceImplTest.DummyRequest.person
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.test.aktørId
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.fnr
+import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import org.junit.jupiter.api.Test
@@ -43,7 +46,7 @@ internal class SøknadsbehandlingServiceBrevTest {
     @Test
     fun `svarer med feil hvis vi ikke finner navn på attestant eller saksbehandler`() {
         val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn person.right()
+            on { hentPerson(any()) } doReturn person(fnr, aktørId).right()
         }
 
         val brevServiceMock = mock<BrevService>() {
@@ -63,7 +66,7 @@ internal class SøknadsbehandlingServiceBrevTest {
     @Test
     fun `svarer med feil hvis generering av pdf feiler`() {
         val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn person.right()
+            on { hentPerson(any()) } doReturn person(fnr, aktørId).right()
         }
 
         val brevServiceMock = mock<BrevService>() {
@@ -83,7 +86,7 @@ internal class SøknadsbehandlingServiceBrevTest {
     @Test
     fun `svarer med byte array dersom alt går fint`() {
         val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn person.right()
+            on { hentPerson(any()) } doReturn person(fnr, aktørId).right()
         }
 
         val pdf = "".toByteArray()

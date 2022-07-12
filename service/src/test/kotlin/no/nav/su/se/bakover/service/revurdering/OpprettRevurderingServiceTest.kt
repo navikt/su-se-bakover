@@ -16,21 +16,15 @@ import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.startOfMonth
-import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.domain.CopyArgs
-import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
-import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
@@ -38,14 +32,11 @@ import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.formueVilkår
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.periodeNesteMånedOgTreMånederFram
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.stønadsperiodeNesteMånedOgTreMånederFram
-import no.nav.su.se.bakover.service.søknadsbehandling.testBeregning
 import no.nav.su.se.bakover.service.vedtak.KunneIkkeKopiereGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.test.TestSessionFactory
@@ -55,23 +46,18 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
-import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt12000
 import no.nav.su.se.bakover.test.iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.plus
 import no.nav.su.se.bakover.test.sakId
-import no.nav.su.se.bakover.test.sakinfo
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
-import no.nav.su.se.bakover.test.vilkår.flyktningVilkårInnvilget
-import no.nav.su.se.bakover.test.vilkår.lovligOppholdVilkårInnvilget
-import no.nav.su.se.bakover.test.vilkår.tilstrekkeligDokumentert
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
-import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt12000
 import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
 import org.junit.jupiter.api.Test
@@ -441,72 +427,36 @@ internal class OpprettRevurderingServiceTest {
     @Test
     fun `for en ny revurdering vil det tas utgangspunkt i nyeste vedtak hvor fraOgMed er inni perioden`() {
         val vedtaksperiode = år(2021)
-        val behandlingMock = mock<IverksattRevurdering.Innvilget> {
-            on { fnr } doReturn Fnr.generer()
-            on { saksnummer } doReturn Saksnummer(2021)
-            on { grunnlagsdata } doReturn Grunnlagsdata.create(
-                bosituasjon = listOf(
-                    Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                        id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
-                        periode = vedtaksperiode,
-                    ),
-                ),
-            )
-            on { vilkårsvurderinger } doReturn Vilkårsvurderinger.Revurdering.Uføre(
-                uføre = innvilgetUførevilkårForventetInntekt12000(periode = vedtaksperiode),
-                formue = formueVilkår(periode = vedtaksperiode),
-                utenlandsopphold = utenlandsoppholdInnvilget(periode = vedtaksperiode),
-                opplysningsplikt = tilstrekkeligDokumentert(periode = vedtaksperiode),
-                lovligOpphold = lovligOppholdVilkårInnvilget(),
-                flyktning = flyktningVilkårInnvilget(periode = vedtaksperiode),
-            )
-        }
-        val vedtakForFørsteJanuarLagetNå = mock<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering> {
-            on { id } doReturn UUID.randomUUID()
-            on { opprettet } doReturn fixedTidspunkt
-            on { periode } doReturn vedtaksperiode
-            on { behandling } doReturn behandlingMock
-            on { beregning } doReturn testBeregning
-            on { sakinfo() } doReturn sakinfo
-        }
-        val vedtakForFørsteMarsLagetNå = mock<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering> {
-            on { id } doReturn UUID.randomUUID()
-            on { opprettet } doReturn fixedTidspunkt.plus(1, ChronoUnit.SECONDS)
-            on { periode } doReturn Periode.create(1.mars(2021), 31.desember(2021))
-            on { behandling } doReturn behandlingMock
-            on { beregning } doReturn testBeregning
-            on { sakinfo() } doReturn sakinfo
-        }
-        val vedtakForFørsteJanuarLagetForLengeSiden = mock<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering> {
-            on { id } doReturn UUID.randomUUID()
-            on { opprettet } doReturn fixedTidspunkt.instant.minus(2, ChronoUnit.HALF_DAYS).toTidspunkt()
-            on { periode } doReturn vedtaksperiode
-            on { behandling } doReturn behandlingMock
-            on { beregning } doReturn testBeregning
-            on { sakinfo() } doReturn sakinfo
-        }
+
+        val tikkendeKlokke = TikkendeKlokke(fixedClock)
+
+        val (sak1, _, vedtakForFørsteJanuarLagetForLengeSiden) = iverksattSøknadsbehandlingUføre(
+            stønadsperiode = Stønadsperiode.create(vedtaksperiode),
+            clock = tikkendeKlokke,
+        )
+        val (sak2, vedtakForFørsteJanuarLagetNå) = vedtakRevurdering(
+            sakOgVedtakSomKanRevurderes = sak1 to vedtakForFørsteJanuarLagetForLengeSiden as VedtakSomKanRevurderes,
+            revurderingsperiode = vedtaksperiode,
+            clock = tikkendeKlokke,
+        )
+        val (sak3, vedtakForFørsteMarsLagetNå) = vedtakRevurdering(
+            sakOgVedtakSomKanRevurderes = sak2 to vedtakForFørsteJanuarLagetNå,
+            revurderingsperiode = Periode.create(1.mars(2021), 31.desember(2021)),
+            clock = tikkendeKlokke,
+        )
 
         val fraOgMedDatoFebruar = fixedLocalDate.plus(1, ChronoUnit.MONTHS)
         val fraOgMedDatoApril = fixedLocalDate.plus(3, ChronoUnit.MONTHS)
 
-        val vedtakListe = nonEmptyListOf(
-            vedtakForFørsteJanuarLagetNå,
-            vedtakForFørsteMarsLagetNå,
-            vedtakForFørsteJanuarLagetForLengeSiden,
-        )
+        val gjeldendeVedtaksdataFebruar = sak3.kopierGjeldendeVedtaksdata(
+            fraOgMed = fraOgMedDatoFebruar,
+            clock = tikkendeKlokke,
+        ).getOrFail()
 
-        val gjeldendeVedtaksdataFebruar = GjeldendeVedtaksdata(
-            periode = Periode.create(fraOgMedDatoFebruar, vedtakListe.maxOf { it.periode.tilOgMed }),
-            vedtakListe = vedtakListe,
-            clock = fixedClock,
-        )
-
-        val gjeldendeVedtaksdataApril = GjeldendeVedtaksdata(
-            periode = Periode.create(fraOgMedDatoApril, vedtakListe.maxOf { it.periode.tilOgMed }),
-            vedtakListe = vedtakListe,
-            clock = fixedClock,
-        )
+        val gjeldendeVedtaksdataApril = sak3.kopierGjeldendeVedtaksdata(
+            fraOgMed = fraOgMedDatoApril,
+            clock = tikkendeKlokke,
+        ).getOrFail()
 
         val vedtakServiceMock = mock<VedtakService> {
             on { kopierGjeldendeVedtaksdata(sakId, fraOgMedDatoFebruar) } doReturn gjeldendeVedtaksdataFebruar.right()
