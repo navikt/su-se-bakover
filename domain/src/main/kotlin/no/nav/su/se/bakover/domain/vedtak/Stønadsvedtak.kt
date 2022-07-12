@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
+import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.søknadsbehandling.ErAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
@@ -83,6 +84,10 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
     override val attestant: NavIdentBruker.Attestant
     override val periode: Periode
     override val behandling: Behandling
+
+    fun sakinfo(): SakInfo {
+        return behandling.sakinfo()
+    }
 
     companion object {
         fun fromSøknadsbehandling(

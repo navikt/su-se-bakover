@@ -112,6 +112,7 @@ fun opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
         informasjonSomRevurderes = informasjonSomRevurderes,
         attesteringer = Attesteringshistorikk.empty(),
         avkorting = avkorting,
+        sakinfo = sakOgVedtakSomKanRevurderes.first.info(),
     )
     return Pair(
         sakOgVedtakSomKanRevurderes.first.copy(
@@ -178,6 +179,7 @@ fun opprettRevurderingFraSaksopplysninger(
         informasjonSomRevurderes = informasjonSomRevurderes,
         attesteringer = Attesteringshistorikk.empty(),
         avkorting = avkorting,
+        sakinfo = sakOgVedtakSomKanRevurderes.first.info(),
     )
     return Pair(
         sakOgVedtakSomKanRevurderes.first.copy(
@@ -1423,6 +1425,7 @@ fun simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
                 årsak = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING.toString(),
                 begrunnelse = "valid",
             ),
+            sakinfo = sak.info()
         )
 
         sak.copy(
@@ -1509,6 +1512,7 @@ fun simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
                 årsak = Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING.toString(),
                 begrunnelse = "valid",
             ),
+            sakinfo = sak.info(),
         )
         sak.copy(
             revurderinger = sak.revurderinger.filterNot { it.id == revurdering.id } + revurdering,

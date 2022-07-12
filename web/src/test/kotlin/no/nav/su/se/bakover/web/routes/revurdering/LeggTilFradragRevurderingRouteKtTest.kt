@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilFradragsgrunnla
 import no.nav.su.se.bakover.service.revurdering.RevurderingOgFeilmeldingerResponse
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.sakinfo
 import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.periode
@@ -85,6 +86,7 @@ internal class LeggTilFradragRevurderingRouteKtTest {
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
             avkorting = AvkortingVedRevurdering.Uhåndtert.IngenUtestående,
+            sakinfo = sakinfo,
         )
 
         val revurderingServiceMock = mock<RevurderingService> {

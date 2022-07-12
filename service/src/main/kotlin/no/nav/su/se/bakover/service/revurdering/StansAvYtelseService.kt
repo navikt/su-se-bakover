@@ -67,11 +67,14 @@ internal class StansAvYtelseService(
                 }
             }
             is StansYtelseRequest.Opprett -> {
-                if (sakService.hentSak(request.sakId)
+                val sak = sakService.hentSak(request.sakId)
                     .getOrHandle { return KunneIkkeStanseYtelse.FantIkkeSak.left() }
-                    .harÅpenRevurderingForStansAvYtelse()
-                ) return KunneIkkeStanseYtelse.SakHarÅpenRevurderingForStansAvYtelse.left()
 
+                if (sak.harÅpenRevurderingForStansAvYtelse()) {
+                    return KunneIkkeStanseYtelse.SakHarÅpenRevurderingForStansAvYtelse.left()
+                }
+
+                // TODO hent rett fra sak
                 val gjeldendeVedtaksdata = kopierGjeldendeVedtaksdata(request)
                     .getOrHandle { return it.left() }
 
@@ -88,6 +91,7 @@ internal class StansAvYtelseService(
                     saksbehandler = request.saksbehandler,
                     simulering = simulering.simulering,
                     revurderingsårsak = request.revurderingsårsak,
+                    sakinfo = sak.info()
                 )
             }
         }

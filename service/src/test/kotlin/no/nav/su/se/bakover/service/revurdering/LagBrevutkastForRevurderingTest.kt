@@ -164,11 +164,12 @@ internal class LagBrevutkastForRevurderingTest {
 
     @Test
     fun `kan ikke lage brev med status opprettet`() {
+        val tilRevurdering = vedtakSøknadsbehandlingIverksattInnvilget().second
         val opprettetRevurdering = OpprettetRevurdering(
             id = UUID.randomUUID(),
             periode = RevurderingTestUtils.periodeNesteMånedOgTreMånederFram,
             opprettet = fixedTidspunkt,
-            tilRevurdering = vedtakSøknadsbehandlingIverksattInnvilget().second,
+            tilRevurdering = tilRevurdering,
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
@@ -178,6 +179,7 @@ internal class LagBrevutkastForRevurderingTest {
             vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             avkorting = AvkortingVedRevurdering.Uhåndtert.IngenUtestående,
+            sakinfo = tilRevurdering.sakinfo(),
         )
 
         assertThrows<LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans> {

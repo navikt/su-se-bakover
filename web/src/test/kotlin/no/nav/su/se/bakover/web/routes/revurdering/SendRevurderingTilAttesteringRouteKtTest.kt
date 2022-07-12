@@ -102,7 +102,8 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
             avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
-            tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling
+            tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling,
+            sakinfo = vedtak.sakinfo(),
         )
 
         val revurderingServiceMock = mock<RevurderingService> {
@@ -150,6 +151,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
             avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
+            sakinfo = vedtak.sakinfo(),
         )
 
         val revurderingServiceMock = mock<RevurderingService> {
@@ -199,6 +201,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
             avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
+            sakinfo = vedtak.sakinfo(),
         )
 
         val revurderingServiceMock = mock<RevurderingService> {

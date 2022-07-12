@@ -297,6 +297,7 @@ internal class OppdaterRevurderingServiceTest {
                     informasjonSomRevurderes = it.informasjonSomRevurderes,
                     avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
                     tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingFerdigbehandlet,
+                    sakinfo = it.tilRevurdering.sakinfo(),
                 )
             }
         }

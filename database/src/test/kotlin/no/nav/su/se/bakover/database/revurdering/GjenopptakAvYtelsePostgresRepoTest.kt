@@ -39,6 +39,7 @@ internal class GjenopptakAvYtelsePostgresRepoTest {
                     årsak = Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING.toString(),
                     begrunnelse = "huffa",
                 ),
+                sakinfo = vedtak.sakinfo(),
             )
 
             testDataHelper.revurderingRepo.lagre(simulertRevurdering)
@@ -77,6 +78,7 @@ internal class GjenopptakAvYtelsePostgresRepoTest {
                     årsak = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING.toString(),
                     begrunnelse = "huffa",
                 ),
+                sakinfo = vedtak.sakinfo(),
             )
 
             testDataHelper.revurderingRepo.lagre(simulertRevurdering)
@@ -121,6 +123,7 @@ internal class GjenopptakAvYtelsePostgresRepoTest {
                     årsak = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING.toString(),
                     begrunnelse = "huffa",
                 ),
+                sakinfo = vedtak.sakinfo(),
             )
 
             testDataHelper.revurderingRepo.lagre(simulertRevurdering)

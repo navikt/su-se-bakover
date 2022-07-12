@@ -1166,6 +1166,7 @@ internal class LagBrevRequestVisitorTest {
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
             tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingFerdigbehandlet,
+            sakinfo = søknadsbehandling.sakinfo(),
         )
 
         val avslåttVedtak = VedtakSomKanRevurderes.from(revurdering, utbetalingId, fixedClock)
@@ -1277,6 +1278,7 @@ internal class LagBrevRequestVisitorTest {
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
             tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingFerdigbehandlet,
+            sakinfo = søknadsbehandling.sakinfo(),
         )
 
         val opphørsvedtak = VedtakSomKanRevurderes.from(revurdering, utbetalingId, fixedClock)
@@ -1514,6 +1516,7 @@ internal class LagBrevRequestVisitorTest {
             vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
+            sakinfo = søknadsbehandling.sakinfo(),
         )
 
         val vedtakIngenEndring = VedtakSomKanRevurderes.from(revurdering, fixedClock)

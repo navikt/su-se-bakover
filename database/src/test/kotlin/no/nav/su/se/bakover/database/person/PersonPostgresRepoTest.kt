@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.sakinfo
 import org.junit.jupiter.api.Test
 import javax.sql.DataSource
 
@@ -231,6 +232,7 @@ internal class PersonPostgresRepoTest {
                         attesteringer = Attesteringshistorikk.empty(),
                         avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
                         tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling,
+                        sakinfo = revurdering.sakinfo,
                     ),
                 ).first
 
@@ -274,7 +276,8 @@ internal class PersonPostgresRepoTest {
                         informasjonSomRevurderes = revurdering.informasjonSomRevurderes,
                         attesteringer = Attesteringshistorikk.empty(),
                         avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
-                        tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling
+                        tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling,
+                        sakinfo = revurdering.sakinfo,
                     ),
                 ).first
             val revurderingAvRevurdering = testDataHelper.persisterRevurderingOpprettet(

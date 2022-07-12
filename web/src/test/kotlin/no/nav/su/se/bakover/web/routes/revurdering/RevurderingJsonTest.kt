@@ -112,6 +112,7 @@ internal class RevurderingJsonTest {
             ),
             attesteringer = Attesteringshistorikk.empty(),
             avkorting = AvkortingVedRevurdering.Uhåndtert.IngenUtestående,
+            sakinfo = vedtak.sakinfo(),
         )
 
         val revurderingJson =
@@ -193,6 +194,7 @@ internal class RevurderingJsonTest {
             ),
             attesteringer = Attesteringshistorikk.empty(),
             avkorting = AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående,
+            sakinfo = vedtak.sakinfo(),
         )
 
         val revurderingJson =
@@ -288,6 +290,7 @@ internal class RevurderingJsonTest {
             ),
             attesteringer = Attesteringshistorikk.empty(),
             avkorting = AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående,
+            sakinfo = vedtak.sakinfo(),
         )
 
         val revurderingJson =
@@ -370,6 +373,7 @@ internal class RevurderingJsonTest {
             ),
             attesteringer = Attesteringshistorikk.empty(),
             avkorting = AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående,
+            sakinfo = vedtak.sakinfo(),
         )
 
         val revurderingJson =
@@ -460,6 +464,7 @@ internal class RevurderingJsonTest {
                 revurderingId = id,
                 periode = beregning.periode,
             ),
+            sakinfo = vedtak.sakinfo(),
         )
 
         val revurderingJson =
@@ -552,6 +557,7 @@ internal class RevurderingJsonTest {
             attesteringer = Attesteringshistorikk.empty(),
             avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
             tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling,
+            sakinfo = vedtak.sakinfo(),
         )
 
         val revurderingJson =
@@ -642,6 +648,7 @@ internal class RevurderingJsonTest {
             attesteringer = Attesteringshistorikk.empty(),
             avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
             tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling,
+            sakinfo = vedtak.sakinfo(),
         )
 
         val revurderingJson =
@@ -733,6 +740,7 @@ internal class RevurderingJsonTest {
             attesteringer = Attesteringshistorikk.empty(),
             avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
             tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling,
+            sakinfo = vedtak.sakinfo(),
         )
 
         val revurderingJson =
@@ -823,6 +831,7 @@ internal class RevurderingJsonTest {
             ),
             attesteringer = Attesteringshistorikk.empty(),
             avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
+            sakinfo = vedtak.sakinfo(),
         )
 
         val revurderingJson =
@@ -918,6 +927,7 @@ internal class RevurderingJsonTest {
             ),
             avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
             tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling,
+            sakinfo = vedtak.sakinfo(),
         )
 
         val expected =
@@ -1023,6 +1033,7 @@ internal class RevurderingJsonTest {
             ),
             avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
             tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling,
+            sakinfo = vedtak.sakinfo(),
         )
 
         val expected =
@@ -1127,6 +1138,7 @@ internal class RevurderingJsonTest {
                 ),
             ),
             avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
+            sakinfo = vedtak.sakinfo(),
         )
 
         val expected =
@@ -1236,6 +1248,7 @@ internal class RevurderingJsonTest {
                     periode = beregning.periode,
                 ),
             ),
+            sakinfo = vedtak.sakinfo(),
         )
 
         val revurderingJson =
@@ -1336,6 +1349,7 @@ internal class RevurderingJsonTest {
             ),
             avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
             tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingFerdigbehandlet,
+            sakinfo = vedtak.sakinfo(),
         )
 
         val revurderingJson =
@@ -1432,6 +1446,7 @@ internal class RevurderingJsonTest {
                 ),
             ),
             avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
+            sakinfo = vedtak.sakinfo(),
         )
 
         val revurderingJson =

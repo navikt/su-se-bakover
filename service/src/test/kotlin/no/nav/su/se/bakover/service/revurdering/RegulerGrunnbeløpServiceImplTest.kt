@@ -222,11 +222,12 @@ internal class RegulerGrunnbeløpServiceImplTest {
 
     @Test
     fun `Ikke lov å sende en Underkjent Opphørt til attestering`() {
+        val tilRevurdering = vedtakSøknadsbehandlingIverksattInnvilget().second
         val simulertRevurdering = UnderkjentRevurdering.Opphørt(
             id = revurderingId,
             periode = periodeNesteMånedOgTreMånederFram,
             opprettet = Tidspunkt.EPOCH,
-            tilRevurdering = vedtakSøknadsbehandlingIverksattInnvilget().second,
+            tilRevurdering = tilRevurdering,
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
@@ -242,6 +243,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
             tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling,
+            sakinfo = tilRevurdering.sakinfo(),
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -287,10 +289,10 @@ internal class RegulerGrunnbeløpServiceImplTest {
             opprettet = Tidspunkt.EPOCH,
             tilRevurdering = tilRevurdering,
             saksbehandler = saksbehandler,
+            beregning = TestBeregning,
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsakRegulerGrunnbeløp,
-            beregning = TestBeregning,
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = mock<Vilkårsvurderinger.Revurdering.Uføre> {
@@ -299,6 +301,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
             avkorting = AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående,
+            sakinfo = tilRevurdering.sakinfo(),
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -342,6 +345,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
             avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
+            sakinfo = tilRevurdering.sakinfo(),
         )
 
         inOrder(revurderingRepoMock, personServiceMock, oppgaveServiceMock) {
@@ -379,6 +383,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             },
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
+            sakinfo = tilRevurdering.sakinfo(),
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -422,6 +427,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
             avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
+            sakinfo = tilRevurdering.sakinfo(),
         )
 
         inOrder(revurderingRepoMock, personServiceMock, oppgaveServiceMock) {

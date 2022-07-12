@@ -262,11 +262,12 @@ internal class LagreOgSendForhåndsvarselTest {
 
     @Test
     fun `forhåndsvarsler bare simulerte revurderinger`() {
+        val tilRevurdering = vedtakSøknadsbehandlingIverksattInnvilget().second
         val opprettet = OpprettetRevurdering(
             id = revurderingId,
             periode = RevurderingTestUtils.periodeNesteMånedOgTreMånederFram,
             opprettet = fixedTidspunkt,
-            tilRevurdering = vedtakSøknadsbehandlingIverksattInnvilget().second,
+            tilRevurdering = tilRevurdering,
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
@@ -276,6 +277,7 @@ internal class LagreOgSendForhåndsvarselTest {
             vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             avkorting = AvkortingVedRevurdering.Uhåndtert.IngenUtestående,
+            sakinfo = tilRevurdering.sakinfo(),
         )
         testForhåndsvarslerIkkeGittRevurdering(opprettet)
 
@@ -283,18 +285,19 @@ internal class LagreOgSendForhåndsvarselTest {
             id = revurderingId,
             periode = RevurderingTestUtils.periodeNesteMånedOgTreMånederFram,
             opprettet = fixedTidspunkt,
-            tilRevurdering = vedtakSøknadsbehandlingIverksattInnvilget().second,
+            tilRevurdering = tilRevurdering,
             saksbehandler = saksbehandler,
+            beregning = TestBeregning,
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
             revurderingsårsak = RevurderingTestUtils.revurderingsårsak,
             forhåndsvarsel = null,
-            beregning = TestBeregning,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
             avkorting = AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående,
+            sakinfo = tilRevurdering.sakinfo(),
         )
         testForhåndsvarslerIkkeGittRevurdering(beregnet)
     }

@@ -824,8 +824,8 @@ internal class TestDataHelper(
         return OpprettetRevurdering(
             id = UUID.randomUUID(),
             periode = periode,
-            tilRevurdering = innvilget,
             opprettet = fixedTidspunkt,
+            tilRevurdering = innvilget,
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
@@ -839,6 +839,7 @@ internal class TestDataHelper(
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
             avkorting = AvkortingVedRevurdering.Uhåndtert.IngenUtestående,
+            sakinfo = innvilget.sakinfo()
         ).also {
             revurderingRepo.lagre(it)
         }
@@ -1079,6 +1080,7 @@ internal class TestDataHelper(
             saksbehandler = saksbehandler,
             simulering = simulering,
             revurderingsårsak = revurderingsårsak,
+            sakinfo = tilRevurdering.sakinfo(),
         ).also {
             revurderingRepo.lagre(it)
         }
@@ -1137,15 +1139,16 @@ internal class TestDataHelper(
         ),
     ): GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse {
         return GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse(
-            id,
-            opprettet,
-            periode,
-            grunnlagsdata,
-            vilkårsvurderinger,
-            tilRevurdering,
-            saksbehandler,
-            simulering,
-            revurderingsårsak,
+            id = id,
+            opprettet = opprettet,
+            periode = periode,
+            grunnlagsdata = grunnlagsdata,
+            vilkårsvurderinger = vilkårsvurderinger,
+            tilRevurdering = tilRevurdering,
+            saksbehandler = saksbehandler,
+            simulering = simulering,
+            revurderingsårsak = revurderingsårsak,
+            sakinfo = tilRevurdering.sakinfo()
         ).also {
             revurderingRepo.lagre(it)
         }

@@ -25,8 +25,8 @@ import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
+import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.søknadinnhold.SøknadInnhold
-import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeOppdatereStønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
@@ -79,6 +79,14 @@ data class Sak(
     val reguleringer: List<Regulering> = emptyList(),
     val type: Sakstype,
 ) {
+    fun info(): SakInfo {
+        return SakInfo(
+            sakId = id,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            type = type,
+        )
+    }
 
     fun utbetalingstidslinje(
         periode: Periode = Periode.create(

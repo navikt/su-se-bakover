@@ -231,18 +231,19 @@ internal class RevurderingServiceImpl(
         }.map { oppgaveId ->
             OpprettetRevurdering(
                 periode = gjeldendeVedtaksdata.vedtaksperioder().minsteAntallSammenhengendePerioder().single(),
+                opprettet = Tidspunkt.now(clock),
                 tilRevurdering = gjeldendeVedtakPåFraOgMedDato,
                 saksbehandler = opprettRevurderingRequest.saksbehandler,
                 oppgaveId = oppgaveId,
                 fritekstTilBrev = "",
                 revurderingsårsak = revurderingsårsak,
-                opprettet = Tidspunkt.now(clock),
                 forhåndsvarsel = if (revurderingsårsak.årsak == REGULER_GRUNNBELØP) Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles else null,
                 grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
                 vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
                 attesteringer = Attesteringshistorikk.empty(),
                 avkorting = uteståendeAvkorting,
+                sakinfo = gjeldendeVedtakPåFraOgMedDato.sakinfo(),
             ).also {
                 revurderingRepo.lagre(it)
 

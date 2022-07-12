@@ -45,6 +45,7 @@ import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandl
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.tilbakekrevingErVurdert
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.beregning.BeregnRevurderingStrategyDecider
+import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
@@ -74,10 +75,11 @@ sealed class AbstraktRevurdering : Behandling {
         )
 
     abstract val tilRevurdering: VedtakSomKanRevurderes
-    override val sakId by lazy { tilRevurdering.behandling.sakId }
-    override val saksnummer by lazy { tilRevurdering.behandling.saksnummer }
-    override val fnr by lazy { tilRevurdering.behandling.fnr }
-    override val sakstype: Sakstype by lazy { tilRevurdering.behandling.sakstype }
+    abstract val sakinfo: SakInfo
+    override val sakId by lazy { sakinfo.sakId }
+    override val saksnummer by lazy { sakinfo.saksnummer }
+    override val fnr by lazy { sakinfo.fnr }
+    override val sakstype: Sakstype by lazy { sakinfo.type }
 
     abstract override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering
 }
@@ -411,6 +413,7 @@ sealed class Revurdering :
                     }
                 }
             },
+            sakinfo = sakinfo,
         )
     }
 
@@ -445,6 +448,7 @@ sealed class Revurdering :
                     }
                 }
             },
+            sakinfo = sakinfo,
         )
     }
 
@@ -481,16 +485,17 @@ sealed class Revurdering :
                 informasjonSomRevurderes = revurdering.informasjonSomRevurderes,
                 attesteringer = revurdering.attesteringer,
                 avkorting = revurdering.avkorting.håndter(),
+                sakinfo = sakinfo,
             )
 
         fun innvilget(revurdering: OpprettetRevurdering, revurdertBeregning: Beregning): BeregnetRevurdering.Innvilget =
             BeregnetRevurdering.Innvilget(
-                tilRevurdering = revurdering.tilRevurdering,
                 id = revurdering.id,
                 periode = revurdering.periode,
                 opprettet = revurdering.opprettet,
-                beregning = revurdertBeregning,
+                tilRevurdering = revurdering.tilRevurdering,
                 saksbehandler = revurdering.saksbehandler,
+                beregning = revurdertBeregning,
                 oppgaveId = revurdering.oppgaveId,
                 fritekstTilBrev = revurdering.fritekstTilBrev,
                 revurderingsårsak = revurdering.revurderingsårsak,
@@ -500,6 +505,7 @@ sealed class Revurdering :
                 informasjonSomRevurderes = revurdering.informasjonSomRevurderes,
                 attesteringer = revurdering.attesteringer,
                 avkorting = revurdering.avkorting.håndter(),
+                sakinfo = sakinfo,
             )
 
         fun ingenEndring(
@@ -507,12 +513,12 @@ sealed class Revurdering :
             revurdertBeregning: Beregning,
         ): BeregnetRevurdering.IngenEndring =
             BeregnetRevurdering.IngenEndring(
-                tilRevurdering = revurdering.tilRevurdering,
                 id = revurdering.id,
                 periode = revurdering.periode,
                 opprettet = revurdering.opprettet,
-                beregning = revurdertBeregning,
+                tilRevurdering = revurdering.tilRevurdering,
                 saksbehandler = revurdering.saksbehandler,
+                beregning = revurdertBeregning,
                 oppgaveId = revurdering.oppgaveId,
                 fritekstTilBrev = revurdering.fritekstTilBrev,
                 revurderingsårsak = revurdering.revurderingsårsak,
@@ -522,6 +528,7 @@ sealed class Revurdering :
                 informasjonSomRevurderes = revurdering.informasjonSomRevurderes,
                 attesteringer = revurdering.attesteringer,
                 avkorting = revurdering.avkorting.håndter(),
+                sakinfo = sakinfo,
             )
 
         fun kontrollerOpphørAvFremtidigAvkorting(): Either<KunneIkkeBeregneRevurdering.OpphørAvYtelseSomSkalAvkortes, Unit> {
@@ -635,6 +642,7 @@ data class OpprettetRevurdering(
     override val informasjonSomRevurderes: InformasjonSomRevurderes,
     override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty(),
     override val avkorting: AvkortingVedRevurdering.Uhåndtert,
+    override val sakinfo: SakInfo,
 ) : Revurdering() {
     override val erOpphørt = false
 
@@ -769,6 +777,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         informasjonSomRevurderes = informasjonSomRevurderes,
         attesteringer = attesteringer,
         avkorting = avkorting,
+        sakinfo = sakinfo,
     )
 
     data class Innvilget(
@@ -787,6 +796,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.DelvisHåndtert,
+        override val sakinfo: SakInfo,
     ) : BeregnetRevurdering() {
         override val erOpphørt = false
 
@@ -832,6 +842,7 @@ sealed class BeregnetRevurdering : Revurdering() {
                 attesteringer = attesteringer,
                 avkorting = avkorting.håndter(),
                 tilbakekrevingsbehandling = tilbakekrevingsbehandling,
+                sakinfo = sakinfo,
             )
         }
     }
@@ -852,6 +863,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.DelvisHåndtert,
+        override val sakinfo: SakInfo,
     ) : BeregnetRevurdering() {
         override val erOpphørt = false
 
@@ -877,6 +889,7 @@ sealed class BeregnetRevurdering : Revurdering() {
             informasjonSomRevurderes = informasjonSomRevurderes,
             attesteringer = attesteringer,
             avkorting = avkorting.håndter(),
+            sakinfo = sakinfo,
         )
 
         override fun accept(visitor: RevurderingVisitor) {
@@ -900,6 +913,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.DelvisHåndtert,
+        override val sakinfo: SakInfo,
     ) : BeregnetRevurdering() {
         override val erOpphørt = true
 
@@ -995,6 +1009,7 @@ sealed class BeregnetRevurdering : Revurdering() {
                 attesteringer = attesteringer,
                 avkorting = håndtertAvkorting,
                 tilbakekrevingsbehandling = tilbakekrevingsbehandling,
+                sakinfo = sakinfo,
             ).right()
         }
 
@@ -1207,6 +1222,7 @@ sealed class SimulertRevurdering : Revurdering() {
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.Håndtert,
         override val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling,
+        override val sakinfo: SakInfo,
     ) : SimulertRevurdering() {
         override val erOpphørt = false
 
@@ -1293,6 +1309,7 @@ sealed class SimulertRevurdering : Revurdering() {
                 attesteringer = attesteringer,
                 avkorting = avkorting,
                 tilbakekrevingsbehandling = gyldigTilbakekrevingsbehandling,
+                sakinfo = sakinfo,
             ).right()
         }
     }
@@ -1315,6 +1332,7 @@ sealed class SimulertRevurdering : Revurdering() {
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.Håndtert,
         override val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling,
+        override val sakinfo: SakInfo,
     ) : SimulertRevurdering() {
         override val erOpphørt = true
 
@@ -1424,6 +1442,7 @@ sealed class SimulertRevurdering : Revurdering() {
                 attesteringer = attesteringer,
                 avkorting = avkorting,
                 tilbakekrevingsbehandling = gyldigTilbakekrevingsbehandling,
+                sakinfo = sakinfo,
             ).right()
         }
     }
@@ -1452,6 +1471,7 @@ sealed class SimulertRevurdering : Revurdering() {
         informasjonSomRevurderes = informasjonSomRevurderes,
         attesteringer = attesteringer,
         avkorting = avkorting,
+        sakinfo = sakinfo,
     )
 }
 
@@ -1482,6 +1502,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.Håndtert,
         val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling,
+        override val sakinfo: SakInfo,
     ) : RevurderingTilAttestering() {
 
         override val erOpphørt = false
@@ -1491,10 +1512,6 @@ sealed class RevurderingTilAttestering : Revurdering() {
         }
 
         override val skalFøreTilUtsendingAvVedtaksbrev = true
-
-        fun tilbakekrevingErVurdert(): Either<Unit, Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort> {
-            return tilbakekrevingsbehandling.tilbakekrevingErVurdert()
-        }
 
         fun tilIverksatt(
             attestant: NavIdentBruker.Attestant,
@@ -1529,6 +1546,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 ),
                 avkorting = avkorting.iverksett(id),
                 tilbakekrevingsbehandling = tilbakekrevingsbehandling.fullførBehandling(),
+                sakinfo = sakinfo,
             )
         }
     }
@@ -1551,6 +1569,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.Håndtert,
         val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling,
+        override val sakinfo: SakInfo,
     ) : RevurderingTilAttestering() {
         override val erOpphørt = true
 
@@ -1572,10 +1591,6 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 is OpphørVedRevurdering.Ja -> opphør.opphørsgrunner
                 OpphørVedRevurdering.Nei -> emptyList()
             }
-        }
-
-        fun tilbakekrevingErVurdert(): Either<Unit, Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort> {
-            return tilbakekrevingsbehandling.tilbakekrevingErVurdert()
         }
 
         fun tilIverksatt(
@@ -1611,6 +1626,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 ),
                 avkorting = avkorting.iverksett(id),
                 tilbakekrevingsbehandling = tilbakekrevingsbehandling.fullførBehandling(),
+                sakinfo = sakinfo,
             )
         }
     }
@@ -1632,6 +1648,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.Håndtert,
+        override val sakinfo: SakInfo,
     ) : RevurderingTilAttestering() {
 
         override val erOpphørt = false
@@ -1670,6 +1687,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                     ),
                 ),
                 avkorting = avkorting.iverksett(id),
+                sakinfo = sakinfo,
             ).right()
         }
     }
@@ -1711,6 +1729,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 informasjonSomRevurderes = informasjonSomRevurderes,
                 avkorting = avkorting,
                 tilbakekrevingsbehandling = tilbakekrevingsbehandling,
+                sakinfo = sakinfo,
             )
             is Opphørt -> UnderkjentRevurdering.Opphørt(
                 id = id,
@@ -1730,6 +1749,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 informasjonSomRevurderes = informasjonSomRevurderes,
                 avkorting = avkorting,
                 tilbakekrevingsbehandling = tilbakekrevingsbehandling,
+                sakinfo = sakinfo,
             )
             is IngenEndring -> UnderkjentRevurdering.IngenEndring(
                 id = id,
@@ -1748,6 +1768,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
                 avkorting = avkorting,
+                sakinfo = sakinfo,
             )
         }
     }
@@ -1787,6 +1808,7 @@ sealed class IverksattRevurdering : Revurdering() {
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.Iverksatt,
         val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet,
+        override val sakinfo: SakInfo,
     ) : IverksattRevurdering() {
 
         override val erOpphørt = false
@@ -1818,6 +1840,7 @@ sealed class IverksattRevurdering : Revurdering() {
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.Iverksatt,
         val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet,
+        override val sakinfo: SakInfo,
     ) : IverksattRevurdering() {
         override val erOpphørt = true
 
@@ -1871,6 +1894,7 @@ sealed class IverksattRevurdering : Revurdering() {
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.Iverksatt,
+        override val sakinfo: SakInfo,
     ) : IverksattRevurdering() {
         override val erOpphørt = false
 
@@ -1952,6 +1976,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val avkorting: AvkortingVedRevurdering.Håndtert,
         val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling,
+        override val sakinfo: SakInfo,
     ) : UnderkjentRevurdering() {
         override val erOpphørt = false
 
@@ -1960,10 +1985,6 @@ sealed class UnderkjentRevurdering : Revurdering() {
         }
 
         fun harSimuleringFeilutbetaling() = simulering.harFeilutbetalinger()
-
-        fun tilbakekrevingErVurdert(): Either<Unit, Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort> {
-            return tilbakekrevingsbehandling.tilbakekrevingErVurdert()
-        }
 
         fun tilAttestering(
             oppgaveId: OppgaveId,
@@ -1987,6 +2008,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
             attesteringer = attesteringer,
             avkorting = avkorting,
             tilbakekrevingsbehandling = tilbakekrevingsbehandling,
+            sakinfo = sakinfo,
         )
     }
 
@@ -2008,6 +2030,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.Håndtert,
         val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling,
+        override val sakinfo: SakInfo,
     ) : UnderkjentRevurdering() {
         override val erOpphørt = true
 
@@ -2029,10 +2052,6 @@ sealed class UnderkjentRevurdering : Revurdering() {
         }
 
         fun harSimuleringFeilutbetaling() = simulering.harFeilutbetalinger()
-
-        fun tilbakekrevingErVurdert(): Either<Unit, Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort> {
-            return tilbakekrevingsbehandling.tilbakekrevingErVurdert()
-        }
 
         object KanIkkeSendeEnOpphørtGReguleringTilAttestering
 
@@ -2062,6 +2081,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
                     attesteringer = attesteringer,
                     avkorting = avkorting,
                     tilbakekrevingsbehandling = tilbakekrevingsbehandling,
+                    sakinfo = sakinfo,
                 ).right()
             }
         }
@@ -2084,6 +2104,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.Håndtert,
+        override val sakinfo: SakInfo,
     ) : UnderkjentRevurdering() {
         override val erOpphørt = false
 
@@ -2113,6 +2134,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
             informasjonSomRevurderes = informasjonSomRevurderes,
             attesteringer = attesteringer,
             avkorting = avkorting,
+            sakinfo = sakinfo,
         )
     }
 
@@ -2140,6 +2162,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         informasjonSomRevurderes = informasjonSomRevurderes,
         attesteringer = attesteringer,
         avkorting = avkorting,
+        sakinfo = sakinfo,
     )
 }
 

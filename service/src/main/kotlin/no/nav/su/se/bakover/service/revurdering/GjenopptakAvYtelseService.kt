@@ -80,6 +80,7 @@ class GjenopptakAvYtelseService(
                                 saksbehandler = request.saksbehandler,
                                 simulering = simulering.simulering,
                                 revurderingsårsak = request.revurderingsårsak,
+                                sakinfo = sak.info(),
                             )
                         }
                         else -> return KunneIkkeGjenopptaYtelse.UgyldigTypeForOppdatering(update::class).left()
@@ -105,6 +106,7 @@ class GjenopptakAvYtelseService(
                         saksbehandler = request.saksbehandler,
                         simulering = simulering.simulering,
                         revurderingsårsak = request.revurderingsårsak,
+                        sakinfo = sak.info(),
                     )
                 }
             }

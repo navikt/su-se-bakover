@@ -61,6 +61,7 @@ import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt12000
 import no.nav.su.se.bakover.test.iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.plus
 import no.nav.su.se.bakover.test.sakId
+import no.nav.su.se.bakover.test.sakinfo
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
@@ -467,6 +468,7 @@ internal class OpprettRevurderingServiceTest {
             on { periode } doReturn vedtaksperiode
             on { behandling } doReturn behandlingMock
             on { beregning } doReturn testBeregning
+            on { sakinfo() } doReturn sakinfo
         }
         val vedtakForFørsteMarsLagetNå = mock<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering> {
             on { id } doReturn UUID.randomUUID()
@@ -474,6 +476,7 @@ internal class OpprettRevurderingServiceTest {
             on { periode } doReturn Periode.create(1.mars(2021), 31.desember(2021))
             on { behandling } doReturn behandlingMock
             on { beregning } doReturn testBeregning
+            on { sakinfo() } doReturn sakinfo
         }
         val vedtakForFørsteJanuarLagetForLengeSiden = mock<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering> {
             on { id } doReturn UUID.randomUUID()
@@ -481,6 +484,7 @@ internal class OpprettRevurderingServiceTest {
             on { periode } doReturn vedtaksperiode
             on { behandling } doReturn behandlingMock
             on { beregning } doReturn testBeregning
+            on { sakinfo() } doReturn sakinfo
         }
 
         val fraOgMedDatoFebruar = fixedLocalDate.plus(1, ChronoUnit.MONTHS)

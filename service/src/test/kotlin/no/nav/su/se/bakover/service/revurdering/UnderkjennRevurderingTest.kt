@@ -42,11 +42,12 @@ internal class UnderkjennRevurderingTest {
 
     @Test
     fun `underkjenn - underkjenner en revurdering`() {
+        val tilRevurdering = vedtakSøknadsbehandlingIverksattInnvilget().second
         val tilAttestering = RevurderingTilAttestering.Innvilget(
             id = revurderingId,
             periode = RevurderingTestUtils.periodeNesteMånedOgTreMånederFram,
             opprettet = Tidspunkt.EPOCH,
-            tilRevurdering = vedtakSøknadsbehandlingIverksattInnvilget().second,
+            tilRevurdering = tilRevurdering,
             saksbehandler = saksbehandler,
             beregning = RevurderingTestUtils.beregning,
             simulering = mock(),
@@ -60,6 +61,7 @@ internal class UnderkjennRevurderingTest {
             attesteringer = Attesteringshistorikk.empty(),
             avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
             tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling,
+            sakinfo = tilRevurdering.sakinfo(),
         )
 
         val attestering = Attestering.Underkjent(

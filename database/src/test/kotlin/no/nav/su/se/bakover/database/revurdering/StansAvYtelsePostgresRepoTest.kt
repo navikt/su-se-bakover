@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
+import no.nav.su.se.bakover.test.sakinfo
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simulering
 import no.nav.su.se.bakover.test.vilkårsvurderingerRevurderingInnvilget
@@ -40,6 +41,7 @@ internal class StansAvYtelsePostgresRepoTest {
                     årsak = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING.toString(),
                     begrunnelse = "huffa",
                 ),
+                sakinfo = vedtak.sakinfo()
             )
 
             testDataHelper.revurderingRepo.lagre(simulertRevurdering)
@@ -75,6 +77,7 @@ internal class StansAvYtelsePostgresRepoTest {
                     årsak = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING.toString(),
                     begrunnelse = "huffa",
                 ),
+                sakinfo = vedtak.sakinfo(),
             )
 
             testDataHelper.revurderingRepo.lagre(simulertRevurdering)
@@ -128,6 +131,7 @@ internal class StansAvYtelsePostgresRepoTest {
                     årsak = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING.toString(),
                     begrunnelse = "huffa",
                 ),
+                sakinfo = vedtak.sakinfo(),
             )
 
             testDataHelper.revurderingRepo.lagre(simulertRevurdering)
