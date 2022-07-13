@@ -137,7 +137,7 @@ internal class OpprettRevurderingServiceTest {
             gjeldendeVedtaksdata.gjeldendeVedtakPåDato(periodeNesteMånedOgTreMånederFram.fraOgMed) as VedtakSomKanRevurderes.EndringIYtelse
         actual.let { opprettetRevurdering ->
             opprettetRevurdering.periode shouldBe periodeNesteMånedOgTreMånederFram
-            opprettetRevurdering.tilRevurdering shouldBe tilRevurdering
+            opprettetRevurdering.tilRevurdering shouldBe tilRevurdering.id
             opprettetRevurdering.saksbehandler shouldBe saksbehandler
             opprettetRevurdering.oppgaveId shouldBe OppgaveId("oppgaveId")
             opprettetRevurdering.fritekstTilBrev shouldBe ""
@@ -225,7 +225,7 @@ internal class OpprettRevurderingServiceTest {
             Periode.create(periodeNesteMånedOgTreMånederFram.fraOgMed, periodeNesteMånedOgTreMånederFram.tilOgMed)
         actual.let { opprettetRevurdering ->
             opprettetRevurdering.periode shouldBe periode
-            opprettetRevurdering.tilRevurdering shouldBe tilRevurdering
+            opprettetRevurdering.tilRevurdering shouldBe tilRevurdering.id
             opprettetRevurdering.saksbehandler shouldBe saksbehandler
             opprettetRevurdering.oppgaveId shouldBe OppgaveId("oppgaveId")
             opprettetRevurdering.fritekstTilBrev shouldBe ""
@@ -320,7 +320,7 @@ internal class OpprettRevurderingServiceTest {
             gjeldendeVedtaksdata.gjeldendeVedtakPåDato(periode.fraOgMed) as VedtakSomKanRevurderes.EndringIYtelse
         actual.let { opprettetRevurdering ->
             opprettetRevurdering.periode shouldBe periode
-            opprettetRevurdering.tilRevurdering shouldBe tilRevurdering
+            opprettetRevurdering.tilRevurdering shouldBe tilRevurdering.id
             opprettetRevurdering.saksbehandler shouldBe saksbehandler
             opprettetRevurdering.oppgaveId shouldBe OppgaveId("oppgaveId")
             opprettetRevurdering.fritekstTilBrev shouldBe ""
@@ -489,7 +489,7 @@ internal class OpprettRevurderingServiceTest {
             ),
         )
 
-        revurderingForFebruar.getOrFail().tilRevurdering shouldBe vedtakForFørsteJanuarLagetNå
+        revurderingForFebruar.getOrFail().tilRevurdering shouldBe vedtakForFørsteJanuarLagetNå.id
 
         val revurderingForApril = mocks.revurderingService.opprettRevurdering(
             OpprettRevurderingRequest(
@@ -502,7 +502,7 @@ internal class OpprettRevurderingServiceTest {
             ),
         )
 
-        revurderingForApril.getOrFail().tilRevurdering shouldBe vedtakForFørsteMarsLagetNå
+        revurderingForApril.getOrFail().tilRevurdering shouldBe vedtakForFørsteMarsLagetNå.id
     }
 
     @Test
@@ -557,7 +557,7 @@ internal class OpprettRevurderingServiceTest {
 
         actual.getOrFail().also {
             it.saksnummer shouldBe saksnummer
-            it.tilRevurdering.id shouldBe revurderingVedtak.id
+            it.tilRevurdering shouldBe revurderingVedtak.id
         }
 
         verify(vedtakServiceMock).kopierGjeldendeVedtaksdata(sakId, periodeNesteMånedOgTreMånederFram.fraOgMed)

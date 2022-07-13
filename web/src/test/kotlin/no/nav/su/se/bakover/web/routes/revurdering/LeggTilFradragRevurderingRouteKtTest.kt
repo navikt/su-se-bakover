@@ -72,7 +72,7 @@ internal class LeggTilFradragRevurderingRouteKtTest {
             id = UUID.randomUUID(),
             periode = periode,
             opprettet = fixedTidspunkt,
-            tilRevurdering = vedtak,
+            tilRevurdering = vedtak.id,
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
             oppgaveId = OppgaveId("oppgaveId"),
             fritekstTilBrev = "",

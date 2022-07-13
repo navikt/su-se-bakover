@@ -16,6 +16,10 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
+import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
+import no.nav.su.se.bakover.test.nySøknadJournalførtMedOppgave
+import no.nav.su.se.bakover.test.søknadinnhold
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
@@ -30,7 +34,7 @@ internal class GjeldendeVedtaksdataTest {
             stønadsperiode = Stønadsperiode.create(år(2021)),
         )
         val revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021))
-        val (_, revurderingsVedtak) = vedtakRevurdering(
+        val (sak2, revurderingsVedtak) = vedtakRevurdering(
             revurderingsperiode = revurderingsperiode,
             sakOgVedtakSomKanRevurderes = sak to førstegangsvedtak,
             grunnlagsdataOverrides = listOf(
@@ -41,14 +45,11 @@ internal class GjeldendeVedtaksdataTest {
                 ),
             ),
         )
-        val data = GjeldendeVedtaksdata(
-            periode = år(2021),
-            vedtakListe = nonEmptyListOf(
-                førstegangsvedtak,
-                revurderingsVedtak,
-            ),
+        val data = sak2.kopierGjeldendeVedtaksdata(
+            fraOgMed = førstegangsvedtak.periode.fraOgMed,
             clock = fixedClock,
-        )
+        ).getOrFail()
+
         data.gjeldendeVedtakPåDato(1.januar(2021)) shouldBe førstegangsvedtak
         data.gjeldendeVedtakPåDato(30.april(2021)) shouldBe førstegangsvedtak
         data.gjeldendeVedtakPåDato(1.mai(2021)) shouldBe revurderingsVedtak
@@ -64,39 +65,41 @@ internal class GjeldendeVedtaksdataTest {
 
     @Test
     fun `tidslinje inneholder hull mellom to vedtak`() {
-        val (sak, førstegangsvedtak) = vedtakSøknadsbehandlingIverksattInnvilget(
+        val tikkendeKlokke = TikkendeKlokke(fixedClock)
+
+        val (sak, _, førstegangsvedtak) = iverksattSøknadsbehandlingUføre(
             stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.mars(2021))),
+            clock = tikkendeKlokke,
         )
 
-        val (_, nyStønadsperiode) = vedtakSøknadsbehandlingIverksattInnvilget(
-            stønadsperiode = Stønadsperiode.create(Periode.create(1.mai(2021), 31.desember(2021))),
-        )
-
-        sak.copy(
-            søknadsbehandlinger = sak.søknadsbehandlinger + nyStønadsperiode.behandling,
-            vedtakListe = sak.vedtakListe + nyStønadsperiode,
-        ).let {
-            val data = GjeldendeVedtaksdata(
-                periode = år(2021),
-                vedtakListe = nonEmptyListOf(
-                    førstegangsvedtak,
-                    nyStønadsperiode,
+        val (sak2, _, nyStønadsperiode) = iverksattSøknadsbehandlingUføre(
+            sakOgSøknad = sak to nySøknadJournalførtMedOppgave(
+                clock = tikkendeKlokke,
+                sakId = sak.id,
+                søknadInnhold = søknadinnhold(
+                    fnr = sak.fnr,
                 ),
-                clock = fixedClock,
-            )
-            data.gjeldendeVedtakPåDato(1.mars(2021)) shouldBe førstegangsvedtak
-            data.gjeldendeVedtakPåDato(1.april(2021)) shouldBe null
-            data.gjeldendeVedtakPåDato(1.desember(2021)) shouldBe nyStønadsperiode
-            data.tidslinjeForVedtakErSammenhengende() shouldBe false
-            assertThrows<IllegalStateException> {
-                data.garantertSammenhengendePeriode()
-            }
-            data.vedtaksperioder() shouldBe listOf(
-                Periode.create(1.januar(2021), 31.mars(2021)),
-                Periode.create(1.mai(2021), 31.desember(2021)),
-            )
-            data.periodeFørsteTilOgMedSeneste() shouldBe år(2021)
+            ),
+            stønadsperiode = Stønadsperiode.create(Periode.create(1.mai(2021), 31.desember(2021))),
+            clock = tikkendeKlokke,
+        )
+        val data = sak2.kopierGjeldendeVedtaksdata(
+            fraOgMed = førstegangsvedtak.periode.fraOgMed,
+            clock = tikkendeKlokke,
+        ).getOrFail()
+
+        data.gjeldendeVedtakPåDato(1.mars(2021)) shouldBe førstegangsvedtak
+        data.gjeldendeVedtakPåDato(1.april(2021)) shouldBe null
+        data.gjeldendeVedtakPåDato(1.desember(2021)) shouldBe nyStønadsperiode
+        data.tidslinjeForVedtakErSammenhengende() shouldBe false
+        assertThrows<IllegalStateException> {
+            data.garantertSammenhengendePeriode()
         }
+        data.vedtaksperioder() shouldBe listOf(
+            Periode.create(1.januar(2021), 31.mars(2021)),
+            Periode.create(1.mai(2021), 31.desember(2021)),
+        )
+        data.periodeFørsteTilOgMedSeneste() shouldBe år(2021)
     }
 
     @Test

@@ -61,7 +61,7 @@ internal class StansAvYtelsePostgresRepo(
                                 "simulering" to serialize(revurdering.simulering),
                                 "saksbehandler" to revurdering.saksbehandler,
                                 "revurderingsType" to RevurderingsType.SIMULERT_STANS,
-                                "vedtakSomRevurderesId" to revurdering.tilRevurdering.id,
+                                "vedtakSomRevurderesId" to revurdering.tilRevurdering,
                                 "arsak" to revurdering.revurderingsårsak.årsak.toString(),
                                 "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
                                 "attestering" to Attesteringshistorikk.empty().serialize(),

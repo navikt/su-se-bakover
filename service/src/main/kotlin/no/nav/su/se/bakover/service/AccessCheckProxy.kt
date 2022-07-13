@@ -320,6 +320,11 @@ open class AccessCheckProxy(
 
                 override fun hentSakidOgSaksnummer(fnr: Fnr) = kastKanKunKallesFraAnnenService()
 
+                override fun hentSakForRevurdering(revurderingId: UUID): Sak {
+                    assertHarTilgangTilRevurdering(revurderingId)
+                    return services.sak.hentSakForRevurdering(revurderingId)
+                }
+
                 override fun opprettSak(sak: NySak) {
                     assertHarTilgangTilPerson(sak.fnr)
 

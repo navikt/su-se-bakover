@@ -443,7 +443,7 @@ internal class BrevServiceImplTest {
             clock = fixedClock,
         ).let {
             it.brevService.lagDokument(vedtak) shouldBe KunneIkkeLageDokument.KunneIkkeFinneGjeldendeUtbetaling.left()
-            verify(it.personService).hentPersonMedSystembruker(vedtak.tilRevurdering.behandling.fnr)
+            verify(it.personService).hentPersonMedSystembruker(vedtak.fnr)
             verify(it.identClient).hentNavnForNavIdent(vedtak.saksbehandler)
             verify(it.identClient).hentNavnForNavIdent(vedtak.attesteringer.hentSisteAttestering().attestant)
             verify(it.utbetalingService).hentGjeldendeUtbetaling(sak.id, vedtak.opprettet.toLocalDate(zoneIdOslo))
@@ -487,7 +487,7 @@ internal class BrevServiceImplTest {
             clock = fixedClock,
         ).let {
             it.brevService.lagDokument(vedtak) shouldBe KunneIkkeLageDokument.KunneIkkeGenererePDF.left()
-            verify(it.personService).hentPersonMedSystembruker(vedtak.tilRevurdering.behandling.fnr)
+            verify(it.personService).hentPersonMedSystembruker(vedtak.fnr)
             verify(it.identClient).hentNavnForNavIdent(vedtak.saksbehandler)
             verify(it.identClient).hentNavnForNavIdent(vedtak.attesteringer.hentSisteAttestering().attestant)
             verify(it.utbetalingService).hentGjeldendeUtbetaling(sak.id, vedtak.opprettet.toLocalDate(zoneIdOslo))

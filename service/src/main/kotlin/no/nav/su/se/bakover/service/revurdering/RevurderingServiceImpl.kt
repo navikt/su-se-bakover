@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -103,7 +104,7 @@ internal class RevurderingServiceImpl(
     private val kontrollsamtaleService: KontrollsamtaleService,
     private val sessionFactory: SessionFactory,
     private val formuegrenserFactory: FormuegrenserFactory,
-    sakService: SakService,
+    private val sakService: SakService,
     private val avkortingsvarselRepo: AvkortingsvarselRepo,
     private val toggleService: ToggleService,
     private val tilbakekrevingService: TilbakekrevingService,
@@ -232,7 +233,7 @@ internal class RevurderingServiceImpl(
             OpprettetRevurdering(
                 periode = gjeldendeVedtaksdata.vedtaksperioder().minsteAntallSammenhengendePerioder().single(),
                 opprettet = Tidspunkt.now(clock),
-                tilRevurdering = gjeldendeVedtakPåFraOgMedDato,
+                tilRevurdering = gjeldendeVedtakPåFraOgMedDato.id,
                 saksbehandler = opprettRevurderingRequest.saksbehandler,
                 oppgaveId = oppgaveId,
                 fritekstTilBrev = "",
@@ -500,33 +501,11 @@ internal class RevurderingServiceImpl(
     }
 
     private fun identifiserFeilOgLagResponse(revurdering: Revurdering): RevurderingOgFeilmeldingerResponse {
-
-        val tidligereBeregning = when (val tilRevurdering = revurdering.tilRevurdering) {
-            is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse -> {
-                return RevurderingOgFeilmeldingerResponse(
-                    revurdering = revurdering,
-                    feilmeldinger = identifiserUtfallSomIkkeStøttes(
-                        vilkårsvurderinger = revurdering.vilkårsvurderinger,
-                        periode = revurdering.periode,
-                    ).swap().getOrElse { emptySet() }.toList(),
-                )
-            }
-            is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering -> tilRevurdering.beregning
-            is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling -> tilRevurdering.beregning
-            is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering -> tilRevurdering.beregning
-            is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse -> {
-                return RevurderingOgFeilmeldingerResponse(
-                    revurdering = revurdering,
-                    feilmeldinger = identifiserUtfallSomIkkeStøttes(
-                        vilkårsvurderinger = revurdering.vilkårsvurderinger,
-                        periode = revurdering.periode,
-                    ).swap().getOrElse { emptySet() }.toList(),
-                )
-            }
-            is VedtakSomKanRevurderes.IngenEndringIYtelse -> tilRevurdering.beregning
-            is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering -> tilRevurdering.beregning
-        }
-
+        val sak = sakService.hentSakForRevurdering(revurderingId = revurdering.id)
+        val gjeldendeMånedsberegninger = sak.hentGjeldendeMånedsberegninger(
+            periode = revurdering.periode,
+            clock = clock,
+        )
         val feilmeldinger = when (revurdering) {
             is OpprettetRevurdering -> {
                 identifiserUtfallSomIkkeStøttes(
@@ -538,7 +517,7 @@ internal class RevurderingServiceImpl(
                 identifiserUtfallSomIkkeStøttes(
                     revurderingsperiode = revurdering.periode,
                     vilkårsvurderinger = revurdering.vilkårsvurderinger,
-                    tidligereBeregning = tidligereBeregning,
+                    gjeldendeMånedsberegninger = gjeldendeMånedsberegninger,
                     nyBeregning = revurdering.beregning,
                 ).swap().getOrElse { emptySet() }
             }
@@ -546,7 +525,7 @@ internal class RevurderingServiceImpl(
                 identifiserUtfallSomIkkeStøttes(
                     revurderingsperiode = revurdering.periode,
                     vilkårsvurderinger = revurdering.vilkårsvurderinger,
-                    tidligereBeregning = tidligereBeregning,
+                    gjeldendeMånedsberegninger = gjeldendeMånedsberegninger,
                     nyBeregning = revurdering.beregning,
                 ).swap().getOrElse { emptySet() }
             }
@@ -607,7 +586,7 @@ internal class RevurderingServiceImpl(
         }
 
         val gjeldendeVedtakPåFraOgMedDato =
-            gjeldendeVedtaksdata.gjeldendeVedtakPåDato(oppdaterRevurderingRequest.fraOgMed)
+            gjeldendeVedtaksdata.gjeldendeVedtakPåDato(oppdaterRevurderingRequest.fraOgMed)?.id
                 ?: return KunneIkkeOppdatereRevurdering.FantIngenVedtakSomKanRevurderes.left()
 
         val avkorting = hentUteståendeAvkorting(revurdering.sakId).let {
@@ -672,15 +651,15 @@ internal class RevurderingServiceImpl(
         revurderingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeBeregneOgSimulereRevurdering, RevurderingOgFeilmeldingerResponse> {
-        val originalRevurdering = hent(revurderingId)
-            .getOrHandle { return KunneIkkeBeregneOgSimulereRevurdering.FantIkkeRevurdering.left() }
+        val sak = sakService.hentSakForRevurdering(revurderingId)
+        val originalRevurdering = sak.revurderinger.single { it.id == revurderingId } as Revurdering
 
         return when (originalRevurdering) {
             is BeregnetRevurdering, is OpprettetRevurdering, is SimulertRevurdering, is UnderkjentRevurdering -> {
-                val eksisterendeUtbetalinger = utbetalingService.hentUtbetalingerForSakId(originalRevurdering.sakId)
-                val gjeldendeVedtaksdata = vedtakService.kopierGjeldendeVedtaksdata(
-                    sakId = originalRevurdering.sakId,
+                val eksisterendeUtbetalinger = sak.utbetalinger
+                val gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
                     fraOgMed = originalRevurdering.periode.fraOgMed,
+                    clock = clock,
                 ).getOrHandle {
                     throw IllegalStateException("Fant ikke gjeldende vedtaksdata for sak:${originalRevurdering.sakId}")
                 }
@@ -793,12 +772,12 @@ internal class RevurderingServiceImpl(
     private fun identifiserUtfallSomIkkeStøttes(
         revurderingsperiode: Periode,
         vilkårsvurderinger: Vilkårsvurderinger,
-        tidligereBeregning: Beregning,
+        gjeldendeMånedsberegninger: List<Månedsberegning>,
         nyBeregning: Beregning,
     ) = IdentifiserRevurderingsopphørSomIkkeStøttes.MedBeregning(
         revurderingsperiode = revurderingsperiode,
         vilkårsvurderinger = vilkårsvurderinger,
-        tidligereBeregning = tidligereBeregning,
+        gjeldendeMånedsberegninger = gjeldendeMånedsberegninger,
         nyBeregning = nyBeregning,
         clock = clock,
     ).resultat
@@ -1055,7 +1034,7 @@ internal class RevurderingServiceImpl(
                 oppgaveId,
                 saksbehandler,
                 fritekstTilBrev,
-                if (revurdering.revurderingsårsak.årsak == REGULER_GRUNNBELØP) false else skalFøreTilBrevutsending,
+                skalFøreTilBrevutsending,
             )
             is SimulertRevurdering.Innvilget -> revurdering.tilAttestering(
                 oppgaveId,
@@ -1092,7 +1071,7 @@ internal class RevurderingServiceImpl(
                 oppgaveId,
                 saksbehandler,
                 fritekstTilBrev,
-                if (revurdering.revurderingsårsak.årsak == REGULER_GRUNNBELØP) false else skalFøreTilBrevutsending,
+                skalFøreTilBrevutsending,
             )
             is UnderkjentRevurdering.Opphørt -> revurdering.tilAttestering(
                 oppgaveId,
@@ -1124,30 +1103,11 @@ internal class RevurderingServiceImpl(
     }
 
     private fun kanSendesTilAttestering(revurdering: Revurdering): Either<KunneIkkeSendeRevurderingTilAttestering, Unit> {
-
-        val tidligereBeregning = when (val tilRevurdering = revurdering.tilRevurdering) {
-            is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse -> {
-                return identifiserUtfallSomIkkeStøttes(
-                    revurdering.vilkårsvurderinger,
-                    revurdering.periode,
-                ).mapLeft {
-                    KunneIkkeSendeRevurderingTilAttestering.RevurderingsutfallStøttesIkke(it.toList())
-                }
-            }
-            is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering -> tilRevurdering.beregning
-            is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling -> tilRevurdering.beregning
-            is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering -> tilRevurdering.beregning
-            is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse -> {
-                return identifiserUtfallSomIkkeStøttes(
-                    revurdering.vilkårsvurderinger,
-                    revurdering.periode,
-                ).mapLeft {
-                    KunneIkkeSendeRevurderingTilAttestering.RevurderingsutfallStøttesIkke(it.toList())
-                }
-            }
-            is VedtakSomKanRevurderes.IngenEndringIYtelse -> tilRevurdering.beregning
-            is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering -> tilRevurdering.beregning
-        }
+        val sak = sakService.hentSakForRevurdering(revurderingId = revurdering.id)
+        val gjeldendeMånedsberegninger = sak.hentGjeldendeMånedsberegninger(
+            periode = revurdering.periode,
+            clock = clock,
+        )
 
         tilbakekrevingService.hentAvventerKravgrunnlag(revurdering.sakId)
             .ifNotEmpty {
@@ -1159,20 +1119,20 @@ internal class RevurderingServiceImpl(
         return when (revurdering) {
             is BeregnetRevurdering.IngenEndring -> {
                 identifiserUtfallSomIkkeStøttes(
-                    revurdering.periode,
-                    revurdering.vilkårsvurderinger,
-                    tidligereBeregning,
-                    revurdering.beregning,
+                    revurderingsperiode = revurdering.periode,
+                    vilkårsvurderinger = revurdering.vilkårsvurderinger,
+                    gjeldendeMånedsberegninger = gjeldendeMånedsberegninger,
+                    nyBeregning = revurdering.beregning,
                 ).mapLeft {
                     KunneIkkeSendeRevurderingTilAttestering.RevurderingsutfallStøttesIkke(it.toList())
                 }
             }
             is SimulertRevurdering -> {
                 identifiserUtfallSomIkkeStøttes(
-                    revurdering.periode,
-                    revurdering.vilkårsvurderinger,
-                    tidligereBeregning,
-                    revurdering.beregning,
+                    revurderingsperiode = revurdering.periode,
+                    vilkårsvurderinger = revurdering.vilkårsvurderinger,
+                    gjeldendeMånedsberegninger = gjeldendeMånedsberegninger,
+                    nyBeregning = revurdering.beregning,
                 ).mapLeft {
                     KunneIkkeSendeRevurderingTilAttestering.RevurderingsutfallStøttesIkke(it.toList())
                 }.flatMap {
@@ -1181,10 +1141,10 @@ internal class RevurderingServiceImpl(
             }
             is UnderkjentRevurdering.Innvilget -> {
                 identifiserUtfallSomIkkeStøttes(
-                    revurdering.periode,
-                    revurdering.vilkårsvurderinger,
-                    tidligereBeregning,
-                    revurdering.beregning,
+                    revurderingsperiode = revurdering.periode,
+                    vilkårsvurderinger = revurdering.vilkårsvurderinger,
+                    gjeldendeMånedsberegninger = gjeldendeMånedsberegninger,
+                    nyBeregning = revurdering.beregning,
                 ).mapLeft {
                     KunneIkkeSendeRevurderingTilAttestering.RevurderingsutfallStøttesIkke(it.toList())
                 }.flatMap {
@@ -1193,10 +1153,10 @@ internal class RevurderingServiceImpl(
             }
             is UnderkjentRevurdering.Opphørt -> {
                 identifiserUtfallSomIkkeStøttes(
-                    revurdering.periode,
-                    revurdering.vilkårsvurderinger,
-                    tidligereBeregning,
-                    revurdering.beregning,
+                    revurderingsperiode = revurdering.periode,
+                    vilkårsvurderinger = revurdering.vilkårsvurderinger,
+                    gjeldendeMånedsberegninger = gjeldendeMånedsberegninger,
+                    nyBeregning = revurdering.beregning,
                 ).mapLeft {
                     KunneIkkeSendeRevurderingTilAttestering.RevurderingsutfallStøttesIkke(it.toList())
                 }.flatMap {
@@ -1205,10 +1165,10 @@ internal class RevurderingServiceImpl(
             }
             is UnderkjentRevurdering.IngenEndring -> {
                 identifiserUtfallSomIkkeStøttes(
-                    revurdering.periode,
-                    revurdering.vilkårsvurderinger,
-                    tidligereBeregning,
-                    revurdering.beregning,
+                    revurderingsperiode = revurdering.periode,
+                    vilkårsvurderinger = revurdering.vilkårsvurderinger,
+                    gjeldendeMånedsberegninger = gjeldendeMånedsberegninger,
+                    nyBeregning = revurdering.beregning,
                 ).mapLeft {
                     KunneIkkeSendeRevurderingTilAttestering.RevurderingsutfallStøttesIkke(it.toList())
                 }

@@ -40,44 +40,44 @@ internal class LeggTilFradragsgrunnlagTest {
 
     @Test
     fun `lagreFradrag happy case`() {
-        val revurderingsperiode = år(2021)
-        val eksisterendeRevurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak().second
+        val (sak, eksisterendeRevurdering) = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak()
 
-        val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(any()) } doReturn eksisterendeRevurdering
-        }
-
-        val revurderingService = RevurderingTestUtils.createRevurderingService(
-            revurderingRepo = revurderingRepoMock,
-        )
-
-        val request = LeggTilFradragsgrunnlagRequest(
-            behandlingId = eksisterendeRevurdering.id,
-            fradragsgrunnlag = listOf(
-                lagFradragsgrunnlag(
-                    type = Fradragstype.Arbeidsinntekt,
-                    månedsbeløp = 0.0,
-                    periode = revurderingsperiode,
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER,
+        RevurderingServiceMocks(
+            revurderingRepo = mock {
+                on { hent(any()) } doReturn eksisterendeRevurdering
+            },
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
+            }
+        ).also {
+            val request = LeggTilFradragsgrunnlagRequest(
+                behandlingId = eksisterendeRevurdering.id,
+                fradragsgrunnlag = listOf(
+                    lagFradragsgrunnlag(
+                        type = Fradragstype.Arbeidsinntekt,
+                        månedsbeløp = 0.0,
+                        periode = år(2021),
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
                 ),
-            ),
-        )
+            )
 
-        val actual = revurderingService.leggTilFradragsgrunnlag(
-            request,
-        ).getOrHandle { fail("Feilet med $it") }
+            val actual = it.revurderingService.leggTilFradragsgrunnlag(
+                request,
+            ).getOrHandle { fail("Feilet med $it") }
 
-        inOrder(
-            revurderingRepoMock,
-        ) {
-            verify(revurderingRepoMock).hent(argThat { it shouldBe eksisterendeRevurdering.id })
+            inOrder(
+                it.revurderingRepo,
+            ) {
+                verify(it.revurderingRepo).hent(argThat { it shouldBe eksisterendeRevurdering.id })
 
-            verify(revurderingRepoMock).defaultTransactionContext()
-            verify(revurderingRepoMock).lagre(argThat { it shouldBe actual.revurdering }, anyOrNull())
+                verify(it.revurderingRepo).defaultTransactionContext()
+                verify(it.revurderingRepo).lagre(argThat { it shouldBe actual.revurdering }, anyOrNull())
+            }
+
+            verifyNoMoreInteractions(it.revurderingRepo)
         }
-
-        verifyNoMoreInteractions(revurderingRepoMock)
     }
 
     @Test

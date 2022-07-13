@@ -84,7 +84,7 @@ internal class RevurderingJsonTest {
             id = id,
             periode = år(2021),
             opprettet = opprettet,
-            tilRevurdering = vedtak,
+            tilRevurdering = vedtak.id,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
@@ -121,7 +121,7 @@ internal class RevurderingJsonTest {
             {
                 "id": "$id",
                 "opprettet": "$opprettet",
-                "tilRevurdering": ${serialize(vedtak.toJson())},
+                "tilRevurdering": "${vedtak.id}",
                 "status": "${RevurderingsStatus.OPPRETTET}",
                 "periode": {
                     "fraOgMed": "2021-01-01",
@@ -177,7 +177,7 @@ internal class RevurderingJsonTest {
             id = id,
             periode = år(2020),
             opprettet = opprettet,
-            tilRevurdering = vedtak,
+            tilRevurdering = vedtak.id,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
             beregning = beregning,
             oppgaveId = OppgaveId("oppgaveid"),
@@ -203,7 +203,7 @@ internal class RevurderingJsonTest {
             {
                 "id": "$id",
                 "opprettet": "$opprettet",
-                "tilRevurdering": ${serialize(vedtak.toJson())},
+                "tilRevurdering": "${vedtak.id}",
                 "beregning": ${serialize(beregning.toJson())},
                 "status": "${RevurderingsStatus.BEREGNET_INNVILGET}",
                 "saksbehandler": "Petter",
@@ -273,7 +273,7 @@ internal class RevurderingJsonTest {
             id = id,
             periode = år(2020),
             opprettet = opprettet,
-            tilRevurdering = vedtak,
+            tilRevurdering = vedtak.id,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
             beregning = beregning,
             oppgaveId = OppgaveId("oppgaveid"),
@@ -299,7 +299,7 @@ internal class RevurderingJsonTest {
             {
                 "id": "$id",
                 "opprettet": "$opprettet",
-                "tilRevurdering": ${serialize(vedtak.toJson())},
+                "tilRevurdering": "${vedtak.id}",
                 "beregning": ${serialize(beregning.toJson())},
                 "status": "${RevurderingsStatus.BEREGNET_OPPHØRT}",
                 "saksbehandler": "Petter",
@@ -356,7 +356,7 @@ internal class RevurderingJsonTest {
             id = id,
             periode = år(2020),
             opprettet = opprettet,
-            tilRevurdering = vedtak,
+            tilRevurdering = vedtak.id,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
             beregning = beregning,
             oppgaveId = OppgaveId("oppgaveid"),
@@ -382,7 +382,7 @@ internal class RevurderingJsonTest {
             {
                 "id": "$id",
                 "opprettet": "$opprettet",
-                "tilRevurdering": ${serialize(vedtak.toJson())},
+                "tilRevurdering": "${vedtak.id}",
                 "beregning": ${serialize(beregning.toJson())},
                 "status": "${RevurderingsStatus.BEREGNET_INGEN_ENDRING}",
                 "saksbehandler": "Petter",
@@ -439,7 +439,7 @@ internal class RevurderingJsonTest {
             id = id,
             periode = år(2020),
             opprettet = opprettet,
-            tilRevurdering = vedtak,
+            tilRevurdering = vedtak.id,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
             beregning = beregning,
             simulering = mock(),
@@ -473,7 +473,7 @@ internal class RevurderingJsonTest {
             {
                 "id": "$id",
                 "opprettet": "$opprettet",
-                "tilRevurdering": ${serialize(vedtak.toJson())},
+                "tilRevurdering": "${vedtak.id}",
                 "beregning": ${serialize(beregning.toJson())},
                 "simulering": {
                   "perioder": [],
@@ -538,7 +538,7 @@ internal class RevurderingJsonTest {
             id = id,
             periode = år(2020),
             opprettet = opprettet,
-            tilRevurdering = vedtak,
+            tilRevurdering = vedtak.id,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
             beregning = beregning,
             simulering = mock(),
@@ -566,7 +566,7 @@ internal class RevurderingJsonTest {
             {
                 "id": "$id",
                 "opprettet": "$opprettet",
-                "tilRevurdering": ${serialize(vedtak.toJson())},
+                "tilRevurdering": "${vedtak.id}",
                 "beregning": ${serialize(beregning.toJson())},
                 "simulering": {
                   "perioder": [],
@@ -629,7 +629,7 @@ internal class RevurderingJsonTest {
             id = id,
             periode = år(2020),
             opprettet = opprettet,
-            tilRevurdering = vedtak,
+            tilRevurdering = vedtak.id,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
             beregning = beregning,
             simulering = mock(),
@@ -657,7 +657,7 @@ internal class RevurderingJsonTest {
             {
                 "id": "$id",
                 "opprettet": "$opprettet",
-                "tilRevurdering": ${serialize(vedtak.toJson())},
+                "tilRevurdering": "${vedtak.id}",
                 "beregning": ${serialize(beregning.toJson())},
                 "simulering": {
                   "perioder": [],
@@ -721,7 +721,7 @@ internal class RevurderingJsonTest {
             id = id,
             periode = år(2020),
             opprettet = opprettet,
-            tilRevurdering = vedtak,
+            tilRevurdering = vedtak.id,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
             beregning = beregning,
             simulering = mock(),
@@ -749,7 +749,7 @@ internal class RevurderingJsonTest {
             {
                 "id": "$id",
                 "opprettet": "$opprettet",
-                "tilRevurdering": ${serialize(vedtak.toJson())},
+                "tilRevurdering": "${vedtak.id}",
                 "beregning": ${serialize(beregning.toJson())},
                 "simulering": {
                   "perioder": [],
@@ -813,7 +813,7 @@ internal class RevurderingJsonTest {
             id = id,
             periode = år(2020),
             opprettet = opprettet,
-            tilRevurdering = vedtak,
+            tilRevurdering = vedtak.id,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
             beregning = beregning,
             oppgaveId = OppgaveId("OppgaveId"),
@@ -840,7 +840,7 @@ internal class RevurderingJsonTest {
             {
                 "id": "$id",
                 "opprettet": "$opprettet",
-                "tilRevurdering": ${serialize(vedtak.toJson())},
+                "tilRevurdering": "${vedtak.id}",
                 "beregning": ${serialize(beregning.toJson())},
                 "simulering": null,
                 "status": "${RevurderingsStatus.TIL_ATTESTERING_INGEN_ENDRING}",
@@ -901,7 +901,7 @@ internal class RevurderingJsonTest {
             id = id,
             periode = år(2020),
             opprettet = opprettet,
-            tilRevurdering = vedtak,
+            tilRevurdering = vedtak.id,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
             beregning = beregning,
             simulering = mock(),
@@ -936,7 +936,7 @@ internal class RevurderingJsonTest {
             {
                 "id": "$id",
                 "opprettet": "$opprettet",
-                "tilRevurdering": ${serialize(vedtak.toJson())},
+                "tilRevurdering": "${vedtak.id}",
                 "beregning": ${serialize(beregning.toJson())},
                 "simulering": {
                   "perioder": [],
@@ -1007,7 +1007,7 @@ internal class RevurderingJsonTest {
             id = id,
             periode = år(2020),
             opprettet = opprettet,
-            tilRevurdering = vedtak,
+            tilRevurdering = vedtak.id,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
             beregning = beregning,
             simulering = mock(),
@@ -1042,7 +1042,7 @@ internal class RevurderingJsonTest {
             {
                 "id": "$id",
                 "opprettet": "$opprettet",
-                "tilRevurdering": ${serialize(vedtak.toJson())},
+                "tilRevurdering": "${vedtak.id}",
                 "beregning":${serialize(beregning.toJson())},
                 "simulering": {
                   "perioder": [],
@@ -1113,7 +1113,7 @@ internal class RevurderingJsonTest {
             id = id,
             periode = år(2020),
             opprettet = opprettet,
-            tilRevurdering = vedtak,
+            tilRevurdering = vedtak.id,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
             beregning = beregning,
             oppgaveId = OppgaveId("OppgaveId"),
@@ -1147,7 +1147,7 @@ internal class RevurderingJsonTest {
             {
                 "id": "$id",
                 "opprettet": "$opprettet",
-                "tilRevurdering": ${serialize(vedtak.toJson())},
+                "tilRevurdering": "${vedtak.id}",
                 "beregning": ${serialize(beregning.toJson())},
                 "simulering": null,
                 "status": "${RevurderingsStatus.UNDERKJENT_INGEN_ENDRING}",
@@ -1215,7 +1215,7 @@ internal class RevurderingJsonTest {
             id = id,
             periode = år(2020),
             opprettet = opprettet,
-            tilRevurdering = vedtak,
+            tilRevurdering = vedtak.id,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
             oppgaveId = OppgaveId("OppgaveId"),
             beregning = beregning,
@@ -1257,7 +1257,7 @@ internal class RevurderingJsonTest {
             {
                 "id": "$id",
                 "opprettet": "$opprettet",
-                "tilRevurdering": ${serialize(vedtak.toJson())},
+                "tilRevurdering": "${vedtak.id}",
                 "beregning": ${serialize(beregning.toJson())},
                 "simulering": {
                   "perioder": [],
@@ -1324,7 +1324,7 @@ internal class RevurderingJsonTest {
             id = id,
             periode = år(2020),
             opprettet = opprettet,
-            tilRevurdering = vedtak,
+            tilRevurdering = vedtak.id,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
             oppgaveId = OppgaveId("OppgaveId"),
             beregning = beregning,
@@ -1358,7 +1358,7 @@ internal class RevurderingJsonTest {
             {
                 "id": "$id",
                 "opprettet": "$opprettet",
-                "tilRevurdering": ${serialize(vedtak.toJson())},
+                "tilRevurdering": "${vedtak.id}",
                 "beregning": ${serialize(beregning.toJson())},
                 "simulering": {
                   "perioder": [],
@@ -1422,7 +1422,7 @@ internal class RevurderingJsonTest {
             id = id,
             periode = år(2020),
             opprettet = opprettet,
-            tilRevurdering = vedtak,
+            tilRevurdering = vedtak.id,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
             oppgaveId = OppgaveId("OppgaveId"),
             beregning = beregning,
@@ -1455,7 +1455,7 @@ internal class RevurderingJsonTest {
             {
                 "id": "$id",
                 "opprettet": "$opprettet",
-                "tilRevurdering": ${serialize(vedtak.toJson())},
+                "tilRevurdering": "${vedtak.id}",
                 "beregning": ${serialize(beregning.toJson())},
                 "simulering": null,
                 "status": "${RevurderingsStatus.IVERKSATT_INGEN_ENDRING}",
@@ -1516,7 +1516,7 @@ internal class RevurderingJsonTest {
             {
                 "id": "${simulertRevurdering.id}",
                 "opprettet": "${simulertRevurdering.opprettet}",
-                "tilRevurdering": ${serialize(simulertRevurdering.tilRevurdering.toJson())},
+                "tilRevurdering": ${simulertRevurdering.tilRevurdering},
                 "simulering": ${serialize(simulertRevurdering.simulering.toJson())},
                 "status": "${RevurderingsStatus.SIMULERT_STANS}",
                 "saksbehandler": "saksbehandler",
@@ -1563,7 +1563,7 @@ internal class RevurderingJsonTest {
             {
                 "id": "${iverksattRevurdering.id}",
                 "opprettet": "${iverksattRevurdering.opprettet}",
-                "tilRevurdering": ${serialize(iverksattRevurdering.tilRevurdering.toJson())},
+                "tilRevurdering": ${iverksattRevurdering.tilRevurdering},
                 "simulering": ${serialize(iverksattRevurdering.simulering.toJson())},
                 "status": "${RevurderingsStatus.IVERKSATT_STANS}",
                 "saksbehandler": "saksbehandler",
@@ -1612,7 +1612,7 @@ internal class RevurderingJsonTest {
             {
                 "id": "${simulertRevurdering.id}",
                 "opprettet": "${simulertRevurdering.opprettet}",
-                "tilRevurdering": ${serialize(simulertRevurdering.tilRevurdering.toJson())},
+                "tilRevurdering": ${simulertRevurdering.tilRevurdering},
                 "simulering": ${serialize(simulertRevurdering.simulering.toJson())},
                 "status": "${RevurderingsStatus.SIMULERT_GJENOPPTAK}",
                 "saksbehandler": "saksbehandler",
@@ -1659,7 +1659,7 @@ internal class RevurderingJsonTest {
             {
                 "id": "${iverksattRevurdering.id}",
                 "opprettet": "${iverksattRevurdering.opprettet}",
-                "tilRevurdering": ${serialize(iverksattRevurdering.tilRevurdering.toJson())},
+                "tilRevurdering": ${iverksattRevurdering.tilRevurdering},
                 "simulering": ${serialize(iverksattRevurdering.simulering.toJson())},
                 "status": "${RevurderingsStatus.IVERKSATT_GJENOPPTAK}",
                 "saksbehandler": "saksbehandler",

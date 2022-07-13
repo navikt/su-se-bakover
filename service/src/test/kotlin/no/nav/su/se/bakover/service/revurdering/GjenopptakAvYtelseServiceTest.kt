@@ -268,7 +268,7 @@ internal class GjenopptakAvYtelseServiceTest {
             revurderingRepo = mock {
                 doNothing().whenever(it).lagre(any(), anyOrNull())
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
-            }
+            },
         )
 
         val response = serviceAndMocks.revurderingService.gjenopptaYtelse(
@@ -284,7 +284,7 @@ internal class GjenopptakAvYtelseServiceTest {
 
         response.saksbehandler shouldBe saksbehandler
         response.periode shouldBe periode
-        response.tilRevurdering shouldBe vedtak
+        response.tilRevurdering shouldBe vedtak.id
         response.revurderingsårsak shouldBe Revurderingsårsak.create(
             årsak = Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING.toString(),
             begrunnelse = "begrunnelse",
@@ -407,11 +407,10 @@ internal class GjenopptakAvYtelseServiceTest {
                     any(),
                     any(),
                 )
-            } doReturn GjeldendeVedtaksdata(
-                periode = periode,
-                vedtakListe = nonEmptyListOf(revurdering.tilRevurdering),
+            } doReturn sak.kopierGjeldendeVedtaksdata(
+                fraOgMed = periode.fraOgMed,
                 clock = fixedClock,
-            ).right()
+            ).getOrFail().right()
         }
 
         val sakService = mock<SakService> {
@@ -595,7 +594,7 @@ internal class GjenopptakAvYtelseServiceTest {
                 request = UtbetalRequest.Gjenopptak(
                     sakId = simulertGjenopptak.sakId,
                     saksbehandler = NavIdentBruker.Attestant(simulertGjenopptak.saksbehandler.navIdent),
-                    simulering = simulertGjenopptak.simulering
+                    simulering = simulertGjenopptak.simulering,
                 ),
             )
 

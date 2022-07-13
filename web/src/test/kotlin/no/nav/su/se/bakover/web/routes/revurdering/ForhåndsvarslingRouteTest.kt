@@ -204,7 +204,7 @@ internal class ForhåndsvarslingRouteTest {
                 id = UUID.randomUUID(),
                 periode = RevurderingRoutesTestData.periode,
                 opprettet = fixedTidspunkt,
-                tilRevurdering = vedtak,
+                tilRevurdering = vedtak.id,
                 saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
                 beregning = TestBeregning,
                 simulering = Simulering(
@@ -273,7 +273,7 @@ internal class ForhåndsvarslingRouteTest {
                 id = UUID.randomUUID(),
                 periode = RevurderingRoutesTestData.periode,
                 opprettet = fixedTidspunkt,
-                tilRevurdering = vedtak,
+                tilRevurdering = vedtak.id,
                 saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
                 beregning = TestBeregning,
                 simulering = Simulering(

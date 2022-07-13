@@ -49,7 +49,6 @@ import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.Inngangsvilkår
@@ -74,7 +73,7 @@ sealed class AbstraktRevurdering : Behandling {
             vilkårsvurderinger = vilkårsvurderinger,
         )
 
-    abstract val tilRevurdering: VedtakSomKanRevurderes
+    abstract val tilRevurdering: UUID
     abstract val sakinfo: SakInfo
     override val sakId by lazy { sakinfo.sakId }
     override val saksnummer by lazy { sakinfo.saksnummer }
@@ -631,7 +630,7 @@ data class OpprettetRevurdering(
     override val id: UUID = UUID.randomUUID(),
     override val periode: Periode,
     override val opprettet: Tidspunkt,
-    override val tilRevurdering: VedtakSomKanRevurderes,
+    override val tilRevurdering: UUID,
     override val saksbehandler: Saksbehandler,
     override val oppgaveId: OppgaveId,
     override val fritekstTilBrev: String,
@@ -697,7 +696,7 @@ data class OpprettetRevurdering(
         grunnlagsdata: Grunnlagsdata,
         vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         informasjonSomRevurderes: InformasjonSomRevurderes,
-        tilRevurdering: VedtakSomKanRevurderes,
+        tilRevurdering: UUID,
         avkorting: AvkortingVedRevurdering.Uhåndtert,
     ): OpprettetRevurdering = this.copy(
         periode = periode,
@@ -759,7 +758,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         grunnlagsdata: Grunnlagsdata,
         vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         informasjonSomRevurderes: InformasjonSomRevurderes,
-        tilRevurdering: VedtakSomKanRevurderes,
+        tilRevurdering: UUID,
         avkorting: AvkortingVedRevurdering.Uhåndtert,
     ) = OpprettetRevurdering(
         id = id,
@@ -784,7 +783,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val id: UUID,
         override val periode: Periode,
         override val opprettet: Tidspunkt,
-        override val tilRevurdering: VedtakSomKanRevurderes,
+        override val tilRevurdering: UUID,
         override val saksbehandler: Saksbehandler,
         override val beregning: Beregning,
         override val oppgaveId: OppgaveId,
@@ -851,7 +850,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val id: UUID,
         override val periode: Periode,
         override val opprettet: Tidspunkt,
-        override val tilRevurdering: VedtakSomKanRevurderes,
+        override val tilRevurdering: UUID,
         override val saksbehandler: Saksbehandler,
         override val beregning: Beregning,
         override val oppgaveId: OppgaveId,
@@ -872,25 +871,27 @@ sealed class BeregnetRevurdering : Revurdering() {
             saksbehandler: Saksbehandler,
             fritekstTilBrev: String,
             skalFøreTilUtsendingAvVedtaksbrev: Boolean,
-        ) = RevurderingTilAttestering.IngenEndring(
-            id = id,
-            periode = periode,
-            opprettet = opprettet,
-            tilRevurdering = tilRevurdering,
-            saksbehandler = saksbehandler,
-            beregning = beregning,
-            oppgaveId = attesteringsoppgaveId,
-            fritekstTilBrev = fritekstTilBrev,
-            revurderingsårsak = revurderingsårsak,
-            skalFøreTilUtsendingAvVedtaksbrev = skalFøreTilUtsendingAvVedtaksbrev,
-            forhåndsvarsel = forhåndsvarsel,
-            grunnlagsdata = grunnlagsdata,
-            vilkårsvurderinger = vilkårsvurderinger,
-            informasjonSomRevurderes = informasjonSomRevurderes,
-            attesteringer = attesteringer,
-            avkorting = avkorting.håndter(),
-            sakinfo = sakinfo,
-        )
+        ): RevurderingTilAttestering.IngenEndring {
+            return RevurderingTilAttestering.IngenEndring(
+                id = id,
+                periode = periode,
+                opprettet = opprettet,
+                tilRevurdering = tilRevurdering,
+                saksbehandler = saksbehandler,
+                beregning = beregning,
+                oppgaveId = attesteringsoppgaveId,
+                fritekstTilBrev = fritekstTilBrev,
+                revurderingsårsak = revurderingsårsak,
+                skalFøreTilUtsendingAvVedtaksbrev = if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) false else skalFøreTilUtsendingAvVedtaksbrev,
+                forhåndsvarsel = forhåndsvarsel,
+                grunnlagsdata = grunnlagsdata,
+                vilkårsvurderinger = vilkårsvurderinger,
+                informasjonSomRevurderes = informasjonSomRevurderes,
+                attesteringer = attesteringer,
+                avkorting = avkorting.håndter(),
+                sakinfo = sakinfo,
+            )
+        }
 
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
@@ -901,7 +902,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val id: UUID,
         override val periode: Periode,
         override val opprettet: Tidspunkt,
-        override val tilRevurdering: VedtakSomKanRevurderes,
+        override val tilRevurdering: UUID,
         override val saksbehandler: Saksbehandler,
         override val beregning: Beregning,
         override val oppgaveId: OppgaveId,
@@ -1208,7 +1209,7 @@ sealed class SimulertRevurdering : Revurdering() {
         override val id: UUID,
         override val periode: Periode,
         override val opprettet: Tidspunkt,
-        override val tilRevurdering: VedtakSomKanRevurderes,
+        override val tilRevurdering: UUID,
         override val saksbehandler: Saksbehandler,
         override val oppgaveId: OppgaveId,
         override val revurderingsårsak: Revurderingsårsak,
@@ -1318,7 +1319,7 @@ sealed class SimulertRevurdering : Revurdering() {
         override val id: UUID,
         override val periode: Periode,
         override val opprettet: Tidspunkt,
-        override val tilRevurdering: VedtakSomKanRevurderes,
+        override val tilRevurdering: UUID,
         override val saksbehandler: Saksbehandler,
         override val oppgaveId: OppgaveId,
         override val revurderingsårsak: Revurderingsårsak,
@@ -1453,7 +1454,7 @@ sealed class SimulertRevurdering : Revurdering() {
         grunnlagsdata: Grunnlagsdata,
         vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         informasjonSomRevurderes: InformasjonSomRevurderes,
-        tilRevurdering: VedtakSomKanRevurderes,
+        tilRevurdering: UUID,
         avkorting: AvkortingVedRevurdering.Uhåndtert,
     ) = OpprettetRevurdering(
         id = id,
@@ -1488,7 +1489,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val id: UUID,
         override val periode: Periode,
         override val opprettet: Tidspunkt,
-        override val tilRevurdering: VedtakSomKanRevurderes,
+        override val tilRevurdering: UUID,
         override val saksbehandler: Saksbehandler,
         override val oppgaveId: OppgaveId,
         override val fritekstTilBrev: String,
@@ -1555,7 +1556,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val id: UUID,
         override val periode: Periode,
         override val opprettet: Tidspunkt,
-        override val tilRevurdering: VedtakSomKanRevurderes,
+        override val tilRevurdering: UUID,
         override val saksbehandler: Saksbehandler,
         override val oppgaveId: OppgaveId,
         override val fritekstTilBrev: String,
@@ -1635,7 +1636,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val id: UUID,
         override val periode: Periode,
         override val opprettet: Tidspunkt,
-        override val tilRevurdering: VedtakSomKanRevurderes,
+        override val tilRevurdering: UUID,
         override val saksbehandler: Saksbehandler,
         override val beregning: Beregning,
         override val oppgaveId: OppgaveId,
@@ -1778,7 +1779,7 @@ sealed class IverksattRevurdering : Revurdering() {
     abstract override val id: UUID
     abstract override val periode: Periode
     abstract override val opprettet: Tidspunkt
-    abstract override val tilRevurdering: VedtakSomKanRevurderes
+    abstract override val tilRevurdering: UUID
     abstract override val saksbehandler: Saksbehandler
     abstract override val oppgaveId: OppgaveId
     abstract override val fritekstTilBrev: String
@@ -1794,7 +1795,7 @@ sealed class IverksattRevurdering : Revurdering() {
         override val id: UUID,
         override val periode: Periode,
         override val opprettet: Tidspunkt,
-        override val tilRevurdering: VedtakSomKanRevurderes,
+        override val tilRevurdering: UUID,
         override val saksbehandler: Saksbehandler,
         override val oppgaveId: OppgaveId,
         override val fritekstTilBrev: String,
@@ -1826,7 +1827,7 @@ sealed class IverksattRevurdering : Revurdering() {
         override val id: UUID,
         override val periode: Periode,
         override val opprettet: Tidspunkt,
-        override val tilRevurdering: VedtakSomKanRevurderes,
+        override val tilRevurdering: UUID,
         override val saksbehandler: Saksbehandler,
         override val oppgaveId: OppgaveId,
         override val fritekstTilBrev: String,
@@ -1881,7 +1882,7 @@ sealed class IverksattRevurdering : Revurdering() {
         override val id: UUID,
         override val periode: Periode,
         override val opprettet: Tidspunkt,
-        override val tilRevurdering: VedtakSomKanRevurderes,
+        override val tilRevurdering: UUID,
         override val saksbehandler: Saksbehandler,
         override val beregning: Beregning,
         override val oppgaveId: OppgaveId,
@@ -1962,7 +1963,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override val id: UUID,
         override val periode: Periode,
         override val opprettet: Tidspunkt,
-        override val tilRevurdering: VedtakSomKanRevurderes,
+        override val tilRevurdering: UUID,
         override val saksbehandler: Saksbehandler,
         override val oppgaveId: OppgaveId,
         override val fritekstTilBrev: String,
@@ -2016,7 +2017,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override val id: UUID,
         override val periode: Periode,
         override val opprettet: Tidspunkt,
-        override val tilRevurdering: VedtakSomKanRevurderes,
+        override val tilRevurdering: UUID,
         override val saksbehandler: Saksbehandler,
         override val oppgaveId: OppgaveId,
         override val fritekstTilBrev: String,
@@ -2091,7 +2092,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override val id: UUID,
         override val periode: Periode,
         override val opprettet: Tidspunkt,
-        override val tilRevurdering: VedtakSomKanRevurderes,
+        override val tilRevurdering: UUID,
         override val saksbehandler: Saksbehandler,
         override val beregning: Beregning,
         override val oppgaveId: OppgaveId,
@@ -2117,25 +2118,27 @@ sealed class UnderkjentRevurdering : Revurdering() {
             saksbehandler: Saksbehandler,
             fritekstTilBrev: String,
             skalFøreTilUtsendingAvVedtaksbrev: Boolean,
-        ) = RevurderingTilAttestering.IngenEndring(
-            id = id,
-            periode = periode,
-            opprettet = opprettet,
-            tilRevurdering = tilRevurdering,
-            saksbehandler = saksbehandler,
-            beregning = beregning,
-            oppgaveId = oppgaveId,
-            fritekstTilBrev = fritekstTilBrev,
-            revurderingsårsak = revurderingsårsak,
-            skalFøreTilUtsendingAvVedtaksbrev = skalFøreTilUtsendingAvVedtaksbrev,
-            forhåndsvarsel = forhåndsvarsel,
-            grunnlagsdata = grunnlagsdata,
-            vilkårsvurderinger = vilkårsvurderinger,
-            informasjonSomRevurderes = informasjonSomRevurderes,
-            attesteringer = attesteringer,
-            avkorting = avkorting,
-            sakinfo = sakinfo,
-        )
+        ): RevurderingTilAttestering.IngenEndring {
+            return RevurderingTilAttestering.IngenEndring(
+                id = id,
+                periode = periode,
+                opprettet = opprettet,
+                tilRevurdering = tilRevurdering,
+                saksbehandler = saksbehandler,
+                beregning = beregning,
+                oppgaveId = oppgaveId,
+                fritekstTilBrev = fritekstTilBrev,
+                revurderingsårsak = revurderingsårsak,
+                skalFøreTilUtsendingAvVedtaksbrev = if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) false else skalFøreTilUtsendingAvVedtaksbrev,
+                forhåndsvarsel = forhåndsvarsel,
+                grunnlagsdata = grunnlagsdata,
+                vilkårsvurderinger = vilkårsvurderinger,
+                informasjonSomRevurderes = informasjonSomRevurderes,
+                attesteringer = attesteringer,
+                avkorting = avkorting,
+                sakinfo = sakinfo,
+            )
+        }
     }
 
     fun oppdater(
@@ -2144,7 +2147,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         grunnlagsdata: Grunnlagsdata,
         vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         informasjonSomRevurderes: InformasjonSomRevurderes,
-        tilRevurdering: VedtakSomKanRevurderes,
+        tilRevurdering: UUID,
         avkorting: AvkortingVedRevurdering.Uhåndtert,
     ) = OpprettetRevurdering(
         id = id,

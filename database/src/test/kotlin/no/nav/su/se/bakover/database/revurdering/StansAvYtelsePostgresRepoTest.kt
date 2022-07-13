@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
-import no.nav.su.se.bakover.test.sakinfo
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simulering
 import no.nav.su.se.bakover.test.vilkårsvurderingerRevurderingInnvilget
@@ -34,7 +33,7 @@ internal class StansAvYtelsePostgresRepoTest {
                 periode = år(2021),
                 grunnlagsdata = grunnlagsdataEnsligUtenFradrag(),
                 vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget(),
-                tilRevurdering = vedtak,
+                tilRevurdering = vedtak.id,
                 saksbehandler = saksbehandler,
                 simulering = simulering(),
                 revurderingsårsak = Revurderingsårsak.create(
@@ -70,7 +69,7 @@ internal class StansAvYtelsePostgresRepoTest {
                 periode = år(2021),
                 grunnlagsdata = grunnlagsdataEnsligUtenFradrag(),
                 vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget(),
-                tilRevurdering = vedtak,
+                tilRevurdering = vedtak.id,
                 saksbehandler = saksbehandler,
                 simulering = simulering(),
                 revurderingsårsak = Revurderingsårsak.create(
@@ -92,7 +91,7 @@ internal class StansAvYtelsePostgresRepoTest {
                 periode = mai(2021),
                 grunnlagsdata = grunnlagsdataEnsligUtenFradrag(mai(2021)),
                 vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget(periode = mai(2021)),
-                tilRevurdering = vedtak,
+                tilRevurdering = vedtak.id,
                 saksbehandler = NavIdentBruker.Saksbehandler("saksern"),
                 simulering = simulering().copy(
                     gjelderNavn = "et navn",
@@ -124,7 +123,7 @@ internal class StansAvYtelsePostgresRepoTest {
                 periode = år(2021),
                 grunnlagsdata = grunnlagsdataEnsligUtenFradrag(),
                 vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget(),
-                tilRevurdering = vedtak,
+                tilRevurdering = vedtak.id,
                 saksbehandler = saksbehandler,
                 simulering = simulering(),
                 revurderingsårsak = Revurderingsårsak.create(

@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.common.periode.Periode.UgyldigPeriode.FraOgMedDatoM�
 import no.nav.su.se.bakover.common.periode.Periode.UgyldigPeriode.TilOgMedDatoMåVæreSisteDagIMåneden
 import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling.Companion.hentOversendteUtbetalingerUtenFeil
@@ -33,6 +34,8 @@ import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.beregningKanVæreGjeldende
+import no.nav.su.se.bakover.domain.vedtak.hentBeregningForGjeldendeVedtak
 import no.nav.su.se.bakover.domain.vedtak.lagTidslinje
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import java.time.Clock
@@ -167,6 +170,8 @@ data class Sak(
      *
      * Per nå så er det kun Vedtak i form av [VedtakSomKanRevurderes.EndringIYtelse] som bidrar til dette, bortsett fra [VedtakSomKanRevurderes.IngenEndringIYtelse] som har
      * andre beregnings-beløp som ikke skal ha en påverkan på saken.
+     *
+     * ##NB
      * */
     fun hentGjeldendeBeregningForEndringIYtelsePåDato(
         måned: Måned,
@@ -176,21 +181,29 @@ data class Sak(
             periode = måned,
             vedtakListe = NonEmptyList.fromListUnsafe(
                 vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
-                    .filterNot { it is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse || it is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse || it is VedtakSomKanRevurderes.IngenEndringIYtelse }
-                    .ifEmpty {
-                        return null
-                    },
+                    .filter { it.beregningKanVæreGjeldende().isRight() }
+                    .ifEmpty { return null },
             ),
             clock = clock,
-        ).gjeldendeVedtakPåDato(måned.fraOgMed)?.let {
-            when (it) {
-                is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering -> it.beregning
-                is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling -> it.beregning
-                is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering -> it.beregning
-                is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering -> it.beregning
-                is VedtakSomKanRevurderes.IngenEndringIYtelse -> throw IllegalStateException("Kodefeil: Skal ha filtrert bort Vedtak.EndringIYtelse.IngenEndring")
-                is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse -> throw IllegalStateException("Kodefeil: Skal ha filtrert bort Vedtak.EndringIYtelse.StansAvYtelse")
-                is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse -> throw IllegalStateException("Kodefeil: Skal ha filtrert bort Vedtak.EndringIYtelse.GjenopptakAvYtelse")
+        ).gjeldendeVedtakPåDato(måned.fraOgMed)?.hentBeregningForGjeldendeVedtak()
+    }
+
+    fun hentGjeldendeMånedsberegninger(
+        periode: Periode,
+        clock: Clock,
+    ): List<Månedsberegning> {
+        return GjeldendeVedtaksdata(
+            periode = periode,
+            vedtakListe = NonEmptyList.fromListUnsafe(
+                vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
+                    .filter { it.beregningKanVæreGjeldende().isRight() }
+                    .ifEmpty { return emptyList() },
+            ),
+            clock = clock,
+        ).let { gjeldendeVedtaksdata ->
+            periode.måneder().mapNotNull { måned ->
+                gjeldendeVedtaksdata.gjeldendeVedtakPåDato(måned.fraOgMed)?.hentBeregningForGjeldendeVedtak()
+                    ?.getMånedsberegninger()?.single { it.måned == måned }
             }
         }
     }

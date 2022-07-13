@@ -32,7 +32,7 @@ internal class GjenopptakAvYtelsePostgresRepoTest {
                 periode = år(2021),
                 grunnlagsdata = grunnlagsdataEnsligUtenFradrag(),
                 vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget(),
-                tilRevurdering = vedtak,
+                tilRevurdering = vedtak.id,
                 saksbehandler = saksbehandler,
                 simulering = simulering(),
                 revurderingsårsak = Revurderingsårsak.create(
@@ -71,7 +71,7 @@ internal class GjenopptakAvYtelsePostgresRepoTest {
                 periode = år(2021),
                 grunnlagsdata = grunnlagsdataEnsligUtenFradrag(),
                 vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget(),
-                tilRevurdering = vedtak,
+                tilRevurdering = vedtak.id,
                 saksbehandler = saksbehandler,
                 simulering = simulering(),
                 revurderingsårsak = Revurderingsårsak.create(
@@ -88,7 +88,7 @@ internal class GjenopptakAvYtelsePostgresRepoTest {
                 periode = mai(2021),
                 grunnlagsdata = grunnlagsdataEnsligUtenFradrag(mai(2021)),
                 vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget(periode = mai(2021)),
-                tilRevurdering = vedtak,
+                tilRevurdering = vedtak.id,
                 saksbehandler = NavIdentBruker.Saksbehandler("saksern"),
                 simulering = simulering().copy(
                     gjelderNavn = "et navn",
@@ -116,7 +116,7 @@ internal class GjenopptakAvYtelsePostgresRepoTest {
                 periode = år(2021),
                 grunnlagsdata = grunnlagsdataEnsligUtenFradrag(),
                 vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget(),
-                tilRevurdering = vedtak,
+                tilRevurdering = vedtak.id,
                 saksbehandler = saksbehandler,
                 simulering = simulering(),
                 revurderingsårsak = Revurderingsårsak.create(

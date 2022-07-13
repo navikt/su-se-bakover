@@ -30,7 +30,7 @@ object RevurderingRoutesTestData {
         id = UUID.randomUUID(),
         periode = periode,
         opprettet = fixedTidspunkt,
-        tilRevurdering = vedtak,
+        tilRevurdering = vedtak.id,
         saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
         oppgaveId = OppgaveId("oppgaveid"),
         fritekstTilBrev = "",

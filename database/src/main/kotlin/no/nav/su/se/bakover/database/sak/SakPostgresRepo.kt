@@ -78,6 +78,17 @@ internal class SakPostgresRepo(
         }
     }
 
+    override fun hentSakForRevurdering(revurderingId: UUID): Sak {
+        return dbMetrics.timeQuery("hentSakForRevurdering") {
+            sessionFactory.withSessionContext { sessionContext ->
+                sessionContext.withSession { session ->
+                    "select s.* from sak s join revurdering r on r.sakid = s.id where r.id =:revurderingid"
+                        .hent(mapOf("revurderingid" to revurderingId), session) { it.toSak(sessionContext) }
+                }
+            }!!
+        }
+    }
+
     /***
      * @param personidenter Inneholder alle identer til brukeren, f.eks fnr og aktørid.
      */

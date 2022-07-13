@@ -351,9 +351,9 @@ internal class StansAvYtelseServiceTest {
     @Test
     @Disabled("https://trello.com/c/5iblmYP9/1090-endre-sperre-for-10-endring-til-%C3%A5-v%C3%A6re-en-advarsel")
     fun `svarer med feil ved forsøk på å oppdatere revurderinger som ikke er av korrekt type`() {
-        val enRevurdering = beregnetRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
+        val (sak, enRevurdering) = beregnetRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
             stønadsperiode = Stønadsperiode.create(år(2021)),
-        ).second
+        )
 
         val vedtakServiceMock = mock<VedtakService> {
             on {
@@ -361,11 +361,10 @@ internal class StansAvYtelseServiceTest {
                     any(),
                     any(),
                 )
-            } doReturn GjeldendeVedtaksdata(
-                periode = år(2021),
-                vedtakListe = nonEmptyListOf(enRevurdering.tilRevurdering),
-                clock = fixedClock,
-            ).right()
+            } doReturn sak.kopierGjeldendeVedtaksdata(
+                fraOgMed = år(2021).fraOgMed,
+                clock = fixedClock
+            ).getOrFail().right()
         }
 
         val utbetalingServiceMock = mock<UtbetalingService> {
@@ -419,9 +418,9 @@ internal class StansAvYtelseServiceTest {
             fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
             tilOgMed = år(2021).tilOgMed,
         )
-        val eksisterende = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+        val (sak, eksisterende) = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
             periode = periode,
-        ).second
+        )
 
         val vedtakServiceMock = mock<VedtakService> {
             on {
@@ -429,11 +428,10 @@ internal class StansAvYtelseServiceTest {
                     any(),
                     any(),
                 )
-            } doReturn GjeldendeVedtaksdata(
+            } doReturn sak.hentGjeldendeVedtaksdata(
                 periode = mars(2021),
-                vedtakListe = nonEmptyListOf(eksisterende.tilRevurdering),
-                clock = fixedClock,
-            ).right()
+                clock = fixedClock
+            ).getOrFail().right()
         }
 
         val utbetalingServiceMock = mock<UtbetalingService> {

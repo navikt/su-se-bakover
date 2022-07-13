@@ -68,7 +68,6 @@ import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.util.UUID
 
@@ -253,7 +252,7 @@ internal class RevurderingPostgresRepo(
         val status = RevurderingsType.valueOf(string("revurderingsType"))
         val periode = deserialize<Periode>(string("periode"))
         val opprettet = tidspunkt("opprettet")
-        val tilRevurdering = vedtakRepo.hent(uuid("vedtakSomRevurderesId"), session)!! as VedtakSomKanRevurderes
+        val tilRevurdering = uuid("vedtakSomRevurderesId")
         val sakinfo = SakInfo(
             sakId = uuid("sakid"),
             saksnummer = Saksnummer(long("saksnummer")),
@@ -416,7 +415,7 @@ internal class RevurderingPostgresRepo(
                     "opprettet" to revurdering.opprettet,
                     "saksbehandler" to revurdering.saksbehandler.navIdent,
                     "oppgaveId" to revurdering.oppgaveId.toString(),
-                    "vedtakSomRevurderesId" to revurdering.tilRevurdering.id,
+                    "vedtakSomRevurderesId" to revurdering.tilRevurdering,
                     "fritekstTilBrev" to revurdering.fritekstTilBrev,
                     "arsak" to revurdering.revurderingsårsak.årsak.toString(),
                     "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
@@ -741,7 +740,7 @@ internal class RevurderingPostgresRepo(
                     "saksbehandler" to revurdering.saksbehandler.navIdent,
                     "oppgaveId" to revurdering.oppgaveId.toString(),
                     "revurderingsType" to revurdering.toRevurderingsType(),
-                    "vedtakSomRevurderesId" to revurdering.tilRevurdering.id,
+                    "vedtakSomRevurderesId" to revurdering.tilRevurdering,
                     "fritekstTilBrev" to revurdering.fritekstTilBrev,
                     "arsak" to revurdering.revurderingsårsak.årsak.toString(),
                     "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
@@ -772,7 +771,7 @@ internal class RevurderingPostgresRepo(
         id: UUID,
         periode: Periode,
         opprettet: Tidspunkt,
-        tilRevurdering: VedtakSomKanRevurderes,
+        tilRevurdering: UUID,
         saksbehandler: String,
         beregning: BeregningMedFradragBeregnetMånedsvis?,
         simulering: Simulering?,

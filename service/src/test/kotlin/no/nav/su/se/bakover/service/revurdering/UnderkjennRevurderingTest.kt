@@ -1,35 +1,22 @@
 package no.nav.su.se.bakover.service.revurdering
 
-import arrow.core.getOrHandle
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingUnderBehandling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
-import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
-import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
-import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.oppgave.OppgaveService
-import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.statistikk.Event
-import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.test.aktørId
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fnr
+import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.revurderingId
+import no.nav.su.se.bakover.test.revurderingTilAttestering
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
-import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
-import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
@@ -42,27 +29,7 @@ internal class UnderkjennRevurderingTest {
 
     @Test
     fun `underkjenn - underkjenner en revurdering`() {
-        val tilRevurdering = vedtakSøknadsbehandlingIverksattInnvilget().second
-        val tilAttestering = RevurderingTilAttestering.Innvilget(
-            id = revurderingId,
-            periode = RevurderingTestUtils.periodeNesteMånedOgTreMånederFram,
-            opprettet = Tidspunkt.EPOCH,
-            tilRevurdering = tilRevurdering,
-            saksbehandler = saksbehandler,
-            beregning = RevurderingTestUtils.beregning,
-            simulering = mock(),
-            oppgaveId = OppgaveId("oppgaveId"),
-            fritekstTilBrev = "",
-            revurderingsårsak = RevurderingTestUtils.revurderingsårsak,
-            forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
-            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            attesteringer = Attesteringshistorikk.empty(),
-            avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
-            tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling,
-            sakinfo = tilRevurdering.sakinfo(),
-        )
+        val (_, tilAttestering) = revurderingTilAttestering()
 
         val attestering = Attestering.Underkjent(
             attestant = NavIdentBruker.Attestant(navIdent = "123"),
@@ -71,60 +38,54 @@ internal class UnderkjennRevurderingTest {
             opprettet = Tidspunkt.EPOCH,
         )
 
-        val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(revurderingId) } doReturn tilAttestering
-        }
-
-        val personServiceMock = mock<PersonService> {
-            on { hentAktørId(any()) } doReturn aktørId.right()
-        }
         val nyOppgaveId = OppgaveId("nyOppgaveId")
-        val oppgaveServiceMock = mock<OppgaveService> {
-            on { opprettOppgave(any()) } doReturn nyOppgaveId.right()
-            on { lukkOppgave(any()) } doReturn Unit.right()
-        }
 
-        val eventObserver: EventObserver = mock()
+        RevurderingServiceMocks(
+            revurderingRepo = mock {
+                on { hent(any()) } doReturn tilAttestering
+            },
+            personService = mock {
+                on { hentAktørId(any()) } doReturn aktørId.right()
+            },
+            oppgaveService = mock {
+                on { opprettOppgave(any()) } doReturn nyOppgaveId.right()
+                on { lukkOppgave(any()) } doReturn Unit.right()
+            },
+            observer = mock(),
+        ).also {
+            val actual = it.revurderingService.underkjenn(
+                revurderingId = tilAttestering.id,
+                attestering = attestering,
+            ).getOrFail()
 
-        val revurderingService = RevurderingTestUtils.createRevurderingService(
-            revurderingRepo = revurderingRepoMock,
-            personService = personServiceMock,
-            oppgaveService = oppgaveServiceMock,
-        ).apply { addObserver(eventObserver) }
-
-        val actual = revurderingService.underkjenn(
-            revurderingId = revurderingId,
-            attestering = attestering,
-        ).getOrHandle { throw RuntimeException("Skal ikke kunne skje") }
-
-        actual shouldBe tilAttestering.underkjenn(
-            attestering, nyOppgaveId,
-        )
-
-        inOrder(revurderingRepoMock, personServiceMock, oppgaveServiceMock, eventObserver) {
-            verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
-            verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
-            verify(oppgaveServiceMock).opprettOppgave(
-                argThat {
-                    it shouldBe OppgaveConfig.Revurderingsbehandling(
-                        saksnummer = saksnummer,
-                        aktørId = aktørId,
-                        tilordnetRessurs = saksbehandler,
-                        clock = fixedClock,
-                    )
-                },
+            actual shouldBe tilAttestering.underkjenn(
+                attestering, nyOppgaveId,
             )
-            verify(revurderingRepoMock).defaultTransactionContext()
-            verify(revurderingRepoMock).lagre(argThat { it shouldBe actual }, anyOrNull())
-            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe tilAttestering.oppgaveId })
 
-            verify(eventObserver).handle(
-                argThat {
-                    it shouldBe Event.Statistikk.RevurderingStatistikk.RevurderingUnderkjent(actual)
-                },
-            )
+            inOrder(it.revurderingRepo, it.personService, it.oppgaveService, it.observer) {
+                verify(it.revurderingRepo).hent(argThat { it shouldBe tilAttestering.id })
+                verify(it.personService).hentAktørId(argThat { it shouldBe fnr })
+                verify(it.oppgaveService).opprettOppgave(
+                    argThat {
+                        it shouldBe OppgaveConfig.Revurderingsbehandling(
+                            saksnummer = saksnummer,
+                            aktørId = aktørId,
+                            tilordnetRessurs = saksbehandler,
+                            clock = fixedClock,
+                        )
+                    },
+                )
+                verify(it.revurderingRepo).defaultTransactionContext()
+                verify(it.revurderingRepo).lagre(argThat { it shouldBe actual }, anyOrNull())
+                verify(it.oppgaveService).lukkOppgave(argThat { it shouldBe tilAttestering.oppgaveId })
+
+                verify(it.observer).handle(
+                    argThat {
+                        it shouldBe Event.Statistikk.RevurderingStatistikk.RevurderingUnderkjent(actual)
+                    },
+                )
+            }
+            verifyNoMoreInteractions(it.revurderingRepo, it.personService, it.oppgaveService)
         }
-
-        verifyNoMoreInteractions(revurderingRepoMock, personServiceMock, oppgaveServiceMock)
     }
 }
