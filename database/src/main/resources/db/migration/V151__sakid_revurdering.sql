@@ -10,7 +10,6 @@ with revurderingTilSak as (
 		join sak s
 			on s.id = bv.sakid
 )
-insert into revurdering (sakid)
-    (select rs.sakid from revurderingTilSak rs join revurdering r on r.id = rs.revurderingid);
+update revurdering set sakid = (select sakid from revurderingTilSak where revurderingId = id);
 
 alter table revurdering alter column sakId set not null;
