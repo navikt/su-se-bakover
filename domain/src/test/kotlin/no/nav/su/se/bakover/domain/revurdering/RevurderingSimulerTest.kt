@@ -40,17 +40,14 @@ class RevurderingSimulerTest {
                 satsFactory = satsFactoryTestPåDato(),
             ).getOrFail().let { beregnet ->
                 (beregnet as BeregnetRevurdering.Opphørt)
-                    .toSimulert(
-                        { sakId, _, opphørsdato ->
-                            simulertUtbetalingOpphør(
-                                sakId = sakId,
-                                periode = beregnet.periode,
-                                opphørsdato = opphørsdato,
-                                eksisterendeUtbetalinger = sak.utbetalinger,
-                            )
-                        },
-                        false
-                    ).getOrFail()
+                    .toSimulert { sakId, _, opphørsdato ->
+                        simulertUtbetalingOpphør(
+                            sakId = sakId,
+                            periode = beregnet.periode,
+                            opphørsdato = opphørsdato,
+                            eksisterendeUtbetalinger = sak.utbetalinger,
+                        )
+                    }.getOrFail()
                     .let { simulert ->
                         simulert.avkorting.let {
                             (it as AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel).let { avkorting ->
@@ -84,17 +81,14 @@ class RevurderingSimulerTest {
                     satsFactory = satsFactoryTestPåDato(),
                 ).getOrFail().let { beregnet ->
                     (beregnet as BeregnetRevurdering.Opphørt)
-                        .toSimulert(
-                            { sakId, _, _ ->
-                                simulertUtbetalingOpphør(
-                                    sakId = sakId,
-                                    periode = beregnet.periode,
-                                    opphørsdato = beregnet.periode.fraOgMed,
-                                    eksisterendeUtbetalinger = sak.utbetalinger,
-                                )
-                            },
-                            false
-                        ).getOrFail()
+                        .toSimulert { sakId, _, _ ->
+                            simulertUtbetalingOpphør(
+                                sakId = sakId,
+                                periode = beregnet.periode,
+                                opphørsdato = beregnet.periode.fraOgMed,
+                                eksisterendeUtbetalinger = sak.utbetalinger,
+                            )
+                        }.getOrFail()
                 }
             }
         }
@@ -115,17 +109,14 @@ class RevurderingSimulerTest {
                 satsFactory = satsFactoryTestPåDato(),
             ).getOrFail().let {
                 (it as BeregnetRevurdering.Opphørt)
-                    .toSimulert(
-                        { sakId, _, opphørsdato ->
-                            simulertUtbetalingOpphør(
-                                sakId = sakId,
-                                periode = it.periode,
-                                opphørsdato = opphørsdato,
-                                eksisterendeUtbetalinger = sak.utbetalinger,
-                            )
-                        },
-                        false
-                    ).getOrFail()
+                    .toSimulert { sakId, _, opphørsdato ->
+                        simulertUtbetalingOpphør(
+                            sakId = sakId,
+                            periode = it.periode,
+                            opphørsdato = opphørsdato,
+                            eksisterendeUtbetalinger = sak.utbetalinger,
+                        )
+                    }.getOrFail()
                     .let {
                         it.avkorting shouldBe AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
                     }
@@ -157,17 +148,14 @@ class RevurderingSimulerTest {
                     satsFactory = satsFactoryTestPåDato(),
                 ).getOrFail().let {
                     (it as BeregnetRevurdering.Opphørt)
-                        .toSimulert(
-                            { sakId, _, opphørsdato ->
-                                simulertUtbetalingOpphør(
-                                    sakId = sakId,
-                                    periode = it.periode,
-                                    opphørsdato = opphørsdato,
-                                    eksisterendeUtbetalinger = sak.utbetalinger,
-                                )
-                            },
-                            false
-                        ).getOrFail()
+                        .toSimulert { sakId, _, opphørsdato ->
+                            simulertUtbetalingOpphør(
+                                sakId = sakId,
+                                periode = it.periode,
+                                opphørsdato = opphørsdato,
+                                eksisterendeUtbetalinger = sak.utbetalinger,
+                            )
+                        }.getOrFail()
                         .let {
                             it.avkorting shouldBe AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
                         }
@@ -195,7 +183,6 @@ class RevurderingSimulerTest {
                             eksisterendeUtbetalinger = sak.utbetalinger,
                         ),
                         clock = fixedClock,
-                        tilbakekrevingTillatt = true,
                     ).tilbakekrevingsbehandling
                 ) {
                     is IkkeAvgjort -> {}

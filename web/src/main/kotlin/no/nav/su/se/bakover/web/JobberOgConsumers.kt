@@ -19,7 +19,6 @@ import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
-import no.nav.su.se.bakover.service.toggles.ToggleService
 import no.nav.su.se.bakover.web.services.SendPåminnelseNyStønadsperiodeJob
 import no.nav.su.se.bakover.web.services.avstemming.GrensesnittsavstemingJob
 import no.nav.su.se.bakover.web.services.avstemming.KonsistensavstemmingJob
@@ -156,20 +155,18 @@ internal fun startJobberOgConsumers(
             },
         ).schedule()
 
-        if (services.toggles.isEnabled(ToggleService.toggleForFeilutbetaling)) {
-            TilbakekrevingIbmMqConsumer(
-                queueName = applicationConfig.oppdrag.tilbakekreving.mq.mottak,
-                globalJmsContext = jmsConfig.jmsContext,
-                tilbakekrevingConsumer = consumers.tilbakekrevingConsumer,
-            )
+        TilbakekrevingIbmMqConsumer(
+            queueName = applicationConfig.oppdrag.tilbakekreving.mq.mottak,
+            globalJmsContext = jmsConfig.jmsContext,
+            tilbakekrevingConsumer = consumers.tilbakekrevingConsumer,
+        )
 
-            TilbakekrevingJob(
-                tilbakekrevingService = services.tilbakekrevingService,
-                leaderPodLookup = clients.leaderPodLookup,
-                initialDelay = initialDelay.next(),
-                intervall = Duration.of(15, ChronoUnit.MINUTES),
-            ).schedule()
-        }
+        TilbakekrevingJob(
+            tilbakekrevingService = services.tilbakekrevingService,
+            leaderPodLookup = clients.leaderPodLookup,
+            initialDelay = initialDelay.next(),
+            intervall = Duration.of(15, ChronoUnit.MINUTES),
+        ).schedule()
 
         SendPåminnelseNyStønadsperiodeJob(
             leaderPodLookup = clients.leaderPodLookup,

@@ -732,7 +732,6 @@ internal class RevurderingServiceImpl(
                             beregnetRevurdering.toSimulert(
                                 simulering = it.simulering,
                                 clock = clock,
-                                tilbakekrevingTillatt = feilutbetalingTillatt(),
                             ).let { simulert ->
                                 revurderingRepo.lagre(simulert)
                                 identifiserFeilOgLagResponse(simulert)
@@ -742,18 +741,15 @@ internal class RevurderingServiceImpl(
                     }
                     is BeregnetRevurdering.Opphørt -> {
                         // TODO er tanken at vi skal oppdatere saksbehandler her? Det kan se ut som vi har tenkt det, men aldri fullført.
-                        beregnetRevurdering.toSimulert(
-                            simuler = { sakId, _, opphørsdato ->
-                                utbetalingService.simulerOpphør(
-                                    request = SimulerUtbetalingRequest.Opphør(
-                                        sakId = sakId,
-                                        saksbehandler = saksbehandler,
-                                        opphørsdato = opphørsdato,
-                                    ),
-                                )
-                            },
-                            tilbakekrevingTillatt = feilutbetalingTillatt(),
-                        ).mapLeft { KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(it) }
+                        beregnetRevurdering.toSimulert { sakId, _, opphørsdato ->
+                            utbetalingService.simulerOpphør(
+                                request = SimulerUtbetalingRequest.Opphør(
+                                    sakId = sakId,
+                                    saksbehandler = saksbehandler,
+                                    opphørsdato = opphørsdato,
+                                ),
+                            )
+                        }.mapLeft { KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(it) }
                             .map { simulert ->
                                 revurderingRepo.lagre(simulert)
                                 identifiserFeilOgLagResponse(simulert)
@@ -1043,7 +1039,7 @@ internal class RevurderingServiceImpl(
             ).getOrHandle {
                 return when (it) {
                     SimulertRevurdering.KunneIkkeSendeInnvilgetRevurderingTilAttestering.ForhåndsvarslingErIkkeFerdigbehandlet -> {
-                        KunneIkkeSendeRevurderingTilAttestering.ForhåndsvarslingErIkkeFerdigbehandling
+                        KunneIkkeSendeRevurderingTilAttestering.ForhåndsvarslingErIkkeFerdigbehandlet
                     }
                     SimulertRevurdering.KunneIkkeSendeInnvilgetRevurderingTilAttestering.TilbakekrevingsbehandlingErIkkeFullstendig -> {
                         KunneIkkeSendeRevurderingTilAttestering.TilbakekrevingsbehandlingErIkkeFullstendig
@@ -1057,7 +1053,7 @@ internal class RevurderingServiceImpl(
             ).getOrHandle {
                 return when (it) {
                     SimulertRevurdering.Opphørt.KanIkkeSendeOpphørtRevurderingTilAttestering.ForhåndsvarslingErIkkeFerdigbehandlet -> {
-                        KunneIkkeSendeRevurderingTilAttestering.ForhåndsvarslingErIkkeFerdigbehandling
+                        KunneIkkeSendeRevurderingTilAttestering.ForhåndsvarslingErIkkeFerdigbehandlet
                     }
                     SimulertRevurdering.Opphørt.KanIkkeSendeOpphørtRevurderingTilAttestering.KanIkkeSendeEnOpphørtGReguleringTilAttestering -> {
                         KunneIkkeSendeRevurderingTilAttestering.KanIkkeRegulereGrunnbeløpTilOpphør
@@ -1135,8 +1131,6 @@ internal class RevurderingServiceImpl(
                     nyBeregning = revurdering.beregning,
                 ).mapLeft {
                     KunneIkkeSendeRevurderingTilAttestering.RevurderingsutfallStøttesIkke(it.toList())
-                }.flatMap {
-                    if (!feilutbetalingTillatt() && revurdering.harSimuleringFeilutbetaling()) KunneIkkeSendeRevurderingTilAttestering.FeilutbetalingStøttesIkke.left() else Unit.right()
                 }
             }
             is UnderkjentRevurdering.Innvilget -> {
@@ -1147,8 +1141,6 @@ internal class RevurderingServiceImpl(
                     nyBeregning = revurdering.beregning,
                 ).mapLeft {
                     KunneIkkeSendeRevurderingTilAttestering.RevurderingsutfallStøttesIkke(it.toList())
-                }.flatMap {
-                    if (!feilutbetalingTillatt() && revurdering.harSimuleringFeilutbetaling()) KunneIkkeSendeRevurderingTilAttestering.FeilutbetalingStøttesIkke.left() else Unit.right()
                 }
             }
             is UnderkjentRevurdering.Opphørt -> {
@@ -1159,8 +1151,6 @@ internal class RevurderingServiceImpl(
                     nyBeregning = revurdering.beregning,
                 ).mapLeft {
                     KunneIkkeSendeRevurderingTilAttestering.RevurderingsutfallStøttesIkke(it.toList())
-                }.flatMap {
-                    if (!feilutbetalingTillatt() && revurdering.harSimuleringFeilutbetaling()) KunneIkkeSendeRevurderingTilAttestering.FeilutbetalingStøttesIkke.left() else Unit.right()
                 }
             }
             is UnderkjentRevurdering.IngenEndring -> {
@@ -1178,10 +1168,6 @@ internal class RevurderingServiceImpl(
                 til = RevurderingTilAttestering::class,
             ).left()
         }
-    }
-
-    private fun feilutbetalingTillatt(): Boolean {
-        return toggleService.isEnabled(ToggleService.toggleForFeilutbetaling)
     }
 
     override fun lagBrevutkastForRevurdering(

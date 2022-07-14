@@ -85,7 +85,7 @@ internal fun KunneIkkeSendeRevurderingTilAttestering.tilResultat(): Resultat {
             "feilutbetalinger_støttes_ikke",
         )
         is KunneIkkeSendeRevurderingTilAttestering.RevurderingsutfallStøttesIkke -> BadRequest.errorJson(feilmeldinger.map { it.toJson() })
-        KunneIkkeSendeRevurderingTilAttestering.ForhåndsvarslingErIkkeFerdigbehandling -> BadRequest.errorJson(
+        KunneIkkeSendeRevurderingTilAttestering.ForhåndsvarslingErIkkeFerdigbehandlet -> BadRequest.errorJson(
             "Forhåndsvarsling er ikke ferdigbehandlet",
             "forhåndsvarsling_er_ikke_ferdigbehandlet",
         )
