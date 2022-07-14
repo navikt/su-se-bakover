@@ -7,9 +7,9 @@ import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.grunnlag.PersonligOppmøteGrunnlag
+import no.nav.su.se.bakover.domain.grunnlag.PersonligOppmøteÅrsak
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.getOrFail
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -19,116 +19,114 @@ internal class VurderingsperiodePersonligOppmøteTest {
 
     @Test
     fun `oppdaterer periode`() {
-        VurderingsperiodePersonligOppmøte.tryCreate(
+        VurderingsperiodePersonligOppmøte(
             id = vilkårId,
             opprettet = fixedTidspunkt,
-            vurdering = Vurdering.Innvilget,
             grunnlag = PersonligOppmøteGrunnlag(
                 id = grunnlagId,
                 opprettet = fixedTidspunkt,
                 periode = år(2021),
+                årsak = PersonligOppmøteÅrsak.MøttPersonlig,
             ),
-            vurderingsperiode = år(2021),
-        ).getOrFail()
+            periode = år(2021),
+        )
             .let {
                 it.oppdaterStønadsperiode(
                     Stønadsperiode.create(februar(2021)),
-                ) shouldBe VurderingsperiodePersonligOppmøte.tryCreate(
+                ) shouldBe VurderingsperiodePersonligOppmøte(
                     id = vilkårId,
                     opprettet = fixedTidspunkt,
-                    vurdering = Vurdering.Innvilget,
                     grunnlag = PersonligOppmøteGrunnlag(
                         id = grunnlagId,
                         opprettet = fixedTidspunkt,
                         periode = februar(2021),
+                        årsak = PersonligOppmøteÅrsak.MøttPersonlig,
                     ),
-                    vurderingsperiode = februar(2021),
-                ).getOrFail()
+                    periode = februar(2021),
+                )
             }
     }
 
     @Test
     fun `kopierer korrekte verdier`() {
-        VurderingsperiodePersonligOppmøte.tryCreate(
+        VurderingsperiodePersonligOppmøte(
             id = vilkårId,
             opprettet = fixedTidspunkt,
-            vurdering = Vurdering.Innvilget,
             grunnlag = PersonligOppmøteGrunnlag(
                 id = grunnlagId,
                 opprettet = fixedTidspunkt,
                 periode = år(2021),
+                årsak = PersonligOppmøteÅrsak.MøttPersonlig,
             ),
-            vurderingsperiode = år(2021),
-        ).getOrFail()
+            periode = år(2021),
+        )
             .copy(CopyArgs.Tidslinje.Full).let {
                 it shouldBe it.copy()
             }
 
-        VurderingsperiodePersonligOppmøte.tryCreate(
+        VurderingsperiodePersonligOppmøte(
             id = vilkårId,
             opprettet = fixedTidspunkt,
-            vurdering = Vurdering.Innvilget,
             grunnlag = PersonligOppmøteGrunnlag(
                 id = grunnlagId,
                 opprettet = fixedTidspunkt,
                 periode = år(2021),
+                årsak = PersonligOppmøteÅrsak.MøttPersonlig,
             ),
-            vurderingsperiode = år(2021),
-        ).getOrFail().copy(CopyArgs.Tidslinje.NyPeriode(mai(2021))).let {
+            periode = år(2021),
+        ).copy(CopyArgs.Tidslinje.NyPeriode(mai(2021))).let {
             it shouldBe it.copy(periode = mai(2021))
         }
     }
 
     @Test
     fun `er lik ser kun på funksjonelle verdier`() {
-        VurderingsperiodePersonligOppmøte.tryCreate(
+        VurderingsperiodePersonligOppmøte(
             id = vilkårId,
             opprettet = fixedTidspunkt,
-            vurdering = Vurdering.Innvilget,
             grunnlag = PersonligOppmøteGrunnlag(
                 id = grunnlagId,
                 opprettet = fixedTidspunkt,
                 periode = år(2021),
+                årsak = PersonligOppmøteÅrsak.MøttPersonlig,
             ),
-            vurderingsperiode = år(2021),
-        ).getOrFail()
-            .erLik(
-                VurderingsperiodePersonligOppmøte.tryCreate(
+            periode = år(2021),
+        ).erLik(
+            VurderingsperiodePersonligOppmøte(
+                id = UUID.randomUUID(),
+                opprettet = Tidspunkt.now(),
+                grunnlag = PersonligOppmøteGrunnlag(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(),
-                    vurdering = Vurdering.Innvilget,
-                    grunnlag = PersonligOppmøteGrunnlag(
-                        id = UUID.randomUUID(),
-                        opprettet = Tidspunkt.now(),
-                        periode = februar(2021),
-                    ),
-                    vurderingsperiode = februar(2021),
-                ).getOrFail(),
-            ) shouldBe true
+                    periode = februar(2021),
+                    årsak = PersonligOppmøteÅrsak.MøttPersonlig,
+                ),
+                periode = februar(2021),
+            ),
+        ) shouldBe true
 
-        VurderingsperiodePersonligOppmøte.tryCreate(
+        VurderingsperiodePersonligOppmøte(
             id = vilkårId,
             opprettet = fixedTidspunkt,
-            vurdering = Vurdering.Innvilget,
             grunnlag = PersonligOppmøteGrunnlag(
                 id = grunnlagId,
                 opprettet = fixedTidspunkt,
                 periode = år(2021),
+                årsak = PersonligOppmøteÅrsak.MøttPersonlig,
             ),
-            vurderingsperiode = år(2021),
-        ).getOrFail()
-            .erLik(
-                VurderingsperiodePersonligOppmøte.tryCreate(
+            periode = år(2021),
+        ).erLik(
+            VurderingsperiodePersonligOppmøte(
+                id = UUID.randomUUID(),
+                opprettet = Tidspunkt.now(),
+                grunnlag = PersonligOppmøteGrunnlag(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(),
-                    vurdering = Vurdering.Avslag,
-                    grunnlag = PersonligOppmøteGrunnlag(
-                        id = UUID.randomUUID(),
-                        opprettet = Tidspunkt.now(),
-                        periode = februar(2021),
-                    ),
-                    vurderingsperiode = februar(2021),
-                ).getOrFail(),
-            ) shouldBe false
+                    periode = februar(2021),
+                    årsak = PersonligOppmøteÅrsak.IkkeMøttPersonlig,
+                ),
+                periode = februar(2021),
+            ),
+        ) shouldBe false
     }
 }

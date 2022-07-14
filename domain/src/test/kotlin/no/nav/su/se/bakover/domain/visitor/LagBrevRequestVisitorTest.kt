@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.desember
-import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.år
@@ -32,7 +31,7 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
-import no.nav.su.se.bakover.domain.behandling.withAvslåttPersonligOppmøte
+import no.nav.su.se.bakover.domain.behandling.withAvslåttInstitusjonsopphold
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
@@ -99,6 +98,7 @@ import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.fail
+import vilkår.personligOppmøtevilkårInnvilget
 import java.time.Clock
 import java.util.UUID
 
@@ -107,7 +107,7 @@ internal class LagBrevRequestVisitorTest {
     @Test
     fun `responderer med feil dersom vi ikke får til å hente person`() {
         vilkårsvurdertInnvilget.leggTilVilkårFraBehandlingsinformasjon(
-            Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttPersonligOppmøte(),
+            Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttInstitusjonsopphold(),
             clock = fixedClock,
         ).getOrFail().let { søknadsbehandling ->
             LagBrevRequestVisitor(
@@ -424,7 +424,7 @@ internal class LagBrevRequestVisitorTest {
         (
             vilkårsvurdertInnvilget.leggTilVilkårFraBehandlingsinformasjon(
                 behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon()
-                    .withAvslåttPersonligOppmøte(),
+                    .withAvslåttInstitusjonsopphold(),
                 clock = fixedClock,
             ).getOrFail() as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
@@ -441,7 +441,7 @@ internal class LagBrevRequestVisitorTest {
                         person = person,
                         avslag = Avslag(
                             opprettet = fixedTidspunkt,
-                            avslagsgrunner = listOf(Avslagsgrunn.PERSONLIG_OPPMØTE),
+                            avslagsgrunner = listOf(Avslagsgrunn.INNLAGT_PÅ_INSTITUSJON),
                             harEktefelle = false,
                             beregning = null,
                             formuegrunnlag = null,
@@ -562,7 +562,7 @@ internal class LagBrevRequestVisitorTest {
         (
             vilkårsvurdertInnvilget.leggTilVilkårFraBehandlingsinformasjon(
                 behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon()
-                    .withAvslåttPersonligOppmøte(),
+                    .withAvslåttInstitusjonsopphold(),
                 clock = fixedClock,
             ).getOrFail() as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
@@ -587,7 +587,7 @@ internal class LagBrevRequestVisitorTest {
                         person = person,
                         avslag = Avslag(
                             opprettet = fixedTidspunkt,
-                            avslagsgrunner = listOf(Avslagsgrunn.PERSONLIG_OPPMØTE),
+                            avslagsgrunner = listOf(Avslagsgrunn.INNLAGT_PÅ_INSTITUSJON),
                             harEktefelle = false,
                             beregning = null,
                             formuegrunnlag = null,
@@ -725,7 +725,7 @@ internal class LagBrevRequestVisitorTest {
         (
             vilkårsvurdertInnvilget.leggTilVilkårFraBehandlingsinformasjon(
                 behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon()
-                    .withAvslåttPersonligOppmøte(),
+                    .withAvslåttInstitusjonsopphold(),
                 clock = fixedClock,
             ).getOrFail() as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
@@ -745,7 +745,7 @@ internal class LagBrevRequestVisitorTest {
                         person = person,
                         avslag = Avslag(
                             opprettet = fixedTidspunkt,
-                            avslagsgrunner = listOf(Avslagsgrunn.PERSONLIG_OPPMØTE),
+                            avslagsgrunner = listOf(Avslagsgrunn.INNLAGT_PÅ_INSTITUSJON),
                             harEktefelle = false,
                             beregning = null,
                             formuegrunnlag = null,
@@ -992,7 +992,7 @@ internal class LagBrevRequestVisitorTest {
         val søknadsbehandling = (
             vilkårsvurdertInnvilget.leggTilVilkårFraBehandlingsinformasjon(
                 behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon()
-                    .withAvslåttPersonligOppmøte(),
+                    .withAvslåttInstitusjonsopphold(),
                 clock = fixedClock,
             ).getOrFail() as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
@@ -1025,7 +1025,7 @@ internal class LagBrevRequestVisitorTest {
             person = person,
             avslag = Avslag(
                 opprettet = fixedTidspunkt,
-                avslagsgrunner = listOf(Avslagsgrunn.PERSONLIG_OPPMØTE),
+                avslagsgrunner = listOf(Avslagsgrunn.INNLAGT_PÅ_INSTITUSJON),
                 harEktefelle = false,
                 beregning = null,
                 formuegrunnlag = null,
@@ -1273,6 +1273,7 @@ internal class LagBrevRequestVisitorTest {
                 opplysningsplikt = tilstrekkeligDokumentert(periode = revurderingsperiode),
                 lovligOpphold = lovligOppholdVilkårInnvilget(),
                 flyktning = flyktningVilkårInnvilget(periode = revurderingsperiode),
+                personligOppmøte = personligOppmøtevilkårInnvilget(periode = revurderingsperiode),
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,

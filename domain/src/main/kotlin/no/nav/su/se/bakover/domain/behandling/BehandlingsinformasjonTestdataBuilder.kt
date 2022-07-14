@@ -15,9 +15,6 @@ fun Behandlingsinformasjon.withAlleVilkårOppfylt() =
         institusjonsopphold = Behandlingsinformasjon.Institusjonsopphold(
             status = Behandlingsinformasjon.Institusjonsopphold.Status.VilkårOppfylt,
         ),
-        personligOppmøte = Behandlingsinformasjon.PersonligOppmøte(
-            status = Behandlingsinformasjon.PersonligOppmøte.Status.MøttPersonlig,
-        ),
     )
 
 @TestOnly
@@ -29,17 +26,14 @@ fun Behandlingsinformasjon.withAlleVilkårAvslått() =
         institusjonsopphold = Behandlingsinformasjon.Institusjonsopphold(
             status = Behandlingsinformasjon.Institusjonsopphold.Status.VilkårIkkeOppfylt,
         ),
-        personligOppmøte = Behandlingsinformasjon.PersonligOppmøte(
-            status = Behandlingsinformasjon.PersonligOppmøte.Status.IkkeMøttPersonlig,
-        ),
     )
 
 @TestOnly
-fun Behandlingsinformasjon.withAvslåttPersonligOppmøte(): Behandlingsinformasjon {
+fun Behandlingsinformasjon.withAvslåttInstitusjonsopphold(): Behandlingsinformasjon {
     return withAlleVilkårOppfylt().patch(
         Behandlingsinformasjon(
-            personligOppmøte = Behandlingsinformasjon.PersonligOppmøte(
-                status = Behandlingsinformasjon.PersonligOppmøte.Status.IkkeMøttPersonlig,
+            institusjonsopphold = Behandlingsinformasjon.Institusjonsopphold(
+                status = Behandlingsinformasjon.Institusjonsopphold.Status.VilkårIkkeOppfylt,
             ),
         ),
     )

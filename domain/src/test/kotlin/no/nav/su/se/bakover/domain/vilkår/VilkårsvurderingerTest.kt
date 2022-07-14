@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
-import no.nav.su.se.bakover.domain.behandling.withAvslåttPersonligOppmøte
+import no.nav.su.se.bakover.domain.behandling.withAvslåttInstitusjonsopphold
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
@@ -53,6 +53,7 @@ internal class VilkårsvurderingerTest {
                         it.utenlandsopphold,
                         it.personligOppmøte,
                         it.opplysningsplikt,
+                        it.personligOppmøte,
                     ),
                 )
             }
@@ -192,11 +193,11 @@ internal class VilkårsvurderingerTest {
 
             innvilget.oppdater(
                 stønadsperiode = Stønadsperiode.create(år(2021)),
-                behandlingsinformasjon = Behandlingsinformasjon().withAvslåttPersonligOppmøte(),
+                behandlingsinformasjon = Behandlingsinformasjon().withAvslåttInstitusjonsopphold(),
                 clock = fixedClock,
             ).let {
                 it.vurdering shouldBe Vilkårsvurderingsresultat.Avslag(
-                    vilkår = setOf(it.personligOppmøte),
+                    vilkår = setOf(it.institusjonsopphold),
                 )
             }
         }
@@ -262,6 +263,7 @@ internal class VilkårsvurderingerTest {
                         it.opplysningsplikt,
                         it.lovligOpphold,
                         it.flyktning,
+                        it.personligOppmøte,
                     ),
                 )
             }
@@ -316,6 +318,7 @@ internal class VilkårsvurderingerTest {
                             Avslagsgrunn.MANGLENDE_DOKUMENTASJON,
                             Avslagsgrunn.OPPHOLDSTILLATELSE,
                             Avslagsgrunn.FLYKTNING,
+                            Avslagsgrunn.PERSONLIG_OPPMØTE,
                         )
                         it.tidligsteDatoForAvslag shouldBe 1.januar(2021)
                     }
@@ -353,6 +356,7 @@ internal class VilkårsvurderingerTest {
                     OpplysningspliktVilkår.IkkeVurdert,
                     LovligOppholdVilkår.IkkeVurdert,
                     FlyktningVilkår.IkkeVurdert,
+                    PersonligOppmøteVilkår.IkkeVurdert,
                 ),
             )
         }

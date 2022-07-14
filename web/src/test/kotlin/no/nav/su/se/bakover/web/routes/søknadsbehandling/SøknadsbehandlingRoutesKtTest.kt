@@ -70,6 +70,7 @@ import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFlyktningVilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilLovligOppholdRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilPersonligOppmøteVilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
@@ -102,6 +103,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import vilkår.personligOppmøtevilkårInnvilget
 import java.time.LocalDate
 import java.util.UUID
 import javax.sql.DataSource
@@ -961,6 +963,12 @@ internal class SøknadsbehandlingRoutesKtTest {
             request = LeggTilFlyktningVilkårRequest(
                 behandlingId = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
                 vilkår = flyktningVilkårInnvilget(periode = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.periode)
+            )
+        )
+        services.søknadsbehandling.leggTilPersonligOppmøteVilkår(
+            request = LeggTilPersonligOppmøteVilkårRequest(
+                behandlingId = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
+                vilkår = personligOppmøtevilkårInnvilget(periode = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.periode)
             )
         )
         services.søknadsbehandling.fullførBosituasjongrunnlag(

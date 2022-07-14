@@ -16,7 +16,6 @@ internal class AvslagsgrunnTest {
         Avslagsgrunn.FLYKTNING.tilOpphørsgrunn() shouldBe Opphørsgrunn.FLYKTNING
 
         listOf(
-            Avslagsgrunn.PERSONLIG_OPPMØTE,
             Avslagsgrunn.INNLAGT_PÅ_INSTITUSJON,
             Avslagsgrunn.BOR_OG_OPPHOLDER_SEG_I_NORGE,
         ).forEach {

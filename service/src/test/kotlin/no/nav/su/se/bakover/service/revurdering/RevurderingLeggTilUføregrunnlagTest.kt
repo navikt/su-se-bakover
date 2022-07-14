@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingsutfallSomIkkeStøttes
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
+import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -69,6 +70,7 @@ internal class RevurderingLeggTilUføregrunnlagTest {
                     opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
                     lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
                     flyktning = FlyktningVilkår.IkkeVurdert,
+                    personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
                 ),
             ),
         ).second

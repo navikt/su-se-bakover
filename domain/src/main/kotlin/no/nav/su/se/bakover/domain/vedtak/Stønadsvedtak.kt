@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
+import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -214,6 +215,7 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
             init {
                 behandling.grunnlagsdataOgVilkårsvurderinger.krevAlleVilkårInnvilget()
             }
+
             override fun harIdentifisertBehovForFremtidigAvkorting() = false
 
             override fun accept(visitor: VedtakVisitor) {
@@ -432,6 +434,10 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
         fun flyktningVilkår(): Either<Vilkårsvurderinger.VilkårEksistererIkke, FlyktningVilkår> {
             return vilkårsvurderinger.flyktningVilkår()
         }
+
+        fun personligOppmøteVilkår(): PersonligOppmøteVilkår {
+            return vilkårsvurderinger.personligOppmøteVilkår()
+        }
     }
 }
 
@@ -497,6 +503,7 @@ sealed interface Avslagsvedtak : Stønadsvedtak, Visitable<VedtakVisitor>, ErAvs
         init {
             behandling.grunnlagsdataOgVilkårsvurderinger.krevMinstEttAvslag()
         }
+
         override fun harIdentifisertBehovForFremtidigAvkorting() = false
         override fun accept(visitor: VedtakVisitor) {
             visitor.visit(this)
@@ -516,6 +523,7 @@ sealed interface Avslagsvedtak : Stønadsvedtak, Visitable<VedtakVisitor>, ErAvs
         init {
             behandling.grunnlagsdataOgVilkårsvurderinger.krevAlleVilkårInnvilget()
         }
+
         override fun harIdentifisertBehovForFremtidigAvkorting() = false
 
         override fun accept(visitor: VedtakVisitor) {

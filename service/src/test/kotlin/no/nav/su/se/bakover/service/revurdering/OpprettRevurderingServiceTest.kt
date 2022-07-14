@@ -80,6 +80,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import vilkår.personligOppmøtevilkårInnvilget
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 
@@ -459,6 +460,7 @@ internal class OpprettRevurderingServiceTest {
                 opplysningsplikt = tilstrekkeligDokumentert(periode = vedtaksperiode),
                 lovligOpphold = lovligOppholdVilkårInnvilget(),
                 flyktning = flyktningVilkårInnvilget(periode = vedtaksperiode),
+                personligOppmøte = personligOppmøtevilkårInnvilget(periode = vedtaksperiode),
             )
         }
         val vedtakForFørsteJanuarLagetNå = mock<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering> {

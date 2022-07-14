@@ -30,6 +30,7 @@ import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.PensjonsVilkår
+import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
@@ -1150,6 +1151,11 @@ fun vilkårsvurdertSøknadsbehandling(
                         clock = clock,
                     )
                     .getOrFail()
+                    .leggTilPersonligOppmøteVilkår(
+                        vilkår = customVilkår.customOrDefault { vilkår.personligOppmøte as PersonligOppmøteVilkår.Vurdert },
+                        clock = clock,
+                    )
+                    .getOrFail()
             }
             is Vilkårsvurderinger.Søknadsbehandling.Uføre -> {
                 etterOppdaterFraBehandlingsinformasjon.oppdaterBosituasjon(
@@ -1182,6 +1188,11 @@ fun vilkårsvurdertSøknadsbehandling(
                     .getOrFail()
                     .leggTilFlyktningVilkår(
                         vilkår = customVilkår.customOrDefault { vilkår.flyktning as FlyktningVilkår.Vurdert },
+                        clock = clock,
+                    )
+                    .getOrFail()
+                    .leggTilPersonligOppmøteVilkår(
+                        vilkår = customVilkår.customOrDefault { vilkår.personligOppmøte as PersonligOppmøteVilkår.Vurdert },
                         clock = clock,
                     )
                     .getOrFail()
