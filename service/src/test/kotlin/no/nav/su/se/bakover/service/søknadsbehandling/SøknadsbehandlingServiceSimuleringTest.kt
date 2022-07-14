@@ -1,53 +1,33 @@
 package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.left
-import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.idag
-import no.nav.su.se.bakover.common.periode.januar
-import no.nav.su.se.bakover.common.periode.år
-import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
-import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
-import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.Sakstype
-import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
-import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
-import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
-import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeSimulereBehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import no.nav.su.se.bakover.test.beregnetSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.utbetalingslinje
-import no.nav.su.se.bakover.test.vilkårsvurderingSøknadsbehandlingIkkeVurdert
+import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.nyUtbetalingSimulert
+import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.shouldBeType
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
-import java.util.UUID
 
 internal class SøknadsbehandlingServiceSimuleringTest {
+
+    private val sakOgBehandling = beregnetSøknadsbehandlingUføre()
+    private val beregnetBehandling = sakOgBehandling.second
 
     @Test
     fun `simuler behandling`() {
@@ -55,36 +35,23 @@ internal class SøknadsbehandlingServiceSimuleringTest {
             on { hent(any()) } doReturn beregnetBehandling
         }
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { simulerUtbetaling(any()) } doReturn simulertUtbetaling.right()
+            on { simulerUtbetaling(any()) } doReturn nyUtbetalingSimulert(
+                sakOgBehandling = sakOgBehandling,
+                beregning = beregnetBehandling.beregning,
+                clock = fixedClock,
+            ).right()
         }
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             utbetalingService = utbetalingServiceMock,
         ).simuler(
-            SøknadsbehandlingService.SimulerRequest(beregnetBehandling.id, saksbehandler),
-        )
+            SøknadsbehandlingService.SimulerRequest(
+                behandlingId = beregnetBehandling.id,
+                saksbehandler = saksbehandler,
+            ),
+        ).getOrFail()
 
-        val expected = Søknadsbehandling.Simulert(
-            id = beregnetBehandling.id,
-            opprettet = beregnetBehandling.opprettet,
-            behandlingsinformasjon = beregnetBehandling.behandlingsinformasjon,
-            søknad = beregnetBehandling.søknad,
-            beregning = beregnetBehandling.beregning,
-            sakId = beregnetBehandling.sakId,
-            saksnummer = beregnetBehandling.saksnummer,
-            fnr = beregnetBehandling.fnr,
-            oppgaveId = beregnetBehandling.oppgaveId,
-            simulering = simulering,
-            fritekstTilBrev = "",
-            stønadsperiode = beregnetBehandling.stønadsperiode,
-            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingIkkeVurdert(),
-            attesteringer = Attesteringshistorikk.empty(),
-            avkorting = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
-            sakstype = beregnetBehandling.sakstype,
-        )
-
-        response shouldBe expected.right()
+        response.shouldBeType<Søknadsbehandling.Simulert>()
 
         verify(søknadsbehandlingRepoMock).hent(beregnetBehandling.id)
         verify(utbetalingServiceMock).simulerUtbetaling(
@@ -92,11 +59,11 @@ internal class SøknadsbehandlingServiceSimuleringTest {
                 sakId = beregnetBehandling.sakId,
                 saksbehandler = saksbehandler,
                 beregning = beregnetBehandling.beregning,
-                uføregrunnlag = emptyList(),
+                uføregrunnlag = beregnetBehandling.vilkårsvurderinger.uføreVilkår().getOrFail().grunnlag,
                 utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
             ),
         )
-        verify(søknadsbehandlingRepoMock).lagre(expected)
+        verify(søknadsbehandlingRepoMock).lagre(response)
     }
 
     @Test
@@ -146,69 +113,10 @@ internal class SøknadsbehandlingServiceSimuleringTest {
                 sakId = beregnetBehandling.sakId,
                 saksbehandler = saksbehandler,
                 beregning = beregnetBehandling.beregning,
-                uføregrunnlag = emptyList(),
+                uføregrunnlag = beregnetBehandling.vilkårsvurderinger.uføreVilkår().getOrFail().grunnlag,
                 utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
             ),
         )
         verifyNoMoreInteractions(søknadsbehandlingRepoMock, utbetalingServiceMock)
     }
-
-    private val sakId = UUID.randomUUID()
-    private val saksnummer = Saksnummer(2021)
-    private val fnr = Fnr("12345678910")
-    private val saksbehandler = Saksbehandler("AB12345")
-    private val oppgaveId = OppgaveId("o")
-    private val stønadsperiode = Stønadsperiode.create(år(2021))
-    private val beregnetBehandling = Søknadsbehandling.Beregnet.Innvilget(
-        id = UUID.randomUUID(),
-        opprettet = fixedTidspunkt,
-        behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-        søknad = Søknad.Journalført.MedOppgave.IkkeLukket(
-            id = UUID.randomUUID(),
-            opprettet = Tidspunkt.EPOCH,
-            sakId = sakId,
-            søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-            oppgaveId = oppgaveId,
-            journalpostId = JournalpostId("j"),
-        ),
-        beregning = TestBeregning,
-        sakId = sakId,
-        saksnummer = saksnummer,
-        fnr = fnr,
-        oppgaveId = oppgaveId,
-        fritekstTilBrev = "",
-        stønadsperiode = stønadsperiode,
-        grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-        vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingIkkeVurdert(),
-        attesteringer = Attesteringshistorikk.empty(),
-        avkorting = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
-        sakstype = Sakstype.UFØRE,
-    )
-
-    private val simulering = Simulering(
-        gjelderId = fnr,
-        gjelderNavn = "NAVN",
-        datoBeregnet = idag(fixedClock),
-        nettoBeløp = 191500,
-        periodeList = listOf(),
-    )
-
-    private val utbetalingForSimulering = Utbetaling.UtbetalingForSimulering(
-        opprettet = fixedTidspunkt,
-        sakId = sakId,
-        saksnummer = saksnummer,
-        fnr = fnr,
-        utbetalingslinjer = nonEmptyListOf(
-            utbetalingslinje(
-                periode = januar(2021),
-                beløp = 0,
-            ),
-        ),
-        type = Utbetaling.UtbetalingsType.NY,
-        behandler = Attestant("SU"),
-        avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt),
-        sakstype = Sakstype.UFØRE,
-    )
-
-    private val simulertUtbetaling = utbetalingForSimulering.toSimulertUtbetaling(simulering)
 }

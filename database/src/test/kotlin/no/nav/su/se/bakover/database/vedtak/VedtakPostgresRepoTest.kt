@@ -99,7 +99,7 @@ internal class VedtakPostgresRepoTest {
                 id = nyRevurdering.id,
                 periode = søknadsbehandlingVedtak.periode,
                 opprettet = nyRevurdering.opprettet,
-                tilRevurdering = søknadsbehandlingVedtak,
+                tilRevurdering = søknadsbehandlingVedtak.id,
                 saksbehandler = søknadsbehandlingVedtak.saksbehandler,
                 oppgaveId = OppgaveId(""),
                 beregning = søknadsbehandlingVedtak.beregning,
@@ -117,6 +117,7 @@ internal class VedtakPostgresRepoTest {
                 informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
                 avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
                 tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingFerdigbehandlet,
+                sakinfo = søknadsbehandlingVedtak.sakinfo(),
             )
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 
@@ -206,7 +207,7 @@ internal class VedtakPostgresRepoTest {
                 id = nyRevurdering.id,
                 periode = nyRevurdering.periode,
                 opprettet = nyRevurdering.opprettet,
-                tilRevurdering = søknadsbehandlingVedtak,
+                tilRevurdering = søknadsbehandlingVedtak.id,
                 saksbehandler = nyRevurdering.saksbehandler,
                 oppgaveId = OppgaveId(""),
                 beregning = beregning,
@@ -222,13 +223,14 @@ internal class VedtakPostgresRepoTest {
                 informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
                 attesteringer = Attesteringshistorikk.empty(),
                 avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
+                sakinfo = søknadsbehandlingVedtak.sakinfo(),
             )
             testDataHelper.revurderingRepo.lagre(attestertRevurdering)
             val iverksattRevurdering = IverksattRevurdering.IngenEndring(
                 id = nyRevurdering.id,
                 periode = nyRevurdering.periode,
                 opprettet = nyRevurdering.opprettet,
-                tilRevurdering = søknadsbehandlingVedtak,
+                tilRevurdering = søknadsbehandlingVedtak.id,
                 saksbehandler = nyRevurdering.saksbehandler,
                 oppgaveId = OppgaveId(""),
                 beregning = beregning,
@@ -245,6 +247,7 @@ internal class VedtakPostgresRepoTest {
                 vilkårsvurderinger = nyRevurdering.vilkårsvurderinger,
                 informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
                 avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
+                sakinfo = søknadsbehandlingVedtak.sakinfo(),
             )
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 

@@ -58,7 +58,10 @@ internal class IverksettRevurderingTest {
                 sakOgVedtakSomKanRevurderes = sakOgVedtak,
                 grunnlagsdataOverrides = grunnlagsdata,
             ).second as IverksattRevurdering.Innvilget
-            ).copy(tilbakekrevingsbehandling = revurderingTilAttestering.tilbakekrevingsbehandling.fullførBehandling())
+            ).copy(
+            id = revurderingTilAttestering.id,
+            tilbakekrevingsbehandling = revurderingTilAttestering.tilbakekrevingsbehandling.fullførBehandling(),
+        )
 
         val simulertUtbetaling = simulertUtbetaling()
 
@@ -73,10 +76,11 @@ internal class IverksettRevurderingTest {
             },
             vedtakRepo = mock {
                 doNothing().whenever(it).lagre(any(), anyOrNull())
-            }
+            },
         )
 
-        val respone = serviceAndMocks.revurderingService.iverksett(revurderingTilAttestering.id, attestant).getOrFail() as IverksattRevurdering.Innvilget
+        val respone = serviceAndMocks.revurderingService.iverksett(revurderingTilAttestering.id, attestant)
+            .getOrFail() as IverksattRevurdering.Innvilget
 
         respone shouldBe expected
 
@@ -364,7 +368,8 @@ internal class IverksettRevurderingTest {
     fun `skal ikke opphøre dersom annulering av kontrollsamtale feiler`() {
         val sakOgRevurdering = tilAttesteringRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak()
         val revurderingTilAttestering = sakOgRevurdering.second
-        val simulertOpphør = simulertUtbetalingOpphør(eksisterendeUtbetalinger = sakOgRevurdering.first.utbetalinger).getOrFail()
+        val simulertOpphør =
+            simulertUtbetalingOpphør(eksisterendeUtbetalinger = sakOgRevurdering.first.utbetalinger).getOrFail()
         val serviceAndMocks = RevurderingServiceMocks(
             revurderingRepo = mock {
                 on { hent(any()) } doReturn revurderingTilAttestering

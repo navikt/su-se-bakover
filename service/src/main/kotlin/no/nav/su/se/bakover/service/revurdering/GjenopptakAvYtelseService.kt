@@ -76,10 +76,11 @@ class GjenopptakAvYtelseService(
                                 periode = gjeldendeVedtaksdata.garantertSammenhengendePeriode(),
                                 grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
                                 vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger.tilVilkårsvurderingerRevurdering(),
-                                tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(sisteVedtak.periode.fraOgMed)!!,
+                                tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(sisteVedtak.periode.fraOgMed)!!.id,
                                 saksbehandler = request.saksbehandler,
                                 simulering = simulering.simulering,
                                 revurderingsårsak = request.revurderingsårsak,
+                                sakinfo = sak.info(),
                             )
                         }
                         else -> return KunneIkkeGjenopptaYtelse.UgyldigTypeForOppdatering(update::class).left()
@@ -101,10 +102,11 @@ class GjenopptakAvYtelseService(
                         periode = gjeldendeVedtaksdata.garantertSammenhengendePeriode(),
                         grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
                         vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger.tilVilkårsvurderingerRevurdering(),
-                        tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(sisteVedtak.periode.fraOgMed)!!,
+                        tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(sisteVedtak.periode.fraOgMed)!!.id,
                         saksbehandler = request.saksbehandler,
                         simulering = simulering.simulering,
                         revurderingsårsak = request.revurderingsårsak,
+                        sakinfo = sak.info(),
                     )
                 }
             }

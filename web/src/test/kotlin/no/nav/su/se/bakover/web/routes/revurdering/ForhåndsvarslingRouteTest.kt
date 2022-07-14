@@ -30,6 +30,7 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
 import no.nav.su.se.bakover.web.defaultRequest
+import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.vedtak
 import no.nav.su.se.bakover.web.routes.revurdering.forhåndsvarsel.BeslutningEtterForhåndsvarsling
 import no.nav.su.se.bakover.web.routes.revurdering.forhåndsvarsel.ForhåndsvarselJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.TestBeregning
@@ -79,7 +80,7 @@ internal class ForhåndsvarslingRouteTest {
             val simulertRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak()
                 .second.copy(
                     forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
-                    fritekstTilBrev = ""
+                    fritekstTilBrev = "",
                 )
 
             val revurderingServiceMock = mock<RevurderingService> {
@@ -203,7 +204,7 @@ internal class ForhåndsvarslingRouteTest {
                 id = UUID.randomUUID(),
                 periode = RevurderingRoutesTestData.periode,
                 opprettet = fixedTidspunkt,
-                tilRevurdering = RevurderingRoutesTestData.vedtak,
+                tilRevurdering = vedtak.id,
                 saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
                 beregning = TestBeregning,
                 simulering = Simulering(
@@ -226,6 +227,7 @@ internal class ForhåndsvarslingRouteTest {
                 attesteringer = Attesteringshistorikk.empty(),
                 avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
                 tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling,
+                sakinfo = vedtak.sakinfo(),
             )
 
             val revurderingServiceMock = mock<RevurderingService> {
@@ -271,7 +273,7 @@ internal class ForhåndsvarslingRouteTest {
                 id = UUID.randomUUID(),
                 periode = RevurderingRoutesTestData.periode,
                 opprettet = fixedTidspunkt,
-                tilRevurdering = RevurderingRoutesTestData.vedtak,
+                tilRevurdering = vedtak.id,
                 saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
                 beregning = TestBeregning,
                 simulering = Simulering(
@@ -294,6 +296,7 @@ internal class ForhåndsvarslingRouteTest {
                 attesteringer = Attesteringshistorikk.empty(),
                 avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
                 tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling,
+                sakinfo = vedtak.sakinfo(),
             )
 
             val revurderingServiceMock = mock<RevurderingService> {

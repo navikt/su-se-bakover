@@ -8,47 +8,37 @@ import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.desember
+import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.år
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
-import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.brev.beregning.Tilbakekreving
 import no.nav.su.se.bakover.domain.dokument.Dokument
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
-import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
-import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
-import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
-import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
-import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
-import no.nav.su.se.bakover.service.beregning.TestBeregning
-import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
-import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.test.aktørId
+import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
-import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.oppgaveIdRevurdering
+import no.nav.su.se.bakover.test.opprettetRevurdering
+import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksbehandlerNavn
+import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
-import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
-import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
+import no.nav.su.se.bakover.test.stønadsperiode2021
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
@@ -65,9 +55,9 @@ internal class LagreOgSendForhåndsvarselTest {
 
     @Test
     fun `forhåndsvarsler en simulert-revurdering`() {
-        val simulertRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+        val (sak, simulertRevurdering) = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
             revurderingsperiode = Periode.create(1.juli(2021), 31.desember(2021)),
-        ).second
+        )
 
         val mocks = RevurderingServiceMocks(
             identClient = mock {
@@ -80,13 +70,16 @@ internal class LagreOgSendForhåndsvarselTest {
                 on { lagBrev(any()) } doReturn "pdf".toByteArray().right()
             },
             personService = mock {
-                on { hentPerson(any()) } doReturn BehandlingTestUtils.person.right()
+                on { hentPerson(any()) } doReturn person(fnr, aktørId).right()
             },
             revurderingRepo = mock {
                 on { hent(any()) } doReturn simulertRevurdering
             },
             tilbakekrevingService = mock {
                 on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
+            },
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
             },
         )
 
@@ -104,7 +97,7 @@ internal class LagreOgSendForhåndsvarselTest {
         verify(mocks.brevService).lagBrev(
             argThat {
                 it shouldBe LagBrevRequest.Forhåndsvarsel(
-                    person = BehandlingTestUtils.person,
+                    person = person(fnr, aktørId),
                     saksbehandlerNavn = saksbehandlerNavn,
                     fritekst = "",
                     dagensDato = fixedLocalDate,
@@ -139,48 +132,57 @@ internal class LagreOgSendForhåndsvarselTest {
             oppgaveId = argThat { it shouldBe oppgaveIdRevurdering },
             beskrivelse = argThat { it shouldBe "Forhåndsvarsel er sendt." },
         )
+        verify(mocks.sakService).hentSakForRevurdering(simulertRevurdering.id)
         verify(mocks.tilbakekrevingService).hentAvventerKravgrunnlag(any<UUID>())
         mocks.verifyNoMoreInteractions()
     }
 
     @Test
     fun `forhåndsvarsler ikke en allerede forhåndsvarslet revurdering`() {
-        val simulertRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+        val (sak, simulertRevurdering) = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
             forhåndsvarsel = Forhåndsvarsel.UnderBehandling.Sendt,
             revurderingsperiode = Periode.create(1.juli(2021), 31.desember(2021)),
-        ).second
+        )
 
-        RevurderingTestUtils.createRevurderingService(
+        RevurderingServiceMocks(
             revurderingRepo = mock {
                 on { hent(any()) } doReturn simulertRevurdering
             },
             personService = mock {
-                on { hentPerson(any()) } doReturn BehandlingTestUtils.person.right()
+                on { hentPerson(any()) } doReturn person(fnr, aktørId).right()
             },
             identClient = mock {
                 on { hentNavnForNavIdent(any()) } doReturn saksbehandler.navIdent.right()
             },
-        ).lagreOgSendForhåndsvarsel(
-            revurderingId = revurderingId,
-            saksbehandler = saksbehandler,
-            forhåndsvarselhandling = Forhåndsvarselhandling.FORHÅNDSVARSLE,
-            fritekst = "",
-        ) shouldBe KunneIkkeForhåndsvarsle.UgyldigTilstandsovergangForForhåndsvarsling.left()
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
+            },
+            tilbakekrevingService = mock {
+                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
+            },
+        ).also {
+            it.revurderingService.lagreOgSendForhåndsvarsel(
+                revurderingId = revurderingId,
+                saksbehandler = saksbehandler,
+                forhåndsvarselhandling = Forhåndsvarselhandling.FORHÅNDSVARSLE,
+                fritekst = "",
+            ) shouldBe KunneIkkeForhåndsvarsle.UgyldigTilstandsovergangForForhåndsvarsling.left()
+        }
     }
 
     @Test
     fun `kan endre fra ingen forhåndsvarsel til forhåndsvarsel`() {
-        val simulertRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+        val (sak, simulertRevurdering) = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
             forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
             revurderingsperiode = Periode.create(1.juli(2021), 31.desember(2021)),
-        ).second
+        )
 
         val mocks = RevurderingServiceMocks(
             revurderingRepo = mock {
                 on { hent(any()) } doReturn simulertRevurdering
             },
             personService = mock {
-                on { hentPerson(any()) } doReturn BehandlingTestUtils.person.right()
+                on { hentPerson(any()) } doReturn person(fnr, aktørId).right()
             },
             brevService = mock {
                 on { lagBrev(any()) } doReturn "pdf".toByteArray().right()
@@ -190,6 +192,9 @@ internal class LagreOgSendForhåndsvarselTest {
             },
             identClient = mock {
                 on { hentNavnForNavIdent(any()) } doReturn saksbehandler.navIdent.right()
+            },
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
             },
             tilbakekrevingService = mock {
                 on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
@@ -213,171 +218,159 @@ internal class LagreOgSendForhåndsvarselTest {
         verify(mocks.brevService).lagreDokument(any(), anyOrNull())
         verify(mocks.oppgaveService).oppdaterOppgave(any(), any())
         verify(mocks.identClient).hentNavnForNavIdent(any())
+        verify(mocks.sakService).hentSakForRevurdering(any())
         verify(mocks.tilbakekrevingService).hentAvventerKravgrunnlag(any<UUID>())
         mocks.verifyNoMoreInteractions()
     }
 
     @Test
     fun `får ikke sendt forhåndsvarsel dersom det ikke er mulig å sende behandlingen videre til attestering`() {
-        val simuleringMock = mock<Simulering> {
-            on { harFeilutbetalinger() } doReturn true
+        val (sak, simulertRevurdering) = simulertRevurdering(
+            stønadsperiode = stønadsperiode2021,
+            revurderingsperiode = mai(2021)..desember(2021),
+            grunnlagsdataOverrides = listOf(
+                fradragsgrunnlagArbeidsinntekt1000(
+                    periode = mai(2021)..(desember(2021)),
+                ),
+            ),
+            forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
+        ).also {
+            it.second.shouldBeType<SimulertRevurdering.Innvilget>().also {
+                it.harSimuleringFeilutbetaling() shouldBe true
+            }
         }
-        val simulertRevurdering = RevurderingTestUtils.simulertRevurderingInnvilget.copy(
-            simulering = simuleringMock,
-            forhåndsvarsel = null,
-        )
 
-        val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(any()) } doReturn simulertRevurdering
+        RevurderingServiceMocks(
+            revurderingRepo = mock {
+                on { hent(any()) } doReturn simulertRevurdering
+            },
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
+            },
+            tilbakekrevingService = mock {
+                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
+            },
+            toggleService = mock {
+                on { isEnabled(any()) } doReturn false
+            },
+        ).also {
+            it.revurderingService.lagreOgSendForhåndsvarsel(
+                revurderingId = revurderingId,
+                saksbehandler = saksbehandler,
+                forhåndsvarselhandling = Forhåndsvarselhandling.FORHÅNDSVARSLE,
+                fritekst = "",
+            ) shouldBe KunneIkkeForhåndsvarsle.Attestering(
+                KunneIkkeSendeRevurderingTilAttestering.FeilutbetalingStøttesIkke,
+            ).left()
         }
-
-        RevurderingTestUtils.createRevurderingService(
-            revurderingRepo = revurderingRepoMock,
-        ).lagreOgSendForhåndsvarsel(
-            revurderingId = revurderingId,
-            saksbehandler = saksbehandler,
-            forhåndsvarselhandling = Forhåndsvarselhandling.FORHÅNDSVARSLE,
-            fritekst = "",
-        ) shouldBe KunneIkkeForhåndsvarsle.Attestering(
-            KunneIkkeSendeRevurderingTilAttestering.FeilutbetalingStøttesIkke,
-        ).left()
     }
 
     private fun testForhåndsvarslerIkkeGittRevurdering(revurdering: Revurdering) {
-        val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(any()) } doReturn revurdering
+        RevurderingServiceMocks(
+            revurderingRepo = mock {
+                on { hent(any()) } doReturn revurdering
+            },
+        ).also {
+            it.revurderingService.lagreOgSendForhåndsvarsel(
+                revurderingId = revurderingId,
+                saksbehandler = saksbehandler,
+                forhåndsvarselhandling = Forhåndsvarselhandling.FORHÅNDSVARSLE,
+                fritekst = "",
+            ) shouldBe KunneIkkeForhåndsvarsle.MåVæreITilstandenSimulert(
+                revurdering::class,
+            ).left()
         }
-
-        RevurderingTestUtils.createRevurderingService(
-            revurderingRepo = revurderingRepoMock,
-        ).lagreOgSendForhåndsvarsel(
-            revurderingId = revurderingId,
-            saksbehandler = saksbehandler,
-            forhåndsvarselhandling = Forhåndsvarselhandling.FORHÅNDSVARSLE,
-            fritekst = "",
-        ) shouldBe KunneIkkeForhåndsvarsle.MåVæreITilstandenSimulert(
-            revurdering::class,
-        ).left()
     }
 
     @Test
     fun `forhåndsvarsler bare simulerte revurderinger`() {
-        val opprettet = OpprettetRevurdering(
-            id = revurderingId,
-            periode = RevurderingTestUtils.periodeNesteMånedOgTreMånederFram,
-            opprettet = fixedTidspunkt,
-            tilRevurdering = vedtakSøknadsbehandlingIverksattInnvilget().second,
-            saksbehandler = saksbehandler,
-            oppgaveId = OppgaveId("oppgaveid"),
-            fritekstTilBrev = "",
-            revurderingsårsak = RevurderingTestUtils.revurderingsårsak,
-            forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            avkorting = AvkortingVedRevurdering.Uhåndtert.IngenUtestående,
-        )
-        testForhåndsvarslerIkkeGittRevurdering(opprettet)
-
-        val beregnet = BeregnetRevurdering.Innvilget(
-            id = revurderingId,
-            periode = RevurderingTestUtils.periodeNesteMånedOgTreMånederFram,
-            opprettet = fixedTidspunkt,
-            tilRevurdering = vedtakSøknadsbehandlingIverksattInnvilget().second,
-            saksbehandler = saksbehandler,
-            oppgaveId = OppgaveId("oppgaveid"),
-            fritekstTilBrev = "",
-            revurderingsårsak = RevurderingTestUtils.revurderingsårsak,
-            forhåndsvarsel = null,
-            beregning = TestBeregning,
-            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            attesteringer = Attesteringshistorikk.empty(),
-            avkorting = AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående,
-        )
-        testForhåndsvarslerIkkeGittRevurdering(beregnet)
+        testForhåndsvarslerIkkeGittRevurdering(opprettetRevurdering().second)
+        testForhåndsvarslerIkkeGittRevurdering(beregnetRevurdering().second)
+        testForhåndsvarslerIkkeGittRevurdering(iverksattRevurdering().second)
     }
 
     @Test
     fun `forhåndsvarsel - hent person feilet`() {
-        val simulertRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+        val (sak, simulertRevurdering) = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
             forhåndsvarsel = null,
             revurderingsperiode = Periode.create(1.juli(2021), 31.desember(2021)),
-        ).second
+        )
 
-        val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(any()) } doReturn simulertRevurdering
+        RevurderingServiceMocks(
+            revurderingRepo = mock {
+                on { hent(any()) } doReturn simulertRevurdering
+            },
+            personService = mock {
+                on { hentAktørId(any()) } doReturn aktørId.right()
+                on { hentPerson(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
+            },
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
+            },
+            tilbakekrevingService = mock {
+                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
+            },
+        ).also {
+            it.revurderingService.lagreOgSendForhåndsvarsel(
+                revurderingId = revurderingId,
+                saksbehandler = saksbehandler,
+                forhåndsvarselhandling = Forhåndsvarselhandling.FORHÅNDSVARSLE,
+                fritekst = "",
+            ) shouldBe KunneIkkeForhåndsvarsle.FantIkkePerson.left()
         }
-
-        val personServiceMock = mock<PersonService> {
-            on { hentAktørId(any()) } doReturn aktørId.right()
-            on { hentPerson(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
-        }
-
-        RevurderingTestUtils.createRevurderingService(
-            revurderingRepo = revurderingRepoMock,
-            personService = personServiceMock,
-        ).lagreOgSendForhåndsvarsel(
-            revurderingId = revurderingId,
-            saksbehandler = saksbehandler,
-            forhåndsvarselhandling = Forhåndsvarselhandling.FORHÅNDSVARSLE,
-            fritekst = "",
-        ) shouldBe KunneIkkeForhåndsvarsle.FantIkkePerson.left()
     }
 
     @Test
     fun `forhåndsvarsel - generering av dokument feiler`() {
-        val simulertRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+        val (sak, simulertRevurdering) = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
             forhåndsvarsel = null,
             revurderingsperiode = Periode.create(1.juli(2021), 31.desember(2021)),
-        ).second
+        )
+        RevurderingServiceMocks(
+            revurderingRepo = mock {
+                on { hent(any()) } doReturn simulertRevurdering
+            },
+            personService = mock {
+                on { hentAktørId(any()) } doReturn aktørId.right()
+                on { hentPerson(any()) } doReturn person(fnr, aktørId).right()
+            },
+            brevService = mock {
+                on { lagBrev(any()) } doReturn KunneIkkeLageBrev.KunneIkkeGenererePDF.left()
+            },
+            identClient = mock {
+                on { hentNavnForNavIdent(any()) } doReturn saksbehandler.navIdent.right()
+            },
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
+            },
+            tilbakekrevingService = mock {
+                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
+            },
+        ).also {
+            it.revurderingService.lagreOgSendForhåndsvarsel(
+                revurderingId = revurderingId,
+                saksbehandler = saksbehandler,
+                forhåndsvarselhandling = Forhåndsvarselhandling.FORHÅNDSVARSLE,
+                fritekst = "",
+            ) shouldBe KunneIkkeForhåndsvarsle.KunneIkkeGenerereDokument.left()
 
-        val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(any()) } doReturn simulertRevurdering
+            verify(it.revurderingRepo, never()).lagre(any(), anyOrNull())
+            verify(it.brevService, never()).lagreDokument(any())
         }
-
-        val personServiceMock = mock<PersonService> {
-            on { hentAktørId(any()) } doReturn aktørId.right()
-            on { hentPerson(any()) } doReturn BehandlingTestUtils.person.right()
-        }
-
-        val brevServiceMock = mock<BrevService> {
-            on { lagBrev(any()) } doReturn KunneIkkeLageBrev.KunneIkkeGenererePDF.left()
-        }
-
-        val microsoftGraphApiClientMock = mock<IdentClient> {
-            on { hentNavnForNavIdent(any()) } doReturn saksbehandler.navIdent.right()
-        }
-
-        RevurderingTestUtils.createRevurderingService(
-            revurderingRepo = revurderingRepoMock,
-            personService = personServiceMock,
-            brevService = brevServiceMock,
-            identClient = microsoftGraphApiClientMock,
-        ).lagreOgSendForhåndsvarsel(
-            revurderingId = revurderingId,
-            saksbehandler = saksbehandler,
-            forhåndsvarselhandling = Forhåndsvarselhandling.FORHÅNDSVARSLE,
-            fritekst = "",
-        ) shouldBe KunneIkkeForhåndsvarsle.KunneIkkeGenerereDokument.left()
-
-        verify(revurderingRepoMock, never()).lagre(any(), anyOrNull())
-        verify(brevServiceMock, never()).lagreDokument(any())
     }
 
     @Test
     fun `forhåndsvarsel - oppdatering av oppgave feiler`() {
-        val simulertRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+        val (sak, simulertRevurdering) = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
             revurderingsperiode = Periode.create(1.juli(2021), 31.desember(2021)),
-        ).second
+        )
         val mocks = RevurderingServiceMocks(
             revurderingRepo = mock {
                 on { hent(any()) } doReturn simulertRevurdering
             },
             personService = mock {
                 on { hentAktørId(any()) } doReturn aktørId.right()
-                on { hentPerson(any()) } doReturn BehandlingTestUtils.person.right()
+                on { hentPerson(any()) } doReturn person(fnr, aktørId).right()
             },
             brevService = mock {
                 on { lagBrev(any()) } doReturn "pdf".toByteArray().right()
@@ -387,6 +380,9 @@ internal class LagreOgSendForhåndsvarselTest {
             },
             identClient = mock {
                 on { hentNavnForNavIdent(any()) } doReturn saksbehandler.navIdent.right()
+            },
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
             },
             tilbakekrevingService = mock {
                 on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
@@ -427,6 +423,7 @@ internal class LagreOgSendForhåndsvarselTest {
             oppgaveId = argThat { it shouldBe simulertRevurdering.oppgaveId },
             beskrivelse = argThat { it shouldBe "Forhåndsvarsel er sendt." },
         )
+        verify(mocks.sakService).hentSakForRevurdering(simulertRevurdering.id)
         verify(mocks.tilbakekrevingService).hentAvventerKravgrunnlag(any<UUID>())
         mocks.verifyNoMoreInteractions()
     }
@@ -451,7 +448,7 @@ internal class LagreOgSendForhåndsvarselTest {
                 )
             },
             personService = mock {
-                on { hentPerson(any()) } doReturn BehandlingTestUtils.person.right()
+                on { hentPerson(any()) } doReturn person(fnr, aktørId).right()
             },
             brevService = mock {
                 on { lagBrev(any()) } doReturn "".toByteArray().right()
@@ -470,13 +467,13 @@ internal class LagreOgSendForhåndsvarselTest {
                 verify(it.brevService).lagBrev(
                     argThat {
                         it shouldBe LagBrevRequest.ForhåndsvarselTilbakekreving(
-                            person = BehandlingTestUtils.person,
+                            person = person(fnr, aktørId),
                             dagensDato = LocalDate.now(fixedClock),
                             saksnummer = simulertMedTilbakekreving.saksnummer,
                             saksbehandlerNavn = "saksbehandler",
                             fritekst = "det kreves",
                             bruttoTilbakekreving = simulertMedTilbakekreving.simulering.hentFeilutbetalteBeløp().sum(),
-                            tilbakekreving = Tilbakekreving(simulertMedTilbakekreving.simulering.hentFeilutbetalteBeløp().månedbeløp)
+                            tilbakekreving = Tilbakekreving(simulertMedTilbakekreving.simulering.hentFeilutbetalteBeløp().månedbeløp),
                         )
                     },
                 )
@@ -487,7 +484,7 @@ internal class LagreOgSendForhåndsvarselTest {
                 verify(it.brevService).lagBrev(
                     argThat {
                         it shouldBe LagBrevRequest.Forhåndsvarsel(
-                            person = BehandlingTestUtils.person,
+                            person = person(fnr, aktørId),
                             dagensDato = LocalDate.now(fixedClock),
                             saksnummer = simulertMedTilbakekreving.saksnummer,
                             saksbehandlerNavn = "saksbehandler",

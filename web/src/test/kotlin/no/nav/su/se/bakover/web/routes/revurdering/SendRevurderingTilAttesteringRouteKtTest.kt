@@ -80,7 +80,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             id = UUID.randomUUID(),
             periode = periode,
             opprettet = fixedTidspunkt,
-            tilRevurdering = vedtak,
+            tilRevurdering = vedtak.id,
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
             beregning = TestBeregning,
             simulering = Simulering(
@@ -102,7 +102,8 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
             avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
-            tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling
+            tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling,
+            sakinfo = vedtak.sakinfo(),
         )
 
         val revurderingServiceMock = mock<RevurderingService> {
@@ -134,7 +135,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             id = UUID.randomUUID(),
             periode = periode,
             opprettet = fixedTidspunkt,
-            tilRevurdering = vedtak,
+            tilRevurdering = vedtak.id,
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
             beregning = TestBeregning,
             oppgaveId = OppgaveId("OppgaveId"),
@@ -150,6 +151,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
             avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
+            sakinfo = vedtak.sakinfo(),
         )
 
         val revurderingServiceMock = mock<RevurderingService> {
@@ -183,7 +185,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             id = UUID.randomUUID(),
             periode = periode,
             opprettet = fixedTidspunkt,
-            tilRevurdering = vedtak,
+            tilRevurdering = vedtak.id,
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
             beregning = TestBeregning,
             oppgaveId = OppgaveId("OppgaveId"),
@@ -199,6 +201,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
             avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
+            sakinfo = vedtak.sakinfo(),
         )
 
         val revurderingServiceMock = mock<RevurderingService> {

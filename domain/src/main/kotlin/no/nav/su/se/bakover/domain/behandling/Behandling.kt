@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.util.UUID
 
@@ -20,6 +21,15 @@ interface Behandling {
     val grunnlagsdata: Grunnlagsdata
     val vilkårsvurderinger: Vilkårsvurderinger
     val sakstype: Sakstype
+
+    fun sakinfo(): SakInfo {
+        return SakInfo(
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            type = sakstype,
+        )
+    }
 }
 
 interface BehandlingMedOppgave : Behandling {

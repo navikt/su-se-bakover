@@ -1,16 +1,12 @@
 package no.nav.su.se.bakover.service.søknadsbehandling
 
-import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
-import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.fnr
-import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
@@ -28,16 +24,6 @@ import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.mockito.kotlin.mock
 import java.time.Clock
-
-internal val testBeregning = TestBeregning
-
-internal val simulering = Simulering(
-    gjelderId = fnr,
-    gjelderNavn = "NAVN",
-    datoBeregnet = idag(fixedClock),
-    nettoBeløp = 191500,
-    periodeList = listOf(),
-)
 
 internal fun createSøknadsbehandlingService(
     søknadsbehandlingRepo: SøknadsbehandlingRepo = mock(),

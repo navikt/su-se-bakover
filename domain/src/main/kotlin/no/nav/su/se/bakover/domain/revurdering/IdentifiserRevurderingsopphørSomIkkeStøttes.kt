@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.kronologisk
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -47,7 +48,7 @@ sealed class IdentifiserRevurderingsopphørSomIkkeStøttes {
     data class MedBeregning(
         private val revurderingsperiode: Periode,
         private val vilkårsvurderinger: Vilkårsvurderinger,
-        private val tidligereBeregning: Beregning,
+        private val gjeldendeMånedsberegninger: List<Månedsberegning>,
         private val nyBeregning: Beregning,
         private val clock: Clock,
     ) : IdentifiserRevurderingsopphørSomIkkeStøttes() {
@@ -113,17 +114,21 @@ sealed class IdentifiserRevurderingsopphørSomIkkeStøttes {
         }
 
         private fun harBeløpsendringer(nyeMånedsberegninger: List<Månedsberegning>): Boolean {
-            return tidligereBeregning.getMånedsberegninger().associate { it.periode to it.getSumYtelse() }
+            return gjeldendeMånedsberegninger.associate { it.periode to it.getSumYtelse() }
                 .let { tidligereMånederOgBeløp ->
                     nyeMånedsberegninger.any { tidligereMånederOgBeløp[it.periode] != it.getSumYtelse() }
                 }
         }
 
         private fun harBeløpsendringerEkskludertForventetInntekt(): Boolean {
-            val nyeFradrag = nyBeregning.getFradrag().filterNot { it.fradragstype == Fradragstype.ForventetInntekt }
-            val tidligereFradrag = tidligereBeregning.getFradrag()
-                .filterNot { it.fradragstype == Fradragstype.ForventetInntekt }
-                .mapNotNull { it.copy(CopyArgs.Snitt(revurderingsperiode)) }
+            val nyeFradrag = nyBeregning.getMånedsberegninger().kronologisk().flatMap { månedsberegning ->
+                månedsberegning.getFradrag().filterNot { it.fradragstype == Fradragstype.ForventetInntekt }
+            }
+            val tidligereFradrag = gjeldendeMånedsberegninger.kronologisk().flatMap { månedsberegning ->
+                månedsberegning.getFradrag().filterNot { it.fradragstype == Fradragstype.ForventetInntekt }
+            }.mapNotNull {
+                it.copy(CopyArgs.Snitt(revurderingsperiode))
+            }
             return tidligereFradrag != nyeFradrag
         }
 

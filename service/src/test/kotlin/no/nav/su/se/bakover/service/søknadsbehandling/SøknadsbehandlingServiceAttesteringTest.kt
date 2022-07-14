@@ -3,22 +3,8 @@ package no.nav.su.se.bakover.service.søknadsbehandling
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.AktørId
-import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.Sakstype
-import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
-import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.journal.JournalpostId
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.AvventerKravgrunnlag
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeLukkeOppgave
@@ -29,16 +15,16 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.shouldBeType
+import no.nav.su.se.bakover.test.simulertSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.søknadsbehandlingSimulert
-import no.nav.su.se.bakover.test.vilkårsvurderingSøknadsbehandlingIkkeVurdert
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
@@ -52,49 +38,11 @@ import java.util.UUID
 
 class SøknadsbehandlingServiceAttesteringTest {
 
-    private val sakId = UUID.randomUUID()
-    private val saksnummer = Saksnummer(2021)
-    private val søknadId = UUID.randomUUID()
-    private val oppgaveId = OppgaveId("o")
-    private val fnr = Fnr.generer()
     private val nyOppgaveId = OppgaveId("999")
     private val aktørId = AktørId("12345")
-    private val periode = år(2021)
-    private val stønadsperiode = Stønadsperiode.create(periode)
-    private val simulertBehandling = Søknadsbehandling.Simulert(
-        id = UUID.randomUUID(),
-        opprettet = fixedTidspunkt,
-        behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-        søknad = Søknad.Journalført.MedOppgave.IkkeLukket(
-            id = søknadId,
-            opprettet = fixedTidspunkt,
-            sakId = sakId,
-            søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-            oppgaveId = oppgaveId,
-            journalpostId = JournalpostId("j"),
-        ),
-        beregning = TestBeregning,
-        simulering = Simulering(
-            gjelderId = fnr,
-            gjelderNavn = "NAVN",
-            datoBeregnet = idag(fixedClock),
-            nettoBeløp = 191500,
-            periodeList = listOf(),
-        ),
-        sakId = sakId,
-        saksnummer = saksnummer,
-        fnr = fnr,
-        oppgaveId = oppgaveId,
-        fritekstTilBrev = "",
-        stønadsperiode = stønadsperiode,
-        grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-        vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingIkkeVurdert(),
-        attesteringer = Attesteringshistorikk.empty(),
-        avkorting = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
-        sakstype = Sakstype.UFØRE
-    )
-
-    private val saksbehandler = NavIdentBruker.Saksbehandler("Z12345")
+    private val simulertBehandling = simulertSøknadsbehandlingUføre(
+        stønadsperiode = Stønadsperiode.create(år(2021)),
+    ).second
 
     @Test
     fun `sjekk at vi sender inn riktig oppgaveId ved lukking av oppgave ved attestering`() {
@@ -113,6 +61,8 @@ class SøknadsbehandlingServiceAttesteringTest {
 
         val eventObserver: EventObserver = mock()
 
+        val gammelOppgaveId = simulertBehandling.oppgaveId
+
         val actual = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             oppgaveService = oppgaveServiceMock,
@@ -124,48 +74,31 @@ class SøknadsbehandlingServiceAttesteringTest {
                 saksbehandler,
                 "",
             ),
-        )
+        ).getOrFail()
 
-        val expected = Søknadsbehandling.TilAttestering.Innvilget(
-            id = simulertBehandling.id,
-            opprettet = simulertBehandling.opprettet,
-            behandlingsinformasjon = simulertBehandling.behandlingsinformasjon,
-            søknad = simulertBehandling.søknad,
-            beregning = simulertBehandling.beregning,
-            simulering = simulertBehandling.simulering,
-            sakId = simulertBehandling.sakId,
-            saksnummer = simulertBehandling.saksnummer,
-            fnr = simulertBehandling.fnr,
-            oppgaveId = nyOppgaveId,
-            saksbehandler = saksbehandler,
-            fritekstTilBrev = "",
-            stønadsperiode = simulertBehandling.stønadsperiode,
-            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingIkkeVurdert(),
-            attesteringer = Attesteringshistorikk.empty(),
-            avkorting = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
-            sakstype = simulertBehandling.sakstype,
-        )
-
-        actual shouldBe expected.right()
+        actual.shouldBeType<Søknadsbehandling.TilAttestering.Innvilget>().also {
+            it.oppgaveId shouldBe nyOppgaveId
+            it.saksbehandler shouldBe saksbehandler
+            it.fritekstTilBrev shouldBe ""
+        }
 
         inOrder(søknadsbehandlingRepoMock, personServiceMock, oppgaveServiceMock, eventObserver) {
             verify(søknadsbehandlingRepoMock).hent(simulertBehandling.id)
-            verify(personServiceMock).hentAktørId(fnr)
+            verify(personServiceMock).hentAktørId(simulertBehandling.fnr)
             verify(oppgaveServiceMock).opprettOppgave(
                 config = OppgaveConfig.AttesterSøknadsbehandling(
-                    søknadId = søknadId,
+                    søknadId = simulertBehandling.søknad.id,
                     aktørId = aktørId,
                     tilordnetRessurs = null,
                     clock = fixedClock,
                 ),
             )
             verify(søknadsbehandlingRepoMock).defaultTransactionContext()
-            verify(søknadsbehandlingRepoMock).lagre(eq(expected), anyOrNull())
-            verify(oppgaveServiceMock).lukkOppgave(oppgaveId)
+            verify(søknadsbehandlingRepoMock).lagre(eq(actual), anyOrNull())
+            verify(oppgaveServiceMock).lukkOppgave(gammelOppgaveId)
             verify(eventObserver).handle(
                 argThat {
-                    it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingTilAttestering(expected)
+                    it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingTilAttestering(actual)
                 },
             )
         }
@@ -299,55 +232,43 @@ class SøknadsbehandlingServiceAttesteringTest {
 
         val eventObserver: EventObserver = mock()
 
+        val gammelOppgaveId = simulertBehandling.oppgaveId
+
         val actual = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
             observer = eventObserver,
         ).sendTilAttestering(
-            SøknadsbehandlingService.SendTilAttesteringRequest(simulertBehandling.id, saksbehandler, ""),
-        )
+            SøknadsbehandlingService.SendTilAttesteringRequest(
+                behandlingId = simulertBehandling.id,
+                saksbehandler = saksbehandler,
+                fritekstTilBrev = "",
+            ),
+        ).getOrFail()
 
-        val expected = Søknadsbehandling.TilAttestering.Innvilget(
-            id = simulertBehandling.id,
-            opprettet = simulertBehandling.opprettet,
-            behandlingsinformasjon = simulertBehandling.behandlingsinformasjon,
-            søknad = simulertBehandling.søknad,
-            beregning = simulertBehandling.beregning,
-            simulering = simulertBehandling.simulering,
-            sakId = simulertBehandling.sakId,
-            saksnummer = simulertBehandling.saksnummer,
-            fnr = simulertBehandling.fnr,
-            oppgaveId = nyOppgaveId,
-            saksbehandler = saksbehandler,
-            fritekstTilBrev = "",
-            stønadsperiode = simulertBehandling.stønadsperiode,
-            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingIkkeVurdert(),
-            attesteringer = Attesteringshistorikk.empty(),
-            avkorting = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
-            sakstype = simulertBehandling.sakstype,
-        )
-
-        actual shouldBe expected.right()
+        actual.shouldBeType<Søknadsbehandling.TilAttestering.Innvilget>().also {
+            it.saksbehandler shouldBe saksbehandler
+            it.oppgaveId shouldBe nyOppgaveId
+        }
 
         inOrder(søknadsbehandlingRepoMock, personServiceMock, oppgaveServiceMock, eventObserver) {
             verify(søknadsbehandlingRepoMock).hent(simulertBehandling.id)
-            verify(personServiceMock).hentAktørId(fnr)
+            verify(personServiceMock).hentAktørId(simulertBehandling.fnr)
             verify(oppgaveServiceMock).opprettOppgave(
                 config = OppgaveConfig.AttesterSøknadsbehandling(
-                    søknadId = søknadId,
+                    søknadId = simulertBehandling.søknad.id,
                     aktørId = aktørId,
                     tilordnetRessurs = null,
                     clock = fixedClock,
                 ),
             )
             verify(søknadsbehandlingRepoMock).defaultTransactionContext()
-            verify(søknadsbehandlingRepoMock).lagre(eq(expected), anyOrNull())
-            verify(oppgaveServiceMock).lukkOppgave(oppgaveId)
+            verify(søknadsbehandlingRepoMock).lagre(eq(actual), anyOrNull())
+            verify(oppgaveServiceMock).lukkOppgave(gammelOppgaveId)
             verify(eventObserver).handle(
                 argThat {
-                    it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingTilAttestering(expected)
+                    it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingTilAttestering(actual)
                 },
             )
         }

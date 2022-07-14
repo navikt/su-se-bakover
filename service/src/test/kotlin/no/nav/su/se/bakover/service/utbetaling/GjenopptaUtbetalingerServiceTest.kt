@@ -29,7 +29,6 @@ import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
-import no.nav.su.se.bakover.service.søknadsbehandling.simulering
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.attestant
@@ -159,7 +158,7 @@ internal class GjenopptaUtbetalingerServiceTest {
             request = UtbetalRequest.Gjenopptak(
                 sakId = sakId,
                 saksbehandler = saksbehandler,
-                simulering = simulering,
+                simulering = mock(),
             ),
         ).let {
             it shouldBe UtbetalGjenopptakFeil.KunneIkkeUtbetale(UtbetalingFeilet.FantIkkeSak).left()
@@ -194,7 +193,13 @@ internal class GjenopptaUtbetalingerServiceTest {
             request = UtbetalRequest.Gjenopptak(
                 sakId = sak.id,
                 saksbehandler = saksbehandler,
-                simulering = simulering,
+                simulering = simuleringGjenopptak(
+                    eksisterendeUtbetalinger = sak.utbetalinger,
+                    fnr = sak.fnr,
+                    sakId = sak.id,
+                    saksnummer = sak.saksnummer,
+                    clock = fixedClock,
+                ),
             ),
         ).let {
             it shouldBe UtbetalGjenopptakFeil.KunneIkkeSimulere(SimulerGjenopptakFeil.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL))

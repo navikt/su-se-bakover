@@ -297,6 +297,7 @@ internal class OppdaterRevurderingServiceTest {
                     informasjonSomRevurderes = it.informasjonSomRevurderes,
                     avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
                     tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingFerdigbehandlet,
+                    sakinfo = opprettetRevurdering.sakinfo,
                 )
             }
         }
@@ -374,7 +375,7 @@ internal class OppdaterRevurderingServiceTest {
 
         actual.let { oppdatertRevurdering ->
             oppdatertRevurdering.periode shouldBe periodeNesteMånedOgTreMånederFram
-            oppdatertRevurdering.tilRevurdering shouldBe sakOgIverksattInnvilgetSøknadsbehandlingsvedtak.second
+            oppdatertRevurdering.tilRevurdering shouldBe sakOgIverksattInnvilgetSøknadsbehandlingsvedtak.second.id
             oppdatertRevurdering.saksbehandler shouldBe saksbehandler
             oppdatertRevurdering.oppgaveId shouldBe oppgaveIdRevurdering
             oppdatertRevurdering.fritekstTilBrev shouldBe ""

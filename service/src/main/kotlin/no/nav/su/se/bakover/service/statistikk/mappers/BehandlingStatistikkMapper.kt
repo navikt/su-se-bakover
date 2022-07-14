@@ -162,7 +162,7 @@ class BehandlingStatistikkMapper(
             behandlingStatusBeskrivelse = BehandlingStatusBeskrivelseMapper.map(revurdering),
             versjon = clock.millis(),
             saksbehandler = revurdering.saksbehandler.navIdent,
-            relatertBehandlingId = revurdering.tilRevurdering.id,
+            relatertBehandlingId = revurdering.tilRevurdering,
             avsluttet = false,
         ).apply {
             return when (revurdering) {
@@ -211,7 +211,7 @@ class BehandlingStatistikkMapper(
             behandlingStatus = BehandlingStatusMapper.map(gjenopptak),
             behandlingStatusBeskrivelse = BehandlingStatusBeskrivelseMapper.map(gjenopptak),
             versjon = clock.millis(),
-            relatertBehandlingId = gjenopptak.tilRevurdering.id,
+            relatertBehandlingId = gjenopptak.tilRevurdering,
             totrinnsbehandling = false,
             avsluttet = false,
         ).apply {
@@ -248,7 +248,7 @@ class BehandlingStatistikkMapper(
             behandlingStatus = BehandlingStatusMapper.map(stans),
             behandlingStatusBeskrivelse = BehandlingStatusBeskrivelseMapper.map(stans),
             versjon = clock.millis(),
-            relatertBehandlingId = stans.tilRevurdering.id,
+            relatertBehandlingId = stans.tilRevurdering,
             totrinnsbehandling = false,
             avsluttet = false,
         ).apply {

@@ -19,7 +19,10 @@ import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.desember
 import no.nav.su.se.bakover.common.periode.januar
+import no.nav.su.se.bakover.common.periode.juli
+import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.mars
+import no.nav.su.se.bakover.common.periode.november
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
@@ -43,6 +46,7 @@ import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.nySøknadJournalførtMedOppgave
 import no.nav.su.se.bakover.test.plus
 import no.nav.su.se.bakover.test.saksnummer
+import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknadinnhold
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
@@ -572,6 +576,93 @@ internal class SakTest {
                 revurderingsperiode.måneder().none {
                     sak.ytelseUtløperVedUtløpAv(it)
                 } shouldBe true
+            }
+        }
+    }
+
+    @Nested
+    inner class HentGjeldendeMånedsberegninger {
+        @Test
+        fun `henter gjeldende månedsberegninger for enkelt vedtak`() {
+            iverksattSøknadsbehandlingUføre().also { (sak, _, vedtak) ->
+                sak.hentGjeldendeMånedsberegninger(
+                    periode = mai(2021)..juli(2021),
+                    clock = fixedClock,
+                ).also { gjeldendeMånedsberegninger ->
+                    vedtak.shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling>().also {
+                        gjeldendeMånedsberegninger shouldBe listOf(
+                            it.beregning.getMånedsberegninger()[4],
+                            it.beregning.getMånedsberegninger()[5],
+                            it.beregning.getMånedsberegninger()[6],
+                        )
+                    }
+                }
+            }
+        }
+
+        @Test
+        fun `henter gjeldende månedsberegninger med hull mellom vedtak`() {
+            val tikkendeKlokke = TikkendeKlokke(fixedClock)
+            iverksattSøknadsbehandlingUføre(
+                stønadsperiode = Stønadsperiode.create(januar(2021)..november(2021)),
+                clock = tikkendeKlokke,
+            ).also { (sak1, _, vedtak1) ->
+                iverksattSøknadsbehandlingUføre(
+                    stønadsperiode = Stønadsperiode.create(januar(2022)..november(2022)),
+                    sakOgSøknad = sak1 to nySøknadJournalførtMedOppgave(
+                        clock = tikkendeKlokke,
+                        sakId = sak1.id,
+                        søknadInnhold = søknadinnhold(
+                            fnr = sak1.fnr,
+                        ),
+                    ),
+                    clock = tikkendeKlokke,
+                ).also { (sak2, _, vedtak2) ->
+                    sak2.hentGjeldendeMånedsberegninger(
+                        periode = november(2021)..januar(2022),
+                        clock = fixedClock,
+                    ).also { gjeldendeMånedsberegninger ->
+                        vedtak2.shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling>().also {
+                            gjeldendeMånedsberegninger shouldBe listOf(
+                                (vedtak1 as VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling).beregning.getMånedsberegninger()[10],
+                                it.beregning.getMånedsberegninger()[0],
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        @Test
+        fun `henter gjeldende månedsberegninger fra tidligere vedtak hvis ytelse er stanset`() {
+            iverksattSøknadsbehandlingUføre().also { (sak, _, vedtakSøknadsbehandling) ->
+                vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+                    sakOgVedtakSomKanRevurderes = sak to vedtakSøknadsbehandling as VedtakSomKanRevurderes,
+                ).also { (sak2, vedtakStans) ->
+                    sak2.hentGjeldendeMånedsberegninger(
+                        periode = mai(2021)..juli(2021),
+                        clock = fixedClock,
+                    ).also { gjeldendeMånedsberegninger ->
+                        vedtakSøknadsbehandling.shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling>()
+                            .also { søknadsbehandling ->
+                                gjeldendeMånedsberegninger shouldBe listOf(
+                                    søknadsbehandling.beregning.getMånedsberegninger()[4].also {
+                                        sak2.hentGjeldendeVedtaksdata(it.måned, fixedClock)
+                                            .getOrFail().gjeldendeVedtakPåDato(it.måned.fraOgMed) shouldBe vedtakStans
+                                    },
+                                    søknadsbehandling.beregning.getMånedsberegninger()[5].also {
+                                        sak2.hentGjeldendeVedtaksdata(it.måned, fixedClock)
+                                            .getOrFail().gjeldendeVedtakPåDato(it.måned.fraOgMed) shouldBe vedtakStans
+                                    },
+                                    søknadsbehandling.beregning.getMånedsberegninger()[6].also {
+                                        sak2.hentGjeldendeVedtaksdata(it.måned, fixedClock)
+                                            .getOrFail().gjeldendeVedtakPåDato(it.måned.fraOgMed) shouldBe vedtakStans
+                                    },
+                                )
+                            }
+                        vedtakStans.shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse>()
+                    }
+                }
             }
         }
     }

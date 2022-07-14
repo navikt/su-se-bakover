@@ -28,6 +28,8 @@ interface SakService {
     fun hentFerdigeBehandlingerForAlleSaker(): List<Behandlingsoversikt>
     fun hentAlleredeGjeldendeSakForBruker(fnr: Fnr): AlleredeGjeldendeSakForBruker
     fun hentSakidOgSaksnummer(fnr: Fnr): Either<FantIkkeSak, SakInfo>
+
+    fun hentSakForRevurdering(revurderingId: UUID): Sak
 }
 
 object FantIkkeSak

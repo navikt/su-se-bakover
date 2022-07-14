@@ -5,36 +5,21 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
-import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
-import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
-import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.test.fixedClock
@@ -44,7 +29,6 @@ import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.plus
 import no.nav.su.se.bakover.test.vedtakRevurderingIverksattInnvilget
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
-import no.nav.su.se.bakover.test.vilkårsvurderingSøknadsbehandlingIkkeVurdert
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
@@ -297,42 +281,4 @@ internal class VedtakServiceImplTest {
         sakService = sakService,
         clock = fixedClock,
     )
-
-    private fun innvilgetVedtak(fnr: Fnr) =
-        VedtakSomKanRevurderes.fromSøknadsbehandling(
-            Søknadsbehandling.Iverksatt.Innvilget(
-                id = UUID.randomUUID(),
-                opprettet = fixedTidspunkt,
-                sakId = UUID.randomUUID(),
-                saksnummer = Saksnummer(2021),
-                søknad = Søknad.Journalført.MedOppgave.IkkeLukket(
-                    id = BehandlingTestUtils.søknadId,
-                    opprettet = Tidspunkt.EPOCH,
-                    sakId = UUID.randomUUID(),
-                    søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-                    oppgaveId = BehandlingTestUtils.søknadOppgaveId,
-                    journalpostId = BehandlingTestUtils.søknadJournalpostId,
-                ),
-                oppgaveId = oppgaveId,
-                behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-                fnr = fnr,
-                beregning = TestBeregning,
-                simulering = mock(),
-                saksbehandler = saksbehandler,
-                attesteringer = Attesteringshistorikk.empty()
-                    .leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.EPOCH)),
-                fritekstTilBrev = "",
-                stønadsperiode = Stønadsperiode.create(år(2021)),
-                grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-                vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingIkkeVurdert(),
-                avkorting = AvkortingVedSøknadsbehandling.Iverksatt.IngenUtestående,
-                sakstype = Sakstype.UFØRE,
-            ),
-            UUID30.randomUUID(),
-            fixedClock,
-        )
-
-    private val oppgaveId = OppgaveId("2")
-    private val saksbehandler = NavIdentBruker.Saksbehandler("saks")
-    private val attestant = NavIdentBruker.Attestant("atte")
 }

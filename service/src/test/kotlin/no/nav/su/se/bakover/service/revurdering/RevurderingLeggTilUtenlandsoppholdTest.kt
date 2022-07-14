@@ -17,9 +17,11 @@ import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
 import no.nav.su.se.bakover.service.vilkår.UtenlandsoppholdStatus
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
-import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.revurderingId
+import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
@@ -29,14 +31,13 @@ internal class RevurderingLeggTilUtenlandsoppholdTest {
 
     @Test
     fun `legg til utenlandsopphold vilkår happy case`() {
-        val opprettetRevurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak().second
-        val revurderingIkkeVurdert = opprettetRevurdering.copy(
-            vilkårsvurderinger = opprettetRevurdering.vilkårsvurderinger.leggTil(UtenlandsoppholdVilkår.IkkeVurdert),
-        )
-
-        revurderingIkkeVurdert.vilkårsvurderinger.vurdering shouldBe Vilkårsvurderingsresultat.Uavklart(
-            setOf(UtenlandsoppholdVilkår.IkkeVurdert),
-        )
+        val (sak, opprettetRevurdering) = opprettetRevurdering(
+            vilkårOverrides = listOf(
+                utenlandsoppholdAvslag(),
+            ),
+        ).also {
+            it.second.vilkårsvurderingsResultat() shouldBe Vilkårsvurderingsresultat.Avslag(setOf(it.second.vilkårsvurderinger.utenlandsoppholdVilkår()))
+        }
 
         val expected = opprettetRevurdering.copy(
             informasjonSomRevurderes = opprettetRevurdering.informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Utenlandsopphold),
@@ -56,12 +57,15 @@ internal class RevurderingLeggTilUtenlandsoppholdTest {
 
         RevurderingServiceMocks(
             revurderingRepo = mock {
-                on { hent(revurderingId) } doReturn revurderingIkkeVurdert
+                on { hent(any()) } doReturn opprettetRevurdering
+            },
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
             },
         ).let {
             val actual = it.revurderingService.leggTilUtenlandsopphold(
                 request = LeggTilFlereUtenlandsoppholdRequest(
-                    behandlingId = revurderingId,
+                    behandlingId = opprettetRevurdering.id,
                     request = nonEmptyListOf(
                         LeggTilUtenlandsoppholdRequest(
                             behandlingId = opprettetRevurdering.id,
@@ -76,7 +80,7 @@ internal class RevurderingLeggTilUtenlandsoppholdTest {
             actual.revurdering shouldBe expected
             actual.feilmeldinger shouldBe emptyList()
 
-            verify(it.revurderingRepo).hent(revurderingId)
+            verify(it.revurderingRepo).hent(opprettetRevurdering.id)
             verify(it.revurderingRepo).defaultTransactionContext()
             verify(it.revurderingRepo).lagre(
                 argThat { lagret ->
@@ -85,8 +89,9 @@ internal class RevurderingLeggTilUtenlandsoppholdTest {
                         lagret.vilkårsvurderinger.vilkår,
                     )
                 },
-                anyOrNull()
+                anyOrNull(),
             )
+            verify(it.sakService).hentSakForRevurdering(opprettetRevurdering.id)
             it.verifyNoMoreInteractions()
         }
     }

@@ -7,9 +7,10 @@ import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.test.enUkeEtterFixedTidspunkt
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.saksnummer
+import no.nav.su.se.bakover.test.shouldBeType
 import org.junit.jupiter.api.Test
 
 internal class FerdigeBehandlingerRepoTest {
@@ -80,7 +81,8 @@ internal class FerdigeBehandlingerRepoTest {
             ferdigeBehandlinger shouldContainExactlyInAnyOrder listOf(
                 Behandlingsoversikt(
                     saksnummer = Saksnummer(2021),
-                    behandlingsId = iverksattRevurderingInnvilget.tilRevurdering.behandling.id,
+                    behandlingsId = testDataHelper.vedtakRepo.hentVedtakForId(iverksattRevurderingInnvilget.tilRevurdering)!!
+                        .shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling>().behandling.id,
                     behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
                     behandlingStartet = enUkeEtterFixedTidspunkt,
                     status = Behandlingsoversikt.Behandlingsstatus.INNVILGET,
@@ -94,7 +96,8 @@ internal class FerdigeBehandlingerRepoTest {
                 ),
                 Behandlingsoversikt(
                     saksnummer = Saksnummer(2022),
-                    behandlingsId = iverksattRevurderingOpphørt.tilRevurdering.behandling.id,
+                    behandlingsId = testDataHelper.vedtakRepo.hentVedtakForId(iverksattRevurderingOpphørt.tilRevurdering)!!
+                        .shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling>().behandling.id,
                     behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
                     behandlingStartet = enUkeEtterFixedTidspunkt,
                     status = Behandlingsoversikt.Behandlingsstatus.INNVILGET,
@@ -108,7 +111,8 @@ internal class FerdigeBehandlingerRepoTest {
                 ),
                 Behandlingsoversikt(
                     saksnummer = Saksnummer(2023),
-                    behandlingsId = iverksattStansAvYtelse.tilRevurdering.behandling.id,
+                    behandlingsId = testDataHelper.vedtakRepo.hentVedtakForId(iverksattStansAvYtelse.tilRevurdering)!!
+                        .shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling>().behandling.id,
                     behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
                     behandlingStartet = enUkeEtterFixedTidspunkt,
                     status = Behandlingsoversikt.Behandlingsstatus.INNVILGET,
@@ -122,7 +126,8 @@ internal class FerdigeBehandlingerRepoTest {
                 ),
                 Behandlingsoversikt(
                     saksnummer = Saksnummer(2024),
-                    behandlingsId = iverksattGjenopptak.tilRevurdering.behandling.id,
+                    behandlingsId = testDataHelper.vedtakRepo.hentVedtakForId(iverksattGjenopptak.tilRevurdering)!!
+                        .shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling>().behandling.id,
                     behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
                     behandlingStartet = enUkeEtterFixedTidspunkt,
                     status = Behandlingsoversikt.Behandlingsstatus.INNVILGET,
@@ -136,7 +141,8 @@ internal class FerdigeBehandlingerRepoTest {
                 ),
                 Behandlingsoversikt(
                     saksnummer = Saksnummer(2025),
-                    behandlingsId = beregnetRevurdering.tilRevurdering.behandling.id,
+                    behandlingsId = testDataHelper.vedtakRepo.hentVedtakForId(beregnetRevurdering.tilRevurdering)!!
+                        .shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling>().behandling.id,
                     behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
                     behandlingStartet = enUkeEtterFixedTidspunkt,
                     status = Behandlingsoversikt.Behandlingsstatus.INNVILGET,
@@ -235,7 +241,7 @@ internal class FerdigeBehandlingerRepoTest {
 
             ferdigeBehandlinger.map { it.behandlingsId }
                 .sorted() shouldBe listOf(
-                revurdering.tilRevurdering.behandling.id,
+                (testDataHelper.vedtakRepo.hentVedtakForId(revurdering.tilRevurdering) as VedtakSomKanRevurderes).behandling.id,
                 testDataHelper.sakRepo.hentSak(klage.sakId)!!.søknadsbehandlinger.first().id,
             ).sorted()
         }

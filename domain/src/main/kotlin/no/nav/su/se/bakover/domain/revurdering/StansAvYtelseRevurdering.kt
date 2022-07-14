@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedAttestering
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.util.UUID
 
@@ -33,7 +33,8 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering() {
         val begrunnelse: String,
         val tidspunktAvsluttet: Tidspunkt,
     ) : StansAvYtelseRevurdering() {
-        override val tilRevurdering: VedtakSomKanRevurderes = underliggendeStansAvYtelse.tilRevurdering
+        override val tilRevurdering: UUID = underliggendeStansAvYtelse.tilRevurdering
+        override val sakinfo: SakInfo = underliggendeStansAvYtelse.sakinfo
         override val id: UUID = underliggendeStansAvYtelse.id
         override val opprettet: Tidspunkt = underliggendeStansAvYtelse.opprettet
         override val periode: Periode = underliggendeStansAvYtelse.periode
@@ -73,10 +74,11 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering() {
         override val periode: Periode,
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
-        override val tilRevurdering: VedtakSomKanRevurderes,
+        override val tilRevurdering: UUID,
         val saksbehandler: NavIdentBruker.Saksbehandler,
         val simulering: Simulering,
         val revurderingsårsak: Revurderingsårsak,
+        override val sakinfo: SakInfo,
     ) : StansAvYtelseRevurdering() {
 
         fun iverksett(attestering: Attestering): Either<KunneIkkeIverksetteStansAvYtelse, IverksattStansAvYtelse> {
@@ -94,6 +96,7 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering() {
                 simulering = simulering,
                 attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(attestering),
                 revurderingsårsak = revurderingsårsak,
+                sakinfo = sakinfo,
             ).right()
         }
     }
@@ -113,10 +116,11 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering() {
         override val periode: Periode,
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
-        override val tilRevurdering: VedtakSomKanRevurderes,
+        override val tilRevurdering: UUID,
         val saksbehandler: NavIdentBruker.Saksbehandler,
         val simulering: Simulering,
         override val attesteringer: Attesteringshistorikk,
         val revurderingsårsak: Revurderingsårsak,
+        override val sakinfo: SakInfo,
     ) : StansAvYtelseRevurdering(), BehandlingMedAttestering
 }

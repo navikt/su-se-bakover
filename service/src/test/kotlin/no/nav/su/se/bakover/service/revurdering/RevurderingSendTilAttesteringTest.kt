@@ -24,15 +24,11 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
-import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingsutfallSomIkkeStøttes
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.oppgave.OppgaveService
-import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.statistikk.Event
-import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.toggles.ToggleService
 import no.nav.su.se.bakover.test.aktørId
 import no.nav.su.se.bakover.test.createFromGrunnlag
@@ -73,103 +69,110 @@ internal class RevurderingSendTilAttesteringTest {
 
     @Test
     fun `sender til attestering`() {
-        val simulertRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+        val (sak, simulertRevurdering) = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
             stønadsperiode = stønadsperiode2021,
             revurderingsperiode = Periode.create(fraOgMed = 1.juli(2021), tilOgMed = 30.september(2021)),
             forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
-        ).second
+        )
 
-        val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(revurderingId) } doReturn simulertRevurdering
+        RevurderingServiceMocks(
+            revurderingRepo = mock {
+                on { hent(revurderingId) } doReturn simulertRevurdering
+            },
+            personService = mock {
+                on { hentAktørId(any()) } doReturn aktørId.right()
+            },
+            oppgaveService = mock {
+                on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
+                on { lukkOppgave(any()) } doReturn Unit.right()
+            },
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
+            },
+            tilbakekrevingService = mock {
+                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
+            },
+            observer = mock(),
+        ).also {
+            val actual = it.revurderingService.sendTilAttestering(
+                SendTilAttesteringRequest(
+                    revurderingId = simulertRevurdering.id,
+                    saksbehandler = saksbehandler,
+                    fritekstTilBrev = "Fritekst",
+                    skalFøreTilBrevutsending = true,
+                ),
+            ).getOrHandle { throw RuntimeException(it.toString()) }
+
+            inOrder(it.revurderingRepo, it.personService, it.oppgaveService, it.observer) {
+                verify(it.revurderingRepo).hent(argThat { it shouldBe simulertRevurdering.id })
+                verify(it.personService).hentAktørId(argThat { it shouldBe fnr })
+                verify(it.oppgaveService).opprettOppgave(
+                    argThat {
+                        it shouldBe OppgaveConfig.AttesterRevurdering(
+                            saksnummer = saksnummer,
+                            aktørId = aktørId,
+                            tilordnetRessurs = null,
+                            clock = fixedClock,
+                        )
+                    },
+                )
+                verify(it.oppgaveService).lukkOppgave(argThat { it shouldBe simulertRevurdering.oppgaveId })
+                verify(it.revurderingRepo).defaultTransactionContext()
+                verify(it.revurderingRepo).lagre(argThat { it shouldBe actual }, anyOrNull())
+                verify(it.observer).handle(
+                    argThat {
+                        it shouldBe Event.Statistikk.RevurderingStatistikk.RevurderingTilAttestering(
+                            actual as RevurderingTilAttestering,
+                        )
+                    },
+                )
+            }
+
+            verifyNoMoreInteractions(it.revurderingRepo, it.personService, it.oppgaveService)
         }
-        val personServiceMock = mock<PersonService> {
-            on { hentAktørId(any()) } doReturn aktørId.right()
-        }
-        val oppgaveServiceMock = mock<OppgaveService> {
-            on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
-            on { lukkOppgave(any()) } doReturn Unit.right()
-        }
-
-        val eventObserver: EventObserver = mock()
-
-        val revurderingService = RevurderingTestUtils.createRevurderingService(
-            revurderingRepo = revurderingRepoMock,
-            personService = personServiceMock,
-            oppgaveService = oppgaveServiceMock,
-        ).apply { addObserver(eventObserver) }
-
-        val actual = revurderingService.sendTilAttestering(
-            SendTilAttesteringRequest(
-                revurderingId = revurderingId,
-                saksbehandler = saksbehandler,
-                fritekstTilBrev = "Fritekst",
-                skalFøreTilBrevutsending = true,
-            ),
-        ).getOrHandle { throw RuntimeException(it.toString()) }
-
-        inOrder(revurderingRepoMock, personServiceMock, oppgaveServiceMock, eventObserver) {
-            verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
-            verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
-            verify(oppgaveServiceMock).opprettOppgave(
-                argThat {
-                    it shouldBe OppgaveConfig.AttesterRevurdering(
-                        saksnummer = saksnummer,
-                        aktørId = aktørId,
-                        tilordnetRessurs = null,
-                        clock = fixedClock,
-                    )
-                },
-            )
-            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe simulertRevurdering.oppgaveId })
-            verify(revurderingRepoMock).defaultTransactionContext()
-            verify(revurderingRepoMock).lagre(argThat { it shouldBe actual }, anyOrNull())
-            verify(eventObserver).handle(
-                argThat {
-                    it shouldBe Event.Statistikk.RevurderingStatistikk.RevurderingTilAttestering(
-                        actual as RevurderingTilAttestering,
-                    )
-                },
-            )
-        }
-
-        verifyNoMoreInteractions(revurderingRepoMock, personServiceMock, oppgaveServiceMock)
     }
 
     @Test
     fun `sender ikke til attestering hvis revurdering er ikke simulert`() {
-        val opprettetRevurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak().second
+        val (sak, opprettetRevurdering) = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak()
 
-        val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(revurderingId) } doReturn opprettetRevurdering
+        RevurderingServiceMocks(
+            revurderingRepo = mock {
+                on { hent(any()) } doReturn opprettetRevurdering
+            },
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
+            },
+            tilbakekrevingService = mock {
+                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
+            },
+        ).also {
+            val result = it.revurderingService.sendTilAttestering(
+                SendTilAttesteringRequest(
+                    revurderingId = opprettetRevurdering.id,
+                    saksbehandler = saksbehandler,
+                    fritekstTilBrev = "Fritekst",
+                    skalFøreTilBrevutsending = true,
+                ),
+            )
+
+            result shouldBe KunneIkkeSendeRevurderingTilAttestering.UgyldigTilstand(
+                OpprettetRevurdering::class,
+                RevurderingTilAttestering::class,
+            ).left()
+
+            verify(it.revurderingRepo).hent(revurderingId)
+            verifyNoMoreInteractions(it.revurderingRepo)
         }
-
-        val result = RevurderingTestUtils.createRevurderingService(
-            revurderingRepo = revurderingRepoMock,
-        ).sendTilAttestering(
-            SendTilAttesteringRequest(
-                revurderingId = revurderingId,
-                saksbehandler = saksbehandler,
-                fritekstTilBrev = "Fritekst",
-                skalFøreTilBrevutsending = true,
-            ),
-        )
-
-        result shouldBe KunneIkkeSendeRevurderingTilAttestering.UgyldigTilstand(
-            OpprettetRevurdering::class,
-            RevurderingTilAttestering::class,
-        ).left()
-
-        verify(revurderingRepoMock).hent(revurderingId)
-        verifyNoMoreInteractions(revurderingRepoMock)
     }
 
     @Test
     fun `sender ikke til attestering hvis henting av aktørId feiler`() {
-        val revurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+        val (sak, revurdering) = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
             stønadsperiode = stønadsperiode2021,
             revurderingsperiode = Periode.create(fraOgMed = 1.juli(2021), tilOgMed = 30.september(2021)),
             forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
-        ).second
+        )
 
         RevurderingServiceMocks(
             revurderingRepo = mock {
@@ -177,6 +180,9 @@ internal class RevurderingSendTilAttesteringTest {
             },
             personService = mock {
                 on { hentAktørId(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
+            },
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
             },
             tilbakekrevingService = mock {
                 on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
@@ -195,6 +201,7 @@ internal class RevurderingSendTilAttesteringTest {
 
             inOrder(*mocks.all()) {
                 verify(mocks.revurderingRepo).hent(argThat { it shouldBe revurdering.id })
+                verify(mocks.sakService).hentSakForRevurdering(revurdering.id)
                 verify(mocks.tilbakekrevingService).hentAvventerKravgrunnlag(any<UUID>())
                 verify(mocks.personService).hentAktørId(argThat { it shouldBe revurdering.fnr })
                 mocks.verifyNoMoreInteractions()
@@ -204,11 +211,11 @@ internal class RevurderingSendTilAttesteringTest {
 
     @Test
     fun `sender ikke til attestering hvis oppretting av oppgave feiler`() {
-        val revurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+        val (sak, revurdering) = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
             stønadsperiode = stønadsperiode2021,
             revurderingsperiode = Periode.create(fraOgMed = 1.juli(2021), tilOgMed = 30.september(2021)),
             forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
-        ).second
+        )
 
         RevurderingServiceMocks(
             revurderingRepo = mock {
@@ -219,6 +226,9 @@ internal class RevurderingSendTilAttesteringTest {
             },
             oppgaveService = mock {
                 on { opprettOppgave(any()) } doReturn OppgaveFeil.KunneIkkeOppretteOppgave.left()
+            },
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
             },
             tilbakekrevingService = mock {
                 on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
@@ -239,6 +249,7 @@ internal class RevurderingSendTilAttesteringTest {
                 *mocks.all(),
             ) {
                 verify(mocks.revurderingRepo).hent(revurderingId)
+                verify(mocks.sakService).hentSakForRevurdering(revurdering.id)
                 verify(mocks.tilbakekrevingService).hentAvventerKravgrunnlag(any<UUID>())
                 verify(mocks.personService).hentAktørId(argThat { it shouldBe fnr })
                 verify(mocks.oppgaveService).opprettOppgave(
@@ -252,7 +263,6 @@ internal class RevurderingSendTilAttesteringTest {
                             )
                     },
                 )
-
                 mocks.verifyNoMoreInteractions()
             }
         }
@@ -260,19 +270,23 @@ internal class RevurderingSendTilAttesteringTest {
 
     @Test
     fun `kan ikke sende revurdering med simulert feilutbetaling til attestering`() {
+        val (sak, simulert) = simulertRevurdering(
+            grunnlagsdataOverrides = listOf(
+                fradragsgrunnlagArbeidsinntekt(
+                    periode = år(2021),
+                    arbeidsinntekt = 5000.0,
+                ),
+            ),
+        )
         RevurderingServiceMocks(
             revurderingRepo = mock {
-                on { hent(any()) } doReturn simulertRevurdering(
-                    grunnlagsdataOverrides = listOf(
-                        fradragsgrunnlagArbeidsinntekt(
-                            periode = år(2021),
-                            arbeidsinntekt = 5000.0,
-                        ),
-                    ),
-                ).second
+                on { hent(any()) } doReturn simulert
             },
             toggleService = mock {
                 on { isEnabled(any()) } doReturn false
+            },
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
             },
             tilbakekrevingService = mock {
                 on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
@@ -294,16 +308,18 @@ internal class RevurderingSendTilAttesteringTest {
 
     @Test
     fun `kan sende revurdering til attestering dersom toggle for feilbetaling tillatt er på`() {
+        val (sak, simulert) = simulertRevurdering(
+            grunnlagsdataOverrides = listOf(
+                fradragsgrunnlagArbeidsinntekt(
+                    periode = år(2021),
+                    arbeidsinntekt = 5000.0,
+                ),
+            ),
+        )
+
         RevurderingServiceMocks(
             revurderingRepo = mock {
-                on { hent(any()) } doReturn simulertRevurdering(
-                    grunnlagsdataOverrides = listOf(
-                        fradragsgrunnlagArbeidsinntekt(
-                            periode = år(2021),
-                            arbeidsinntekt = 5000.0,
-                        ),
-                    ),
-                ).second
+                on { hent(any()) } doReturn simulert
             },
             toggleService = mock {
                 on { isEnabled(any()) } doReturn true
@@ -314,6 +330,9 @@ internal class RevurderingSendTilAttesteringTest {
             oppgaveService = mock {
                 on { opprettOppgave(any()) } doReturn oppgaveIdRevurdering.right()
                 on { lukkOppgave(any()) } doReturn Unit.right()
+            },
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
             },
             tilbakekrevingService = mock {
                 on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
@@ -335,14 +354,14 @@ internal class RevurderingSendTilAttesteringTest {
 
     @Test
     fun `får ikke sende til attestering dersom tilbakekreving ikke er ferdigbehandlet`() {
-        val revurdering = simulertRevurdering(
+        val (sak, revurdering) = simulertRevurdering(
             grunnlagsdataOverrides = listOf(
                 fradragsgrunnlagArbeidsinntekt(
                     periode = år(2021),
                     arbeidsinntekt = 5000.0,
                 ),
             ),
-        ).second
+        )
 
         RevurderingServiceMocks(
             revurderingRepo = mock {
@@ -368,6 +387,9 @@ internal class RevurderingSendTilAttesteringTest {
                 on { opprettOppgave(any()) } doReturn oppgaveIdRevurdering.right()
                 on { lukkOppgave(any()) } doReturn Unit.right()
             },
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
+            },
             tilbakekrevingService = mock {
                 on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
             },
@@ -385,14 +407,14 @@ internal class RevurderingSendTilAttesteringTest {
 
     @Test
     fun `får sende til attestering dersom tilbakekreving er ferdigbehandlet`() {
-        val revurdering = simulertRevurdering(
+        val (sak, revurdering) = simulertRevurdering(
             grunnlagsdataOverrides = listOf(
                 fradragsgrunnlagArbeidsinntekt(
                     periode = år(2021),
                     arbeidsinntekt = 5000.0,
                 ),
             ),
-        ).second
+        )
 
         RevurderingServiceMocks(
             revurderingRepo = mock {
@@ -418,6 +440,9 @@ internal class RevurderingSendTilAttesteringTest {
                 on { opprettOppgave(any()) } doReturn oppgaveIdRevurdering.right()
                 on { lukkOppgave(any()) } doReturn Unit.right()
             },
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
+            },
             tilbakekrevingService = mock {
                 on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
             },
@@ -437,113 +462,131 @@ internal class RevurderingSendTilAttesteringTest {
     fun `formueopphør må være fra første måned`() {
         val stønadsperiode = RevurderingTestUtils.stønadsperiodeNesteMånedOgTreMånederFram
         val revurderingsperiode = stønadsperiode.periode
-        val revurderingRepoMock = mock<RevurderingRepo> {
-            val førsteUførevurderingsperiode = Periode.create(
-                fraOgMed = revurderingsperiode.fraOgMed,
-                tilOgMed = revurderingsperiode.fraOgMed.endOfMonth(),
-            )
-            val andreUførevurderingsperiode = Periode.create(
-                fraOgMed = revurderingsperiode.fraOgMed.plus(1, ChronoUnit.MONTHS),
-                tilOgMed = revurderingsperiode.tilOgMed,
-            )
-
-            val vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget(
-                periode = revurderingsperiode,
-                formue = FormueVilkår.Vurdert.createFromGrunnlag(
-                    grunnlag = nonEmptyListOf(
-                        formueGrunnlagUtenEps0Innvilget(
-                            periode = førsteUførevurderingsperiode,
-                            bosituasjon = Nel.fromListUnsafe(
-                                grunnlagsdataEnsligUtenFradrag(
-                                    periode = førsteUførevurderingsperiode,
-                                ).bosituasjon.map { it as Grunnlag.Bosituasjon.Fullstendig },
-                            ),
-                        ),
-                        formueGrunnlagUtenEpsAvslått(
-                            periode = andreUførevurderingsperiode,
-                            bosituasjon = grunnlagsdataEnsligUtenFradrag(
-                                periode = andreUførevurderingsperiode,
-                            ).bosituasjon.singleFullstendigOrThrow(),
-                        ),
-                    ),
-                ),
-            )
-            val simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak =
-                simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
-                    stønadsperiode = stønadsperiode,
-                    revurderingsperiode = revurderingsperiode,
-                    grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
-                        grunnlagsdataEnsligUtenFradrag(periode = revurderingsperiode),
-                        vilkårsvurderinger,
-                    ),
-                ).second
-            on { hent(revurderingId) } doReturn simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
-        }
-
-        val actual = RevurderingTestUtils.createRevurderingService(
-            revurderingRepo = revurderingRepoMock,
-        ).sendTilAttestering(
-            SendTilAttesteringRequest(
-                revurderingId = revurderingId,
-                saksbehandler = saksbehandler,
-                fritekstTilBrev = "Fritekst",
-                skalFøreTilBrevutsending = true,
-            ),
+        val førsteUførevurderingsperiode = Periode.create(
+            fraOgMed = revurderingsperiode.fraOgMed,
+            tilOgMed = revurderingsperiode.fraOgMed.endOfMonth(),
+        )
+        val andreUførevurderingsperiode = Periode.create(
+            fraOgMed = revurderingsperiode.fraOgMed.plus(1, ChronoUnit.MONTHS),
+            tilOgMed = revurderingsperiode.tilOgMed,
         )
 
-        actual shouldBe KunneIkkeSendeRevurderingTilAttestering.RevurderingsutfallStøttesIkke(
-            listOf(
-                RevurderingsutfallSomIkkeStøttes.OpphørErIkkeFraFørsteMåned,
+        val vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget(
+            periode = revurderingsperiode,
+            formue = FormueVilkår.Vurdert.createFromGrunnlag(
+                grunnlag = nonEmptyListOf(
+                    formueGrunnlagUtenEps0Innvilget(
+                        periode = førsteUførevurderingsperiode,
+                        bosituasjon = Nel.fromListUnsafe(
+                            grunnlagsdataEnsligUtenFradrag(
+                                periode = førsteUførevurderingsperiode,
+                            ).bosituasjon.map { it as Grunnlag.Bosituasjon.Fullstendig },
+                        ),
+                    ),
+                    formueGrunnlagUtenEpsAvslått(
+                        periode = andreUførevurderingsperiode,
+                        bosituasjon = grunnlagsdataEnsligUtenFradrag(
+                            periode = andreUførevurderingsperiode,
+                        ).bosituasjon.singleFullstendigOrThrow(),
+                    ),
+                ),
             ),
-        ).left()
+        )
+        val (sak, simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak) =
+            simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
+                stønadsperiode = stønadsperiode,
+                revurderingsperiode = revurderingsperiode,
+                grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
+                    grunnlagsdataEnsligUtenFradrag(periode = revurderingsperiode),
+                    vilkårsvurderinger,
+                ),
+            )
+        RevurderingServiceMocks(
+            revurderingRepo = mock {
+                on { hent(any()) } doReturn simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
+            },
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
+            },
+            tilbakekrevingService = mock {
+                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
+            },
+        ).also {
+            val actual = it.revurderingService.sendTilAttestering(
+                SendTilAttesteringRequest(
+                    revurderingId = simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak.id,
+                    saksbehandler = saksbehandler,
+                    fritekstTilBrev = "Fritekst",
+                    skalFøreTilBrevutsending = true,
+                ),
+            )
+            actual shouldBe KunneIkkeSendeRevurderingTilAttestering.RevurderingsutfallStøttesIkke(
+                listOf(
+                    RevurderingsutfallSomIkkeStøttes.OpphørErIkkeFraFørsteMåned,
+                ),
+            ).left()
 
-        verify(revurderingRepoMock, never()).lagre(any(), anyOrNull())
+            verify(it.revurderingRepo, never()).lagre(any(), anyOrNull())
+        }
     }
 
     @Test
     fun `uføreopphør kan ikke gjøres i kombinasjon med fradragsendringer`() {
         val stønadsperiode = RevurderingTestUtils.stønadsperiodeNesteMånedOgTreMånederFram
         val revurderingsperiode = stønadsperiode.periode
-        val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(revurderingId) } doReturn simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
-                stønadsperiode = stønadsperiode,
-                revurderingsperiode = revurderingsperiode,
-                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataEnsligMedFradrag(periode = revurderingsperiode).let {
-                    GrunnlagsdataOgVilkårsvurderinger.Revurdering(
-                        it,
-                        vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(
-                            periode = stønadsperiode.periode,
-                            bosituasjon = Nel.fromListUnsafe(it.bosituasjon.map { it as Grunnlag.Bosituasjon.Fullstendig }),
-                        ),
-                    )
-                },
-            ).second
-        }
-        val actual = RevurderingTestUtils.createRevurderingService(
-            revurderingRepo = revurderingRepoMock,
-        ).sendTilAttestering(
-            SendTilAttesteringRequest(
-                revurderingId = revurderingId,
-                saksbehandler = saksbehandler,
-                fritekstTilBrev = "Fritekst",
-                skalFøreTilBrevutsending = true,
-            ),
+        val (sak, simulert) = simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
+            stønadsperiode = stønadsperiode,
+            revurderingsperiode = revurderingsperiode,
+            grunnlagsdataOgVilkårsvurderinger = grunnlagsdataEnsligMedFradrag(periode = revurderingsperiode).let {
+                GrunnlagsdataOgVilkårsvurderinger.Revurdering(
+                    it,
+                    vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(
+                        periode = stønadsperiode.periode,
+                        bosituasjon = Nel.fromListUnsafe(it.bosituasjon.map { it as Grunnlag.Bosituasjon.Fullstendig }),
+                    ),
+                )
+            },
         )
 
-        actual shouldBe KunneIkkeSendeRevurderingTilAttestering.RevurderingsutfallStøttesIkke(
-            listOf(
-                RevurderingsutfallSomIkkeStøttes.OpphørOgAndreEndringerIKombinasjon,
-            ),
-        ).left()
+        RevurderingServiceMocks(
+            revurderingRepo = mock {
+                on { hent(any()) } doReturn simulert
+            },
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
+            },
+            tilbakekrevingService = mock {
+                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
+            },
+        ).also {
+            val actual = it.revurderingService.sendTilAttestering(
+                SendTilAttesteringRequest(
+                    revurderingId = revurderingId,
+                    saksbehandler = saksbehandler,
+                    fritekstTilBrev = "Fritekst",
+                    skalFøreTilBrevutsending = true,
+                ),
+            )
 
-        verify(revurderingRepoMock, never()).lagre(any(), anyOrNull())
+            actual shouldBe KunneIkkeSendeRevurderingTilAttestering.RevurderingsutfallStøttesIkke(
+                listOf(
+                    RevurderingsutfallSomIkkeStøttes.OpphørOgAndreEndringerIKombinasjon,
+                ),
+            ).left()
+
+            verify(it.revurderingRepo, never()).lagre(any(), anyOrNull())
+        }
     }
 
     @Test
     fun `får ikke sendt til attestering dersom det eksisterer åpne kravgrunnlag for sak`() {
+        val (sak, simulert) = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak()
         RevurderingServiceMocks(
             revurderingRepo = mock {
-                on { hent(any()) } doReturn simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
+                on { hent(any()) } doReturn simulert
+            },
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
             },
             tilbakekrevingService = mock {
                 on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn listOf(

@@ -35,8 +35,7 @@ internal class ÅpneBehandlingerRepo(
                  revurderinger as (
                      select sak.sakId, sak.saksnummer, r.id, r.opprettet, r.revurderingstype as status, 'REVURDERING' as type
                      from sak
-                              join behandling_vedtak bv on bv.sakid = sak.sakId
-                              join revurdering r on r.vedtaksomrevurderesid = bv.vedtakid
+                              join revurdering r on r.sakid = sak.sakId
                      where r.revurderingstype not like ('IVERKSATT%') and r.avsluttet is null
                  ),
                  klage as (

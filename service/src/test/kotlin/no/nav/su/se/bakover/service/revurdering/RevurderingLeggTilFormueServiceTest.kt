@@ -62,27 +62,31 @@ internal class RevurderingLeggTilFormueServiceTest {
             søkersFormue = Formuegrunnlag.Verdier.empty(),
             begrunnelse = null,
         )
+        val (sak, opprettet) = opprettetRevurdering(
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Formue)),
+            grunnlagsdataOverrides = listOf(
+                lagFradragsgrunnlag(
+                    type = Fradragstype.Arbeidsinntekt,
+                    månedsbeløp = 10000.0,
+                    periode = år(2021),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+                Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
+                    id = UUID.randomUUID(),
+                    fnr = epsFnr,
+                    opprettet = fixedTidspunkt,
+                    periode = år(2021),
+                ),
+            ),
+        )
 
         RevurderingServiceMocks(
             revurderingRepo = mock {
-                on { hent(any()) } doReturn opprettetRevurdering(
-                    informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Formue)),
-                    grunnlagsdataOverrides = listOf(
-                        lagFradragsgrunnlag(
-                            type = Fradragstype.Arbeidsinntekt,
-                            månedsbeløp = 10000.0,
-                            periode = år(2021),
-                            utenlandskInntekt = null,
-                            tilhører = FradragTilhører.BRUKER,
-                        ),
-                        Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
-                            id = UUID.randomUUID(),
-                            fnr = epsFnr,
-                            opprettet = fixedTidspunkt,
-                            periode = år(2021),
-                        ),
-                    ),
-                ).second
+                on { hent(any()) } doReturn opprettet
+            },
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
             },
         ).let { serviceAndMocks ->
             val actual = serviceAndMocks.revurderingService.leggTilFormuegrunnlag(
@@ -313,28 +317,33 @@ internal class RevurderingLeggTilFormueServiceTest {
 
     @Test
     fun `når formue blir avslått, og uførhet er det også, får vi feil om at utfallet ikke støttes pga opphør av flere vilkår`() {
+        val (sak, opprettet) = opprettetRevurdering(
+            grunnlagsdataOverrides = listOf(
+                Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                    id = UUID.randomUUID(), opprettet = fixedTidspunkt,
+                    periode = stønadsperiode2021.periode,
+                ),
+            ),
+            vilkårOverrides = listOf(
+                avslåttUførevilkårUtenGrunnlag(
+                    periode = år(2021),
+                ),
+                formuevilkårIkkeVurdert(),
+                UtenlandsoppholdVilkår.IkkeVurdert,
+            ),
+        )
+
         RevurderingServiceMocks(
             revurderingRepo = mock {
-                on { hent(revurderingId) } doReturn opprettetRevurdering(
-                    grunnlagsdataOverrides = listOf(
-                        Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                            id = UUID.randomUUID(), opprettet = fixedTidspunkt,
-                            periode = stønadsperiode2021.periode,
-                        ),
-                    ),
-                    vilkårOverrides = listOf(
-                        avslåttUførevilkårUtenGrunnlag(
-                            periode = år(2021),
-                        ),
-                        formuevilkårIkkeVurdert(),
-                        UtenlandsoppholdVilkår.IkkeVurdert,
-                    ),
-                ).second
+                on { hent(any()) } doReturn opprettet
+            },
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
             },
         ).let {
             val response = it.revurderingService.leggTilFormuegrunnlag(
                 request = LeggTilFormuevilkårRequest(
-                    behandlingId = revurderingId,
+                    behandlingId = opprettet.id,
                     formuegrunnlag = nonEmptyListOf(
                         LeggTilFormuevilkårRequest.Grunnlag.Revurdering(
                             periode = år(2021),
@@ -357,26 +366,31 @@ internal class RevurderingLeggTilFormueServiceTest {
 
             response.feilmeldinger.shouldContain(RevurderingsutfallSomIkkeStøttes.OpphørAvFlereVilkår)
 
-            verify(it.revurderingRepo).hent(revurderingId)
+            verify(it.revurderingRepo).hent(opprettet.id)
             verify(it.revurderingRepo).defaultTransactionContext()
             verify(it.revurderingRepo).lagre(
                 argThat { it shouldBe response.revurdering },
                 anyOrNull(),
             )
+            verify(it.sakService).hentSakForRevurdering(opprettet.id)
             it.verifyNoMoreInteractions()
         }
     }
 
     @Test
     fun `får feilmelding om at opphør ikke er fra første måned i revurderingsperioden`() {
+        val (sak, opprettet) = opprettetRevurdering()
         RevurderingServiceMocks(
             revurderingRepo = mock {
-                on { hent(revurderingId) } doReturn opprettetRevurdering().second
+                on { hent(any()) } doReturn opprettet
+            },
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
             },
         ).let {
             val response = it.revurderingService.leggTilFormuegrunnlag(
                 request = LeggTilFormuevilkårRequest(
-                    behandlingId = revurderingId,
+                    behandlingId = opprettet.id,
                     formuegrunnlag = nonEmptyListOf(
                         LeggTilFormuevilkårRequest.Grunnlag.Revurdering(
                             periode = Periode.create(1.januar(2021), 31.mai(2021)),

@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.sakinfo
 import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.periode
@@ -83,7 +84,7 @@ internal class OpprettRevurderingRouteKtTest {
             id = UUID.randomUUID(),
             periode = periode,
             opprettet = fixedTidspunkt,
-            tilRevurdering = vedtak,
+            tilRevurdering = vedtak.id,
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
@@ -96,7 +97,8 @@ internal class OpprettRevurderingRouteKtTest {
             vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
-            avkorting = AvkortingVedRevurdering.Uhåndtert.IngenUtestående
+            avkorting = AvkortingVedRevurdering.Uhåndtert.IngenUtestående,
+            sakinfo = sakinfo,
         )
         val revurderingServiceMock = mock<RevurderingService> {
             on { opprettRevurdering(any()) } doReturn opprettetRevurdering.right()

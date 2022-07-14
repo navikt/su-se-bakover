@@ -29,7 +29,8 @@ internal class StansAvYtelsePostgresRepo(
                         årsak,
                         begrunnelse,
                         attestering,
-                        skalFøreTilBrevutsending
+                        skalFøreTilBrevutsending,
+                        sakid
                     ) values (
                         :id,
                         :opprettet,
@@ -41,7 +42,8 @@ internal class StansAvYtelsePostgresRepo(
                         :arsak,
                         :begrunnelse,
                         to_json(:attestering::json),
-                        :skalFoereTilBrevutsending
+                        :skalFoereTilBrevutsending,
+                        :sakid
                     ) on conflict(id) do update set
                         periode=to_json(:periode::json),
                         simulering=to_json(:simulering::json),
@@ -59,11 +61,12 @@ internal class StansAvYtelsePostgresRepo(
                                 "simulering" to serialize(revurdering.simulering),
                                 "saksbehandler" to revurdering.saksbehandler,
                                 "revurderingsType" to RevurderingsType.SIMULERT_STANS,
-                                "vedtakSomRevurderesId" to revurdering.tilRevurdering.id,
+                                "vedtakSomRevurderesId" to revurdering.tilRevurdering,
                                 "arsak" to revurdering.revurderingsårsak.årsak.toString(),
                                 "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
                                 "attestering" to Attesteringshistorikk.empty().serialize(),
                                 "skalFoereTilBrevutsending" to false,
+                                "sakid" to revurdering.sakId
                             ),
                             tx,
                         )

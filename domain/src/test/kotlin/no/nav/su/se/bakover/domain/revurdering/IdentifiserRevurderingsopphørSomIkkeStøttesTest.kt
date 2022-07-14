@@ -35,7 +35,7 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
         IdentifiserRevurderingsopphørSomIkkeStøttes.MedBeregning(
             revurderingsperiode = beregning.periode,
             vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(periode = juni(2021)),
-            tidligereBeregning = beregning,
+            gjeldendeMånedsberegninger = beregning.getMånedsberegninger(),
             nyBeregning = beregning,
             clock = fixedClock,
         ).resultat shouldBe setOf(
@@ -51,7 +51,7 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
             vilkårsvurderinger = vilkårsvurderingerAvslåttAlleRevurdering(
                 desember(2021),
             ),
-            tidligereBeregning = beregning,
+            gjeldendeMånedsberegninger = beregning.getMånedsberegninger(),
             nyBeregning = beregning,
             clock = fixedClock,
         ).resultat shouldBe setOf(
@@ -64,7 +64,7 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
         IdentifiserRevurderingsopphørSomIkkeStøttes.MedBeregning(
             revurderingsperiode = år(2021),
             vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(periode = juni(2021)),
-            tidligereBeregning = beregning(
+            gjeldendeMånedsberegninger = beregning(
                 periode = desember(2021),
                 uføregrunnlag = nonEmptyListOf(
                     uføregrunnlagForventetInntekt(
@@ -78,7 +78,7 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
                         arbeidsinntekt = 100.0,
                     ),
                 ),
-            ),
+            ).getMånedsberegninger(),
             nyBeregning = beregning(
                 periode = desember(2021),
                 fradragsgrunnlag = nonEmptyListOf(
@@ -119,7 +119,7 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
         IdentifiserRevurderingsopphørSomIkkeStøttes.MedBeregning(
             revurderingsperiode = år(2021),
             vilkårsvurderinger = vilkårsvurderinger,
-            tidligereBeregning = tidligereBeregning,
+            gjeldendeMånedsberegninger = tidligereBeregning.getMånedsberegninger(),
             nyBeregning = nyBeregning,
             clock = fixedClock,
         ).resultat shouldBe setOf(
@@ -152,7 +152,7 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
         IdentifiserRevurderingsopphørSomIkkeStøttes.MedBeregning(
             revurderingsperiode = år(2021),
             vilkårsvurderinger = vilkårsvurderinger,
-            tidligereBeregning = tidligereBeregning,
+            gjeldendeMånedsberegninger = tidligereBeregning.getMånedsberegninger(),
             nyBeregning = nyBeregning,
             clock = fixedClock,
         ).resultat shouldBe setOf(
@@ -179,7 +179,7 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
         IdentifiserRevurderingsopphørSomIkkeStøttes.MedBeregning(
             revurderingsperiode = år(2021),
             vilkårsvurderinger = vilkårsvurderinger,
-            tidligereBeregning = tidligereBeregning,
+            gjeldendeMånedsberegninger = tidligereBeregning.getMånedsberegninger(),
             nyBeregning = nyBeregning,
             clock = fixedClock,
         ).resultat shouldBe Unit.right()
@@ -205,7 +205,7 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
         IdentifiserRevurderingsopphørSomIkkeStøttes.MedBeregning(
             revurderingsperiode = år(2021),
             vilkårsvurderinger = vilkårsvurderinger,
-            tidligereBeregning = tidligereBeregning,
+            gjeldendeMånedsberegninger = tidligereBeregning.getMånedsberegninger(),
             nyBeregning = nyBeregning,
             clock = fixedClock,
         ).resultat shouldBe setOf(
@@ -233,7 +233,7 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
         IdentifiserRevurderingsopphørSomIkkeStøttes.MedBeregning(
             revurderingsperiode = år(2021),
             vilkårsvurderinger = vilkårsvurderinger,
-            tidligereBeregning = tidligereBeregning,
+            gjeldendeMånedsberegninger = tidligereBeregning.getMånedsberegninger(),
             nyBeregning = nyBeregning,
             clock = fixedClock,
         ).resultat shouldBe setOf(
@@ -248,7 +248,7 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
         IdentifiserRevurderingsopphørSomIkkeStøttes.MedBeregning(
             revurderingsperiode = år(2021),
             vilkårsvurderinger = vilkårsvurderingerSøknadsbehandlingInnvilget(desember(2021)),
-            tidligereBeregning = beregning,
+            gjeldendeMånedsberegninger = beregning.getMånedsberegninger(),
             nyBeregning = beregning,
             clock = fixedClock,
         ).resultat shouldBe Unit.right()
@@ -259,7 +259,7 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
         IdentifiserRevurderingsopphørSomIkkeStøttes.MedBeregning(
             revurderingsperiode = desember(2021),
             vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(periode = desember(2021)),
-            tidligereBeregning = beregning(
+            gjeldendeMånedsberegninger = beregning(
                 periode = desember(2021),
                 uføregrunnlag = nonEmptyListOf(
                     uføregrunnlagForventetInntekt(
@@ -273,7 +273,7 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
                         arbeidsinntekt = 100.0,
                     ),
                 ),
-            ),
+            ).getMånedsberegninger(),
             nyBeregning = beregning(
                 periode = desember(2021),
                 uføregrunnlag = nonEmptyListOf(
@@ -297,7 +297,7 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
         IdentifiserRevurderingsopphørSomIkkeStøttes.MedBeregning(
             revurderingsperiode = desember(2021),
             vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(periode = desember(2021)),
-            tidligereBeregning = beregning(periode = desember(2021)),
+            gjeldendeMånedsberegninger = beregning(periode = desember(2021)).getMånedsberegninger(),
             nyBeregning = beregning(
                 periode = desember(2021),
                 fradragsgrunnlag = nonEmptyListOf(
@@ -318,7 +318,7 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
         IdentifiserRevurderingsopphørSomIkkeStøttes.MedBeregning(
             revurderingsperiode = desember(2021),
             vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(periode = desember(2021)),
-            tidligereBeregning = beregning(
+            gjeldendeMånedsberegninger = beregning(
                 periode = desember(2021),
                 fradragsgrunnlag = nonEmptyListOf(
                     fradragsgrunnlagArbeidsinntekt(
@@ -326,7 +326,7 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
                         arbeidsinntekt = 100.0,
                     ),
                 ),
-            ),
+            ).getMånedsberegninger(),
             nyBeregning = beregning(periode = desember(2021)),
             clock = fixedClock,
         ).resultat shouldBe setOf(
@@ -340,7 +340,7 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
         IdentifiserRevurderingsopphørSomIkkeStøttes.MedBeregning(
             revurderingsperiode = februarOgUt2021,
             vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(periode = februarOgUt2021),
-            tidligereBeregning = beregning(
+            gjeldendeMånedsberegninger = beregning(
                 periode = år(2021),
                 fradragsgrunnlag = listOf(
                     fradragsgrunnlagArbeidsinntekt(
@@ -348,7 +348,7 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
                         arbeidsinntekt = 5000.0,
                     ),
                 ),
-            ),
+            ).getMånedsberegninger(),
             nyBeregning = beregning(
                 periode = februarOgUt2021,
                 fradragsgrunnlag = listOf(

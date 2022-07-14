@@ -31,6 +31,8 @@ import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
+import no.nav.su.se.bakover.test.nySøknadJournalførtMedOppgave
 import no.nav.su.se.bakover.test.nyUtbetalingSimulert
 import no.nav.su.se.bakover.test.opphørUtbetalingSimulert
 import no.nav.su.se.bakover.test.opprettetRevurdering
@@ -38,14 +40,13 @@ import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.revurderingTilAttestering
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
-import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulertUtbetaling
 import no.nav.su.se.bakover.test.simulertUtbetalingOpphør
 import no.nav.su.se.bakover.test.stønadsperiode2021
+import no.nav.su.se.bakover.test.søknadinnhold
 import no.nav.su.se.bakover.test.underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.vedtakRevurdering
-import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import org.junit.jupiter.api.Test
@@ -71,22 +72,16 @@ internal class RevurderingBeregnOgSimulerTest {
         )
 
         val serviceAndMocks = RevurderingServiceMocks(
-            revurderingRepo = mock {
-                on { hent(any()) } doReturn opprettet
-            },
+            revurderingRepo = mock(),
             utbetalingService = mock {
                 on { simulerOpphør(any()) } doReturn opphørUtbetalingSimulert(
                     sakOgBehandling = sak to opprettet,
                     opphørsdato = opprettet.periode.fraOgMed,
                     clock = fixedClock,
                 ).right()
-                on { hentUtbetalingerForSakId(any()) } doReturn sak.utbetalinger
             },
-            vedtakService = mock {
-                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn sak.kopierGjeldendeVedtaksdata(
-                    opprettet.periode.fraOgMed,
-                    fixedClock,
-                ).getOrFail().right()
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
             },
         )
 
@@ -105,9 +100,7 @@ internal class RevurderingBeregnOgSimulerTest {
         val (sak, revurdering) = opprettetRevurdering()
 
         RevurderingServiceMocks(
-            revurderingRepo = mock {
-                on { hent(revurderingId) } doReturn revurdering
-            },
+            revurderingRepo = mock(),
             utbetalingService = mock {
                 on { simulerUtbetaling(any()) } doReturn nyUtbetalingSimulert(
                     sakOgBehandling = sak to revurdering,
@@ -122,17 +115,13 @@ internal class RevurderingBeregnOgSimulerTest {
                     ).getOrFail().beregning,
                     clock = fixedClock,
                 ).right()
-                on { hentUtbetalingerForSakId(any()) } doReturn sak.utbetalinger
             },
-            vedtakService = mock {
-                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn sak.kopierGjeldendeVedtaksdata(
-                    revurdering.periode.fraOgMed,
-                    fixedClock,
-                ).getOrFail().right()
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
             },
         ).let {
             val response = it.revurderingService.beregnOgSimuler(
-                revurderingId = revurderingId,
+                revurderingId = revurdering.id,
                 saksbehandler = saksbehandler,
             ).getOrFail()
 
@@ -153,25 +142,19 @@ internal class RevurderingBeregnOgSimulerTest {
         )
 
         RevurderingServiceMocks(
-            revurderingRepo = mock {
-                on { hent(revurderingId) } doReturn revurdering
-            },
+            revurderingRepo = mock(),
             utbetalingService = mock {
                 on { simulerOpphør(any()) } doReturn simulertUtbetalingOpphør(
                     opphørsdato = revurdering.periode.fraOgMed,
                     eksisterendeUtbetalinger = sak.utbetalinger,
                 ).getOrFail().right()
-                on { hentUtbetalingerForSakId(any()) } doReturn sak.utbetalinger
             },
-            vedtakService = mock {
-                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn sak.kopierGjeldendeVedtaksdata(
-                    revurdering.periode.fraOgMed,
-                    fixedClock,
-                ).getOrFail().right()
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
             },
         ).let {
             val response = it.revurderingService.beregnOgSimuler(
-                revurderingId = revurderingId,
+                revurderingId = revurdering.id,
                 saksbehandler = saksbehandler,
             ).getOrFail()
 
@@ -195,9 +178,7 @@ internal class RevurderingBeregnOgSimulerTest {
         )
 
         val serviceAndMocks = RevurderingServiceMocks(
-            revurderingRepo = mock {
-                on { hent(any()) } doReturn opprettetRevurdering
-            },
+            revurderingRepo = mock(),
             utbetalingService = mock {
                 on { simulerUtbetaling(any()) } doReturn nyUtbetalingSimulert(
                     sakOgBehandling = sak to opprettetRevurdering,
@@ -212,13 +193,9 @@ internal class RevurderingBeregnOgSimulerTest {
                     ).getOrFail().beregning,
                     clock = fixedClock,
                 ).right()
-                on { hentUtbetalingerForSakId(any()) } doReturn sak.utbetalinger
             },
-            vedtakService = mock {
-                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn sak.kopierGjeldendeVedtaksdata(
-                    opprettetRevurdering.periode.fraOgMed,
-                    fixedClock,
-                ).getOrFail().right()
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
             },
         )
         val actual = serviceAndMocks.revurderingService.beregnOgSimuler(
@@ -233,12 +210,7 @@ internal class RevurderingBeregnOgSimulerTest {
         inOrder(
             *serviceAndMocks.all(),
         ) {
-            verify(serviceAndMocks.revurderingRepo).hent(any())
-            verify(serviceAndMocks.utbetalingService).hentUtbetalingerForSakId(sakId)
-            verify(serviceAndMocks.vedtakService).kopierGjeldendeVedtaksdata(
-                argThat { it shouldBe sakId },
-                argThat { it shouldBe opprettetRevurdering.periode.fraOgMed },
-            )
+            verify(serviceAndMocks.sakService).hentSakForRevurdering(any())
             verify(serviceAndMocks.utbetalingService).simulerUtbetaling(
                 request = argThat {
                     it shouldBe SimulerUtbetalingRequest.NyUtbetaling.Uføre(
@@ -252,13 +224,14 @@ internal class RevurderingBeregnOgSimulerTest {
             )
             verify(serviceAndMocks.revurderingRepo).defaultTransactionContext()
             verify(serviceAndMocks.revurderingRepo).lagre(argThat { it shouldBe actual.revurdering }, anyOrNull())
+            verify(serviceAndMocks.sakService).hentSakForRevurdering(any())
             serviceAndMocks.verifyNoMoreInteractions()
         }
     }
 
     @Test
     fun `beregnOgSimuler - kan ikke beregne og simulere en revurdering som er til attestering`() {
-        val (_, tilAttestring) = revurderingTilAttestering(
+        val (sak, tilAttestring) = revurderingTilAttestering(
             grunnlagsdataOverrides = listOf(
                 fradragsgrunnlagArbeidsinntekt(
                     periode = år(2021),
@@ -269,8 +242,9 @@ internal class RevurderingBeregnOgSimulerTest {
         )
 
         RevurderingServiceMocks(
-            revurderingRepo = mock {
-                on { hent(any()) } doReturn tilAttestring
+            revurderingRepo = mock(),
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
             },
         ).let {
             val response = it.revurderingService.beregnOgSimuler(
@@ -282,7 +256,7 @@ internal class RevurderingBeregnOgSimulerTest {
                 SimulertRevurdering::class,
             ).left()
 
-            verify(it.revurderingRepo).hent(tilAttestring.id)
+            verify(it.sakService).hentSakForRevurdering(tilAttestring.id)
             it.verifyNoMoreInteractions()
         }
     }
@@ -300,18 +274,12 @@ internal class RevurderingBeregnOgSimulerTest {
         )
 
         RevurderingServiceMocks(
-            revurderingRepo = mock {
-                on { hent(any()) } doReturn beregnet
-            },
+            revurderingRepo = mock(),
             utbetalingService = mock {
                 on { simulerUtbetaling(any()) } doReturn SimuleringFeilet.TEKNISK_FEIL.left()
-                on { hentUtbetalingerForSakId(any()) } doReturn sak.utbetalinger
             },
-            vedtakService = mock {
-                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn sak.kopierGjeldendeVedtaksdata(
-                    fraOgMed = beregnet.periode.fraOgMed,
-                    clock = fixedClock,
-                ).getOrFail().right()
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
             },
         ).let {
             val response = it.revurderingService.beregnOgSimuler(
@@ -350,13 +318,9 @@ internal class RevurderingBeregnOgSimulerTest {
                     beregning = underkjent.beregning,
                     clock = fixedClock,
                 ).right()
-                on { hentUtbetalingerForSakId(any()) } doReturn sak.utbetalinger
             },
-            vedtakService = mock {
-                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn sak.kopierGjeldendeVedtaksdata(
-                    fraOgMed = underkjent.periode.fraOgMed,
-                    clock = fixedClock,
-                ).getOrFail().right()
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
             },
         )
 
@@ -373,9 +337,7 @@ internal class RevurderingBeregnOgSimulerTest {
         inOrder(
             *serviceAndMocks.all(),
         ) {
-            verify(serviceAndMocks.revurderingRepo).hent(argThat { it shouldBe underkjent.id })
-            verify(serviceAndMocks.utbetalingService).hentUtbetalingerForSakId(sakId)
-            verify(serviceAndMocks.vedtakService).kopierGjeldendeVedtaksdata(sakId, underkjent.periode.fraOgMed)
+            verify(serviceAndMocks.sakService).hentSakForRevurdering(argThat { it shouldBe underkjent.id })
             verify(serviceAndMocks.utbetalingService).simulerUtbetaling(
                 request = argThat {
                     it shouldBe SimulerUtbetalingRequest.NyUtbetaling.Uføre(
@@ -389,6 +351,7 @@ internal class RevurderingBeregnOgSimulerTest {
             )
             verify(serviceAndMocks.revurderingRepo).defaultTransactionContext()
             verify(serviceAndMocks.revurderingRepo).lagre(argThat { it shouldBe actual.revurdering }, anyOrNull())
+            verify(serviceAndMocks.sakService).hentSakForRevurdering(argThat { it shouldBe underkjent.id })
             serviceAndMocks.verifyNoMoreInteractions()
         }
     }
@@ -403,18 +366,12 @@ internal class RevurderingBeregnOgSimulerTest {
 
         assertThrows<IllegalStateException> {
             RevurderingServiceMocks(
-                revurderingRepo = mock {
-                    on { hent(any()) } doReturn opprettet
-                },
+                revurderingRepo = mock(),
                 utbetalingService = mock {
                     on { simulerUtbetaling(any()) } doReturn simulertUtbetaling().right()
-                    on { hentUtbetalingerForSakId(any()) } doReturn sak.utbetalinger
                 },
-                vedtakService = mock {
-                    on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn sak.kopierGjeldendeVedtaksdata(
-                        fraOgMed = opprettet.periode.fraOgMed,
-                        clock = fixedClock,
-                    ).getOrFail().right()
+                sakService = mock {
+                    on { hentSakForRevurdering(any()) } doReturn sak
                 },
             ).revurderingService.beregnOgSimuler(
                 revurderingId = opprettet.id,
@@ -434,22 +391,16 @@ internal class RevurderingBeregnOgSimulerTest {
         )
 
         val serviceAndMocks = RevurderingServiceMocks(
-            revurderingRepo = mock {
-                on { hent(any()) } doReturn opprettet
-            },
+            revurderingRepo = mock(),
             utbetalingService = mock {
                 on { simulerOpphør(any()) } doReturn opphørUtbetalingSimulert(
                     sakOgBehandling = sak to opprettet,
                     opphørsdato = opprettet.periode.fraOgMed,
                     clock = fixedClock,
                 ).right()
-                on { hentUtbetalingerForSakId(any()) } doReturn sak.utbetalinger
             },
-            vedtakService = mock {
-                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn sak.kopierGjeldendeVedtaksdata(
-                    fraOgMed = opprettet.periode.fraOgMed,
-                    clock = fixedClock,
-                ).getOrFail().right()
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
             },
         )
         val actual = serviceAndMocks.revurderingService.beregnOgSimuler(
@@ -462,9 +413,7 @@ internal class RevurderingBeregnOgSimulerTest {
         inOrder(
             *serviceAndMocks.all(),
         ) {
-            verify(serviceAndMocks.revurderingRepo).hent(opprettet.id)
-            verify(serviceAndMocks.utbetalingService).hentUtbetalingerForSakId(sakId)
-            verify(serviceAndMocks.vedtakService).kopierGjeldendeVedtaksdata(sakId, opprettet.periode.fraOgMed)
+            verify(serviceAndMocks.sakService).hentSakForRevurdering(opprettet.id)
             verify(serviceAndMocks.utbetalingService).simulerOpphør(
                 argThat {
                     it shouldBe SimulerUtbetalingRequest.Opphør(
@@ -476,6 +425,7 @@ internal class RevurderingBeregnOgSimulerTest {
             )
             verify(serviceAndMocks.revurderingRepo).defaultTransactionContext()
             verify(serviceAndMocks.revurderingRepo).lagre(argThat { it shouldBe actual }, anyOrNull())
+            verify(serviceAndMocks.sakService).hentSakForRevurdering(any())
             serviceAndMocks.verifyNoMoreInteractions()
         }
     }
@@ -487,8 +437,7 @@ internal class RevurderingBeregnOgSimulerTest {
         val tikkendeKlokke = TikkendeKlokke()
 
         val stønadsperiode1 = stønadsperiode2021
-        val (sakEtterInnvilgelse1, innvilget1) = vedtakSøknadsbehandlingIverksattInnvilget(
-            saksnummer = saksnummer,
+        val (sakEtterInnvilgelse1, _, innvilget1) = iverksattSøknadsbehandlingUføre(
             stønadsperiode = stønadsperiode1,
             clock = tikkendeKlokke,
         )
@@ -499,7 +448,7 @@ internal class RevurderingBeregnOgSimulerTest {
         val revurderingsperiode1 = Periode.create(1.mai(2021), 31.desember(2021))
         val (sakEtterRevurdering1, revurdering1) = vedtakRevurdering(
             revurderingsperiode = revurderingsperiode1,
-            sakOgVedtakSomKanRevurderes = sakEtterInnvilgelse1 to innvilget1,
+            sakOgVedtakSomKanRevurderes = sakEtterInnvilgelse1 to innvilget1 as VedtakSomKanRevurderes,
             vilkårOverrides = listOf(
                 utenlandsoppholdAvslag(
                     periode = revurderingsperiode1,
@@ -514,18 +463,19 @@ internal class RevurderingBeregnOgSimulerTest {
         val stønadsperiode2 = Stønadsperiode.create(Periode.create(1.juli(2021), 31.desember(2021)))
         val uteståendeAvkorting =
             (((revurdering1 as VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering).behandling.avkorting) as AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarsel).avkortingsvarsel
-        val (sakEtterInnvilgelse2, innvilget2) = vedtakSøknadsbehandlingIverksattInnvilget(
+
+        val (sakEtterInnvilgelse2, _, innvilget2) = iverksattSøknadsbehandlingUføre(
+            sakOgSøknad = sakEtterRevurdering1 to nySøknadJournalførtMedOppgave(
+                clock = tikkendeKlokke,
+                sakId = sakEtterRevurdering1.id,
+                søknadInnhold = søknadinnhold(
+                    fnr = sakEtterRevurdering1.fnr,
+                ),
+            ),
             stønadsperiode = stønadsperiode2,
             avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(uteståendeAvkorting),
             clock = tikkendeKlokke,
-        ).let { (sak, ny) ->
-            // legg til ny søknadsbehandling på eksisterende sak
-            sakEtterRevurdering1.copy(
-                søknadsbehandlinger = sakEtterRevurdering1.søknadsbehandlinger + ny.behandling.copy(),
-                vedtakListe = sakEtterRevurdering1.vedtakListe + ny,
-                utbetalinger = sakEtterRevurdering1.utbetalinger + sak.utbetalinger,
-            ) to ny
-        }
+        )
 
         innvilget2.harPågåendeAvkorting() shouldBe true
         innvilget2.harIdentifisertBehovForFremtidigAvkorting() shouldBe false
@@ -533,28 +483,17 @@ internal class RevurderingBeregnOgSimulerTest {
         val revurderingsperiode2 = stønadsperiode2.periode
         val (sakEtterRevurdering2, revurdering2) = opprettetRevurdering(
             revurderingsperiode = revurderingsperiode2,
-            sakOgVedtakSomKanRevurderes = sakEtterInnvilgelse2 to innvilget2,
+            sakOgVedtakSomKanRevurderes = sakEtterInnvilgelse2 to innvilget2 as VedtakSomKanRevurderes,
             clock = tikkendeKlokke,
         )
 
         val serviceAndMocks = RevurderingServiceMocks(
-            revurderingRepo = mock {
-                on { hent(any()) } doReturn revurdering2
-            },
+            revurderingRepo = mock(),
             utbetalingService = mock {
                 on { simulerUtbetaling(any()) } doReturn simulertUtbetaling().right()
-                on { hentUtbetalingerForSakId(any()) } doReturn sakEtterRevurdering2.utbetalinger
             },
-            vedtakService = mock {
-                on {
-                    kopierGjeldendeVedtaksdata(
-                        any(),
-                        any(),
-                    )
-                } doReturn sakEtterRevurdering2.kopierGjeldendeVedtaksdata(
-                    fraOgMed = revurderingsperiode2.fraOgMed,
-                    clock = tikkendeKlokke,
-                ).getOrFail().right()
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sakEtterRevurdering2
             },
         )
 

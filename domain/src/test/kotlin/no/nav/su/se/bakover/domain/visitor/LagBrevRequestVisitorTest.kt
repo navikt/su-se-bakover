@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.desember
-import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.år
@@ -1140,7 +1139,7 @@ internal class LagBrevRequestVisitorTest {
             id = UUID.randomUUID(),
             periode = revurderingsperiode,
             opprettet = fixedTidspunkt,
-            tilRevurdering = VedtakSomKanRevurderes.fromSøknadsbehandling(søknadsbehandling, utbetalingId, fixedClock),
+            tilRevurdering = VedtakSomKanRevurderes.fromSøknadsbehandling(søknadsbehandling, utbetalingId, fixedClock).id,
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("15"),
             grunnlagsdata = Grunnlagsdata.create(
@@ -1166,6 +1165,7 @@ internal class LagBrevRequestVisitorTest {
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
             tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingFerdigbehandlet,
+            sakinfo = søknadsbehandling.sakinfo(),
         )
 
         val avslåttVedtak = VedtakSomKanRevurderes.from(revurdering, utbetalingId, fixedClock)
@@ -1235,7 +1235,7 @@ internal class LagBrevRequestVisitorTest {
             id = UUID.randomUUID(),
             periode = revurderingsperiode,
             opprettet = fixedTidspunkt,
-            tilRevurdering = VedtakSomKanRevurderes.fromSøknadsbehandling(søknadsbehandling, utbetalingId, fixedClock),
+            tilRevurdering = VedtakSomKanRevurderes.fromSøknadsbehandling(søknadsbehandling, utbetalingId, fixedClock).id,
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("15"),
             beregning = expectedInnvilgetBeregning(søknadsbehandling.beregning.getId()),
@@ -1277,6 +1277,7 @@ internal class LagBrevRequestVisitorTest {
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
             tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingFerdigbehandlet,
+            sakinfo = søknadsbehandling.sakinfo(),
         )
 
         val opphørsvedtak = VedtakSomKanRevurderes.from(revurdering, utbetalingId, fixedClock)
@@ -1489,7 +1490,7 @@ internal class LagBrevRequestVisitorTest {
             id = UUID.randomUUID(),
             periode = revurderingsperiode,
             opprettet = fixedTidspunkt,
-            tilRevurdering = VedtakSomKanRevurderes.fromSøknadsbehandling(søknadsbehandling, utbetalingId, fixedClock),
+            tilRevurdering = VedtakSomKanRevurderes.fromSøknadsbehandling(søknadsbehandling, utbetalingId, fixedClock).id,
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("15"),
             beregning = expectedInnvilgetBeregning(søknadsbehandling.beregning.getId()),
@@ -1514,6 +1515,7 @@ internal class LagBrevRequestVisitorTest {
             vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
+            sakinfo = søknadsbehandling.sakinfo(),
         )
 
         val vedtakIngenEndring = VedtakSomKanRevurderes.from(revurdering, fixedClock)

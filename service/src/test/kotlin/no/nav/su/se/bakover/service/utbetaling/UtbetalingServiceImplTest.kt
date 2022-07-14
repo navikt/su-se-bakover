@@ -325,7 +325,7 @@ internal class UtbetalingServiceImplTest {
                 },
                 simuleringClient = mock {
                     on { simulerUtbetaling(any()) } doReturn simuleringNy(
-                        beregning = (stans.behandling.tilRevurdering as VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling).beregning,
+                        beregning = (sak.vedtakListe.single { it.id == stans.behandling.tilRevurdering } as VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling).beregning,
                         eksisterendeUtbetalinger = sak.utbetalinger,
                         fnr = sak.fnr,
                         sakId = sak.id,

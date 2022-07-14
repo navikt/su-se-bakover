@@ -341,7 +341,7 @@ internal class StatistikkServiceImplTest {
             saksbehandler = opprettetRevurdering.saksbehandler.navIdent,
             behandlingType = Statistikk.Behandling.BehandlingType.REVURDERING,
             behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.REVURDERING.beskrivelse,
-            relatertBehandlingId = opprettetRevurdering.tilRevurdering.id,
+            relatertBehandlingId = opprettetRevurdering.tilRevurdering,
             avsluttet = false,
         )
 
@@ -374,7 +374,7 @@ internal class StatistikkServiceImplTest {
             saksbehandler = revurderingTilAttestering.saksbehandler.navIdent,
             behandlingType = Statistikk.Behandling.BehandlingType.REVURDERING,
             behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.REVURDERING.beskrivelse,
-            relatertBehandlingId = revurderingTilAttestering.tilRevurdering.id,
+            relatertBehandlingId = revurderingTilAttestering.tilRevurdering,
             avsluttet = false,
         )
 
@@ -408,7 +408,7 @@ internal class StatistikkServiceImplTest {
             saksbehandler = iverksattRevurdering.saksbehandler.navIdent,
             behandlingType = Statistikk.Behandling.BehandlingType.REVURDERING,
             behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.REVURDERING.beskrivelse,
-            relatertBehandlingId = iverksattRevurdering.tilRevurdering.id,
+            relatertBehandlingId = iverksattRevurdering.tilRevurdering,
             resultat = "Innvilget",
             resultatBegrunnelse = null,
             beslutter = iverksattRevurdering.attestering.attestant.navIdent,

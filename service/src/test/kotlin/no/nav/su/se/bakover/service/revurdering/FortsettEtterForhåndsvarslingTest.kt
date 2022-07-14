@@ -71,10 +71,10 @@ internal class FortsettEtterForhåndsvarslingTest {
 
     @Test
     fun `fortsett med samme opplysninger etter forhåndsvarsling`() {
-        val simulertRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+        val (sak, simulertRevurdering) = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
             forhåndsvarsel = Forhåndsvarsel.UnderBehandling.Sendt,
-            revurderingsperiode = Periode.create(1.juli(2021), 31.desember(2021))
-        ).second
+            revurderingsperiode = Periode.create(1.juli(2021), 31.desember(2021)),
+        )
 
         val mocks = RevurderingServiceMocks(
             oppgaveService = mock {
@@ -87,9 +87,12 @@ internal class FortsettEtterForhåndsvarslingTest {
             revurderingRepo = mock {
                 on { hent(any()) } doReturn simulertRevurdering
             },
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
+            },
             tilbakekrevingService = mock {
                 on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
-            }
+            },
         )
         mocks.revurderingService.fortsettEtterForhåndsvarsling(
             FortsettEtterForhåndsvarslingRequest.FortsettMedSammeOpplysninger(
@@ -133,6 +136,7 @@ internal class FortsettEtterForhåndsvarslingTest {
             },
             anyOrNull(),
         )
+        verify(mocks.sakService).hentSakForRevurdering(any())
         verify(mocks.tilbakekrevingService).hentAvventerKravgrunnlag(any<UUID>())
         mocks.verifyNoMoreInteractions()
     }
@@ -213,7 +217,7 @@ internal class FortsettEtterForhåndsvarslingTest {
     @Test
     fun `kan ikke beslutte en allerede besluttet forhåndsvarsling`() {
         val simulertRevurdering = simulertRevurdering(
-            forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.EndreGrunnlaget("begrunnelse")
+            forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.EndreGrunnlaget("begrunnelse"),
         ).second
 
         val revurderingRepoMock = mock<RevurderingRepo> {

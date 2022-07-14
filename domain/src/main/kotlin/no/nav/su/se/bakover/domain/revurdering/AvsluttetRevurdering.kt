@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.util.UUID
 
@@ -23,7 +23,8 @@ data class AvsluttetRevurdering private constructor(
     override val id: UUID = underliggendeRevurdering.id
     override val opprettet: Tidspunkt = underliggendeRevurdering.opprettet
     override val periode: Periode = underliggendeRevurdering.periode
-    override val tilRevurdering: VedtakSomKanRevurderes = underliggendeRevurdering.tilRevurdering
+    override val tilRevurdering: UUID = underliggendeRevurdering.tilRevurdering
+    override val sakinfo: SakInfo = underliggendeRevurdering.sakinfo
     override val grunnlagsdata: Grunnlagsdata = underliggendeRevurdering.grunnlagsdata
     override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering = underliggendeRevurdering.vilkårsvurderinger
     override val saksbehandler: NavIdentBruker.Saksbehandler = underliggendeRevurdering.saksbehandler

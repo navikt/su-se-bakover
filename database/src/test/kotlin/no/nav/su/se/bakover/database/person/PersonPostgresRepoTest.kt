@@ -231,6 +231,7 @@ internal class PersonPostgresRepoTest {
                         attesteringer = Attesteringshistorikk.empty(),
                         avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
                         tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling,
+                        sakinfo = revurdering.sakinfo,
                     ),
                 ).first
 
@@ -274,7 +275,8 @@ internal class PersonPostgresRepoTest {
                         informasjonSomRevurderes = revurdering.informasjonSomRevurderes,
                         attesteringer = Attesteringshistorikk.empty(),
                         avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
-                        tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling
+                        tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling,
+                        sakinfo = revurdering.sakinfo,
                     ),
                 ).first
             val revurderingAvRevurdering = testDataHelper.persisterRevurderingOpprettet(

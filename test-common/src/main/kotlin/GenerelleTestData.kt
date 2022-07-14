@@ -13,7 +13,9 @@ import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import java.time.Clock
 import java.time.LocalDate
@@ -69,6 +71,13 @@ val fnr = Fnr.generer()
 val epsFnr = Fnr.generer()
 
 val aktørId = AktørId("aktørId")
+
+val sakinfo = SakInfo(
+    sakId = sakId,
+    saksnummer = saksnummer,
+    fnr = fnr,
+    type = Sakstype.UFØRE,
+)
 
 fun person(
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,

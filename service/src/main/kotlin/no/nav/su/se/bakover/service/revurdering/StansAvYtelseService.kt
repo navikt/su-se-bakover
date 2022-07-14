@@ -57,7 +57,7 @@ internal class StansAvYtelseService(
                             periode = gjeldendeVedtaksdata.garantertSammenhengendePeriode(),
                             grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
                             vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
-                            tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(request.fraOgMed)!!,
+                            tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(request.fraOgMed)!!.id,
                             saksbehandler = request.saksbehandler,
                             simulering = simulering.simulering,
                             revurderingsårsak = request.revurderingsårsak,
@@ -67,11 +67,14 @@ internal class StansAvYtelseService(
                 }
             }
             is StansYtelseRequest.Opprett -> {
-                if (sakService.hentSak(request.sakId)
+                val sak = sakService.hentSak(request.sakId)
                     .getOrHandle { return KunneIkkeStanseYtelse.FantIkkeSak.left() }
-                    .harÅpenRevurderingForStansAvYtelse()
-                ) return KunneIkkeStanseYtelse.SakHarÅpenRevurderingForStansAvYtelse.left()
 
+                if (sak.harÅpenRevurderingForStansAvYtelse()) {
+                    return KunneIkkeStanseYtelse.SakHarÅpenRevurderingForStansAvYtelse.left()
+                }
+
+                // TODO hent rett fra sak
                 val gjeldendeVedtaksdata = kopierGjeldendeVedtaksdata(request)
                     .getOrHandle { return it.left() }
 
@@ -84,10 +87,11 @@ internal class StansAvYtelseService(
                     periode = gjeldendeVedtaksdata.garantertSammenhengendePeriode(),
                     grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
                     vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
-                    tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(request.fraOgMed)!!,
+                    tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(request.fraOgMed)!!.id,
                     saksbehandler = request.saksbehandler,
                     simulering = simulering.simulering,
                     revurderingsårsak = request.revurderingsårsak,
+                    sakinfo = sak.info()
                 )
             }
         }
