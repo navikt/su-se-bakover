@@ -23,6 +23,7 @@ data class JmsConfig(
                 channel = it.mqChannel
                 queueManager = it.mqQueueManager
                 transportType = WMQConstants.WMQ_CM_CLIENT
+                clientReconnectOptions = WMQConstants.WMQ_CLIENT_RECONNECT_Q_MGR
             }
         }.createContext(applicationConfig.serviceUser.username, applicationConfig.serviceUser.password)
     }
