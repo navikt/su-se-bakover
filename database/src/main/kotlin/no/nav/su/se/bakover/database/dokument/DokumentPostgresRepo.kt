@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.database.dokument
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.persistence.TransactionContext
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.PostgresTransactionContext.Companion.withTransaction
@@ -41,7 +41,7 @@ internal class DokumentPostgresRepo(
                             "opprettet" to dokument.opprettet,
                             "sakId" to dokument.metadata.sakId,
                             "generertDokument" to dokument.generertDokument,
-                            "generertDokumentJson" to objectMapper.writeValueAsString(dokument.generertDokumentJson),
+                            "generertDokumentJson" to serialize(dokument.generertDokumentJson),
                             "type" to when (dokument) {
                                 is Dokument.MedMetadata.Informasjon.Viktig -> DokumentKategori.INFORMASJON_VIKTIG
                                 is Dokument.MedMetadata.Informasjon.Annet -> DokumentKategori.INFORMASJON_ANNET
@@ -239,7 +239,7 @@ internal class DokumentPostgresRepo(
         val id = uuid("id")
         val opprettet = tidspunkt("opprettet")
         val innhold = bytes("generertDokument")
-        val request = objectMapper.readValue<String>(string("generertDokumentJson"))
+        val request = deserialize<String>(string("generertDokumentJson"))
         val sakId = uuid("sakid")
         val søknadId = uuidOrNull("søknadId")
         val vedtakId = uuidOrNull("vedtakId")

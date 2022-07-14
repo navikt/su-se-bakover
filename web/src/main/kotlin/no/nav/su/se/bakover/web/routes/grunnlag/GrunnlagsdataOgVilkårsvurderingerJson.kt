@@ -11,6 +11,8 @@ import no.nav.su.se.bakover.web.routes.vilkår.FamiliegjenforeningVilkårJson.Co
 import no.nav.su.se.bakover.web.routes.vilkår.PersonligOppmøteVilkårJson
 import no.nav.su.se.bakover.web.routes.vilkår.alder.PensjonsVilkårJson
 import no.nav.su.se.bakover.web.routes.vilkår.alder.toJson
+import no.nav.su.se.bakover.web.routes.vilkår.flyktning.FlyktningVilkårJson
+import no.nav.su.se.bakover.web.routes.vilkår.flyktning.toJson
 import no.nav.su.se.bakover.web.routes.vilkår.lovligopphold.LovligOppholdVilkårJson
 import no.nav.su.se.bakover.web.routes.vilkår.lovligopphold.LovligOppholdVilkårJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.vilkår.opplysningsplikt.OpplysningspliktVilkårJson
@@ -27,6 +29,7 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
     val opplysningsplikt: OpplysningspliktVilkårJson?,
     val pensjon: PensjonsVilkårJson?,
     val familiegjenforening: FamiliegjenforeningVilkårJson?,
+    val flyktning: FlyktningVilkårJson?,
     val personligOppmøte: PersonligOppmøteVilkårJson?,
 ) {
     companion object {
@@ -51,6 +54,10 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
                     { it.toJson() },
                 ),
                 familiegjenforening = vilkårsvurderinger.familiegjenforening().fold(
+                    { null },
+                    { it.toJson() },
+                ),
+                flyktning = vilkårsvurderinger.flyktningVilkår().fold(
                     { null },
                     { it.toJson() },
                 ),

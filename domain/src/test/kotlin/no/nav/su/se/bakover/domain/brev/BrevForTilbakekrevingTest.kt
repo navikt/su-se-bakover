@@ -2,8 +2,15 @@ package no.nav.su.se.bakover.domain.brev
 
 import arrow.core.Either
 import arrow.core.right
+import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.periode.januar
+import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.common.periode.år
+import no.nav.su.se.bakover.common.trimWhitespace
+import no.nav.su.se.bakover.domain.Beløp
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.MånedBeløp
+import no.nav.su.se.bakover.domain.Månedsbeløp
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Sak
@@ -12,6 +19,7 @@ import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.attesteringUnderkjent
@@ -24,10 +32,13 @@ import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.requireType
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
+import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.simulertRevurdering
+import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vilkår.formuevilkårAvslåttPgrBrukersformue
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import java.math.BigDecimal
 import java.time.Clock
 
 class BrevForTilbakekrevingTest {
@@ -245,6 +256,37 @@ class BrevForTilbakekrevingTest {
                     brev.tilDokument { "fakePDF".toByteArray().right() }
                         .getOrFail(),
                 )
+            }
+        }
+
+        @Test
+        fun `erstatt brutto med netto`() {
+            vedtakRevurdering(
+                grunnlagsdataOverrides = listOf(
+                    fradragsgrunnlagArbeidsinntekt(periode = år(2021), arbeidsinntekt = 5000.0),
+                ),
+            ).also { (sak, vedtak) ->
+                requireType<Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering>>(sak to vedtak)
+                val bruttobrev = requireType<LagBrevRequest.TilbakekrevingAvPenger>(
+                    lagVisitor(sak = sak).let { visitor ->
+                        vedtak.accept(visitor)
+                        visitor.brevRequest.getOrFail()
+                    },
+                )
+                bruttobrev.brevInnhold.shouldBeType<BrevInnhold.RevurderingMedTilbakekrevingAvPenger>()
+                    .also { innhold ->
+                        innhold.tilbakekreving.sumOf { BigDecimal(it.beløp.trimWhitespace()).intValueExact() } shouldBe 6 * 5000 // jan-juni * 5000
+                    }
+                val nettobrev = bruttobrev.erstattBruttoMedNettoFeilutbetaling(
+                    netto = (januar(2021)..juni(2021)).måneder().map {
+                        MånedBeløp(it, Beløp(3456))
+                    }.let {
+                        Månedsbeløp(it)
+                    },
+                )
+                nettobrev.brevInnhold.shouldBeType<BrevInnhold.RevurderingMedTilbakekrevingAvPenger>().also {
+                    it.tilbakekreving.sumOf { BigDecimal(it.beløp.trimWhitespace()).intValueExact() } shouldBe 6 * 3456 // jan-juni * 3456
+                }
             }
         }
     }

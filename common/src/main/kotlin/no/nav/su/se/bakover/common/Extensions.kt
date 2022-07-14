@@ -30,3 +30,7 @@ fun getOrCreateCorrelationId(): String {
     return MDC.get("X-Correlation-ID") ?: UUID.randomUUID().toString()
         .also { log.warn("Mangler X-Correlation-ID. Bruker random uuid $it") }
 }
+
+fun String.trimWhitespace(): String {
+    return this.filterNot { it.isWhitespace() }
+}

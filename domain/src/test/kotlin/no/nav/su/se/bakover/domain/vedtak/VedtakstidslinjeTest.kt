@@ -411,6 +411,7 @@ internal class VedtakstidslinjeTest {
                                         vilkårsvurdering.utenlandsopphold,
                                         vilkårsvurdering.opplysningsplikt,
                                         vilkårsvurdering.lovligOpphold,
+                                        vilkårsvurdering.flyktning,
                                         vilkårsvurdering.personligOppmøte,
                                     ),
                                 )

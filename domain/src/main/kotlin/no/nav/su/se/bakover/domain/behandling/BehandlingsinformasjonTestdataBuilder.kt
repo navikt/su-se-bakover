@@ -9,9 +9,6 @@ import org.jetbrains.annotations.TestOnly
 @TestOnly
 fun Behandlingsinformasjon.withAlleVilkårOppfylt() =
     Behandlingsinformasjon(
-        flyktning = Behandlingsinformasjon.Flyktning(
-            status = Behandlingsinformasjon.Flyktning.Status.VilkårOppfylt,
-        ),
         fastOppholdINorge = Behandlingsinformasjon.FastOppholdINorge(
             status = Behandlingsinformasjon.FastOppholdINorge.Status.VilkårOppfylt,
         ),
@@ -23,9 +20,6 @@ fun Behandlingsinformasjon.withAlleVilkårOppfylt() =
 @TestOnly
 fun Behandlingsinformasjon.withAlleVilkårAvslått() =
     Behandlingsinformasjon(
-        flyktning = Behandlingsinformasjon.Flyktning(
-            status = Behandlingsinformasjon.Flyktning.Status.VilkårIkkeOppfylt,
-        ),
         fastOppholdINorge = Behandlingsinformasjon.FastOppholdINorge(
             status = Behandlingsinformasjon.FastOppholdINorge.Status.VilkårIkkeOppfylt,
         ),
@@ -35,11 +29,11 @@ fun Behandlingsinformasjon.withAlleVilkårAvslått() =
     )
 
 @TestOnly
-fun Behandlingsinformasjon.withAvslåttFlyktning(): Behandlingsinformasjon {
+fun Behandlingsinformasjon.withAvslåttInstitusjonsopphold(): Behandlingsinformasjon {
     return withAlleVilkårOppfylt().patch(
         Behandlingsinformasjon(
-            flyktning = Behandlingsinformasjon.Flyktning(
-                status = Behandlingsinformasjon.Flyktning.Status.VilkårIkkeOppfylt,
+            institusjonsopphold = Behandlingsinformasjon.Institusjonsopphold(
+                status = Behandlingsinformasjon.Institusjonsopphold.Status.VilkårIkkeOppfylt,
             ),
         ),
     )

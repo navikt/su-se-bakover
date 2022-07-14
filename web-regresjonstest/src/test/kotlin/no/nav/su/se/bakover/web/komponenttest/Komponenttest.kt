@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.web.Consumers
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.services.tilbakekreving.TilbakekrevingConsumer
+import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringConsumer
 import no.nav.su.se.bakover.web.susebakover
 import org.mockito.kotlin.mock
 import java.time.Clock
@@ -34,17 +35,18 @@ class AppComponents private constructor(
     val consumers: Consumers,
 ) {
     companion object {
-        fun instance(clock: Clock, dataSource: DataSource): AppComponents {
+        fun instance(
+            clock: Clock,
+            dataSource: DataSource,
+            clientBuilder: (databaseRepos: DatabaseRepos) -> Clients,
+        ): AppComponents {
             val satsFactory = satsFactoryTestPåDato(LocalDate.now(clock))
             val databaseRepos: DatabaseRepos = SharedRegressionTestData.databaseRepos(
                 dataSource = dataSource,
                 clock = clock,
                 satsFactory = satsFactoryTest,
             )
-            val clients: Clients = TestClientsBuilder(
-                clock = clock,
-                databaseRepos = databaseRepos,
-            ).build(SharedRegressionTestData.applicationConfig)
+            val clients = clientBuilder(databaseRepos)
             val unleash: Unleash = FakeUnleash().apply { enableAll() }
             val services: Services = ServiceBuilder.build(
                 databaseRepos = databaseRepos,
@@ -64,7 +66,12 @@ class AppComponents private constructor(
                     tilbakekrevingService = services.tilbakekrevingService,
                     revurderingService = services.revurdering,
                     clock = clock,
-                )
+                ),
+                utbetalingKvitteringConsumer = UtbetalingKvitteringConsumer(
+                    utbetalingService = services.utbetaling,
+                    ferdigstillVedtakService = services.ferdigstillVedtak,
+                    clock = clock,
+                ),
             )
             return AppComponents(
                 clock = clock,
@@ -81,10 +88,16 @@ class AppComponents private constructor(
 
 internal fun withKomptestApplication(
     clock: Clock = fixedClock,
+    clients: (databaseRepos: DatabaseRepos) -> Clients = {
+        TestClientsBuilder(
+            clock = clock,
+            databaseRepos = it,
+        ).build(SharedRegressionTestData.applicationConfig)
+    },
     test: ApplicationTestBuilder.(appComponents: AppComponents) -> Unit,
 ) {
     withMigratedDb { dataSource ->
-        val appComponents = AppComponents.instance(clock, dataSource)
+        val appComponents = AppComponents.instance(clock, dataSource, clients)
         testApplication(
             appComponents = appComponents,
             test = test,

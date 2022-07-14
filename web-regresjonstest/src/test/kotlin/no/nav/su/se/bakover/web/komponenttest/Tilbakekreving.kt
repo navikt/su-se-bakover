@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.komponenttest
 
+import arrow.core.left
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.server.testing.ApplicationTestBuilder
@@ -9,19 +10,24 @@ import no.nav.su.se.bakover.common.fixedClock
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.oktober
-import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.oktober
+import no.nav.su.se.bakover.common.trimWhitespace
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.oppdrag.simulering.toYtelsekode
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.AvventerKravgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.MottattKravgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.SendtTilbakekrevingsvedtak
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingsvedtakForsendelseFeil
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.service.brev.HentDokumenterForIdType
+import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.shouldBeType
+import no.nav.su.se.bakover.web.SharedRegressionTestData
+import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.revurdering.attestering.sendTilAttestering
 import no.nav.su.se.bakover.web.revurdering.avgjørTilbakekreving
 import no.nav.su.se.bakover.web.revurdering.beregnOgSimuler
@@ -34,16 +40,19 @@ import no.nav.su.se.bakover.web.services.tilbakekreving.TilbakekrevingsmeldingMa
 import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.RevurderingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
+import org.json.JSONObject
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import java.math.BigDecimal
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
 import java.util.UUID
 
 class Tilbakekreving {
     @Test
     fun `happy path full tilbakekreving`() {
         withKomptestApplication(
-            clock = 1.oktober(2021).fixedClock(),
+            clock = TikkendeKlokke(1.oktober(2021).fixedClock()),
         ) { appComponents ->
             val (sakid, revurderingId) = vedtakMedTilbakekreving(avgjørelse = TilbakekrevingsbehandlingJson.TilbakekrevingsAvgjørelseJson.TILBAKEKREV)
 
@@ -58,13 +67,22 @@ class Tilbakekreving {
                     revurdering
                 }
 
+            appComponents.mottaKvitteringForUtbetalingFraØkonomi(vedtak.utbetalingId)
+
+            appComponents.services.utbetaling.hentUtbetaling(vedtak.utbetalingId).getOrFail()
+                .shouldBeType<Utbetaling.OversendtUtbetaling.MedKvittering>()
+
+            appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.Vedtak(vedtak.id)).also {
+                it shouldBe emptyList()
+            }
+
             appComponents.services.tilbakekrevingService.hentAvventerKravgrunnlag(UUID.fromString(sakid))
                 .single() shouldBe vedtak.behandling.tilbakekrevingsbehandling
             appComponents.services.tilbakekrevingService.hentAvventerKravgrunnlag(vedtak.utbetalingId) shouldBe vedtak.behandling.tilbakekrevingsbehandling
 
             appComponents.consumers.tilbakekrevingConsumer.onMessage(
                 lagKravgrunnlag(vedtak) {
-                    lagPerioder(
+                    lagKravgrunnlagPerioder(
                         mai(2021).until(oktober(2021)).map {
                             Feilutbetaling(
                                 måned = it,
@@ -98,7 +116,21 @@ class Tilbakekreving {
                             <kodeAarsak>ANNET</kodeAarsak>
                             <kodeSkyld>BRUKER</kodeSkyld>
                         </tilbakekrevingsbelop>
-                    """.replace("\n", "").filterNot { it.isWhitespace() }
+                    """.replace("\n", "").trimWhitespace()
+                }
+
+            @Suppress("UNCHECKED_CAST")
+            appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.Vedtak(vedtak.id))
+                .also { dokumenter ->
+                    dokumenter.single().also { brev ->
+                        (
+                            JSONObject(brev.generertDokumentJson).getJSONArray("tilbakekreving")
+                                .map { it } as List<JSONObject>
+                            )
+                            .map { it.getString("beløp") }
+                            .all { it == "13 579" } // 18308 - 4729 = 13579
+                        brev.tittel shouldBe "Vi har vurdert den supplerende stønaden din på nytt og vil kreve tilbake penger"
+                    }
                 }
         }
     }
@@ -106,7 +138,7 @@ class Tilbakekreving {
     @Test
     fun `happy path ingen tilbakekreving`() {
         withKomptestApplication(
-            clock = 1.oktober(2021).fixedClock(),
+            clock = TikkendeKlokke(1.oktober(2021).fixedClock()),
         ) { appComponents ->
             val (sakid, revurderingId) = vedtakMedTilbakekreving(avgjørelse = TilbakekrevingsbehandlingJson.TilbakekrevingsAvgjørelseJson.IKKE_TILBAKEKREV)
 
@@ -121,13 +153,19 @@ class Tilbakekreving {
                     revurdering
                 }
 
+            appComponents.mottaKvitteringForUtbetalingFraØkonomi(vedtak.utbetalingId)
+
+            appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.Vedtak(vedtak.id)).also {
+                it shouldBe emptyList()
+            }
+
             appComponents.services.tilbakekrevingService.hentAvventerKravgrunnlag(UUID.fromString(sakid))
                 .single() shouldBe vedtak.behandling.tilbakekrevingsbehandling
             appComponents.services.tilbakekrevingService.hentAvventerKravgrunnlag(vedtak.utbetalingId) shouldBe vedtak.behandling.tilbakekrevingsbehandling
 
             appComponents.consumers.tilbakekrevingConsumer.onMessage(
                 lagKravgrunnlag(vedtak) {
-                    lagPerioder(
+                    lagKravgrunnlagPerioder(
                         mai(2021).until(oktober(2021)).map {
                             Feilutbetaling(
                                 måned = it,
@@ -142,9 +180,7 @@ class Tilbakekreving {
             appComponents.services.vedtakService.hentForRevurderingId(UUID.fromString(revurderingId))!!
                 .shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering>().behandling.tilbakekrevingsbehandling.shouldBeType<MottattKravgrunnlag>()
 
-            appComponents.services.tilbakekrevingService.sendTilbakekrevingsvedtak {
-                TilbakekrevingsmeldingMapper.toKravgrunnlg(it).getOrFail()
-            }
+            appComponents.sendTilbakekrevingsvedtakTilØkonomi()
 
             appComponents.services.vedtakService.hentForRevurderingId(UUID.fromString(revurderingId))!!
                 .shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering>().behandling.tilbakekrevingsbehandling.shouldBeType<SendtTilbakekrevingsvedtak>()
@@ -161,7 +197,15 @@ class Tilbakekreving {
                             <kodeAarsak>ANNET</kodeAarsak>
                             <kodeSkyld>IKKE_FORDELT</kodeSkyld>
                         </tilbakekrevingsbelop>
-                    """.replace("\n", "").filterNot { it.isWhitespace() }
+                    """.replace("\n", "").trimWhitespace()
+                }
+
+            @Suppress("UNCHECKED_CAST")
+            appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.Vedtak(vedtak.id))
+                .also { dokumenter ->
+                    dokumenter.single().also { brev ->
+                        brev.tittel shouldBe "Vi har vurdert den supplerende stønaden din på nytt"
+                    }
                 }
         }
     }
@@ -180,7 +224,7 @@ class Tilbakekreving {
                 appComponents.consumers.tilbakekrevingConsumer.onMessage(
                     // tuller litt med utbetalingsid
                     lagKravgrunnlag(vedtak.copy(utbetalingId = UUID30.randomUUID())) {
-                        lagPerioder(
+                        lagKravgrunnlagPerioder(
                             mai(2021).until(oktober(2021)).map {
                                 Feilutbetaling(
                                     måned = it,
@@ -210,7 +254,7 @@ class Tilbakekreving {
             assertThrows<IllegalStateException> {
                 appComponents.consumers.tilbakekrevingConsumer.onMessage(
                     lagKravgrunnlag(vedtak) {
-                        lagPerioder(
+                        lagKravgrunnlagPerioder(
                             mai(2021).until(oktober(2021)).map {
                                 Feilutbetaling(
                                     måned = it,
@@ -240,7 +284,7 @@ class Tilbakekreving {
             assertThrows<IllegalStateException> {
                 appComponents.consumers.tilbakekrevingConsumer.onMessage(
                     lagKravgrunnlag(vedtak) {
-                        lagPerioder(
+                        lagKravgrunnlagPerioder(
                             mai(2021).until(juni(2021)).map {
                                 Feilutbetaling(
                                     måned = it,
@@ -254,6 +298,63 @@ class Tilbakekreving {
             }.also {
                 it.message shouldContain "Ikke samsvar mellom perioder og beløp i simulering og kravgrunnlag for revurdering:"
             }
+        }
+    }
+
+    @Test
+    fun `send tilbakekrevingsvedtak lagrer ingenting dersom kall til økonomi feiler`() {
+        val clock = 1.oktober(2021).fixedClock()
+        withKomptestApplication(
+            clock = clock,
+            clients = {
+                TestClientsBuilder(
+                    clock = clock,
+                    databaseRepos = it,
+                ).build(SharedRegressionTestData.applicationConfig).copy(
+                    tilbakekrevingClient = mock {
+                        on { sendTilbakekrevingsvedtak(any()) } doReturn TilbakekrevingsvedtakForsendelseFeil.left()
+                    },
+                )
+            },
+        ) { appComponents ->
+            val (_, revurderingId) = vedtakMedTilbakekreving(avgjørelse = TilbakekrevingsbehandlingJson.TilbakekrevingsAvgjørelseJson.TILBAKEKREV)
+
+            val vedtak = appComponents.services.vedtakService.hentForRevurderingId(UUID.fromString(revurderingId))!!
+                .shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering>().also {
+                    it.behandling.tilbakekrevingsbehandling.shouldBeType<AvventerKravgrunnlag>()
+                }
+
+            appComponents.consumers.tilbakekrevingConsumer.onMessage(
+                lagKravgrunnlag(vedtak) {
+                    lagKravgrunnlagPerioder(
+                        mai(2021).until(oktober(2021)).map {
+                            Feilutbetaling(
+                                måned = it,
+                                gammelUtbetaling = 21989,
+                                nyUtbetaling = 3681,
+                            )
+                        },
+                    )
+                },
+            )
+
+            appComponents.services.vedtakService.hentForRevurderingId(UUID.fromString(revurderingId))!!
+                .shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering>().also {
+                    it.behandling.tilbakekrevingsbehandling.shouldBeType<MottattKravgrunnlag>()
+                }
+
+            assertThrows<RuntimeException> {
+                appComponents.sendTilbakekrevingsvedtakTilØkonomi()
+            }.also {
+                it.message shouldContain "Feil ved oversendelse av tilbakekrevingsvedtak for tilbakekrevingsbehandling"
+            }
+
+            appComponents.services.vedtakService.hentForRevurderingId(UUID.fromString(revurderingId))!!
+                .shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering>().also {
+                    it.behandling.tilbakekrevingsbehandling.shouldBeType<MottattKravgrunnlag>()
+                }
+
+            appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.Vedtak(vedtak.id)) shouldBe emptyList()
         }
     }
 
@@ -321,80 +422,5 @@ class Tilbakekreving {
 
             sakId to revurderingId
         }
-    }
-
-    private fun lagKravgrunnlag(
-        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering,
-        lagPerioder: () -> String,
-    ): String {
-        return """
-        <urn:detaljertKravgrunnlagMelding xmlns:mmel="urn:no:nav:tilbakekreving:typer:v1" xmlns:urn="urn:no:nav:tilbakekreving:kravgrunnlag:detalj:v1">
-            <urn:detaljertKravgrunnlag>
-                <urn:kravgrunnlagId>298606</urn:kravgrunnlagId>
-                <urn:vedtakId>436206</urn:vedtakId>
-                <urn:kodeStatusKrav>NY</urn:kodeStatusKrav>
-                <urn:kodeFagomraade>${vedtak.behandling.sakstype.toYtelsekode()}</urn:kodeFagomraade>
-                <urn:fagsystemId>${vedtak.behandling.saksnummer}</urn:fagsystemId>
-                <urn:vedtakIdOmgjort>0</urn:vedtakIdOmgjort>
-                <urn:vedtakGjelderId>${vedtak.behandling.fnr}</urn:vedtakGjelderId>
-                <urn:typeGjelderId>PERSON</urn:typeGjelderId>
-                <urn:utbetalesTilId>${vedtak.behandling.fnr}</urn:utbetalesTilId>
-                <urn:typeUtbetId>PERSON</urn:typeUtbetId>
-                <urn:enhetAnsvarlig>8020</urn:enhetAnsvarlig>
-                <urn:enhetBosted>8020</urn:enhetBosted>
-                <urn:enhetBehandl>8020</urn:enhetBehandl>
-                <urn:kontrollfelt>2022-02-07-18.39.47.693011</urn:kontrollfelt>
-                <urn:saksbehId>K231B433</urn:saksbehId>
-                <urn:referanse>${vedtak.utbetalingId}</urn:referanse>
-                ${lagPerioder()}
-            </urn:detaljertKravgrunnlag>
-        </urn:detaljertKravgrunnlagMelding><?xml version="1.0" encoding="utf-8"?>
-    """
-    }
-
-    private fun lagPerioder(feilutbetalinger: List<Feilutbetaling>): String {
-        return StringBuffer().apply {
-            feilutbetalinger.forEach {
-                append(
-                    """
-                <urn:tilbakekrevingsPeriode>
-                    <urn:periode>
-                        <mmel:fom>${it.måned.fraOgMed}</mmel:fom>
-                        <mmel:tom>${it.måned.tilOgMed}</mmel:tom>
-                    </urn:periode>
-                    <urn:belopSkattMnd>${it.skattMnd}</urn:belopSkattMnd>
-                    <urn:tilbakekrevingsBelop>
-                        <urn:kodeKlasse>KL_KODE_FEIL_INNT</urn:kodeKlasse>
-                        <urn:typeKlasse>FEIL</urn:typeKlasse>
-                        <urn:belopOpprUtbet>0.00</urn:belopOpprUtbet>
-                        <urn:belopNy>${it.feilutbetalt()}</urn:belopNy>
-                        <urn:belopTilbakekreves>0.00</urn:belopTilbakekreves>
-                        <urn:belopUinnkrevd>0.00</urn:belopUinnkrevd>
-                        <urn:skattProsent>0.0000</urn:skattProsent>
-                    </urn:tilbakekrevingsBelop>
-                    <urn:tilbakekrevingsBelop>
-                        <urn:kodeKlasse>SUUFORE</urn:kodeKlasse>
-                        <urn:typeKlasse>YTEL</urn:typeKlasse>
-                        <urn:belopOpprUtbet>${it.gammelUtbetaling}</urn:belopOpprUtbet>
-                        <urn:belopNy>${it.nyUtbetaling}</urn:belopNy>
-                        <urn:belopTilbakekreves>${it.feilutbetalt()}</urn:belopTilbakekreves>
-                        <urn:belopUinnkrevd>0.00</urn:belopUinnkrevd>
-                        <urn:skattProsent>${it.skattProsent}</urn:skattProsent>
-                    </urn:tilbakekrevingsBelop>
-            </urn:tilbakekrevingsPeriode>
-                    """.trimIndent(),
-                )
-            }
-        }.toString()
-    }
-
-    private data class Feilutbetaling(
-        val måned: Måned,
-        var gammelUtbetaling: Int,
-        val nyUtbetaling: Int,
-        val skattMnd: BigDecimal = BigDecimal("4729.00"),
-        val skattProsent: BigDecimal = BigDecimal("43.9983"),
-    ) {
-        fun feilutbetalt() = gammelUtbetaling - nyUtbetaling
     }
 }

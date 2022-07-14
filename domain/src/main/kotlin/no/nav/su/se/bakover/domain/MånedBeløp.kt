@@ -49,6 +49,14 @@ value class Beløp private constructor(
         operator fun invoke(int: Int): Beløp {
             return Beløp(abs(int))
         }
+
+        fun zero(): Beløp {
+            return invoke(0)
+        }
+    }
+
+    operator fun plus(other: Beløp): Beløp {
+        return invoke(value + other.value)
     }
 
     fun sum(): Int {

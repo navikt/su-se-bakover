@@ -24,7 +24,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 
-internal class V150__migrer_personlig_oppmøte : BaseJavaMigration() {
+internal class V152__migrer_personlig_oppmøte : BaseJavaMigration() {
     override fun migrate(context: Context?) {
         val statement = context!!.connection.createStatement()
 

@@ -136,6 +136,7 @@ internal fun Route.sakRoutes(
                         .mapLeft { Feilresponser.ugyldigFødselsnummer }
                 }
                 .map { fnr ->
+                    call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
                     sakService.hentAlleredeGjeldendeSakForBruker(fnr)
                         .let { info ->
                             AlleredeGjeldendeSakForBrukerJson(

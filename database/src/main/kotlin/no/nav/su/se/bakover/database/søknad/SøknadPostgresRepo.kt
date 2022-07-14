@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.database.søknad
 
-import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.database.PostgresSessionFactory
@@ -46,7 +46,7 @@ internal class SøknadPostgresRepo(
                     mapOf(
                         "id" to søknad.id,
                         "sakId" to søknad.sakId,
-                        "soknad" to objectMapper.writeValueAsString(søknad.søknadInnhold),
+                        "soknad" to serialize(søknad.søknadInnhold),
                         "opprettet" to søknad.opprettet,
                         "ident" to identBruker.navIdent,
                     ),
@@ -62,7 +62,7 @@ internal class SøknadPostgresRepo(
                 "update søknad set lukket=to_json(:lukket::json) where id=:id".oppdatering(
                     mapOf(
                         "id" to søknad.id,
-                        "lukket" to objectMapper.writeValueAsString(søknad.toLukketJson()),
+                        "lukket" to serialize(søknad.toLukketJson()),
                     ),
                     session,
                 )

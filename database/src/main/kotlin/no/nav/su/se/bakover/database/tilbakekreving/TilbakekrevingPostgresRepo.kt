@@ -1,11 +1,13 @@
 package no.nav.su.se.bakover.database.tilbakekreving
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.persistence.TransactionContext
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.PostgresSessionFactory
+import no.nav.su.se.bakover.database.PostgresTransactionContext.Companion.withSession
+import no.nav.su.se.bakover.database.PostgresTransactionContext.Companion.withTransaction
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.TransactionalSession
 import no.nav.su.se.bakover.database.hent
@@ -26,7 +28,9 @@ import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingRepo
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
 import java.util.UUID
 
-internal class TilbakekrevingPostgresRepo(private val sessionFactory: PostgresSessionFactory) : TilbakekrevingRepo {
+internal class TilbakekrevingPostgresRepo(
+    private val sessionFactory: PostgresSessionFactory,
+) : TilbakekrevingRepo {
 
     override fun lagre(tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag) {
         sessionFactory.withSession { session ->
@@ -34,8 +38,11 @@ internal class TilbakekrevingPostgresRepo(private val sessionFactory: PostgresSe
         }
     }
 
-    override fun lagre(tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.SendtTilbakekrevingsvedtak) {
-        sessionFactory.withSession { session ->
+    override fun lagre(
+        tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.SendtTilbakekrevingsvedtak,
+        transactionContext: TransactionContext,
+    ) {
+        transactionContext.withTransaction { session ->
             lagreTilbakekrevingsbehandling(tilbakekrevingsbehandling, session)
         }
     }
@@ -123,7 +130,7 @@ internal class TilbakekrevingPostgresRepo(private val sessionFactory: PostgresSe
                 mapOf(
                     "id" to tilbakrekrevingsbehanding.avgjort.id,
                     "tilstand" to Tilstand.SENDT_TILBAKEKREVINGSVEDTAK.toString(),
-                    "tilbakekrevingsvedtakForsendelse" to objectMapper.writeValueAsString(
+                    "tilbakekrevingsvedtakForsendelse" to serialize(
                         RåTilbakekrevingsvedtakForsendelseDb.fra(
                             tilbakrekrevingsbehanding.tilbakekrevingsvedtakForsendelse,
                         ),
@@ -172,7 +179,7 @@ internal class TilbakekrevingPostgresRepo(private val sessionFactory: PostgresSe
         val kravgrunnlagMottatt = tidspunktOrNull("kravgrunnlagMottatt")
         val tilbakekrevingsvedtakForsendelse =
             stringOrNull("tilbakekrevingsvedtakForsendelse")?.let { forsendelseJson ->
-                objectMapper.readValue<RåTilbakekrevingsvedtakForsendelseDb>(forsendelseJson).let {
+                deserialize<RåTilbakekrevingsvedtakForsendelseDb>(forsendelseJson).let {
                     RåTilbakekrevingsvedtakForsendelse(
                         requestXml = it.requestXml,
                         tidspunkt = it.requestSendt,

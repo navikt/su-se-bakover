@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.ErAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
+import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
@@ -429,6 +430,10 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
         fun pensjonsVilkår() = vilkårsvurderinger.pensjonsVilkår()
 
         fun familiegjenforeningvilkår() = vilkårsvurderinger.familiegjenforening()
+
+        fun flyktningVilkår(): Either<Vilkårsvurderinger.VilkårEksistererIkke, FlyktningVilkår> {
+            return vilkårsvurderinger.flyktningVilkår()
+        }
 
         fun personligOppmøteVilkår(): PersonligOppmøteVilkår {
             return vilkårsvurderinger.personligOppmøteVilkår()

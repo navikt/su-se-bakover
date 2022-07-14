@@ -9,8 +9,6 @@ import no.nav.su.se.bakover.domain.Person.Navn
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.FastOppholdINorge
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Flyktning
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Flyktning.Status
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.test.generer
@@ -36,9 +34,6 @@ object BehandlingTestUtils {
     )
 
     internal val behandlingsinformasjon = Behandlingsinformasjon(
-        flyktning = Flyktning(
-            status = Status.VilkårOppfylt,
-        ),
         fastOppholdINorge = FastOppholdINorge(
             status = FastOppholdINorge.Status.VilkårOppfylt,
         ),

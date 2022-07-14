@@ -7,6 +7,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.ddMMyyyy
 import no.nav.su.se.bakover.common.toBrevformat
+import no.nav.su.se.bakover.domain.Månedsbeløp
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
@@ -52,7 +53,7 @@ interface LagBrevRequest {
         override val dagensDato: LocalDate,
         override val saksnummer: Saksnummer,
         private val satsoversikt: Satsoversikt,
-        private val sakstype: Sakstype
+        private val sakstype: Sakstype,
     ) : LagBrevRequest {
         override val brevInnhold = BrevInnhold.InnvilgetVedtak(
             personalia = lagPersonalia(),
@@ -106,7 +107,7 @@ interface LagBrevRequest {
             forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
             formueVerdier = avslag.formuegrunnlag?.tilFormueForBrev(),
             satsoversikt = satsoversikt,
-            sakstype = sakstype
+            sakstype = sakstype,
         )
 
         override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Vedtak> {
@@ -389,6 +390,10 @@ interface LagBrevRequest {
                     generertDokumentJson = it.third,
                 )
             }
+        }
+
+        fun erstattBruttoMedNettoFeilutbetaling(netto: Månedsbeløp): TilbakekrevingAvPenger {
+            return copy(tilbakekreving = Tilbakekreving(netto.månedbeløp))
         }
     }
 

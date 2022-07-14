@@ -33,7 +33,7 @@ class UtbetalingKvitteringConsumer(
         }
     }
 
-    internal fun onMessage(xmlMessage: String) {
+    fun onMessage(xmlMessage: String) {
         val kvitteringResponse: UtbetalingKvitteringResponse = xmlMessage.toKvitteringResponse(xmlMapper)
 
         val avstemmingsnøkkel = kvitteringResponse.oppdragRequest.avstemming.nokkelAvstemming.let {

@@ -5,6 +5,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
@@ -73,6 +74,7 @@ class UføreVilkårJsonTest {
             formue = formuevilkårIkkeVurdert(),
             utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
             opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
+            flyktning = FlyktningVilkår.IkkeVurdert,
             personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
         )
     }

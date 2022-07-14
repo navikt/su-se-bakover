@@ -77,10 +77,12 @@ import no.nav.su.se.bakover.service.toggles.ToggleService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.KunneIkkeKopiereGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.vedtak.VedtakService
+import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeTilFlyktningVilkår
 import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeTilPensjonsVilkår
 import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeTilPersonligOppmøteVilkår
 import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggetilLovligOppholdVilkår
 import no.nav.su.se.bakover.service.vilkår.LeggTilFlereUtenlandsoppholdRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilFlyktningVilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilLovligOppholdRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilPensjonsVilkårRequest
@@ -410,6 +412,21 @@ internal class RevurderingServiceImpl(
         }.map {
             revurderingRepo.lagre(it)
             identifiserFeilOgLagResponse(it)
+        }
+    }
+
+    override fun leggTilFlyktningVilkår(request: LeggTilFlyktningVilkårRequest): Either<KunneIkkeLeggeTilFlyktningVilkår, RevurderingOgFeilmeldingerResponse> {
+        return hent(request.behandlingId).mapLeft {
+            KunneIkkeLeggeTilFlyktningVilkår.FantIkkeBehandling
+        }.flatMap { revurdering ->
+            revurdering.oppdaterFlyktningvilkårOgMarkerSomVurdert(request.vilkår)
+                .mapLeft {
+                    KunneIkkeLeggeTilFlyktningVilkår.Revurdering(it)
+                }
+                .map {
+                    revurderingRepo.lagre(it)
+                    identifiserFeilOgLagResponse(it)
+                }
         }
     }
 

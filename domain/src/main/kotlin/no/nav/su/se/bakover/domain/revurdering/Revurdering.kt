@@ -49,6 +49,7 @@ import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.Inngangsvilkår
 import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
@@ -173,6 +174,10 @@ sealed class Revurdering :
         return KunneIkkeLeggeTilPensjonsVilkår.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
     }
 
+    open fun oppdaterFlyktningvilkårOgMarkerSomVurdert(vilkår: FlyktningVilkår.Vurdert): Either<KunneIkkeLeggeTilFlyktningVilkår, OpprettetRevurdering> {
+        return KunneIkkeLeggeTilFlyktningVilkår.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
+    }
+
     open fun oppdaterPersonligOppmøtevilkårOgMarkerSomVurdert(vilkår: PersonligOppmøteVilkår.Vurdert): Either<KunneIkkeLeggeTilPersonligOppmøteVilkår, OpprettetRevurdering> {
         return KunneIkkeLeggeTilPersonligOppmøteVilkår.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
     }
@@ -201,6 +206,16 @@ sealed class Revurdering :
 
         object HeleBehandlingsperiodenErIkkeVurdert : KunneIkkeLeggeTilPensjonsVilkår
         object VilkårKunRelevantForAlder : KunneIkkeLeggeTilPensjonsVilkår
+    }
+
+    sealed interface KunneIkkeLeggeTilFlyktningVilkår {
+        data class UgyldigTilstand(
+            val fra: KClass<out Revurdering>,
+            val til: KClass<out Revurdering> = OpprettetRevurdering::class,
+        ) : KunneIkkeLeggeTilFlyktningVilkår
+
+        object HeleBehandlingsperiodenErIkkeVurdert : KunneIkkeLeggeTilFlyktningVilkår
+        object VilkårKunRelevantForUføre : KunneIkkeLeggeTilFlyktningVilkår
     }
 
     sealed interface KunneIkkeLeggeTilPersonligOppmøteVilkår {
@@ -236,6 +251,21 @@ sealed class Revurdering :
         }
         if (Sakstype.ALDER != sakstype) {
             return KunneIkkeLeggeTilPensjonsVilkår.VilkårKunRelevantForAlder.left()
+        }
+        return oppdaterVilkårsvurderinger(vilkårsvurderinger = vilkårsvurderinger.leggTil(vilkår)).right()
+    }
+
+    protected fun oppdaterFlyktningVilkårOgMarkerSomVurdertInternal(vilkår: FlyktningVilkår.Vurdert): Either<KunneIkkeLeggeTilFlyktningVilkår, OpprettetRevurdering> {
+        return oppdaterFlyktningVilkårInternal(vilkår)
+            .map { it.oppdaterInformasjonSomRevurderes(informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Flyktning)) }
+    }
+
+    private fun oppdaterFlyktningVilkårInternal(vilkår: FlyktningVilkår.Vurdert): Either<KunneIkkeLeggeTilFlyktningVilkår, OpprettetRevurdering> {
+        if (!periode.fullstendigOverlapp(vilkår.perioder)) {
+            return KunneIkkeLeggeTilFlyktningVilkår.HeleBehandlingsperiodenErIkkeVurdert.left()
+        }
+        if (Sakstype.UFØRE != sakstype) {
+            return KunneIkkeLeggeTilFlyktningVilkår.VilkårKunRelevantForUføre.left()
         }
         return oppdaterVilkårsvurderinger(vilkårsvurderinger = vilkårsvurderinger.leggTil(vilkår)).right()
     }
@@ -656,6 +686,10 @@ data class OpprettetRevurdering(
         return oppdaterPensjonsVilkårOgMarkerSomVurdertInternal(vilkår)
     }
 
+    override fun oppdaterFlyktningvilkårOgMarkerSomVurdert(vilkår: FlyktningVilkår.Vurdert): Either<KunneIkkeLeggeTilFlyktningVilkår, OpprettetRevurdering> {
+        return oppdaterFlyktningVilkårOgMarkerSomVurdertInternal(vilkår)
+    }
+
     override fun oppdaterPersonligOppmøtevilkårOgMarkerSomVurdert(vilkår: PersonligOppmøteVilkår.Vurdert): Either<KunneIkkeLeggeTilPersonligOppmøteVilkår, OpprettetRevurdering> {
         return oppdaterPersonligOppmøteVilkårOgMarkerSomVurdertInternal(vilkår)
     }
@@ -720,6 +754,10 @@ sealed class BeregnetRevurdering : Revurdering() {
 
     override fun oppdaterPensjonsvilkårOgMarkerSomVurdert(vilkår: PensjonsVilkår.Vurdert): Either<KunneIkkeLeggeTilPensjonsVilkår, OpprettetRevurdering> {
         return oppdaterPensjonsVilkårOgMarkerSomVurdertInternal(vilkår)
+    }
+
+    override fun oppdaterFlyktningvilkårOgMarkerSomVurdert(vilkår: FlyktningVilkår.Vurdert): Either<KunneIkkeLeggeTilFlyktningVilkår, OpprettetRevurdering> {
+        return oppdaterFlyktningVilkårOgMarkerSomVurdertInternal(vilkår)
     }
 
     override fun oppdaterPersonligOppmøtevilkårOgMarkerSomVurdert(vilkår: PersonligOppmøteVilkår.Vurdert): Either<KunneIkkeLeggeTilPersonligOppmøteVilkår, OpprettetRevurdering> {
@@ -1102,47 +1140,29 @@ sealed class SimulertRevurdering : Revurdering() {
     ): Either<Forhåndsvarsel.UgyldigTilstandsovergang, LagBrevRequest> {
         return forhåndsvarsel.prøvOvergangTilSendt() // brukes for å verifisere tilstanden på forhåndsvarsel, resultatet ignoreres
             .map {
-                if (lagForhåndsvarselForTilbakekreving()) {
-                    LagBrevRequest.ForhåndsvarselTilbakekreving(
-                        person = person,
-                        saksbehandlerNavn = saksbehandlerNavn,
-                        fritekst = fritekst,
-                        dagensDato = LocalDate.now(clock),
-                        saksnummer = saksnummer,
-                        bruttoTilbakekreving = simulering.hentFeilutbetalteBeløp().sum(),
-                        tilbakekreving = Tilbakekreving(simulering.hentFeilutbetalteBeløp().månedbeløp),
-                    )
-                } else {
-                    LagBrevRequest.Forhåndsvarsel(
-                        person = person,
-                        saksbehandlerNavn = saksbehandlerNavn,
-                        fritekst = fritekst,
-                        dagensDato = LocalDate.now(clock),
-                        saksnummer = saksnummer,
-                    )
-                }
+                tilbakekrevingsbehandling.skalTilbakekreve().fold(
+                    {
+                        LagBrevRequest.Forhåndsvarsel(
+                            person = person,
+                            saksbehandlerNavn = saksbehandlerNavn,
+                            fritekst = fritekst,
+                            dagensDato = LocalDate.now(clock),
+                            saksnummer = saksnummer,
+                        )
+                    },
+                    {
+                        LagBrevRequest.ForhåndsvarselTilbakekreving(
+                            person = person,
+                            saksbehandlerNavn = saksbehandlerNavn,
+                            fritekst = fritekst,
+                            dagensDato = LocalDate.now(clock),
+                            saksnummer = saksnummer,
+                            bruttoTilbakekreving = simulering.hentFeilutbetalteBeløp().sum(),
+                            tilbakekreving = Tilbakekreving(simulering.hentFeilutbetalteBeløp().månedbeløp),
+                        )
+                    },
+                )
             }
-    }
-
-    fun tilbakekrevingErVurdert(): Either<Unit, Tilbakekrevingsbehandling.UnderBehandling.VurderTilbakekreving.Avgjort> {
-        return tilbakekrevingsbehandling.tilbakekrevingErVurdert()
-    }
-
-    private fun lagForhåndsvarselForTilbakekreving(): Boolean {
-        return when (tilbakekrevingsbehandling) {
-            is Tilbakekrevingsbehandling.UnderBehandling.IkkeBehovForTilbakekreving -> {
-                false
-            }
-            is IkkeTilbakekrev -> {
-                false
-            }
-            is Tilbakekrev -> {
-                true
-            }
-            is IkkeAvgjort -> {
-                throw IllegalStateException("Må ta stilling til tilbakekreving før forhåndsvarsel kan sendes!")
-            }
-        }
     }
 
     abstract fun markerForhåndsvarselSomSendt(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, SimulertRevurdering>
@@ -1175,6 +1195,10 @@ sealed class SimulertRevurdering : Revurdering() {
 
     override fun oppdaterPensjonsvilkårOgMarkerSomVurdert(vilkår: PensjonsVilkår.Vurdert): Either<KunneIkkeLeggeTilPensjonsVilkår, OpprettetRevurdering> {
         return oppdaterPensjonsVilkårOgMarkerSomVurdertInternal(vilkår)
+    }
+
+    override fun oppdaterFlyktningvilkårOgMarkerSomVurdert(vilkår: FlyktningVilkår.Vurdert): Either<KunneIkkeLeggeTilFlyktningVilkår, OpprettetRevurdering> {
+        return oppdaterFlyktningVilkårOgMarkerSomVurdertInternal(vilkår)
     }
 
     override fun oppdaterPersonligOppmøtevilkårOgMarkerSomVurdert(vilkår: PersonligOppmøteVilkår.Vurdert): Either<KunneIkkeLeggeTilPersonligOppmøteVilkår, OpprettetRevurdering> {
@@ -1929,6 +1953,10 @@ sealed class UnderkjentRevurdering : Revurdering() {
         return oppdaterPensjonsVilkårOgMarkerSomVurdertInternal(vilkår)
     }
 
+    override fun oppdaterFlyktningvilkårOgMarkerSomVurdert(vilkår: FlyktningVilkår.Vurdert): Either<KunneIkkeLeggeTilFlyktningVilkår, OpprettetRevurdering> {
+        return oppdaterFlyktningVilkårOgMarkerSomVurdertInternal(vilkår)
+    }
+
     override fun oppdaterPersonligOppmøtevilkårOgMarkerSomVurdert(vilkår: PersonligOppmøteVilkår.Vurdert): Either<KunneIkkeLeggeTilPersonligOppmøteVilkår, OpprettetRevurdering> {
         return oppdaterPersonligOppmøteVilkårOgMarkerSomVurdertInternal(vilkår)
     }
@@ -2184,7 +2212,7 @@ enum class Vurderingstatus(val status: String) {
 
 enum class Revurderingsteg(val vilkår: String) {
     // BorOgOppholderSegINorge("BorOgOppholderSegINorge"),
-    // Flyktning("Flyktning"),
+    Flyktning("Flyktning"),
     Formue("Formue"),
 
     Oppholdstillatelse("Oppholdstillatelse"),

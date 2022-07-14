@@ -520,6 +520,29 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             }
     }
 
+    fun leggTilFlyktningVilkår(
+        vilkår: FlyktningVilkår.Vurdert,
+        clock: Clock,
+    ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFlyktningVilkår, Vilkårsvurdert> {
+        return if (this is KanOppdaterePeriodeGrunnlagVilkår) {
+            leggTilFlyktningVilkårInternal(vilkår, clock)
+        } else {
+            KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFlyktningVilkår.UgyldigTilstand(
+                fra = this::class,
+                til = Vilkårsvurdert::class,
+            ).left()
+        }
+    }
+
+    private fun leggTilFlyktningVilkårInternal(
+        vilkår: FlyktningVilkår.Vurdert,
+        clock: Clock,
+    ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFlyktningVilkår, Vilkårsvurdert> {
+        return copyInternal(
+            grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
+        ).vilkårsvurder(clock).right()
+    }
+
     private fun valider(uførhet: UføreVilkår.Vurdert): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår, Unit> {
         return when {
             !periode.inneholderAlle(uførhet.vurderingsperioder) -> {

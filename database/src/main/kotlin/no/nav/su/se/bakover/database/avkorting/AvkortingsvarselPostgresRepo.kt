@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.database.avkorting
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.serializeNullable
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.Session
@@ -95,7 +95,7 @@ internal class AvkortingsvarselPostgresRepo(
                         "opprettet" to opprettet,
                         "sakId" to sakId,
                         "revurderingId" to revurderingId,
-                        "simulering" to simulering?.let { objectMapper.writeValueAsString(it) },
+                        "simulering" to serializeNullable(simulering),
                         "status" to Status.SKAL_AVKORTES.toString(),
                     ),
                     tx,
@@ -187,7 +187,7 @@ internal class AvkortingsvarselPostgresRepo(
             sakId = uuid("sakId"),
             revurderingId = uuid("revurderingId"),
             opprettet = tidspunkt("opprettet"),
-            simulering = string("simulering").let { objectMapper.readValue(it) },
+            simulering = deserialize(string("simulering")),
         )
         return when (Status.valueOf(string("status"))) {
             Status.SKAL_AVKORTES -> {

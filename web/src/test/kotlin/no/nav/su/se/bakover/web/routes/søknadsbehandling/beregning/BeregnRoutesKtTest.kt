@@ -40,6 +40,7 @@ import no.nav.su.se.bakover.service.søknadsbehandling.VilkårsvurderRequest
 import no.nav.su.se.bakover.service.vilkår.BosituasjonValg
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilFlyktningVilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilLovligOppholdRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilPersonligOppmøteVilkårRequest
@@ -55,6 +56,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
+import no.nav.su.se.bakover.test.vilkår.flyktningVilkårInnvilget
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.applicationConfig
 import no.nav.su.se.bakover.web.dbMetricsStub
@@ -335,6 +337,12 @@ internal class BeregnRoutesKtTest {
                     ),
                 ),
             ),
+        )
+        services.søknadsbehandling.leggTilFlyktningVilkår(
+            request = LeggTilFlyktningVilkårRequest(
+                behandlingId = objects.søknadsbehandling.id,
+                vilkår = flyktningVilkårInnvilget(periode = objects.søknadsbehandling.periode)
+            )
         )
         services.søknadsbehandling.leggTilPersonligOppmøteVilkår(
             request = LeggTilPersonligOppmøteVilkårRequest(

@@ -3,8 +3,9 @@ package no.nav.su.se.bakover.database.grunnlag
 import arrow.core.getOrHandle
 import kotliquery.Row
 import no.nav.su.se.bakover.common.deserialize
-import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.common.serializeNullable
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.TransactionalSession
@@ -98,8 +99,8 @@ internal class FormuegrunnlagPostgresRepo(
                     "behandlingId" to behandlingId,
                     "fraOgMed" to formuegrunnlag.periode.fraOgMed,
                     "tilOgMed" to formuegrunnlag.periode.tilOgMed,
-                    "epsFormue" to objectMapper.writeValueAsString(formuegrunnlag.epsFormue?.toJson()),
-                    "sokerFormue" to objectMapper.writeValueAsString(formuegrunnlag.søkersFormue.toJson()),
+                    "epsFormue" to serializeNullable(formuegrunnlag.epsFormue?.toJson()),
+                    "sokerFormue" to serialize(formuegrunnlag.søkersFormue.toJson()),
                 ),
                 tx,
             )

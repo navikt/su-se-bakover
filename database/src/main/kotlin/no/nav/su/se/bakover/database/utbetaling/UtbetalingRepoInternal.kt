@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.database.utbetaling
 
 import arrow.core.NonEmptyList
-import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.deserializeNullable
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
@@ -61,11 +61,9 @@ internal object UtbetalingInternalRepo {
 internal fun Row.toUtbetaling(session: Session): Utbetaling.OversendtUtbetaling {
     val utbetalingId = uuid30("id")
     val opprettet = tidspunkt("opprettet")
-    val simulering = string("simulering").let { objectMapper.readValue<Simulering>(it) }
-    val kvittering = stringOrNull("kvittering")?.let { objectMapper.readValue<Kvittering>(it) }
-    val utbetalingsrequest = string("utbetalingsrequest").let {
-        objectMapper.readValue<Utbetalingsrequest>(it)
-    }
+    val simulering = deserialize<Simulering>(string("simulering"))
+    val kvittering = deserializeNullable<Kvittering>(stringOrNull("kvittering"))
+    val utbetalingsrequest = deserialize<Utbetalingsrequest>(string("utbetalingsrequest"))
     val utbetalingslinjer = UtbetalingInternalRepo.hentUtbetalingslinjer(utbetalingId, session)
     val avstemmingId = stringOrNull("avstemmingId")?.let { UUID30.fromString(it) }
     val sakId = uuid("sakId")
@@ -73,7 +71,7 @@ internal fun Row.toUtbetaling(session: Session): Utbetaling.OversendtUtbetaling 
     val fnr = Fnr(string("fnr"))
     val type = Utbetaling.UtbetalingsType.valueOf(string("type"))
     val behandler = NavIdentBruker.Attestant(string("behandler"))
-    val avstemmingsnøkkel = string("avstemmingsnøkkel").let { objectMapper.readValue<Avstemmingsnøkkel>(it) }
+    val avstemmingsnøkkel = deserialize<Avstemmingsnøkkel>(string("avstemmingsnøkkel"))
     val sakstype = Sakstype.from(string("sakstype"))
 
     return UtbetalingMapper(
@@ -90,7 +88,7 @@ internal fun Row.toUtbetaling(session: Session): Utbetaling.OversendtUtbetaling 
         kvittering = kvittering,
         avstemmingId = avstemmingId,
         behandler = behandler,
-        sakstype = sakstype
+        sakstype = sakstype,
     ).map()
 }
 
