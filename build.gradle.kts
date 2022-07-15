@@ -44,7 +44,7 @@ subprojects {
         implementation("org.apache.avro:avro:1.11.0")
         implementation("com.github.ben-manes.caffeine:caffeine:3.1.1")
         implementation("io.micrometer:micrometer-core:1.9.2")
-        implementation("io.micrometer:micrometer-registry-prometheus:1.9.1")
+        implementation("io.micrometer:micrometer-registry-prometheus:1.9.2")
 
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
 
