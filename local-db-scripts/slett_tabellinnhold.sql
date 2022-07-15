@@ -1,5 +1,4 @@
 truncate
-    flyway_schema_history,
     job_context,
     hendelseslogg,
     konsistensavstemming,
