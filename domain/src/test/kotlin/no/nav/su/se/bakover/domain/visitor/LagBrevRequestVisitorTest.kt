@@ -1401,16 +1401,13 @@ internal class LagBrevRequestVisitorTest {
             ).getOrFail(),
             satsFactory = satsFactoryTestPåDato(),
         ).getOrFail().let {
-            (it as BeregnetRevurdering.Opphørt).toSimulert(
-                { sakId, _, opphørsdato ->
-                    simulertUtbetalingOpphør(
-                        sakId = sakId,
-                        opphørsdato = opphørsdato,
-                        eksisterendeUtbetalinger = sak.utbetalinger,
-                    )
-                },
-                false,
-            ).getOrFail()
+            (it as BeregnetRevurdering.Opphørt).toSimulert { sakId, _, opphørsdato ->
+                simulertUtbetalingOpphør(
+                    sakId = sakId,
+                    opphørsdato = opphørsdato,
+                    eksisterendeUtbetalinger = sak.utbetalinger,
+                )
+            }.getOrFail()
         }.ikkeSendForhåndsvarsel().getOrFail()
             .oppdaterTilbakekrevingsbehandling(
                 tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling,

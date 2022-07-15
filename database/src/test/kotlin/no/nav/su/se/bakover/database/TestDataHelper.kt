@@ -85,6 +85,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrev
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
@@ -839,7 +840,7 @@ internal class TestDataHelper(
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
             avkorting = AvkortingVedRevurdering.Uhåndtert.IngenUtestående,
-            sakinfo = innvilget.sakinfo()
+            sakinfo = innvilget.sakinfo(),
         ).also {
             revurderingRepo.lagre(it)
         }
@@ -915,7 +916,7 @@ internal class TestDataHelper(
     }
 
     fun persisterRevurderingSimulertInnvilget(): SimulertRevurdering.Innvilget {
-        return persisterRevurderingBeregnetInnvilget().toSimulert(simulering(Fnr.generer()), clock, false).also {
+        return persisterRevurderingBeregnetInnvilget().toSimulert(simulering(Fnr.generer()), clock).also {
             revurderingRepo.lagre(it)
         }
     }
@@ -928,23 +929,34 @@ internal class TestDataHelper(
             )
         },
     ): SimulertRevurdering.Opphørt {
-        return persisterRevurderingBeregnetOpphørt(sakOgVedtak).let {
-            it.toSimulert(
-                { sakId, saksbehandler, opphørsdato ->
-                    require(it.sakId == sakId)
-                    simulertUtbetalingOpphør(
-                        periode = it.periode,
-                        opphørsdato = opphørsdato,
-                        fnr = it.fnr,
-                        sakId = it.sakId,
-                        saksnummer = it.saksnummer,
-                        behandler = saksbehandler,
-                        eksisterendeUtbetalinger = sakOgVedtak.first.utbetalinger,
-                    ).getOrFail().right()
-                },
-                false,
-            ).getOrFail().also {
-                revurderingRepo.lagre(it)
+        return persisterRevurderingBeregnetOpphørt(sakOgVedtak).let { beregnet ->
+            beregnet.toSimulert { sakId, saksbehandler, opphørsdato ->
+                require(beregnet.sakId == sakId)
+                simulertUtbetalingOpphør(
+                    periode = beregnet.periode,
+                    opphørsdato = opphørsdato,
+                    fnr = beregnet.fnr,
+                    sakId = beregnet.sakId,
+                    saksnummer = beregnet.saksnummer,
+                    behandler = saksbehandler,
+                    eksisterendeUtbetalinger = sakOgVedtak.first.utbetalinger,
+                ).getOrFail().right()
+            }.getOrFail().let { simulert ->
+                val oppdatertTilbakekrevingsbehandling = if (simulert.harSimuleringFeilutbetaling()) {
+                    simulert.oppdaterTilbakekrevingsbehandling(
+                        Tilbakekrev(
+                            id = UUID.randomUUID(),
+                            opprettet = fixedTidspunkt,
+                            sakId = simulert.sakId,
+                            revurderingId = simulert.id,
+                            periode = simulert.periode,
+                        ),
+                    )
+                } else {
+                    simulert
+                }
+                revurderingRepo.lagre(oppdatertTilbakekrevingsbehandling)
+                oppdatertTilbakekrevingsbehandling
             }
         }
     }
@@ -1148,7 +1160,7 @@ internal class TestDataHelper(
             saksbehandler = saksbehandler,
             simulering = simulering,
             revurderingsårsak = revurderingsårsak,
-            sakinfo = tilRevurdering.sakinfo()
+            sakinfo = tilRevurdering.sakinfo(),
         ).also {
             revurderingRepo.lagre(it)
         }

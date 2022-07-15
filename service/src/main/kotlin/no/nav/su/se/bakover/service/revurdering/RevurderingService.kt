@@ -276,7 +276,7 @@ sealed class KunneIkkeSendeRevurderingTilAttestering {
     object FantIkkeAktørId : KunneIkkeSendeRevurderingTilAttestering()
     object KunneIkkeOppretteOppgave : KunneIkkeSendeRevurderingTilAttestering()
     object KanIkkeRegulereGrunnbeløpTilOpphør : KunneIkkeSendeRevurderingTilAttestering()
-    object ForhåndsvarslingErIkkeFerdigbehandling : KunneIkkeSendeRevurderingTilAttestering()
+    object ForhåndsvarslingErIkkeFerdigbehandlet : KunneIkkeSendeRevurderingTilAttestering()
     data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) :
         KunneIkkeSendeRevurderingTilAttestering()
 

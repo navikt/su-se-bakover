@@ -806,9 +806,8 @@ sealed class BeregnetRevurdering : Revurdering() {
         fun toSimulert(
             simulering: Simulering,
             clock: Clock,
-            tilbakekrevingTillatt: Boolean,
         ): SimulertRevurdering.Innvilget {
-            val tilbakekrevingsbehandling = when (tilbakekrevingTillatt && simulering.harFeilutbetalinger()) {
+            val tilbakekrevingsbehandling = when (simulering.harFeilutbetalinger()) {
                 true -> {
                     IkkeAvgjort(
                         id = UUID.randomUUID(),
@@ -920,7 +919,6 @@ sealed class BeregnetRevurdering : Revurdering() {
 
         fun toSimulert(
             simuler: (sakId: UUID, saksbehandler: NavIdentBruker, opphørsdato: LocalDate) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
-            tilbakekrevingTillatt: Boolean,
         ): Either<SimuleringFeilet, SimulertRevurdering.Opphørt> {
             val (simulertUtbetaling, håndtertAvkorting) = simuler(sakId, saksbehandler, periode.fraOgMed)
                 .getOrHandle { return it.left() }
@@ -971,21 +969,20 @@ sealed class BeregnetRevurdering : Revurdering() {
                     }
                 }
 
-            val tilbakekrevingsbehandling =
-                when (tilbakekrevingTillatt && simulertUtbetaling.simulering.harFeilutbetalinger()) {
-                    true -> {
-                        IkkeAvgjort(
-                            id = UUID.randomUUID(),
-                            opprettet = Tidspunkt.now(),
-                            sakId = sakId,
-                            revurderingId = id,
-                            periode = periode,
-                        )
-                    }
-                    false -> {
-                        IkkeBehovForTilbakekrevingUnderBehandling
-                    }
+            val tilbakekrevingsbehandling = when (simulertUtbetaling.simulering.harFeilutbetalinger()) {
+                true -> {
+                    IkkeAvgjort(
+                        id = UUID.randomUUID(),
+                        opprettet = Tidspunkt.now(),
+                        sakId = sakId,
+                        revurderingId = id,
+                        periode = periode,
+                    )
                 }
+                false -> {
+                    IkkeBehovForTilbakekrevingUnderBehandling
+                }
+            }
 
             unngåNyAvkortingOgNyTilbakekrevingPåSammeTid(
                 avkorting = håndtertAvkorting,

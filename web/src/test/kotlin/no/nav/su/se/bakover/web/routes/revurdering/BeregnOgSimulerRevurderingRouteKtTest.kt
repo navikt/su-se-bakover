@@ -111,7 +111,6 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                         periodeList = listOf(),
                     ),
                     clock = fixedClock,
-                    false,
                 )
             }
             is BeregnetRevurdering.IngenEndring -> throw RuntimeException("Revurderingen må ha en endring på minst 10 prosent")

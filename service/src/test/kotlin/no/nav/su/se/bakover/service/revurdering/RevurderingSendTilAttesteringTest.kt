@@ -29,7 +29,6 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingsutfallSomIkkeStøttes
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.statistikk.Event
-import no.nav.su.se.bakover.service.toggles.ToggleService
 import no.nav.su.se.bakover.test.aktørId
 import no.nav.su.se.bakover.test.createFromGrunnlag
 import no.nav.su.se.bakover.test.fixedClock
@@ -265,90 +264,6 @@ internal class RevurderingSendTilAttesteringTest {
                 )
                 mocks.verifyNoMoreInteractions()
             }
-        }
-    }
-
-    @Test
-    fun `kan ikke sende revurdering med simulert feilutbetaling til attestering`() {
-        val (sak, simulert) = simulertRevurdering(
-            grunnlagsdataOverrides = listOf(
-                fradragsgrunnlagArbeidsinntekt(
-                    periode = år(2021),
-                    arbeidsinntekt = 5000.0,
-                ),
-            ),
-        )
-        RevurderingServiceMocks(
-            revurderingRepo = mock {
-                on { hent(any()) } doReturn simulert
-            },
-            toggleService = mock {
-                on { isEnabled(any()) } doReturn false
-            },
-            sakService = mock {
-                on { hentSakForRevurdering(any()) } doReturn sak
-            },
-            tilbakekrevingService = mock {
-                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
-            },
-        ).let {
-            it.revurderingService.sendTilAttestering(
-                SendTilAttesteringRequest(
-                    revurderingId = revurderingId,
-                    saksbehandler = saksbehandler,
-                    fritekstTilBrev = "Fritekst",
-                    skalFøreTilBrevutsending = true,
-                ),
-            ) shouldBe KunneIkkeSendeRevurderingTilAttestering.FeilutbetalingStøttesIkke.left()
-
-            verify(it.revurderingRepo, never()).lagre(any(), anyOrNull())
-            verify(it.toggleService).isEnabled(ToggleService.toggleForFeilutbetaling)
-        }
-    }
-
-    @Test
-    fun `kan sende revurdering til attestering dersom toggle for feilbetaling tillatt er på`() {
-        val (sak, simulert) = simulertRevurdering(
-            grunnlagsdataOverrides = listOf(
-                fradragsgrunnlagArbeidsinntekt(
-                    periode = år(2021),
-                    arbeidsinntekt = 5000.0,
-                ),
-            ),
-        )
-
-        RevurderingServiceMocks(
-            revurderingRepo = mock {
-                on { hent(any()) } doReturn simulert
-            },
-            toggleService = mock {
-                on { isEnabled(any()) } doReturn true
-            },
-            personService = mock {
-                on { hentAktørId(any()) } doReturn aktørId.right()
-            },
-            oppgaveService = mock {
-                on { opprettOppgave(any()) } doReturn oppgaveIdRevurdering.right()
-                on { lukkOppgave(any()) } doReturn Unit.right()
-            },
-            sakService = mock {
-                on { hentSakForRevurdering(any()) } doReturn sak
-            },
-            tilbakekrevingService = mock {
-                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
-            },
-        ).let {
-            it.revurderingService.sendTilAttestering(
-                SendTilAttesteringRequest(
-                    revurderingId = revurderingId,
-                    saksbehandler = saksbehandler,
-                    fritekstTilBrev = "Fritekst",
-                    skalFøreTilBrevutsending = true,
-                ),
-            ).getOrFail() shouldBe beOfType<RevurderingTilAttestering.Innvilget>()
-
-            verify(it.revurderingRepo).lagre(any(), anyOrNull())
-            verify(it.toggleService).isEnabled(ToggleService.toggleForFeilutbetaling)
         }
     }
 

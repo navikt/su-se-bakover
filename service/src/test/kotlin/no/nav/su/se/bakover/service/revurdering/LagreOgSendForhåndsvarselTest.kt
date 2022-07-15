@@ -10,10 +10,12 @@ import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.desember
 import no.nav.su.se.bakover.common.periode.mai
+import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.brev.beregning.Tilbakekreving
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeTilbakekrev
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
@@ -25,6 +27,7 @@ import no.nav.su.se.bakover.test.aktørId
 import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
 import no.nav.su.se.bakover.test.getOrFail
@@ -33,6 +36,7 @@ import no.nav.su.se.bakover.test.oppgaveIdRevurdering
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.revurderingId
+import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksbehandlerNavn
 import no.nav.su.se.bakover.test.shouldBeType
@@ -233,7 +237,6 @@ internal class LagreOgSendForhåndsvarselTest {
                     periode = mai(2021)..(desember(2021)),
                 ),
             ),
-            forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
         ).also {
             it.second.shouldBeType<SimulertRevurdering.Innvilget>().also {
                 it.harSimuleringFeilutbetaling() shouldBe true
@@ -248,7 +251,15 @@ internal class LagreOgSendForhåndsvarselTest {
                 on { hentSakForRevurdering(any()) } doReturn sak
             },
             tilbakekrevingService = mock {
-                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
+                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn listOf(
+                    IkkeTilbakekrev(
+                        id = UUID.randomUUID(),
+                        opprettet = fixedTidspunkt,
+                        sakId = sakId,
+                        revurderingId = revurderingId,
+                        periode = mars(2021),
+                    ).fullførBehandling(),
+                )
             },
             toggleService = mock {
                 on { isEnabled(any()) } doReturn false
@@ -260,7 +271,9 @@ internal class LagreOgSendForhåndsvarselTest {
                 forhåndsvarselhandling = Forhåndsvarselhandling.FORHÅNDSVARSLE,
                 fritekst = "",
             ) shouldBe KunneIkkeForhåndsvarsle.Attestering(
-                KunneIkkeSendeRevurderingTilAttestering.FeilutbetalingStøttesIkke,
+                KunneIkkeSendeRevurderingTilAttestering.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving(
+                    revurderingId = revurderingId,
+                ),
             ).left()
         }
     }
