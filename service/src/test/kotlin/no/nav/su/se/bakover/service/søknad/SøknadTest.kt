@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.sak.SakInfo
+import no.nav.su.se.bakover.domain.sak.SaksnummerFactoryProd
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.domain.søknad.SøknadRepo
@@ -56,7 +57,10 @@ class SøknadTest {
     private val søknadInnhold: SøknadsinnholdUføre = SøknadInnholdTestdataBuilder.build()
     private val fnr = søknadInnhold.personopplysninger.fnr
     private val person: Person = PersonOppslagStub.person(fnr).orNull()!!
-    private val sakFactory: SakFactory = SakFactory(clock = fixedClock)
+    private val sakFactory: SakFactory = SakFactory(
+        clock = fixedClock,
+        saksnummerFactory = SaksnummerFactoryProd() { saksnummer },
+    )
     private val sakId = UUID.randomUUID()
     private val saksnummer = Saksnummer(2021)
     private val sak: Sak = Sak(
@@ -105,7 +109,7 @@ class SøknadTest {
             sakServiceMock,
             pdfGeneratorMock,
             dokArkivMock,
-            oppgaveServiceMock
+            oppgaveServiceMock,
         )
         verifyNoInteractions(observerMock)
     }
@@ -116,7 +120,12 @@ class SøknadTest {
             on { hentPerson(any()) } doReturn person.right()
         }
         val sakServiceMock: SakService = mock {
-            on { hentSakidOgSaksnummer(any()) } doReturn FantIkkeSak.left() doReturn SakInfo(sak.id, sak.saksnummer, fnr, Sakstype.UFØRE).right()
+            on { hentSakidOgSaksnummer(any()) } doReturn FantIkkeSak.left() doReturn SakInfo(
+                sak.id,
+                sak.saksnummer,
+                fnr,
+                Sakstype.UFØRE,
+            ).right()
         }
 
         val pdfGeneratorMock: PdfGenerator = mock {
@@ -143,7 +152,7 @@ class SøknadTest {
         inOrder(
             personServiceMock,
             sakServiceMock,
-            pdfGeneratorMock
+            pdfGeneratorMock,
         ) {
             verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
             verify(sakServiceMock).hentSakidOgSaksnummer(argThat { it shouldBe fnr })
@@ -151,6 +160,7 @@ class SøknadTest {
                 argThat {
                     it shouldBe NySak(
                         id = it.id,
+                        saksnummer = saksnummer,
                         opprettet = it.opprettet,
                         fnr = fnr,
                         søknad = Søknad.Ny(
@@ -160,7 +170,7 @@ class SøknadTest {
                             søknadInnhold = søknadInnhold,
                         ),
                     )
-                }
+                },
             )
             verify(sakServiceMock).hentSakidOgSaksnummer(argThat { it shouldBe fnr })
             verify(pdfGeneratorMock).genererPdf(
@@ -173,7 +183,7 @@ class SøknadTest {
                         søknadInnhold = søknadInnhold,
                         clock = fixedClock,
                     )
-                }
+                },
             )
         }
         verifyNoMoreInteractions(
@@ -182,7 +192,7 @@ class SøknadTest {
             sakServiceMock,
             pdfGeneratorMock,
             dokArkivMock,
-            oppgaveServiceMock
+            oppgaveServiceMock,
         )
         actual.orNull()!!.apply {
             first shouldBe sak.saksnummer
@@ -193,7 +203,7 @@ class SøknadTest {
                     sakId = UUID.randomUUID(), // ignored
                     søknadInnhold = søknadInnhold,
                 ),
-                Søknad.Ny::id, Søknad.Ny::sakId
+                Søknad.Ny::id, Søknad.Ny::sakId,
             )
         }
     }
@@ -206,9 +216,9 @@ class SøknadTest {
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.EPOCH,
                     sakId = sak.id,
-                    søknadInnhold = søknadInnhold
-                )
-            )
+                    søknadInnhold = søknadInnhold,
+                ),
+            ),
         )
         val personServiceMock = mock<PersonService> {
             on { hentPerson(any()) } doReturn person.right()
@@ -250,7 +260,7 @@ class SøknadTest {
             søknadRepoMock,
             pdfGeneratorMock,
             dokArkivMock,
-            observerMock
+            observerMock,
         ) {
             verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
             verify(sakServiceMock).hentSakidOgSaksnummer(argThat { it shouldBe fnr })
@@ -263,7 +273,7 @@ class SøknadTest {
                         søknadInnhold = søknadInnhold,
                     )
                 },
-                argThat { it shouldBe innsender }
+                argThat { it shouldBe innsender },
             )
             verify(pdfGeneratorMock).genererPdf(
                 argThat<SøknadPdfInnhold> {
@@ -275,7 +285,7 @@ class SøknadTest {
                         søknadInnhold = søknadInnhold,
                         clock = fixedClock,
                     )
-                }
+                },
             )
             verify(dokArkivMock).opprettJournalpost(
                 argThat {
@@ -288,7 +298,14 @@ class SøknadTest {
                 },
             )
         }
-        verify(observerMock).handle(argThat { it shouldBe Event.Statistikk.SøknadStatistikk.SøknadMottatt(nySøknad.orNull()!!.second, sak.saksnummer) })
+        verify(observerMock).handle(
+            argThat {
+                it shouldBe Event.Statistikk.SøknadStatistikk.SøknadMottatt(
+                    nySøknad.orNull()!!.second,
+                    sak.saksnummer,
+                )
+            },
+        )
 
         nySøknad.map { (_, søknad) ->
             søknad.opprettet shouldNotBe sak.søknader.first().opprettet
@@ -333,7 +350,7 @@ class SøknadTest {
             sakServiceMock,
             søknadRepoMock,
             pdfGeneratorMock,
-            dokArkivMock
+            dokArkivMock,
         ) {
             verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
             verify(sakServiceMock).hentSakidOgSaksnummer(argThat { it shouldBe fnr })
@@ -346,7 +363,7 @@ class SøknadTest {
                         søknadInnhold = søknadInnhold,
                     )
                 },
-                argThat { it shouldBe innsender }
+                argThat { it shouldBe innsender },
             )
             verify(pdfGeneratorMock).genererPdf(
                 argThat<SøknadPdfInnhold> {
@@ -358,7 +375,7 @@ class SøknadTest {
                         søknadInnhold = søknadInnhold,
                         clock = fixedClock,
                     )
-                }
+                },
             )
             verify(dokArkivMock).opprettJournalpost(
                 argThat {
@@ -377,7 +394,7 @@ class SøknadTest {
             sakServiceMock,
             pdfGeneratorMock,
             dokArkivMock,
-            oppgaveServiceMock
+            oppgaveServiceMock,
         )
 
         actual.orNull()!!.apply {
@@ -389,7 +406,7 @@ class SøknadTest {
                     sakId = UUID.randomUUID(), // ignored
                     søknadInnhold = søknadInnhold,
                 ),
-                Søknad.Ny::id, Søknad.Ny::sakId
+                Søknad.Ny::id, Søknad.Ny::sakId,
             )
         }
     }
@@ -402,7 +419,12 @@ class SøknadTest {
 
         SøknadserviceOgMocks(
             sakService = mock {
-                on { hentSakidOgSaksnummer(any()) } doReturn SakInfo(sak.id, sak.saksnummer, fnr, Sakstype.UFØRE).right()
+                on { hentSakidOgSaksnummer(any()) } doReturn SakInfo(
+                    sak.id,
+                    sak.saksnummer,
+                    fnr,
+                    Sakstype.UFØRE,
+                ).right()
             },
             pdfGenerator = mock {
                 on { genererPdf(any<SøknadPdfInnhold>()) } doReturn pdf.right()
@@ -431,7 +453,7 @@ class SøknadTest {
                             søknadInnhold = søknadInnhold,
                         )
                     },
-                    argThat { it shouldBe innsender }
+                    argThat { it shouldBe innsender },
                 )
                 verify(søknadMetrics).incrementNyCounter(SøknadMetrics.NyHandlinger.PERSISTERT)
                 verify(pdfGenerator).genererPdf(
@@ -543,7 +565,7 @@ class SøknadTest {
             søknadRepoMock,
             pdfGeneratorMock,
             dokArkivMock,
-            oppgaveServiceMock
+            oppgaveServiceMock,
         ) {
             verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
             verify(sakServiceMock).hentSakidOgSaksnummer(argThat { it shouldBe fnr })
@@ -556,7 +578,7 @@ class SøknadTest {
                         søknadInnhold = søknadInnhold,
                     )
                 },
-                argThat { it shouldBe innsender }
+                argThat { it shouldBe innsender },
             )
             verify(pdfGeneratorMock).genererPdf(
                 argThat<SøknadPdfInnhold> {
@@ -568,7 +590,7 @@ class SøknadTest {
                         søknadInnhold = søknadInnhold,
                         clock = fixedClock,
                     )
-                }
+                },
             )
             verify(dokArkivMock).opprettJournalpost(
                 argThat {
@@ -590,9 +612,9 @@ class SøknadTest {
                             søknadInnhold = søknadInnhold,
                             journalpostId = journalpostId,
                         ),
-                        Søknad.Journalført.MedOppgave::id
+                        Søknad.Journalført.MedOppgave::id,
                     )
-                }
+                },
             )
             verify(oppgaveServiceMock).opprettOppgave(
                 argThat {
@@ -619,11 +641,11 @@ class SøknadTest {
                             sakId = sakId,
                             søknadInnhold = søknadInnhold,
                             journalpostId = journalpostId,
-                            oppgaveId = oppgaveId
+                            oppgaveId = oppgaveId,
                         ),
-                        Søknad.Journalført.MedOppgave::id
+                        Søknad.Journalført.MedOppgave::id,
                     )
-                }
+                },
             )
         }
         verifyNoMoreInteractions(
@@ -632,7 +654,7 @@ class SøknadTest {
             sakServiceMock,
             pdfGeneratorMock,
             dokArkivMock,
-            oppgaveServiceMock
+            oppgaveServiceMock,
         )
 
         actual.orNull()!!.apply {
@@ -644,7 +666,7 @@ class SøknadTest {
                     sakId = UUID.randomUUID(), // ignored
                     søknadInnhold = søknadInnhold,
                 ),
-                Søknad.Ny::id, Søknad.Ny::sakId
+                Søknad.Ny::id, Søknad.Ny::sakId,
             )
         }
     }

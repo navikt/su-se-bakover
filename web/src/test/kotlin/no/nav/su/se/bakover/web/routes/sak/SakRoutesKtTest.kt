@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.sak.SaksnummerFactoryProd
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
@@ -61,6 +62,7 @@ internal class SakRoutesKtTest {
         clock = fixedClock,
         unleash = FakeUnleash().apply { enableAll() },
         satsFactory = satsFactoryTestPåDato(),
+        saksnummerFactory = SaksnummerFactoryProd(reps.sak::hentNesteSaksnummer),
     )
 
     private val søknadInnhold = SøknadInnholdTestdataBuilder.build()
@@ -73,7 +75,10 @@ internal class SakRoutesKtTest {
             testApplication {
                 application { testSusebakover(databaseRepos = repos) }
 
-                SakFactory(clock = fixedClock).nySakMedNySøknad(Fnr(sakFnr01), søknadInnhold).also {
+                SakFactory(
+                    clock = fixedClock,
+                    saksnummerFactory = SaksnummerFactoryProd(repos.sak::hentNesteSaksnummer)
+                ).nySakMedNySøknad(Fnr(sakFnr01), søknadInnhold).also {
                     repos.sak.opprettSak(it)
                 }
                 val opprettetSakId: Sak = repos.sak.hentSak(Fnr(sakFnr01), Sakstype.UFØRE)!!
@@ -97,7 +102,12 @@ internal class SakRoutesKtTest {
             testApplication {
                 application { testSusebakover(databaseRepos = repos) }
 
-                repos.sak.opprettSak(SakFactory(clock = fixedClock).nySakMedNySøknad(Fnr(sakFnr01), søknadInnhold))
+                repos.sak.opprettSak(
+                    SakFactory(
+                        clock = fixedClock,
+                        saksnummerFactory = SaksnummerFactoryProd(repos.sak::hentNesteSaksnummer)
+                    ).nySakMedNySøknad(Fnr(sakFnr01), søknadInnhold)
+                )
 
                 defaultRequest(HttpMethod.Post, "$sakPath/søk", listOf(Brukerrolle.Saksbehandler)) {
                     setBody("""{"fnr":"$sakFnr01", "type": "uføre"}""")
@@ -148,7 +158,10 @@ internal class SakRoutesKtTest {
 
                 testApplication {
                     application { testSusebakover(databaseRepos = repos) }
-                    SakFactory(clock = fixedClock).nySakMedNySøknad(Fnr(sakFnr01), søknadInnhold).also {
+                    SakFactory(
+                        clock = fixedClock,
+                        saksnummerFactory = SaksnummerFactoryProd(repos.sak::hentNesteSaksnummer)
+                    ).nySakMedNySøknad(Fnr(sakFnr01), søknadInnhold).also {
                         repos.sak.opprettSak(it)
 
                         defaultRequest(

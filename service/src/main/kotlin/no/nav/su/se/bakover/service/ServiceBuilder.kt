@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
+import no.nav.su.se.bakover.domain.sak.SaksnummerFactory
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.service.avstemming.AvstemmingServiceImpl
@@ -41,6 +42,7 @@ object ServiceBuilder {
         clock: Clock,
         unleash: Unleash,
         satsFactory: SatsFactory,
+        saksnummerFactory: SaksnummerFactory,
     ): Services {
         val personService = PersonServiceImpl(clients.personOppslag)
         val toggleService = ToggleServiceImpl(unleash)
@@ -81,7 +83,10 @@ object ServiceBuilder {
         val søknadService = SøknadServiceImpl(
             søknadRepo = databaseRepos.søknad,
             sakService = sakService,
-            sakFactory = SakFactory(clock = clock),
+            sakFactory = SakFactory(
+                clock = clock,
+                saksnummerFactory = saksnummerFactory
+            ),
             pdfGenerator = clients.pdfGenerator,
             dokArkiv = clients.dokArkiv,
             personService = personService,

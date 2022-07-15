@@ -38,6 +38,8 @@ import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.UgyldigFnrException
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.sak.SaksnummerFactoryProd
+import no.nav.su.se.bakover.domain.sak.SaksnummerFactoryTest
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
@@ -121,6 +123,18 @@ fun Application.susebakover(
         clock = clock,
         unleash = unleash,
         satsFactory = satsFactory.gjeldende(LocalDate.now(clock)),
+        saksnummerFactory = when (applicationConfig.naisCluster) {
+            ApplicationConfig.NaisCluster.Dev -> {
+                SaksnummerFactoryTest(databaseRepos.sak::hentNesteSaksnummer)
+            }
+            ApplicationConfig.NaisCluster.Prod -> {
+                SaksnummerFactoryProd(databaseRepos.sak::hentNesteSaksnummer)
+            }
+            null -> {
+                /** Lokal kjøring + tester. Unngår å måtte endre asserts på saksnummer. */
+                SaksnummerFactoryProd(databaseRepos.sak::hentNesteSaksnummer)
+            }
+        },
     ),
     accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services),
     consumers: Consumers = Consumers(

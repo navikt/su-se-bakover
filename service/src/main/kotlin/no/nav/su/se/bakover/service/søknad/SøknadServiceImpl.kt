@@ -53,7 +53,10 @@ internal class SøknadServiceImpl(
 
     fun addObserver(observer: EventObserver) = observers.add(observer)
 
-    override fun nySøknad(søknadInnhold: SøknadInnhold, identBruker: NavIdentBruker): Either<KunneIkkeOppretteSøknad, Pair<Saksnummer, Søknad>> {
+    override fun nySøknad(
+        søknadInnhold: SøknadInnhold,
+        identBruker: NavIdentBruker,
+    ): Either<KunneIkkeOppretteSøknad, Pair<Saksnummer, Søknad>> {
         val innsendtFødselsnummer: Fnr = søknadInnhold.personopplysninger.fnr
 
         if (!søknadInnhold.kanSendeInnSøknad()) {
@@ -74,13 +77,10 @@ internal class SøknadServiceImpl(
 
         val (saksnummer: Saksnummer, søknad: Søknad.Ny) = sakService.hentSakidOgSaksnummer(fnr).fold(
             {
-                log.info("Ny søknad: Fant ikke sak for fødselsnummmer. Oppretter ny søknad og ny sak.")
-                val nySak = sakFactory.nySakMedNySøknad(fnr, søknadsinnholdMedNyesteFødselsnummer).also {
-                    sakService.opprettSak(it)
-                }
-                val sakIdSaksnummerFnr =
-                    sakService.hentSakidOgSaksnummer(fnr).getOrElse { throw RuntimeException("Feil ved henting av sak") }
-                Pair(sakIdSaksnummerFnr.saksnummer, nySak.søknad)
+                opprettNySak(
+                    fnr = fnr,
+                    søknadsinnholdMedNyesteFødselsnummer = søknadsinnholdMedNyesteFødselsnummer,
+                )
             },
             {
                 log.info("Ny søknad: Fant eksisterende sak for fødselsnummmer. Oppretter ny søknad på eksisterende sak.")
@@ -104,6 +104,23 @@ internal class SøknadServiceImpl(
             )
         }
         return Pair(saksnummer, søknad).right()
+    }
+
+    @Synchronized
+    private fun opprettNySak(
+        fnr: Fnr,
+        søknadsinnholdMedNyesteFødselsnummer: SøknadInnhold,
+    ): Pair<Saksnummer, Søknad.Ny> {
+        log.info("Ny søknad: Fant ikke sak for fødselsnummmer. Oppretter ny søknad og ny sak.")
+        return sakFactory.nySakMedNySøknad(
+            fnr = fnr,
+            søknadInnhold = søknadsinnholdMedNyesteFødselsnummer,
+        ).let { nySak ->
+            sakService.opprettSak(nySak).let {
+                sakService.hentSakidOgSaksnummer(fnr).getOrElse { throw RuntimeException("Feil ved henting av sak") }
+                    .let { sakinfo -> sakinfo.saksnummer to nySak.søknad }
+            }
+        }
     }
 
     override fun lukkSøknad(søknad: Søknad.Journalført.MedOppgave.Lukket, sessionContext: SessionContext) {
@@ -131,7 +148,7 @@ internal class SøknadServiceImpl(
             opprettJournalpost(
                 sak.saksnummer,
                 søknad,
-                person
+                person,
             )
         }
     }
@@ -141,7 +158,12 @@ internal class SøknadServiceImpl(
             // TODO jah: Legg på saksnummer på Søknad (dette innebærer å legge til en ny Opprettet 'tilstand')
             val sak = sakService.hentSak(søknad.sakId).getOrElse {
                 log.error("Fant ikke sak med sakId ${søknad.sakId} - sannsynligvis dataintegritetsfeil i databasen.")
-                return@map KunneIkkeOppretteOppgave(søknad.sakId, søknad.id, søknad.journalpostId, "Fant ikke sak").left()
+                return@map KunneIkkeOppretteOppgave(
+                    søknad.sakId,
+                    søknad.id,
+                    søknad.journalpostId,
+                    "Fant ikke sak",
+                ).left()
             }
             val person = personService.hentPersonMedSystembruker(sak.fnr).getOrElse {
                 log.error("Fant ikke person med sakId ${sak.id}.")
@@ -169,7 +191,7 @@ internal class SøknadServiceImpl(
     private fun opprettJournalpost(
         saksnummer: Saksnummer,
         søknad: Søknad.Ny,
-        person: Person
+        person: Person,
     ): Either<KunneIkkeOppretteJournalpost, Søknad.Journalført.UtenOppgave> {
         val pdfByteArray = pdfGenerator.genererPdf(
             SøknadPdfInnhold.create(
@@ -179,7 +201,7 @@ internal class SøknadServiceImpl(
                 søknadOpprettet = søknad.opprettet,
                 søknadInnhold = søknad.søknadInnhold,
                 clock = clock,
-            )
+            ),
         ).getOrHandle {
             log.error("Ny søknad: Kunne ikke generere PDF. Originalfeil: $it")
             return KunneIkkeOppretteJournalpost(søknad.sakId, søknad.id, "Kunne ikke generere PDF").left()
@@ -217,7 +239,7 @@ internal class SøknadServiceImpl(
                 aktørId = person.ident.aktørId,
                 clock = clock,
                 tilordnetRessurs = null,
-                sakstype = søknad.søknadInnhold.type()
+                sakstype = søknad.søknadInnhold.type(),
             ),
         ).mapLeft {
             log.error("Ny søknad: Kunne ikke opprette oppgave for sak ${søknad.sakId} og søknad ${søknad.id}. Originalfeil: $it")

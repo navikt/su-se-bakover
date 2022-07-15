@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.sak.SaksnummerFactoryProd
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
@@ -53,6 +54,7 @@ import no.nav.su.se.bakover.service.vilkår.UtenlandsoppholdStatus
 import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.vilkår.flyktningVilkårInnvilget
@@ -88,6 +90,7 @@ internal class BeregnRoutesKtTest {
             clock = fixedClock,
             unleash = mock(),
             satsFactory = satsFactoryTestPåDato(),
+            saksnummerFactory = SaksnummerFactoryProd(databaseRepos.sak::hentNesteSaksnummer),
         )
 
     @Test
@@ -226,7 +229,10 @@ internal class BeregnRoutesKtTest {
     private fun setup(services: Services, repos: DatabaseRepos): UavklartVilkårsvurdertSøknadsbehandling {
         val søknadInnhold = SøknadInnholdTestdataBuilder.build()
         val fnr: Fnr = Fnr.generer()
-        SakFactory(clock = fixedClock).nySakMedNySøknad(fnr, søknadInnhold).also {
+        SakFactory(
+            clock = fixedClock,
+            saksnummerFactory = SaksnummerFactoryProd() { saksnummer },
+        ).nySakMedNySøknad(fnr, søknadInnhold).also {
             repos.sak.opprettSak(it)
         }
         val sak: Sak = repos.sak.hentSak(fnr, Sakstype.UFØRE)!!
@@ -339,8 +345,8 @@ internal class BeregnRoutesKtTest {
         services.søknadsbehandling.leggTilFlyktningVilkår(
             request = LeggTilFlyktningVilkårRequest(
                 behandlingId = objects.søknadsbehandling.id,
-                vilkår = flyktningVilkårInnvilget(periode = objects.søknadsbehandling.periode)
-            )
+                vilkår = flyktningVilkårInnvilget(periode = objects.søknadsbehandling.periode),
+            ),
         )
         services.søknadsbehandling.fullførBosituasjongrunnlag(
             FullførBosituasjonRequest(

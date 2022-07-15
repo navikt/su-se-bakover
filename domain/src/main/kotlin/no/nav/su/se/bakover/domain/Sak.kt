@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.sak.SakInfo
+import no.nav.su.se.bakover.domain.sak.SaksnummerFactory
 import no.nav.su.se.bakover.domain.søknadinnhold.SøknadInnhold
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -66,6 +67,10 @@ data class Saksnummer(@JsonValue val nummer: Long) {
     }
 
     object UgyldigSaksnummer
+
+    operator fun inc(): Saksnummer {
+        return Saksnummer(nummer + 1)
+    }
 }
 
 data class Sak(
@@ -427,6 +432,7 @@ data class Sak(
 
 data class NySak(
     val id: UUID = UUID.randomUUID(),
+    val saksnummer: Saksnummer,
     val opprettet: Tidspunkt,
     val fnr: Fnr,
     val søknad: Søknad.Ny,
@@ -451,6 +457,7 @@ data class NySak(
 class SakFactory(
     private val uuidFactory: UUIDFactory = UUIDFactory(),
     private val clock: Clock,
+    private val saksnummerFactory: SaksnummerFactory,
 ) {
     fun nySakMedNySøknad(
         fnr: Fnr,
@@ -460,8 +467,9 @@ class SakFactory(
         val sakId = uuidFactory.newUUID()
         return NySak(
             id = sakId,
-            fnr = fnr,
+            saksnummer = saksnummerFactory.neste(),
             opprettet = opprettet,
+            fnr = fnr,
             søknad = Søknad.Ny(
                 id = uuidFactory.newUUID(),
                 opprettet = opprettet,

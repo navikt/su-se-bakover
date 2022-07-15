@@ -8,6 +8,7 @@ import no.finn.unleash.Unleash
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.DatabaseRepos
+import no.nav.su.se.bakover.domain.sak.SaksnummerFactoryProd
 import no.nav.su.se.bakover.service.AccessCheckProxy
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
@@ -56,6 +57,7 @@ class AppComponents private constructor(
                 clock = clock,
                 unleash = unleash,
                 satsFactory = satsFactory,
+                saksnummerFactory = SaksnummerFactoryProd(databaseRepos.sak::hentNesteSaksnummer)
             )
             val accessCheckProxy = AccessCheckProxy(
                 personRepo = databaseRepos.person,

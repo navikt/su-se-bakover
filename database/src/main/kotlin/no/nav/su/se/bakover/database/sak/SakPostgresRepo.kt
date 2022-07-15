@@ -89,6 +89,18 @@ internal class SakPostgresRepo(
         }
     }
 
+    override fun hentNesteSaksnummer(): Saksnummer? {
+        return sessionFactory.withSessionContext { sessionContext ->
+            sessionContext.withSession { session ->
+                "select max(saksnummer) as max from sak".hent(emptyMap(), session) { row ->
+                    row.longOrNull("max")?.let {
+                        Saksnummer(it).inc()
+                    }
+                }
+            }
+        }
+    }
+
     /***
      * @param personidenter Inneholder alle identer til brukeren, f.eks fnr og aktørid.
      */

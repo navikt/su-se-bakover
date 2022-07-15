@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.migratedDb
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.DatabaseRepos
+import no.nav.su.se.bakover.domain.sak.SaksnummerFactoryProd
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.service.AccessCheckProxy
@@ -156,6 +157,7 @@ internal fun Application.testSusebakover(
         clock = clock,
         unleash = unleash,
         satsFactory = satsFactory,
+        saksnummerFactory = SaksnummerFactoryProd(databaseRepos.sak::hentNesteSaksnummer),
     ),
     accessCheckProxy: AccessCheckProxy = AccessCheckProxy(
         databaseRepos.person,

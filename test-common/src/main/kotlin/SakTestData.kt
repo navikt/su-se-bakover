@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.sak.SakInfo
+import no.nav.su.se.bakover.domain.sak.SaksnummerFactoryProd
 import no.nav.su.se.bakover.domain.søknadinnhold.SøknadInnhold
 import no.nav.su.se.bakover.domain.søknadinnhold.SøknadsinnholdAlder
 import no.nav.su.se.bakover.domain.søknadinnhold.SøknadsinnholdUføre
@@ -90,6 +91,7 @@ fun nySak(
                 return ids.pop()
             }
         },
+        saksnummerFactory = SaksnummerFactoryProd { sakInfo.saksnummer },
     ).let { sakFactory ->
         sakFactory.nySakMedNySøknad(
             fnr = sakInfo.fnr,

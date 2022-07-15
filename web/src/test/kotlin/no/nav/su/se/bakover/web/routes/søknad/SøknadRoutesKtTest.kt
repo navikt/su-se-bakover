@@ -43,6 +43,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.PersonOppslag
+import no.nav.su.se.bakover.domain.sak.SaksnummerFactoryProd
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.domain.søknadinnhold.SøknadsinnholdUføre
@@ -203,7 +204,7 @@ internal class SøknadRoutesKtTest {
                 embeddedDatasource = dataSource,
                 dbMetrics = dbMetricsStub,
                 clock = fixedClock,
-                satsFactory = satsFactoryTest
+                satsFactory = satsFactoryTest,
             )
 
             val clients = TestClientsBuilder(fixedClock, repos).build(applicationConfig).copy(
@@ -221,6 +222,7 @@ internal class SøknadRoutesKtTest {
                 clock = fixedClock,
                 unleash = mock(),
                 satsFactory = satsFactoryTestPåDato(),
+                saksnummerFactory = SaksnummerFactoryProd() { Saksnummer(saksnummer) },
             )
 
             testApplication {

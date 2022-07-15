@@ -3,10 +3,12 @@ package no.nav.su.se.bakover.service
 import io.kotest.matchers.collections.shouldContain
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.domain.DatabaseRepos
+import no.nav.su.se.bakover.domain.sak.SaksnummerFactoryProd
 import no.nav.su.se.bakover.service.revurdering.RevurderingServiceImpl
 import no.nav.su.se.bakover.service.sak.SakServiceImpl
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServiceImpl
 import no.nav.su.se.bakover.test.defaultMock
+import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
@@ -57,13 +59,14 @@ internal class ServiceBuilderTest {
                 journalpostClient = mock(),
                 tilbakekrevingClient = mock(),
                 skatteOppslag = mock(),
-                maskinportenClient = mock()
+                maskinportenClient = mock(),
             ),
             behandlingMetrics = mock(),
             søknadMetrics = mock(),
             clock = Clock.systemUTC(),
             unleash = mock(),
             satsFactory = satsFactoryTestPåDato(),
+            saksnummerFactory = SaksnummerFactoryProd() { saksnummer },
         ).let {
             (it.sak as SakServiceImpl).observers shouldContain it.statistikk
             (it.søknadsbehandling as SøknadsbehandlingServiceImpl).getObservers() shouldContain it.statistikk

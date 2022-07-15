@@ -53,6 +53,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.sak.SaksnummerFactoryProd
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
 import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -131,6 +132,7 @@ internal class SøknadsbehandlingRoutesKtTest {
             clock = fixedClock,
             unleash = mock(),
             satsFactory = satsFactory,
+            saksnummerFactory = SaksnummerFactoryProd(databaseRepos.sak::hentNesteSaksnummer),
         )
 
     @Nested
@@ -836,7 +838,10 @@ internal class SøknadsbehandlingRoutesKtTest {
     ): UavklartVilkårsvurdertSøknadsbehandling {
         val søknadInnhold = SøknadInnholdTestdataBuilder.build()
         val fnr: Fnr = Fnr.generer()
-        SakFactory(clock = fixedClock).nySakMedNySøknad(fnr, søknadInnhold).also {
+        SakFactory(
+            clock = fixedClock,
+            saksnummerFactory = SaksnummerFactoryProd(repos.sak::hentNesteSaksnummer),
+        ).nySakMedNySøknad(fnr, søknadInnhold).also {
             repos.sak.opprettSak(it)
         }
         val sak: Sak = repos.sak.hentSak(fnr, Sakstype.UFØRE)!!

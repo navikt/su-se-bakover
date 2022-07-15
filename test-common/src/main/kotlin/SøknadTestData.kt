@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.sak.SaksnummerFactoryProd
 import no.nav.su.se.bakover.domain.søknadinnhold.ForNav
 import no.nav.su.se.bakover.domain.søknadinnhold.Personopplysninger
 import no.nav.su.se.bakover.domain.søknadinnhold.SøknadInnhold
@@ -44,6 +45,7 @@ fun nySakMedNySøknad(
         }
     },
     clock = fixedClock,
+    saksnummerFactory = SaksnummerFactoryProd() { saksnummer },
 ).nySakMedNySøknad(
     fnr = fnr,
     søknadInnhold = søknadinnhold(fnr),

@@ -41,6 +41,7 @@ import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.sak.SaksnummerFactoryProd
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.service.AccessCheckProxy
 import no.nav.su.se.bakover.service.ServiceBuilder
@@ -141,7 +142,7 @@ internal object SharedRegressionTestData {
                 wellKnownUrl = "maskinportenWellKnownUrl",
                 issuer = "maskinportenIssuer",
                 jwksUri = "maskinportenJwksUri",
-                tokenEndpoint = "maskinporteTokenEndpointn"
+                tokenEndpoint = "maskinporteTokenEndpointn",
             ),
             skatteetatenConfig = ApplicationConfig.ClientsConfig.SkatteetatenConfig(apiUri = "a"),
         ),
@@ -238,6 +239,7 @@ internal object SharedRegressionTestData {
             clock = clock,
             unleash = unleash,
             satsFactory = satsFactoryTestPåDato(LocalDate.now(clock)),
+            saksnummerFactory = SaksnummerFactoryProd(databaseRepos.sak::hentNesteSaksnummer),
         ),
         accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services),
     ) {
@@ -298,7 +300,7 @@ data class TestClientsBuilder(
         journalpostClient = JournalpostClientStub,
         tilbakekrevingClient = TilbakekrevingClientStub(clock),
         skatteOppslag = SkatteClientStub(),
-        maskinportenClient = MaskinportenClientStub(clock)
+        maskinportenClient = MaskinportenClientStub(clock),
     )
 
     override fun build(applicationConfig: ApplicationConfig): Clients = testClients

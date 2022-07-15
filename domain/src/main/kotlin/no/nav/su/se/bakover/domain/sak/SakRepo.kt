@@ -21,4 +21,6 @@ interface SakRepo {
     fun hentSaker(fnr: Fnr): List<Sak>
 
     fun hentSakForRevurdering(revurderingId: UUID): Sak
+
+    fun hentNesteSaksnummer(): Saksnummer?
 }
