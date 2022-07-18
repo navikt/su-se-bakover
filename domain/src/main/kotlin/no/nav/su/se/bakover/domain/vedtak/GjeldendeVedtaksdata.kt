@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
 import no.nav.su.se.bakover.domain.vilkår.FamiliegjenforeningVilkår
+import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
@@ -65,6 +66,7 @@ data class GjeldendeVedtaksdata(
                         utenlandsopphold = it.utenlandsoppholdVilkår(),
                         opplysningsplikt = it.opplysningspliktVilkår(),
                         flyktning = it.flyktningVilkår(),
+                        fastOpphold = it.fastOppholdINorgeVilkår(),
                     )
                 }
                 vedtakPåTidslinje.all {
@@ -78,6 +80,7 @@ data class GjeldendeVedtaksdata(
                         opplysningsplikt = it.opplysningspliktVilkår(),
                         pensjon = it.pensjonsVilkår(),
                         familiegjenforening = it.familiegjenforeningvilkår(),
+                        fastOpphold = it.fastOppholdINorgeVilkår(),
                     )
                 }
                 else -> {
@@ -289,4 +292,19 @@ private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.flyktningVilkår(): 
             FlyktningVilkår.IkkeVurdert
         }
     }
+}
+
+private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.fastOppholdINorgeVilkår(): FastOppholdINorgeVilkår {
+    return map { it.fastOppholdVilkår() }
+        .filterIsInstance<FastOppholdINorgeVilkår.Vurdert>()
+        .flatMap { it.vurderingsperioder }
+        .let { vurderingsperioder ->
+            if (vurderingsperioder.isNotEmpty()) {
+                FastOppholdINorgeVilkår.Vurdert.tryCreate(NonEmptyList.fromListUnsafe(vurderingsperioder))
+                    .getOrHandle { throw IllegalArgumentException(it.toString()) }
+                    .slåSammenLikePerioder()
+            } else {
+                FastOppholdINorgeVilkår.IkkeVurdert
+            }
+        }
 }

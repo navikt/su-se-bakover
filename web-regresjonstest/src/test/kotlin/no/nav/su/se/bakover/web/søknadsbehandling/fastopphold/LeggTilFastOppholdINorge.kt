@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.søknadsbehandling.opphold
+package no.nav.su.se.bakover.web.søknadsbehandling.fastopphold
 
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
@@ -19,34 +19,52 @@ import no.nav.su.se.bakover.web.SharedRegressionTestData.defaultRequest
 internal fun ApplicationTestBuilder.leggTilFastOppholdINorge(
     sakId: String,
     behandlingId: String,
-    vurdering: String = "VilkårOppfylt",
+    fraOgMed: String,
+    tilOgMed: String,
+    body: () -> String = { innvilgetFastOppholdJson(fraOgMed, tilOgMed) },
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
+    url: String = "/saker/$sakId/behandlinger/$behandlingId/fastopphold",
 ): String {
     return runBlocking {
         defaultRequest(
-            HttpMethod.Patch,
-            "/saker/$sakId/behandlinger/$behandlingId/informasjon",
+            HttpMethod.Post,
+            url,
             listOf(brukerrolle),
         ) {
-            setBody(
-                //language=JSON
-                """
-                  {
-                    "flyktning":null,
-                    "lovligOpphold":null,
-                    "fastOppholdINorge":{
-                      "status":"$vurdering"
-                    },
-                    "institusjonsopphold":null,
-                    "personligOppmøte":null
-                  }
-                """.trimIndent(),
-            )
+            setBody(body())
         }.apply {
             withClue("body=${this.bodyAsText()}") {
-                status shouldBe HttpStatusCode.OK
+                status shouldBe HttpStatusCode.Created
                 contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
             }
         }.bodyAsText()
     }
+}
+
+internal fun innvilgetFastOppholdJson(fraOgMed: String, tilOgMed: String): String {
+    return """
+       [
+          {
+            "periode": {
+              "fraOgMed": "$fraOgMed",
+              "tilOgMed": "$tilOgMed"
+            },
+            "vurdering": "VilkårOppfylt"
+          }
+        ]
+    """.trimIndent()
+}
+
+internal fun avslåttFastOppholdJson(fraOgMed: String, tilOgMed: String): String {
+    return """
+       [
+          {
+            "periode": {
+              "fraOgMed": "$fraOgMed",
+              "tilOgMed": "$tilOgMed"
+            },
+            "vurdering": "VilkårIkkeOppfylt"
+          }
+        ]
+    """.trimIndent()
 }

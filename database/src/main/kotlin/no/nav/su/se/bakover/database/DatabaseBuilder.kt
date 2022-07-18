@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database
 
+import FastOppholdINorgeVilkårsvurderingPostgresRepo
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import no.nav.su.se.bakover.common.ApplicationConfig
@@ -149,6 +150,9 @@ object DatabaseBuilder {
                 lovligOppholdGrunnlagPostgresRepo = LovligOppholdgrunnlagPostgresRepo(dbMetrics),
             ),
             flyktningVilkårsvurderingPostgresRepo = FlyktningVilkårsvurderingPostgresRepo(
+                dbMetrics = dbMetrics
+            ),
+            fastOppholdINorgeVilkårsvurderingPostgresRepo = FastOppholdINorgeVilkårsvurderingPostgresRepo(
                 dbMetrics = dbMetrics
             )
         )

@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
-import no.nav.su.se.bakover.test.vurderingsperiode.vurderingsperiodeFastOppholdAvslag
+import no.nav.su.se.bakover.test.vilkår.fastOppholdVilkårAvslag
 import no.nav.su.se.bakover.test.vurderingsperiode.vurderingsperiodeLovligOppholdInnvilget
 import org.junit.jupiter.api.Test
 
@@ -30,6 +30,6 @@ internal class VurderingsperiodeLovligOppholdTest {
     @Test
     fun `er lik ser kun på funksjonelle verdier`() {
         vurderingsperiodeLovligOppholdInnvilget().erLik(vurderingsperiodeLovligOppholdInnvilget()) shouldBe true
-        vurderingsperiodeLovligOppholdInnvilget().erLik(vurderingsperiodeFastOppholdAvslag()) shouldBe false
+        vurderingsperiodeLovligOppholdInnvilget().erLik(fastOppholdVilkårAvslag().vurderingsperioder.single()) shouldBe false
     }
 }

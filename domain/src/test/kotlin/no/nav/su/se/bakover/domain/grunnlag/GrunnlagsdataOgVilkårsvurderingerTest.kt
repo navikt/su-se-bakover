@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
@@ -64,6 +65,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
                     opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
                     lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
                     flyktning = FlyktningVilkår.IkkeVurdert,
+                    fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
                 ),
             )
         }.message shouldBe "Grunnlagsdataperioden (Periode(fraOgMed=2021-01-01, tilOgMed=2021-04-30)) må være lik vilkårsvurderingerperioden (Periode(fraOgMed=2021-01-01, tilOgMed=2021-05-31))"
@@ -104,6 +106,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
                 opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
                 lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
                 flyktning = FlyktningVilkår.IkkeVurdert,
+                fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
             ),
         )
     }
@@ -124,6 +127,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
                 opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
                 lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
                 flyktning = FlyktningVilkår.IkkeVurdert,
+                fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
             ),
         )
     }

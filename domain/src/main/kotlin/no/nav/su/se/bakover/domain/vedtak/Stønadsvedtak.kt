@@ -437,6 +437,8 @@ sealed interface VedtakSomKanRevurderes : Stønadsvedtak {
         fun flyktningVilkår(): Either<Vilkårsvurderinger.VilkårEksistererIkke, FlyktningVilkår> {
             return vilkårsvurderinger.flyktningVilkår()
         }
+
+        fun fastOppholdVilkår() = vilkårsvurderinger.fastOppholdVilkår()
     }
 }
 

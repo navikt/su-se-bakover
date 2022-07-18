@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.FamiliegjenforeningVilkår
+import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
@@ -738,7 +739,7 @@ fun iverksattSøknadsbehandlingUføre(
         sakId = sakId,
         saksnummer = saksnummer,
         fnr = fnr,
-        type = Sakstype.UFØRE
+        type = Sakstype.UFØRE,
     ),
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(
@@ -841,7 +842,7 @@ fun tilAttesteringSøknadsbehandlingUføre(
         sakId = sakId,
         saksnummer = saksnummer,
         fnr = fnr,
-        type = Sakstype.UFØRE
+        type = Sakstype.UFØRE,
     ),
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(
@@ -1128,7 +1129,7 @@ fun vilkårsvurdertSøknadsbehandling(
                     ).getOrFail()
                     .leggTilLovligOpphold(
                         lovligOppholdVilkår = customVilkår.customOrDefault { vilkår.lovligOpphold as LovligOppholdVilkår.Vurdert },
-                        clock = clock
+                        clock = clock,
                     ).getOrFail()
                     .leggTilUtenlandsopphold(
                         utenlandsopphold = customVilkår.customOrDefault { vilkår.utenlandsopphold as UtenlandsoppholdVilkår.Vurdert },
@@ -1150,6 +1151,11 @@ fun vilkårsvurdertSøknadsbehandling(
                         clock = clock,
                     )
                     .getOrFail()
+                    .leggTilFastOppholdINorgeVilkår(
+                        vilkår = customVilkår.customOrDefault { vilkår.fastOpphold as FastOppholdINorgeVilkår.Vurdert },
+                        clock = clock,
+                    )
+                    .getOrFail()
             }
             is Vilkårsvurderinger.Søknadsbehandling.Uføre -> {
                 etterOppdaterFraBehandlingsinformasjon.oppdaterBosituasjon(
@@ -1163,7 +1169,7 @@ fun vilkårsvurdertSøknadsbehandling(
                     ).getOrFail()
                     .leggTilLovligOpphold(
                         lovligOppholdVilkår = customVilkår.customOrDefault { vilkår.lovligOpphold as LovligOppholdVilkår.Vurdert },
-                        clock = clock
+                        clock = clock,
                     ).getOrFail()
                     .leggTilUtenlandsopphold(
                         utenlandsopphold = customVilkår.customOrDefault { vilkår.utenlandsopphold as UtenlandsoppholdVilkår.Vurdert },
@@ -1182,6 +1188,11 @@ fun vilkårsvurdertSøknadsbehandling(
                     .getOrFail()
                     .leggTilFlyktningVilkår(
                         vilkår = customVilkår.customOrDefault { vilkår.flyktning as FlyktningVilkår.Vurdert },
+                        clock = clock,
+                    )
+                    .getOrFail()
+                    .leggTilFastOppholdINorgeVilkår(
+                        vilkår = customVilkår.customOrDefault { vilkår.fastOpphold as FastOppholdINorgeVilkår.Vurdert },
                         clock = clock,
                     )
                     .getOrFail()

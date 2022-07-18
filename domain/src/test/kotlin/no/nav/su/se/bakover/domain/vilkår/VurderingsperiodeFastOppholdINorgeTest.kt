@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.CopyArgs
-import no.nav.su.se.bakover.domain.grunnlag.FastOppholdINorgeGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
@@ -24,11 +23,6 @@ internal class VurderingsperiodeFastOppholdINorgeTest {
             id = vilkårId,
             opprettet = fixedTidspunkt,
             vurdering = Vurdering.Innvilget,
-            grunnlag = FastOppholdINorgeGrunnlag(
-                id = grunnlagId,
-                opprettet = fixedTidspunkt,
-                periode = år(2021),
-            ),
             vurderingsperiode = år(2021),
         ).getOrFail()
             .let {
@@ -38,11 +32,6 @@ internal class VurderingsperiodeFastOppholdINorgeTest {
                     id = vilkårId,
                     opprettet = fixedTidspunkt,
                     vurdering = Vurdering.Innvilget,
-                    grunnlag = FastOppholdINorgeGrunnlag(
-                        id = grunnlagId,
-                        opprettet = fixedTidspunkt,
-                        periode = februar(2021),
-                    ),
                     vurderingsperiode = februar(2021),
                 ).getOrFail()
             }
@@ -54,11 +43,6 @@ internal class VurderingsperiodeFastOppholdINorgeTest {
             id = vilkårId,
             opprettet = fixedTidspunkt,
             vurdering = Vurdering.Innvilget,
-            grunnlag = FastOppholdINorgeGrunnlag(
-                id = grunnlagId,
-                opprettet = fixedTidspunkt,
-                periode = år(2021),
-            ),
             vurderingsperiode = år(2021),
         ).getOrFail()
             .copy(CopyArgs.Tidslinje.Full).let {
@@ -69,11 +53,6 @@ internal class VurderingsperiodeFastOppholdINorgeTest {
             id = vilkårId,
             opprettet = fixedTidspunkt,
             vurdering = Vurdering.Innvilget,
-            grunnlag = FastOppholdINorgeGrunnlag(
-                id = grunnlagId,
-                opprettet = fixedTidspunkt,
-                periode = år(2021),
-            ),
             vurderingsperiode = år(2021),
         ).getOrFail().copy(CopyArgs.Tidslinje.NyPeriode(mai(2021))).let {
             it shouldBe it.copy(periode = mai(2021))
@@ -86,11 +65,6 @@ internal class VurderingsperiodeFastOppholdINorgeTest {
             id = vilkårId,
             opprettet = fixedTidspunkt,
             vurdering = Vurdering.Innvilget,
-            grunnlag = FastOppholdINorgeGrunnlag(
-                id = grunnlagId,
-                opprettet = fixedTidspunkt,
-                periode = år(2021),
-            ),
             vurderingsperiode = år(2021),
         ).getOrFail()
             .erLik(
@@ -98,11 +72,6 @@ internal class VurderingsperiodeFastOppholdINorgeTest {
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(),
                     vurdering = Vurdering.Innvilget,
-                    grunnlag = FastOppholdINorgeGrunnlag(
-                        id = UUID.randomUUID(),
-                        opprettet = Tidspunkt.now(),
-                        periode = februar(2021),
-                    ),
                     vurderingsperiode = februar(2021),
                 ).getOrFail(),
             ) shouldBe true
@@ -111,11 +80,6 @@ internal class VurderingsperiodeFastOppholdINorgeTest {
             id = vilkårId,
             opprettet = fixedTidspunkt,
             vurdering = Vurdering.Innvilget,
-            grunnlag = FastOppholdINorgeGrunnlag(
-                id = grunnlagId,
-                opprettet = fixedTidspunkt,
-                periode = år(2021),
-            ),
             vurderingsperiode = år(2021),
         ).getOrFail()
             .erLik(
@@ -123,11 +87,6 @@ internal class VurderingsperiodeFastOppholdINorgeTest {
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(),
                     vurdering = Vurdering.Avslag,
-                    grunnlag = FastOppholdINorgeGrunnlag(
-                        id = UUID.randomUUID(),
-                        opprettet = Tidspunkt.now(),
-                        periode = februar(2021),
-                    ),
                     vurderingsperiode = februar(2021),
                 ).getOrFail(),
             ) shouldBe false

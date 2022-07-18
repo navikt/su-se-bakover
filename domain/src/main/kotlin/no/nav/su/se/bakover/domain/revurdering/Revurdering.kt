@@ -49,6 +49,7 @@ import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
+import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.Inngangsvilkår
@@ -379,6 +380,38 @@ sealed class Revurdering :
             }
     }
 
+    open fun oppdaterFastOppholdINorgeOgMarkerSomVurdert(vilkår: FastOppholdINorgeVilkår.Vurdert): Either<KunneIkkeLeggeTilFastOppholdINorgeVilkår, OpprettetRevurdering> {
+        return KunneIkkeLeggeTilFastOppholdINorgeVilkår.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
+    }
+
+    sealed interface KunneIkkeLeggeTilFastOppholdINorgeVilkår {
+        data class UgyldigTilstand(
+            val fra: KClass<out Revurdering>,
+            val til: KClass<out Revurdering> = OpprettetRevurdering::class,
+        ) : KunneIkkeLeggeTilFastOppholdINorgeVilkår
+
+        object HeleBehandlingsperiodenErIkkeVurdert : KunneIkkeLeggeTilFastOppholdINorgeVilkår
+        object AlleVurderingsperioderMåHaSammeResultat : KunneIkkeLeggeTilFastOppholdINorgeVilkår
+    }
+
+    protected fun oppdaterFastOppholdINorgeOgMarkerSomVurdertInternal(vilkår: FastOppholdINorgeVilkår.Vurdert): Either<KunneIkkeLeggeTilFastOppholdINorgeVilkår, OpprettetRevurdering> {
+        return oppdaterFastOppholdINorgeInternal(vilkår)
+            .map { it.oppdaterInformasjonSomRevurderes(informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.FastOppholdINorge)) }
+    }
+
+    private fun oppdaterFastOppholdINorgeInternal(vilkår: FastOppholdINorgeVilkår.Vurdert): Either<KunneIkkeLeggeTilFastOppholdINorgeVilkår, OpprettetRevurdering> {
+        if (!periode.fullstendigOverlapp(vilkår.perioder)) {
+            return KunneIkkeLeggeTilFastOppholdINorgeVilkår.HeleBehandlingsperiodenErIkkeVurdert.left()
+        }
+        if (!vilkår.vurderingsperioder.all {
+            it.vurdering == vilkår.vurderingsperioder.first().vurdering
+        }
+        ) {
+            return KunneIkkeLeggeTilFastOppholdINorgeVilkår.AlleVurderingsperioderMåHaSammeResultat.left()
+        }
+        return oppdaterVilkårsvurderinger(vilkårsvurderinger = vilkårsvurderinger.leggTil(vilkår)).right()
+    }
+
     private fun oppdaterVilkårsvurderinger(
         vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
     ): OpprettetRevurdering {
@@ -690,6 +723,10 @@ data class OpprettetRevurdering(
         return oppdaterFradragInternal(fradragsgrunnlag)
     }
 
+    override fun oppdaterFastOppholdINorgeOgMarkerSomVurdert(vilkår: FastOppholdINorgeVilkår.Vurdert): Either<KunneIkkeLeggeTilFastOppholdINorgeVilkår, OpprettetRevurdering> {
+        return oppdaterFastOppholdINorgeOgMarkerSomVurdertInternal(vilkår)
+    }
+
     fun oppdater(
         periode: Periode,
         revurderingsårsak: Revurderingsårsak,
@@ -750,6 +787,10 @@ sealed class BeregnetRevurdering : Revurdering() {
 
     override fun oppdaterLovligOppholdOgMarkerSomVurdert(lovligOppholdVilkår: LovligOppholdVilkår.Vurdert): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilLovligOpphold, OpprettetRevurdering> {
         return oppdaterLovligOppholdOgMarkerSomVurdertInternal(lovligOppholdVilkår)
+    }
+
+    override fun oppdaterFastOppholdINorgeOgMarkerSomVurdert(vilkår: FastOppholdINorgeVilkår.Vurdert): Either<KunneIkkeLeggeTilFastOppholdINorgeVilkår, OpprettetRevurdering> {
+        return oppdaterFastOppholdINorgeOgMarkerSomVurdertInternal(vilkår)
     }
 
     fun oppdater(
@@ -1193,6 +1234,10 @@ sealed class SimulertRevurdering : Revurdering() {
 
     override fun oppdaterFradrag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradrag, OpprettetRevurdering> {
         return oppdaterFradragInternal(fradragsgrunnlag)
+    }
+
+    override fun oppdaterFastOppholdINorgeOgMarkerSomVurdert(vilkår: FastOppholdINorgeVilkår.Vurdert): Either<KunneIkkeLeggeTilFastOppholdINorgeVilkår, OpprettetRevurdering> {
+        return oppdaterFastOppholdINorgeOgMarkerSomVurdertInternal(vilkår)
     }
 
     abstract fun oppdaterTilbakekrevingsbehandling(tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling): SimulertRevurdering
@@ -1956,6 +2001,10 @@ sealed class UnderkjentRevurdering : Revurdering() {
         return oppdaterFradragInternal(fradragsgrunnlag)
     }
 
+    override fun oppdaterFastOppholdINorgeOgMarkerSomVurdert(vilkår: FastOppholdINorgeVilkår.Vurdert): Either<KunneIkkeLeggeTilFastOppholdINorgeVilkår, OpprettetRevurdering> {
+        return oppdaterFastOppholdINorgeOgMarkerSomVurdertInternal(vilkår)
+    }
+
     data class Innvilget(
         override val id: UUID,
         override val periode: Periode,
@@ -2207,6 +2256,7 @@ enum class Revurderingsteg(val vilkår: String) {
     Inntekt("Inntekt"),
     Opplysningsplikt("Opplysningsplikt"),
     Pensjon("Pensjon"),
+    FastOppholdINorge("FastOppholdINorge");
 }
 
 private fun validerTilIverksettOvergang(

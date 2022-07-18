@@ -14,11 +14,11 @@ internal class AvslagsgrunnTest {
         Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER.tilOpphørsgrunn() shouldBe Opphørsgrunn.UTENLANDSOPPHOLD
         Avslagsgrunn.OPPHOLDSTILLATELSE.tilOpphørsgrunn() shouldBe Opphørsgrunn.OPPHOLDSTILLATELSE
         Avslagsgrunn.FLYKTNING.tilOpphørsgrunn() shouldBe Opphørsgrunn.FLYKTNING
+        Avslagsgrunn.BOR_OG_OPPHOLDER_SEG_I_NORGE.tilOpphørsgrunn() shouldBe Opphørsgrunn.BOR_OG_OPPHOLDER_SEG_I_NORGE
 
         listOf(
             Avslagsgrunn.PERSONLIG_OPPMØTE,
             Avslagsgrunn.INNLAGT_PÅ_INSTITUSJON,
-            Avslagsgrunn.BOR_OG_OPPHOLDER_SEG_I_NORGE,
         ).forEach {
             assertThrows<NotImplementedError> {
                 it.tilOpphørsgrunn()
