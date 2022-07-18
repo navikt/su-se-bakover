@@ -36,6 +36,9 @@ internal fun KunneIkkeLeggeFastOppholdINorgeVilkår.tilResultat(): Resultat {
                 is Revurdering.KunneIkkeLeggeTilFastOppholdINorgeVilkår.UgyldigTilstand -> {
                     Feilresponser.ugyldigTilstand(feil.fra, feil.til)
                 }
+                Revurdering.KunneIkkeLeggeTilFastOppholdINorgeVilkår.AlleVurderingsperioderMåHaSammeResultat -> {
+                    Feilresponser.alleVurderingsperioderMåHaSammeResultat
+                }
             }
         }
         is KunneIkkeLeggeFastOppholdINorgeVilkår.Søknadsbehandling -> {

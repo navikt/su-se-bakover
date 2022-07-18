@@ -436,7 +436,7 @@ internal class RevurderingServiceImpl(
         return hent(request.behandlingId).mapLeft {
             KunneIkkeLeggeFastOppholdINorgeVilkår.FantIkkeBehandling
         }.flatMap { revurdering ->
-            revurdering.oppdaterFastOpphodINorgeOgMarkerSomVurdert(request.vilkår)
+            revurdering.oppdaterFastOppholdINorgeOgMarkerSomVurdert(request.vilkår)
                 .mapLeft {
                     KunneIkkeLeggeFastOppholdINorgeVilkår.Revurdering(it)
                 }

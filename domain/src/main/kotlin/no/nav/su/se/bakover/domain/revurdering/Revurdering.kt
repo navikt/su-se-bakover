@@ -381,7 +381,7 @@ sealed class Revurdering :
             }
     }
 
-    open fun oppdaterFastOpphodINorgeOgMarkerSomVurdert(vilkår: FastOppholdINorgeVilkår.Vurdert): Either<KunneIkkeLeggeTilFastOppholdINorgeVilkår, OpprettetRevurdering> {
+    open fun oppdaterFastOppholdINorgeOgMarkerSomVurdert(vilkår: FastOppholdINorgeVilkår.Vurdert): Either<KunneIkkeLeggeTilFastOppholdINorgeVilkår, OpprettetRevurdering> {
         return KunneIkkeLeggeTilFastOppholdINorgeVilkår.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
     }
 
@@ -392,6 +392,7 @@ sealed class Revurdering :
         ) : KunneIkkeLeggeTilFastOppholdINorgeVilkår
 
         object HeleBehandlingsperiodenErIkkeVurdert : KunneIkkeLeggeTilFastOppholdINorgeVilkår
+        object AlleVurderingsperioderMåHaSammeResultat : KunneIkkeLeggeTilFastOppholdINorgeVilkår
     }
 
     protected fun oppdaterFastOppholdINorgeOgMarkerSomVurdertInternal(vilkår: FastOppholdINorgeVilkår.Vurdert): Either<KunneIkkeLeggeTilFastOppholdINorgeVilkår, OpprettetRevurdering> {
@@ -402,6 +403,12 @@ sealed class Revurdering :
     private fun oppdaterFastOppholdINorgeInternal(vilkår: FastOppholdINorgeVilkår.Vurdert): Either<KunneIkkeLeggeTilFastOppholdINorgeVilkår, OpprettetRevurdering> {
         if (!periode.fullstendigOverlapp(vilkår.perioder)) {
             return KunneIkkeLeggeTilFastOppholdINorgeVilkår.HeleBehandlingsperiodenErIkkeVurdert.left()
+        }
+        if (!vilkår.vurderingsperioder.all {
+            it.vurdering == vilkår.vurderingsperioder.first().vurdering
+        }
+        ) {
+            return KunneIkkeLeggeTilFastOppholdINorgeVilkår.AlleVurderingsperioderMåHaSammeResultat.left()
         }
         return oppdaterVilkårsvurderinger(vilkårsvurderinger = vilkårsvurderinger.leggTil(vilkår)).right()
     }
@@ -717,7 +724,7 @@ data class OpprettetRevurdering(
         return oppdaterFradragInternal(fradragsgrunnlag)
     }
 
-    override fun oppdaterFastOpphodINorgeOgMarkerSomVurdert(vilkår: FastOppholdINorgeVilkår.Vurdert): Either<KunneIkkeLeggeTilFastOppholdINorgeVilkår, OpprettetRevurdering> {
+    override fun oppdaterFastOppholdINorgeOgMarkerSomVurdert(vilkår: FastOppholdINorgeVilkår.Vurdert): Either<KunneIkkeLeggeTilFastOppholdINorgeVilkår, OpprettetRevurdering> {
         return oppdaterFastOppholdINorgeOgMarkerSomVurdertInternal(vilkår)
     }
 
@@ -783,7 +790,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         return oppdaterLovligOppholdOgMarkerSomVurdertInternal(lovligOppholdVilkår)
     }
 
-    override fun oppdaterFastOpphodINorgeOgMarkerSomVurdert(vilkår: FastOppholdINorgeVilkår.Vurdert): Either<KunneIkkeLeggeTilFastOppholdINorgeVilkår, OpprettetRevurdering> {
+    override fun oppdaterFastOppholdINorgeOgMarkerSomVurdert(vilkår: FastOppholdINorgeVilkår.Vurdert): Either<KunneIkkeLeggeTilFastOppholdINorgeVilkår, OpprettetRevurdering> {
         return oppdaterFastOppholdINorgeOgMarkerSomVurdertInternal(vilkår)
     }
 
@@ -1230,7 +1237,7 @@ sealed class SimulertRevurdering : Revurdering() {
         return oppdaterFradragInternal(fradragsgrunnlag)
     }
 
-    override fun oppdaterFastOpphodINorgeOgMarkerSomVurdert(vilkår: FastOppholdINorgeVilkår.Vurdert): Either<KunneIkkeLeggeTilFastOppholdINorgeVilkår, OpprettetRevurdering> {
+    override fun oppdaterFastOppholdINorgeOgMarkerSomVurdert(vilkår: FastOppholdINorgeVilkår.Vurdert): Either<KunneIkkeLeggeTilFastOppholdINorgeVilkår, OpprettetRevurdering> {
         return oppdaterFastOppholdINorgeOgMarkerSomVurdertInternal(vilkår)
     }
 
@@ -1995,7 +2002,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         return oppdaterFradragInternal(fradragsgrunnlag)
     }
 
-    override fun oppdaterFastOpphodINorgeOgMarkerSomVurdert(vilkår: FastOppholdINorgeVilkår.Vurdert): Either<KunneIkkeLeggeTilFastOppholdINorgeVilkår, OpprettetRevurdering> {
+    override fun oppdaterFastOppholdINorgeOgMarkerSomVurdert(vilkår: FastOppholdINorgeVilkår.Vurdert): Either<KunneIkkeLeggeTilFastOppholdINorgeVilkår, OpprettetRevurdering> {
         return oppdaterFastOppholdINorgeOgMarkerSomVurdertInternal(vilkår)
     }
 
