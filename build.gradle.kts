@@ -21,8 +21,6 @@ subprojects {
     val jacksonVersion = "2.13.3"
     val kotlinVersion: String by this
     dependencies {
-        api(kotlin("stdlib-jdk8"))
-
         implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
         implementation("org.jetbrains.kotlin:kotlin-script-runtime:$kotlinVersion")
         implementation("org.jetbrains.kotlin:kotlin-compiler-embeddable:$kotlinVersion")
@@ -59,7 +57,7 @@ subprojects {
         // Embedded database brukes av modulene: web og database
         testImplementation(
             // select version() i preprod -> PostgreSQL 11.7 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 4.8.5 20150623 (Red Hat 4.8.5-39), 64-bit
-            // The releases without the -1 suffix has a dyld/dylib issue on MacOs (i.e. the 11.7.0 version won't work)
+            // The releases without the -1 suffix has a dyld/dylib issue on macOS (i.e. the 11.7.0 version won't work)
             enforcedPlatform("io.zonky.test.postgres:embedded-postgres-binaries-bom:11.6.0-1"),
         )
         testImplementation("io.zonky.test:embedded-postgres:2.0.0")
@@ -110,6 +108,11 @@ subprojects {
             freeCompilerArgs += "-progressive"
             allWarningsAsErrors = true
         }
+    }
+
+    java {
+        // Ensuring any java-files is also compiled with the preferred version.
+        toolchain.languageVersion.set(JavaLanguageVersion.of(17))
     }
 
     tasks.withType<Wrapper> {
