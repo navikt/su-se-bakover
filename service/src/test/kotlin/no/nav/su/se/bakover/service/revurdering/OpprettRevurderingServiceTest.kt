@@ -57,10 +57,6 @@ import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
-import no.nav.su.se.bakover.test.vilkår.fastOppholdVilkårInnvilget
-import no.nav.su.se.bakover.test.vilkår.flyktningVilkårInnvilget
-import no.nav.su.se.bakover.test.vilkår.lovligOppholdVilkårInnvilget
-import no.nav.su.se.bakover.test.vilkår.tilstrekkeligDokumentert
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt12000
 import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget

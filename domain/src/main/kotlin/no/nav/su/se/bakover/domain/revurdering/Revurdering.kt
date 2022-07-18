@@ -49,7 +49,6 @@ import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår

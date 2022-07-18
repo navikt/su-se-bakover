@@ -8,7 +8,6 @@ create table if not exists vilkårsvurdering_fastOpphold
     tilOgMed date not null
 );
 
-
 with søknadsbehandlinger (behandlingid, opprettet, fraogmed, tilogmed, resultat) as (
     select id,
            opprettet,
@@ -20,7 +19,7 @@ with søknadsbehandlinger (behandlingid, opprettet, fraogmed, tilogmed, resultat
                when (behandlingsinformasjon -> 'fastOppholdINorge' ->> 'status' = 'Uavklart') then 'UAVKLART'
            end
     from behandling
-    where behandlingsinformasjon ->> 'fastOppholdINorge' is not null
+    where (behandlingsinformasjon ->> 'fastOppholdINorge') is not null
 )
 
 insert into vilkårsvurdering_fastOpphold(id, opprettet, behandlingid, fraogmed, tilogmed, resultat)
@@ -69,4 +68,4 @@ insert into vilkårsvurdering_fastOpphold(id, opprettet, behandlingid, fraogmed,
             tilogmed,
             resultat
      from reguleringer
-    ); 
+    );

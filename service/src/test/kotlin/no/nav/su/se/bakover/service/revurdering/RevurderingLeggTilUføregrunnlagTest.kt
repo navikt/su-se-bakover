@@ -6,15 +6,6 @@ import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.revurdering.RevurderingsutfallSomIkkeStøttes
-import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
-import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
-import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
-import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
-import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import no.nav.su.se.bakover.domain.vilkår.Vurdering
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUføre
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
