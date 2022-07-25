@@ -17,7 +17,7 @@ subprojects {
         maven("https://packages.confluent.io/maven/")
     }
     val junitJupiterVersion = "5.8.2"
-    val kotestVersion = "5.3.2"
+    val kotestVersion = "5.4.0"
     val jacksonVersion = "2.13.3"
     val kotlinVersion: String by this
     dependencies {
