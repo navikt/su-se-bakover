@@ -1,5 +1,6 @@
-package no.nav.su.se.bakover.web.routes.revurdering
+package no.nav.su.se.bakover.web.routes.revurdering.avslutt
 
+import arrow.core.flatMap
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
@@ -21,7 +22,12 @@ import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.Feilresponser
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.Brev.brevvalgIkkeTillatt
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.Brev.manglerBrevvalg
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkePersonEllerSaksbehandlerNavn
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
+import no.nav.su.se.bakover.web.routes.revurdering.revurderingPath
+import no.nav.su.se.bakover.web.routes.revurdering.toJson
 import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
@@ -31,27 +37,27 @@ internal fun Route.avsluttRevurderingRoute(
     revurderingService: RevurderingService,
     satsFactory: SatsFactory,
 ) {
-    data class AvsluttRevurderingBody(
-        val begrunnelse: String,
-        val fritekst: String?,
-    )
     post("$revurderingPath/{revurderingId}/avslutt") {
         authorize(Brukerrolle.Saksbehandler) {
-            call.withBody<AvsluttRevurderingBody> { body ->
+            call.withBody<AvsluttRevurderingRequestJson> { body ->
                 call.withRevurderingId { revurderingId ->
-                    revurderingService.avsluttRevurdering(
-                        revurderingId = revurderingId,
-                        begrunnelse = body.begrunnelse,
-                        fritekst = body.fritekst,
-                    ).fold(
-                        ifLeft = { call.svar(it.tilResultat()) },
+                    body.toBrevvalg().flatMap { brevvalg ->
+                        revurderingService.avsluttRevurdering(
+                            revurderingId = revurderingId,
+                            begrunnelse = body.begrunnelse,
+                            brevvalg = brevvalg,
+                        ).mapLeft {
+                            it.tilResultat()
+                        }
+                    }.fold(
+                        ifLeft = { call.svar(it) },
                         ifRight = {
                             call.sikkerlogg("Avsluttet behandling av revurdering med revurderingId $revurderingId")
                             call.svar(
                                 Resultat.json(
                                     HttpStatusCode.OK,
-                                    serialize(it.toJson(satsFactory))
-                                )
+                                    serialize(it.toJson(satsFactory)),
+                                ),
                             )
                         },
                     )
@@ -83,18 +89,19 @@ internal fun Route.avsluttRevurderingRoute(
 
 private fun KunneIkkeAvslutteRevurdering.tilResultat(): Resultat {
     return when (this) {
-        KunneIkkeAvslutteRevurdering.FantIkkeRevurdering -> Revurderingsfeilresponser.fantIkkeRevurdering
+        KunneIkkeAvslutteRevurdering.FantIkkeRevurdering -> fantIkkeRevurdering
         is KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetGjenopptaAvYtelse -> this.feil.tilResultat()
         is KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetRevurdering -> this.feil.tilResultat()
         is KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetStansAvYtelse -> this.feil.tilResultat()
         KunneIkkeAvslutteRevurdering.KunneIkkeLageDokument -> Feilresponser.Brev.kunneIkkeLageBrevutkast
         KunneIkkeAvslutteRevurdering.FantIkkePersonEllerSaksbehandlerNavn -> fantIkkePersonEllerSaksbehandlerNavn
+        KunneIkkeAvslutteRevurdering.BrevvalgIkkeTillatt -> brevvalgIkkeTillatt
     }
 }
 
 private fun KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.tilResultat(): Resultat {
     return when (this) {
-        KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.FantIkkeRevurdering -> Revurderingsfeilresponser.fantIkkeRevurdering
+        KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.FantIkkeRevurdering -> fantIkkeRevurdering
         KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeLageBrevutkast -> Feilresponser.Brev.kunneIkkeLageBrevutkast
         KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.RevurderingenErIkkeForhåndsvarslet -> HttpStatusCode.BadRequest.errorJson(
             "Revurderingen er ikke forhåndsvarslet for å vise brev",
@@ -104,6 +111,7 @@ private fun KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.tilResultat(): Res
         KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeFinneGjeldendeUtbetaling -> Feilresponser.fantIkkeGjeldendeUtbetaling
         KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeGenererePDF -> Feilresponser.Brev.kunneIkkeGenerereBrev
         KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> fantIkkePersonEllerSaksbehandlerNavn
+        KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.DetSkalIkkeSendesBrev -> brevvalgIkkeTillatt
     }
 }
 
@@ -123,12 +131,10 @@ internal fun KunneIkkeLageAvsluttetRevurdering.tilResultat(): Resultat {
         KunneIkkeLageAvsluttetRevurdering.RevurderingenErIverksatt -> revurderingenErIverksatt
         KunneIkkeLageAvsluttetRevurdering.RevurderingenErTilAttestering -> HttpStatusCode.BadRequest.errorJson(
             "Revurderingen er til attestering",
-            "revurdering_er_til_attestering"
+            "revurdering_er_til_attestering",
         )
-        KunneIkkeLageAvsluttetRevurdering.FritekstErFylltUtUtenForhåndsvarsel -> HttpStatusCode.BadRequest.errorJson(
-            "Fritekst er fyllt ut på en revurdering som ikke er forhåndsvarslet",
-            "fritekst_er_fyllt_ut_uten_forhåndsvarsel"
-        )
+        KunneIkkeLageAvsluttetRevurdering.BrevvalgUtenForhåndsvarsel -> brevvalgIkkeTillatt // TODO jah: endre i frontend og
+        KunneIkkeLageAvsluttetRevurdering.ManglerBrevvalgVedForhåndsvarsling -> manglerBrevvalg // TODO jah: endre i frontend og
     }
 }
 

@@ -77,11 +77,10 @@ internal class ForhåndsvarslingRouteTest {
 
         @Test
         fun `lagrer valget`() {
-            val simulertRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak()
-                .second.copy(
-                    forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
-                    fritekstTilBrev = "",
-                )
+            val simulertRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second.copy(
+                forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
+                fritekstTilBrev = "",
+            )
 
             val revurderingServiceMock = mock<RevurderingService> {
                 on {
@@ -262,75 +261,6 @@ internal class ForhåndsvarslingRouteTest {
                     actualResponse.forhåndsvarsel shouldBe ForhåndsvarselJson.SkalVarslesBesluttet(
                         begrunnelse = "begrunnelse",
                         beslutningEtterForhåndsvarsling = BeslutningEtterForhåndsvarsling.FortsettSammeOpplysninger,
-                    )
-                }
-            }
-        }
-
-        @Test
-        fun `avslutter uten endring`() {
-            val simulertRevurdering = SimulertRevurdering.Innvilget(
-                id = UUID.randomUUID(),
-                periode = RevurderingRoutesTestData.periode,
-                opprettet = fixedTidspunkt,
-                tilRevurdering = vedtak.id,
-                saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
-                beregning = TestBeregning,
-                simulering = Simulering(
-                    gjelderId = Fnr(fnr = "12345678901"),
-                    gjelderNavn = "navn",
-                    datoBeregnet = fixedLocalDate,
-                    nettoBeløp = 0,
-                    periodeList = listOf(),
-                ),
-                oppgaveId = OppgaveId("OppgaveId"),
-                fritekstTilBrev = "Friteksten",
-                revurderingsårsak = Revurderingsårsak(
-                    Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
-                    Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
-                ),
-                forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.Avsluttet("begrunnelse"),
-                grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-                vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
-                informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-                attesteringer = Attesteringshistorikk.empty(),
-                avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
-                tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling,
-                sakinfo = vedtak.sakinfo(),
-            )
-
-            val revurderingServiceMock = mock<RevurderingService> {
-                on { fortsettEtterForhåndsvarsling(any()) } doReturn simulertRevurdering.right()
-            }
-
-            testApplication {
-                application {
-                    testSusebakover(services = RevurderingRoutesTestData.testServices.copy(revurdering = revurderingServiceMock))
-                }
-                defaultRequest(
-                    HttpMethod.Post,
-                    "${RevurderingRoutesTestData.requestPath}/${simulertRevurdering.id}/fortsettEtterForhåndsvarsel",
-                    listOf(Brukerrolle.Saksbehandler),
-                ) {
-                    setBody(
-                        //language=json
-                        """
-                        {
-                          "fritekstTilBrev": "Friteksten",
-                          "valg": "AVSLUTT_UTEN_ENDRINGER",
-                          "begrunnelse": "begrunnelse"
-                        }
-                        """.trimIndent(),
-                    )
-                }.apply {
-                    status shouldBe HttpStatusCode.OK
-                    val actualResponse = objectMapper.readValue<SimulertRevurderingJson>(bodyAsText())
-                    actualResponse.id shouldBe simulertRevurdering.id.toString()
-                    actualResponse.status shouldBe RevurderingsStatus.SIMULERT_INNVILGET
-                    actualResponse.fritekstTilBrev shouldBe "Friteksten"
-                    actualResponse.forhåndsvarsel shouldBe ForhåndsvarselJson.SkalVarslesBesluttet(
-                        begrunnelse = "begrunnelse",
-                        beslutningEtterForhåndsvarsling = BeslutningEtterForhåndsvarsling.AvsluttUtenEndringer,
                     )
                 }
             }

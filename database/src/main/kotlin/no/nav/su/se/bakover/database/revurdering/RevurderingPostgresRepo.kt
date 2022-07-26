@@ -25,14 +25,11 @@ import no.nav.su.se.bakover.database.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
-import no.nav.su.se.bakover.database.klage.KlagePostgresRepo
 import no.nav.su.se.bakover.database.oppdatering
-import no.nav.su.se.bakover.database.regulering.ReguleringPostgresRepo
+import no.nav.su.se.bakover.database.revurdering.AvsluttetRevurderingInfo.BrevvalgJson.Companion.toJson
 import no.nav.su.se.bakover.database.revurdering.RevurderingsType.Companion.toRevurderingsType
-import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.tilbakekreving.TilbakekrevingPostgresRepo
-import no.nav.su.se.bakover.database.vedtak.VedtakPostgresRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -137,24 +134,12 @@ enum class RevurderingsType {
 
 internal class RevurderingPostgresRepo(
     private val grunnlagsdataOgVilkårsvurderingerPostgresRepo: GrunnlagsdataOgVilkårsvurderingerPostgresRepo,
-    søknadsbehandlingRepo: SøknadsbehandlingPostgresRepo,
-    klageRepo: KlagePostgresRepo,
     private val dbMetrics: DbMetrics,
     private val sessionFactory: PostgresSessionFactory,
     private val avkortingsvarselRepo: AvkortingsvarselPostgresRepo,
     private val tilbakekrevingRepo: TilbakekrevingPostgresRepo,
-    reguleringPostgresRepo: ReguleringPostgresRepo,
     private val satsFactory: SatsFactoryForSupplerendeStønad,
 ) : RevurderingRepo {
-    private val vedtakRepo = VedtakPostgresRepo(
-        sessionFactory = sessionFactory,
-        dbMetrics = dbMetrics,
-        søknadsbehandlingRepo = søknadsbehandlingRepo,
-        revurderingRepo = this,
-        klageRepo = klageRepo,
-        reguleringRepo = reguleringPostgresRepo,
-        satsFactory = satsFactory,
-    )
 
     private val stansAvYtelseRepo = StansAvYtelsePostgresRepo(
         dbMetrics = dbMetrics,
@@ -333,7 +318,7 @@ internal class RevurderingPostgresRepo(
                     return AvsluttetRevurdering.tryCreate(
                         underliggendeRevurdering = revurdering,
                         begrunnelse = avsluttet.begrunnelse,
-                        fritekst = avsluttet.fritekst,
+                        brevvalg = avsluttet.brevvalg?.toDomain(),
                         tidspunktAvsluttet = avsluttet.tidspunktAvsluttet,
                     ).getOrHandle {
                         throw IllegalStateException("Kunne ikke lage en avsluttet revurdering. Se innhold i databasen. revurderingsId $id")
@@ -756,7 +741,7 @@ internal class RevurderingPostgresRepo(
                     "avsluttet" to serialize(
                         AvsluttetRevurderingInfo(
                             begrunnelse = revurdering.begrunnelse,
-                            fritekst = revurdering.fritekst,
+                            brevvalg = revurdering.brevvalg.toJson(),
                             tidspunktAvsluttet = revurdering.tidspunktAvsluttet,
                         ),
                     ),

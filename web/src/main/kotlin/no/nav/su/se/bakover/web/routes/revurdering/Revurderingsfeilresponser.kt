@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.web.routes.Feilresponser.Brev.kunneIkkeLageBrevutkas
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkePerson
 import no.nav.su.se.bakover.web.routes.Feilresponser.feilVedGenereringAvDokument
 import no.nav.su.se.bakover.web.routes.Feilresponser.kunneIkkeOppretteOppgave
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.Brev.brevvalgIkkeTillatt
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.Brev.fantIkkeGjeldendeUtbetaling
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.Brev.navneoppslagSaksbehandlerAttesttantFeilet
 
@@ -63,7 +64,7 @@ internal object Revurderingsfeilresponser {
         )
         val utenlandsoppholdSomFørerTilOpphørMåRevurderes = BadRequest.errorJson(
             "Utenlandsopphold som fører til opphør må revurderes",
-            "utenlandsopphold_som_fører_til_opphør_må_revurderes"
+            "utenlandsopphold_som_fører_til_opphør_må_revurderes",
         )
 
         val epsFormueMedFlereBosituasjonsperioderMåRevurderes = BadRequest.errorJson(
@@ -86,6 +87,14 @@ internal object Revurderingsfeilresponser {
         val fantIkkeGjeldendeUtbetaling = InternalServerError.errorJson(
             "Kunne ikke hente gjeldende utbetaling",
             "kunne_ikke_hente_gjeldende_utbetaling",
+        )
+        val brevvalgIkkeTillatt = BadRequest.errorJson(
+            "Brevvalg ikke tillatt",
+            "brevvalg_ikke_tillatt",
+        )
+        val manglerBrevvalg = BadRequest.errorJson(
+            "Mangler brevvalg",
+            "mangler_brevvalg",
         )
     }
 
@@ -120,6 +129,7 @@ internal object Revurderingsfeilresponser {
             KunneIkkeLageBrevutkastForRevurdering.FantIkkePerson -> fantIkkePerson
             KunneIkkeLageBrevutkastForRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> navneoppslagSaksbehandlerAttesttantFeilet
             KunneIkkeLageBrevutkastForRevurdering.KunneIkkeFinneGjeldendeUtbetaling -> fantIkkeGjeldendeUtbetaling
+            KunneIkkeLageBrevutkastForRevurdering.DetSkalIkkeSendesBrev -> brevvalgIkkeTillatt
         }
     }
 

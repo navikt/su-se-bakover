@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.brev.Brevvalg
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.brev.beregning.Tilbakekreving
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -109,15 +110,18 @@ sealed class Revurdering :
 
     data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>)
 
+    /**
+     * @param brevvalg Saksbehandler velger selv om man skal sende brev eller ikke når man avslutter en revurdering som har blitt forhåndsvarslet. Merk at man ikke kan gjøre dette valget dersom det ikke har blitt forhåndsvarslet, siden vi da ikke skal sende brev.
+     */
     fun avslutt(
         begrunnelse: String,
-        fritekst: String?,
+        brevvalg: Brevvalg.SaksbehandlersValg?,
         tidspunktAvsluttet: Tidspunkt,
     ): Either<KunneIkkeLageAvsluttetRevurdering, AvsluttetRevurdering> {
         return AvsluttetRevurdering.tryCreate(
             underliggendeRevurdering = this,
             begrunnelse = begrunnelse,
-            fritekst = fritekst,
+            brevvalg = brevvalg,
             tidspunktAvsluttet = tidspunktAvsluttet,
         )
     }
@@ -1262,10 +1266,6 @@ sealed class SimulertRevurdering : Revurdering() {
 
     abstract fun markerForhåndsvarselSomSendt(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, SimulertRevurdering>
 
-    abstract fun prøvOvergangTilAvsluttet(
-        begrunnelse: String,
-    ): Either<Forhåndsvarsel.UgyldigTilstandsovergang, SimulertRevurdering>
-
     abstract fun prøvOvergangTilEndreGrunnlaget(
         begrunnelse: String,
     ): Either<Forhåndsvarsel.UgyldigTilstandsovergang, SimulertRevurdering>
@@ -1363,12 +1363,6 @@ sealed class SimulertRevurdering : Revurdering() {
         override fun markerForhåndsvarselSomSendt(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, Innvilget> {
             return forhåndsvarsel.prøvOvergangTilSendt()
                 .map { copy(forhåndsvarsel = it) }
-        }
-
-        override fun prøvOvergangTilAvsluttet(
-            begrunnelse: String,
-        ): Either<Forhåndsvarsel.UgyldigTilstandsovergang, Innvilget> {
-            return forhåndsvarsel.prøvOvergangTilAvsluttet(begrunnelse).map { this.copy(forhåndsvarsel = it) }
         }
 
         override fun prøvOvergangTilEndreGrunnlaget(
@@ -1486,12 +1480,6 @@ sealed class SimulertRevurdering : Revurdering() {
         override fun markerForhåndsvarselSomSendt(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, Opphørt> {
             return forhåndsvarsel.prøvOvergangTilSendt()
                 .map { copy(forhåndsvarsel = it) }
-        }
-
-        override fun prøvOvergangTilAvsluttet(
-            begrunnelse: String,
-        ): Either<Forhåndsvarsel.UgyldigTilstandsovergang, Opphørt> {
-            return forhåndsvarsel.prøvOvergangTilAvsluttet(begrunnelse).map { this.copy(forhåndsvarsel = it) }
         }
 
         override fun prøvOvergangTilEndreGrunnlaget(
@@ -2323,7 +2311,7 @@ fun Revurdering.medFritekst(fritekstTilBrev: String) =
         is IverksattRevurdering.IngenEndring -> copy(fritekstTilBrev = fritekstTilBrev)
         is RevurderingTilAttestering.IngenEndring -> copy(fritekstTilBrev = fritekstTilBrev)
         is UnderkjentRevurdering.IngenEndring -> copy(fritekstTilBrev = fritekstTilBrev)
-        is AvsluttetRevurdering -> copy(fritekst = fritekstTilBrev)
+        is AvsluttetRevurdering -> copy(brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.MedFritekst(fritekstTilBrev))
     }
 
 enum class Vurderingstatus(val status: String) {

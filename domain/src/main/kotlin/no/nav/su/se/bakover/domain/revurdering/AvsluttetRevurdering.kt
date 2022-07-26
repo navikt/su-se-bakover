@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
+import no.nav.su.se.bakover.domain.brev.Brevvalg
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.sak.SakInfo
@@ -17,7 +18,8 @@ import java.util.UUID
 data class AvsluttetRevurdering private constructor(
     val underliggendeRevurdering: Revurdering,
     val begrunnelse: String,
-    val fritekst: String?,
+    /** Denne er ikke låst til [Brevvalg.SaksbehandlersValg] siden det avhenger av om det er forhåndsvarslet eller ikke. Dette ble også migrert på et tidspunkt, tidligere ble det alltid sendt brev dersom det var forhåndsvarslet. */
+    val brevvalg: Brevvalg,
     val tidspunktAvsluttet: Tidspunkt,
 ) : Revurdering() {
     override val id: UUID = underliggendeRevurdering.id
@@ -36,6 +38,17 @@ data class AvsluttetRevurdering private constructor(
     override val oppgaveId: OppgaveId = underliggendeRevurdering.oppgaveId
     override val attesteringer: Attesteringshistorikk = underliggendeRevurdering.attesteringer
     override val erOpphørt: Boolean = underliggendeRevurdering.erOpphørt
+
+    init {
+        when (forhåndsvarsel.harSendtForhåndsvarsel()) {
+            false -> require(brevvalg is Brevvalg.SkalIkkeSendeBrev) {
+                "Saksbehandler kan ikke gjøre et brevvalg dersom man skal avslutte en revurdering som ikke er forhåndsvarslet"
+            }
+            true -> require(brevvalg is Brevvalg.SaksbehandlersValg || brevvalg is Brevvalg.SkalSendeBrev) {
+                "Saksbehandler må gjøre et brevvalg dersom man skal avslutte en revurdering som er forhåndsvarslet"
+            }
+        }
+    }
 
     override val avkorting: AvkortingVedRevurdering = when (val avkorting = underliggendeRevurdering.avkorting) {
         is AvkortingVedRevurdering.DelvisHåndtert -> {
@@ -88,15 +101,14 @@ data class AvsluttetRevurdering private constructor(
     }
 
     fun skalSendeAvslutningsbrev(): Boolean {
-        // Dersom vi har sendt et forhåndsvarsel, må vi sende et nytt brev som sier at de kan se bort fra forhåndsvarslingen siden revurderingen er avsluttet.
-        return this.forhåndsvarsel.harSendtForhåndsvarsel()
+        return brevvalg.skalSendeBrev()
     }
 
     companion object {
         fun tryCreate(
             underliggendeRevurdering: Revurdering,
             begrunnelse: String,
-            fritekst: String?,
+            brevvalg: Brevvalg?,
             tidspunktAvsluttet: Tidspunkt,
         ): Either<KunneIkkeLageAvsluttetRevurdering, AvsluttetRevurdering> {
 
@@ -111,13 +123,17 @@ data class AvsluttetRevurdering private constructor(
                 is SimulertRevurdering,
                 is UnderkjentRevurdering,
                 -> {
-                    if (fritekst != null && !underliggendeRevurdering.forhåndsvarsel.harSendtForhåndsvarsel()) {
-                        KunneIkkeLageAvsluttetRevurdering.FritekstErFylltUtUtenForhåndsvarsel.left()
+                    if (underliggendeRevurdering.forhåndsvarsel.harSendtForhåndsvarsel() && brevvalg == null) {
+                        KunneIkkeLageAvsluttetRevurdering.ManglerBrevvalgVedForhåndsvarsling.left()
+                    }
+                    if (!underliggendeRevurdering.forhåndsvarsel.harSendtForhåndsvarsel() && brevvalg?.skalSendeBrev() == true) {
+                        KunneIkkeLageAvsluttetRevurdering.BrevvalgUtenForhåndsvarsel.left()
                     } else {
                         AvsluttetRevurdering(
                             underliggendeRevurdering,
                             begrunnelse,
-                            fritekst,
+                            // Ønsker ikke putte spesifikk domenelogikk inn i [Brevvalg], men vi kunne flyttet denne ut i en enum evt.
+                            brevvalg ?: Brevvalg.SkalIkkeSendeBrev("IKKE_FORHÅNDSVARSLET"),
                             tidspunktAvsluttet,
                         ).right()
                     }
@@ -131,7 +147,8 @@ sealed class KunneIkkeLageAvsluttetRevurdering {
     object RevurderingErAlleredeAvsluttet : KunneIkkeLageAvsluttetRevurdering()
     object RevurderingenErIverksatt : KunneIkkeLageAvsluttetRevurdering()
     object RevurderingenErTilAttestering : KunneIkkeLageAvsluttetRevurdering()
-    object FritekstErFylltUtUtenForhåndsvarsel : KunneIkkeLageAvsluttetRevurdering()
+    object BrevvalgUtenForhåndsvarsel : KunneIkkeLageAvsluttetRevurdering()
+    object ManglerBrevvalgVedForhåndsvarsling : KunneIkkeLageAvsluttetRevurdering()
 }
 
 sealed class KunneIkkeAvslutteRevurdering {
@@ -147,4 +164,5 @@ sealed class KunneIkkeAvslutteRevurdering {
     object FantIkkeRevurdering : KunneIkkeAvslutteRevurdering()
     object KunneIkkeLageDokument : KunneIkkeAvslutteRevurdering()
     object FantIkkePersonEllerSaksbehandlerNavn : KunneIkkeAvslutteRevurdering()
+    object BrevvalgIkkeTillatt : KunneIkkeAvslutteRevurdering()
 }
