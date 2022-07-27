@@ -35,7 +35,7 @@ internal class ApplicationConfigTest {
             ),
         ),
         frikort = ApplicationConfig.FrikortConfig(
-            serviceUsername = "frikort",
+            serviceUsername = listOf("frikort"),
             useStubForSts = false,
         ),
         oppdrag = ApplicationConfig.OppdragConfig(
@@ -239,7 +239,7 @@ internal class ApplicationConfigTest {
                     password = "unused",
                 ),
                 frikort = ApplicationConfig.FrikortConfig(
-                    serviceUsername = "frikort",
+                    serviceUsername = listOf("frikort"),
                     useStubForSts = true,
                 ),
                 oppdrag = ApplicationConfig.OppdragConfig(
