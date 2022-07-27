@@ -85,7 +85,7 @@ internal fun Application.configureAuthentication(
             verifier(jwkStsProvider, stsJwkConfig.getString("issuer"))
             realm = "su-se-bakover"
             validate { credentials ->
-                if (credentials.payload.subject != applicationConfig.frikort.serviceUsername && credentials.payload.subject != applicationConfig.serviceUser.username) {
+                if (credentials.payload.subject !in applicationConfig.frikort.serviceUsername && credentials.payload.subject != applicationConfig.serviceUser.username) {
                     log.debug("Frikort Auth: Invalid subject")
                     null
                 } else { JWTPrincipal(credentials.payload) }

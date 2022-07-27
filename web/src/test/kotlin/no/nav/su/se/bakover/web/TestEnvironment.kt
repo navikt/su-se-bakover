@@ -52,7 +52,7 @@ val applicationConfig = ApplicationConfig(
         ),
     ),
     frikort = ApplicationConfig.FrikortConfig(
-        serviceUsername = "frikort",
+        serviceUsername = listOf("frikort"),
         useStubForSts = true,
     ),
     oppdrag = ApplicationConfig.OppdragConfig(

@@ -87,7 +87,7 @@ internal object SharedRegressionTestData {
             ),
         ),
         frikort = ApplicationConfig.FrikortConfig(
-            serviceUsername = "frikort",
+            serviceUsername = listOf("frikort"),
             useStubForSts = true,
         ),
         oppdrag = ApplicationConfig.OppdragConfig(

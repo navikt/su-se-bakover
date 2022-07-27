@@ -91,17 +91,17 @@ data class ApplicationConfig(
     }
 
     data class FrikortConfig(
-        val serviceUsername: String,
+        val serviceUsername: List<String>,
         val useStubForSts: Boolean,
     ) {
         companion object {
             fun createFromEnvironmentVariables() = FrikortConfig(
-                serviceUsername = getEnvironmentVariableOrThrow("FRIKORT_SERVICE_USERNAME"),
+                serviceUsername = getEnvironmentVariableOrThrow("FRIKORT_SERVICE_USERNAME").split(","),
                 useStubForSts = false,
             )
 
             fun createLocalConfig() = FrikortConfig(
-                serviceUsername = getEnvironmentVariableOrDefault("FRIKORT_SERVICE_USERNAME", "frikort"),
+                serviceUsername = getEnvironmentVariableOrDefault("FRIKORT_SERVICE_USERNAME", "frikort").split(","),
                 useStubForSts = getEnvironmentVariableOrDefault("USE_STUB_FOR_STS", "true") == "true",
             )
         }
