@@ -60,4 +60,6 @@ internal fun Route.revurderingRoutes(
     flyktningVilkårRoutes(revurderingService, satsFactory)
 
     fastOppholdVilkårRoutes(revurderingService, satsFactory)
+
+    personligOppmøteVilkårRoutes(revurderingService, satsFactory)
 }

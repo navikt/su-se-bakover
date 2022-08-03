@@ -20,7 +20,7 @@ import no.nav.su.se.bakover.web.søknadsbehandling.ny.nySøknadsbehandling
 import no.nav.su.se.bakover.web.søknadsbehandling.opphold.leggTilInstitusjonsopphold
 import no.nav.su.se.bakover.web.søknadsbehandling.opphold.leggTilLovligOppholdINorge
 import no.nav.su.se.bakover.web.søknadsbehandling.opphold.leggTilUtenlandsopphold
-import no.nav.su.se.bakover.web.søknadsbehandling.oppmøte.leggTilPersonligOppmøte
+import no.nav.su.se.bakover.web.søknadsbehandling.personligoppmøte.leggTilPersonligOppmøte
 import no.nav.su.se.bakover.web.søknadsbehandling.sendTilAttestering.sendTilAttestering
 import no.nav.su.se.bakover.web.søknadsbehandling.simulering.simuler
 import no.nav.su.se.bakover.web.søknadsbehandling.uførhet.leggTilUføregrunnlag
@@ -122,6 +122,8 @@ internal fun ApplicationTestBuilder.opprettInnvilgetSøknadsbehandling(
     leggTilPersonligOppmøte(
         sakId = sakId,
         behandlingId = behandlingId,
+        fraOgMed = fraOgMed,
+        tilOgMed = tilOgMed
     )
     fullførBosituasjon(
         sakId = sakId,

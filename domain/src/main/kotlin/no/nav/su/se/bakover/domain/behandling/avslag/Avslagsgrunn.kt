@@ -62,7 +62,7 @@ enum class Avslagsgrunn {
             UFØRHET -> Opphørsgrunn.UFØRHET
             FLYKTNING -> Opphørsgrunn.FLYKTNING
             OPPHOLDSTILLATELSE -> Opphørsgrunn.OPPHOLDSTILLATELSE
-            PERSONLIG_OPPMØTE -> TODO()
+            PERSONLIG_OPPMØTE -> Opphørsgrunn.PERSONLIG_OPPMØTE
             FORMUE -> Opphørsgrunn.FORMUE
             BOR_OG_OPPHOLDER_SEG_I_NORGE -> Opphørsgrunn.BOR_OG_OPPHOLDER_SEG_I_NORGE
             FOR_HØY_INNTEKT -> Opphørsgrunn.FOR_HØY_INNTEKT
@@ -93,7 +93,8 @@ enum class Opphørsgrunn {
     MANGLENDE_DOKUMENTASJON,
     OPPHOLDSTILLATELSE,
     FLYKTNING,
-    BOR_OG_OPPHOLDER_SEG_I_NORGE;
+    BOR_OG_OPPHOLDER_SEG_I_NORGE,
+    PERSONLIG_OPPMØTE;
 
     companion object {
         fun List<Opphørsgrunn>.getDistinkteParagrafer(): List<Int> =
@@ -111,5 +112,6 @@ enum class Opphørsgrunn {
         OPPHOLDSTILLATELSE -> listOf(3)
         FLYKTNING -> listOf(3)
         BOR_OG_OPPHOLDER_SEG_I_NORGE -> listOf(1, 2, 3, 4)
+        PERSONLIG_OPPMØTE -> listOf(17)
     }
 }

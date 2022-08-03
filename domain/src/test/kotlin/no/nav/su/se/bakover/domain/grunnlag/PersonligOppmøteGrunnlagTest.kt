@@ -17,11 +17,13 @@ internal class PersonligOppmøteGrunnlagTest {
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = år(2021),
+            årsak = PersonligOppmøteÅrsak.MøttPersonlig,
         ).let {
             it.oppdaterPeriode(februar(2021)) shouldBe PersonligOppmøteGrunnlag(
                 id = it.id,
                 opprettet = it.opprettet,
                 periode = februar(2021),
+                årsak = PersonligOppmøteÅrsak.MøttPersonlig,
             )
         }
     }
@@ -32,6 +34,7 @@ internal class PersonligOppmøteGrunnlagTest {
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = år(2021),
+            årsak = PersonligOppmøteÅrsak.MøttPersonlig,
         ).copy(CopyArgs.Tidslinje.Full).let {
             it shouldBe it.copy()
         }
@@ -40,6 +43,7 @@ internal class PersonligOppmøteGrunnlagTest {
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = år(2021),
+            årsak = PersonligOppmøteÅrsak.MøttPersonlig,
         ).copy(CopyArgs.Tidslinje.NyPeriode(mai(2021))).let {
             it shouldBe it.copy(periode = mai(2021))
         }
@@ -51,11 +55,13 @@ internal class PersonligOppmøteGrunnlagTest {
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = år(2021),
+            årsak = PersonligOppmøteÅrsak.MøttPersonlig,
         ).erLik(
             PersonligOppmøteGrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(),
                 periode = februar(2021),
+                årsak = PersonligOppmøteÅrsak.MøttPersonlig,
             ),
         ) shouldBe true
     }

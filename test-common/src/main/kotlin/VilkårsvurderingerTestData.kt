@@ -124,6 +124,7 @@ fun vilkårsvurderingerSøknadsbehandlingInnvilget(
     formue: FormueVilkår = formuevilkårUtenEps0Innvilget(periode = periode, bosituasjon = bosituasjon),
     flyktning: FlyktningVilkår = flyktningVilkårInnvilget(periode = periode),
     fastOpphold: FastOppholdINorgeVilkår = fastOppholdVilkårInnvilget(periode = periode),
+    personligOppmøte: PersonligOppmøteVilkår = personligOppmøtevilkårInnvilget(periode = periode),
 ): Vilkårsvurderinger.Søknadsbehandling.Uføre {
     return Vilkårsvurderinger.Søknadsbehandling.Uføre(
         uføre = uføre,
@@ -133,7 +134,7 @@ fun vilkårsvurderingerSøknadsbehandlingInnvilget(
         lovligOpphold = lovligOppholdVilkår,
         fastOpphold = fastOpphold,
         institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
-        personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
+        personligOppmøte = personligOppmøte,
         flyktning = flyktning,
     ).oppdater(
         stønadsperiode = Stønadsperiode.create(periode = periode),
@@ -154,6 +155,7 @@ fun vilkårsvurderingerRevurderingInnvilget(
     opplysningsplikt: OpplysningspliktVilkår = tilstrekkeligDokumentert(periode = periode),
     flyktningVilkår: FlyktningVilkår = flyktningVilkårInnvilget(periode = periode),
     fastOpphold: FastOppholdINorgeVilkår = fastOppholdVilkårInnvilget(periode = periode),
+    personligOppmøte: PersonligOppmøteVilkår = personligOppmøtevilkårInnvilget(periode = periode),
 ): Vilkårsvurderinger.Revurdering.Uføre {
     return Vilkårsvurderinger.Revurdering.Uføre(
         uføre = uføre,
@@ -163,6 +165,7 @@ fun vilkårsvurderingerRevurderingInnvilget(
         opplysningsplikt = opplysningsplikt,
         flyktning = flyktningVilkår,
         fastOpphold = fastOpphold,
+        personligOppmøte = personligOppmøte,
     )
 }
 
@@ -181,6 +184,7 @@ fun vilkårsvurderingerAvslåttAlleRevurdering(
     opplysningsplikt: OpplysningspliktVilkår = utilstrekkeligDokumentert(periode = periode),
     flyktningVilkår: FlyktningVilkår = flyktningVilkårAvslått(periode = periode),
     fastOpphold: FastOppholdINorgeVilkår = fastOppholdVilkårAvslag(periode = periode),
+    personligOppmøte: PersonligOppmøteVilkår = personligOppmøtevilkårAvslag(periode = periode),
 ): Vilkårsvurderinger.Revurdering.Uføre {
     return Vilkårsvurderinger.Revurdering.Uføre(
         uføre = uføre,
@@ -190,6 +194,7 @@ fun vilkårsvurderingerAvslåttAlleRevurdering(
         opplysningsplikt = opplysningsplikt,
         flyktning = flyktningVilkår,
         fastOpphold = fastOpphold,
+        personligOppmøte = personligOppmøte,
     )
 }
 
@@ -218,10 +223,10 @@ fun vilkårsvurderingerAvslåttAlle(
         opplysningsplikt = utilstrekkeligDokumentert(periode = periode),
         lovligOpphold = lovligOppholdVilkårAvslag(),
         fastOpphold = fastOppholdVilkårAvslag(periode = periode),
+        personligOppmøte = personligOppmøtevilkårAvslag(periode = periode),
+        flyktning = flyktningVilkårAvslått(periode = periode),
         // Disse blir oppdatert fra [behandlingsinformasjonAlleVilkårAvslått]
         institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
-        personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
-        flyktning = flyktningVilkårAvslått(periode = periode),
     ).oppdater(
         stønadsperiode = Stønadsperiode.create(periode = periode),
         behandlingsinformasjon = behandlingsinformasjonAlleVilkårAvslått,
@@ -255,6 +260,7 @@ fun vilkårsvurderingerAvslåttUføreOgAndreInnvilget(
         opplysningsplikt = tilstrekkeligDokumentert(periode = periode),
         flyktning = flyktningVilkårInnvilget(periode = periode),
         fastOpphold = fastOppholdVilkårInnvilget(periode = periode),
+        personligOppmøte = personligOppmøtevilkårInnvilget(periode = periode),
     )
 }
 
@@ -289,6 +295,7 @@ fun vilkårsvurderingerAlderInnvilget(
     fastOpphold: FastOppholdINorgeVilkår = fastOppholdVilkårInnvilget(
         periode = stønadsperiode.periode,
     ),
+    personligOppmøte: PersonligOppmøteVilkår = personligOppmøtevilkårInnvilget(periode = stønadsperiode.periode)
 ): Vilkårsvurderinger.Søknadsbehandling.Alder {
     return Vilkårsvurderinger.Søknadsbehandling.Alder(
         utenlandsopphold = utenlandsopphold,
@@ -297,7 +304,7 @@ fun vilkårsvurderingerAlderInnvilget(
         lovligOpphold = lovligOpphold,
         fastOpphold = fastOpphold,
         institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert, // hentes behandlingsinformasjon
-        personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert, // hentes behandlingsinformasjon
+        personligOppmøte = personligOppmøte,
         pensjon = pensjon,
         familiegjenforening = familiegjenforeningVilkår,
     ).oppdater(

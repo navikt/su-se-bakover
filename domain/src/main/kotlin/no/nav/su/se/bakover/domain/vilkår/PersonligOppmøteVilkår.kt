@@ -1,10 +1,6 @@
 package no.nav.su.se.bakover.domain.vilkår
 
-import arrow.core.Either
 import arrow.core.Nel
-import arrow.core.getOrHandle
-import arrow.core.left
-import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.harOverlappende
@@ -46,7 +42,7 @@ sealed class PersonligOppmøteVilkår : Vilkår() {
         }
     }
 
-    data class Vurdert private constructor(
+    data class Vurdert(
         val vurderingsperioder: Nel<VurderingsperiodePersonligOppmøte>,
     ) : PersonligOppmøteVilkår() {
 
@@ -86,21 +82,6 @@ sealed class PersonligOppmøteVilkår : Vilkår() {
             return other is Vurdert && vurderingsperioder.erLik(other.vurderingsperioder)
         }
 
-        companion object {
-            fun tryCreate(
-                vurderingsperioder: Nel<VurderingsperiodePersonligOppmøte>,
-            ): Either<UgyldigPersonligOppmøteVilkår, Vurdert> {
-                if (vurderingsperioder.harOverlappende()) {
-                    return UgyldigPersonligOppmøteVilkår.OverlappendeVurderingsperioder.left()
-                }
-                return Vurdert(vurderingsperioder.kronologisk()).right()
-            }
-        }
-
-        sealed class UgyldigPersonligOppmøteVilkår {
-            object OverlappendeVurderingsperioder : UgyldigPersonligOppmøteVilkår()
-        }
-
         override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): PersonligOppmøteVilkår {
             check(vurderingsperioder.count() == 1) { "Kan ikke oppdatere stønadsperiode for vilkår med med enn én vurdering" }
             return copy(
@@ -113,24 +94,28 @@ sealed class PersonligOppmøteVilkår : Vilkår() {
         override fun slåSammenLikePerioder(): PersonligOppmøteVilkår {
             return copy(vurderingsperioder = vurderingsperioder.slåSammenLikePerioder())
         }
+
+        init {
+            kastHvisPerioderErUsortertEllerHarDuplikater()
+            require(!vurderingsperioder.harOverlappende())
+        }
     }
 }
 
-data class VurderingsperiodePersonligOppmøte private constructor(
+data class VurderingsperiodePersonligOppmøte(
     override val id: UUID = UUID.randomUUID(),
     override val opprettet: Tidspunkt,
-    override val vurdering: Vurdering,
-    override val grunnlag: PersonligOppmøteGrunnlag?,
+    override val grunnlag: PersonligOppmøteGrunnlag,
     override val periode: Periode,
 ) : Vurderingsperiode(), KanPlasseresPåTidslinje<VurderingsperiodePersonligOppmøte> {
+    override val vurdering: Vurdering = grunnlag.vurdering()
 
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): VurderingsperiodePersonligOppmøte {
-        return create(
+        return VurderingsperiodePersonligOppmøte(
             id = id,
             opprettet = opprettet,
-            vurdering = vurdering,
+            grunnlag = grunnlag.oppdaterPeriode(stønadsperiode.periode),
             periode = stønadsperiode.periode,
-            grunnlag = this.grunnlag?.oppdaterPeriode(stønadsperiode.periode),
         )
     }
 
@@ -138,14 +123,14 @@ data class VurderingsperiodePersonligOppmøte private constructor(
         CopyArgs.Tidslinje.Full -> {
             copy(
                 id = UUID.randomUUID(),
-                grunnlag = grunnlag?.copy(args),
+                grunnlag = grunnlag.copy(args),
             )
         }
         is CopyArgs.Tidslinje.NyPeriode -> {
             copy(
                 id = UUID.randomUUID(),
                 periode = args.periode,
-                grunnlag = grunnlag?.copy(args),
+                grunnlag = grunnlag.copy(args),
             )
         }
         is CopyArgs.Tidslinje.Maskert -> {
@@ -156,49 +141,6 @@ data class VurderingsperiodePersonligOppmøte private constructor(
     override fun erLik(other: Vurderingsperiode): Boolean {
         return other is VurderingsperiodePersonligOppmøte &&
             vurdering == other.vurdering &&
-            when {
-                grunnlag != null && other.grunnlag != null -> grunnlag.erLik(other.grunnlag)
-                grunnlag == null && other.grunnlag == null -> true
-                else -> false
-            }
-    }
-
-    companion object {
-        fun create(
-            id: UUID = UUID.randomUUID(),
-            opprettet: Tidspunkt,
-            vurdering: Vurdering,
-            grunnlag: PersonligOppmøteGrunnlag?,
-            periode: Periode,
-        ): VurderingsperiodePersonligOppmøte {
-            return tryCreate(id, opprettet, vurdering, grunnlag, periode).getOrHandle {
-                throw IllegalArgumentException(it.toString())
-            }
-        }
-
-        fun tryCreate(
-            id: UUID = UUID.randomUUID(),
-            opprettet: Tidspunkt,
-            vurdering: Vurdering,
-            grunnlag: PersonligOppmøteGrunnlag?,
-            vurderingsperiode: Periode,
-        ): Either<UgyldigVurderingsperiode, VurderingsperiodePersonligOppmøte> {
-
-            grunnlag?.let {
-                if (vurderingsperiode != it.periode) return UgyldigVurderingsperiode.PeriodeForGrunnlagOgVurderingErForskjellig.left()
-            }
-
-            return VurderingsperiodePersonligOppmøte(
-                id = id,
-                opprettet = opprettet,
-                vurdering = vurdering,
-                grunnlag = grunnlag,
-                periode = vurderingsperiode,
-            ).right()
-        }
-    }
-
-    sealed class UgyldigVurderingsperiode {
-        object PeriodeForGrunnlagOgVurderingErForskjellig : UgyldigVurderingsperiode()
+            grunnlag.erLik(other.grunnlag)
     }
 }

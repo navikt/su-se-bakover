@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.util.UUID
 
@@ -25,6 +24,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
     private val lovligOppholdVilkårsvurderingPostgresRepo: LovligOppholdVilkårsvurderingPostgresRepo,
     private val flyktningVilkårsvurderingPostgresRepo: FlyktningVilkårsvurderingPostgresRepo,
     private val fastOppholdINorgeVilkårsvurderingPostgresRepo: FastOppholdINorgeVilkårsvurderingPostgresRepo,
+    private val personligOppmøteVilkårsvurderingPostgresRepo: PersonligOppmøteVilkårsvurderingPostgresRepo,
 ) {
     fun lagre(
         behandlingId: UUID,
@@ -97,6 +97,11 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
                 vilkår = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.fastOppholdVilkår(),
                 tx = tx,
             )
+            personligOppmøteVilkårsvurderingPostgresRepo.lagre(
+                behandlingId = behandlingId,
+                vilkår = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.personligOppmøteVilkår(),
+                tx = tx,
+            )
         }
     }
 
@@ -123,6 +128,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
                             session,
                         ),
                         fastOpphold = fastOppholdINorgeVilkårsvurderingPostgresRepo.hent(behandlingId, session),
+                        personligOppmøte = personligOppmøteVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                     )
                 }
                 Sakstype.UFØRE -> {
@@ -134,6 +140,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
                         opplysningsplikt = opplysningspliktVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                         flyktning = flyktningVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                         fastOpphold = fastOppholdINorgeVilkårsvurderingPostgresRepo.hent(behandlingId, session),
+                        personligOppmøte = personligOppmøteVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                     )
                 }
             }
@@ -168,9 +175,9 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
                         ),
                         lovligOpphold = lovligOppholdVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                         fastOpphold = fastOppholdINorgeVilkårsvurderingPostgresRepo.hent(behandlingId, session),
+                        personligOppmøte = personligOppmøteVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                         // Disse ligger fremdeles på Behandlingsinformasjon.kt
                         institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
-                        personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
                     )
                 }
                 Sakstype.UFØRE -> {
@@ -181,9 +188,9 @@ internal class GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
                         opplysningsplikt = opplysningspliktVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                         lovligOpphold = lovligOppholdVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                         fastOpphold = fastOppholdINorgeVilkårsvurderingPostgresRepo.hent(behandlingId, session),
+                        personligOppmøte = personligOppmøteVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                         // Disse ligger fremdeles på Behandlingsinformasjon.kt
                         institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
-                        personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
                         flyktning = flyktningVilkårsvurderingPostgresRepo.hent(behandlingId, session),
                     )
                 }

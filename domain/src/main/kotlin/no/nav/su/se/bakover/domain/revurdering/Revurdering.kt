@@ -56,6 +56,7 @@ import no.nav.su.se.bakover.domain.vilkår.Inngangsvilkår
 import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.PensjonsVilkår
+import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -179,6 +180,10 @@ sealed class Revurdering :
         return KunneIkkeLeggeTilFlyktningVilkår.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
     }
 
+    open fun oppdaterPersonligOppmøtevilkårOgMarkerSomVurdert(vilkår: PersonligOppmøteVilkår.Vurdert): Either<KunneIkkeLeggeTilPersonligOppmøteVilkår, OpprettetRevurdering> {
+        return KunneIkkeLeggeTilPersonligOppmøteVilkår.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
+    }
+
     open fun oppdaterLovligOppholdOgMarkerSomVurdert(lovligOppholdVilkår: LovligOppholdVilkår.Vurdert): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilLovligOpphold, OpprettetRevurdering> {
         return KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilLovligOpphold.UgyldigTilstand.Revurdering(
             this::class,
@@ -213,6 +218,15 @@ sealed class Revurdering :
 
         object HeleBehandlingsperiodenErIkkeVurdert : KunneIkkeLeggeTilFlyktningVilkår
         object VilkårKunRelevantForUføre : KunneIkkeLeggeTilFlyktningVilkår
+    }
+
+    sealed interface KunneIkkeLeggeTilPersonligOppmøteVilkår {
+        data class UgyldigTilstand(
+            val fra: KClass<out Revurdering>,
+            val til: KClass<out Revurdering> = OpprettetRevurdering::class,
+        ) : KunneIkkeLeggeTilPersonligOppmøteVilkår
+
+        object HeleBehandlingsperiodenErIkkeVurdert : KunneIkkeLeggeTilPersonligOppmøteVilkår
     }
 
     private fun oppdaterOpplysnigspliktInternal(opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert): Either<KunneIkkeLeggeTilOpplysningsplikt, OpprettetRevurdering> {
@@ -282,6 +296,18 @@ sealed class Revurdering :
         ).oppdaterInformasjonSomRevurderes(
             informasjonSomRevurderes = informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Uførhet),
         ).right()
+    }
+
+    protected fun oppdaterPersonligOppmøteVilkårOgMarkerSomVurdertInternal(vilkår: PersonligOppmøteVilkår.Vurdert): Either<KunneIkkeLeggeTilPersonligOppmøteVilkår, OpprettetRevurdering> {
+        return oppdaterPersonligOppmøteVilkårInternal(vilkår)
+            .map { it.oppdaterInformasjonSomRevurderes(informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.PersonligOppmøte)) }
+    }
+
+    private fun oppdaterPersonligOppmøteVilkårInternal(vilkår: PersonligOppmøteVilkår.Vurdert): Either<KunneIkkeLeggeTilPersonligOppmøteVilkår, OpprettetRevurdering> {
+        if (!periode.fullstendigOverlapp(vilkår.perioder)) {
+            return KunneIkkeLeggeTilPersonligOppmøteVilkår.HeleBehandlingsperiodenErIkkeVurdert.left()
+        }
+        return oppdaterVilkårsvurderinger(vilkårsvurderinger = vilkårsvurderinger.leggTil(vilkår)).right()
     }
 
     sealed interface KunneIkkeLeggeTilUtenlandsopphold {
@@ -704,6 +730,10 @@ data class OpprettetRevurdering(
         return oppdaterFlyktningVilkårOgMarkerSomVurdertInternal(vilkår)
     }
 
+    override fun oppdaterPersonligOppmøtevilkårOgMarkerSomVurdert(vilkår: PersonligOppmøteVilkår.Vurdert): Either<KunneIkkeLeggeTilPersonligOppmøteVilkår, OpprettetRevurdering> {
+        return oppdaterPersonligOppmøteVilkårOgMarkerSomVurdertInternal(vilkår)
+    }
+
     override fun oppdaterBosituasjonOgMarkerSomVurdert(bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>) =
         oppdaterBosituasjonOgMarkerSomVurdertInternal(bosituasjon)
 
@@ -772,6 +802,10 @@ sealed class BeregnetRevurdering : Revurdering() {
 
     override fun oppdaterFlyktningvilkårOgMarkerSomVurdert(vilkår: FlyktningVilkår.Vurdert): Either<KunneIkkeLeggeTilFlyktningVilkår, OpprettetRevurdering> {
         return oppdaterFlyktningVilkårOgMarkerSomVurdertInternal(vilkår)
+    }
+
+    override fun oppdaterPersonligOppmøtevilkårOgMarkerSomVurdert(vilkår: PersonligOppmøteVilkår.Vurdert): Either<KunneIkkeLeggeTilPersonligOppmøteVilkår, OpprettetRevurdering> {
+        return oppdaterPersonligOppmøteVilkårOgMarkerSomVurdertInternal(vilkår)
     }
 
     override fun oppdaterFradrag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradrag, OpprettetRevurdering> {
@@ -1219,6 +1253,10 @@ sealed class SimulertRevurdering : Revurdering() {
 
     override fun oppdaterFlyktningvilkårOgMarkerSomVurdert(vilkår: FlyktningVilkår.Vurdert): Either<KunneIkkeLeggeTilFlyktningVilkår, OpprettetRevurdering> {
         return oppdaterFlyktningVilkårOgMarkerSomVurdertInternal(vilkår)
+    }
+
+    override fun oppdaterPersonligOppmøtevilkårOgMarkerSomVurdert(vilkår: PersonligOppmøteVilkår.Vurdert): Either<KunneIkkeLeggeTilPersonligOppmøteVilkår, OpprettetRevurdering> {
+        return oppdaterPersonligOppmøteVilkårOgMarkerSomVurdertInternal(vilkår)
     }
 
     override fun oppdaterBosituasjonOgMarkerSomVurdert(bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>) =
@@ -1986,6 +2024,10 @@ sealed class UnderkjentRevurdering : Revurdering() {
         return oppdaterFlyktningVilkårOgMarkerSomVurdertInternal(vilkår)
     }
 
+    override fun oppdaterPersonligOppmøtevilkårOgMarkerSomVurdert(vilkår: PersonligOppmøteVilkår.Vurdert): Either<KunneIkkeLeggeTilPersonligOppmøteVilkår, OpprettetRevurdering> {
+        return oppdaterPersonligOppmøteVilkårOgMarkerSomVurdertInternal(vilkår)
+    }
+
     override fun oppdaterBosituasjonOgMarkerSomVurdert(bosituasjon: List<Grunnlag.Bosituasjon.Fullstendig>) =
         oppdaterBosituasjonOgMarkerSomVurdertInternal(bosituasjon)
 
@@ -2247,7 +2289,7 @@ enum class Revurderingsteg(val vilkår: String) {
 
     Oppholdstillatelse("Oppholdstillatelse"),
 
-    // PersonligOppmøte("PersonligOppmøte"),
+    PersonligOppmøte("PersonligOppmøte"),
     Uførhet("Uførhet"),
     Bosituasjon("Bosituasjon"),
 

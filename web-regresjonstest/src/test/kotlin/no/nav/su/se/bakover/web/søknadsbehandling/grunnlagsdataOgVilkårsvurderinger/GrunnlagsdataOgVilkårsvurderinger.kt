@@ -26,7 +26,8 @@ fun tomGrunnlagsdataOgVilkårsvurderingerResponse(): String {
       "pensjon":null,
       "familiegjenforening": null,
       "flyktning": null,
-      "fastOpphold": null
+      "fastOpphold": null,
+      "personligOppmøte": null
     }
     """.trimIndent()
 }

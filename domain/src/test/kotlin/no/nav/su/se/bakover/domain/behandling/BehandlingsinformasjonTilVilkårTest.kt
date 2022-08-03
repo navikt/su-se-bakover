@@ -4,9 +4,7 @@ import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.domain.grunnlag.InstitusjonsoppholdGrunnlag
-import no.nav.su.se.bakover.domain.grunnlag.PersonligOppmøteGrunnlag
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -61,56 +59,6 @@ class BehandlingsinformasjonTilVilkårTest {
                         periode = stønadsperiode2021.periode,
                     ),
                     InstitusjonsoppholdGrunnlag::id,
-                )
-            }
-        }
-    }
-
-    @Test
-    fun `konverterer personlig oppmøte til vilkår`() {
-        Behandlingsinformasjon.PersonligOppmøte(
-            status = Behandlingsinformasjon.PersonligOppmøte.Status.Uavklart,
-        ).tilVilkår(
-            stønadsperiode = stønadsperiode2021,
-            clock = fixedClock,
-        ) shouldBe PersonligOppmøteVilkår.IkkeVurdert
-
-        Behandlingsinformasjon.PersonligOppmøte(
-            status = Behandlingsinformasjon.PersonligOppmøte.Status.MøttPersonlig,
-        ).tilVilkår(
-            stønadsperiode = stønadsperiode2021,
-            clock = fixedClock,
-        ).let { vilkår ->
-            vilkår shouldBe beOfType<PersonligOppmøteVilkår.Vurdert>()
-            (vilkår as PersonligOppmøteVilkår.Vurdert).let {
-                it.vurdering shouldBe Vurdering.Innvilget
-                it.grunnlag.single().shouldBeEqualToIgnoringFields(
-                    PersonligOppmøteGrunnlag(
-                        id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
-                        periode = stønadsperiode2021.periode,
-                    ),
-                    PersonligOppmøteGrunnlag::id,
-                )
-            }
-        }
-
-        Behandlingsinformasjon.PersonligOppmøte(
-            status = Behandlingsinformasjon.PersonligOppmøte.Status.IkkeMøttPersonlig,
-        ).tilVilkår(
-            stønadsperiode = stønadsperiode2021,
-            clock = fixedClock,
-        ).let { vilkår ->
-            vilkår shouldBe beOfType<PersonligOppmøteVilkår.Vurdert>()
-            (vilkår as PersonligOppmøteVilkår.Vurdert).let {
-                it.vurdering shouldBe Vurdering.Avslag
-                it.grunnlag.single().shouldBeEqualToIgnoringFields(
-                    PersonligOppmøteGrunnlag(
-                        id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
-                        periode = stønadsperiode2021.periode,
-                    ),
-                    PersonligOppmøteGrunnlag::id,
                 )
             }
         }

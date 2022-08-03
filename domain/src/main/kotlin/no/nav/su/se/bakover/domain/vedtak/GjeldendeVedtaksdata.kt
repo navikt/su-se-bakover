@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.PensjonsVilkår
+import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -67,6 +68,7 @@ data class GjeldendeVedtaksdata(
                         opplysningsplikt = it.opplysningspliktVilkår(),
                         flyktning = it.flyktningVilkår(),
                         fastOpphold = it.fastOppholdINorgeVilkår(),
+                        personligOppmøte = it.personligOppmøteVilkår(),
                     )
                 }
                 vedtakPåTidslinje.all {
@@ -81,6 +83,7 @@ data class GjeldendeVedtaksdata(
                         pensjon = it.pensjonsVilkår(),
                         familiegjenforening = it.familiegjenforeningvilkår(),
                         fastOpphold = it.fastOppholdINorgeVilkår(),
+                        personligOppmøte = it.personligOppmøteVilkår(),
                     )
                 }
                 else -> {
@@ -305,6 +308,19 @@ private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.fastOppholdINorgeVil
                     .slåSammenLikePerioder()
             } else {
                 FastOppholdINorgeVilkår.IkkeVurdert
+            }
+        }
+}
+
+private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.personligOppmøteVilkår(): PersonligOppmøteVilkår {
+    return map { it.personligOppmøteVilkår() }
+        .filterIsInstance<PersonligOppmøteVilkår.Vurdert>()
+        .flatMap { it.vurderingsperioder }
+        .let {
+            if (it.isNotEmpty()) {
+                PersonligOppmøteVilkår.Vurdert(NonEmptyList.fromListUnsafe(it)).slåSammenLikePerioder()
+            } else {
+                PersonligOppmøteVilkår.IkkeVurdert
             }
         }
 }
