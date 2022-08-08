@@ -33,6 +33,7 @@ import no.nav.su.se.bakover.service.vilkår.LeggTilFastOppholdINorgeRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilLovligOppholdRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilPensjonsVilkårRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilPersonligOppmøteVilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
@@ -51,6 +52,7 @@ import no.nav.su.se.bakover.test.vilkår.tilstrekkeligDokumentert
 import no.nav.su.se.bakover.test.vilkår.utilstrekkeligDokumentert
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import vilkår.personligOppmøtevilkårInnvilget
 
 internal class SøknadsbehandlingAlder {
     @Test
@@ -138,6 +140,12 @@ internal class SøknadsbehandlingAlder {
                         LovligOppholdVurderinger(stønadsperiode2022.periode, LovligOppholdVilkårStatus.VilkårOppfylt),
                     ),
                 ),
+            )
+            appComponents.services.søknadsbehandling.leggTilPersonligOppmøteVilkår(
+                request = LeggTilPersonligOppmøteVilkårRequest(
+                    behandlingId = søknadsbehandling.id,
+                    vilkår = personligOppmøtevilkårInnvilget(periode = stønadsperiode2022.periode)
+                )
             )
 
             appComponents.services.søknadsbehandling.leggTilFastOppholdINorgeVilkår(

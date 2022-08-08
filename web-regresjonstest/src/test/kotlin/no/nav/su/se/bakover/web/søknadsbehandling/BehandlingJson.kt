@@ -26,6 +26,10 @@ object BehandlingJson {
     fun hentFastOppholdVilkår(json: String): String {
         return JSONObject(json).getJSONObject("grunnlagsdataOgVilkårsvurderinger").getJSONObject("fastOpphold").toString()
     }
+
+    fun hentPersonligOppmøteVilkår(json: String): String {
+        return JSONObject(json).getJSONObject("grunnlagsdataOgVilkårsvurderinger").getJSONObject("personligOppmøte").toString()
+    }
 }
 
 object RevurderingJson {
@@ -39,5 +43,9 @@ object RevurderingJson {
 
     fun hentFastOppholdVilkår(json: String): String {
         return JSONObject(json).getJSONObject("revurdering").getJSONObject("grunnlagsdataOgVilkårsvurderinger").getJSONObject("fastOpphold").toString()
+    }
+
+    fun hentPersonligOppmøteVilkår(json: String): String {
+        return JSONObject(json).getJSONObject("revurdering").getJSONObject("grunnlagsdataOgVilkårsvurderinger").getJSONObject("personligOppmøte").toString()
     }
 }

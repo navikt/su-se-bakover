@@ -17,7 +17,6 @@ internal class AvslagsgrunnTest {
         Avslagsgrunn.BOR_OG_OPPHOLDER_SEG_I_NORGE.tilOpphørsgrunn() shouldBe Opphørsgrunn.BOR_OG_OPPHOLDER_SEG_I_NORGE
 
         listOf(
-            Avslagsgrunn.PERSONLIG_OPPMØTE,
             Avslagsgrunn.INNLAGT_PÅ_INSTITUSJON,
         ).forEach {
             assertThrows<NotImplementedError> {

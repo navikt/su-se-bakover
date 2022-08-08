@@ -1,21 +1,56 @@
 package vilkår
 
-import arrow.core.Nel
 import arrow.core.nonEmptyListOf
+import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.år
+import no.nav.su.se.bakover.domain.grunnlag.PersonligOppmøteGrunnlag
+import no.nav.su.se.bakover.domain.grunnlag.PersonligOppmøteÅrsak
 import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodePersonligOppmøte
-import no.nav.su.se.bakover.test.getOrFail
-import vurderingsperiode.vurderingsperiodePersonligOppmøteAvslag
-import vurderingsperiode.vurderingsperiodePersonligOppmøteInnvilget
+import no.nav.su.se.bakover.test.fixedTidspunkt
+import java.util.UUID
 
 fun personligOppmøtevilkårInnvilget(
-    vurderingsperioder: Nel<VurderingsperiodePersonligOppmøte> = nonEmptyListOf(
-        vurderingsperiodePersonligOppmøteInnvilget(),
-    ),
-) = PersonligOppmøteVilkår.Vurdert.tryCreate(vurderingsperioder = vurderingsperioder).getOrFail()
+    id: UUID = UUID.randomUUID(),
+    opprettet: Tidspunkt = fixedTidspunkt,
+    periode: Periode = år(2021),
+): PersonligOppmøteVilkår.Vurdert {
+    return PersonligOppmøteVilkår.Vurdert(
+        vurderingsperioder = nonEmptyListOf(
+            VurderingsperiodePersonligOppmøte(
+                id = id,
+                opprettet = opprettet,
+                periode = periode,
+                grunnlag = PersonligOppmøteGrunnlag(
+                    id = UUID.randomUUID(),
+                    opprettet = opprettet,
+                    periode = periode,
+                    årsak = PersonligOppmøteÅrsak.IkkeMøttMenMidlertidigUnntakFraOppmøteplikt,
+                ),
+            ),
+        ),
+    )
+}
 
 fun personligOppmøtevilkårAvslag(
-    vurderingsperioder: Nel<VurderingsperiodePersonligOppmøte> = nonEmptyListOf(
-        vurderingsperiodePersonligOppmøteAvslag(),
-    ),
-) = PersonligOppmøteVilkår.Vurdert.tryCreate(vurderingsperioder = vurderingsperioder).getOrFail()
+    id: UUID = UUID.randomUUID(),
+    opprettet: Tidspunkt = fixedTidspunkt,
+    periode: Periode = år(2021),
+): PersonligOppmøteVilkår.Vurdert {
+    return PersonligOppmøteVilkår.Vurdert(
+        vurderingsperioder = nonEmptyListOf(
+            VurderingsperiodePersonligOppmøte(
+                id = id,
+                opprettet = opprettet,
+                periode = periode,
+                grunnlag = PersonligOppmøteGrunnlag(
+                    id = UUID.randomUUID(),
+                    opprettet = opprettet,
+                    periode = periode,
+                    årsak = PersonligOppmøteÅrsak.IkkeMøttPersonlig,
+                ),
+            ),
+        ),
+    )
+}

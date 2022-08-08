@@ -32,4 +32,6 @@ internal fun Route.overordnetSøknadsbehandligRoutes(
     flyktningVilkårRoutes(søknadsbehandlingService, satsFactory)
 
     fastOppholdVilkårRoutes(søknadsbehandlingService, satsFactory)
+
+    personligOppmøteVilkårRoutes(søknadsbehandlingService, satsFactory)
 }

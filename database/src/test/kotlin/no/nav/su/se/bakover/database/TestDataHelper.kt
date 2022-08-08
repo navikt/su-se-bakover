@@ -29,6 +29,8 @@ import no.nav.su.se.bakover.database.grunnlag.OpplysningspliktGrunnlagPostgresRe
 import no.nav.su.se.bakover.database.grunnlag.OpplysningspliktVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.PensjonVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.PensjonsgrunnlagPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.PersonligOppmøteGrunnlagPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.PersonligOppmøteVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UtenlandsoppholdVilkårsvurderingPostgresRepo
@@ -60,7 +62,7 @@ import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.behandling.withAvslåttPersonligOppmøte
+import no.nav.su.se.bakover.domain.behandling.withAvslåttInstitusjonsopphold
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -151,7 +153,7 @@ import java.util.UUID
 import javax.sql.DataSource
 
 internal val behandlingsinformasjonMedAvslag =
-    Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttPersonligOppmøte()
+    Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttInstitusjonsopphold()
 
 internal val oppgaveId = OppgaveId("oppgaveId")
 internal val journalpostId = JournalpostId("journalpostId")
@@ -328,6 +330,12 @@ internal class TestDataHelper(
     internal val fastOppholdVilkårsvurderingRepo = FastOppholdINorgeVilkårsvurderingPostgresRepo(
         dbMetrics = dbMetrics,
     )
+
+    internal val personligOppmøteGrunnlagPostgresRepo = PersonligOppmøteGrunnlagPostgresRepo(dbMetrics)
+    internal val personligOppmøteVilkårsvurderingPostgresRepo = PersonligOppmøteVilkårsvurderingPostgresRepo(
+        personligOppmøteGrunnlagPostgresRepo = personligOppmøteGrunnlagPostgresRepo,
+        dbMetrics = dbMetrics,
+    )
     internal val grunnlagsdataOgVilkårsvurderingerPostgresRepo = GrunnlagsdataOgVilkårsvurderingerPostgresRepo(
         dbMetrics = dbMetrics,
         bosituasjongrunnlagPostgresRepo = bosituasjongrunnlagPostgresRepo,
@@ -341,6 +349,7 @@ internal class TestDataHelper(
         lovligOppholdVilkårsvurderingPostgresRepo = lovligOppholdVilkårsvurderingPostgresRepo,
         flyktningVilkårsvurderingPostgresRepo = flyktningVilkårsvurderingPostgresRepo,
         fastOppholdINorgeVilkårsvurderingPostgresRepo = fastOppholdVilkårsvurderingRepo,
+        personligOppmøteVilkårsvurderingPostgresRepo = personligOppmøteVilkårsvurderingPostgresRepo,
     )
     internal val søknadsbehandlingRepo = SøknadsbehandlingPostgresRepo(
         sessionFactory = sessionFactory,
