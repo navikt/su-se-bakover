@@ -697,6 +697,7 @@ internal class KlagePostgresRepo(
                 SU_PARAGRAF_4("su_paragraf_4"),
                 SU_PARAGRAF_5("su_paragraf_5"),
                 SU_PARAGRAF_6("su_paragraf_6"),
+                SU_PARAGRAF_7("su_paragraf_7"),
                 SU_PARAGRAF_8("su_paragraf_8"),
                 SU_PARAGRAF_9("su_paragraf_9"),
                 SU_PARAGRAF_10("su_paragraf_10"),
@@ -713,6 +714,7 @@ internal class KlagePostgresRepo(
                         SU_PARAGRAF_4 -> no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_4
                         SU_PARAGRAF_5 -> no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_5
                         SU_PARAGRAF_6 -> no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_6
+                        SU_PARAGRAF_7 -> no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_7
                         SU_PARAGRAF_8 -> no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_8
                         SU_PARAGRAF_9 -> no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_9
                         SU_PARAGRAF_10 -> no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_10
@@ -733,6 +735,7 @@ internal class KlagePostgresRepo(
                                 no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_4 -> SU_PARAGRAF_4
                                 no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_5 -> SU_PARAGRAF_5
                                 no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_6 -> SU_PARAGRAF_6
+                                no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_7 -> SU_PARAGRAF_7
                                 no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_8 -> SU_PARAGRAF_8
                                 no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_9 -> SU_PARAGRAF_9
                                 no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_10 -> SU_PARAGRAF_10

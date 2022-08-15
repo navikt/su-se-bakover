@@ -80,6 +80,9 @@ enum class Hjemmel(val kapittel: Int, val paragrafnummer: Int) {
     /** Kapittel 3 - § 6.Inntekt som går til frådrag i supplerande stønad (2021-01-01) */
     SU_PARAGRAF_6(3, 6),
 
+    /** Kapittel 3 - § 7.Utmåling av supplerande stønad (2021-01-01) */
+    SU_PARAGRAF_7(3, 7),
+
     /** Kapittel 3 - § 8.Formue (2021-01-01) */
     SU_PARAGRAF_8(3, 8),
 
