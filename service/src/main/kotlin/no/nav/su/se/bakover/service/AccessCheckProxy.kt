@@ -822,11 +822,6 @@ open class AccessCheckProxy(
                     return services.vedtakService.hentAktiveFnr(fomDato)
                 }
 
-                override fun kopierGjeldendeVedtaksdata(
-                    sakId: UUID,
-                    fraOgMed: LocalDate,
-                ) = kastKanKunKallesFraAnnenService()
-
                 override fun hentForUtbetaling(utbetalingId: UUID30) = kastKanKunKallesFraAnnenService()
 
                 override fun historiskGrunnlagForVedtaksperiode(

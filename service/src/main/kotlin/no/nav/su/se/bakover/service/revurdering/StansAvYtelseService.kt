@@ -7,6 +7,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
@@ -21,6 +22,7 @@ import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import java.time.Clock
+import java.time.LocalDate
 import java.util.UUID
 
 internal class StansAvYtelseService(
@@ -39,17 +41,20 @@ internal class StansAvYtelseService(
     fun stansAvYtelse(
         request: StansYtelseRequest,
     ): Either<KunneIkkeStanseYtelse, StansAvYtelseRevurdering.SimulertStansAvYtelse> {
-
         val simulertRevurdering = when (request) {
             is StansYtelseRequest.Oppdater -> {
-                val eksisterende = revurderingRepo.hent(request.revurderingId)
+                val sak = sakService.hentSak(request.sakId)
+                    .getOrHandle { return KunneIkkeStanseYtelse.FantIkkeSak.left() }
+
+                val eksisterende = sak.revurderinger.find { it.id == request.revurderingId }
                     ?: return KunneIkkeStanseYtelse.FantIkkeRevurdering.left()
 
-                val gjeldendeVedtaksdata = kopierGjeldendeVedtaksdata(request)
-                    .getOrHandle { return it.left() }
+                val gjeldendeVedtaksdata = kopierGjeldendeVedtaksdata(
+                    sak = sak,
+                    fraOgMed = request.fraOgMed,
+                ).getOrHandle { return it.left() }
 
-                val simulering = simuler(request)
-                    .getOrHandle { return it.left() }
+                val simulering = simuler(request).getOrHandle { return it.left() }
 
                 when (eksisterende) {
                     is StansAvYtelseRevurdering.SimulertStansAvYtelse -> {
@@ -63,9 +68,11 @@ internal class StansAvYtelseService(
                             revurderingsårsak = request.revurderingsårsak,
                         )
                     }
+
                     else -> return KunneIkkeStanseYtelse.UgyldigTypeForOppdatering(eksisterende::class).left()
                 }
             }
+
             is StansYtelseRequest.Opprett -> {
                 val sak = sakService.hentSak(request.sakId)
                     .getOrHandle { return KunneIkkeStanseYtelse.FantIkkeSak.left() }
@@ -74,9 +81,10 @@ internal class StansAvYtelseService(
                     return KunneIkkeStanseYtelse.SakHarÅpenRevurderingForStansAvYtelse.left()
                 }
 
-                // TODO hent rett fra sak
-                val gjeldendeVedtaksdata = kopierGjeldendeVedtaksdata(request)
-                    .getOrHandle { return it.left() }
+                val gjeldendeVedtaksdata = kopierGjeldendeVedtaksdata(
+                    sak = sak,
+                    fraOgMed = request.fraOgMed,
+                ).getOrHandle { return it.left() }
 
                 val simulering = simuler(request)
                     .getOrHandle { return it.left() }
@@ -91,7 +99,7 @@ internal class StansAvYtelseService(
                     saksbehandler = request.saksbehandler,
                     simulering = simulering.simulering,
                     revurderingsårsak = request.revurderingsårsak,
-                    sakinfo = sak.info()
+                    sakinfo = sak.info(),
                 )
             }
         }
@@ -140,16 +148,20 @@ internal class StansAvYtelseService(
 
                 return iverksattRevurdering.right()
             }
+
             else -> KunneIkkeIverksetteStansYtelse.UgyldigTilstand(
                 faktiskTilstand = revurdering::class,
             ).left()
         }
     }
 
-    private fun kopierGjeldendeVedtaksdata(request: StansYtelseRequest): Either<KunneIkkeStanseYtelse, GjeldendeVedtaksdata> {
-        return vedtakService.kopierGjeldendeVedtaksdata(
-            sakId = request.sakId,
-            fraOgMed = request.fraOgMed,
+    private fun kopierGjeldendeVedtaksdata(
+        sak: Sak,
+        fraOgMed: LocalDate,
+    ): Either<KunneIkkeStanseYtelse, GjeldendeVedtaksdata> {
+        return sak.kopierGjeldendeVedtaksdata(
+            fraOgMed = fraOgMed,
+            clock = clock,
         ).getOrHandle {
             log.error("Kunne ikke opprette revurdering for stans av ytelse, årsak: $it")
             return KunneIkkeStanseYtelse.KunneIkkeOppretteRevurdering.left()

@@ -51,17 +51,6 @@ internal class RevurderingIngenEndringTest {
             utbetalingService = mock {
                 on { hentUtbetalingerForSakId(any()) } doReturn sak.utbetalinger
             },
-            vedtakService = mock {
-                on {
-                    kopierGjeldendeVedtaksdata(
-                        any(),
-                        any(),
-                    )
-                } doReturn sak.kopierGjeldendeVedtaksdata(
-                    fraOgMed = revurdering.periode.fraOgMed,
-                    clock = fixedClock,
-                ).getOrFail().right()
-            },
         ).let {
             val actual = it.revurderingService.beregnOgSimuler(
                 revurderingId = revurderingId,
@@ -86,10 +75,6 @@ internal class RevurderingIngenEndringTest {
                 verify(it.revurderingRepo).hent(argThat { it shouldBe revurderingId })
                 verify(it.revurderingRepo).defaultTransactionContext()
                 verify(it.utbetalingService).hentUtbetalingerForSakId(argThat { it shouldBe revurdering.sakId })
-                verify(it.vedtakService).kopierGjeldendeVedtaksdata(
-                    argThat { it shouldBe revurdering.sakId },
-                    argThat { it shouldBe revurdering.periode.fraOgMed },
-                )
                 verify(it.revurderingRepo).lagre(argThat { it shouldBe actual.revurdering }, anyOrNull())
                 it.verifyNoMoreInteractions()
             }

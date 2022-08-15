@@ -2,26 +2,22 @@ package no.nav.su.se.bakover.service.vedtak
 
 import arrow.core.Either
 import arrow.core.NonEmptyList
-import arrow.core.flatMap
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
-import no.nav.su.se.bakover.service.sak.SakService
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
 internal class VedtakServiceImpl(
     private val vedtakRepo: VedtakRepo,
-    private val sakService: SakService,
     private val clock: Clock,
 ) : VedtakService {
 
@@ -49,27 +45,6 @@ internal class VedtakServiceImpl(
         return vedtakRepo.hentAktive(fomDato).map {
             it.behandling.fnr
         }.sortedWith(compareBy(Fnr::toString)).distinct()
-    }
-
-    override fun kopierGjeldendeVedtaksdata(
-        sakId: UUID,
-        fraOgMed: LocalDate,
-    ): Either<KunneIkkeKopiereGjeldendeVedtaksdata, GjeldendeVedtaksdata> {
-        return sakService.hentSak(sakId)
-            .mapLeft { KunneIkkeKopiereGjeldendeVedtaksdata.FantIkkeSak }
-            .flatMap { sak ->
-                sak.kopierGjeldendeVedtaksdata(fraOgMed, clock)
-                    .mapLeft {
-                        when (it) {
-                            is Sak.KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes -> {
-                                KunneIkkeKopiereGjeldendeVedtaksdata.FantIngenVedtak
-                            }
-                            is Sak.KunneIkkeHenteGjeldendeVedtaksdata.UgyldigPeriode -> {
-                                KunneIkkeKopiereGjeldendeVedtaksdata.UgyldigPeriode(it.feil)
-                            }
-                        }
-                    }
-            }
     }
 
     override fun hentForUtbetaling(utbetalingId: UUID30): VedtakSomKanRevurderes? {

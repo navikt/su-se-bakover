@@ -497,9 +497,7 @@ internal class ReguleringServiceImplTest {
                 on { lagreUtbetaling(any(), any()) } doReturn utbetaling
                 on { publiserUtbetaling(any()) } doReturn Utbetalingsrequest("").right()
             },
-            vedtakService = mock {
-                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn testData.second.right()
-            },
+            vedtakService = mock(),
             sessionFactory = TestSessionFactory(),
             clock = fixedClock,
             tilbakekrevingService = mock {
