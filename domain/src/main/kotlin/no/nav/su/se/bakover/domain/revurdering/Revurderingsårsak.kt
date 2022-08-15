@@ -19,6 +19,7 @@ data class Revurderingsårsak(
         REGULER_GRUNNBELØP,
         MANGLENDE_KONTROLLERKLÆRING,
         MOTTATT_KONTROLLERKLÆRING,
+        IKKE_MOTTATT_ETTERSPURT_DOKUMENTASJON,
 
         /* Reservert for migrering */
         MIGRERT;
