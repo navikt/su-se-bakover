@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.domain.vilkår
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
@@ -13,13 +12,10 @@ import no.nav.su.se.bakover.common.periode.juli
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.september
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
-import no.nav.su.se.bakover.domain.behandling.withAvslåttInstitusjonsopphold
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
-import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.getOrFail
@@ -187,22 +183,6 @@ internal class VilkårsvurderingerTest {
         }
 
         @Test
-        fun `oppdaterer vilkårsvurderinger med informasjon fra behandlingsinformasjon`() {
-            val innvilget = vilkårsvurderingerSøknadsbehandlingInnvilget()
-            innvilget.vurdering shouldBe beOfType<Vilkårsvurderingsresultat.Innvilget>()
-
-            innvilget.oppdater(
-                stønadsperiode = Stønadsperiode.create(år(2021)),
-                behandlingsinformasjon = Behandlingsinformasjon().withAvslåttInstitusjonsopphold(),
-                clock = fixedClock,
-            ).let {
-                it.vurdering shouldBe Vilkårsvurderingsresultat.Avslag(
-                    vilkår = setOf(it.institusjonsopphold),
-                )
-            }
-        }
-
-        @Test
         fun `legg til erstatter eksisternde vilkår med nytt`() {
             val innvilget = vilkårsvurderingerSøknadsbehandlingInnvilget()
             val uavklart = vilkårsvurderingSøknadsbehandlingIkkeVurdert()
@@ -265,6 +245,7 @@ internal class VilkårsvurderingerTest {
                         it.flyktning,
                         it.fastOpphold,
                         it.personligOppmøte,
+                        it.institusjonsopphold,
                     ),
                 )
             }
@@ -321,6 +302,7 @@ internal class VilkårsvurderingerTest {
                             Avslagsgrunn.FLYKTNING,
                             Avslagsgrunn.BOR_OG_OPPHOLDER_SEG_I_NORGE,
                             Avslagsgrunn.PERSONLIG_OPPMØTE,
+                            Avslagsgrunn.INNLAGT_PÅ_INSTITUSJON,
                         )
                         it.tidligsteDatoForAvslag shouldBe 1.januar(2021)
                     }
@@ -360,6 +342,7 @@ internal class VilkårsvurderingerTest {
                     FlyktningVilkår.IkkeVurdert,
                     FastOppholdINorgeVilkår.IkkeVurdert,
                     PersonligOppmøteVilkår.IkkeVurdert,
+                    InstitusjonsoppholdVilkår.IkkeVurdert,
                 ),
             )
         }

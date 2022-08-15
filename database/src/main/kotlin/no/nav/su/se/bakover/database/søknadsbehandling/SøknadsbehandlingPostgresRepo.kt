@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.database.søknadsbehandling
 
 import kotliquery.Row
-import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.deserializeList
 import no.nav.su.se.bakover.common.deserializeNullable
 import no.nav.su.se.bakover.common.persistence.SessionContext
@@ -33,7 +32,6 @@ import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
 import no.nav.su.se.bakover.domain.beregning.BeregningMedFradragBeregnetMånedsvis
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -45,7 +43,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
-import java.time.Clock
 import java.util.UUID
 
 internal class SøknadsbehandlingPostgresRepo(
@@ -53,7 +50,6 @@ internal class SøknadsbehandlingPostgresRepo(
     private val dbMetrics: DbMetrics,
     private val grunnlagsdataOgVilkårsvurderingerPostgresRepo: GrunnlagsdataOgVilkårsvurderingerPostgresRepo,
     private val avkortingsvarselRepo: AvkortingsvarselPostgresRepo,
-    private val clock: Clock,
     private val satsFactory: SatsFactoryForSupplerendeStønad,
 ) : SøknadsbehandlingRepo {
 
@@ -90,7 +86,6 @@ internal class SøknadsbehandlingPostgresRepo(
                         søknadId,
                         opprettet,
                         status,
-                        behandlingsinformasjon,
                         oppgaveId,
                         attestering,
                         avkorting
@@ -100,7 +95,6 @@ internal class SøknadsbehandlingPostgresRepo(
                         :soknadId,
                         :opprettet,
                         :status,
-                        to_json(:behandlingsinformasjon::json),
                         :oppgaveId,
                         jsonb_build_array(),
                         to_json(:avkorting::json)
@@ -113,7 +107,6 @@ internal class SøknadsbehandlingPostgresRepo(
                         "soknadId" to søknadsbehandling.søknad.id,
                         "opprettet" to søknadsbehandling.opprettet,
                         "status" to BehandlingsStatus.OPPRETTET.toString(),
-                        "behandlingsinformasjon" to serialize(søknadsbehandling.behandlingsinformasjon),
                         "oppgaveId" to søknadsbehandling.oppgaveId.toString(),
                         "avkorting" to serialize(søknadsbehandling.avkorting.toDb()),
                     ),
@@ -132,7 +125,6 @@ internal class SøknadsbehandlingPostgresRepo(
                 (
                     """
                     update behandling set
-                        behandlingsinformasjon = to_json(:behandlingsinformasjon::json),
                         saksbehandler = :saksbehandler,
                         attestering = to_json(:attestering::json),
                         fritekstTilBrev = :fritekstTilBrev,
@@ -146,7 +138,6 @@ internal class SøknadsbehandlingPostgresRepo(
                     ).insert(
                     params = avslag.søknadsbehandling.let {
                         mapOf(
-                            "behandlingsinformasjon" to serialize(it.behandlingsinformasjon),
                             "saksbehandler" to it.saksbehandler,
                             "attestering" to it.attesteringer.serialize(),
                             "fritekstTilBrev" to it.fritekstTilBrev,
@@ -225,7 +216,6 @@ internal class SøknadsbehandlingPostgresRepo(
         }
         val sakId = uuid("sakId")
         val opprettet = tidspunkt("opprettet")
-        val behandlingsinformasjon = deserialize<Behandlingsinformasjon>(string("behandlingsinformasjon"))
         val status = BehandlingsStatus.valueOf(string("status"))
         val oppgaveId = OppgaveId(string("oppgaveId"))
         val sakstype = Sakstype.from(string("type"))
@@ -245,17 +235,7 @@ internal class SøknadsbehandlingPostgresRepo(
             behandlingId = behandlingId,
             session = session,
             sakstype = Sakstype.from(string("type")),
-        ).let { grunnlagsdataOgVilkårsvurderinger ->
-            stønadsperiode?.let {
-                grunnlagsdataOgVilkårsvurderinger.copy(
-                    vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.oppdater(
-                        stønadsperiode = stønadsperiode,
-                        behandlingsinformasjon = behandlingsinformasjon,
-                        clock = clock,
-                    ),
-                )
-            } ?: grunnlagsdataOgVilkårsvurderinger
-        }
+        )
 
         val avkorting = deserializeNullable<AvkortingVedSøknadsbehandlingDb>(stringOrNull("avkorting"))?.toDomain()
 
@@ -267,7 +247,6 @@ internal class SøknadsbehandlingPostgresRepo(
                 saksnummer = saksnummer,
                 søknad = søknad,
                 oppgaveId = oppgaveId,
-                behandlingsinformasjon = behandlingsinformasjon,
                 fnr = fnr,
                 fritekstTilBrev = fritekstTilBrev,
                 stønadsperiode = stønadsperiode,
@@ -284,7 +263,6 @@ internal class SøknadsbehandlingPostgresRepo(
                 saksnummer = saksnummer,
                 søknad = søknad,
                 oppgaveId = oppgaveId,
-                behandlingsinformasjon = behandlingsinformasjon,
                 fnr = fnr,
                 fritekstTilBrev = fritekstTilBrev,
                 stønadsperiode = stønadsperiode!!,
@@ -301,7 +279,6 @@ internal class SøknadsbehandlingPostgresRepo(
                 saksnummer = saksnummer,
                 søknad = søknad,
                 oppgaveId = oppgaveId,
-                behandlingsinformasjon = behandlingsinformasjon,
                 fnr = fnr,
                 fritekstTilBrev = fritekstTilBrev,
                 stønadsperiode = stønadsperiode!!,
@@ -318,7 +295,6 @@ internal class SøknadsbehandlingPostgresRepo(
                 saksnummer = saksnummer,
                 søknad = søknad,
                 oppgaveId = oppgaveId,
-                behandlingsinformasjon = behandlingsinformasjon,
                 fnr = fnr,
                 beregning = beregning!!,
                 fritekstTilBrev = fritekstTilBrev,
@@ -336,7 +312,6 @@ internal class SøknadsbehandlingPostgresRepo(
                 saksnummer = saksnummer,
                 søknad = søknad,
                 oppgaveId = oppgaveId,
-                behandlingsinformasjon = behandlingsinformasjon,
                 fnr = fnr,
                 beregning = beregning!!,
                 fritekstTilBrev = fritekstTilBrev,
@@ -354,7 +329,6 @@ internal class SøknadsbehandlingPostgresRepo(
                 saksnummer = saksnummer,
                 søknad = søknad,
                 oppgaveId = oppgaveId,
-                behandlingsinformasjon = behandlingsinformasjon,
                 fnr = fnr,
                 beregning = beregning!!,
                 simulering = simulering!!,
@@ -373,7 +347,6 @@ internal class SøknadsbehandlingPostgresRepo(
                 saksnummer = saksnummer,
                 søknad = søknad,
                 oppgaveId = oppgaveId,
-                behandlingsinformasjon = behandlingsinformasjon,
                 fnr = fnr,
                 beregning = beregning!!,
                 simulering = simulering!!,
@@ -394,7 +367,6 @@ internal class SøknadsbehandlingPostgresRepo(
                     saksnummer = saksnummer,
                     søknad = søknad,
                     oppgaveId = oppgaveId,
-                    behandlingsinformasjon = behandlingsinformasjon,
                     fnr = fnr,
                     saksbehandler = saksbehandler!!,
                     fritekstTilBrev = fritekstTilBrev,
@@ -412,7 +384,6 @@ internal class SøknadsbehandlingPostgresRepo(
                     saksnummer = saksnummer,
                     søknad = søknad,
                     oppgaveId = oppgaveId,
-                    behandlingsinformasjon = behandlingsinformasjon,
                     fnr = fnr,
                     beregning = beregning,
                     saksbehandler = saksbehandler!!,
@@ -432,7 +403,6 @@ internal class SøknadsbehandlingPostgresRepo(
                 saksnummer = saksnummer,
                 søknad = søknad,
                 oppgaveId = oppgaveId,
-                behandlingsinformasjon = behandlingsinformasjon,
                 fnr = fnr,
                 beregning = beregning!!,
                 simulering = simulering!!,
@@ -453,7 +423,6 @@ internal class SøknadsbehandlingPostgresRepo(
                     saksnummer = saksnummer,
                     søknad = søknad,
                     oppgaveId = oppgaveId,
-                    behandlingsinformasjon = behandlingsinformasjon,
                     fnr = fnr,
                     saksbehandler = saksbehandler!!,
                     attesteringer = attesteringer,
@@ -471,7 +440,6 @@ internal class SøknadsbehandlingPostgresRepo(
                     saksnummer = saksnummer,
                     søknad = søknad,
                     oppgaveId = oppgaveId,
-                    behandlingsinformasjon = behandlingsinformasjon,
                     fnr = fnr,
                     beregning = beregning,
                     saksbehandler = saksbehandler!!,
@@ -492,7 +460,6 @@ internal class SøknadsbehandlingPostgresRepo(
                     saksnummer = saksnummer,
                     søknad = søknad,
                     oppgaveId = oppgaveId,
-                    behandlingsinformasjon = behandlingsinformasjon,
                     fnr = fnr,
                     beregning = beregning!!,
                     simulering = simulering!!,
@@ -515,7 +482,6 @@ internal class SøknadsbehandlingPostgresRepo(
                         saksnummer = saksnummer,
                         søknad = søknad,
                         oppgaveId = oppgaveId,
-                        behandlingsinformasjon = behandlingsinformasjon,
                         fnr = fnr,
                         saksbehandler = saksbehandler!!,
                         attesteringer = attesteringer,
@@ -533,7 +499,6 @@ internal class SøknadsbehandlingPostgresRepo(
                         saksnummer = saksnummer,
                         søknad = søknad,
                         oppgaveId = oppgaveId,
-                        behandlingsinformasjon = behandlingsinformasjon,
                         fnr = fnr,
                         beregning = beregning,
                         saksbehandler = saksbehandler!!,
@@ -559,7 +524,6 @@ internal class SøknadsbehandlingPostgresRepo(
         """
                     update behandling set
                         status = :status,
-                        behandlingsinformasjon = to_json(:behandlingsinformasjon::json),
                         beregning = null,
                         simulering = null,
                         stønadsperiode = to_json(:stonadsperiode::json),
@@ -721,7 +685,6 @@ internal class SøknadsbehandlingPostgresRepo(
             "soknadId" to søknadsbehandling.søknad.id,
             "opprettet" to søknadsbehandling.opprettet,
             "status" to søknadsbehandling.status.name,
-            "behandlingsinformasjon" to serialize(søknadsbehandling.behandlingsinformasjon),
             "oppgaveId" to søknadsbehandling.oppgaveId.toString(),
             "stonadsperiode" to serializeNullable(søknadsbehandling.stønadsperiode),
             "avkorting" to serialize(søknadsbehandling.avkorting.toDb()),

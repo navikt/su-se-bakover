@@ -34,7 +34,6 @@ import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUføre
 import no.nav.su.se.bakover.test.create
-import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
@@ -68,7 +67,6 @@ class SøknadsbehandlingServiceBeregningTest {
                         ),
                     ),
                 ),
-                clock = fixedClock,
             ).getOrFail()
         }
 
@@ -207,7 +205,6 @@ class SøknadsbehandlingServiceBeregningTest {
                         tilhører = FradragTilhører.BRUKER,
                     ),
                 ),
-                clock = fixedClock,
             ).getOrFail()
         }
 
@@ -283,7 +280,6 @@ class SøknadsbehandlingServiceBeregningTest {
                                 ),
                             ),
                         ),
-                        clock = fixedClock,
                     ).getOrFail()
                 }
             },

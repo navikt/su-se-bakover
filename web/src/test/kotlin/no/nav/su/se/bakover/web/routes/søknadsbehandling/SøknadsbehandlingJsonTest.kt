@@ -27,11 +27,6 @@ internal class SøknadsbehandlingJsonTest {
         val expected = """
             {
               "id": "${søknadsbehandling.id}",
-              "behandlingsinformasjon": {
-                "institusjonsopphold": {
-                  "status": "VilkårOppfylt"
-                }
-              },
               "søknad": {
                 "id": "${søknadsbehandling.søknad.id}",
                 "sakId": "${søknadsbehandling.sakId}",
@@ -406,7 +401,19 @@ internal class SøknadsbehandlingJsonTest {
                     }
                   ],
                   "resultat": "VilkårOppfylt"
-                }                
+                },
+                 "institusjonsopphold":{
+                    "vurderingsperioder": [
+                      {
+                        "periode": {
+                          "fraOgMed": "2021-01-01",
+                          "tilOgMed": "2021-01-31"
+                        },
+                        "vurdering": "VilkårOppfylt"
+                      }
+                   ],
+                   "resultat": "VilkårOppfylt"
+                 }
               },
               "erLukket": false,
               "simuleringForAvkortingsvarsel": null,
@@ -425,9 +432,6 @@ internal class SøknadsbehandlingJsonTest {
         val expected = """
             {
               "id": "${søknadsbehandling.id}",
-              "behandlingsinformasjon": {
-                "institusjonsopphold": null
-              },
               "søknad": {
                 "id": "${søknadsbehandling.søknad.id}",
                 "sakId": "${søknadsbehandling.sakId}",
@@ -607,7 +611,8 @@ internal class SøknadsbehandlingJsonTest {
                 "familiegjenforening": null,
                 "flyktning": null,
                 "fastOpphold": null,
-                "personligOppmøte": null
+                "personligOppmøte": null,
+                "institusjonsopphold": null
               },
               "erLukket": false,
               "simuleringForAvkortingsvarsel": null,

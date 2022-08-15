@@ -6,8 +6,6 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.fixedClock
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.domain.Sakstype
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.fnrOver67
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
@@ -22,7 +20,6 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.revurdering.LeggTilOpplysningspliktRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
-import no.nav.su.se.bakover.service.søknadsbehandling.VilkårsvurderRequest
 import no.nav.su.se.bakover.service.vilkår.BosituasjonValg
 import no.nav.su.se.bakover.service.vilkår.FamiliegjenforeningVurderinger
 import no.nav.su.se.bakover.service.vilkår.FamiliegjenforeningvilkårStatus
@@ -31,6 +28,7 @@ import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFamiliegjenforeningRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFastOppholdINorgeRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilInstitusjonsoppholdVilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilLovligOppholdRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilPensjonsVilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilPersonligOppmøteVilkårRequest
@@ -47,6 +45,7 @@ import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.stønadsperiode2022
 import no.nav.su.se.bakover.test.vilkår.fastOppholdVilkårInnvilget
+import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.pensjonsVilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.tilstrekkeligDokumentert
 import no.nav.su.se.bakover.test.vilkår.utilstrekkeligDokumentert
@@ -99,17 +98,8 @@ internal class SøknadsbehandlingAlder {
                     ),
                 )
             }.also {
-                it.message shouldBe "Kan ikke legge til uførevilkår for vilkårsvurdering alder"
+                it.message shouldBe "Kan ikke legge til uførevilkår for vilkårsvurdering alder (støttes kun av ufør flyktning)"
             }
-
-            appComponents.services.søknadsbehandling.vilkårsvurder(
-                request = VilkårsvurderRequest(
-                    behandlingId = søknadsbehandling.id,
-                    behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon()
-                        .withAlleVilkårOppfylt(),
-                ),
-            ).getOrFail()
-
             appComponents.services.søknadsbehandling.leggTilOpplysningspliktVilkår(
                 request = LeggTilOpplysningspliktRequest.Søknadsbehandling(
                     behandlingId = søknadsbehandling.id,
@@ -155,6 +145,13 @@ internal class SøknadsbehandlingAlder {
                 )
             )
 
+            appComponents.services.søknadsbehandling.leggTilInstitusjonsoppholdVilkår(
+                request = LeggTilInstitusjonsoppholdVilkårRequest(
+                    behandlingId = søknadsbehandling.id,
+                    vilkår = institusjonsoppholdvilkårInnvilget(periode = stønadsperiode2022.periode),
+                ),
+            )
+
             appComponents.services.søknadsbehandling.leggTilBosituasjonEpsgrunnlag(
                 request = LeggTilBosituasjonEpsRequest(
                     behandlingId = søknadsbehandling.id,
@@ -185,15 +182,6 @@ internal class SøknadsbehandlingAlder {
                     it.bosituasjon.single().shouldBeType<Grunnlag.Bosituasjon.Fullstendig.Enslig>()
                 }
             }
-
-            appComponents.services.søknadsbehandling.vilkårsvurder(
-                request = VilkårsvurderRequest(
-                    behandlingId = søknadsbehandling.id,
-                    behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon()
-                        .withAlleVilkårOppfylt(),
-                ),
-            ).getOrFail()
-
             appComponents.services.søknadsbehandling.leggTilFormuevilkår(
                 request = LeggTilFormuevilkårRequest(
                     behandlingId = søknadsbehandling.id,

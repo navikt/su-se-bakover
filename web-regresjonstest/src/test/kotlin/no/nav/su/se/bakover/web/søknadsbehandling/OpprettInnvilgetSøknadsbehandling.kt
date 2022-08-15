@@ -102,6 +102,8 @@ internal fun ApplicationTestBuilder.opprettInnvilgetSøknadsbehandling(
     leggTilInstitusjonsopphold(
         sakId = sakId,
         behandlingId = behandlingId,
+        fraOgMed = fraOgMed,
+        tilOgMed = tilOgMed,
     )
     leggTilUtenlandsopphold(
         sakId = sakId,

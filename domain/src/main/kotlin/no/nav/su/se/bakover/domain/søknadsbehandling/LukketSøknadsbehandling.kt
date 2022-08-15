@@ -11,7 +11,6 @@ data class LukketSøknadsbehandling private constructor(
     val lukketSøknadsbehandling: Søknadsbehandling,
 ) : Søknadsbehandling() {
     override val søknad = lukketSøknadsbehandling.søknad
-    override val behandlingsinformasjon = lukketSøknadsbehandling.behandlingsinformasjon
     override val status = lukketSøknadsbehandling.status
     override val stønadsperiode = lukketSøknadsbehandling.stønadsperiode
     override val grunnlagsdata = lukketSøknadsbehandling.grunnlagsdata

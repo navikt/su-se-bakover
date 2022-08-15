@@ -171,7 +171,6 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
                     bosituasjon,
                 ),
             ),
-            behandlingsinformasjon = uavklart.behandlingsinformasjon,
             vilkårsvurderinger = uavklart.vilkårsvurderinger.leggTil(
                 tilstrekkeligDokumentert(),
             ),
@@ -231,7 +230,6 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
                     bosituasjon,
                 ),
             ),
-            behandlingsinformasjon = uavklart.behandlingsinformasjon,
             vilkårsvurderinger = uavklart.vilkårsvurderinger.leggTil(
                 tilstrekkeligDokumentert(),
             ),
@@ -317,7 +315,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon.UgyldigTilstand(
                 fra = Søknadsbehandling.TilAttestering.Avslag.UtenBeregning::class,
                 til = Søknadsbehandling.Vilkårsvurdert::class,
-            )
+            ),
         ).left()
     }
 
@@ -348,7 +346,6 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
                     bosituasjon,
                 ),
             ),
-            behandlingsinformasjon = uavklart.behandlingsinformasjon,
             vilkårsvurderinger = uavklart.vilkårsvurderinger.leggTil(tilstrekkeligDokumentert()),
         )
 

@@ -15,6 +15,8 @@ import no.nav.su.se.bakover.web.routes.vilkår.fastopphold.FastOppholdINorgeVilk
 import no.nav.su.se.bakover.web.routes.vilkår.fastopphold.toJson
 import no.nav.su.se.bakover.web.routes.vilkår.flyktning.FlyktningVilkårJson
 import no.nav.su.se.bakover.web.routes.vilkår.flyktning.toJson
+import no.nav.su.se.bakover.web.routes.vilkår.institusjonsopphold.InstitusjonsoppholdJson
+import no.nav.su.se.bakover.web.routes.vilkår.institusjonsopphold.InstitusjonsoppholdJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.vilkår.lovligopphold.LovligOppholdVilkårJson
 import no.nav.su.se.bakover.web.routes.vilkår.lovligopphold.LovligOppholdVilkårJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.vilkår.opplysningsplikt.OpplysningspliktVilkårJson
@@ -34,6 +36,7 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
     val flyktning: FlyktningVilkårJson?,
     val fastOpphold: FastOppholdINorgeVilkårJson?,
     val personligOppmøte: PersonligOppmøteVilkårJson?,
+    val institusjonsopphold: InstitusjonsoppholdJson?,
 ) {
     companion object {
         fun create(
@@ -66,6 +69,7 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
                 ),
                 fastOpphold = vilkårsvurderinger.fastOppholdVilkår().toJson(),
                 personligOppmøte = vilkårsvurderinger.personligOppmøteVilkår().toJson(),
+                institusjonsopphold = vilkårsvurderinger.institusjonsopphold.toJson(),
             )
         }
     }

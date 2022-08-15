@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.domain.behandling.avslag
 
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 
 internal class AvslagsgrunnTest {
     @Test
@@ -15,13 +14,6 @@ internal class AvslagsgrunnTest {
         Avslagsgrunn.OPPHOLDSTILLATELSE.tilOpphørsgrunn() shouldBe Opphørsgrunn.OPPHOLDSTILLATELSE
         Avslagsgrunn.FLYKTNING.tilOpphørsgrunn() shouldBe Opphørsgrunn.FLYKTNING
         Avslagsgrunn.BOR_OG_OPPHOLDER_SEG_I_NORGE.tilOpphørsgrunn() shouldBe Opphørsgrunn.BOR_OG_OPPHOLDER_SEG_I_NORGE
-
-        listOf(
-            Avslagsgrunn.INNLAGT_PÅ_INSTITUSJON,
-        ).forEach {
-            assertThrows<NotImplementedError> {
-                it.tilOpphørsgrunn()
-            }
-        }
+        Avslagsgrunn.INNLAGT_PÅ_INSTITUSJON.tilOpphørsgrunn() shouldBe Opphørsgrunn.INNLAGT_PÅ_INSTITUSJON
     }
 }

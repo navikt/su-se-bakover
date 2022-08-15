@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.regulering.Regulering
@@ -84,7 +83,6 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
     regulerFraOgMed: LocalDate,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
-    behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre = vilkårsvurderingerSøknadsbehandlingInnvilget(
         stønadsperiode.periode,
@@ -95,7 +93,6 @@ fun innvilgetSøknadsbehandlingMedÅpenRegulering(
     val sakOgVedtak = vedtakSøknadsbehandlingIverksattInnvilget(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
-        behandlingsinformasjon = behandlingsinformasjon,
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
         clock = clock,

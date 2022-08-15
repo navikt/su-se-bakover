@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.web.routes
 
-import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Forbidden
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
@@ -116,7 +115,7 @@ internal object Feilresponser {
         "vurderingene_må_ha_samme_resultat",
     )
 
-    val heleBehandlingsperiodeMåHaVurderinger = HttpStatusCode.BadRequest.errorJson(
+    val heleBehandlingsperiodenMåHaVurderinger = BadRequest.errorJson(
         "Hele behandlingsperioden må ha vurderinger",
         "hele_behandlingsperioden_må_ha_vurderinger",
     )

@@ -28,7 +28,7 @@ internal fun KunneIkkeLeggeTilPersonligOppmøteVilkår.tilResultat(): Resultat {
         is KunneIkkeLeggeTilPersonligOppmøteVilkår.Revurdering -> {
             when (val feil = this.feil) {
                 Revurdering.KunneIkkeLeggeTilPersonligOppmøteVilkår.HeleBehandlingsperiodenErIkkeVurdert -> {
-                    Feilresponser.heleBehandlingsperiodeMåHaVurderinger
+                    Feilresponser.heleBehandlingsperiodenMåHaVurderinger
                 }
                 is Revurdering.KunneIkkeLeggeTilPersonligOppmøteVilkår.UgyldigTilstand -> {
                     Feilresponser.ugyldigTilstand(feil.fra, feil.til)

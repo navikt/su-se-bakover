@@ -5,15 +5,12 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.minAndMaxOf
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.FastOppholdINorgeGrunnlag.Companion.equals
-import no.nav.su.se.bakover.domain.grunnlag.InstitusjonsoppholdGrunnlag.Companion.equals
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFastOppholdINorge.Companion.equals
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFlyktning.Companion.equals
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeInstitusjonsopphold.Companion.equals
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
-import java.time.Clock
 
 sealed class Vilkårsvurderinger {
     abstract val vilkår: Set<Vilkår>
@@ -24,6 +21,8 @@ sealed class Vilkårsvurderinger {
     abstract val opplysningsplikt: OpplysningspliktVilkår
     abstract val fastOpphold: FastOppholdINorgeVilkår
     abstract val personligOppmøte: PersonligOppmøteVilkår
+    abstract val institusjonsopphold: InstitusjonsoppholdVilkår
+
     val erVurdert: Boolean by lazy { vilkår.none { it.vurdering is Vurdering.Uavklart } }
 
     protected fun kastHvisPerioderErUlike() {
@@ -177,16 +176,11 @@ sealed class Vilkårsvurderinger {
         abstract override val formue: FormueVilkår
         abstract override val lovligOpphold: LovligOppholdVilkår
         abstract override val fastOpphold: FastOppholdINorgeVilkår
-        abstract val institusjonsopphold: InstitusjonsoppholdVilkår
+        abstract override val institusjonsopphold: InstitusjonsoppholdVilkår
         abstract override val utenlandsopphold: UtenlandsoppholdVilkår
         abstract override val opplysningsplikt: OpplysningspliktVilkår
 
         abstract override fun leggTil(vilkår: Vilkår): Søknadsbehandling
-        abstract fun oppdater(
-            stønadsperiode: Stønadsperiode,
-            behandlingsinformasjon: Behandlingsinformasjon,
-            clock: Clock,
-        ): Søknadsbehandling
 
         abstract fun oppdaterStønadsperiode(
             stønadsperiode: Stønadsperiode,
@@ -248,10 +242,8 @@ sealed class Vilkårsvurderinger {
                     is PersonligOppmøteVilkår -> copy(personligOppmøte = vilkår)
                     is UføreVilkår -> copy(uføre = vilkår)
                     is OpplysningspliktVilkår -> copy(opplysningsplikt = vilkår)
-                    is FamiliegjenforeningVilkår -> throw IllegalArgumentException("Kan ikke legge til FamiliegjenforeningVilkår for vilkårsvurdering uføre")
-                    is PensjonsVilkår -> {
-                        throw IllegalArgumentException("Kan ikke legge til ${vilkår::class} for ${this::class}")
-                    }
+                    is FamiliegjenforeningVilkår -> throw IllegalArgumentException("Kan ikke legge til FamiliegjenforeningVilkår for vilkårsvurdering uføre (kun støttet for alder)")
+                    is PensjonsVilkår -> throw IllegalArgumentException("Kan ikke legge til Pensjonsvilkår for vilkårvurdering uføre (kun støttet for alder)")
                 }
             }
 
@@ -265,6 +257,7 @@ sealed class Vilkårsvurderinger {
                     flyktning = flyktning,
                     fastOpphold = fastOpphold,
                     personligOppmøte = personligOppmøte,
+                    institusjonsopphold = institusjonsopphold,
                 )
             }
 
@@ -282,33 +275,6 @@ sealed class Vilkårsvurderinger {
              */
             override fun equals(other: Any?): Boolean {
                 return other is Uføre && erLik(other)
-            }
-
-            /**
-             *  Bro mellom [Behandlingsinformasjon] og [Vilkårsvurderinger]. Mapper over tilgjengelig data til et format
-             *  som vilkårsvurderingene forstår. På denne måten kan [Vilkårsvurderinger] eie konseptet vurdering av vilkår
-             *  og ikke [Behandlingsinformasjon]. For vilkår/grunnlag som fullt og helt er konvertert til aktuell modell,
-             *  trengs det ingen mapping, da disse kommer inn fra andre steder enn [Behandlingsinformasjon] og vil være
-             *  tilgjengelig på korrekt format.
-             */
-            override fun oppdater(
-                stønadsperiode: Stønadsperiode,
-                behandlingsinformasjon: Behandlingsinformasjon,
-                clock: Clock,
-            ): Uføre {
-                return behandlingsinformasjon.vilkår.mapNotNull {
-                    when (it) {
-                        is Behandlingsinformasjon.Institusjonsopphold -> {
-                            it.tilVilkår(stønadsperiode, clock)
-                        }
-                        null -> {
-                            null // elementer kan være null før de er vurdert
-                        }
-                        else -> {
-                            throw IllegalArgumentException("Ukjent type: ${it::class} for mapping mellom ${Behandlingsinformasjon::class} og ${Vilkårsvurderinger::class}")
-                        }
-                    }
-                }.fold(this) { acc, vilkår -> acc.leggTil(vilkår) }
             }
 
             // TODO("flere_satser det gir egentlig ikke mening at vi oppdaterer flere verdier på denne måten, bør sees på/vurderes fjernet")
@@ -386,41 +352,17 @@ sealed class Vilkårsvurderinger {
             override fun leggTil(vilkår: Vilkår): Alder {
                 return when (vilkår) {
                     is FastOppholdINorgeVilkår -> copy(fastOpphold = vilkår)
-                    is FlyktningVilkår -> {
-                        throw IllegalArgumentException("Kan ikke legge til flyktningvilkår for vilkårsvurdering alder")
-                    }
                     is FormueVilkår -> copy(formue = vilkår)
                     is InstitusjonsoppholdVilkår -> copy(institusjonsopphold = vilkår)
                     is LovligOppholdVilkår -> copy(lovligOpphold = vilkår)
                     is OpplysningspliktVilkår -> copy(opplysningsplikt = vilkår)
                     is PersonligOppmøteVilkår -> copy(personligOppmøte = vilkår)
                     is UtenlandsoppholdVilkår -> copy(utenlandsopphold = vilkår)
-                    is UføreVilkår -> {
-                        throw IllegalArgumentException("Kan ikke legge til uførevilkår for vilkårsvurdering alder")
-                    }
                     is FamiliegjenforeningVilkår -> copy(familiegjenforening = vilkår)
                     is PensjonsVilkår -> copy(pensjon = vilkår)
+                    is FlyktningVilkår -> throw IllegalArgumentException("Kan ikke legge til flyktningvilkår for vilkårsvurdering alder (støttes kun av ufør flyktning)")
+                    is UføreVilkår -> throw IllegalArgumentException("Kan ikke legge til uførevilkår for vilkårsvurdering alder (støttes kun av ufør flyktning)")
                 }
-            }
-
-            override fun oppdater(
-                stønadsperiode: Stønadsperiode,
-                behandlingsinformasjon: Behandlingsinformasjon,
-                clock: Clock,
-            ): Alder {
-                return behandlingsinformasjon.vilkår.mapNotNull {
-                    when (it) {
-                        is Behandlingsinformasjon.Institusjonsopphold -> {
-                            it.tilVilkår(stønadsperiode, clock)
-                        }
-                        null -> {
-                            null // elementer kan være null før de er vurdert
-                        }
-                        else -> {
-                            throw IllegalArgumentException("Ukjent type: ${it::class} for mapping mellom ${Behandlingsinformasjon::class} og ${Vilkårsvurderinger::class}")
-                        }
-                    }
-                }.fold(this) { acc, vilkår -> acc.leggTil(vilkår) }
             }
 
             override fun oppdaterStønadsperiode(
@@ -481,6 +423,7 @@ sealed class Vilkårsvurderinger {
         abstract override val utenlandsopphold: UtenlandsoppholdVilkår
         abstract override val opplysningsplikt: OpplysningspliktVilkår
         abstract override val fastOpphold: FastOppholdINorgeVilkår
+        abstract override val institusjonsopphold: InstitusjonsoppholdVilkår
 
         abstract override fun leggTil(vilkår: Vilkår): Revurdering
 
@@ -493,6 +436,7 @@ sealed class Vilkårsvurderinger {
             val flyktning: FlyktningVilkår,
             override val fastOpphold: FastOppholdINorgeVilkår,
             override val personligOppmøte: PersonligOppmøteVilkår,
+            override val institusjonsopphold: InstitusjonsoppholdVilkår,
         ) : Revurdering() {
 
             override val vilkår: Set<Vilkår> = setOf(
@@ -504,6 +448,7 @@ sealed class Vilkårsvurderinger {
                 flyktning,
                 fastOpphold,
                 personligOppmøte,
+                institusjonsopphold,
             )
 
             init {
@@ -520,15 +465,9 @@ sealed class Vilkårsvurderinger {
                     is FlyktningVilkår -> copy(flyktning = vilkår)
                     is PersonligOppmøteVilkår -> copy(personligOppmøte = vilkår)
                     is FastOppholdINorgeVilkår -> copy(fastOpphold = vilkår)
-                    is InstitusjonsoppholdVilkår,
-                    -> {
-                        throw IllegalArgumentException("Ukjent vilkår for revurdering av uføre: ${vilkår::class}")
-                    }
-                    is FamiliegjenforeningVilkår,
-                    is PensjonsVilkår,
-                    -> {
-                        throw IllegalArgumentException("Kan ikke legge til ${vilkår::class} for ${this::class}")
-                    }
+                    is InstitusjonsoppholdVilkår -> copy(institusjonsopphold = vilkår)
+                    is FamiliegjenforeningVilkår -> throw IllegalArgumentException("Kan ikke legge til FamiliegjenforeningVilkår for vilkårsvurdering uføre (kun støttet for alder)")
+                    is PensjonsVilkår -> throw IllegalArgumentException("Kan ikke legge til Pensjonsvilkår for vilkårvurdering uføre (kun støttet for alder)")
                 }
             }
 
@@ -543,7 +482,7 @@ sealed class Vilkårsvurderinger {
                     utenlandsopphold = utenlandsopphold,
                     opplysningsplikt = opplysningsplikt,
                     lovligOpphold = lovligOpphold,
-                    institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
+                    institusjonsopphold = institusjonsopphold,
                     personligOppmøte = personligOppmøte,
                     flyktning = flyktning,
                     fastOpphold = fastOpphold,
@@ -572,6 +511,7 @@ sealed class Vilkårsvurderinger {
                     flyktning = flyktning.lagTidslinje(periode),
                     fastOpphold = fastOpphold.lagTidslinje(periode),
                     personligOppmøte = personligOppmøte.lagTidslinje(periode),
+                    institusjonsopphold = institusjonsopphold.lagTidslinje(periode),
                 )
             }
 
@@ -587,6 +527,7 @@ sealed class Vilkårsvurderinger {
                 flyktning = flyktning.oppdaterStønadsperiode(stønadsperiode),
                 fastOpphold = fastOpphold.oppdaterStønadsperiode(stønadsperiode),
                 personligOppmøte = personligOppmøte.oppdaterStønadsperiode(stønadsperiode),
+                institusjonsopphold = institusjonsopphold.lagTidslinje(stønadsperiode.periode),
             )
 
             companion object {
@@ -596,6 +537,7 @@ sealed class Vilkårsvurderinger {
                     formue = FormueVilkår.IkkeVurdert,
                     utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
                     opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
+                    institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
                     flyktning = FlyktningVilkår.IkkeVurdert,
                     fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
                     personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
@@ -608,6 +550,7 @@ sealed class Vilkårsvurderinger {
             override val formue: FormueVilkår = FormueVilkår.IkkeVurdert,
             override val utenlandsopphold: UtenlandsoppholdVilkår = UtenlandsoppholdVilkår.IkkeVurdert,
             override val opplysningsplikt: OpplysningspliktVilkår = OpplysningspliktVilkår.IkkeVurdert,
+            override val institusjonsopphold: InstitusjonsoppholdVilkår = InstitusjonsoppholdVilkår.IkkeVurdert,
             val pensjon: PensjonsVilkår,
             val familiegjenforening: FamiliegjenforeningVilkår,
             override val fastOpphold: FastOppholdINorgeVilkår,
@@ -622,6 +565,7 @@ sealed class Vilkårsvurderinger {
                 lovligOpphold,
                 fastOpphold,
                 personligOppmøte,
+                institusjonsopphold,
             )
 
             init {
@@ -649,16 +593,11 @@ sealed class Vilkårsvurderinger {
                     is LovligOppholdVilkår -> copy(lovligOpphold = vilkår)
                     is PersonligOppmøteVilkår -> copy(personligOppmøte = vilkår)
                     is FastOppholdINorgeVilkår -> copy(fastOpphold = vilkår)
-                    is FlyktningVilkår,
-                    is InstitusjonsoppholdVilkår,
-                    -> {
-                        throw IllegalArgumentException("Ukjent vilkår for revurdering av alder: ${vilkår::class}")
-                    }
-                    is UføreVilkår -> {
-                        throw IllegalArgumentException("Kan ikke legge til ${vilkår::class} for ${this::class}")
-                    }
+                    is InstitusjonsoppholdVilkår -> copy(institusjonsopphold = vilkår)
                     is FamiliegjenforeningVilkår -> copy(familiegjenforening = vilkår)
                     is PensjonsVilkår -> copy(pensjon = vilkår)
+                    is FlyktningVilkår -> throw IllegalArgumentException("Kan ikke legge til flyktningvilkår for vilkårsvurdering alder (støttes kun av ufør flyktning)")
+                    is UføreVilkår -> throw IllegalArgumentException("Kan ikke legge til uførevilkår for vilkårsvurdering alder (støttes kun av ufør flyktning)")
                 }
             }
 
@@ -673,9 +612,9 @@ sealed class Vilkårsvurderinger {
                     opplysningsplikt = opplysningsplikt,
                     pensjon = pensjon,
                     familiegjenforening = familiegjenforening,
+                    institusjonsopphold = institusjonsopphold,
                     lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
                     fastOpphold = fastOpphold,
-                    institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
                     personligOppmøte = personligOppmøte,
                 )
             }

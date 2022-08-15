@@ -67,6 +67,15 @@ sealed class KunneIkkeLeggeTilVilkår {
         object VurderingsperiodeUtenforBehandlingsperiode : KunneIkkeLeggeTilUførevilkår()
     }
 
+    sealed class KunneIkkeLeggeTilInstitusjonsoppholdVilkår : KunneIkkeLeggeTilVilkår() {
+        data class UgyldigTilstand(
+            val fra: KClass<out Søknadsbehandling>,
+            val til: KClass<out Søknadsbehandling.Vilkårsvurdert> = Søknadsbehandling.Vilkårsvurdert::class,
+        ) : KunneIkkeLeggeTilInstitusjonsoppholdVilkår()
+
+        object BehandlingsperiodeOgVurderingsperiodeMåVæreLik : KunneIkkeLeggeTilInstitusjonsoppholdVilkår()
+    }
+
     sealed class KunneIkkeLeggeTilFormuevilkår : KunneIkkeLeggeTilVilkår() {
         data class UgyldigTilstand(
             val fra: KClass<out Søknadsbehandling>,
@@ -78,15 +87,7 @@ sealed class KunneIkkeLeggeTilVilkår {
         data class UgyldigTilstand(
             val fra: KClass<out Søknadsbehandling>,
             val til: KClass<out Søknadsbehandling.Vilkårsvurdert>,
-        ) :
-            KunneIkkeLeggeTilFamiliegjenforeningVilkår()
-    }
-
-    sealed class KunnIkkeLeggeTilVilkårFraBehandlingsinformasjon : KunneIkkeLeggeTilVilkår() {
-        data class UgyldigTilstand(
-            val fra: KClass<out Søknadsbehandling>,
-            val til: KClass<out Søknadsbehandling.Vilkårsvurdert>,
-        ) : KunnIkkeLeggeTilVilkårFraBehandlingsinformasjon()
+        ) : KunneIkkeLeggeTilFamiliegjenforeningVilkår()
     }
 
     sealed class KunneIkkeLeggeTilFlyktningVilkår : KunneIkkeLeggeTilVilkår() {

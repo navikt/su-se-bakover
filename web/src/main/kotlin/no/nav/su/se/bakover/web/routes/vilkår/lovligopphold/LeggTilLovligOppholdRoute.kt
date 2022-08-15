@@ -104,7 +104,7 @@ internal fun KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilLovligOpphold.tilResultat
             this.til,
         )
     }
-    KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilLovligOpphold.HeleBehandlingsperiodenErIkkeVurdert -> Feilresponser.heleBehandlingsperiodeMåHaVurderinger
+    KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilLovligOpphold.HeleBehandlingsperiodenErIkkeVurdert -> Feilresponser.heleBehandlingsperiodenMåHaVurderinger
 }
 
 internal fun KunneIkkeLageLovligOppholdVilkår.tilResultat() = when (this) {

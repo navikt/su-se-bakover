@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.service.revurdering.LeggTilOpplysningspliktRequest
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeFastOppholdINorgeVilkår
 import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeTilFlyktningVilkår
+import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeTilInstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeTilPensjonsVilkår
 import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeTilPersonligOppmøteVilkår
 import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggetilLovligOppholdVilkår
@@ -28,6 +29,7 @@ import no.nav.su.se.bakover.service.vilkår.LeggTilFamiliegjenforeningRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFastOppholdINorgeRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFlyktningVilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilInstitusjonsoppholdVilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilLovligOppholdRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilPensjonsVilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilPersonligOppmøteVilkårRequest
@@ -38,7 +40,6 @@ import kotlin.reflect.KClass
 
 interface SøknadsbehandlingService {
     fun opprett(request: OpprettRequest): Either<KunneIkkeOpprette, Søknadsbehandling.Vilkårsvurdert.Uavklart>
-    fun vilkårsvurder(request: VilkårsvurderRequest): Either<KunneIkkeVilkårsvurdere, Søknadsbehandling.Vilkårsvurdert>
     fun beregn(request: BeregnRequest): Either<KunneIkkeBeregne, Søknadsbehandling.Beregnet>
     fun simuler(request: SimulerRequest): Either<KunneIkkeSimulereBehandling, Søknadsbehandling.Simulert>
     fun sendTilAttestering(request: SendTilAttesteringRequest): Either<KunneIkkeSendeTilAttestering, Søknadsbehandling.TilAttestering>
@@ -64,6 +65,7 @@ interface SøknadsbehandlingService {
     fun leggTilFlyktningVilkår(request: LeggTilFlyktningVilkårRequest): Either<KunneIkkeLeggeTilFlyktningVilkår, Søknadsbehandling.Vilkårsvurdert>
     fun leggTilFastOppholdINorgeVilkår(request: LeggTilFastOppholdINorgeRequest): Either<KunneIkkeLeggeFastOppholdINorgeVilkår, Søknadsbehandling.Vilkårsvurdert>
     fun leggTilPersonligOppmøteVilkår(request: LeggTilPersonligOppmøteVilkårRequest): Either<KunneIkkeLeggeTilPersonligOppmøteVilkår, Søknadsbehandling.Vilkårsvurdert>
+    fun leggTilInstitusjonsoppholdVilkår(request: LeggTilInstitusjonsoppholdVilkårRequest): Either<KunneIkkeLeggeTilInstitusjonsoppholdVilkår, Søknadsbehandling.Vilkårsvurdert>
 
     data class OpprettRequest(
         val søknadId: UUID,

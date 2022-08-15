@@ -34,4 +34,6 @@ internal fun Route.overordnetSøknadsbehandligRoutes(
     fastOppholdVilkårRoutes(søknadsbehandlingService, satsFactory)
 
     personligOppmøteVilkårRoutes(søknadsbehandlingService, satsFactory)
+
+    institusjonsoppholdRoutes(søknadsbehandlingService, satsFactory, clock)
 }

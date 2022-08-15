@@ -8,6 +8,7 @@ import io.ktor.server.application.call
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.patch
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.enumContains
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
@@ -28,7 +29,6 @@ import no.nav.su.se.bakover.web.routes.Feilresponser.kunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.web.routes.Feilresponser.ugyldigBody
 import no.nav.su.se.bakover.web.routes.Feilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.enumContains
 import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withRevurderingId

@@ -27,5 +27,5 @@ inline fun <reified T> requireType(any: Any): T {
 }
 
 inline fun <reified T : Any> Any.shouldBeType(): T {
-    return (this as T).also { this.shouldBeTypeOf<T>() }
+    return this.shouldBeTypeOf()
 }
