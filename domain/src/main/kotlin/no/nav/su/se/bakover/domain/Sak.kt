@@ -124,6 +124,7 @@ data class Sak(
                                 fraOgMed,
                                 tilOgMed,
                             )
+
                             FraOgMedDatoMåVæreFørsteDagIMåneden, TilOgMedDatoMåVæreSisteDagIMåneden,
                             -> KunneIkkeHenteGjeldendeVedtaksdata.UgyldigPeriode(it)
                         }
@@ -163,6 +164,34 @@ data class Sak(
         }
 
         data class UgyldigPeriode(val feil: Periode.UgyldigPeriode) : KunneIkkeHenteGjeldendeVedtaksdata()
+    }
+
+    /**
+     * Lager et snapshot av gjeldende vedtaksdata slik de så ut før vedtaket angitt av [vedtakId] ble
+     * iverksatt. Perioden for dataene begrenses til vedtaksperioden for [vedtakId].
+     */
+    fun hentHistoriskVedtaksdataForVedtaksperiode(
+        vedtakId: UUID,
+        clock: Clock,
+    ): Either<KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes, GjeldendeVedtaksdata> {
+        val vedtak = vedtakListe
+            .filterIsInstance<VedtakSomKanRevurderes>()
+            .find { it.id == vedtakId }
+            ?: throw IllegalArgumentException("Vedtak med id: $vedtakId eksisterer ikke")
+
+        return vedtakListe
+            .filterIsInstance<VedtakSomKanRevurderes>()
+            .filter { it.opprettet < vedtak.opprettet.instant }
+            .ifEmpty {
+                return KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes(vedtak.periode).left()
+            }
+            .let {
+                GjeldendeVedtaksdata(
+                    periode = vedtak.periode,
+                    vedtakListe = NonEmptyList.fromListUnsafe(it),
+                    clock = clock,
+                ).right()
+            }
     }
 
     /**
@@ -331,6 +360,7 @@ data class Sak(
                 is no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata -> {
                     KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it)
                 }
+
                 is no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeOppdatereStønadsperiode.UgyldigTilstand -> {
                     KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it)
                 }

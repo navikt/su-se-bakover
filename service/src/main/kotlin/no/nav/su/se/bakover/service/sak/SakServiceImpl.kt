@@ -60,6 +60,20 @@ internal class SakServiceImpl(
         }
     }
 
+    override fun historiskGrunnlagForVedtaksperiode(
+        sakId: UUID,
+        vedtakId: UUID,
+    ): Either<KunneIkkeHenteGjeldendeVedtaksdata, GjeldendeVedtaksdata> {
+        return sakRepo.hentSak(sakId)
+            ?.hentHistoriskVedtaksdataForVedtaksperiode(
+                vedtakId = vedtakId,
+                clock = clock,
+            )?.mapLeft {
+                KunneIkkeHenteGjeldendeVedtaksdata.IngenVedtak
+            }
+            ?: KunneIkkeHenteGjeldendeVedtaksdata.FantIkkeSak.left()
+    }
+
     override fun hentSakidOgSaksnummer(fnr: Fnr): Either<FantIkkeSak, SakInfo> {
         return sakRepo.hentSakInfoForIdenter(personidenter = nonEmptyListOf(fnr.toString()))?.right()
             ?: FantIkkeSak.left()

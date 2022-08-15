@@ -23,6 +23,11 @@ interface SakService {
         periode: Periode,
     ): Either<KunneIkkeHenteGjeldendeVedtaksdata, GjeldendeVedtaksdata?>
 
+    fun historiskGrunnlagForVedtaksperiode(
+        sakId: UUID,
+        vedtakId: UUID,
+    ): Either<KunneIkkeHenteGjeldendeVedtaksdata, GjeldendeVedtaksdata>
+
     fun opprettSak(sak: NySak)
     fun hentÅpneBehandlingerForAlleSaker(): List<Behandlingsoversikt>
     fun hentFerdigeBehandlingerForAlleSaker(): List<Behandlingsoversikt>

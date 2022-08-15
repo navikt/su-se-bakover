@@ -164,7 +164,6 @@ import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
-import no.nav.su.se.bakover.service.vedtak.KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeFastOppholdINorgeVilkår
@@ -321,6 +320,17 @@ open class AccessCheckProxy(
                 ): Either<KunneIkkeHenteGjeldendeVedtaksdata, GjeldendeVedtaksdata?> {
                     assertHarTilgangTilSak(sakId)
                     return services.sak.hentGjeldendeVedtaksdata(sakId, periode)
+                }
+
+                override fun historiskGrunnlagForVedtaksperiode(
+                    sakId: UUID,
+                    vedtakId: UUID,
+                ): Either<KunneIkkeHenteGjeldendeVedtaksdata, GjeldendeVedtaksdata> {
+                    assertHarTilgangTilSak(sakId)
+                    return services.sak.historiskGrunnlagForVedtaksperiode(
+                        sakId = sakId,
+                        vedtakId = vedtakId,
+                    )
                 }
 
                 override fun hentSakidOgSaksnummer(fnr: Fnr) = kastKanKunKallesFraAnnenService()
@@ -823,13 +833,6 @@ open class AccessCheckProxy(
                 }
 
                 override fun hentForUtbetaling(utbetalingId: UUID30) = kastKanKunKallesFraAnnenService()
-
-                override fun historiskGrunnlagForVedtaksperiode(
-                    sakId: UUID,
-                    vedtakId: UUID,
-                ): Either<KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak, GjeldendeVedtaksdata> {
-                    return services.vedtakService.historiskGrunnlagForVedtaksperiode(sakId, vedtakId)
-                }
             },
             nøkkeltallService = object : NøkkeltallService {
                 override fun hentNøkkeltall(): Nøkkeltall {
