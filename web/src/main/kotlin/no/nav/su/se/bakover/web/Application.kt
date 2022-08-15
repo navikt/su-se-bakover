@@ -254,7 +254,7 @@ fun Application.susebakover(
                     driftRoutes(accessProtectedServices.søknad)
                     revurderingRoutes(
                         accessProtectedServices.revurdering,
-                        accessProtectedServices.vedtakService,
+                        accessProtectedServices.sak,
                         clock,
                         satsFactoryIDag,
                     )

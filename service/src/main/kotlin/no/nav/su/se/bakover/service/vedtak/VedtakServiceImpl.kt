@@ -1,14 +1,9 @@
 package no.nav.su.se.bakover.service.vedtak
 
-import arrow.core.Either
-import arrow.core.NonEmptyList
-import arrow.core.left
-import arrow.core.right
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.journal.JournalpostId
-import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
@@ -49,26 +44,5 @@ internal class VedtakServiceImpl(
 
     override fun hentForUtbetaling(utbetalingId: UUID30): VedtakSomKanRevurderes? {
         return vedtakRepo.hentForUtbetaling(utbetalingId)
-    }
-
-    /*
-    * Hensikten er å vise et "snapshot" av grunnlagsdata ved tidspunktet for et tidligere vedtak.
-    * */
-    override fun historiskGrunnlagForVedtaksperiode(
-        sakId: UUID,
-        vedtakId: UUID,
-    ): Either<KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak, GjeldendeVedtaksdata> {
-        val alleVedtak = vedtakRepo.hentForSakId(sakId)
-            .filterIsInstance<VedtakSomKanRevurderes>()
-
-        val vedtak = alleVedtak.find { it.id == vedtakId }
-            ?: return KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak.FantIkkeVedtak.left()
-
-        val gjeldendeVedtak = alleVedtak
-            .filter { it.opprettet.instant < vedtak.opprettet.instant }
-            .ifEmpty { return KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak.IngenTidligereVedtak.left() }
-            .let { NonEmptyList.fromListUnsafe(it) }
-
-        return GjeldendeVedtaksdata(vedtak.periode, gjeldendeVedtak, clock).right()
     }
 }

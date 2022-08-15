@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.domain
 
 import arrow.core.left
+import arrow.core.nonEmptyListOf
+import arrow.core.right
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -26,6 +28,7 @@ import no.nav.su.se.bakover.common.periode.november
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
+import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
@@ -71,7 +74,6 @@ internal class SakTest {
 
     @Nested
     inner class HentPerioderMedLøpendeYtelse {
-
         @Test
         fun `henter tom liste dersom ingen eksisterer`() {
             Sak(
@@ -664,6 +666,53 @@ internal class SakTest {
                     }
                 }
             }
+        }
+    }
+
+    @Nested
+    inner class HistoriskVedtaksdataForVedtaksperiode {
+        @Test
+        fun `henter tidligere informasjon for overlappende vedtak`() {
+            val clock = TikkendeKlokke(fixedClock)
+
+            val sakOgVedtak1 = vedtakSøknadsbehandlingIverksattInnvilget(
+                stønadsperiode = Stønadsperiode.create(år(2021)),
+                clock = clock,
+            )
+            val sakOgVedtak2 = vedtakRevurderingIverksattInnvilget(
+                stønadsperiode = Stønadsperiode.create(år(2021)),
+                sakOgVedtakSomKanRevurderes = sakOgVedtak1,
+                clock = clock,
+            )
+            val (sak, _) = vedtakRevurderingIverksattInnvilget(
+                stønadsperiode = Stønadsperiode.create(år(2021)),
+                sakOgVedtakSomKanRevurderes = sakOgVedtak2,
+                clock = clock,
+            )
+
+            sak.hentHistoriskVedtaksdataForVedtaksperiode(
+                vedtakId = sakOgVedtak2.second.id,
+                clock = clock,
+            ) shouldBe GjeldendeVedtaksdata(
+                periode = år(2021),
+                vedtakListe = nonEmptyListOf(sakOgVedtak1.second),
+                clock = clock,
+            ).right()
+        }
+
+        @Test
+        fun `henter tidligere informasjon for vedtak - ingen tidligere vedtak for periode`() {
+            val clock = TikkendeKlokke(fixedClock)
+
+            val (sak1, _, vedtak1) = iverksattSøknadsbehandlingUføre(
+                stønadsperiode = Stønadsperiode.create(år(2021)),
+                clock = clock,
+            )
+
+            sak1.hentHistoriskVedtaksdataForVedtaksperiode(
+                vedtakId = vedtak1.id,
+                clock = fixedClock,
+            ) shouldBe Sak.KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes(vedtak1.periode).left()
         }
     }
 }
