@@ -101,7 +101,6 @@ object ServiceBuilder {
 
         val vedtakService = VedtakServiceImpl(
             vedtakRepo = databaseRepos.vedtakRepo,
-            sakService = sakService,
             clock = clock,
         )
 
