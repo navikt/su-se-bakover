@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.database.grunnlag.FormueVilkårsvurderingPostgresRep
 import no.nav.su.se.bakover.database.grunnlag.FormuegrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagsdataOgVilkårsvurderingerPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.InstitusjonsoppholdVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.LovligOppholdVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.LovligOppholdgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.OpplysningspliktGrunnlagPostgresRepo
@@ -152,17 +153,18 @@ object DatabaseBuilder {
                 lovligOppholdGrunnlagPostgresRepo = LovligOppholdgrunnlagPostgresRepo(dbMetrics),
             ),
             flyktningVilkårsvurderingPostgresRepo = FlyktningVilkårsvurderingPostgresRepo(
-                dbMetrics = dbMetrics
+                dbMetrics = dbMetrics,
             ),
             fastOppholdINorgeVilkårsvurderingPostgresRepo = FastOppholdINorgeVilkårsvurderingPostgresRepo(
-                dbMetrics = dbMetrics
+                dbMetrics = dbMetrics,
             ),
             personligOppmøteVilkårsvurderingPostgresRepo = PersonligOppmøteVilkårsvurderingPostgresRepo(
                 personligOppmøteGrunnlagPostgresRepo = PersonligOppmøteGrunnlagPostgresRepo(
-                    dbMetrics = dbMetrics
+                    dbMetrics = dbMetrics,
                 ),
-                dbMetrics = dbMetrics
-            )
+                dbMetrics = dbMetrics,
+            ),
+            institusjonsoppholdVilkårsvurderingPostgresRepo = InstitusjonsoppholdVilkårsvurderingPostgresRepo(dbMetrics),
         )
 
         val søknadsbehandlingRepo = SøknadsbehandlingPostgresRepo(
@@ -170,7 +172,6 @@ object DatabaseBuilder {
             grunnlagsdataOgVilkårsvurderingerPostgresRepo = grunnlagsdataOgVilkårsvurderingerPostgresRepo,
             dbMetrics = dbMetrics,
             avkortingsvarselRepo = avkortingsvarselRepo,
-            clock = clock,
             satsFactory = satsFactory,
         )
 

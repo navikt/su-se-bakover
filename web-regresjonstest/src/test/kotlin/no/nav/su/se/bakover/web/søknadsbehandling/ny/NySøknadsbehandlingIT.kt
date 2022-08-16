@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.web.SharedRegressionTestData.withTestApplicationAndE
 import no.nav.su.se.bakover.web.søknad.ny.NySøknadJson
 import no.nav.su.se.bakover.web.søknad.ny.nyDigitalSøknadOgVerifiser
 import no.nav.su.se.bakover.web.søknadsbehandling.assertSøknadsbehandlingJson
-import no.nav.su.se.bakover.web.søknadsbehandling.behandlingsinformasjon.tomBehandlingsinformasjonResponse
 import no.nav.su.se.bakover.web.søknadsbehandling.grunnlagsdataOgVilkårsvurderinger.tomGrunnlagsdataOgVilkårsvurderingerResponse
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
@@ -30,7 +29,6 @@ internal class NySøknadsbehandlingIT {
             ).also { actual ->
                 assertSøknadsbehandlingJson(
                     actualSøknadsbehandlingJson = actual,
-                    expectedBehandlingsinformasjon = tomBehandlingsinformasjonResponse(),
                     expectedSøknad = JSONObject(nySøknadsrespons).getJSONObject("søknad").toString(),
                     expectedSakId = sakId,
                     expectedGrunnlagsdataOgVilkårsvurderinger = tomGrunnlagsdataOgVilkårsvurderingerResponse(),

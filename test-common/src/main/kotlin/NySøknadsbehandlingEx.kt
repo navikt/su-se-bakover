@@ -15,7 +15,6 @@ fun NySøknadsbehandling.toSøknadsbehandling(saksnummer: Saksnummer): Søknadsb
         saksnummer = saksnummer,
         søknad = this.søknad,
         oppgaveId = this.søknad.oppgaveId,
-        behandlingsinformasjon = this.behandlingsinformasjon,
         fnr = this.fnr,
         fritekstTilBrev = "",
         stønadsperiode = null,

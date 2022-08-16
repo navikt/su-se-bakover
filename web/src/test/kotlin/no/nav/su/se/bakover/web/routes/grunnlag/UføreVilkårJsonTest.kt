@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
+import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
@@ -78,6 +79,7 @@ class UføreVilkårJsonTest {
             flyktning = FlyktningVilkår.IkkeVurdert,
             fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
             personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
+            institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
         )
     }
 }

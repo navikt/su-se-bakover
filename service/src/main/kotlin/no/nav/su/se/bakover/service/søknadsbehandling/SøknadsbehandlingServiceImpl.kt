@@ -75,7 +75,6 @@ import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeSendeTilAttestering
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeSimulereBehandling
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeUnderkjenne
-import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeVilkårsvurdere
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.OppdaterStønadsperiodeRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.OpprettRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.SendTilAttesteringRequest
@@ -87,6 +86,7 @@ import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeFastOppholdINorgeVilkår
 import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeTilFlyktningVilkår
+import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeTilInstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeTilPensjonsVilkår
 import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeTilPersonligOppmøteVilkår
 import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggetilLovligOppholdVilkår
@@ -95,6 +95,7 @@ import no.nav.su.se.bakover.service.vilkår.LeggTilFamiliegjenforeningRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFastOppholdINorgeRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFlyktningVilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilInstitusjonsoppholdVilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilLovligOppholdRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilPensjonsVilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilPersonligOppmøteVilkårRequest
@@ -205,25 +206,6 @@ internal class SøknadsbehandlingServiceImpl(
             is Avkortingsvarsel.Utenlandsopphold.SkalAvkortes -> {
                 AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(utestående)
             }
-        }
-    }
-
-    /**
-     * Vilkårsvurderer behandlingsinformasjon og tilhørende vilkår på søknadsbehandling.
-     * Behandlingsinformasjon brukes fremdeles i route/database-lagene, men er tenkt migrert/sanert helt til Vilkårsvurderinger.
-     */
-    override fun vilkårsvurder(request: VilkårsvurderRequest): Either<KunneIkkeVilkårsvurdere, Søknadsbehandling.Vilkårsvurdert> {
-        val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
-            ?: return KunneIkkeVilkårsvurdere.FantIkkeBehandling.left()
-
-        return søknadsbehandling.leggTilVilkårFraBehandlingsinformasjon(
-            behandlingsinformasjon = request.behandlingsinformasjon,
-            clock = clock,
-        ).mapLeft {
-            throw IllegalStateException(it.toString())
-        }.map {
-            søknadsbehandlingRepo.lagre(it)
-            it
         }
     }
 
@@ -595,7 +577,7 @@ internal class SøknadsbehandlingServiceImpl(
             return KunneIkkeLeggeTilUføreVilkår.UgyldigInput(it).left()
         }
 
-        val vilkårsvurdert = søknadsbehandling.leggTilUførevilkår(vilkår, clock)
+        val vilkårsvurdert = søknadsbehandling.leggTilUførevilkår(vilkår)
             .getOrHandle {
                 return when (it) {
                     is KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår.UgyldigTilstand -> {
@@ -621,7 +603,6 @@ internal class SøknadsbehandlingServiceImpl(
 
         return søknadsbehandling.leggTilLovligOpphold(
             lovligOppholdVilkår = vilkår,
-            clock = clock,
         ).mapLeft {
             KunneIkkeLeggetilLovligOppholdVilkår.FeilVedSøknadsbehandling(it)
         }.tap {
@@ -644,7 +625,6 @@ internal class SøknadsbehandlingServiceImpl(
 
         return søknadsbehandling.leggTilFamiliegjenforeningvilkår(
             familiegjenforening = familiegjenforeningVilkår,
-            clock = clock,
         ).mapLeft {
             it.tilKunneIkkeLeggeTilFamiliegjenforeningVilkårService()
         }.tap {
@@ -673,7 +653,7 @@ internal class SøknadsbehandlingServiceImpl(
             return it.left()
         }
 
-        return søknadsbehandling.oppdaterBosituasjon(bosituasjon, clock).mapLeft {
+        return søknadsbehandling.oppdaterBosituasjon(bosituasjon).mapLeft {
             KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeOppdatereBosituasjon(it)
         }.map {
             søknadsbehandlingRepo.lagre(it)
@@ -690,7 +670,7 @@ internal class SøknadsbehandlingServiceImpl(
                 return KunneIkkeFullføreBosituasjonGrunnlag.KlarteIkkeLagreBosituasjon.left()
             }
 
-        return søknadsbehandling.oppdaterBosituasjon(bosituasjon, clock).mapLeft {
+        return søknadsbehandling.oppdaterBosituasjon(bosituasjon).mapLeft {
             KunneIkkeFullføreBosituasjonGrunnlag.KunneIkkeEndreBosituasjongrunnlag(it)
         }.tap {
             søknadsbehandlingRepo.lagre(it)
@@ -706,7 +686,7 @@ internal class SøknadsbehandlingServiceImpl(
          * Vi ønsker gradvis å gå over til sistenevnte måte å gjøre det på.
          */
         val oppdatertBehandling =
-            behandling.leggTilFradragsgrunnlag(request.fradragsgrunnlag, clock).getOrHandle {
+            behandling.leggTilFradragsgrunnlag(request.fradragsgrunnlag).getOrHandle {
                 return it.toService().left()
             }
 
@@ -762,7 +742,7 @@ internal class SøknadsbehandlingServiceImpl(
             }
         }
 
-        val vilkårsvurdert = søknadsbehandling.leggTilUtenlandsopphold(vilkår, clock)
+        val vilkårsvurdert = søknadsbehandling.leggTilUtenlandsopphold(vilkår)
             .getOrHandle {
                 return it.tilService().left()
             }
@@ -775,7 +755,7 @@ internal class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilOpplysningsplikt.FantIkkeBehandling.left()
 
-        return søknadsbehandling.leggTilOpplysningspliktVilkår(request.vilkår, clock)
+        return søknadsbehandling.leggTilOpplysningspliktVilkår(request.vilkår)
             .mapLeft {
                 KunneIkkeLeggeTilOpplysningsplikt.Søknadsbehandling(it)
             }.map {
@@ -788,7 +768,7 @@ internal class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilPensjonsVilkår.FantIkkeBehandling.left()
 
-        return søknadsbehandling.leggTilPensjonsVilkår(request.vilkår, clock)
+        return søknadsbehandling.leggTilPensjonsVilkår(request.vilkår)
             .mapLeft {
                 KunneIkkeLeggeTilPensjonsVilkår.Søknadsbehandling(it)
             }.map {
@@ -801,7 +781,7 @@ internal class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilFlyktningVilkår.FantIkkeBehandling.left()
 
-        return søknadsbehandling.leggTilFlyktningVilkår(request.vilkår, clock)
+        return søknadsbehandling.leggTilFlyktningVilkår(request.vilkår)
             .mapLeft {
                 KunneIkkeLeggeTilFlyktningVilkår.Søknadsbehandling(it)
             }.map {
@@ -814,7 +794,7 @@ internal class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeFastOppholdINorgeVilkår.FantIkkeBehandling.left()
 
-        return søknadsbehandling.leggTilFastOppholdINorgeVilkår(request.vilkår, clock)
+        return søknadsbehandling.leggTilFastOppholdINorgeVilkår(request.vilkår)
             .mapLeft {
                 KunneIkkeLeggeFastOppholdINorgeVilkår.Søknadsbehandling(it)
             }.map {
@@ -827,7 +807,7 @@ internal class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilPersonligOppmøteVilkår.FantIkkeBehandling.left()
 
-        return søknadsbehandling.leggTilPersonligOppmøteVilkår(request.vilkår, clock)
+        return søknadsbehandling.leggTilPersonligOppmøteVilkår(request.vilkår)
             .mapLeft {
                 KunneIkkeLeggeTilPersonligOppmøteVilkår.Søknadsbehandling(it)
             }.map {
@@ -851,7 +831,6 @@ internal class SøknadsbehandlingServiceImpl(
             ).getOrHandle {
                 return KunneIkkeLeggeTilFormuegrunnlag.KunneIkkeMappeTilDomenet(it).left()
             },
-            clock = clock,
         ).tap {
             søknadsbehandlingRepo.lagre(it)
         }.mapLeft {
@@ -859,7 +838,22 @@ internal class SøknadsbehandlingServiceImpl(
         }
     }
 
-    private fun KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold.tilService(): SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold {
+    override fun leggTilInstitusjonsoppholdVilkår(
+        request: LeggTilInstitusjonsoppholdVilkårRequest
+    ): Either<KunneIkkeLeggeTilInstitusjonsoppholdVilkår, Søknadsbehandling.Vilkårsvurdert> {
+        val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
+            ?: return KunneIkkeLeggeTilInstitusjonsoppholdVilkår.FantIkkeBehandling.left()
+
+        return søknadsbehandling.leggTilInstitusjonsoppholdVilkår(request.vilkår)
+            .mapLeft {
+                KunneIkkeLeggeTilInstitusjonsoppholdVilkår.Søknadsbehandling(it)
+            }.map {
+                søknadsbehandlingRepo.lagre(it)
+                it
+            }
+    }
+
+    private fun KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold.tilService(): KunneIkkeLeggeTilUtenlandsopphold {
         return when (this) {
             is KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold.IkkeLovÅLeggeTilUtenlandsoppholdIDenneStatusen -> {
                 KunneIkkeLeggeTilUtenlandsopphold.UgyldigTilstand(

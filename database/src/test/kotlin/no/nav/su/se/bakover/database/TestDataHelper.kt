@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.database.grunnlag.FormueVilkårsvurderingPostgresRep
 import no.nav.su.se.bakover.database.grunnlag.FormuegrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagsdataOgVilkårsvurderingerPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.InstitusjonsoppholdVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.LovligOppholdVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.LovligOppholdgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.OpplysningspliktGrunnlagPostgresRepo
@@ -61,8 +62,6 @@ import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.behandling.withAvslåttInstitusjonsopphold
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -114,14 +113,12 @@ import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
-import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.attestant
-import no.nav.su.se.bakover.test.behandlingsinformasjonAlleVilkårInnvilget
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.enUkeEtterFixedTidspunkt
 import no.nav.su.se.bakover.test.epsFnr
@@ -142,6 +139,7 @@ import no.nav.su.se.bakover.test.simulertUtbetaling
 import no.nav.su.se.bakover.test.simulertUtbetalingOpphør
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.vilkår.formuevilkårIkkeVurdert
+import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårAvslag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkår
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt0
 import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttUføreOgAndreInnvilget
@@ -151,9 +149,6 @@ import java.time.LocalDate
 import java.util.LinkedList
 import java.util.UUID
 import javax.sql.DataSource
-
-internal val behandlingsinformasjonMedAvslag =
-    Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttInstitusjonsopphold()
 
 internal val oppgaveId = OppgaveId("oppgaveId")
 internal val journalpostId = JournalpostId("journalpostId")
@@ -322,6 +317,9 @@ internal class TestDataHelper(
         dbMetrics = dbMetrics,
         lovligOppholdGrunnlagPostgresRepo = lovligOppholdGrunnlagPostgresRepo,
     )
+    internal val institusjonsoppholdVilkårsvurderingPostgresRepo = InstitusjonsoppholdVilkårsvurderingPostgresRepo(
+        dbMetrics = dbMetrics,
+    )
     internal val familiegjenforeningVilkårsvurderingPostgresRepo =
         FamiliegjenforeningVilkårsvurderingPostgresRepo(dbMetrics)
     internal val flyktningVilkårsvurderingPostgresRepo = FlyktningVilkårsvurderingPostgresRepo(
@@ -350,13 +348,13 @@ internal class TestDataHelper(
         flyktningVilkårsvurderingPostgresRepo = flyktningVilkårsvurderingPostgresRepo,
         fastOppholdINorgeVilkårsvurderingPostgresRepo = fastOppholdVilkårsvurderingRepo,
         personligOppmøteVilkårsvurderingPostgresRepo = personligOppmøteVilkårsvurderingPostgresRepo,
+        institusjonsoppholdVilkårsvurderingPostgresRepo = institusjonsoppholdVilkårsvurderingPostgresRepo,
     )
     internal val søknadsbehandlingRepo = SøknadsbehandlingPostgresRepo(
         sessionFactory = sessionFactory,
         dbMetrics = dbMetrics,
         grunnlagsdataOgVilkårsvurderingerPostgresRepo = grunnlagsdataOgVilkårsvurderingerPostgresRepo,
         avkortingsvarselRepo = avkortingsvarselRepo,
-        clock = clock,
         satsFactory = satsFactory,
     )
     internal val klageinstanshendelsePostgresRepo = KlageinstanshendelsePostgresRepo(sessionFactory, dbMetrics)
@@ -1285,7 +1283,6 @@ internal class TestDataHelper(
         sakId: UUID = UUID.randomUUID(),
         søknadId: UUID = UUID.randomUUID(),
         stønadsperiode: Stønadsperiode = stønadsperiode2021,
-        behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
         vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerSøknadsbehandlingInnvilget(
             periode = stønadsperiode.periode,
         ),
@@ -1296,10 +1293,9 @@ internal class TestDataHelper(
             søknadId = søknadId,
             stønadsperiode = stønadsperiode,
         ).second.copy(
-            behandlingsinformasjon = behandlingsinformasjon,
             grunnlagsdata = grunnlagsdata,
             vilkårsvurderinger = vilkårsvurderinger,
-        ).vilkårsvurder(clock).let {
+        ).vilkårsvurder().let {
             søknadsbehandlingRepo.lagre(it)
             Pair(sakRepo.hentSak(sakId)!!, it as Søknadsbehandling.Vilkårsvurdert.Innvilget)
         }
@@ -1316,7 +1312,7 @@ internal class TestDataHelper(
             formue = formuevilkårIkkeVurdert(),
             lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
             fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
-            institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
+            institusjonsopphold = institusjonsoppholdvilkårAvslag(),
             personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
             flyktning = FlyktningVilkår.IkkeVurdert,
             opplysningsplikt = OpplysningspliktVilkår.IkkeVurdert,
@@ -1329,10 +1325,9 @@ internal class TestDataHelper(
             søknadId = søknadId,
             stønadsperiode = stønadsperiode,
         ).second.copy(
-            behandlingsinformasjon = behandlingsinformasjonMedAvslag,
             grunnlagsdata = grunnlagsdata,
             vilkårsvurderinger = vilkårsvurderinger,
-        ).vilkårsvurder(clock)
+        ).vilkårsvurder()
             .let {
                 søknadsbehandlingRepo.lagre(it)
                 Pair(sakRepo.hentSak(sakId)!!, it as Søknadsbehandling.Vilkårsvurdert.Avslag)
@@ -1343,7 +1338,6 @@ internal class TestDataHelper(
         sakId: UUID = UUID.randomUUID(),
         søknadId: UUID = UUID.randomUUID(),
         stønadsperiode: Stønadsperiode = stønadsperiode2021,
-        behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
         vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre = vilkårsvurderingerSøknadsbehandlingInnvilget(
             stønadsperiode.periode,
         ),
@@ -1353,7 +1347,6 @@ internal class TestDataHelper(
             sakId = sakId,
             søknadId = søknadId,
             stønadsperiode = stønadsperiode,
-            behandlingsinformasjon = behandlingsinformasjon,
             vilkårsvurderinger = vilkårsvurderinger,
             grunnlagsdata = grunnlagsdata,
         ).second.beregn(
@@ -1401,7 +1394,6 @@ internal class TestDataHelper(
         sakId: UUID = UUID.randomUUID(),
         søknadId: UUID = UUID.randomUUID(),
         stønadsperiode: Stønadsperiode = stønadsperiode2021,
-        behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
         vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre = vilkårsvurderingerSøknadsbehandlingInnvilget(
             stønadsperiode.periode,
         ),
@@ -1411,7 +1403,6 @@ internal class TestDataHelper(
             sakId = sakId,
             søknadId = søknadId,
             stønadsperiode = stønadsperiode,
-            behandlingsinformasjon = behandlingsinformasjon,
             vilkårsvurderinger = vilkårsvurderinger,
             grunnlagsdata = grunnlagsdata,
         ).let { (sak, beregnet) ->
@@ -1435,7 +1426,6 @@ internal class TestDataHelper(
         sakId: UUID = UUID.randomUUID(),
         søknadId: UUID = UUID.randomUUID(),
         stønadsperiode: Stønadsperiode = stønadsperiode2021,
-        behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
         vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre = vilkårsvurderingerSøknadsbehandlingInnvilget(
             stønadsperiode.periode,
         ),
@@ -1446,7 +1436,6 @@ internal class TestDataHelper(
             sakId = sakId,
             søknadId = søknadId,
             stønadsperiode = stønadsperiode,
-            behandlingsinformasjon = behandlingsinformasjon,
             vilkårsvurderinger = vilkårsvurderinger,
             grunnlagsdata = grunnlagsdata,
         ).second.tilAttestering(
@@ -1551,7 +1540,6 @@ internal class TestDataHelper(
         sakId: UUID = UUID.randomUUID(),
         søknadId: UUID = UUID.randomUUID(),
         stønadsperiode: Stønadsperiode = stønadsperiode2021,
-        behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
         vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre = vilkårsvurderingerSøknadsbehandlingInnvilget(
             stønadsperiode.periode,
         ),
@@ -1565,7 +1553,6 @@ internal class TestDataHelper(
             sakId = sakId,
             søknadId = søknadId,
             stønadsperiode = stønadsperiode,
-            behandlingsinformasjon = behandlingsinformasjon,
             vilkårsvurderinger = vilkårsvurderinger,
             grunnlagsdata = grunnlagsdata,
         ).second.tilIverksatt(

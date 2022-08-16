@@ -6,7 +6,6 @@ import io.kotest.matchers.types.beInstanceOf
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.januar
-import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.søknadsbehandlingBeregnetAvslag
 import no.nav.su.se.bakover.test.søknadsbehandlingBeregnetInnvilget
@@ -35,21 +34,18 @@ internal class LeggTilUførevilkårTest {
             uførhet = innvilgetUførevilkår(
                 periode = januar(2020),
             ),
-            clock = fixedClock,
         ) shouldBe KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår.VurderingsperiodeUtenforBehandlingsperiode.left()
 
         uavklart.leggTilUførevilkår(
             uførhet = innvilgetUførevilkår(
                 periode = Periode.create(1.januar(2020), 31.januar(2025)),
             ),
-            clock = fixedClock,
         ) shouldBe KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår.VurderingsperiodeUtenforBehandlingsperiode.left()
 
         uavklart.leggTilUførevilkår(
             uførhet = innvilgetUførevilkår(
                 periode = uavklart.periode,
             ),
-            clock = fixedClock,
         ).isRight() shouldBe true
     }
 
@@ -70,7 +66,6 @@ internal class LeggTilUførevilkårTest {
         }.forEach {
             it.leggTilUførevilkår(
                 uførhet = innvilgetUførevilkår(),
-                clock = fixedClock,
             ).let { oppdatert ->
                 oppdatert.isRight() shouldBe true
                 oppdatert.getOrFail() shouldBe beInstanceOf<Søknadsbehandling.Vilkårsvurdert>()
@@ -89,7 +84,6 @@ internal class LeggTilUførevilkårTest {
         }.forEach {
             it.leggTilUførevilkår(
                 uførhet = innvilgetUførevilkår(),
-                clock = fixedClock,
             ) shouldBe KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår.UgyldigTilstand(
                 fra = it::class,
                 til = Søknadsbehandling.Vilkårsvurdert::class,

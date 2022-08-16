@@ -17,6 +17,7 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.patch
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.enumContains
 import no.nav.su.se.bakover.common.metrics.SuMetrics
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
@@ -35,12 +36,10 @@ import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeOpprette
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeSendeTilAttestering
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeUnderkjenne
-import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeVilkårsvurdere
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.OpprettRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.SendTilAttesteringRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.SimulerRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.UnderkjennRequest
-import no.nav.su.se.bakover.service.søknadsbehandling.VilkårsvurderRequest
 import no.nav.su.se.bakover.web.AuditLogEvent
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
@@ -234,34 +233,6 @@ internal fun Route.søknadsbehandlingRoutes(
                     call.sikkerlogg("Hentet behandling med id $behandlingId")
                     call.audit(it.fnr, AuditLogEvent.Action.ACCESS, it.id)
                     call.svar(OK.jsonBody(it, satsFactory))
-                }
-            }
-        }
-    }
-
-    patch("$behandlingPath/{behandlingId}/informasjon") {
-        authorize(Brukerrolle.Saksbehandler) {
-            call.withBehandlingId { behandlingId ->
-                call.withBody<BehandlingsinformasjonJson> { body ->
-                    søknadsbehandlingService.vilkårsvurder(
-                        VilkårsvurderRequest(
-                            behandlingId = behandlingId,
-                            behandlingsinformasjon = behandlingsinformasjonFromJson(body),
-                        ),
-                    ).fold(
-                        {
-                            call.svar(
-                                when (it) {
-                                    KunneIkkeVilkårsvurdere.FantIkkeBehandling -> fantIkkeBehandling
-                                },
-                            )
-                        },
-                        {
-                            call.sikkerlogg("Oppdaterte behandlingsinformasjon med behandlingsid $behandlingId")
-                            call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
-                            call.svar(OK.jsonBody(it, satsFactory))
-                        },
-                    )
                 }
             }
         }

@@ -28,7 +28,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.attestant
-import no.nav.su.se.bakover.test.behandlingsinformasjonAlleVilkårInnvilget
 import no.nav.su.se.bakover.test.enUkeEtterFixedTidspunkt
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
@@ -42,6 +41,7 @@ import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagMedBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagUtenBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
+import no.nav.su.se.bakover.test.vilkår.innvilgetFormueVilkår
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.anyOrNull
@@ -139,7 +139,6 @@ internal class SøknadsbehandlingPostgresRepoTest {
             repo.lagre(
                 vilkårsvurdert.oppdaterStønadsperiode(
                     oppdatertStønadsperiode = stønadsperiode2021,
-                    clock = fixedClock,
                     formuegrenserFactory = formuegrenserFactoryTestPåDato(fixedLocalDate),
                 ).orNull()!!,
             )
@@ -151,7 +150,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
     }
 
     @Test
-    fun `oppdaterer status og behandlingsinformasjon og sletter beregning og simulering hvis de eksisterer`() {
+    fun `oppdaterer status og vilkår og sletter beregning og simulering hvis de eksisterer`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.søknadsbehandlingRepo
@@ -209,9 +208,8 @@ internal class SøknadsbehandlingPostgresRepoTest {
             }
 
             // Tilbake til vilkårsvurdert
-            simulert.leggTilVilkårFraBehandlingsinformasjon(
-                behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
-                clock = fixedClock,
+            simulert.leggTilFormuevilkår(
+                vilkår = innvilgetFormueVilkår(),
             ).getOrFail().also { vilkårsvurdert ->
                 repo.lagre(vilkårsvurdert)
                 repo.hent(vilkårsvurdert.id) shouldBe vilkårsvurdert
@@ -322,7 +320,6 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 saksnummer = iverksatt.saksnummer,
                 søknad = iverksatt.søknad,
                 oppgaveId = iverksatt.oppgaveId,
-                behandlingsinformasjon = iverksatt.behandlingsinformasjon,
                 fnr = iverksatt.fnr,
                 saksbehandler = saksbehandler,
                 attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(iverksattAttestering),
@@ -400,7 +397,6 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 saksnummer = opprettetMedStønadsperiode.saksnummer,
                 søknad = opprettetMedStønadsperiode.søknad,
                 oppgaveId = opprettetMedStønadsperiode.oppgaveId,
-                behandlingsinformasjon = opprettetMedStønadsperiode.behandlingsinformasjon,
                 fnr = opprettetMedStønadsperiode.fnr,
                 saksbehandler = saksbehandler,
                 attesteringer = Attesteringshistorikk.create(
@@ -439,7 +435,6 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 sessionFactory = PostgresSessionFactory(dataSource, dbMetricsStub, sessionCounterStub),
                 avkortingsvarselRepo = avkortingsvarselRepoMock,
                 grunnlagsdataOgVilkårsvurderingerPostgresRepo = mock(),
-                clock = mock(),
                 satsFactory = satsFactoryTest,
             )
 
@@ -495,7 +490,6 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 sessionFactory = sessionFactory,
                 avkortingsvarselRepo = avkortingsvarselRepoMock,
                 grunnlagsdataOgVilkårsvurderingerPostgresRepo = mock(),
-                clock = mock(),
                 satsFactory = satsFactoryTest,
             )
 

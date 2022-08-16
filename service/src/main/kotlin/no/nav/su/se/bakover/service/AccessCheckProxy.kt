@@ -161,7 +161,6 @@ import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
-import no.nav.su.se.bakover.service.søknadsbehandling.VilkårsvurderRequest
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
@@ -170,6 +169,7 @@ import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeFastOppholdINorgeVilkår
 import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeTilFlyktningVilkår
+import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeTilInstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeTilPensjonsVilkår
 import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeTilPersonligOppmøteVilkår
 import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggetilLovligOppholdVilkår
@@ -179,6 +179,7 @@ import no.nav.su.se.bakover.service.vilkår.LeggTilFastOppholdINorgeRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFlereUtenlandsoppholdRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFlyktningVilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilInstitusjonsoppholdVilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilLovligOppholdRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilPensjonsVilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilPersonligOppmøteVilkårRequest
@@ -483,11 +484,6 @@ open class AccessCheckProxy(
                     return services.søknadsbehandling.opprett(request)
                 }
 
-                override fun vilkårsvurder(request: VilkårsvurderRequest): Either<SøknadsbehandlingService.KunneIkkeVilkårsvurdere, Søknadsbehandling.Vilkårsvurdert> {
-                    assertHarTilgangTilBehandling(request.behandlingId)
-                    return services.søknadsbehandling.vilkårsvurder(request)
-                }
-
                 override fun beregn(request: SøknadsbehandlingService.BeregnRequest): Either<SøknadsbehandlingService.KunneIkkeBeregne, Søknadsbehandling.Beregnet> {
                     assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.beregn(request)
@@ -603,6 +599,11 @@ open class AccessCheckProxy(
                 override fun leggTilPersonligOppmøteVilkår(request: LeggTilPersonligOppmøteVilkårRequest): Either<KunneIkkeLeggeTilPersonligOppmøteVilkår, Søknadsbehandling.Vilkårsvurdert> {
                     assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.leggTilPersonligOppmøteVilkår(request)
+                }
+
+                override fun leggTilInstitusjonsoppholdVilkår(request: LeggTilInstitusjonsoppholdVilkårRequest): Either<KunneIkkeLeggeTilInstitusjonsoppholdVilkår, Søknadsbehandling.Vilkårsvurdert> {
+                    assertHarTilgangTilBehandling(request.behandlingId)
+                    return services.søknadsbehandling.leggTilInstitusjonsoppholdVilkår(request)
                 }
             },
             ferdigstillVedtak = object : FerdigstillVedtakService {
@@ -799,6 +800,11 @@ open class AccessCheckProxy(
                 override fun leggTilPersonligOppmøteVilkår(request: LeggTilPersonligOppmøteVilkårRequest): Either<KunneIkkeLeggeTilPersonligOppmøteVilkår, RevurderingOgFeilmeldingerResponse> {
                     assertHarTilgangTilRevurdering(request.behandlingId)
                     return services.revurdering.leggTilPersonligOppmøteVilkår(request)
+                }
+
+                override fun leggTilInstitusjonsoppholdVilkår(request: LeggTilInstitusjonsoppholdVilkårRequest): Either<KunneIkkeLeggeTilInstitusjonsoppholdVilkår, RevurderingOgFeilmeldingerResponse> {
+                    assertHarTilgangTilRevurdering(request.behandlingId)
+                    return services.revurdering.leggTilInstitusjonsoppholdVilkår(request)
                 }
 
                 override fun lagBrevutkastForAvslutting(

@@ -8,7 +8,6 @@ import java.util.UUID
 
 internal data class BehandlingJson(
     val id: String,
-    val behandlingsinformasjon: BehandlingsinformasjonJson,
     val søknad: SøknadJson,
     val beregning: BeregningJson?,
     val status: String,

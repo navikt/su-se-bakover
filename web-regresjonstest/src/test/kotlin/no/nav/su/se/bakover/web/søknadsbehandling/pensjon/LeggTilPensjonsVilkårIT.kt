@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.web.søknad.ny.NySøknadJson
 import no.nav.su.se.bakover.web.søknad.ny.nyDigitalAlderssøknad
 import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.assertSøknadsbehandlingJson
-import no.nav.su.se.bakover.web.søknadsbehandling.behandlingsinformasjon.tomBehandlingsinformasjonResponse
 import no.nav.su.se.bakover.web.søknadsbehandling.grunnlagsdataOgVilkårsvurderinger.tomGrunnlagsdataOgVilkårsvurderingerResponse
 import no.nav.su.se.bakover.web.søknadsbehandling.ny.nySøknadsbehandling
 import no.nav.su.se.bakover.web.søknadsbehandling.virkningstidspunkt.leggTilVirkningstidspunkt
@@ -52,7 +51,6 @@ internal class LeggTilPensjonsVilkårIT {
 
                     assertSøknadsbehandlingJson(
                         actualSøknadsbehandlingJson = nyBehandlingResponse,
-                        expectedBehandlingsinformasjon = tomBehandlingsinformasjonResponse(),
                         expectedSøknad = JSONObject(nyBehandlingResponse).getJSONObject("søknad").toString(),
                         expectedSakId = sakId,
                         expectedGrunnlagsdataOgVilkårsvurderinger = tomGrunnlagsdataOgVilkårsvurderingerResponse(),

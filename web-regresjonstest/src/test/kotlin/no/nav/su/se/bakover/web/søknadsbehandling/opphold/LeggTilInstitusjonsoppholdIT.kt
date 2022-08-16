@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.søknadsbehandling.personligoppmøte
+package no.nav.su.se.bakover.web.søknadsbehandling.opphold
 
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.mai
@@ -13,9 +13,9 @@ import org.json.JSONObject
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 
-internal class LeggTilPersonligOppmøteIT {
+internal class LeggTilInstitusjonsoppholdIT {
     @Test
-    fun `legg til personlig oppmøte`() {
+    fun `legg institusjonsopphold til søknadsbehandling`() {
         SharedRegressionTestData.withTestApplicationAndEmbeddedDb {
             nyDigitalSøknad().also { nySøknadResponse ->
                 val sakId = NySøknadJson.Response.hentSakId(nySøknadResponse)
@@ -37,24 +37,22 @@ internal class LeggTilPersonligOppmøteIT {
                         tilOgMed = tilOgMed,
                     )
 
-                    leggTilPersonligOppmøte(
+                    leggTilInstitusjonsopphold(
                         sakId = sakId,
                         behandlingId = behandlingId,
                         fraOgMed = fraOgMed,
                         tilOgMed = tilOgMed,
-                        body = { innvilgetPersonligOppmøteJson(fraOgMed, tilOgMed) },
+                        vurdering = "VilkårOppfylt",
                         brukerrolle = Brukerrolle.Saksbehandler,
-                        url = "/saker/$sakId/behandlinger/$behandlingId/personligoppmøte",
                     ).also { søknadsbehandlingJson ->
                         JSONAssert.assertEquals(
-                            JSONObject(BehandlingJson.hentPersonligOppmøteVilkår(søknadsbehandlingJson)).toString(),
+                            JSONObject(BehandlingJson.hentInstitusjonsoppholdVilkår(søknadsbehandlingJson)).toString(),
                             //language=JSON
                             """
                                 {
-                                  "vurderinger": [
+                                  "vurderingsperioder": [
                                     {
-                                      "resultat": "VilkårOppfylt",
-                                      "vurdering": "MøttPersonlig",
+                                      "vurdering": "VilkårOppfylt",
                                       "periode": {
                                         "fraOgMed": "2022-05-01",
                                         "tilOgMed": "2022-12-31"
@@ -68,24 +66,22 @@ internal class LeggTilPersonligOppmøteIT {
                         )
                     }
 
-                    leggTilPersonligOppmøte(
+                    leggTilInstitusjonsopphold(
                         sakId = sakId,
                         behandlingId = behandlingId,
                         fraOgMed = fraOgMed,
                         tilOgMed = tilOgMed,
-                        body = { avslåttPersonligOppmøteJson(fraOgMed, tilOgMed) },
+                        vurdering = "VilkårIkkeOppfylt",
                         brukerrolle = Brukerrolle.Saksbehandler,
-                        url = "/saker/$sakId/behandlinger/$behandlingId/personligoppmøte",
-                    ).also { søknadsbehandlingJson ->
+                    ).also { revurderingJson ->
                         JSONAssert.assertEquals(
-                            JSONObject(BehandlingJson.hentPersonligOppmøteVilkår(søknadsbehandlingJson)).toString(),
+                            JSONObject(BehandlingJson.hentInstitusjonsoppholdVilkår(revurderingJson)).toString(),
                             //language=JSON
                             """
                                 {
-                                  "vurderinger": [
+                                  "vurderingsperioder": [
                                     {
-                                      "resultat": "VilkårIkkeOppfylt",
-                                      "vurdering": "IkkeMøttPersonlig",
+                                      "vurdering": "VilkårIkkeOppfylt",
                                       "periode": {
                                         "fraOgMed": "2022-05-01",
                                         "tilOgMed": "2022-12-31"

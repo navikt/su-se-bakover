@@ -11,7 +11,6 @@ import org.skyscreamer.jsonassert.comparator.CustomComparator
 fun assertSøknadsbehandlingJson(
     actualSøknadsbehandlingJson: String,
     expectedId: String = "ignored-by-matcher",
-    expectedBehandlingsinformasjon: String,
     expectedSøknad: String,
     expectedBeregning: String? = null,
     expectedStatus: String = "OPPRETTET",
@@ -30,7 +29,6 @@ fun assertSøknadsbehandlingJson(
     val expectedSakJson = """
     {
         "id": "$expectedId",
-        "behandlingsinformasjon": $expectedBehandlingsinformasjon,
         "søknad": $expectedSøknad,
         "beregning": $expectedBeregning,
         "status": "$expectedStatus",

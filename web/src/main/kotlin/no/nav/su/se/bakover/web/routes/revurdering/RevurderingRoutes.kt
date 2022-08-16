@@ -62,4 +62,6 @@ internal fun Route.revurderingRoutes(
     fastOppholdVilkårRoutes(revurderingService, satsFactory)
 
     personligOppmøteVilkårRoutes(revurderingService, satsFactory)
+
+    institusjonsoppholdRoutes(revurderingService, satsFactory, clock)
 }

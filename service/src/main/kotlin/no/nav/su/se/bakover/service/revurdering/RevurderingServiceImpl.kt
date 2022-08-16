@@ -80,6 +80,7 @@ import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeFastOppholdINorgeVilkår
 import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeTilFlyktningVilkår
+import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeTilInstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeTilPensjonsVilkår
 import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeTilPersonligOppmøteVilkår
 import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggetilLovligOppholdVilkår
@@ -87,6 +88,7 @@ import no.nav.su.se.bakover.service.vilkår.LeggTilFastOppholdINorgeRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFlereUtenlandsoppholdRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFlyktningVilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilInstitusjonsoppholdVilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilLovligOppholdRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilPensjonsVilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilPersonligOppmøteVilkårRequest
@@ -547,6 +549,21 @@ internal class RevurderingServiceImpl(
                         KunneIkkeLeggeTilFormuegrunnlag.UgyldigTilstand(it.fra, it.til)
                     }
                 }
+            }.map {
+                revurderingRepo.lagre(it)
+                identifiserFeilOgLagResponse(it)
+            }
+    }
+
+    override fun leggTilInstitusjonsoppholdVilkår(
+        request: LeggTilInstitusjonsoppholdVilkårRequest,
+    ): Either<KunneIkkeLeggeTilInstitusjonsoppholdVilkår, RevurderingOgFeilmeldingerResponse> {
+        val revurdering = hent(request.behandlingId)
+            .getOrElse { return KunneIkkeLeggeTilInstitusjonsoppholdVilkår.FantIkkeBehandling.left() }
+
+        return revurdering.oppdaterInstitusjonsoppholdOgMarkerSomVurdert(request.vilkår)
+            .mapLeft {
+                KunneIkkeLeggeTilInstitusjonsoppholdVilkår.Revurdering(it)
             }.map {
                 revurderingRepo.lagre(it)
                 identifiserFeilOgLagResponse(it)

@@ -364,7 +364,6 @@ data class Sak(
 
         return søknadsbehandling.oppdaterStønadsperiode(
             oppdatertStønadsperiode = stønadsperiode,
-            clock = clock,
             formuegrenserFactory = formuegrenserFactory,
         ).mapLeft {
             when (it) {

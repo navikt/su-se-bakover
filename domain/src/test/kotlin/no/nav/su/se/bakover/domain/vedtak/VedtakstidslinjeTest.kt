@@ -49,6 +49,7 @@ import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vilkår.innvilgetFormueVilkår
+import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.lovligOppholdVilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.tilstrekkeligDokumentert
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdInnvilget
@@ -238,7 +239,7 @@ internal class VedtakstidslinjeTest {
             fnr = epsFnr,
         )
 
-        val vurderingsperiode = VurderingsperiodeUføre.create(
+        val uføreVurderingsperiode = VurderingsperiodeUføre.create(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             vurdering = Vurdering.Innvilget,
@@ -298,13 +299,14 @@ internal class VedtakstidslinjeTest {
             vilkårOverrides = listOf(
                 UføreVilkår.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
-                        vurderingsperiode,
+                        uføreVurderingsperiode,
                     ),
                 ),
                 formueVilkår,
                 utenlandsoppholdInnvilget(periode = periode),
                 tilstrekkeligDokumentert(periode = periode),
                 lovligOppholdVilkårInnvilget(),
+                institusjonsoppholdvilkårInnvilget(periode = periode),
             ),
             grunnlagsdataOverrides = listOf(
                 b1,
@@ -336,8 +338,8 @@ internal class VedtakstidslinjeTest {
                                     .let { vilkårcopy ->
                                         vilkårcopy.vurderingsperioder shouldHaveSize 1
                                         vilkårcopy.vurderingsperioder[0].let { vurderingsperiodecopy ->
-                                            vurderingsperiodecopy.id shouldNotBe vurderingsperiode.id
-                                            vurderingsperiodecopy.vurdering shouldBe vurderingsperiode.vurdering
+                                            vurderingsperiodecopy.id shouldNotBe uføreVurderingsperiode.id
+                                            vurderingsperiodecopy.vurdering shouldBe uføreVurderingsperiode.vurdering
                                             vurderingsperiodecopy.periode shouldBe Periode.create(
                                                 1.mai(2021),
                                                 31.juli(2021),
@@ -414,6 +416,7 @@ internal class VedtakstidslinjeTest {
                                         vilkårsvurdering.flyktning,
                                         vilkårsvurdering.fastOpphold,
                                         vilkårsvurdering.personligOppmøte,
+                                        vilkårsvurdering.institusjonsopphold,
                                     ),
                                 )
                             }

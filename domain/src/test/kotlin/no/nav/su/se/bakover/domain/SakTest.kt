@@ -401,7 +401,6 @@ internal class SakTest {
             val nyPeriode = Periode.create(1.februar(2022), 31.mars(2022))
             val actual = vilkårsvurdert.oppdaterStønadsperiode(
                 oppdatertStønadsperiode = Stønadsperiode.create(nyPeriode),
-                clock = fixedClock,
                 formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             ).getOrFail()
 

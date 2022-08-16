@@ -35,6 +35,7 @@ import no.nav.su.se.bakover.service.utbetaling.UtbetalGjenopptakFeil
 import no.nav.su.se.bakover.service.utbetaling.UtbetalStansFeil
 import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeFastOppholdINorgeVilkår
 import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeTilFlyktningVilkår
+import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeTilInstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeTilPensjonsVilkår
 import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeTilPersonligOppmøteVilkår
 import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggetilLovligOppholdVilkår
@@ -42,6 +43,7 @@ import no.nav.su.se.bakover.service.vilkår.LeggTilFastOppholdINorgeRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFlereUtenlandsoppholdRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFlyktningVilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilInstitusjonsoppholdVilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilLovligOppholdRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilPensjonsVilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilPersonligOppmøteVilkårRequest
@@ -179,6 +181,10 @@ interface RevurderingService {
     fun leggTilPersonligOppmøteVilkår(
         request: LeggTilPersonligOppmøteVilkårRequest,
     ): Either<KunneIkkeLeggeTilPersonligOppmøteVilkår, RevurderingOgFeilmeldingerResponse>
+
+    fun leggTilInstitusjonsoppholdVilkår(
+        request: LeggTilInstitusjonsoppholdVilkårRequest
+    ): Either<KunneIkkeLeggeTilInstitusjonsoppholdVilkår, RevurderingOgFeilmeldingerResponse>
 }
 
 data class RevurderingOgFeilmeldingerResponse(

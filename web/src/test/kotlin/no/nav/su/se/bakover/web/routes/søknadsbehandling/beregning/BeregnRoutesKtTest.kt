@@ -23,8 +23,6 @@ import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -36,13 +34,13 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
-import no.nav.su.se.bakover.service.søknadsbehandling.VilkårsvurderRequest
 import no.nav.su.se.bakover.service.vilkår.BosituasjonValg
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFastOppholdINorgeRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFlyktningVilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilInstitusjonsoppholdVilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilLovligOppholdRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilPersonligOppmøteVilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
@@ -59,6 +57,7 @@ import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.vilkår.fastOppholdVilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.flyktningVilkårInnvilget
+import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårInnvilget
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.applicationConfig
 import no.nav.su.se.bakover.web.dbMetricsStub
@@ -279,7 +278,6 @@ internal class BeregnRoutesKtTest {
     ): InnvilgetVilkårsvurdertSøknadsbehandling {
         val objects = setup(services, repos)
 
-        val behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
         /**
          *  Legges til automatisk dersom det ikke er eksplisitt lagt til fra før.
          services.søknadsbehandling.leggTilOpplysningspliktVilkår(
@@ -364,13 +362,12 @@ internal class BeregnRoutesKtTest {
                 bosituasjon = BosituasjonValg.BOR_ALENE,
             ),
         )
-        services.søknadsbehandling.vilkårsvurder(
-            VilkårsvurderRequest(
-                objects.søknadsbehandling.id,
-                behandlingsinformasjon,
+        services.søknadsbehandling.leggTilInstitusjonsoppholdVilkår(
+            LeggTilInstitusjonsoppholdVilkårRequest(
+                behandlingId = objects.søknadsbehandling.id,
+                vilkår = institusjonsoppholdvilkårInnvilget(),
             ),
         )
-
         return InnvilgetVilkårsvurdertSøknadsbehandling(
             repos.sak.hentSak(objects.sak.id)!!,
             repos.søknadsbehandling.hent(objects.søknadsbehandling.id) as Søknadsbehandling.Vilkårsvurdert.Innvilget,
