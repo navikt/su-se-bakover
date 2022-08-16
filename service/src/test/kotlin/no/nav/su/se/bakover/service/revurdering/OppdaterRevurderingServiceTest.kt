@@ -33,7 +33,6 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.periodeNest
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.stønadsperiodeNesteMånedOgTreMånederFram
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.aktørId
-import no.nav.su.se.bakover.test.arbeidsinntekt
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
