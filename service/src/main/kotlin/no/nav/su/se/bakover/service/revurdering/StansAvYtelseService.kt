@@ -46,8 +46,8 @@ internal class StansAvYtelseService(
                 val sak = sakService.hentSak(request.sakId)
                     .getOrHandle { return KunneIkkeStanseYtelse.FantIkkeSak.left() }
 
-                val eksisterende = sak.revurderinger.find { it.id == request.revurderingId }
-                    ?: return KunneIkkeStanseYtelse.FantIkkeRevurdering.left()
+                val eksisterende = sak.hentRevurdering(request.revurderingId)
+                    .getOrHandle { return KunneIkkeStanseYtelse.FantIkkeRevurdering.left() }
 
                 val gjeldendeVedtaksdata = kopierGjeldendeVedtaksdata(
                     sak = sak,

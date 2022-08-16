@@ -689,7 +689,7 @@ internal class SakTest {
                 clock = clock,
             )
 
-            sak.hentHistoriskVedtaksdataForVedtaksperiode(
+            sak.historiskGrunnlagForVedtaketsPeriode(
                 vedtakId = sakOgVedtak2.second.id,
                 clock = clock,
             ) shouldBe GjeldendeVedtaksdata(
@@ -708,10 +708,10 @@ internal class SakTest {
                 clock = clock,
             )
 
-            sak1.hentHistoriskVedtaksdataForVedtaksperiode(
+            sak1.historiskGrunnlagForVedtaketsPeriode(
                 vedtakId = vedtak1.id,
                 clock = fixedClock,
-            ) shouldBe Sak.KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes(vedtak1.periode).left()
+            ) shouldBe Sak.KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak.IngenTidligereVedtak.left()
         }
     }
 }

@@ -6,8 +6,9 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.satser.SatsFactory
-import no.nav.su.se.bakover.service.sak.KunneIkkeHenteGjeldendeVedtaksdata
+import no.nav.su.se.bakover.service.sak.KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
@@ -30,22 +31,32 @@ internal fun Route.hentGrunnlagRevurderingRoutes(
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId { sakId ->
                 call.withVedtakId { vedtakId ->
-                    sakService.historiskGrunnlagForVedtaksperiode(
+                    sakService.historiskGrunnlagForVedtaketsPeriode(
                         sakId = sakId,
                         vedtakId = vedtakId,
                     ).fold(
                         ifLeft = {
                             call.svar(
                                 when (it) {
-                                    KunneIkkeHenteGjeldendeVedtaksdata.FantIkkeSak -> {
+                                    KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak.FantIkkeSak -> {
                                         Feilresponser.fantIkkeSak
                                     }
 
-                                    KunneIkkeHenteGjeldendeVedtaksdata.IngenVedtak -> {
-                                        HttpStatusCode.NotFound.errorJson(
-                                            "Fant ikke grunnlagsdata for tidligere vedtak",
-                                            "fant_ikke_tidligere_grunnlagsdata",
-                                        )
+                                    is KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak.Feil -> {
+                                        when (it.feil) {
+                                            Sak.KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak.FantIkkeVedtak -> {
+                                                HttpStatusCode.NotFound.errorJson(
+                                                    "Fant ikke vedtak",
+                                                    "fant_ikke_vedtak",
+                                                )
+                                            }
+                                            Sak.KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak.IngenTidligereVedtak -> {
+                                                HttpStatusCode.NotFound.errorJson(
+                                                    "Fant ikke grunnlagsdata for tidligere vedtak",
+                                                    "fant_ikke_tidligere_grunnlagsdata",
+                                                )
+                                            }
+                                        }
                                     }
                                 },
                             )
