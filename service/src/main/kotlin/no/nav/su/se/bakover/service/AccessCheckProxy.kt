@@ -143,6 +143,7 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.revurdering.SendTilAttesteringRequest
 import no.nav.su.se.bakover.service.revurdering.StansYtelseRequest
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
+import no.nav.su.se.bakover.service.sak.KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak
 import no.nav.su.se.bakover.service.sak.KunneIkkeHenteGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.skatt.KunneIkkeHenteSkattemelding
@@ -164,7 +165,6 @@ import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
-import no.nav.su.se.bakover.service.vedtak.KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeFastOppholdINorgeVilkår
@@ -321,6 +321,17 @@ open class AccessCheckProxy(
                 ): Either<KunneIkkeHenteGjeldendeVedtaksdata, GjeldendeVedtaksdata?> {
                     assertHarTilgangTilSak(sakId)
                     return services.sak.hentGjeldendeVedtaksdata(sakId, periode)
+                }
+
+                override fun historiskGrunnlagForVedtaketsPeriode(
+                    sakId: UUID,
+                    vedtakId: UUID,
+                ): Either<KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak, GjeldendeVedtaksdata> {
+                    assertHarTilgangTilSak(sakId)
+                    return services.sak.historiskGrunnlagForVedtaketsPeriode(
+                        sakId = sakId,
+                        vedtakId = vedtakId,
+                    )
                 }
 
                 override fun hentSakidOgSaksnummer(fnr: Fnr) = kastKanKunKallesFraAnnenService()
@@ -822,19 +833,7 @@ open class AccessCheckProxy(
                     return services.vedtakService.hentAktiveFnr(fomDato)
                 }
 
-                override fun kopierGjeldendeVedtaksdata(
-                    sakId: UUID,
-                    fraOgMed: LocalDate,
-                ) = kastKanKunKallesFraAnnenService()
-
                 override fun hentForUtbetaling(utbetalingId: UUID30) = kastKanKunKallesFraAnnenService()
-
-                override fun historiskGrunnlagForVedtaksperiode(
-                    sakId: UUID,
-                    vedtakId: UUID,
-                ): Either<KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak, GjeldendeVedtaksdata> {
-                    return services.vedtakService.historiskGrunnlagForVedtaksperiode(sakId, vedtakId)
-                }
             },
             nøkkeltallService = object : NøkkeltallService {
                 override fun hentNøkkeltall(): Nøkkeltall {

@@ -2,21 +2,20 @@ package no.nav.su.se.bakover.service.revurdering
 
 import arrow.core.getOrHandle
 import arrow.core.left
-import arrow.core.nonEmptyListOf
 import arrow.core.right
-import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.periode.februar
+import no.nav.su.se.bakover.common.periode.desember
+import no.nav.su.se.bakover.common.periode.januar
+import no.nav.su.se.bakover.common.periode.juli
 import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.startOfMonth
-import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -25,20 +24,17 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
-import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
-import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vilkår.erLik
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.periodeNesteMånedOgTreMånederFram
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.stønadsperiodeNesteMånedOgTreMånederFram
-import no.nav.su.se.bakover.service.vedtak.KunneIkkeKopiereGjeldendeVedtaksdata
-import no.nav.su.se.bakover.service.vedtak.VedtakService
+import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.aktørId
@@ -47,19 +43,15 @@ import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt12000
-import no.nav.su.se.bakover.test.iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
-import no.nav.su.se.bakover.test.plus
+import no.nav.su.se.bakover.test.nySakUføre
+import no.nav.su.se.bakover.test.nySøknadJournalførtMedOppgave
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
-import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
+import no.nav.su.se.bakover.test.søknadinnhold
 import no.nav.su.se.bakover.test.vedtakRevurdering
-import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
-import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt12000
-import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
@@ -71,94 +63,151 @@ import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 internal class OpprettRevurderingServiceTest {
-
-    private val informasjonSomRevurderes = listOf(
-        Revurderingsteg.Inntekt,
-    )
-
-    private val uføregrunnlag = uføregrunnlagForventetInntekt12000(periode = periodeNesteMånedOgTreMånederFram)
-    private val vilkårsvurderingUføre =
-        innvilgetUførevilkårForventetInntekt12000(periode = periodeNesteMånedOgTreMånederFram)
-
-    private fun createInnvilgetBehandling() = søknadsbehandlingIverksattInnvilget(
-        stønadsperiode = stønadsperiodeNesteMånedOgTreMånederFram,
-        vilkårsvurderinger = vilkårsvurderingerSøknadsbehandlingInnvilget(
-            periode = periodeNesteMånedOgTreMånederFram,
-            uføre = vilkårsvurderingUføre,
-        ),
-    ).second
-
-    private fun createSøknadsbehandlingVedtak() =
-        VedtakSomKanRevurderes.fromSøknadsbehandling(createInnvilgetBehandling(), UUID30.randomUUID(), fixedClock)
-
     @Test
     fun `oppretter en revurdering`() {
-        val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
-            periode = periodeNesteMånedOgTreMånederFram,
-            vedtakListe = nonEmptyListOf(createSøknadsbehandlingVedtak()),
-            clock = fixedClock,
-        )
-
-        val vedtakServiceMock = mock<VedtakService> {
-            on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn gjeldendeVedtaksdata.right()
-        }
-
-        val revurderingRepoMock = mock<RevurderingRepo>()
-
-        val personServiceMock = mock<PersonService> {
-            on { hentAktørId(any()) } doReturn aktørId.right()
-        }
-
-        val oppgaveServiceMock = mock<OppgaveService> {
-            on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
-        }
-
-        val mocks = RevurderingServiceMocks(
-            vedtakService = vedtakServiceMock,
-            revurderingRepo = revurderingRepoMock,
-            oppgaveService = oppgaveServiceMock,
-            personService = personServiceMock,
+        val (sak, søknadsbehandling, søknadsvedtak) = iverksattSøknadsbehandlingUføre()
+        RevurderingServiceMocks(
+            sakService = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
+            },
+            oppgaveService = mock {
+                on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
+            },
+            personService = mock {
+                on { hentAktørId(any()) } doReturn aktørId.right()
+            },
             avkortingsvarselRepo = mock {
                 on { hentUtestående(any()) } doReturn Avkortingsvarsel.Ingen
             },
-        )
-        val actual = mocks.revurderingService.opprettRevurdering(
-            OpprettRevurderingRequest(
-                sakId = sakId,
-                fraOgMed = periodeNesteMånedOgTreMånederFram.fraOgMed,
-                årsak = "MELDING_FRA_BRUKER",
-                begrunnelse = "Ny informasjon",
-                saksbehandler = saksbehandler,
-                informasjonSomRevurderes = informasjonSomRevurderes,
-            ),
-        ).getOrFail()
+            revurderingRepo = mock(),
+        ).also {
+            val actual = it.revurderingService.opprettRevurdering(
+                OpprettRevurderingRequest(
+                    sakId = sakId,
+                    fraOgMed = periodeNesteMånedOgTreMånederFram.fraOgMed,
+                    årsak = "MELDING_FRA_BRUKER",
+                    begrunnelse = "Ny informasjon",
+                    saksbehandler = saksbehandler,
+                    informasjonSomRevurderes = listOf(
+                        Revurderingsteg.Inntekt,
+                    ),
+                ),
+            ).getOrFail()
 
-        val tilRevurdering =
-            gjeldendeVedtaksdata.gjeldendeVedtakPåDato(periodeNesteMånedOgTreMånederFram.fraOgMed) as VedtakSomKanRevurderes.EndringIYtelse
-        actual.let { opprettetRevurdering ->
-            opprettetRevurdering.periode shouldBe periodeNesteMånedOgTreMånederFram
-            opprettetRevurdering.tilRevurdering shouldBe tilRevurdering.id
-            opprettetRevurdering.saksbehandler shouldBe saksbehandler
-            opprettetRevurdering.oppgaveId shouldBe OppgaveId("oppgaveId")
-            opprettetRevurdering.fritekstTilBrev shouldBe ""
-            opprettetRevurdering.revurderingsårsak shouldBe Revurderingsårsak.create(
-                årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER.toString(), begrunnelse = "Ny informasjon",
-            )
-            opprettetRevurdering.forhåndsvarsel shouldBe null
-            opprettetRevurdering.vilkårsvurderinger.uføreVilkår().getOrFail().grunnlag.let {
-                it shouldHaveSize 1
-                it[0].ekvivalentMed(uføregrunnlag)
+            actual.let { opprettetRevurdering ->
+                opprettetRevurdering.periode shouldBe Periode.create(
+                    periodeNesteMånedOgTreMånederFram.fraOgMed,
+                    søknadsbehandling.periode.tilOgMed,
+                )
+                opprettetRevurdering.tilRevurdering shouldBe søknadsvedtak.id
+                opprettetRevurdering.saksbehandler shouldBe saksbehandler
+                opprettetRevurdering.oppgaveId shouldBe OppgaveId("oppgaveId")
+                opprettetRevurdering.fritekstTilBrev shouldBe ""
+                opprettetRevurdering.revurderingsårsak shouldBe Revurderingsårsak.create(
+                    årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER.toString(), begrunnelse = "Ny informasjon",
+                )
+                opprettetRevurdering.forhåndsvarsel shouldBe null
+                opprettetRevurdering.vilkårsvurderinger.erLik(søknadsbehandling.vilkårsvurderinger)
+                opprettetRevurdering.vilkårsvurderinger.vilkår.all {
+                    it.perioder == listOf(
+                        periodeNesteMånedOgTreMånederFram,
+                    )
+                }
+                opprettetRevurdering.informasjonSomRevurderes shouldBe InformasjonSomRevurderes.create(
+                    mapOf(
+                        Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
+                    ),
+                )
+
+                inOrder(
+                    *it.all(),
+                ) {
+                    verify(it.sakService).hentSak(sak.id)
+                    verify(it.personService).hentAktørId(argThat { it shouldBe fnr })
+                    verify(it.avkortingsvarselRepo).hentUtestående(any())
+                    verify(it.oppgaveService).opprettOppgave(
+                        argThat {
+                            it shouldBe OppgaveConfig.Revurderingsbehandling(
+                                saksnummer = saksnummer,
+                                aktørId = aktørId,
+                                tilordnetRessurs = null,
+                                clock = fixedClock,
+                            )
+                        },
+                    )
+                    verify(it.revurderingRepo).defaultTransactionContext()
+                    verify(it.revurderingRepo).lagre(argThat { it.right() shouldBe actual.right() }, anyOrNull())
+                }
+
+                it.verifyNoMoreInteractions()
             }
-            opprettetRevurdering.vilkårsvurderinger.uføreVilkår().getOrFail().ekvivalentMed(vilkårsvurderingUføre)
-            opprettetRevurdering.informasjonSomRevurderes shouldBe InformasjonSomRevurderes.create(mapOf(Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert))
+        }
+    }
 
+    @Test
+    fun `kan opprette revurdering med årsak g-regulering i samme måned`() {
+        val (sak, søknadsbehandling, søknadsvedtak) = iverksattSøknadsbehandlingUføre(
+            stønadsperiode = stønadsperiodeNesteMånedOgTreMånederFram,
+        )
+
+        RevurderingServiceMocks(
+            sakService = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
+            },
+            oppgaveService = mock {
+                on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
+            },
+            personService = mock {
+                on { hentAktørId(any()) } doReturn aktørId.right()
+            },
+            avkortingsvarselRepo = mock {
+                on { hentUtestående(any()) } doReturn Avkortingsvarsel.Ingen
+            },
+            revurderingRepo = mock(),
+        ).also {
+            val actual = it.revurderingService.opprettRevurdering(
+                OpprettRevurderingRequest(
+                    sakId = sakId,
+                    fraOgMed = periodeNesteMånedOgTreMånederFram.fraOgMed,
+                    årsak = "REGULER_GRUNNBELØP",
+                    begrunnelse = "g-regulering",
+                    saksbehandler = saksbehandler,
+                    informasjonSomRevurderes = listOf(
+                        Revurderingsteg.Inntekt,
+                    ),
+                ),
+            ).getOrHandle {
+                throw RuntimeException("$it")
+            }
+
+            val periode =
+                Periode.create(periodeNesteMånedOgTreMånederFram.fraOgMed, periodeNesteMånedOgTreMånederFram.tilOgMed)
+            actual.let { opprettetRevurdering ->
+                opprettetRevurdering.periode shouldBe periode
+                opprettetRevurdering.tilRevurdering shouldBe søknadsvedtak.id
+                opprettetRevurdering.saksbehandler shouldBe saksbehandler
+                opprettetRevurdering.oppgaveId shouldBe OppgaveId("oppgaveId")
+                opprettetRevurdering.fritekstTilBrev shouldBe ""
+                opprettetRevurdering.revurderingsårsak shouldBe Revurderingsårsak(
+                    Revurderingsårsak.Årsak.REGULER_GRUNNBELØP,
+                    Revurderingsårsak.Begrunnelse.create("g-regulering"),
+                )
+                opprettetRevurdering.forhåndsvarsel shouldBe Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles
+                opprettetRevurdering.vilkårsvurderinger.vilkår.erLik(søknadsbehandling.vilkårsvurderinger.vilkår)
+                opprettetRevurdering.vilkårsvurderinger.vilkår.all { it.perioder == listOf(periode) }
+                opprettetRevurdering.informasjonSomRevurderes shouldBe InformasjonSomRevurderes.create(
+                    mapOf(
+                        Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
+                    ),
+                )
+            }
             inOrder(
-                *mocks.all(),
+                *it.all(),
             ) {
-                verify(vedtakServiceMock).kopierGjeldendeVedtaksdata(sakId, periodeNesteMånedOgTreMånederFram.fraOgMed)
-                verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
-                verify(mocks.avkortingsvarselRepo).hentUtestående(any())
-                verify(oppgaveServiceMock).opprettOppgave(
+                verify(it.sakService).hentSak(sakId)
+                verify(it.personService).hentAktørId(argThat { it shouldBe fnr })
+                verify(it.avkortingsvarselRepo).hentUtestående(any())
+                verify(it.oppgaveService).opprettOppgave(
                     argThat {
                         it shouldBe OppgaveConfig.Revurderingsbehandling(
                             saksnummer = saksnummer,
@@ -168,106 +217,12 @@ internal class OpprettRevurderingServiceTest {
                         )
                     },
                 )
-                verify(revurderingRepoMock).defaultTransactionContext()
-                verify(revurderingRepoMock).lagre(argThat { it.right() shouldBe actual.right() }, anyOrNull())
+                verify(it.revurderingRepo).defaultTransactionContext()
+                verify(it.revurderingRepo).lagre(argThat { it.right() shouldBe actual.right() }, anyOrNull())
             }
 
-            mocks.verifyNoMoreInteractions()
+            it.verifyNoMoreInteractions()
         }
-    }
-
-    @Test
-    fun `kan opprette revurdering med årsak g-regulering i samme måned`() {
-        val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
-            periode = periodeNesteMånedOgTreMånederFram,
-            vedtakListe = nonEmptyListOf(createSøknadsbehandlingVedtak()),
-            clock = fixedClock,
-        )
-
-        val vedtakServiceMock = mock<VedtakService> {
-            on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn gjeldendeVedtaksdata.right()
-        }
-        val revurderingRepoMock = mock<RevurderingRepo>()
-
-        val personServiceMock = mock<PersonService> {
-            on { hentAktørId(any()) } doReturn aktørId.right()
-        }
-
-        val oppgaveServiceMock = mock<OppgaveService> {
-            on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
-        }
-
-        val mocks = RevurderingServiceMocks(
-            vedtakService = vedtakServiceMock,
-            revurderingRepo = revurderingRepoMock,
-            oppgaveService = oppgaveServiceMock,
-            personService = personServiceMock,
-            avkortingsvarselRepo = mock {
-                on { hentUtestående(any()) } doReturn Avkortingsvarsel.Ingen
-            },
-        )
-        val actual = mocks.revurderingService.opprettRevurdering(
-            OpprettRevurderingRequest(
-                sakId = sakId,
-                fraOgMed = periodeNesteMånedOgTreMånederFram.fraOgMed,
-                årsak = "REGULER_GRUNNBELØP",
-                begrunnelse = "g-regulering",
-                saksbehandler = saksbehandler,
-                informasjonSomRevurderes = informasjonSomRevurderes,
-            ),
-        ).getOrHandle {
-            throw RuntimeException("$it")
-        }
-
-        val tilRevurdering =
-            gjeldendeVedtaksdata.gjeldendeVedtakPåDato(periodeNesteMånedOgTreMånederFram.fraOgMed) as VedtakSomKanRevurderes.EndringIYtelse
-        val periode =
-            Periode.create(periodeNesteMånedOgTreMånederFram.fraOgMed, periodeNesteMånedOgTreMånederFram.tilOgMed)
-        actual.let { opprettetRevurdering ->
-            opprettetRevurdering.periode shouldBe periode
-            opprettetRevurdering.tilRevurdering shouldBe tilRevurdering.id
-            opprettetRevurdering.saksbehandler shouldBe saksbehandler
-            opprettetRevurdering.oppgaveId shouldBe OppgaveId("oppgaveId")
-            opprettetRevurdering.fritekstTilBrev shouldBe ""
-            opprettetRevurdering.revurderingsårsak shouldBe Revurderingsårsak(
-                Revurderingsårsak.Årsak.REGULER_GRUNNBELØP,
-                Revurderingsårsak.Begrunnelse.create("g-regulering"),
-            )
-            opprettetRevurdering.forhåndsvarsel shouldBe Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles
-            opprettetRevurdering.vilkårsvurderinger.uføreVilkår().getOrFail().grunnlag.let {
-                it shouldHaveSize 1
-                it[0].ekvivalentMed(uføregrunnlag.copy(periode = periode))
-            }
-            opprettetRevurdering.vilkårsvurderinger.uføreVilkår().getOrFail().ekvivalentMed(
-                vilkårsvurderingUføre.copy(
-                    vurderingsperioder = vilkårsvurderingUføre.vurderingsperioder.map {
-                        it.copy(CopyArgs.Tidslinje.NyPeriode(periode))
-                    },
-                ),
-            )
-            opprettetRevurdering.informasjonSomRevurderes shouldBe InformasjonSomRevurderes.create(mapOf(Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert))
-        }
-        inOrder(
-            *mocks.all(),
-        ) {
-            verify(vedtakServiceMock).kopierGjeldendeVedtaksdata(sakId, periode.fraOgMed)
-            verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
-            verify(mocks.avkortingsvarselRepo).hentUtestående(any())
-            verify(oppgaveServiceMock).opprettOppgave(
-                argThat {
-                    it shouldBe OppgaveConfig.Revurderingsbehandling(
-                        saksnummer = saksnummer,
-                        aktørId = aktørId,
-                        tilordnetRessurs = null,
-                        clock = fixedClock,
-                    )
-                },
-            )
-            verify(revurderingRepoMock).defaultTransactionContext()
-            verify(revurderingRepoMock).lagre(argThat { it.right() shouldBe actual.right() }, anyOrNull())
-        }
-
-        mocks.verifyNoMoreInteractions()
     }
 
     @Test
@@ -277,151 +232,120 @@ internal class OpprettRevurderingServiceTest {
             periodeNesteMånedOgTreMånederFram.tilOgMed,
         )
 
-        val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
-            periode = periode,
-            vedtakListe = nonEmptyListOf(createSøknadsbehandlingVedtak()),
-            clock = fixedClock,
+        val (sak, _, søknadsvedtak) = iverksattSøknadsbehandlingUføre(
+            stønadsperiode = Stønadsperiode.create(periode),
         )
 
-        val vedtakServiceMock = mock<VedtakService> {
-            on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn gjeldendeVedtaksdata.right()
-        }
-        val revurderingRepoMock = mock<RevurderingRepo>()
-
-        val personServiceMock = mock<PersonService> {
-            on { hentAktørId(any()) } doReturn aktørId.right()
-        }
-
-        val oppgaveServiceMock = mock<OppgaveService> {
-            on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
-        }
-        val mocks = RevurderingServiceMocks(
-            vedtakService = vedtakServiceMock,
-            revurderingRepo = revurderingRepoMock,
-            oppgaveService = oppgaveServiceMock,
-            personService = personServiceMock,
+        RevurderingServiceMocks(
+            sakService = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
+            },
+            oppgaveService = mock {
+                on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
+            },
+            personService = mock<PersonService> {
+                on { hentAktørId(any()) } doReturn aktørId.right()
+            },
             avkortingsvarselRepo = mock {
                 on { hentUtestående(any()) } doReturn Avkortingsvarsel.Ingen
             },
-        )
-        val actual = mocks.revurderingService.opprettRevurdering(
-            OpprettRevurderingRequest(
-                sakId = sakId,
-                fraOgMed = periode.tilOgMed.minusMonths(1).startOfMonth(),
-                årsak = "REGULER_GRUNNBELØP",
-                begrunnelse = "g-regulering",
-                saksbehandler = saksbehandler,
-                informasjonSomRevurderes = informasjonSomRevurderes,
-            ),
-        ).getOrHandle {
-            throw RuntimeException("$it")
-        }
-        val tilRevurdering =
-            gjeldendeVedtaksdata.gjeldendeVedtakPåDato(periode.fraOgMed) as VedtakSomKanRevurderes.EndringIYtelse
-        actual.let { opprettetRevurdering ->
-            opprettetRevurdering.periode shouldBe periode
-            opprettetRevurdering.tilRevurdering shouldBe tilRevurdering.id
-            opprettetRevurdering.saksbehandler shouldBe saksbehandler
-            opprettetRevurdering.oppgaveId shouldBe OppgaveId("oppgaveId")
-            opprettetRevurdering.fritekstTilBrev shouldBe ""
-            opprettetRevurdering.revurderingsårsak shouldBe Revurderingsårsak(
-                Revurderingsårsak.Årsak.REGULER_GRUNNBELØP,
-                Revurderingsårsak.Begrunnelse.create("g-regulering"),
-            )
-            opprettetRevurdering.forhåndsvarsel shouldBe Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles
-            opprettetRevurdering.vilkårsvurderinger.uføreVilkår().getOrFail().grunnlag.let {
-                it shouldHaveSize 1
-                it[0].ekvivalentMed(uføregrunnlag.copy(periode = periode))
-            }
-            opprettetRevurdering.vilkårsvurderinger.uføreVilkår().getOrFail().ekvivalentMed(
-                vilkårsvurderingUføre.copy(
-                    vurderingsperioder = vilkårsvurderingUføre.vurderingsperioder.map {
-                        it.copy(CopyArgs.Tidslinje.NyPeriode(periode))
-                    },
+            revurderingRepo = mock(),
+        ).also {
+            val actual = it.revurderingService.opprettRevurdering(
+                OpprettRevurderingRequest(
+                    sakId = sakId,
+                    fraOgMed = periode.tilOgMed.minusMonths(1).startOfMonth(),
+                    årsak = "REGULER_GRUNNBELØP",
+                    begrunnelse = "g-regulering",
+                    saksbehandler = saksbehandler,
+                    informasjonSomRevurderes = listOf(
+                        Revurderingsteg.Inntekt,
+                    ),
                 ),
-            )
-            opprettetRevurdering.informasjonSomRevurderes shouldBe InformasjonSomRevurderes.create(mapOf(Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert))
-        }
+            ).getOrFail()
 
-        inOrder(
-            *mocks.all(),
-        ) {
-            verify(vedtakServiceMock).kopierGjeldendeVedtaksdata(sakId, periode.fraOgMed)
-            verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
-            verify(mocks.avkortingsvarselRepo).hentUtestående(any())
-            verify(oppgaveServiceMock).opprettOppgave(
-                argThat {
-                    it shouldBe OppgaveConfig.Revurderingsbehandling(
-                        saksnummer = saksnummer,
-                        aktørId = aktørId,
-                        tilordnetRessurs = null,
-                        clock = fixedClock,
-                    )
-                },
-            )
-            verify(revurderingRepoMock).defaultTransactionContext()
-            verify(revurderingRepoMock).lagre(argThat { it.right() shouldBe actual.right() }, anyOrNull())
-        }
+            actual.let { opprettetRevurdering ->
+                opprettetRevurdering.periode shouldBe periode
+                opprettetRevurdering.tilRevurdering shouldBe søknadsvedtak.id
+                opprettetRevurdering.saksbehandler shouldBe saksbehandler
+                opprettetRevurdering.oppgaveId shouldBe OppgaveId("oppgaveId")
+                opprettetRevurdering.fritekstTilBrev shouldBe ""
+                opprettetRevurdering.revurderingsårsak shouldBe Revurderingsårsak(
+                    Revurderingsårsak.Årsak.REGULER_GRUNNBELØP,
+                    Revurderingsårsak.Begrunnelse.create("g-regulering"),
+                )
+                opprettetRevurdering.forhåndsvarsel shouldBe Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles
+                opprettetRevurdering.vilkårsvurderinger.vilkår.erLik(søknadsvedtak.behandling.vilkårsvurderinger.vilkår)
+                opprettetRevurdering.vilkårsvurderinger.vilkår.all { it.perioder == listOf(periode) }
+                opprettetRevurdering.informasjonSomRevurderes shouldBe InformasjonSomRevurderes.create(
+                    mapOf(
+                        Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
+                    ),
+                )
+            }
 
-        mocks.verifyNoMoreInteractions()
+            inOrder(
+                *it.all(),
+            ) {
+                verify(it.sakService).hentSak(sakId)
+                verify(it.personService).hentAktørId(argThat { it shouldBe fnr })
+                verify(it.avkortingsvarselRepo).hentUtestående(any())
+                verify(it.oppgaveService).opprettOppgave(
+                    argThat {
+                        it shouldBe OppgaveConfig.Revurderingsbehandling(
+                            saksnummer = saksnummer,
+                            aktørId = aktørId,
+                            tilordnetRessurs = null,
+                            clock = fixedClock,
+                        )
+                    },
+                )
+                verify(it.revurderingRepo).defaultTransactionContext()
+                verify(it.revurderingRepo).lagre(argThat { it.right() shouldBe actual.right() }, anyOrNull())
+            }
+
+            it.verifyNoMoreInteractions()
+        }
     }
 
     @Test
     fun `fant ikke sak`() {
-        val vedtakServiceMock = mock<VedtakService> {
-            on {
-                kopierGjeldendeVedtaksdata(
-                    any(),
-                    any(),
-                )
-            } doReturn KunneIkkeKopiereGjeldendeVedtaksdata.FantIkkeSak.left()
+        RevurderingServiceMocks(
+            sakService = mock {
+                on { hentSak(any<UUID>()) } doReturn FantIkkeSak.left()
+            },
+        ).also {
+            it.revurderingService.opprettRevurdering(
+                OpprettRevurderingRequest(
+                    sakId = sakId,
+                    fraOgMed = periodeNesteMånedOgTreMånederFram.fraOgMed,
+                    årsak = "MELDING_FRA_BRUKER",
+                    begrunnelse = "Ny informasjon",
+                    saksbehandler = saksbehandler,
+                    informasjonSomRevurderes = listOf(Revurderingsteg.Inntekt),
+                ),
+            ) shouldBe KunneIkkeOppretteRevurdering.FantIkkeSak.left()
         }
-        val mocks = RevurderingServiceMocks(
-            vedtakService = vedtakServiceMock,
-        )
-        val actual = mocks.revurderingService.opprettRevurdering(
-            OpprettRevurderingRequest(
-                sakId = sakId,
-                fraOgMed = periodeNesteMånedOgTreMånederFram.fraOgMed,
-                årsak = "MELDING_FRA_BRUKER",
-                begrunnelse = "Ny informasjon",
-                saksbehandler = saksbehandler,
-                informasjonSomRevurderes = listOf(Revurderingsteg.Inntekt),
-            ),
-        )
-        actual shouldBe KunneIkkeOppretteRevurdering.FantIkkeSak.left()
-        verify(vedtakServiceMock).kopierGjeldendeVedtaksdata(sakId, periodeNesteMånedOgTreMånederFram.fraOgMed)
-        mocks.verifyNoMoreInteractions()
     }
 
     @Test
     fun `kan ikke opprette revurdering hvis ingen vedtak eksisterer for angitt fra og med dato`() {
-        val vedtakServiceMock = mock<VedtakService> {
-            on {
-                kopierGjeldendeVedtaksdata(
-                    any(),
-                    any(),
-                )
-            } doReturn KunneIkkeKopiereGjeldendeVedtaksdata.FantIngenVedtak.left()
+        RevurderingServiceMocks(
+            sakService = mock {
+                on { hentSak(any<UUID>()) } doReturn nySakUføre().first.right()
+            },
+        ).also {
+            it.revurderingService.opprettRevurdering(
+                OpprettRevurderingRequest(
+                    sakId = sakId,
+                    fraOgMed = periodeNesteMånedOgTreMånederFram.fraOgMed,
+                    årsak = "MELDING_FRA_BRUKER",
+                    begrunnelse = "Ny informasjon",
+                    saksbehandler = saksbehandler,
+                    informasjonSomRevurderes = listOf(Revurderingsteg.Uførhet),
+                ),
+            ) shouldBe KunneIkkeOppretteRevurdering.FantIngenVedtakSomKanRevurderes.left()
         }
-        val mocks = RevurderingServiceMocks(
-            vedtakService = vedtakServiceMock,
-        )
-
-        val actual = mocks.revurderingService.opprettRevurdering(
-            OpprettRevurderingRequest(
-                sakId = sakId,
-                fraOgMed = periodeNesteMånedOgTreMånederFram.fraOgMed,
-                årsak = "MELDING_FRA_BRUKER",
-                begrunnelse = "Ny informasjon",
-                saksbehandler = saksbehandler,
-                informasjonSomRevurderes = listOf(Revurderingsteg.Uførhet),
-            ),
-        )
-
-        actual shouldBe KunneIkkeOppretteRevurdering.FantIngenVedtakSomKanRevurderes.left()
-        verify(vedtakServiceMock).kopierGjeldendeVedtaksdata(sakId, periodeNesteMånedOgTreMånederFram.fraOgMed)
-        mocks.verifyNoMoreInteractions()
     }
 
     @Test
@@ -448,23 +372,10 @@ internal class OpprettRevurderingServiceTest {
         val fraOgMedDatoFebruar = fixedLocalDate.plus(1, ChronoUnit.MONTHS)
         val fraOgMedDatoApril = fixedLocalDate.plus(3, ChronoUnit.MONTHS)
 
-        val gjeldendeVedtaksdataFebruar = sak3.kopierGjeldendeVedtaksdata(
-            fraOgMed = fraOgMedDatoFebruar,
-            clock = tikkendeKlokke,
-        ).getOrFail()
-
-        val gjeldendeVedtaksdataApril = sak3.kopierGjeldendeVedtaksdata(
-            fraOgMed = fraOgMedDatoApril,
-            clock = tikkendeKlokke,
-        ).getOrFail()
-
-        val vedtakServiceMock = mock<VedtakService> {
-            on { kopierGjeldendeVedtaksdata(sakId, fraOgMedDatoFebruar) } doReturn gjeldendeVedtaksdataFebruar.right()
-            on { kopierGjeldendeVedtaksdata(sakId, fraOgMedDatoApril) } doReturn gjeldendeVedtaksdataApril.right()
-        }
-
-        val mocks = RevurderingServiceMocks(
-            vedtakService = vedtakServiceMock,
+        RevurderingServiceMocks(
+            sakService = mock {
+                on { hentSak(any<UUID>()) } doReturn sak3.right()
+            },
             oppgaveService = mock {
                 on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
             },
@@ -477,302 +388,243 @@ internal class OpprettRevurderingServiceTest {
             revurderingRepo = mock {
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
-        )
-        val revurderingForFebruar = mocks.revurderingService.opprettRevurdering(
-            OpprettRevurderingRequest(
-                sakId = sakId,
-                fraOgMed = fraOgMedDatoFebruar,
-                årsak = "MELDING_FRA_BRUKER",
-                begrunnelse = "Ny informasjon",
-                saksbehandler = saksbehandler,
-                informasjonSomRevurderes = listOf(Revurderingsteg.Inntekt, Revurderingsteg.Bosituasjon),
-            ),
-        )
+        ).also {
+            val revurderingForFebruar = it.revurderingService.opprettRevurdering(
+                OpprettRevurderingRequest(
+                    sakId = sakId,
+                    fraOgMed = fraOgMedDatoFebruar,
+                    årsak = "MELDING_FRA_BRUKER",
+                    begrunnelse = "Ny informasjon",
+                    saksbehandler = saksbehandler,
+                    informasjonSomRevurderes = listOf(Revurderingsteg.Inntekt, Revurderingsteg.Bosituasjon),
+                ),
+            )
 
-        revurderingForFebruar.getOrFail().tilRevurdering shouldBe vedtakForFørsteJanuarLagetNå.id
+            revurderingForFebruar.getOrFail().tilRevurdering shouldBe vedtakForFørsteJanuarLagetNå.id
 
-        val revurderingForApril = mocks.revurderingService.opprettRevurdering(
-            OpprettRevurderingRequest(
-                sakId = sakId,
-                fraOgMed = fraOgMedDatoApril,
-                årsak = "MELDING_FRA_BRUKER",
-                begrunnelse = "Ny informasjon",
-                saksbehandler = saksbehandler,
-                informasjonSomRevurderes,
-            ),
-        )
+            val revurderingForApril = it.revurderingService.opprettRevurdering(
+                OpprettRevurderingRequest(
+                    sakId = sakId,
+                    fraOgMed = fraOgMedDatoApril,
+                    årsak = "MELDING_FRA_BRUKER",
+                    begrunnelse = "Ny informasjon",
+                    saksbehandler = saksbehandler,
+                    informasjonSomRevurderes = listOf(
+                        Revurderingsteg.Inntekt,
+                    ),
+                ),
+            )
 
-        revurderingForApril.getOrFail().tilRevurdering shouldBe vedtakForFørsteMarsLagetNå.id
+            revurderingForApril.getOrFail().tilRevurdering shouldBe vedtakForFørsteMarsLagetNå.id
+        }
     }
 
     @Test
     fun `kan revurdere en periode med eksisterende revurdering`() {
-        val (sak, iverksattRevurdering) = iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak()
-        val søknadsbehandlingVedtak = sak.vedtakListe.first() as VedtakSomKanRevurderes
-        val revurderingVedtak = VedtakSomKanRevurderes.from(
-            iverksattRevurdering,
-            UUID30.randomUUID(),
-            fixedClock.plus(1, ChronoUnit.SECONDS),
-        )
+        val (sak, revurderingVedtak) = vedtakRevurdering()
 
-        val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
-            periode = periodeNesteMånedOgTreMånederFram,
-            vedtakListe = nonEmptyListOf(
-                søknadsbehandlingVedtak,
-                revurderingVedtak,
-            ),
-            clock = fixedClock,
-        )
-
-        val vedtakServiceMock = mock<VedtakService> {
-            on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn gjeldendeVedtaksdata.right()
-        }
-        val revurderingRepoMock = mock<RevurderingRepo>()
-
-        val oppgaveServiceMock = mock<OppgaveService> {
-            on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
-        }
-        val personServiceMock = mock<PersonService> {
-            on { hentAktørId(any()) } doReturn aktørId.right()
-        }
-        val mocks = RevurderingServiceMocks(
-            vedtakService = vedtakServiceMock,
-            revurderingRepo = revurderingRepoMock,
-            oppgaveService = oppgaveServiceMock,
-            personService = personServiceMock,
+        RevurderingServiceMocks(
+            sakService = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
+            },
+            oppgaveService = mock {
+                on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
+            },
+            personService = mock {
+                on { hentAktørId(any()) } doReturn aktørId.right()
+            },
             avkortingsvarselRepo = mock {
                 on { hentUtestående(any()) } doReturn Avkortingsvarsel.Ingen
             },
-        )
-        val actual = mocks.revurderingService.opprettRevurdering(
-            OpprettRevurderingRequest(
-                sakId = sakId,
-                fraOgMed = periodeNesteMånedOgTreMånederFram.fraOgMed,
-                årsak = "MELDING_FRA_BRUKER",
-                begrunnelse = "Ny informasjon",
-                saksbehandler = saksbehandler,
-                informasjonSomRevurderes = informasjonSomRevurderes,
-            ),
-        )
+            revurderingRepo = mock(),
+        ).also {
+            val actual = it.revurderingService.opprettRevurdering(
+                OpprettRevurderingRequest(
+                    sakId = sakId,
+                    fraOgMed = periodeNesteMånedOgTreMånederFram.fraOgMed,
+                    årsak = "MELDING_FRA_BRUKER",
+                    begrunnelse = "Ny informasjon",
+                    saksbehandler = saksbehandler,
+                    informasjonSomRevurderes = listOf(
+                        Revurderingsteg.Inntekt,
+                    ),
+                ),
+            )
 
-        actual.getOrFail().also {
-            it.saksnummer shouldBe saksnummer
-            it.tilRevurdering shouldBe revurderingVedtak.id
+            actual.getOrFail().also {
+                it.saksnummer shouldBe saksnummer
+                it.tilRevurdering shouldBe revurderingVedtak.id
+            }
+
+            verify(it.sakService).hentSak(sakId)
+            verify(it.personService).hentAktørId(argThat { it shouldBe fnr })
+            verify(it.revurderingRepo).defaultTransactionContext()
+            verify(it.revurderingRepo).lagre(argThat { it.right() shouldBe actual }, anyOrNull())
+            verify(it.oppgaveService).opprettOppgave(
+                argThat {
+                    it shouldBe OppgaveConfig.Revurderingsbehandling(
+                        saksnummer = saksnummer,
+                        aktørId = aktørId,
+                        tilordnetRessurs = null,
+                        clock = fixedClock,
+                    )
+                },
+            )
+            verify(it.avkortingsvarselRepo).hentUtestående(any())
+            it.verifyNoMoreInteractions()
         }
-
-        verify(vedtakServiceMock).kopierGjeldendeVedtaksdata(sakId, periodeNesteMånedOgTreMånederFram.fraOgMed)
-        verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
-        verify(revurderingRepoMock).defaultTransactionContext()
-        verify(revurderingRepoMock).lagre(argThat { it.right() shouldBe actual }, anyOrNull())
-        verify(oppgaveServiceMock).opprettOppgave(
-            argThat {
-                it shouldBe OppgaveConfig.Revurderingsbehandling(
-                    saksnummer = saksnummer,
-                    aktørId = aktørId,
-                    tilordnetRessurs = null,
-                    clock = fixedClock,
-                )
-            },
-        )
-        verify(mocks.avkortingsvarselRepo).hentUtestående(any())
-        mocks.verifyNoMoreInteractions()
     }
 
     @Test
     fun `ugyldig periode`() {
-        val vedtakServiceMock = mock<VedtakService> {
-            on {
-                kopierGjeldendeVedtaksdata(
-                    any(),
-                    any(),
-                )
-            } doReturn KunneIkkeKopiereGjeldendeVedtaksdata.UgyldigPeriode(Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden)
+        RevurderingServiceMocks(
+            sakService = mock {
+                on { hentSak(any<UUID>()) } doReturn iverksattSøknadsbehandlingUføre().first.right()
+            },
+        ).also {
+            it.revurderingService.opprettRevurdering(
+                OpprettRevurderingRequest(
+                    sakId = sakId,
+                    // tester at fraOgMed må starte på 1.
+                    fraOgMed = periodeNesteMånedOgTreMånederFram.tilOgMed,
+                    årsak = "MELDING_FRA_BRUKER",
+                    begrunnelse = "Ny informasjon",
+                    saksbehandler = saksbehandler,
+                    informasjonSomRevurderes = listOf(Revurderingsteg.Inntekt),
+                ),
+            ) shouldBe KunneIkkeOppretteRevurdering.UgyldigPeriode(Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden)
                 .left()
         }
-
-        val mocks = RevurderingServiceMocks(
-            vedtakService = vedtakServiceMock,
-        )
-        val actual = mocks.revurderingService.opprettRevurdering(
-            OpprettRevurderingRequest(
-                sakId = sakId,
-                // tester at fraOgMed må starte på 1.
-                fraOgMed = periodeNesteMånedOgTreMånederFram.tilOgMed,
-                årsak = "MELDING_FRA_BRUKER",
-                begrunnelse = "Ny informasjon",
-                saksbehandler = saksbehandler,
-                informasjonSomRevurderes = listOf(Revurderingsteg.Inntekt),
-            ),
-        )
-
-        actual shouldBe KunneIkkeOppretteRevurdering.UgyldigPeriode(Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden)
-            .left()
-        verify(vedtakServiceMock).kopierGjeldendeVedtaksdata(any(), any())
-        mocks.verifyNoMoreInteractions()
     }
 
     @Test
     fun `fant ikke aktør id`() {
-        val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
-            periode = periodeNesteMånedOgTreMånederFram,
-            vedtakListe = nonEmptyListOf(createSøknadsbehandlingVedtak()),
-            clock = fixedClock,
-        )
+        RevurderingServiceMocks(
+            sakService = mock {
+                on { hentSak(any<UUID>()) } doReturn iverksattSøknadsbehandlingUføre().first.right()
+            },
+            personService = mock {
+                on { hentAktørId(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
+            },
+        ).also {
+            it.revurderingService.opprettRevurdering(
+                OpprettRevurderingRequest(
+                    sakId = sakId,
+                    fraOgMed = periodeNesteMånedOgTreMånederFram.fraOgMed,
+                    årsak = "MELDING_FRA_BRUKER",
+                    begrunnelse = "Ny informasjon",
+                    saksbehandler = saksbehandler,
+                    informasjonSomRevurderes = listOf(Revurderingsteg.Inntekt),
+                ),
+            ) shouldBe KunneIkkeOppretteRevurdering.FantIkkeAktørId.left()
 
-        val vedtakServiceMock = mock<VedtakService> {
-            on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn gjeldendeVedtaksdata.right()
+            verify(it.sakService).hentSak(sakId)
+            verify(it.personService).hentAktørId(argThat { it shouldBe fnr })
+            it.verifyNoMoreInteractions()
         }
-
-        val personServiceMock = mock<PersonService> {
-            on { hentAktørId(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
-        }
-
-        val mocks = RevurderingServiceMocks(
-            vedtakService = vedtakServiceMock,
-            personService = personServiceMock,
-        )
-        val actual = mocks.revurderingService.opprettRevurdering(
-            OpprettRevurderingRequest(
-                sakId = sakId,
-                fraOgMed = periodeNesteMånedOgTreMånederFram.fraOgMed,
-                årsak = "MELDING_FRA_BRUKER",
-                begrunnelse = "Ny informasjon",
-                saksbehandler = saksbehandler,
-                informasjonSomRevurderes = listOf(Revurderingsteg.Inntekt),
-            ),
-        )
-
-        actual shouldBe KunneIkkeOppretteRevurdering.FantIkkeAktørId.left()
-        verify(vedtakServiceMock).kopierGjeldendeVedtaksdata(sakId, periodeNesteMånedOgTreMånederFram.fraOgMed)
-        verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
-        mocks.verifyNoMoreInteractions()
     }
 
     @Test
     fun `kunne ikke opprette oppgave`() {
-        val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
-            periode = periodeNesteMånedOgTreMånederFram,
-            vedtakListe = nonEmptyListOf(createSøknadsbehandlingVedtak()),
-            clock = fixedClock,
-        )
-
-        val vedtakServiceMock = mock<VedtakService> {
-            on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn gjeldendeVedtaksdata.right()
-        }
-
-        val personServiceMock = mock<PersonService> {
-            on { hentAktørId(any()) } doReturn aktørId.right()
-        }
-
-        val oppgaveServiceMock = mock<OppgaveService> {
-            on { opprettOppgave(any()) } doReturn KunneIkkeOppretteOppgave.left()
-        }
-
-        val mocks = RevurderingServiceMocks(
-            vedtakService = vedtakServiceMock,
-            oppgaveService = oppgaveServiceMock,
-            personService = personServiceMock,
+        RevurderingServiceMocks(
+            sakService = mock {
+                on { hentSak(any<UUID>()) } doReturn iverksattSøknadsbehandlingUføre().first.right()
+            },
+            oppgaveService = mock {
+                on { opprettOppgave(any()) } doReturn KunneIkkeOppretteOppgave.left()
+            },
+            personService = mock {
+                on { hentAktørId(any()) } doReturn aktørId.right()
+            },
             avkortingsvarselRepo = mock {
                 on { hentUtestående(any()) } doReturn Avkortingsvarsel.Ingen
             },
-        )
-        val actual = mocks.revurderingService.opprettRevurdering(
-            OpprettRevurderingRequest(
-                sakId = sakId,
-                fraOgMed = periodeNesteMånedOgTreMånederFram.fraOgMed,
-                årsak = "MELDING_FRA_BRUKER",
-                begrunnelse = "Ny informasjon",
-                saksbehandler = saksbehandler,
-                informasjonSomRevurderes = informasjonSomRevurderes,
-            ),
-        )
-        actual shouldBe KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave.left()
-        verify(vedtakServiceMock).kopierGjeldendeVedtaksdata(sakId, periodeNesteMånedOgTreMånederFram.fraOgMed)
-        verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
-        verify(mocks.avkortingsvarselRepo).hentUtestående(sakId)
-        verify(oppgaveServiceMock).opprettOppgave(
-            argThat {
-                it shouldBe OppgaveConfig.Revurderingsbehandling(
-                    saksnummer = saksnummer,
-                    aktørId = aktørId,
-                    tilordnetRessurs = null,
-                    clock = fixedClock,
-                )
-            },
-        )
-        mocks.verifyNoMoreInteractions()
+        ).also {
+            val actual = it.revurderingService.opprettRevurdering(
+                OpprettRevurderingRequest(
+                    sakId = sakId,
+                    fraOgMed = periodeNesteMånedOgTreMånederFram.fraOgMed,
+                    årsak = "MELDING_FRA_BRUKER",
+                    begrunnelse = "Ny informasjon",
+                    saksbehandler = saksbehandler,
+                    informasjonSomRevurderes = listOf(
+                        Revurderingsteg.Inntekt,
+                    ),
+                ),
+            )
+            actual shouldBe KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave.left()
+            verify(it.sakService).hentSak(sakId)
+            verify(it.personService).hentAktørId(argThat { it shouldBe fnr })
+            verify(it.avkortingsvarselRepo).hentUtestående(sakId)
+            verify(it.oppgaveService).opprettOppgave(
+                argThat {
+                    it shouldBe OppgaveConfig.Revurderingsbehandling(
+                        saksnummer = saksnummer,
+                        aktørId = aktørId,
+                        tilordnetRessurs = null,
+                        clock = fixedClock,
+                    )
+                },
+            )
+            it.verifyNoMoreInteractions()
+        }
     }
 
     @Test
     fun `må velge noe som skal revurderes`() {
-        val personServiceMock = mock<PersonService> {
-            on { hentAktørId(any()) } doReturn aktørId.right()
+        RevurderingServiceMocks(
+            personService = mock {
+                on { hentAktørId(any()) } doReturn aktørId.right()
+            },
+        ).also {
+            it.revurderingService.opprettRevurdering(
+                OpprettRevurderingRequest(
+                    sakId = sakId,
+                    fraOgMed = periodeNesteMånedOgTreMånederFram.fraOgMed,
+                    årsak = "MELDING_FRA_BRUKER",
+                    begrunnelse = "Ny informasjon",
+                    saksbehandler = saksbehandler,
+                    informasjonSomRevurderes = emptyList(),
+                ),
+            ) shouldBe KunneIkkeOppretteRevurdering.MåVelgeInformasjonSomSkalRevurderes.left()
         }
-
-        val mocks = RevurderingServiceMocks(
-            personService = personServiceMock,
-        )
-        val actual = mocks.revurderingService.opprettRevurdering(
-            OpprettRevurderingRequest(
-                sakId = sakId,
-                fraOgMed = periodeNesteMånedOgTreMånederFram.fraOgMed,
-                årsak = "MELDING_FRA_BRUKER",
-                begrunnelse = "Ny informasjon",
-                saksbehandler = saksbehandler,
-                informasjonSomRevurderes = emptyList(),
-            ),
-        )
-
-        actual shouldBe KunneIkkeOppretteRevurdering.MåVelgeInformasjonSomSkalRevurderes.left()
-        mocks.verifyNoMoreInteractions()
     }
 
     @Test
     fun `støtter ikke tilfeller hvor gjeldende vedtaksdata ikke er sammenhengende i tid`() {
-        val (førsteSak, førsteVedtak) = vedtakSøknadsbehandlingIverksattInnvilget(
-            stønadsperiode = Stønadsperiode.create(år(2021)),
+        val sakMedFørstegangsbehandling = iverksattSøknadsbehandlingUføre(
+            stønadsperiode = Stønadsperiode.create(januar(2021).rangeTo(juli(2021))),
         )
 
-        val (andreSak, andreVedtak) = vedtakSøknadsbehandlingIverksattInnvilget(
-            stønadsperiode = Stønadsperiode.create(februar(2022)),
-        )
-
-        // TODO jah: Burde kunne gjøre mer av dette via sak (her blir ikke sakId og fnr like)
-        val sak = førsteSak.copy(
-            utbetalinger = førsteSak.utbetalinger + andreSak.utbetalinger,
-            søknadsbehandlinger = førsteSak.søknadsbehandlinger + andreSak.søknadsbehandlinger,
-            vedtakListe = førsteSak.vedtakListe + andreSak.vedtakListe,
-            søknader = førsteSak.søknader + andreSak.søknader,
-        )
-
-        val gjeldendeVedtaksdata = sak.hentGjeldendeVedtaksdata(
-            periode = Periode.create(
-                fraOgMed = førsteVedtak.periode.fraOgMed,
-                tilOgMed = andreVedtak.periode.tilOgMed,
+        val sakMedNyStønadsperiode = iverksattSøknadsbehandlingUføre(
+            stønadsperiode = Stønadsperiode.create(januar(2022).rangeTo(desember(2022))),
+            sakOgSøknad = sakMedFørstegangsbehandling.first to nySøknadJournalførtMedOppgave(
+                sakId = sakMedFørstegangsbehandling.first.id,
+                søknadInnhold = søknadinnhold(
+                    fnr = sakMedFørstegangsbehandling.first.fnr,
+                ),
             ),
-            clock = fixedClock,
-        ).orNull()!!
+        )
 
-        val vedtakServiceMock = mock<VedtakService> {
-            on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn gjeldendeVedtaksdata.right()
+        RevurderingServiceMocks(
+            sakService = mock {
+                on { hentSak(any<UUID>()) } doReturn sakMedNyStønadsperiode.first.right()
+            },
+        ).also {
+            val actual = it.revurderingService.opprettRevurdering(
+                OpprettRevurderingRequest(
+                    sakId = sakId,
+                    fraOgMed = 1.januar(2021),
+                    årsak = "MELDING_FRA_BRUKER",
+                    begrunnelse = "Ny informasjon",
+                    saksbehandler = saksbehandler,
+                    informasjonSomRevurderes = listOf(
+                        Revurderingsteg.Inntekt,
+                    ),
+                ),
+            )
+            actual shouldBe KunneIkkeOppretteRevurdering.TidslinjeForVedtakErIkkeKontinuerlig.left()
         }
-
-        val mocks = RevurderingServiceMocks(
-            vedtakService = vedtakServiceMock,
-        )
-        val actual = mocks.revurderingService.opprettRevurdering(
-            OpprettRevurderingRequest(
-                sakId = sakId,
-                fraOgMed = periodeNesteMånedOgTreMånederFram.fraOgMed,
-                årsak = "MELDING_FRA_BRUKER",
-                begrunnelse = "Ny informasjon",
-                saksbehandler = saksbehandler,
-                informasjonSomRevurderes = informasjonSomRevurderes,
-            ),
-        )
-        actual shouldBe KunneIkkeOppretteRevurdering.TidslinjeForVedtakErIkkeKontinuerlig.left()
-        verify(vedtakServiceMock).kopierGjeldendeVedtaksdata(sakId, periodeNesteMånedOgTreMånederFram.fraOgMed)
-        mocks.verifyNoMoreInteractions()
     }
 
     @Test
@@ -796,11 +648,8 @@ internal class OpprettRevurderingServiceTest {
             }
 
         RevurderingServiceMocks(
-            vedtakService = mock {
-                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn sak.kopierGjeldendeVedtaksdata(
-                    fraOgMed = nyRevurderingsperiode.fraOgMed,
-                    clock = clock,
-                ).getOrFail().right()
+            sakService = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
             },
             personService = mock {
                 on { hentAktørId(any()) } doReturn aktørId.right()

@@ -1,8 +1,6 @@
 package no.nav.su.se.bakover.service.revurdering
 
-import arrow.core.NonEmptyList
 import arrow.core.left
-import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
@@ -18,22 +16,19 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
-import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.SimulerGjenopptakFeil
 import no.nav.su.se.bakover.service.utbetaling.UtbetalGjenopptakFeil
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
-import no.nav.su.se.bakover.service.vedtak.KunneIkkeKopiereGjeldendeVedtaksdata
-import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.oversendtGjenopptakUtbetalingUtenKvittering
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.sakId
@@ -42,8 +37,8 @@ import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.simulertGjenopptakUtbetaling
 import no.nav.su.se.bakover.test.simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse
 import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
-import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.kotlin.any
@@ -63,12 +58,10 @@ internal class GjenopptakAvYtelseServiceTest {
 
     @Test
     fun `svarer med feil dersom sak ikke har noen vedtak`() {
-        val vedtakRepoMock = mock<VedtakRepo> {
-            on { hentForSakId(any()) } doReturn emptyList()
-        }
-
         RevurderingServiceMocks(
-            vedtakRepo = vedtakRepoMock,
+            sakService = mock {
+                on { hentSak(any<UUID>()) } doReturn søknadsbehandlingVilkårsvurdertUavklart().first.right()
+            },
         ).let {
             it.revurderingService.gjenopptaYtelse(
                 GjenopptaYtelseRequest.Opprett(
@@ -80,22 +73,15 @@ internal class GjenopptakAvYtelseServiceTest {
                     ),
                 ),
             ) shouldBe KunneIkkeGjenopptaYtelse.FantIngenVedtak.left()
-
-            verify(it.vedtakRepo).hentForSakId(
-                sakId = sakId,
-            )
-            it.verifyNoMoreInteractions()
         }
     }
 
     @Test
     fun `svarer med feil dersom siste vedtak ikke er en stans`() {
-        val vedtakRepoMock = mock<VedtakRepo> {
-            on { hentForSakId(any()) } doReturn listOf(vedtakSøknadsbehandlingIverksattInnvilget().second)
-        }
-
         RevurderingServiceMocks(
-            vedtakRepo = vedtakRepoMock,
+            sakService = mock {
+                on { hentSak(any<UUID>()) } doReturn iverksattSøknadsbehandlingUføre().first.right()
+            },
         ).let {
             it.revurderingService.gjenopptaYtelse(
                 GjenopptaYtelseRequest.Opprett(
@@ -107,62 +93,6 @@ internal class GjenopptakAvYtelseServiceTest {
                     ),
                 ),
             ) shouldBe KunneIkkeGjenopptaYtelse.SisteVedtakErIkkeStans.left()
-
-            verify(it.vedtakRepo).hentForSakId(
-                sakId = sakId,
-            )
-            it.verifyNoMoreInteractions()
-        }
-    }
-
-    @Test
-    fun `svarer med feil dersom vi ikke får tak i gjeldende grunnlagdata`() {
-        val periode = Periode.create(
-            fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
-            tilOgMed = år(2021).tilOgMed,
-        )
-
-        val (sak, _) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(periode = periode)
-
-        val sakServiceMock = mock<SakService> {
-            on { hentSak(any<UUID>()) } doReturn sak.right()
-        }
-
-        val vedtakRepoMock = mock<VedtakRepo> {
-            on { hentForSakId(any()) } doReturn sak.vedtakListe
-        }
-        val vedtakServiceMock = mock<VedtakService> {
-            on {
-                kopierGjeldendeVedtaksdata(
-                    any(),
-                    any(),
-                )
-            } doReturn KunneIkkeKopiereGjeldendeVedtaksdata.FantIngenVedtak.left()
-        }
-
-        RevurderingServiceMocks(
-            vedtakRepo = vedtakRepoMock,
-            vedtakService = vedtakServiceMock,
-            sakService = sakServiceMock,
-        ).let {
-            it.revurderingService.gjenopptaYtelse(
-                GjenopptaYtelseRequest.Opprett(
-                    sakId = sakId,
-                    saksbehandler = saksbehandler,
-                    revurderingsårsak = Revurderingsårsak.create(
-                        årsak = Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING.toString(),
-                        begrunnelse = "begrunnelse",
-                    ),
-                ),
-            ) shouldBe KunneIkkeGjenopptaYtelse.KunneIkkeOppretteRevurdering.left()
-
-            verify(it.vedtakRepo).hentForSakId(sakId)
-            verify(it.sakService).hentSak(sakId)
-            verify(it.vedtakService).kopierGjeldendeVedtaksdata(
-                sakId = sakId,
-                fraOgMed = periode.fraOgMed,
-            )
-            it.verifyNoMoreInteractions()
         }
     }
 
@@ -174,40 +104,20 @@ internal class GjenopptakAvYtelseServiceTest {
         )
         val (sak, vedtak) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(periode = periode)
 
-        val sakServiceMock = mock<SakService> {
-            on { hentSak(any<UUID>()) } doReturn sak.right()
-        }
-
-        val vedtakRepoMock = mock<VedtakRepo> {
-            on { hentForSakId(any()) } doReturn listOf(vedtak)
-        }
-
-        val vedtakServiceMock = mock<VedtakService> {
-            on {
-                kopierGjeldendeVedtaksdata(
-                    any(),
-                    any(),
-                )
-            } doReturn GjeldendeVedtaksdata(
-                periode = periode,
-                vedtakListe = NonEmptyList.fromListUnsafe(sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()),
-                clock = fixedClock,
-            ).right()
-        }
-
-        val utbetalingServiceMock = mock<UtbetalingService> {
-            on {
-                simulerGjenopptak(
-                    any(),
-                )
-            } doReturn SimulerGjenopptakFeil.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL).left()
-        }
-
         RevurderingServiceMocks(
-            vedtakRepo = vedtakRepoMock,
-            vedtakService = vedtakServiceMock,
-            utbetalingService = utbetalingServiceMock,
-            sakService = sakServiceMock,
+            vedtakRepo = mock {
+                on { hentForSakId(any()) } doReturn listOf(vedtak)
+            },
+            utbetalingService = mock {
+                on {
+                    simulerGjenopptak(
+                        any(),
+                    )
+                } doReturn SimulerGjenopptakFeil.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL).left()
+            },
+            sakService = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
+            },
         ).let {
             it.revurderingService.gjenopptaYtelse(
                 GjenopptaYtelseRequest.Opprett(
@@ -224,12 +134,7 @@ internal class GjenopptakAvYtelseServiceTest {
                 ),
             ).left()
 
-            verify(it.vedtakRepo).hentForSakId(sak.id)
             verify(it.sakService).hentSak(sak.id)
-            verify(it.vedtakService).kopierGjeldendeVedtaksdata(
-                sakId = sak.id,
-                fraOgMed = periode.fraOgMed,
-            )
             verify(it.utbetalingService).simulerGjenopptak(
                 request = SimulerUtbetalingRequest.Gjenopptak(
                     saksbehandler = saksbehandler,
@@ -251,13 +156,6 @@ internal class GjenopptakAvYtelseServiceTest {
         val serviceAndMocks = RevurderingServiceMocks(
             vedtakRepo = mock {
                 on { hentForSakId(any()) } doReturn sak.vedtakListe
-            },
-            vedtakService = mock {
-                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn GjeldendeVedtaksdata(
-                    periode = periode,
-                    vedtakListe = nonEmptyListOf(vedtak),
-                    clock = fixedClock,
-                ).right()
             },
             utbetalingService = mock {
                 on { simulerGjenopptak(any()) } doReturn simulertGjenopptakUtbetaling().right()
@@ -290,12 +188,7 @@ internal class GjenopptakAvYtelseServiceTest {
             begrunnelse = "begrunnelse",
         )
 
-        verify(serviceAndMocks.vedtakRepo).hentForSakId(sak.id)
         verify(serviceAndMocks.sakService).hentSak(sak.id)
-        verify(serviceAndMocks.vedtakService).kopierGjeldendeVedtaksdata(
-            sakId = sak.id,
-            fraOgMed = periode.fraOgMed,
-        )
         verify(serviceAndMocks.utbetalingService).simulerGjenopptak(
             request = argThat {
                 it shouldBe SimulerUtbetalingRequest.Gjenopptak(
@@ -397,40 +290,19 @@ internal class GjenopptakAvYtelseServiceTest {
             clock = fixedClock,
         )
 
-        val vedtakRepoMock = mock<VedtakRepo> {
-            on { hentForSakId(any()) } doReturn sak.vedtakListe
-        }
-
-        val vedtakServiceMock = mock<VedtakService> {
-            on {
-                kopierGjeldendeVedtaksdata(
-                    any(),
-                    any(),
-                )
-            } doReturn sak.kopierGjeldendeVedtaksdata(
-                fraOgMed = periode.fraOgMed,
-                clock = fixedClock,
-            ).getOrFail().right()
-        }
-
-        val sakService = mock<SakService> {
-            on { hentSak(any<UUID>()) } doReturn sak.right()
-        }
-
-        val utbetalingServiceMock = mock<UtbetalingService> {
-            on { simulerGjenopptak(any()) } doReturn simulertGjenopptakUtbetaling().right()
-        }
-
-        val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(any()) } doReturn revurdering
-        }
-
         RevurderingServiceMocks(
-            revurderingRepo = revurderingRepoMock,
-            vedtakRepo = vedtakRepoMock,
-            vedtakService = vedtakServiceMock,
-            utbetalingService = utbetalingServiceMock,
-            sakService = sakService,
+            revurderingRepo = mock {
+                on { hent(any()) } doReturn revurdering
+            },
+            vedtakRepo = mock {
+                on { hentForSakId(any()) } doReturn sak.vedtakListe
+            },
+            utbetalingService = mock {
+                on { simulerGjenopptak(any()) } doReturn simulertGjenopptakUtbetaling().right()
+            },
+            sakService = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
+            },
         ).let {
             val response = it.revurderingService.gjenopptaYtelse(
                 GjenopptaYtelseRequest.Oppdater(
@@ -452,12 +324,7 @@ internal class GjenopptakAvYtelseServiceTest {
                 begrunnelse = "ny begrunnelse",
             )
 
-            verify(sakService).hentSak(sak.id)
-            verify(vedtakRepoMock).hentForSakId(sak.id)
-            verify(it.vedtakService).kopierGjeldendeVedtaksdata(
-                sakId = sak.id,
-                fraOgMed = periode.fraOgMed,
-            )
+            verify(it.sakService).hentSak(sak.id)
             verify(it.utbetalingService).simulerGjenopptak(
                 request = argThat {
                     it shouldBe SimulerUtbetalingRequest.Gjenopptak(
@@ -466,7 +333,6 @@ internal class GjenopptakAvYtelseServiceTest {
                     )
                 },
             )
-            verify(it.revurderingRepo).hent(revurdering.id)
             verify(it.revurderingRepo).defaultTransactionContext()
             verify(it.revurderingRepo).lagre(argThat { it shouldBe response }, anyOrNull())
             it.verifyNoMoreInteractions()
@@ -510,31 +376,13 @@ internal class GjenopptakAvYtelseServiceTest {
         )
         val (sak, _) = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(periodeForStans = periode)
 
-        val vedtakRepoMock = mock<VedtakRepo> {
-            on { hentForSakId(any()) } doReturn sak.vedtakListe
-        }
-
-        val vedtakServiceMock = mock<VedtakService> {
-            on {
-                kopierGjeldendeVedtaksdata(
-                    any(),
-                    any(),
-                )
-            } doReturn GjeldendeVedtaksdata(
-                periode = periode,
-                vedtakListe = NonEmptyList.fromListUnsafe(@Suppress("UNCHECKED_CAST") (sak.vedtakListe as List<VedtakSomKanRevurderes>)),
-                clock = fixedClock,
-            ).right()
-        }
-
-        val sakServiceMock = mock<SakService> {
-            on { hentSak(any<UUID>()) } doReturn sak.right()
-        }
-
         RevurderingServiceMocks(
-            sakService = sakServiceMock,
-            vedtakService = vedtakServiceMock,
-            vedtakRepo = vedtakRepoMock,
+            sakService = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
+            },
+            vedtakRepo = mock {
+                on { hentForSakId(any()) } doReturn sak.vedtakListe
+            },
         ).let {
             val response = it.revurderingService.gjenopptaYtelse(
                 GjenopptaYtelseRequest.Opprett(
@@ -549,7 +397,6 @@ internal class GjenopptakAvYtelseServiceTest {
 
             response shouldBe KunneIkkeGjenopptaYtelse.SakHarÅpenRevurderingForGjenopptakAvYtelse.left()
 
-            verify(it.vedtakRepo).hentForSakId(sakId)
             verify(it.sakService).hentSak(sakId)
             it.verifyNoMoreInteractions()
         }

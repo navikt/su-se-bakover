@@ -124,6 +124,7 @@ data class Sak(
                                 fraOgMed,
                                 tilOgMed,
                             )
+
                             FraOgMedDatoMåVæreFørsteDagIMåneden, TilOgMedDatoMåVæreSisteDagIMåneden,
                             -> KunneIkkeHenteGjeldendeVedtaksdata.UgyldigPeriode(it)
                         }
@@ -163,6 +164,40 @@ data class Sak(
         }
 
         data class UgyldigPeriode(val feil: Periode.UgyldigPeriode) : KunneIkkeHenteGjeldendeVedtaksdata()
+    }
+
+    /**
+     * Lager et snapshot av gjeldende vedtaksdata slik de så ut før vedtaket angitt av [vedtakId] ble
+     * iverksatt. Perioden for dataene begrenses til vedtaksperioden for [vedtakId].
+     * Brukes av vedtaksoppsummeringen for å vise differansen mellom nytt/gammelt grunnlag.
+     */
+    fun historiskGrunnlagForVedtaketsPeriode(
+        vedtakId: UUID,
+        clock: Clock,
+    ): Either<KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak, GjeldendeVedtaksdata> {
+        val vedtak = vedtakListe
+            .filterIsInstance<VedtakSomKanRevurderes>()
+            .find { it.id == vedtakId }
+            ?: return KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak.FantIkkeVedtak.left()
+
+        return vedtakListe
+            .filterIsInstance<VedtakSomKanRevurderes>()
+            .filter { it.opprettet < vedtak.opprettet }
+            .ifEmpty {
+                return KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak.IngenTidligereVedtak.left()
+            }
+            .let {
+                GjeldendeVedtaksdata(
+                    periode = vedtak.periode,
+                    vedtakListe = NonEmptyList.fromListUnsafe(it),
+                    clock = clock,
+                ).right()
+            }
+    }
+
+    sealed class KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak {
+        object FantIkkeVedtak : KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak()
+        object IngenTidligereVedtak : KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak()
     }
 
     /**
@@ -222,6 +257,10 @@ data class Sak(
 
     fun harÅpenRevurderingForGjenopptakAvYtelse(): Boolean {
         return revurderinger.filterIsInstance<GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse>().isNotEmpty()
+    }
+
+    fun hentRevurdering(id: UUID): Either<Unit, AbstraktRevurdering> {
+        return revurderinger.singleOrNull { it.id == id }?.right() ?: Unit.left()
     }
 
     /**
@@ -331,6 +370,7 @@ data class Sak(
                 is no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata -> {
                     KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it)
                 }
+
                 is no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeOppdatereStønadsperiode.UgyldigTilstand -> {
                     KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it)
                 }

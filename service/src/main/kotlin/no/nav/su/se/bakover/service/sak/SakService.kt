@@ -23,6 +23,14 @@ interface SakService {
         periode: Periode,
     ): Either<KunneIkkeHenteGjeldendeVedtaksdata, GjeldendeVedtaksdata?>
 
+    /**
+     * @see [Sak.historiskGrunnlagForVedtaketsPeriode]
+     */
+    fun historiskGrunnlagForVedtaketsPeriode(
+        sakId: UUID,
+        vedtakId: UUID,
+    ): Either<KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak, GjeldendeVedtaksdata>
+
     fun opprettSak(sak: NySak)
     fun hentÅpneBehandlingerForAlleSaker(): List<Behandlingsoversikt>
     fun hentFerdigeBehandlingerForAlleSaker(): List<Behandlingsoversikt>
@@ -37,4 +45,11 @@ object FantIkkeSak
 sealed class KunneIkkeHenteGjeldendeVedtaksdata {
     object FantIkkeSak : KunneIkkeHenteGjeldendeVedtaksdata()
     object IngenVedtak : KunneIkkeHenteGjeldendeVedtaksdata()
+}
+
+sealed class KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak {
+    data class Feil(val feil: Sak.KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak) :
+        KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak()
+
+    object FantIkkeSak : KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak()
 }
