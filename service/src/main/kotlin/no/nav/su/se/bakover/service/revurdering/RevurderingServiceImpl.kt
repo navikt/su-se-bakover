@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
+import no.nav.su.se.bakover.domain.brev.Brevvalg
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -75,7 +76,6 @@ import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.Event.Statistikk.RevurderingStatistikk.RevurderingAvsluttet
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
-import no.nav.su.se.bakover.service.toggles.ToggleService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeFastOppholdINorgeVilkår
@@ -106,13 +106,12 @@ internal class RevurderingServiceImpl(
     private val brevService: BrevService,
     private val clock: Clock,
     private val vedtakRepo: VedtakRepo,
-    private val vedtakService: VedtakService,
+    vedtakService: VedtakService,
     private val kontrollsamtaleService: KontrollsamtaleService,
     private val sessionFactory: SessionFactory,
     private val formuegrenserFactory: FormuegrenserFactory,
     private val sakService: SakService,
     private val avkortingsvarselRepo: AvkortingsvarselRepo,
-    private val toggleService: ToggleService,
     private val tilbakekrevingService: TilbakekrevingService,
     private val satsFactory: SatsFactory,
 ) : RevurderingService {
@@ -228,8 +227,10 @@ internal class RevurderingServiceImpl(
         }
 
         val uteståendeAvkorting = hentUteståendeAvkorting(opprettRevurderingRequest.sakId).let {
-            kontrollerPeriodeForUteståendeAvkorting(gjeldendeVedtaksdata.periodeFørsteTilOgMedSeneste(), it)
-                .getOrHandle { feil -> return feil.left() }
+            kontrollerPeriodeForUteståendeAvkorting(
+                gjeldendeVedtaksdata.periodeFørsteTilOgMedSeneste(),
+                it,
+            ).getOrHandle { feil -> return feil.left() }
         }
 
         // Oppgaven skal egentligen ikke opprettes her. Den burde egentligen komma utifra melding av endring, som skal føres til revurdering.
@@ -325,8 +326,8 @@ internal class RevurderingServiceImpl(
     override fun leggTilUførevilkår(
         request: LeggTilUførevurderingerRequest,
     ): Either<KunneIkkeLeggeTilUføreVilkår, RevurderingOgFeilmeldingerResponse> {
-        val revurdering = hent(request.behandlingId)
-            .getOrHandle { return KunneIkkeLeggeTilUføreVilkår.FantIkkeBehandling.left() }
+        val revurdering =
+            hent(request.behandlingId).getOrHandle { return KunneIkkeLeggeTilUføreVilkår.FantIkkeBehandling.left() }
 
         val uførevilkår = request.toVilkår(
             behandlingsperiode = revurdering.periode,
@@ -345,20 +346,19 @@ internal class RevurderingServiceImpl(
     override fun leggTilUtenlandsopphold(
         request: LeggTilFlereUtenlandsoppholdRequest,
     ): Either<KunneIkkeLeggeTilUtenlandsopphold, RevurderingOgFeilmeldingerResponse> {
-        val revurdering = hent(request.behandlingId)
-            .getOrHandle { return KunneIkkeLeggeTilUtenlandsopphold.FantIkkeBehandling.left() }
+        val revurdering =
+            hent(request.behandlingId).getOrHandle { return KunneIkkeLeggeTilUtenlandsopphold.FantIkkeBehandling.left() }
 
         val utenlandsoppholdVilkår = request.tilVilkår(clock).getOrHandle {
             return it.tilService()
         }
 
-        return revurdering.oppdaterUtenlandsoppholdOgMarkerSomVurdert(utenlandsoppholdVilkår)
-            .mapLeft {
-                it.tilService()
-            }.map {
-                revurderingRepo.lagre(it)
-                identifiserFeilOgLagResponse(it)
-            }
+        return revurdering.oppdaterUtenlandsoppholdOgMarkerSomVurdert(utenlandsoppholdVilkår).mapLeft {
+            it.tilService()
+        }.map {
+            revurderingRepo.lagre(it)
+            identifiserFeilOgLagResponse(it)
+        }
     }
 
     private fun LeggTilFlereUtenlandsoppholdRequest.UgyldigUtenlandsopphold.tilService(): Either<KunneIkkeLeggeTilUtenlandsopphold, Nothing> {
@@ -397,14 +397,12 @@ internal class RevurderingServiceImpl(
         return hent(request.behandlingId).mapLeft {
             KunneIkkeLeggeTilOpplysningsplikt.FantIkkeBehandling
         }.flatMap { revurdering ->
-            revurdering.oppdaterOpplysningspliktOgMarkerSomVurdert(request.vilkår)
-                .mapLeft {
-                    KunneIkkeLeggeTilOpplysningsplikt.Revurdering(it)
-                }
-                .map {
-                    revurderingRepo.lagre(it)
-                    identifiserFeilOgLagResponse(it)
-                }
+            revurdering.oppdaterOpplysningspliktOgMarkerSomVurdert(request.vilkår).mapLeft {
+                KunneIkkeLeggeTilOpplysningsplikt.Revurdering(it)
+            }.map {
+                revurderingRepo.lagre(it)
+                identifiserFeilOgLagResponse(it)
+            }
         }
     }
 
@@ -412,14 +410,12 @@ internal class RevurderingServiceImpl(
         return hent(request.behandlingId).mapLeft {
             KunneIkkeLeggeTilPensjonsVilkår.FantIkkeBehandling
         }.flatMap { revurdering ->
-            revurdering.oppdaterPensjonsvilkårOgMarkerSomVurdert(request.vilkår)
-                .mapLeft {
-                    KunneIkkeLeggeTilPensjonsVilkår.Revurdering(it)
-                }
-                .map {
-                    revurderingRepo.lagre(it)
-                    identifiserFeilOgLagResponse(it)
-                }
+            revurdering.oppdaterPensjonsvilkårOgMarkerSomVurdert(request.vilkår).mapLeft {
+                KunneIkkeLeggeTilPensjonsVilkår.Revurdering(it)
+            }.map {
+                revurderingRepo.lagre(it)
+                identifiserFeilOgLagResponse(it)
+            }
         }
     }
 
@@ -442,14 +438,12 @@ internal class RevurderingServiceImpl(
         return hent(request.behandlingId).mapLeft {
             KunneIkkeLeggeTilFlyktningVilkår.FantIkkeBehandling
         }.flatMap { revurdering ->
-            revurdering.oppdaterFlyktningvilkårOgMarkerSomVurdert(request.vilkår)
-                .mapLeft {
-                    KunneIkkeLeggeTilFlyktningVilkår.Revurdering(it)
-                }
-                .map {
-                    revurderingRepo.lagre(it)
-                    identifiserFeilOgLagResponse(it)
-                }
+            revurdering.oppdaterFlyktningvilkårOgMarkerSomVurdert(request.vilkår).mapLeft {
+                KunneIkkeLeggeTilFlyktningVilkår.Revurdering(it)
+            }.map {
+                revurderingRepo.lagre(it)
+                identifiserFeilOgLagResponse(it)
+            }
         }
     }
 
@@ -457,20 +451,18 @@ internal class RevurderingServiceImpl(
         return hent(request.behandlingId).mapLeft {
             KunneIkkeLeggeFastOppholdINorgeVilkår.FantIkkeBehandling
         }.flatMap { revurdering ->
-            revurdering.oppdaterFastOppholdINorgeOgMarkerSomVurdert(request.vilkår)
-                .mapLeft {
-                    KunneIkkeLeggeFastOppholdINorgeVilkår.Revurdering(it)
-                }
-                .map {
-                    revurderingRepo.lagre(it)
-                    identifiserFeilOgLagResponse(it)
-                }
+            revurdering.oppdaterFastOppholdINorgeOgMarkerSomVurdert(request.vilkår).mapLeft {
+                KunneIkkeLeggeFastOppholdINorgeVilkår.Revurdering(it)
+            }.map {
+                revurderingRepo.lagre(it)
+                identifiserFeilOgLagResponse(it)
+            }
         }
     }
 
     override fun leggTilFradragsgrunnlag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradragsgrunnlag, RevurderingOgFeilmeldingerResponse> {
-        val revurdering = hent(request.behandlingId)
-            .getOrHandle { return KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling.left() }
+        val revurdering =
+            hent(request.behandlingId).getOrHandle { return KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling.left() }
 
         return revurdering.oppdaterFradragOgMarkerSomVurdert(request.fradragsgrunnlag).mapLeft {
             when (it) {
@@ -493,20 +485,18 @@ internal class RevurderingServiceImpl(
         return hent(request.behandlingId).mapLeft {
             KunneIkkeLeggeTilPersonligOppmøteVilkår.FantIkkeBehandling
         }.flatMap { revurdering ->
-            revurdering.oppdaterPersonligOppmøtevilkårOgMarkerSomVurdert(request.vilkår)
-                .mapLeft {
-                    KunneIkkeLeggeTilPersonligOppmøteVilkår.Revurdering(it)
-                }
-                .map {
-                    revurderingRepo.lagre(it)
-                    identifiserFeilOgLagResponse(it)
-                }
+            revurdering.oppdaterPersonligOppmøtevilkårOgMarkerSomVurdert(request.vilkår).mapLeft {
+                KunneIkkeLeggeTilPersonligOppmøteVilkår.Revurdering(it)
+            }.map {
+                revurderingRepo.lagre(it)
+                identifiserFeilOgLagResponse(it)
+            }
         }
     }
 
     override fun leggTilBosituasjongrunnlag(request: LeggTilBosituasjonerRequest): Either<KunneIkkeLeggeTilBosituasjongrunnlag, RevurderingOgFeilmeldingerResponse> {
-        val revurdering = hent(request.revurderingId)
-            .getOrHandle { return KunneIkkeLeggeTilBosituasjongrunnlag.FantIkkeBehandling.left() }
+        val revurdering =
+            hent(request.revurderingId).getOrHandle { return KunneIkkeLeggeTilBosituasjongrunnlag.FantIkkeBehandling.left() }
 
         val bosituasjongrunnlag = request.toDomain(
             clock = clock,
@@ -516,58 +506,55 @@ internal class RevurderingServiceImpl(
             return it.left()
         }
 
-        return revurdering.oppdaterBosituasjonOgMarkerSomVurdert(bosituasjongrunnlag)
-            .mapLeft {
-                KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeLeggeTilBosituasjon(it)
-            }.map {
-                revurderingRepo.lagre(it)
-                identifiserFeilOgLagResponse(it)
-            }
+        return revurdering.oppdaterBosituasjonOgMarkerSomVurdert(bosituasjongrunnlag).mapLeft {
+            KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeLeggeTilBosituasjon(it)
+        }.map {
+            revurderingRepo.lagre(it)
+            identifiserFeilOgLagResponse(it)
+        }
     }
 
     override fun leggTilFormuegrunnlag(
         request: LeggTilFormuevilkårRequest,
     ): Either<KunneIkkeLeggeTilFormuegrunnlag, RevurderingOgFeilmeldingerResponse> {
-        val revurdering = hent(request.behandlingId)
-            .getOrHandle { return KunneIkkeLeggeTilFormuegrunnlag.FantIkkeRevurdering.left() }
+        val revurdering =
+            hent(request.behandlingId).getOrHandle { return KunneIkkeLeggeTilFormuegrunnlag.FantIkkeRevurdering.left() }
 
         // TODO("flere_satser mulig å gjøre noe for å unngå casting?")
-        @Suppress("UNCHECKED_CAST")
-        val bosituasjon = revurdering.grunnlagsdata.bosituasjon as List<Grunnlag.Bosituasjon.Fullstendig>
+        @Suppress("UNCHECKED_CAST") val bosituasjon =
+            revurdering.grunnlagsdata.bosituasjon as List<Grunnlag.Bosituasjon.Fullstendig>
 
         val vilkår = request.toDomain(bosituasjon, revurdering.periode, clock, formuegrenserFactory).getOrHandle {
             return KunneIkkeLeggeTilFormuegrunnlag.KunneIkkeMappeTilDomenet(it).left()
         }
-        return revurdering.oppdaterFormueOgMarkerSomVurdert(vilkår)
-            .mapLeft {
-                when (it) {
-                    is Revurdering.KunneIkkeLeggeTilFormue.Konsistenssjekk -> {
-                        KunneIkkeLeggeTilFormuegrunnlag.Konsistenssjekk(it.feil)
-                    }
-
-                    is Revurdering.KunneIkkeLeggeTilFormue.UgyldigTilstand -> {
-                        KunneIkkeLeggeTilFormuegrunnlag.UgyldigTilstand(it.fra, it.til)
-                    }
+        return revurdering.oppdaterFormueOgMarkerSomVurdert(vilkår).mapLeft {
+            when (it) {
+                is Revurdering.KunneIkkeLeggeTilFormue.Konsistenssjekk -> {
+                    KunneIkkeLeggeTilFormuegrunnlag.Konsistenssjekk(it.feil)
                 }
-            }.map {
-                revurderingRepo.lagre(it)
-                identifiserFeilOgLagResponse(it)
+
+                is Revurdering.KunneIkkeLeggeTilFormue.UgyldigTilstand -> {
+                    KunneIkkeLeggeTilFormuegrunnlag.UgyldigTilstand(it.fra, it.til)
+                }
             }
+        }.map {
+            revurderingRepo.lagre(it)
+            identifiserFeilOgLagResponse(it)
+        }
     }
 
     override fun leggTilInstitusjonsoppholdVilkår(
         request: LeggTilInstitusjonsoppholdVilkårRequest,
     ): Either<KunneIkkeLeggeTilInstitusjonsoppholdVilkår, RevurderingOgFeilmeldingerResponse> {
-        val revurdering = hent(request.behandlingId)
-            .getOrElse { return KunneIkkeLeggeTilInstitusjonsoppholdVilkår.FantIkkeBehandling.left() }
+        val revurdering =
+            hent(request.behandlingId).getOrElse { return KunneIkkeLeggeTilInstitusjonsoppholdVilkår.FantIkkeBehandling.left() }
 
-        return revurdering.oppdaterInstitusjonsoppholdOgMarkerSomVurdert(request.vilkår)
-            .mapLeft {
-                KunneIkkeLeggeTilInstitusjonsoppholdVilkår.Revurdering(it)
-            }.map {
-                revurderingRepo.lagre(it)
-                identifiserFeilOgLagResponse(it)
-            }
+        return revurdering.oppdaterInstitusjonsoppholdOgMarkerSomVurdert(request.vilkår).mapLeft {
+            KunneIkkeLeggeTilInstitusjonsoppholdVilkår.Revurdering(it)
+        }.map {
+            revurderingRepo.lagre(it)
+            identifiserFeilOgLagResponse(it)
+        }
     }
 
     private fun identifiserFeilOgLagResponse(revurdering: Revurdering): RevurderingOgFeilmeldingerResponse {
@@ -619,13 +606,12 @@ internal class RevurderingServiceImpl(
         }
         val sak = sakService.hentSakForRevurdering(oppdaterRevurderingRequest.revurderingId)
 
-        val revurdering = sak.hentRevurdering(oppdaterRevurderingRequest.revurderingId)
-            .fold(
-                { return KunneIkkeOppdatereRevurdering.FantIkkeRevurdering.left() },
-                {
-                    if (it is Revurdering) it else return KunneIkkeOppdatereRevurdering.FantIkkeRevurdering.left()
-                },
-            )
+        val revurdering = sak.hentRevurdering(oppdaterRevurderingRequest.revurderingId).fold(
+            { return KunneIkkeOppdatereRevurdering.FantIkkeRevurdering.left() },
+            {
+                if (it is Revurdering) it else return KunneIkkeOppdatereRevurdering.FantIkkeRevurdering.left()
+            },
+        )
 
         // TODO jah: Flytt sjekker som dette inn i domenet
         if (revurdering.forhåndsvarsel.harSendtForhåndsvarsel()) {
@@ -673,12 +659,14 @@ internal class RevurderingServiceImpl(
                 ?: return KunneIkkeOppdatereRevurdering.FantIngenVedtakSomKanRevurderes.left()
 
         val avkorting = hentUteståendeAvkorting(revurdering.sakId).let {
-            kontrollerPeriodeForUteståendeAvkorting(gjeldendeVedtaksdata.periodeFørsteTilOgMedSeneste(), it)
-                .getOrHandle {
-                    return KunneIkkeOppdatereRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(
-                        periode = it.periode,
-                    ).left()
-                }
+            kontrollerPeriodeForUteståendeAvkorting(
+                gjeldendeVedtaksdata.periodeFørsteTilOgMedSeneste(),
+                it,
+            ).getOrHandle {
+                return KunneIkkeOppdatereRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(
+                    periode = it.periode,
+                ).left()
+            }
         }
 
         val periode = gjeldendeVedtaksdata.garantertSammenhengendePeriode()
@@ -787,19 +775,14 @@ internal class RevurderingServiceImpl(
                         ).resultat && !(beregnetRevurdering is BeregnetRevurdering.Opphørt && beregnetRevurdering.opphørSkyldesVilkår())
                         ) to Varselmelding.BeløpsendringUnder10Prosent,
                     gjeldendeVedtaksdata.let { gammel ->
-                        (
-                            gammel.grunnlagsdata.bosituasjon.any { it.harEPS() } &&
-                                beregnetRevurdering.grunnlagsdata.bosituasjon.none { it.harEPS() }
-                            ) to Varselmelding.FradragOgFormueForEPSErFjernet
+                        (gammel.grunnlagsdata.bosituasjon.any { it.harEPS() } && beregnetRevurdering.grunnlagsdata.bosituasjon.none { it.harEPS() }) to Varselmelding.FradragOgFormueForEPSErFjernet
                     },
                 )
 
                 when (beregnetRevurdering) {
                     is BeregnetRevurdering.IngenEndring -> {
                         revurderingRepo.lagre(beregnetRevurdering)
-                        identifiserFeilOgLagResponse(beregnetRevurdering)
-                            .leggTil(potensielleVarsel)
-                            .right()
+                        identifiserFeilOgLagResponse(beregnetRevurdering).leggTil(potensielleVarsel).right()
                     }
 
                     is BeregnetRevurdering.Innvilget -> {
@@ -826,8 +809,7 @@ internal class RevurderingServiceImpl(
                                 clock = clock,
                             ).let { simulert ->
                                 revurderingRepo.lagre(simulert)
-                                identifiserFeilOgLagResponse(simulert)
-                                    .leggTil(potensielleVarsel)
+                                identifiserFeilOgLagResponse(simulert).leggTil(potensielleVarsel)
                             }
                         }
                     }
@@ -842,12 +824,10 @@ internal class RevurderingServiceImpl(
                                     opphørsdato = opphørsdato,
                                 ),
                             )
-                        }.mapLeft { KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(it) }
-                            .map { simulert ->
-                                revurderingRepo.lagre(simulert)
-                                identifiserFeilOgLagResponse(simulert)
-                                    .leggTil(potensielleVarsel)
-                            }
+                        }.mapLeft { KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(it) }.map { simulert ->
+                            revurderingRepo.lagre(simulert)
+                            identifiserFeilOgLagResponse(simulert).leggTil(potensielleVarsel)
+                        }
                     }
                 }
             }
@@ -895,12 +875,11 @@ internal class RevurderingServiceImpl(
         }
         return when (forhåndsvarselhandling) {
             Forhåndsvarselhandling.INGEN_FORHÅNDSVARSEL -> {
-                revurdering.ikkeSendForhåndsvarsel()
-                    .mapLeft {
-                        KunneIkkeForhåndsvarsle.UgyldigTilstandsovergangForForhåndsvarsling
-                    }.tap {
-                        revurderingRepo.lagre(it)
-                    }
+                revurdering.ikkeSendForhåndsvarsel().mapLeft {
+                    KunneIkkeForhåndsvarsle.UgyldigTilstandsovergangForForhåndsvarsling
+                }.tap {
+                    revurderingRepo.lagre(it)
+                }
             }
 
             Forhåndsvarselhandling.FORHÅNDSVARSLE -> {
@@ -927,51 +906,48 @@ internal class RevurderingServiceImpl(
                         KunneIkkeForhåndsvarsle.UgyldigTilstandsovergangForForhåndsvarsling
                     }.flatMap { forhåndsvarselBrev ->
                         forhåndsvarselBrev.tilDokument {
-                            brevService.lagBrev(it)
-                                .mapLeft {
-                                    LagBrevRequest.KunneIkkeGenererePdf
-                                }
+                            brevService.lagBrev(it).mapLeft {
+                                LagBrevRequest.KunneIkkeGenererePdf
+                            }
                         }.mapLeft {
                             KunneIkkeForhåndsvarsle.KunneIkkeGenerereDokument
                         }.flatMap { dokumentUtenMetadata ->
-                            revurdering.markerForhåndsvarselSomSendt()
-                                .mapLeft {
-                                    KunneIkkeForhåndsvarsle.UgyldigTilstandsovergangForForhåndsvarsling
-                                }
-                                .flatMap { simulertRevurdering ->
-                                    Either.catch {
-                                        sessionFactory.withTransactionContext { tx ->
-                                            brevService.lagreDokument(
-                                                dokument = dokumentUtenMetadata.leggTilMetadata(
-                                                    Dokument.Metadata(
-                                                        sakId = simulertRevurdering.sakId,
-                                                        revurderingId = simulertRevurdering.id,
-                                                        bestillBrev = true,
-                                                    ),
+                            revurdering.markerForhåndsvarselSomSendt().mapLeft {
+                                KunneIkkeForhåndsvarsle.UgyldigTilstandsovergangForForhåndsvarsling
+                            }.flatMap { simulertRevurdering ->
+                                Either.catch {
+                                    sessionFactory.withTransactionContext { tx ->
+                                        brevService.lagreDokument(
+                                            dokument = dokumentUtenMetadata.leggTilMetadata(
+                                                Dokument.Metadata(
+                                                    sakId = simulertRevurdering.sakId,
+                                                    revurderingId = simulertRevurdering.id,
+                                                    bestillBrev = true,
                                                 ),
-                                                transactionContext = tx,
-                                            )
-                                            revurderingRepo.lagre(
-                                                revurdering = simulertRevurdering,
-                                                transactionContext = tx,
-                                            )
-                                            prøvÅOppdatereOppgaveEtterViHarSendtForhåndsvarsel(
-                                                revurderingId = simulertRevurdering.id,
-                                                oppgaveId = simulertRevurdering.oppgaveId,
-                                            ).tapLeft {
-                                                throw KunneIkkeOppdatereOppgave()
-                                            }
-                                            log.info("Forhåndsvarsel sendt for revurdering ${simulertRevurdering.id}")
-                                            simulertRevurdering
+                                            ),
+                                            transactionContext = tx,
+                                        )
+                                        revurderingRepo.lagre(
+                                            revurdering = simulertRevurdering,
+                                            transactionContext = tx,
+                                        )
+                                        prøvÅOppdatereOppgaveEtterViHarSendtForhåndsvarsel(
+                                            revurderingId = simulertRevurdering.id,
+                                            oppgaveId = simulertRevurdering.oppgaveId,
+                                        ).tapLeft {
+                                            throw KunneIkkeOppdatereOppgave()
                                         }
-                                    }.mapLeft {
-                                        if (it is KunneIkkeOppdatereOppgave) {
-                                            KunneIkkeForhåndsvarsle.KunneIkkeOppdatereOppgave
-                                        } else {
-                                            throw it
-                                        }
+                                        log.info("Forhåndsvarsel sendt for revurdering ${simulertRevurdering.id}")
+                                        simulertRevurdering
+                                    }
+                                }.mapLeft {
+                                    if (it is KunneIkkeOppdatereOppgave) {
+                                        KunneIkkeForhåndsvarsle.KunneIkkeOppdatereOppgave
+                                    } else {
+                                        throw it
                                     }
                                 }
+                            }
                         }
                     }
                 }
@@ -999,46 +975,44 @@ internal class RevurderingServiceImpl(
         revurderingId: UUID,
         fritekst: String,
     ): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray> {
-        return hent(revurderingId)
-            .mapLeft {
-                KunneIkkeLageBrevutkastForRevurdering.FantIkkeRevurdering
-            }
-            .flatMap { revurdering ->
-                if (revurdering !is SimulertRevurdering) return KunneIkkeLageBrevutkastForRevurdering.KunneIkkeLageBrevutkast.left()
+        return hent(revurderingId).mapLeft {
+            KunneIkkeLageBrevutkastForRevurdering.FantIkkeRevurdering
+        }.flatMap { revurdering ->
+            if (revurdering !is SimulertRevurdering) return KunneIkkeLageBrevutkastForRevurdering.KunneIkkeLageBrevutkast.left()
 
-                hentPersonOgSaksbehandlerNavn(
-                    fnr = revurdering.fnr,
-                    saksbehandler = revurdering.saksbehandler,
-                ).mapLeft {
-                    when (it) {
-                        KunneIkkeHentePersonEllerSaksbehandlerNavn.FantIkkePerson -> {
-                            KunneIkkeLageBrevutkastForRevurdering.FantIkkePerson
-                        }
-
-                        KunneIkkeHentePersonEllerSaksbehandlerNavn.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> {
-                            KunneIkkeLageBrevutkastForRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant
-                        }
+            hentPersonOgSaksbehandlerNavn(
+                fnr = revurdering.fnr,
+                saksbehandler = revurdering.saksbehandler,
+            ).mapLeft {
+                when (it) {
+                    KunneIkkeHentePersonEllerSaksbehandlerNavn.FantIkkePerson -> {
+                        KunneIkkeLageBrevutkastForRevurdering.FantIkkePerson
                     }
-                }.flatMap { (person, saksbehandlerNavn) ->
-                    revurdering.lagForhåndsvarsel(
-                        person = person,
-                        saksbehandlerNavn = saksbehandlerNavn,
-                        fritekst = fritekst,
-                        clock = clock,
-                    ).mapLeft {
+
+                    KunneIkkeHentePersonEllerSaksbehandlerNavn.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> {
+                        KunneIkkeLageBrevutkastForRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant
+                    }
+                }
+            }.flatMap { (person, saksbehandlerNavn) ->
+                revurdering.lagForhåndsvarsel(
+                    person = person,
+                    saksbehandlerNavn = saksbehandlerNavn,
+                    fritekst = fritekst,
+                    clock = clock,
+                ).mapLeft {
+                    KunneIkkeLageBrevutkastForRevurdering.KunneIkkeLageBrevutkast
+                }.flatMap {
+                    brevService.lagBrev(it).mapLeft {
                         KunneIkkeLageBrevutkastForRevurdering.KunneIkkeLageBrevutkast
-                    }.flatMap {
-                        brevService.lagBrev(it).mapLeft {
-                            KunneIkkeLageBrevutkastForRevurdering.KunneIkkeLageBrevutkast
-                        }
                     }
                 }
             }
+        }
     }
 
     override fun oppdaterTilbakekrevingsbehandling(request: OppdaterTilbakekrevingsbehandlingRequest): Either<KunneIkkeOppdatereTilbakekrevingsbehandling, SimulertRevurdering> {
-        val revurdering = hent(request.revurderingId)
-            .getOrHandle { return KunneIkkeOppdatereTilbakekrevingsbehandling.FantIkkeRevurdering.left() }
+        val revurdering =
+            hent(request.revurderingId).getOrHandle { return KunneIkkeOppdatereTilbakekrevingsbehandling.FantIkkeRevurdering.left() }
 
         if (revurdering !is SimulertRevurdering) {
             return KunneIkkeOppdatereTilbakekrevingsbehandling.UgyldigTilstand(fra = revurdering::class).left()
@@ -1072,8 +1046,7 @@ internal class RevurderingServiceImpl(
     override fun sendTilAttestering(
         request: SendTilAttesteringRequest,
     ): Either<KunneIkkeSendeRevurderingTilAttestering, Revurdering> {
-        return hent(request.revurderingId)
-            .mapLeft { return KunneIkkeSendeRevurderingTilAttestering.FantIkkeRevurdering.left() }
+        return hent(request.revurderingId).mapLeft { return KunneIkkeSendeRevurderingTilAttestering.FantIkkeRevurdering.left() }
             .flatMap {
                 sendTilAttestering(
                     revurdering = it,
@@ -1212,12 +1185,11 @@ internal class RevurderingServiceImpl(
             clock = clock,
         )
 
-        tilbakekrevingService.hentAvventerKravgrunnlag(revurdering.sakId)
-            .ifNotEmpty {
-                return KunneIkkeSendeRevurderingTilAttestering.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving(
-                    revurderingId = this.first().avgjort.revurderingId,
-                ).left()
-            }
+        tilbakekrevingService.hentAvventerKravgrunnlag(revurdering.sakId).ifNotEmpty {
+            return KunneIkkeSendeRevurderingTilAttestering.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving(
+                revurderingId = this.first().avgjort.revurderingId,
+            ).left()
+        }
 
         return when (revurdering) {
             is BeregnetRevurdering.IngenEndring -> {
@@ -1286,8 +1258,8 @@ internal class RevurderingServiceImpl(
         revurderingId: UUID,
         fritekst: String?,
     ): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray> {
-        val revurdering = hent(revurderingId)
-            .getOrHandle { return KunneIkkeLageBrevutkastForRevurdering.FantIkkeRevurdering.left() }
+        val revurdering =
+            hent(revurderingId).getOrHandle { return KunneIkkeLageBrevutkastForRevurdering.FantIkkeRevurdering.left() }
 
         val revurderingMedPotensiellFritekst = if (fritekst != null) {
             revurdering.medFritekst(fritekst)
@@ -1295,18 +1267,15 @@ internal class RevurderingServiceImpl(
             revurdering
         }
 
-        return brevService.lagDokument(revurderingMedPotensiellFritekst)
-            .mapLeft {
-                when (it) {
-                    KunneIkkeLageDokument.KunneIkkeFinneGjeldendeUtbetaling -> KunneIkkeLageBrevutkastForRevurdering.KunneIkkeFinneGjeldendeUtbetaling
-                    KunneIkkeLageDokument.KunneIkkeGenererePDF -> KunneIkkeLageBrevutkastForRevurdering.KunneIkkeLageBrevutkast
-                    KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> KunneIkkeLageBrevutkastForRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant
-                    KunneIkkeLageDokument.KunneIkkeHentePerson -> KunneIkkeLageBrevutkastForRevurdering.FantIkkePerson
-                }
+        return brevService.lagDokument(revurderingMedPotensiellFritekst).mapLeft {
+            when (it) {
+                KunneIkkeLageDokument.KunneIkkeFinneGjeldendeUtbetaling -> KunneIkkeLageBrevutkastForRevurdering.KunneIkkeFinneGjeldendeUtbetaling
+                KunneIkkeLageDokument.KunneIkkeGenererePDF -> KunneIkkeLageBrevutkastForRevurdering.KunneIkkeLageBrevutkast
+                KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> KunneIkkeLageBrevutkastForRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant
+                KunneIkkeLageDokument.KunneIkkeHentePerson -> KunneIkkeLageBrevutkastForRevurdering.FantIkkePerson
+                KunneIkkeLageDokument.DetSkalIkkeSendesBrev -> KunneIkkeLageBrevutkastForRevurdering.DetSkalIkkeSendesBrev
             }
-            .map {
-                it.generertDokument
-            }
+        }.map { it.generertDokument }
     }
 
     override fun iverksett(
@@ -1326,133 +1295,130 @@ internal class RevurderingServiceImpl(
                 KunneIkkeIverksetteRevurdering.IngenEndringErIkkeGyldig.left()
             }
 
-            is RevurderingTilAttestering.Innvilget ->
-                revurdering.tilIverksatt(
-                    attestant = attestant,
-                    hentOpprinneligAvkorting = { avkortingid -> avkortingsvarselRepo.hent(avkortingid) },
-                    clock = clock,
-                ).mapLeft {
-                    when (it) {
-                        RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
-                        RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen -> KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen
-                        RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.HarBlittAnnullertAvEnAnnen -> KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen
-                        is RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale -> KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(
-                            it.utbetalingFeilet,
-                        )
-                    }
-                }.flatMap { iverksattRevurdering ->
-                    utbetalingService.verifiserOgSimulerUtbetaling(
-                        request = UtbetalRequest.NyUtbetaling(
-                            request = SimulerUtbetalingRequest.NyUtbetaling.Uføre(
-                                sakId = revurdering.sakId,
-                                saksbehandler = attestant,
-                                beregning = revurdering.beregning,
-                                uføregrunnlag = revurdering.vilkårsvurderinger.uføreVilkår().fold(
-                                    {
-                                        TODO("vilkårsvurdering_alder utbetaling av alder ikke implementert")
-                                    },
-                                    {
-                                        it.grunnlag
-                                    },
-                                ),
-                                utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
-                            ),
-                            simulering = revurdering.simulering,
-                        ),
-                    ).mapLeft { KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it) }
-                        .flatMap { utbetaling ->
-                            val vedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, utbetaling.id, clock)
-                            Either.catch {
-                                sessionFactory.withTransactionContext { tx ->
-                                    // OBS: Det er kun exceptions som vil føre til at transaksjonen ruller tilbake. Hvis funksjonene returnerer Left/null o.l. vil transaksjonen gå igjennom. De tilfellene må håndteres eksplisitt per funksjon.
-                                    // Det er også viktig at publiseringen av utbetalingen er det siste som skjer i blokka. Alt som ikke skal påvirke utfallet av iverksettingen skal flyttes ut av blokka. E.g. statistikk.
-                                    utbetalingService.lagreUtbetaling(utbetaling, tx)
-                                    vedtakRepo.lagre(vedtak, tx)
-                                    revurderingRepo.lagre(iverksattRevurdering, tx)
-                                    utbetalingService.publiserUtbetaling(utbetaling).mapLeft { feil ->
-                                        throw IverksettTransactionException(
-                                            "Kunne ikke publisere utbetaling på køen. Underliggende feil: $feil.",
-                                            KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(feil),
-                                        )
-                                    }
-                                    vedtak
-                                }
-                            }.mapLeft {
-                                when (it) {
-                                    is IverksettTransactionException -> it.feil
-                                    else -> KunneIkkeIverksetteRevurdering.LagringFeilet
-                                }
-                            }
-                        }.map { Pair(iverksattRevurdering, it) }
+            is RevurderingTilAttestering.Innvilget -> revurdering.tilIverksatt(
+                attestant = attestant,
+                hentOpprinneligAvkorting = { avkortingid -> avkortingsvarselRepo.hent(avkortingid) },
+                clock = clock,
+            ).mapLeft {
+                when (it) {
+                    RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
+                    RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen -> KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen
+                    RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.HarBlittAnnullertAvEnAnnen -> KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen
+                    is RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale -> KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(
+                        it.utbetalingFeilet,
+                    )
                 }
-
-            is RevurderingTilAttestering.Opphørt ->
-                revurdering.tilIverksatt(
-                    attestant = attestant,
-                    clock = clock,
-                    hentOpprinneligAvkorting = { avkortingid -> avkortingsvarselRepo.hent(avkortingid) },
-                ).mapLeft {
-                    when (it) {
-                        RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
-                        RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen -> KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen
-                        RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.HarBlittAnnullertAvEnAnnen -> KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen
-                        is RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale -> KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(
-                            it.utbetalingFeilet,
-                        )
-                    }
-                }.flatMap { iverksattRevurdering ->
-                    utbetalingService.verifiserOgSimulerOpphør(
-                        request = UtbetalRequest.Opphør(
-                            request = SimulerUtbetalingRequest.Opphør(
-                                sakId = iverksattRevurdering.sakId,
-                                saksbehandler = attestant,
-                                opphørsdato = revurdering.opphørsdatoForUtbetalinger,
+            }.flatMap { iverksattRevurdering ->
+                utbetalingService.verifiserOgSimulerUtbetaling(
+                    request = UtbetalRequest.NyUtbetaling(
+                        request = SimulerUtbetalingRequest.NyUtbetaling.Uføre(
+                            sakId = revurdering.sakId,
+                            saksbehandler = attestant,
+                            beregning = revurdering.beregning,
+                            uføregrunnlag = revurdering.vilkårsvurderinger.uføreVilkår().fold(
+                                {
+                                    TODO("vilkårsvurdering_alder utbetaling av alder ikke implementert")
+                                },
+                                {
+                                    it.grunnlag
+                                },
                             ),
-                            simulering = iverksattRevurdering.simulering,
+                            utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
                         ),
-                    ).mapLeft {
-                        KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it)
-                    }.flatMap { utbetaling ->
-                        val opphørtVedtak = VedtakSomKanRevurderes.from(
-                            revurdering = iverksattRevurdering, utbetalingId = utbetaling.id,
-                            clock = clock,
-                        )
-                        Either.catch {
-                            sessionFactory.withTransactionContext { tx ->
-                                // OBS: Det er kun exceptions som vil føre til at transaksjonen ruller tilbake. Hvis funksjonene returnerer Left/null o.l. vil transaksjonen gå igjennom. De tilfellene må håndteres eksplisitt per funksjon.
-                                // Det er også viktig at publiseringen av utbetalingen er det siste som skjer i blokka. Alt som ikke skal påvirke utfallet av iverksettingen skal flyttes ut av blokka. E.g. statistikk.
-                                utbetalingService.lagreUtbetaling(utbetaling, tx)
-                                vedtakRepo.lagre(opphørtVedtak, tx)
-                                kontrollsamtaleService.annullerKontrollsamtale(opphørtVedtak.behandling.sakId, tx)
-                                    .mapLeft { feil ->
-                                        throw IverksettTransactionException(
-                                            "Kunne ikke annullere kontrollsamtale. Underliggende feil: $feil.",
-                                            KunneIkkeIverksetteRevurdering.KunneIkkeAnnulereKontrollsamtale,
-                                        )
-                                    }
-                                revurderingRepo.lagre(iverksattRevurdering, tx)
-                                utbetalingService.publiserUtbetaling(utbetaling).mapLeft { feil ->
+                        simulering = revurdering.simulering,
+                    ),
+                ).mapLeft { KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it) }.flatMap { utbetaling ->
+                    val vedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, utbetaling.id, clock)
+                    Either.catch {
+                        sessionFactory.withTransactionContext { tx ->
+                            // OBS: Det er kun exceptions som vil føre til at transaksjonen ruller tilbake. Hvis funksjonene returnerer Left/null o.l. vil transaksjonen gå igjennom. De tilfellene må håndteres eksplisitt per funksjon.
+                            // Det er også viktig at publiseringen av utbetalingen er det siste som skjer i blokka. Alt som ikke skal påvirke utfallet av iverksettingen skal flyttes ut av blokka. E.g. statistikk.
+                            utbetalingService.lagreUtbetaling(utbetaling, tx)
+                            vedtakRepo.lagre(vedtak, tx)
+                            revurderingRepo.lagre(iverksattRevurdering, tx)
+                            utbetalingService.publiserUtbetaling(utbetaling).mapLeft { feil ->
+                                throw IverksettTransactionException(
+                                    "Kunne ikke publisere utbetaling på køen. Underliggende feil: $feil.",
+                                    KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(feil),
+                                )
+                            }
+                            vedtak
+                        }
+                    }.mapLeft {
+                        when (it) {
+                            is IverksettTransactionException -> it.feil
+                            else -> KunneIkkeIverksetteRevurdering.LagringFeilet
+                        }
+                    }
+                }.map { Pair(iverksattRevurdering, it) }
+            }
+
+            is RevurderingTilAttestering.Opphørt -> revurdering.tilIverksatt(
+                attestant = attestant,
+                clock = clock,
+                hentOpprinneligAvkorting = { avkortingid -> avkortingsvarselRepo.hent(avkortingid) },
+            ).mapLeft {
+                when (it) {
+                    RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
+                    RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen -> KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen
+                    RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.HarBlittAnnullertAvEnAnnen -> KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen
+                    is RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale -> KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(
+                        it.utbetalingFeilet,
+                    )
+                }
+            }.flatMap { iverksattRevurdering ->
+                utbetalingService.verifiserOgSimulerOpphør(
+                    request = UtbetalRequest.Opphør(
+                        request = SimulerUtbetalingRequest.Opphør(
+                            sakId = iverksattRevurdering.sakId,
+                            saksbehandler = attestant,
+                            opphørsdato = revurdering.opphørsdatoForUtbetalinger,
+                        ),
+                        simulering = iverksattRevurdering.simulering,
+                    ),
+                ).mapLeft {
+                    KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it)
+                }.flatMap { utbetaling ->
+                    val opphørtVedtak = VedtakSomKanRevurderes.from(
+                        revurdering = iverksattRevurdering, utbetalingId = utbetaling.id,
+                        clock = clock,
+                    )
+                    Either.catch {
+                        sessionFactory.withTransactionContext { tx ->
+                            // OBS: Det er kun exceptions som vil føre til at transaksjonen ruller tilbake. Hvis funksjonene returnerer Left/null o.l. vil transaksjonen gå igjennom. De tilfellene må håndteres eksplisitt per funksjon.
+                            // Det er også viktig at publiseringen av utbetalingen er det siste som skjer i blokka. Alt som ikke skal påvirke utfallet av iverksettingen skal flyttes ut av blokka. E.g. statistikk.
+                            utbetalingService.lagreUtbetaling(utbetaling, tx)
+                            vedtakRepo.lagre(opphørtVedtak, tx)
+                            kontrollsamtaleService.annullerKontrollsamtale(opphørtVedtak.behandling.sakId, tx)
+                                .mapLeft { feil ->
                                     throw IverksettTransactionException(
-                                        "Kunne ikke publisere utbetaling på køen. Underliggende feil: $feil.",
-                                        KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(feil),
+                                        "Kunne ikke annullere kontrollsamtale. Underliggende feil: $feil.",
+                                        KunneIkkeIverksetteRevurdering.KunneIkkeAnnulereKontrollsamtale,
                                     )
                                 }
-                                opphørtVedtak
+                            revurderingRepo.lagre(iverksattRevurdering, tx)
+                            utbetalingService.publiserUtbetaling(utbetaling).mapLeft { feil ->
+                                throw IverksettTransactionException(
+                                    "Kunne ikke publisere utbetaling på køen. Underliggende feil: $feil.",
+                                    KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(feil),
+                                )
                             }
-                        }.mapLeft {
-                            log.error(
-                                "Kunne ikke iverksette revurdering for sak ${iverksattRevurdering.sakId} og søknadsbehandling ${iverksattRevurdering.id}.",
-                                it,
-                            )
-                            when (it) {
-                                is IverksettTransactionException -> it.feil
-                                else -> KunneIkkeIverksetteRevurdering.LagringFeilet
-                            }
+                            opphørtVedtak
                         }
-                    }.map {
-                        Pair(iverksattRevurdering, it)
+                    }.mapLeft {
+                        log.error(
+                            "Kunne ikke iverksette revurdering for sak ${iverksattRevurdering.sakId} og søknadsbehandling ${iverksattRevurdering.id}.",
+                            it,
+                        )
+                        when (it) {
+                            is IverksettTransactionException -> it.feil
+                            else -> KunneIkkeIverksetteRevurdering.LagringFeilet
+                        }
                     }
+                }.map {
+                    Pair(iverksattRevurdering, it)
                 }
+            }
         }.map {
             Either.catch {
                 observers.forEach { observer ->
@@ -1478,8 +1444,8 @@ internal class RevurderingServiceImpl(
         revurderingId: UUID,
         attestering: Attestering.Underkjent,
     ): Either<KunneIkkeUnderkjenneRevurdering, UnderkjentRevurdering> {
-        val revurdering = hent(revurderingId)
-            .getOrHandle { return KunneIkkeUnderkjenneRevurdering.FantIkkeRevurdering.left() }
+        val revurdering =
+            hent(revurderingId).getOrHandle { return KunneIkkeUnderkjenneRevurdering.FantIkkeRevurdering.left() }
 
         if (revurdering !is RevurderingTilAttestering) {
             return KunneIkkeUnderkjenneRevurdering.UgyldigTilstand(
@@ -1515,12 +1481,11 @@ internal class RevurderingServiceImpl(
 
         val eksisterendeOppgaveId = revurdering.oppgaveId
 
-        oppgaveService.lukkOppgave(eksisterendeOppgaveId)
-            .mapLeft {
-                log.error("Kunne ikke lukke attesteringsoppgave $eksisterendeOppgaveId ved underkjenning av revurdering. Dette må gjøres manuelt.")
-            }.map {
-                log.info("Lukket attesteringsoppgave $eksisterendeOppgaveId ved underkjenning av revurdering")
-            }
+        oppgaveService.lukkOppgave(eksisterendeOppgaveId).mapLeft {
+            log.error("Kunne ikke lukke attesteringsoppgave $eksisterendeOppgaveId ved underkjenning av revurdering. Dette må gjøres manuelt.")
+        }.map {
+            log.info("Lukket attesteringsoppgave $eksisterendeOppgaveId ved underkjenning av revurdering")
+        }
 
         observers.forEach { observer ->
             observer.handle(
@@ -1533,12 +1498,10 @@ internal class RevurderingServiceImpl(
 
     override fun fortsettEtterForhåndsvarsling(request: FortsettEtterForhåndsvarslingRequest): Either<FortsettEtterForhåndsvarselFeil, Revurdering> {
         return Either.fromNullable(revurderingRepo.hent(request.revurderingId))
-            .mapLeft { FortsettEtterForhåndsvarselFeil.FantIkkeRevurdering }
-            .flatMap { revurdering ->
+            .mapLeft { FortsettEtterForhåndsvarselFeil.FantIkkeRevurdering }.flatMap { revurdering ->
                 (revurdering as? SimulertRevurdering)?.right()
                     ?: Either.Left(FortsettEtterForhåndsvarselFeil.MåVæreEnSimulertRevurdering)
-            }
-            .flatMap { simulertRevurdering ->
+            }.flatMap { simulertRevurdering ->
                 when (request) {
                     is FortsettEtterForhåndsvarslingRequest.FortsettMedSammeOpplysninger -> {
                         simulertRevurdering.prøvOvergangTilFortsettMedSammeGrunnlag(request.begrunnelse).mapLeft {
@@ -1561,21 +1524,6 @@ internal class RevurderingServiceImpl(
                             revurderingRepo.lagre(simulertRevurderingMedOppdatertForhåndsvarsel)
                         }
                     }
-
-                    is FortsettEtterForhåndsvarslingRequest.AvsluttUtenEndringer -> {
-                        simulertRevurdering.prøvOvergangTilAvsluttet(request.begrunnelse).mapLeft {
-                            FortsettEtterForhåndsvarselFeil.UgyldigTilstandsovergang(it.fra, it.til)
-                        }.flatMap { simulertRevurderingMedOppdatertForhåndsvarsel ->
-                            // avsluttRevurdering(...) persisterer forhåndsvarselet
-                            avsluttRevurdering(
-                                revurdering = simulertRevurderingMedOppdatertForhåndsvarsel,
-                                begrunnelse = request.begrunnelse,
-                                fritekst = request.fritekstTilBrev,
-                            ).mapLeft {
-                                FortsettEtterForhåndsvarselFeil.KunneIkkeAvslutteRevurdering(it)
-                            }.map { it as Revurdering }
-                        }
-                    }
                 }
             }
     }
@@ -1583,40 +1531,48 @@ internal class RevurderingServiceImpl(
     override fun avsluttRevurdering(
         revurderingId: UUID,
         begrunnelse: String,
-        fritekst: String?,
+        brevvalg: Brevvalg.SaksbehandlersValg?,
     ): Either<KunneIkkeAvslutteRevurdering, AbstraktRevurdering> {
         return revurderingRepo.hent(revurderingId)?.let {
             avsluttRevurdering(
                 revurdering = it,
                 begrunnelse = begrunnelse,
-                fritekst = fritekst,
+                brevvalg = brevvalg,
             )
         } ?: return KunneIkkeAvslutteRevurdering.FantIkkeRevurdering.left()
     }
 
     /**
      * Denne kan ikke returnere [KunneIkkeAvslutteRevurdering.FantIkkeRevurdering]
+     *
+     * @param brevvalg Kun dersom saksbehandler har forhåndsvarslet, må det tas et brevvalg. Dersom det ikke er forhåndsvarslet skal det ikke sendes brev.
      */
     private fun avsluttRevurdering(
         revurdering: AbstraktRevurdering,
         begrunnelse: String,
-        fritekst: String?,
+        brevvalg: Brevvalg.SaksbehandlersValg?,
     ): Either<KunneIkkeAvslutteRevurdering, AbstraktRevurdering> {
 
         val (avsluttetRevurdering, skalSendeAvslutningsbrev) = when (revurdering) {
-            is GjenopptaYtelseRevurdering -> revurdering.avslutt(begrunnelse, Tidspunkt.now(clock)).map {
-                it to it.skalSendeAvslutningsbrev()
-            }.getOrHandle {
-                return KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetGjenopptaAvYtelse(it).left()
+            is GjenopptaYtelseRevurdering -> {
+                if (brevvalg != null) return KunneIkkeAvslutteRevurdering.BrevvalgIkkeTillatt.left()
+                revurdering.avslutt(begrunnelse, Tidspunkt.now(clock)).map {
+                    it to it.skalSendeAvslutningsbrev()
+                }.getOrHandle {
+                    return KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetGjenopptaAvYtelse(it).left()
+                }
             }
 
-            is StansAvYtelseRevurdering -> revurdering.avslutt(begrunnelse, Tidspunkt.now(clock)).map {
-                it to it.skalSendeAvslutningsbrev()
-            }.getOrHandle {
-                return KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetStansAvYtelse(it).left()
+            is StansAvYtelseRevurdering -> {
+                if (brevvalg != null) return KunneIkkeAvslutteRevurdering.BrevvalgIkkeTillatt.left()
+                revurdering.avslutt(begrunnelse, Tidspunkt.now(clock)).map {
+                    it to it.skalSendeAvslutningsbrev()
+                }.getOrHandle {
+                    return KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetStansAvYtelse(it).left()
+                }
             }
 
-            is Revurdering -> revurdering.avslutt(begrunnelse, fritekst, Tidspunkt.now(clock)).map {
+            is Revurdering -> revurdering.avslutt(begrunnelse, brevvalg, Tidspunkt.now(clock)).map {
                 it to it.skalSendeAvslutningsbrev()
             }.getOrHandle {
                 return KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetRevurdering(it).left()
@@ -1624,12 +1580,11 @@ internal class RevurderingServiceImpl(
         }
 
         if (avsluttetRevurdering is Revurdering) {
-            oppgaveService.lukkOppgave(avsluttetRevurdering.oppgaveId)
-                .mapLeft {
-                    log.error("Kunne ikke lukke oppgave ${avsluttetRevurdering.oppgaveId} ved avslutting av revurdering. Dette må gjøres manuelt.")
-                }.map {
-                    log.info("Lukket oppgave ${avsluttetRevurdering.oppgaveId} ved avslutting av revurdering.")
-                }
+            oppgaveService.lukkOppgave(avsluttetRevurdering.oppgaveId).mapLeft {
+                log.error("Kunne ikke lukke oppgave ${avsluttetRevurdering.oppgaveId} ved avslutting av revurdering. Dette må gjøres manuelt.")
+            }.map {
+                log.info("Lukket oppgave ${avsluttetRevurdering.oppgaveId} ved avslutting av revurdering.")
+            }
         }
 
         val resultat = if (avsluttetRevurdering is Revurdering && skalSendeAvslutningsbrev) {
@@ -1672,8 +1627,8 @@ internal class RevurderingServiceImpl(
         revurderingId: UUID,
         fritekst: String?,
     ): Either<KunneIkkeLageBrevutkastForAvsluttingAvRevurdering, Pair<Fnr, ByteArray>> {
-        val revurdering = hent(revurderingId)
-            .getOrHandle { return KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.FantIkkeRevurdering.left() }
+        val revurdering =
+            hent(revurderingId).getOrHandle { return KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.FantIkkeRevurdering.left() }
 
         if (!revurdering.forhåndsvarsel.harSendtForhåndsvarsel()) {
             return KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.RevurderingenErIkkeForhåndsvarslet.left()
@@ -1682,25 +1637,23 @@ internal class RevurderingServiceImpl(
         // Lager en midlertidig avsluttet revurdering for å konstruere brevet - denne skal ikke lagres
         val avsluttetRevurdering = revurdering.avslutt(
             begrunnelse = "",
-            fritekst = fritekst,
+            brevvalg = fritekst?.let { Brevvalg.SaksbehandlersValg.SkalSendeBrev.MedFritekst(it) },
             tidspunktAvsluttet = Tidspunkt.now(clock),
         ).getOrHandle {
             return KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeLageBrevutkast.left()
         }
 
-        return brevService.lagDokument(avsluttetRevurdering)
-            .mapLeft {
-                when (it) {
-                    KunneIkkeLageDokument.KunneIkkeFinneGjeldendeUtbetaling -> KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeFinneGjeldendeUtbetaling.left()
-                    KunneIkkeLageDokument.KunneIkkeGenererePDF -> KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeGenererePDF.left()
-                    KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left()
-                    KunneIkkeLageDokument.KunneIkkeHentePerson -> KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.FantIkkePerson
-                }
-                return KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeLageBrevutkast.left()
+        return brevService.lagDokument(avsluttetRevurdering).mapLeft {
+            when (it) {
+                KunneIkkeLageDokument.KunneIkkeFinneGjeldendeUtbetaling -> KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeFinneGjeldendeUtbetaling
+                KunneIkkeLageDokument.KunneIkkeGenererePDF -> KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeGenererePDF
+                KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant
+                KunneIkkeLageDokument.KunneIkkeHentePerson -> KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.FantIkkePerson
+                KunneIkkeLageDokument.DetSkalIkkeSendesBrev -> KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.DetSkalIkkeSendesBrev
             }
-            .map {
-                return Pair(avsluttetRevurdering.fnr, it.generertDokument).right()
-            }
+        }.map {
+            Pair(avsluttetRevurdering.fnr, it.generertDokument)
+        }
     }
 
     private fun hentPersonOgSaksbehandlerNavn(

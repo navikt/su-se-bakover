@@ -24,7 +24,6 @@ import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOpplysningsplikt
 import no.nav.su.se.bakover.service.brev.BrevService
-import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
@@ -104,12 +103,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImpl(
         )
 
         val dokument = brevService.lagDokument(avslagsvedtak).getOrHandle {
-            return when (it) {
-                KunneIkkeLageDokument.KunneIkkeFinneGjeldendeUtbetaling -> KunneIkkeAvslåSøknad.KunneIkkeFinneGjeldendeUtbetaling
-                KunneIkkeLageDokument.KunneIkkeGenererePDF -> KunneIkkeAvslåSøknad.KunneIkkeGenererePDF
-                KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> KunneIkkeAvslåSøknad.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant
-                KunneIkkeLageDokument.KunneIkkeHentePerson -> KunneIkkeAvslåSøknad.KunneIkkeHentePerson
-            }.left()
+            return KunneIkkeAvslåSøknad.KunneIkkeLageDokument(it).left()
         }.leggTilMetadata(
             metadata = Dokument.Metadata(
                 sakId = avslagsvedtak.behandling.sakId,

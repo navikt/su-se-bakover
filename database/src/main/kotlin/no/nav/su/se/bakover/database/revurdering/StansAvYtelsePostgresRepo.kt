@@ -106,7 +106,7 @@ internal class StansAvYtelsePostgresRepo(
                             "avsluttet" to serialize(
                                 AvsluttetRevurderingInfo(
                                     begrunnelse = revurdering.begrunnelse,
-                                    fritekst = null,
+                                    brevvalg = null,
                                     tidspunktAvsluttet = revurdering.tidspunktAvsluttet,
                                 ),
                             ),

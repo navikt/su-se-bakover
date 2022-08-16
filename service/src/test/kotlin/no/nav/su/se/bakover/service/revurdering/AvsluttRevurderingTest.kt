@@ -5,6 +5,7 @@ import arrow.core.right
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
+import no.nav.su.se.bakover.domain.brev.Brevvalg
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
@@ -59,13 +60,13 @@ internal class AvsluttRevurderingTest {
         val actual = revurderingService.avsluttRevurdering(
             revurderingId = opprettetRevurdering.id,
             begrunnelse = "opprettet revurderingen med en feil",
-            fritekst = null,
+            brevvalg = null,
         )
 
         actual shouldBe AvsluttetRevurdering.tryCreate(
             underliggendeRevurdering = opprettetRevurdering,
             begrunnelse = "opprettet revurderingen med en feil",
-            fritekst = null,
+            brevvalg = null,
             tidspunktAvsluttet = fixedTidspunkt,
         )
 
@@ -108,13 +109,13 @@ internal class AvsluttRevurderingTest {
         val actual = revurderingService.avsluttRevurdering(
             revurderingId = simulert.id,
             begrunnelse = "opprettet revurderingen med en feil",
-            fritekst = "en fri tekst",
+            brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.MedFritekst("en fri tekst"),
         )
 
         val expectedAvsluttetRevurdering = AvsluttetRevurdering.tryCreate(
             underliggendeRevurdering = simulert,
             begrunnelse = "opprettet revurderingen med en feil",
-            fritekst = "en fri tekst",
+            brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.MedFritekst("en fri tekst"),
             tidspunktAvsluttet = fixedTidspunkt,
         )
         actual shouldBe expectedAvsluttetRevurdering
@@ -156,7 +157,7 @@ internal class AvsluttRevurderingTest {
         revurderingService.avsluttRevurdering(
             revurderingId = id,
             begrunnelse = "hehe",
-            fritekst = null,
+            brevvalg = null,
         ) shouldBe KunneIkkeAvslutteRevurdering.FantIkkeRevurdering.left()
 
         verify(revurderingRepoMock).hent(argThat { it shouldBe id })
@@ -188,7 +189,7 @@ internal class AvsluttRevurderingTest {
         revurderingService.avsluttRevurdering(
             revurderingId = simulert.id,
             begrunnelse = "begrunnelse",
-            fritekst = null,
+            brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.MedFritekst("medFritekst"),
         ) shouldBe KunneIkkeAvslutteRevurdering.KunneIkkeLageDokument.left()
 
         verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe simulert.oppgaveId })
@@ -198,9 +199,9 @@ internal class AvsluttRevurderingTest {
                 it shouldBe AvsluttetRevurdering.tryCreate(
                     underliggendeRevurdering = simulert,
                     begrunnelse = "begrunnelse",
-                    fritekst = null,
+                    brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.MedFritekst("medFritekst"),
                     tidspunktAvsluttet = fixedTidspunkt,
-                ).orNull()!!
+                ).getOrFail()
             },
         )
         verifyNoMoreInteractions(revurderingRepoMock, brevServiceMock, oppgaveServiceMock)
@@ -221,7 +222,7 @@ internal class AvsluttRevurderingTest {
         val actual = revurderingService.avsluttRevurdering(
             revurderingId = stansAvYtelse.id,
             begrunnelse = "skulle stanse ytelse, men så tenkte jeg 'neh'",
-            fritekst = null,
+            brevvalg = null,
         )
 
         actual shouldBe StansAvYtelseRevurdering.AvsluttetStansAvYtelse.tryCreate(
@@ -250,7 +251,7 @@ internal class AvsluttRevurderingTest {
         val actual = revurderingService.avsluttRevurdering(
             revurderingId = avsluttetStansAvYtelse.id,
             begrunnelse = "skulle stanse ytelse, men så tenkte jeg 'neh'",
-            fritekst = null,
+            brevvalg = null,
         )
 
         actual shouldBe KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetStansAvYtelse(StansAvYtelseRevurdering.KunneIkkeLageAvsluttetStansAvYtelse.RevurderingErAlleredeAvsluttet)
@@ -274,7 +275,7 @@ internal class AvsluttRevurderingTest {
         val actual = revurderingService.avsluttRevurdering(
             revurderingId = iverksattStansAvYtelse.id,
             begrunnelse = "skulle stanse ytelse, men så tenkte jeg 'neh'",
-            fritekst = null,
+            brevvalg = null,
         )
 
         actual shouldBe KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetStansAvYtelse(StansAvYtelseRevurdering.KunneIkkeLageAvsluttetStansAvYtelse.RevurderingenErIverksatt)
@@ -299,7 +300,7 @@ internal class AvsluttRevurderingTest {
         val actual = revurderingService.avsluttRevurdering(
             revurderingId = gjenopptaYtelse.id,
             begrunnelse = "skulle stanse ytelse, men så tenkte jeg 'neh'",
-            fritekst = null,
+            brevvalg = null,
         )
 
         actual shouldBe GjenopptaYtelseRevurdering.AvsluttetGjenoppta.tryCreate(
@@ -329,7 +330,7 @@ internal class AvsluttRevurderingTest {
         val actual = revurderingService.avsluttRevurdering(
             revurderingId = gjenopptaYtelse.id,
             begrunnelse = "skulle stanse ytelse, men så tenkte jeg 'neh'",
-            fritekst = null,
+            brevvalg = null,
         )
 
         actual shouldBe KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetGjenopptaAvYtelse(GjenopptaYtelseRevurdering.KunneIkkeLageAvsluttetGjenopptaAvYtelse.RevurderingErAlleredeAvsluttet)
@@ -353,7 +354,7 @@ internal class AvsluttRevurderingTest {
         val actual = revurderingService.avsluttRevurdering(
             revurderingId = gjenopptaYtelse.id,
             begrunnelse = "skulle stanse ytelse, men så tenkte jeg 'neh'",
-            fritekst = null,
+            brevvalg = null,
         )
 
         actual shouldBe KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetGjenopptaAvYtelse(GjenopptaYtelseRevurdering.KunneIkkeLageAvsluttetGjenopptaAvYtelse.RevurderingenErIverksatt)
