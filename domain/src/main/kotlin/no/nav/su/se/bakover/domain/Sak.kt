@@ -169,21 +169,22 @@ data class Sak(
     /**
      * Lager et snapshot av gjeldende vedtaksdata slik de så ut før vedtaket angitt av [vedtakId] ble
      * iverksatt. Perioden for dataene begrenses til vedtaksperioden for [vedtakId].
+     * Brukes av vedtaksoppsummeringen for å vise differansen mellom nytt/gammelt grunnlag.
      */
-    fun hentHistoriskVedtaksdataForVedtaksperiode(
+    fun historiskGrunnlagForVedtaketsPeriode(
         vedtakId: UUID,
         clock: Clock,
-    ): Either<KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes, GjeldendeVedtaksdata> {
+    ): Either<KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak, GjeldendeVedtaksdata> {
         val vedtak = vedtakListe
             .filterIsInstance<VedtakSomKanRevurderes>()
             .find { it.id == vedtakId }
-            ?: throw IllegalArgumentException("Vedtak med id: $vedtakId eksisterer ikke")
+            ?: return KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak.FantIkkeVedtak.left()
 
         return vedtakListe
             .filterIsInstance<VedtakSomKanRevurderes>()
-            .filter { it.opprettet < vedtak.opprettet.instant }
+            .filter { it.opprettet < vedtak.opprettet }
             .ifEmpty {
-                return KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes(vedtak.periode).left()
+                return KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak.IngenTidligereVedtak.left()
             }
             .let {
                 GjeldendeVedtaksdata(
@@ -192,6 +193,11 @@ data class Sak(
                     clock = clock,
                 ).right()
             }
+    }
+
+    sealed class KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak {
+        object FantIkkeVedtak : KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak()
+        object IngenTidligereVedtak : KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak()
     }
 
     /**
@@ -251,6 +257,10 @@ data class Sak(
 
     fun harÅpenRevurderingForGjenopptakAvYtelse(): Boolean {
         return revurderinger.filterIsInstance<GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse>().isNotEmpty()
+    }
+
+    fun hentRevurdering(id: UUID): Either<Unit, AbstraktRevurdering> {
+        return revurderinger.singleOrNull { it.id == id }?.right() ?: Unit.left()
     }
 
     /**

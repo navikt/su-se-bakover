@@ -600,8 +600,15 @@ internal class RevurderingServiceImpl(
                 Revurderingsårsak.UgyldigRevurderingsårsak.UgyldigÅrsak -> KunneIkkeOppdatereRevurdering.UgyldigÅrsak
             }.left()
         }
-        val revurdering = hent(oppdaterRevurderingRequest.revurderingId)
-            .getOrHandle { return KunneIkkeOppdatereRevurdering.FantIkkeRevurdering.left() }
+        val sak = sakService.hentSakForRevurdering(oppdaterRevurderingRequest.revurderingId)
+
+        val revurdering = sak.hentRevurdering(oppdaterRevurderingRequest.revurderingId)
+            .fold(
+                { return KunneIkkeOppdatereRevurdering.FantIkkeRevurdering.left() },
+                {
+                    if (it is Revurdering) it else return KunneIkkeOppdatereRevurdering.FantIkkeRevurdering.left()
+                },
+            )
 
         // TODO jah: Flytt sjekker som dette inn i domenet
         if (revurdering.forhåndsvarsel.harSendtForhåndsvarsel()) {
@@ -611,8 +618,6 @@ internal class RevurderingServiceImpl(
         val informasjonSomRevurderes =
             InformasjonSomRevurderes.tryCreate(oppdaterRevurderingRequest.informasjonSomRevurderes)
                 .getOrHandle { return KunneIkkeOppdatereRevurdering.MåVelgeInformasjonSomSkalRevurderes.left() }
-
-        val sak = sakService.hentSakForRevurdering(oppdaterRevurderingRequest.revurderingId)
 
         val gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
             fraOgMed = oppdaterRevurderingRequest.fraOgMed,

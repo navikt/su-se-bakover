@@ -143,6 +143,7 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.revurdering.SendTilAttesteringRequest
 import no.nav.su.se.bakover.service.revurdering.StansYtelseRequest
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
+import no.nav.su.se.bakover.service.sak.KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak
 import no.nav.su.se.bakover.service.sak.KunneIkkeHenteGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.skatt.KunneIkkeHenteSkattemelding
@@ -321,12 +322,12 @@ open class AccessCheckProxy(
                     return services.sak.hentGjeldendeVedtaksdata(sakId, periode)
                 }
 
-                override fun historiskGrunnlagForVedtaksperiode(
+                override fun historiskGrunnlagForVedtaketsPeriode(
                     sakId: UUID,
                     vedtakId: UUID,
-                ): Either<KunneIkkeHenteGjeldendeVedtaksdata, GjeldendeVedtaksdata> {
+                ): Either<KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak, GjeldendeVedtaksdata> {
                     assertHarTilgangTilSak(sakId)
-                    return services.sak.historiskGrunnlagForVedtaksperiode(
+                    return services.sak.historiskGrunnlagForVedtaketsPeriode(
                         sakId = sakId,
                         vedtakId = vedtakId,
                     )

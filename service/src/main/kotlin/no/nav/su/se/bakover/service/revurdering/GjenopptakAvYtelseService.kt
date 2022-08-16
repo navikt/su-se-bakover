@@ -50,8 +50,8 @@ class GjenopptakAvYtelseService(
         } else {
             val simulertRevurdering = when (request) {
                 is GjenopptaYtelseRequest.Oppdater -> {
-                    val update = sak.revurderinger.find { it.id == request.revurderingId }
-                        ?: return KunneIkkeGjenopptaYtelse.FantIkkeRevurdering.left()
+                    val update = sak.hentRevurdering(request.revurderingId)
+                        .getOrHandle { return KunneIkkeGjenopptaYtelse.FantIkkeRevurdering.left() }
 
                     val gjeldendeVedtaksdata: GjeldendeVedtaksdata = kopierGjeldendeVedtaksdata(
                         sak = sak,

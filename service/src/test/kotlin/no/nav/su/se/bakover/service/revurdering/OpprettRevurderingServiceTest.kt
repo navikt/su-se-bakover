@@ -4,7 +4,6 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juli
@@ -44,7 +43,6 @@ import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt12000
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.nySakUføre
 import no.nav.su.se.bakover.test.nySøknadJournalførtMedOppgave
@@ -52,11 +50,8 @@ import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.søknadinnhold
-import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
-import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt12000
-import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
@@ -68,26 +63,6 @@ import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 internal class OpprettRevurderingServiceTest {
-
-    private val informasjonSomRevurderes = listOf(
-        Revurderingsteg.Inntekt,
-    )
-
-    private val uføregrunnlag = uføregrunnlagForventetInntekt12000(periode = periodeNesteMånedOgTreMånederFram)
-    private val vilkårsvurderingUføre =
-        innvilgetUførevilkårForventetInntekt12000(periode = periodeNesteMånedOgTreMånederFram)
-
-    private fun createInnvilgetBehandling() = søknadsbehandlingIverksattInnvilget(
-        stønadsperiode = stønadsperiodeNesteMånedOgTreMånederFram,
-        vilkårsvurderinger = vilkårsvurderingerSøknadsbehandlingInnvilget(
-            periode = periodeNesteMånedOgTreMånederFram,
-            uføre = vilkårsvurderingUføre,
-        ),
-    ).second
-
-    private fun createSøknadsbehandlingVedtak() =
-        VedtakSomKanRevurderes.fromSøknadsbehandling(createInnvilgetBehandling(), UUID30.randomUUID(), fixedClock)
-
     @Test
     fun `oppretter en revurdering`() {
         val (sak, søknadsbehandling, søknadsvedtak) = iverksattSøknadsbehandlingUføre()
@@ -113,12 +88,17 @@ internal class OpprettRevurderingServiceTest {
                     årsak = "MELDING_FRA_BRUKER",
                     begrunnelse = "Ny informasjon",
                     saksbehandler = saksbehandler,
-                    informasjonSomRevurderes = informasjonSomRevurderes,
+                    informasjonSomRevurderes = listOf(
+                        Revurderingsteg.Inntekt,
+                    ),
                 ),
             ).getOrFail()
 
             actual.let { opprettetRevurdering ->
-                opprettetRevurdering.periode shouldBe Periode.create(periodeNesteMånedOgTreMånederFram.fraOgMed, søknadsbehandling.periode.tilOgMed)
+                opprettetRevurdering.periode shouldBe Periode.create(
+                    periodeNesteMånedOgTreMånederFram.fraOgMed,
+                    søknadsbehandling.periode.tilOgMed,
+                )
                 opprettetRevurdering.tilRevurdering shouldBe søknadsvedtak.id
                 opprettetRevurdering.saksbehandler shouldBe saksbehandler
                 opprettetRevurdering.oppgaveId shouldBe OppgaveId("oppgaveId")
@@ -192,7 +172,9 @@ internal class OpprettRevurderingServiceTest {
                     årsak = "REGULER_GRUNNBELØP",
                     begrunnelse = "g-regulering",
                     saksbehandler = saksbehandler,
-                    informasjonSomRevurderes = informasjonSomRevurderes,
+                    informasjonSomRevurderes = listOf(
+                        Revurderingsteg.Inntekt,
+                    ),
                 ),
             ).getOrHandle {
                 throw RuntimeException("$it")
@@ -276,7 +258,9 @@ internal class OpprettRevurderingServiceTest {
                     årsak = "REGULER_GRUNNBELØP",
                     begrunnelse = "g-regulering",
                     saksbehandler = saksbehandler,
-                    informasjonSomRevurderes = informasjonSomRevurderes,
+                    informasjonSomRevurderes = listOf(
+                        Revurderingsteg.Inntekt,
+                    ),
                 ),
             ).getOrFail()
 
@@ -425,7 +409,9 @@ internal class OpprettRevurderingServiceTest {
                     årsak = "MELDING_FRA_BRUKER",
                     begrunnelse = "Ny informasjon",
                     saksbehandler = saksbehandler,
-                    informasjonSomRevurderes,
+                    informasjonSomRevurderes = listOf(
+                        Revurderingsteg.Inntekt,
+                    ),
                 ),
             )
 
@@ -459,7 +445,9 @@ internal class OpprettRevurderingServiceTest {
                     årsak = "MELDING_FRA_BRUKER",
                     begrunnelse = "Ny informasjon",
                     saksbehandler = saksbehandler,
-                    informasjonSomRevurderes = informasjonSomRevurderes,
+                    informasjonSomRevurderes = listOf(
+                        Revurderingsteg.Inntekt,
+                    ),
                 ),
             )
 
@@ -559,7 +547,9 @@ internal class OpprettRevurderingServiceTest {
                     årsak = "MELDING_FRA_BRUKER",
                     begrunnelse = "Ny informasjon",
                     saksbehandler = saksbehandler,
-                    informasjonSomRevurderes = informasjonSomRevurderes,
+                    informasjonSomRevurderes = listOf(
+                        Revurderingsteg.Inntekt,
+                    ),
                 ),
             )
             actual shouldBe KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave.left()
@@ -583,7 +573,7 @@ internal class OpprettRevurderingServiceTest {
     @Test
     fun `må velge noe som skal revurderes`() {
         RevurderingServiceMocks(
-            personService = mock<PersonService> {
+            personService = mock {
                 on { hentAktørId(any()) } doReturn aktørId.right()
             },
         ).also {
@@ -628,7 +618,9 @@ internal class OpprettRevurderingServiceTest {
                     årsak = "MELDING_FRA_BRUKER",
                     begrunnelse = "Ny informasjon",
                     saksbehandler = saksbehandler,
-                    informasjonSomRevurderes = informasjonSomRevurderes,
+                    informasjonSomRevurderes = listOf(
+                        Revurderingsteg.Inntekt,
+                    ),
                 ),
             )
             actual shouldBe KunneIkkeOppretteRevurdering.TidslinjeForVedtakErIkkeKontinuerlig.left()
