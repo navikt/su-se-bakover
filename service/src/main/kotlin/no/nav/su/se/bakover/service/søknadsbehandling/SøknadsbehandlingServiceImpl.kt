@@ -137,9 +137,12 @@ internal class SøknadsbehandlingServiceImpl(
     fun getObservers(): List<EventObserver> = observers.toList()
 
     override fun opprett(request: OpprettRequest): Either<KunneIkkeOpprette, Søknadsbehandling.Vilkårsvurdert.Uavklart> {
-        val søknad = søknadService.hentSøknad(request.søknadId).getOrElse {
-            return KunneIkkeOpprette.FantIkkeSøknad.left()
-        }
+        val sak = sakService.hentSak(request.sakId)
+            .getOrHandle { return KunneIkkeOpprette.FantIkkeSak.left() }
+
+        val søknad = sak.hentSøknad(request.søknadId)
+            .getOrHandle { return KunneIkkeOpprette.FantIkkeSøknad.left() }
+
         if (søknad is Søknad.Journalført.MedOppgave.Lukket) {
             return KunneIkkeOpprette.SøknadErLukket.left()
         }
@@ -147,21 +150,21 @@ internal class SøknadsbehandlingServiceImpl(
             // TODO Prøv å opprette oppgaven hvis den mangler? (systembruker blir kanskje mest riktig?)
             return KunneIkkeOpprette.SøknadManglerOppgave.left()
         }
-        if (hentForSøknad(søknad.id) != null) {
+        if (sak.hentSøknadsbehandlingForSøknad(søknad.id).isNotEmpty()) {
             return KunneIkkeOpprette.SøknadHarAlleredeBehandling.left()
         }
 
-        val åpneSøknadsbehandlinger = søknadsbehandlingRepo.hentForSak(søknad.sakId)
-            .filterNot { it.erIverksatt }
-            .filterNot { it.erLukket }
-
-        if (åpneSøknadsbehandlinger.isNotEmpty()) {
+        if (sak.harÅpenSøknadsbehandling()) {
             return KunneIkkeOpprette.HarAlleredeÅpenSøknadsbehandling.left()
         }
 
         val søknadsbehandlingId = UUID.randomUUID()
 
-        val avkorting = hentUteståendeAvkorting(søknad.sakId)
+        val avkorting = sak.hentUteståendeAvkortingForSøknadsbehandling()
+            .fold(
+                { it },
+                { it },
+            )
 
         søknadsbehandlingRepo.lagreNySøknadsbehandling(
             NySøknadsbehandling(
@@ -194,15 +197,19 @@ internal class SøknadsbehandlingServiceImpl(
             Avkortingsvarsel.Ingen -> {
                 AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående
             }
+
             is Avkortingsvarsel.Utenlandsopphold.Annullert -> {
                 AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående
             }
+
             is Avkortingsvarsel.Utenlandsopphold.Avkortet -> {
                 AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående
             }
+
             is Avkortingsvarsel.Utenlandsopphold.Opprettet -> {
                 AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående
             }
+
             is Avkortingsvarsel.Utenlandsopphold.SkalAvkortes -> {
                 AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(utestående)
             }
@@ -222,9 +229,11 @@ internal class SøknadsbehandlingServiceImpl(
                 no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeBeregne.AvkortingErUfullstendig -> {
                     KunneIkkeBeregne.AvkortingErUfullstendig
                 }
+
                 is no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeBeregne.UgyldigTilstand -> {
                     KunneIkkeBeregne.UgyldigTilstand(feil.fra, feil.til)
                 }
+
                 is no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag -> {
                     KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag(feil.feil.toService())
                 }
@@ -435,6 +444,7 @@ internal class SøknadsbehandlingServiceImpl(
 
                     Pair(iverksattBehandling, vedtak)
                 }
+
                 is Søknadsbehandling.Iverksatt.Avslag -> {
                     val vedtak: Avslagsvedtak = opprettAvslagsvedtak(iverksattBehandling)
 
@@ -508,6 +518,7 @@ internal class SøknadsbehandlingServiceImpl(
                     clock = clock,
                 )
             }
+
             is Søknadsbehandling.Iverksatt.Avslag.UtenBeregning -> {
                 Avslagsvedtak.fromSøknadsbehandlingUtenBeregning(
                     avslag = iverksattBehandling,
@@ -520,6 +531,7 @@ internal class SøknadsbehandlingServiceImpl(
         val behandling = when (request) {
             is BrevRequest.MedFritekst ->
                 request.behandling.medFritekstTilBrev(request.fritekst)
+
             is BrevRequest.UtenFritekst ->
                 request.behandling
         }
@@ -583,6 +595,7 @@ internal class SøknadsbehandlingServiceImpl(
                     is KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår.UgyldigTilstand -> {
                         KunneIkkeLeggeTilUføreVilkår.UgyldigTilstand(fra = it.fra, til = it.til)
                     }
+
                     KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår.VurderingsperiodeUtenforBehandlingsperiode -> {
                         KunneIkkeLeggeTilUføreVilkår.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden
                     }
@@ -700,12 +713,14 @@ internal class SøknadsbehandlingServiceImpl(
             GrunnlagetMåVæreInnenforBehandlingsperioden -> {
                 KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInnenforBehandlingsperioden
             }
+
             is IkkeLovÅLeggeTilFradragIDenneStatusen -> {
                 KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand(
                     fra = this.status,
                     til = Søknadsbehandling.Vilkårsvurdert.Innvilget::class,
                 )
             }
+
             is KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag -> {
                 KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag(this.feil)
             }
@@ -839,7 +854,7 @@ internal class SøknadsbehandlingServiceImpl(
     }
 
     override fun leggTilInstitusjonsoppholdVilkår(
-        request: LeggTilInstitusjonsoppholdVilkårRequest
+        request: LeggTilInstitusjonsoppholdVilkårRequest,
     ): Either<KunneIkkeLeggeTilInstitusjonsoppholdVilkår, Søknadsbehandling.Vilkårsvurdert> {
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilInstitusjonsoppholdVilkår.FantIkkeBehandling.left()
@@ -861,15 +876,19 @@ internal class SøknadsbehandlingServiceImpl(
                     til = this.til,
                 )
             }
+
             KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode -> {
                 KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode
             }
+
             KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold.AlleVurderingsperioderMåHaSammeResultat -> {
                 KunneIkkeLeggeTilUtenlandsopphold.AlleVurderingsperioderMåHaSammeResultat
             }
+
             KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold.MåInneholdeKunEnVurderingsperiode -> {
                 KunneIkkeLeggeTilUtenlandsopphold.MåInneholdeKunEnVurderingsperiode
             }
+
             KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold.MåVurdereHelePerioden -> {
                 KunneIkkeLeggeTilUtenlandsopphold.MåVurdereHelePerioden
             }

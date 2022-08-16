@@ -70,7 +70,10 @@ internal class SøknadsbehandlingAlder {
             søknad.type shouldBe Sakstype.ALDER
 
             val søknadsbehandling = appComponents.services.søknadsbehandling.opprett(
-                request = SøknadsbehandlingService.OpprettRequest(søknadId = søknad.id),
+                request = SøknadsbehandlingService.OpprettRequest(
+                    søknadId = søknad.id,
+                    sakId = sak.id,
+                ),
             ).getOrFail()
 
             appComponents.services.søknadsbehandling.oppdaterStønadsperiode(

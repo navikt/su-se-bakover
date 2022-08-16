@@ -403,6 +403,7 @@ internal class TestDataHelper(
         vedtakPostgresRepo = vedtakRepo,
         klageRepo = klagePostgresRepo,
         reguleringRepo = reguleringRepo,
+        avkortingsvarselRepo = avkortingsvarselRepo,
     )
 
     internal val avstemmingRepo = AvstemmingPostgresRepo(

@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
+import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -109,7 +110,6 @@ internal class StansUtbetalingServiceTest {
         saksnummer = saksnummer,
         opprettet = Tidspunkt.EPOCH,
         fnr = fnr,
-        type = Sakstype.UFØRE,
         utbetalinger = listOf(
             Utbetaling.UtbetalingForSimulering(
                 id = UUID30.randomUUID(),
@@ -130,6 +130,8 @@ internal class StansUtbetalingServiceTest {
                 oppdragsmelding,
             ),
         ),
+        type = Sakstype.UFØRE,
+        uteståendeAvkorting = Avkortingsvarsel.Ingen,
     )
 
     private fun expectedUtbetalingslinje(opprettet: Tidspunkt) = Utbetalingslinje.Endring.Stans(

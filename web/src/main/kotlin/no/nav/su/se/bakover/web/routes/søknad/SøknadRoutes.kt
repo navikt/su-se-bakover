@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteSøknad
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.web.AuditLogEvent
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
@@ -120,10 +121,12 @@ internal fun Route.søknadRoutes(
                                 "Fant ikke søknad",
                                 "fant_ikke_søknad",
                             )
+
                             KunneIkkeLageSøknadPdf.KunneIkkeLagePdf -> InternalServerError.errorJson(
                                 "Kunne ikke lage PDF",
                                 "kunne_ikke_lage_pdf",
                             )
+
                             KunneIkkeLageSøknadPdf.FantIkkePerson -> Feilresponser.fantIkkePerson
                             KunneIkkeLageSøknadPdf.FantIkkeSak -> NotFound.errorJson(
                                 "Fant ikke sak",
@@ -184,11 +187,17 @@ internal fun Route.søknadRoutes(
                                 KunneIkkeAvslåSøknad.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> Feilresponser.fantIkkeSaksbehandlerEllerAttestant
                                 KunneIkkeAvslåSøknad.KunneIkkeHentePerson -> Feilresponser.fantIkkePerson
                                 KunneIkkeAvslåSøknad.FantIkkeSak -> Feilresponser.fantIkkeSak
-                                KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling.FantIkkeSøknad -> Feilresponser.fantIkkeSøknad
-                                KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling.HarAlleredeÅpenSøknadsbehandling -> Feilresponser.harAlleredeÅpenBehandling
-                                KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling.SøknadErLukket -> Feilresponser.søknadErLukket
-                                KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling.SøknadHarAlleredeBehandling -> Feilresponser.søknadHarBehandlingFraFør
-                                KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling.SøknadManglerOppgave -> Feilresponser.søknadManglerOppgave
+                                is KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling -> {
+                                    when (it.feil) {
+                                        SøknadsbehandlingService.KunneIkkeOpprette.FantIkkeSak -> Feilresponser.fantIkkeSak
+                                        SøknadsbehandlingService.KunneIkkeOpprette.FantIkkeSøknad -> Feilresponser.fantIkkeSøknad
+                                        SøknadsbehandlingService.KunneIkkeOpprette.HarAlleredeÅpenSøknadsbehandling -> Feilresponser.harAlleredeÅpenBehandling
+                                        SøknadsbehandlingService.KunneIkkeOpprette.SøknadErLukket -> Feilresponser.søknadErLukket
+                                        SøknadsbehandlingService.KunneIkkeOpprette.SøknadHarAlleredeBehandling -> Feilresponser.søknadHarBehandlingFraFør
+                                        SøknadsbehandlingService.KunneIkkeOpprette.SøknadManglerOppgave -> Feilresponser.søknadManglerOppgave
+                                    }
+                                }
+                                KunneIkkeAvslåSøknad.FantIkkeSøknad -> Feilresponser.fantIkkeSøknad
                             },
                         )
                     }.map {
@@ -216,6 +225,7 @@ internal fun Route.søknadRoutes(
                             when (it) {
                                 KunneIkkeLageBrevutkast.FantIkkeSøknad ->
                                     call.svar(NotFound.errorJson("Fant Ikke Søknad", "fant_ikke_søknad"))
+
                                 KunneIkkeLageBrevutkast.UkjentBrevtype ->
                                     call.svar(
                                         BadRequest.errorJson(
@@ -223,6 +233,7 @@ internal fun Route.søknadRoutes(
                                             "ukjent_brevtype",
                                         ),
                                     )
+
                                 else ->
                                     call.svar(kunneIkkeLageBrevutkast)
                             }
@@ -261,10 +272,12 @@ private fun FeilVedOpprettelseAvOppholdstillatelse.tilResultat() = when (this) {
         "Forventet fritekst for statsborgerskap",
         "fritekst_for_statsborgerskap_er_ikke_utfylt",
     )
+
     FeilVedOpprettelseAvOppholdstillatelse.OppholdstillatelseErIkkeUtfylt -> BadRequest.errorJson(
         "Forventet at oppholdstillatelse er valgt",
         "oppholdstillatelse_er_ikke_utfylt",
     )
+
     FeilVedOpprettelseAvOppholdstillatelse.TypeOppholdstillatelseErIkkeUtfylt -> BadRequest.errorJson(
         "Forventet type oppholdstillatelse",
         "type_oppholdstillatelse_er_ikke_utfylt",
@@ -276,14 +289,17 @@ private fun FeilVedOpprettelseAvBoforhold.tilResultat() = when (this) {
         "DelerBoligMed må være utfylt",
         "deler_bolig_med_er_ikke_utfylt",
     )
+
     FeilVedOpprettelseAvBoforhold.EktefellePartnerSamboerMåVæreUtfylt -> BadRequest.errorJson(
         "EktefellePartnerSamboer må være utfylt",
         "ektefelle_partner_samboer_er_ikke_utfylt",
     )
+
     FeilVedOpprettelseAvBoforhold.BeggeAdressegrunnerErUtfylt -> BadRequest.errorJson(
         "Kun én adressegrunn kan være utfylt",
         "kun_en_adressegrunn_kan_være_utfylt",
     )
+
     FeilVedOpprettelseAvBoforhold.InkonsekventInnleggelse -> BadRequest.errorJson(
         "Inkonsekvent data er sendt inn for institusjonsopphold",
         "inkonsekvent_innleggelse",
@@ -295,10 +311,12 @@ private fun FeilVedOpprettelseAvFormue.tilResultat() = when (this) {
         "Boligens verdi/beskrivelse er ikke utfylt",
         "boligens_verdi_eller_beskrivelse_er_ikke_utfylt",
     )
+
     FeilVedOpprettelseAvFormue.BorIBoligErIkkeUtfylt -> BadRequest.errorJson(
         "BorIBolig må være utfylt",
         "borIBolig_er_ikke_utfylt",
     )
+
     FeilVedOpprettelseAvFormue.DepositumsbeløpetErIkkeutfylt -> BadRequest.errorJson(
         "Depositumsbeløpet er ikke utfylt",
         "depositumsbeløp_er_ikke_utfylt",
@@ -321,6 +339,7 @@ private fun FeilVedValideringAvOppholdstillatelseOgOppholdstillatelseAlder.tilRe
         "Eøs-borger er ikke utfylt",
         "eøs_borger_er_ikke_utfylt",
     )
+
     FeilVedValideringAvOppholdstillatelseOgOppholdstillatelseAlder.FamiliegjenforeningErIkkeutfylt -> BadRequest.errorJson(
         "Familiegjenforening er ikke utfylt",
         "familiegjenforening_er_ikke_utfylt",

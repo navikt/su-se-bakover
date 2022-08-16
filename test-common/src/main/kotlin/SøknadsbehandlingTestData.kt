@@ -531,8 +531,23 @@ fun søknadsbehandlingLukket(
     return søknadsbehandlingVilkårsvurdertUavklart(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
-    ).run {
-        Pair(first, second.lukkSøknadsbehandling().orNull()!!)
+    ).let { (sak, søknadsbehandling) ->
+        val lukketSøknad = søknadsbehandling.søknad.let {
+            Søknad.Journalført.MedOppgave.Lukket(
+                id = it.id,
+                opprettet = it.opprettet,
+                sakId = it.sakId,
+                søknadInnhold = it.søknadInnhold,
+                journalpostId = it.journalpostId,
+                oppgaveId = it.oppgaveId,
+                lukketTidspunkt = fixedTidspunkt,
+                lukketAv = saksbehandler,
+                lukketType = Søknad.Journalført.MedOppgave.Lukket.LukketType.BORTFALT,
+            )
+        }
+        sak.copy(
+            søknader = sak.søknader.filterNot { it.id == søknadsbehandling.søknad.id } + lukketSøknad,
+        ) to søknadsbehandling.lukkSøknadsbehandling().getOrFail()
     }
 }
 
@@ -591,6 +606,7 @@ fun nySøknadsbehandling(
                 Sakstype.ALDER -> {
                     Vilkårsvurderinger.Søknadsbehandling.Alder.ikkeVurdert()
                 }
+
                 Sakstype.UFØRE -> {
                     Vilkårsvurderinger.Søknadsbehandling.Uføre.ikkeVurdert()
                 }
@@ -739,6 +755,7 @@ fun iverksattSøknadsbehandling(
                     )
                 }
             }
+
             is Søknadsbehandling.TilAttestering.Avslag.UtenBeregning -> {
                 tilAttestering.tilIverksatt(attestering).let {
                     Triple(
@@ -751,6 +768,7 @@ fun iverksattSøknadsbehandling(
                     )
                 }
             }
+
             is Søknadsbehandling.TilAttestering.Innvilget -> {
                 val utbetaling = nyUtbetalingOversendtMedKvittering(
                     sakOgBehandling = sak to tilAttestering,
@@ -832,6 +850,7 @@ fun tilAttesteringSøknadsbehandling(
                     fritekstTilBrev = "",
                 )
             }
+
             is Søknadsbehandling.Vilkårsvurdert.Innvilget -> {
                 beregnetSøknadsbehandling(
                     clock = clock,
@@ -849,6 +868,7 @@ fun tilAttesteringSøknadsbehandling(
                                 fritekstTilBrev = "",
                             )
                         }
+
                         is Søknadsbehandling.Beregnet.Innvilget -> {
                             // simuler og send til attestering hvis innvilget
                             simulertSøknadsbehandling(
@@ -868,6 +888,7 @@ fun tilAttesteringSøknadsbehandling(
                     }
                 }
             }
+
             is Søknadsbehandling.Vilkårsvurdert.Uavklart -> {
                 throw IllegalStateException("Kan ikke attestere uavklart")
             }
@@ -1023,6 +1044,7 @@ fun vilkårsvurdertSøknadsbehandling(
                     stønadsperiode = stønadsperiode,
                 )
             }
+
             Sakstype.UFØRE -> {
                 vilkårsvurderingerSøknadsbehandlingInnvilget(
                     periode = stønadsperiode.periode,
@@ -1077,6 +1099,7 @@ fun vilkårsvurdertSøknadsbehandling(
                     )
                     .getOrFail()
             }
+
             is Vilkårsvurderinger.Søknadsbehandling.Uføre -> {
                 søknadsbehandling.oppdaterBosituasjon(
                     bosituasjon = customGrunnlag.customOrDefault { grunnlagsdata.bosituasjon }.single(),

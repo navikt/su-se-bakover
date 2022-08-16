@@ -58,22 +58,24 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImpl(
 
     private fun opprettNyBehandlingFørst(
         request: AvslåManglendeDokumentasjonRequest,
-    ): Either<KunneIkkeAvslåSøknad, Sak> =
-        søknadsbehandlingService.opprett(
+    ): Either<KunneIkkeAvslåSøknad, Sak> {
+        val sak = sakService.hentSakForSøknad(request.søknadId)
+            .getOrHandle { return KunneIkkeAvslåSøknad.FantIkkeSak.left() }
+
+        val søknad = sak.hentSøknad(request.søknadId)
+            .getOrHandle { return KunneIkkeAvslåSøknad.FantIkkeSøknad.left() }
+
+        return søknadsbehandlingService.opprett(
             request = SøknadsbehandlingService.OpprettRequest(
-                søknadId = request.søknadId,
+                søknadId = søknad.id,
+                sakId = sak.id,
             ),
         ).mapLeft {
-            when (it) {
-                SøknadsbehandlingService.KunneIkkeOpprette.FantIkkeSøknad -> KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling.FantIkkeSøknad
-                SøknadsbehandlingService.KunneIkkeOpprette.HarAlleredeÅpenSøknadsbehandling -> KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling.HarAlleredeÅpenSøknadsbehandling
-                SøknadsbehandlingService.KunneIkkeOpprette.SøknadErLukket -> KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling.SøknadErLukket
-                SøknadsbehandlingService.KunneIkkeOpprette.SøknadHarAlleredeBehandling -> KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling.SøknadHarAlleredeBehandling
-                SøknadsbehandlingService.KunneIkkeOpprette.SøknadManglerOppgave -> KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling.SøknadManglerOppgave
-            }
+            KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling(it)
         }.map {
             return avslå(request, it)
         }
+    }
 
     private fun avslå(
         request: AvslåManglendeDokumentasjonRequest,

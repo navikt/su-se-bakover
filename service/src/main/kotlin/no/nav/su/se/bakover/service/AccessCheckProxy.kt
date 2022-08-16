@@ -341,6 +341,11 @@ open class AccessCheckProxy(
                     return services.sak.hentSakForRevurdering(revurderingId)
                 }
 
+                override fun hentSakForSøknad(søknadId: UUID): Either<FantIkkeSak, Sak> {
+                    assertHarTilgangTilSøknad(søknadId)
+                    return services.sak.hentSakForSøknad(søknadId)
+                }
+
                 override fun opprettSak(sak: NySak) {
                     assertHarTilgangTilPerson(sak.fnr)
 

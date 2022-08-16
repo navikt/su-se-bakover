@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
+import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
@@ -151,9 +152,11 @@ fun opprettRevurderingFraSaksopplysninger(
                     is Grunnlag.Bosituasjon -> {
                         acc.copy(bosituasjon = (acc.bosituasjon + grunnlag) - it.grunnlagsdata.bosituasjon.toSet())
                     }
+
                     is Grunnlag.Fradragsgrunnlag -> {
                         acc.copy(fradragsgrunnlag = (acc.fradragsgrunnlag + grunnlag) - it.grunnlagsdata.fradragsgrunnlag.toSet())
                     }
+
                     else -> {
                         // andre grunnlag legges til via sine respektive vilkår
                         acc
@@ -288,6 +291,7 @@ fun simulertRevurdering(
             is BeregnetRevurdering.IngenEndring -> {
                 throw IllegalStateException("Kan ikke simulere for:${beregnet::class}, overstyr vilkår/grunnlag for et annet resultat.")
             }
+
             is BeregnetRevurdering.Innvilget -> {
                 val simulert = beregnet.toSimulert(
                     simuleringNy(
@@ -311,6 +315,7 @@ fun simulertRevurdering(
 
                 oppdaterTilbakekrevingsbehandling(simulert)
             }
+
             is BeregnetRevurdering.Opphørt -> {
                 val simulert = beregnet.toSimulert { _, _, opphørsdato ->
                     opphørUtbetalingSimulert(
@@ -368,6 +373,7 @@ fun revurderingTilAttestering(
                     fritekstTilBrev = simulert.fritekstTilBrev,
                 ).getOrFail()
             }
+
             is SimulertRevurdering.Opphørt -> {
                 val oppdatertTilbakekreving =
                     (oppdaterTilbakekrevingsbehandling(simulert) as SimulertRevurdering.Opphørt)
@@ -436,6 +442,7 @@ private fun oppdaterTilbakekrevingsbehandling(revurdering: SimulertRevurdering):
                 ),
             )
         }
+
         false -> {
             revurdering.oppdaterTilbakekrevingsbehandling(
                 tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling,
@@ -480,6 +487,7 @@ fun iverksattRevurdering(
                     clock = clock,
                 ).getOrFail() to null
             }
+
             is RevurderingTilAttestering.Innvilget -> {
                 val utbetaling = nyUtbetalingOversendUtenKvittering(
                     sakOgBehandling = sak to tilAttestering,
@@ -495,15 +503,19 @@ fun iverksattRevurdering(
                             is AvkortingVedRevurdering.Håndtert.AnnullerUtestående -> {
                                 opprinnelig.avkortingsvarsel
                             }
+
                             AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående -> {
                                 null
                             }
+
                             is AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres -> {
                                 null
                             }
+
                             is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel -> {
                                 null
                             }
+
                             is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
                                 opprinnelig.annullerUtestående
                             }
@@ -511,6 +523,7 @@ fun iverksattRevurdering(
                     },
                 ).getOrFail() to utbetaling
             }
+
             is RevurderingTilAttestering.Opphørt -> {
                 val utbetaling = opphørUtbetalingOversendUtenKvittering(
                     sakOgBehandling = sak to tilAttestering,
@@ -525,15 +538,19 @@ fun iverksattRevurdering(
                             is AvkortingVedRevurdering.Håndtert.AnnullerUtestående -> {
                                 opprinnelig.avkortingsvarsel
                             }
+
                             AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående -> {
                                 null
                             }
+
                             is AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres -> {
                                 null
                             }
+
                             is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel -> {
                                 null
                             }
+
                             is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
                                 opprinnelig.annullerUtestående
                             }
@@ -546,6 +563,13 @@ fun iverksattRevurdering(
             first = sak.copy(
                 revurderinger = sak.revurderinger.filterNot { it.id == iverksatt.id } + iverksatt,
                 utbetalinger = if (utbetaling != null) sak.utbetalinger + utbetaling else sak.utbetalinger,
+                uteståendeAvkorting = when (val avkorting = iverksatt.avkorting) {
+                    is AvkortingVedRevurdering.Iverksatt.AnnullerUtestående -> Avkortingsvarsel.Ingen
+                    is AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående -> Avkortingsvarsel.Ingen
+                    is AvkortingVedRevurdering.Iverksatt.KanIkkeHåndteres -> Avkortingsvarsel.Ingen
+                    is AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarsel -> avkorting.avkortingsvarsel
+                    is AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> avkorting.avkortingsvarsel
+                },
             ),
             second = iverksatt,
             third = utbetaling,
@@ -589,9 +613,11 @@ fun vedtakRevurdering(
             is IverksattRevurdering.IngenEndring -> {
                 VedtakSomKanRevurderes.from(iverksatt, clockPlusOneTick)
             }
+
             is IverksattRevurdering.Innvilget -> {
                 VedtakSomKanRevurderes.from(iverksatt, utbetaling!!.id, clockPlusOneTick)
             }
+
             is IverksattRevurdering.Opphørt -> {
                 VedtakSomKanRevurderes.from(iverksatt, utbetaling!!.id, clockPlusOneTick)
             }
@@ -1031,21 +1057,26 @@ private fun <T : SimulertRevurdering> T.prøvÅLeggTilForhåndsvarselPåSimulert
             this.markerForhåndsvarselSomSendt().orNull()!!.prøvOvergangTilAvsluttet(forhåndsvarsel.begrunnelse)
                 .orNull()!!
         }
+
         is Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.EndreGrunnlaget -> {
             this.markerForhåndsvarselSomSendt().orNull()!!
                 .prøvOvergangTilEndreGrunnlaget(forhåndsvarsel.begrunnelse).orNull()!!
         }
+
         is Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.FortsettMedSammeGrunnlag -> {
             this.markerForhåndsvarselSomSendt().orNull()!!
                 .prøvOvergangTilAvsluttet(forhåndsvarsel.begrunnelse)
                 .orNull()!!
         }
+
         Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles -> {
             this.ikkeSendForhåndsvarsel().orNull()!!
         }
+
         Forhåndsvarsel.UnderBehandling.Sendt -> {
             this.markerForhåndsvarselSomSendt().orNull()!!
         }
+
         null -> this
     } as T
 }

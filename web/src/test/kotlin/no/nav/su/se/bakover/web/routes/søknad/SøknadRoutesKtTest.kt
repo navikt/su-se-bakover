@@ -38,6 +38,7 @@ import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder.build
+import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -98,6 +99,7 @@ internal class SøknadRoutesKtTest {
         fnr = Fnr.generer(),
         utbetalinger = emptyList(),
         type = Sakstype.UFØRE,
+        uteståendeAvkorting = Avkortingsvarsel.Ingen,
     )
     private val søknadId = UUID.randomUUID()
 

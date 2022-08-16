@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.database.PostgresSessionFactory
+import no.nav.su.se.bakover.database.avkorting.AvkortingsvarselPostgresRepo
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
@@ -36,6 +37,7 @@ internal class SakPostgresRepo(
     private val vedtakPostgresRepo: VedtakPostgresRepo,
     private val klageRepo: KlageRepo,
     private val reguleringRepo: ReguleringRepo,
+    private val avkortingsvarselRepo: AvkortingsvarselPostgresRepo,
 ) : SakRepo {
 
     private val åpneBehandlingerRepo = ÅpneBehandlingerRepo(
@@ -86,6 +88,17 @@ internal class SakPostgresRepo(
                         .hent(mapOf("revurderingid" to revurderingId), session) { it.toSak(sessionContext) }
                 }
             }!!
+        }
+    }
+
+    override fun hentSakForSøknad(søknadId: UUID): Sak? {
+        return dbMetrics.timeQuery("hentSakForSøknad") {
+            sessionFactory.withSessionContext { sessionContext ->
+                sessionContext.withSession { session ->
+                    "select s.* from sak s join søknad ss on ss.sakid = s.id where ss.id =:soknadId"
+                        .hent(mapOf("soknadId" to søknadId), session) { it.toSak(sessionContext) }
+                }
+            }
         }
     }
 
@@ -223,8 +236,8 @@ internal class SakPostgresRepo(
             Sak(
                 id = sakId,
                 saksnummer = Saksnummer(long("saksnummer")),
-                fnr = Fnr(string("fnr")),
                 opprettet = tidspunkt("opprettet"),
+                fnr = Fnr(string("fnr")),
                 søknader = SøknadRepoInternal.hentSøknaderInternal(sakId, session),
                 søknadsbehandlinger = søknadsbehandlingRepo.hentForSak(sakId, sessionContext),
                 utbetalinger = UtbetalingInternalRepo.hentUtbetalinger(sakId, session),
@@ -233,6 +246,7 @@ internal class SakPostgresRepo(
                 klager = klageRepo.hentKlager(sakId, sessionContext),
                 reguleringer = reguleringRepo.hentForSakId(sakId, sessionContext),
                 type = Sakstype.from(string("type")),
+                uteståendeAvkorting = avkortingsvarselRepo.hentUteståendeAvkorting(sakId, session),
             )
         }
     }

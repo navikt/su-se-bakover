@@ -229,6 +229,7 @@ object DatabaseBuilder {
                 vedtakPostgresRepo = vedtakRepo,
                 klageRepo = klageRepo,
                 reguleringRepo = reguleringRepo,
+                avkortingsvarselRepo = avkortingsvarselRepo,
             ),
             person = PersonPostgresRepo(
                 sessionFactory = sessionFactory,

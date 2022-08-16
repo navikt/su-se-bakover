@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.common.periode.november
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.september
+import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
@@ -87,6 +88,7 @@ internal class SakTest {
                 revurderinger = listOf(),
                 vedtakListe = listOf(),
                 type = Sakstype.UFØRE,
+                uteståendeAvkorting = Avkortingsvarsel.Ingen,
             ).hentPerioderMedLøpendeYtelse() shouldBe emptyList()
         }
 
