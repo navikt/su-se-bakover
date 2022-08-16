@@ -38,6 +38,8 @@ interface SakService {
     fun hentSakidOgSaksnummer(fnr: Fnr): Either<FantIkkeSak, SakInfo>
 
     fun hentSakForRevurdering(revurderingId: UUID): Sak
+
+    fun hentSakForSøknad(søknadId: UUID): Either<FantIkkeSak, Sak>
 }
 
 object FantIkkeSak

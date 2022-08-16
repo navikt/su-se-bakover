@@ -136,9 +136,12 @@ internal class SøknadsbehandlingServiceImpl(
     fun getObservers(): List<EventObserver> = observers.toList()
 
     override fun opprett(request: OpprettRequest): Either<KunneIkkeOpprette, Søknadsbehandling.Vilkårsvurdert.Uavklart> {
-        val søknad = søknadService.hentSøknad(request.søknadId).getOrElse {
-            return KunneIkkeOpprette.FantIkkeSøknad.left()
-        }
+        val sak = sakService.hentSak(request.sakId)
+            .getOrHandle { return KunneIkkeOpprette.FantIkkeSak.left() }
+
+        val søknad = sak.hentSøknad(request.søknadId)
+            .getOrHandle { return KunneIkkeOpprette.FantIkkeSøknad.left() }
+
         if (søknad is Søknad.Journalført.MedOppgave.Lukket) {
             return KunneIkkeOpprette.SøknadErLukket.left()
         }
@@ -146,21 +149,21 @@ internal class SøknadsbehandlingServiceImpl(
             // TODO Prøv å opprette oppgaven hvis den mangler? (systembruker blir kanskje mest riktig?)
             return KunneIkkeOpprette.SøknadManglerOppgave.left()
         }
-        if (hentForSøknad(søknad.id) != null) {
+        if (sak.hentSøknadsbehandlingForSøknad(søknad.id).isNotEmpty()) {
             return KunneIkkeOpprette.SøknadHarAlleredeBehandling.left()
         }
 
-        val åpneSøknadsbehandlinger = søknadsbehandlingRepo.hentForSak(søknad.sakId)
-            .filterNot { it.erIverksatt }
-            .filterNot { it.erLukket }
-
-        if (åpneSøknadsbehandlinger.isNotEmpty()) {
+        if (sak.harÅpenSøknadsbehandling()) {
             return KunneIkkeOpprette.HarAlleredeÅpenSøknadsbehandling.left()
         }
 
         val søknadsbehandlingId = UUID.randomUUID()
 
-        val avkorting = hentUteståendeAvkorting(søknad.sakId)
+        val avkorting = sak.hentUteståendeAvkortingForSøknadsbehandling()
+            .fold(
+                { it },
+                { it },
+            )
 
         søknadsbehandlingRepo.lagreNySøknadsbehandling(
             NySøknadsbehandling(

@@ -95,7 +95,12 @@ internal fun Route.søknadsbehandlingRoutes(
                     body.soknadId.toUUID().mapLeft {
                         call.svar(BadRequest.errorJson("soknadId er ikke en gyldig uuid", "ikke_gyldig_uuid"))
                     }.map { søknadId ->
-                        søknadsbehandlingService.opprett(OpprettRequest(søknadId)).fold(
+                        søknadsbehandlingService.opprett(
+                            OpprettRequest(
+                                søknadId = søknadId,
+                                sakId = sakId,
+                            )
+                        ).fold(
                             {
                                 call.svar(
                                     when (it) {
@@ -128,6 +133,10 @@ internal fun Route.søknadsbehandlingRoutes(
                                                 "Har allerede en åpen søknadsbehandling",
                                                 "har_allerede_en_åpen_søknadsbehandling",
                                             )
+                                        }
+
+                                        KunneIkkeOpprette.FantIkkeSak -> {
+                                            fantIkkeSak
                                         }
                                     },
                                 )

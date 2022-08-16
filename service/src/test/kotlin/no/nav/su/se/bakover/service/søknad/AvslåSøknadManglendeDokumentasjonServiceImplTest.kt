@@ -5,6 +5,7 @@ import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveClientStub.lukkOppgave
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.periode.Periode
@@ -40,11 +41,13 @@ import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.søknadId
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
+import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandlingUføre
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
@@ -82,6 +85,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
 
         val sakServiceMock = mock<SakService> {
             on { hentSak(any<UUID>()) } doReturn sak.right()
+            on { hentSakForSøknad(any()) } doReturn sak.right()
         }
 
         AvslåSøknadServiceAndMocks(
@@ -160,7 +164,12 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
             )
 
             verify(serviceAndMocks.søknadsbehandlingService).hentForSøknad(søknadId)
-            verify(serviceAndMocks.søknadsbehandlingService).opprett(SøknadsbehandlingService.OpprettRequest(søknadId = søknadId))
+            verify(serviceAndMocks.søknadsbehandlingService).opprett(
+                SøknadsbehandlingService.OpprettRequest(
+                    søknadId = søknadId,
+                    sakId = sakId,
+                ),
+            )
             verify(serviceAndMocks.søknadsbehandlingService).lagre(
                 argThat {
                     it.søknadsbehandling.shouldBeEqualToIgnoringFields(
@@ -378,24 +387,30 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
 
     @Test
     fun `svarer med feil dersom vi ikke får opprettet behandling`() {
-        val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
-            on { opprett(any()) } doReturn SøknadsbehandlingService.KunneIkkeOpprette.SøknadHarAlleredeBehandling.left()
-        }
+        val (sak, søknadsbehandling) = vilkårsvurdertSøknadsbehandlingUføre()
 
         AvslåSøknadServiceAndMocks(
-            søknadsbehandlingService = søknadsbehandlingServiceMock,
+            sakService = mock {
+                on { hentSakForSøknad(any()) } doReturn sak.right()
+            },
+            søknadsbehandlingService = mock {
+                on { hentForSøknad(any()) } doReturn null
+                on { opprett(any()) } doReturn SøknadsbehandlingService.KunneIkkeOpprette.SøknadHarAlleredeBehandling.left()
+            },
             clock = fixedClock,
         ).let {
             it.service.avslå(
                 AvslåManglendeDokumentasjonRequest(
-                    søknadId,
+                    søknadId = søknadsbehandling.søknad.id,
                     saksbehandler = NavIdentBruker.Saksbehandler("saksemannen"),
                     fritekstTilBrev = "finfin tekst",
                 ),
-            ) shouldBe KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling.SøknadHarAlleredeBehandling.left()
+            ) shouldBe KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling(SøknadsbehandlingService.KunneIkkeOpprette.SøknadHarAlleredeBehandling)
+                .left()
 
-            verify(søknadsbehandlingServiceMock).hentForSøknad(any())
-            verify(søknadsbehandlingServiceMock).opprett(any())
+            verify(it.sakService).hentSakForSøknad(any())
+            verify(it.søknadsbehandlingService).hentForSøknad(any())
+            verify(it.søknadsbehandlingService).opprett(any())
             it.verifyNoMoreInteractions()
         }
     }
@@ -412,6 +427,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
         }
         val sakServiceMock = mock<SakService> {
             on { hentSak(any<UUID>()) } doReturn sak.right()
+            on { hentSakForSøknad(any()) } doReturn sak.right()
         }
 
         val dokument = Dokument.UtenMetadata.Vedtak(
@@ -463,23 +479,20 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
 
     @Test
     fun `svarer med feil dersom opprettesle av dokument feiler`() {
-        val (_, uavklart) = søknadsbehandlingVilkårsvurdertUavklart()
-
-        val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
-            on { opprett(any()) } doReturn uavklart.right()
-        }
-        val oppgaveServiceMock = mock<OppgaveService> {
-            on { lukkOppgave(any()) } doReturn Unit.right()
-        }
-
-        val brevServiceMock = mock<BrevService> {
-            on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn KunneIkkeLageDokument.KunneIkkeGenererePDF.left()
-        }
-
+        val (sak, uavklart) = søknadsbehandlingVilkårsvurdertUavklart()
         AvslåSøknadServiceAndMocks(
-            søknadsbehandlingService = søknadsbehandlingServiceMock,
-            oppgaveService = oppgaveServiceMock,
-            brevService = brevServiceMock,
+            søknadsbehandlingService = mock {
+                on { opprett(any()) } doReturn uavklart.right()
+            },
+            oppgaveService = mock {
+                on { lukkOppgave(any()) } doReturn Unit.right()
+            },
+            brevService = mock {
+                on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn KunneIkkeLageDokument.KunneIkkeGenererePDF.left()
+            },
+            sakService = mock {
+                on { hentSakForSøknad(any()) } doReturn sak.right()
+            },
             clock = fixedClock,
         ).let { serviceAndMocks ->
             serviceAndMocks.service.avslå(
@@ -491,7 +504,12 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
             ) shouldBe KunneIkkeAvslåSøknad.KunneIkkeLageDokument(no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument.KunneIkkeGenererePDF).left()
 
             verify(serviceAndMocks.søknadsbehandlingService).hentForSøknad(søknadId)
-            verify(serviceAndMocks.søknadsbehandlingService).opprett(SøknadsbehandlingService.OpprettRequest(søknadId = søknadId))
+            verify(serviceAndMocks.søknadsbehandlingService).opprett(
+                SøknadsbehandlingService.OpprettRequest(
+                    søknadId = søknadId,
+                    sakId = sakId,
+                ),
+            )
             verify(serviceAndMocks.brevService).lagDokument(any<Visitable<LagBrevRequestVisitor>>())
             serviceAndMocks.verifyNoMoreInteractions()
         }

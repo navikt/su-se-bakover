@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
+import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.PersonRepo
 import no.nav.su.se.bakover.service.person.PersonService
@@ -74,7 +75,8 @@ internal class AccessCheckProxyTest {
                                 opprettet = fixedTidspunkt,
                                 fnr = fnr,
                                 utbetalinger = emptyList(),
-                                type = Sakstype.UFØRE
+                                type = Sakstype.UFØRE,
+                                uteståendeAvkorting = Avkortingsvarsel.Ingen
                             ),
                         )
                     },
@@ -212,11 +214,12 @@ internal class AccessCheckProxyTest {
                 } doReturn Either.Right(
                     Sak(
                         id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
                         saksnummer = Saksnummer(2021),
+                        opprettet = fixedTidspunkt,
                         fnr = fnr,
                         utbetalinger = emptyList(),
-                        type = Sakstype.UFØRE
+                        type = Sakstype.UFØRE,
+                        uteståendeAvkorting = Avkortingsvarsel.Ingen
                     ),
                 )
             },

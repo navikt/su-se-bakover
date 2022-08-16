@@ -70,6 +70,7 @@ interface SøknadsbehandlingService {
 
     data class OpprettRequest(
         val søknadId: UUID,
+        val sakId: UUID,
     )
 
     sealed class KunneIkkeOpprette {
@@ -78,6 +79,7 @@ interface SøknadsbehandlingService {
         object SøknadErLukket : KunneIkkeOpprette()
         object SøknadHarAlleredeBehandling : KunneIkkeOpprette()
         object HarAlleredeÅpenSøknadsbehandling : KunneIkkeOpprette()
+        object FantIkkeSak : KunneIkkeOpprette()
     }
 
     sealed class KunneIkkeVilkårsvurdere {

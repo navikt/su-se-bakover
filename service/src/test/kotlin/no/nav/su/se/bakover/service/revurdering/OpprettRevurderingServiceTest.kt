@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.common.periode.juli
 import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.startOfMonth
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeOppretteOppgave
@@ -76,9 +75,6 @@ internal class OpprettRevurderingServiceTest {
             personService = mock {
                 on { hentAktørId(any()) } doReturn aktørId.right()
             },
-            avkortingsvarselRepo = mock {
-                on { hentUtestående(any()) } doReturn Avkortingsvarsel.Ingen
-            },
             revurderingRepo = mock(),
         ).also {
             val actual = it.revurderingService.opprettRevurdering(
@@ -124,7 +120,6 @@ internal class OpprettRevurderingServiceTest {
                 ) {
                     verify(it.sakService).hentSak(sak.id)
                     verify(it.personService).hentAktørId(argThat { it shouldBe fnr })
-                    verify(it.avkortingsvarselRepo).hentUtestående(any())
                     verify(it.oppgaveService).opprettOppgave(
                         argThat {
                             it shouldBe OppgaveConfig.Revurderingsbehandling(
@@ -159,9 +154,6 @@ internal class OpprettRevurderingServiceTest {
             },
             personService = mock {
                 on { hentAktørId(any()) } doReturn aktørId.right()
-            },
-            avkortingsvarselRepo = mock {
-                on { hentUtestående(any()) } doReturn Avkortingsvarsel.Ingen
             },
             revurderingRepo = mock(),
         ).also {
@@ -206,7 +198,6 @@ internal class OpprettRevurderingServiceTest {
             ) {
                 verify(it.sakService).hentSak(sakId)
                 verify(it.personService).hentAktørId(argThat { it shouldBe fnr })
-                verify(it.avkortingsvarselRepo).hentUtestående(any())
                 verify(it.oppgaveService).opprettOppgave(
                     argThat {
                         it shouldBe OppgaveConfig.Revurderingsbehandling(
@@ -245,9 +236,6 @@ internal class OpprettRevurderingServiceTest {
             },
             personService = mock<PersonService> {
                 on { hentAktørId(any()) } doReturn aktørId.right()
-            },
-            avkortingsvarselRepo = mock {
-                on { hentUtestående(any()) } doReturn Avkortingsvarsel.Ingen
             },
             revurderingRepo = mock(),
         ).also {
@@ -289,7 +277,6 @@ internal class OpprettRevurderingServiceTest {
             ) {
                 verify(it.sakService).hentSak(sakId)
                 verify(it.personService).hentAktørId(argThat { it shouldBe fnr })
-                verify(it.avkortingsvarselRepo).hentUtestående(any())
                 verify(it.oppgaveService).opprettOppgave(
                     argThat {
                         it shouldBe OppgaveConfig.Revurderingsbehandling(
@@ -433,9 +420,6 @@ internal class OpprettRevurderingServiceTest {
             personService = mock {
                 on { hentAktørId(any()) } doReturn aktørId.right()
             },
-            avkortingsvarselRepo = mock {
-                on { hentUtestående(any()) } doReturn Avkortingsvarsel.Ingen
-            },
             revurderingRepo = mock(),
         ).also {
             val actual = it.revurderingService.opprettRevurdering(
@@ -470,7 +454,6 @@ internal class OpprettRevurderingServiceTest {
                     )
                 },
             )
-            verify(it.avkortingsvarselRepo).hentUtestående(any())
             it.verifyNoMoreInteractions()
         }
     }
@@ -536,9 +519,6 @@ internal class OpprettRevurderingServiceTest {
             personService = mock {
                 on { hentAktørId(any()) } doReturn aktørId.right()
             },
-            avkortingsvarselRepo = mock {
-                on { hentUtestående(any()) } doReturn Avkortingsvarsel.Ingen
-            },
         ).also {
             val actual = it.revurderingService.opprettRevurdering(
                 OpprettRevurderingRequest(
@@ -555,7 +535,6 @@ internal class OpprettRevurderingServiceTest {
             actual shouldBe KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave.left()
             verify(it.sakService).hentSak(sakId)
             verify(it.personService).hentAktørId(argThat { it shouldBe fnr })
-            verify(it.avkortingsvarselRepo).hentUtestående(sakId)
             verify(it.oppgaveService).opprettOppgave(
                 argThat {
                     it shouldBe OppgaveConfig.Revurderingsbehandling(
@@ -630,7 +609,7 @@ internal class OpprettRevurderingServiceTest {
     @Test
     fun `får feilmelding dersom saken har utestående avkorting, men revurderingsperioden inneholder ikke perioden for avkortingen`() {
         val clock = TikkendeKlokke(fixedClock)
-        val (sak, opphørUtenlandsopphold) = vedtakRevurdering(
+        val (sak, _) = vedtakRevurdering(
             clock = clock,
             revurderingsperiode = Periode.create(1.juni(2021), 31.desember(2021)),
             vilkårOverrides = listOf(
@@ -642,10 +621,6 @@ internal class OpprettRevurderingServiceTest {
             ),
         )
         val nyRevurderingsperiode = Periode.create(1.juli(2021), 31.desember(2021))
-        val uteståendeAvkorting =
-            (opphørUtenlandsopphold as VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering).behandling.avkorting.let {
-                (it as AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarsel).avkortingsvarsel
-            }
 
         RevurderingServiceMocks(
             sakService = mock {
@@ -653,9 +628,6 @@ internal class OpprettRevurderingServiceTest {
             },
             personService = mock {
                 on { hentAktørId(any()) } doReturn aktørId.right()
-            },
-            avkortingsvarselRepo = mock {
-                on { hentUtestående(any()) } doReturn uteståendeAvkorting
             },
         ).let {
             it.revurderingService.opprettRevurdering(

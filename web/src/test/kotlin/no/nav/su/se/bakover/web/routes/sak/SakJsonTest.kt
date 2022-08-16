@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
+import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -43,6 +44,7 @@ internal class SakJsonTest {
         utbetalinger = emptyList(),
         klager = emptyList(),
         type = Sakstype.UFØRE,
+        uteståendeAvkorting = Avkortingsvarsel.Ingen,
     )
 
     //language=JSON
