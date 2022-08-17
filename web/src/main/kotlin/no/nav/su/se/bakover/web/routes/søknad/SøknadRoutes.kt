@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.domain.søknadinnhold.FeilVedOpprettelseAvSøknadinn
 import no.nav.su.se.bakover.domain.søknadinnhold.FeilVedValideringAvBoforholdOgEktefelle
 import no.nav.su.se.bakover.domain.søknadinnhold.FeilVedValideringAvOppholdstillatelseOgOppholdstillatelseAlder
 import no.nav.su.se.bakover.domain.søknadinnhold.ForNav
+import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.service.søknad.AvslåManglendeDokumentasjonRequest
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
 import no.nav.su.se.bakover.service.søknad.KunneIkkeAvslåSøknad
@@ -178,11 +179,14 @@ internal fun Route.søknadRoutes(
                     ).mapLeft {
                         call.svar(
                             when (it) {
-                                KunneIkkeAvslåSøknad.SøknadsbehandlingIUgyldigTilstandForAvslag -> Feilresponser.behandlingErIUgyldigTilstand
-                                KunneIkkeAvslåSøknad.KunneIkkeFinneGjeldendeUtbetaling -> Feilresponser.fantIkkeGjeldendeUtbetaling
-                                KunneIkkeAvslåSøknad.KunneIkkeGenererePDF -> Feilresponser.Brev.kunneIkkeGenerereBrev
-                                KunneIkkeAvslåSøknad.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> Feilresponser.fantIkkeSaksbehandlerEllerAttestant
-                                KunneIkkeAvslåSøknad.KunneIkkeHentePerson -> Feilresponser.fantIkkePerson
+                                is KunneIkkeAvslåSøknad.KunneIkkeLageDokument -> when (it.nested) {
+                                    // KunneIkkeAvslåSøknad.SøknadsbehandlingIUgyldigTilstandForAvslag -> Feilresponser.behandlingErIUgyldigTilstand
+                                    KunneIkkeLageDokument.DetSkalIkkeSendesBrev -> TODO()
+                                    KunneIkkeLageDokument.KunneIkkeFinneGjeldendeUtbetaling -> Feilresponser.fantIkkeGjeldendeUtbetaling
+                                    KunneIkkeLageDokument.KunneIkkeGenererePDF -> Feilresponser.Brev.kunneIkkeGenerereBrev
+                                    KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> Feilresponser.fantIkkeSaksbehandlerEllerAttestant
+                                    KunneIkkeLageDokument.KunneIkkeHentePerson -> Feilresponser.fantIkkePerson
+                                }
                                 KunneIkkeAvslåSøknad.FantIkkeSak -> Feilresponser.fantIkkeSak
                                 KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling.FantIkkeSøknad -> Feilresponser.fantIkkeSøknad
                                 KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling.HarAlleredeÅpenSøknadsbehandling -> Feilresponser.harAlleredeÅpenBehandling

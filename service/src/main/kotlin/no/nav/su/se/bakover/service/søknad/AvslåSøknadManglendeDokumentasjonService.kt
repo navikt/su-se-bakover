@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.søknad
 import arrow.core.Either
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import java.util.UUID
 
 interface AvslåSøknadManglendeDokumentasjonService {
@@ -17,12 +18,7 @@ sealed class KunneIkkeAvslåSøknad {
         object SøknadHarAlleredeBehandling : KunneIkkeOppretteSøknadsbehandling()
         object SøknadManglerOppgave : KunneIkkeOppretteSøknadsbehandling()
     }
-
-    object SøknadsbehandlingIUgyldigTilstandForAvslag : KunneIkkeAvslåSøknad()
-    object KunneIkkeFinneGjeldendeUtbetaling : KunneIkkeAvslåSøknad()
-    object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : KunneIkkeAvslåSøknad()
-    object KunneIkkeHentePerson : KunneIkkeAvslåSøknad()
-    object KunneIkkeGenererePDF : KunneIkkeAvslåSøknad()
+    data class KunneIkkeLageDokument(val nested: no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument) : KunneIkkeAvslåSøknad()
     object FantIkkeSak : KunneIkkeAvslåSøknad()
 }
 

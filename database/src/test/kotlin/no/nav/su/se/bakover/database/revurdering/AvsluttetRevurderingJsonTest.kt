@@ -11,7 +11,11 @@ internal class AvsluttetRevurderingJsonTest {
         //language=JSON
         val avsluttetJson = """
           {
-            "fritekst": "en fri tekst", 
+            "brevvalg": {
+              "fritekst": "en fri tekst", 
+              "begrunnelse": null,
+              "type": "SAKSBEHANDLER_VALG_SKAL_SENDE_BREV_MED_FRITEKST"
+            },
             "begrunnelse": "en begrunnelse", 
             "tidspunktAvsluttet": "2021-01-01T01:02:03.456789Z"
           }
@@ -22,7 +26,7 @@ internal class AvsluttetRevurderingJsonTest {
             serialize(
                 AvsluttetRevurderingInfo(
                     begrunnelse = "en begrunnelse",
-                    fritekst = "en fri tekst",
+                    brevvalg = AvsluttetRevurderingInfo.BrevvalgJson("en fri tekst", null, AvsluttetRevurderingInfo.BrevvalgJson.Type.SAKSBEHANDLER_VALG_SKAL_SENDE_BREV_MED_FRITEKST),
                     tidspunktAvsluttet = fixedTidspunkt,
                 ),
             ),

@@ -191,11 +191,8 @@ object DatabaseBuilder {
             sessionFactory = sessionFactory,
             dbMetrics = dbMetrics,
             grunnlagsdataOgVilkårsvurderingerPostgresRepo = grunnlagsdataOgVilkårsvurderingerPostgresRepo,
-            søknadsbehandlingRepo = søknadsbehandlingRepo,
-            klageRepo = klageRepo,
             avkortingsvarselRepo = avkortingsvarselRepo,
             tilbakekrevingRepo = tilbakekrevingRepo,
-            reguleringPostgresRepo = reguleringRepo,
             satsFactory = satsFactory,
         )
         val vedtakRepo = VedtakPostgresRepo(

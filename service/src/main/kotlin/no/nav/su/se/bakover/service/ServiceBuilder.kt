@@ -138,7 +138,6 @@ object ServiceBuilder {
             formuegrenserFactory = satsFactory.formuegrenserFactory,
             sakService = sakService,
             avkortingsvarselRepo = databaseRepos.avkortingsvarselRepo,
-            toggleService = toggleService,
             tilbakekrevingService = tilbakekrevingService,
             satsFactory = satsFactory,
         ).apply { addObserver(statistikkService) }

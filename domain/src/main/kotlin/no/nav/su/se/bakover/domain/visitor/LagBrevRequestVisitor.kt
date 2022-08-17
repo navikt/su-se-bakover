@@ -325,13 +325,18 @@ class LagBrevRequestVisitor(
     }
 
     override fun visit(revurdering: AvsluttetRevurdering) {
+        if (!revurdering.brevvalg.skalSendeBrev()) {
+            throw IllegalArgumentException("Kan ikke lage brev for avsluttet revurdering ${revurdering.id} siden brevvalget tilsier at det ikke skal sendes brev.")
+        }
         brevRequest = hentPersonOgNavn(
+            fnr = revurdering.fnr,
+            saksbehandler = revurdering.saksbehandler,
             // siden avslutt-brevet er et informasjons-brev, trengs ikke attestant
-            fnr = revurdering.fnr, saksbehandler = revurdering.saksbehandler, attestant = null,
+            attestant = null,
         ).map {
             LagBrevRequest.AvsluttRevurdering(
                 person = it.person,
-                fritekst = revurdering.fritekst,
+                fritekst = revurdering.brevvalg.fritekst,
                 saksbehandlerNavn = it.saksbehandlerNavn,
                 dagensDato = LocalDate.now(clock),
                 saksnummer = revurdering.saksnummer,
@@ -506,90 +511,113 @@ class LagBrevRequestVisitor(
                         is AvkortingVedRevurdering.DelvisHåndtert.AnnullerUtestående -> {
                             null
                         }
+
                         is AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående -> {
                             null
                         }
+
                         is AvkortingVedRevurdering.DelvisHåndtert.KanIkkeHåndtere -> {
                             null
                         }
                     }
                 }
+
                 is IverksattRevurdering.Opphørt -> {
                     when (revurdering.avkorting) {
                         is AvkortingVedRevurdering.Iverksatt.AnnullerUtestående -> {
                             null
                         }
+
                         is AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående -> {
                             null
                         }
+
                         is AvkortingVedRevurdering.Iverksatt.KanIkkeHåndteres -> {
                             null
                         }
+
                         is AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarsel -> {
                             revurdering.avkorting.avkortingsvarsel.hentUtbetalteBeløp().sum()
                         }
+
                         is AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
                             revurdering.avkorting.avkortingsvarsel.hentUtbetalteBeløp().sum()
                         }
                     }
                 }
+
                 is RevurderingTilAttestering.Opphørt -> {
                     when (revurdering.avkorting) {
                         is AvkortingVedRevurdering.Håndtert.AnnullerUtestående -> {
                             null
                         }
+
                         is AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående -> {
                             null
                         }
+
                         is AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres -> {
                             null
                         }
+
                         is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel -> {
                             revurdering.avkorting.avkortingsvarsel.hentUtbetalteBeløp().sum()
                         }
+
                         is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
                             revurdering.avkorting.avkortingsvarsel.hentUtbetalteBeløp().sum()
                         }
                     }
                 }
+
                 is SimulertRevurdering.Opphørt -> {
                     when (revurdering.avkorting) {
                         is AvkortingVedRevurdering.Håndtert.AnnullerUtestående -> {
                             null
                         }
+
                         is AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående -> {
                             null
                         }
+
                         is AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres -> {
                             null
                         }
+
                         is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel -> {
                             revurdering.avkorting.avkortingsvarsel.hentUtbetalteBeløp().sum()
                         }
+
                         is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
                             revurdering.avkorting.avkortingsvarsel.hentUtbetalteBeløp().sum()
                         }
                     }
                 }
+
                 is UnderkjentRevurdering.Opphørt -> {
                     when (revurdering.avkorting) {
                         is AvkortingVedRevurdering.Håndtert.AnnullerUtestående -> {
                             null
                         }
+
                         is AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående -> {
                             null
                         }
+
                         is AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres -> {
                             null
                         }
+
                         is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel -> {
                             revurdering.avkorting.avkortingsvarsel.hentUtbetalteBeløp().sum()
                         }
+
                         is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
                             revurdering.avkorting.avkortingsvarsel.hentUtbetalteBeløp().sum()
                         }
                     }
                 }
+
                 else -> {
                     null
                 }
