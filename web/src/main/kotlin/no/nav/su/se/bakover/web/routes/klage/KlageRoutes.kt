@@ -112,10 +112,6 @@ internal fun Route.klageRoutes(
                                 "Mottatt dato kan ikke være frem i tid",
                                 "ugyldig_mottatt_dato",
                             )
-                            KunneIkkeOppretteKlage.HarAlleredeEnKlageBehandling -> BadRequest.errorJson(
-                                "Finnes allerede en klagebehandling med gitt journalpostId",
-                                "finnes_allerede_en_klagebehandling",
-                            )
                             is KunneIkkeOppretteKlage.FeilVedHentingAvJournalpost -> it.feil.toErrorJson()
                         }
                     }
