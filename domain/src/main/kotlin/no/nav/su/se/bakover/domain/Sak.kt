@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonValue
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUIDFactory
 import no.nav.su.se.bakover.common.log
+import no.nav.su.se.bakover.common.nonEmpty
 import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørTilOgMedDato
@@ -460,11 +461,11 @@ data class Sak(
 
     object FantIkkeSøknad
 
-    fun hentÅpneSøknadsbehandlinger(): Either<IngenÅpneSøknadsbehandlinger, List<Søknadsbehandling>> {
+    fun hentÅpneSøknadsbehandlinger(): Either<IngenÅpneSøknadsbehandlinger, NonEmptyList<Søknadsbehandling>> {
         return søknadsbehandlinger
-            .filterNot { it.erIverksatt }
-            .filterNot { it.erLukket }
+            .filter { it.erÅpen() }
             .ifEmpty { return IngenÅpneSøknadsbehandlinger.left() }
+            .nonEmpty()
             .right()
     }
 
