@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
@@ -230,15 +231,12 @@ internal class RevurderingServiceImpl(
                     it
                 },
                 { uteståendeAvkorting ->
-                    if (!gjeldendeVedtaksdata.periodeFørsteTilOgMedSeneste()
-                        .inneholder(uteståendeAvkorting.avkortingsvarsel.periode())
-                    ) {
-                        return KunneIkkeOppretteRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(
-                            periode = uteståendeAvkorting.avkortingsvarsel.periode(),
-                        ).left()
-                    } else {
-                        uteståendeAvkorting
-                    }
+                    kontrollerAtUteståendeAvkortingRevurderes(gjeldendeVedtaksdata, uteståendeAvkorting)
+                        .getOrHandle {
+                            return KunneIkkeOppretteRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(
+                                periode = uteståendeAvkorting.avkortingsvarsel.periode(),
+                            ).left()
+                        }
                 },
             )
 
@@ -280,6 +278,15 @@ internal class RevurderingServiceImpl(
                 }
             }
         }
+    }
+
+    private fun kontrollerAtUteståendeAvkortingRevurderes(
+        gjeldendeVedtaksdata: GjeldendeVedtaksdata,
+        uteståendeAvkorting: AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting,
+    ): Either<Unit, AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting> {
+        return if (!gjeldendeVedtaksdata.periodeFørsteTilOgMedSeneste()
+            .inneholder(uteståendeAvkorting.avkortingsvarsel.periode())
+        ) Unit.left() else uteståendeAvkorting.right()
     }
 
     override fun leggTilUførevilkår(
@@ -623,15 +630,12 @@ internal class RevurderingServiceImpl(
                     it
                 },
                 { uteståendeAvkorting ->
-                    if (!gjeldendeVedtaksdata.periodeFørsteTilOgMedSeneste()
-                        .inneholder(uteståendeAvkorting.avkortingsvarsel.periode())
-                    ) {
-                        return KunneIkkeOppdatereRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(
-                            periode = uteståendeAvkorting.avkortingsvarsel.periode(),
-                        ).left()
-                    } else {
-                        uteståendeAvkorting
-                    }
+                    kontrollerAtUteståendeAvkortingRevurderes(gjeldendeVedtaksdata, uteståendeAvkorting)
+                        .getOrHandle {
+                            return KunneIkkeOppdatereRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(
+                                periode = uteståendeAvkorting.avkortingsvarsel.periode(),
+                            ).left()
+                        }
                 },
             )
 
