@@ -116,7 +116,7 @@ subprojects {
     }
 
     tasks.withType<Wrapper> {
-        gradleVersion = "7.4.2"
+        gradleVersion = "7.5.1"
     }
 
     // Run `./gradlew allDeps` to get a dependency graph
@@ -199,6 +199,8 @@ fun Test.sharedTestSetup() {
     }
     // https://docs.gradle.org/current/userguide/performance.html#suggestions_for_java_projects
     failFast = false
+    // Enable withEnvironment https://kotest.io/docs/extensions/system_extensions.html
+    jvmArgs = listOf("--add-opens", "java.base/java.util=ALL-UNNAMED")
 }
 
 tasks.register<Copy>("gitHooks") {
