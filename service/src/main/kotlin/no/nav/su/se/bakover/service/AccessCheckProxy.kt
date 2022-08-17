@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
+import no.nav.su.se.bakover.domain.brev.Brevvalg
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -514,7 +515,7 @@ open class AccessCheckProxy(
                     return services.søknadsbehandling.iverksett(request)
                 }
 
-                override fun brev(request: SøknadsbehandlingService.BrevRequest): Either<SøknadsbehandlingService.KunneIkkeLageBrev, ByteArray> {
+                override fun brev(request: SøknadsbehandlingService.BrevRequest): Either<KunneIkkeLageDokument, ByteArray> {
                     assertHarTilgangTilBehandling(request.behandling.id)
                     return services.søknadsbehandling.brev(request)
                 }
@@ -771,10 +772,10 @@ open class AccessCheckProxy(
                 override fun avsluttRevurdering(
                     revurderingId: UUID,
                     begrunnelse: String,
-                    fritekst: String?,
+                    brevvalg: Brevvalg.SaksbehandlersValg?,
                 ): Either<KunneIkkeAvslutteRevurdering, AbstraktRevurdering> {
                     assertHarTilgangTilRevurdering(revurderingId)
-                    return services.revurdering.avsluttRevurdering(revurderingId, begrunnelse, fritekst)
+                    return services.revurdering.avsluttRevurdering(revurderingId, begrunnelse, brevvalg)
                 }
 
                 override fun leggTilOpplysningspliktVilkår(request: LeggTilOpplysningspliktRequest.Revurdering): Either<KunneIkkeLeggeTilOpplysningsplikt, RevurderingOgFeilmeldingerResponse> {

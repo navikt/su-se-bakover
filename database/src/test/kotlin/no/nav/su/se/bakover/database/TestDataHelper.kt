@@ -370,11 +370,8 @@ internal class TestDataHelper(
         sessionFactory = sessionFactory,
         dbMetrics = dbMetrics,
         grunnlagsdataOgVilkårsvurderingerPostgresRepo = grunnlagsdataOgVilkårsvurderingerPostgresRepo,
-        søknadsbehandlingRepo = søknadsbehandlingRepo,
-        klageRepo = klagePostgresRepo,
         avkortingsvarselRepo = avkortingsvarselRepo,
         tilbakekrevingRepo = tilbakekrevingRepo,
-        reguleringPostgresRepo = reguleringRepo,
         satsFactory = satsFactory,
     )
     internal val vedtakRepo = VedtakPostgresRepo(
@@ -1071,7 +1068,7 @@ internal class TestDataHelper(
             periode = stønadsperiode2021.periode,
         ).avslutt(
             begrunnelse = "",
-            fritekst = null,
+            brevvalg = null,
             tidspunktAvsluttet = fixedTidspunkt,
         ).getOrFail().also { revurderingRepo.lagre(it) }
     }

@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.client.kabal
 import com.fasterxml.jackson.annotation.JsonValue
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.Hjemler
-import no.nav.su.se.bakover.domain.klage.Hjemmel
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -68,6 +67,7 @@ internal data class KabalRequest(
         LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_4("SUP_ST_L_4"),
         LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_5("SUP_ST_L_5"),
         LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_6("SUP_ST_L_6"),
+        LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_7("SUP_ST_L_7"),
         LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_8("SUP_ST_L_8"),
         LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_9("SUP_ST_L_9"),
         LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_10("SUP_ST_L_10"),
@@ -88,6 +88,7 @@ internal data class KabalRequest(
                         no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_4 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_4
                         no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_5 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_5
                         no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_6 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_6
+                        no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_7 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_7
                         no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_8 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_8
                         no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_9 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_9
                         no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_10 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_10

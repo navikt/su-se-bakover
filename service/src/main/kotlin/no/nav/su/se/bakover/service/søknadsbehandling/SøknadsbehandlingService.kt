@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.UgyldigFamiliegjenforeningVilkår
+import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilOpplysningsplikt
 import no.nav.su.se.bakover.service.revurdering.LeggTilOpplysningspliktRequest
@@ -45,7 +46,7 @@ interface SøknadsbehandlingService {
     fun sendTilAttestering(request: SendTilAttesteringRequest): Either<KunneIkkeSendeTilAttestering, Søknadsbehandling.TilAttestering>
     fun underkjenn(request: UnderkjennRequest): Either<KunneIkkeUnderkjenne, Søknadsbehandling.Underkjent>
     fun iverksett(request: IverksettRequest): Either<KunneIkkeIverksette, Søknadsbehandling.Iverksatt>
-    fun brev(request: BrevRequest): Either<KunneIkkeLageBrev, ByteArray>
+    fun brev(request: BrevRequest): Either<KunneIkkeLageDokument, ByteArray>
     fun hent(request: HentRequest): Either<FantIkkeBehandling, Søknadsbehandling>
     fun oppdaterStønadsperiode(request: OppdaterStønadsperiodeRequest): Either<KunneIkkeOppdatereStønadsperiode, Søknadsbehandling>
     fun leggTilUførevilkår(request: LeggTilUførevurderingerRequest): Either<KunneIkkeLeggeTilUføreVilkår, Søknadsbehandling>

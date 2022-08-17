@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.brev.Brevvalg
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Konsistensproblem
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
@@ -155,7 +156,7 @@ interface RevurderingService {
     fun avsluttRevurdering(
         revurderingId: UUID,
         begrunnelse: String,
-        fritekst: String?,
+        brevvalg: Brevvalg.SaksbehandlersValg?,
     ): Either<KunneIkkeAvslutteRevurdering, AbstraktRevurdering>
 
     fun leggTilOpplysningspliktVilkår(
@@ -330,6 +331,7 @@ sealed class KunneIkkeLageBrevutkastForRevurdering {
     object FantIkkePerson : KunneIkkeLageBrevutkastForRevurdering()
     object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : KunneIkkeLageBrevutkastForRevurdering()
     object KunneIkkeFinneGjeldendeUtbetaling : KunneIkkeLageBrevutkastForRevurdering()
+    object DetSkalIkkeSendesBrev : KunneIkkeLageBrevutkastForRevurdering()
 }
 
 sealed class KunneIkkeHentePersonEllerSaksbehandlerNavn {
@@ -513,6 +515,7 @@ sealed class KunneIkkeLageBrevutkastForAvsluttingAvRevurdering {
     object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : KunneIkkeLageBrevutkastForAvsluttingAvRevurdering()
     object KunneIkkeGenererePDF : KunneIkkeLageBrevutkastForAvsluttingAvRevurdering()
     object KunneIkkeFinneGjeldendeUtbetaling : KunneIkkeLageBrevutkastForAvsluttingAvRevurdering()
+    object DetSkalIkkeSendesBrev : KunneIkkeLageBrevutkastForAvsluttingAvRevurdering()
 }
 
 data class LeggTilBosituasjonerRequest(

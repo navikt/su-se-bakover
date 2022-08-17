@@ -62,7 +62,6 @@ import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.IverksettRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeBeregne
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag
-import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLageBrev
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilFamiliegjenforeningVilkårService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilFamiliegjenforeningVilkårService.FantIkkeBehandling.tilKunneIkkeLeggeTilFamiliegjenforeningVilkårService
@@ -527,7 +526,7 @@ internal class SøknadsbehandlingServiceImpl(
             }
         }
 
-    override fun brev(request: BrevRequest): Either<KunneIkkeLageBrev, ByteArray> {
+    override fun brev(request: BrevRequest): Either<KunneIkkeLageDokument, ByteArray> {
         val behandling = when (request) {
             is BrevRequest.MedFritekst ->
                 request.behandling.medFritekstTilBrev(request.fritekst)
@@ -537,17 +536,7 @@ internal class SøknadsbehandlingServiceImpl(
         }
 
         return brevService.lagDokument(behandling)
-            .mapLeft {
-                when (it) {
-                    KunneIkkeLageDokument.KunneIkkeFinneGjeldendeUtbetaling -> KunneIkkeLageBrev.KunneIkkeFinneGjeldendeUtbetaling
-                    KunneIkkeLageDokument.KunneIkkeGenererePDF -> KunneIkkeLageBrev.KunneIkkeLagePDF
-                    KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> KunneIkkeLageBrev.FikkIkkeHentetSaksbehandlerEllerAttestant
-                    KunneIkkeLageDokument.KunneIkkeHentePerson -> KunneIkkeLageBrev.FantIkkePerson
-                }
-            }
-            .map {
-                it.generertDokument
-            }
+            .map { it.generertDokument }
     }
 
     override fun hent(request: HentRequest): Either<FantIkkeBehandling, Søknadsbehandling> {

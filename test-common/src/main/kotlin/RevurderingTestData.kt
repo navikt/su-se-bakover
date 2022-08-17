@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
+import no.nav.su.se.bakover.domain.brev.Brevvalg
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -1054,8 +1055,7 @@ private fun <T : SimulertRevurdering> T.prøvÅLeggTilForhåndsvarselPåSimulert
     @Suppress("UNCHECKED_CAST")
     return when (forhåndsvarsel) {
         is Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.Avsluttet -> {
-            this.markerForhåndsvarselSomSendt().orNull()!!.prøvOvergangTilAvsluttet(forhåndsvarsel.begrunnelse)
-                .orNull()!!
+            throw IllegalArgumentException("Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.Avsluttet skal ikke brukes på denne måten lenger.")
         }
 
         is Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.EndreGrunnlaget -> {
@@ -1065,7 +1065,7 @@ private fun <T : SimulertRevurdering> T.prøvÅLeggTilForhåndsvarselPåSimulert
 
         is Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.FortsettMedSammeGrunnlag -> {
             this.markerForhåndsvarselSomSendt().orNull()!!
-                .prøvOvergangTilAvsluttet(forhåndsvarsel.begrunnelse)
+                .prøvOvergangTilFortsettMedSammeGrunnlag(forhåndsvarsel.begrunnelse)
                 .orNull()!!
         }
 
@@ -1442,7 +1442,7 @@ fun avsluttetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
     return simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().let { (sak, simulert) ->
         val avsluttet = simulert.avslutt(
             begrunnelse = begrunnelse,
-            fritekst = fritekst,
+            brevvalg = fritekst?.let { Brevvalg.SaksbehandlersValg.SkalSendeBrev.MedFritekst(it) },
             tidspunktAvsluttet = tidspunktAvsluttet,
         ).getOrFail()
 

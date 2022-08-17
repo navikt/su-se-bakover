@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import no.nav.su.se.bakover.service.brev.BrevService
-import no.nav.su.se.bakover.service.brev.BrevServiceImplTest.DummyRequest.person
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.test.aktørId
@@ -37,7 +36,7 @@ internal class SøknadsbehandlingServiceBrevTest {
         SøknadsbehandlingServiceAndMocks(
             brevService = brevServiceMock,
         ).let {
-            it.søknadsbehandlingService.brev(SøknadsbehandlingService.BrevRequest.UtenFritekst(tilAttesteringInnvilget)) shouldBe SøknadsbehandlingService.KunneIkkeLageBrev.FantIkkePerson.left()
+            it.søknadsbehandlingService.brev(SøknadsbehandlingService.BrevRequest.UtenFritekst(tilAttesteringInnvilget)) shouldBe KunneIkkeLageDokument.KunneIkkeHentePerson.left()
             verify(it.brevService).lagDokument(tilAttesteringInnvilget)
             it.verifyNoMoreInteractions()
         }
@@ -57,7 +56,7 @@ internal class SøknadsbehandlingServiceBrevTest {
             personService = personServiceMock,
             brevService = brevServiceMock,
         ).let {
-            it.søknadsbehandlingService.brev(SøknadsbehandlingService.BrevRequest.UtenFritekst(tilAttesteringInnvilget)) shouldBe SøknadsbehandlingService.KunneIkkeLageBrev.FikkIkkeHentetSaksbehandlerEllerAttestant.left()
+            it.søknadsbehandlingService.brev(SøknadsbehandlingService.BrevRequest.UtenFritekst(tilAttesteringInnvilget)) shouldBe KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left()
             verify(it.brevService).lagDokument(tilAttesteringInnvilget)
             it.verifyNoMoreInteractions()
         }
@@ -77,7 +76,7 @@ internal class SøknadsbehandlingServiceBrevTest {
             personService = personServiceMock,
             brevService = brevServiceMock,
         ).let {
-            it.søknadsbehandlingService.brev(SøknadsbehandlingService.BrevRequest.UtenFritekst(tilAttesteringInnvilget)) shouldBe SøknadsbehandlingService.KunneIkkeLageBrev.KunneIkkeLagePDF.left()
+            it.søknadsbehandlingService.brev(SøknadsbehandlingService.BrevRequest.UtenFritekst(tilAttesteringInnvilget)) shouldBe KunneIkkeLageDokument.KunneIkkeGenererePDF.left()
             verify(it.brevService).lagDokument(tilAttesteringInnvilget)
             it.verifyNoMoreInteractions()
         }

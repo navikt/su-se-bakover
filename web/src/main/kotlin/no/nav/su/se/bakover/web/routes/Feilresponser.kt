@@ -301,10 +301,13 @@ internal object Feilresponser {
             "Kunne ikke generere brev",
             "kunne_ikke_generere_brev",
         )
-
         val kunneIkkeLageBrevutkast = InternalServerError.errorJson(
             "Kunne ikke lage brevutkast",
             "kunne_ikke_lage_brevutkast",
+        )
+        val kanIkkeSendeBrevIDenneTilstanden = InternalServerError.errorJson(
+            "Kan ikke sende brev i denne tilstanden",
+            "kan_ikke_sende_brev_i_denne_tilstanden",
         )
     }
 

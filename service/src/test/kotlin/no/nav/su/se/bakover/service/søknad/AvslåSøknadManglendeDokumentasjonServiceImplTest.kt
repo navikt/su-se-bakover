@@ -501,7 +501,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                     saksbehandler = NavIdentBruker.Saksbehandler("saksemannen"),
                     fritekstTilBrev = "finfin tekst",
                 ),
-            ) shouldBe KunneIkkeAvslåSøknad.KunneIkkeGenererePDF.left()
+            ) shouldBe KunneIkkeAvslåSøknad.KunneIkkeLageDokument(no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument.KunneIkkeGenererePDF).left()
 
             verify(serviceAndMocks.søknadsbehandlingService).hentForSøknad(søknadId)
             verify(serviceAndMocks.søknadsbehandlingService).opprett(

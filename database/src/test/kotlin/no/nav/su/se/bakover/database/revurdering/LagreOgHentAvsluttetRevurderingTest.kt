@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.stønadsperiode2021
@@ -32,7 +33,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             val avsluttetRevurdering = AvsluttetRevurdering.tryCreate(
                 underliggendeRevurdering = revurdering,
                 begrunnelse = "avslutter denne revurderingen",
-                fritekst = null,
+                brevvalg = null,
                 tidspunktAvsluttet = fixedTidspunkt,
             ).getOrHandle { fail("$it") }
 
@@ -58,7 +59,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             val avsluttetRevurdering = AvsluttetRevurdering.tryCreate(
                 underliggendeRevurdering = revurdering,
                 begrunnelse = "avslutter denne revurderingen",
-                fritekst = null,
+                brevvalg = null,
                 tidspunktAvsluttet = fixedTidspunkt,
             ).getOrHandle { fail("$it") }
 
@@ -84,7 +85,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             val avsluttetRevurdering = AvsluttetRevurdering.tryCreate(
                 underliggendeRevurdering = revurdering,
                 begrunnelse = "avslutter denne revurderingen",
-                fritekst = null,
+                brevvalg = null,
                 tidspunktAvsluttet = fixedTidspunkt,
             ).getOrHandle { fail("$it") }
 
@@ -111,7 +112,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             val avsluttetRevurdering = AvsluttetRevurdering.tryCreate(
                 underliggendeRevurdering = revurdering,
                 begrunnelse = "avslutter denne revurderingen",
-                fritekst = null,
+                brevvalg = null,
                 tidspunktAvsluttet = fixedTidspunkt,
             ).getOrHandle { fail("$it") }
 
@@ -137,7 +138,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             val avsluttetRevurdering = AvsluttetRevurdering.tryCreate(
                 underliggendeRevurdering = revurdering,
                 begrunnelse = "avslutter denne revurderingen",
-                fritekst = null,
+                brevvalg = null,
                 tidspunktAvsluttet = fixedTidspunkt,
             ).getOrHandle { fail("$it") }
 
@@ -187,7 +188,10 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             val repo = testDataHelper.revurderingRepo
             val simulert = testDataHelper.persisterRevurderingSimulertInnvilget()
             val simulertIngenForhåndsvarsel =
-                simulert.markerForhåndsvarselSomSendt().orNull()!!.prøvOvergangTilAvsluttet("").orNull()!!.also {
+                simulert.markerForhåndsvarselSomSendt().orNull()!!.copy(
+                    // Vi har fjernet muligheten for å endre til denne tilstanden, men vi må støtte ikke-migrerte verdier i databasen.
+                    forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.Avsluttet("")
+                ).also {
                     repo.lagre(it)
                 }
             (repo.hent(simulert.id) as Revurdering) shouldBe simulertIngenForhåndsvarsel
@@ -205,7 +209,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             val avsluttetRevurdering = AvsluttetRevurdering.tryCreate(
                 underliggendeRevurdering = revurdering,
                 begrunnelse = "avslutter denne revurderingen",
-                fritekst = null,
+                brevvalg = null,
                 tidspunktAvsluttet = fixedTidspunkt,
             ).getOrHandle { fail("$it") }
 
@@ -231,7 +235,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             val avsluttetRevurdering = AvsluttetRevurdering.tryCreate(
                 underliggendeRevurdering = revurdering,
                 begrunnelse = "avslutter denne revurderingen",
-                fritekst = null,
+                brevvalg = null,
                 tidspunktAvsluttet = fixedTidspunkt,
             ).getOrHandle { fail("$it") }
 

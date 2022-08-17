@@ -26,13 +26,13 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
+import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.BeregnRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.BrevRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.HentRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.IverksettRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeBeregne
-import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLageBrev
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeOpprette
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeSendeTilAttestering
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeUnderkjenne
@@ -48,14 +48,18 @@ import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.routes.Feilresponser
+import no.nav.su.se.bakover.web.routes.Feilresponser.Brev.kanIkkeSendeBrevIDenneTilstanden
 import no.nav.su.se.bakover.web.routes.Feilresponser.Brev.kunneIkkeGenerereBrev
 import no.nav.su.se.bakover.web.routes.Feilresponser.attestantOgSaksbehandlerKanIkkeVæreSammePerson
 import no.nav.su.se.bakover.web.routes.Feilresponser.avkortingErAlleredeAnnullert
 import no.nav.su.se.bakover.web.routes.Feilresponser.avkortingErAlleredeAvkortet
 import no.nav.su.se.bakover.web.routes.Feilresponser.avkortingErUfullstendig
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeBehandling
+import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeGjeldendeUtbetaling
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkePerson
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeSak
+import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeSaksbehandlerEllerAttestant
+import no.nav.su.se.bakover.web.routes.Feilresponser.feilVedGenereringAvDokument
 import no.nav.su.se.bakover.web.routes.Feilresponser.kunneIkkeSimulere
 import no.nav.su.se.bakover.web.routes.Feilresponser.lagringFeilet
 import no.nav.su.se.bakover.web.routes.Feilresponser.tilResultat
@@ -83,11 +87,6 @@ internal fun Route.søknadsbehandlingRoutes(
 
     data class OpprettBehandlingBody(val soknadId: String)
     data class WithFritekstBody(val fritekst: String)
-
-    val feilVedHentingAvSaksbehandlerEllerAttestant = InternalServerError.errorJson(
-        "Klarte ikke hente informasjon om saksbehandler og/eller attestant",
-        "feil_ved_henting_av_saksbehandler_eller_attestant",
-    )
 
     post("$sakPath/{sakId}/behandlinger") {
         authorize(Brukerrolle.Saksbehandler) {
@@ -298,20 +297,15 @@ internal fun Route.søknadsbehandlingRoutes(
 
     suspend fun lagBrevutkast(call: ApplicationCall, req: BrevRequest) = søknadsbehandlingService.brev(req).fold(
         {
-            val resultat = when (it) {
-                is KunneIkkeLageBrev.KunneIkkeLagePDF -> {
-                    InternalServerError.errorJson("Kunne ikke lage brev", "kunne_ikke_lage_pdf")
-                }
-                is KunneIkkeLageBrev.FantIkkePerson -> fantIkkePerson
-                is KunneIkkeLageBrev.FikkIkkeHentetSaksbehandlerEllerAttestant -> feilVedHentingAvSaksbehandlerEllerAttestant
-                is KunneIkkeLageBrev.KunneIkkeFinneGjeldendeUtbetaling -> {
-                    InternalServerError.errorJson(
-                        "Kunne ikke hente gjeldende utbetaling",
-                        "finner_ikke_utbetaling",
-                    )
-                }
-            }
-            call.svar(resultat)
+            call.svar(
+                when (it) {
+                    KunneIkkeLageDokument.DetSkalIkkeSendesBrev -> kanIkkeSendeBrevIDenneTilstanden
+                    KunneIkkeLageDokument.KunneIkkeFinneGjeldendeUtbetaling -> fantIkkeGjeldendeUtbetaling
+                    KunneIkkeLageDokument.KunneIkkeGenererePDF -> feilVedGenereringAvDokument
+                    KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> fantIkkeSaksbehandlerEllerAttestant
+                    KunneIkkeLageDokument.KunneIkkeHentePerson -> fantIkkePerson
+                },
+            )
         },
         {
             call.sikkerlogg("Hentet brev for behandling med id ${req.behandling.id}")
