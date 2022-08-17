@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.common.periode.juli
 import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
@@ -33,7 +32,6 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.periodeNest
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.stønadsperiodeNesteMånedOgTreMånederFram
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.aktørId
-import no.nav.su.se.bakover.test.arbeidsinntekt
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -198,9 +196,6 @@ internal class OppdaterRevurderingServiceTest {
             sakService = mock {
                 on { hentSakForRevurdering(any()) } doReturn sak
             },
-            avkortingsvarselRepo = mock {
-                on { hentUtestående(any()) } doReturn Avkortingsvarsel.Ingen
-            },
         ).also {
             val actual = it.revurderingService.oppdaterRevurdering(
                 OppdaterRevurderingRequest(
@@ -216,7 +211,6 @@ internal class OppdaterRevurderingServiceTest {
                 IverksattRevurdering.Innvilget::class,
                 OpprettetRevurdering::class,
             ).left()
-            verify(it.avkortingsvarselRepo).hentUtestående(any())
             verify(it.sakService).hentSakForRevurdering(iverksatt.id)
             it.verifyNoMoreInteractions()
         }
@@ -231,9 +225,6 @@ internal class OppdaterRevurderingServiceTest {
         RevurderingServiceMocks(
             sakService = mock {
                 on { hentSakForRevurdering(any()) } doReturn sak
-            },
-            avkortingsvarselRepo = mock {
-                on { hentUtestående(any()) } doReturn Avkortingsvarsel.Ingen
             },
             revurderingRepo = mock(),
         ).also {
@@ -277,7 +268,6 @@ internal class OppdaterRevurderingServiceTest {
                 *it.all(),
             ) {
                 verify(it.sakService).hentSakForRevurdering(revurdering.id)
-                verify(it.avkortingsvarselRepo).hentUtestående(any())
                 verify(it.revurderingRepo).defaultTransactionContext()
                 verify(it.revurderingRepo).lagre(argThat { it shouldBe actual }, anyOrNull())
             }
@@ -322,9 +312,6 @@ internal class OppdaterRevurderingServiceTest {
             sakService = mock {
                 on { hentSakForRevurdering(any()) } doReturn sak
             },
-            avkortingsvarselRepo = mock {
-                on { hentUtestående(any()) } doReturn Avkortingsvarsel.Ingen
-            },
             revurderingRepo = mock(),
         ).also {
             val actual = it.revurderingService.oppdaterRevurdering(
@@ -350,7 +337,6 @@ internal class OppdaterRevurderingServiceTest {
                 *it.all(),
             ) {
                 verify(it.sakService).hentSakForRevurdering(revurdering.id)
-                verify(it.avkortingsvarselRepo).hentUtestående(any())
                 verify(it.revurderingRepo).defaultTransactionContext()
                 verify(it.revurderingRepo).lagre(eq(actual), anyOrNull())
             }
@@ -448,7 +434,7 @@ internal class OppdaterRevurderingServiceTest {
     @Test
     fun `får feilmelding dersom saken har utestående avkorting, men revurderingsperioden inneholder ikke perioden for avkortingen`() {
         val clock = TikkendeKlokke(fixedClock)
-        val (_, opphørUtenlandsopphold) = vedtakRevurdering(
+        val (sak1, opphørUtenlandsopphold) = vedtakRevurdering(
             clock = clock,
             revurderingsperiode = Periode.create(1.juni(2021), 31.desember(2021)),
             vilkårOverrides = listOf(
@@ -460,26 +446,21 @@ internal class OppdaterRevurderingServiceTest {
             ),
         )
         val nyRevurderingsperiode = Periode.create(1.juli(2021), 31.desember(2021))
-        val uteståendeAvkorting =
-            (opphørUtenlandsopphold as VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering).behandling.avkorting.let {
-                (it as AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarsel).avkortingsvarsel
-            }
 
-        val (sak, iverksatt) = opprettetRevurdering()
+        val (sak2, nyRevurdering) = opprettetRevurdering(
+            sakOgVedtakSomKanRevurderes = sak1 to opphørUtenlandsopphold,
+        )
         RevurderingServiceMocks(
             sakService = mock {
-                on { hentSakForRevurdering(any()) } doReturn sak
+                on { hentSakForRevurdering(any()) } doReturn sak2
             },
             personService = mock {
                 on { hentAktørId(any()) } doReturn aktørId.right()
             },
-            avkortingsvarselRepo = mock {
-                on { hentUtestående(any()) } doReturn uteståendeAvkorting
-            },
         ).let {
             it.revurderingService.oppdaterRevurdering(
                 OppdaterRevurderingRequest(
-                    revurderingId = iverksatt.id,
+                    revurderingId = nyRevurdering.id,
                     fraOgMed = nyRevurderingsperiode.fraOgMed,
                     årsak = "MELDING_FRA_BRUKER",
                     begrunnelse = "Ny informasjon",

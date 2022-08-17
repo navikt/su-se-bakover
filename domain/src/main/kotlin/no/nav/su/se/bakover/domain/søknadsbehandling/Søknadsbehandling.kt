@@ -78,6 +78,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     val erIverksatt: Boolean by lazy { this is Iverksatt.Avslag || this is Iverksatt.Innvilget }
     val erLukket: Boolean by lazy { this is LukketSøknadsbehandling }
 
+    fun erÅpen(): Boolean {
+        return !(erIverksatt || erLukket)
+    }
+
     val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling
         get() = GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling(
             grunnlagsdata = grunnlagsdata,
@@ -114,6 +118,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 is KanBeregnes -> {
                     leggTilFradragsgrunnlagInternal(fradragsgrunnlag)
                 }
+
                 else -> {
                     KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen(
                         this::class,
@@ -373,11 +378,13 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                             ),
                         )
                     }
+
                     else -> {
                         KunneIkkeBeregne.UgyldigTilstand(this::class).left()
                     }
                 }
             }
+
             else -> {
                 KunneIkkeBeregne.UgyldigTilstand(this::class).left()
             }
@@ -421,6 +428,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     Unit.right()
                 }
             }
+
             is UføreVilkår.Vurdert -> valider(vilkår).mapLeft { it as T }
             is UtenlandsoppholdVilkår.Vurdert -> valider(vilkår).mapLeft { it as T }
             else -> throw IllegalStateException("Vet ikke hvordan man validerer vilkår av type: ${vilkår::class}")
@@ -432,17 +440,21 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             utenlandsopphold.vurderingsperioder.size != 1 -> {
                 KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold.MåInneholdeKunEnVurderingsperiode.left()
             }
+
             !periode.inneholderAlle(utenlandsopphold.vurderingsperioder) -> {
                 KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode.left()
             }
+
             !utenlandsopphold.vurderingsperioder.all {
                 it.vurdering == utenlandsopphold.vurderingsperioder.first().vurdering
             } -> {
                 KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold.AlleVurderingsperioderMåHaSammeResultat.left()
             }
+
             !periode.fullstendigOverlapp(utenlandsopphold.vurderingsperioder.map { it.periode }) -> {
                 KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold.MåVurdereHelePerioden.left()
             }
+
             else -> Unit.right()
         }
     }
@@ -540,6 +552,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             !periode.inneholderAlle(uførhet.vurderingsperioder) -> {
                 KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår.VurderingsperiodeUtenforBehandlingsperiode.left()
             }
+
             else -> Unit.right()
         }
     }
@@ -549,6 +562,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             !periode.fullstendigOverlapp(opplysningspliktVilkår.minsteAntallSammenhengendePerioder()) -> {
                 KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt.HeleBehandlingsperiodenErIkkeVurdert.left()
             }
+
             else -> Unit.right()
         }
     }
@@ -558,9 +572,11 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             Sakstype.ALDER != sakstype -> {
                 KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår.VilkårKunRelevantForAlder.left()
             }
+
             !periode.fullstendigOverlapp(vilkår.minsteAntallSammenhengendePerioder()) -> {
                 KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår.HeleBehandlingsperiodenErIkkeVurdert.left()
             }
+
             else -> Unit.right()
         }
     }
@@ -584,6 +600,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     beregning = beregning,
                 )
             }
+
             Sakstype.UFØRE -> {
                 SimulerUtbetalingRequest.NyUtbetaling.Uføre(
                     sakId = sakId,
@@ -610,9 +627,11 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     beregningStrategyFactory = beregningStrategyFactory,
                 ).getOrHandle { return it.left() }
             }
+
             is AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere -> {
                 throw IllegalStateException("${avkort::class} skal aldri kunne oppstå ved beregning. Modellen er dog nødt å støtte dette tilfellet pga at alle tilstander av avslutt/lukking må støttes.")
             }
+
             is AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting -> {
                 beregnMedAvkorting(
                     avkorting = avkort,
@@ -640,6 +659,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     avkorting = behandling.avkorting.håndter().kanIkke(),
                     sakstype = behandling.sakstype,
                 )
+
                 AvslagGrunnetBeregning.Nei -> {
                     Beregnet.Innvilget(
                         id = behandling.id,
@@ -798,6 +818,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                             sakstype,
                         )
                     }
+
                     is Vilkårsvurderingsresultat.Innvilget -> {
                         Innvilget(
                             id,
@@ -816,6 +837,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                             sakstype,
                         )
                     }
+
                     is Vilkårsvurderingsresultat.Uavklart -> {
                         Uavklart(
                             id = id,

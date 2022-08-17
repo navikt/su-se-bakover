@@ -83,6 +83,10 @@ internal class SakServiceImpl(
         return sakRepo.hentSakForRevurdering(revurderingId)
     }
 
+    override fun hentSakForSøknad(søknadId: UUID): Either<FantIkkeSak, Sak> {
+        return sakRepo.hentSakForSøknad(søknadId)?.right() ?: FantIkkeSak.left()
+    }
+
     override fun opprettSak(sak: NySak) {
         sakRepo.opprettSak(sak).also {
             hentSak(sak.id).fold(

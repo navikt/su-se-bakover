@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeOppretteOppgave
@@ -66,6 +67,7 @@ class SøknadTest {
         fnr = fnr,
         utbetalinger = emptyList(),
         type = Sakstype.UFØRE,
+        uteståendeAvkorting = Avkortingsvarsel.Ingen,
     )
     private val pdf = "pdf-data".toByteArray()
     private val journalpostId = JournalpostId("1")

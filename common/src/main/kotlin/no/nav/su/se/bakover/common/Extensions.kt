@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.common
 
+import arrow.core.NonEmptyList
 import org.slf4j.MDC
 import java.lang.Double.max
 import java.lang.Double.min
@@ -33,4 +34,9 @@ fun getOrCreateCorrelationId(): String {
 
 fun String.trimWhitespace(): String {
     return this.filterNot { it.isWhitespace() }
+}
+
+fun <T> List<T>.nonEmpty(): NonEmptyList<T> {
+    require(this.isNotEmpty()) { "Kan ikke lage NonEmptyList for en tom liste" }
+    return NonEmptyList.fromListUnsafe(this)
 }

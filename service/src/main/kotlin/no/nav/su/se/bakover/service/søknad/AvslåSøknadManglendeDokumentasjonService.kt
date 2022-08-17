@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.service.søknad
 import arrow.core.Either
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import java.util.UUID
 
 interface AvslåSøknadManglendeDokumentasjonService {
@@ -11,15 +11,11 @@ interface AvslåSøknadManglendeDokumentasjonService {
 }
 
 sealed class KunneIkkeAvslåSøknad {
-    sealed class KunneIkkeOppretteSøknadsbehandling : KunneIkkeAvslåSøknad() {
-        object HarAlleredeÅpenSøknadsbehandling : KunneIkkeOppretteSøknadsbehandling()
-        object FantIkkeSøknad : KunneIkkeOppretteSøknadsbehandling()
-        object SøknadErLukket : KunneIkkeOppretteSøknadsbehandling()
-        object SøknadHarAlleredeBehandling : KunneIkkeOppretteSøknadsbehandling()
-        object SøknadManglerOppgave : KunneIkkeOppretteSøknadsbehandling()
-    }
+    data class KunneIkkeOppretteSøknadsbehandling(val feil: SøknadsbehandlingService.KunneIkkeOpprette) :
+        KunneIkkeAvslåSøknad()
     data class KunneIkkeLageDokument(val nested: no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument) : KunneIkkeAvslåSøknad()
     object FantIkkeSak : KunneIkkeAvslåSøknad()
+    object FantIkkeSøknad : KunneIkkeAvslåSøknad()
 }
 
 data class AvslåManglendeDokumentasjonRequest(

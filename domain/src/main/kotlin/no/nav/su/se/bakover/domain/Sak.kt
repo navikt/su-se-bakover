@@ -10,12 +10,16 @@ import com.fasterxml.jackson.annotation.JsonValue
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUIDFactory
 import no.nav.su.se.bakover.common.log
+import no.nav.su.se.bakover.common.nonEmpty
 import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørTilOgMedDato
 import no.nav.su.se.bakover.common.periode.Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden
 import no.nav.su.se.bakover.common.periode.Periode.UgyldigPeriode.TilOgMedDatoMåVæreSisteDagIMåneden
 import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
+import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.klage.Klage
@@ -81,6 +85,7 @@ data class Sak(
     val klager: List<Klage> = emptyList(),
     val reguleringer: List<Regulering> = emptyList(),
     val type: Sakstype,
+    val uteståendeAvkorting: Avkortingsvarsel = Avkortingsvarsel.Ingen,
 ) {
     fun info(): SakInfo {
         return SakInfo(
@@ -450,6 +455,85 @@ data class Sak(
         }
     }
 
+    fun hentSøknad(id: UUID): Either<FantIkkeSøknad, Søknad> {
+        return søknader.singleOrNull { it.id == id }?.right() ?: FantIkkeSøknad.left()
+    }
+
+    object FantIkkeSøknad
+
+    fun hentÅpneSøknadsbehandlinger(): Either<IngenÅpneSøknadsbehandlinger, NonEmptyList<Søknadsbehandling>> {
+        return søknadsbehandlinger
+            .filter { it.erÅpen() }
+            .ifEmpty { return IngenÅpneSøknadsbehandlinger.left() }
+            .nonEmpty()
+            .right()
+    }
+
+    fun harÅpenSøknadsbehandling(): Boolean {
+        return hentÅpneSøknadsbehandlinger()
+            .fold(
+                { false },
+                { it.isNotEmpty() },
+            )
+    }
+
+    object IngenÅpneSøknadsbehandlinger
+
+    fun hentUteståendeAvkortingForSøknadsbehandling(): Either<AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående, AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting> {
+        return when (uteståendeAvkorting) {
+            Avkortingsvarsel.Ingen -> {
+                AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.left()
+            }
+
+            is Avkortingsvarsel.Utenlandsopphold.Annullert -> {
+                AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.left()
+            }
+
+            is Avkortingsvarsel.Utenlandsopphold.Avkortet -> {
+                AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.left()
+            }
+
+            is Avkortingsvarsel.Utenlandsopphold.Opprettet -> {
+                AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.left()
+            }
+
+            is Avkortingsvarsel.Utenlandsopphold.SkalAvkortes -> {
+                AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(uteståendeAvkorting).right()
+            }
+        }
+    }
+
+    fun hentUteståendeAvkortingForRevurdering(): Either<AvkortingVedRevurdering.Uhåndtert.IngenUtestående, AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting> {
+        return when (uteståendeAvkorting) {
+            is Avkortingsvarsel.Ingen -> {
+                AvkortingVedRevurdering.Uhåndtert.IngenUtestående.left()
+            }
+
+            is Avkortingsvarsel.Utenlandsopphold.Annullert -> {
+                AvkortingVedRevurdering.Uhåndtert.IngenUtestående.left()
+            }
+
+            is Avkortingsvarsel.Utenlandsopphold.Avkortet -> {
+                AvkortingVedRevurdering.Uhåndtert.IngenUtestående.left()
+            }
+
+            is Avkortingsvarsel.Utenlandsopphold.Opprettet -> {
+                AvkortingVedRevurdering.Uhåndtert.IngenUtestående.left()
+            }
+
+            is Avkortingsvarsel.Utenlandsopphold.SkalAvkortes -> {
+                AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting(uteståendeAvkorting).right()
+            }
+        }
+    }
+
+    fun hentSøknadsbehandlingForSøknad(søknadId: UUID): Either<FantIkkeSøknadsbehandlingForSøknad, Søknadsbehandling> {
+        return søknadsbehandlinger
+            .singleOrNull { it.søknad.id == søknadId }?.right() ?: FantIkkeSøknadsbehandlingForSøknad.left()
+    }
+
+    object FantIkkeSøknadsbehandlingForSøknad
+
     sealed class KunneIkkeOppdatereStønadsperiode {
         object FantIkkeBehandling : KunneIkkeOppdatereStønadsperiode()
         object StønadsperiodeOverlapperMedLøpendeStønadsperiode : KunneIkkeOppdatereStønadsperiode()
@@ -483,6 +567,7 @@ data class NySak(
             vedtakListe = emptyList(),
             klager = emptyList(),
             type = søknad.type,
+            uteståendeAvkorting = Avkortingsvarsel.Ingen,
         )
     }
 }

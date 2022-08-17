@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
@@ -226,12 +225,20 @@ internal class RevurderingServiceImpl(
             return KunneIkkeOppretteRevurdering.FantIkkeAktørId.left()
         }
 
-        val uteståendeAvkorting = hentUteståendeAvkorting(opprettRevurderingRequest.sakId).let {
-            kontrollerPeriodeForUteståendeAvkorting(
-                gjeldendeVedtaksdata.periodeFørsteTilOgMedSeneste(),
-                it,
-            ).getOrHandle { feil -> return feil.left() }
-        }
+        val uteståendeAvkorting = sak.hentUteståendeAvkortingForRevurdering()
+            .fold(
+                {
+                    it
+                },
+                { uteståendeAvkorting ->
+                    kontrollerAtUteståendeAvkortingRevurderes(gjeldendeVedtaksdata, uteståendeAvkorting)
+                        .getOrHandle {
+                            return KunneIkkeOppretteRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(
+                                periode = uteståendeAvkorting.avkortingsvarsel.periode(),
+                            ).left()
+                        }
+                },
+            )
 
         // Oppgaven skal egentligen ikke opprettes her. Den burde egentligen komma utifra melding av endring, som skal føres til revurdering.
         return oppgaveService.opprettOppgave(
@@ -273,54 +280,13 @@ internal class RevurderingServiceImpl(
         }
     }
 
-    private fun hentUteståendeAvkorting(sakId: UUID): AvkortingVedRevurdering.Uhåndtert {
-        // TODO jah: Bør flyttes til sak
-        return when (val utestående = avkortingsvarselRepo.hentUtestående(sakId)) {
-            is Avkortingsvarsel.Ingen -> {
-                AvkortingVedRevurdering.Uhåndtert.IngenUtestående
-            }
-
-            is Avkortingsvarsel.Utenlandsopphold.Annullert -> {
-                AvkortingVedRevurdering.Uhåndtert.IngenUtestående
-            }
-
-            is Avkortingsvarsel.Utenlandsopphold.Avkortet -> {
-                AvkortingVedRevurdering.Uhåndtert.IngenUtestående
-            }
-
-            is Avkortingsvarsel.Utenlandsopphold.Opprettet -> {
-                AvkortingVedRevurdering.Uhåndtert.IngenUtestående
-            }
-
-            is Avkortingsvarsel.Utenlandsopphold.SkalAvkortes -> {
-                AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting(utestående)
-            }
-        }
-    }
-
-    private fun kontrollerPeriodeForUteståendeAvkorting(
-        revurderingsperiode: Periode,
-        avkorting: AvkortingVedRevurdering.Uhåndtert,
-    ): Either<KunneIkkeOppretteRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode, AvkortingVedRevurdering.Uhåndtert> {
-        return when (avkorting) {
-            is AvkortingVedRevurdering.Uhåndtert.IngenUtestående -> {
-                avkorting.right()
-            }
-
-            is AvkortingVedRevurdering.Uhåndtert.KanIkkeHåndtere -> {
-                throw IllegalStateException("Denne situasjone kan ikke oppstå")
-            }
-
-            is AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting -> {
-                if (!revurderingsperiode.inneholder(avkorting.avkortingsvarsel.periode())) {
-                    return KunneIkkeOppretteRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(
-                        periode = avkorting.avkortingsvarsel.periode(),
-                    ).left()
-                } else {
-                    avkorting.right()
-                }
-            }
-        }
+    private fun kontrollerAtUteståendeAvkortingRevurderes(
+        gjeldendeVedtaksdata: GjeldendeVedtaksdata,
+        uteståendeAvkorting: AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting,
+    ): Either<Unit, AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting> {
+        return if (!gjeldendeVedtaksdata.periodeFørsteTilOgMedSeneste()
+            .inneholder(uteståendeAvkorting.avkortingsvarsel.periode())
+        ) Unit.left() else uteståendeAvkorting.right()
     }
 
     override fun leggTilUførevilkår(
@@ -658,16 +624,20 @@ internal class RevurderingServiceImpl(
             gjeldendeVedtaksdata.gjeldendeVedtakPåDato(oppdaterRevurderingRequest.fraOgMed)?.id
                 ?: return KunneIkkeOppdatereRevurdering.FantIngenVedtakSomKanRevurderes.left()
 
-        val avkorting = hentUteståendeAvkorting(revurdering.sakId).let {
-            kontrollerPeriodeForUteståendeAvkorting(
-                gjeldendeVedtaksdata.periodeFørsteTilOgMedSeneste(),
-                it,
-            ).getOrHandle {
-                return KunneIkkeOppdatereRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(
-                    periode = it.periode,
-                ).left()
-            }
-        }
+        val avkorting = sak.hentUteståendeAvkortingForRevurdering()
+            .fold(
+                {
+                    it
+                },
+                { uteståendeAvkorting ->
+                    kontrollerAtUteståendeAvkortingRevurderes(gjeldendeVedtaksdata, uteståendeAvkorting)
+                        .getOrHandle {
+                            return KunneIkkeOppdatereRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(
+                                periode = uteståendeAvkorting.avkortingsvarsel.periode(),
+                            ).left()
+                        }
+                },
+            )
 
         val periode = gjeldendeVedtaksdata.garantertSammenhengendePeriode()
 
