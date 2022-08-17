@@ -67,46 +67,50 @@ sealed interface Hjemler : List<Hjemmel> {
  *
  * TODO jah: Flytt disse ut i et eget lov/paragraf konsept (utenfor klage). Bør kunne gjenbrukes for referanser til loven i søknadsbehandling og revurderinger.
  */
-enum class Hjemmel(val kapittel: Int, val paragrafnummer: Int) {
+enum class Hjemmel(val lov: Lov, val kapittel: Int, val paragrafnummer: Int) {
     /** Kapittel 2 - § 3.Kven som kan få stønad (2021-01-01) */
-    SU_PARAGRAF_3(2, 3),
+    SU_PARAGRAF_3(Lov.LOV_OM_SUPPLERENDE_STØNAD_TIL_PERSONER_MED_KORT_BOTID_I_NORGE, 2, 3),
 
     /** Kapittel 2 - § 4.Opphald i utlandet (2021-01-01) */
-    SU_PARAGRAF_4(2, 4),
+    SU_PARAGRAF_4(Lov.LOV_OM_SUPPLERENDE_STØNAD_TIL_PERSONER_MED_KORT_BOTID_I_NORGE, 2, 4),
 
     /** Kapittel 3 - § 5.Full supplerande stønad (2021-01-01) */
-    SU_PARAGRAF_5(3, 5),
+    SU_PARAGRAF_5(Lov.LOV_OM_SUPPLERENDE_STØNAD_TIL_PERSONER_MED_KORT_BOTID_I_NORGE, 3, 5),
 
     /** Kapittel 3 - § 6.Inntekt som går til frådrag i supplerande stønad (2021-01-01) */
-    SU_PARAGRAF_6(3, 6),
+    SU_PARAGRAF_6(Lov.LOV_OM_SUPPLERENDE_STØNAD_TIL_PERSONER_MED_KORT_BOTID_I_NORGE, 3, 6),
 
     /** Kapittel 3 - § 7.Utmåling av supplerande stønad (2021-01-01) */
-    SU_PARAGRAF_7(3, 7),
+    SU_PARAGRAF_7(Lov.LOV_OM_SUPPLERENDE_STØNAD_TIL_PERSONER_MED_KORT_BOTID_I_NORGE, 3, 7),
 
     /** Kapittel 3 - § 8.Formue (2021-01-01) */
-    SU_PARAGRAF_8(3, 8),
+    SU_PARAGRAF_8(Lov.LOV_OM_SUPPLERENDE_STØNAD_TIL_PERSONER_MED_KORT_BOTID_I_NORGE, 3, 8),
 
     /** Kapittel 3 - § 9.Låge stønadsbeløp (2021-01-01) */
-    SU_PARAGRAF_9(3, 9),
+    SU_PARAGRAF_9(Lov.LOV_OM_SUPPLERENDE_STØNAD_TIL_PERSONER_MED_KORT_BOTID_I_NORGE, 3, 9),
 
     /** Kapittel 3 - § 10.Endringar (2021-01-01) */
-    SU_PARAGRAF_10(3, 10),
+    SU_PARAGRAF_10(Lov.LOV_OM_SUPPLERENDE_STØNAD_TIL_PERSONER_MED_KORT_BOTID_I_NORGE, 3, 10),
 
     /** Kapittel 3 - § 11.Stønadsperiode og utbetaling (2021-01-01) */
-    SU_PARAGRAF_11(3, 11),
+    SU_PARAGRAF_11(Lov.LOV_OM_SUPPLERENDE_STØNAD_TIL_PERSONER_MED_KORT_BOTID_I_NORGE, 3, 11),
 
     /** Kapittel 3 - § 12.Opphald i institusjon mv. (2021-01-01) */
-    SU_PARAGRAF_12(3, 12),
+    SU_PARAGRAF_12(Lov.LOV_OM_SUPPLERENDE_STØNAD_TIL_PERSONER_MED_KORT_BOTID_I_NORGE, 3, 12),
 
     /** Kapittel 3 - § 13.Tilbakekrevjing (2021-01-01) */
-    SU_PARAGRAF_13(3, 13),
+    SU_PARAGRAF_13(Lov.LOV_OM_SUPPLERENDE_STØNAD_TIL_PERSONER_MED_KORT_BOTID_I_NORGE, 3, 13),
 
     /** Kapittel 4 - § 17.Søknad (2021-01-01) */
-    SU_PARAGRAF_17(4, 17),
+    SU_PARAGRAF_17(Lov.LOV_OM_SUPPLERENDE_STØNAD_TIL_PERSONER_MED_KORT_BOTID_I_NORGE, 4, 17),
 
     /** Kapittel 4 - § 18.Plikt til å gi opplysningar (2021-01-01) */
-    SU_PARAGRAF_18(4, 18),
+    SU_PARAGRAF_18(Lov.LOV_OM_SUPPLERENDE_STØNAD_TIL_PERSONER_MED_KORT_BOTID_I_NORGE, 4, 18),
 
     /** Kapittel 4 - § 21.Kontroll (2021-01-01) */
-    SU_PARAGRAF_21(4, 21);
+    SU_PARAGRAF_21(Lov.LOV_OM_SUPPLERENDE_STØNAD_TIL_PERSONER_MED_KORT_BOTID_I_NORGE, 4, 21);
+}
+
+enum class Lov(val tittel: String) {
+    LOV_OM_SUPPLERENDE_STØNAD_TIL_PERSONER_MED_KORT_BOTID_I_NORGE("Lov om supplerande stønad til personar med kort butid i Noreg")
 }

@@ -508,7 +508,7 @@ internal class BehandlingStatistikkMapperTest {
             vedtaksDato = null,
             vedtakId = null,
             resultat = "Opprettholdt",
-            resultatBegrunnelse = "Opprettholdt i henhold til lov om supplerende stønad kapittel 2 - § 3, kapittel 2 - § 4.",
+            resultatBegrunnelse = "SU_PARAGRAF_3,SU_PARAGRAF_4",
             resultatBegrunnelseBeskrivelse = null,
             resultatBeskrivelse = null,
             beslutter = "attestant",
