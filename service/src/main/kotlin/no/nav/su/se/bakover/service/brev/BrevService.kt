@@ -40,6 +40,7 @@ sealed class KunneIkkeLageDokument {
     object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : KunneIkkeLageDokument()
     object KunneIkkeHentePerson : KunneIkkeLageDokument()
     object KunneIkkeGenererePDF : KunneIkkeLageDokument()
+    object DetSkalIkkeSendesBrev : KunneIkkeLageDokument()
 }
 
 sealed class KunneIkkeLageBrev {

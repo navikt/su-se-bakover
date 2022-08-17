@@ -62,7 +62,6 @@ import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.IverksettRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeBeregne
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag
-import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLageBrev
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilFamiliegjenforeningVilkårService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilFamiliegjenforeningVilkårService.FantIkkeBehandling.tilKunneIkkeLeggeTilFamiliegjenforeningVilkårService
@@ -194,15 +193,19 @@ internal class SøknadsbehandlingServiceImpl(
             Avkortingsvarsel.Ingen -> {
                 AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående
             }
+
             is Avkortingsvarsel.Utenlandsopphold.Annullert -> {
                 AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående
             }
+
             is Avkortingsvarsel.Utenlandsopphold.Avkortet -> {
                 AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående
             }
+
             is Avkortingsvarsel.Utenlandsopphold.Opprettet -> {
                 AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående
             }
+
             is Avkortingsvarsel.Utenlandsopphold.SkalAvkortes -> {
                 AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(utestående)
             }
@@ -222,9 +225,11 @@ internal class SøknadsbehandlingServiceImpl(
                 no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeBeregne.AvkortingErUfullstendig -> {
                     KunneIkkeBeregne.AvkortingErUfullstendig
                 }
+
                 is no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeBeregne.UgyldigTilstand -> {
                     KunneIkkeBeregne.UgyldigTilstand(feil.fra, feil.til)
                 }
+
                 is no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag -> {
                     KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag(feil.feil.toService())
                 }
@@ -435,6 +440,7 @@ internal class SøknadsbehandlingServiceImpl(
 
                     Pair(iverksattBehandling, vedtak)
                 }
+
                 is Søknadsbehandling.Iverksatt.Avslag -> {
                     val vedtak: Avslagsvedtak = opprettAvslagsvedtak(iverksattBehandling)
 
@@ -508,6 +514,7 @@ internal class SøknadsbehandlingServiceImpl(
                     clock = clock,
                 )
             }
+
             is Søknadsbehandling.Iverksatt.Avslag.UtenBeregning -> {
                 Avslagsvedtak.fromSøknadsbehandlingUtenBeregning(
                     avslag = iverksattBehandling,
@@ -516,26 +523,17 @@ internal class SøknadsbehandlingServiceImpl(
             }
         }
 
-    override fun brev(request: BrevRequest): Either<KunneIkkeLageBrev, ByteArray> {
+    override fun brev(request: BrevRequest): Either<KunneIkkeLageDokument, ByteArray> {
         val behandling = when (request) {
             is BrevRequest.MedFritekst ->
                 request.behandling.medFritekstTilBrev(request.fritekst)
+
             is BrevRequest.UtenFritekst ->
                 request.behandling
         }
 
         return brevService.lagDokument(behandling)
-            .mapLeft {
-                when (it) {
-                    KunneIkkeLageDokument.KunneIkkeFinneGjeldendeUtbetaling -> KunneIkkeLageBrev.KunneIkkeFinneGjeldendeUtbetaling
-                    KunneIkkeLageDokument.KunneIkkeGenererePDF -> KunneIkkeLageBrev.KunneIkkeLagePDF
-                    KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> KunneIkkeLageBrev.FikkIkkeHentetSaksbehandlerEllerAttestant
-                    KunneIkkeLageDokument.KunneIkkeHentePerson -> KunneIkkeLageBrev.FantIkkePerson
-                }
-            }
-            .map {
-                it.generertDokument
-            }
+            .map { it.generertDokument }
     }
 
     override fun hent(request: HentRequest): Either<FantIkkeBehandling, Søknadsbehandling> {
@@ -583,6 +581,7 @@ internal class SøknadsbehandlingServiceImpl(
                     is KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår.UgyldigTilstand -> {
                         KunneIkkeLeggeTilUføreVilkår.UgyldigTilstand(fra = it.fra, til = it.til)
                     }
+
                     KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår.VurderingsperiodeUtenforBehandlingsperiode -> {
                         KunneIkkeLeggeTilUføreVilkår.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden
                     }
@@ -700,12 +699,14 @@ internal class SøknadsbehandlingServiceImpl(
             GrunnlagetMåVæreInnenforBehandlingsperioden -> {
                 KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInnenforBehandlingsperioden
             }
+
             is IkkeLovÅLeggeTilFradragIDenneStatusen -> {
                 KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand(
                     fra = this.status,
                     til = Søknadsbehandling.Vilkårsvurdert.Innvilget::class,
                 )
             }
+
             is KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag -> {
                 KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag(this.feil)
             }
@@ -839,7 +840,7 @@ internal class SøknadsbehandlingServiceImpl(
     }
 
     override fun leggTilInstitusjonsoppholdVilkår(
-        request: LeggTilInstitusjonsoppholdVilkårRequest
+        request: LeggTilInstitusjonsoppholdVilkårRequest,
     ): Either<KunneIkkeLeggeTilInstitusjonsoppholdVilkår, Søknadsbehandling.Vilkårsvurdert> {
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilInstitusjonsoppholdVilkår.FantIkkeBehandling.left()
@@ -861,15 +862,19 @@ internal class SøknadsbehandlingServiceImpl(
                     til = this.til,
                 )
             }
+
             KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode -> {
                 KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode
             }
+
             KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold.AlleVurderingsperioderMåHaSammeResultat -> {
                 KunneIkkeLeggeTilUtenlandsopphold.AlleVurderingsperioderMåHaSammeResultat
             }
+
             KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold.MåInneholdeKunEnVurderingsperiode -> {
                 KunneIkkeLeggeTilUtenlandsopphold.MåInneholdeKunEnVurderingsperiode
             }
+
             KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold.MåVurdereHelePerioden -> {
                 KunneIkkeLeggeTilUtenlandsopphold.MåVurdereHelePerioden
             }

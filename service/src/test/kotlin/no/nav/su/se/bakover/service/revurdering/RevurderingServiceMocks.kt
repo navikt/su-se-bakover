@@ -60,7 +60,6 @@ internal data class RevurderingServiceMocks(
         formuegrenserFactory = formuegrenserFactoryTestPåDato(),
         sakService = sakService,
         avkortingsvarselRepo = avkortingsvarselRepo,
-        toggleService = toggleService,
         tilbakekrevingService = tilbakekrevingService,
         satsFactory = satsFactory
     ).apply { addObserver(observer) }

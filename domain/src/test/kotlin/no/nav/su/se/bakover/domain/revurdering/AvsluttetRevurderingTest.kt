@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.revurdering
 import arrow.core.left
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.domain.brev.Brevvalg
 import no.nav.su.se.bakover.test.beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
@@ -21,7 +22,7 @@ internal class AvsluttetRevurderingTest {
         AvsluttetRevurdering.tryCreate(
             underliggendeRevurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak().second,
             begrunnelse = "Begrunnelse for hvorfor denne har blitt avsluttet",
-            fritekst = null,
+            brevvalg = null,
             tidspunktAvsluttet = fixedTidspunkt,
         ).shouldBeRight()
     }
@@ -31,7 +32,7 @@ internal class AvsluttetRevurderingTest {
         AvsluttetRevurdering.tryCreate(
             underliggendeRevurdering = beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second,
             begrunnelse = "Begrunnelse for hvorfor denne har blitt avsluttet",
-            fritekst = null,
+            brevvalg = null,
             tidspunktAvsluttet = fixedTidspunkt,
         ).shouldBeRight()
     }
@@ -41,7 +42,7 @@ internal class AvsluttetRevurderingTest {
         AvsluttetRevurdering.tryCreate(
             underliggendeRevurdering = simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak().second,
             begrunnelse = "Begrunnelse for hvorfor denne har blitt avsluttet",
-            fritekst = null,
+            brevvalg = null,
             tidspunktAvsluttet = fixedTidspunkt,
         ).shouldBeRight()
     }
@@ -53,7 +54,7 @@ internal class AvsluttetRevurderingTest {
                 forhåndsvarsel = Forhåndsvarsel.UnderBehandling.Sendt,
             ),
             begrunnelse = "Begrunnelse for hvorfor denne har blitt avsluttet",
-            fritekst = "en god, og fri tekst",
+            brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.MedFritekst("en god, og fri tekst"),
             tidspunktAvsluttet = fixedTidspunkt,
         ).shouldBeRight()
     }
@@ -63,7 +64,7 @@ internal class AvsluttetRevurderingTest {
         AvsluttetRevurdering.tryCreate(
             underliggendeRevurdering = tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second,
             begrunnelse = "Begrunnelse for hvorfor denne har blitt avsluttet",
-            fritekst = null,
+            brevvalg = null,
             tidspunktAvsluttet = fixedTidspunkt,
         ) shouldBe KunneIkkeLageAvsluttetRevurdering.RevurderingenErTilAttestering.left()
     }
@@ -74,7 +75,7 @@ internal class AvsluttetRevurderingTest {
         AvsluttetRevurdering.tryCreate(
             underliggendeRevurdering = iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak().second,
             begrunnelse = "Begrunnelse for hvorfor denne har blitt avsluttet",
-            fritekst = null,
+            brevvalg = null,
             tidspunktAvsluttet = fixedTidspunkt,
         ) shouldBe KunneIkkeLageAvsluttetRevurdering.RevurderingenErIverksatt.left()
     }
@@ -83,10 +84,12 @@ internal class AvsluttetRevurderingTest {
     fun `får feil dersom man prøver å lage en avsluttet revurdering med avsluttet som underliggende`() {
         AvsluttetRevurdering.tryCreate(
             underliggendeRevurdering = simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak().second.avslutt(
-                begrunnelse = "begrunnelse", fritekst = null, tidspunktAvsluttet = fixedTidspunkt,
+                begrunnelse = "begrunnelse",
+                brevvalg = null,
+                tidspunktAvsluttet = fixedTidspunkt,
             ).getOrFail(),
             begrunnelse = "prøver å avslutte en revurdering som er i avsluttet tilstand",
-            fritekst = null,
+            brevvalg = null,
             tidspunktAvsluttet = fixedTidspunkt,
         ) shouldBe KunneIkkeLageAvsluttetRevurdering.RevurderingErAlleredeAvsluttet.left()
     }
@@ -98,9 +101,9 @@ internal class AvsluttetRevurderingTest {
                 assert(it.forhåndsvarsel == null)
             },
             begrunnelse = "Begrunnelse for hvorfor denne har blitt avsluttet",
-            fritekst = "forhåndsvarsel er null, men jeg er fyllt ut. dette skal ikke være lov",
+            brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.MedFritekst("forhåndsvarsel er null, men jeg er fyllt ut. dette skal ikke være lov"),
             tidspunktAvsluttet = fixedTidspunkt,
-        ) shouldBe KunneIkkeLageAvsluttetRevurdering.FritekstErFylltUtUtenForhåndsvarsel.left()
+        ) shouldBe KunneIkkeLageAvsluttetRevurdering.BrevvalgUtenForhåndsvarsel.left()
     }
 
     @Test
@@ -112,8 +115,8 @@ internal class AvsluttetRevurderingTest {
                 assert(it.forhåndsvarsel == Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles)
             },
             begrunnelse = "Begrunnelse for hvorfor denne har blitt avsluttet",
-            fritekst = "forhåndsvarsel er ingen forhåndsvarsel, men jeg er fyllt ut. dette skal ikke være lov",
+            brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.MedFritekst("forhåndsvarsel er ingen forhåndsvarsel, men jeg er fyllt ut. dette skal ikke være lov"),
             tidspunktAvsluttet = fixedTidspunkt,
-        ) shouldBe KunneIkkeLageAvsluttetRevurdering.FritekstErFylltUtUtenForhåndsvarsel.left()
+        ) shouldBe KunneIkkeLageAvsluttetRevurdering.BrevvalgUtenForhåndsvarsel.left()
     }
 }

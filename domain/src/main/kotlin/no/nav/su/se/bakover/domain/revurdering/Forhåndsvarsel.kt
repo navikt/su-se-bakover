@@ -13,7 +13,6 @@ sealed interface Forhåndsvarsel {
 
     fun prøvOvergangTilSkalIkkeForhåndsvarsles(): Either<UgyldigTilstandsovergang, Ferdigbehandlet.SkalIkkeForhåndsvarsles>
     fun prøvOvergangTilSendt(): Either<UgyldigTilstandsovergang, UnderBehandling.Sendt>
-    fun prøvOvergangTilAvsluttet(begrunnelse: String): Either<UgyldigTilstandsovergang, Ferdigbehandlet.Forhåndsvarslet.Avsluttet>
     fun prøvOvergangTilEndreGrunnlaget(begrunnelse: String): Either<UgyldigTilstandsovergang, Ferdigbehandlet.Forhåndsvarslet.EndreGrunnlaget>
     fun prøvOvergangTilFortsettMedSammeGrunnlag(begrunnelse: String): Either<UgyldigTilstandsovergang, Ferdigbehandlet.Forhåndsvarslet.FortsettMedSammeGrunnlag>
 
@@ -38,12 +37,6 @@ sealed interface Forhåndsvarsel {
                 til = Sendt::class,
             ).left()
 
-            override fun prøvOvergangTilAvsluttet(
-                begrunnelse: String,
-            ): Either<Nothing, Ferdigbehandlet.Forhåndsvarslet.Avsluttet> {
-                return Ferdigbehandlet.Forhåndsvarslet.Avsluttet(begrunnelse).right()
-            }
-
             override fun prøvOvergangTilEndreGrunnlaget(
                 begrunnelse: String,
             ): Either<Nothing, Ferdigbehandlet.Forhåndsvarslet.EndreGrunnlaget> {
@@ -64,11 +57,6 @@ sealed interface Forhåndsvarsel {
      */
     sealed interface Ferdigbehandlet : Forhåndsvarsel {
         override fun erKlarForAttestering() = true
-
-        override fun prøvOvergangTilAvsluttet(begrunnelse: String) = UgyldigTilstandsovergang(
-            fra = this::class,
-            til = Forhåndsvarslet.Avsluttet::class,
-        ).left()
 
         override fun prøvOvergangTilEndreGrunnlaget(begrunnelse: String) = UgyldigTilstandsovergang(
             fra = this::class,
@@ -101,6 +89,10 @@ sealed interface Forhåndsvarsel {
                 til = UnderBehandling.Sendt::class,
             ).left()
 
+            /**
+             * Gjenstår så lenge 'avsluttet' finnes i databasen.
+             * Denne skal kun brukes av ytterpunktene i applikasjonen (database->databaselaget->routes).
+             */
             data class Avsluttet(val begrunnelse: String) : Forhåndsvarslet
             data class FortsettMedSammeGrunnlag(val begrunnelse: String) : Forhåndsvarslet
             data class EndreGrunnlaget(val begrunnelse: String) : Forhåndsvarslet
@@ -118,13 +110,6 @@ fun Forhåndsvarsel?.prøvOvergangTilSkalIkkeForhåndsvarsles(): Either<Forhånd
 
 fun Forhåndsvarsel?.prøvOvergangTilSendt(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, Forhåndsvarsel.UnderBehandling.Sendt> {
     return this?.prøvOvergangTilSendt() ?: Forhåndsvarsel.UnderBehandling.Sendt.right()
-}
-
-fun Forhåndsvarsel?.prøvOvergangTilAvsluttet(begrunnelse: String): Either<Forhåndsvarsel.UgyldigTilstandsovergang, Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.Avsluttet> {
-    return this?.prøvOvergangTilAvsluttet(begrunnelse) ?: Forhåndsvarsel.UgyldigTilstandsovergang(
-        fra = Nothing::class,
-        til = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.Avsluttet::class,
-    ).left()
 }
 
 fun Forhåndsvarsel?.prøvOvergangTilEndreGrunnlaget(begrunnelse: String): Either<Forhåndsvarsel.UgyldigTilstandsovergang, Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.EndreGrunnlaget> {
