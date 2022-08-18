@@ -71,6 +71,7 @@ interface SøknadsbehandlingService {
     data class OpprettRequest(
         val søknadId: UUID,
         val sakId: UUID,
+        val saksbehandler: NavIdentBruker.Saksbehandler,
     )
 
     sealed class KunneIkkeOpprette {

@@ -14,7 +14,8 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
-import java.util.*
+import java.util.Base64
+import java.util.UUID
 import kotlin.random.Random
 
 internal class JournalpostFactoryTest {

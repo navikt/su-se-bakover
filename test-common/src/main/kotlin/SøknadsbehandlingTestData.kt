@@ -1,9 +1,11 @@
 package no.nav.su.se.bakover.test
 
+import arrow.core.flatten
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.zoneIdOslo
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -16,6 +18,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.søknad.Søknad
+import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsinnholdAlder
@@ -463,6 +466,9 @@ fun søknadsbehandlingIverksattInnvilget(
 }
 
 fun søknadsbehandlingIverksattAvslagMedBeregning(
+    sakId: UUID = UUID.randomUUID(),
+    fnr: Fnr = no.nav.su.se.bakover.test.fnr,
+    sakstype: Sakstype = Sakstype.UFØRE,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
@@ -478,59 +484,66 @@ fun søknadsbehandlingIverksattAvslagMedBeregning(
         ),
     ),
     clock: Clock = fixedClock,
+    avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
 ): Pair<Sak, Søknadsbehandling.Iverksatt.Avslag.MedBeregning> {
-    return søknadsbehandlingTilAttesteringAvslagMedBeregning(
-        saksnummer = saksnummer,
-        stønadsperiode = stønadsperiode,
-        grunnlagsdata = grunnlagsdata,
-        vilkårsvurderinger = vilkårsvurderinger,
-    ).let { (sak, søknadsbehandling) ->
-        val oppdatertSøknadsbehandling = søknadsbehandling.tilIverksatt(
-            attestering = attesteringIverksatt(clock),
-        )
-        Pair(
-            sak.copy(
-                søknadsbehandlinger = nonEmptyListOf(oppdatertSøknadsbehandling),
+    return iverksattSøknadsbehandling(
+        sakOgSøknad = nySakUføre(
+            clock = clock,
+            sakInfo = SakInfo(
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                type = sakstype,
             ),
-            oppdatertSøknadsbehandling,
-        )
-    }
+        ),
+        stønadsperiode = stønadsperiode,
+        customVilkår = vilkårsvurderinger.vilkår.toList(),
+        customGrunnlag = grunnlagsdata.let {
+            listOf(it.bosituasjon, it.fradragsgrunnlag).flatten()
+        },
+        avkorting = avkorting,
+    ).let { Pair(it.first, it.second as Søknadsbehandling.Iverksatt.Avslag.MedBeregning) }
 }
 
 fun søknadsbehandlingIverksattAvslagUtenBeregning(
+    sakId: UUID = UUID.randomUUID(),
+    fnr: Fnr = no.nav.su.se.bakover.test.fnr,
+    sakstype: Sakstype = Sakstype.UFØRE,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerAvslåttAlle(stønadsperiode.periode),
     clock: Clock = fixedClock,
+    avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
 ): Pair<Sak, Søknadsbehandling.Iverksatt.Avslag.UtenBeregning> {
-    return søknadsbehandlingTilAttesteringAvslagUtenBeregning(
-        saksnummer = saksnummer,
-        stønadsperiode = stønadsperiode,
-        grunnlagsdata = grunnlagsdata,
-        vilkårsvurderinger = vilkårsvurderinger,
-    ).let { (sak, søknadsbehandling) ->
-        val oppdatertSøknadsbehandling = søknadsbehandling.tilIverksatt(
-            attestering = attesteringIverksatt(clock = clock.plus(1, ChronoUnit.SECONDS)),
-        )
-        Pair(
-            sak.copy(
-                søknadsbehandlinger = nonEmptyListOf(oppdatertSøknadsbehandling),
+    return iverksattSøknadsbehandling(
+        sakOgSøknad = nySakUføre(
+            clock = clock,
+            sakInfo = SakInfo(
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                type = sakstype,
             ),
-            oppdatertSøknadsbehandling,
-        )
-    }
+        ),
+        stønadsperiode = stønadsperiode,
+        customVilkår = vilkårsvurderinger.vilkår.toList(),
+        customGrunnlag = grunnlagsdata.let {
+            listOf(it.bosituasjon, it.fradragsgrunnlag).flatten()
+        },
+        avkorting = avkorting,
+    ).let { Pair(it.first, it.second as Søknadsbehandling.Iverksatt.Avslag.UtenBeregning) }
 }
 
 /**
  * En lukket uavklart vilkårsvurdert søknadsbehandling
  */
-fun søknadsbehandlingLukket(
+fun søknadsbehandlingTrukket(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
-    saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
+    saksbehandlerSomLukket: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     clock: Clock = fixedClock,
-): Pair<Sak, Søknadsbehandling> {
+): Pair<Sak, LukketSøknadsbehandling> {
     return søknadsbehandlingVilkårsvurdertUavklart(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
@@ -538,12 +551,13 @@ fun søknadsbehandlingLukket(
         sak.lukkSøknadOgSøknadsbehandling(
             lukkSøknadCommand = trekkSøknad(
                 søknadId = søknadsbehandling.søknad.id,
-                saksbehandler = saksbehandler,
+                saksbehandler = saksbehandlerSomLukket,
                 lukketTidspunkt = fixedTidspunkt.plus(1, ChronoUnit.SECONDS),
             ),
             hentPerson = { person().right() },
             clock = clock,
             hentSaksbehandlerNavn = { "Saksbehandlers Navn".right() },
+            saksbehandler = saksbehandler,
         )
     }.let {
         Pair(it.sak, it.søknadsbehandling!!)

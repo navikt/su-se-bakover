@@ -21,8 +21,11 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.satser.SatsFactory
-import no.nav.su.se.bakover.domain.statistikk.Statistikkhendelse
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
+import no.nav.su.se.bakover.domain.statistikk.notify
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInnenforBehandlingsperioden
@@ -44,11 +47,9 @@ import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
-import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilOpplysningsplikt
 import no.nav.su.se.bakover.service.revurdering.LeggTilOpplysningspliktRequest
 import no.nav.su.se.bakover.service.sak.SakService
-import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.BeregnRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.BrevRequest
@@ -122,13 +123,13 @@ internal class SøknadsbehandlingServiceImpl(
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    private val observers: MutableList<EventObserver> = mutableListOf()
+    private val observers: MutableList<StatistikkEventObserver> = mutableListOf()
 
-    fun addObserver(observer: EventObserver) {
+    fun addObserver(observer: StatistikkEventObserver) {
         observers.add(observer)
     }
 
-    fun getObservers(): List<EventObserver> = observers.toList()
+    fun getObservers(): List<StatistikkEventObserver> = observers.toList()
 
     override fun opprett(request: OpprettRequest): Either<KunneIkkeOpprette, Søknadsbehandling.Vilkårsvurdert.Uavklart> {
         val sak = sakService.hentSak(request.sakId)
@@ -143,9 +144,7 @@ internal class SøknadsbehandlingServiceImpl(
             return (søknadsbehandlingRepo.hent(nySøknadsbehandling.id)!! as Søknadsbehandling.Vilkårsvurdert.Uavklart).let {
                 observers.forEach { observer ->
                     observer.handle(
-                        Statistikkhendelse.Søknadsbehandling.Opprettet(
-                            it,
-                        ),
+                        StatistikkEvent.Behandling.Søknad.Opprettet(it, request.saksbehandler),
                     )
                 }
                 it.right()
@@ -268,16 +267,20 @@ internal class SøknadsbehandlingServiceImpl(
         }
         behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.PERSISTERT)
         behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.OPPRETTET_OPPGAVE)
-        return søknadsbehandlingMedNyOppgaveIdOgFritekstTilBrev.let {
-            observers.forEach { observer ->
-                observer.handle(
-                    Statistikkhendelse.Søknadsbehandling.TilAttestering(
-                        it,
-                    ),
-                )
-            }
-            it.right()
+        when (søknadsbehandlingMedNyOppgaveIdOgFritekstTilBrev) {
+            is Søknadsbehandling.TilAttestering.Avslag -> observers.notify(
+                StatistikkEvent.Behandling.Søknad.TilAttestering.Avslag(
+                    søknadsbehandlingMedNyOppgaveIdOgFritekstTilBrev,
+                ),
+            )
+
+            is Søknadsbehandling.TilAttestering.Innvilget -> observers.notify(
+                StatistikkEvent.Behandling.Søknad.TilAttestering.Innvilget(
+                    søknadsbehandlingMedNyOppgaveIdOgFritekstTilBrev,
+                ),
+            )
         }
+        return søknadsbehandlingMedNyOppgaveIdOgFritekstTilBrev.right()
     }
 
     override fun underkjenn(request: UnderkjennRequest): Either<KunneIkkeUnderkjenne, Søknadsbehandling.Underkjent> {
@@ -328,14 +331,18 @@ internal class SøknadsbehandlingServiceImpl(
                     log.info("Lukket attesteringsoppgave $eksisterendeOppgaveId ved underkjenning av behandlingen")
                     behandlingMetrics.incrementUnderkjentCounter(BehandlingMetrics.UnderkjentHandlinger.LUKKET_OPPGAVE)
                 }
-            søknadsbehandlingMedNyOppgaveId.also {
-                observers.forEach { observer ->
-                    observer.handle(
-                        Statistikkhendelse.Søknadsbehandling.Underkjent(
-                            it,
-                        ),
-                    )
-                }
+            when (søknadsbehandlingMedNyOppgaveId) {
+                is Søknadsbehandling.Underkjent.Avslag -> observers.notify(
+                    StatistikkEvent.Behandling.Søknad.Underkjent.Avslag(
+                        søknadsbehandlingMedNyOppgaveId,
+                    ),
+                )
+
+                is Søknadsbehandling.Underkjent.Innvilget -> observers.notify(
+                    StatistikkEvent.Behandling.Søknad.Underkjent.Innvilget(
+                        søknadsbehandlingMedNyOppgaveId,
+                    ),
+                )
             }
             søknadsbehandlingMedNyOppgaveId
         }
@@ -403,7 +410,10 @@ internal class SøknadsbehandlingServiceImpl(
 
                     behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.PERSISTERT)
 
-                    Pair(iverksattBehandling, vedtak)
+                    observers.notify(StatistikkEvent.Behandling.Søknad.Iverksatt.Innvilget(vedtak))
+                    observers.notify(StatistikkEvent.Stønadsvedtak(vedtak))
+
+                    iverksattBehandling
                 }
 
                 is Søknadsbehandling.Iverksatt.Avslag -> {
@@ -445,24 +455,11 @@ internal class SøknadsbehandlingServiceImpl(
                             log.error("Lukking av oppgave for behandlingId: ${(vedtak.behandling as BehandlingMedOppgave).oppgaveId} feilet. Må ryddes opp manuelt.")
                         }
 
-                    Pair(iverksattBehandling, vedtak)
+                    observers.notify(StatistikkEvent.Behandling.Søknad.Iverksatt.Avslag(vedtak))
+
+                    iverksattBehandling
                 }
             }
-        }.map {
-            Either.catch {
-                observers.forEach { observer ->
-                    observer.handle(Statistikkhendelse.Søknadsbehandling.Iverksatt(it.first))
-                    (it.second as? VedtakSomKanRevurderes.EndringIYtelse)?.let { v ->
-                        observer.handle(Statistikkhendelse.Vedtak(v))
-                    }
-                }
-            }.mapLeft { e ->
-                log.error(
-                    "Kunne ikke sende statistikk etter vi iverksatte søknadsbehandling. Dette er kun en sideeffekt og påvirker ikke saksbehandlingen.",
-                    e,
-                )
-            }
-            it.first
         }
     }
 

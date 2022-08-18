@@ -18,7 +18,7 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
-import no.nav.su.se.bakover.domain.statistikk.Statistikkhendelse
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
 import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -190,7 +190,9 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     on { hent(any()) } doReturn innvilgetTilAttestering
                 },
                 utbetalingService = mock {
-                    on { verifiserOgSimulerUtbetaling(any()) } doReturn UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UliktBeløp).left()
+                    on { verifiserOgSimulerUtbetaling(any()) } doReturn UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(
+                        KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UliktBeløp,
+                    ).left()
                 },
             )
 
@@ -201,7 +203,11 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 ),
             )
 
-            response shouldBe KunneIkkeIverksette.KunneIkkeUtbetale(UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UliktBeløp)).left()
+            response shouldBe KunneIkkeIverksette.KunneIkkeUtbetale(
+                UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(
+                    KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UliktBeløp,
+                ),
+            ).left()
         }
 
         @Test
@@ -296,7 +302,14 @@ internal class SøknadsbehandlingServiceIverksettTest {
             verify(serviceAndMocks.ferdigstillVedtakService).lukkOppgaveMedBruker(any())
             verify(serviceAndMocks.observer).handle(
                 argThat {
-                    it shouldBe Statistikkhendelse.Søknadsbehandling.Iverksatt(expectedAvslag)
+                    it shouldBe StatistikkEvent.Behandling.Søknad.Iverksatt.Avslag(
+                        vedtak = Avslagsvedtak.fromSøknadsbehandlingMedBeregning(
+                            avslag = expectedAvslag,
+                            clock = fixedClock,
+                        ).copy(
+                            id = (it as StatistikkEvent.Behandling.Søknad.Iverksatt.Avslag).vedtak.id,
+                        ),
+                    )
                 },
             )
             serviceAndMocks.verifyNoMoreInteractions()

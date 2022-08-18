@@ -46,6 +46,7 @@ private object EnvironmentConfig {
 data class ApplicationConfig(
     val runtimeEnvironment: RuntimeEnvironment,
     val naisCluster: NaisCluster?,
+    val gitCommit: GitCommit?,
     val leaderPodLookupPath: String,
     val pdfgenLocal: Boolean,
     val serviceUser: ServiceUserConfig,
@@ -472,7 +473,9 @@ data class ApplicationConfig(
 
         ) {
             companion object {
-                fun createFromEnvironmentVariables() = SkatteetatenConfig(getEnvironmentVariableOrDefault("SKATTEETATEN_URL", "https://api-test.sits.no"))
+                fun createFromEnvironmentVariables() =
+                    SkatteetatenConfig(getEnvironmentVariableOrDefault("SKATTEETATEN_URL", "https://api-test.sits.no"))
+
                 fun createLocalConfig() = SkatteetatenConfig("mocked")
             }
         }
@@ -491,10 +494,16 @@ data class ApplicationConfig(
                     clientId = getEnvironmentVariableOrDefault("MASKINPORTEN_CLIENT_ID", "maskinporten_client_id"),
                     scopes = getEnvironmentVariableOrDefault("MASKINPORTEN_SCOPES", "maskinporten_scopes"),
                     clientJwk = getEnvironmentVariableOrDefault("MASKINPORTEN_CLIENT_JWK", "maskinporten_client_jwk"),
-                    wellKnownUrl = getEnvironmentVariableOrDefault("MASKINPORTEN_WELL_KNOWN_URL", "maskinporten_well_known_url"),
+                    wellKnownUrl = getEnvironmentVariableOrDefault(
+                        "MASKINPORTEN_WELL_KNOWN_URL",
+                        "maskinporten_well_known_url",
+                    ),
                     issuer = getEnvironmentVariableOrDefault("MASKINPORTEN_ISSUER", "maskinporten_issuer"),
                     jwksUri = getEnvironmentVariableOrDefault("MASKINPORTEN_JWKS_URI", "maskinporten_jwks_uri"),
-                    tokenEndpoint = getEnvironmentVariableOrDefault("MASKINPORTEN_TOKEN_ENDPOINT", "maskinporten_token_endpoint"),
+                    tokenEndpoint = getEnvironmentVariableOrDefault(
+                        "MASKINPORTEN_TOKEN_ENDPOINT",
+                        "maskinporten_token_endpoint",
+                    ),
                 )
 
                 fun createLocalConfig(): MaskinportenConfig {
@@ -635,6 +644,9 @@ data class ApplicationConfig(
         fun createFromEnvironmentVariables() = ApplicationConfig(
             runtimeEnvironment = RuntimeEnvironment.Nais,
             naisCluster = naisCluster(),
+            gitCommit = getEnvironmentVariableOrNull("NAIS_APP_IMAGE")?.let { GitCommit.fromString(it) }.also {
+                if (it == null) log.error("Kunne ikke bestemme git commit hash fra environment variabel NAIS_APP_IMAGE.")
+            },
             leaderPodLookupPath = getEnvironmentVariableOrThrow("ELECTOR_PATH"),
             pdfgenLocal = false,
             serviceUser = ServiceUserConfig.createFromEnvironmentVariables(),
@@ -651,6 +663,7 @@ data class ApplicationConfig(
         fun createLocalConfig() = ApplicationConfig(
             runtimeEnvironment = RuntimeEnvironment.Local,
             naisCluster = naisCluster(),
+            gitCommit = GitCommit("87a3a5155bf00b4d6854efcc24e8b929549c9302"),
             leaderPodLookupPath = "",
             pdfgenLocal = getEnvironmentVariableOrDefault("PDFGEN_LOCAL", "false").toBooleanStrict(),
             serviceUser = ServiceUserConfig.createLocalConfig(),

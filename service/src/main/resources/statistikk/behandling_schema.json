@@ -175,7 +175,7 @@
       "description":"Feltet angir hvem som er avsender av dataene, så navnet på kildesystemet."
     },
     "versjon": {
-      "type": "number",
+      "type": "string",
       "description":"Angir på hvilken versjon av kildekoden JSON stringen er generert på bakgrunn av. "
     },
     "avsluttet": {

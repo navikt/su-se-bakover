@@ -12,15 +12,16 @@ import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteAvvistKlage
-import no.nav.su.se.bakover.domain.statistikk.Statistikkhendelse
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.avvistKlageTilAttestering
 import no.nav.su.se.bakover.test.bekreftetAvvistVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.bekreftetVilkårsvurdertKlageTilVurdering
 import no.nav.su.se.bakover.test.bekreftetVurdertKlage
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
@@ -229,7 +230,7 @@ internal class IverksettAvvistKlageTest {
         val attestant = NavIdentBruker.Attestant("attestant")
         val person = person(fnr = klage.fnr)
         val dokument = "myDoc".toByteArray()
-        val observerMock: EventObserver = mock { on { handle(any()) }.then {} }
+        val observerMock: StatistikkEventObserver = mock { on { handle(any()) }.then {} }
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
@@ -322,7 +323,18 @@ internal class IverksettAvvistKlageTest {
             argThat { it shouldBe TestSessionFactory.transactionContext },
         )
         verify(mocks.oppgaveService).lukkOppgave(argThat { it shouldBe expected.oppgaveId })
-        verify(observerMock).handle(argThat { it shouldBe Statistikkhendelse.Klagestatistikk.Avvist(actual) })
+        verify(observerMock).handle(
+            argThat {
+                it shouldBe StatistikkEvent.Behandling.Klage.Avvist(
+                    Klagevedtak.Avvist.fromIverksattAvvistKlage(
+                        iverksattAvvistKlage = actual,
+                        clock = fixedClock,
+                    ).copy(
+                        id = (it as StatistikkEvent.Behandling.Klage.Avvist).vedtak.id,
+                    ),
+                )
+            },
+        )
         mocks.verifyNoMoreInteractions()
     }
 }

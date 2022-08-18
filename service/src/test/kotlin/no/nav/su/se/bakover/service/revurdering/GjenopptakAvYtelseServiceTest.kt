@@ -17,11 +17,11 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
-import no.nav.su.se.bakover.domain.statistikk.Statistikkhendelse
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.SimulerGjenopptakFeil
 import no.nav.su.se.bakover.service.utbetaling.UtbetalGjenopptakFeil
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
@@ -43,9 +43,9 @@ import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknad
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import org.junit.jupiter.api.Test
-import org.mockito.ArgumentCaptor
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.capture
 import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
@@ -228,7 +228,7 @@ internal class GjenopptakAvYtelseServiceTest {
         verify(serviceAndMocks.revurderingRepo).lagre(eq(response), anyOrNull())
         verify(serviceAndMocks.observer).handle(
             argThat { event ->
-                event shouldBe Statistikkhendelse.Revurdering.Gjenoppta(response)
+                event shouldBe StatistikkEvent.Behandling.Gjenoppta.Opprettet(response)
             },
         )
         serviceAndMocks.verifyNoMoreInteractions()
@@ -452,7 +452,7 @@ internal class GjenopptakAvYtelseServiceTest {
             } doReturn utbetaling.right()
         }
         val vedtakRepoMock: VedtakRepo = mock()
-        val observerMock: EventObserver = mock()
+        val observerMock: StatistikkEventObserver = mock()
 
         RevurderingServiceMocks(
             revurderingRepo = revurderingRepoMock,
@@ -490,10 +490,19 @@ internal class GjenopptakAvYtelseServiceTest {
                 },
             )
 
-            val eventCaptor = ArgumentCaptor.forClass(Statistikkhendelse::class.java)
-            verify(observerMock, times(2)).handle(capture<Statistikkhendelse>(eventCaptor))
-            eventCaptor.allValues[0] shouldBe Statistikkhendelse.Revurdering.Gjenoppta(response)
-            eventCaptor.allValues[1].shouldBeTypeOf<Statistikkhendelse.Vedtak>()
+            val eventCaptor = argumentCaptor<StatistikkEvent.Behandling.Gjenoppta.Iverksatt>()
+            verify(observerMock, times(2)).handle(eventCaptor.capture())
+            val statistikkEvent = eventCaptor.allValues[0]
+            statistikkEvent shouldBe StatistikkEvent.Behandling.Gjenoppta.Iverksatt(
+                vedtak = VedtakSomKanRevurderes.from(
+                    revurdering = response,
+                    utbetalingId = utbetaling.id,
+                    clock = fixedClock,
+                ).copy(
+                    id = statistikkEvent.vedtak.id,
+                ),
+            )
+            eventCaptor.allValues[1].shouldBeTypeOf<StatistikkEvent.Stønadsvedtak>()
             it.verifyNoMoreInteractions()
         }
     }

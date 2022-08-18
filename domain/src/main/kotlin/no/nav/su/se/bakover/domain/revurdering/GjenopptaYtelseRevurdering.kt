@@ -17,6 +17,10 @@ import java.util.UUID
 
 sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering() {
 
+    abstract val saksbehandler: NavIdentBruker.Saksbehandler
+    abstract val simulering: Simulering
+    abstract val revurderingsårsak: Revurderingsårsak
+
     fun avslutt(
         begrunnelse: String,
         tidspunktAvsluttet: Tidspunkt,
@@ -40,9 +44,9 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering() {
         override val periode: Periode = underliggendeStansAvYtelse.periode
         override val grunnlagsdata: Grunnlagsdata = underliggendeStansAvYtelse.grunnlagsdata
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering = underliggendeStansAvYtelse.vilkårsvurderinger
-        val saksbehandler: NavIdentBruker.Saksbehandler = underliggendeStansAvYtelse.saksbehandler
-        val simulering: Simulering = underliggendeStansAvYtelse.simulering
-        val revurderingsårsak: Revurderingsårsak = underliggendeStansAvYtelse.revurderingsårsak
+        override val saksbehandler: NavIdentBruker.Saksbehandler = underliggendeStansAvYtelse.saksbehandler
+        override val simulering: Simulering = underliggendeStansAvYtelse.simulering
+        override val revurderingsårsak: Revurderingsårsak = underliggendeStansAvYtelse.revurderingsårsak
 
         // vi sender ikke noe brev ved stans/gjenoppta
         fun skalSendeAvslutningsbrev(): Boolean {
@@ -75,9 +79,9 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering() {
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val tilRevurdering: UUID,
-        val saksbehandler: NavIdentBruker.Saksbehandler,
-        val simulering: Simulering,
-        val revurderingsårsak: Revurderingsårsak,
+        override val saksbehandler: NavIdentBruker.Saksbehandler,
+        override val simulering: Simulering,
+        override val revurderingsårsak: Revurderingsårsak,
         override val sakinfo: SakInfo,
     ) : GjenopptaYtelseRevurdering() {
 
@@ -117,10 +121,10 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering() {
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val tilRevurdering: UUID,
-        val saksbehandler: NavIdentBruker.Saksbehandler,
-        val simulering: Simulering,
+        override val saksbehandler: NavIdentBruker.Saksbehandler,
+        override val simulering: Simulering,
         override val attesteringer: Attesteringshistorikk,
-        val revurderingsårsak: Revurderingsårsak,
+        override val revurderingsårsak: Revurderingsårsak,
         override val sakinfo: SakInfo,
     ) : GjenopptaYtelseRevurdering(), BehandlingMedAttestering
 }

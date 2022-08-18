@@ -29,6 +29,8 @@ data class AvsluttetRevurdering private constructor(
     override val sakinfo: SakInfo = underliggendeRevurdering.sakinfo
     override val grunnlagsdata: Grunnlagsdata = underliggendeRevurdering.grunnlagsdata
     override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering = underliggendeRevurdering.vilkårsvurderinger
+
+    // TODO jah: Denne bør overstyres av saksbehandler som avsluttet revurderingen.
     override val saksbehandler: NavIdentBruker.Saksbehandler = underliggendeRevurdering.saksbehandler
     override val fritekstTilBrev: String = underliggendeRevurdering.fritekstTilBrev
     override val revurderingsårsak: Revurderingsårsak = underliggendeRevurdering.revurderingsårsak

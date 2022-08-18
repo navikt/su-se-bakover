@@ -19,7 +19,9 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.domain.statistikk.Statistikkhendelse
+import no.nav.su.se.bakover.domain.person.PersonService
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
@@ -28,9 +30,7 @@ import no.nav.su.se.bakover.domain.søknadinnhold.SøknadInnhold
 import no.nav.su.se.bakover.domain.søknadinnhold.SøknadsinnholdAlder
 import no.nav.su.se.bakover.domain.søknadinnhold.SøknadsinnholdUføre
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
-import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
-import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.toggles.ToggleService
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -49,11 +49,13 @@ internal class SøknadServiceImpl(
     private val clock: Clock,
 ) : SøknadService {
     private val log = LoggerFactory.getLogger(this::class.java)
-    private val observers = mutableListOf<EventObserver>()
+    private val observers = mutableListOf<StatistikkEventObserver>()
 
-    fun addObserver(observer: EventObserver) = observers.add(observer)
+    fun addObserver(observer: StatistikkEventObserver) = observers.add(observer)
 
-    override fun nySøknad(søknadInnhold: SøknadInnhold, identBruker: NavIdentBruker): Either<KunneIkkeOppretteSøknad, Pair<Saksnummer, Søknad>> {
+    fun getObservers(): List<StatistikkEventObserver> = observers.toList()
+
+    override fun nySøknad(søknadInnhold: SøknadInnhold, identBruker: NavIdentBruker): Either<KunneIkkeOppretteSøknad, Pair<Saksnummer, Søknad.Ny>> {
         val innsendtFødselsnummer: Fnr = søknadInnhold.personopplysninger.fnr
 
         if (!søknadInnhold.kanSendeInnSøknad()) {
@@ -105,7 +107,7 @@ internal class SøknadServiceImpl(
         opprettJournalpostOgOppgave(saksnummer, person, søknad)
         observers.forEach { observer ->
             observer.handle(
-                Statistikkhendelse.Søknad.Mottatt(søknad, saksnummer),
+                StatistikkEvent.Søknad.Mottatt(søknad, saksnummer),
             )
         }
         return Pair(saksnummer, søknad).right()

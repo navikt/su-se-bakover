@@ -3,10 +3,10 @@ package no.nav.su.se.bakover.service
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.JobContextRepo
 import no.nav.su.se.bakover.domain.SendPåminnelseNyStønadsperiodeContext
+import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import no.nav.su.se.bakover.service.brev.BrevService
-import no.nav.su.se.bakover.service.person.PersonService
 import org.slf4j.LoggerFactory
 import java.time.Clock
 

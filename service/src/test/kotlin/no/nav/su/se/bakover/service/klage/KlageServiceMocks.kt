@@ -5,11 +5,11 @@ import no.nav.su.se.bakover.domain.journalpost.JournalpostClient
 import no.nav.su.se.bakover.domain.klage.KlageClient
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.person.IdentClient
+import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
-import no.nav.su.se.bakover.service.person.PersonService
-import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.defaultMock
@@ -27,7 +27,7 @@ internal data class KlageServiceMocks(
     val sessionFactory: SessionFactory = TestSessionFactory(),
     val oppgaveService: OppgaveService = defaultMock(),
     val journalpostClient: JournalpostClient = defaultMock(),
-    val observer: EventObserver = defaultMock(),
+    val observer: StatistikkEventObserver = defaultMock(),
     val clock: Clock = fixedClock,
 ) {
     val service = KlageServiceImpl(

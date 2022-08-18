@@ -74,6 +74,7 @@ internal class SøknadsbehandlingAlderKomponentTest {
                 request = SøknadsbehandlingService.OpprettRequest(
                     søknadId = søknad.id,
                     sakId = sak.id,
+                    saksbehandler = saksbehandler,
                 ),
             ).getOrFail()
 

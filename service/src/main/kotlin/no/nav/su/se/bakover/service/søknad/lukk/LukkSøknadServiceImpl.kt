@@ -8,13 +8,13 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.person.IdentClient
+import no.nav.su.se.bakover.domain.person.PersonService
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
-import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
-import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import org.slf4j.LoggerFactory
@@ -33,11 +33,13 @@ internal class LukkSøknadServiceImpl(
     private val sessionFactory: SessionFactory,
 ) : LukkSøknadService {
     private val log = LoggerFactory.getLogger(this::class.java)
-    private val observers = mutableListOf<EventObserver>()
+    private val observers = mutableListOf<StatistikkEventObserver>()
 
-    fun addObserver(observer: EventObserver) {
+    fun addObserver(observer: StatistikkEventObserver) {
         observers.add(observer)
     }
+
+    fun getObservers(): List<StatistikkEventObserver> = observers.toList()
 
     override fun lukkSøknad(
         command: LukkSøknadCommand,
@@ -52,6 +54,7 @@ internal class LukkSøknadServiceImpl(
                 hentPerson = { personService.hentPerson(sak.fnr) },
                 clock = clock,
                 hentSaksbehandlerNavn = { identClient.hentNavnForNavIdent(it) },
+                saksbehandler = command.saksbehandler,
             ).let {
                 it.lagBrevRequest.tap { lagBrevRequest ->
                     persisterBrevKlartForSending(

@@ -136,6 +136,7 @@ internal class SøknadsbehandlingRoutesKtTest {
             clock = fixedClock,
             unleash = mock(),
             satsFactory = satsFactory,
+            applicationConfig = applicationConfig(),
         )
 
     @Nested

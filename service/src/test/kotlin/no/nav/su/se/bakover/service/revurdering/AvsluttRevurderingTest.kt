@@ -5,6 +5,7 @@ import arrow.core.right
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.brev.Brevvalg
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
@@ -27,6 +28,7 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattGjenopptakelseAvYtelseFraVedtakStansAvYtelse
 import no.nav.su.se.bakover.test.iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse
 import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
@@ -61,6 +63,7 @@ internal class AvsluttRevurderingTest {
             revurderingId = opprettetRevurdering.id,
             begrunnelse = "opprettet revurderingen med en feil",
             brevvalg = null,
+            saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
         )
 
         actual shouldBe AvsluttetRevurdering.tryCreate(
@@ -110,6 +113,7 @@ internal class AvsluttRevurderingTest {
             revurderingId = simulert.id,
             begrunnelse = "opprettet revurderingen med en feil",
             brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst("en fri tekst"),
+            saksbehandler = saksbehandler,
         )
 
         val expectedAvsluttetRevurdering = AvsluttetRevurdering.tryCreate(
@@ -158,6 +162,8 @@ internal class AvsluttRevurderingTest {
             revurderingId = id,
             begrunnelse = "hehe",
             brevvalg = null,
+            saksbehandler = saksbehandler,
+
         ) shouldBe KunneIkkeAvslutteRevurdering.FantIkkeRevurdering.left()
 
         verify(revurderingRepoMock).hent(argThat { it shouldBe id })
@@ -190,6 +196,7 @@ internal class AvsluttRevurderingTest {
             revurderingId = simulert.id,
             begrunnelse = "begrunnelse",
             brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst("medFritekst"),
+            saksbehandler = saksbehandler,
         ) shouldBe KunneIkkeAvslutteRevurdering.KunneIkkeLageDokument.left()
 
         verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe simulert.oppgaveId })
@@ -223,6 +230,7 @@ internal class AvsluttRevurderingTest {
             revurderingId = stansAvYtelse.id,
             begrunnelse = "skulle stanse ytelse, men så tenkte jeg 'neh'",
             brevvalg = null,
+            saksbehandler = saksbehandler,
         )
 
         actual shouldBe StansAvYtelseRevurdering.AvsluttetStansAvYtelse.tryCreate(
@@ -252,6 +260,7 @@ internal class AvsluttRevurderingTest {
             revurderingId = avsluttetStansAvYtelse.id,
             begrunnelse = "skulle stanse ytelse, men så tenkte jeg 'neh'",
             brevvalg = null,
+            saksbehandler = saksbehandler,
         )
 
         actual shouldBe KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetStansAvYtelse(StansAvYtelseRevurdering.KunneIkkeLageAvsluttetStansAvYtelse.RevurderingErAlleredeAvsluttet)
@@ -276,6 +285,7 @@ internal class AvsluttRevurderingTest {
             revurderingId = iverksattStansAvYtelse.id,
             begrunnelse = "skulle stanse ytelse, men så tenkte jeg 'neh'",
             brevvalg = null,
+            saksbehandler = saksbehandler,
         )
 
         actual shouldBe KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetStansAvYtelse(StansAvYtelseRevurdering.KunneIkkeLageAvsluttetStansAvYtelse.RevurderingenErIverksatt)
@@ -301,6 +311,7 @@ internal class AvsluttRevurderingTest {
             revurderingId = gjenopptaYtelse.id,
             begrunnelse = "skulle stanse ytelse, men så tenkte jeg 'neh'",
             brevvalg = null,
+            saksbehandler = saksbehandler,
         )
 
         actual shouldBe GjenopptaYtelseRevurdering.AvsluttetGjenoppta.tryCreate(
@@ -331,6 +342,7 @@ internal class AvsluttRevurderingTest {
             revurderingId = gjenopptaYtelse.id,
             begrunnelse = "skulle stanse ytelse, men så tenkte jeg 'neh'",
             brevvalg = null,
+            saksbehandler = saksbehandler,
         )
 
         actual shouldBe KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetGjenopptaAvYtelse(GjenopptaYtelseRevurdering.KunneIkkeLageAvsluttetGjenopptaAvYtelse.RevurderingErAlleredeAvsluttet)
@@ -355,6 +367,7 @@ internal class AvsluttRevurderingTest {
             revurderingId = gjenopptaYtelse.id,
             begrunnelse = "skulle stanse ytelse, men så tenkte jeg 'neh'",
             brevvalg = null,
+            saksbehandler = saksbehandler,
         )
 
         actual shouldBe KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetGjenopptaAvYtelse(GjenopptaYtelseRevurdering.KunneIkkeLageAvsluttetGjenopptaAvYtelse.RevurderingenErIverksatt)

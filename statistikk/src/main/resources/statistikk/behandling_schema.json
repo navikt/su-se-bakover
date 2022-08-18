@@ -1,0 +1,189 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Behandling",
+  "description": "Behandling er en avgjørelse i en Sak, knyttet til en konkret behandlingstype (eks. søknad, revurdering, endring, klage).",
+  "required": [
+    "funksjonellTid",
+    "tekniskTid",
+    "mottattDato",
+    "registrertDato",
+    "sakId",
+    "saksnummer",
+    "behandlingType",
+    "behandlingStatus",
+    "utenlandstilsnitt",
+    "ansvarligEnhetKode",
+    "ansvarligEnhetType",
+    "behandlendeEnhetKode",
+    "behandlendeEnhetType",
+    "totrinnsbehandling",
+    "avsender",
+    "avsluttet"
+  ],
+  "type": "object",
+  "properties": {
+    "funksjonellTid": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Tidspunktet da hendelsen faktisk ble gjennomført eller registrert i kildesystemet. (format:yyyy-mm-ddThh24:mn:ss.FF6) Dette er det tidspunkt der hendelsen faktisk er gjeldende fra. Ved for eksempel patching av data eller oppdatering tilbake i tid, skal tekniskTid være lik endrings tidspunktet, mens funksjonellTid angir tidspunktet da endringen offisielt gjelder fra."
+    },
+    "tekniskTid": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Tidspunktet da kildesystemet ble klar over hendelsen. (format:yyyy-mm-ddThh24:mn:ss.FF6). Dette er tidspunkt hendelsen ble endret i dato systemet. Sammen med funksjonellTid, vil vi kunne holde rede på hva som er blitt rapportert tidligere og når det skjer endringer tilbake i tid."
+    },
+    "mottattDato": {
+      "type": "string",
+      "format": "date",
+      "description": "Denne datoen forteller fra hvilken dato behandlingen først ble initiert. Datoen brukes i beregning av saksbehandlingstid og skal samsvare med brukerens opplevelse av at saksbehandlingen har startet."
+    },
+    "registrertDato": {
+      "type": "string",
+      "format": "date",
+      "description": "Tidspunkt for når behandlingen ble registrert i saksbehandlingssystemet. Denne kan avvike fra mottattDato hvis det tar tid fra postmottak til registrering i system, eller hvis en oppgave om å opprette behandling ligger på vent et sted i NAV. Ved automatisk registrering av saker er denne samme som mottattDato."
+    },
+    "vedtaksDato": {
+      "type": "string",
+      "format": "date",
+      "description": "Tidspunkt da vedtaket på behandlingen falt."
+    },
+    "behandlingId": {
+      "type": "string",
+      "description": "Nøkkel til den aktuelle behandling, som kan identifiserer den i kildensystemet."
+    },
+    "relatertBehandlingId": {
+      "type": "string",
+      "description": "Hvis behandlingen oppstår som resultat av en tidligere behandling, skal det refereres til denne behandlingen. Eksempel gjelder dette ved revurdering eller klage, hvor det skal vises til opprinnelig behandling med aktuelt vedtak."
+    },
+    "sakId": {
+      "type": "string",
+      "description": "Nøkkelen til saken i kildesystemet. Noen kildesystem har valgt å kalle det fagsak. Denne identifiserer samlingen av behandlinger som vil kunne oppstå i forbindelse med saken. Skal kunne spores i kilden."
+    },
+    "vedtakId": {
+      "type": "string",
+      "description": "Nøkkel til det aktuelle vedtaket da behandlingen blir tilknyttet et slikt. Vi skal helst kunne identifisere vedtaket i kildensystemet."
+    },
+    "saksnummer": {
+      "type": "string",
+      "description": "Saksnummeret tilknyttet saken. Dette kan være det samme som sakId, om dette også gjelder kildesystemet."
+    },
+    "behandlingType": {
+      "type": "string",
+      "description": "Kode som beskriver behandlingen, for eksempel, søknad, revurdering, klage, anke, endring, gjenopptak, tilbakekreving o.l."
+    },
+    "behandlingStatus": {
+      "type": "string",
+      "description": "Kode som angir den aktuelle behandlingens tilstand på gjeldende tidspunkt. Ha med alle mulige statuser som er naturlig for det enkelte system/ytelse. Som minimum, angi om saken har følgende status: Registrert, Klar for behandling, Venter på bruker, venter på ekstern (arbeidsgiver, lege etc.), venter på utland, Avsluttet.Her bør det også angis at saken er behandlet av beslutter, men sendt i retur for ny behandling."
+    },
+    "resultat": {
+      "type": "string",
+      "description": "Kode som angir resultat av behandling på innværende tidspunkt. Mulige verdier: innvilget (delvis innvilget), avslått, omgjort, feilregistrert, henlagt, trukket, avvist etc."
+    },
+    "behandlingYtelseDetaljer": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "satsgrunn": {
+            "type": "string",
+            "description": "Hvorfor søkeren får en gitt sats"
+          }
+        }
+      }
+    },
+    "resultatBegrunnelse": {
+      "type": "string",
+      "description": "Denne må inneholde en årsaksbeskrivelse knyttet til et hvert mulig resultat av behandlingen. Den kan enten være underordnet resultat eller stå for seg selv. Eks. årsak til avslag, årsak til delvis innvilgelse."
+    },
+    "utenlandstilsnitt": {
+      "type": "string",
+      "description": "Kode som beskriver behandlingens  utlandstilsnitt i henhold til NAV spesialisering. I hoved sak vil denne koden beskrive om saksbehandlingsfrister er i henhold til utlandssaker eller innlandssaker, men vil for mange kildesystem være angitt med en høyere oppløsning."
+    },
+    "behandlingTypeBeskrivelse": {
+      "type": "string",
+      "description": "Beskriver den funksjonelle verdien av koden. Finnes ikke den enda, regner vi med å få den senere."
+    },
+    "behandlingStatusBeskrivelse": {
+      "type": "string",
+      "description": "Beskriver den funksjonelle verdien av koden. Finnes ikke den enda, regner vi med å få den senere."
+    },
+    "resultatBeskrivelse": {
+      "type": "string",
+      "description": "Beskriver den funksjonelle verdien av koden. Finnes ikke den enda, regner vi med å få den senere."
+    },
+    "resultatBegrunnelseBeskrivelse": {
+      "type": "string",
+      "description": "Beskriver den funksjonelle verdien av koden. Finnes ikke den enda, regner vi med å få den senere."
+    },
+    "utenlandstilsnittBeskrivelse": {
+      "type": "string",
+      "description": "Beskriver den funksjonelle verdien av koden. Finnes ikke den enda, regner vi med å få den senere."
+    },
+    "beslutter": {
+      "type": "string",
+      "description": "Bruker IDen til den ansvarlige beslutningstageren for saken."
+    },
+    "saksbehandler": {
+      "type": "string",
+      "description": "Bruker IDen til saksbehandler ansvarlig for saken på gjeldende tidspunkt. Kan etterlates tom ved helautomatiske delprosesser i behandlingen. Bør bare fylles når det er manuelle skritt i saksbehandlingen som utføres."
+    },
+    "behandlingOpprettetAv": {
+      "type": "string",
+      "description": "Opprinnelsen til behandlingen. Mulige verdier: AktørID, saksbehandlerID, system (automatisk)"
+    },
+    "behandlingOpprettetType": {
+      "type": "string",
+      "description": "Beskriver den funksjonelle verdien av koden. Finnes ikke den enda, regner vi med å få den senere."
+    },
+    "behandlingOpprettetTypeBeskrivelse": {
+      "type": "string",
+      "description": "Kode som beskriver behandlingsens utlandstilsnitt i henhold til NAV spesialisering. I hoved sak vil denne koden beskrive om saksbehandlingsfrister er i henhold til utlandssaker eller innlandssaker, men vil for mange kildesystem være angitt med en høyere oppløsning."
+    },
+    "ansvarligEnhetKode": {
+      "type": "string",
+      "description": "Kode som angir hvilken enhet som er ansvarlig for behandlingen på det gjeldende tidspunktet."
+    },
+    "ansvarligEnhetType": {
+      "type": "string",
+      "description": "Kode som angir hvilken type enhetskode det er snakk om, som oftest NORG."
+    },
+    "behandlendeEnhetKode": {
+      "type": "string",
+      "description": "Kode som angir hvilken enhet som faktisk utfører behandlingen på det gjeldende tidspunktet."
+    },
+    "behandlendeEnhetType": {
+      "type": "string",
+      "description": "Kode som angir hvilken type enhetskode det er snakk om, som oftest NORG. Kan også angi en automatisk prosess."
+    },
+    "datoForUttak": {
+      "type": "string",
+      "format": "date",
+      "description": " Den forespeilede datoen for når stønaden/ytelsen betales ut, bærer frukter for brukeren. Eks. Foreldrepenger er uttaksdato første utbetaling etter at foreldrepengeperioden har startet, ved Pensjon er uttaksdato tidspunktet for første pensjonsutbetaling."
+    },
+    "datoForUtbetaling": {
+      "type": "string",
+      "format": "date",
+      "description": "Den faktiske datoen for når stønaden/ytelsen betales ut til bruker."
+    },
+    "totrinnsbehandling": {
+      "type": "boolean",
+      "description": "Behandlingen krever totrinnsbehandling."
+    },
+    "avsender": {
+      "type": "string",
+      "description": "Feltet angir hvem som er avsender av dataene, så navnet på kildesystemet."
+    },
+    "versjon": {
+      "type": "string",
+      "description": "Angir på hvilken versjon av kildekoden JSON stringen er generert på bakgrunn av. "
+    },
+    "avsluttet": {
+      "type": "boolean",
+      "description": "Angir om behandlingen er ferdigbehandlet."
+    },
+    "søknadId": {
+      "type": "string",
+      "description": "Id på søknaden som behandlingen er knyttet til."
+    }
+  }
+}

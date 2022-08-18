@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.service
 
 import no.finn.unleash.Unleash
 import no.nav.su.se.bakover.client.Clients
+import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
@@ -19,7 +20,6 @@ import no.nav.su.se.bakover.service.regulering.ReguleringServiceImpl
 import no.nav.su.se.bakover.service.revurdering.RevurderingServiceImpl
 import no.nav.su.se.bakover.service.sak.SakServiceImpl
 import no.nav.su.se.bakover.service.skatt.SkatteServiceImpl
-import no.nav.su.se.bakover.service.statistikk.StatistikkServiceImpl
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonServiceImpl
 import no.nav.su.se.bakover.service.søknad.SøknadServiceImpl
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadServiceImpl
@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.service.toggles.ToggleServiceImpl
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingServiceImpl
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakServiceImpl
 import no.nav.su.se.bakover.service.vedtak.VedtakServiceImpl
+import no.nav.su.se.bakover.statistikk.StatistikkEventObserverBuilder
 import java.time.Clock
 
 object ServiceBuilder {
@@ -41,20 +42,23 @@ object ServiceBuilder {
         clock: Clock,
         unleash: Unleash,
         satsFactory: SatsFactory,
+        applicationConfig: ApplicationConfig,
     ): Services {
         val personService = PersonServiceImpl(clients.personOppslag)
         val toggleService = ToggleServiceImpl(unleash)
-        val statistikkService = StatistikkServiceImpl(
-            publisher = clients.kafkaPublisher,
+
+        val statistikkEventObserver = StatistikkEventObserverBuilder(
+            kafkaPublisher = clients.kafkaPublisher,
             personService = personService,
             sakRepo = databaseRepos.sak,
-            vedtakRepo = databaseRepos.vedtakRepo,
             clock = clock,
-        )
+            gitCommit = applicationConfig.gitCommit,
+        ).statistikkService
+
         val sakService = SakServiceImpl(
             sakRepo = databaseRepos.sak,
             clock = clock,
-        ).apply { observers.add(statistikkService) }
+        ).apply { addObserver(statistikkEventObserver) }
         val utbetalingService = UtbetalingServiceImpl(
             utbetalingRepo = databaseRepos.utbetaling,
             sakService = sakService,
@@ -90,7 +94,7 @@ object ServiceBuilder {
             toggleService = toggleService,
             clock = clock,
         ).apply {
-            addObserver(statistikkService)
+            addObserver(statistikkEventObserver)
         }
         val ferdigstillVedtakService = FerdigstillVedtakServiceImpl(
             brevService = brevService,
@@ -140,7 +144,7 @@ object ServiceBuilder {
             avkortingsvarselRepo = databaseRepos.avkortingsvarselRepo,
             tilbakekrevingService = tilbakekrevingService,
             satsFactory = satsFactory,
-        ).apply { addObserver(statistikkService) }
+        ).apply { addObserver(statistikkEventObserver) }
 
         val reguleringService = ReguleringServiceImpl(
             reguleringRepo = databaseRepos.reguleringRepo,
@@ -151,7 +155,7 @@ object ServiceBuilder {
             clock = clock,
             tilbakekrevingService = tilbakekrevingService,
             satsFactory = satsFactory,
-        ).apply { addObserver(statistikkService) }
+        ).apply { addObserver(statistikkEventObserver) }
 
         val nøkkelTallService = NøkkeltallServiceImpl(databaseRepos.nøkkeltallRepo)
 
@@ -174,7 +178,7 @@ object ServiceBuilder {
             formuegrenserFactory = satsFactory.formuegrenserFactory,
             satsFactory = satsFactory,
         ).apply {
-            addObserver(statistikkService)
+            addObserver(statistikkEventObserver)
         }
         val klageService = KlageServiceImpl(
             sakRepo = databaseRepos.sak,
@@ -188,7 +192,7 @@ object ServiceBuilder {
             oppgaveService = oppgaveService,
             journalpostClient = clients.journalpostClient,
             clock = clock,
-        ).apply { addObserver(statistikkService) }
+        ).apply { addObserver(statistikkEventObserver) }
         val klageinstanshendelseService = KlageinstanshendelseServiceImpl(
             klageinstanshendelseRepo = databaseRepos.klageinstanshendelseRepo,
             klageRepo = databaseRepos.klageRepo,
@@ -220,11 +224,10 @@ object ServiceBuilder {
                 clock = clock,
                 sessionFactory = databaseRepos.sessionFactory,
             ).apply {
-                addObserver(statistikkService)
+                addObserver(statistikkEventObserver)
             },
             oppgave = oppgaveService,
             person = personService,
-            statistikk = statistikkService,
             toggles = toggleService,
             søknadsbehandling = søknadsbehandlingService,
             ferdigstillVedtak = ferdigstillVedtakService,

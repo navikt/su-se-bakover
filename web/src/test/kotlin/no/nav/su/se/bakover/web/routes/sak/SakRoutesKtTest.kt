@@ -62,6 +62,7 @@ internal class SakRoutesKtTest {
         clock = fixedClock,
         unleash = FakeUnleash().apply { enableAll() },
         satsFactory = satsFactoryTestPåDato(),
+        applicationConfig = applicationConfig(),
     )
 
     private val søknadInnhold = SøknadInnholdTestdataBuilder.build()

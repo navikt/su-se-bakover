@@ -9,6 +9,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeAvslutteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLageAvsluttetRevurdering
@@ -21,6 +22,7 @@ import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
+import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.Brev.brevvalgIkkeTillatt
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.Brev.manglerBrevvalg
@@ -46,6 +48,7 @@ internal fun Route.avsluttRevurderingRoute(
                             revurderingId = revurderingId,
                             begrunnelse = body.begrunnelse,
                             brevvalg = brevvalg,
+                            saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                         ).mapLeft {
                             it.tilResultat()
                         }
