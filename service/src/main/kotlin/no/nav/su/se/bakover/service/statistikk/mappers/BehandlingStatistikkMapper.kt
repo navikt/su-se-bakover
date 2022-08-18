@@ -289,7 +289,7 @@ class BehandlingStatistikkMapper(
             saksbehandler = klage.saksbehandler.navIdent,
             relatertBehandlingId = when (klage) {
                 is OpprettetKlage -> null
-                is AvsluttetKlage -> null
+                is AvsluttetKlage -> klage.hentUnderliggendeVedtakId()
                 is AvvistKlage -> klage.vilkårsvurderinger.vedtakId
                 is VilkårsvurdertKlage -> klage.vilkårsvurderinger.vedtakId
                 is KlageTilAttestering -> klage.vilkårsvurderinger.vedtakId
@@ -298,7 +298,7 @@ class BehandlingStatistikkMapper(
                 is OversendtKlage -> klage.vilkårsvurderinger.vedtakId
             },
             avsluttet = false,
-            totrinnsbehandling = false
+            totrinnsbehandling = false,
         ).apply {
             return when (klage) {
                 is OpprettetKlage,

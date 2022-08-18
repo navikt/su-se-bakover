@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.klage
 import arrow.core.left
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import java.util.UUID
 
 /**
  * Representerer en feilregistrert klage. Eksempler kan være:
@@ -24,6 +25,18 @@ data class AvsluttetKlage(
      * Egentlig ønsker vi ikke eksponere selve feltet, men vi trenger å avgjøre den underliggende typen for å instansiere/serialisere den.
      * */
     fun hentUnderliggendeKlage() = underliggendeKlage
+
+    /** Ikke alle tilstander vil ha en vedtakId, og da vil denne være null. */
+    fun hentUnderliggendeVedtakId(): UUID? = when (underliggendeKlage) {
+        is AvsluttetKlage -> throw IllegalStateException("AvsluttetKlage kan ikke være rekursiv.")
+        is AvvistKlage -> underliggendeKlage.vilkårsvurderinger.vedtakId
+        is IverksattAvvistKlage -> underliggendeKlage.vilkårsvurderinger.vedtakId
+        is KlageTilAttestering -> underliggendeKlage.vilkårsvurderinger.vedtakId
+        is OpprettetKlage -> null
+        is OversendtKlage -> underliggendeKlage.vilkårsvurderinger.vedtakId
+        is VilkårsvurdertKlage -> underliggendeKlage.vilkårsvurderinger.vedtakId
+        is VurdertKlage -> underliggendeKlage.vilkårsvurderinger.vedtakId
+    }
 
     override fun erÅpen() = false
 
