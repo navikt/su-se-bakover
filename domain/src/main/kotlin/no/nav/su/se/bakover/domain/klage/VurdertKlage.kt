@@ -159,6 +159,8 @@ sealed interface VurdertKlage : Klage, VurdertKlageFelter {
 
     interface UtfyltFelter : VurdertKlageFelter {
         override val vurderinger: VurderingerTilKlage.Utfylt
+
+        fun erOpprettholdelse(): Boolean = vurderinger.vedtaksvurdering is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold
     }
 
     data class Utfylt(

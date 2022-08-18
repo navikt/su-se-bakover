@@ -3,31 +3,32 @@ package no.nav.su.se.bakover.domain.søknadsbehandling
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
 
 data class LukketSøknadsbehandling private constructor(
-    val lukketSøknadsbehandling: Søknadsbehandling,
+    val underliggendeSøknadsbehandling: Søknadsbehandling,
     override val søknad: Søknad.Journalført.MedOppgave.Lukket,
 ) : Søknadsbehandling() {
-    override val status = lukketSøknadsbehandling.status
-    override val stønadsperiode = lukketSøknadsbehandling.stønadsperiode
-    override val grunnlagsdata = lukketSøknadsbehandling.grunnlagsdata
-    override val vilkårsvurderinger = lukketSøknadsbehandling.vilkårsvurderinger
-    override val attesteringer = lukketSøknadsbehandling.attesteringer
-    override val fritekstTilBrev = lukketSøknadsbehandling.fritekstTilBrev
-    override val oppgaveId = lukketSøknadsbehandling.oppgaveId
-    override val id = lukketSøknadsbehandling.id
-    override val opprettet = lukketSøknadsbehandling.opprettet
-    override val sakId = lukketSøknadsbehandling.sakId
-    override val saksnummer = lukketSøknadsbehandling.saksnummer
-    override val fnr = lukketSøknadsbehandling.fnr
+    override val status = underliggendeSøknadsbehandling.status
+    override val stønadsperiode = underliggendeSøknadsbehandling.stønadsperiode
+    override val grunnlagsdata = underliggendeSøknadsbehandling.grunnlagsdata
+    override val vilkårsvurderinger = underliggendeSøknadsbehandling.vilkårsvurderinger
+    override val attesteringer = underliggendeSøknadsbehandling.attesteringer
+    override val fritekstTilBrev = underliggendeSøknadsbehandling.fritekstTilBrev
+    override val oppgaveId = underliggendeSøknadsbehandling.oppgaveId
+    override val id = underliggendeSøknadsbehandling.id
+    override val opprettet = underliggendeSøknadsbehandling.opprettet
+    override val sakId = underliggendeSøknadsbehandling.sakId
+    override val saksnummer = underliggendeSøknadsbehandling.saksnummer
+    override val fnr = underliggendeSøknadsbehandling.fnr
 
     // Så vi kan initialiseres uten at periode er satt (typisk ved ny søknadsbehandling)
-    override val periode by lazy { lukketSøknadsbehandling.periode }
-    override val avkorting: AvkortingVedSøknadsbehandling = when (val avkorting = lukketSøknadsbehandling.avkorting) {
+    override val periode by lazy { underliggendeSøknadsbehandling.periode }
+    override val avkorting: AvkortingVedSøknadsbehandling = when (val avkorting = underliggendeSøknadsbehandling.avkorting) {
         is AvkortingVedSøknadsbehandling.Håndtert -> {
             avkorting.kanIkke()
         }
@@ -40,7 +41,9 @@ data class LukketSøknadsbehandling private constructor(
             avkorting.kanIkke()
         }
     }
-    override val sakstype: Sakstype = lukketSøknadsbehandling.sakstype
+    override val sakstype: Sakstype = underliggendeSøknadsbehandling.sakstype
+    // TODO jah: Denne bør overstyres av saksbehandler som avsluttet revurderingen.
+    override val saksbehandler: NavIdentBruker.Saksbehandler? = underliggendeSøknadsbehandling.saksbehandler
 
     val lukketTidspunkt = søknad.lukketTidspunkt
     val lukketAv = søknad.lukketAv
@@ -48,7 +51,7 @@ data class LukketSøknadsbehandling private constructor(
 
     init {
         kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
-        validateState(this.lukketSøknadsbehandling).tapLeft {
+        validateState(this.underliggendeSøknadsbehandling).tapLeft {
             throw IllegalArgumentException("Ugyldig tilstand. Underliggende feil: $it")
         }
     }
@@ -69,7 +72,7 @@ data class LukketSøknadsbehandling private constructor(
             }
             return when (val søknad = søknadsbehandlingSomSkalLukkes.søknad) {
                 is Søknad.Journalført.MedOppgave.IkkeLukket -> LukketSøknadsbehandling(
-                    lukketSøknadsbehandling = søknadsbehandlingSomSkalLukkes,
+                    underliggendeSøknadsbehandling = søknadsbehandlingSomSkalLukkes,
                     søknad = søknad.lukk(
                         lukkSøknadCommand = lukkSøknadCommand,
                     ),
@@ -91,7 +94,7 @@ data class LukketSøknadsbehandling private constructor(
                 throw IllegalArgumentException("Ugyldig tilstand. Underliggende feil: $it")
             }
             return LukketSøknadsbehandling(
-                lukketSøknadsbehandling = søknadsbehandling,
+                underliggendeSøknadsbehandling = søknadsbehandling,
                 søknad = søknad,
             )
         }

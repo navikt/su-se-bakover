@@ -167,7 +167,7 @@ class LagBrevRequestVisitor(
 
     override fun visit(søknadsbehandling: LukketSøknadsbehandling) {
         brevRequest = LagBrevRequestVisitor(hentPerson, hentNavn, hentGjeldendeUtbetaling, clock, satsFactory).let {
-            søknadsbehandling.lukketSøknadsbehandling.accept(it)
+            søknadsbehandling.underliggendeSøknadsbehandling.accept(it)
             it.brevRequest
         }
     }

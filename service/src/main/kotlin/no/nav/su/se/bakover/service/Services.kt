@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.service
 
+import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.klage.KlageService
@@ -7,12 +8,10 @@ import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
 import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
-import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.regulering.ReguleringService
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.skatt.SkatteService
-import no.nav.su.se.bakover.service.statistikk.StatistikkService
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
@@ -32,7 +31,6 @@ data class Services(
     val lukkSøknad: LukkSøknadService,
     val oppgave: OppgaveService,
     val person: PersonService,
-    val statistikk: StatistikkService,
     val toggles: ToggleService,
     val søknadsbehandling: SøknadsbehandlingService,
     val ferdigstillVedtak: FerdigstillVedtakService,
@@ -46,5 +44,5 @@ data class Services(
     val reguleringService: ReguleringService,
     val tilbakekrevingService: TilbakekrevingService,
     val sendPåminnelserOmNyStønadsperiodeService: SendPåminnelserOmNyStønadsperiodeService,
-    val skatteService: SkatteService
+    val skatteService: SkatteService,
 )

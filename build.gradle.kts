@@ -163,6 +163,7 @@ configure(
         project(":web"),
         project(":database"),
         project(":web-regresjonstest"),
+        project(":statistikk"),
     ),
 ) {
     tasks.test {

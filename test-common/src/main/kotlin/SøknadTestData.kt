@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.test
 
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUIDFactory
+import no.nav.su.se.bakover.common.mapSecond
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
@@ -41,6 +42,7 @@ fun nySakMedNySøknad(
     søknadId: UUID = no.nav.su.se.bakover.test.søknadId,
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     søknadInnsendtAv: NavIdentBruker = veileder,
+    søknadInnhold: SøknadInnhold = søknadinnhold(fnr),
     clock: Clock = fixedClock,
 ): Pair<Sak, Søknad.Ny> = SakFactory(
     uuidFactory = object : UUIDFactory() {
@@ -52,7 +54,7 @@ fun nySakMedNySøknad(
     clock = clock,
 ).nySakMedNySøknad(
     fnr = fnr,
-    søknadInnhold = søknadinnhold(fnr),
+    søknadInnhold = søknadInnhold,
     innsendtAv = søknadInnsendtAv,
 ).let {
     assert(it.id == sakId)
@@ -60,8 +62,8 @@ fun nySakMedNySøknad(
     Pair(it.toSak(saksnummer), it.søknad)
 }
 
-fun trukketSøknad(): Søknad.Journalført.MedOppgave.Lukket.TrukketAvSøker {
-    return nySakMedjournalførtSøknadOgOppgave().second.let {
+fun trukketSøknad(): Pair<Sak, Søknad.Journalført.MedOppgave.Lukket.TrukketAvSøker> {
+    return nySakMedjournalførtSøknadOgOppgave().mapSecond {
         it.lukk(
             lukkSøknadCommand = trekkSøknad(
                 søknadId = it.id,
@@ -71,8 +73,8 @@ fun trukketSøknad(): Søknad.Journalført.MedOppgave.Lukket.TrukketAvSøker {
     }
 }
 
-fun bortfaltSøknad(): Søknad.Journalført.MedOppgave.Lukket.Bortfalt {
-    return nySakMedjournalførtSøknadOgOppgave().second.let {
+fun bortfaltSøknad(): Pair<Sak, Søknad.Journalført.MedOppgave.Lukket.Bortfalt> {
+    return nySakMedjournalførtSøknadOgOppgave().mapSecond {
         it.lukk(
             lukkSøknadCommand = bortfallSøknad(
                 søknadId = it.id,
@@ -82,8 +84,8 @@ fun bortfaltSøknad(): Søknad.Journalført.MedOppgave.Lukket.Bortfalt {
     }
 }
 
-fun avvistSøknadUtenBrev(): Søknad.Journalført.MedOppgave.Lukket.Avvist {
-    return nySakMedjournalførtSøknadOgOppgave().second.let {
+fun avvistSøknadUtenBrev(): Pair<Sak, Søknad.Journalført.MedOppgave.Lukket.Avvist> {
+    return nySakMedjournalførtSøknadOgOppgave().mapSecond {
         it.lukk(
             lukkSøknadCommand = avvisSøknadUtenBrev(
                 søknadId = it.id,
@@ -96,7 +98,7 @@ fun avvistSøknadUtenBrev(): Søknad.Journalført.MedOppgave.Lukket.Avvist {
 fun avvistSøknadMedInformasjonsbrev(
     søknadId: UUID = UUID.randomUUID(),
     lukketTidspunkt: Tidspunkt = fixedTidspunkt.plus(1, ChronoUnit.SECONDS),
-    lukketAv: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
+    lukketAv: NavIdentBruker.Saksbehandler = saksbehandler,
     brevvalg: Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst = Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst("informasjonsbrev med fritekst"),
 ): Søknad.Journalført.MedOppgave.Lukket.Avvist {
     return nySakMedjournalførtSøknadOgOppgave(
@@ -116,7 +118,7 @@ fun avvistSøknadMedInformasjonsbrev(
 fun avvistSøknadMedVedtaksbrev(
     søknadId: UUID = UUID.randomUUID(),
     lukketTidspunkt: Tidspunkt = fixedTidspunkt.plus(1, ChronoUnit.SECONDS),
-    lukketAv: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
+    lukketAv: NavIdentBruker.Saksbehandler = saksbehandler,
     brevvalg: Brevvalg.SaksbehandlersValg.SkalSendeBrev.VedtaksbrevUtenFritekst = Brevvalg.SaksbehandlersValg.SkalSendeBrev.VedtaksbrevUtenFritekst(),
 ): Søknad.Journalført.MedOppgave.Lukket.Avvist {
     return nySakMedjournalførtSøknadOgOppgave(

@@ -266,7 +266,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
             )
         }
         is LukketSøknadsbehandling -> {
-            lukketSøknadsbehandling.toJson(satsFactory).copy(erLukket = true)
+            underliggendeSøknadsbehandling.toJson(satsFactory).copy(erLukket = true)
         }
     }
 }

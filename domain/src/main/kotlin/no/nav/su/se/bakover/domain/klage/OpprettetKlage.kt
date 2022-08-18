@@ -27,7 +27,7 @@ data class OpprettetKlage(
 
     override val vilkårsvurderinger: VilkårsvurderingerTilKlage? = null
 
-    override val attesteringer: Attesteringshistorikk? = null
+    override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty()
 
     override fun erÅpen() = true
 

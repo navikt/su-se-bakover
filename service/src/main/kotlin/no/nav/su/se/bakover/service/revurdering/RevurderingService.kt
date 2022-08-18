@@ -158,6 +158,7 @@ interface RevurderingService {
         revurderingId: UUID,
         begrunnelse: String,
         brevvalg: Brevvalg.SaksbehandlersValg?,
+        saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeAvslutteRevurdering, AbstraktRevurdering>
 
     fun leggTilOpplysningspliktVilkår(

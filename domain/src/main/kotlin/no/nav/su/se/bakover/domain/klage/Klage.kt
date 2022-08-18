@@ -54,7 +54,7 @@ sealed interface Klage : Klagefelter {
      * Dersom attesteringer er [Attestering.Iverksatt] vil behandlingen være ferdistilt/avsluttet.
      * Dersom attesteringer er [Attestering.Underkjent] vil behandlingen fremdeles være åpen.
      * */
-    val attesteringer: Attesteringshistorikk?
+    val attesteringer: Attesteringshistorikk
 
     fun erÅpen(): Boolean
 

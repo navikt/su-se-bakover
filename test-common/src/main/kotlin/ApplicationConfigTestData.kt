@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.ApplicationConfig
 fun applicationConfig() = ApplicationConfig(
     runtimeEnvironment = ApplicationConfig.RuntimeEnvironment.Test,
     naisCluster = null,
+    gitCommit = null,
     leaderPodLookupPath = "leaderPodLookupPath",
     pdfgenLocal = false,
     serviceUser = ApplicationConfig.ServiceUserConfig(

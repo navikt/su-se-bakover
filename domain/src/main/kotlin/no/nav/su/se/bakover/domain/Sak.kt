@@ -47,7 +47,7 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.VurderOmVilkårGirOpphørVedRevurdering
 import no.nav.su.se.bakover.domain.sak.SakInfo
-import no.nav.su.se.bakover.domain.statistikk.Statistikkhendelse
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadinnhold.SøknadInnhold
@@ -858,6 +858,7 @@ data class Sak(
         clock: Clock,
         hentPerson: () -> Either<KunneIkkeHentePerson, Person>,
         hentSaksbehandlerNavn: (saksbehandler: NavIdentBruker.Saksbehandler) -> Either<KunneIkkeHenteNavnForNavIdent, String>,
+        saksbehandler: NavIdentBruker.Saksbehandler,
     ): LukkSøknadOgSøknadsbehandlingResponse {
         val søknadId = lukkSøknadCommand.søknadId
         val søknad = hentSøknad(søknadId).getOrHandle {
@@ -875,7 +876,7 @@ data class Sak(
                     ),
                     lukketSøknad,
                     null,
-                    Statistikkhendelse.Søknad.Lukket(lukketSøknad, saksnummer),
+                    StatistikkEvent.Søknad.Lukket(lukketSøknad, saksnummer),
                 )
             },
             { søknadsbehandlingSomSkalLukkes ->
@@ -892,7 +893,7 @@ data class Sak(
                         ),
                         lukketSøknadsbehandling.søknad,
                         lukketSøknadsbehandling,
-                        Statistikkhendelse.Søknadsbehandling.Lukket(lukketSøknadsbehandling),
+                        StatistikkEvent.Behandling.Søknad.Lukket(lukketSøknadsbehandling, saksbehandler),
                     )
                 }
             },
@@ -928,14 +929,14 @@ data class Sak(
         val sak: Sak,
         val søknad: Søknad.Journalført.MedOppgave.Lukket,
         val søknadsbehandling: LukketSøknadsbehandling?,
-        val hendelse: Statistikkhendelse,
+        val hendelse: StatistikkEvent,
         val lagBrevRequest: Either<IkkeLagBrevRequest, LagBrevRequest>,
     ) {
         init {
             // Guards spesielt med tanke på testdatasett.
             require(
-                hendelse is Statistikkhendelse.Søknadsbehandling.Lukket ||
-                    hendelse is Statistikkhendelse.Søknad.Lukket,
+                hendelse is StatistikkEvent.Behandling.Søknad.Lukket ||
+                    hendelse is StatistikkEvent.Søknad.Lukket,
             )
             lagBrevRequest.tap {
                 require(it.saksnummer == sak.saksnummer)

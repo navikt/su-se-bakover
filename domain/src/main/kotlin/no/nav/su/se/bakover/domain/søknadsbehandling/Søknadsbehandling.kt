@@ -79,6 +79,8 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     val erIverksatt: Boolean by lazy { this is Iverksatt.Avslag || this is Iverksatt.Innvilget }
     val erLukket: Boolean by lazy { this is LukketSøknadsbehandling }
 
+    abstract val saksbehandler: NavIdentBruker.Saksbehandler?
+
     fun erÅpen(): Boolean {
         return !(erIverksatt || erLukket)
     }
@@ -887,6 +889,8 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
             override val periode: Periode = stønadsperiode.periode
 
+            override val saksbehandler: NavIdentBruker.Saksbehandler? = null
+
             init {
                 kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
             }
@@ -925,6 +929,8 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         ) : Vilkårsvurdert(), ErAvslag {
 
             override val status: BehandlingsStatus = BehandlingsStatus.VILKÅRSVURDERT_AVSLAG
+
+            override val saksbehandler: NavIdentBruker.Saksbehandler? = null
 
             override fun copyInternal(
                 stønadsperiode: Stønadsperiode,
@@ -995,6 +1001,9 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         ) : Vilkårsvurdert() {
 
             override val status: BehandlingsStatus = BehandlingsStatus.OPPRETTET
+
+            override val saksbehandler: NavIdentBruker.Saksbehandler? = null
+
             override fun copyInternal(
                 stønadsperiode: Stønadsperiode,
                 grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
@@ -1082,6 +1091,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         ) : Beregnet() {
             override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET_INNVILGET
             override val periode: Periode = stønadsperiode.periode
+            override val saksbehandler: NavIdentBruker.Saksbehandler? = null
 
             init {
                 kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
@@ -1122,6 +1132,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         ) : Beregnet(), ErAvslag {
             override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET_AVSLAG
             override val periode: Periode = stønadsperiode.periode
+            override val saksbehandler: NavIdentBruker.Saksbehandler? = null
 
             private val avslagsgrunnForBeregning: List<Avslagsgrunn> =
                 when (val vurdering = VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {
@@ -1200,6 +1211,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     ) : Søknadsbehandling(), KanOppdaterePeriodeGrunnlagVilkår {
         override val status: BehandlingsStatus = BehandlingsStatus.SIMULERT
         override val periode: Periode = stønadsperiode.periode
+        override val saksbehandler: NavIdentBruker.Saksbehandler? = null
 
         init {
             kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
@@ -1288,7 +1300,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     }
 
     sealed class TilAttestering : Søknadsbehandling() {
-        abstract val saksbehandler: NavIdentBruker
+        abstract override val saksbehandler: NavIdentBruker.Saksbehandler
         abstract fun nyOppgaveId(nyOppgaveId: OppgaveId): TilAttestering
         abstract fun tilUnderkjent(attestering: Attestering): Underkjent
         abstract override val stønadsperiode: Stønadsperiode
@@ -1597,7 +1609,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         abstract override val søknad: Søknad.Journalført.MedOppgave
         abstract override val oppgaveId: OppgaveId
         abstract override val fnr: Fnr
-        abstract val saksbehandler: NavIdentBruker.Saksbehandler
+        abstract override val saksbehandler: NavIdentBruker.Saksbehandler
         abstract override val attesteringer: Attesteringshistorikk
         abstract override val stønadsperiode: Stønadsperiode
         abstract override val avkorting: AvkortingVedSøknadsbehandling.Håndtert
@@ -1874,7 +1886,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         abstract override val søknad: Søknad.Journalført.MedOppgave
         abstract override val oppgaveId: OppgaveId
         abstract override val fnr: Fnr
-        abstract val saksbehandler: NavIdentBruker.Saksbehandler
+        abstract override val saksbehandler: NavIdentBruker.Saksbehandler
         abstract override val attesteringer: Attesteringshistorikk
         abstract override val stønadsperiode: Stønadsperiode
         abstract override val avkorting: AvkortingVedSøknadsbehandling.Iverksatt

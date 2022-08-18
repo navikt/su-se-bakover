@@ -63,6 +63,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.PersonRepo
+import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringMerknad
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
@@ -104,7 +105,6 @@ import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeHenteKontrollsamtal
 import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeSetteNyDatoForKontrollsamtale
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
-import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.regulering.KunneIkkeAvslutte
 import no.nav.su.se.bakover.service.regulering.KunneIkkeOppretteRegulering
 import no.nav.su.se.bakover.service.regulering.KunneIkkeRegulereManuelt
@@ -148,8 +148,6 @@ import no.nav.su.se.bakover.service.sak.KunneIkkeHenteGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.skatt.KunneIkkeHenteSkattemelding
 import no.nav.su.se.bakover.service.skatt.SkatteService
-import no.nav.su.se.bakover.service.statistikk.Statistikk
-import no.nav.su.se.bakover.service.statistikk.StatistikkService
 import no.nav.su.se.bakover.service.søknad.AvslåManglendeDokumentasjonRequest
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
 import no.nav.su.se.bakover.service.søknad.FantIkkeSøknad
@@ -477,9 +475,6 @@ open class AccessCheckProxy(
                     return services.person.sjekkTilgangTilPerson(fnr)
                 }
             },
-            statistikk = object : StatistikkService {
-                override fun publiser(statistikk: Statistikk) = kastKanKunKallesFraAnnenService()
-            },
             toggles = services.toggles,
             søknadsbehandling = object : SøknadsbehandlingService {
                 override fun opprett(request: SøknadsbehandlingService.OpprettRequest): Either<SøknadsbehandlingService.KunneIkkeOpprette, Søknadsbehandling.Vilkårsvurdert.Uavklart> {
@@ -770,9 +765,10 @@ open class AccessCheckProxy(
                     revurderingId: UUID,
                     begrunnelse: String,
                     brevvalg: Brevvalg.SaksbehandlersValg?,
+                    saksbehandler: NavIdentBruker.Saksbehandler,
                 ): Either<KunneIkkeAvslutteRevurdering, AbstraktRevurdering> {
                     assertHarTilgangTilRevurdering(revurderingId)
-                    return services.revurdering.avsluttRevurdering(revurderingId, begrunnelse, brevvalg)
+                    return services.revurdering.avsluttRevurdering(revurderingId, begrunnelse, brevvalg, saksbehandler)
                 }
 
                 override fun leggTilOpplysningspliktVilkår(request: LeggTilOpplysningspliktRequest.Revurdering): Either<KunneIkkeLeggeTilOpplysningsplikt, RevurderingOgFeilmeldingerResponse> {

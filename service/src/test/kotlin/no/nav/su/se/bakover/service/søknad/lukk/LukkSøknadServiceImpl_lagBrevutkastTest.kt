@@ -14,17 +14,17 @@ import no.nav.su.se.bakover.domain.brev.søknad.lukk.TrukketSøknadBrevRequest
 import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.SakInfo
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
-import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
-import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.søknad.FantIkkeSøknad
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
@@ -254,7 +254,7 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
         },
         clock: Clock = fixedClock,
         sessionFactory: SessionFactory = TestSessionFactory(),
-        private val lukkSøknadServiceObserver: EventObserver = mock(),
+        private val lukkSøknadServiceObserver: StatistikkEventObserver = mock(),
     ) {
         init {
             søknad?.also {

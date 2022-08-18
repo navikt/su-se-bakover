@@ -50,7 +50,7 @@ class FinnSaksbehandlerVisitor : SøknadsbehandlingVisitor {
 
     override fun visit(søknadsbehandling: LukketSøknadsbehandling) {
         saksbehandler = FinnSaksbehandlerVisitor().let {
-            søknadsbehandling.lukketSøknadsbehandling.accept(it)
+            søknadsbehandling.underliggendeSøknadsbehandling.accept(it)
             it.saksbehandler
         }
     }

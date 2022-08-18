@@ -151,6 +151,7 @@ internal object SharedRegressionTestData {
             clock = clock,
             unleash = unleash,
             satsFactory = satsFactoryTestPåDato(LocalDate.now(clock)),
+            applicationConfig = applicationConfig(),
         ),
         accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services),
     ) {

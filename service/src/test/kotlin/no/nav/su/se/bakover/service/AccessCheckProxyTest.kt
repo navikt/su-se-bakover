@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.PersonRepo
-import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
@@ -34,7 +34,6 @@ internal class AccessCheckProxyTest {
         lukkSøknad = mock(),
         oppgave = mock(),
         person = mock(),
-        statistikk = mock(),
         toggles = mock(),
         søknadsbehandling = mock(),
         ferdigstillVedtak = mock(),

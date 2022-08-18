@@ -19,7 +19,9 @@ import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
-import no.nav.su.se.bakover.domain.statistikk.Statistikkhendelse
+import no.nav.su.se.bakover.domain.person.PersonService
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
@@ -28,10 +30,8 @@ import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
-import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
-import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.test.TestSessionFactory
@@ -49,8 +49,8 @@ import no.nav.su.se.bakover.test.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
-import no.nav.su.se.bakover.test.søknadsbehandlingLukket
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
+import no.nav.su.se.bakover.test.søknadsbehandlingTrukket
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.trekkSøknad
 import no.nav.su.se.bakover.test.veileder
@@ -177,7 +177,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
 
     @Test
     fun `en søknad med lukket søknadsbehandling skal ikke kunne bli lukket igjen`() {
-        val (sak, søknadsbehandling) = søknadsbehandlingLukket()
+        val (sak, søknadsbehandling) = søknadsbehandlingTrukket()
         val søknad = sak.søknader.first() as Søknad.Journalført.MedOppgave
 
         ServiceOgMocks(
@@ -380,7 +380,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
         },
         clock: Clock = fixedClock,
         sessionFactory: SessionFactory = TestSessionFactory(),
-        private val lukkSøknadServiceObserver: EventObserver = mock(),
+        private val lukkSøknadServiceObserver: StatistikkEventObserver = mock(),
     ) {
         init {
             søknad?.also {
@@ -620,7 +620,7 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
             if (søknadsbehandling == null) {
                 verify(lukkSøknadServiceObserver).handle(
                     argThat {
-                        it shouldBe Statistikkhendelse.Søknad.Lukket(
+                        it shouldBe StatistikkEvent.Søknad.Lukket(
                             søknad = expectedLukketSøknad(),
                             saksnummer = sak!!.saksnummer,
                         )
@@ -629,8 +629,9 @@ internal class LukkSøknadServiceImpl_lukkSøknadOgSøknadsbehandlingTest {
             } else {
                 verify(lukkSøknadServiceObserver).handle(
                     argThat {
-                        it shouldBe Statistikkhendelse.Søknadsbehandling.Lukket(
-                            expectedLukketSøknadsbehandling(),
+                        it shouldBe StatistikkEvent.Behandling.Søknad.Lukket(
+                            søknadsbehandling = expectedLukketSøknadsbehandling(),
+                            saksbehandler = saksbehandler,
                         )
                     },
                 )

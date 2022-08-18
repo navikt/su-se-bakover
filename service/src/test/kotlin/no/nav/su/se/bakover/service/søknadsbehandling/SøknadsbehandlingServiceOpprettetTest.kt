@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.statistikk.Statistikkhendelse
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.test.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.nySakUføre
 import no.nav.su.se.bakover.test.nySøknadJournalførtMedOppgave
 import no.nav.su.se.bakover.test.sakId
+import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.søknadinnhold
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagMedBeregning
@@ -55,6 +56,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                 SøknadsbehandlingService.OpprettRequest(
                     søknadId = UUID.randomUUID(),
                     sakId = sakId,
+                    saksbehandler = saksbehandler,
                 ),
             ) shouldBe SøknadsbehandlingService.KunneIkkeOpprette.KunneIkkeOppretteSøknadsbehandling(Sak.KunneIkkeOppretteSøknad.FantIkkeSøknad)
                 .left()
@@ -72,6 +74,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                 SøknadsbehandlingService.OpprettRequest(
                     søknadId = lukketSøknad.id,
                     sakId = sak.id,
+                    saksbehandler = saksbehandler,
                 ),
             ) shouldBe SøknadsbehandlingService.KunneIkkeOpprette.KunneIkkeOppretteSøknadsbehandling(Sak.KunneIkkeOppretteSøknad.ErLukket)
                 .left()
@@ -91,6 +94,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                 SøknadsbehandlingService.OpprettRequest(
                     søknadId = søknad.id,
                     sakId = sak.id,
+                    saksbehandler = saksbehandler,
                 ),
             ) shouldBe SøknadsbehandlingService.KunneIkkeOpprette.KunneIkkeOppretteSøknadsbehandling(Sak.KunneIkkeOppretteSøknad.ManglerOppgave)
                 .left()
@@ -110,6 +114,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                 SøknadsbehandlingService.OpprettRequest(
                     søknadId = søknadsbehandling.søknad.id,
                     sakId = sak.id,
+                    saksbehandler = saksbehandler,
                 ),
             ) shouldBe SøknadsbehandlingService.KunneIkkeOpprette.KunneIkkeOppretteSøknadsbehandling(Sak.KunneIkkeOppretteSøknad.HarAlleredeBehandling)
                 .left()
@@ -139,6 +144,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                 SøknadsbehandlingService.OpprettRequest(
                     søknadId = nySøknad.id,
                     sakId = nySøknad.sakId,
+                    saksbehandler = saksbehandler,
                 ),
             ) shouldBe SøknadsbehandlingService.KunneIkkeOpprette.KunneIkkeOppretteSøknadsbehandling(Sak.KunneIkkeOppretteSøknad.HarÅpenBehandling)
                 .left()
@@ -179,6 +185,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
             SøknadsbehandlingService.OpprettRequest(
                 søknadId = søknad.id,
                 sakId = sak.id,
+                saksbehandler = saksbehandler,
             ),
         ).getOrFail().shouldBeEqualToIgnoringFields(
             Søknadsbehandling.Vilkårsvurdert.Uavklart(
@@ -222,7 +229,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
         verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe capturedSøknadsbehandling.firstValue.id })
         verify(serviceAndMocks.observer).handle(
             argThat {
-                it shouldBe Statistikkhendelse.Søknadsbehandling.Opprettet(
+                it shouldBe StatistikkEvent.Behandling.Søknad.Opprettet(
                     Søknadsbehandling.Vilkårsvurdert.Uavklart(
                         id = capturedSøknadsbehandling.firstValue.id,
                         opprettet = capturedSøknadsbehandling.firstValue.opprettet,
@@ -239,6 +246,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                         avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke(),
                         sakstype = sak.type,
                     ),
+                    saksbehandler = saksbehandler,
                 )
             },
         )

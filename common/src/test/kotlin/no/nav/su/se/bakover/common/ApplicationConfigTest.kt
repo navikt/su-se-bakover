@@ -17,6 +17,7 @@ internal class ApplicationConfigTest {
     private val expectedApplicationConfig = ApplicationConfig(
         runtimeEnvironment = ApplicationConfig.RuntimeEnvironment.Nais,
         naisCluster = ApplicationConfig.NaisCluster.Prod,
+        gitCommit = GitCommit("87a3a5155bf00b4d6854efcc24e8b929549c9302"),
         leaderPodLookupPath = "leaderPodLookupPath",
         pdfgenLocal = false,
         serviceUser = ApplicationConfig.ServiceUserConfig(
@@ -215,7 +216,8 @@ internal class ApplicationConfigTest {
                 "MASKINPORTEN_JWKS_URI" to "maskinporten_jwks_uri",
                 "MASKINPORTEN_TOKEN_ENDPOINT" to "maskinporten_token_endpoint",
                 "KRR_URL" to "krrUrl",
-                "KRR_APP_ID" to "krrId"
+                "KRR_APP_ID" to "krrId",
+                "NAIS_APP_IMAGE" to "ghcr.io/navikt/su-se-bakover/su-se-bakover:87a3a5155bf00b4d6854efcc24e8b929549c9302",
             ),
         ) {
             ApplicationConfig.createFromEnvironmentVariables() shouldBe expectedApplicationConfig

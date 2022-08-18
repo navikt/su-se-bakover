@@ -40,6 +40,7 @@ import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.SendTilAttesteringRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.SimulerRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.UnderkjennRequest
+import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.web.AuditLogEvent
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
@@ -100,6 +101,7 @@ internal fun Route.søknadsbehandlingRoutes(
                             OpprettRequest(
                                 søknadId = søknadId,
                                 sakId = sakId,
+                                saksbehandler = call.suUserContext.saksbehandler,
                             ),
                         ).fold(
                             {

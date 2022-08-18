@@ -222,6 +222,7 @@ internal class SøknadRoutesKtTest {
                 clock = fixedClock,
                 unleash = mock(),
                 satsFactory = satsFactoryTestPåDato(),
+                applicationConfig = applicationConfig(),
             )
 
             testApplication {

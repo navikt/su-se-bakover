@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web
 
+import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.service.SendPåminnelserOmNyStønadsperiodeService
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
@@ -9,12 +10,10 @@ import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
 import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
-import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.regulering.ReguleringService
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.skatt.SkatteService
-import no.nav.su.se.bakover.service.statistikk.StatistikkService
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
@@ -36,7 +35,6 @@ object TestServicesBuilder {
         lukkSøknad: LukkSøknadService = mock(),
         oppgave: OppgaveService = mock(),
         person: PersonService = mock(),
-        statistikk: StatistikkService = mock(),
         toggles: ToggleService = mock(),
         søknadsbehandling: SøknadsbehandlingService = mock(),
         ferdigstillVedtak: FerdigstillVedtakService = mock(),
@@ -60,7 +58,6 @@ object TestServicesBuilder {
         lukkSøknad = lukkSøknad,
         oppgave = oppgave,
         person = person,
-        statistikk = statistikk,
         toggles = toggles,
         søknadsbehandling = søknadsbehandling,
         ferdigstillVedtak = ferdigstillVedtak,

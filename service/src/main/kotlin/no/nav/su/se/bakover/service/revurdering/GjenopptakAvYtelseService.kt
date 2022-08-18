@@ -14,12 +14,12 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
-import no.nav.su.se.bakover.domain.statistikk.Statistikkhendelse
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.sak.SakService
-import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import java.time.Clock
 import java.time.LocalDate
@@ -32,9 +32,9 @@ class GjenopptakAvYtelseService(
     private val vedtakRepo: VedtakRepo,
     private val sakService: SakService,
 ) {
-    private val observers: MutableList<EventObserver> = mutableListOf()
+    private val observers: MutableList<StatistikkEventObserver> = mutableListOf()
 
-    fun addObserver(eventObserver: EventObserver) {
+    fun addObserver(eventObserver: StatistikkEventObserver) {
         observers.add(eventObserver)
     }
 
@@ -108,9 +108,7 @@ class GjenopptakAvYtelseService(
             revurderingRepo.lagre(simulertRevurdering)
             observers.forEach { observer ->
                 observer.handle(
-                    Statistikkhendelse.Revurdering.Gjenoppta(
-                        simulertRevurdering,
-                    ),
+                    StatistikkEvent.Behandling.Gjenoppta.Opprettet(simulertRevurdering),
                 )
             }
 
@@ -147,8 +145,8 @@ class GjenopptakAvYtelseService(
                 revurderingRepo.lagre(iverksattRevurdering)
                 vedtakRepo.lagre(vedtak)
                 observers.forEach { observer ->
-                    observer.handle(Statistikkhendelse.Revurdering.Gjenoppta(iverksattRevurdering))
-                    observer.handle(Statistikkhendelse.Vedtak(vedtak))
+                    observer.handle(StatistikkEvent.Behandling.Gjenoppta.Iverksatt(vedtak))
+                    observer.handle(StatistikkEvent.Stønadsvedtak(vedtak))
                 }
 
                 return iverksattRevurdering.right()

@@ -17,8 +17,8 @@ import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.PersonOppslag
+import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.service.AccessCheckProxy
-import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer

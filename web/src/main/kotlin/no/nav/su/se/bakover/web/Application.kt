@@ -121,6 +121,7 @@ fun Application.susebakover(
         clock = clock,
         unleash = unleash,
         satsFactory = satsFactory.gjeldende(LocalDate.now(clock)),
+        applicationConfig = applicationConfig,
     ),
     accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services),
     consumers: Consumers = Consumers(

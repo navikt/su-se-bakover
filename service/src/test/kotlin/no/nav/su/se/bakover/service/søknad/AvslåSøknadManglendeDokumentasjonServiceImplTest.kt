@@ -5,7 +5,6 @@ import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveClientStub.lukkOppgave
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.periode.Periode
@@ -43,6 +42,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.sakId
+import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.søknadId
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
@@ -169,6 +169,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 SøknadsbehandlingService.OpprettRequest(
                     søknadId = søknadId,
                     sakId = sakId,
+                    saksbehandler = saksbehandler,
                 ),
             )
             verify(serviceAndMocks.søknadsbehandlingService).lagre(
@@ -516,6 +517,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 SøknadsbehandlingService.OpprettRequest(
                     søknadId = søknadId,
                     sakId = sakId,
+                    saksbehandler = saksbehandler,
                 ),
             )
             verify(serviceAndMocks.brevService).lagDokument(any<Visitable<LagBrevRequestVisitor>>())

@@ -27,6 +27,8 @@ import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
+import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
@@ -786,6 +788,7 @@ fun iverksattAvvistKlage(
     fritekstTilBrev: String = "dette er en fritekst med person opplysninger",
     attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
+    clock: Clock = fixedClock,
 ): Pair<Sak, IverksattAvvistKlage> {
     return avvistKlageTilAttestering(
         id = id,
@@ -811,7 +814,10 @@ fun iverksattAvvistKlage(
         ).getOrFail()
 
         Pair(
-            it.first.copy(klager = it.first.klager.filterNot { it.id == klage.id } + klage),
+            it.first.copy(
+                klager = it.first.klager.filterNot { it.id == klage.id } + klage,
+                vedtakListe = it.first.vedtakListe + Klagevedtak.Avvist.fromIverksattAvvistKlage(klage, clock)
+            ),
             klage,
         )
     }

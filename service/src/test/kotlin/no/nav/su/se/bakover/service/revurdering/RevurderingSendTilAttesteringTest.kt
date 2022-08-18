@@ -26,7 +26,7 @@ import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingsutfallSomIkkeStøttes
-import no.nav.su.se.bakover.domain.statistikk.Statistikkhendelse
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.aktørId
@@ -120,8 +120,8 @@ internal class RevurderingSendTilAttesteringTest {
                 verify(it.revurderingRepo).lagre(argThat { it shouldBe actual }, anyOrNull())
                 verify(it.observer).handle(
                     argThat {
-                        it shouldBe Statistikkhendelse.Revurdering.Attestering(
-                            actual as RevurderingTilAttestering,
+                        it shouldBe StatistikkEvent.Behandling.Revurdering.TilAttestering.Innvilget(
+                            actual as RevurderingTilAttestering.Innvilget,
                         )
                     },
                 )

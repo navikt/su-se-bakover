@@ -41,14 +41,14 @@ import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.person.IdentClient
+import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.SakRepo
-import no.nav.su.se.bakover.domain.statistikk.Statistikkhendelse
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
+import no.nav.su.se.bakover.domain.statistikk.notify
 import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
-import no.nav.su.se.bakover.service.person.PersonService
-import no.nav.su.se.bakover.service.statistikk.EventObserver
-import no.nav.su.se.bakover.service.statistikk.notify
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -69,11 +69,13 @@ class KlageServiceImpl(
 ) : KlageService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
-    private val observers: MutableList<EventObserver> = mutableListOf()
+    private val observers: MutableList<StatistikkEventObserver> = mutableListOf()
 
-    fun addObserver(observer: EventObserver) {
+    fun addObserver(observer: StatistikkEventObserver) {
         observers.add(observer)
     }
+
+    fun getObservers(): List<StatistikkEventObserver> = observers.toList()
 
     override fun opprett(request: NyKlageRequest): Either<KunneIkkeOppretteKlage, OpprettetKlage> {
         request.validate().getOrHandle { return it.left() }
@@ -108,7 +110,7 @@ class KlageServiceImpl(
             clock = clock,
         ).also {
             klageRepo.lagre(it)
-            observers.notify(Statistikkhendelse.Klagestatistikk.Opprettet(it))
+            observers.notify(StatistikkEvent.Behandling.Klage.Opprettet(it))
         }.right()
     }
 
@@ -326,7 +328,7 @@ class KlageServiceImpl(
             return KunneIkkeOversendeKlage.KunneIkkeOversendeTilKlageinstans.left()
         }
         oppgaveService.lukkOppgave(oversendtKlage.oppgaveId)
-        observers.notify(Statistikkhendelse.Klagestatistikk.Oversendt(oversendtKlage))
+        observers.notify(StatistikkEvent.Behandling.Klage.Oversendt(oversendtKlage))
         return oversendtKlage.right()
     }
 
@@ -389,7 +391,7 @@ class KlageServiceImpl(
         }
 
         oppgaveService.lukkOppgave(avvistKlage.oppgaveId)
-        observers.notify(Statistikkhendelse.Klagestatistikk.Avvist(avvistKlage))
+        observers.notify(StatistikkEvent.Behandling.Klage.Avvist(vedtak))
         return avvistKlage.right()
     }
 
@@ -435,7 +437,7 @@ class KlageServiceImpl(
         ).tap {
             klageRepo.lagre(it)
             oppgaveService.lukkOppgave(it.oppgaveId)
-            observers.notify(Statistikkhendelse.Klagestatistikk.Avsluttet(it))
+            observers.notify(StatistikkEvent.Behandling.Klage.Avsluttet(it))
         }
     }
 }

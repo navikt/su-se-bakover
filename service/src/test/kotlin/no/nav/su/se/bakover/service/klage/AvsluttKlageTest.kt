@@ -7,9 +7,9 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeAvslutteKlage
-import no.nav.su.se.bakover.domain.statistikk.Statistikkhendelse
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.test.avsluttetKlage
 import no.nav.su.se.bakover.test.avvistKlage
 import no.nav.su.se.bakover.test.avvistKlageTilAttestering
@@ -160,7 +160,7 @@ internal class AvsluttKlageTest {
     private fun kanAvslutteKlage(
         klage: Klage,
     ) {
-        val observerMock: EventObserver = mock { on { handle(any()) }.then {} }
+        val observerMock: StatistikkEventObserver = mock { on { handle(any()) }.then {} }
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
@@ -178,7 +178,8 @@ internal class AvsluttKlageTest {
             begrunnelse = begrunnelse,
         ).let {
             it shouldBe AvsluttetKlage(klage, saksbehandler, begrunnelse, fixedTidspunkt).right()
-            verify(observerMock).handle(argThat { actual -> actual shouldBe Statistikkhendelse.Klagestatistikk.Avsluttet(it.getOrFail()) })
+            verify(observerMock).handle(argThat { actual -> actual shouldBe StatistikkEvent.Behandling.Klage.Avsluttet(it.getOrFail()) })
+            verify(observerMock).handle(argThat { actual -> actual shouldBe StatistikkEvent.Behandling.Klage.Avsluttet(it.getOrFail()) })
         }
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })

@@ -33,7 +33,7 @@ internal class LukketJsonTest {
 
         JSONAssert.assertEquals(
             expectedJson,
-            bortfaltSøknad().toLukketJson(),
+            bortfaltSøknad().second.toLukketJson(),
             true,
         )
     }
@@ -57,7 +57,7 @@ internal class LukketJsonTest {
 
         JSONAssert.assertEquals(
             expectedJson,
-            trukketSøknad().toLukketJson(),
+            trukketSøknad().second.toLukketJson(),
             true,
         )
     }
@@ -81,7 +81,7 @@ internal class LukketJsonTest {
 
         JSONAssert.assertEquals(
             expectedJson,
-            avvistSøknadUtenBrev().toLukketJson(),
+            avvistSøknadUtenBrev().second.toLukketJson(),
             true,
         )
     }

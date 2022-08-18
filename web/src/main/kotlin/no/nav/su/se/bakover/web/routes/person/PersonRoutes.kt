@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson.FantIkkePerson
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson.IkkeTilgangTilPerson
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson.Ukjent
-import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.web.AuditLogEvent
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit

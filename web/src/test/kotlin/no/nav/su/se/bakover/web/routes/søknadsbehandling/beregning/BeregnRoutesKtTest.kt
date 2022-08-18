@@ -93,6 +93,7 @@ internal class BeregnRoutesKtTest {
             clock = fixedClock,
             unleash = mock(),
             satsFactory = satsFactoryTestPåDato(),
+            applicationConfig = applicationConfig(),
         )
 
     @Test
