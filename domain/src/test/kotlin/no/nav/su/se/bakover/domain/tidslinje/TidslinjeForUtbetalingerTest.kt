@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
+import no.nav.su.se.bakover.common.fixedClock
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.mai
@@ -24,6 +25,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.test.TikkendeKlokke
+import no.nav.su.se.bakover.test.plus
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.temporal.ChronoUnit
@@ -385,7 +387,7 @@ internal class TidslinjeForUtbetalingerTest {
             clock = clock,
         )
         val tredje = Utbetalingslinje.Ny(
-            opprettet = Tidspunkt.now(clock).plus(3, ChronoUnit.SECONDS),
+            opprettet = Tidspunkt.now(clock),
             fraOgMed = 1.mars(2020),
             tilOgMed = 31.desember(2020),
             forrigeUtbetalingslinjeId = førsteStans.id,
@@ -515,15 +517,17 @@ internal class TidslinjeForUtbetalingerTest {
             virkningstidspunkt = 1.april(2020),
             clock = clock,
         )
-        val reaktivering = Utbetalingslinje.Endring.Reaktivering(
+        val (reaktivering, reaktiveringOpprettet) = Utbetalingslinje.Endring.Reaktivering(
             utbetalingslinje = førsteStans,
             virkningstidspunkt = 1.april(2020),
             clock = clock,
-        )
+        ).let {
+            it to it.opprettet
+        }
         val andreStans = Utbetalingslinje.Endring.Stans(
             utbetalingslinje = reaktivering,
             virkningstidspunkt = 1.april(2020),
-            clock = clock,
+            clock = reaktiveringOpprettet.fixedClock().plus(1, Tidspunkt.unit),
         )
 
         assertThrows<TidslinjeForUtbetalinger.RegenerertInformasjonVilOverskriveOriginaleOpplysningerSomErFerskereException> {
@@ -560,13 +564,15 @@ internal class TidslinjeForUtbetalingerTest {
             virkningstidspunkt = 1.april(2020),
             clock = clock,
         )
-        val reaktivering = Utbetalingslinje.Endring.Reaktivering(
+        val (reaktivering, reaktiveringOpprettet) = Utbetalingslinje.Endring.Reaktivering(
             utbetalingslinje = førsteStans,
             virkningstidspunkt = 1.april(2020),
             clock = clock,
-        )
+        ).let {
+            it to it.opprettet
+        }
         val tredje = Utbetalingslinje.Ny(
-            opprettet = Tidspunkt.now(clock),
+            opprettet = reaktiveringOpprettet.plusUnits(1),
             fraOgMed = 1.januar(2021),
             tilOgMed = 31.desember(2021),
             forrigeUtbetalingslinjeId = reaktivering.id,
