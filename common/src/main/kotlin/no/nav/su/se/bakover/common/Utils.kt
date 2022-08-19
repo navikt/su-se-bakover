@@ -32,6 +32,8 @@ fun igår(clock: Clock = Clock.systemUTC()): LocalDate = idag(clock).minusDays(1
 fun LocalDate.fixedClock() = startOfDay(ZoneOffset.UTC)
     .let { Clock.fixed(it.instant, ZoneOffset.UTC) }
 
+fun Tidspunkt.fixedClock() = Clock.fixed(instant, ZoneOffset.UTC)
+
 fun LocalDate.startOfDay(zoneId: ZoneId = zoneIdOslo) = this.atStartOfDay().toTidspunkt(zoneId)
 fun LocalDate.endOfDay(zoneId: ZoneId = zoneIdOslo) = this.atStartOfDay().plusDays(1).minusNanos(1).toTidspunkt(zoneId)
 fun LocalDate.startOfMonth(): LocalDate = this.withDayOfMonth(1)
