@@ -40,23 +40,23 @@
       "description":"Aktør IDen til primær mottager av ytelsen om denne blir godkjent. Altså, den som saken omhandler."
     },
     "aktorer": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "aktorId": {
-            "type": "number",
-            "description": "Aktør IDen til aktuell person."
-          },
-          "rolle": {
-            "type": "string",
-            "description": "Kode som beskriver personens rolle i forbindelse med saken. Eksempelvis medmor, medfar, far samboer, barn o.l. "
-          },
-          "rolleBeskrivelse": {
-            "type": "string",
-            "description": "Beskriver den funksjonelle verdien av koden. Finnes ikke den enda, regner vi med å få den senere."
-          }
+	  "type": "array",
+	  "items": {
+      "type": "object",
+      "properties": {
+        "aktorId": {
+          "type": "number",
+          "description": "Aktør IDen til aktuell person."
+        },
+        "rolle": {
+          "type": "string",
+          "description": "Kode som beskriver personens rolle i forbindelse med saken. Eksempelvis medmor, medfar, far samboer, barn o.l. "
+        },
+        "rolleBeskrivelse": {
+          "type": "string",
+          "description": "Beskriver den funksjonelle verdien av koden. Finnes ikke den enda, regner vi med å få den senere."
         }
+	  }
       }
     },
     "saksnummer": {

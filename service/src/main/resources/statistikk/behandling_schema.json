@@ -81,17 +81,17 @@
       "description":"Kode som angir resultat av behandling på innværende tidspunkt. Mulige verdier: innvilget (delvis innvilget), avslått, omgjort, feilregistrert, henlagt, trukket, avvist etc."
     },
     "behandlingYtelseDetaljer": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "satsgrunn": {
-            "type": "string",
-            "description": "Hvorfor søkeren får en gitt sats"
+	"type": "array",
+	"items": {
+      "type": "object",
+      "properties": {
+        "satsgrunn": {
+          "type": "string",
+          "description": "Hvorfor søkeren får en gitt sats"
           }
         }
-      }
-    },
+	  }
+	},
     "resultatBegrunnelse": {
       "type": "string",
       "description": "Denne må inneholde en årsaksbeskrivelse knyttet til et hvert mulig resultat av behandlingen. Den kan enten være underordnet resultat eller stå for seg selv. Eks. årsak til avslag, årsak til delvis innvilgelse."

@@ -69,7 +69,7 @@
     "ytelseVirkningstidspunkt": {
       "type": "string",
       "format": "date",
-      "description": "Dato for når stønadsmottakers ytelse trådte i kraft første gang."
+      "description": "Dato for når stønadsmottakers ytelse tredde i kraft første gang."
     },
     "gjeldendeStonadVirkningstidspunkt": {
       "type": "string",
@@ -93,53 +93,39 @@
     },
     "månedsbeløp": {
       "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "måned": {
-            "type": "string",
-            "description": "Måned for når beløpene gjelder, f.eks. Jan 2021"
-          },
-          "stonadsklassifisering": {
-            "type": "string",
-            "description": "Klassifisering av hva som gjør at stønadsmottaker mottar ordinær eller høy sats."
-          },
-          "bruttosats": {
-            "type": "number",
-            "description": "Utgangspunktet for månedlig utbetaling, før fradrag blir trukket fra."
-          },
-          "nettosats": {
-            "type": "number",
-            "description": "Faktisk utbetaling per måned."
-          },
-          "inntekter": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "inntektstype": {
-                  "type": "string",
-                  "description": "Type inntekt, f.eks. arbeidsinntekt, sosialstønad, osv."
-                },
-                "beløp": {
-                  "type": "number",
-                  "description": "Inntekten i kroner per måned."
-                },
-	            "tilhører": {
-		          "type": "string",
-		          "description": "Hvem tilhører inntekten? "
-	            },
-	            "erUtenlandsk": {
-		          "type": "boolean",
-		          "description": "Er inntekten fra utlandet?"
-	            }
-              }
+      "properties": {
+        "måned": {
+          "type": "string",
+          "description": "Måned for når beløpene gjelder, f.eks. Jan 2021"
+        },
+        "stonadsklassifisering": {
+          "type": "string",
+          "description": "Klassifisering av hva som gjør at stønadsmottaker mottar ordinær eller høy sats."
+        },
+        "bruttosats": {
+          "type": "number",
+          "description": "Utgangspunktet for månedlig utbetaling, før fradrag blir trukket fra."
+        },
+        "nettosats": {
+          "type": "number",
+          "description": "Faktisk utbetaling per måned."
+        },
+        "inntekter": {
+          "type": "array",
+          "properties": {
+            "inntektstype": {
+              "type": "string",
+              "description": "Type inntekt, f.eks. arbeidsinntekt, sosialstønad, osv."
+            },
+            "beløp": {
+              "type": "number",
+              "description": "Inntekten i kroner per måned."
             }
-          },
-          "fradragSum": {
-            "type": "number",
-            "description": "Summen av alle fradrag/inntekter som gjelder for stønadsmottaker."
           }
+        },
+        "fradragSum": {
+          "type": "number",
+          "description": "Summen av alle fradrag/inntekter som gjelder for stønadsmottaker."
         }
       }
     },
