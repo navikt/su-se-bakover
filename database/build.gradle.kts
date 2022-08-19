@@ -4,7 +4,7 @@ dependencies {
     implementation("org.flywaydb:flyway-core:9.1.5")
     implementation("com.zaxxer:HikariCP:5.0.1")
     implementation("com.github.navikt:vault-jdbc:1.3.9")
-    implementation("com.github.seratch:kotliquery:1.8.0")
+    implementation("com.github.seratch:kotliquery:1.9.0")
 
     testImplementation(project(":test-common"))
 }
