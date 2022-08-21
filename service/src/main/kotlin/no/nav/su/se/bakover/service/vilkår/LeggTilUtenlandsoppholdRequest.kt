@@ -53,7 +53,6 @@ data class LeggTilUtenlandsoppholdRequest(
     val behandlingId: UUID,
     val periode: Periode,
     val status: UtenlandsoppholdStatus,
-    val begrunnelse: String?,
 ) {
     sealed class UgyldigUtenlandsopphold {
         object PeriodeForGrunnlagOgVurderingErForskjellig : UgyldigUtenlandsopphold()

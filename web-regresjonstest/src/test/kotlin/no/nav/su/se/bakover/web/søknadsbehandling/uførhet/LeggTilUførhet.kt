@@ -27,7 +27,7 @@ internal fun ApplicationTestBuilder.leggTilUføregrunnlag(
     forventetInntekt: Int = 0,
     resultat: String = "VilkårOppfylt",
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
-    url: String = "/saker/$sakId/behandlinger/$behandlingId/grunnlag/uføre",
+    url: String = "/saker/$sakId/behandlinger/$behandlingId/uføregrunnlag",
 ): String {
     return runBlocking {
         defaultRequest(

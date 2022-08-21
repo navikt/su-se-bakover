@@ -213,7 +213,6 @@ internal class SøknadsbehandlingAlder {
                     behandlingId = søknadsbehandling.id,
                     periode = stønadsperiode2022.periode,
                     status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
-                    begrunnelse = null,
                 ),
             ).getOrFail()
 
