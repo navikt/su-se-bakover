@@ -32,14 +32,13 @@ internal class LeggTilUtenlandsoppholdRevurderingRouteKtTest {
     private fun validBody() =
         """
         {
-            "utenlandsopphold" : [ 
+            "vurderinger" : [ 
                {
                     "periode": {
                         "fraOgMed": "2021-01-01", 
                         "tilOgMed": "2021-12-31"
                       },
-                    "status": "SkalHoldeSegINorge",
-                    "begrunnelse": "begrunnelse"
+                    "status": "SkalHoldeSegINorge"
                 }
             ]
         }
@@ -168,14 +167,13 @@ internal class LeggTilUtenlandsoppholdRevurderingRouteKtTest {
                 setBody(
                     """
                 {
-                    "utenlandsopphold" : [ 
+                    "vurderinger" : [ 
                        {
                             "periode": {
                                 "fraOgMed": "2021-05-01", 
                                 "tilOgMed": "2021-01-31"
                               },
-                            "status": "SkalHoldeSegINorge",
-                            "begrunnelse": "begrunnelse"
+                            "status": "SkalHoldeSegINorge"
                         }
                     ]
                 }
