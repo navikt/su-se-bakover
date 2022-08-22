@@ -60,7 +60,7 @@ subprojects {
             // The releases without the -1 suffix has a dyld/dylib issue on macOS (i.e. the 11.7.0 version won't work)
             enforcedPlatform("io.zonky.test.postgres:embedded-postgres-binaries-bom:11.6.0-1"),
         )
-        testImplementation("io.zonky.test:embedded-postgres:2.0.0")
+        testImplementation("io.zonky.test:embedded-postgres:2.0.1")
 
         constraints {
             implementation("commons-collections:commons-collections") {
