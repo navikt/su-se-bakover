@@ -24,6 +24,10 @@ data class OversendtKlage(
     override val attesteringer: Attesteringshistorikk,
 ) : Klage, VurdertKlage.UtfyltFelter by forrigeSteg {
 
+    /**
+     * Merk at i et større perspektiv, f.eks. fra klageinstansen (KA) eller statistikk, vil denne anses som åpen/ikke ferdigbehandlet.
+     * Men for saksbehandlerene i førsteinstansen vil den bli ansett som ferdigbehandlet inntil den eventuelt kommer i retur av forskjellige årsaker.
+     */
     override fun erÅpen() = false
 
     override fun getFritekstTilBrev(): Either<KunneIkkeHenteFritekstTilBrev.UgyldigTilstand, String> {

@@ -25,6 +25,10 @@ data class OpprettetKlage(
     override val saksbehandler: NavIdentBruker.Saksbehandler,
 ) : Klage {
 
+    override val vilkårsvurderinger: VilkårsvurderingerTilKlage? = null
+
+    override val attesteringer: Attesteringshistorikk? = null
+
     override fun erÅpen() = true
 
     override fun kanAvsluttes() = true

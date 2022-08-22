@@ -58,6 +58,7 @@ class BehandlingStatistikkMapper(
                 is Søknadsbehandling.Vilkårsvurdert.Uavklart -> {
                     this
                 }
+
                 is Søknadsbehandling.Iverksatt -> {
                     copy(
                         saksbehandler = søknadsbehandling.saksbehandler.navIdent,
@@ -68,12 +69,14 @@ class BehandlingStatistikkMapper(
                         behandlingYtelseDetaljer = behandlingYtelseDetaljer(søknadsbehandling),
                     )
                 }
+
                 is Søknadsbehandling.TilAttestering -> {
                     copy(
                         saksbehandler = søknadsbehandling.saksbehandler.navIdent,
                         behandlingYtelseDetaljer = behandlingYtelseDetaljer(søknadsbehandling),
                     )
                 }
+
                 is Søknadsbehandling.Underkjent -> {
                     copy(
                         saksbehandler = søknadsbehandling.saksbehandler.navIdent,
@@ -81,6 +84,7 @@ class BehandlingStatistikkMapper(
                         behandlingYtelseDetaljer = behandlingYtelseDetaljer(søknadsbehandling),
                     )
                 }
+
                 is LukketSøknadsbehandling -> {
                     copy(
                         resultat = ResultatOgBegrunnelseMapper.map(søknadsbehandling).resultat,
@@ -89,6 +93,7 @@ class BehandlingStatistikkMapper(
                         behandlingStatusBeskrivelse = "Søknadsbehandling lukket",
                     )
                 }
+
                 else -> throw ManglendeStatistikkMappingException(this, søknadsbehandling::class.java)
             }
         }
@@ -179,11 +184,13 @@ class BehandlingStatistikkMapper(
                         behandlingYtelseDetaljer = behandlingYtelseDetaljer(revurdering),
                     )
                 }
+
                 is UnderkjentRevurdering -> {
                     copy(
                         beslutter = revurdering.attestering.attestant.navIdent,
                     )
                 }
+
                 is AvsluttetRevurdering -> {
                     val resultatOgBegrunnelse = RevurderingResultatOgBegrunnelseMapper.map(revurdering, clock)
                     copy(
@@ -192,6 +199,7 @@ class BehandlingStatistikkMapper(
                         resultatBegrunnelse = resultatOgBegrunnelse.begrunnelse,
                     )
                 }
+
                 else -> throw ManglendeStatistikkMappingException(this, revurdering::class.java)
             }
         }
@@ -223,6 +231,7 @@ class BehandlingStatistikkMapper(
                         resultatBegrunnelse = RevurderingResultatOgBegrunnelseMapper.map(gjenopptak).begrunnelse,
                     )
                 }
+
                 is GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse -> this
                 is GjenopptaYtelseRevurdering.AvsluttetGjenoppta -> {
                     copy(
@@ -260,6 +269,7 @@ class BehandlingStatistikkMapper(
                         resultatBegrunnelse = RevurderingResultatOgBegrunnelseMapper.map(stans).begrunnelse,
                     )
                 }
+
                 is StansAvYtelseRevurdering.SimulertStansAvYtelse -> this
                 is StansAvYtelseRevurdering.AvsluttetStansAvYtelse -> {
                     copy(
@@ -273,7 +283,7 @@ class BehandlingStatistikkMapper(
 
     fun map(klage: Klage): Statistikk.Behandling {
         val nå = Tidspunkt.now(clock)
-        Statistikk.Behandling(
+        return Statistikk.Behandling(
             behandlingType = Statistikk.Behandling.BehandlingType.KLAGE,
             behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.KLAGE.beskrivelse,
             funksjonellTid = nå,
@@ -287,44 +297,31 @@ class BehandlingStatistikkMapper(
             behandlingStatusBeskrivelse = BehandlingStatusBeskrivelseMapper.map(klage),
             versjon = clock.millis(),
             saksbehandler = klage.saksbehandler.navIdent,
-            relatertBehandlingId = when (klage) {
-                is OpprettetKlage -> null
-                is AvsluttetKlage -> klage.hentUnderliggendeVedtakId()
-                is AvvistKlage -> klage.vilkårsvurderinger.vedtakId
-                is VilkårsvurdertKlage -> klage.vilkårsvurderinger.vedtakId
-                is KlageTilAttestering -> klage.vilkårsvurderinger.vedtakId
-                is VurdertKlage -> klage.vilkårsvurderinger.vedtakId
-                is IverksattAvvistKlage -> klage.vilkårsvurderinger.vedtakId
-                is OversendtKlage -> klage.vilkårsvurderinger.vedtakId
+            relatertBehandlingId = klage.vilkårsvurderinger?.vedtakId,
+            avsluttet = when (klage) {
+                // avsluttet = false er et spesialønske fra statistikk når det kommer til OversendtKlage.
+                // De har et bredere perspektiv og vil ikke se denne klagen som avsluttet.
+                // Førsteinstansen vil anse den som ferdigbehandlet inntil den potensielt blir returnert av forskjellige grunner.
+                is OversendtKlage -> false
+                else -> !klage.erÅpen()
             },
-            avsluttet = false,
-            totrinnsbehandling = false,
-        ).apply {
-            return when (klage) {
-                is OpprettetKlage,
-                is KlageTilAttestering,
-                is VurdertKlage,
-                is VilkårsvurdertKlage,
-                is AvvistKlage,
-                -> this
-                is AvsluttetKlage -> this.copy(avsluttet = true)
-                is IverksattAvvistKlage -> this.copy(
-                    avsluttet = true,
-                    beslutter = klage.attesteringer.hentSisteAttestering().attestant.navIdent,
-                )
-                is OversendtKlage -> this.copy(
-                    totrinnsbehandling = true,
-                    resultat = "Opprettholdt",
-                    resultatBegrunnelse = "Opprettholdt i henhold til lov om supplerende stønad " +
-                        "${
-                        (klage.vurderinger.vedtaksvurdering as VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold).hjemler.joinToString(
-                            ", ",
-                        ) { "kapittel ${it.kapittel} - § ${it.paragrafnummer}" }
-                        }.",
-                    beslutter = klage.attesteringer.hentSisteAttestering().attestant.navIdent
-                )
-            }
-        }
+            totrinnsbehandling = klage.attesteringer != null,
+            beslutter = klage.attesteringer?.hentSisteAttestering()?.attestant?.navIdent,
+            // Det er ønskelig å sende med resultat og resultatBegrunnelse i de tilfellene en klagebehandling er ferdigstilt (endelige tilstander) sett fra Klageinstans/Statistikk sin side.
+            // resultatBegrunnelse: Ønsker en årsak (predefinerte verdier) eller null dersom vi ikke har det (ønsker ikke fritekstfelter). Ønsker ikke statiske tekster som forklarer resultatet.
+            resultat = when (klage) {
+                is AvsluttetKlage -> "Avsluttet"
+                is IverksattAvvistKlage -> "Avvist"
+                is OversendtKlage -> "Opprettholdt"
+                else -> null
+            },
+            resultatBegrunnelse = when (klage) {
+                // Vi har ikke noen prederfinerte verdier for begrunnelse/årsak for avsluttet klage så denne er null inntil videre.
+                is IverksattAvvistKlage -> klage.vilkårsvurderinger.mapToResultatBegrunnelse()
+                is OversendtKlage -> (klage.vurderinger.vedtaksvurdering as VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold).hjemler.mapToResultatBegrunnelse()
+                else -> null
+            },
+        )
     }
 
     private fun behandlingYtelseDetaljer(
@@ -347,34 +344,42 @@ class BehandlingStatistikkMapper(
                     "OPPRETTET",
                     "Ny søknadsbehandling opprettet",
                 )
+
                 is Søknadsbehandling.TilAttestering.Innvilget -> BehandlingStatusOgBehandlingStatusBeskrivelse(
                     "TIL_ATTESTERING_INNVILGET",
                     "Innvilget søkndsbehandling sendt til attestering",
                 )
+
                 is Søknadsbehandling.TilAttestering.Avslag -> BehandlingStatusOgBehandlingStatusBeskrivelse(
                     "TIL_ATTESTERING_AVSLAG",
                     "Avslått søknadsbehanding sendt til attestering",
                 )
+
                 is Søknadsbehandling.Underkjent.Innvilget -> BehandlingStatusOgBehandlingStatusBeskrivelse(
                     "UNDERKJENT_INNVILGET",
                     "Innvilget søknadsbehandling sendt tilbake fra attestant til saksbehandler",
                 )
+
                 is Søknadsbehandling.Underkjent.Avslag -> BehandlingStatusOgBehandlingStatusBeskrivelse(
                     "UNDERKJENT_AVSLAG",
                     "Avslått søknadsbehandling sendt tilbake fra attestant til saksbehandler",
                 )
+
                 is Søknadsbehandling.Iverksatt.Innvilget -> BehandlingStatusOgBehandlingStatusBeskrivelse(
                     "IVERKSATT_INNVILGET",
                     "Innvilget søknadsbehandling iverksatt",
                 )
+
                 is Søknadsbehandling.Iverksatt.Avslag -> BehandlingStatusOgBehandlingStatusBeskrivelse(
                     "IVERKSATT_AVSLAG",
                     "Avslått søknadsbehandling iverksatt",
                 )
+
                 is LukketSøknadsbehandling -> BehandlingStatusOgBehandlingStatusBeskrivelse(
                     "LUKKET",
                     "Søknadsbehandling er lukket",
                 )
+
                 is Søknadsbehandling.Beregnet,
                 is Søknadsbehandling.Vilkårsvurdert.Innvilget,
                 is Søknadsbehandling.Vilkårsvurdert.Avslag,
@@ -419,7 +424,7 @@ class BehandlingStatistikkMapper(
             is VurdertKlage -> "UNDER_BEHANDLING"
             is KlageTilAttestering -> "TIL_ATTESTERING"
             is AvsluttetKlage -> "AVSLUTTET"
-            is IverksattAvvistKlage -> "AVVIST"
+            is IverksattAvvistKlage -> "IVERKSATT"
             is OversendtKlage -> "OVERSENDT"
         }
     }
@@ -478,12 +483,15 @@ class BehandlingStatistikkMapper(
             is Søknadsbehandling.Iverksatt.Innvilget -> {
                 ResultatOgBegrunnelse(innvilget, null)
             }
+
             is Søknadsbehandling.Iverksatt.Avslag -> {
                 ResultatOgBegrunnelse(avslått, søknadsbehandling.avslagsgrunner.joinToString(","))
             }
+
             is LukketSøknadsbehandling -> {
                 ResultatOgBegrunnelse(lukket, null)
             }
+
             else -> throw ManglendeStatistikkMappingException(this, søknadsbehandling::class.java)
         }
     }
@@ -504,6 +512,7 @@ class BehandlingStatistikkMapper(
                 opphørt,
                 listUtOpphørsgrunner(revurdering.utledOpphørsgrunner(clock)),
             )
+
             is IverksattRevurdering.IngenEndring -> ResultatOgBegrunnelse(ingenEndring, ingenEndringBegrunnelse)
             is AvsluttetRevurdering -> ResultatOgBegrunnelse(lukket, null)
             else -> throw ManglendeStatistikkMappingException(this, revurdering::class.java)

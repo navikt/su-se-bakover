@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
@@ -41,6 +42,19 @@ import kotlin.reflect.KClass
  * - [IverksattAvvistKlage] -> ingen
  */
 sealed interface Klage : Klagefelter {
+
+    /**
+     * Convenience funksjon for å slippe store when-blokker.
+     * De fleste tilstandene har denne satt, men hvis ikke vil den være null.
+     */
+    val vilkårsvurderinger: VilkårsvurderingerTilKlage?
+
+    /**
+     * Convenience funksjon for å slippe store when-blokker.
+     * Dersom attesteringer er [Attestering.Iverksatt] vil behandlingen være ferdistilt/avsluttet.
+     * Dersom attesteringer er [Attestering.Underkjent] vil behandlingen fremdeles være åpen.
+     * */
+    val attesteringer: Attesteringshistorikk?
 
     fun erÅpen(): Boolean
 
