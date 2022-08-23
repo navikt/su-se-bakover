@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
@@ -89,6 +90,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
                     beløp = opprinnelig.utbetalingslinjer[0].beløp,
                     virkningstidspunkt = 1.oktober(2020),
                     uføregrad = opprinnelig.utbetalingslinjer[0].uføregrad,
+                    utbetalingsinstruksjonForEtterbetalinger = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
                 ),
             ),
             type = Utbetaling.UtbetalingsType.GJENOPPTA,
