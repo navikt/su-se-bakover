@@ -1,12 +1,14 @@
 package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.vilkår.LeggTilFlereUtenlandsoppholdRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
 import no.nav.su.se.bakover.service.vilkår.UtenlandsoppholdStatus
 import no.nav.su.se.bakover.test.TestSessionFactory
@@ -27,11 +29,17 @@ class SøknadsbehandlingLeggTilUtenlandsoppholdTest {
         SøknadsbehandlingServiceAndMocks(
             søknadsbehandlingRepo = mock { on { hent(any()) } doReturn null },
         ).let {
+            val behandlingId = UUID.randomUUID()
             it.søknadsbehandlingService.leggTilUtenlandsopphold(
-                LeggTilUtenlandsoppholdRequest(
-                    behandlingId = UUID.randomUUID(),
-                    periode = år(2021),
-                    status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
+                LeggTilFlereUtenlandsoppholdRequest(
+                    behandlingId = behandlingId,
+                    request = nonEmptyListOf(
+                        LeggTilUtenlandsoppholdRequest(
+                            behandlingId = behandlingId,
+                            periode = år(2021),
+                            status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
+                        ),
+                    ),
                 ),
             ) shouldBe SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.FantIkkeBehandling.left()
 
@@ -50,11 +58,7 @@ class SøknadsbehandlingLeggTilUtenlandsoppholdTest {
                     // I praksis ikke mulig at dette tryner per nå
                     mock {
                         on { behandlingId } doReturn UUID.randomUUID()
-                        on {
-                            tilVurderingsperiode(
-                                any(),
-                            )
-                        } doReturn LeggTilUtenlandsoppholdRequest.UgyldigUtenlandsopphold.PeriodeForGrunnlagOgVurderingErForskjellig.left()
+                        on { it.tilVilkår(any()) } doReturn LeggTilFlereUtenlandsoppholdRequest.UgyldigUtenlandsopphold.PeriodeForGrunnlagOgVurderingErForskjellig.left()
                     },
                 )
 
@@ -71,10 +75,15 @@ class SøknadsbehandlingLeggTilUtenlandsoppholdTest {
             søknadsbehandlingRepo = mock { on { hent(any()) } doReturn iverksatt },
         ).let {
             it.søknadsbehandlingService.leggTilUtenlandsopphold(
-                LeggTilUtenlandsoppholdRequest(
+                LeggTilFlereUtenlandsoppholdRequest(
                     behandlingId = iverksatt.id,
-                    periode = år(2021),
-                    status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
+                    request = nonEmptyListOf(
+                        LeggTilUtenlandsoppholdRequest(
+                            behandlingId = iverksatt.id,
+                            periode = år(2021),
+                            status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
+                        ),
+                    ),
                 ),
             ) shouldBe SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.UgyldigTilstand(
                 fra = iverksatt::class, til = Søknadsbehandling.Vilkårsvurdert::class,
@@ -95,10 +104,15 @@ class SøknadsbehandlingLeggTilUtenlandsoppholdTest {
             },
         ).let { serviceAndMocks ->
             serviceAndMocks.søknadsbehandlingService.leggTilUtenlandsopphold(
-                LeggTilUtenlandsoppholdRequest(
+                LeggTilFlereUtenlandsoppholdRequest(
                     behandlingId = innvilget.id,
-                    periode = år(2021),
-                    status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
+                    request = nonEmptyListOf(
+                        LeggTilUtenlandsoppholdRequest(
+                            behandlingId = innvilget.id,
+                            periode = år(2021),
+                            status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
+                        ),
+                    ),
                 ),
             ) shouldBe innvilget.right()
 
@@ -122,10 +136,15 @@ class SøknadsbehandlingLeggTilUtenlandsoppholdTest {
             },
         ).let { serviceAndMocks ->
             serviceAndMocks.søknadsbehandlingService.leggTilUtenlandsopphold(
-                LeggTilUtenlandsoppholdRequest(
+                LeggTilFlereUtenlandsoppholdRequest(
                     behandlingId = innvilget.id,
-                    periode = år(2021),
-                    status = UtenlandsoppholdStatus.SkalVæreMerEnn90DagerIUtlandet,
+                    request = nonEmptyListOf(
+                        LeggTilUtenlandsoppholdRequest(
+                            behandlingId = innvilget.id,
+                            periode = år(2021),
+                            status = UtenlandsoppholdStatus.SkalVæreMerEnn90DagerIUtlandet,
+                        ),
+                    ),
                 ),
             )
 

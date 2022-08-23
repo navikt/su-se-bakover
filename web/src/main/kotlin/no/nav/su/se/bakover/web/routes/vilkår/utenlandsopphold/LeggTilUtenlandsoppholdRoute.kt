@@ -43,7 +43,16 @@ internal fun Route.leggTilUtenlandsopphold(
         authorize(Brukerrolle.Saksbehandler) {
             call.withBehandlingId { behandlingId ->
                 call.withBody<UtenlandsoppholdBody> { body ->
-                    body.tilLeggTilUtenlandsoppholdrequest(behandlingId).mapLeft {
+                    if (body.vurderinger.size != 1) {
+                        call.svar(
+                            BadRequest.errorJson(
+                                "Flere vurderingsperioder ble sendt inn. Forventet kun 1",
+                                "flere_perioder_ble_Sendt_inn",
+                            ),
+                        )
+                        return@withBehandlingId
+                    }
+                    body.toDomain(behandlingId).mapLeft {
                         call.svar(it)
                     }.map { request ->
                         søknadsbehandlingService.leggTilUtenlandsopphold(request).fold(
@@ -69,7 +78,7 @@ internal fun Route.leggTilUtlandsoppholdRoute(
         authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId { revurderingId ->
                 call.withBody<UtenlandsoppholdBody> { body ->
-                    body.tilLeggTilFlereUtenlandsoppholdRequest(revurderingId).mapLeft {
+                    body.toDomain(revurderingId).mapLeft {
                         call.svar(it)
                     }.map {
                         revurderingService.leggTilUtenlandsopphold(it)
@@ -91,17 +100,7 @@ internal fun Route.leggTilUtlandsoppholdRoute(
 internal data class UtenlandsoppholdBody(
     val vurderinger: List<UtenlandsoppholdVurderingBody>,
 ) {
-    fun tilLeggTilUtenlandsoppholdrequest(behandlingId: UUID): Either<Resultat, LeggTilUtenlandsoppholdRequest> =
-        if (vurderinger.size != 1) BadRequest.errorJson(
-            "Flere vurderingsperioder ble sendt inn. Forventet kun 1",
-            "flere_perioder_ble_Sendt_inn",
-        ).left() else LeggTilUtenlandsoppholdRequest(
-            behandlingId = behandlingId,
-            periode = vurderinger.first().periode.toPeriodeOrResultat().getOrHandle { return it.left() },
-            status = vurderinger.first().status,
-        ).right()
-
-    fun tilLeggTilFlereUtenlandsoppholdRequest(revurderingId: UUID): Either<Resultat, LeggTilFlereUtenlandsoppholdRequest> =
+    fun toDomain(revurderingId: UUID): Either<Resultat, LeggTilFlereUtenlandsoppholdRequest> =
         LeggTilFlereUtenlandsoppholdRequest(
             behandlingId = revurderingId,
             request = Nel.fromListUnsafe(
@@ -151,9 +150,7 @@ internal fun SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.tilResu
 
 internal fun KunneIkkeLeggeTilUtenlandsopphold.tilResultat(): Resultat {
     return when (this) {
-        KunneIkkeLeggeTilUtenlandsopphold.FantIkkeBehandling -> {
-            HttpStatusCode.NotFound.errorJson("Fant ikke revurdering", "fant_ikke_revurdering")
-        }
+        KunneIkkeLeggeTilUtenlandsopphold.FantIkkeBehandling -> Feilresponser.fantIkkeBehandling
 
         KunneIkkeLeggeTilUtenlandsopphold.OverlappendeVurderingsperioder -> {
             Feilresponser.overlappendeVurderingsperioder

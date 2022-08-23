@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFamiliegjenforeningRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFastOppholdINorgeRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilFlereUtenlandsoppholdRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilInstitusjonsoppholdVilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilLovligOppholdRequest
@@ -209,10 +210,15 @@ internal class SøknadsbehandlingAlder {
                 ),
             )
             appComponents.services.søknadsbehandling.leggTilUtenlandsopphold(
-                request = LeggTilUtenlandsoppholdRequest(
+                LeggTilFlereUtenlandsoppholdRequest(
                     behandlingId = søknadsbehandling.id,
-                    periode = stønadsperiode2022.periode,
-                    status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
+                    request = nonEmptyListOf(
+                        LeggTilUtenlandsoppholdRequest(
+                            behandlingId = søknadsbehandling.id,
+                            periode = stønadsperiode2022.periode,
+                            status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
+                        ),
+                    )
                 ),
             ).getOrFail()
 

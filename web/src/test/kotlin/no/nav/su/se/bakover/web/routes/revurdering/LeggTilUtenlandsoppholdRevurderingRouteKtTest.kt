@@ -101,7 +101,7 @@ internal class LeggTilUtenlandsoppholdRevurderingRouteKtTest {
                 setBody(validBody())
             }.apply {
                 status shouldBe HttpStatusCode.NotFound
-                bodyAsText() shouldContain "fant_ikke_revurdering"
+                bodyAsText() shouldContain "fant_ikke_behandling"
             }
         }
     }
