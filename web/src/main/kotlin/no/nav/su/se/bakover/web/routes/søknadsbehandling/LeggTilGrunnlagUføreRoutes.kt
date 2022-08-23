@@ -23,7 +23,7 @@ internal fun Route.leggTilUføregrunnlagRoutes(
     søknadsbehandlingService: SøknadsbehandlingService,
     satsFactory: SatsFactory,
 ) {
-    post("$behandlingPath/{behandlingId}/grunnlag/uføre") {
+    post("$behandlingPath/{behandlingId}/uføregrunnlag") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withBehandlingId { behandlingId ->
                 call.withBody<LeggTilUførervurderingerBody> { body ->

@@ -37,17 +37,21 @@ internal fun ApplicationTestBuilder.leggTilUtenlandsopphold(
                 //language=JSON
                 """
                   {
-                    "periode":{
-                      "fraOgMed":"$fraOgMed",
-                      "tilOgMed":"$tilOgMed"
-                    },
-                    "status":"$vurdering"
+                    "vurderinger": [
+                      {
+                      "periode":{
+                        "fraOgMed":"$fraOgMed",
+                        "tilOgMed":"$tilOgMed"
+                        },
+                      "status":"$vurdering"
+                      }
+                    ]   
                   }
                 """.trimIndent(),
             )
         }.apply {
             withClue("body=${this.bodyAsText()}") {
-                status shouldBe HttpStatusCode.Created
+                status shouldBe HttpStatusCode.OK
                 contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
             }
         }.bodyAsText()

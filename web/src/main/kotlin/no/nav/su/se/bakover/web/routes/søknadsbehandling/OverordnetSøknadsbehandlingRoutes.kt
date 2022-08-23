@@ -4,6 +4,7 @@ import io.ktor.server.routing.Route
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.web.routes.vilkår.lovligopphold.leggTilLovligOppholdRoute
+import no.nav.su.se.bakover.web.routes.vilkår.utenlandsopphold.leggTilUtenlandsopphold
 import java.time.Clock
 
 internal fun Route.overordnetSøknadsbehandligRoutes(

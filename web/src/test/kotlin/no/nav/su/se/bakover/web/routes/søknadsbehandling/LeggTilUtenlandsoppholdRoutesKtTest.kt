@@ -70,12 +70,15 @@ internal class LeggTilUtenlandsoppholdRoutesKtTest {
             ) {
                 setBody(
                     """
-                        {
-                            "periode":{"fraOgMed":"2021-01-01","tilOgMed":"2021-12-31"},
-                            "status": "SkalHoldeSegINorge",
-                            "begrunnelse": "jawol" 
-                        }
-                    """.trimIndent(),
+                    {
+                        "vurderinger": [
+                            {
+                                "periode": {"fraOgMed": "2021-01-01", "tilOgMed": "2021-01-31"},
+                                "status": "SkalHoldeSegINorge"           
+                            }
+                        ]
+                     }
+                    """.trimIndent()
                 )
             }.apply {
                 status shouldBe HttpStatusCode.NotFound
@@ -105,15 +108,17 @@ internal class LeggTilUtenlandsoppholdRoutesKtTest {
                 setBody(
                     """
                     {
-                        "periode": {"fraOgMed": "2021-01-01", "tilOgMed": "2021-12-31"},
-                        "status": "SkalHoldeSegINorge",
-                        "begrunnelse": "jawol"    
-                                                   
-                    }
-                    """.trimIndent(),
+                        "vurderinger": [
+                            {
+                                "periode": {"fraOgMed": "2021-01-01", "tilOgMed": "2021-01-31"},
+                                "status": "SkalHoldeSegINorge"           
+                            }
+                        ]
+                     }
+                    """.trimIndent()
                 )
             }.apply {
-                status shouldBe HttpStatusCode.Created
+                status shouldBe HttpStatusCode.OK
                 JSONAssert.assertEquals(
                     bodyAsText(),
                     serialize(vilkårsvurdert.toJson(satsFactoryTestPåDato())), true,
@@ -136,11 +141,13 @@ internal class LeggTilUtenlandsoppholdRoutesKtTest {
                 setBody(
                     """
                     {
-                        "periode": {"fraOgMed": "2021-05-01", "tilOgMed": "2021-01-31"},
-                        "status": "SkalHoldeSegINorge",
-                        "begrunnelse": "jawol"    
-                                                   
-                    }
+                        "vurderinger": [
+                            {
+                                "periode": {"fraOgMed": "2021-05-01", "tilOgMed": "2021-01-31"},
+                                "status": "SkalHoldeSegINorge"           
+                            }
+                        ]
+                     }
                     """.trimIndent()
                 )
             }.apply {

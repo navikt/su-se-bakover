@@ -315,7 +315,6 @@ internal class BeregnRoutesKtTest {
                 behandlingId = objects.søknadsbehandling.id,
                 periode = år(2021),
                 status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
-                begrunnelse = "Veldig bra",
             ),
         )
         services.søknadsbehandling.leggTilBosituasjonEpsgrunnlag(

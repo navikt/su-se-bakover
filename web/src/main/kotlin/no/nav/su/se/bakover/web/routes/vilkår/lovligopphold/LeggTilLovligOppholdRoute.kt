@@ -33,7 +33,7 @@ internal fun Route.leggTilLovligOppholdRoute(
     søknadsbehandlingService: SøknadsbehandlingService,
     satsFactory: SatsFactory,
 ) {
-    post("$behandlingPath/{behandlingId}/lovligOpphold") {
+    post("$behandlingPath/{behandlingId}/lovligopphold") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withBehandlingId { behandlingId ->
                 call.withBody<LovligOppholdBody> { body ->

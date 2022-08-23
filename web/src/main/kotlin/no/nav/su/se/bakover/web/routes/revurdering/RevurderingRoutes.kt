@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.web.routes.revurdering.avslutt.avsluttRevurderingRou
 import no.nav.su.se.bakover.web.routes.revurdering.forhåndsvarsel.forhåndsvarslingRoute
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.routes.vilkår.lovligopphold.leggTilLovligOppholdRoute
+import no.nav.su.se.bakover.web.routes.vilkår.utenlandsopphold.leggTilUtlandsoppholdRoute
 import java.time.Clock
 
 internal const val revurderingPath = "$sakPath/{sakId}/revurderinger"

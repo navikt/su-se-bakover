@@ -24,7 +24,7 @@ internal fun ApplicationTestBuilder.leggTilLovligOppholdINorge(
     return runBlocking {
         defaultRequest(
             HttpMethod.Post,
-            "/saker/$sakId/behandlinger/$behandlingId/lovligOpphold",
+            "/saker/$sakId/behandlinger/$behandlingId/lovligopphold",
             listOf(brukerrolle),
         ) {
             setBody(

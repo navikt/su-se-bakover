@@ -930,7 +930,6 @@ internal class SøknadsbehandlingRoutesKtTest {
                 behandlingId = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
                 periode = år(2021),
                 status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
-                begrunnelse = "Skal være her hele tiden",
             ),
         )
         services.søknadsbehandling.leggTilBosituasjonEpsgrunnlag(

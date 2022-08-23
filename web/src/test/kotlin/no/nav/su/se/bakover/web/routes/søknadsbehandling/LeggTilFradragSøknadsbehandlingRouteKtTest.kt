@@ -61,7 +61,7 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
             }
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${UUID.randomUUID()}/behandlinger/${behandling.id}/grunnlag/fradrag",
+                "$sakPath/${UUID.randomUUID()}/behandlinger/${behandling.id}/fradrag",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(validBody)
@@ -108,7 +108,7 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
             }
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${UUID.randomUUID()}/behandlinger/${behandling.id}/grunnlag/fradrag",
+                "$sakPath/${UUID.randomUUID()}/behandlinger/${behandling.id}/fradrag",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(bodyFradragUtenPeriode)
@@ -157,7 +157,7 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
             }
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${UUID.randomUUID()}/behandlinger/${behandling.id}/grunnlag/fradrag",
+                "$sakPath/${UUID.randomUUID()}/behandlinger/${behandling.id}/fradrag",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(bodyMedUgyldigFradrag)
@@ -206,7 +206,7 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
             }
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${UUID.randomUUID()}/behandlinger/${behandling.id}/grunnlag/fradrag",
+                "$sakPath/${UUID.randomUUID()}/behandlinger/${behandling.id}/fradrag",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(bodyMedUgyldigFradrag)
@@ -255,7 +255,7 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
             }
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${UUID.randomUUID()}/behandlinger/${behandling.id}/grunnlag/fradrag",
+                "$sakPath/${UUID.randomUUID()}/behandlinger/${behandling.id}/fradrag",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(bodyMedUgyldigFradrag)
@@ -304,7 +304,7 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
             }
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${UUID.randomUUID()}/behandlinger/${behandling.id}/grunnlag/fradrag",
+                "$sakPath/${UUID.randomUUID()}/behandlinger/${behandling.id}/fradrag",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(bodyMedUgyldigFradrag)

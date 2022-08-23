@@ -32,7 +32,6 @@ class SøknadsbehandlingLeggTilUtenlandsoppholdTest {
                     behandlingId = UUID.randomUUID(),
                     periode = år(2021),
                     status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
-                    begrunnelse = "",
                 ),
             ) shouldBe SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.FantIkkeBehandling.left()
 
@@ -76,7 +75,6 @@ class SøknadsbehandlingLeggTilUtenlandsoppholdTest {
                     behandlingId = iverksatt.id,
                     periode = år(2021),
                     status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
-                    begrunnelse = "jahoo",
                 ),
             ) shouldBe SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.UgyldigTilstand(
                 fra = iverksatt::class, til = Søknadsbehandling.Vilkårsvurdert::class,
@@ -101,7 +99,6 @@ class SøknadsbehandlingLeggTilUtenlandsoppholdTest {
                     behandlingId = innvilget.id,
                     periode = år(2021),
                     status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
-                    begrunnelse = "jahoo",
                 ),
             ) shouldBe innvilget.right()
 
@@ -129,7 +126,6 @@ class SøknadsbehandlingLeggTilUtenlandsoppholdTest {
                     behandlingId = innvilget.id,
                     periode = år(2021),
                     status = UtenlandsoppholdStatus.SkalVæreMerEnn90DagerIUtlandet,
-                    begrunnelse = "jahoo",
                 ),
             )
 
