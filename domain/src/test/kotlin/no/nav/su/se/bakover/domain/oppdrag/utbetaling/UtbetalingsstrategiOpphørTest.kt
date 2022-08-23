@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
@@ -148,6 +149,7 @@ internal class UtbetalingsstrategiOpphørTest {
                     forrigeUtbetalingslinjeId = enUtbetalingslinje.forrigeUtbetalingslinjeId,
                     virkningstidspunkt = 1.januar(2021),
                     uføregrad = enUtbetalingslinje.uføregrad,
+                    utbetalingsinstruksjonForEtterbetalinger = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
                 ),
             )
         }
