@@ -91,36 +91,6 @@ internal fun Route.leggTilGrunnlagBosituasjonRoutes(
         }
     }
 
-    post("$behandlingPath/{behandlingId}/grunnlag/bosituasjon/eps/skjermet") {
-        authorize(Brukerrolle.Saksbehandler) {
-            call.withBehandlingId { behandlingId ->
-                call.withBody<EpsBody> { body ->
-                    if (body.epsFnr.isNullOrEmpty()) {
-                        return@withBehandlingId call.svar(Feilresponser.ugyldigBody)
-                    }
-                    søknadsbehandlingService.leggTilBosituasjonEpsgrunnlag(
-                        LeggTilBosituasjonEpsRequest(
-                            behandlingId = behandlingId,
-                            epsFnr = Fnr(body.epsFnr),
-                        ),
-                    )
-                        .fold(
-                            {
-                                when (it) {
-                                    SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.FantIkkeBehandling -> fantIkkeBehandling
-                                    SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KlarteIkkeHentePersonIPdl -> Feilresponser.fantIkkePerson
-                                    is SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeOppdatereBosituasjon -> it.feil.tilResultat()
-                                }
-                            },
-                            {
-                                Resultat.okJson(HttpStatusCode.Created)
-                            },
-                        ).let { call.svar(it) }
-                }
-            }
-        }
-    }
-
     post("$behandlingPath/{behandlingId}/grunnlag/bosituasjon/fullfør") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withBehandlingId { behandlingId ->
