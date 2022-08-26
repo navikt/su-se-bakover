@@ -235,11 +235,11 @@ internal class LagBrevutkastForRevurderingTest {
             utbetalingService = mock {
                 on { simulerOpphør(any()) } doReturn simulertUtbetalingOpphør(
                     opphørsdato = revurdering.periode.fraOgMed,
-                    eksisterendeUtbetalinger = sak.utbetalinger,
                     fnr = sak.fnr,
                     sakId = sak.id,
                     saksnummer = sak.saksnummer,
                     clock = fixedClock,
+                    eksisterendeUtbetalinger = sak.utbetalinger,
                 )
             },
             sakService = mock {

@@ -172,10 +172,7 @@ fun simuleringStans(
         ).simulerUtbetaling(
             SimulerUtbetalingForPeriode(
                 utbetaling = it,
-                simuleringsperiode = Periode.create(
-                    fraOgMed = stans.virkningstidspunkt,
-                    tilOgMed = stans.tilOgMed,
-                ),
+                simuleringsperiode = stans.virkningsperiode
             ),
         )
     }.getOrFail()
@@ -207,10 +204,7 @@ fun simuleringGjenopptak(
         ).simulerUtbetaling(
             SimulerUtbetalingForPeriode(
                 utbetaling = it,
-                simuleringsperiode = Periode.create(
-                    fraOgMed = reaktivering.virkningstidspunkt,
-                    tilOgMed = reaktivering.tilOgMed,
-                ),
+                simuleringsperiode = reaktivering.virkningsperiode
             ),
         )
     }.getOrFail()
@@ -231,7 +225,11 @@ fun simuleringOpphørt(
         utbetalinger = eksisterendeUtbetalinger,
         behandler = saksbehandler,
         clock = clock,
-        opphørsDato = opphørsdato,
+        // TODO send med periode
+        periode = Periode.create(
+            fraOgMed = opphørsdato,
+            tilOgMed = eksisterendeUtbetalinger.last().sisteUtbetalingslinje().tilOgMed
+        ),
         sakstype = Sakstype.UFØRE, // TODO("simulering_utbetaling_alder utled fra sak/behandling")
     ).generate().let {
         val opphør = it.utbetalingslinjer
@@ -244,10 +242,7 @@ fun simuleringOpphørt(
         ).simulerUtbetaling(
             request = SimulerUtbetalingForPeriode(
                 utbetaling = it,
-                simuleringsperiode = Periode.create(
-                    fraOgMed = opphør.virkningstidspunkt,
-                    tilOgMed = opphør.tilOgMed,
-                ),
+                simuleringsperiode = opphør.virkningsperiode
             ),
         )
     }.getOrFail()

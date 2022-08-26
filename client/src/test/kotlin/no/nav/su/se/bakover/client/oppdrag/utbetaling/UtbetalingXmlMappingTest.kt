@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.client.oppdrag.avstemming.sakId
 import no.nav.su.se.bakover.client.oppdrag.avstemming.saksnummer
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.startOfDay
@@ -49,7 +50,7 @@ class UtbetalingXmlMappingTest {
 
     private val tredjeUtbetalingslinje = Utbetalingslinje.Endring.Opphør(
         andreUtbetalingslinje,
-        virkningstidspunkt = 1.februar(2020),
+        virkningsperiode = Periode.create(1.februar(2020), andreUtbetalingslinje.tilOgMed),
         clock = Clock.systemUTC(),
     )
 

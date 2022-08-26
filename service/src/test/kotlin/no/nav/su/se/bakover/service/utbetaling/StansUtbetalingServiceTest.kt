@@ -141,7 +141,7 @@ internal class StansUtbetalingServiceTest {
         tilOgMed = førsteUtbetalingslinje.tilOgMed,
         forrigeUtbetalingslinjeId = førsteUtbetalingslinje.forrigeUtbetalingslinjeId,
         beløp = førsteUtbetalingslinje.beløp,
-        virkningstidspunkt = 1.februar(2021),
+        virkningsperiode = Periode.create(1.februar(2021), førsteUtbetalingslinje.tilOgMed),
         uføregrad = førsteUtbetalingslinje.uføregrad,
     )
 

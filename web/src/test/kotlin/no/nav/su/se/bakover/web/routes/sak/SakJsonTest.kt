@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mars
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
@@ -102,7 +103,7 @@ internal class SakJsonTest {
             )
             val opphørslinje = Utbetalingslinje.Endring.Opphør(
                 utbetalingslinje = reaktivering,
-                virkningstidspunkt = 1.april(2021),
+                virkningsperiode = Periode.create(1.april(2021), reaktivering.tilOgMed),
                 clock = Clock.systemUTC(),
             )
 
@@ -132,24 +133,24 @@ internal class SakJsonTest {
             val (actual1, actual2, actual3, actual4) = sak.toJson(fixedClock, satsFactoryTestPåDato()).utbetalinger
             actual1 shouldBe UtbetalingJson(
                 fraOgMed = nyUtbetaling.fraOgMed,
-                tilOgMed = midlertidigStans.virkningstidspunkt.minusDays(1),
+                tilOgMed = midlertidigStans.virkningsperiode.fraOgMed.minusDays(1),
                 beløp = nyUtbetaling.beløp,
                 type = Utbetaling.UtbetalingsType.NY.toString(),
             )
             actual2 shouldBe UtbetalingJson(
-                fraOgMed = midlertidigStans.virkningstidspunkt,
-                tilOgMed = reaktivering.virkningstidspunkt.minusDays(1),
+                fraOgMed = midlertidigStans.virkningsperiode.fraOgMed,
+                tilOgMed = reaktivering.virkningsperiode.fraOgMed.minusDays(1),
                 beløp = 0,
                 type = Utbetaling.UtbetalingsType.STANS.toString(),
             )
             actual3 shouldBe UtbetalingJson(
-                fraOgMed = reaktivering.virkningstidspunkt,
-                tilOgMed = opphørslinje.virkningstidspunkt.minusDays(1),
+                fraOgMed = reaktivering.virkningsperiode.fraOgMed,
+                tilOgMed = opphørslinje.virkningsperiode.fraOgMed.minusDays(1),
                 beløp = nyUtbetaling.beløp,
                 type = Utbetaling.UtbetalingsType.GJENOPPTA.toString(),
             )
             actual4 shouldBe UtbetalingJson(
-                fraOgMed = opphørslinje.virkningstidspunkt,
+                fraOgMed = opphørslinje.virkningsperiode.fraOgMed,
                 tilOgMed = nyUtbetaling.tilOgMed,
                 beløp = 0,
                 type = Utbetaling.UtbetalingsType.OPPHØR.toString(),

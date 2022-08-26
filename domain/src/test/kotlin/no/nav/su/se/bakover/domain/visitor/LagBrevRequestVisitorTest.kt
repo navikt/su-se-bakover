@@ -1392,8 +1392,8 @@ internal class LagBrevRequestVisitorTest {
         ).getOrFail().let {
             (it as BeregnetRevurdering.Opphørt).toSimulert { sakId, _, opphørsdato ->
                 simulertUtbetalingOpphør(
-                    sakId = sakId,
                     opphørsdato = opphørsdato,
+                    sakId = sakId,
                     eksisterendeUtbetalinger = sak.utbetalinger,
                 )
             }.getOrFail()

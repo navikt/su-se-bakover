@@ -57,7 +57,7 @@ internal class KontrollerSimuleringTest {
             utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Endring.Opphør(
                     utbetalingslinje = eksisterendeUtetaling.sisteUtbetalingslinje(),
-                    virkningstidspunkt = 1.januar(2021),
+                    virkningsperiode = Periode.create(1.januar(2021), eksisterendeUtetaling.sisteUtbetalingslinje().tilOgMed),
                     clock = Clock.systemUTC(),
                 ),
             ),
@@ -214,7 +214,7 @@ internal class KontrollerSimuleringTest {
             utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Endring.Opphør(
                     utbetalingslinje = eksisterendeUtetaling.sisteUtbetalingslinje(),
-                    virkningstidspunkt = 1.januar(2021),
+                    virkningsperiode = Periode.create(1.januar(2021), eksisterendeUtetaling.sisteUtbetalingslinje().tilOgMed),
                     clock = fixedClock,
                 ),
             ),

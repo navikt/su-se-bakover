@@ -233,7 +233,7 @@ internal class TidslinjeForUtbetalingerTest {
         )
         val opphør = Utbetalingslinje.Endring.Opphør(
             utbetalingslinje = andre,
-            virkningstidspunkt = 1.mars(2020),
+            virkningsperiode = Periode.create(1.mars(2020), andre.tilOgMed),
             clock = clock,
         )
         val reaktivering = Utbetalingslinje.Endring.Reaktivering(
@@ -295,7 +295,7 @@ internal class TidslinjeForUtbetalingerTest {
         )
         val opphør = Utbetalingslinje.Endring.Opphør(
             utbetalingslinje = andre,
-            virkningstidspunkt = 1.januar(2020),
+            virkningsperiode = Periode.create(1.januar(2020), andre.tilOgMed),
             clock = clock,
         )
 
@@ -334,7 +334,7 @@ internal class TidslinjeForUtbetalingerTest {
         )
         val opphør = Utbetalingslinje.Endring.Opphør(
             utbetalingslinje = andre,
-            virkningstidspunkt = 1.januar(2020),
+            virkningsperiode = Periode.create(1.januar(2020), andre.tilOgMed),
             clock = clock,
         )
         val reaktivering = Utbetalingslinje.Endring.Reaktivering(
@@ -711,7 +711,7 @@ internal class TidslinjeForUtbetalingerTest {
         )
         val opphør = Utbetalingslinje.Endring.Opphør(
             utbetalingslinje = andre,
-            virkningstidspunkt = 1.mars(2020),
+            virkningsperiode = Periode.create(1.mars(2020), andre.tilOgMed),
             clock = clock,
         )
         val reaktivering = Utbetalingslinje.Endring.Reaktivering(
@@ -773,7 +773,7 @@ internal class TidslinjeForUtbetalingerTest {
         )
         val opphør = Utbetalingslinje.Endring.Opphør(
             utbetalingslinje = andre,
-            virkningstidspunkt = 1.oktober(2020),
+            virkningsperiode = Periode.create(1.oktober(2020), andre.tilOgMed),
             clock = clock,
         )
         val tredje = Utbetalingslinje.Ny(

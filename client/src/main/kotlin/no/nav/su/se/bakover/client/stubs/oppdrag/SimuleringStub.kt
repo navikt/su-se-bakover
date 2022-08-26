@@ -47,10 +47,10 @@ class SimuleringStub(
         return utbetaling.utbetalingslinjer.map {
             when (it) {
                 is Utbetalingslinje.Endring -> {
-                    Periode.create(it.virkningstidspunkt, it.tilOgMed)
+                    it.virkningsperiode
                 }
                 is Utbetalingslinje.Ny -> {
-                    Periode.create(it.fraOgMed, it.tilOgMed)
+                    it.periode
                 }
             }
         }.let { perioder ->

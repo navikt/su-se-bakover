@@ -4,20 +4,20 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.PeriodisertInformasjon
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import java.time.Clock
 import java.time.LocalDate
 
-sealed class Utbetalingslinje {
+sealed class Utbetalingslinje : PeriodisertInformasjon {
     abstract val id: UUID30 // delytelseId
     abstract val opprettet: Tidspunkt
     abstract val fraOgMed: LocalDate
     abstract val tilOgMed: LocalDate
     abstract var forrigeUtbetalingslinjeId: UUID30?
     abstract val beløp: Int
-    abstract val periode: Periode
     abstract val uføregrad: Uføregrad?
     abstract val utbetalingsinstruksjonForEtterbetalinger: UtbetalingsinstruksjonForEtterbetalinger
 
@@ -43,15 +43,11 @@ sealed class Utbetalingslinje {
         init {
             require(fraOgMed < tilOgMed) { "fraOgMed må være tidligere enn tilOgMed" }
         }
-
-        fun link(other: Utbetalingslinje) {
-            forrigeUtbetalingslinjeId = other.id
-        }
     }
 
     sealed class Endring : Utbetalingslinje() {
         abstract val linjeStatus: LinjeStatus
-        abstract val virkningstidspunkt: LocalDate
+        abstract val virkningsperiode: Periode
 
         data class Opphør(
             override val id: UUID30,
@@ -60,7 +56,7 @@ sealed class Utbetalingslinje {
             override val tilOgMed: LocalDate,
             override var forrigeUtbetalingslinjeId: UUID30?,
             override val beløp: Int,
-            override val virkningstidspunkt: LocalDate,
+            override val virkningsperiode: Periode,
             override val uføregrad: Uføregrad?,
             override val utbetalingsinstruksjonForEtterbetalinger: UtbetalingsinstruksjonForEtterbetalinger = betalUtSåFortSomMulig
         ) : Endring() {
@@ -71,7 +67,7 @@ sealed class Utbetalingslinje {
 
             constructor(
                 utbetalingslinje: Utbetalingslinje,
-                virkningstidspunkt: LocalDate,
+                virkningsperiode: Periode,
                 clock: Clock,
                 opprettet: Tidspunkt = Tidspunkt.now(clock),
             ) : this(
@@ -81,7 +77,7 @@ sealed class Utbetalingslinje {
                 tilOgMed = utbetalingslinje.tilOgMed,
                 forrigeUtbetalingslinjeId = utbetalingslinje.forrigeUtbetalingslinjeId,
                 beløp = utbetalingslinje.beløp,
-                virkningstidspunkt = virkningstidspunkt,
+                virkningsperiode = virkningsperiode,
                 uføregrad = utbetalingslinje.uføregrad,
                 utbetalingsinstruksjonForEtterbetalinger = betalUtSåFortSomMulig,
             )
@@ -94,7 +90,7 @@ sealed class Utbetalingslinje {
             override val tilOgMed: LocalDate,
             override var forrigeUtbetalingslinjeId: UUID30?,
             override val beløp: Int,
-            override val virkningstidspunkt: LocalDate,
+            override val virkningsperiode: Periode,
             override val uføregrad: Uføregrad?,
             override val utbetalingsinstruksjonForEtterbetalinger: UtbetalingsinstruksjonForEtterbetalinger = betalUtSåFortSomMulig
         ) : Endring() {
@@ -115,7 +111,7 @@ sealed class Utbetalingslinje {
                 tilOgMed = utbetalingslinje.tilOgMed,
                 forrigeUtbetalingslinjeId = utbetalingslinje.forrigeUtbetalingslinjeId,
                 beløp = utbetalingslinje.beløp,
-                virkningstidspunkt = virkningstidspunkt,
+                virkningsperiode = Periode.create(virkningstidspunkt, utbetalingslinje.tilOgMed),
                 uføregrad = utbetalingslinje.uføregrad,
                 utbetalingsinstruksjonForEtterbetalinger = betalUtSåFortSomMulig,
             )
@@ -128,7 +124,7 @@ sealed class Utbetalingslinje {
             override val tilOgMed: LocalDate,
             override var forrigeUtbetalingslinjeId: UUID30?,
             override val beløp: Int,
-            override val virkningstidspunkt: LocalDate,
+            override val virkningsperiode: Periode,
             override val uføregrad: Uføregrad?,
             override val utbetalingsinstruksjonForEtterbetalinger: UtbetalingsinstruksjonForEtterbetalinger = betalUtSåFortSomMulig
         ) : Endring() {
@@ -149,7 +145,7 @@ sealed class Utbetalingslinje {
                 tilOgMed = utbetalingslinje.tilOgMed,
                 forrigeUtbetalingslinjeId = utbetalingslinje.forrigeUtbetalingslinjeId,
                 beløp = utbetalingslinje.beløp,
-                virkningstidspunkt = virkningstidspunkt,
+                virkningsperiode = Periode.create(virkningstidspunkt, utbetalingslinje.tilOgMed),
                 uføregrad = utbetalingslinje.uføregrad,
                 utbetalingsinstruksjonForEtterbetalinger = betalUtSåFortSomMulig,
             )

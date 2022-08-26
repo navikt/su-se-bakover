@@ -16,9 +16,8 @@ import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.november
 import no.nav.su.se.bakover.common.oktober
-import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
@@ -29,22 +28,21 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.plus
+import no.nav.su.se.bakover.test.sakId
+import no.nav.su.se.bakover.test.saksnummer
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
-import java.util.UUID
 
 internal class UtbetalingsstrategiStansTest {
 
     private val fixedClock = Clock.fixed(15.juni(2020).atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
-    private val fnr = Fnr("12345678910")
-    private val sakId = UUID.randomUUID()
-    private val saksnummer = Saksnummer(2021)
-
     @Test
     fun `stans av utbetaling`() {
         val utbetalingslinje = Utbetalingslinje.Ny(
@@ -71,7 +69,7 @@ internal class UtbetalingsstrategiStansTest {
             stansDato = 1.juli(2020),
             clock = fixedClock,
             sakstype = Sakstype.UFØRE,
-        ).generer().getOrFail("Skal kunne lage utbetaling for stans")
+        ).generer().getOrFail()
 
         stans.utbetalingslinjer[0] shouldBe Utbetalingslinje.Endring.Stans(
             id = utbetalingslinje.id,
@@ -80,7 +78,10 @@ internal class UtbetalingsstrategiStansTest {
             tilOgMed = utbetalingslinje.tilOgMed,
             forrigeUtbetalingslinjeId = utbetalingslinje.forrigeUtbetalingslinjeId,
             beløp = utbetalingslinje.beløp,
-            virkningstidspunkt = 1.juli(2020),
+            virkningsperiode = Periode.create(
+                fraOgMed = 1.juli(2020),
+                tilOgMed = utbetalingslinje.tilOgMed,
+            ),
             uføregrad = utbetalingslinje.uføregrad,
             utbetalingsinstruksjonForEtterbetalinger = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
         )
@@ -131,7 +132,10 @@ internal class UtbetalingsstrategiStansTest {
                         beløp = 0,
                         uføregrad = Uføregrad.parse(50),
                     ),
-                    virkningstidspunkt = 1.januar(2020),
+                    virkningsperiode = Periode.create(
+                        1.januar(2020),
+                        31.desember(2020),
+                    ),
                     clock = fixedClock,
                 ),
             ),
@@ -235,7 +239,7 @@ internal class UtbetalingsstrategiStansTest {
                 stansDato = it,
                 clock = fixedClock,
                 sakstype = Sakstype.UFØRE,
-            ).generer().getOrFail("Skal kunne lage utbetaling for stans")
+            ).generer()
         }
 
         listOf(
@@ -255,14 +259,16 @@ internal class UtbetalingsstrategiStansTest {
                 stansDato = it,
                 clock = fixedClock,
                 sakstype = Sakstype.UFØRE,
-            )
-                .generer() shouldBe Utbetalingsstrategi.Stans.Feil.StansDatoErIkkeFørsteDatoIInneværendeEllerNesteMåned.left()
+            ).generer() shouldBe Utbetalingsstrategi.Stans.Feil.StansDatoErIkkeFørsteDatoIInneværendeEllerNesteMåned.left()
         }
     }
 
     @Test
     fun `svarer med feil dersom det eksisterer tidligere opphør i perioden mellom stansdato og nyeste utbetaling`() {
-        val fixedClock15Juli21 = Clock.fixed(15.juli(2021).atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
+        val fixedClock15Juli21 = Clock.fixed(
+            15.juli(2021).atStartOfDay().toInstant(ZoneOffset.UTC),
+            ZoneOffset.UTC,
+        )
 
         val første = createUtbetaling(
             nonEmptyListOf(
@@ -281,7 +287,10 @@ internal class UtbetalingsstrategiStansTest {
             nonEmptyListOf(
                 Utbetalingslinje.Endring.Opphør(
                     utbetalingslinje = første.sisteUtbetalingslinje(),
-                    virkningstidspunkt = 1.august(2021),
+                    virkningsperiode = Periode.create(
+                        1.august(2021),
+                        30.april(2022),
+                    ),
                     clock = Clock.systemUTC(),
                 ),
             ),
@@ -305,7 +314,11 @@ internal class UtbetalingsstrategiStansTest {
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
-            utbetalinger = listOf(første, opphør, andre),
+            utbetalinger = listOf(
+                første,
+                opphør,
+                andre,
+            ),
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             stansDato = 1.august(2021),
             clock = fixedClock15Juli21,
@@ -315,7 +328,10 @@ internal class UtbetalingsstrategiStansTest {
 
     @Test
     fun `svarer med feil dersom det eksisterer fremtidige opphør i perioden mellom stansdato og nyeste utbetaling`() {
-        val fixedClock15Juli21 = Clock.fixed(15.juli(2021).atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
+        val fixedClock15Juli21 = Clock.fixed(
+            15.juli(2021).atStartOfDay().toInstant(ZoneOffset.UTC),
+            ZoneOffset.UTC,
+        )
 
         val første = createUtbetaling(
             nonEmptyListOf(
@@ -335,17 +351,29 @@ internal class UtbetalingsstrategiStansTest {
             nonEmptyListOf(
                 Utbetalingslinje.Endring.Opphør(
                     utbetalingslinje = første.sisteUtbetalingslinje(),
-                    virkningstidspunkt = 1.november(2021),
-                    clock = fixedClock.plus(1, ChronoUnit.SECONDS),
+                    virkningsperiode = Periode.create(
+                        1.november(2021),
+                        30.april(2022),
+                    ),
+                    clock = fixedClock.plus(
+                        1,
+                        ChronoUnit.SECONDS,
+                    ),
                 ),
             ),
             type = Utbetaling.UtbetalingsType.OPPHØR,
-            clock = fixedClock.plus(1, ChronoUnit.SECONDS),
+            clock = fixedClock.plus(
+                1,
+                ChronoUnit.SECONDS,
+            ),
         )
         val andre = createUtbetaling(
             nonEmptyListOf(
                 Utbetalingslinje.Ny(
-                    opprettet = fixedTidspunkt.plus(2, ChronoUnit.SECONDS),
+                    opprettet = fixedTidspunkt.plus(
+                        2,
+                        ChronoUnit.SECONDS,
+                    ),
                     fraOgMed = 1.november(2021),
                     tilOgMed = 30.april(2022),
                     forrigeUtbetalingslinjeId = opphør.sisteUtbetalingslinje().id,
@@ -354,14 +382,21 @@ internal class UtbetalingsstrategiStansTest {
                 ),
             ),
             type = Utbetaling.UtbetalingsType.NY,
-            clock = fixedClock.plus(2, ChronoUnit.SECONDS),
+            clock = fixedClock.plus(
+                2,
+                ChronoUnit.SECONDS,
+            ),
         )
 
         Utbetalingsstrategi.Stans(
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
-            utbetalinger = listOf(første, andre, opphør),
+            utbetalinger = listOf(
+                første,
+                andre,
+                opphør,
+            ),
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             stansDato = 1.august(2021),
             clock = fixedClock15Juli21,
@@ -396,7 +431,6 @@ internal class UtbetalingsstrategiStansTest {
             oppdragsmelding = Utbetalingsrequest(
                 value = "",
             ),
-
         ).toKvittertUtbetaling(
             kvittering = Kvittering(
                 Kvittering.Utbetalingsstatus.OK_MED_VARSEL,

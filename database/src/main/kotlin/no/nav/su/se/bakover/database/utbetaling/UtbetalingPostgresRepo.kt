@@ -126,15 +126,16 @@ internal class UtbetalingPostgresRepo(
                 baseParams.plus(
                     mapOf(
                         "status" to utbetalingslinje.linjeStatus,
-                        "statusFraOgMed" to utbetalingslinje.virkningstidspunkt,
+                        "statusFraOgMed" to utbetalingslinje.virkningsperiode.fraOgMed,
+                        "statusTilOgMed" to utbetalingslinje.virkningsperiode.tilOgMed,
                     ),
                 )
             }
             is Utbetalingslinje.Ny -> baseParams
         }
         """
-            insert into utbetalingslinje (id, opprettet, fom, tom, utbetalingId, forrigeUtbetalingslinjeId, beløp, status, statusFraOgMed, uføregrad, kjøreplan)
-            values (:id, :opprettet, :fom, :tom, :utbetalingId, :forrigeUtbetalingslinjeId, :belop, :status, :statusFraOgMed, :uforegrad, :kjoreplan)
+            insert into utbetalingslinje (id, opprettet, fom, tom, utbetalingId, forrigeUtbetalingslinjeId, beløp, status, statusFraOgMed, statusTilOgMed, uføregrad, kjøreplan)
+            values (:id, :opprettet, :fom, :tom, :utbetalingId, :forrigeUtbetalingslinjeId, :belop, :status, :statusFraOgMed, :statusTilOgMed, :uforegrad, :kjoreplan)
         """.insert(params, session)
 
         return utbetalingslinje

@@ -2,7 +2,8 @@ package no.nav.su.se.bakover.domain.oppdrag
 
 import arrow.core.Either
 import arrow.core.NonEmptyList
-import arrow.core.rightIfNotNull
+import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.minAndMaxOf
@@ -15,7 +16,6 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
-import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -97,7 +97,7 @@ sealed interface Utbetaling {
                 ).contains(kvittering.utbetalingsstatus)
         }
     }
-
+    // TODO refaktorer
     enum class UtbetalingsType {
         NY,
         STANS,
@@ -124,26 +124,38 @@ sealed class UtbetalingFeilet {
     object FantIkkeSak : UtbetalingFeilet()
 }
 
+fun List<Utbetaling>.tidslinje(clock: Clock): Either<IngenUtbetalinger, TidslinjeForUtbetalinger> {
+    return flatMap { it.utbetalingslinjer }
+        .ifEmpty { return IngenUtbetalinger.left() }
+        .let { utbetalingslinjer ->
+            TidslinjeForUtbetalinger(
+                periode = utbetalingslinjer.map { it.periode }.minAndMaxOf(),
+                utbetalingslinjer = utbetalingslinjer,
+                clock = clock,
+            ).right()
+        }
+}
+
+object IngenUtbetalinger
+
 fun Sak.hentGjeldendeUtbetaling(
     forDato: LocalDate,
     clock: Clock,
 ): Either<FantIkkeGjeldendeUtbetaling, UtbetalingslinjePåTidslinje> {
-    return this.utbetalinger.hentGjeldendeUtbetaling(forDato, clock)
+    return this.utbetalinger.hentGjeldendeUtbetaling(
+        forDato = forDato,
+        clock = clock,
+    )
 }
 
 fun List<Utbetaling>.hentGjeldendeUtbetaling(
     forDato: LocalDate,
     clock: Clock,
 ): Either<FantIkkeGjeldendeUtbetaling, UtbetalingslinjePåTidslinje> {
-    return this
-        .flatMap { it.utbetalingslinjer }
-        .ifNotEmpty {
-            TidslinjeForUtbetalinger(
-                periode = this.map { it.periode }.minAndMaxOf(),
-                utbetalingslinjer = this,
-                clock = clock,
-            ).gjeldendeForDato(forDato)
-        }.rightIfNotNull { FantIkkeGjeldendeUtbetaling }
+    return tidslinje(clock).fold(
+        { FantIkkeGjeldendeUtbetaling.left() },
+        { it.gjeldendeForDato(forDato)?.right() ?: FantIkkeGjeldendeUtbetaling.left() },
+    )
 }
 
 object FantIkkeGjeldendeUtbetaling

@@ -98,7 +98,7 @@ internal class SimuleringSoapClientTest {
             utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Endring.Opphør(
                     utbetalingslinje = nyUtbetaling.sisteUtbetalingslinje(),
-                    virkningstidspunkt = 1.januar(2018),
+                    virkningsperiode = Periode.create(1.januar(2018), nyUtbetaling.sisteUtbetalingslinje().tilOgMed),
                     clock = Clock.systemUTC(),
                 ),
             ),

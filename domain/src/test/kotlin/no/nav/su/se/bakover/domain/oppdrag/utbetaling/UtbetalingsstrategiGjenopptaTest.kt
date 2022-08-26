@@ -8,13 +8,10 @@ import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.november
 import no.nav.su.se.bakover.common.oktober
-import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -24,34 +21,20 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.sakId
+import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.saksnummer
 import org.junit.jupiter.api.Test
-import java.util.UUID
 
 internal class UtbetalingsstrategiGjenopptaTest {
-
-    private val fnr = Fnr("12345678910")
-    private val sakId = UUID.randomUUID()
-    private val saksnummer = Saksnummer(2021)
-    private val attestant = NavIdentBruker.Attestant("Z123")
-
     @Test
     fun `gjenopptar enkel utbetaling`() {
-        val opprinnelig: Utbetaling.OversendtUtbetaling.UtenKvittering = createOversendtUtbetaling(
-            nonEmptyListOf(
-                Utbetalingslinje.Ny(
-                    opprettet = fixedTidspunkt,
-                    fraOgMed = 1.januar(2020),
-                    tilOgMed = 31.desember(2020),
-                    forrigeUtbetalingslinjeId = null,
-                    beløp = 1500,
-                    uføregrad = Uføregrad.parse(50),
-                ),
-            ),
-            type = Utbetaling.UtbetalingsType.NY,
-        )
+        val opprinnelig: Utbetaling.OversendtUtbetaling.UtenKvittering = oversendtUtbetaling()
 
         val stans: Utbetaling.OversendtUtbetaling.UtenKvittering = createOversendtUtbetaling(
             nonEmptyListOf(
@@ -68,7 +51,10 @@ internal class UtbetalingsstrategiGjenopptaTest {
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
-            utbetalinger = nonEmptyListOf(opprinnelig, stans),
+            utbetalinger = nonEmptyListOf(
+                opprinnelig,
+                stans,
+            ),
             behandler = attestant,
             clock = fixedClock,
             sakstype = Sakstype.UFØRE,
@@ -88,7 +74,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
                     tilOgMed = opprinnelig.utbetalingslinjer[0].tilOgMed,
                     forrigeUtbetalingslinjeId = opprinnelig.utbetalingslinjer[0].forrigeUtbetalingslinjeId,
                     beløp = opprinnelig.utbetalingslinjer[0].beløp,
-                    virkningstidspunkt = 1.oktober(2020),
+                    virkningsperiode = Periode.create(1.oktober(2020), opprinnelig.utbetalingslinjer[0].tilOgMed),
                     uføregrad = opprinnelig.utbetalingslinjer[0].uføregrad,
                     utbetalingsinstruksjonForEtterbetalinger = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
                 ),
@@ -115,19 +101,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
 
     @Test
     fun `gjenopptar mer 'avansert' utbetaling`() {
-        val første = createOversendtUtbetaling(
-            nonEmptyListOf(
-                Utbetalingslinje.Ny(
-                    opprettet = fixedTidspunkt,
-                    fraOgMed = 1.januar(2020),
-                    tilOgMed = 31.desember(2020),
-                    forrigeUtbetalingslinjeId = null,
-                    beløp = 1500,
-                    uføregrad = Uføregrad.parse(50),
-                ),
-            ),
-            type = Utbetaling.UtbetalingsType.NY,
-        )
+        val første = oversendtUtbetaling()
 
         val førsteStans = createOversendtUtbetaling(
             nonEmptyListOf(
@@ -180,7 +154,13 @@ internal class UtbetalingsstrategiGjenopptaTest {
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
-            utbetalinger = nonEmptyListOf(første, førsteStans, førsteGjenopptak, andre, andreStans),
+            utbetalinger = nonEmptyListOf(
+                første,
+                førsteStans,
+                førsteGjenopptak,
+                andre,
+                andreStans,
+            ),
             behandler = attestant,
             clock = fixedClock,
             sakstype = Sakstype.UFØRE,
@@ -194,7 +174,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
                 tilOgMed = andre.utbetalingslinjer[0].tilOgMed,
                 forrigeUtbetalingslinjeId = andre.utbetalingslinjer[0].forrigeUtbetalingslinjeId,
                 beløp = andre.utbetalingslinjer[0].beløp,
-                virkningstidspunkt = 1.mai(2021),
+                virkningsperiode = Periode.create(1.mai(2021), andre.utbetalingslinjer[0].tilOgMed),
                 uføregrad = andre.utbetalingslinjer[0].uføregrad,
             ),
         )
@@ -202,20 +182,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
 
     @Test
     fun `kan ikke gjenoppta utbetalinger hvis ingen er stanset`() {
-        val første = createOversendtUtbetaling(
-            nonEmptyListOf(
-                Utbetalingslinje.Ny(
-                    opprettet = fixedTidspunkt,
-                    fraOgMed = 1.januar(2020),
-                    tilOgMed = 31.desember(2020),
-                    forrigeUtbetalingslinjeId = null,
-                    beløp = 1500,
-                    uføregrad = Uføregrad.parse(50),
-                ),
-            ),
-            type = Utbetaling.UtbetalingsType.NY,
-        )
-
+        val første = oversendtUtbetaling()
         Utbetalingsstrategi.Gjenoppta(
             sakId = sakId,
             saksnummer = saksnummer,
@@ -229,19 +196,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
 
     @Test
     fun `kan ikke gjenoppta utbetalinger hvis siste ikke er stanset`() {
-        val første = createOversendtUtbetaling(
-            nonEmptyListOf(
-                Utbetalingslinje.Ny(
-                    opprettet = fixedTidspunkt,
-                    fraOgMed = 1.januar(2020),
-                    tilOgMed = 31.juli(2020),
-                    forrigeUtbetalingslinjeId = null,
-                    beløp = 1500,
-                    uføregrad = Uføregrad.parse(50),
-                ),
-            ),
-            type = Utbetaling.UtbetalingsType.NY,
-        )
+        val første = oversendtUtbetaling()
 
         val andre = createOversendtUtbetaling(
             nonEmptyListOf(
@@ -269,7 +224,11 @@ internal class UtbetalingsstrategiGjenopptaTest {
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
-            utbetalinger = nonEmptyListOf(første, andre, tredje),
+            utbetalinger = nonEmptyListOf(
+                første,
+                andre,
+                tredje,
+            ),
             behandler = attestant,
             clock = fixedClock,
             sakstype = Sakstype.UFØRE,
@@ -295,7 +254,10 @@ internal class UtbetalingsstrategiGjenopptaTest {
             uføregrad = Uføregrad.parse(50),
         )
         val utbetaling = createOversendtUtbetaling(
-            utbetalingslinjer = nonEmptyListOf(l1, l2),
+            utbetalingslinjer = nonEmptyListOf(
+                l1,
+                l2,
+            ),
             type = Utbetaling.UtbetalingsType.NY,
         )
 
@@ -314,7 +276,10 @@ internal class UtbetalingsstrategiGjenopptaTest {
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
-            utbetalinger = nonEmptyListOf(utbetaling, stans),
+            utbetalinger = nonEmptyListOf(
+                utbetaling,
+                stans,
+            ),
             behandler = attestant,
             clock = fixedClock,
             sakstype = Sakstype.UFØRE,
@@ -326,7 +291,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
                 tilOgMed = utbetaling.sisteUtbetalingslinje().tilOgMed,
                 forrigeUtbetalingslinjeId = utbetaling.sisteUtbetalingslinje().forrigeUtbetalingslinjeId,
                 beløp = utbetaling.sisteUtbetalingslinje().beløp,
-                virkningstidspunkt = 1.april(2020),
+                virkningsperiode = Periode.create(1.april(2020), utbetaling.sisteUtbetalingslinje().tilOgMed),
                 uføregrad = utbetaling.sisteUtbetalingslinje().uføregrad,
             )
         }
@@ -343,12 +308,12 @@ internal class UtbetalingsstrategiGjenopptaTest {
             fnr = fnr,
             utbetalingslinjer = utbetalingslinjer,
             type = type,
-            behandler = NavIdentBruker.Saksbehandler("Z123"),
+            behandler = saksbehandler,
             avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt),
             sakstype = Sakstype.UFØRE,
         ).toSimulertUtbetaling(
             simulering = Simulering(
-                gjelderId = Fnr(fnr = fnr.toString()),
+                gjelderId = fnr,
                 gjelderNavn = "navn",
                 datoBeregnet = idag(fixedClock),
                 nettoBeløp = 0,

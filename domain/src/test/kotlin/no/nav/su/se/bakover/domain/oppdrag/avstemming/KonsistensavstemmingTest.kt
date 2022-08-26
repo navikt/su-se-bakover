@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.common.zoneIdOslo
@@ -441,7 +442,7 @@ internal class KonsistensavstemmingTest {
             utbetalingsLinjer = nonEmptyListOf(
                 Utbetalingslinje.Endring.Opphør(
                     utbetalingslinje = første.utbetalingslinjer[0],
-                    virkningstidspunkt = 1.april(2021),
+                    virkningsperiode = Periode.create(1.april(2021), første.utbetalingslinjer[0].tilOgMed),
                     clock = andreKlokke,
                 ),
             ),
@@ -496,7 +497,7 @@ internal class KonsistensavstemmingTest {
             utbetalingsLinjer = nonEmptyListOf(
                 Utbetalingslinje.Endring.Opphør(
                     utbetalingslinje = første.utbetalingslinjer[0],
-                    virkningstidspunkt = 1.april(2021),
+                    virkningsperiode = Periode.create(1.april(2021), første.utbetalingslinjer[0].tilOgMed),
                     clock = andreKlokke,
                 ),
             ),
@@ -567,7 +568,7 @@ internal class KonsistensavstemmingTest {
             utbetalingsLinjer = nonEmptyListOf(
                 Utbetalingslinje.Endring.Opphør(
                     utbetalingslinje = første.utbetalingslinjer[0],
-                    virkningstidspunkt = 1.april(2021),
+                    virkningsperiode = Periode.create(1.april(2021), første.utbetalingslinjer[0].tilOgMed),
                     clock = andreKlokke,
                 ),
             ),

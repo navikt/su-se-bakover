@@ -135,8 +135,8 @@ fun opprettRevurderingFraSaksopplysninger(
     vilkårOverrides: List<Vilkår> = emptyList(),
     grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
 ): Pair<Sak, OpprettetRevurdering> {
-    val gjeldendeVedtaksdata = sakOgVedtakSomKanRevurderes.first.kopierGjeldendeVedtaksdata(
-        fraOgMed = revurderingsperiode.fraOgMed,
+    val gjeldendeVedtaksdata = sakOgVedtakSomKanRevurderes.first.hentGjeldendeVedtaksdata(
+        periode = revurderingsperiode,
         clock = clock,
     ).getOrFail()
 
@@ -167,7 +167,7 @@ fun opprettRevurderingFraSaksopplysninger(
             vilkårsvurderinger = vilkårOverrides.fold(it.vilkårsvurderinger) { acc, vilkår -> acc.leggTil(vilkår) },
         )
     }
-
+    // TODO refaktorer slik at vi ikke får til å opprette med mismatch mellom periode og gjeldende data
     val opprettetRevurdering = OpprettetRevurdering(
         id = UUID.randomUUID(),
         periode = revurderingsperiode,

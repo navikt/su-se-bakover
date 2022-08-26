@@ -19,6 +19,7 @@ internal fun toUtbetalingRequest(
         oppdragRequest = UtbetalingRequest.OppdragRequest(
             kodeAksjon = UtbetalingRequest.KodeAksjon.UTBETALING, // Kodeaksjon brukes ikke av simulering
             kodeEndring = when (utbetaling.type) {
+                // TODO refaktorer vekk utbetalingstype
                 Utbetaling.UtbetalingsType.NY -> {
                     if (utbetaling.erFørstegangsUtbetaling()) UtbetalingRequest.KodeEndring.NY else UtbetalingRequest.KodeEndring.ENDRING
                 }
@@ -45,7 +46,7 @@ internal fun toUtbetalingRequest(
                         is Utbetalingslinje.Endring -> {
                             UtbetalingRequest.Oppdragslinje(
                                 kodeStatusLinje = it.tilKodeStatusLinje(),
-                                datoStatusFom = it.virkningstidspunkt.toOppdragDate(),
+                                datoStatusFom = it.virkningsperiode.fraOgMed.toOppdragDate(),
                                 kodeEndringLinje = UtbetalingRequest.Oppdragslinje.KodeEndringLinje.ENDRING,
                                 delytelseId = it.id.toString(),
                                 kodeKlassifik = utbetaling.sakstype.toFagområde()

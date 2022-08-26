@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.client.oppdrag.avstemming.sakId
 import no.nav.su.se.bakover.client.oppdrag.avstemming.saksnummer
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.april
 import no.nav.su.se.bakover.common.periode.desember
 import no.nav.su.se.bakover.common.periode.januar
@@ -17,6 +18,7 @@ import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.test.avstemmingsnøkkel
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.utbetalingslinje
 import org.junit.jupiter.api.Test
@@ -255,7 +257,7 @@ internal class UtbetalingRequestTest {
             utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Endring.Opphør(
                     utbetalingslinje = nyUtbetaling.sisteUtbetalingslinje(),
-                    virkningstidspunkt = 1.januar(2020),
+                    virkningsperiode = Periode.create(1.januar(2020), nyUtbetaling.sisteUtbetalingslinje().tilOgMed),
                     clock = Clock.systemUTC(),
                 ),
             ),

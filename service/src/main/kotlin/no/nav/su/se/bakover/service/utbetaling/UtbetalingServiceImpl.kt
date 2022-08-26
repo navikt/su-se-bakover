@@ -125,7 +125,11 @@ internal class UtbetalingServiceImpl(
             fnr = sak.fnr,
             utbetalinger = sak.utbetalinger,
             behandler = request.saksbehandler,
-            opphørsDato = request.opphørsdato,
+            // TODO send med periode
+            periode = Periode.create(
+                fraOgMed = request.opphørsdato,
+                tilOgMed = sak.utbetalinger.last().sisteUtbetalingslinje().tilOgMed
+            ),
             clock = clock,
             sakstype = sak.type,
         ).generate()
@@ -344,7 +348,7 @@ internal class UtbetalingServiceImpl(
             .single()
 
         val simuleringsperiode = Periode.create(
-            fraOgMed = reaktiveringslinje.virkningstidspunkt,
+            fraOgMed = reaktiveringslinje.virkningsperiode.fraOgMed,
             tilOgMed = reaktiveringslinje.tilOgMed,
         )
 

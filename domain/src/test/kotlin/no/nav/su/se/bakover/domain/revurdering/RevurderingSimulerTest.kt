@@ -42,9 +42,9 @@ class RevurderingSimulerTest {
                 (beregnet as BeregnetRevurdering.Opphørt)
                     .toSimulert { sakId, _, opphørsdato ->
                         simulertUtbetalingOpphør(
-                            sakId = sakId,
                             periode = beregnet.periode,
                             opphørsdato = opphørsdato,
+                            sakId = sakId,
                             eksisterendeUtbetalinger = sak.utbetalinger,
                         )
                     }.getOrFail()
@@ -83,9 +83,9 @@ class RevurderingSimulerTest {
                     (beregnet as BeregnetRevurdering.Opphørt)
                         .toSimulert { sakId, _, _ ->
                             simulertUtbetalingOpphør(
-                                sakId = sakId,
                                 periode = beregnet.periode,
                                 opphørsdato = beregnet.periode.fraOgMed,
+                                sakId = sakId,
                                 eksisterendeUtbetalinger = sak.utbetalinger,
                             )
                         }.getOrFail()
@@ -111,9 +111,9 @@ class RevurderingSimulerTest {
                 (it as BeregnetRevurdering.Opphørt)
                     .toSimulert { sakId, _, opphørsdato ->
                         simulertUtbetalingOpphør(
-                            sakId = sakId,
                             periode = it.periode,
                             opphørsdato = opphørsdato,
+                            sakId = sakId,
                             eksisterendeUtbetalinger = sak.utbetalinger,
                         )
                     }.getOrFail()
@@ -150,9 +150,9 @@ class RevurderingSimulerTest {
                     (it as BeregnetRevurdering.Opphørt)
                         .toSimulert { sakId, _, opphørsdato ->
                             simulertUtbetalingOpphør(
-                                sakId = sakId,
                                 periode = it.periode,
                                 opphørsdato = opphørsdato,
+                                sakId = sakId,
                                 eksisterendeUtbetalinger = sak.utbetalinger,
                             )
                         }.getOrFail()
