@@ -195,10 +195,10 @@ internal fun Route.søknadRoutes(
                                     when (it.feil) {
                                         SøknadsbehandlingService.KunneIkkeOpprette.FantIkkeSak -> Feilresponser.fantIkkeSak
                                         SøknadsbehandlingService.KunneIkkeOpprette.FantIkkeSøknad -> Feilresponser.fantIkkeSøknad
-                                        SøknadsbehandlingService.KunneIkkeOpprette.HarAlleredeÅpenSøknadsbehandling -> Feilresponser.harAlleredeÅpenBehandling
                                         SøknadsbehandlingService.KunneIkkeOpprette.SøknadErLukket -> Feilresponser.søknadErLukket
                                         SøknadsbehandlingService.KunneIkkeOpprette.SøknadHarAlleredeBehandling -> Feilresponser.søknadHarBehandlingFraFør
                                         SøknadsbehandlingService.KunneIkkeOpprette.SøknadManglerOppgave -> Feilresponser.søknadManglerOppgave
+                                        SøknadsbehandlingService.KunneIkkeOpprette.HarÅpenBehandling -> Feilresponser.harAlleredeÅpenBehandling
                                     }
                                 }
                                 KunneIkkeAvslåSøknad.FantIkkeSøknad -> Feilresponser.fantIkkeSøknad

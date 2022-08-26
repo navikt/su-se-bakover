@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeAktørId
+import no.nav.su.se.bakover.web.routes.Feilresponser.harAlleredeÅpenBehandling
 import no.nav.su.se.bakover.web.routes.Feilresponser.kunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.begrunnelseKanIkkeVæreTom
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.epsFormueMedFlereBosituasjonsperioderMåRevurderes
@@ -104,5 +105,6 @@ private fun KunneIkkeOppretteRevurdering.tilResultat(): Resultat {
         KunneIkkeOppretteRevurdering.EpsFormueMedFlereBosituasjonsperioderMåRevurderes -> epsFormueMedFlereBosituasjonsperioderMåRevurderes
         is KunneIkkeOppretteRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode -> uteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(this.periode)
         KunneIkkeOppretteRevurdering.UtenlandsoppholdSomFørerTilOpphørMåRevurderes -> utenlandsoppholdSomFørerTilOpphørMåRevurderes
+        KunneIkkeOppretteRevurdering.HarÅpenBehandling -> harAlleredeÅpenBehandling
     }
 }

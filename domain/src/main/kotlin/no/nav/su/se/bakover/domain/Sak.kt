@@ -20,18 +20,25 @@ import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling.Companion.hentOversendteUtbetalingerUtenFeil
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
+import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
+import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
+import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.søknadinnhold.SøknadInnhold
+import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
@@ -532,7 +539,69 @@ data class Sak(
             .singleOrNull { it.søknad.id == søknadId }?.right() ?: FantIkkeSøknadsbehandlingForSøknad.left()
     }
 
+    fun opprettNySøknadsbehandling(
+        søknad: Søknad.Journalført.MedOppgave,
+        clock: Clock,
+    ) = if (harÅpenSøknadsbehandling() || hentÅpneRevurderinger().isRight() || hentÅpneReguleringer().isRight()) {
+        HarÅpenBehandling.left()
+    } else
+        NySøknadsbehandling(
+            id = UUID.randomUUID(),
+            opprettet = Tidspunkt.now(clock),
+            sakId = this.id,
+            søknad = søknad,
+            oppgaveId = søknad.oppgaveId,
+            fnr = søknad.søknadInnhold.personopplysninger.fnr,
+            avkorting = this.hentUteståendeAvkortingForSøknadsbehandling().fold({ it }, { it }).kanIkke(),
+            sakstype = søknad.type,
+        ).right()
+
+    fun opprettNyRevurdering(
+        gjeldendeVedtaksdata: GjeldendeVedtaksdata,
+        gjeldendeVedtakPåFraOgMedDato: VedtakSomKanRevurderes,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        oppgaveId: OppgaveId,
+        revurderingsårsak: Revurderingsårsak,
+        informasjonSomRevurderes: InformasjonSomRevurderes,
+        avkorting: AvkortingVedRevurdering.Uhåndtert,
+        clock: Clock,
+    ) = if (harÅpenSøknadsbehandling() || hentÅpneRevurderinger().isRight() || hentÅpneReguleringer().isRight()) {
+        HarÅpenBehandling.left()
+    } else OpprettetRevurdering(
+        periode = gjeldendeVedtaksdata.vedtaksperioder().minsteAntallSammenhengendePerioder().single(),
+        opprettet = Tidspunkt.now(clock),
+        tilRevurdering = gjeldendeVedtakPåFraOgMedDato.id,
+        saksbehandler = saksbehandler,
+        oppgaveId = oppgaveId,
+        fritekstTilBrev = "",
+        revurderingsårsak = revurderingsårsak,
+        forhåndsvarsel = if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles else null,
+        grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
+        vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
+        informasjonSomRevurderes = informasjonSomRevurderes,
+        attesteringer = Attesteringshistorikk.empty(),
+        avkorting = avkorting,
+        sakinfo = gjeldendeVedtakPåFraOgMedDato.sakinfo(),
+    ).right()
+
+    private fun hentÅpneReguleringer(): Either<IngenÅpneReguleringer, NonEmptyList<Regulering>> =
+        reguleringer
+            .filter { it.erÅpen() }
+            .ifEmpty { return IngenÅpneReguleringer.left() }
+            .nonEmpty()
+            .right()
+
+    private fun hentÅpneRevurderinger(): Either<IngenÅpneRevurderinger, NonEmptyList<AbstraktRevurdering>> =
+        revurderinger
+            .filter { it.erÅpen() }
+            .ifEmpty { return IngenÅpneRevurderinger.left() }
+            .nonEmpty()
+            .right()
+
+    object IngenÅpneRevurderinger
     object FantIkkeSøknadsbehandlingForSøknad
+
+    object HarÅpenBehandling
 
     sealed class KunneIkkeOppdatereStønadsperiode {
         object FantIkkeBehandling : KunneIkkeOppdatereStønadsperiode()
@@ -548,6 +617,7 @@ data class Sak(
     }
 }
 
+object IngenÅpneReguleringer
 data class NySak(
     val id: UUID = UUID.randomUUID(),
     val opprettet: Tidspunkt,

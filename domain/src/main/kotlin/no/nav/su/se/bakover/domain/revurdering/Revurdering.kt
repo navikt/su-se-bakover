@@ -85,6 +85,26 @@ sealed class AbstraktRevurdering : Behandling {
     override val sakstype: Sakstype by lazy { sakinfo.type }
 
     abstract override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering
+    fun erÅpen(): Boolean = when (this) {
+        is GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse,
+        is BeregnetRevurdering,
+        is OpprettetRevurdering,
+        is RevurderingTilAttestering,
+        is SimulertRevurdering,
+        is UnderkjentRevurdering,
+        is StansAvYtelseRevurdering.SimulertStansAvYtelse,
+        -> true
+
+        is AvsluttetRevurdering,
+        is IverksattRevurdering.IngenEndring,
+        is IverksattRevurdering.Innvilget,
+        is IverksattRevurdering.Opphørt,
+        is GjenopptaYtelseRevurdering.AvsluttetGjenoppta,
+        is GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse,
+        is StansAvYtelseRevurdering.AvsluttetStansAvYtelse,
+        is StansAvYtelseRevurdering.IverksattStansAvYtelse,
+        -> false
+    }
 }
 
 sealed class Revurdering :
@@ -197,7 +217,7 @@ sealed class Revurdering :
     }
 
     open fun oppdaterInstitusjonsoppholdOgMarkerSomVurdert(
-        institusjonsoppholdVilkår: InstitusjonsoppholdVilkår.Vurdert
+        institusjonsoppholdVilkår: InstitusjonsoppholdVilkår.Vurdert,
     ): Either<KunneIkkeLeggeTilInstitusjonsoppholdVilkår, OpprettetRevurdering> {
         return KunneIkkeLeggeTilInstitusjonsoppholdVilkår.UgyldigTilstand(
             this::class,
@@ -359,14 +379,17 @@ sealed class Revurdering :
             !periode.inneholderAlle(utenlandsopphold.vurderingsperioder) -> {
                 KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode.left()
             }
+
             !utenlandsopphold.vurderingsperioder.all {
                 it.vurdering == utenlandsopphold.vurderingsperioder.first().vurdering
             } -> {
                 KunneIkkeLeggeTilUtenlandsopphold.AlleVurderingsperioderMåHaSammeResultat.left()
             }
+
             !periode.fullstendigOverlapp(utenlandsopphold.vurderingsperioder.map { it.periode }) -> {
                 KunneIkkeLeggeTilUtenlandsopphold.MåVurdereHelePerioden.left()
             }
+
             else -> Unit.right()
         }
     }
@@ -497,12 +520,15 @@ sealed class Revurdering :
                     is AvkortingVedRevurdering.DelvisHåndtert -> {
                         it.uhåndtert()
                     }
+
                     is AvkortingVedRevurdering.Håndtert -> {
                         it.uhåndtert()
                     }
+
                     is AvkortingVedRevurdering.Uhåndtert -> {
                         it
                     }
+
                     is AvkortingVedRevurdering.Iverksatt -> {
                         throw IllegalStateException("Kan ikke oppdatere vilkårsvurderinger for ferdigstilt håndtering av avkorting")
                     }
@@ -532,12 +558,15 @@ sealed class Revurdering :
                     is AvkortingVedRevurdering.DelvisHåndtert -> {
                         it.uhåndtert()
                     }
+
                     is AvkortingVedRevurdering.Håndtert -> {
                         it.uhåndtert()
                     }
+
                     is AvkortingVedRevurdering.Uhåndtert -> {
                         it
                     }
+
                     is AvkortingVedRevurdering.Iverksatt -> {
                         throw IllegalStateException("Kan ikke oppdatere grunnlag for ferdigstilt håndtering av avkorting")
                     }
@@ -645,6 +674,7 @@ sealed class Revurdering :
                         Unit.right()
                     }
                 }
+
                 is OpphørVedRevurdering.Nei -> {
                     Unit.right()
                 }
@@ -680,14 +710,17 @@ sealed class Revurdering :
                                 }
                                 opphør(revurdering, beregning)
                             }
+
                             is OpphørVedRevurdering.Nei -> {
                                 innvilget(revurdering, beregning)
                             }
                         }
                     }
+
                     false -> ingenEndring(revurdering, beregning)
                 }
             }
+
             else -> {
                 when (
                     VurderOmBeregningGirOpphørVedRevurdering(
@@ -701,6 +734,7 @@ sealed class Revurdering :
                         }
                         opphør(revurdering, beregning)
                     }
+
                     is OpphørVedRevurdering.Nei -> {
                         innvilget(revurdering, beregning)
                     }
@@ -937,6 +971,7 @@ sealed class BeregnetRevurdering : Revurdering() {
                         periode = periode,
                     )
                 }
+
                 false -> {
                     IkkeBehovForTilbakekrevingUnderBehandling
                 }
@@ -1049,14 +1084,17 @@ sealed class BeregnetRevurdering : Revurdering() {
                                 is AvkortingVedRevurdering.DelvisHåndtert.AnnullerUtestående -> {
                                     avkorting.håndter()
                                 }
+
                                 is AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående -> {
                                     avkorting.håndter()
                                 }
+
                                 is AvkortingVedRevurdering.DelvisHåndtert.KanIkkeHåndtere -> {
                                     throw IllegalStateException("Skal ikke kunne skje")
                                 }
                             }
                         }
+
                         is Avkortingsvarsel.Utenlandsopphold -> {
                             val simuleringMedNyOpphørsdato = simuler(
                                 sakId,
@@ -1078,9 +1116,11 @@ sealed class BeregnetRevurdering : Revurdering() {
                                 is AvkortingVedRevurdering.DelvisHåndtert.AnnullerUtestående -> {
                                     avkorting.håndter(avkortingsvarsel as Avkortingsvarsel.Utenlandsopphold.SkalAvkortes)
                                 }
+
                                 is AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående -> {
                                     avkorting.håndter(avkortingsvarsel as Avkortingsvarsel.Utenlandsopphold.SkalAvkortes)
                                 }
+
                                 is AvkortingVedRevurdering.DelvisHåndtert.KanIkkeHåndtere -> {
                                     throw IllegalStateException("Skal ikke kunne skje")
                                 }
@@ -1099,6 +1139,7 @@ sealed class BeregnetRevurdering : Revurdering() {
                         periode = periode,
                     )
                 }
+
                 false -> {
                     IkkeBehovForTilbakekrevingUnderBehandling
                 }
@@ -1142,6 +1183,7 @@ sealed class BeregnetRevurdering : Revurdering() {
                 -> {
                     false
                 }
+
                 is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel,
                 is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående,
                 -> {
@@ -1152,6 +1194,7 @@ sealed class BeregnetRevurdering : Revurdering() {
                 is Tilbakekrevingsbehandling.UnderBehandling.IkkeBehovForTilbakekreving -> {
                     false
                 }
+
                 is IkkeTilbakekrev,
                 is Tilbakekrev,
                 is IkkeAvgjort,
@@ -1175,19 +1218,23 @@ sealed class BeregnetRevurdering : Revurdering() {
                                         simulering = simulertUtbetaling.simulering,
                                     ).skalAvkortes()
                                 }
+
                                 false -> {
                                     Avkortingsvarsel.Ingen
                                 }
                             }
                         }
+
                         is Vilkårsvurderingsresultat.Innvilget -> {
                             Avkortingsvarsel.Ingen
                         }
+
                         is Vilkårsvurderingsresultat.Uavklart -> {
                             throw IllegalStateException("Kan ikke vurdere avkorting før vilkår er avklart.")
                         }
                     }
                 }
+
                 else -> {
                     Avkortingsvarsel.Ingen
                 }
@@ -1391,9 +1438,11 @@ sealed class SimulertRevurdering : Revurdering() {
                 is Forhåndsvarsel.Ferdigbehandlet -> {
                     forhåndsvarsel
                 }
+
                 is Forhåndsvarsel.UnderBehandling -> {
                     return KunneIkkeSendeInnvilgetRevurderingTilAttestering.ForhåndsvarslingErIkkeFerdigbehandlet.left()
                 }
+
                 null -> {
                     return KunneIkkeSendeInnvilgetRevurderingTilAttestering.ForhåndsvarslingErIkkeFerdigbehandlet.left()
                 }
@@ -1406,6 +1455,7 @@ sealed class SimulertRevurdering : Revurdering() {
                 -> {
                     tilbakekrevingsbehandling
                 }
+
                 is IkkeAvgjort -> {
                     return KunneIkkeSendeInnvilgetRevurderingTilAttestering.TilbakekrevingsbehandlingErIkkeFullstendig.left()
                 }
@@ -1518,9 +1568,11 @@ sealed class SimulertRevurdering : Revurdering() {
                 is Forhåndsvarsel.Ferdigbehandlet -> {
                     forhåndsvarsel
                 }
+
                 is Forhåndsvarsel.UnderBehandling -> {
                     return KanIkkeSendeOpphørtRevurderingTilAttestering.ForhåndsvarslingErIkkeFerdigbehandlet.left()
                 }
+
                 null -> {
                     return KanIkkeSendeOpphørtRevurderingTilAttestering.ForhåndsvarslingErIkkeFerdigbehandlet.left()
                 }
@@ -1533,6 +1585,7 @@ sealed class SimulertRevurdering : Revurdering() {
                 -> {
                     tilbakekrevingsbehandling
                 }
+
                 is IkkeAvgjort -> {
                     return KanIkkeSendeOpphørtRevurderingTilAttestering.TilbakekrevingsbehandlingErIkkeFullstendig.left()
                 }
@@ -1845,6 +1898,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 tilbakekrevingsbehandling = tilbakekrevingsbehandling,
                 sakinfo = sakinfo,
             )
+
             is Opphørt -> UnderkjentRevurdering.Opphørt(
                 id = id,
                 periode = periode,
@@ -1865,6 +1919,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 tilbakekrevingsbehandling = tilbakekrevingsbehandling,
                 sakinfo = sakinfo,
             )
+
             is IngenEndring -> UnderkjentRevurdering.IngenEndring(
                 id = id,
                 periode = periode,
@@ -2352,15 +2407,19 @@ private fun validerTilIverksettOvergang(
         is AvkortingVedRevurdering.Håndtert.AnnullerUtestående -> {
             avkorting.avkortingsvarsel.id
         }
+
         AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående -> {
             null
         }
+
         is AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres -> {
             null
         }
+
         is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel -> {
             null
         }
+
         is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
             avkorting.annullerUtestående.id
         }
@@ -2372,18 +2431,23 @@ private fun validerTilIverksettOvergang(
                 Avkortingsvarsel.Ingen -> {
                     throw IllegalStateException("Prøver å iverksette avkorting uten at det finnes noe å avkorte")
                 }
+
                 is Avkortingsvarsel.Utenlandsopphold.Annullert -> {
                     return RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.HarBlittAnnullertAvEnAnnen.left()
                 }
+
                 is Avkortingsvarsel.Utenlandsopphold.Avkortet -> {
                     return RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen.left()
                 }
+
                 is Avkortingsvarsel.Utenlandsopphold.Opprettet -> {
                     throw IllegalStateException("Prøver å iverksette avkorting uten at det finnes noe å avkorte")
                 }
+
                 is Avkortingsvarsel.Utenlandsopphold.SkalAvkortes -> {
                     // Dette er den eneste som er gyldig
                 }
+
                 null -> {
                     throw IllegalStateException("Prøver å iverksette avkorting uten at det finnes noe å avkorte")
                 }

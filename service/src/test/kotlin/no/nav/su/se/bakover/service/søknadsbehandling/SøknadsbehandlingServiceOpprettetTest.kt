@@ -138,7 +138,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                     søknadId = nySøknad.id,
                     sakId = nySøknad.sakId,
                 ),
-            ) shouldBe SøknadsbehandlingService.KunneIkkeOpprette.HarAlleredeÅpenSøknadsbehandling.left()
+            ) shouldBe SøknadsbehandlingService.KunneIkkeOpprette.HarÅpenBehandling.left()
         }
     }
 

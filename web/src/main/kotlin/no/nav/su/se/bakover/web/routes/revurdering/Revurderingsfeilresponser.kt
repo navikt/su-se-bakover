@@ -110,6 +110,7 @@ internal object Revurderingsfeilresponser {
             "Allerede forhåndsvarslet",
             "allerede_forhåndsvarslet",
         )
+
         is KunneIkkeForhåndsvarsle.FantIkkePerson -> fantIkkePerson
         is KunneIkkeForhåndsvarsle.KunneIkkeOppdatereOppgave -> kunneIkkeOppretteOppgave
         is KunneIkkeForhåndsvarsle.FantIkkeRevurdering -> fantIkkeRevurdering
@@ -117,6 +118,7 @@ internal object Revurderingsfeilresponser {
             "Må være i tilstanden ${SimulertRevurdering::class.simpleName} for å kunne forhåndsvarsle. Nåværende tilstand: ${fra.simpleName} ",
             "ugyldig_tilstand",
         )
+
         is KunneIkkeForhåndsvarsle.Attestering -> this.subError.tilResultat()
         is KunneIkkeForhåndsvarsle.KunneIkkeHenteNavnForSaksbehandler -> navneoppslagSaksbehandlerAttesttantFeilet
         KunneIkkeForhåndsvarsle.KunneIkkeGenerereDokument -> feilVedGenereringAvDokument
@@ -139,6 +141,7 @@ internal object Revurderingsfeilresponser {
                 message = "Ugyldig begrunnelse for revurdering",
                 code = "revurderingsårsak_ugyldig_begrunnelse",
             )
+
             Revurderingsårsak.UgyldigRevurderingsårsak.UgyldigÅrsak -> BadRequest.errorJson(
                 message = "Ugyldig årsak for revurdering",
                 code = "revurderingsårsak_ugyldig_årsak",

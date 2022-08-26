@@ -238,6 +238,7 @@ sealed class KunneIkkeOppretteRevurdering {
     data class UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(val periode: Periode) :
         KunneIkkeOppretteRevurdering()
 
+    object HarÅpenBehandling : KunneIkkeOppretteRevurdering()
     object UtenlandsoppholdSomFørerTilOpphørMåRevurderes : KunneIkkeOppretteRevurdering()
 }
 

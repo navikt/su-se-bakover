@@ -78,8 +78,8 @@ interface SøknadsbehandlingService {
         object SøknadManglerOppgave : KunneIkkeOpprette()
         object SøknadErLukket : KunneIkkeOpprette()
         object SøknadHarAlleredeBehandling : KunneIkkeOpprette()
-        object HarAlleredeÅpenSøknadsbehandling : KunneIkkeOpprette()
         object FantIkkeSak : KunneIkkeOpprette()
+        object HarÅpenBehandling : KunneIkkeOpprette()
     }
 
     sealed class KunneIkkeVilkårsvurdere {

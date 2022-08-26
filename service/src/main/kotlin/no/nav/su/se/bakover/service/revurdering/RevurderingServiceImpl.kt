@@ -9,7 +9,6 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -18,7 +17,6 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
@@ -37,7 +35,6 @@ import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
-import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IdentifiserRevurderingsopphørSomIkkeStøttes
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
@@ -49,7 +46,6 @@ import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak.Årsak.REGULER_GRUNNBELØP
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
@@ -185,8 +181,7 @@ internal class RevurderingServiceImpl(
             .getOrHandle { return KunneIkkeOppretteRevurdering.FantIkkeSak.left() }
 
         val gjeldendeVedtaksdata: GjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
-            fraOgMed = opprettRevurderingRequest.fraOgMed,
-            clock = clock,
+            fraOgMed = opprettRevurderingRequest.fraOgMed, clock = clock,
         ).getOrHandle {
             return when (it) {
                 is Sak.KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes -> {
@@ -225,20 +220,17 @@ internal class RevurderingServiceImpl(
             return KunneIkkeOppretteRevurdering.FantIkkeAktørId.left()
         }
 
-        val uteståendeAvkorting = sak.hentUteståendeAvkortingForRevurdering()
-            .fold(
-                {
-                    it
-                },
-                { uteståendeAvkorting ->
-                    kontrollerAtUteståendeAvkortingRevurderes(gjeldendeVedtaksdata, uteståendeAvkorting)
-                        .getOrHandle {
-                            return KunneIkkeOppretteRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(
-                                periode = uteståendeAvkorting.avkortingsvarsel.periode(),
-                            ).left()
-                        }
-                },
-            )
+        val uteståendeAvkorting = sak.hentUteståendeAvkortingForRevurdering().fold(
+            { it },
+            { uteståendeAvkorting ->
+                kontrollerAtUteståendeAvkortingRevurderes(gjeldendeVedtaksdata, uteståendeAvkorting)
+                    .getOrHandle {
+                        return KunneIkkeOppretteRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(
+                            periode = uteståendeAvkorting.avkortingsvarsel.periode(),
+                        ).left()
+                    }
+            },
+        )
 
         // Oppgaven skal egentligen ikke opprettes her. Den burde egentligen komma utifra melding av endring, som skal føres til revurdering.
         return oppgaveService.opprettOppgave(
@@ -251,31 +243,24 @@ internal class RevurderingServiceImpl(
         ).mapLeft {
             KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave
         }.map { oppgaveId ->
-            OpprettetRevurdering(
-                periode = gjeldendeVedtaksdata.vedtaksperioder().minsteAntallSammenhengendePerioder().single(),
-                opprettet = Tidspunkt.now(clock),
-                tilRevurdering = gjeldendeVedtakPåFraOgMedDato.id,
+            return sak.opprettNyRevurdering(
+                gjeldendeVedtaksdata = gjeldendeVedtaksdata,
+                gjeldendeVedtakPåFraOgMedDato = gjeldendeVedtakPåFraOgMedDato,
                 saksbehandler = opprettRevurderingRequest.saksbehandler,
                 oppgaveId = oppgaveId,
-                fritekstTilBrev = "",
                 revurderingsårsak = revurderingsårsak,
-                forhåndsvarsel = if (revurderingsårsak.årsak == REGULER_GRUNNBELØP) Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles else null,
-                grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
-                vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
-                attesteringer = Attesteringshistorikk.empty(),
                 avkorting = uteståendeAvkorting,
-                sakinfo = gjeldendeVedtakPåFraOgMedDato.sakinfo(),
-            ).also {
-                revurderingRepo.lagre(it)
+                clock = clock,
+            ).mapLeft {
+                return KunneIkkeOppretteRevurdering.HarÅpenBehandling.left()
+            }.map { opprettetRevurdering ->
+                revurderingRepo.lagre(opprettetRevurdering)
 
                 observers.forEach { observer ->
-                    observer.handle(
-                        Event.Statistikk.RevurderingStatistikk.RevurderingOpprettet(
-                            it,
-                        ),
-                    )
+                    observer.handle(Event.Statistikk.RevurderingStatistikk.RevurderingOpprettet(opprettetRevurdering))
                 }
+                opprettetRevurdering
             }
         }
     }
