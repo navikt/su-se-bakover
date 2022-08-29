@@ -62,6 +62,7 @@ class ReguleringServiceImpl(
                 is Regulering.KunneIkkeBeregne.BeregningFeilet -> {
                     throw RuntimeException("Regulering for saksnummer ${regulering.saksnummer}: Vi klarte ikke å beregne. Underliggende grunn ${it.feil}")
                 }
+
                 is Regulering.KunneIkkeBeregne.IkkeLovÅBeregneIDenneStatusen -> {
                     throw RuntimeException("Regulering for saksnummer ${regulering.saksnummer}: Vi klarte ikke å beregne. Feil status")
                 }
@@ -105,8 +106,13 @@ class ReguleringServiceImpl(
                     Sak.KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode -> log.info(
                         "Regulering for saksnummer $saksnummer: Skippet. Fantes ingen vedtak for valgt periode.",
                     )
+
                     Sak.KunneIkkeOppretteEllerOppdatereRegulering.BleIkkeLagetReguleringDaDenneUansettMåRevurderes, Sak.KunneIkkeOppretteEllerOppdatereRegulering.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig -> log.error(
                         "Regulering for saksnummer $saksnummer: Skippet. Denne feilen må varsles til saksbehandler og håndteres manuelt. Årsak: $feil",
+                    )
+
+                    Sak.KunneIkkeOppretteEllerOppdatereRegulering.HarÅpenBehandling -> log.info(
+                        "Regulering for saksnummer $saksnummer: Skippet. Fantes en åpen behandling",
                     )
                 }
 
@@ -177,19 +183,22 @@ class ReguleringServiceImpl(
         if (tilbakekrevingService.hentAvventerKravgrunnlag(sak.id).isNotEmpty())
             return KunneIkkeRegulereManuelt.AvventerKravgrunnlag.left()
 
-        val reguleringMedNyttGrunnlag =
-            sak.opprettEllerOppdaterRegulering(regulering.periode.fraOgMed, clock)
-                .getOrHandle { throw RuntimeException("Feil skjedde under manuell regulering for saksnummer ${sak.saksnummer}. $it") }
-
-        return reguleringMedNyttGrunnlag
-            .copy(reguleringstype = regulering.reguleringstype)
-            .leggTilFradrag(fradrag)
-            .leggTilUføre(uføregrunnlag, clock)
-            .leggTilSaksbehandler(saksbehandler)
-            .let {
-                ferdigstillOgIverksettRegulering(it)
-                    .mapLeft { feil -> KunneIkkeRegulereManuelt.KunneIkkeFerdigstille(feil = feil) }
+        return sak.opprettEllerOppdaterRegulering(regulering.periode.fraOgMed, clock).mapLeft {
+            return when (it) {
+                Sak.KunneIkkeOppretteEllerOppdatereRegulering.HarÅpenBehandling -> KunneIkkeRegulereManuelt.HarÅpenBehandling.left()
+                else -> throw RuntimeException("Feil skjedde under manuell regulering for saksnummer ${sak.saksnummer}. $it")
             }
+        }.map {
+            return it
+                .copy(reguleringstype = regulering.reguleringstype)
+                .leggTilFradrag(fradrag)
+                .leggTilUføre(uføregrunnlag, clock)
+                .leggTilSaksbehandler(saksbehandler)
+                .let {
+                    ferdigstillOgIverksettRegulering(it)
+                        .mapLeft { feil -> KunneIkkeRegulereManuelt.KunneIkkeFerdigstille(feil = feil) }
+                }
+        }
     }
 
     private fun ferdigstillOgIverksettRegulering(regulering: Regulering.OpprettetRegulering): Either<KunneIkkeFerdigstilleOgIverksette, Regulering.IverksattRegulering> {
@@ -205,6 +214,7 @@ class ReguleringServiceImpl(
                         kunneikkeBeregne.feil,
                     )
                 }
+
                 is Regulering.KunneIkkeBeregne.IkkeLovÅBeregneIDenneStatusen -> {
                     log.error("Regulering for saksnummer ${regulering.saksnummer}: Feilet. Beregning feilet. Ikke lov å beregne i denne statusen")
                 }

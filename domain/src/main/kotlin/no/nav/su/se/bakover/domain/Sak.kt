@@ -402,6 +402,7 @@ data class Sak(
         object FinnesIngenVedtakSomKanRevurderesForValgtPeriode : KunneIkkeOppretteEllerOppdatereRegulering
         object StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig : KunneIkkeOppretteEllerOppdatereRegulering
         object BleIkkeLagetReguleringDaDenneUansettMåRevurderes : KunneIkkeOppretteEllerOppdatereRegulering
+        object HarÅpenBehandling : KunneIkkeOppretteEllerOppdatereRegulering
     }
 
     /**
@@ -414,6 +415,10 @@ data class Sak(
         startDato: LocalDate,
         clock: Clock,
     ): Either<KunneIkkeOppretteEllerOppdatereRegulering, Regulering.OpprettetRegulering> {
+        // har ikke en reguleringssjekk her, da vi gjør det i filterIsInstance()
+        if (harÅpenSøknadsbehandling() || hentÅpneRevurderinger().isRight()) {
+            return KunneIkkeOppretteEllerOppdatereRegulering.HarÅpenBehandling.left()
+        }
 
         val (reguleringsId, opprettet, _startDato) = reguleringer.filterIsInstance<Regulering.OpprettetRegulering>()
             .let { r ->
@@ -584,14 +589,14 @@ data class Sak(
         sakinfo = gjeldendeVedtakPåFraOgMedDato.sakinfo(),
     ).right()
 
-    private fun hentÅpneReguleringer(): Either<IngenÅpneReguleringer, NonEmptyList<Regulering>> =
+    fun hentÅpneReguleringer(): Either<IngenÅpneReguleringer, NonEmptyList<Regulering>> =
         reguleringer
             .filter { it.erÅpen() }
             .ifEmpty { return IngenÅpneReguleringer.left() }
             .nonEmpty()
             .right()
 
-    private fun hentÅpneRevurderinger(): Either<IngenÅpneRevurderinger, NonEmptyList<AbstraktRevurdering>> =
+    fun hentÅpneRevurderinger(): Either<IngenÅpneRevurderinger, NonEmptyList<AbstraktRevurdering>> =
         revurderinger
             .filter { it.erÅpen() }
             .ifEmpty { return IngenÅpneRevurderinger.left() }
