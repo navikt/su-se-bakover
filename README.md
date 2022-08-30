@@ -157,6 +157,17 @@ via `SSO`
 
 Evaluer innholdet i `.snyk`-fila: `snyk policy`
 
+## Koble til database i preprod/prod
+1. Via naisdevice (fungerer kun med nav image) eller via vmware
+2. Finner settings i `nais-dev.json` og `nais-prod.json`.
+3. Hent brukernavn/passord på https://vault.adeo.no/ui/vault/secrets (login med oidc). Åpne konsollen og velg ønsket rolle:
+   1. `vault read postgresql/preprod-fss/creds/supstonad-db-dev-readonly`
+   2. `vault read postgresql/preprod-fss/creds/supstonad-db-dev-user`
+   3. `vault read postgresql/preprod-fss/creds/supstonad-db-dev-admin`
+   4. `vault read postgresql/prod-fss/creds/supstonad-db-prod-readonly`
+   5. `vault read postgresql/prod-fss/creds/supstonad-db-prod-user`
+   6. `vault read postgresql/prod-fss/creds/supstonad-db-prod-admin`
+
 ## Migrerte data fra Infotrygd
 
 Det er opprettet en replikeringsdatabase med data fra den eksisterende su-alder løsningen i Infotrygd (test).
