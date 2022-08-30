@@ -180,88 +180,23 @@ internal class RevurderingServiceImpl(
         val sak = sakService.hentSak(opprettRevurderingRequest.sakId)
             .getOrHandle { return KunneIkkeOppretteRevurdering.FantIkkeSak.left() }
 
-        val gjeldendeVedtaksdata: GjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
-            fraOgMed = opprettRevurderingRequest.fraOgMed, clock = clock,
-        ).getOrHandle {
-            return when (it) {
-                is Sak.KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes -> {
-                    KunneIkkeOppretteRevurdering.FantIngenVedtakSomKanRevurderes
-                }
-
-                is Sak.KunneIkkeHenteGjeldendeVedtaksdata.UgyldigPeriode -> {
-                    KunneIkkeOppretteRevurdering.UgyldigPeriode(it.feil)
-                }
-            }.left()
-        }.also {
-            if (!it.tidslinjeForVedtakErSammenhengende()) return KunneIkkeOppretteRevurdering.TidslinjeForVedtakErIkkeKontinuerlig.left()
-        }
-
-        when (val r = VurderOmVilkårGirOpphørVedRevurdering(gjeldendeVedtaksdata.vilkårsvurderinger).resultat) {
-            is OpphørVedRevurdering.Ja -> {
-                if (!informasjonSomRevurderes.harValgtFormue() && r.opphørsgrunner.contains(Opphørsgrunn.FORMUE)) {
-                    return KunneIkkeOppretteRevurdering.FormueSomFørerTilOpphørMåRevurderes.left()
-                }
-                if (!informasjonSomRevurderes.harValgtUtenlandsopphold() && r.opphørsgrunner.contains(Opphørsgrunn.UTENLANDSOPPHOLD)) {
-                    return KunneIkkeOppretteRevurdering.UtenlandsoppholdSomFørerTilOpphørMåRevurderes.left()
-                }
-            }
-
-            is OpphørVedRevurdering.Nei -> {
-                // noop
-            }
-        }
-
-        val gjeldendeVedtakPåFraOgMedDato =
-            gjeldendeVedtaksdata.gjeldendeVedtakPåDato(opprettRevurderingRequest.fraOgMed)
-                ?: return KunneIkkeOppretteRevurdering.FantIngenVedtakSomKanRevurderes.left()
-
-        val aktørId = personService.hentAktørId(gjeldendeVedtakPåFraOgMedDato.behandling.fnr).getOrElse {
-            log.error("Fant ikke aktør-id")
-            return KunneIkkeOppretteRevurdering.FantIkkeAktørId.left()
-        }
-
-        val uteståendeAvkorting = sak.hentUteståendeAvkortingForRevurdering().fold(
-            { it },
-            { uteståendeAvkorting ->
-                kontrollerAtUteståendeAvkortingRevurderes(gjeldendeVedtaksdata, uteståendeAvkorting)
-                    .getOrHandle {
-                        return KunneIkkeOppretteRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(
-                            periode = uteståendeAvkorting.avkortingsvarsel.periode(),
-                        ).left()
-                    }
-            },
-        )
-
-        // Oppgaven skal egentligen ikke opprettes her. Den burde egentligen komma utifra melding av endring, som skal føres til revurdering.
-        return oppgaveService.opprettOppgave(
-            OppgaveConfig.Revurderingsbehandling(
-                saksnummer = gjeldendeVedtakPåFraOgMedDato.behandling.saksnummer,
-                aktørId = aktørId,
-                tilordnetRessurs = null,
-                clock = clock,
-            ),
+        return sak.opprettNyRevurdering(
+            fraOgMed = opprettRevurderingRequest.fraOgMed,
+            saksbehandler = opprettRevurderingRequest.saksbehandler,
+            revurderingsårsak = revurderingsårsak,
+            informasjonSomRevurderes = informasjonSomRevurderes,
+            hentAktørId = personService::hentAktørId,
+            opprettOppgave = oppgaveService::opprettOppgave,
+            clock = clock,
         ).mapLeft {
-            KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave
-        }.map { oppgaveId ->
-            return sak.opprettNyRevurdering(
-                gjeldendeVedtaksdata = gjeldendeVedtaksdata,
-                gjeldendeVedtakPåFraOgMedDato = gjeldendeVedtakPåFraOgMedDato,
-                saksbehandler = opprettRevurderingRequest.saksbehandler,
-                oppgaveId = oppgaveId,
-                revurderingsårsak = revurderingsårsak,
-                informasjonSomRevurderes = informasjonSomRevurderes,
-                avkorting = uteståendeAvkorting,
-                clock = clock,
-            ).mapLeft {
-                return KunneIkkeOppretteRevurdering.HarÅpenBehandling.left()
-            }.map { opprettetRevurdering ->
-                revurderingRepo.lagre(opprettetRevurdering)
+            return KunneIkkeOppretteRevurdering.FeilVedOpprettelseAvRevurdering(it).left()
+        }.map { opprettetRevurdering ->
+            revurderingRepo.lagre(opprettetRevurdering)
 
-                observers.forEach { observer ->
-                    observer.handle(Event.Statistikk.RevurderingStatistikk.RevurderingOpprettet(opprettetRevurdering))
-                }
-                opprettetRevurdering
+            observers.forEach { observer ->
+                observer.handle(Event.Statistikk.RevurderingStatistikk.RevurderingOpprettet(opprettetRevurdering))
             }
+            opprettetRevurdering
         }
     }
 

@@ -4,6 +4,7 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -15,18 +16,17 @@ import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.nySakMedLukketSøknad
 import no.nav.su.se.bakover.test.nySakMedNySøknad
 import no.nav.su.se.bakover.test.nySakMedjournalførtSøknadOgOppgave
+import no.nav.su.se.bakover.test.nySakUføre
 import no.nav.su.se.bakover.test.nySøknadJournalførtMedOppgave
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.søknadinnhold
-import no.nav.su.se.bakover.test.søknadsbehandlingBeregnetInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagMedBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagUtenBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
-import no.nav.su.se.bakover.test.søknadsbehandlingLukket
-import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.toSøknadsbehandling
 import no.nav.su.se.bakover.test.vilkårsvurderingSøknadsbehandlingIkkeVurdert
 import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandlingUføre
@@ -48,7 +48,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
     fun `svarer med feil dersom vi ikke finner søknad`() {
         SøknadsbehandlingServiceAndMocks(
             sakService = mock {
-                on { hentSak(any<UUID>()) } doReturn søknadsbehandlingVilkårsvurdertUavklart().first.right()
+                on { hentSak(any<UUID>()) } doReturn nySakUføre(fixedClock).first.right()
             },
         ).also {
             it.søknadsbehandlingService.opprett(
@@ -56,25 +56,25 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                     søknadId = UUID.randomUUID(),
                     sakId = sakId,
                 ),
-            ) shouldBe SøknadsbehandlingService.KunneIkkeOpprette.FantIkkeSøknad.left()
+            ) shouldBe SøknadsbehandlingService.KunneIkkeOpprette.KunneIkkeOppretteSøknadsbehandling(Sak.KunneIkkeOppretteSøknad.FantIkkeSøknad)
+                .left()
         }
     }
 
     @Test
-    fun `svarer med feil dersom søknad allrede er lukket`() {
-        val (sak, søknadsbehandling) = søknadsbehandlingLukket()
+    fun `svarer med feil dersom man oppretter behandling på lukket søknad`() {
+        val (sak, lukketSøknad) = nySakMedLukketSøknad()
 
         SøknadsbehandlingServiceAndMocks(
-            sakService = mock {
-                on { hentSak(any<UUID>()) } doReturn sak.right()
-            },
+            sakService = mock { on { hentSak(any<UUID>()) } doReturn sak.right() },
         ).also {
             it.søknadsbehandlingService.opprett(
                 SøknadsbehandlingService.OpprettRequest(
-                    søknadId = søknadsbehandling.søknad.id,
+                    søknadId = lukketSøknad.id,
                     sakId = sak.id,
                 ),
-            ) shouldBe SøknadsbehandlingService.KunneIkkeOpprette.SøknadErLukket.left()
+            ) shouldBe SøknadsbehandlingService.KunneIkkeOpprette.KunneIkkeOppretteSøknadsbehandling(Sak.KunneIkkeOppretteSøknad.ErLukket)
+                .left()
         }
     }
 
@@ -92,13 +92,14 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                     søknadId = søknad.id,
                     sakId = sak.id,
                 ),
-            ) shouldBe SøknadsbehandlingService.KunneIkkeOpprette.SøknadManglerOppgave.left()
+            ) shouldBe SøknadsbehandlingService.KunneIkkeOpprette.KunneIkkeOppretteSøknadsbehandling(Sak.KunneIkkeOppretteSøknad.ManglerOppgave)
+                .left()
         }
     }
 
     @Test
     fun `svarer med feil dersom søknad har påbegynt behandling`() {
-        val (sak, søknadsbehandling) = søknadsbehandlingBeregnetInnvilget()
+        val (sak, søknadsbehandling) = søknadsbehandlingIverksattAvslagMedBeregning()
 
         SøknadsbehandlingServiceAndMocks(
             sakService = mock {
@@ -110,7 +111,8 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                     søknadId = søknadsbehandling.søknad.id,
                     sakId = sak.id,
                 ),
-            ) shouldBe SøknadsbehandlingService.KunneIkkeOpprette.SøknadHarAlleredeBehandling.left()
+            ) shouldBe SøknadsbehandlingService.KunneIkkeOpprette.KunneIkkeOppretteSøknadsbehandling(Sak.KunneIkkeOppretteSøknad.HarAlleredeBehandling)
+                .left()
         }
     }
 
@@ -138,7 +140,8 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                     søknadId = nySøknad.id,
                     sakId = nySøknad.sakId,
                 ),
-            ) shouldBe SøknadsbehandlingService.KunneIkkeOpprette.HarÅpenBehandling.left()
+            ) shouldBe SøknadsbehandlingService.KunneIkkeOpprette.KunneIkkeOppretteSøknadsbehandling(Sak.KunneIkkeOppretteSøknad.HarÅpenBehandling)
+                .left()
         }
     }
 

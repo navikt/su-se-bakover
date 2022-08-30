@@ -9,7 +9,6 @@ import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.beOfType
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.desember
@@ -31,6 +30,7 @@ import no.nav.su.se.bakover.common.periode.november
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
@@ -61,7 +61,6 @@ import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknadinnhold
-import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.vedtakIverksattGjenopptakAvYtelseFraIverksattStans
@@ -114,16 +113,16 @@ internal class SakTest {
     @Test
     fun `oppretter søknadsbehandling dersom det ikke finnes eksisterende åpne behandlinger`() {
         val (sakUtenÅpenBehandling, søknad) = nySakUføre()
-        sakUtenÅpenBehandling.opprettNySøknadsbehandling(søknad, fixedClock).shouldBeRight()
+        sakUtenÅpenBehandling.opprettNySøknadsbehandling(søknad.id, fixedClock).shouldBeRight()
 
         val sakMedÅpenSøknadsbehandling = søknadsbehandlingVilkårsvurdertUavklart().first
-        sakMedÅpenSøknadsbehandling.opprettNySøknadsbehandling(søknad, fixedClock).shouldBeLeft()
+        sakMedÅpenSøknadsbehandling.opprettNySøknadsbehandling(søknad.id, fixedClock).shouldBeLeft()
 
         val sakMedÅpenRevurdering = opprettetRevurdering().first
-        sakMedÅpenRevurdering.opprettNySøknadsbehandling(søknad, fixedClock).shouldBeLeft()
+        sakMedÅpenRevurdering.opprettNySøknadsbehandling(søknad.id, fixedClock).shouldBeLeft()
 
         val sakMedÅpenRegulering = innvilgetSøknadsbehandlingMedÅpenRegulering(1.mai(2021)).first
-        sakMedÅpenRegulering.opprettNySøknadsbehandling(søknad, fixedClock)
+        sakMedÅpenRegulering.opprettNySøknadsbehandling(søknad.id, fixedClock)
     }
 
     @Test
@@ -131,48 +130,35 @@ internal class SakTest {
         val sakUtenÅpenBehandling = (iverksattSøknadsbehandlingUføre()).first
         val (sakMedÅpenRevurdering, revurdering) = opprettetRevurdering()
 
-        val vedtakSomRevurderes = VedtakSomKanRevurderes.fromSøknadsbehandling(
-            søknadsbehandlingIverksattInnvilget().second, UUID30.randomUUID(), fixedClock,
-        )
-
         sakUtenÅpenBehandling.opprettNyRevurdering(
-            gjeldendeVedtaksdata = GjeldendeVedtaksdata(
-                revurdering.periode, nonEmptyListOf(vedtakSomRevurderes), fixedClock,
-            ),
-            gjeldendeVedtakPåFraOgMedDato = vedtakSomRevurderes,
             saksbehandler = revurdering.saksbehandler,
-            oppgaveId = revurdering.oppgaveId,
             revurderingsårsak = revurdering.revurderingsårsak,
             informasjonSomRevurderes = revurdering.informasjonSomRevurderes,
-            avkorting = revurdering.avkorting,
             clock = fixedClock,
+            fraOgMed = 1.januar(2021),
+            hentAktørId = { AktørId("aktørId").right() },
+            opprettOppgave = { OppgaveId("oppgaveId").right() },
         ).shouldBeRight()
 
         sakMedÅpenRevurdering.opprettNyRevurdering(
-            gjeldendeVedtaksdata = GjeldendeVedtaksdata(
-                revurdering.periode, nonEmptyListOf(vedtakSomRevurderes), fixedClock,
-            ),
-            gjeldendeVedtakPåFraOgMedDato = vedtakSomRevurderes,
             saksbehandler = revurdering.saksbehandler,
-            oppgaveId = revurdering.oppgaveId,
             revurderingsårsak = revurdering.revurderingsårsak,
             informasjonSomRevurderes = revurdering.informasjonSomRevurderes,
-            avkorting = revurdering.avkorting,
             clock = fixedClock,
+            fraOgMed = 1.januar(2021),
+            hentAktørId = { AktørId("aktørId").right() },
+            opprettOppgave = { OppgaveId("oppgaveId").right() },
         ).shouldBeLeft()
 
         val sakMedÅpenRegulering = innvilgetSøknadsbehandlingMedÅpenRegulering(1.mai(2021)).first
         sakMedÅpenRegulering.opprettNyRevurdering(
-            gjeldendeVedtaksdata = GjeldendeVedtaksdata(
-                revurdering.periode, nonEmptyListOf(vedtakSomRevurderes), fixedClock,
-            ),
-            gjeldendeVedtakPåFraOgMedDato = vedtakSomRevurderes,
             saksbehandler = revurdering.saksbehandler,
-            oppgaveId = revurdering.oppgaveId,
             revurderingsårsak = revurdering.revurderingsårsak,
             informasjonSomRevurderes = revurdering.informasjonSomRevurderes,
-            avkorting = revurdering.avkorting,
             clock = fixedClock,
+            fraOgMed = 1.januar(2021),
+            hentAktørId = { AktørId("aktørId").right() },
+            opprettOppgave = { OppgaveId("oppgaveId").right() },
         ).shouldBeLeft()
     }
 

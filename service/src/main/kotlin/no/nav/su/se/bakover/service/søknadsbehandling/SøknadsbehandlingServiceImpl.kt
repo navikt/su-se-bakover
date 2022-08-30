@@ -8,7 +8,6 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
@@ -135,22 +134,8 @@ internal class SøknadsbehandlingServiceImpl(
         val sak = sakService.hentSak(request.sakId)
             .getOrHandle { return KunneIkkeOpprette.FantIkkeSak.left() }
 
-        val søknad = sak.hentSøknad(request.søknadId)
-            .getOrHandle { return KunneIkkeOpprette.FantIkkeSøknad.left() }
-
-        if (søknad is Søknad.Journalført.MedOppgave.Lukket) {
-            return KunneIkkeOpprette.SøknadErLukket.left()
-        }
-        if (søknad !is Søknad.Journalført.MedOppgave) {
-            // TODO Prøv å opprette oppgaven hvis den mangler? (systembruker blir kanskje mest riktig?)
-            return KunneIkkeOpprette.SøknadManglerOppgave.left()
-        }
-        if (sak.hentSøknadsbehandlingForSøknad(søknad.id).isNotEmpty()) {
-            return KunneIkkeOpprette.SøknadHarAlleredeBehandling.left()
-        }
-
-        return sak.opprettNySøknadsbehandling(søknad = søknad, clock = clock).mapLeft {
-            return KunneIkkeOpprette.HarÅpenBehandling.left()
+        return sak.opprettNySøknadsbehandling(søknadId = request.søknadId, clock = clock).mapLeft {
+            return KunneIkkeOpprette.KunneIkkeOppretteSøknadsbehandling(it).left()
         }.map { nySøknadsbehandling ->
             søknadsbehandlingRepo.lagreNySøknadsbehandling(nySøknadsbehandling)
 

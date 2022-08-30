@@ -60,12 +60,12 @@ import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkePerson
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeSak
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeSaksbehandlerEllerAttestant
 import no.nav.su.se.bakover.web.routes.Feilresponser.feilVedGenereringAvDokument
-import no.nav.su.se.bakover.web.routes.Feilresponser.harAlleredeÅpenBehandling
 import no.nav.su.se.bakover.web.routes.Feilresponser.kunneIkkeSimulere
 import no.nav.su.se.bakover.web.routes.Feilresponser.lagringFeilet
 import no.nav.su.se.bakover.web.routes.Feilresponser.tilResultat
 import no.nav.su.se.bakover.web.routes.Feilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.web.routes.sak.sakPath
+import no.nav.su.se.bakover.web.routes.søknad.tilResultat
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.StønadsperiodeJson
 import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
@@ -105,36 +105,8 @@ internal fun Route.søknadsbehandlingRoutes(
                             {
                                 call.svar(
                                     when (it) {
-                                        is KunneIkkeOpprette.FantIkkeSøknad -> {
-                                            NotFound.errorJson(
-                                                "Fant ikke søknad med id $søknadId",
-                                                "fant_ikke_søknad",
-                                            )
-                                        }
-
-                                        is KunneIkkeOpprette.SøknadManglerOppgave -> {
-                                            InternalServerError.errorJson(
-                                                "Søknad med id $søknadId mangler oppgave",
-                                                "søknad_mangler_oppgave",
-                                            )
-                                        }
-
-                                        is KunneIkkeOpprette.SøknadHarAlleredeBehandling -> {
-                                            BadRequest.errorJson(
-                                                "Søknad med id $søknadId har allerede en behandling",
-                                                "søknad_har_behandling",
-                                            )
-                                        }
-
-                                        is KunneIkkeOpprette.SøknadErLukket -> {
-                                            BadRequest.errorJson(
-                                                "Søknad med id $søknadId er lukket",
-                                                "søknad_er_lukket",
-                                            )
-                                        }
-
-                                        KunneIkkeOpprette.FantIkkeSak -> fantIkkeSak
-                                        KunneIkkeOpprette.HarÅpenBehandling -> harAlleredeÅpenBehandling
+                                        is KunneIkkeOpprette.KunneIkkeOppretteSøknadsbehandling -> it.feil.tilResultat()
+                                        KunneIkkeOpprette.FantIkkeSak -> Feilresponser.fantIkkeSak
                                     },
                                 )
                             },
