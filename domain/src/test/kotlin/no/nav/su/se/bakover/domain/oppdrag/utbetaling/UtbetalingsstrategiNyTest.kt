@@ -40,11 +40,11 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling.Companion.hentOversendteUtbetalingerUtenFeil
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
+import no.nav.su.se.bakover.domain.oppdrag.hentOversendteUtbetalingerUtenFeil
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.beregnetRevurdering
@@ -822,7 +822,7 @@ fun nyUtbetaling(
         fnr = fnr,
         behandler = saksbehandler,
         beregning = beregning,
-        utbetalinger = eksisterendeUtbetalinger,
+        eksisterendeUtbetalinger = eksisterendeUtbetalinger,
         clock = clock,
         uføregrunnlag = uføregrunnlag,
         kjøreplan = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,

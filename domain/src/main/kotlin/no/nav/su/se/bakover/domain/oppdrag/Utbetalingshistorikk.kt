@@ -1,7 +1,10 @@
 package no.nav.su.se.bakover.domain.oppdrag
 
+import arrow.core.getOrHandle
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
+import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import java.time.Clock
 import java.time.LocalDate
 
@@ -27,9 +30,16 @@ data class Utbetalingshistorikk(
                 listOf(rekonstruertNy) + rekonstruerteEndringer
             }
 
-        return (nyeUtbetalingslinjer + rekonstruerte).also {
-            it.oppdaterReferanseTilForrigeUtbetalingslinje()
-        }
+        return (nyeUtbetalingslinjer + rekonstruerte)
+            .also {
+                it.oppdaterReferanseTilForrigeUtbetalingslinje()
+            }
+            .also {
+                kontrollerAtTidslinjeForRekonstruertPeriodeErUforandret()
+                it.kontrollerAtAlleNyeLinjerHarForskjelligForrigeReferanse()
+                it.kontrollerAtNyeLinjerHarFåttNyId()
+                it.kontrollerAtEksisterendeErKjedetMedNyeUtbetalinger()
+            }
     }
 
     private fun minumumFraOgMedDatoForRekonstruerteLinjer(): LocalDate {
@@ -109,6 +119,65 @@ data class Utbetalingshistorikk(
                 }
             }
         }
+    }
+
+    private fun kontrollerAtTidslinjeForRekonstruertPeriodeErUforandret() {
+        finnUtbetalingslinjerSomSkalRekonstrueres()
+            .ifNotEmpty {
+                val periode = Periode.create(
+                    fraOgMed = minumumFraOgMedDatoForRekonstruerteLinjer(),
+                    tilOgMed = maxOf { it.tilOgMed },
+                )
+
+                val tidslinjeGammel = eksisterendeUtbetalingslinjer.tidslinje(
+                    clock = clock,
+                    periode = periode,
+                ).getOrHandle { throw RuntimeException("Kunne ikke generere tidslinje: $it") }
+
+                val tidslinjeNy = tidslinje(
+                    clock = clock,
+                    periode = periode,
+                ).getOrHandle { throw RuntimeException("Kunne ikke generere tidslinje: $it") }
+
+                check(tidslinjeGammel.ekvivalentMed(tidslinjeNy)) { "Rekonstuert tidslinje er ulik original" }
+            }
+    }
+
+    private fun List<Utbetalingslinje>.kontrollerAtAlleNyeLinjerHarForskjelligForrigeReferanse() {
+        check(
+            filterIsInstance<Utbetalingslinje.Ny>()
+                .let { nyeLinjer ->
+                    nyeLinjer.none { ny ->
+                        nyeLinjer.minus(ny).any { it.forrigeUtbetalingslinjeId == ny.forrigeUtbetalingslinjeId }
+                    }
+                },
+        ) { "Alle nye utbetalingslinjer skal referere til forskjellig forrige utbetalingid" }
+    }
+
+    private fun List<Utbetalingslinje>.kontrollerAtEksisterendeErKjedetMedNyeUtbetalinger() {
+        check(
+            eksisterendeUtbetalingslinjer.lastOrNull()?.let { siste ->
+                first().let {
+                    when (it) {
+                        is Utbetalingslinje.Endring.Opphør -> it.forrigeUtbetalingslinjeId == siste.forrigeUtbetalingslinjeId
+                        is Utbetalingslinje.Endring.Reaktivering -> it.forrigeUtbetalingslinjeId == siste.forrigeUtbetalingslinjeId
+                        is Utbetalingslinje.Endring.Stans -> it.forrigeUtbetalingslinjeId == siste.forrigeUtbetalingslinjeId
+                        is Utbetalingslinje.Ny -> it.forrigeUtbetalingslinjeId == siste.id
+                    }
+                }
+            } ?: true,
+        ) { "Den første av de nye utbetalingene skal være kjedet til eksisterende utbetalinger" }
+    }
+
+    private fun List<Utbetalingslinje>.kontrollerAtNyeLinjerHarFåttNyId() {
+        check(
+            filterIsInstance<Utbetalingslinje.Ny>()
+                .let { nyeLinjer ->
+                    nyeLinjer.none { ny ->
+                        ny.id in eksisterendeUtbetalingslinjer.map { it.id }
+                    }
+                },
+        ) { "Alle nye utbetalingslinjer skal ha ny id" }
     }
 }
 

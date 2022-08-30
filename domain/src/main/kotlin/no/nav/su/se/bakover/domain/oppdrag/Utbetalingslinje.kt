@@ -165,12 +165,21 @@ sealed class UtbetalingslinjePåTidslinje : KanPlasseresPåTidslinje<Utbetalings
     abstract override val periode: Periode
     abstract val beløp: Int
 
+    /**
+     * Ekvivalent i denne contexten betyr at linjen er av samme type, har samme periode og samme beløp som en annen linje.
+     */
+    abstract fun ekvivalentMed(other: UtbetalingslinjePåTidslinje): Boolean
+
     data class Ny(
         override val kopiertFraId: UUID30,
         override val opprettet: Tidspunkt,
         override val periode: Periode,
         override val beløp: Int,
     ) : UtbetalingslinjePåTidslinje() {
+        override fun ekvivalentMed(other: UtbetalingslinjePåTidslinje): Boolean {
+            return other is Ny && periode == other.periode && beløp == other.beløp
+        }
+
         override fun copy(args: CopyArgs.Tidslinje): Ny = when (args) {
             is CopyArgs.Tidslinje.Full -> this.copy()
             is CopyArgs.Tidslinje.NyPeriode -> this.copy(
@@ -188,6 +197,10 @@ sealed class UtbetalingslinjePåTidslinje : KanPlasseresPåTidslinje<Utbetalings
         override val periode: Periode,
         override val beløp: Int = 0,
     ) : UtbetalingslinjePåTidslinje() {
+        override fun ekvivalentMed(other: UtbetalingslinjePåTidslinje): Boolean {
+            return other is Stans && periode == other.periode && beløp == other.beløp
+        }
+
         override fun copy(args: CopyArgs.Tidslinje): Stans = when (args) {
             is CopyArgs.Tidslinje.Full -> this.copy()
             is CopyArgs.Tidslinje.NyPeriode -> this.copy(
@@ -205,6 +218,10 @@ sealed class UtbetalingslinjePåTidslinje : KanPlasseresPåTidslinje<Utbetalings
         override val periode: Periode,
         override val beløp: Int = 0,
     ) : UtbetalingslinjePåTidslinje() {
+        override fun ekvivalentMed(other: UtbetalingslinjePåTidslinje): Boolean {
+            return other is Opphør && periode == other.periode && beløp == other.beløp
+        }
+
         override fun copy(args: CopyArgs.Tidslinje): Opphør = when (args) {
             is CopyArgs.Tidslinje.Full -> this.copy()
             is CopyArgs.Tidslinje.NyPeriode -> this.copy(
@@ -222,6 +239,10 @@ sealed class UtbetalingslinjePåTidslinje : KanPlasseresPåTidslinje<Utbetalings
         override val periode: Periode,
         override val beløp: Int,
     ) : UtbetalingslinjePåTidslinje() {
+        override fun ekvivalentMed(other: UtbetalingslinjePåTidslinje): Boolean {
+            return other is Reaktivering && periode == other.periode && beløp == other.beløp
+        }
+
         override fun copy(args: CopyArgs.Tidslinje): Reaktivering = when (args) {
             is CopyArgs.Tidslinje.Full -> this.copy()
             is CopyArgs.Tidslinje.NyPeriode -> this.copy(

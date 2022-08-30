@@ -66,6 +66,7 @@ internal class UtbetalingServiceImpl(
                         log.info("Kvittering er allerede mottatt for utbetaling: ${utbetaling.id}")
                         utbetaling
                     }
+
                     is Utbetaling.OversendtUtbetaling.UtenKvittering -> {
                         log.info("Oppdaterer utbetaling med kvittering fra Oppdrag")
                         utbetaling.toKvittertUtbetaling(kvittering).also {
@@ -81,7 +82,10 @@ internal class UtbetalingServiceImpl(
         sakId: UUID,
         forDato: LocalDate,
     ): Either<FantIkkeGjeldendeUtbetaling, UtbetalingslinjePåTidslinje> {
-        return hentUtbetalingerForSakId(sakId).hentGjeldendeUtbetaling(forDato, clock)
+        return hentUtbetalingerForSakId(sakId).hentGjeldendeUtbetaling(
+            forDato,
+            clock,
+        )
     }
 
     override fun verifiserOgSimulerUtbetaling(
@@ -123,12 +127,12 @@ internal class UtbetalingServiceImpl(
             sakId = sak.id,
             saksnummer = sak.saksnummer,
             fnr = sak.fnr,
-            utbetalinger = sak.utbetalinger,
+            eksisterendeUtbetalinger = sak.utbetalinger,
             behandler = request.saksbehandler,
             // TODO send med periode
             periode = Periode.create(
                 fraOgMed = request.opphørsdato,
-                tilOgMed = sak.utbetalinger.last().sisteUtbetalingslinje().tilOgMed
+                tilOgMed = sak.utbetalinger.last().sisteUtbetalingslinje().tilOgMed,
             ),
             clock = clock,
             sakstype = sak.type,
@@ -178,7 +182,7 @@ internal class UtbetalingServiceImpl(
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 fnr = sak.fnr,
-                utbetalinger = sak.utbetalinger,
+                eksisterendeUtbetalinger = sak.utbetalinger,
                 behandler = request.saksbehandler,
                 beregning = request.beregning,
                 clock = clock,
@@ -192,7 +196,7 @@ internal class UtbetalingServiceImpl(
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 fnr = sak.fnr,
-                utbetalinger = sak.utbetalinger,
+                eksisterendeUtbetalinger = sak.utbetalinger,
                 behandler = request.saksbehandler,
                 beregning = request.beregning,
                 uføregrunnlag = request.uføregrunnlag,
@@ -206,9 +210,11 @@ internal class UtbetalingServiceImpl(
             is SimulerUtbetalingRequest.NyUtbetaling.Alder -> {
                 lagUtbetalingAlder(request)
             }
+
             is SimulerUtbetalingRequest.NyUtbetaling.Uføre -> {
                 lagUtbetalingUføre(request)
             }
+
             is UtbetalRequest.NyUtbetaling -> {
                 when (val inner = request.request) {
                     is SimulerUtbetalingRequest.NyUtbetaling.Alder -> lagUtbetalingAlder(inner)
@@ -241,7 +247,10 @@ internal class UtbetalingServiceImpl(
         val oppdragsmelding = utbetalingPublisher.generateRequest(utbetaling)
         val oversendtUtbetaling = utbetaling.toOversendtUtbetaling(oppdragsmelding)
         val context = transactionContext ?: utbetalingRepo.defaultTransactionContext()
-        utbetalingRepo.opprettUtbetaling(oversendtUtbetaling, context)
+        utbetalingRepo.opprettUtbetaling(
+            oversendtUtbetaling,
+            context,
+        )
         return oversendtUtbetaling
     }
 
@@ -272,7 +281,7 @@ internal class UtbetalingServiceImpl(
             sakId = sak.id,
             saksnummer = sak.saksnummer,
             fnr = sak.fnr,
-            utbetalinger = sak.utbetalinger,
+            eksisterendeUtbetalinger = sak.utbetalinger,
             behandler = request.saksbehandler,
             stansDato = request.stansdato,
             clock = clock,
@@ -335,7 +344,7 @@ internal class UtbetalingServiceImpl(
             sakId = request.sakId,
             saksnummer = request.sak.saksnummer,
             fnr = request.sak.fnr,
-            utbetalinger = request.sak.utbetalinger,
+            eksisterendeUtbetalinger = request.sak.utbetalinger,
             behandler = request.saksbehandler,
             clock = clock,
             sakstype = request.sak.type,

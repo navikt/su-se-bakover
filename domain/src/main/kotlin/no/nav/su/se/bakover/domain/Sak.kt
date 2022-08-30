@@ -27,12 +27,12 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling.Companion.hentOversendteUtbetalingerUtenFeil
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.oppdrag.hentOversendteUtbetalingslinjerUtenFeil
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
@@ -116,12 +116,9 @@ data class Sak(
             tilOgMed = LocalDate.MAX,
         ),
     ): TidslinjeForUtbetalinger {
-        val utbetalingslinjer = utbetalinger.hentOversendteUtbetalingerUtenFeil()
-            .flatMap { it.utbetalingslinjer }
-
         return TidslinjeForUtbetalinger(
             periode = periode,
-            utbetalingslinjer = utbetalingslinjer,
+            utbetalingslinjer = utbetalinger.hentOversendteUtbetalingslinjerUtenFeil(),
         )
     }
 

@@ -126,7 +126,7 @@ fun simuleringNy(
         sakId = sakId,
         saksnummer = saksnummer,
         fnr = fnr,
-        utbetalinger = eksisterendeUtbetalinger,
+        eksisterendeUtbetalinger = eksisterendeUtbetalinger,
         behandler = saksbehandler,
         beregning = beregning,
         clock = clock,
@@ -189,7 +189,7 @@ fun simuleringGjenopptak(
         sakId = sakId,
         saksnummer = saksnummer,
         fnr = fnr,
-        utbetalinger = eksisterendeUtbetalinger,
+        eksisterendeUtbetalinger = eksisterendeUtbetalinger,
         behandler = saksbehandler,
         clock = clock,
         sakstype = Sakstype.UFØRE, // TODO("simulering_utbetaling_alder utled fra sak/behandling")
@@ -222,7 +222,7 @@ fun simuleringOpphørt(
         sakId = sakId,
         saksnummer = saksnummer,
         fnr = fnr,
-        utbetalinger = eksisterendeUtbetalinger,
+        eksisterendeUtbetalinger = eksisterendeUtbetalinger,
         behandler = saksbehandler,
         clock = clock,
         // TODO send med periode

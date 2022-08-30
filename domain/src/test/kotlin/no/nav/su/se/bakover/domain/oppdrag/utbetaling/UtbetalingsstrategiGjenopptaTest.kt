@@ -51,7 +51,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
-            utbetalinger = nonEmptyListOf(
+            eksisterendeUtbetalinger = nonEmptyListOf(
                 opprinnelig,
                 stans,
             ),
@@ -92,7 +92,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
-            utbetalinger = emptyList(),
+            eksisterendeUtbetalinger = emptyList(),
             behandler = attestant,
             clock = fixedClock,
             sakstype = Sakstype.UFØRE,
@@ -154,7 +154,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
-            utbetalinger = nonEmptyListOf(
+            eksisterendeUtbetalinger = nonEmptyListOf(
                 første,
                 førsteStans,
                 førsteGjenopptak,
@@ -187,7 +187,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
-            utbetalinger = nonEmptyListOf(første),
+            eksisterendeUtbetalinger = nonEmptyListOf(første),
             behandler = attestant,
             clock = fixedClock,
             sakstype = Sakstype.UFØRE,
@@ -224,7 +224,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
-            utbetalinger = nonEmptyListOf(
+            eksisterendeUtbetalinger = nonEmptyListOf(
                 første,
                 andre,
                 tredje,
@@ -276,7 +276,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
-            utbetalinger = nonEmptyListOf(
+            eksisterendeUtbetalinger = nonEmptyListOf(
                 utbetaling,
                 stans,
             ),

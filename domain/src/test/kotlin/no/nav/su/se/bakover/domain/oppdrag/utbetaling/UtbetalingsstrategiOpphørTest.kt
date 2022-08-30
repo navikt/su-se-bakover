@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.desember
-import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.mars
@@ -47,7 +46,7 @@ internal class UtbetalingsstrategiOpphørTest {
                 sakId = sakId,
                 saksnummer = saksnummer,
                 fnr = fnr,
-                utbetalinger = emptyList(),
+                eksisterendeUtbetalinger = emptyList(),
                 behandler = NavIdentBruker.Saksbehandler("Z123"),
                 clock = fixedClock,
                 periode = januar(2021),
@@ -65,7 +64,7 @@ internal class UtbetalingsstrategiOpphørTest {
                 sakId = sakId,
                 saksnummer = saksnummer,
                 fnr = fnr,
-                utbetalinger = listOf(kvittertUtbetaling()),
+                eksisterendeUtbetalinger = listOf(kvittertUtbetaling()),
                 behandler = NavIdentBruker.Saksbehandler("Z123"),
                 clock = fixedClock,
                 periode = januar(2022),
@@ -87,7 +86,7 @@ internal class UtbetalingsstrategiOpphørTest {
                 sakId = sakId,
                 saksnummer = saksnummer,
                 fnr = fnr,
-                utbetalinger = listOf(oversendtUtbetaling()),
+                eksisterendeUtbetalinger = listOf(oversendtUtbetaling()),
                 behandler = NavIdentBruker.Saksbehandler("Z123"),
                 clock = fixedClock,
                 periode = mock,
@@ -105,7 +104,7 @@ internal class UtbetalingsstrategiOpphørTest {
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
-            utbetalinger = listOf(siste),
+            eksisterendeUtbetalinger = listOf(siste),
             behandler = saksbehandler,
             clock = fixedClock,
             periode = Periode.create(
@@ -146,7 +145,7 @@ internal class UtbetalingsstrategiOpphørTest {
             sakId = sak.id,
             saksnummer = sak.saksnummer,
             fnr = sak.fnr,
-            utbetalinger = sak.utbetalinger,
+            eksisterendeUtbetalinger = sak.utbetalinger,
             behandler = saksbehandler,
             sakstype = sak.type,
             periode = mars(2021),
@@ -207,7 +206,7 @@ internal class UtbetalingsstrategiOpphørTest {
             sakId = sak.id,
             saksnummer = sak.saksnummer,
             fnr = sak.fnr,
-            utbetalinger = sak2.utbetalinger,
+            eksisterendeUtbetalinger = sak2.utbetalinger,
             behandler = saksbehandler,
             sakstype = sak.type,
             periode = januar(2021),
@@ -274,7 +273,7 @@ internal class UtbetalingsstrategiOpphørTest {
             sakId = sak.id,
             saksnummer = sak.saksnummer,
             fnr = sak.fnr,
-            utbetalinger = sak2.utbetalinger,
+            eksisterendeUtbetalinger = sak2.utbetalinger,
             behandler = saksbehandler,
             sakstype = sak.type,
             periode = januar(2021),
@@ -342,7 +341,7 @@ internal class UtbetalingsstrategiOpphørTest {
             sakId = sak.id,
             saksnummer = sak.saksnummer,
             fnr = sak.fnr,
-            utbetalinger = sak3.utbetalinger,
+            eksisterendeUtbetalinger = sak3.utbetalinger,
             behandler = saksbehandler,
             sakstype = sak.type,
             periode = januar(2021),

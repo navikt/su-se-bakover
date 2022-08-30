@@ -28,7 +28,6 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.getOrFail
@@ -64,7 +63,7 @@ internal class UtbetalingsstrategiStansTest {
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
-            utbetalinger = listOf(utbetaling),
+            eksisterendeUtbetalinger = listOf(utbetaling),
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             stansDato = 1.juli(2020),
             clock = fixedClock,
@@ -111,7 +110,7 @@ internal class UtbetalingsstrategiStansTest {
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
-            utbetalinger = listOf(utbetaling),
+            eksisterendeUtbetalinger = listOf(utbetaling),
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             stansDato = 1.juli(2020),
             clock = fixedClock,
@@ -146,7 +145,7 @@ internal class UtbetalingsstrategiStansTest {
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
-            utbetalinger = listOf(utbetaling),
+            eksisterendeUtbetalinger = listOf(utbetaling),
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             stansDato = 1.juli(2020),
             clock = fixedClock,
@@ -174,7 +173,7 @@ internal class UtbetalingsstrategiStansTest {
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
-            utbetalinger = listOf(utbetaling),
+            eksisterendeUtbetalinger = listOf(utbetaling),
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             stansDato = 1.juli(2021),
             clock = fixedClock,
@@ -202,7 +201,7 @@ internal class UtbetalingsstrategiStansTest {
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
-            utbetalinger = listOf(utbetaling),
+            eksisterendeUtbetalinger = listOf(utbetaling),
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             stansDato = 10.juli(2020),
             clock = fixedClock,
@@ -234,7 +233,7 @@ internal class UtbetalingsstrategiStansTest {
                 sakId = sakId,
                 saksnummer = saksnummer,
                 fnr = fnr,
-                utbetalinger = listOf(utbetaling),
+                eksisterendeUtbetalinger = listOf(utbetaling),
                 behandler = NavIdentBruker.Saksbehandler("Z123"),
                 stansDato = it,
                 clock = fixedClock,
@@ -254,7 +253,7 @@ internal class UtbetalingsstrategiStansTest {
                 sakId = sakId,
                 saksnummer = saksnummer,
                 fnr = fnr,
-                utbetalinger = listOf(utbetaling),
+                eksisterendeUtbetalinger = listOf(utbetaling),
                 behandler = NavIdentBruker.Saksbehandler("Z123"),
                 stansDato = it,
                 clock = fixedClock,
@@ -314,7 +313,7 @@ internal class UtbetalingsstrategiStansTest {
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
-            utbetalinger = listOf(
+            eksisterendeUtbetalinger = listOf(
                 første,
                 opphør,
                 andre,
@@ -392,7 +391,7 @@ internal class UtbetalingsstrategiStansTest {
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
-            utbetalinger = listOf(
+            eksisterendeUtbetalinger = listOf(
                 første,
                 andre,
                 opphør,

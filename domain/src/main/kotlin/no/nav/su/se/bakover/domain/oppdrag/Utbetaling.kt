@@ -6,7 +6,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.periode.minAndMaxOf
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
@@ -97,6 +97,7 @@ sealed interface Utbetaling {
                 ).contains(kvittering.utbetalingsstatus)
         }
     }
+
     // TODO refaktorer
     enum class UtbetalingsType {
         NY,
@@ -104,16 +105,22 @@ sealed interface Utbetaling {
         GJENOPPTA,
         OPPHØR,
     }
+}
 
-    companion object {
-        /**
-         * Returnerer utbetalingene sortert økende etter tidspunktet de er sendt til oppdrag. Filtrer bort de som er kvittert feil.
-         * TODO jah: Ved initialisering e.l. gjør en faktisk verifikasjon på at ref-verdier på utbetalingslinjene har riktig rekkefølge
-         */
-        fun List<Utbetaling>.hentOversendteUtbetalingerUtenFeil(): List<Utbetaling> =
-            this.filter { it is OversendtUtbetaling.UtenKvittering || it is OversendtUtbetaling.MedKvittering && it.kvittering.erKvittertOk() }
-                .sortedBy { it.opprettet.instant } // TODO potentially fix sorting
-    }
+/**
+ * Returnerer utbetalingene sortert økende etter tidspunktet de er sendt til oppdrag. Filtrer bort de som er kvittert feil.
+ * TODO jah: Ved initialisering e.l. gjør en faktisk verifikasjon på at ref-verdier på utbetalingslinjene har riktig rekkefølge
+ */
+internal fun List<Utbetaling>.hentOversendteUtbetalingerUtenFeil(): List<Utbetaling> =
+    this.filter { it is Utbetaling.OversendtUtbetaling.UtenKvittering || it is Utbetaling.OversendtUtbetaling.MedKvittering && it.kvittering.erKvittertOk() }
+        .sortedBy { it.opprettet.instant } // TODO potentially fix sorting
+
+internal fun List<Utbetaling>.hentOversendteUtbetalingslinjerUtenFeil(): List<Utbetalingslinje> {
+    return hentOversendteUtbetalingerUtenFeil().flatMap { it.utbetalingslinjer }
+}
+
+internal fun List<Utbetaling>.hentSisteOversendteUtbetalingslinjeUtenFeil(): Utbetalingslinje? {
+    return hentOversendteUtbetalingerUtenFeil().lastOrNull()?.sisteUtbetalingslinje()
 }
 
 sealed class UtbetalingFeilet {
@@ -124,12 +131,28 @@ sealed class UtbetalingFeilet {
     object FantIkkeSak : UtbetalingFeilet()
 }
 
-fun List<Utbetaling>.tidslinje(clock: Clock): Either<IngenUtbetalinger, TidslinjeForUtbetalinger> {
-    return flatMap { it.utbetalingslinjer }
-        .ifEmpty { return IngenUtbetalinger.left() }
+fun List<Utbetaling>.tidslinje(
+    clock: Clock,
+    periode: Periode? = null
+): Either<IngenUtbetalinger, TidslinjeForUtbetalinger> {
+    return flatMap { it.utbetalingslinjer }.tidslinje(
+        clock = clock,
+        periode = periode
+    )
+}
+
+@JvmName("utbetalingslinjeTidslinje")
+fun List<Utbetalingslinje>.tidslinje(
+    clock: Clock,
+    periode: Periode? = null
+): Either<IngenUtbetalinger, TidslinjeForUtbetalinger> {
+    return ifEmpty { return IngenUtbetalinger.left() }
         .let { utbetalingslinjer ->
             TidslinjeForUtbetalinger(
-                periode = utbetalingslinjer.map { it.periode }.minAndMaxOf(),
+                periode = periode ?: Periode.create(
+                    fraOgMed = minOf { it.fraOgMed },
+                    tilOgMed = maxOf { it.tilOgMed },
+                ),
                 utbetalingslinjer = utbetalingslinjer,
                 clock = clock,
             ).right()
