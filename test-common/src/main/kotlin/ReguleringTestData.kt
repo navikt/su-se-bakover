@@ -129,3 +129,32 @@ fun stansetSøknadsbehandlingMedÅpenRegulering(
         regulering,
     )
 }
+
+fun innvilgetSøknadsbehandlingMedIverksattRegulering(
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    stønadsperiode: Stønadsperiode = stønadsperiode2021,
+    grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
+    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre = vilkårsvurderingerSøknadsbehandlingInnvilget(
+        stønadsperiode.periode,
+    ),
+    clock: Clock = TikkendeKlokke(),
+    avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
+): Pair<Sak, Regulering.IverksattRegulering> {
+    val sakOgVedtak = vedtakSøknadsbehandlingIverksattInnvilget(
+        saksnummer = saksnummer,
+        stønadsperiode = stønadsperiode,
+        grunnlagsdata = grunnlagsdata,
+        vilkårsvurderinger = vilkårsvurderinger,
+        clock = clock,
+        avkorting = avkorting,
+    )
+    val sak = sakOgVedtak.first
+    val regulering = iverksattAutomatiskRegulering()
+
+    return Pair(
+        sak.copy(
+            reguleringer = listOf(regulering),
+        ),
+        regulering,
+    )
+}

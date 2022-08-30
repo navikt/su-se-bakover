@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
@@ -395,7 +396,9 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
             },
             søknadsbehandlingService = mock {
                 on { hentForSøknad(any()) } doReturn null
-                on { opprett(any()) } doReturn SøknadsbehandlingService.KunneIkkeOpprette.SøknadHarAlleredeBehandling.left()
+                on { opprett(any()) } doReturn SøknadsbehandlingService.KunneIkkeOpprette.KunneIkkeOppretteSøknadsbehandling(
+                    Sak.KunneIkkeOppretteSøknad.HarAlleredeBehandling,
+                ).left()
             },
             clock = fixedClock,
         ).let {
@@ -405,7 +408,11 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                     saksbehandler = NavIdentBruker.Saksbehandler("saksemannen"),
                     fritekstTilBrev = "finfin tekst",
                 ),
-            ) shouldBe KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling(SøknadsbehandlingService.KunneIkkeOpprette.SøknadHarAlleredeBehandling)
+            ) shouldBe KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling(
+                SøknadsbehandlingService.KunneIkkeOpprette.KunneIkkeOppretteSøknadsbehandling(
+                    Sak.KunneIkkeOppretteSøknad.HarAlleredeBehandling,
+                ),
+            )
                 .left()
 
             verify(it.sakService).hentSakForSøknad(any())
@@ -501,7 +508,8 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                     saksbehandler = NavIdentBruker.Saksbehandler("saksemannen"),
                     fritekstTilBrev = "finfin tekst",
                 ),
-            ) shouldBe KunneIkkeAvslåSøknad.KunneIkkeLageDokument(no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument.KunneIkkeGenererePDF).left()
+            ) shouldBe KunneIkkeAvslåSøknad.KunneIkkeLageDokument(no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument.KunneIkkeGenererePDF)
+                .left()
 
             verify(serviceAndMocks.søknadsbehandlingService).hentForSøknad(søknadId)
             verify(serviceAndMocks.søknadsbehandlingService).opprett(

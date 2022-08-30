@@ -5,11 +5,9 @@ import arrow.core.getOrElse
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
@@ -30,7 +28,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilGrunnlag.
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Statusovergang
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
@@ -137,55 +134,22 @@ internal class SøknadsbehandlingServiceImpl(
         val sak = sakService.hentSak(request.sakId)
             .getOrHandle { return KunneIkkeOpprette.FantIkkeSak.left() }
 
-        val søknad = sak.hentSøknad(request.søknadId)
-            .getOrHandle { return KunneIkkeOpprette.FantIkkeSøknad.left() }
+        return sak.opprettNySøknadsbehandling(søknadId = request.søknadId, clock = clock).mapLeft {
+            return KunneIkkeOpprette.KunneIkkeOppretteSøknadsbehandling(it).left()
+        }.map { nySøknadsbehandling ->
+            søknadsbehandlingRepo.lagreNySøknadsbehandling(nySøknadsbehandling)
 
-        if (søknad is Søknad.Journalført.MedOppgave.Lukket) {
-            return KunneIkkeOpprette.SøknadErLukket.left()
-        }
-        if (søknad !is Søknad.Journalført.MedOppgave) {
-            // TODO Prøv å opprette oppgaven hvis den mangler? (systembruker blir kanskje mest riktig?)
-            return KunneIkkeOpprette.SøknadManglerOppgave.left()
-        }
-        if (sak.hentSøknadsbehandlingForSøknad(søknad.id).isNotEmpty()) {
-            return KunneIkkeOpprette.SøknadHarAlleredeBehandling.left()
-        }
-
-        if (sak.harÅpenSøknadsbehandling()) {
-            return KunneIkkeOpprette.HarAlleredeÅpenSøknadsbehandling.left()
-        }
-
-        val søknadsbehandlingId = UUID.randomUUID()
-
-        val avkorting = sak.hentUteståendeAvkortingForSøknadsbehandling()
-            .fold(
-                { it },
-                { it },
-            )
-
-        søknadsbehandlingRepo.lagreNySøknadsbehandling(
-            NySøknadsbehandling(
-                id = søknadsbehandlingId,
-                opprettet = Tidspunkt.now(clock),
-                sakId = søknad.sakId,
-                søknad = søknad,
-                oppgaveId = søknad.oppgaveId,
-                fnr = søknad.søknadInnhold.personopplysninger.fnr,
-                avkorting = avkorting.kanIkke(),
-                sakstype = søknad.type,
-            ),
-        )
-
-        // Må hente fra db for å få joinet med saksnummer.
-        return (søknadsbehandlingRepo.hent(søknadsbehandlingId)!! as Søknadsbehandling.Vilkårsvurdert.Uavklart).let {
-            observers.forEach { observer ->
-                observer.handle(
-                    Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingOpprettet(
-                        it,
-                    ),
-                )
+            // Må hente fra db for å få joinet med saksnummer.
+            return (søknadsbehandlingRepo.hent(nySøknadsbehandling.id)!! as Søknadsbehandling.Vilkårsvurdert.Uavklart).let {
+                observers.forEach { observer ->
+                    observer.handle(
+                        Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingOpprettet(
+                            it,
+                        ),
+                    )
+                }
+                it.right()
             }
-            it.right()
         }
     }
 
@@ -728,8 +692,13 @@ internal class SøknadsbehandlingServiceImpl(
 
         val vilkår = request.tilVilkår(clock).getOrHandle {
             when (it) {
-                LeggTilFlereUtenlandsoppholdRequest.UgyldigUtenlandsopphold.OverlappendeVurderingsperioder -> throw IllegalStateException("$it Skal ikke kunne forekomme for søknadsbehandling")
-                LeggTilFlereUtenlandsoppholdRequest.UgyldigUtenlandsopphold.PeriodeForGrunnlagOgVurderingErForskjellig -> throw IllegalStateException("$it Skal ikke kunne forekomme for søknadsbehandling")
+                LeggTilFlereUtenlandsoppholdRequest.UgyldigUtenlandsopphold.OverlappendeVurderingsperioder -> throw IllegalStateException(
+                    "$it Skal ikke kunne forekomme for søknadsbehandling",
+                )
+
+                LeggTilFlereUtenlandsoppholdRequest.UgyldigUtenlandsopphold.PeriodeForGrunnlagOgVurderingErForskjellig -> throw IllegalStateException(
+                    "$it Skal ikke kunne forekomme for søknadsbehandling",
+                )
             }
         }
 

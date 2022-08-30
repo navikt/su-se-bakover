@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.metrics.SuMetrics
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadinnhold.FeilVedOpprettelseAvBoforhold
 import no.nav.su.se.bakover.domain.søknadinnhold.FeilVedOpprettelseAvFormue
@@ -194,11 +195,7 @@ internal fun Route.søknadRoutes(
                                 is KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling -> {
                                     when (it.feil) {
                                         SøknadsbehandlingService.KunneIkkeOpprette.FantIkkeSak -> Feilresponser.fantIkkeSak
-                                        SøknadsbehandlingService.KunneIkkeOpprette.FantIkkeSøknad -> Feilresponser.fantIkkeSøknad
-                                        SøknadsbehandlingService.KunneIkkeOpprette.HarAlleredeÅpenSøknadsbehandling -> Feilresponser.harAlleredeÅpenBehandling
-                                        SøknadsbehandlingService.KunneIkkeOpprette.SøknadErLukket -> Feilresponser.søknadErLukket
-                                        SøknadsbehandlingService.KunneIkkeOpprette.SøknadHarAlleredeBehandling -> Feilresponser.søknadHarBehandlingFraFør
-                                        SøknadsbehandlingService.KunneIkkeOpprette.SøknadManglerOppgave -> Feilresponser.søknadManglerOppgave
+                                        is SøknadsbehandlingService.KunneIkkeOpprette.KunneIkkeOppretteSøknadsbehandling -> it.feil.tilResultat()
                                     }
                                 }
                                 KunneIkkeAvslåSøknad.FantIkkeSøknad -> Feilresponser.fantIkkeSøknad
@@ -348,4 +345,17 @@ private fun FeilVedValideringAvOppholdstillatelseOgOppholdstillatelseAlder.tilRe
         "Familiegjenforening er ikke utfylt",
         "familiegjenforening_er_ikke_utfylt",
     )
+}
+
+internal fun SøknadsbehandlingService.KunneIkkeOpprette.tilResultat() = when (this) {
+    SøknadsbehandlingService.KunneIkkeOpprette.FantIkkeSak -> Feilresponser.fantIkkeSak
+    is SøknadsbehandlingService.KunneIkkeOpprette.KunneIkkeOppretteSøknadsbehandling -> this.feil.tilResultat()
+}
+
+internal fun Sak.KunneIkkeOppretteSøknad.tilResultat() = when (this) {
+    Sak.KunneIkkeOppretteSøknad.ErLukket -> Feilresponser.søknadErLukket
+    Sak.KunneIkkeOppretteSøknad.FantIkkeSøknad -> Feilresponser.fantIkkeSøknad
+    Sak.KunneIkkeOppretteSøknad.HarAlleredeBehandling -> Feilresponser.søknadHarBehandlingFraFør
+    Sak.KunneIkkeOppretteSøknad.HarÅpenBehandling -> Feilresponser.harAlleredeÅpenBehandling
+    Sak.KunneIkkeOppretteSøknad.ManglerOppgave -> Feilresponser.søknadManglerOppgave
 }

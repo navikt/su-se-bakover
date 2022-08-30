@@ -74,12 +74,8 @@ interface SøknadsbehandlingService {
     )
 
     sealed class KunneIkkeOpprette {
-        object FantIkkeSøknad : KunneIkkeOpprette()
-        object SøknadManglerOppgave : KunneIkkeOpprette()
-        object SøknadErLukket : KunneIkkeOpprette()
-        object SøknadHarAlleredeBehandling : KunneIkkeOpprette()
-        object HarAlleredeÅpenSøknadsbehandling : KunneIkkeOpprette()
         object FantIkkeSak : KunneIkkeOpprette()
+        data class KunneIkkeOppretteSøknadsbehandling(val feil: Sak.KunneIkkeOppretteSøknad) : KunneIkkeOpprette()
     }
 
     sealed class KunneIkkeVilkårsvurdere {

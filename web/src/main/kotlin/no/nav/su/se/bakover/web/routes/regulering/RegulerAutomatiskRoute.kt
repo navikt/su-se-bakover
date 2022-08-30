@@ -103,6 +103,8 @@ internal fun Route.reguler(
                                         "Har pågående eller behov for avkorting",
                                         "regulering_har_pågående_eller_behov_for_avkorting",
                                     )
+
+                                    KunneIkkeRegulereManuelt.HarÅpenBehandling -> Feilresponser.harAlleredeÅpenBehandling
                                 }.let { feilResultat ->
                                     call.svar(feilResultat)
                                 }

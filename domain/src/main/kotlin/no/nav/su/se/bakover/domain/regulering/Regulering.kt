@@ -51,6 +51,13 @@ interface Reguleringsfelter : Behandling {
 }
 
 sealed interface Regulering : Reguleringsfelter {
+    fun erÅpen() = when (this) {
+        is OpprettetRegulering -> true
+
+        is AvsluttetRegulering,
+        is IverksattRegulering,
+        -> false
+    }
 
     /**
      * true dersom dette er en iverksatt regulering, false ellers.
@@ -223,6 +230,7 @@ sealed interface Regulering : Reguleringsfelter {
                         utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SammenMedNestePlanlagteUtbetaling,
                     )
                 }
+
                 Sakstype.UFØRE -> {
                     SimulerUtbetalingRequest.NyUtbetaling.Uføre(
                         sakId = sakId,

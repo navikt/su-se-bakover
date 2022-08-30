@@ -9,7 +9,6 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -18,7 +17,6 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
@@ -37,7 +35,6 @@ import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
-import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IdentifiserRevurderingsopphørSomIkkeStøttes
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
@@ -49,7 +46,6 @@ import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak.Årsak.REGULER_GRUNNBELØP
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
@@ -184,99 +180,23 @@ internal class RevurderingServiceImpl(
         val sak = sakService.hentSak(opprettRevurderingRequest.sakId)
             .getOrHandle { return KunneIkkeOppretteRevurdering.FantIkkeSak.left() }
 
-        val gjeldendeVedtaksdata: GjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
+        return sak.opprettNyRevurdering(
             fraOgMed = opprettRevurderingRequest.fraOgMed,
+            saksbehandler = opprettRevurderingRequest.saksbehandler,
+            revurderingsårsak = revurderingsårsak,
+            informasjonSomRevurderes = informasjonSomRevurderes,
+            hentAktørId = personService::hentAktørId,
+            opprettOppgave = oppgaveService::opprettOppgave,
             clock = clock,
-        ).getOrHandle {
-            return when (it) {
-                is Sak.KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes -> {
-                    KunneIkkeOppretteRevurdering.FantIngenVedtakSomKanRevurderes
-                }
-
-                is Sak.KunneIkkeHenteGjeldendeVedtaksdata.UgyldigPeriode -> {
-                    KunneIkkeOppretteRevurdering.UgyldigPeriode(it.feil)
-                }
-            }.left()
-        }.also {
-            if (!it.tidslinjeForVedtakErSammenhengende()) return KunneIkkeOppretteRevurdering.TidslinjeForVedtakErIkkeKontinuerlig.left()
-        }
-
-        when (val r = VurderOmVilkårGirOpphørVedRevurdering(gjeldendeVedtaksdata.vilkårsvurderinger).resultat) {
-            is OpphørVedRevurdering.Ja -> {
-                if (!informasjonSomRevurderes.harValgtFormue() && r.opphørsgrunner.contains(Opphørsgrunn.FORMUE)) {
-                    return KunneIkkeOppretteRevurdering.FormueSomFørerTilOpphørMåRevurderes.left()
-                }
-                if (!informasjonSomRevurderes.harValgtUtenlandsopphold() && r.opphørsgrunner.contains(Opphørsgrunn.UTENLANDSOPPHOLD)) {
-                    return KunneIkkeOppretteRevurdering.UtenlandsoppholdSomFørerTilOpphørMåRevurderes.left()
-                }
-            }
-
-            is OpphørVedRevurdering.Nei -> {
-                // noop
-            }
-        }
-
-        val gjeldendeVedtakPåFraOgMedDato =
-            gjeldendeVedtaksdata.gjeldendeVedtakPåDato(opprettRevurderingRequest.fraOgMed)
-                ?: return KunneIkkeOppretteRevurdering.FantIngenVedtakSomKanRevurderes.left()
-
-        val aktørId = personService.hentAktørId(gjeldendeVedtakPåFraOgMedDato.behandling.fnr).getOrElse {
-            log.error("Fant ikke aktør-id")
-            return KunneIkkeOppretteRevurdering.FantIkkeAktørId.left()
-        }
-
-        val uteståendeAvkorting = sak.hentUteståendeAvkortingForRevurdering()
-            .fold(
-                {
-                    it
-                },
-                { uteståendeAvkorting ->
-                    kontrollerAtUteståendeAvkortingRevurderes(gjeldendeVedtaksdata, uteståendeAvkorting)
-                        .getOrHandle {
-                            return KunneIkkeOppretteRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(
-                                periode = uteståendeAvkorting.avkortingsvarsel.periode(),
-                            ).left()
-                        }
-                },
-            )
-
-        // Oppgaven skal egentligen ikke opprettes her. Den burde egentligen komma utifra melding av endring, som skal føres til revurdering.
-        return oppgaveService.opprettOppgave(
-            OppgaveConfig.Revurderingsbehandling(
-                saksnummer = gjeldendeVedtakPåFraOgMedDato.behandling.saksnummer,
-                aktørId = aktørId,
-                tilordnetRessurs = null,
-                clock = clock,
-            ),
         ).mapLeft {
-            KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave
-        }.map { oppgaveId ->
-            OpprettetRevurdering(
-                periode = gjeldendeVedtaksdata.vedtaksperioder().minsteAntallSammenhengendePerioder().single(),
-                opprettet = Tidspunkt.now(clock),
-                tilRevurdering = gjeldendeVedtakPåFraOgMedDato.id,
-                saksbehandler = opprettRevurderingRequest.saksbehandler,
-                oppgaveId = oppgaveId,
-                fritekstTilBrev = "",
-                revurderingsårsak = revurderingsårsak,
-                forhåndsvarsel = if (revurderingsårsak.årsak == REGULER_GRUNNBELØP) Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles else null,
-                grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
-                vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
-                informasjonSomRevurderes = informasjonSomRevurderes,
-                attesteringer = Attesteringshistorikk.empty(),
-                avkorting = uteståendeAvkorting,
-                sakinfo = gjeldendeVedtakPåFraOgMedDato.sakinfo(),
-            ).also {
-                revurderingRepo.lagre(it)
+            return KunneIkkeOppretteRevurdering.FeilVedOpprettelseAvRevurdering(it).left()
+        }.map { opprettetRevurdering ->
+            revurderingRepo.lagre(opprettetRevurdering)
 
-                observers.forEach { observer ->
-                    observer.handle(
-                        Event.Statistikk.RevurderingStatistikk.RevurderingOpprettet(
-                            it,
-                        ),
-                    )
-                }
+            observers.forEach { observer ->
+                observer.handle(Event.Statistikk.RevurderingStatistikk.RevurderingOpprettet(opprettetRevurdering))
             }
+            opprettetRevurdering
         }
     }
 

@@ -10,9 +10,9 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -149,7 +149,7 @@ internal class OpprettRevurderingRouteKtTest {
     @Test
     fun `fant ingenting som kan revurderes`() {
         shouldMapErrorCorrectly(
-            error = KunneIkkeOppretteRevurdering.FantIngenVedtakSomKanRevurderes,
+            error = KunneIkkeOppretteRevurdering.FeilVedOpprettelseAvRevurdering(Sak.KunneIkkeOppretteRevurdering.FantIngenVedtakSomKanRevurderes),
             expectedStatusCode = HttpStatusCode.NotFound,
             expectedJsonResponse = """
                 {
@@ -163,7 +163,7 @@ internal class OpprettRevurderingRouteKtTest {
     @Test
     fun `fant ikke aktør id`() {
         shouldMapErrorCorrectly(
-            error = KunneIkkeOppretteRevurdering.FantIkkeAktørId,
+            error = KunneIkkeOppretteRevurdering.FeilVedOpprettelseAvRevurdering(Sak.KunneIkkeOppretteRevurdering.FantIkkeAktørId),
             expectedStatusCode = HttpStatusCode.NotFound,
             expectedJsonResponse = """
                 {
@@ -177,7 +177,7 @@ internal class OpprettRevurderingRouteKtTest {
     @Test
     fun `kunne ikke opprette oppgave`() {
         shouldMapErrorCorrectly(
-            error = KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave,
+            error = KunneIkkeOppretteRevurdering.FeilVedOpprettelseAvRevurdering(Sak.KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave),
             expectedStatusCode = HttpStatusCode.InternalServerError,
             expectedJsonResponse = """
                 {
@@ -185,23 +185,6 @@ internal class OpprettRevurderingRouteKtTest {
                     "code":"kunne_ikke_opprette_oppgave"
                 }
             """.trimIndent(),
-        )
-    }
-
-    @Test
-    fun `ugyldig fraOgMed dato`() {
-        shouldMapErrorCorrectly(
-            error = KunneIkkeOppretteRevurdering.UgyldigPeriode(
-                Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden,
-            ),
-            expectedStatusCode = HttpStatusCode.BadRequest,
-            expectedJsonResponse = """
-                {
-                    "message":"FraOgMedDatoMåVæreFørsteDagIMåneden",
-                    "code":"ugyldig_periode"
-                }
-            """.trimIndent(),
-
         )
     }
 

@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.brev.Brevvalg
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -184,7 +185,7 @@ interface RevurderingService {
     ): Either<KunneIkkeLeggeTilPersonligOppmøteVilkår, RevurderingOgFeilmeldingerResponse>
 
     fun leggTilInstitusjonsoppholdVilkår(
-        request: LeggTilInstitusjonsoppholdVilkårRequest
+        request: LeggTilInstitusjonsoppholdVilkårRequest,
     ): Either<KunneIkkeLeggeTilInstitusjonsoppholdVilkår, RevurderingOgFeilmeldingerResponse>
 }
 
@@ -225,20 +226,11 @@ enum class Forhåndsvarselhandling {
 
 sealed class KunneIkkeOppretteRevurdering {
     object FantIkkeSak : KunneIkkeOppretteRevurdering()
-    object FantIngenVedtakSomKanRevurderes : KunneIkkeOppretteRevurdering()
     object MåVelgeInformasjonSomSkalRevurderes : KunneIkkeOppretteRevurdering()
-    object TidslinjeForVedtakErIkkeKontinuerlig : KunneIkkeOppretteRevurdering()
     object UgyldigÅrsak : KunneIkkeOppretteRevurdering()
     object UgyldigBegrunnelse : KunneIkkeOppretteRevurdering()
-    data class UgyldigPeriode(val subError: Periode.UgyldigPeriode) : KunneIkkeOppretteRevurdering()
-    object FantIkkeAktørId : KunneIkkeOppretteRevurdering()
-    object KunneIkkeOppretteOppgave : KunneIkkeOppretteRevurdering()
-    object FormueSomFørerTilOpphørMåRevurderes : KunneIkkeOppretteRevurdering()
-    object EpsFormueMedFlereBosituasjonsperioderMåRevurderes : KunneIkkeOppretteRevurdering()
-    data class UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(val periode: Periode) :
+    data class FeilVedOpprettelseAvRevurdering(val feil: Sak.KunneIkkeOppretteRevurdering) :
         KunneIkkeOppretteRevurdering()
-
-    object UtenlandsoppholdSomFørerTilOpphørMåRevurderes : KunneIkkeOppretteRevurdering()
 }
 
 sealed class KunneIkkeOppdatereRevurdering {
@@ -568,6 +560,7 @@ data class LeggTilBosituasjonRequest(
                     periode = periode,
                     fnr = eps.ident.fnr,
                 ).right()
+
                 else -> when (ektemakeEllerSamboerUførFlyktning) {
                     true -> Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
                         id = UUID.randomUUID(),
@@ -575,12 +568,14 @@ data class LeggTilBosituasjonRequest(
                         periode = periode,
                         fnr = eps.ident.fnr,
                     ).right()
+
                     false -> Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(clock),
                         periode = periode,
                         fnr = eps.ident.fnr,
                     ).right()
+
                     null -> return KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigData.left()
                 }
             }
@@ -593,6 +588,7 @@ data class LeggTilBosituasjonRequest(
                     opprettet = Tidspunkt.now(clock),
                     periode = periode,
                 ).right()
+
                 false -> Grunnlag.Bosituasjon.Fullstendig.Enslig(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(clock),

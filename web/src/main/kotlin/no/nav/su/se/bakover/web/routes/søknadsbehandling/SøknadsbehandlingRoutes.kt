@@ -65,6 +65,7 @@ import no.nav.su.se.bakover.web.routes.Feilresponser.lagringFeilet
 import no.nav.su.se.bakover.web.routes.Feilresponser.tilResultat
 import no.nav.su.se.bakover.web.routes.Feilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.web.routes.sak.sakPath
+import no.nav.su.se.bakover.web.routes.søknad.tilResultat
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.StønadsperiodeJson
 import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
@@ -99,45 +100,13 @@ internal fun Route.søknadsbehandlingRoutes(
                             OpprettRequest(
                                 søknadId = søknadId,
                                 sakId = sakId,
-                            )
+                            ),
                         ).fold(
                             {
                                 call.svar(
                                     when (it) {
-                                        is KunneIkkeOpprette.FantIkkeSøknad -> {
-                                            NotFound.errorJson(
-                                                "Fant ikke søknad med id $søknadId",
-                                                "fant_ikke_søknad",
-                                            )
-                                        }
-                                        is KunneIkkeOpprette.SøknadManglerOppgave -> {
-                                            InternalServerError.errorJson(
-                                                "Søknad med id $søknadId mangler oppgave",
-                                                "søknad_mangler_oppgave",
-                                            )
-                                        }
-                                        is KunneIkkeOpprette.SøknadHarAlleredeBehandling -> {
-                                            BadRequest.errorJson(
-                                                "Søknad med id $søknadId har allerede en behandling",
-                                                "søknad_har_behandling",
-                                            )
-                                        }
-                                        is KunneIkkeOpprette.SøknadErLukket -> {
-                                            BadRequest.errorJson(
-                                                "Søknad med id $søknadId er lukket",
-                                                "søknad_er_lukket",
-                                            )
-                                        }
-                                        KunneIkkeOpprette.HarAlleredeÅpenSøknadsbehandling -> {
-                                            BadRequest.errorJson(
-                                                "Har allerede en åpen søknadsbehandling",
-                                                "har_allerede_en_åpen_søknadsbehandling",
-                                            )
-                                        }
-
-                                        KunneIkkeOpprette.FantIkkeSak -> {
-                                            fantIkkeSak
-                                        }
+                                        is KunneIkkeOpprette.KunneIkkeOppretteSøknadsbehandling -> it.feil.tilResultat()
+                                        KunneIkkeOpprette.FantIkkeSak -> Feilresponser.fantIkkeSak
                                     },
                                 )
                             },
@@ -174,14 +143,17 @@ internal fun Route.søknadsbehandlingRoutes(
                                         SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling -> {
                                             fantIkkeBehandling
                                         }
+
                                         SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeSak -> {
                                             fantIkkeSak
                                         }
+
                                         is SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereStønadsperiode -> {
                                             when (val feil = error.feil) {
                                                 Sak.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling -> {
                                                     fantIkkeBehandling
                                                 }
+
                                                 is Sak.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata -> {
                                                     log.error("Feil ved oppdatering av stønadsperiode: ${feil.feil}")
                                                     InternalServerError.errorJson(
@@ -189,24 +161,28 @@ internal fun Route.søknadsbehandlingRoutes(
                                                         "oppdatering_av_stønadsperiode",
                                                     )
                                                 }
+
                                                 Sak.KunneIkkeOppdatereStønadsperiode.StønadsperiodeForSenerePeriodeEksisterer -> {
                                                     BadRequest.errorJson(
                                                         "Kan ikke legge til ny stønadsperiode forut for eksisterende stønadsperioder",
                                                         "senere_stønadsperioder_eksisterer",
                                                     )
                                                 }
+
                                                 Sak.KunneIkkeOppdatereStønadsperiode.StønadsperiodeOverlapperMedLøpendeStønadsperiode -> {
                                                     BadRequest.errorJson(
                                                         "Stønadsperioden overlapper med eksisterende stønadsperiode",
                                                         "stønadsperioden_overlapper_med_eksisterende_søknadsbehandling",
                                                     )
                                                 }
+
                                                 is Sak.KunneIkkeOppdatereStønadsperiode.KunneIkkeHenteGjeldendeVedtaksdata -> {
                                                     InternalServerError.errorJson(
                                                         "Kunne ikke hente gjeldende vedtaksdata",
                                                         "kunne_ikke_hente_gjeldende_vedtaksdata",
                                                     )
                                                 }
+
                                                 Sak.KunneIkkeOppdatereStønadsperiode.StønadsperiodeInneholderAvkortingPgaUtenlandsopphold -> {
                                                     BadRequest.errorJson(
                                                         "Stønadsperioden inneholder utbetalinger som skal avkortes pga utenlandsopphold. Dette støttes ikke.",
@@ -270,15 +246,19 @@ internal fun Route.søknadsbehandlingRoutes(
                                         KunneIkkeBeregne.FantIkkeBehandling -> {
                                             fantIkkeBehandling
                                         }
+
                                         KunneIkkeBeregne.KunneIkkeSimulereUtbetaling -> {
                                             kunneIkkeSimulere
                                         }
+
                                         is KunneIkkeBeregne.UgyldigTilstand -> {
                                             ugyldigTilstand(fra = kunneIkkeBeregne.fra, til = kunneIkkeBeregne.til)
                                         }
+
                                         is KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag -> {
                                             kunneIkkeBeregne.feil.tilResultat()
                                         }
+
                                         KunneIkkeBeregne.AvkortingErUfullstendig -> {
                                             avkortingErUfullstendig
                                         }
@@ -378,12 +358,15 @@ internal fun Route.søknadsbehandlingRoutes(
                                     KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave -> {
                                         Feilresponser.kunneIkkeOppretteOppgave
                                     }
+
                                     KunneIkkeSendeTilAttestering.KunneIkkeFinneAktørId -> {
                                         Feilresponser.fantIkkeAktørId
                                     }
+
                                     KunneIkkeSendeTilAttestering.FantIkkeBehandling -> {
                                         fantIkkeBehandling
                                     }
+
                                     KunneIkkeSendeTilAttestering.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving -> {
                                         Feilresponser.sakAvventerKravgrunnlagForTilbakekreving
                                     }
@@ -415,6 +398,7 @@ internal fun Route.søknadsbehandlingRoutes(
                 "Kunne ikke opprette kontrollsamtale",
                 "kunne_ikke_opprette_kontrollsamtale",
             )
+
             KunneIkkeIverksette.LagringFeilet -> lagringFeilet
         }
     }

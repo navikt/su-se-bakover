@@ -3,6 +3,8 @@ package no.nav.su.se.bakover.domain
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
+import io.kotest.assertions.arrow.core.shouldBeLeft
+import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -28,6 +30,7 @@ import no.nav.su.se.bakover.common.periode.november
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
@@ -46,8 +49,13 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.innvilgetSøknadsbehandlingMedIverksattRegulering
+import no.nav.su.se.bakover.test.innvilgetSøknadsbehandlingMedÅpenRegulering
+import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
+import no.nav.su.se.bakover.test.nySakUføre
 import no.nav.su.se.bakover.test.nySøknadJournalførtMedOppgave
+import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.plus
 import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.shouldBeType
@@ -72,6 +80,99 @@ import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 internal class SakTest {
+
+    @Test
+    fun `henter åpne søknadsbehandlinger`() {
+        val sakMedÅpenBehandling = søknadsbehandlingVilkårsvurdertUavklart().first
+        sakMedÅpenBehandling.hentÅpneSøknadsbehandlinger().shouldBeRight()
+        sakMedÅpenBehandling.harÅpenSøknadsbehandling() shouldBe true
+
+        val sakUtenÅpenBehandling = iverksattSøknadsbehandlingUføre().first
+        sakUtenÅpenBehandling.hentÅpneSøknadsbehandlinger().shouldBeLeft()
+        sakUtenÅpenBehandling.harÅpenSøknadsbehandling() shouldBe false
+    }
+
+    @Test
+    fun `henter åpne revurderinger`() {
+        val sakMedÅpenBehandling = opprettetRevurdering().first
+        sakMedÅpenBehandling.hentÅpneRevurderinger().shouldBeRight()
+
+        val sakUtenÅpenBehandling = iverksattRevurdering().first
+        sakUtenÅpenBehandling.hentÅpneRevurderinger().shouldBeLeft()
+    }
+
+    @Test
+    fun `henter åpne reguleringer`() {
+        val sakMedÅpenBehandling = innvilgetSøknadsbehandlingMedÅpenRegulering(1.mai(2021)).first
+        sakMedÅpenBehandling.hentÅpneReguleringer().shouldBeRight()
+
+        val sakUtenÅpenBehandling = innvilgetSøknadsbehandlingMedIverksattRegulering().first
+        sakUtenÅpenBehandling.hentÅpneReguleringer().shouldBeLeft()
+    }
+
+    @Test
+    fun `oppretter søknadsbehandling dersom det ikke finnes eksisterende åpne behandlinger`() {
+        val (sakUtenÅpenBehandling, søknad) = nySakUføre()
+        sakUtenÅpenBehandling.opprettNySøknadsbehandling(søknad.id, fixedClock).shouldBeRight()
+
+        val sakMedÅpenSøknadsbehandling = søknadsbehandlingVilkårsvurdertUavklart().first
+        sakMedÅpenSøknadsbehandling.opprettNySøknadsbehandling(søknad.id, fixedClock).shouldBeLeft()
+
+        val sakMedÅpenRevurdering = opprettetRevurdering().first
+        sakMedÅpenRevurdering.opprettNySøknadsbehandling(søknad.id, fixedClock).shouldBeLeft()
+
+        val sakMedÅpenRegulering = innvilgetSøknadsbehandlingMedÅpenRegulering(1.mai(2021)).first
+        sakMedÅpenRegulering.opprettNySøknadsbehandling(søknad.id, fixedClock)
+    }
+
+    @Test
+    fun `oppretter revurdering dersom det ikke finnes eksisterende åpne behandlinger`() {
+        val sakUtenÅpenBehandling = (iverksattSøknadsbehandlingUføre()).first
+        val (sakMedÅpenRevurdering, revurdering) = opprettetRevurdering()
+
+        sakUtenÅpenBehandling.opprettNyRevurdering(
+            saksbehandler = revurdering.saksbehandler,
+            revurderingsårsak = revurdering.revurderingsårsak,
+            informasjonSomRevurderes = revurdering.informasjonSomRevurderes,
+            clock = fixedClock,
+            fraOgMed = 1.januar(2021),
+            hentAktørId = { AktørId("aktørId").right() },
+            opprettOppgave = { OppgaveId("oppgaveId").right() },
+        ).shouldBeRight()
+
+        sakMedÅpenRevurdering.opprettNyRevurdering(
+            saksbehandler = revurdering.saksbehandler,
+            revurderingsårsak = revurdering.revurderingsårsak,
+            informasjonSomRevurderes = revurdering.informasjonSomRevurderes,
+            clock = fixedClock,
+            fraOgMed = 1.januar(2021),
+            hentAktørId = { AktørId("aktørId").right() },
+            opprettOppgave = { OppgaveId("oppgaveId").right() },
+        ).shouldBeLeft()
+
+        val sakMedÅpenRegulering = innvilgetSøknadsbehandlingMedÅpenRegulering(1.mai(2021)).first
+        sakMedÅpenRegulering.opprettNyRevurdering(
+            saksbehandler = revurdering.saksbehandler,
+            revurderingsårsak = revurdering.revurderingsårsak,
+            informasjonSomRevurderes = revurdering.informasjonSomRevurderes,
+            clock = fixedClock,
+            fraOgMed = 1.januar(2021),
+            hentAktørId = { AktørId("aktørId").right() },
+            opprettOppgave = { OppgaveId("oppgaveId").right() },
+        ).shouldBeLeft()
+    }
+
+    @Test
+    fun `oppretter regulering dersom det ikke finnes eksisterende åpne behandlinger`() {
+        val sakUtenÅpenBehandling = (iverksattSøknadsbehandlingUføre()).first
+        sakUtenÅpenBehandling.opprettEllerOppdaterRegulering(1.mai(2020), fixedClock).shouldBeRight()
+
+        val sakMedÅpenSøknadsbehandling = søknadsbehandlingVilkårsvurdertUavklart().first
+        sakMedÅpenSøknadsbehandling.opprettEllerOppdaterRegulering(1.mai(2020), fixedClock).shouldBeLeft()
+
+        val sakMedÅpenRevurdering = opprettetRevurdering().first
+        sakMedÅpenRevurdering.opprettEllerOppdaterRegulering(1.mai(2020), fixedClock).shouldBeLeft()
+    }
 
     @Nested
     inner class HentPerioderMedLøpendeYtelse {

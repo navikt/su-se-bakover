@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.test
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUIDFactory
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -148,4 +149,17 @@ fun nySøknadJournalførtMedOppgave(
         sakId = sakId,
         søknadInnhold = søknadInnhold,
     ).medOppgave(oppgaveIdSøknad)
+}
+
+fun nySakMedLukketSøknad(): Pair<Sak, Søknad.Journalført.MedOppgave.Lukket> {
+    val (sak, søknad) = nySakMedjournalførtSøknadOgOppgave()
+    val lukketSøknad = søknad.lukk(
+        lukketAv = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
+        type = Søknad.Journalført.MedOppgave.Lukket.LukketType.TRUKKET,
+        lukketTidspunkt = fixedTidspunkt,
+    )
+
+    return sak.copy(
+        søknader = listOf(lukketSøknad),
+    ) to lukketSøknad
 }

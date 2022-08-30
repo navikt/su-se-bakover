@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.periode.juli
 import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.startOfMonth
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeOppretteOppgave
@@ -331,7 +332,12 @@ internal class OpprettRevurderingServiceTest {
                     saksbehandler = saksbehandler,
                     informasjonSomRevurderes = listOf(Revurderingsteg.Uførhet),
                 ),
-            ) shouldBe KunneIkkeOppretteRevurdering.FantIngenVedtakSomKanRevurderes.left()
+            ) shouldBe KunneIkkeOppretteRevurdering.FeilVedOpprettelseAvRevurdering(
+                Sak.KunneIkkeOppretteRevurdering.KunneIkkeHenteGjeldendeVedtaksdataSak(
+                    Sak.KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes(periodeNesteMånedOgTreMånederFram.fraOgMed),
+                ),
+            )
+                .left()
         }
     }
 
@@ -459,28 +465,6 @@ internal class OpprettRevurderingServiceTest {
     }
 
     @Test
-    fun `ugyldig periode`() {
-        RevurderingServiceMocks(
-            sakService = mock {
-                on { hentSak(any<UUID>()) } doReturn iverksattSøknadsbehandlingUføre().first.right()
-            },
-        ).also {
-            it.revurderingService.opprettRevurdering(
-                OpprettRevurderingRequest(
-                    sakId = sakId,
-                    // tester at fraOgMed må starte på 1.
-                    fraOgMed = periodeNesteMånedOgTreMånederFram.tilOgMed,
-                    årsak = "MELDING_FRA_BRUKER",
-                    begrunnelse = "Ny informasjon",
-                    saksbehandler = saksbehandler,
-                    informasjonSomRevurderes = listOf(Revurderingsteg.Inntekt),
-                ),
-            ) shouldBe KunneIkkeOppretteRevurdering.UgyldigPeriode(Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden)
-                .left()
-        }
-    }
-
-    @Test
     fun `fant ikke aktør id`() {
         RevurderingServiceMocks(
             sakService = mock {
@@ -499,7 +483,8 @@ internal class OpprettRevurderingServiceTest {
                     saksbehandler = saksbehandler,
                     informasjonSomRevurderes = listOf(Revurderingsteg.Inntekt),
                 ),
-            ) shouldBe KunneIkkeOppretteRevurdering.FantIkkeAktørId.left()
+            ) shouldBe KunneIkkeOppretteRevurdering.FeilVedOpprettelseAvRevurdering(Sak.KunneIkkeOppretteRevurdering.FantIkkeAktørId)
+                .left()
 
             verify(it.sakService).hentSak(sakId)
             verify(it.personService).hentAktørId(argThat { it shouldBe fnr })
@@ -532,7 +517,8 @@ internal class OpprettRevurderingServiceTest {
                     ),
                 ),
             )
-            actual shouldBe KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave.left()
+            actual shouldBe KunneIkkeOppretteRevurdering.FeilVedOpprettelseAvRevurdering(Sak.KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave)
+                .left()
             verify(it.sakService).hentSak(sakId)
             verify(it.personService).hentAktørId(argThat { it shouldBe fnr })
             verify(it.oppgaveService).opprettOppgave(
@@ -602,7 +588,8 @@ internal class OpprettRevurderingServiceTest {
                     ),
                 ),
             )
-            actual shouldBe KunneIkkeOppretteRevurdering.TidslinjeForVedtakErIkkeKontinuerlig.left()
+            actual shouldBe KunneIkkeOppretteRevurdering.FeilVedOpprettelseAvRevurdering(Sak.KunneIkkeOppretteRevurdering.TidslinjeForVedtakErIkkeKontinuerlig)
+                .left()
         }
     }
 
@@ -639,7 +626,11 @@ internal class OpprettRevurderingServiceTest {
                     saksbehandler = saksbehandler,
                     informasjonSomRevurderes = listOf(Revurderingsteg.Utenlandsopphold),
                 ),
-            ) shouldBe KunneIkkeOppretteRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(juni(2021))
+            ) shouldBe KunneIkkeOppretteRevurdering.FeilVedOpprettelseAvRevurdering(
+                Sak.KunneIkkeOppretteRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(
+                    juni(2021),
+                ),
+            )
                 .left()
         }
     }

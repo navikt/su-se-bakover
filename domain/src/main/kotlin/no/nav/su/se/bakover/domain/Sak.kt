@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain
 import arrow.core.Either
 import arrow.core.NonEmptyList
 import arrow.core.flatMap
+import arrow.core.getOrElse
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
@@ -20,18 +21,31 @@ import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
+import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling.Companion.hentOversendteUtbetalingerUtenFeil
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
+import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
+import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
+import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
+import no.nav.su.se.bakover.domain.revurdering.OpphørVedRevurdering
+import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
+import no.nav.su.se.bakover.domain.revurdering.VurderOmVilkårGirOpphørVedRevurdering
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.søknadinnhold.SøknadInnhold
+import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
@@ -395,6 +409,7 @@ data class Sak(
         object FinnesIngenVedtakSomKanRevurderesForValgtPeriode : KunneIkkeOppretteEllerOppdatereRegulering
         object StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig : KunneIkkeOppretteEllerOppdatereRegulering
         object BleIkkeLagetReguleringDaDenneUansettMåRevurderes : KunneIkkeOppretteEllerOppdatereRegulering
+        object HarÅpenBehandling : KunneIkkeOppretteEllerOppdatereRegulering
     }
 
     /**
@@ -407,12 +422,21 @@ data class Sak(
         startDato: LocalDate,
         clock: Clock,
     ): Either<KunneIkkeOppretteEllerOppdatereRegulering, Regulering.OpprettetRegulering> {
-
         val (reguleringsId, opprettet, _startDato) = reguleringer.filterIsInstance<Regulering.OpprettetRegulering>()
             .let { r ->
                 when (r.size) {
-                    0 -> Triple(UUID.randomUUID(), Tidspunkt.now(clock), startDato)
-                    1 -> Triple(r.first().id, r.first().opprettet, minOf(startDato, r.first().periode.fraOgMed))
+                    0 -> Triple(UUID.randomUUID(), Tidspunkt.now(clock), startDato).also {
+                        if (!kanOppretteBehandling()) {
+                            return KunneIkkeOppretteEllerOppdatereRegulering.HarÅpenBehandling.left()
+                        }
+                    }
+
+                    1 -> Triple(r.first().id, r.first().opprettet, minOf(startDato, r.first().periode.fraOgMed)).also {
+                        if (harÅpenSøknadsbehandling() || harÅpenRevurdering()) {
+                            return KunneIkkeOppretteEllerOppdatereRegulering.HarÅpenBehandling.left()
+                        }
+                    }
+
                     else -> throw IllegalStateException("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende grunn: Det finnes fler enn en åpen regulering.")
                 }
             }
@@ -532,7 +556,182 @@ data class Sak(
             .singleOrNull { it.søknad.id == søknadId }?.right() ?: FantIkkeSøknadsbehandlingForSøknad.left()
     }
 
+    sealed interface KunneIkkeOppretteSøknad {
+        object FantIkkeSøknad : KunneIkkeOppretteSøknad
+        object HarÅpenBehandling : KunneIkkeOppretteSøknad
+        object ErLukket : KunneIkkeOppretteSøknad
+        object ManglerOppgave : KunneIkkeOppretteSøknad
+        object HarAlleredeBehandling : KunneIkkeOppretteSøknad
+    }
+
+    fun opprettNySøknadsbehandling(
+        søknadId: UUID,
+        clock: Clock,
+    ): Either<KunneIkkeOppretteSøknad, NySøknadsbehandling> = if (!kanOppretteBehandling()) {
+        KunneIkkeOppretteSøknad.HarÅpenBehandling.left()
+    } else {
+        val søknad = hentSøknad(søknadId).fold(
+            ifLeft = { return KunneIkkeOppretteSøknad.FantIkkeSøknad.left() },
+            ifRight = {
+                if (it is Søknad.Journalført.MedOppgave.Lukket) {
+                    return KunneIkkeOppretteSøknad.ErLukket.left()
+                }
+                if (it !is Søknad.Journalført.MedOppgave) {
+                    // TODO Prøv å opprette oppgaven hvis den mangler? (systembruker blir kanskje mest riktig?)
+                    return KunneIkkeOppretteSøknad.ManglerOppgave.left()
+                }
+                if (hentSøknadsbehandlingForSøknad(søknadId).isNotEmpty()) {
+                    return KunneIkkeOppretteSøknad.HarAlleredeBehandling.left()
+                }
+                it
+            },
+        )
+
+        NySøknadsbehandling(
+            id = UUID.randomUUID(),
+            opprettet = Tidspunkt.now(clock),
+            sakId = this.id,
+            søknad = søknad,
+            oppgaveId = søknad.oppgaveId,
+            fnr = søknad.søknadInnhold.personopplysninger.fnr,
+            avkorting = this.hentUteståendeAvkortingForSøknadsbehandling().fold({ it }, { it }).kanIkke(),
+            sakstype = søknad.type,
+        ).right()
+    }
+
+    sealed interface KunneIkkeOppretteRevurdering {
+        data class KunneIkkeHenteGjeldendeVedtaksdataSak(val feil: KunneIkkeHenteGjeldendeVedtaksdata) :
+            KunneIkkeOppretteRevurdering
+
+        object HarÅpenBehandling : KunneIkkeOppretteRevurdering
+        object FantIngenVedtakSomKanRevurderes : KunneIkkeOppretteRevurdering
+        object TidslinjeForVedtakErIkkeKontinuerlig : KunneIkkeOppretteRevurdering
+        object UtenlandsoppholdSomFørerTilOpphørMåRevurderes : KunneIkkeOppretteRevurdering
+        object FormueSomFørerTilOpphørMåRevurderes : KunneIkkeOppretteRevurdering
+        object FantIkkeAktørId : KunneIkkeOppretteRevurdering
+        object KunneIkkeOppretteOppgave : KunneIkkeOppretteRevurdering
+
+        data class UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(val periode: Periode) :
+            KunneIkkeOppretteRevurdering
+    }
+
+    private fun kontrollerAtUteståendeAvkortingRevurderes(
+        gjeldendeVedtaksdata: GjeldendeVedtaksdata,
+        uteståendeAvkorting: AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting,
+    ): Either<Unit, AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting> {
+        return if (!gjeldendeVedtaksdata.periodeFørsteTilOgMedSeneste()
+            .inneholder(uteståendeAvkorting.avkortingsvarsel.periode())
+        ) Unit.left() else uteståendeAvkorting.right()
+    }
+
+    fun opprettNyRevurdering(
+        fraOgMed: LocalDate,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        revurderingsårsak: Revurderingsårsak,
+        informasjonSomRevurderes: InformasjonSomRevurderes,
+        clock: Clock,
+        hentAktørId: (fnr: Fnr) -> Either<KunneIkkeHentePerson, AktørId>,
+        opprettOppgave: (config: OppgaveConfig) -> Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveId>,
+    ): Either<KunneIkkeOppretteRevurdering, OpprettetRevurdering> {
+        return if (!kanOppretteBehandling()) {
+            KunneIkkeOppretteRevurdering.HarÅpenBehandling.left()
+        } else {
+            val gjeldendeVedtaksdata = kopierGjeldendeVedtaksdata(fraOgMed, clock).fold(
+                { return KunneIkkeOppretteRevurdering.KunneIkkeHenteGjeldendeVedtaksdataSak(it).left() },
+                {
+                    it.also {
+                        if (!it.tidslinjeForVedtakErSammenhengende()) return KunneIkkeOppretteRevurdering.TidslinjeForVedtakErIkkeKontinuerlig.left()
+                    }
+                },
+            )
+
+            val gjeldendeVedtakPåFraOgMedDato =
+                gjeldendeVedtaksdata.gjeldendeVedtakPåDato(fraOgMed)
+                    ?: return KunneIkkeOppretteRevurdering.FantIngenVedtakSomKanRevurderes.left()
+
+            when (val r = VurderOmVilkårGirOpphørVedRevurdering(gjeldendeVedtaksdata.vilkårsvurderinger).resultat) {
+                is OpphørVedRevurdering.Ja -> {
+                    if (!informasjonSomRevurderes.harValgtFormue() && r.opphørsgrunner.contains(Opphørsgrunn.FORMUE)) {
+                        return KunneIkkeOppretteRevurdering.FormueSomFørerTilOpphørMåRevurderes.left()
+                    }
+                    if (!informasjonSomRevurderes.harValgtUtenlandsopphold() && r.opphørsgrunner.contains(Opphørsgrunn.UTENLANDSOPPHOLD)) {
+                        return KunneIkkeOppretteRevurdering.UtenlandsoppholdSomFørerTilOpphørMåRevurderes.left()
+                    }
+                }
+
+                is OpphørVedRevurdering.Nei -> {
+                    // noop
+                }
+            }
+
+            val uteståendeAvkorting = hentUteståendeAvkortingForRevurdering().fold(
+                { it },
+                { uteståendeAvkorting ->
+                    kontrollerAtUteståendeAvkortingRevurderes(gjeldendeVedtaksdata, uteståendeAvkorting)
+                        .getOrHandle {
+                            return KunneIkkeOppretteRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(
+                                periode = uteståendeAvkorting.avkortingsvarsel.periode(),
+                            ).left()
+                        }
+                },
+            )
+
+            val aktørId = hentAktørId(gjeldendeVedtakPåFraOgMedDato.behandling.fnr).getOrElse {
+                log.error("Fant ikke aktør-id")
+                return KunneIkkeOppretteRevurdering.FantIkkeAktørId.left()
+            }
+
+            // Oppgaven skal egentligen ikke opprettes her. Den burde egentligen komma utifra melding av endring, som skal føres til revurdering.
+            // OK boomer
+            val oppgaveId = opprettOppgave(
+                OppgaveConfig.Revurderingsbehandling(
+                    saksnummer = saksnummer, aktørId = aktørId, tilordnetRessurs = null, clock = clock,
+                ),
+            ).getOrHandle {
+                return KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave.left()
+            }
+
+            OpprettetRevurdering(
+                periode = gjeldendeVedtaksdata.vedtaksperioder().minsteAntallSammenhengendePerioder().single(),
+                opprettet = Tidspunkt.now(clock),
+                tilRevurdering = gjeldendeVedtakPåFraOgMedDato.id,
+                saksbehandler = saksbehandler,
+                oppgaveId = oppgaveId,
+                fritekstTilBrev = "",
+                revurderingsårsak = revurderingsårsak,
+                forhåndsvarsel = if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles else null,
+                grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
+                vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
+                informasjonSomRevurderes = informasjonSomRevurderes,
+                attesteringer = Attesteringshistorikk.empty(),
+                avkorting = uteståendeAvkorting,
+                sakinfo = gjeldendeVedtakPåFraOgMedDato.sakinfo(),
+            ).right()
+        }
+    }
+
+    fun harÅpenRegulering() = hentÅpneReguleringer().isRight()
+    fun hentÅpneReguleringer(): Either<IngenÅpneReguleringer, NonEmptyList<Regulering>> =
+        reguleringer
+            .filter { it.erÅpen() }
+            .ifEmpty { return IngenÅpneReguleringer.left() }
+            .nonEmpty()
+            .right()
+
+    fun harÅpenRevurdering() = hentÅpneRevurderinger().isRight()
+    fun hentÅpneRevurderinger(): Either<IngenÅpneRevurderinger, NonEmptyList<AbstraktRevurdering>> =
+        revurderinger
+            .filter { it.erÅpen() }
+            .ifEmpty { return IngenÅpneRevurderinger.left() }
+            .nonEmpty()
+            .right()
+
+    fun kanOppretteBehandling(): Boolean = !harÅpenSøknadsbehandling() && !harÅpenRevurdering() && !harÅpenRegulering()
+
+    object IngenÅpneRevurderinger
     object FantIkkeSøknadsbehandlingForSøknad
+
+    object HarÅpenBehandling
 
     sealed class KunneIkkeOppdatereStønadsperiode {
         object FantIkkeBehandling : KunneIkkeOppdatereStønadsperiode()
@@ -548,6 +747,7 @@ data class Sak(
     }
 }
 
+object IngenÅpneReguleringer
 data class NySak(
     val id: UUID = UUID.randomUUID(),
     val opprettet: Tidspunkt,
