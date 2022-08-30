@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web
 
-import ch.qos.logback.classic.util.ContextInitializer
+import ch.qos.logback.classic.ClassicConstants
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders.XCorrelationId
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
@@ -80,7 +80,7 @@ import java.time.format.DateTimeParseException
 
 fun main() {
     if (ApplicationConfig.isRunningLocally()) {
-        System.setProperty(ContextInitializer.CONFIG_FILE_PROPERTY, "logback-local.xml")
+        System.setProperty(ClassicConstants.CONFIG_FILE_PROPERTY, "logback-local.xml")
     }
     embeddedServer(factory = Netty, port = 8080) {
         susebakover()

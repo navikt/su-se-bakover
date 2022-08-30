@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web.søknad.ny
 
-import ch.qos.logback.classic.util.ContextInitializer
+import ch.qos.logback.classic.ClassicConstants
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 
 /**
@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.web.SharedRegressionTestData
  * Kan kjøres via ./resetdb_and_create_søknad.sh
  */
 fun main() {
-    System.setProperty(ContextInitializer.CONFIG_FILE_PROPERTY, "logback-local.xml")
+    System.setProperty(ClassicConstants.CONFIG_FILE_PROPERTY, "logback-local.xml")
     SharedRegressionTestData.withTestApplicationAndDockerDb {
         nyDigitalSøknad()
     }

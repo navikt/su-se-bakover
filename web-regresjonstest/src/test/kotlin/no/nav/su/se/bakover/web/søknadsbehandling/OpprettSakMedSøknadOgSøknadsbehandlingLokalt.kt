@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web.søknadsbehandling
 
-import ch.qos.logback.classic.util.ContextInitializer
+import ch.qos.logback.classic.ClassicConstants
 import no.nav.su.se.bakover.web.SharedRegressionTestData.withTestApplicationAndDockerDb
 
 /**
@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.web.SharedRegressionTestData.withTestApplicationAndD
  * Kan kjøres via `./local-db-scripts/create-søknadsbehandling.sh`
  */
 fun main() {
-    System.setProperty(ContextInitializer.CONFIG_FILE_PROPERTY, "logback-local.xml")
+    System.setProperty(ClassicConstants.CONFIG_FILE_PROPERTY, "logback-local.xml")
     withTestApplicationAndDockerDb {
         opprettInnvilgetSøknadsbehandling()
     }
