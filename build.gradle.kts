@@ -56,11 +56,13 @@ subprojects {
         testImplementation("org.mockito.kotlin:mockito-kotlin:4.0.0")
         // Embedded database brukes av modulene: web og database
         testImplementation(
-            // select version() i preprod -> PostgreSQL 11.7 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 4.8.5 20150623 (Red Hat 4.8.5-39), 64-bit
-            // The releases without the -1 suffix has a dyld/dylib issue on macOS (i.e. the 11.7.0 version won't work)
-            enforcedPlatform("io.zonky.test.postgres:embedded-postgres-binaries-bom:11.6.0-1"),
+            // select version() i preprod 2022-08-30 -> PostgreSQL 11.16 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 4.8.5 20150623 (Red Hat 4.8.5-44), 64-bit
+            // Merk at det ikke har blitt kompilert så mange drivere for denne: https://mvnrepository.com/artifact/io.zonky.test.postgres/embedded-postgres-binaries-darwin-arm64v8 og kun en versjon for postgres 11
+            enforcedPlatform("io.zonky.test.postgres:embedded-postgres-binaries-bom:11.15.0"),
         )
         testImplementation("io.zonky.test:embedded-postgres:2.0.1")
+        // Legger til manglende binaries for nye Mac's med M1 cpuer.
+        testImplementation("io.zonky.test.postgres:embedded-postgres-binaries-darwin-arm64v8")
 
         constraints {
             implementation("commons-collections:commons-collections") {

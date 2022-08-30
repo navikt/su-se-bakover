@@ -9,6 +9,11 @@ Lokal database startes med `docker compose up`
 
 Hvis man ønsker å resette hele databasen og starte fra scratch er det enkleste å slette volumet ved å kjøre `./resetdb.sh`
 
+### Troubleshooting lokal/embedded postgres
+Dersom man får feilen `running bootstrap script ... 2022-08-30 16:10:20.342 CEST [53606] FATAL:  could not create shared memory segment: Cannot allocate memory` kan man øke shared memory:
+ * `sudo sysctl kern.sysv.shmmax=104857600` eller en annen ønsket verdi
+ * `sudo sysctl kern.sysv.shmall=2560` eller en annen ønsket verdi
+
 #### Starte applikasjon lokalt
 Kan startes lokalt fra web/src/main/kotlin/.../Application.kt sin `fun main(...)`. Krever at `start-dev.sh` skriptet
 i [su-se-fremover](https://github.com/navikt/su-se-framover#kj%C3%B8re-lokalt) kjører
@@ -122,18 +127,18 @@ prod: https://alertmanager.prod-fss.nais.io
 
 ## Upgrade gradlew
 1. Find the lastest version of gradle, e.g. by checking here: https://gradle.org/releases/
-1. Then run `./gradlew wrapper --gradle-version <version>`
-1. In `build.gradle.kts` you also have to change the gradle version. E.g. search for `gradleVersion =`
+2. Then run `./gradlew wrapper --gradle-version <version>`
+3. In `build.gradle.kts` you also have to change the gradle version. E.g. search for `gradleVersion =`
 
 ## Upgrade java version
 1. In `build.gradle.kts` and search for `jvmTarget = `
-1. In `.github/workflows/*.yml` and search for `java-version`
-1. In `Dockerfile` replace `FROM navikt/java:<version>`
+2. In `.github/workflows/*.yml` and search for `java-version`
+3. In `Dockerfile` replace `FROM navikt/java:<version>`
 
 ## Kubernetes
 1. Check out https://github.com/navikt/kubeconfigs
-1. Set context: `kubectl config set-context dev-fss` 
-1. Try to get pods: `kubectl get pods`, and follow the auth info
+2. Set context: `kubectl config set-context dev-fss`
+3. Try to get pods: `kubectl get pods`, and follow the auth info
 
 * Set team-namespace as default: `kubectl config set-context --current --namespace=supstonad`
 * Describe pod: `kubectl describe pod su-se-bakover`
