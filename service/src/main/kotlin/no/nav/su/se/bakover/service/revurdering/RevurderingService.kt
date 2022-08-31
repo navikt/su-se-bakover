@@ -240,7 +240,6 @@ sealed class KunneIkkeOppdatereRevurdering {
     object TidslinjeForVedtakErIkkeKontinuerlig : KunneIkkeOppdatereRevurdering()
     object UgyldigÅrsak : KunneIkkeOppdatereRevurdering()
     object UgyldigBegrunnelse : KunneIkkeOppdatereRevurdering()
-    data class UgyldigPeriode(val subError: Periode.UgyldigPeriode) : KunneIkkeOppdatereRevurdering()
     data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) :
         KunneIkkeOppdatereRevurdering()
 

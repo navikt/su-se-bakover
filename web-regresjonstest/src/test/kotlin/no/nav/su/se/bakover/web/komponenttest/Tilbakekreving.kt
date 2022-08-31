@@ -371,6 +371,7 @@ class Tilbakekreving {
             val revurderingId = opprettRevurdering(
                 sakId = sakId,
                 fraOgMed = 1.mai(2021).toString(),
+                tilOgMed = 31.desember(2021).toString(),
             ).let {
                 RevurderingJson.hentRevurderingId(it)
             }

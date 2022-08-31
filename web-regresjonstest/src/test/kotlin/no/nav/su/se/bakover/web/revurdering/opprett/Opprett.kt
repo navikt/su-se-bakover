@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.web.SharedRegressionTestData.defaultRequest
 internal fun ApplicationTestBuilder.opprettRevurdering(
     sakId: String,
     fraOgMed: String,
+    tilOgMed: String,
     årsak: String = "MELDING_FRA_BRUKER",
     begrunnelse: String = "Behov for å vurdere ny informasjon mottatt pr telefon.",
     informasjonSomRevurderes: String = """
@@ -39,6 +40,7 @@ internal fun ApplicationTestBuilder.opprettRevurdering(
                 """
                   {
                     "fraOgMed": "$fraOgMed",
+                    "tilOgMed": "$tilOgMed",
                     "årsak": "$årsak",
                     "begrunnelse": "$begrunnelse",
                     "informasjonSomRevurderes": $informasjonSomRevurderes 

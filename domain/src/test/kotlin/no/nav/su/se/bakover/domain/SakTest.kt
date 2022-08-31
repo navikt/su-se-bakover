@@ -127,7 +127,7 @@ internal class SakTest {
 
     @Test
     fun `oppretter revurdering dersom det ikke finnes eksisterende åpne behandlinger`() {
-        val sakUtenÅpenBehandling = (iverksattSøknadsbehandlingUføre()).first
+        val sakUtenÅpenBehandling = (iverksattSøknadsbehandlingUføre(stønadsperiode = stønadsperiode2021)).first
         val (sakMedÅpenRevurdering, revurdering) = opprettetRevurdering()
 
         sakUtenÅpenBehandling.opprettNyRevurdering(
@@ -135,20 +135,18 @@ internal class SakTest {
             revurderingsårsak = revurdering.revurderingsårsak,
             informasjonSomRevurderes = revurdering.informasjonSomRevurderes,
             clock = fixedClock,
-            fraOgMed = 1.januar(2021),
+            periode = stønadsperiode2021.periode,
             hentAktørId = { AktørId("aktørId").right() },
-            opprettOppgave = { OppgaveId("oppgaveId").right() },
-        ).shouldBeRight()
+        ) { OppgaveId("oppgaveId").right() }.shouldBeRight()
 
         sakMedÅpenRevurdering.opprettNyRevurdering(
             saksbehandler = revurdering.saksbehandler,
             revurderingsårsak = revurdering.revurderingsårsak,
             informasjonSomRevurderes = revurdering.informasjonSomRevurderes,
             clock = fixedClock,
-            fraOgMed = 1.januar(2021),
+            periode = stønadsperiode2021.periode,
             hentAktørId = { AktørId("aktørId").right() },
-            opprettOppgave = { OppgaveId("oppgaveId").right() },
-        ).shouldBeLeft()
+        ) { OppgaveId("oppgaveId").right() }.shouldBeLeft()
 
         val sakMedÅpenRegulering = innvilgetSøknadsbehandlingMedÅpenRegulering(1.mai(2021)).first
         sakMedÅpenRegulering.opprettNyRevurdering(
@@ -156,10 +154,9 @@ internal class SakTest {
             revurderingsårsak = revurdering.revurderingsårsak,
             informasjonSomRevurderes = revurdering.informasjonSomRevurderes,
             clock = fixedClock,
-            fraOgMed = 1.januar(2021),
+            periode = stønadsperiode2021.periode,
             hentAktørId = { AktørId("aktørId").right() },
-            opprettOppgave = { OppgaveId("oppgaveId").right() },
-        ).shouldBeLeft()
+        ) { OppgaveId("oppgaveId").right() }.shouldBeLeft()
     }
 
     @Test

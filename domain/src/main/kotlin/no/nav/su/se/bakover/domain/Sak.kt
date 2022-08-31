@@ -167,7 +167,7 @@ data class Sak(
             .let { vedtakSomKanRevurderes ->
                 GjeldendeVedtaksdata(
                     periode = periode,
-                    vedtakListe = NonEmptyList.fromListUnsafe(vedtakSomKanRevurderes),
+                    vedtakListe = vedtakSomKanRevurderes.nonEmpty(),
                     clock = clock,
                 ).right()
             }
@@ -625,7 +625,7 @@ data class Sak(
     }
 
     fun opprettNyRevurdering(
-        fraOgMed: LocalDate,
+        periode: Periode,
         saksbehandler: NavIdentBruker.Saksbehandler,
         revurderingsårsak: Revurderingsårsak,
         informasjonSomRevurderes: InformasjonSomRevurderes,
@@ -636,7 +636,10 @@ data class Sak(
         return if (!kanOppretteBehandling()) {
             KunneIkkeOppretteRevurdering.HarÅpenBehandling.left()
         } else {
-            val gjeldendeVedtaksdata = kopierGjeldendeVedtaksdata(fraOgMed, clock).fold(
+            val gjeldendeVedtaksdata = hentGjeldendeVedtaksdata(
+                periode = periode,
+                clock = clock,
+            ).fold(
                 { return KunneIkkeOppretteRevurdering.KunneIkkeHenteGjeldendeVedtaksdataSak(it).left() },
                 {
                     it.also {
@@ -645,9 +648,8 @@ data class Sak(
                 },
             )
 
-            val gjeldendeVedtakPåFraOgMedDato =
-                gjeldendeVedtaksdata.gjeldendeVedtakPåDato(fraOgMed)
-                    ?: return KunneIkkeOppretteRevurdering.FantIngenVedtakSomKanRevurderes.left()
+            val gjeldendeVedtakPåFraOgMedDato = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(dato = periode.fraOgMed)
+                ?: return KunneIkkeOppretteRevurdering.FantIngenVedtakSomKanRevurderes.left()
 
             when (val r = VurderOmVilkårGirOpphørVedRevurdering(gjeldendeVedtaksdata.vilkårsvurderinger).resultat) {
                 is OpphørVedRevurdering.Ja -> {
@@ -685,7 +687,10 @@ data class Sak(
             // OK boomer
             val oppgaveId = opprettOppgave(
                 OppgaveConfig.Revurderingsbehandling(
-                    saksnummer = saksnummer, aktørId = aktørId, tilordnetRessurs = null, clock = clock,
+                    saksnummer = saksnummer,
+                    aktørId = aktørId,
+                    tilordnetRessurs = null,
+                    clock = clock,
                 ),
             ).getOrHandle {
                 return KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave.left()

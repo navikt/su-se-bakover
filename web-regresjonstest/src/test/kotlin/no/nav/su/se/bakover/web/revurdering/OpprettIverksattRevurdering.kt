@@ -23,6 +23,7 @@ internal fun ApplicationTestBuilder.opprettIverksattRevurdering(
     return opprettRevurdering(
         sakId = sakId,
         fraOgMed = fraOgMed,
+        tilOgMed = tilOgMed,
     ).let {
         val revurderingId = hentRevurderingId(it)
 

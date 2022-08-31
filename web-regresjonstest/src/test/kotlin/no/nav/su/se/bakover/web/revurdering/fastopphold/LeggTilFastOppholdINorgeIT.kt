@@ -36,6 +36,7 @@ internal class LeggTilFastOppholdINorgeIT {
                 opprettRevurdering(
                     sakId = sakId,
                     fraOgMed = fraOgMed,
+                    tilOgMed = tilOgMed,
                 ).let {
                     val revurderingId = hentRevurderingId(it)
 

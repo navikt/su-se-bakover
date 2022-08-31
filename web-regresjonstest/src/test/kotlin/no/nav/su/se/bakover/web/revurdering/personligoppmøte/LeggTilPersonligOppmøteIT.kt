@@ -35,6 +35,7 @@ internal class LeggTilPersonligOppmøteIT {
                 opprettRevurdering(
                     sakId = sakId,
                     fraOgMed = fraOgMed,
+                    tilOgMed = tilOgMed,
                 ).let {
                     val revurderingId = hentRevurderingId(it)
 
