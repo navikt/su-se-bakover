@@ -58,7 +58,6 @@ internal class SimuleringResponseMapperTest {
                     clock = Clock.systemUTC(),
                 ),
             ),
-            type = Utbetaling.UtbetalingsType.OPPHØR,
             behandler = NavIdentBruker.Saksbehandler("saksa"),
             avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt),
             sakstype = Sakstype.UFØRE,

@@ -68,6 +68,22 @@ internal class UtbetalingTest {
     }
 
     @Test
+    fun `endring av første utbetalingslinje er ikke det samme som førstegangsutbetaling`() {
+        val førsteUtbetalingslinje = createUtbetalingslinje()
+
+        createUtbetaling(utbetalingsLinjer = nonEmptyListOf(førsteUtbetalingslinje))
+            .also { it.erFørstegangsUtbetaling() shouldBe true }
+
+        val opphør = Utbetalingslinje.Endring.Opphør(
+            utbetalingslinje = førsteUtbetalingslinje,
+            virkningsperiode = førsteUtbetalingslinje.periode,
+            clock = fixedClock,
+        )
+        createUtbetaling(utbetalingsLinjer = nonEmptyListOf(opphør))
+            .also { it.erFørstegangsUtbetaling() shouldBe false }
+    }
+
+    @Test
     fun `finner ikke gjeldende utbetaling for en tom liste`() {
         emptyList<Utbetaling>().hentGjeldendeUtbetaling(
             forDato = fixedLocalDate,
@@ -100,7 +116,6 @@ internal class UtbetalingTest {
         saksnummer = Saksnummer(2021),
         fnr = Fnr.generer(),
         utbetalingslinjer = utbetalingsLinjer,
-        type = Utbetaling.UtbetalingsType.NY,
         behandler = NavIdentBruker.Saksbehandler("Z123"),
         avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt),
         sakstype = Sakstype.UFØRE,

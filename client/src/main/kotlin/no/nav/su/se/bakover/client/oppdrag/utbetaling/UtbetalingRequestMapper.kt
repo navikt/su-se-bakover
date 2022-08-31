@@ -18,15 +18,7 @@ internal fun toUtbetalingRequest(
     return UtbetalingRequest(
         oppdragRequest = UtbetalingRequest.OppdragRequest(
             kodeAksjon = UtbetalingRequest.KodeAksjon.UTBETALING, // Kodeaksjon brukes ikke av simulering
-            kodeEndring = when (utbetaling.type) {
-                // TODO refaktorer vekk utbetalingstype
-                Utbetaling.UtbetalingsType.NY -> {
-                    if (utbetaling.erFørstegangsUtbetaling()) UtbetalingRequest.KodeEndring.NY else UtbetalingRequest.KodeEndring.ENDRING
-                }
-                Utbetaling.UtbetalingsType.STANS, Utbetaling.UtbetalingsType.GJENOPPTA, Utbetaling.UtbetalingsType.OPPHØR -> {
-                    UtbetalingRequest.KodeEndring.ENDRING
-                }
-            },
+            kodeEndring = if (utbetaling.erFørstegangsUtbetaling()) UtbetalingRequest.KodeEndring.NY else UtbetalingRequest.KodeEndring.ENDRING,
             kodeFagomraade = utbetaling.sakstype.toFagområde().toString(),
             fagsystemId = utbetaling.saksnummer.toString(),
             utbetFrekvens = OppdragDefaults.utbetalingsfrekvens,

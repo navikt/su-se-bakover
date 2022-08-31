@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.journal.JournalpostId
-import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
@@ -28,7 +27,6 @@ import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt0
 import java.time.Clock
 import java.time.LocalDate
-import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 /**
@@ -140,10 +138,10 @@ fun vedtakRevurderingIverksattInnvilget(
         revurderingsårsak = revurderingsårsak,
     ).let { (sak, revurdering) ->
         val utbetaling = oversendtUtbetalingMedKvittering(
-            saksnummer = saksnummer,
-            sakId = sakId,
-            fnr = fnr,
             id = utbetalingId,
+            fnr = fnr,
+            sakId = sakId,
+            saksnummer = saksnummer,
             eksisterendeUtbetalinger = sak.utbetalinger,
             clock = clock,
         )
@@ -182,10 +180,10 @@ fun vedtakIverksattAutomatiskRegulering(
         val regulering = iverksattAutomatiskRegulering(sakId = sak.id, reguleringsperiode = regulerFraOgMed)
 
         val utbetaling = oversendtUtbetalingMedKvittering(
-            saksnummer = saksnummer,
-            sakId = sakId,
-            fnr = fnr,
             id = utbetalingId,
+            fnr = fnr,
+            sakId = sakId,
+            saksnummer = saksnummer,
             eksisterendeUtbetalinger = sak.utbetalinger,
             clock = clock,
         )
@@ -205,11 +203,8 @@ fun vedtakIverksattAutomatiskRegulering(
     }
 }
 
-/**
- * @param sakOgVedtakSomKanRevurderes dersom denne ikke sendes inn vil clock bli satt til +0 sekunder på søknadsbehandlingsvedtaket og +1 på stansvedtaket
- */
 fun vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
-    clock: Clock = fixedClock,
+    clock: Clock = TikkendeKlokke(fixedClock),
     periode: Periode = Periode.create(
         fraOgMed = LocalDate.now(clock).plusMonths(1).startOfMonth(),
         tilOgMed = år(2021).tilOgMed,
@@ -224,7 +219,7 @@ fun vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         periode = periode,
         sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
         attestering = attestering,
-        clock = clock.plus(1, ChronoUnit.SECONDS),
+        clock = clock,
     ).let { (sak, revurdering) ->
         val utbetaling = oversendtStansUtbetalingUtenKvittering(
             stansDato = revurdering.periode.fraOgMed,
@@ -232,13 +227,13 @@ fun vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
             sakId = sak.id,
             saksnummer = sak.saksnummer,
             eksisterendeUtbetalinger = sak.utbetalinger,
-            clock = clock.plus(1, ChronoUnit.SECONDS),
+            clock = clock,
         )
 
         val vedtak = VedtakSomKanRevurderes.from(
             revurdering = revurdering,
             utbetalingId = utbetaling.id,
-            clock = clock.plus(1, ChronoUnit.SECONDS),
+            clock = clock,
         )
 
         sak.copy(
@@ -248,14 +243,9 @@ fun vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
     }
 }
 
-/**
- * @param sakOgVedtakSomKanRevurderes Hvis denne ikke sendes inn lages det 2 vedtak med clock+0 og clock+1
- *
- * [GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse] vil bruke clock+2
- */
 fun vedtakIverksattGjenopptakAvYtelseFraIverksattStans(
     periode: Periode,
-    clock: Clock = fixedClock,
+    clock: Clock = TikkendeKlokke(fixedClock),
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         periode = periode,
         clock = clock,
@@ -266,7 +256,6 @@ fun vedtakIverksattGjenopptakAvYtelseFraIverksattStans(
         periode = periode,
         sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
         attestering = attestering,
-        // funksjonen vil legge på clock +2
         clock = clock,
     ).let { (sak, revurdering) ->
         val utbetaling = oversendtGjenopptakUtbetalingUtenKvittering(

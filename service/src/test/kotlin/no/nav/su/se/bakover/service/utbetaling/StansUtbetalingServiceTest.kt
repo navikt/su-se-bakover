@@ -95,7 +95,6 @@ internal class StansUtbetalingServiceTest {
                 clock = fixedClock,
             ),
         ),
-        type = Utbetaling.UtbetalingsType.STANS,
         behandler = NavIdentBruker.Saksbehandler("Z123"),
         avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt),
         sakstype = Sakstype.UFØRE,
@@ -120,7 +119,6 @@ internal class StansUtbetalingServiceTest {
                 utbetalingslinjer = nonEmptyListOf(
                     førsteUtbetalingslinje,
                 ),
-                type = Utbetaling.UtbetalingsType.NY,
                 behandler = NavIdentBruker.Saksbehandler("Z123"),
                 avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt),
                 sakstype = Sakstype.UFØRE,
@@ -255,7 +253,6 @@ internal class StansUtbetalingServiceTest {
 
     @Test
     fun `Sjekk at vi svarer furnuftig når simulering feiler`() {
-
         val sakServiceMock = mock<SakService> {
             on { hentSak(sak.id) } doReturn sak.right()
         }

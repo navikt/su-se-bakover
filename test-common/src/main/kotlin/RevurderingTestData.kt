@@ -1512,8 +1512,7 @@ fun iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
         clock = clock,
     ).let { (sak, simulert) ->
-        val iverksatt = simulert.iverksett(attestering)
-            .getOrFail("Feil ved oppsett av testdata for iverksatt stans av ytelse")
+        val iverksatt = simulert.iverksett(attestering).getOrFail()
 
         sak.copy(
             // Erstatter den gamle versjonen av samme revurderinger.
@@ -1540,7 +1539,7 @@ fun avsluttetStansAvYtelseFraIverksattSøknadsbehandlignsvedtak(
 }
 
 fun simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
-    clock: Clock = fixedClock,
+    clock: Clock = TikkendeKlokke(fixedClock),
     periodeForStans: Periode = Periode.create(
         fraOgMed = LocalDate.now(clock).plusMonths(1).startOfMonth(),
         tilOgMed = år(2021).tilOgMed,
@@ -1589,11 +1588,11 @@ fun simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
  * [GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse] vil få clock+2
  */
 fun iverksattGjenopptakelseAvYtelseFraVedtakStansAvYtelse(
+    clock: Clock = TikkendeKlokke(fixedClock),
     periode: Periode = Periode.create(
-        fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
+        fraOgMed = LocalDate.now(clock).plusMonths(1).startOfMonth(),
         tilOgMed = år(2021).tilOgMed,
     ),
-    clock: Clock = fixedClock,
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         periode = periode,
         clock = clock,
@@ -1603,7 +1602,7 @@ fun iverksattGjenopptakelseAvYtelseFraVedtakStansAvYtelse(
     return simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
         periodeForStans = periode,
         sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
-        clock = clock.plus(2, ChronoUnit.SECONDS),
+        clock = clock,
     ).let { (sak, simulert) ->
         val iverksatt = simulert.iverksett(attestering)
             .getOrFail("Feil i oppsett for testdata")

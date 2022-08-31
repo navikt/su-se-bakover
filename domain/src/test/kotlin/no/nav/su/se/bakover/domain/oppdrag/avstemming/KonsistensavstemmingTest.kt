@@ -976,7 +976,6 @@ internal class KonsistensavstemmingTest {
             saksnummer = saksnummer,
             fnr = fnr,
             utbetalingslinjer = utbetalingsLinjer,
-            type = Utbetaling.UtbetalingsType.NY,
             behandler = behandler,
             avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt),
             sakstype = Sakstype.UFØRE,

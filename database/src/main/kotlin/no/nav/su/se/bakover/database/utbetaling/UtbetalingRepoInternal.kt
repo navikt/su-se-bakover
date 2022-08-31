@@ -70,7 +70,6 @@ internal fun Row.toUtbetaling(session: Session): Utbetaling.OversendtUtbetaling 
     val sakId = uuid("sakId")
     val saksnummer = Saksnummer(long("saksnummer"))
     val fnr = Fnr(string("fnr"))
-    val type = Utbetaling.UtbetalingsType.valueOf(string("type"))
     val behandler = NavIdentBruker.Attestant(string("behandler"))
     val avstemmingsnøkkel = deserialize<Avstemmingsnøkkel>(string("avstemmingsnøkkel"))
     val sakstype = Sakstype.from(string("sakstype"))
@@ -82,7 +81,6 @@ internal fun Row.toUtbetaling(session: Session): Utbetaling.OversendtUtbetaling 
         saksnummer = saksnummer,
         fnr = fnr,
         utbetalingslinjer = NonEmptyList.fromListUnsafe(utbetalingslinjer),
-        type = type,
         avstemmingsnøkkel = avstemmingsnøkkel,
         simulering = simulering,
         utbetalingsrequest = utbetalingsrequest,

@@ -109,22 +109,18 @@ internal class SakJsonTest {
 
             val utbetaling1 = mock<Utbetaling.OversendtUtbetaling.UtenKvittering> {
                 on { utbetalingslinjer } doReturn nonEmptyListOf(nyUtbetaling)
-                on { type } doReturn Utbetaling.UtbetalingsType.NY
                 on { opprettet } doReturn nyUtbetaling.opprettet
             }
             val utbetaling2 = mock<Utbetaling.OversendtUtbetaling.UtenKvittering> {
                 on { utbetalingslinjer } doReturn nonEmptyListOf(midlertidigStans)
-                on { type } doReturn Utbetaling.UtbetalingsType.STANS
                 on { opprettet } doReturn midlertidigStans.opprettet
             }
             val utbetaling3 = mock<Utbetaling.OversendtUtbetaling.UtenKvittering> {
                 on { utbetalingslinjer } doReturn nonEmptyListOf(reaktivering)
-                on { type } doReturn Utbetaling.UtbetalingsType.GJENOPPTA
                 on { opprettet } doReturn reaktivering.opprettet
             }
             val utbetaling4 = mock<Utbetaling.OversendtUtbetaling.UtenKvittering> {
                 on { utbetalingslinjer } doReturn nonEmptyListOf(opphørslinje)
-                on { type } doReturn Utbetaling.UtbetalingsType.OPPHØR
                 on { opprettet } doReturn opphørslinje.opprettet
             }
 
@@ -135,25 +131,25 @@ internal class SakJsonTest {
                 fraOgMed = nyUtbetaling.fraOgMed,
                 tilOgMed = midlertidigStans.virkningsperiode.fraOgMed.minusDays(1),
                 beløp = nyUtbetaling.beløp,
-                type = Utbetaling.UtbetalingsType.NY.toString(),
+                type = "NY",
             )
             actual2 shouldBe UtbetalingJson(
                 fraOgMed = midlertidigStans.virkningsperiode.fraOgMed,
                 tilOgMed = reaktivering.virkningsperiode.fraOgMed.minusDays(1),
                 beløp = 0,
-                type = Utbetaling.UtbetalingsType.STANS.toString(),
+                type = "STANS",
             )
             actual3 shouldBe UtbetalingJson(
                 fraOgMed = reaktivering.virkningsperiode.fraOgMed,
                 tilOgMed = opphørslinje.virkningsperiode.fraOgMed.minusDays(1),
                 beløp = nyUtbetaling.beløp,
-                type = Utbetaling.UtbetalingsType.GJENOPPTA.toString(),
+                type = "GJENOPPTA",
             )
             actual4 shouldBe UtbetalingJson(
                 fraOgMed = opphørslinje.virkningsperiode.fraOgMed,
                 tilOgMed = nyUtbetaling.tilOgMed,
                 beløp = 0,
-                type = Utbetaling.UtbetalingsType.OPPHØR.toString(),
+                type = "OPPHØR",
             )
         }
     }

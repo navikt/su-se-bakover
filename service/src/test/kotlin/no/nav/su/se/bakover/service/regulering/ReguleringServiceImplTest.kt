@@ -291,8 +291,10 @@ internal class ReguleringServiceImplTest {
 
         @Test
         fun `manuell behandling av stans skal ikke være lov`() {
+            val tikkendeKlokke = TikkendeKlokke(fixedClock)
             val (sak, regulering) = stansetSøknadsbehandlingMedÅpenRegulering(
                 regulerFraOgMed = 1.mai(2021),
+                clock = tikkendeKlokke
             )
 
             val reguleringService = lagReguleringServiceImpl(sak)

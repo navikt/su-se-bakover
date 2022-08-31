@@ -56,7 +56,6 @@ internal class LokalKvitteringJobTest {
                 uføregrad = Uføregrad.parse(50),
             ),
         ),
-        type = Utbetaling.UtbetalingsType.NY,
         behandler = NavIdentBruker.Attestant("attestant"),
         avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.EPOCH),
         sakstype = Sakstype.UFØRE,

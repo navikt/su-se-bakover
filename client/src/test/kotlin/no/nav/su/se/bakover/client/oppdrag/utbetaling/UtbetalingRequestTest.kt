@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
-import no.nav.su.se.bakover.test.avstemmingsnøkkel
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.utbetalingslinje
 import org.junit.jupiter.api.Test
@@ -55,7 +54,6 @@ internal class UtbetalingRequestTest {
                     uføregrad = 70,
                 ),
             ),
-            type = Utbetaling.UtbetalingsType.NY,
             behandler = NavIdentBruker.Attestant("A123456"),
             avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt),
             sakstype = Sakstype.UFØRE,
@@ -168,7 +166,6 @@ internal class UtbetalingRequestTest {
                     forrigeUtbetalingslinjeId = nyOppdragslinjeid1,
                 ),
             ),
-            type = Utbetaling.UtbetalingsType.NY,
             behandler = NavIdentBruker.Attestant("A123456"),
             avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay()),
             sakstype = Sakstype.UFØRE,
@@ -252,7 +249,6 @@ internal class UtbetalingRequestTest {
     @Test
     fun `bygger en request for endring av eksisterende linjer`() {
         val endring = nyUtbetaling.copy(
-            type = Utbetaling.UtbetalingsType.OPPHØR,
             avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay()),
             utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Endring.Opphør(
@@ -264,7 +260,6 @@ internal class UtbetalingRequestTest {
         )
 
         val stans = nyUtbetaling.copy(
-            type = Utbetaling.UtbetalingsType.STANS,
             avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay()),
             utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Endring.Stans(
@@ -276,7 +271,6 @@ internal class UtbetalingRequestTest {
         )
 
         val gjenoppta = nyUtbetaling.copy(
-            type = Utbetaling.UtbetalingsType.GJENOPPTA,
             avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay()),
             utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Endring.Reaktivering(

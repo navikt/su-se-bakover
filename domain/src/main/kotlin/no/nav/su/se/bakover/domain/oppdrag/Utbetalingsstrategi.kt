@@ -70,7 +70,8 @@ sealed class Utbetalingsstrategi {
     ) : Utbetalingsstrategi() {
 
         fun generer(): Either<Feil, Utbetaling.UtbetalingForSimulering> {
-            val sisteOversendteUtbetalingslinje = eksisterendeUtbetalinger.hentSisteOversendteUtbetalingslinjeUtenFeil() ?: return Feil.FantIngenUtbetalinger.left()
+            val sisteOversendteUtbetalingslinje = eksisterendeUtbetalinger.hentSisteOversendteUtbetalingslinjeUtenFeil()
+                ?: return Feil.FantIngenUtbetalinger.left()
 
             when {
                 !harOversendteUtbetalingerEtter(stansDato) -> {
@@ -113,11 +114,12 @@ sealed class Utbetalingsstrategi {
                         opprettet = opprettet,
                     ),
                 ),
-                type = Utbetaling.UtbetalingsType.STANS,
                 behandler = behandler,
                 avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
                 sakstype = sakstype,
-            ).right()
+            ).also {
+                check(it.erStans()) { "Generert utbetaling er ikke en stans" }
+            }.right()
         }
 
         sealed class Feil {
@@ -170,7 +172,6 @@ sealed class Utbetalingsstrategi {
                     eksisterendeUtbetalingslinjer = eksisterendeUtbetalinger.hentOversendteUtbetalingslinjerUtenFeil(),
                     clock = clock,
                 ).generer().nonEmpty(),
-                type = Utbetaling.UtbetalingsType.NY,
                 behandler = behandler,
                 avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
                 sakstype = sakstype,
@@ -266,7 +267,6 @@ sealed class Utbetalingsstrategi {
                     clock = clock,
                 ).generer().nonEmpty(),
                 fnr = fnr,
-                type = Utbetaling.UtbetalingsType.NY,
                 behandler = behandler,
                 avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
                 sakstype = sakstype,
@@ -309,7 +309,6 @@ sealed class Utbetalingsstrategi {
                     eksisterendeUtbetalingslinjer = eksisterendeUtbetalinger.hentOversendteUtbetalingslinjerUtenFeil(),
                     clock = clock,
                 ).generer().nonEmpty(),
-                type = Utbetaling.UtbetalingsType.OPPHØR,
                 behandler = behandler,
                 avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
                 sakstype = sakstype,
@@ -354,11 +353,12 @@ sealed class Utbetalingsstrategi {
                         clock = clock,
                     ),
                 ),
-                type = Utbetaling.UtbetalingsType.GJENOPPTA,
                 behandler = behandler,
                 avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
                 sakstype = sakstype,
-            ).right()
+            ).also {
+                check(it.erReaktivering()) { "Generert utbetaling er ikke en reaktivering" }
+            }.right()
         }
 
         sealed class Feil {
@@ -378,6 +378,7 @@ sealed class Utbetalingsstrategi {
             throw UtbetalingStrategyException(message.toString())
         }
     }
+
     protected fun harOversendteUtbetalingerEtter(value: LocalDate) =
         eksisterendeUtbetalinger.hentOversendteUtbetalingerUtenFeil()
             .flatMap { it.utbetalingslinjer }

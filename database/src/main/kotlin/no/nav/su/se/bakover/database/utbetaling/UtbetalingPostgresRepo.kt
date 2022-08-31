@@ -80,15 +80,14 @@ internal class UtbetalingPostgresRepo(
         dbMetrics.timeQuery("opprettUtbetaling") {
             transactionContext.withTransaction { session ->
                 """
-            insert into utbetaling (id, opprettet, sakId, fnr, type, avstemmingsnøkkel, simulering, utbetalingsrequest, behandler)
-            values (:id, :opprettet, :sakId, :fnr, :type, to_json(:avstemmingsnokkel::json), to_json(:simulering::json), to_json(:utbetalingsrequest::json), :behandler)
+            insert into utbetaling (id, opprettet, sakId, fnr, avstemmingsnøkkel, simulering, utbetalingsrequest, behandler)
+            values (:id, :opprettet, :sakId, :fnr, to_json(:avstemmingsnokkel::json), to_json(:simulering::json), to_json(:utbetalingsrequest::json), :behandler)
                 """.insert(
                     mapOf(
                         "id" to utbetaling.id,
                         "opprettet" to utbetaling.opprettet,
                         "sakId" to utbetaling.sakId,
                         "fnr" to utbetaling.fnr,
-                        "type" to utbetaling.type.name,
                         "avstemmingsnokkel" to serialize(utbetaling.avstemmingsnøkkel),
                         "simulering" to serialize(utbetaling.simulering),
                         "utbetalingsrequest" to serialize(utbetaling.utbetalingsrequest),

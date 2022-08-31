@@ -625,7 +625,6 @@ internal class RevurderingBeregnTest {
         saksnummer = Saksnummer(9999),
         fnr = Fnr.generer(),
         utbetalingslinjer = NonEmptyList.fromListUnsafe(utbetalingslinjer.toList()),
-        type = Utbetaling.UtbetalingsType.NY,
         behandler = mock(),
         avstemmingsnøkkel = mock(),
         sakstype = Sakstype.UFØRE,

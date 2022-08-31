@@ -897,7 +897,6 @@ fun kvittertUtbetaling(
 fun expectedUtbetaling(
     actual: Utbetaling.UtbetalingForSimulering,
     utbetalingslinjer: NonEmptyList<Utbetalingslinje>,
-    type: Utbetaling.UtbetalingsType = Utbetaling.UtbetalingsType.NY,
 ): Utbetaling.UtbetalingForSimulering {
     return Utbetaling.UtbetalingForSimulering(
         id = actual.id,
@@ -906,7 +905,6 @@ fun expectedUtbetaling(
         saksnummer = saksnummer,
         fnr = fnr,
         utbetalingslinjer = utbetalingslinjer,
-        type = type,
         behandler = saksbehandler,
         avstemmingsnøkkel = actual.avstemmingsnøkkel,
         sakstype = Sakstype.UFØRE,

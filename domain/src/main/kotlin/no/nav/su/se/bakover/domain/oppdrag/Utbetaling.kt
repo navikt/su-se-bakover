@@ -6,6 +6,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.and
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -27,17 +28,25 @@ sealed interface Utbetaling {
     val saksnummer: Saksnummer
     val fnr: Fnr
     val utbetalingslinjer: NonEmptyList<Utbetalingslinje>
-    val type: UtbetalingsType
     val behandler: NavIdentBruker
     val avstemmingsnøkkel: Avstemmingsnøkkel
     val sakstype: Sakstype
 
     fun sisteUtbetalingslinje() = utbetalingslinjer.last()
-    fun erFørstegangsUtbetaling() = utbetalingslinjer.any { it.forrigeUtbetalingslinjeId == null }
 
-    fun tidligsteDato() = utbetalingslinjer.minByOrNull { it.fraOgMed }!!.fraOgMed
-    fun senesteDato() = utbetalingslinjer.maxByOrNull { it.tilOgMed }!!.tilOgMed
+    fun erFørstegangsUtbetaling() = utbetalingslinjer.let { linjer ->
+        linjer.any { it.forrigeUtbetalingslinjeId == null }
+            // unngå at en eventuell endring av første utbetalingslinje noensinne oppfattes som førstegangsutbetaling
+            .and { linjer.filterIsInstance<Utbetalingslinje.Endring>().none { it.forrigeUtbetalingslinjeId == null } }
+    }
+
+    fun tidligsteDato() = utbetalingslinjer.minOf { it.fraOgMed }
+    fun senesteDato() = utbetalingslinjer.maxOf { it.tilOgMed }
     fun bruttoBeløp() = utbetalingslinjer.sumOf { it.beløp }
+
+    fun erStans() = utbetalingslinjer.all { it is Utbetalingslinje.Endring.Stans }
+
+    fun erReaktivering() = utbetalingslinjer.all { it is Utbetalingslinje.Endring.Reaktivering }
 
     data class UtbetalingForSimulering(
         override val id: UUID30 = UUID30.randomUUID(),
@@ -46,7 +55,6 @@ sealed interface Utbetaling {
         override val saksnummer: Saksnummer,
         override val fnr: Fnr,
         override val utbetalingslinjer: NonEmptyList<Utbetalingslinje>,
-        override val type: UtbetalingsType,
         override val behandler: NavIdentBruker,
         override val avstemmingsnøkkel: Avstemmingsnøkkel,
         override val sakstype: Sakstype,
@@ -97,14 +105,6 @@ sealed interface Utbetaling {
                 ).contains(kvittering.utbetalingsstatus)
         }
     }
-
-    // TODO refaktorer
-    enum class UtbetalingsType {
-        NY,
-        STANS,
-        GJENOPPTA,
-        OPPHØR,
-    }
 }
 
 /**
@@ -133,18 +133,18 @@ sealed class UtbetalingFeilet {
 
 fun List<Utbetaling>.tidslinje(
     clock: Clock,
-    periode: Periode? = null
+    periode: Periode? = null,
 ): Either<IngenUtbetalinger, TidslinjeForUtbetalinger> {
     return flatMap { it.utbetalingslinjer }.tidslinje(
         clock = clock,
-        periode = periode
+        periode = periode,
     )
 }
 
 @JvmName("utbetalingslinjeTidslinje")
 fun List<Utbetalingslinje>.tidslinje(
     clock: Clock,
-    periode: Periode? = null
+    periode: Periode? = null,
 ): Either<IngenUtbetalinger, TidslinjeForUtbetalinger> {
     return ifEmpty { return IngenUtbetalinger.left() }
         .let { utbetalingslinjer ->

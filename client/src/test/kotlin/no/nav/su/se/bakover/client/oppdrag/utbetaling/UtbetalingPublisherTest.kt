@@ -70,7 +70,6 @@ internal class UtbetalingPublisherTest {
                 beløp = 0,
             ),
         ),
-        type = Utbetaling.UtbetalingsType.NY,
         behandler = NavIdentBruker.Saksbehandler("Z123"),
         avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt),
         sakstype = Sakstype.UFØRE,

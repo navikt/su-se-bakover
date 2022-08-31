@@ -40,3 +40,7 @@ fun <T> List<T>.nonEmpty(): NonEmptyList<T> {
     require(this.isNotEmpty()) { "Kan ikke lage NonEmptyList for en tom liste" }
     return NonEmptyList.fromListUnsafe(this)
 }
+
+inline fun Boolean.and(predicate: () -> Boolean): Boolean {
+    return this && predicate()
+}

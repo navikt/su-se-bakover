@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.common.startOfDay
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.Oppdrag
@@ -55,7 +54,6 @@ internal class SimuleringRequestBuilderTest {
             clock = Clock.systemUTC(),
         )
         val utbetalingMedEndring = UtbetalingRequestTest.nyUtbetaling.copy(
-            type = Utbetaling.UtbetalingsType.OPPHØR,
             avstemmingsnøkkel = Avstemmingsnøkkel(18.september(2020).startOfDay()),
             utbetalingslinjer = nonEmptyListOf(linjeMedEndring),
         )
@@ -94,7 +92,6 @@ internal class SimuleringRequestBuilderTest {
             clock = Clock.systemUTC(),
         )
         val utbetalingMedEndring = UtbetalingRequestTest.nyUtbetaling.copy(
-            type = Utbetaling.UtbetalingsType.OPPHØR,
             avstemmingsnøkkel = Avstemmingsnøkkel(18.september(2020).startOfDay()),
             utbetalingslinjer = nonEmptyListOf(linjeMedEndring),
         )

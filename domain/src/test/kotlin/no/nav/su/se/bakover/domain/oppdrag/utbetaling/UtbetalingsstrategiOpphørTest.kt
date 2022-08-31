@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
@@ -116,7 +115,6 @@ internal class UtbetalingsstrategiOpphørTest {
             it.sakId shouldBe sakId
             it.saksnummer shouldBe saksnummer
             it.fnr shouldBe fnr
-            it.type shouldBe Utbetaling.UtbetalingsType.OPPHØR
             it.behandler shouldBe saksbehandler
             it.utbetalingslinjer shouldBe nonEmptyListOf(
                 Utbetalingslinje.Endring.Opphør(
@@ -152,7 +150,6 @@ internal class UtbetalingsstrategiOpphørTest {
             clock = tikkendeKlokke,
         ).generate().let {
             it shouldBe expectedUtbetaling(
-                type = Utbetaling.UtbetalingsType.OPPHØR,
                 actual = it,
                 utbetalingslinjer = nonEmptyListOf(
                     Utbetalingslinje.Endring.Opphør(
@@ -214,7 +211,6 @@ internal class UtbetalingsstrategiOpphørTest {
         ).generate().let {
             it shouldBe expectedUtbetaling(
                 actual = it,
-                type = Utbetaling.UtbetalingsType.OPPHØR,
                 utbetalingslinjer = nonEmptyListOf(
                     Utbetalingslinje.Endring.Opphør(
                         id = sak2.utbetalinger.last().sisteUtbetalingslinje().id,
@@ -280,7 +276,6 @@ internal class UtbetalingsstrategiOpphørTest {
             clock = tikkendeKlokke,
         ).generate().let {
             it shouldBe expectedUtbetaling(
-                type = Utbetaling.UtbetalingsType.OPPHØR,
                 actual = it,
                 utbetalingslinjer = nonEmptyListOf(
                     Utbetalingslinje.Endring.Opphør(
@@ -349,7 +344,6 @@ internal class UtbetalingsstrategiOpphørTest {
         ).generate().let {
             it shouldBe expectedUtbetaling(
                 actual = it,
-                type = Utbetaling.UtbetalingsType.OPPHØR,
                 utbetalingslinjer = nonEmptyListOf(
                     Utbetalingslinje.Endring.Opphør(
                         id = sak2.utbetalinger.last().sisteUtbetalingslinje().id,

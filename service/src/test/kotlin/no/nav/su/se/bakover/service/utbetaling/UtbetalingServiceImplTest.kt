@@ -70,7 +70,6 @@ internal class UtbetalingServiceImplTest {
         saksnummer = saksnummer,
         fnr = fnr,
         utbetalingslinjer = dummyUtbetalingslinjer,
-        type = Utbetaling.UtbetalingsType.NY,
         behandler = attestant,
         avstemmingsnøkkel = avstemmingsnøkkel,
         sakstype = Sakstype.UFØRE,
@@ -118,7 +117,6 @@ internal class UtbetalingServiceImplTest {
                     saksnummer = it.saksnummer,
                     fnr = it.fnr,
                     utbetalingslinjer = it.utbetalingslinjer,
-                    type = it.type,
                     behandler = it.behandler,
                     avstemmingsnøkkel = it.avstemmingsnøkkel,
                     sakstype = Sakstype.UFØRE,
@@ -156,7 +154,6 @@ internal class UtbetalingServiceImplTest {
                     saksnummer = it.saksnummer,
                     fnr = it.fnr,
                     utbetalingslinjer = it.utbetalingslinjer,
-                    type = it.type,
                     behandler = it.behandler,
                     avstemmingsnøkkel = it.avstemmingsnøkkel,
                     sakstype = Sakstype.UFØRE,
@@ -270,7 +267,7 @@ internal class UtbetalingServiceImplTest {
                 verify(it.simuleringClient).simulerUtbetaling(
                     request = argThat {
                         it shouldBe beOfType<SimulerUtbetalingForPeriode>()
-                        it.utbetaling.type shouldBe Utbetaling.UtbetalingsType.STANS
+                        it.utbetaling.erStans() shouldBe true
                         it.simuleringsperiode shouldBe Periode.create(1.februar(2021), 31.desember(2021))
                     },
                 )
@@ -308,7 +305,6 @@ internal class UtbetalingServiceImplTest {
                 verify(it.simuleringClient).simulerUtbetaling(
                     request = argThat {
                         it shouldBe beOfType<SimulerUtbetalingForPeriode>()
-                        it.utbetaling.type shouldBe Utbetaling.UtbetalingsType.OPPHØR
                         it.simuleringsperiode shouldBe Periode.create(1.februar(2021), 31.desember(2021))
                     },
                 )
@@ -344,7 +340,7 @@ internal class UtbetalingServiceImplTest {
                 verify(it.simuleringClient).simulerUtbetaling(
                     request = argThat {
                         it shouldBe beOfType<SimulerUtbetalingForPeriode>()
-                        it.utbetaling.type shouldBe Utbetaling.UtbetalingsType.GJENOPPTA
+                        it.utbetaling.erReaktivering() shouldBe true
                         it.simuleringsperiode shouldBe Periode.create(1.februar(2021), 31.desember(2021))
                     },
                 )

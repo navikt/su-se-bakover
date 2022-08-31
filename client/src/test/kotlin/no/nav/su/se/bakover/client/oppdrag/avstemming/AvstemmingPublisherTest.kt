@@ -154,7 +154,6 @@ class AvstemmingPublisherTest {
                         beløp = 5000,
                     ),
                 ),
-                type = Utbetaling.UtbetalingsType.NY,
                 behandler = NavIdentBruker.Saksbehandler("Z123"),
                 avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt),
                 sakstype = Sakstype.UFØRE,
@@ -186,12 +185,12 @@ class AvstemmingPublisherTest {
         opprettetTilOgMed = 31.desember(2021).endOfDay(),
         utbetalinger = listOf(
             oversendtUtbetalingUtenKvittering(
-                saksnummer = Saksnummer(8888),
                 fnr = Fnr("88888888888"),
+                saksnummer = Saksnummer(8888),
             ),
             oversendtUtbetalingUtenKvittering(
-                saksnummer = Saksnummer(9999),
                 fnr = Fnr("99999999999"),
+                saksnummer = Saksnummer(9999),
             ),
         ),
         avstemmingXmlRequest = null,

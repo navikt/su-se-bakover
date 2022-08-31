@@ -36,7 +36,6 @@ internal class UtbetalingMapperTest {
                     beløp = 0,
                 ),
             ),
-            type = Utbetaling.UtbetalingsType.NY,
             avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt),
             simulering = Simulering(
                 gjelderId = Fnr(fnr = "12345678910"),
@@ -66,7 +65,6 @@ internal class UtbetalingMapperTest {
                     beløp = 0,
                 ),
             ),
-            type = Utbetaling.UtbetalingsType.NY,
             avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt),
             simulering = Simulering(
                 gjelderId = Fnr(fnr = "12345678910"),

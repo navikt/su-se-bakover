@@ -19,8 +19,8 @@ internal class KonsistensavstemmingXmlMappingTest {
     private val nodeMatcher = DefaultNodeMatcher().apply { ElementSelectors.byName }
 
     private val utbetaling = oversendtUtbetalingUtenKvittering(
-        saksnummer = Saksnummer(8888),
         fnr = Fnr("88888888888"),
+        saksnummer = Saksnummer(8888),
     )
     private val avstemming = Avstemming.Konsistensavstemming.Ny(
         id = UUID30.randomUUID(),

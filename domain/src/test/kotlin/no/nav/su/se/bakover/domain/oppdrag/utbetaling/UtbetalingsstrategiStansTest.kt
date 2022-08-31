@@ -56,7 +56,6 @@ internal class UtbetalingsstrategiStansTest {
             nonEmptyListOf(
                 utbetalingslinje,
             ),
-            type = Utbetaling.UtbetalingsType.NY,
         )
 
         val stans = Utbetalingsstrategi.Stans(
@@ -103,7 +102,6 @@ internal class UtbetalingsstrategiStansTest {
                     clock = fixedClock,
                 ),
             ),
-            type = Utbetaling.UtbetalingsType.STANS,
         )
 
         Utbetalingsstrategi.Stans(
@@ -138,7 +136,6 @@ internal class UtbetalingsstrategiStansTest {
                     clock = fixedClock,
                 ),
             ),
-            type = Utbetaling.UtbetalingsType.OPPHØR,
         )
 
         Utbetalingsstrategi.Stans(
@@ -166,7 +163,6 @@ internal class UtbetalingsstrategiStansTest {
                     uføregrad = Uføregrad.parse(50),
                 ),
             ),
-            type = Utbetaling.UtbetalingsType.NY,
         )
 
         Utbetalingsstrategi.Stans(
@@ -194,7 +190,6 @@ internal class UtbetalingsstrategiStansTest {
                     uføregrad = Uføregrad.parse(50),
                 ),
             ),
-            type = Utbetaling.UtbetalingsType.NY,
         )
 
         Utbetalingsstrategi.Stans(
@@ -222,7 +217,6 @@ internal class UtbetalingsstrategiStansTest {
                     uføregrad = Uføregrad.parse(50),
                 ),
             ),
-            type = Utbetaling.UtbetalingsType.NY,
         )
 
         listOf(
@@ -280,7 +274,6 @@ internal class UtbetalingsstrategiStansTest {
                     uføregrad = Uføregrad.parse(50),
                 ),
             ),
-            type = Utbetaling.UtbetalingsType.NY,
         )
         val opphør = createUtbetaling(
             nonEmptyListOf(
@@ -293,7 +286,6 @@ internal class UtbetalingsstrategiStansTest {
                     clock = Clock.systemUTC(),
                 ),
             ),
-            type = Utbetaling.UtbetalingsType.OPPHØR,
         )
         val andre = createUtbetaling(
             nonEmptyListOf(
@@ -306,7 +298,6 @@ internal class UtbetalingsstrategiStansTest {
                     uføregrad = Uføregrad.parse(50),
                 ),
             ),
-            type = Utbetaling.UtbetalingsType.NY,
         )
 
         Utbetalingsstrategi.Stans(
@@ -343,7 +334,6 @@ internal class UtbetalingsstrategiStansTest {
                     uføregrad = Uføregrad.parse(50),
                 ),
             ),
-            type = Utbetaling.UtbetalingsType.NY,
             clock = fixedClock,
         )
         val opphør = createUtbetaling(
@@ -360,7 +350,6 @@ internal class UtbetalingsstrategiStansTest {
                     ),
                 ),
             ),
-            type = Utbetaling.UtbetalingsType.OPPHØR,
             clock = fixedClock.plus(
                 1,
                 ChronoUnit.SECONDS,
@@ -380,7 +369,6 @@ internal class UtbetalingsstrategiStansTest {
                     uføregrad = Uføregrad.parse(50),
                 ),
             ),
-            type = Utbetaling.UtbetalingsType.NY,
             clock = fixedClock.plus(
                 2,
                 ChronoUnit.SECONDS,
@@ -405,7 +393,6 @@ internal class UtbetalingsstrategiStansTest {
 
     private fun createUtbetaling(
         utbetalingslinjer: NonEmptyList<Utbetalingslinje>,
-        type: Utbetaling.UtbetalingsType,
         clock: Clock = fixedClock,
     ) =
         Utbetaling.UtbetalingForSimulering(
@@ -414,7 +401,6 @@ internal class UtbetalingsstrategiStansTest {
             saksnummer = saksnummer,
             fnr = fnr,
             utbetalingslinjer = utbetalingslinjer,
-            type = type,
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.now(clock)),
             sakstype = Sakstype.UFØRE,

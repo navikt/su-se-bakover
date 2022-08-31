@@ -260,11 +260,11 @@ fun oversendtUtbetalingUtenKvittering(
     fnr = søknadsbehandling.fnr,
     sakId = søknadsbehandling.sakId,
     saksnummer = søknadsbehandling.saksnummer,
+    clock = clock,
     utbetalingslinjer = utbetalingslinjer,
     avstemmingsnøkkel = avstemmingsnøkkel,
     eksisterendeUtbetalinger = eksisterendeUtbetalinger,
     beregning = søknadsbehandling.beregning,
-    clock = clock,
 )
 
 @Suppress("unused")
@@ -284,10 +284,10 @@ fun oversendtUtbetalingUtenKvittering(
     fnr = revurdering.fnr,
     sakId = revurdering.sakId,
     saksnummer = revurdering.saksnummer,
+    clock = clock,
     utbetalingslinjer = utbetalingslinjer,
     avstemmingsnøkkel = avstemmingsnøkkel,
     eksisterendeUtbetalinger = eksisterendeUtbetalinger,
-    clock = clock,
 )
 
 fun oversendtUtbetalingUtenKvittering(
@@ -304,7 +304,6 @@ fun oversendtUtbetalingUtenKvittering(
         ),
     ),
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.avstemmingsnøkkel,
-    type: Utbetaling.UtbetalingsType = Utbetaling.UtbetalingsType.NY,
     eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
     beregning: Beregning = beregning(periode),
 ): Utbetaling.OversendtUtbetaling.UtenKvittering {
@@ -315,7 +314,6 @@ fun oversendtUtbetalingUtenKvittering(
         saksnummer = saksnummer,
         fnr = fnr,
         utbetalingslinjer = utbetalingslinjer,
-        type = type,
         behandler = attestant,
         avstemmingsnøkkel = avstemmingsnøkkel,
         sakstype = Sakstype.UFØRE,
@@ -347,7 +345,6 @@ fun simulertUtbetaling(
         ),
     ),
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.avstemmingsnøkkel,
-    type: Utbetaling.UtbetalingsType = Utbetaling.UtbetalingsType.NY,
     eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
 ): Utbetaling.SimulertUtbetaling {
     return Utbetaling.UtbetalingForSimulering(
@@ -357,7 +354,6 @@ fun simulertUtbetaling(
         saksnummer = saksnummer,
         fnr = fnr,
         utbetalingslinjer = utbetalingslinjer,
-        type = type,
         behandler = attestant,
         avstemmingsnøkkel = avstemmingsnøkkel,
         sakstype = Sakstype.UFØRE, // TODO("simulering_utbetaling_alder utled fra sak/behandling")
@@ -400,6 +396,7 @@ fun simulertUtbetalingOpphør(
                 fnr = fnr,
                 sakId = sakId,
                 saksnummer = saksnummer,
+                clock = clock,
             ),
         ).right()
 }
@@ -418,7 +415,6 @@ fun simulertFeilutbetaling(
         ),
     ),
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.avstemmingsnøkkel,
-    type: Utbetaling.UtbetalingsType = Utbetaling.UtbetalingsType.NY,
 ): Utbetaling.SimulertUtbetaling {
     return Utbetaling.UtbetalingForSimulering(
         id = id,
@@ -427,7 +423,6 @@ fun simulertFeilutbetaling(
         saksnummer = saksnummer,
         fnr = fnr,
         utbetalingslinjer = utbetalingslinjer,
-        type = type,
         behandler = attestant,
         avstemmingsnøkkel = avstemmingsnøkkel,
         sakstype = Sakstype.UFØRE, // TODO("simulering_utbetaling_alder utled fra sak/behandling")
@@ -446,7 +441,6 @@ fun oversendtUtbetalingMedKvittering(
     id: UUID30 = UUID30.randomUUID(),
     periode: Periode = år(2021),
     utbetalingsstatus: Kvittering.Utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
-    type: Utbetaling.UtbetalingsType = Utbetaling.UtbetalingsType.NY,
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
@@ -457,11 +451,10 @@ fun oversendtUtbetalingMedKvittering(
         id = id,
         periode = periode,
         fnr = fnr,
-        type = type,
         sakId = sakId,
         saksnummer = saksnummer,
-        eksisterendeUtbetalinger = eksisterendeUtbetalinger,
         clock = clock,
+        eksisterendeUtbetalinger = eksisterendeUtbetalinger,
     ).toKvittertUtbetaling(
         kvittering(
             utbetalingsstatus = utbetalingsstatus,
@@ -581,6 +574,7 @@ fun simulertGjenopptakUtbetaling(
             fnr = fnr,
             sakId = sakId,
             saksnummer = saksnummer,
+            clock = clock,
         ),
     )
 }

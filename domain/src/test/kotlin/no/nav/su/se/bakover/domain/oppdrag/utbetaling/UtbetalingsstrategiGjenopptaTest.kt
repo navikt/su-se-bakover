@@ -44,7 +44,6 @@ internal class UtbetalingsstrategiGjenopptaTest {
                     clock = fixedClock,
                 ),
             ),
-            type = Utbetaling.UtbetalingsType.STANS,
         )
 
         val actual: Utbetaling.UtbetalingForSimulering = Utbetalingsstrategi.Gjenoppta(
@@ -79,7 +78,6 @@ internal class UtbetalingsstrategiGjenopptaTest {
                     utbetalingsinstruksjonForEtterbetalinger = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
                 ),
             ),
-            type = Utbetaling.UtbetalingsType.GJENOPPTA,
             behandler = attestant,
             avstemmingsnøkkel = actual.avstemmingsnøkkel,
             sakstype = Sakstype.UFØRE,
@@ -111,7 +109,6 @@ internal class UtbetalingsstrategiGjenopptaTest {
                     clock = fixedClock,
                 ),
             ),
-            type = Utbetaling.UtbetalingsType.STANS,
         )
 
         val førsteGjenopptak = createOversendtUtbetaling(
@@ -122,7 +119,6 @@ internal class UtbetalingsstrategiGjenopptaTest {
                     clock = fixedClock,
                 ),
             ),
-            type = Utbetaling.UtbetalingsType.GJENOPPTA,
         )
 
         val andre = createOversendtUtbetaling(
@@ -136,7 +132,6 @@ internal class UtbetalingsstrategiGjenopptaTest {
                     uføregrad = Uføregrad.parse(50),
                 ),
             ),
-            type = Utbetaling.UtbetalingsType.NY,
         )
 
         val andreStans = createOversendtUtbetaling(
@@ -147,7 +142,6 @@ internal class UtbetalingsstrategiGjenopptaTest {
                     clock = fixedClock,
                 ),
             ),
-            type = Utbetaling.UtbetalingsType.STANS,
         )
 
         val actual = Utbetalingsstrategi.Gjenoppta(
@@ -206,7 +200,6 @@ internal class UtbetalingsstrategiGjenopptaTest {
                     clock = fixedClock,
                 ),
             ),
-            type = Utbetaling.UtbetalingsType.STANS,
         )
 
         val tredje = createOversendtUtbetaling(
@@ -217,7 +210,6 @@ internal class UtbetalingsstrategiGjenopptaTest {
                     clock = fixedClock,
                 ),
             ),
-            type = Utbetaling.UtbetalingsType.GJENOPPTA,
         )
 
         Utbetalingsstrategi.Gjenoppta(
@@ -258,7 +250,6 @@ internal class UtbetalingsstrategiGjenopptaTest {
                 l1,
                 l2,
             ),
-            type = Utbetaling.UtbetalingsType.NY,
         )
 
         val stans = createOversendtUtbetaling(
@@ -269,7 +260,6 @@ internal class UtbetalingsstrategiGjenopptaTest {
                     clock = fixedClock,
                 ),
             ),
-            type = Utbetaling.UtbetalingsType.STANS,
         )
 
         Utbetalingsstrategi.Gjenoppta(
@@ -299,7 +289,6 @@ internal class UtbetalingsstrategiGjenopptaTest {
 
     private fun createOversendtUtbetaling(
         utbetalingslinjer: NonEmptyList<Utbetalingslinje>,
-        type: Utbetaling.UtbetalingsType,
     ): Utbetaling.OversendtUtbetaling.UtenKvittering {
         return Utbetaling.UtbetalingForSimulering(
             opprettet = fixedTidspunkt,
@@ -307,7 +296,6 @@ internal class UtbetalingsstrategiGjenopptaTest {
             saksnummer = saksnummer,
             fnr = fnr,
             utbetalingslinjer = utbetalingslinjer,
-            type = type,
             behandler = saksbehandler,
             avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt),
             sakstype = Sakstype.UFØRE,

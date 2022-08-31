@@ -49,8 +49,6 @@ internal class SimuleringRequestBuilderValidationTest {
                             forrigeUtbetalingslinjeId = eksisterendeOppdragslinjeid,
                         ),
                     ),
-                    type = Utbetaling.UtbetalingsType.NY,
-
                     behandler = NavIdentBruker.Saksbehandler("Z123"),
                     avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt),
                     sakstype = Sakstype.UFØRE,

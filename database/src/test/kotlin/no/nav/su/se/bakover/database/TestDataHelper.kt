@@ -237,7 +237,6 @@ internal fun oversendtUtbetalingUtenKvittering(
         saksnummer = saksnummer,
         fnr = fnr,
         utbetalingslinjer = utbetalingslinjer,
-        type = Utbetaling.UtbetalingsType.NY,
         behandler = attestant,
         avstemmingsnøkkel = avstemmingsnøkkel,
         sakstype = Sakstype.UFØRE, // TODO("simulering_utbetaling_alder utled fra sak/behandling")
