@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.oppdrag
 
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -18,7 +19,7 @@ sealed interface SimulerUtbetalingRequest {
     }
 
     interface OpphørRequest : SimulerUtbetalingRequest {
-        val opphørsdato: LocalDate
+        val opphørsperiode: Periode
     }
 
     interface StansRequest : SimulerUtbetalingRequest {
@@ -49,7 +50,7 @@ sealed interface SimulerUtbetalingRequest {
     data class Opphør(
         override val sakId: UUID,
         override val saksbehandler: NavIdentBruker,
-        override val opphørsdato: LocalDate,
+        override val opphørsperiode: Periode,
     ) : OpphørRequest
 
     data class Stans(

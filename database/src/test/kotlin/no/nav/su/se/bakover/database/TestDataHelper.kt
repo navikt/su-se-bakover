@@ -990,12 +990,13 @@ internal class TestDataHelper(
         },
     ): Pair<Sak, SimulertRevurdering.Opphørt> {
         return persisterRevurderingBeregnetOpphørt(sakOgVedtak).let { (sak, beregnet) ->
-            beregnet.simuler { sakId, _, opphørsdato ->
-                require(beregnet.sakId == sakId)
+            beregnet.simuler(
+                saksbehandler = no.nav.su.se.bakover.test.saksbehandler
+            ) {
                 opphørUtbetalingSimulert(
                     sakOgBehandling = sak to beregnet,
-                    opphørsdato = opphørsdato,
-                    clock = clock
+                    opphørsperiode = it.opphørsperiode,
+                    clock = fixedClock
                 ).right()
             }.getOrFail().let { simulert ->
                 val oppdatertTilbakekrevingsbehandling = if (simulert.harSimuleringFeilutbetaling()) {

@@ -1088,10 +1088,16 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val erOpphørt = true
 
         fun simuler(
-            simuler: (sakId: UUID, saksbehandler: NavIdentBruker, opphørsdato: LocalDate) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
+            saksbehandler: Saksbehandler,
+            simulerOpphør: (request: SimulerUtbetalingRequest.Opphør) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
         ): Either<SimuleringFeilet, SimulertRevurdering.Opphørt> {
-            val (simulertUtbetaling, håndtertAvkorting) = simuler(sakId, saksbehandler, periode.fraOgMed)
-                .getOrHandle { return it.left() }
+            val (simulertUtbetaling, håndtertAvkorting) = simulerOpphør(
+                SimulerUtbetalingRequest.Opphør(
+                    sakId = sakId,
+                    saksbehandler = saksbehandler,
+                    opphørsperiode = periode,
+                )
+            ).getOrHandle { return it.left() }
                 .let { simulering ->
                     when (val avkortingsvarsel = lagAvkortingsvarsel(simulering)) {
                         is Avkortingsvarsel.Ingen -> {
@@ -1111,13 +1117,15 @@ sealed class BeregnetRevurdering : Revurdering() {
                         }
 
                         is Avkortingsvarsel.Utenlandsopphold -> {
-                            val simuleringMedNyOpphørsdato = simuler(
-                                sakId,
-                                saksbehandler,
-                                OpphørsdatoForUtbetalinger(
-                                    revurdering = this,
-                                    avkortingsvarsel = avkortingsvarsel,
-                                ).value,
+                            val simuleringMedNyOpphørsdato = simulerOpphør(
+                                SimulerUtbetalingRequest.Opphør(
+                                    sakId = sakId,
+                                    saksbehandler = saksbehandler,
+                                    opphørsperiode = OpphørsdatoForUtbetalinger(
+                                        revurdering = this,
+                                        avkortingsvarsel = avkortingsvarsel,
+                                    ).value,
+                                )
                             ).getOrHandle { return it.left() }
 
                             if (simuleringMedNyOpphørsdato.simulering.harFeilutbetalinger()) {

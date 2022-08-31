@@ -36,7 +36,6 @@ import no.nav.su.se.bakover.test.nySøknadJournalførtMedOppgave
 import no.nav.su.se.bakover.test.nyUtbetalingSimulert
 import no.nav.su.se.bakover.test.opphørUtbetalingSimulert
 import no.nav.su.se.bakover.test.opprettetRevurdering
-import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.revurderingTilAttestering
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
@@ -76,7 +75,7 @@ internal class RevurderingBeregnOgSimulerTest {
             utbetalingService = mock {
                 on { simulerOpphør(any()) } doReturn opphørUtbetalingSimulert(
                     sakOgBehandling = sak to opprettet,
-                    opphørsdato = opprettet.periode.fraOgMed,
+                    opphørsperiode = opprettet.periode,
                     clock = fixedClock,
                 ).right()
             },
@@ -395,7 +394,7 @@ internal class RevurderingBeregnOgSimulerTest {
             utbetalingService = mock {
                 on { simulerOpphør(any()) } doReturn opphørUtbetalingSimulert(
                     sakOgBehandling = sak to opprettet,
-                    opphørsdato = opprettet.periode.fraOgMed,
+                    opphørsperiode = opprettet.periode,
                     clock = fixedClock,
                 ).right()
             },
@@ -419,7 +418,7 @@ internal class RevurderingBeregnOgSimulerTest {
                     it shouldBe SimulerUtbetalingRequest.Opphør(
                         sakId = sakId,
                         saksbehandler = NavIdentBruker.Saksbehandler("s1"),
-                        opphørsdato = opprettet.periode.fraOgMed,
+                        opphørsperiode = opprettet.periode,
                     )
                 },
             )

@@ -309,10 +309,12 @@ fun simulertRevurdering(
             }
 
             is BeregnetRevurdering.Opphørt -> {
-                val simulert = beregnet.simuler { _, _, opphørsdato ->
+                val simulert = beregnet.simuler(
+                    saksbehandler = saksbehandler
+                ) {
                     opphørUtbetalingSimulert(
                         sakOgBehandling = sak to beregnet,
-                        opphørsdato = opphørsdato,
+                        opphørsperiode = it.opphørsperiode,
                         clock = clock,
                     ).right()
                 }.getOrFail()
@@ -519,7 +521,7 @@ fun iverksattRevurdering(
             is RevurderingTilAttestering.Opphørt -> {
                 val utbetaling = opphørUtbetalingOversendUtenKvittering(
                     sakOgBehandling = sak to tilAttestering,
-                    opphørsdato = OpphørsdatoForUtbetalinger(tilAttestering).value,
+                    opphørsperiode = OpphørsdatoForUtbetalinger(tilAttestering).value,
                     clock = clock,
                 )
                 tilAttestering.tilIverksatt(
@@ -1004,16 +1006,14 @@ fun simulertRevurderingOpphørtPgaVilkårFraInnvilgetSøknadsbehandlingsVedtak(
         grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
         revurderingsårsak = revurderingsårsak,
     ).let { (sak, revurdering) ->
-        val opphørtSimulertRevurdering = revurdering.simuler { sakId, _, opphørsdato ->
-            simulertUtbetalingOpphør(
-                periode = revurdering.periode,
-                opphørsdato = opphørsdato,
-                fnr = revurdering.fnr,
-                sakId = sakId,
-                saksnummer = saksnummer,
-                clock = fixedClock,
-                eksisterendeUtbetalinger = sak.utbetalinger,
-            )
+        val opphørtSimulertRevurdering = revurdering.simuler(
+            saksbehandler = saksbehandler
+        ) {
+            opphørUtbetalingSimulert(
+                sakOgBehandling = sak to revurdering,
+                opphørsperiode = it.opphørsperiode,
+                clock = clock
+            ).right()
         }.getOrFail()
             .prøvÅLeggTilForhåndsvarselPåSimulertRevurdering(
                 forhåndsvarsel = forhåndsvarsel,

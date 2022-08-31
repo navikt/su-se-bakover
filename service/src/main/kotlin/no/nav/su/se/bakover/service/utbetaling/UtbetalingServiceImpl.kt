@@ -125,13 +125,13 @@ internal class UtbetalingServiceImpl(
             fnr = sak.fnr,
             utbetalinger = sak.utbetalinger,
             behandler = request.saksbehandler,
-            opphørsDato = request.opphørsdato,
+            opphørsDato = request.opphørsperiode.fraOgMed,
             clock = clock,
             sakstype = sak.type,
         ).generate()
 
         val simuleringsperiode = Periode.create(
-            fraOgMed = request.opphørsdato,
+            fraOgMed = request.opphørsperiode.fraOgMed,
             tilOgMed = utbetaling.senesteDato(),
         )
 

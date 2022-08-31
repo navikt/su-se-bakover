@@ -15,11 +15,11 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.nyUtbetalingSimulert
+import no.nav.su.se.bakover.test.opphørUtbetalingSimulert
 import no.nav.su.se.bakover.test.opprettetRevurderingAvslagSpesifiktVilkår
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
-import no.nav.su.se.bakover.test.simulertUtbetalingOpphør
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import org.junit.jupiter.api.Test
@@ -42,13 +42,14 @@ class RevurderingSimulerTest {
                 satsFactory = satsFactoryTestPåDato(),
             ).getOrFail().let { beregnet ->
                 (beregnet as BeregnetRevurdering.Opphørt)
-                    .simuler { sakId, _, opphørsdato ->
-                        simulertUtbetalingOpphør(
-                            sakId = sakId,
-                            periode = beregnet.periode,
-                            opphørsdato = opphørsdato,
-                            eksisterendeUtbetalinger = sak.utbetalinger,
-                        )
+                    .simuler(
+                        saksbehandler = saksbehandler
+                    ) {
+                        opphørUtbetalingSimulert(
+                            sakOgBehandling = sak to beregnet,
+                            opphørsperiode = it.opphørsperiode,
+                            clock = fixedClock
+                        ).right()
                     }.getOrFail()
                     .let { simulert ->
                         simulert.avkorting.let {
@@ -83,13 +84,14 @@ class RevurderingSimulerTest {
                     satsFactory = satsFactoryTestPåDato(),
                 ).getOrFail().let { beregnet ->
                     (beregnet as BeregnetRevurdering.Opphørt)
-                        .simuler { sakId, _, _ ->
-                            simulertUtbetalingOpphør(
-                                sakId = sakId,
-                                periode = beregnet.periode,
-                                opphørsdato = beregnet.periode.fraOgMed,
-                                eksisterendeUtbetalinger = sak.utbetalinger,
-                            )
+                        .simuler(
+                            saksbehandler = saksbehandler
+                        ) {
+                            opphørUtbetalingSimulert(
+                                sakOgBehandling = sak to beregnet,
+                                opphørsperiode = beregnet.periode,
+                                clock = fixedClock
+                            ).right()
                         }.getOrFail()
                 }
             }
@@ -109,15 +111,16 @@ class RevurderingSimulerTest {
                     clock = fixedClock,
                 ).getOrFail(),
                 satsFactory = satsFactoryTestPåDato(),
-            ).getOrFail().let {
-                (it as BeregnetRevurdering.Opphørt)
-                    .simuler { sakId, _, opphørsdato ->
-                        simulertUtbetalingOpphør(
-                            sakId = sakId,
-                            periode = it.periode,
-                            opphørsdato = opphørsdato,
-                            eksisterendeUtbetalinger = sak.utbetalinger,
-                        )
+            ).getOrFail().let { beregnet ->
+                (beregnet as BeregnetRevurdering.Opphørt)
+                    .simuler(
+                        saksbehandler = saksbehandler
+                    ) {
+                        opphørUtbetalingSimulert(
+                            sakOgBehandling = sak to beregnet,
+                            opphørsperiode = it.opphørsperiode,
+                            clock = fixedClock
+                        ).right()
                     }.getOrFail()
                     .let {
                         it.avkorting shouldBe AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
@@ -148,15 +151,16 @@ class RevurderingSimulerTest {
                         clock = fixedClock,
                     ).getOrFail(),
                     satsFactory = satsFactoryTestPåDato(),
-                ).getOrFail().let {
-                    (it as BeregnetRevurdering.Opphørt)
-                        .simuler { sakId, _, opphørsdato ->
-                            simulertUtbetalingOpphør(
-                                sakId = sakId,
-                                periode = it.periode,
-                                opphørsdato = opphørsdato,
-                                eksisterendeUtbetalinger = sak.utbetalinger,
-                            )
+                ).getOrFail().let { beregnet ->
+                    (beregnet as BeregnetRevurdering.Opphørt)
+                        .simuler(
+                            saksbehandler = saksbehandler
+                        ) {
+                            opphørUtbetalingSimulert(
+                                sakOgBehandling = sak to beregnet,
+                                opphørsperiode = it.opphørsperiode,
+                                clock = fixedClock
+                            ).right()
                         }.getOrFail()
                         .let {
                             it.avkorting shouldBe AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående

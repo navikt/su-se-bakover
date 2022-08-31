@@ -682,14 +682,10 @@ internal class RevurderingServiceImpl(
 
                     is BeregnetRevurdering.Opphørt -> {
                         // TODO er tanken at vi skal oppdatere saksbehandler her? Det kan se ut som vi har tenkt det, men aldri fullført.
-                        beregnetRevurdering.simuler { sakId, _, opphørsdato ->
-                            utbetalingService.simulerOpphør(
-                                request = SimulerUtbetalingRequest.Opphør(
-                                    sakId = sakId,
-                                    saksbehandler = saksbehandler,
-                                    opphørsdato = opphørsdato,
-                                ),
-                            )
+                        beregnetRevurdering.simuler(
+                            saksbehandler = saksbehandler,
+                        ) { request ->
+                            utbetalingService.simulerOpphør(request)
                         }.mapLeft { KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(it) }.map { simulert ->
                             revurderingRepo.lagre(simulert)
                             identifiserFeilOgLagResponse(simulert).leggTil(potensielleVarsel)
@@ -1238,7 +1234,7 @@ internal class RevurderingServiceImpl(
                         request = SimulerUtbetalingRequest.Opphør(
                             sakId = iverksattRevurdering.sakId,
                             saksbehandler = attestant,
-                            opphørsdato = revurdering.opphørsdatoForUtbetalinger,
+                            opphørsperiode = revurdering.opphørsdatoForUtbetalinger,
                         ),
                         simulering = iverksattRevurdering.simulering,
                     ),

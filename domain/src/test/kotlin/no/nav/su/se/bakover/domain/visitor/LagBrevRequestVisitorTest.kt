@@ -75,11 +75,11 @@ import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.oppgaveIdRevurdering
+import no.nav.su.se.bakover.test.opphørUtbetalingSimulert
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.simulerNyUtbetaling
-import no.nav.su.se.bakover.test.simulertUtbetalingOpphør
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vilkår.fastOppholdVilkårInnvilget
@@ -1389,13 +1389,15 @@ internal class LagBrevRequestVisitorTest {
                 clock = fixedClock,
             ).getOrFail(),
             satsFactory = satsFactoryTestPåDato(),
-        ).getOrFail().let {
-            (it as BeregnetRevurdering.Opphørt).simuler { sakId, _, opphørsdato ->
-                simulertUtbetalingOpphør(
-                    sakId = sakId,
-                    opphørsdato = opphørsdato,
-                    eksisterendeUtbetalinger = sak.utbetalinger,
-                )
+        ).getOrFail().let { beregnet ->
+            (beregnet as BeregnetRevurdering.Opphørt).simuler(
+                saksbehandler = no.nav.su.se.bakover.test.saksbehandler
+            ) {
+                opphørUtbetalingSimulert(
+                    sakOgBehandling = sak to beregnet,
+                    opphørsperiode = it.opphørsperiode,
+                    clock = fixedClock
+                ).right()
             }.getOrFail()
         }.ikkeSendForhåndsvarsel().getOrFail()
             .oppdaterTilbakekrevingsbehandling(
