@@ -23,10 +23,10 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
 
-            val revurdering = testDataHelper.persisterRevurderingOpprettet(
-                innvilget = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
+            val (_, revurdering) = testDataHelper.persisterRevurderingOpprettet(
+                sakOgVedtak = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
                     stønadsperiode = stønadsperiode2021,
-                ).second,
+                ).let { it.first to it.second },
                 periode = år(2021),
             )
 
@@ -54,7 +54,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
 
-            val revurdering = testDataHelper.persisterRevurderingBeregnetInnvilget()
+            val (_, revurdering) = testDataHelper.persisterRevurderingBeregnetInnvilget()
 
             val avsluttetRevurdering = AvsluttetRevurdering.tryCreate(
                 underliggendeRevurdering = revurdering,
@@ -80,7 +80,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
 
-            val revurdering = testDataHelper.persisterRevurderingBeregnetOpphørt()
+            val (_, revurdering) = testDataHelper.persisterRevurderingBeregnetOpphørt()
 
             val avsluttetRevurdering = AvsluttetRevurdering.tryCreate(
                 underliggendeRevurdering = revurdering,
@@ -107,7 +107,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
 
-            val revurdering = testDataHelper.persisterRevurderingBeregningIngenEndring()
+            val (_, revurdering) = testDataHelper.persisterRevurderingBeregningIngenEndring()
 
             val avsluttetRevurdering = AvsluttetRevurdering.tryCreate(
                 underliggendeRevurdering = revurdering,
@@ -133,7 +133,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
 
-            val revurdering = testDataHelper.persisterRevurderingSimulertInnvilget()
+            val (_, revurdering) = testDataHelper.persisterRevurderingSimulertInnvilget()
 
             val avsluttetRevurdering = AvsluttetRevurdering.tryCreate(
                 underliggendeRevurdering = revurdering,
@@ -158,7 +158,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
-            val simulert = testDataHelper.persisterRevurderingSimulertInnvilget()
+            val (_, simulert) = testDataHelper.persisterRevurderingSimulertInnvilget()
             val simulertIngenForhåndsvarsel =
                 simulert.ikkeSendForhåndsvarsel().orNull()!!.also {
                     repo.lagre(it)
@@ -172,7 +172,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
-            val simulert = testDataHelper.persisterRevurderingSimulertInnvilget()
+            val (_, simulert) = testDataHelper.persisterRevurderingSimulertInnvilget()
             val simulertIngenForhåndsvarsel =
                 simulert.markerForhåndsvarselSomSendt().orNull()!!.also {
                     repo.lagre(it)
@@ -186,7 +186,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
-            val simulert = testDataHelper.persisterRevurderingSimulertInnvilget()
+            val (_, simulert) = testDataHelper.persisterRevurderingSimulertInnvilget()
             val simulertIngenForhåndsvarsel =
                 simulert.markerForhåndsvarselSomSendt().orNull()!!.copy(
                     // Vi har fjernet muligheten for å endre til denne tilstanden, men vi må støtte ikke-migrerte verdier i databasen.
@@ -204,7 +204,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
 
-            val revurdering = testDataHelper.persisterRevurderingSimulertInnvilget()
+            val (_, revurdering) = testDataHelper.persisterRevurderingSimulertInnvilget()
 
             val avsluttetRevurdering = AvsluttetRevurdering.tryCreate(
                 underliggendeRevurdering = revurdering,

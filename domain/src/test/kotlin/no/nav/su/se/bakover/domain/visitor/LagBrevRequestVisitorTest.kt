@@ -1390,7 +1390,7 @@ internal class LagBrevRequestVisitorTest {
             ).getOrFail(),
             satsFactory = satsFactoryTestPåDato(),
         ).getOrFail().let {
-            (it as BeregnetRevurdering.Opphørt).toSimulert { sakId, _, opphørsdato ->
+            (it as BeregnetRevurdering.Opphørt).simuler { sakId, _, opphørsdato ->
                 simulertUtbetalingOpphør(
                     sakId = sakId,
                     opphørsdato = opphørsdato,

@@ -90,11 +90,9 @@ internal class VedtakPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val vedtakRepo = testDataHelper.vedtakRepo
-            val søknadsbehandlingVedtak =
-                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().second
+            val (sak, søknadsbehandlingVedtak) = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().let { it.first to it.second }
 
-            val nyRevurdering =
-                testDataHelper.persisterRevurderingOpprettet(søknadsbehandlingVedtak, søknadsbehandlingVedtak.periode)
+            val nyRevurdering = testDataHelper.persisterRevurderingOpprettet(sak to søknadsbehandlingVedtak, søknadsbehandlingVedtak.periode).second
             val iverksattRevurdering = IverksattRevurdering.Innvilget(
                 id = nyRevurdering.id,
                 periode = søknadsbehandlingVedtak.periode,
@@ -190,8 +188,7 @@ internal class VedtakPostgresRepoTest {
             val vedtakRepo = testDataHelper.vedtakRepo
             val (sak, søknadsbehandlingVedtak) = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering()
 
-            val nyRevurdering =
-                testDataHelper.persisterRevurderingOpprettet(søknadsbehandlingVedtak, søknadsbehandlingVedtak.periode)
+            val (_, nyRevurdering) = testDataHelper.persisterRevurderingOpprettet(sak to søknadsbehandlingVedtak, søknadsbehandlingVedtak.periode)
 
             val beregning = nyRevurdering.beregn(
                 eksisterendeUtbetalinger = sak.utbetalinger,

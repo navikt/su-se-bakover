@@ -294,31 +294,22 @@ fun simulertRevurdering(
             }
 
             is BeregnetRevurdering.Innvilget -> {
-                val simulert = beregnet.toSimulert(
-                    simuleringNy(
-                        beregning = beregnet.beregning,
-                        eksisterendeUtbetalinger = sak.utbetalinger,
-                        fnr = beregnet.fnr,
-                        sakId = beregnet.sakId,
-                        saksnummer = beregnet.saksnummer,
-                        clock = clock,
-                        uføregrunnlag = beregnet.vilkårsvurderinger.uføreVilkår().fold(
-                            {
-                                TODO("vilkårsvurdering_alder kan ikke hente uførevilkår for alder")
-                            },
-                            {
-                                it.grunnlag
-                            },
-                        ),
-                    ),
-                    clock = clock,
-                )
+                val simulert = beregnet.simuler(
+                    saksbehandler = saksbehandler,
+                    clock = clock
+                ) {
+                    nyUtbetalingSimulert(
+                        sakOgBehandling = sak to beregnet,
+                        beregning = it.beregning,
+                        clock = clock
+                    ).right()
+                }.getOrFail()
 
                 oppdaterTilbakekrevingsbehandling(simulert)
             }
 
             is BeregnetRevurdering.Opphørt -> {
-                val simulert = beregnet.toSimulert { _, _, opphørsdato ->
+                val simulert = beregnet.simuler { _, _, opphørsdato ->
                     opphørUtbetalingSimulert(
                         sakOgBehandling = sak to beregnet,
                         opphørsdato = opphørsdato,
@@ -956,28 +947,21 @@ fun simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
         revurderingsårsak = revurderingsårsak,
     ).let { (sak, revurdering) ->
-        val innvilgetSimulertRevurdering = revurdering.toSimulert(
-            simulering = simuleringNy(
-                eksisterendeUtbetalinger = sak.utbetalinger,
-                beregning = revurdering.beregning,
-                fnr = revurdering.fnr,
-                sakId = revurdering.sakId,
-                saksnummer = revurdering.saksnummer,
-                uføregrunnlag = revurdering.vilkårsvurderinger.uføreVilkår().fold(
-                    {
-                        TODO("vilkårsvurdering_alder kan ikke hente uførevilkår for alder")
-                    },
-                    {
-                        it.grunnlag
-                    },
-                ),
-            ),
-            clock = clock,
-        ).prøvÅLeggTilForhåndsvarselPåSimulertRevurdering(
-            forhåndsvarsel = forhåndsvarsel,
-        ).oppdaterTilbakekrevingsbehandling(
-            tilbakekrevingsbehandling = tilbakekrevingsbehandling,
-        )
+        val innvilgetSimulertRevurdering = revurdering.simuler(
+            saksbehandler = saksbehandler,
+            clock = clock
+        ) {
+            nyUtbetalingSimulert(
+                sakOgBehandling = sak to revurdering,
+                beregning = it.beregning,
+                clock = clock
+            ).right()
+        }.getOrFail()
+            .prøvÅLeggTilForhåndsvarselPåSimulertRevurdering(
+                forhåndsvarsel = forhåndsvarsel,
+            ).oppdaterTilbakekrevingsbehandling(
+                tilbakekrevingsbehandling = tilbakekrevingsbehandling,
+            )
         Pair(
             sak.copy(
                 // Erstatter den gamle versjonen av samme revurderinger.
@@ -1020,7 +1004,7 @@ fun simulertRevurderingOpphørtPgaVilkårFraInnvilgetSøknadsbehandlingsVedtak(
         grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
         revurderingsårsak = revurderingsårsak,
     ).let { (sak, revurdering) ->
-        val opphørtSimulertRevurdering = revurdering.toSimulert { sakId, _, opphørsdato ->
+        val opphørtSimulertRevurdering = revurdering.simuler { sakId, _, opphørsdato ->
             simulertUtbetalingOpphør(
                 periode = revurdering.periode,
                 opphørsdato = opphørsdato,

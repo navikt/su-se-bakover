@@ -667,37 +667,22 @@ internal class RevurderingServiceImpl(
                     }
 
                     is BeregnetRevurdering.Innvilget -> {
-                        utbetalingService.simulerUtbetaling(
-                            request = SimulerUtbetalingRequest.NyUtbetaling.Uføre(
-                                sakId = beregnetRevurdering.sakId,
-                                saksbehandler = saksbehandler,
-                                beregning = beregnetRevurdering.beregning,
-                                uføregrunnlag = beregnetRevurdering.vilkårsvurderinger.uføreVilkår().fold(
-                                    {
-                                        TODO("vilkårsvurdering_alder utbetaling av alder ikke implementert")
-                                    },
-                                    {
-                                        it.grunnlag
-                                    },
-                                ),
-                                utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
-                            ),
-                        ).mapLeft {
+                        beregnetRevurdering.simuler(
+                            saksbehandler = saksbehandler,
+                            clock = clock,
+                        ) { request ->
+                            utbetalingService.simulerUtbetaling(request)
+                        }.mapLeft {
                             KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(it)
-                        }.map {
-                            beregnetRevurdering.toSimulert(
-                                simulering = it.simulering,
-                                clock = clock,
-                            ).let { simulert ->
-                                revurderingRepo.lagre(simulert)
-                                identifiserFeilOgLagResponse(simulert).leggTil(potensielleVarsel)
-                            }
+                        }.map { simulert ->
+                            revurderingRepo.lagre(simulert)
+                            identifiserFeilOgLagResponse(simulert).leggTil(potensielleVarsel)
                         }
                     }
 
                     is BeregnetRevurdering.Opphørt -> {
                         // TODO er tanken at vi skal oppdatere saksbehandler her? Det kan se ut som vi har tenkt det, men aldri fullført.
-                        beregnetRevurdering.toSimulert { sakId, _, opphørsdato ->
+                        beregnetRevurdering.simuler { sakId, _, opphørsdato ->
                             utbetalingService.simulerOpphør(
                                 request = SimulerUtbetalingRequest.Opphør(
                                     sakId = sakId,

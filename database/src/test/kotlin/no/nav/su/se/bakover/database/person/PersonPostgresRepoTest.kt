@@ -168,7 +168,7 @@ internal class PersonPostgresRepoTest {
             val (sak, vedtak, utbetaling) = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
                 epsFnr = epsFnr,
             )
-            val revurdering = testDataHelper.persisterRevurderingOpprettet(vedtak, vedtak.periode, epsFnr)
+            val revurdering = testDataHelper.persisterRevurderingOpprettet((sak to vedtak), vedtak.periode, epsFnr).second
 
             Ctx(
                 dataSource, testDataHelper.personRepo,
@@ -188,7 +188,7 @@ internal class PersonPostgresRepoTest {
             val (sak, vedtak, utbetaling) = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
                 epsFnr = epsFnrBehandling,
             )
-            val revurdering = testDataHelper.persisterRevurderingOpprettet(vedtak, vedtak.periode, epsFnrRevurdering)
+            val revurdering = testDataHelper.persisterRevurderingOpprettet((sak to vedtak), vedtak.periode, epsFnrRevurdering).second
 
             Ctx(
                 dataSource = dataSource, repo = testDataHelper.personRepo,
@@ -207,10 +207,10 @@ internal class PersonPostgresRepoTest {
 
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val (_, vedtak, _) = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
+            val (sak, vedtak, _) = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
                 epsFnr = epsFnrBehandling,
             )
-            val revurdering = testDataHelper.persisterRevurderingOpprettet(vedtak, vedtak.periode, epsFnrRevurdering)
+            val revurdering = testDataHelper.persisterRevurderingOpprettet((sak to vedtak), vedtak.periode, epsFnrRevurdering).second
             val revurderingVedtak =
                 testDataHelper.persisterVedtakMedInnvilgetRevurderingOgOversendtUtbetalingMedKvittering(
                     RevurderingTilAttestering.Innvilget(
@@ -255,7 +255,7 @@ internal class PersonPostgresRepoTest {
             val (sak, vedtak, utbetaling) = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
                 epsFnr = epsFnrBehandling,
             )
-            val revurdering = testDataHelper.persisterRevurderingOpprettet(vedtak, vedtak.periode, epsFnrRevurdering)
+            val (sak2, revurdering) = testDataHelper.persisterRevurderingOpprettet((sak to vedtak), vedtak.periode, epsFnrRevurdering)
             val revurderingVedtak =
                 testDataHelper.persisterVedtakMedInnvilgetRevurderingOgOversendtUtbetalingMedKvittering(
                     RevurderingTilAttestering.Innvilget(
@@ -280,7 +280,7 @@ internal class PersonPostgresRepoTest {
                     ),
                 ).first
             val revurderingAvRevurdering = testDataHelper.persisterRevurderingOpprettet(
-                innvilget = revurderingVedtak,
+                sakOgVedtak = sak2 to revurderingVedtak,
                 periode = revurderingVedtak.periode,
                 epsFnr = epsFnrRevurderingAvRevurdering,
             )
@@ -289,7 +289,7 @@ internal class PersonPostgresRepoTest {
                 repo = testDataHelper.personRepo,
                 innvilgetSøknadsbehandling = sak.søknadsbehandlinger.first() as Søknadsbehandling.Iverksatt.Innvilget,
                 utbetaling = utbetaling,
-                revurdering = revurderingAvRevurdering,
+                revurdering = revurderingAvRevurdering.second,
             ).test()
         }
     }

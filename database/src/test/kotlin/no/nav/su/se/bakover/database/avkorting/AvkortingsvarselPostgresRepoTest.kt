@@ -19,7 +19,7 @@ internal class AvkortingsvarselPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val (sak, vedtak, _) = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering()
-            val revurdering = testDataHelper.persisterRevurderingOpprettet(innvilget = vedtak, vedtak.periode)
+            val revurdering = testDataHelper.persisterRevurderingOpprettet(sakOgVedtak = (sak to vedtak), vedtak.periode).second
 
             testDataHelper.sessionFactory.withTransaction { tx ->
 
@@ -63,7 +63,7 @@ internal class AvkortingsvarselPostgresRepoTest {
             val (sak, vedtak, _) = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
                 stønadsperiode = stønadsperiode2021,
             )
-            val revurdering = testDataHelper.persisterRevurderingOpprettet(innvilget = vedtak, vedtak.periode)
+            val revurdering = testDataHelper.persisterRevurderingOpprettet(sakOgVedtak = (sak to vedtak), vedtak.periode).second
 
             val avkortingsvarsel: Avkortingsvarsel.Utenlandsopphold.SkalAvkortes =
                 Avkortingsvarsel.Utenlandsopphold.Opprettet(
@@ -114,7 +114,7 @@ internal class AvkortingsvarselPostgresRepoTest {
             val (sak, vedtak, _) = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
                 stønadsperiode = stønadsperiode2021,
             )
-            val revurdering = testDataHelper.persisterRevurderingOpprettet(innvilget = vedtak, vedtak.periode)
+            val revurdering = testDataHelper.persisterRevurderingOpprettet(sakOgVedtak = (sak to vedtak), vedtak.periode).second
             val nySøknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart(
                 sakId = sak.id,
                 stønadsperiode = stønadsperiode2022,
@@ -171,9 +171,9 @@ internal class AvkortingsvarselPostgresRepoTest {
             val (sak, vedtak, _) = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
                 stønadsperiode = stønadsperiode2021,
             )
-            val revurdering1 = testDataHelper.persisterRevurderingOpprettet(innvilget = vedtak, vedtak.periode)
-            val revurdering2 = testDataHelper.persisterRevurderingOpprettet(innvilget = vedtak, vedtak.periode)
-            val revurdering3 = testDataHelper.persisterRevurderingOpprettet(innvilget = vedtak, vedtak.periode)
+            val revurdering1 = testDataHelper.persisterRevurderingOpprettet(sakOgVedtak = (sak to vedtak), vedtak.periode).second
+            val revurdering2 = testDataHelper.persisterRevurderingOpprettet(sakOgVedtak = (sak to vedtak), vedtak.periode).second
+            val revurdering3 = testDataHelper.persisterRevurderingOpprettet(sakOgVedtak = (sak to vedtak), vedtak.periode).second
             val nySøknadsbehandling =
                 testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart(
                     sakId = sak.id,
@@ -232,9 +232,9 @@ internal class AvkortingsvarselPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val (sak, vedtak, _) = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering()
-            val revurdering1 = testDataHelper.persisterRevurderingOpprettet(innvilget = vedtak, vedtak.periode)
-            val revurdering2 = testDataHelper.persisterRevurderingOpprettet(innvilget = vedtak, vedtak.periode)
-            val revurdering3 = testDataHelper.persisterRevurderingOpprettet(innvilget = vedtak, vedtak.periode)
+            val revurdering1 = testDataHelper.persisterRevurderingOpprettet(sakOgVedtak = (sak to vedtak), vedtak.periode).second
+            val revurdering2 = testDataHelper.persisterRevurderingOpprettet(sakOgVedtak = (sak to vedtak), vedtak.periode).second
+            val revurdering3 = testDataHelper.persisterRevurderingOpprettet(sakOgVedtak = (sak to vedtak), vedtak.periode).second
 
             val opprettet = Avkortingsvarsel.Utenlandsopphold.Opprettet(
                 id = UUID.randomUUID(),

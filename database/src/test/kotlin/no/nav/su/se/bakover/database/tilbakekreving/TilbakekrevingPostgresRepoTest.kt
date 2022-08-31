@@ -3,16 +3,20 @@ package no.nav.su.se.bakover.database.tilbakekreving
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.TestDataHelper
+import no.nav.su.se.bakover.database.oppgaveId
+import no.nav.su.se.bakover.database.saksbehandler
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingUnderBehandling
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.RåTilbakekrevingsvedtakForsendelse
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.RåttKravgrunnlag
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
+import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.iverksattRevurdering
+import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.matchendeKravgrunnlag
+import no.nav.su.se.bakover.test.stønadsperiode2022
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -22,7 +26,13 @@ internal class TilbakekrevingPostgresRepoTest {
     fun `kan lagre og hente uten behov for tilbakekrevingsbehandling`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val revurdering = testDataHelper.persisterRevurderingSimulertInnvilget()
+
+            val (sak, vedtak, _) = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
+                stønadsperiode = stønadsperiode2022
+            )
+            val (_, revurdering) = testDataHelper.persisterRevurderingSimulertInnvilget(
+                sakOgVedtak = sak to vedtak
+            )
 
             (testDataHelper.revurderingRepo.hent(revurdering.id) as SimulertRevurdering).tilbakekrevingsbehandling shouldBe IkkeBehovForTilbakekrevingUnderBehandling
         }
@@ -32,7 +42,7 @@ internal class TilbakekrevingPostgresRepoTest {
     fun `kan lagre og hente tilbakekrevingsbehandlinger`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val revurdering = testDataHelper.persisterRevurderingSimulertInnvilget()
+            val (_, revurdering) = testDataHelper.persisterRevurderingSimulertInnvilget()
 
             val ikkeAvgjort = IkkeAvgjort(
                 id = UUID.randomUUID(),
@@ -103,15 +113,30 @@ internal class TilbakekrevingPostgresRepoTest {
             )
             testDataHelper.tilbakekrevingRepo.hentMottattKravgrunnlag() shouldBe emptyList()
 
-            // TODO klarer vi å gjøre noe bedre enn å bare jukse her?
+            val iverksatt = revurdering.tilAttestering(
+                attesteringsoppgaveId = oppgaveId,
+                saksbehandler = saksbehandler,
+                fritekstTilBrev = "nei"
+            ).getOrFail().let {
+                testDataHelper.revurderingRepo.lagre(it)
+                it.tilIverksatt(
+                    attestant = attestant,
+                    hentOpprinneligAvkorting = { null },
+                    clock = fixedClock
+                ).getOrFail().let {
+                    testDataHelper.revurderingRepo.lagre(it)
+                    it
+                }
+            }
+
             val mottattKravgrunnlag = avventerKravgrunnlag.mottattKravgrunnlag(
                 kravgrunnlag = RåttKravgrunnlag("xml"),
                 kravgrunnlagMottatt = fixedTidspunkt,
-                hentRevurdering = { iverksattRevurdering().second },
+                hentRevurdering = { iverksatt },
                 kravgrunnlagMapper = {
                     matchendeKravgrunnlag(
-                        revurdering,
-                        revurdering.simulering,
+                        iverksatt,
+                        iverksatt.simulering,
                         UUID30.randomUUID(),
                         fixedClock,
                     )
