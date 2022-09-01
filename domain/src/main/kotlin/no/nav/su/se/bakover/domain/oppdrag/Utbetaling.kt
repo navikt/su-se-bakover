@@ -34,19 +34,38 @@ sealed interface Utbetaling {
 
     fun sisteUtbetalingslinje() = utbetalingslinjer.last()
 
-    fun erFørstegangsUtbetaling() = utbetalingslinjer.let { linjer ->
-        linjer.any { it.forrigeUtbetalingslinjeId == null }
-            // unngå at en eventuell endring av første utbetalingslinje noensinne oppfattes som førstegangsutbetaling
-            .and { linjer.filterIsInstance<Utbetalingslinje.Endring>().none { it.forrigeUtbetalingslinjeId == null } }
-    }
-
     fun tidligsteDato() = utbetalingslinjer.minOf { it.fraOgMed }
     fun senesteDato() = utbetalingslinjer.maxOf { it.tilOgMed }
     fun bruttoBeløp() = utbetalingslinjer.sumOf { it.beløp }
 
+    /**
+     * Vi tillater vi kun stans som en midlertidig operasjon i nåtid. Ved stans vil vi sende med en ønsket
+     * dato for stans, for deretter å stanse den siste utbetalte linjen fra denne datoen - følgelig skal en stans
+     * inneholde nøyaktig 1 utbetalingslinje av typen stans. [Utbetalingslinje.Endring.virkningsperiode] for en stans
+     * skal alltid gjelde fra angitt stansdato til og med seneste til og med dato for sakens utbetalinger.
+     *
+     * @see Utbetalingsstrategi.Stans
+     * @see no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
+     */
     fun erStans() = utbetalingslinjer.all { it is Utbetalingslinje.Endring.Stans }
+        .and { utbetalingslinjer.count() == 1 }
 
+    /**
+     * Vi tillater kun å reaktivere utbetalinger som har blitt stanset ved hjelp av en utbetaling av typen [erStans].
+     * Forholdet mellom en stans og en reaktivering er 1-1 i den forstand at en reaktivering ikke kan gjennomføres med
+     * mindre den siste oversendte utbetalingen til OS er en [erStans].
+     *
+     * @see Utbetalingsstrategi.Gjenoppta
+     * @see no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
+     */
     fun erReaktivering() = utbetalingslinjer.all { it is Utbetalingslinje.Endring.Reaktivering }
+        .and { utbetalingslinjer.count() == 1 }
+
+    fun kontrollerUtbetalingslinjer() {
+        utbetalingslinjer.sjekkIngenNyeOverlapper()
+        utbetalingslinjer.sjekkAlleNyeLinjerHarForskjelligForrigeReferanse()
+        utbetalingslinjer.sjekkSortering()
+    }
 
     data class UtbetalingForSimulering(
         override val id: UUID30 = UUID30.randomUUID(),
@@ -59,6 +78,9 @@ sealed interface Utbetaling {
         override val avstemmingsnøkkel: Avstemmingsnøkkel,
         override val sakstype: Sakstype,
     ) : Utbetaling {
+        init {
+            kontrollerUtbetalingslinjer()
+        }
         fun toSimulertUtbetaling(simulering: Simulering) =
             SimulertUtbetaling(
                 this,
@@ -87,6 +109,9 @@ sealed interface Utbetaling {
             override val simulering: Simulering,
             override val utbetalingsrequest: Utbetalingsrequest,
         ) : OversendtUtbetaling, Utbetaling by simulertUtbetaling {
+            init {
+                kontrollerUtbetalingslinjer()
+            }
             fun toKvittertUtbetaling(kvittering: Kvittering) =
                 MedKvittering(
                     this,
@@ -98,6 +123,9 @@ sealed interface Utbetaling {
             private val utenKvittering: UtenKvittering,
             val kvittering: Kvittering,
         ) : OversendtUtbetaling by utenKvittering {
+            init {
+                kontrollerUtbetalingslinjer()
+            }
             fun kvittertMedFeilEllerVarsel() =
                 listOf(
                     Kvittering.Utbetalingsstatus.OK_MED_VARSEL,
@@ -113,7 +141,7 @@ sealed interface Utbetaling {
  */
 internal fun List<Utbetaling>.hentOversendteUtbetalingerUtenFeil(): List<Utbetaling> =
     this.filter { it is Utbetaling.OversendtUtbetaling.UtenKvittering || it is Utbetaling.OversendtUtbetaling.MedKvittering && it.kvittering.erKvittertOk() }
-        .sortedBy { it.opprettet.instant } // TODO potentially fix sorting
+        .sortedWith(utbetalingsSortering)
 
 internal fun List<Utbetaling>.hentOversendteUtbetalingslinjerUtenFeil(): List<Utbetalingslinje> {
     return hentOversendteUtbetalingerUtenFeil().flatMap { it.utbetalingslinjer }
@@ -182,3 +210,11 @@ fun List<Utbetaling>.hentGjeldendeUtbetaling(
 }
 
 object FantIkkeGjeldendeUtbetaling
+
+val utbetalingsSortering = Comparator<Utbetaling> { o1, o2 ->
+    o1.opprettet.instant.compareTo(o2.opprettet.instant)
+}
+
+val utbetalingslinjeSortering = Comparator<Utbetalingslinje> { o1, o2 ->
+    o1.opprettet.instant.compareTo(o2.opprettet.instant)
+}

@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.PeriodisertInformasjon
+import no.nav.su.se.bakover.common.periode.harOverlappende
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
@@ -16,7 +17,7 @@ sealed class Utbetalingslinje : PeriodisertInformasjon {
     abstract val opprettet: Tidspunkt
     abstract val fraOgMed: LocalDate
     abstract val tilOgMed: LocalDate
-    abstract var forrigeUtbetalingslinjeId: UUID30?
+    abstract val forrigeUtbetalingslinjeId: UUID30?
     abstract val beløp: Int
     abstract val uføregrad: Uføregrad?
     abstract val utbetalingsinstruksjonForEtterbetalinger: UtbetalingsinstruksjonForEtterbetalinger
@@ -26,16 +27,21 @@ sealed class Utbetalingslinje : PeriodisertInformasjon {
         private val betalUtSåFortSomMulig = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig
     }
 
+    abstract fun oppdaterReferanseTilForrigeUtbetalingslinje(id: UUID30?): Utbetalingslinje
+
     data class Ny(
         override val id: UUID30 = UUID30.randomUUID(),
         override val opprettet: Tidspunkt,
         override val fraOgMed: LocalDate,
         override val tilOgMed: LocalDate,
-        override var forrigeUtbetalingslinjeId: UUID30?,
+        override val forrigeUtbetalingslinjeId: UUID30?,
         override val beløp: Int,
         override val uføregrad: Uføregrad?,
         override val utbetalingsinstruksjonForEtterbetalinger: UtbetalingsinstruksjonForEtterbetalinger = betalUtSåFortSomMulig
     ) : Utbetalingslinje() {
+        override fun oppdaterReferanseTilForrigeUtbetalingslinje(id: UUID30?): Ny {
+            return copy(forrigeUtbetalingslinjeId = id)
+        }
 
         @JsonIgnore
         override val periode = Periode.create(fraOgMed, tilOgMed)
@@ -54,13 +60,17 @@ sealed class Utbetalingslinje : PeriodisertInformasjon {
             override val opprettet: Tidspunkt,
             override val fraOgMed: LocalDate,
             override val tilOgMed: LocalDate,
-            override var forrigeUtbetalingslinjeId: UUID30?,
+            override val forrigeUtbetalingslinjeId: UUID30?,
             override val beløp: Int,
             override val virkningsperiode: Periode,
             override val uføregrad: Uføregrad?,
             override val utbetalingsinstruksjonForEtterbetalinger: UtbetalingsinstruksjonForEtterbetalinger = betalUtSåFortSomMulig
         ) : Endring() {
             override val linjeStatus = LinjeStatus.OPPHØR
+
+            override fun oppdaterReferanseTilForrigeUtbetalingslinje(id: UUID30?): Opphør {
+                return copy(forrigeUtbetalingslinjeId = id)
+            }
 
             @JsonIgnore
             override val periode = Periode.create(fraOgMed, tilOgMed)
@@ -88,13 +98,17 @@ sealed class Utbetalingslinje : PeriodisertInformasjon {
             override val opprettet: Tidspunkt,
             override val fraOgMed: LocalDate,
             override val tilOgMed: LocalDate,
-            override var forrigeUtbetalingslinjeId: UUID30?,
+            override val forrigeUtbetalingslinjeId: UUID30?,
             override val beløp: Int,
             override val virkningsperiode: Periode,
             override val uføregrad: Uføregrad?,
             override val utbetalingsinstruksjonForEtterbetalinger: UtbetalingsinstruksjonForEtterbetalinger = betalUtSåFortSomMulig
         ) : Endring() {
             override val linjeStatus = LinjeStatus.STANS
+
+            override fun oppdaterReferanseTilForrigeUtbetalingslinje(id: UUID30?): Stans {
+                return copy(forrigeUtbetalingslinjeId = id)
+            }
 
             @JsonIgnore
             override val periode = Periode.create(fraOgMed, tilOgMed)
@@ -122,13 +136,16 @@ sealed class Utbetalingslinje : PeriodisertInformasjon {
             override val opprettet: Tidspunkt,
             override val fraOgMed: LocalDate,
             override val tilOgMed: LocalDate,
-            override var forrigeUtbetalingslinjeId: UUID30?,
+            override val forrigeUtbetalingslinjeId: UUID30?,
             override val beløp: Int,
             override val virkningsperiode: Periode,
             override val uføregrad: Uføregrad?,
             override val utbetalingsinstruksjonForEtterbetalinger: UtbetalingsinstruksjonForEtterbetalinger = betalUtSåFortSomMulig
         ) : Endring() {
             override val linjeStatus = LinjeStatus.REAKTIVERING
+            override fun oppdaterReferanseTilForrigeUtbetalingslinje(id: UUID30?): Reaktivering {
+                return copy(forrigeUtbetalingslinjeId = id)
+            }
 
             @JsonIgnore
             override val periode = Periode.create(fraOgMed, tilOgMed)
@@ -166,7 +183,8 @@ sealed class UtbetalingslinjePåTidslinje : KanPlasseresPåTidslinje<Utbetalings
     abstract val beløp: Int
 
     /**
-     * Ekvivalent i denne contexten betyr at linjen er av samme type, har samme periode og samme beløp som en annen linje.
+     * Ekvivalent i denne contexten betyr at linjen er av klasse, har samme [periode] og samme [beløp] som en annen linje.
+     * Ekskluderer sjekk av [kopiertFraId] og [opprettet].
      */
     abstract fun ekvivalentMed(other: UtbetalingslinjePåTidslinje): Boolean
 
@@ -253,4 +271,20 @@ sealed class UtbetalingslinjePåTidslinje : KanPlasseresPåTidslinje<Utbetalings
             }
         }
     }
+}
+
+fun List<Utbetalingslinje>.sjekkAlleNyeLinjerHarForskjelligForrigeReferanse() {
+    check(
+        this.filterIsInstance<Utbetalingslinje.Ny>()
+            .map { it.forrigeUtbetalingslinjeId }
+            .let { it.distinct() == it }
+    ) { "Alle nye utbetalingslinjer skal referere til forskjellig forrige utbetalingid" }
+}
+
+fun List<Utbetalingslinje>.sjekkSortering() {
+    check(this.sortedWith(utbetalingslinjeSortering) == this) { "Utbetalingslinjer er ikke sortert i stigende rekkefølge" }
+}
+
+fun List<Utbetalingslinje>.sjekkIngenNyeOverlapper() {
+    check(!filterIsInstance<Utbetalingslinje.Ny>().harOverlappende()) { "Nye linjer kan ikke overlappe" }
 }

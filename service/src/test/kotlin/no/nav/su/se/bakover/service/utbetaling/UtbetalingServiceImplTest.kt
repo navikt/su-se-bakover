@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.nonEmpty
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.januar
@@ -23,6 +24,7 @@ import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.domain.oppdrag.oppdaterReferanseTilForrigeUtbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingForPeriode
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
@@ -194,7 +196,7 @@ internal class UtbetalingServiceImplTest {
             val utbetalingRepoMock = mock<UtbetalingRepo> {
                 on { hentUtbetalinger(any()) } doReturn listOf(
                     utbetalingForSimulering.copy(
-                        utbetalingslinjer = nonEmptyListOf(
+                        utbetalingslinjer = listOf(
                             expectedGjeldendeUtbetalingslinje,
                             utbetalingslinje(
                                 periode = februar(2020),
@@ -204,7 +206,7 @@ internal class UtbetalingServiceImplTest {
                                 periode = mars(2020),
                                 beløp = 53821,
                             ),
-                        ),
+                        ).oppdaterReferanseTilForrigeUtbetalingslinje().nonEmpty(),
                     ),
                 )
             }

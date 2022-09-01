@@ -1,44 +1,57 @@
 package no.nav.su.se.bakover.domain.oppdrag
 
+import arrow.core.NonEmptyList
 import arrow.core.getOrHandle
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.harOverlappende
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import java.time.Clock
 import java.time.LocalDate
+import java.util.LinkedList
 
-data class Utbetalingshistorikk(
-    private val nyeUtbetalingslinjer: List<Utbetalingslinje>,
-    private val eksisterendeUtbetalingslinjer: List<Utbetalingslinje>,
+class Utbetalingshistorikk(
+    nyeUtbetalingslinjer: NonEmptyList<Utbetalingslinje>,
+    eksisterendeUtbetalingslinjer: List<Utbetalingslinje>,
     private val clock: Clock,
 ) {
+    private val sorterteNyeUtbetalingslinjer = nyeUtbetalingslinjer.sortedWith(utbetalingslinjeSortering)
+    private val sorterteEksisterendeUtbetalingslinjer = eksisterendeUtbetalingslinjer.sortedWith(utbetalingslinjeSortering)
+    init {
+        require(!nyeUtbetalingslinjer.harOverlappende()) { "Nye utbetalingslinjer kan ikke overlappe" }
+    }
     fun generer(): List<Utbetalingslinje> {
-        val nye = finnUtbetalingslinjerSomSkalRekonstrueres()
-            .filterIsInstance<Utbetalingslinje.Ny>().also {
-                (nyeUtbetalingslinjer + it).oppdaterReferanseTilForrigeUtbetalingslinje()
-            }
+        val nyopprettedeLinjer = sorterteNyeUtbetalingslinjer.oppdaterReferanseTilForrigeUtbetalingslinje()
 
-        val endringer = finnUtbetalingslinjerSomSkalRekonstrueres()
+        val nyeForRekonstruksjon = finnUtbetalingslinjerSomSkalRekonstrueres()
+            /**
+             * Oppdater referansene før [rekonstruer] slik at kopiene som opprettes bevarer korrekte forrige ref.
+             * Fjerner nyopprettede linjer til slutt da disse ikke er kandidater for rekonstruksjon.
+             */
+            .let { (nyopprettedeLinjer + it).oppdaterReferanseTilForrigeUtbetalingslinje() - nyopprettedeLinjer.toSet() }
+            .filterIsInstance<Utbetalingslinje.Ny>()
+
+        val enringerForRekonstruksjon = finnUtbetalingslinjerSomSkalRekonstrueres()
             .filterIsInstance<Utbetalingslinje.Endring>()
 
         val rekonstruerte = finnEndringerForNyeLinjer(
-            nye = nye,
-            endringer = endringer,
+            nye = nyeForRekonstruksjon,
+            endringer = enringerForRekonstruksjon,
         ).map { rekonstruer(it) }
             .flatMap { (rekonstruertNy, rekonstruerteEndringer) ->
                 listOf(rekonstruertNy) + rekonstruerteEndringer
             }
 
-        return (nyeUtbetalingslinjer + rekonstruerte)
-            .also {
-                it.oppdaterReferanseTilForrigeUtbetalingslinje()
-            }
+        return (nyopprettedeLinjer + rekonstruerte).oppdaterReferanseTilForrigeUtbetalingslinje()
+            .sortedWith(utbetalingslinjeSortering)
             .also {
                 kontrollerAtTidslinjeForRekonstruertPeriodeErUforandret()
-                it.kontrollerAtAlleNyeLinjerHarForskjelligForrigeReferanse()
                 it.kontrollerAtNyeLinjerHarFåttNyId()
                 it.kontrollerAtEksisterendeErKjedetMedNyeUtbetalinger()
+                it.sjekkAlleNyeLinjerHarForskjelligForrigeReferanse()
+                it.sjekkSortering()
+                it.sjekkIngenNyeOverlapper()
             }
     }
 
@@ -47,11 +60,11 @@ data class Utbetalingshistorikk(
     }
 
     private fun finnUtbetalingslinjerSomSkalRekonstrueres(): List<Utbetalingslinje> {
-        return eksisterendeUtbetalingslinjer.filter { it.tilOgMed.isAfter(rekonstruerEksisterendeUtbetalingerEtterDato()) }
+        return sorterteEksisterendeUtbetalingslinjer.filter { it.tilOgMed.isAfter(rekonstruerEksisterendeUtbetalingerEtterDato()) }
     }
 
     private fun rekonstruerEksisterendeUtbetalingerEtterDato(): LocalDate {
-        return nyeUtbetalingslinjer.last().let {
+        return sorterteNyeUtbetalingslinjer.last().let {
             when (it) {
                 is Utbetalingslinje.Endring.Opphør -> it.virkningsperiode.tilOgMed
                 is Utbetalingslinje.Endring.Reaktivering -> it.virkningsperiode.tilOgMed
@@ -129,7 +142,7 @@ data class Utbetalingshistorikk(
                     tilOgMed = maxOf { it.tilOgMed },
                 )
 
-                val tidslinjeGammel = eksisterendeUtbetalingslinjer.tidslinje(
+                val tidslinjeGammel = sorterteEksisterendeUtbetalingslinjer.tidslinje(
                     clock = clock,
                     periode = periode,
                 ).getOrHandle { throw RuntimeException("Kunne ikke generere tidslinje: $it") }
@@ -143,20 +156,9 @@ data class Utbetalingshistorikk(
             }
     }
 
-    private fun List<Utbetalingslinje>.kontrollerAtAlleNyeLinjerHarForskjelligForrigeReferanse() {
-        check(
-            filterIsInstance<Utbetalingslinje.Ny>()
-                .let { nyeLinjer ->
-                    nyeLinjer.none { ny ->
-                        nyeLinjer.minus(ny).any { it.forrigeUtbetalingslinjeId == ny.forrigeUtbetalingslinjeId }
-                    }
-                },
-        ) { "Alle nye utbetalingslinjer skal referere til forskjellig forrige utbetalingid" }
-    }
-
     private fun List<Utbetalingslinje>.kontrollerAtEksisterendeErKjedetMedNyeUtbetalinger() {
         check(
-            eksisterendeUtbetalingslinjer.lastOrNull()?.let { siste ->
+            sorterteEksisterendeUtbetalingslinjer.lastOrNull()?.let { siste ->
                 first().let {
                     when (it) {
                         is Utbetalingslinje.Endring.Opphør -> it.forrigeUtbetalingslinjeId == siste.forrigeUtbetalingslinjeId
@@ -174,20 +176,31 @@ data class Utbetalingshistorikk(
             filterIsInstance<Utbetalingslinje.Ny>()
                 .let { nyeLinjer ->
                     nyeLinjer.none { ny ->
-                        ny.id in eksisterendeUtbetalingslinjer.map { it.id }
+                        ny.id in sorterteEksisterendeUtbetalingslinjer.map { it.id }
                     }
                 },
         ) { "Alle nye utbetalingslinjer skal ha ny id" }
     }
 }
 
-private fun List<Utbetalingslinje>.oppdaterReferanseTilForrigeUtbetalingslinje() {
-    zipWithNext { a, b ->
-        when (b) {
-            is Utbetalingslinje.Endring.Opphør -> b.forrigeUtbetalingslinjeId = a.forrigeUtbetalingslinjeId
-            is Utbetalingslinje.Endring.Reaktivering -> b.forrigeUtbetalingslinjeId = a.forrigeUtbetalingslinjeId
-            is Utbetalingslinje.Endring.Stans -> b.forrigeUtbetalingslinjeId = a.forrigeUtbetalingslinjeId
-            is Utbetalingslinje.Ny -> b.forrigeUtbetalingslinjeId = a.id
+fun List<Utbetalingslinje>.oppdaterReferanseTilForrigeUtbetalingslinje(): List<Utbetalingslinje> {
+    val queue = LinkedList(this.reversed())
+    val result = mutableListOf<Utbetalingslinje>()
+    while (queue.isNotEmpty()) {
+        val siste = queue.poll()
+        if (queue.isNotEmpty()) {
+            val forrige = queue.peek()
+            result.add(
+                when (siste) {
+                    is Utbetalingslinje.Endring.Opphør -> siste.oppdaterReferanseTilForrigeUtbetalingslinje(forrige.forrigeUtbetalingslinjeId)
+                    is Utbetalingslinje.Endring.Reaktivering -> siste.oppdaterReferanseTilForrigeUtbetalingslinje(forrige.forrigeUtbetalingslinjeId)
+                    is Utbetalingslinje.Endring.Stans -> siste.oppdaterReferanseTilForrigeUtbetalingslinje(forrige.forrigeUtbetalingslinjeId)
+                    is Utbetalingslinje.Ny -> siste.oppdaterReferanseTilForrigeUtbetalingslinje(forrige.id)
+                }
+            )
+        } else {
+            result.add(siste)
         }
     }
+    return result.reversed()
 }

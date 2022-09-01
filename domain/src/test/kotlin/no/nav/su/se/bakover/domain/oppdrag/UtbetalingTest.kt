@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.domain.oppdrag
 import arrow.core.Either
 import arrow.core.NonEmptyList
 import arrow.core.left
-import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -14,6 +13,7 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
+import no.nav.su.se.bakover.common.nonEmpty
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.Fnr
@@ -42,45 +42,6 @@ internal class UtbetalingTest {
     @Test
     fun `brutto beløp`() {
         createUtbetaling().bruttoBeløp() shouldBe 1500
-    }
-
-    @Test
-    fun `er førstegangsutbetaling`() {
-        createUtbetaling(utbetalingsLinjer = nonEmptyListOf(createUtbetalingslinje(forrigeUtbetalingslinjeId = null)))
-            .erFørstegangsUtbetaling() shouldBe true
-
-        createUtbetaling(utbetalingsLinjer = nonEmptyListOf(createUtbetalingslinje(forrigeUtbetalingslinjeId = UUID30.randomUUID())))
-            .erFørstegangsUtbetaling() shouldBe false
-
-        createUtbetaling(
-            utbetalingsLinjer = nonEmptyListOf(
-                createUtbetalingslinje(forrigeUtbetalingslinjeId = null),
-                createUtbetalingslinje(forrigeUtbetalingslinjeId = UUID30.randomUUID()),
-            ),
-        ).erFørstegangsUtbetaling() shouldBe true
-
-        createUtbetaling(
-            utbetalingsLinjer = nonEmptyListOf(
-                createUtbetalingslinje(forrigeUtbetalingslinjeId = UUID30.randomUUID()),
-                createUtbetalingslinje(forrigeUtbetalingslinjeId = UUID30.randomUUID()),
-            ),
-        ).erFørstegangsUtbetaling() shouldBe false
-    }
-
-    @Test
-    fun `endring av første utbetalingslinje er ikke det samme som førstegangsutbetaling`() {
-        val førsteUtbetalingslinje = createUtbetalingslinje()
-
-        createUtbetaling(utbetalingsLinjer = nonEmptyListOf(førsteUtbetalingslinje))
-            .also { it.erFørstegangsUtbetaling() shouldBe true }
-
-        val opphør = Utbetalingslinje.Endring.Opphør(
-            utbetalingslinje = førsteUtbetalingslinje,
-            virkningsperiode = førsteUtbetalingslinje.periode,
-            clock = fixedClock,
-        )
-        createUtbetaling(utbetalingsLinjer = nonEmptyListOf(opphør))
-            .also { it.erFørstegangsUtbetaling() shouldBe false }
     }
 
     @Test
@@ -134,18 +95,20 @@ internal class UtbetalingTest {
         uføregrad = uføregrad.value
     )
 
-    private fun createUtbetalingslinjer() = nonEmptyListOf(
-        createUtbetalingslinje(
-            fraOgMed = 1.januar(2019),
-            tilOgMed = 30.april(2020)
-        ),
-        createUtbetalingslinje(
-            fraOgMed = 1.mai(2020),
-            tilOgMed = 31.august(2020),
-        ),
-        createUtbetalingslinje(
-            fraOgMed = 1.september(2020),
-            tilOgMed = 31.januar(2021),
-        )
-    )
+    private fun createUtbetalingslinjer(): NonEmptyList<Utbetalingslinje> {
+        return listOf(
+            createUtbetalingslinje(
+                fraOgMed = 1.januar(2019),
+                tilOgMed = 30.april(2020)
+            ),
+            createUtbetalingslinje(
+                fraOgMed = 1.mai(2020),
+                tilOgMed = 31.august(2020),
+            ),
+            createUtbetalingslinje(
+                fraOgMed = 1.september(2020),
+                tilOgMed = 31.januar(2021),
+            )
+        ).oppdaterReferanseTilForrigeUtbetalingslinje().nonEmpty()
+    }
 }

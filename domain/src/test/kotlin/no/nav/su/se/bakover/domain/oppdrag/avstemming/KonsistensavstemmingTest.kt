@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
+import no.nav.su.se.bakover.common.nonEmpty
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.common.startOfDay
@@ -26,6 +27,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
+import no.nav.su.se.bakover.domain.oppdrag.oppdaterReferanseTilForrigeUtbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -73,7 +75,6 @@ internal class KonsistensavstemmingTest {
                     fraOgMed = 1.januar(2021),
                     tilOgMed = 31.desember(2021),
                     beløp = 15000,
-                    forrigeUtbetalingslinjeId = null,
                 ),
             ),
         )
@@ -110,7 +111,6 @@ internal class KonsistensavstemmingTest {
                     fraOgMed = 1.januar(2021),
                     tilOgMed = 31.desember(2021),
                     beløp = 15000,
-                    forrigeUtbetalingslinjeId = null,
                 ),
             ),
             behandler = NavIdentBruker.Attestant("første"),
@@ -126,7 +126,6 @@ internal class KonsistensavstemmingTest {
                     fraOgMed = 1.mai(2021),
                     tilOgMed = 31.desember(2021),
                     beløp = 20000,
-                    forrigeUtbetalingslinjeId = null,
                 ),
             ),
             behandler = NavIdentBruker.Attestant("andre"),
@@ -177,7 +176,6 @@ internal class KonsistensavstemmingTest {
                     fraOgMed = 1.januar(2021),
                     tilOgMed = 31.desember(2021),
                     beløp = 15000,
-                    forrigeUtbetalingslinjeId = null,
                 ),
             ),
         )
@@ -186,22 +184,20 @@ internal class KonsistensavstemmingTest {
             fnr = fnr,
             saksnummer = saksnummer,
             opprettet = Tidspunkt.now(andreKlokke),
-            utbetalingsLinjer = nonEmptyListOf(
+            utbetalingsLinjer = listOf(
                 createUtbetalingslinje(
                     opprettet = Tidspunkt.now(andreKlokke),
                     fraOgMed = 1.mai(2021),
                     tilOgMed = 31.juli(2021),
                     beløp = 20000,
-                    forrigeUtbetalingslinjeId = null,
                 ),
                 createUtbetalingslinje(
                     opprettet = Tidspunkt.now(andreKlokke),
                     fraOgMed = 1.september(2021),
                     tilOgMed = 31.desember(2021),
                     beløp = 20000,
-                    forrigeUtbetalingslinjeId = null,
                 ),
-            ),
+            ).oppdaterReferanseTilForrigeUtbetalingslinje().nonEmpty(),
         )
 
         val fnr2 = Fnr.generer()
@@ -210,22 +206,20 @@ internal class KonsistensavstemmingTest {
             fnr = fnr2,
             saksnummer = saksnummer2,
             opprettet = Tidspunkt.now(førsteKlokke),
-            utbetalingsLinjer = nonEmptyListOf(
+            utbetalingsLinjer = listOf(
                 createUtbetalingslinje(
                     opprettet = Tidspunkt.now(førsteKlokke),
                     fraOgMed = 1.januar(2021),
                     tilOgMed = 31.juli(2021),
                     beløp = 15000,
-                    forrigeUtbetalingslinjeId = null,
                 ),
                 createUtbetalingslinje(
                     opprettet = Tidspunkt.now(førsteKlokke),
                     fraOgMed = 1.september(2021),
                     tilOgMed = 31.desember(2021),
                     beløp = 18000,
-                    forrigeUtbetalingslinjeId = null,
                 ),
-            ),
+            ).oppdaterReferanseTilForrigeUtbetalingslinje().nonEmpty(),
         )
 
         val s2u2 = createUtbetaling(
@@ -238,7 +232,6 @@ internal class KonsistensavstemmingTest {
                     fraOgMed = 1.mai(2021),
                     tilOgMed = 31.desember(2021),
                     beløp = 20000,
-                    forrigeUtbetalingslinjeId = null,
                 ),
             ),
         )
@@ -286,7 +279,6 @@ internal class KonsistensavstemmingTest {
                     fraOgMed = 1.januar(2021),
                     tilOgMed = 31.desember(2021),
                     beløp = 15000,
-                    forrigeUtbetalingslinjeId = null,
                 ),
             ),
         )
@@ -295,22 +287,20 @@ internal class KonsistensavstemmingTest {
             fnr = fnr,
             saksnummer = saksnummer,
             opprettet = Tidspunkt.now(andreKlokke),
-            utbetalingsLinjer = nonEmptyListOf(
+            utbetalingsLinjer = listOf(
                 createUtbetalingslinje(
                     opprettet = Tidspunkt.now(andreKlokke),
                     fraOgMed = 1.mai(2021),
                     tilOgMed = 31.juli(2021),
                     beløp = 20000,
-                    forrigeUtbetalingslinjeId = null,
                 ),
                 createUtbetalingslinje(
                     opprettet = Tidspunkt.now(andreKlokke),
                     fraOgMed = 1.september(2021),
                     tilOgMed = 31.desember(2021),
                     beløp = 20000,
-                    forrigeUtbetalingslinjeId = null,
                 ),
-            ),
+            ).oppdaterReferanseTilForrigeUtbetalingslinje().nonEmpty(),
         )
 
         val fnr2 = Fnr.generer()
@@ -319,22 +309,20 @@ internal class KonsistensavstemmingTest {
             fnr = fnr2,
             saksnummer = saksnummer2,
             opprettet = Tidspunkt.now(førsteKlokke),
-            utbetalingsLinjer = nonEmptyListOf(
+            utbetalingsLinjer = listOf(
                 createUtbetalingslinje(
                     opprettet = Tidspunkt.now(førsteKlokke),
                     fraOgMed = 1.januar(2021),
                     tilOgMed = 31.juli(2021),
                     beløp = 15000,
-                    forrigeUtbetalingslinjeId = null,
                 ),
                 createUtbetalingslinje(
                     opprettet = Tidspunkt.now(førsteKlokke),
                     fraOgMed = 1.september(2021),
                     tilOgMed = 31.desember(2021),
                     beløp = 18000,
-                    forrigeUtbetalingslinjeId = null,
                 ),
-            ),
+            ).oppdaterReferanseTilForrigeUtbetalingslinje().nonEmpty(),
         )
 
         val s2u2 = createUtbetaling(
@@ -347,7 +335,6 @@ internal class KonsistensavstemmingTest {
                     fraOgMed = 1.mai(2021),
                     tilOgMed = 31.desember(2021),
                     beløp = 20000,
-                    forrigeUtbetalingslinjeId = null,
                 ),
             ),
         )
@@ -430,7 +417,6 @@ internal class KonsistensavstemmingTest {
                     fraOgMed = 1.januar(2021),
                     tilOgMed = 31.desember(2021),
                     beløp = 15000,
-                    forrigeUtbetalingslinjeId = null,
                 ),
             ),
         )
@@ -485,7 +471,6 @@ internal class KonsistensavstemmingTest {
                     fraOgMed = 1.januar(2021),
                     tilOgMed = 31.desember(2021),
                     beløp = 15000,
-                    forrigeUtbetalingslinjeId = null,
                 ),
             ),
         )
@@ -513,7 +498,6 @@ internal class KonsistensavstemmingTest {
                     fraOgMed = 1.september(2021),
                     tilOgMed = 31.desember(2021),
                     beløp = 5000,
-                    forrigeUtbetalingslinjeId = andre.sisteUtbetalingslinje().id,
                 ),
             ),
         )
@@ -556,7 +540,6 @@ internal class KonsistensavstemmingTest {
                     fraOgMed = 1.januar(2021),
                     tilOgMed = 31.desember(2021),
                     beløp = 15000,
-                    forrigeUtbetalingslinjeId = null,
                 ),
             ),
         )
@@ -587,27 +570,24 @@ internal class KonsistensavstemmingTest {
 
     @Test
     fun `ny, stans og reaktivering - tar kun med seg nye linjer selv om stans og reaktivering har samme id`() {
-        val ny1 = createUtbetalingslinje(
-            opprettet = Tidspunkt.now(førsteKlokke),
-            fraOgMed = 1.januar(2021),
-            tilOgMed = 30.april(2021),
-            beløp = 10000,
-            forrigeUtbetalingslinjeId = null,
-        )
-        val ny2 = createUtbetalingslinje(
-            opprettet = Tidspunkt.now(førsteKlokke),
-            fraOgMed = 1.mai(2021),
-            tilOgMed = 31.desember(2021),
-            beløp = 15000,
-            forrigeUtbetalingslinjeId = ny1.id,
-        )
         val første = createUtbetaling(
             fnr = fnr,
             saksnummer = saksnummer,
             opprettet = Tidspunkt.now(førsteKlokke),
-            utbetalingsLinjer = nonEmptyListOf(
-                ny1, ny2,
-            ),
+            utbetalingsLinjer = listOf(
+                createUtbetalingslinje(
+                    opprettet = Tidspunkt.now(førsteKlokke),
+                    fraOgMed = 1.januar(2021),
+                    tilOgMed = 30.april(2021),
+                    beløp = 10000,
+                ),
+                createUtbetalingslinje(
+                    opprettet = Tidspunkt.now(førsteKlokke),
+                    fraOgMed = 1.mai(2021),
+                    tilOgMed = 31.desember(2021),
+                    beløp = 15000,
+                )
+            ).oppdaterReferanseTilForrigeUtbetalingslinje().nonEmpty(),
             behandler = NavIdentBruker.Attestant("a1"),
         )
 
@@ -626,20 +606,17 @@ internal class KonsistensavstemmingTest {
             behandler = defaultAttestant,
         )
 
-        val ny3 = createUtbetalingslinje(
-            opprettet = Tidspunkt.now(tredjeKlokke),
-            fraOgMed = 1.august(2021),
-            tilOgMed = 31.desember(2021),
-            beløp = 5000,
-            forrigeUtbetalingslinjeId = andre.sisteUtbetalingslinje().id,
-        )
-
         val tredje = createUtbetaling(
             fnr = fnr,
             saksnummer = saksnummer,
             opprettet = Tidspunkt.now(tredjeKlokke),
             utbetalingsLinjer = nonEmptyListOf(
-                ny3,
+                createUtbetalingslinje(
+                    opprettet = Tidspunkt.now(tredjeKlokke),
+                    fraOgMed = 1.august(2021),
+                    tilOgMed = 31.desember(2021),
+                    beløp = 5000,
+                ),
             ),
             behandler = defaultAttestant,
         )
@@ -690,7 +667,7 @@ internal class KonsistensavstemmingTest {
                 fagområde = Fagområde.SUUFORE,
                 fnr = fnr,
                 utbetalingslinjer = listOf(
-                    ny3.toOppdragslinjeForKonsistensavstemming(
+                    tredje.sisteUtbetalingslinje().toOppdragslinjeForKonsistensavstemming(
                         nonEmptyListOf(
                             defaultAttestant,
                             NavIdentBruker.Attestant("a2"),
@@ -715,18 +692,18 @@ internal class KonsistensavstemmingTest {
                 fagområde = Fagområde.SUUFORE,
                 fnr = fnr,
                 utbetalingslinjer = listOf(
-                    ny1.toOppdragslinjeForKonsistensavstemming(
+                    første.utbetalingslinjer.first().toOppdragslinjeForKonsistensavstemming(
                         nonEmptyListOf(
                             NavIdentBruker.Attestant("a1"),
                         ),
                     ),
-                    ny2.toOppdragslinjeForKonsistensavstemming(
+                    første.utbetalingslinjer.last().toOppdragslinjeForKonsistensavstemming(
                         nonEmptyListOf(
                             NavIdentBruker.Attestant("a1"),
                             defaultAttestant,
                         ),
                     ),
-                    ny3.toOppdragslinjeForKonsistensavstemming(
+                    tredje.sisteUtbetalingslinje().toOppdragslinjeForKonsistensavstemming(
                         nonEmptyListOf(
                             defaultAttestant,
                             NavIdentBruker.Attestant("a2"),
@@ -740,27 +717,24 @@ internal class KonsistensavstemmingTest {
 
     @Test
     fun `inkluderer alle attestanter for linjer som er endret`() {
-        val ny1 = createUtbetalingslinje(
-            opprettet = Tidspunkt.now(førsteKlokke),
-            fraOgMed = 1.januar(2021),
-            tilOgMed = 30.april(2021),
-            beløp = 10000,
-            forrigeUtbetalingslinjeId = null,
-        )
-        val ny2 = createUtbetalingslinje(
-            opprettet = Tidspunkt.now(førsteKlokke),
-            fraOgMed = 1.mai(2021),
-            tilOgMed = 31.desember(2021),
-            beløp = 15000,
-            forrigeUtbetalingslinjeId = ny1.id,
-        )
         val første = createUtbetaling(
             fnr = fnr,
             saksnummer = saksnummer,
             opprettet = Tidspunkt.now(førsteKlokke),
-            utbetalingsLinjer = nonEmptyListOf(
-                ny1, ny2,
-            ),
+            utbetalingsLinjer = listOf(
+                createUtbetalingslinje(
+                    opprettet = Tidspunkt.now(førsteKlokke),
+                    fraOgMed = 1.januar(2021),
+                    tilOgMed = 30.april(2021),
+                    beløp = 10000,
+                ),
+                createUtbetalingslinje(
+                    opprettet = Tidspunkt.now(førsteKlokke),
+                    fraOgMed = 1.mai(2021),
+                    tilOgMed = 31.desember(2021),
+                    beløp = 15000,
+                )
+            ).oppdaterReferanseTilForrigeUtbetalingslinje().nonEmpty(),
             behandler = NavIdentBruker.Attestant("a1"),
         )
 
@@ -809,7 +783,7 @@ internal class KonsistensavstemmingTest {
                 fagområde = Fagområde.SUUFORE,
                 fnr = fnr,
                 utbetalingslinjer = listOf(
-                    ny2.toOppdragslinjeForKonsistensavstemming(
+                    første.sisteUtbetalingslinje().toOppdragslinjeForKonsistensavstemming(
                         nonEmptyListOf(
                             NavIdentBruker.Attestant("a1"),
                             NavIdentBruker.Attestant("a2"),
@@ -827,22 +801,20 @@ internal class KonsistensavstemmingTest {
             fnr = fnr,
             saksnummer = saksnummer,
             opprettet = Tidspunkt.now(førsteKlokke),
-            utbetalingsLinjer = nonEmptyListOf(
+            utbetalingsLinjer = listOf(
                 createUtbetalingslinje(
                     opprettet = Tidspunkt.now(førsteKlokke),
                     fraOgMed = 1.januar(2021),
                     tilOgMed = 30.april(2021),
                     beløp = 15000,
-                    forrigeUtbetalingslinjeId = null,
                 ),
                 createUtbetalingslinje(
                     opprettet = Tidspunkt.now(førsteKlokke),
                     fraOgMed = 1.mai(2021),
                     tilOgMed = 31.desember(2021),
                     beløp = 17500,
-                    forrigeUtbetalingslinjeId = null,
                 ),
-            ),
+            ).oppdaterReferanseTilForrigeUtbetalingslinje().nonEmpty(),
             behandler = NavIdentBruker.Attestant("første"),
         )
 
@@ -856,7 +828,6 @@ internal class KonsistensavstemmingTest {
                     fraOgMed = 1.desember(2021),
                     tilOgMed = 31.desember(2021),
                     beløp = 20000,
-                    forrigeUtbetalingslinjeId = null,
                 ),
             ),
             behandler = NavIdentBruker.Attestant("andre"),
@@ -997,14 +968,13 @@ internal class KonsistensavstemmingTest {
         fraOgMed: LocalDate = 1.januar(2020),
         tilOgMed: LocalDate = 31.desember(2020),
         beløp: Int = 500,
-        forrigeUtbetalingslinjeId: UUID30? = null,
         uføregrad: Uføregrad = Uføregrad.parse(50),
     ) = Utbetalingslinje.Ny(
         opprettet = opprettet,
         fraOgMed = fraOgMed,
         tilOgMed = tilOgMed,
         beløp = beløp,
-        forrigeUtbetalingslinjeId = forrigeUtbetalingslinjeId,
+        forrigeUtbetalingslinjeId = null,
         uføregrad = uføregrad,
     )
 

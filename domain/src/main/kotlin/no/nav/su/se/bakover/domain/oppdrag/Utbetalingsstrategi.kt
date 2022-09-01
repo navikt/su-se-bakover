@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.between
 import no.nav.su.se.bakover.common.erFørsteDagIMåned
 import no.nav.su.se.bakover.common.nonEmpty
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.harOverlappende
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -160,7 +161,9 @@ sealed class Utbetalingsstrategi {
                     uføregrad = it.uføregrad,
                     utbetalingsinstruksjonForEtterbetalinger = kjøreplan,
                 )
-            }
+            }.also {
+                require(!it.harOverlappende()) { "Nye linjer kan ikke overlappe" }
+            }.nonEmpty()
 
             return Utbetaling.UtbetalingForSimulering(
                 opprettet = opprettet,
@@ -255,7 +258,9 @@ sealed class Utbetalingsstrategi {
                     uføregrad = null,
                     utbetalingsinstruksjonForEtterbetalinger = kjøreplan,
                 )
-            }
+            }.also {
+                require(!it.harOverlappende()) { "Nye linjer kan ikke overlappe" }
+            }.nonEmpty()
 
             return Utbetaling.UtbetalingForSimulering(
                 opprettet = opprettet,
@@ -305,7 +310,7 @@ sealed class Utbetalingsstrategi {
                             opprettet = opprettet,
                             clock = clock,
                         ),
-                    ),
+                    ).nonEmpty(),
                     eksisterendeUtbetalingslinjer = eksisterendeUtbetalinger.hentOversendteUtbetalingslinjerUtenFeil(),
                     clock = clock,
                 ).generer().nonEmpty(),
