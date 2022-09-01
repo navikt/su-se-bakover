@@ -183,7 +183,7 @@ fun nyUtbetalingOversendUtenKvittering(
 
 fun opphørUtbetalingForSimulering(
     sakOgBehandling: Pair<Sak, Behandling>,
-    opphørsdato: LocalDate,
+    opphørsperiode: Periode,
     clock: Clock,
 ): Utbetaling.UtbetalingForSimulering {
     return sakOgBehandling.let { (sak, behandling) ->
@@ -195,7 +195,7 @@ fun opphørUtbetalingForSimulering(
             behandler = saksbehandler,
             // TODO send med periode
             periode = Periode.create(
-                fraOgMed = opphørsdato,
+                fraOgMed = opphørsperiode.fraOgMed,
                 tilOgMed = sak.utbetalinger.last().sisteUtbetalingslinje().tilOgMed,
             ),
             clock = clock,
@@ -206,17 +206,17 @@ fun opphørUtbetalingForSimulering(
 
 fun opphørUtbetalingSimulert(
     sakOgBehandling: Pair<Sak, Behandling>,
-    opphørsdato: LocalDate,
+    opphørsperiode: Periode,
     clock: Clock,
 ): Utbetaling.SimulertUtbetaling {
     return sakOgBehandling.let { (sak, behandling) ->
         opphørUtbetalingForSimulering(
             sakOgBehandling = sakOgBehandling,
-            opphørsdato = opphørsdato,
+            opphørsperiode = opphørsperiode,
             clock = clock,
         ).toSimulertUtbetaling(
             simuleringOpphørt(
-                opphørsdato = opphørsdato,
+                opphørsdato = opphørsperiode.fraOgMed,
                 eksisterendeUtbetalinger = sak.utbetalinger,
                 fnr = behandling.fnr,
                 sakId = behandling.sakId,
@@ -229,13 +229,13 @@ fun opphørUtbetalingSimulert(
 
 fun opphørUtbetalingOversendUtenKvittering(
     sakOgBehandling: Pair<Sak, Behandling>,
-    opphørsdato: LocalDate,
+    opphørsperiode: Periode,
     clock: Clock,
 ): Utbetaling.OversendtUtbetaling.UtenKvittering {
     return sakOgBehandling.let { (_, _) ->
         opphørUtbetalingSimulert(
             sakOgBehandling = sakOgBehandling,
-            opphørsdato = opphørsdato,
+            opphørsperiode = opphørsperiode,
             clock = clock,
         ).toOversendtUtbetaling(
             oppdragsmelding = utbetalingsRequest,

@@ -262,7 +262,7 @@ internal class LagBrevutkastForRevurderingTest {
                         it shouldBe SimulerUtbetalingRequest.Opphør(
                             sakId = sakId,
                             saksbehandler = NavIdentBruker.Saksbehandler("s1"),
-                            opphørsdato = revurdering.periode.fraOgMed,
+                            opphørsperiode = revurdering.periode,
                         )
                     },
                 )

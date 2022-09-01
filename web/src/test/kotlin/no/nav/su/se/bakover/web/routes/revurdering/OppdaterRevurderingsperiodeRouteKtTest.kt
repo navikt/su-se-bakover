@@ -10,28 +10,18 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.desember
+import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.domain.Brukerrolle
-import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
-import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
-import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.sakinfo
-import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
+import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.periode
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.requestPath
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.testServices
-import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.vedtak
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -44,6 +34,7 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
     private val validBody = """
         {
          "fraOgMed": "${periode.fraOgMed}",
+         "tilOgMed": "${periode.tilOgMed}",
          "årsak":"INFORMASJON_FRA_KONTROLLSAMTALE",
          "begrunnelse":"begrunnelse",
          "informasjonSomRevurderes": ["Uførhet"]
@@ -82,25 +73,8 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
 
     @Test
     fun `kan oppdatere revurderingsperioden`() {
-        val opprettetRevurdering = OpprettetRevurdering(
-            id = UUID.randomUUID(),
-            periode = periode,
-            opprettet = fixedTidspunkt,
-            tilRevurdering = vedtak.id,
-            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
-            oppgaveId = OppgaveId("oppgaveId"),
-            fritekstTilBrev = "",
-            revurderingsårsak = Revurderingsårsak(
-                Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
-                Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
-            ),
-            forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            attesteringer = Attesteringshistorikk.empty(),
-            avkorting = AvkortingVedRevurdering.Uhåndtert.IngenUtestående,
-            sakinfo = sakinfo,
+        val (_, opprettetRevurdering) = opprettetRevurdering(
+            revurderingsperiode = mai(2021)..desember(2021),
         )
         val revurderingServiceMock = mock<RevurderingService> {
             on { oppdaterRevurdering(any()) } doReturn opprettetRevurdering.right()
@@ -119,6 +93,7 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
                     """
                     {
                         "fraOgMed": "${periode.fraOgMed}",
+                        "tilOgMed": "${periode.tilOgMed}",
                         "årsak":"DØDSFALL",
                         "begrunnelse":"begrunnelse",
                         "informasjonSomRevurderes": ["Inntekt"]
@@ -133,23 +108,6 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
                 actualResponse.status shouldBe RevurderingsStatus.OPPRETTET
             }
         }
-    }
-
-    @Test
-    fun `ugyldig fraOgMed dato`() {
-        shouldMapErrorCorrectly(
-            error = KunneIkkeOppdatereRevurdering.UgyldigPeriode(
-                Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden,
-            ),
-            expectedStatusCode = HttpStatusCode.BadRequest,
-            expectedJsonResponse = """
-                {
-                    "message":"FraOgMedDatoMåVæreFørsteDagIMåneden",
-                    "code":"ugyldig_periode"
-                }
-            """.trimIndent(),
-
-        )
     }
 
     @Test

@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.mars
+import no.nav.su.se.bakover.common.toPeriode
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -278,7 +279,7 @@ internal class UtbetalingServiceImplTest {
 
         @Test
         fun `simuleringsperiode settes til fra virkningstidspunkt til slutt på utbetalingslinje ved opphør`() {
-            val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget()
+            val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
 
             UtbetalingServiceAndMocks(
                 sakService = mock {
@@ -300,7 +301,7 @@ internal class UtbetalingServiceImplTest {
                     request = SimulerUtbetalingRequest.Opphør(
                         sakId = sak.id,
                         saksbehandler = saksbehandler,
-                        opphørsdato = 1.februar(2021),
+                        opphørsperiode = 1.februar(2021).rangeTo(vedtak.periode.tilOgMed).toPeriode(),
                     ),
                 ).getOrFail() shouldBe beOfType<Utbetaling.SimulertUtbetaling>()
 

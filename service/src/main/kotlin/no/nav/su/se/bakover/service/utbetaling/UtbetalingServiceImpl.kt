@@ -131,7 +131,7 @@ internal class UtbetalingServiceImpl(
             behandler = request.saksbehandler,
             // TODO send med periode
             periode = Periode.create(
-                fraOgMed = request.opphørsdato,
+                fraOgMed = request.opphørsperiode.fraOgMed,
                 tilOgMed = sak.utbetalinger.last().sisteUtbetalingslinje().tilOgMed,
             ),
             clock = clock,
@@ -139,7 +139,7 @@ internal class UtbetalingServiceImpl(
         ).generate()
 
         val simuleringsperiode = Periode.create(
-            fraOgMed = request.opphørsdato,
+            fraOgMed = request.opphørsperiode.fraOgMed,
             tilOgMed = utbetaling.senesteDato(),
         )
 

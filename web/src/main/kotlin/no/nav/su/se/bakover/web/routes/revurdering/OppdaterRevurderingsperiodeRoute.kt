@@ -4,6 +4,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.put
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -42,6 +43,7 @@ internal fun Route.oppdaterRevurderingRoute(
 ) {
     data class Body(
         val fraOgMed: LocalDate,
+        val tilOgMed: LocalDate,
         val årsak: String,
         val begrunnelse: String,
         val informasjonSomRevurderes: List<Revurderingsteg>,
@@ -56,7 +58,10 @@ internal fun Route.oppdaterRevurderingRoute(
                     revurderingService.oppdaterRevurdering(
                         OppdaterRevurderingRequest(
                             revurderingId = revurderingId,
-                            fraOgMed = body.fraOgMed,
+                            periode = Periode.create(
+                                fraOgMed = body.fraOgMed,
+                                tilOgMed = body.tilOgMed
+                            ),
                             årsak = body.årsak,
                             begrunnelse = body.begrunnelse,
                             saksbehandler = NavIdentBruker.Saksbehandler(navIdent),
@@ -83,9 +88,6 @@ internal fun Route.oppdaterRevurderingRoute(
 
 private fun KunneIkkeOppdatereRevurdering.tilResultat(): Resultat {
     return when (this) {
-        is KunneIkkeOppdatereRevurdering.UgyldigPeriode -> Revurderingsfeilresponser.ugyldigPeriode(
-            this.subError,
-        )
         is KunneIkkeOppdatereRevurdering.FantIkkeRevurdering -> fantIkkeRevurdering
         is KunneIkkeOppdatereRevurdering.UgyldigTilstand -> Feilresponser.ugyldigTilstand(this.fra, this.til)
         KunneIkkeOppdatereRevurdering.UgyldigBegrunnelse -> begrunnelseKanIkkeVæreTom

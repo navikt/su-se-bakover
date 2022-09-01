@@ -778,7 +778,7 @@ internal class RevurderingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
-            val simulert = testDataHelper.persisterRevurderingSimulertInnvilget()
+            val (_, simulert) = testDataHelper.persisterRevurderingSimulertInnvilget()
             val expected = simulert.ikkeSendForhåndsvarsel().getOrFail().also {
                 repo.lagre(it)
             }
@@ -793,7 +793,7 @@ internal class RevurderingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
-            val simulert = testDataHelper.persisterRevurderingSimulertInnvilget()
+            val (_, simulert) = testDataHelper.persisterRevurderingSimulertInnvilget()
             val simulertIngenForhåndsvarsel =
                 simulert.markerForhåndsvarselSomSendt().getOrFail().also {
                     repo.lagre(it)
@@ -807,7 +807,7 @@ internal class RevurderingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
-            val simulert = testDataHelper.persisterRevurderingSimulertInnvilget()
+            val (_, simulert) = testDataHelper.persisterRevurderingSimulertInnvilget()
             val simulertIngenForhåndsvarsel =
                 simulert.markerForhåndsvarselSomSendt().getOrFail()
                     .prøvOvergangTilFortsettMedSammeGrunnlag("").getOrFail()
@@ -828,7 +828,7 @@ internal class RevurderingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
-            val simulert = testDataHelper.persisterRevurderingSimulertInnvilget()
+            val (_, simulert) = testDataHelper.persisterRevurderingSimulertInnvilget()
             val simulertIngenForhåndsvarsel =
                 simulert.markerForhåndsvarselSomSendt().getOrFail().prøvOvergangTilEndreGrunnlaget("").getOrFail().also {
                     repo.lagre(it)

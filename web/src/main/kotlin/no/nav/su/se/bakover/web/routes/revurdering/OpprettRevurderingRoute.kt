@@ -5,6 +5,7 @@ import io.ktor.server.application.call
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.metrics.SuMetrics
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -47,6 +48,7 @@ internal fun Route.opprettRevurderingRoute(
 ) {
     data class Body(
         val fraOgMed: LocalDate,
+        val tilOgMed: LocalDate,
         val årsak: String,
         val begrunnelse: String,
         val informasjonSomRevurderes: List<Revurderingsteg>,
@@ -60,7 +62,10 @@ internal fun Route.opprettRevurderingRoute(
                     revurderingService.opprettRevurdering(
                         OpprettRevurderingRequest(
                             sakId = sakId,
-                            fraOgMed = body.fraOgMed,
+                            periode = Periode.create(
+                                fraOgMed = body.fraOgMed,
+                                tilOgMed = body.tilOgMed
+                            ),
                             årsak = body.årsak,
                             begrunnelse = body.begrunnelse,
                             saksbehandler = NavIdentBruker.Saksbehandler(navIdent),

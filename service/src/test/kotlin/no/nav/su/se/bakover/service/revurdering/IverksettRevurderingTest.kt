@@ -153,7 +153,7 @@ internal class IverksettRevurderingTest {
                     request = SimulerUtbetalingRequest.Opphør(
                         sakId = sakId,
                         saksbehandler = attestant,
-                        opphørsdato = revurderingTilAttestering.periode.fraOgMed,
+                        opphørsperiode = revurderingTilAttestering.periode,
                     ),
                     simulering = revurderingTilAttestering.simulering,
                 )

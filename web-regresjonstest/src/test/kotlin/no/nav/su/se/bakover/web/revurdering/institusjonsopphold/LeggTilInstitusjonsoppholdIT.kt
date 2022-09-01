@@ -33,6 +33,7 @@ internal class LeggTilInstitusjonsoppholdIT {
                 opprettRevurdering(
                     sakId = sakId,
                     fraOgMed = fraOgMed,
+                    tilOgMed = tilOgMed,
                 ).let {
                     val revurderingId = hentRevurderingId(it)
 

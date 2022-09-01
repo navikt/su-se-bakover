@@ -1,11 +1,13 @@
 package no.nav.su.se.bakover.common
 
 import arrow.core.NonEmptyList
+import no.nav.su.se.bakover.common.periode.Periode
 import org.slf4j.MDC
 import java.lang.Double.max
 import java.lang.Double.min
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.time.LocalDate
 import java.util.UUID
 
 fun Double.positiveOrZero(): Double = max(0.0, this)
@@ -43,4 +45,11 @@ fun <T> List<T>.nonEmpty(): NonEmptyList<T> {
 
 inline fun Boolean.and(predicate: () -> Boolean): Boolean {
     return this && predicate()
+}
+
+fun ClosedRange<LocalDate>.toPeriode(): Periode {
+    return Periode.create(
+        fraOgMed = this.start,
+        tilOgMed = this.endInclusive
+    )
 }

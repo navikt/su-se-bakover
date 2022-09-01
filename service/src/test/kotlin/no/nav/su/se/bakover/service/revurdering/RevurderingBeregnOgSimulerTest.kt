@@ -75,7 +75,7 @@ internal class RevurderingBeregnOgSimulerTest {
             utbetalingService = mock {
                 on { simulerOpphør(any()) } doReturn opphørUtbetalingSimulert(
                     sakOgBehandling = sak to opprettet,
-                    opphørsdato = opprettet.periode.fraOgMed,
+                    opphørsperiode = opprettet.periode,
                     clock = fixedClock,
                 ).right()
             },
@@ -394,7 +394,7 @@ internal class RevurderingBeregnOgSimulerTest {
             utbetalingService = mock {
                 on { simulerOpphør(any()) } doReturn opphørUtbetalingSimulert(
                     sakOgBehandling = sak to opprettet,
-                    opphørsdato = opprettet.periode.fraOgMed,
+                    opphørsperiode = opprettet.periode,
                     clock = fixedClock,
                 ).right()
             },
@@ -418,7 +418,7 @@ internal class RevurderingBeregnOgSimulerTest {
                     it shouldBe SimulerUtbetalingRequest.Opphør(
                         sakId = sakId,
                         saksbehandler = NavIdentBruker.Saksbehandler("s1"),
-                        opphørsdato = opprettet.periode.fraOgMed,
+                        opphørsperiode = opprettet.periode,
                     )
                 },
             )
