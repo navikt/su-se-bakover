@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
 
-internal class OpphørsdatoForUtbetalingerTest {
+internal class OpphørsperiodeForUtbetalingerTest {
 
     @Test
     fun `opphørsdato er lik revurdering fra og med hvis ingen avkortingsvarsel`() {
@@ -26,7 +26,7 @@ internal class OpphørsdatoForUtbetalingerTest {
         val simulert = simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
             revurderingsperiode = revurderingsperiode,
         ).second
-        OpphørsdatoForUtbetalinger(simulert).value shouldBe revurderingsperiode
+        OpphørsperiodeForUtbetalinger(simulert).value shouldBe revurderingsperiode
         simulert.avkorting shouldBe beOfType<AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående>()
     }
 
@@ -36,7 +36,7 @@ internal class OpphørsdatoForUtbetalingerTest {
         val simulert = simulertRevurderingOpphørtPgaVilkårFraInnvilgetSøknadsbehandlingsVedtak(
             vilkårSomFørerTilOpphør = utenlandsoppholdAvslag(),
         ).second
-        OpphørsdatoForUtbetalinger(simulert).value shouldBe Periode.create(tidligsteFraOgMedSomIkkeErUtbetalt, simulert.periode.tilOgMed)
+        OpphørsperiodeForUtbetalinger(simulert).value shouldBe Periode.create(tidligsteFraOgMedSomIkkeErUtbetalt, simulert.periode.tilOgMed)
         simulert.avkorting shouldBe beOfType<AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel>()
     }
 

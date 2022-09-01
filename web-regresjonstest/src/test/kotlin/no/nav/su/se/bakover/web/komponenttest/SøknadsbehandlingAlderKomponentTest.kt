@@ -54,7 +54,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import vilkår.personligOppmøtevilkårInnvilget
 
-internal class SøknadsbehandlingAlder {
+internal class SøknadsbehandlingAlderKomponentTest {
     @Test
     fun `sanity check`() {
         withKomptestApplication(

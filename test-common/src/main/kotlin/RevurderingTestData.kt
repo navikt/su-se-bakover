@@ -34,7 +34,7 @@ import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
-import no.nav.su.se.bakover.domain.revurdering.OpphørsdatoForUtbetalinger
+import no.nav.su.se.bakover.domain.revurdering.OpphørsperiodeForUtbetalinger
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
@@ -521,7 +521,7 @@ fun iverksattRevurdering(
             is RevurderingTilAttestering.Opphørt -> {
                 val utbetaling = opphørUtbetalingOversendUtenKvittering(
                     sakOgBehandling = sak to tilAttestering,
-                    opphørsperiode = OpphørsdatoForUtbetalinger(tilAttestering).value,
+                    opphørsperiode = OpphørsperiodeForUtbetalinger(tilAttestering).value,
                     clock = clock,
                 )
                 tilAttestering.tilIverksatt(

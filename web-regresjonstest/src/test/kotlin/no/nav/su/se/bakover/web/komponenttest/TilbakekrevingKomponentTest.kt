@@ -48,7 +48,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import java.util.UUID
 
-class Tilbakekreving {
+class TilbakekrevingKomponentTest {
     @Test
     fun `happy path full tilbakekreving`() {
         withKomptestApplication(

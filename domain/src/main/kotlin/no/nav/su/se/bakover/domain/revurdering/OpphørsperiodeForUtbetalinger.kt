@@ -6,14 +6,14 @@ import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 
 @JvmInline
-value class OpphørsdatoForUtbetalinger private constructor(
+value class OpphørsperiodeForUtbetalinger private constructor(
     val value: Periode,
 ) {
     companion object {
         operator fun invoke(
             revurdering: BeregnetRevurdering.Opphørt,
             avkortingsvarsel: Avkortingsvarsel,
-        ): OpphørsdatoForUtbetalinger {
+        ): OpphørsperiodeForUtbetalinger {
             return bestem(
                 revurdering = revurdering,
                 avkortingsvarsel = avkortingsvarsel,
@@ -22,7 +22,7 @@ value class OpphørsdatoForUtbetalinger private constructor(
 
         operator fun invoke(
             revurdering: SimulertRevurdering.Opphørt,
-        ): OpphørsdatoForUtbetalinger {
+        ): OpphørsperiodeForUtbetalinger {
             return bestem(
                 revurdering = revurdering,
                 avkortingsvarsel = revurdering.avkorting.avkortingsvarsel()
@@ -31,7 +31,7 @@ value class OpphørsdatoForUtbetalinger private constructor(
 
         operator fun invoke(
             revurdering: RevurderingTilAttestering.Opphørt,
-        ): OpphørsdatoForUtbetalinger {
+        ): OpphørsperiodeForUtbetalinger {
             return bestem(
                 revurdering = revurdering,
                 avkortingsvarsel = revurdering.avkorting.avkortingsvarsel()
@@ -61,10 +61,10 @@ value class OpphørsdatoForUtbetalinger private constructor(
         private fun bestem(
             revurdering: Revurdering,
             avkortingsvarsel: Avkortingsvarsel,
-        ): OpphørsdatoForUtbetalinger {
+        ): OpphørsperiodeForUtbetalinger {
             return when (avkortingsvarsel) {
                 is Avkortingsvarsel.Ingen -> {
-                    OpphørsdatoForUtbetalinger(revurdering.periode)
+                    OpphørsperiodeForUtbetalinger(revurdering.periode)
                 }
                 is Avkortingsvarsel.Utenlandsopphold -> {
                     val tidligsteIkkeUtbetalteMåned = avkortingsvarsel.hentUtbetalteBeløp()
@@ -73,7 +73,7 @@ value class OpphørsdatoForUtbetalinger private constructor(
                         .startOfMonth()
 
                     check(revurdering.periode inneholder tidligsteIkkeUtbetalteMåned) { "Opphørsdato er utenfor revurderingsperioden" }
-                    OpphørsdatoForUtbetalinger(Periode.create(tidligsteIkkeUtbetalteMåned, revurdering.periode.tilOgMed))
+                    OpphørsperiodeForUtbetalinger(Periode.create(tidligsteIkkeUtbetalteMåned, revurdering.periode.tilOgMed))
                 }
             }
         }

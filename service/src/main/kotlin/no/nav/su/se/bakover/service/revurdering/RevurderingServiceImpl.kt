@@ -1234,7 +1234,7 @@ internal class RevurderingServiceImpl(
                         request = SimulerUtbetalingRequest.Opphør(
                             sakId = iverksattRevurdering.sakId,
                             saksbehandler = attestant,
-                            opphørsperiode = revurdering.opphørsdatoForUtbetalinger,
+                            opphørsperiode = revurdering.opphørsperiodeForUtbetalinger,
                         ),
                         simulering = iverksattRevurdering.simulering,
                     ),

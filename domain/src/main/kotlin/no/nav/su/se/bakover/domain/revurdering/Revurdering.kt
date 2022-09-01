@@ -1121,7 +1121,7 @@ sealed class BeregnetRevurdering : Revurdering() {
                                 SimulerUtbetalingRequest.Opphør(
                                     sakId = sakId,
                                     saksbehandler = saksbehandler,
-                                    opphørsperiode = OpphørsdatoForUtbetalinger(
+                                    opphørsperiode = OpphørsperiodeForUtbetalinger(
                                         revurdering = this,
                                         avkortingsvarsel = avkortingsvarsel,
                                     ).value,
@@ -1768,7 +1768,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         }
 
         override val skalFøreTilUtsendingAvVedtaksbrev = true
-        val opphørsdatoForUtbetalinger = OpphørsdatoForUtbetalinger(this).value
+        val opphørsperiodeForUtbetalinger = OpphørsperiodeForUtbetalinger(this).value
 
         fun utledOpphørsgrunner(clock: Clock): List<Opphørsgrunn> {
             return when (
