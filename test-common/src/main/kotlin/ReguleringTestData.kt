@@ -158,3 +158,33 @@ fun innvilgetSøknadsbehandlingMedIverksattRegulering(
         regulering,
     )
 }
+
+fun avsluttetRegulering(
+    id: UUID = UUID.randomUUID(),
+    sakId: UUID = UUID.randomUUID(),
+    reguleringsperiode: Periode = stønadsperiode2021.periode,
+    saksnummer: Saksnummer = Saksnummer(2021),
+    opprettet: Tidspunkt = fixedTidspunkt,
+    fnr: Fnr = Fnr.generer(),
+    grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Revurdering = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
+        grunnlagsdataEnsligUtenFradrag(periode = reguleringsperiode),
+        vilkårsvurderingerRevurderingInnvilget(periode = reguleringsperiode),
+    ),
+    saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler(saksbehandlerNavn),
+    reguleringstype: Reguleringstype = Reguleringstype.MANUELL(emptySet()),
+    sakstype: Sakstype = Sakstype.UFØRE,
+    avsluttetTidspunkt: Clock = enUkeEtterFixedClock
+): Regulering.AvsluttetRegulering {
+    return opprettetRegulering(
+        id = id,
+        sakId = sakId,
+        reguleringsperiode = reguleringsperiode,
+        saksnummer = saksnummer,
+        opprettet = opprettet,
+        fnr = fnr,
+        grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+        saksbehandler = saksbehandler,
+        reguleringstype = reguleringstype,
+        sakstype = sakstype,
+    ).avslutt(avsluttetTidspunkt)
+}

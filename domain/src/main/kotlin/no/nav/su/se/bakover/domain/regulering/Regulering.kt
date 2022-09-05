@@ -51,13 +51,7 @@ interface Reguleringsfelter : Behandling {
 }
 
 sealed interface Regulering : Reguleringsfelter {
-    fun erÅpen() = when (this) {
-        is OpprettetRegulering -> true
-
-        is AvsluttetRegulering,
-        is IverksattRegulering,
-        -> false
-    }
+    fun erÅpen(): Boolean
 
     /**
      * true dersom dette er en iverksatt regulering, false ellers.
@@ -135,6 +129,7 @@ sealed interface Regulering : Reguleringsfelter {
         override val reguleringstype: Reguleringstype,
         override val sakstype: Sakstype,
     ) : Regulering {
+        override fun erÅpen() = true
 
         override val erFerdigstilt = false
 
@@ -279,6 +274,8 @@ sealed interface Regulering : Reguleringsfelter {
         override val beregning: Beregning,
         override val simulering: Simulering,
     ) : Regulering, Reguleringsfelter by opprettetRegulering {
+        override fun erÅpen(): Boolean = false
+
         override val erFerdigstilt = true
 
         fun verifiserOgSimulerUtbetaling(
@@ -301,6 +298,7 @@ sealed interface Regulering : Reguleringsfelter {
         val opprettetRegulering: OpprettetRegulering,
         val avsluttetTidspunkt: Tidspunkt,
     ) : Regulering by opprettetRegulering {
+        override fun erÅpen(): Boolean = false
         override val erFerdigstilt = true
     }
 }
