@@ -18,16 +18,17 @@ import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.kontrollsamtale.AnnulerKontrollsamtaleResultat
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.attestant
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
 import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.kontrollsamtale
+import no.nav.su.se.bakover.test.opphørUtbetalingSimulert
 import no.nav.su.se.bakover.test.oversendtUtbetalingUtenKvittering
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.revurderingTilAttestering
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.simulertUtbetaling
-import no.nav.su.se.bakover.test.simulertUtbetalingOpphør
 import no.nav.su.se.bakover.test.tilAttesteringRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
@@ -115,13 +116,15 @@ internal class IverksettRevurderingTest {
 
     @Test
     fun `iverksett - iverksetter opphør av ytelse`() {
-        val sakOgRevurdering = tilAttesteringRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak()
-        val revurderingTilAttestering = sakOgRevurdering.second
-        val simulertOpphør =
-            simulertUtbetalingOpphør(eksisterendeUtbetalinger = sakOgRevurdering.first.utbetalinger).getOrFail()
+        val (sak, revurdering) = tilAttesteringRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak()
+        val simulertOpphør = opphørUtbetalingSimulert(
+            sakOgBehandling = sak to revurdering,
+            opphørsperiode = revurdering.periode,
+            clock = fixedClock
+        )
         val serviceAndMocks = RevurderingServiceMocks(
             revurderingRepo = mock {
-                on { hent(any()) } doReturn revurderingTilAttestering
+                on { hent(any()) } doReturn revurdering
                 doNothing().whenever(it).lagre(any(), anyOrNull())
             },
             utbetalingService = mock {
@@ -144,18 +147,18 @@ internal class IverksettRevurderingTest {
             },
         )
 
-        serviceAndMocks.revurderingService.iverksett(revurderingTilAttestering.id, attestant)
+        serviceAndMocks.revurderingService.iverksett(revurdering.id, attestant)
 
-        verify(serviceAndMocks.revurderingRepo).hent(revurderingTilAttestering.id)
+        verify(serviceAndMocks.revurderingRepo).hent(revurdering.id)
         verify(serviceAndMocks.utbetalingService).verifiserOgSimulerOpphør(
             argThat {
                 it shouldBe UtbetalRequest.Opphør(
                     request = SimulerUtbetalingRequest.Opphør(
                         sakId = sakId,
                         saksbehandler = attestant,
-                        opphørsdato = revurderingTilAttestering.periode.fraOgMed,
+                        opphørsperiode = revurdering.periode,
                     ),
-                    simulering = revurderingTilAttestering.simulering,
+                    simulering = revurdering.simulering,
                 )
             },
         )
@@ -164,12 +167,12 @@ internal class IverksettRevurderingTest {
             anyOrNull(),
         )
         verify(serviceAndMocks.kontrollsamtaleService).annullerKontrollsamtale(
-            argThat { it shouldBe revurderingTilAttestering.sakId },
+            argThat { it shouldBe revurdering.sakId },
             anyOrNull(),
         )
         verify(serviceAndMocks.revurderingRepo).lagre(any(), anyOrNull())
         verify(serviceAndMocks.utbetalingService).lagreUtbetaling(argThat { it shouldBe simulertOpphør }, anyOrNull())
-        verify(serviceAndMocks.utbetalingService).publiserUtbetaling(simulertOpphør)
+        verify(serviceAndMocks.utbetalingService).publiserUtbetaling(argThat { it shouldBe simulertOpphør })
         serviceAndMocks.verifyNoMoreInteractions()
     }
 
@@ -366,17 +369,19 @@ internal class IverksettRevurderingTest {
 
     @Test
     fun `skal ikke opphøre dersom annulering av kontrollsamtale feiler`() {
-        val sakOgRevurdering = tilAttesteringRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak()
-        val revurderingTilAttestering = sakOgRevurdering.second
-        val simulertOpphør =
-            simulertUtbetalingOpphør(eksisterendeUtbetalinger = sakOgRevurdering.first.utbetalinger).getOrFail()
+        val (sak, revurdering) = tilAttesteringRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak()
+        val simulertOpphør = opphørUtbetalingSimulert(
+            sakOgBehandling = sak to revurdering,
+            opphørsperiode = revurdering.periode,
+            clock = fixedClock
+        )
         val serviceAndMocks = RevurderingServiceMocks(
             revurderingRepo = mock {
-                on { hent(any()) } doReturn revurderingTilAttestering
+                on { hent(any()) } doReturn revurdering
             },
             utbetalingService = mock {
                 on { verifiserOgSimulerOpphør(any()) } doReturn simulertOpphør.right()
-                on { verifiserOgSimulerUtbetaling(any()) } doReturn simulertUtbetaling().right()
+                on { verifiserOgSimulerUtbetaling(any()) } doReturn simulertOpphør.right()
             },
             vedtakRepo = mock {
                 doNothing().whenever(it).lagre(any(), anyOrNull())

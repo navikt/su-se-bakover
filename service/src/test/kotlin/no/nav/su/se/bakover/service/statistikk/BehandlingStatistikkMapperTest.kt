@@ -392,7 +392,7 @@ internal class BehandlingStatistikkMapperTest {
 
     @Test
     fun `mapper gjenopptak`() {
-        val gjenopptak = iverksattGjenopptakelseAvYtelseFraVedtakStansAvYtelse(år(2021)).second
+        val gjenopptak = iverksattGjenopptakelseAvYtelseFraVedtakStansAvYtelse(periode = år(2021)).second
         BehandlingStatistikkMapper(fixedClock).map(gjenopptak) shouldBe Statistikk.Behandling(
             funksjonellTid = gjenopptak.opprettet,
             tekniskTid = fixedTidspunkt,

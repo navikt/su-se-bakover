@@ -27,8 +27,8 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling.Companion.hentOversendteUtbetalingerUtenFeil
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
+import no.nav.su.se.bakover.domain.oppdrag.hentOversendteUtbetalingslinjerUtenFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -116,12 +116,9 @@ data class Sak(
             tilOgMed = LocalDate.MAX,
         ),
     ): TidslinjeForUtbetalinger {
-        val utbetalingslinjer = utbetalinger.hentOversendteUtbetalingerUtenFeil()
-            .flatMap { it.utbetalingslinjer }
-
         return TidslinjeForUtbetalinger(
             periode = periode,
-            utbetalingslinjer = utbetalingslinjer,
+            utbetalingslinjer = utbetalinger.hentOversendteUtbetalingslinjerUtenFeil(),
         )
     }
 
@@ -167,7 +164,7 @@ data class Sak(
             .let { vedtakSomKanRevurderes ->
                 GjeldendeVedtaksdata(
                     periode = periode,
-                    vedtakListe = NonEmptyList.fromListUnsafe(vedtakSomKanRevurderes),
+                    vedtakListe = vedtakSomKanRevurderes.nonEmpty(),
                     clock = clock,
                 ).right()
             }
@@ -625,7 +622,7 @@ data class Sak(
     }
 
     fun opprettNyRevurdering(
-        fraOgMed: LocalDate,
+        periode: Periode,
         saksbehandler: NavIdentBruker.Saksbehandler,
         revurderingsårsak: Revurderingsårsak,
         informasjonSomRevurderes: InformasjonSomRevurderes,
@@ -636,7 +633,10 @@ data class Sak(
         return if (!kanOppretteBehandling()) {
             KunneIkkeOppretteRevurdering.HarÅpenBehandling.left()
         } else {
-            val gjeldendeVedtaksdata = kopierGjeldendeVedtaksdata(fraOgMed, clock).fold(
+            val gjeldendeVedtaksdata = hentGjeldendeVedtaksdata(
+                periode = periode,
+                clock = clock,
+            ).fold(
                 { return KunneIkkeOppretteRevurdering.KunneIkkeHenteGjeldendeVedtaksdataSak(it).left() },
                 {
                     it.also {
@@ -645,9 +645,8 @@ data class Sak(
                 },
             )
 
-            val gjeldendeVedtakPåFraOgMedDato =
-                gjeldendeVedtaksdata.gjeldendeVedtakPåDato(fraOgMed)
-                    ?: return KunneIkkeOppretteRevurdering.FantIngenVedtakSomKanRevurderes.left()
+            val gjeldendeVedtakPåFraOgMedDato = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(dato = periode.fraOgMed)
+                ?: return KunneIkkeOppretteRevurdering.FantIngenVedtakSomKanRevurderes.left()
 
             when (val r = VurderOmVilkårGirOpphørVedRevurdering(gjeldendeVedtaksdata.vilkårsvurderinger).resultat) {
                 is OpphørVedRevurdering.Ja -> {
@@ -685,7 +684,10 @@ data class Sak(
             // OK boomer
             val oppgaveId = opprettOppgave(
                 OppgaveConfig.Revurderingsbehandling(
-                    saksnummer = saksnummer, aktørId = aktørId, tilordnetRessurs = null, clock = clock,
+                    saksnummer = saksnummer,
+                    aktørId = aktørId,
+                    tilordnetRessurs = null,
+                    clock = clock,
                 ),
             ).getOrHandle {
                 return KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave.left()

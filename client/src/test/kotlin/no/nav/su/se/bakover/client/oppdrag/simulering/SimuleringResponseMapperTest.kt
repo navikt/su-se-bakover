@@ -5,10 +5,12 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.oppdrag.XmlMapper
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.april
+import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.oktober
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -52,11 +54,10 @@ internal class SimuleringResponseMapperTest {
             utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Endring.Opphør(
                     utbetalingslinje = utbetalingslinje(),
-                    virkningstidspunkt = 1.mai(2021),
+                    virkningsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
                     clock = Clock.systemUTC(),
                 ),
             ),
-            type = Utbetaling.UtbetalingsType.OPPHØR,
             behandler = NavIdentBruker.Saksbehandler("saksa"),
             avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt),
             sakstype = Sakstype.UFØRE,

@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -181,7 +180,7 @@ internal class RevurderingServiceImpl(
             .getOrHandle { return KunneIkkeOppretteRevurdering.FantIkkeSak.left() }
 
         return sak.opprettNyRevurdering(
-            fraOgMed = opprettRevurderingRequest.fraOgMed,
+            periode = opprettRevurderingRequest.periode,
             saksbehandler = opprettRevurderingRequest.saksbehandler,
             revurderingsårsak = revurderingsårsak,
             informasjonSomRevurderes = informasjonSomRevurderes,
@@ -508,22 +507,15 @@ internal class RevurderingServiceImpl(
             InformasjonSomRevurderes.tryCreate(oppdaterRevurderingRequest.informasjonSomRevurderes)
                 .getOrHandle { return KunneIkkeOppdatereRevurdering.MåVelgeInformasjonSomSkalRevurderes.left() }
 
-        val gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
-            fraOgMed = oppdaterRevurderingRequest.fraOgMed,
+        val gjeldendeVedtaksdata = sak.hentGjeldendeVedtaksdata(
+            periode = oppdaterRevurderingRequest.periode,
             clock = clock,
         ).getOrHandle {
-            return when (it) {
-                is Sak.KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes -> {
-                    KunneIkkeOppdatereRevurdering.FantIngenVedtakSomKanRevurderes
-                }
-
-                is Sak.KunneIkkeHenteGjeldendeVedtaksdata.UgyldigPeriode -> {
-                    KunneIkkeOppdatereRevurdering.UgyldigPeriode(it.feil)
-                }
-            }.left()
-        }.also {
-            if (!it.tidslinjeForVedtakErSammenhengende()) return KunneIkkeOppdatereRevurdering.TidslinjeForVedtakErIkkeKontinuerlig.left()
+            return KunneIkkeOppdatereRevurdering.FantIngenVedtakSomKanRevurderes.left()
         }
+            .also {
+                if (!it.tidslinjeForVedtakErSammenhengende()) return KunneIkkeOppdatereRevurdering.TidslinjeForVedtakErIkkeKontinuerlig.left()
+            }
 
         when (val r = VurderOmVilkårGirOpphørVedRevurdering(gjeldendeVedtaksdata.vilkårsvurderinger).resultat) {
             is OpphørVedRevurdering.Ja -> {
@@ -540,9 +532,8 @@ internal class RevurderingServiceImpl(
             }
         }
 
-        val gjeldendeVedtakPåFraOgMedDato =
-            gjeldendeVedtaksdata.gjeldendeVedtakPåDato(oppdaterRevurderingRequest.fraOgMed)?.id
-                ?: return KunneIkkeOppdatereRevurdering.FantIngenVedtakSomKanRevurderes.left()
+        val gjeldendeVedtakPåFraOgMedDato = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(dato = oppdaterRevurderingRequest.periode.fraOgMed)?.id
+            ?: return KunneIkkeOppdatereRevurdering.FantIngenVedtakSomKanRevurderes.left()
 
         val avkorting = sak.hentUteståendeAvkortingForRevurdering()
             .fold(
@@ -676,44 +667,25 @@ internal class RevurderingServiceImpl(
                     }
 
                     is BeregnetRevurdering.Innvilget -> {
-                        utbetalingService.simulerUtbetaling(
-                            request = SimulerUtbetalingRequest.NyUtbetaling.Uføre(
-                                sakId = beregnetRevurdering.sakId,
-                                saksbehandler = saksbehandler,
-                                beregning = beregnetRevurdering.beregning,
-                                uføregrunnlag = beregnetRevurdering.vilkårsvurderinger.uføreVilkår().fold(
-                                    {
-                                        TODO("vilkårsvurdering_alder utbetaling av alder ikke implementert")
-                                    },
-                                    {
-                                        it.grunnlag
-                                    },
-                                ),
-                                utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
-                            ),
-                        ).mapLeft {
+                        beregnetRevurdering.simuler(
+                            saksbehandler = saksbehandler,
+                            clock = clock,
+                        ) { request ->
+                            utbetalingService.simulerUtbetaling(request)
+                        }.mapLeft {
                             KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(it)
-                        }.map {
-                            beregnetRevurdering.toSimulert(
-                                simulering = it.simulering,
-                                clock = clock,
-                            ).let { simulert ->
-                                revurderingRepo.lagre(simulert)
-                                identifiserFeilOgLagResponse(simulert).leggTil(potensielleVarsel)
-                            }
+                        }.map { simulert ->
+                            revurderingRepo.lagre(simulert)
+                            identifiserFeilOgLagResponse(simulert).leggTil(potensielleVarsel)
                         }
                     }
 
                     is BeregnetRevurdering.Opphørt -> {
                         // TODO er tanken at vi skal oppdatere saksbehandler her? Det kan se ut som vi har tenkt det, men aldri fullført.
-                        beregnetRevurdering.toSimulert { sakId, _, opphørsdato ->
-                            utbetalingService.simulerOpphør(
-                                request = SimulerUtbetalingRequest.Opphør(
-                                    sakId = sakId,
-                                    saksbehandler = saksbehandler,
-                                    opphørsdato = opphørsdato,
-                                ),
-                            )
+                        beregnetRevurdering.simuler(
+                            saksbehandler = saksbehandler,
+                        ) { request ->
+                            utbetalingService.simulerOpphør(request)
                         }.mapLeft { KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(it) }.map { simulert ->
                             revurderingRepo.lagre(simulert)
                             identifiserFeilOgLagResponse(simulert).leggTil(potensielleVarsel)
@@ -1262,7 +1234,7 @@ internal class RevurderingServiceImpl(
                         request = SimulerUtbetalingRequest.Opphør(
                             sakId = iverksattRevurdering.sakId,
                             saksbehandler = attestant,
-                            opphørsdato = revurdering.opphørsdatoForUtbetalinger,
+                            opphørsperiode = revurdering.opphørsperiodeForUtbetalinger,
                         ),
                         simulering = iverksattRevurdering.simulering,
                     ),

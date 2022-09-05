@@ -89,15 +89,14 @@ internal class AvstemmingPostgresRepoTest {
 
             dataSource.withSession { session ->
                 """
-                    insert into utbetaling (id, opprettet, sakId, fnr, type, behandler, avstemmingsnøkkel, simulering, utbetalingsrequest)
-                    values (:id, :opprettet, :sakId, :fnr, :type, :behandler, to_json(:avstemmingsnokkel::json), to_json(:simulering::json), to_json(:utbetalingsrequest::json))
+                    insert into utbetaling (id, opprettet, sakId, fnr, behandler, avstemmingsnøkkel, simulering, utbetalingsrequest)
+                    values (:id, :opprettet, :sakId, :fnr, :behandler, to_json(:avstemmingsnokkel::json), to_json(:simulering::json), to_json(:utbetalingsrequest::json))
                 """.insert(
                     mapOf(
                         "id" to UUID30.randomUUID(),
                         "opprettet" to fixedTidspunkt,
                         "sakId" to vedtak.behandling.sakId,
                         "fnr" to vedtak.behandling.fnr,
-                        "type" to "NY",
                         "behandler" to "Z123",
                         "avstemmingsnokkel" to objectMapper.writeValueAsString(
                             Avstemmingsnøkkel(

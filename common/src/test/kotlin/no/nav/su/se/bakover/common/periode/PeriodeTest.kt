@@ -1103,4 +1103,45 @@ internal class PeriodeTest {
             ).erSammenhengendeSortertOgUtenDuplikater() shouldBe false
         }
     }
+
+    @Nested
+    inner class Komplement {
+        @Test
+        fun `komplement av tom liste er tom`() {
+            emptyList<Periode>().komplement() shouldBe emptyList()
+        }
+
+        @Test
+        fun `komplement av en er en tom liste`() {
+            listOf(år(2021)).komplement() shouldBe emptyList()
+        }
+
+        @Test
+        fun `komplement av tilstøtende er tom liste`() {
+            listOf(år(2021), år(2022)).komplement() shouldBe emptyList()
+        }
+
+        @Test
+        fun `komplement av distinkte med hull`() {
+            listOf(år(2021), år(2023)).komplement() shouldBe listOf(år(2022))
+        }
+
+        @Test
+        fun `komplement av overlappende uten hull er tom liste`() {
+            listOf(
+                januar(2022).rangeTo(april(2022)),
+                februar((2022)).rangeTo(desember(2022))
+            ).komplement() shouldBe emptyList()
+        }
+
+        @Test
+        fun `komplement av overlappende med hull`() {
+            listOf(
+                januar(2022).rangeTo(april(2022)),
+                februar((2022)).rangeTo(mai(2022)),
+                juli(2022).rangeTo(september(2022)),
+                juli((2022)).rangeTo(desember(2022))
+            ).komplement() shouldBe listOf(juni(2022))
+        }
+    }
 }

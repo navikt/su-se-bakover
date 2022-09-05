@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.oppdrag.simulering
 
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.Beløp
 import no.nav.su.se.bakover.domain.MånedBeløp
 import no.nav.su.se.bakover.domain.Månedsbeløp
@@ -26,17 +27,21 @@ data class TolketSimulering(
 
         TolketPeriode(
             periode = Periode.create(it.fraOgMed, it.tilOgMed),
-            utbetalinger = utbetalinger,
+            /**
+             * I Teorien kan det være flere utbetalnger per periode, f.eks hvis bruker mottar andre ytelser.
+             * Vi bryr oss kun om SU og forventer derfor bare 1.
+             */
+            utbetaling = utbetalinger.single(),
         )
     }
 
     fun harFeilutbetalinger() = simulertePerioder.any { it.harFeilutbetalinger() }
 
     fun periode(): Periode {
-        return simulertePerioder.let {
+        return simulertePerioder.let { perioder ->
             Periode.create(
-                it.minOf { it.periode.fraOgMed },
-                it.maxOf { it.periode.tilOgMed },
+                perioder.minOf { it.periode.fraOgMed },
+                perioder.maxOf { it.periode.tilOgMed },
             )
         }
     }
@@ -46,7 +51,7 @@ data class TolketSimulering(
      * @see no.nav.su.se.bakover.client.oppdrag.simulering.SimuleringResponseMapper
      */
     private fun erTomSimulering(): Boolean {
-        return simulertePerioder.all { it.utbetalinger.all { it is TolketUtbetaling.IngenUtbetaling } }
+        return simulertePerioder.all { it.utbetaling is TolketUtbetaling.IngenUtbetaling }
     }
 
     /**
@@ -95,19 +100,19 @@ data class TolketSimulering(
 
 data class TolketPeriode(
     val periode: Periode,
-    val utbetalinger: List<TolketUtbetaling>,
+    val utbetaling: TolketUtbetaling,
 ) {
-    fun harFeilutbetalinger() = utbetalinger.any { it is TolketUtbetaling.Feilutbetaling }
+    fun harFeilutbetalinger() = utbetaling is TolketUtbetaling.Feilutbetaling
     fun hentUtbetaltBeløp(): MånedBeløp {
-        return MånedBeløp(periode, Beløp(utbetalinger.sumOf { it.hentUtbetaltBeløp().sum() }))
+        return MånedBeløp(periode, Beløp(utbetaling.hentUtbetaltBeløp().sum()))
     }
 
     fun hentFeilutbetalteBeløp(): MånedBeløp {
-        return MånedBeløp(periode, Beløp(utbetalinger.sumOf { it.hentFeilutbetaltBeløp().sum() }))
+        return MånedBeløp(periode, Beløp(utbetaling.hentFeilutbetaltBeløp().sum()))
     }
 
     fun hentØnsketUtbetaling(): MånedBeløp {
-        return MånedBeløp(periode, Beløp(utbetalinger.sumOf { it.hentØnsketUtbetaling().sum() }))
+        return MånedBeløp(periode, Beløp(utbetaling.hentØnsketUtbetaling().sum()))
     }
 }
 
@@ -147,7 +152,7 @@ sealed class TolketUtbetaling {
             }
             tolketDetaljer.erOrdinær() -> {
                 val tolketDetalj = tolketDetaljer.first() as TolketDetalj.Ordinær
-                if (tolketDetalj.fraOgMed < tolketDetalj.forfall.withDayOfMonth(1)) {
+                if (tolketDetalj.fraOgMed < tolketDetalj.forfall.startOfMonth()) {
                     Etterbetaling(tolketDetaljer + TolketDetalj.Etterbetaling(tolketDetalj.beløp))
                 } else {
                     Ordinær(tolketDetaljer)

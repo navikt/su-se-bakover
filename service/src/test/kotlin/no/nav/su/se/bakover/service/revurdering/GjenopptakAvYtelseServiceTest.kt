@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.service.utbetaling.SimulerGjenopptakFeil
 import no.nav.su.se.bakover.service.utbetaling.UtbetalGjenopptakFeil
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.test.TestSessionFactory
+import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
@@ -281,13 +282,14 @@ internal class GjenopptakAvYtelseServiceTest {
 
     @Test
     fun `happy path for oppdatering`() {
+        val tikkendeKlokke = TikkendeKlokke(fixedClock)
         val periode = Periode.create(
-            fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
-            tilOgMed = LocalDate.now(fixedClock).plusMonths(2).endOfMonth(),
+            fraOgMed = LocalDate.now(tikkendeKlokke).plusMonths(1).startOfMonth(),
+            tilOgMed = LocalDate.now(tikkendeKlokke).plusMonths(2).endOfMonth(),
         )
         val (sak, revurdering) = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
             periodeForStans = periode,
-            clock = fixedClock,
+            clock = tikkendeKlokke,
         )
 
         RevurderingServiceMocks(

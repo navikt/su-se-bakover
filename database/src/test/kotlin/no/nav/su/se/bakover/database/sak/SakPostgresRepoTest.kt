@@ -128,12 +128,12 @@ internal class SakPostgresRepoTest {
             val tilAttestering = testDataHelper.persisterSøknadsbehandlingTilAttesteringAvslagUtenBeregning().second
             testDataHelper.persisterSøknadsbehandlingIverksattInnvilget()
 
-            val opprettetRevurdering =
+            val (_, opprettetRevurdering) =
                 testDataHelper.persisterRevurderingOpprettet(
-                    testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().second,
+                    testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().let { it.first to it.second },
                     stønadsperiode2021.periode,
                 )
-            val tilAttesteringRevurdering = testDataHelper.persisterRevurderingTilAttesteringInnvilget()
+            val (_, tilAttesteringRevurdering) = testDataHelper.persisterRevurderingTilAttesteringInnvilget()
             val underkjentRevurdering = testDataHelper.persisterRevurderingUnderkjentInnvilget()
             testDataHelper.persisterRevurderingIverksattInnvilget()
 

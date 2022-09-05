@@ -54,7 +54,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import vilkår.personligOppmøtevilkårInnvilget
 
-internal class SøknadsbehandlingAlder {
+internal class SøknadsbehandlingAlderKomponentTest {
     @Test
     fun `sanity check`() {
         withKomptestApplication(
@@ -268,7 +268,7 @@ internal class SøknadsbehandlingAlder {
                 ),
             ).getOrFail().also {
                 it.simulering.bruttoYtelse() shouldBe 195188
-                it.simulering.tolk().simulertePerioder.all { it.utbetalinger.all { it is TolketUtbetaling.Ordinær } }
+                it.simulering.tolk().simulertePerioder.all { it.utbetaling is TolketUtbetaling.Ordinær }
             }
 
             appComponents.services.søknadsbehandling.leggTilOpplysningspliktVilkår(

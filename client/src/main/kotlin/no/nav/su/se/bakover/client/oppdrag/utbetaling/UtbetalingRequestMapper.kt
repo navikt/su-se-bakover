@@ -8,9 +8,16 @@ import no.nav.su.se.bakover.client.oppdrag.toOppdragTimestamp
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest.Oppdragslinje.KodeStatusLinje.Companion.tilKjøreplan
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest.Oppdragslinje.KodeStatusLinje.Companion.tilKodeStatusLinje
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest.Oppdragslinje.KodeStatusLinje.Companion.tilUføregrad
+import no.nav.su.se.bakover.common.and
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.toFagområde
+
+private fun Utbetaling.trengerNyttOppdrag(): Boolean = utbetalingslinjer.let { linjer ->
+    linjer.any { it.forrigeUtbetalingslinjeId == null }
+        // unngå at en eventuell endring av første utbetalingslinje noensinne oppfattes som førstegangsutbetaling
+        .and { linjer.filterIsInstance<Utbetalingslinje.Endring>().none { it.forrigeUtbetalingslinjeId == null } }
+}
 
 internal fun toUtbetalingRequest(
     utbetaling: Utbetaling,
@@ -18,14 +25,7 @@ internal fun toUtbetalingRequest(
     return UtbetalingRequest(
         oppdragRequest = UtbetalingRequest.OppdragRequest(
             kodeAksjon = UtbetalingRequest.KodeAksjon.UTBETALING, // Kodeaksjon brukes ikke av simulering
-            kodeEndring = when (utbetaling.type) {
-                Utbetaling.UtbetalingsType.NY -> {
-                    if (utbetaling.erFørstegangsUtbetaling()) UtbetalingRequest.KodeEndring.NY else UtbetalingRequest.KodeEndring.ENDRING
-                }
-                Utbetaling.UtbetalingsType.STANS, Utbetaling.UtbetalingsType.GJENOPPTA, Utbetaling.UtbetalingsType.OPPHØR -> {
-                    UtbetalingRequest.KodeEndring.ENDRING
-                }
-            },
+            kodeEndring = if (utbetaling.trengerNyttOppdrag()) UtbetalingRequest.KodeEndring.NY else UtbetalingRequest.KodeEndring.ENDRING,
             kodeFagomraade = utbetaling.sakstype.toFagområde().toString(),
             fagsystemId = utbetaling.saksnummer.toString(),
             utbetFrekvens = OppdragDefaults.utbetalingsfrekvens,
@@ -45,7 +45,7 @@ internal fun toUtbetalingRequest(
                         is Utbetalingslinje.Endring -> {
                             UtbetalingRequest.Oppdragslinje(
                                 kodeStatusLinje = it.tilKodeStatusLinje(),
-                                datoStatusFom = it.virkningstidspunkt.toOppdragDate(),
+                                datoStatusFom = it.virkningsperiode.fraOgMed.toOppdragDate(),
                                 kodeEndringLinje = UtbetalingRequest.Oppdragslinje.KodeEndringLinje.ENDRING,
                                 delytelseId = it.id.toString(),
                                 kodeKlassifik = utbetaling.sakstype.toFagområde()

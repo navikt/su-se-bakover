@@ -34,8 +34,10 @@ import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.Konsistensproblem
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.SjekkOmGrunnlagErKonsistent
+import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
@@ -957,46 +959,59 @@ sealed class BeregnetRevurdering : Revurdering() {
             visitor.visit(this)
         }
 
-        fun toSimulert(
-            simulering: Simulering,
+        fun simuler(
+            saksbehandler: Saksbehandler,
             clock: Clock,
-        ): SimulertRevurdering.Innvilget {
-            val tilbakekrevingsbehandling = when (simulering.harFeilutbetalinger()) {
-                true -> {
-                    IkkeAvgjort(
-                        id = UUID.randomUUID(),
-                        opprettet = Tidspunkt.now(clock),
-                        sakId = sakId,
-                        revurderingId = id,
-                        periode = periode,
-                    )
+            simulerUtbetaling: (request: SimulerUtbetalingRequest.NyUtbetaling) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>
+        ): Either<SimuleringFeilet, SimulertRevurdering.Innvilget> {
+            return simulerUtbetaling(
+                SimulerUtbetalingRequest.NyUtbetaling.Uføre(
+                    sakId = sakId,
+                    saksbehandler = saksbehandler,
+                    beregning = beregning,
+                    utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                    uføregrunnlag = vilkårsvurderinger.uføreVilkår().getOrHandle { throw IllegalStateException("Uførevilkår mangler") }.grunnlag
+                )
+            ).mapLeft {
+                it
+            }.map {
+                val tilbakekrevingsbehandling = when (it.simulering.harFeilutbetalinger()) {
+                    true -> {
+                        IkkeAvgjort(
+                            id = UUID.randomUUID(),
+                            opprettet = Tidspunkt.now(clock),
+                            sakId = sakId,
+                            revurderingId = id,
+                            periode = periode,
+                        )
+                    }
+
+                    false -> {
+                        IkkeBehovForTilbakekrevingUnderBehandling
+                    }
                 }
 
-                false -> {
-                    IkkeBehovForTilbakekrevingUnderBehandling
-                }
+                SimulertRevurdering.Innvilget(
+                    id = id,
+                    periode = periode,
+                    opprettet = opprettet,
+                    tilRevurdering = tilRevurdering,
+                    beregning = beregning,
+                    simulering = it.simulering,
+                    saksbehandler = saksbehandler,
+                    oppgaveId = oppgaveId,
+                    fritekstTilBrev = fritekstTilBrev,
+                    revurderingsårsak = revurderingsårsak,
+                    forhåndsvarsel = forhåndsvarsel,
+                    grunnlagsdata = grunnlagsdata,
+                    vilkårsvurderinger = vilkårsvurderinger,
+                    informasjonSomRevurderes = informasjonSomRevurderes,
+                    attesteringer = attesteringer,
+                    avkorting = avkorting.håndter(),
+                    tilbakekrevingsbehandling = tilbakekrevingsbehandling,
+                    sakinfo = sakinfo,
+                )
             }
-
-            return SimulertRevurdering.Innvilget(
-                id = id,
-                periode = periode,
-                opprettet = opprettet,
-                tilRevurdering = tilRevurdering,
-                beregning = beregning,
-                simulering = simulering,
-                saksbehandler = saksbehandler,
-                oppgaveId = oppgaveId,
-                fritekstTilBrev = fritekstTilBrev,
-                revurderingsårsak = revurderingsårsak,
-                forhåndsvarsel = forhåndsvarsel,
-                grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger,
-                informasjonSomRevurderes = informasjonSomRevurderes,
-                attesteringer = attesteringer,
-                avkorting = avkorting.håndter(),
-                tilbakekrevingsbehandling = tilbakekrevingsbehandling,
-                sakinfo = sakinfo,
-            )
         }
     }
 
@@ -1072,11 +1087,17 @@ sealed class BeregnetRevurdering : Revurdering() {
     ) : BeregnetRevurdering() {
         override val erOpphørt = true
 
-        fun toSimulert(
-            simuler: (sakId: UUID, saksbehandler: NavIdentBruker, opphørsdato: LocalDate) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
+        fun simuler(
+            saksbehandler: Saksbehandler,
+            simulerOpphør: (request: SimulerUtbetalingRequest.Opphør) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
         ): Either<SimuleringFeilet, SimulertRevurdering.Opphørt> {
-            val (simulertUtbetaling, håndtertAvkorting) = simuler(sakId, saksbehandler, periode.fraOgMed)
-                .getOrHandle { return it.left() }
+            val (simulertUtbetaling, håndtertAvkorting) = simulerOpphør(
+                SimulerUtbetalingRequest.Opphør(
+                    sakId = sakId,
+                    saksbehandler = saksbehandler,
+                    opphørsperiode = periode,
+                )
+            ).getOrHandle { return it.left() }
                 .let { simulering ->
                     when (val avkortingsvarsel = lagAvkortingsvarsel(simulering)) {
                         is Avkortingsvarsel.Ingen -> {
@@ -1096,13 +1117,15 @@ sealed class BeregnetRevurdering : Revurdering() {
                         }
 
                         is Avkortingsvarsel.Utenlandsopphold -> {
-                            val simuleringMedNyOpphørsdato = simuler(
-                                sakId,
-                                saksbehandler,
-                                OpphørsdatoForUtbetalinger(
-                                    revurdering = this,
-                                    avkortingsvarsel = avkortingsvarsel,
-                                ).value,
+                            val simuleringMedNyOpphørsdato = simulerOpphør(
+                                SimulerUtbetalingRequest.Opphør(
+                                    sakId = sakId,
+                                    saksbehandler = saksbehandler,
+                                    opphørsperiode = OpphørsperiodeForUtbetalinger(
+                                        revurdering = this,
+                                        avkortingsvarsel = avkortingsvarsel,
+                                    ).value,
+                                )
                             ).getOrHandle { return it.left() }
 
                             if (simuleringMedNyOpphørsdato.simulering.harFeilutbetalinger()) {
@@ -1745,7 +1768,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         }
 
         override val skalFøreTilUtsendingAvVedtaksbrev = true
-        val opphørsdatoForUtbetalinger = OpphørsdatoForUtbetalinger(this).value
+        val opphørsperiodeForUtbetalinger = OpphørsperiodeForUtbetalinger(this).value
 
         fun utledOpphørsgrunner(clock: Clock): List<Opphørsgrunn> {
             return when (

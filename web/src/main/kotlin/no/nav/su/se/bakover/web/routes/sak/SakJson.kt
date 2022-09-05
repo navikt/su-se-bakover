@@ -4,7 +4,6 @@ import no.nav.su.se.bakover.common.periode.PeriodeJson
 import no.nav.su.se.bakover.domain.KanStansesEllerGjenopptas
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Sakstype
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.web.routes.klage.KlageJson
@@ -49,11 +48,11 @@ internal data class SakJson(
                     tilOgMed = it.periode.tilOgMed,
                     beløp = it.beløp,
                     type = when (it) {
-                        is UtbetalingslinjePåTidslinje.Ny -> Utbetaling.UtbetalingsType.NY
-                        is UtbetalingslinjePåTidslinje.Opphør -> Utbetaling.UtbetalingsType.OPPHØR
-                        is UtbetalingslinjePåTidslinje.Reaktivering -> Utbetaling.UtbetalingsType.GJENOPPTA
-                        is UtbetalingslinjePåTidslinje.Stans -> Utbetaling.UtbetalingsType.STANS
-                    }.toString(),
+                        is UtbetalingslinjePåTidslinje.Ny -> "NY"
+                        is UtbetalingslinjePåTidslinje.Opphør -> "OPPHØR"
+                        is UtbetalingslinjePåTidslinje.Reaktivering -> "GJENOPPTA"
+                        is UtbetalingslinjePåTidslinje.Stans -> "STANS"
+                    },
                 )
             },
             utbetalingerKanStansesEllerGjenopptas = kanUtbetalingerStansesEllerGjenopptas(clock),

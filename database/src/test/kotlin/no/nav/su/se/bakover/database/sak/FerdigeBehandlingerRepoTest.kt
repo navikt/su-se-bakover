@@ -71,7 +71,7 @@ internal class FerdigeBehandlingerRepoTest {
             val iverksattRevurderingOpphørt = testDataHelper.persisterRevurderingIverksattOpphørt()
             val iverksattStansAvYtelse = testDataHelper.persisterStansAvYtelseIverksatt()
             val iverksattGjenopptak = testDataHelper.persisterGjenopptakAvYtelseIverksatt()
-            val beregnetRevurdering = testDataHelper.persisterRevurderingBeregnetInnvilget()
+            val (_, beregnetRevurdering) = testDataHelper.persisterRevurderingBeregnetInnvilget()
 
             val ferdigeBehandlinger = repo.hentFerdigeBehandlinger()
 

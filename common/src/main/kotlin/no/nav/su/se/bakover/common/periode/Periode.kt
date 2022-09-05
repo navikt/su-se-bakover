@@ -10,11 +10,14 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.erFørsteDagIMåned
 import no.nav.su.se.bakover.common.erSisteDagIMåned
+import no.nav.su.se.bakover.common.førsteINesteMåned
+import no.nav.su.se.bakover.common.sisteIForrigeMåned
 import no.nav.su.se.bakover.common.startOfMonth
 import java.time.LocalDate
 import java.time.Month
 import java.time.Period
 import java.time.YearMonth
+import java.util.LinkedList
 
 open class Periode protected constructor(
     val fraOgMed: LocalDate,
@@ -327,6 +330,26 @@ fun List<Periode>.harOverlappende(): Boolean {
     return if (isEmpty()) false else this.any { p1 -> this.minus(p1).any { p2 -> p1 overlapper p2 } }
 }
 
+fun List<Periode>.komplement(): List<Periode> {
+    val result = mutableListOf<Periode>()
+    LinkedList(this.sorted()).let {
+        while (it.isNotEmpty()) {
+            val current = it.poll()
+            if (it.isNotEmpty()) {
+                val next = it.peek()
+                if (!(current overlapper next) && !(current tilstøter next)) {
+                    result.add(
+                        Periode.create(
+                            fraOgMed = current.tilOgMed.førsteINesteMåned(),
+                            tilOgMed = next.fraOgMed.sisteIForrigeMåned()
+                        )
+                    )
+                }
+            }
+        }
+    }
+    return result
+}
 fun januar(year: Int) = Måned.fra(YearMonth.of(year, Month.JANUARY))
 fun februar(year: Int) = Måned.fra(YearMonth.of(year, Month.FEBRUARY))
 fun mars(year: Int) = Måned.fra(YearMonth.of(year, Month.MARCH))

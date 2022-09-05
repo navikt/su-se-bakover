@@ -119,7 +119,7 @@ fun stansetSøknadsbehandlingMedÅpenRegulering(
     val sak = sakOgVedtak.first
     val regulering = sak.opprettEllerOppdaterRegulering(
         startDato = regulerFraOgMed,
-        clock = fixedClock,
+        clock = clock,
     ).getOrFail()
 
     return Pair(

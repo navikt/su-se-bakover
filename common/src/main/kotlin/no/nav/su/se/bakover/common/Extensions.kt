@@ -1,11 +1,13 @@
 package no.nav.su.se.bakover.common
 
 import arrow.core.NonEmptyList
+import no.nav.su.se.bakover.common.periode.Periode
 import org.slf4j.MDC
 import java.lang.Double.max
 import java.lang.Double.min
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.time.LocalDate
 import java.util.UUID
 
 fun Double.positiveOrZero(): Double = max(0.0, this)
@@ -39,4 +41,23 @@ fun String.trimWhitespace(): String {
 fun <T> List<T>.nonEmpty(): NonEmptyList<T> {
     require(this.isNotEmpty()) { "Kan ikke lage NonEmptyList for en tom liste" }
     return NonEmptyList.fromListUnsafe(this)
+}
+
+inline fun Boolean.and(predicate: () -> Boolean): Boolean {
+    return this && predicate()
+}
+
+fun ClosedRange<LocalDate>.toPeriode(): Periode {
+    return Periode.create(
+        fraOgMed = this.start,
+        tilOgMed = this.endInclusive
+    )
+}
+
+fun LocalDate.førsteINesteMåned(): LocalDate {
+    return this.plusMonths(1).startOfMonth()
+}
+
+fun LocalDate.sisteIForrigeMåned(): LocalDate {
+    return this.minusMonths(1).endOfMonth()
 }

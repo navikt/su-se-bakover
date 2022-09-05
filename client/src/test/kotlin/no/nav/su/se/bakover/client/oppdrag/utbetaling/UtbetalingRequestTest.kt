@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.client.oppdrag.avstemming.sakId
 import no.nav.su.se.bakover.client.oppdrag.avstemming.saksnummer
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.april
 import no.nav.su.se.bakover.common.periode.desember
 import no.nav.su.se.bakover.common.periode.januar
@@ -53,7 +54,6 @@ internal class UtbetalingRequestTest {
                     uføregrad = 70,
                 ),
             ),
-            type = Utbetaling.UtbetalingsType.NY,
             behandler = NavIdentBruker.Attestant("A123456"),
             avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt),
             sakstype = Sakstype.UFØRE,
@@ -166,7 +166,6 @@ internal class UtbetalingRequestTest {
                     forrigeUtbetalingslinjeId = nyOppdragslinjeid1,
                 ),
             ),
-            type = Utbetaling.UtbetalingsType.NY,
             behandler = NavIdentBruker.Attestant("A123456"),
             avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay()),
             sakstype = Sakstype.UFØRE,
@@ -250,19 +249,17 @@ internal class UtbetalingRequestTest {
     @Test
     fun `bygger en request for endring av eksisterende linjer`() {
         val endring = nyUtbetaling.copy(
-            type = Utbetaling.UtbetalingsType.OPPHØR,
             avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay()),
             utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Endring.Opphør(
                     utbetalingslinje = nyUtbetaling.sisteUtbetalingslinje(),
-                    virkningstidspunkt = 1.januar(2020),
+                    virkningsperiode = Periode.create(1.januar(2020), nyUtbetaling.sisteUtbetalingslinje().tilOgMed),
                     clock = Clock.systemUTC(),
                 ),
             ),
         )
 
         val stans = nyUtbetaling.copy(
-            type = Utbetaling.UtbetalingsType.STANS,
             avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay()),
             utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Endring.Stans(
@@ -274,7 +271,6 @@ internal class UtbetalingRequestTest {
         )
 
         val gjenoppta = nyUtbetaling.copy(
-            type = Utbetaling.UtbetalingsType.GJENOPPTA,
             avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay()),
             utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Endring.Reaktivering(

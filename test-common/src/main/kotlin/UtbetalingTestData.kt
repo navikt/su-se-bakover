@@ -65,7 +65,7 @@ fun nyUtbetalingForSimulering(
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 fnr = sak.fnr,
-                utbetalinger = sak.utbetalinger,
+                eksisterendeUtbetalinger = sak.utbetalinger,
                 behandler = request.saksbehandler,
                 sakstype = sak.type,
                 beregning = request.beregning,
@@ -73,12 +73,13 @@ fun nyUtbetalingForSimulering(
                 kjøreplan = request.utbetalingsinstruksjonForEtterbetaling,
             ).generate()
         }
+
         is SimulerUtbetalingRequest.NyUtbetaling.Uføre -> {
             Utbetalingsstrategi.NyUføreUtbetaling(
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 fnr = sak.fnr,
-                utbetalinger = sak.utbetalinger,
+                eksisterendeUtbetalinger = sak.utbetalinger,
                 behandler = request.saksbehandler,
                 sakstype = sak.type,
                 beregning = request.beregning,
@@ -102,7 +103,7 @@ fun nyUtbetalingForSimulering(
                     sakId = sak.id,
                     saksnummer = sak.saksnummer,
                     fnr = sak.fnr,
-                    utbetalinger = sak.utbetalinger,
+                    eksisterendeUtbetalinger = sak.utbetalinger,
                     behandler = saksbehandler,
                     sakstype = sak.type,
                     beregning = beregning,
@@ -110,12 +111,13 @@ fun nyUtbetalingForSimulering(
                     kjøreplan = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
                 ).generate()
             }
+
             Sakstype.UFØRE -> {
                 Utbetalingsstrategi.NyUføreUtbetaling(
                     sakId = sak.id,
                     saksnummer = sak.saksnummer,
                     fnr = sak.fnr,
-                    utbetalinger = sak.utbetalinger,
+                    eksisterendeUtbetalinger = sak.utbetalinger,
                     behandler = saksbehandler,
                     sakstype = sak.type,
                     beregning = beregning,
@@ -181,7 +183,7 @@ fun nyUtbetalingOversendUtenKvittering(
 
 fun opphørUtbetalingForSimulering(
     sakOgBehandling: Pair<Sak, Behandling>,
-    opphørsdato: LocalDate,
+    opphørsperiode: Periode,
     clock: Clock,
 ): Utbetaling.UtbetalingForSimulering {
     return sakOgBehandling.let { (sak, behandling) ->
@@ -189,9 +191,13 @@ fun opphørUtbetalingForSimulering(
             sakId = behandling.sakId,
             saksnummer = behandling.saksnummer,
             fnr = behandling.fnr,
-            utbetalinger = sak.utbetalinger,
+            eksisterendeUtbetalinger = sak.utbetalinger,
             behandler = saksbehandler,
-            opphørsDato = opphørsdato,
+            // TODO send med periode
+            periode = Periode.create(
+                fraOgMed = opphørsperiode.fraOgMed,
+                tilOgMed = sak.utbetalinger.last().sisteUtbetalingslinje().tilOgMed,
+            ),
             clock = clock,
             sakstype = sakOgBehandling.first.type,
         ).generate()
@@ -200,17 +206,17 @@ fun opphørUtbetalingForSimulering(
 
 fun opphørUtbetalingSimulert(
     sakOgBehandling: Pair<Sak, Behandling>,
-    opphørsdato: LocalDate,
+    opphørsperiode: Periode,
     clock: Clock,
 ): Utbetaling.SimulertUtbetaling {
     return sakOgBehandling.let { (sak, behandling) ->
         opphørUtbetalingForSimulering(
             sakOgBehandling = sakOgBehandling,
-            opphørsdato = opphørsdato,
+            opphørsperiode = opphørsperiode,
             clock = clock,
         ).toSimulertUtbetaling(
             simuleringOpphørt(
-                opphørsdato = opphørsdato,
+                opphørsperiode = opphørsperiode,
                 eksisterendeUtbetalinger = sak.utbetalinger,
                 fnr = behandling.fnr,
                 sakId = behandling.sakId,
@@ -223,13 +229,13 @@ fun opphørUtbetalingSimulert(
 
 fun opphørUtbetalingOversendUtenKvittering(
     sakOgBehandling: Pair<Sak, Behandling>,
-    opphørsdato: LocalDate,
+    opphørsperiode: Periode,
     clock: Clock,
 ): Utbetaling.OversendtUtbetaling.UtenKvittering {
     return sakOgBehandling.let { (_, _) ->
         opphørUtbetalingSimulert(
             sakOgBehandling = sakOgBehandling,
-            opphørsdato = opphørsdato,
+            opphørsperiode = opphørsperiode,
             clock = clock,
         ).toOversendtUtbetaling(
             oppdragsmelding = utbetalingsRequest,
@@ -254,11 +260,11 @@ fun oversendtUtbetalingUtenKvittering(
     fnr = søknadsbehandling.fnr,
     sakId = søknadsbehandling.sakId,
     saksnummer = søknadsbehandling.saksnummer,
+    clock = clock,
     utbetalingslinjer = utbetalingslinjer,
     avstemmingsnøkkel = avstemmingsnøkkel,
     eksisterendeUtbetalinger = eksisterendeUtbetalinger,
     beregning = søknadsbehandling.beregning,
-    clock = clock,
 )
 
 @Suppress("unused")
@@ -278,10 +284,10 @@ fun oversendtUtbetalingUtenKvittering(
     fnr = revurdering.fnr,
     sakId = revurdering.sakId,
     saksnummer = revurdering.saksnummer,
+    clock = clock,
     utbetalingslinjer = utbetalingslinjer,
     avstemmingsnøkkel = avstemmingsnøkkel,
     eksisterendeUtbetalinger = eksisterendeUtbetalinger,
-    clock = clock,
 )
 
 fun oversendtUtbetalingUtenKvittering(
@@ -298,7 +304,6 @@ fun oversendtUtbetalingUtenKvittering(
         ),
     ),
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.avstemmingsnøkkel,
-    type: Utbetaling.UtbetalingsType = Utbetaling.UtbetalingsType.NY,
     eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
     beregning: Beregning = beregning(periode),
 ): Utbetaling.OversendtUtbetaling.UtenKvittering {
@@ -309,7 +314,6 @@ fun oversendtUtbetalingUtenKvittering(
         saksnummer = saksnummer,
         fnr = fnr,
         utbetalingslinjer = utbetalingslinjer,
-        type = type,
         behandler = attestant,
         avstemmingsnøkkel = avstemmingsnøkkel,
         sakstype = Sakstype.UFØRE,
@@ -341,7 +345,6 @@ fun simulertUtbetaling(
         ),
     ),
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.avstemmingsnøkkel,
-    type: Utbetaling.UtbetalingsType = Utbetaling.UtbetalingsType.NY,
     eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
 ): Utbetaling.SimulertUtbetaling {
     return Utbetaling.UtbetalingForSimulering(
@@ -351,7 +354,6 @@ fun simulertUtbetaling(
         saksnummer = saksnummer,
         fnr = fnr,
         utbetalingslinjer = utbetalingslinjer,
-        type = type,
         behandler = attestant,
         avstemmingsnøkkel = avstemmingsnøkkel,
         sakstype = Sakstype.UFØRE, // TODO("simulering_utbetaling_alder utled fra sak/behandling")
@@ -365,43 +367,34 @@ fun simulertUtbetaling(
 }
 
 fun simulertUtbetalingOpphør(
-    id: UUID30 = UUID30.randomUUID(),
-    periode: Periode = år(2021),
-    opphørsdato: LocalDate = periode.fraOgMed,
+    opphørsperiode: Periode,
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     behandler: NavIdentBruker = attestant,
     clock: Clock = fixedClock,
-    avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.avstemmingsnøkkel,
     eksisterendeUtbetalinger: List<Utbetaling>,
 ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
-    return Utbetaling.UtbetalingForSimulering(
-        id = id,
-        opprettet = Tidspunkt.now(clock),
+    return Utbetalingsstrategi.Opphør(
         sakId = sakId,
         saksnummer = saksnummer,
         fnr = fnr,
-        utbetalingslinjer = nonEmptyListOf(
-            Utbetalingslinje.Endring.Opphør(
-                utbetalingslinje = eksisterendeUtbetalinger.last().sisteUtbetalingslinje(),
-                virkningstidspunkt = opphørsdato,
+        eksisterendeUtbetalinger = eksisterendeUtbetalinger,
+        behandler = behandler,
+        sakstype = Sakstype.UFØRE,
+        periode = opphørsperiode,
+        clock = clock,
+    ).generate()
+        .toSimulertUtbetaling(
+            simulering = simuleringOpphørt(
+                opphørsperiode = opphørsperiode,
+                eksisterendeUtbetalinger = eksisterendeUtbetalinger,
+                fnr = fnr,
+                sakId = sakId,
+                saksnummer = saksnummer,
                 clock = clock,
             ),
-        ),
-        type = Utbetaling.UtbetalingsType.OPPHØR,
-        behandler = behandler,
-        avstemmingsnøkkel = avstemmingsnøkkel,
-        sakstype = Sakstype.UFØRE, // TODO("simulering_utbetaling_alder utled fra sak/behandling")
-    ).toSimulertUtbetaling(
-        simulering = simuleringOpphørt(
-            opphørsdato = opphørsdato,
-            eksisterendeUtbetalinger = eksisterendeUtbetalinger,
-            fnr = fnr,
-            sakId = sakId,
-            saksnummer = saksnummer,
-        ),
-    ).right()
+        ).right()
 }
 
 fun simulertFeilutbetaling(
@@ -418,7 +411,6 @@ fun simulertFeilutbetaling(
         ),
     ),
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.avstemmingsnøkkel,
-    type: Utbetaling.UtbetalingsType = Utbetaling.UtbetalingsType.NY,
 ): Utbetaling.SimulertUtbetaling {
     return Utbetaling.UtbetalingForSimulering(
         id = id,
@@ -427,7 +419,6 @@ fun simulertFeilutbetaling(
         saksnummer = saksnummer,
         fnr = fnr,
         utbetalingslinjer = utbetalingslinjer,
-        type = type,
         behandler = attestant,
         avstemmingsnøkkel = avstemmingsnøkkel,
         sakstype = Sakstype.UFØRE, // TODO("simulering_utbetaling_alder utled fra sak/behandling")
@@ -446,7 +437,6 @@ fun oversendtUtbetalingMedKvittering(
     id: UUID30 = UUID30.randomUUID(),
     periode: Periode = år(2021),
     utbetalingsstatus: Kvittering.Utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
-    type: Utbetaling.UtbetalingsType = Utbetaling.UtbetalingsType.NY,
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
@@ -457,12 +447,16 @@ fun oversendtUtbetalingMedKvittering(
         id = id,
         periode = periode,
         fnr = fnr,
-        type = type,
         sakId = sakId,
         saksnummer = saksnummer,
-        eksisterendeUtbetalinger = eksisterendeUtbetalinger,
         clock = clock,
-    ).toKvittertUtbetaling(kvittering(utbetalingsstatus = utbetalingsstatus, clock = clock))
+        eksisterendeUtbetalinger = eksisterendeUtbetalinger,
+    ).toKvittertUtbetaling(
+        kvittering(
+            utbetalingsstatus = utbetalingsstatus,
+            clock = clock,
+        ),
+    )
 }
 
 fun stansUtbetalingForSimulering(
@@ -477,7 +471,7 @@ fun stansUtbetalingForSimulering(
         sakId = sakId,
         saksnummer = saksnummer,
         fnr = fnr,
-        utbetalinger = eksisterendeUtbetalinger,
+        eksisterendeUtbetalinger = eksisterendeUtbetalinger,
         behandler = saksbehandler,
         stansDato = stansDato,
         clock = clock,
@@ -546,7 +540,7 @@ fun gjenopptakUtbetalingForSimulering(
         sakId = sakId,
         saksnummer = saksnummer,
         fnr = fnr,
-        utbetalinger = eksisterendeUtbetalinger,
+        eksisterendeUtbetalinger = eksisterendeUtbetalinger,
         behandler = saksbehandler,
         clock = clock,
         sakstype = Sakstype.UFØRE, // TODO("simulering_utbetaling_alder utled fra sak/behandling")
@@ -576,6 +570,7 @@ fun simulertGjenopptakUtbetaling(
             fnr = fnr,
             sakId = sakId,
             saksnummer = saksnummer,
+            clock = clock,
         ),
     )
 }

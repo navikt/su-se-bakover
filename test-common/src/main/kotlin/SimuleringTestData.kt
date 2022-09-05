@@ -126,7 +126,7 @@ fun simuleringNy(
         sakId = sakId,
         saksnummer = saksnummer,
         fnr = fnr,
-        utbetalinger = eksisterendeUtbetalinger,
+        eksisterendeUtbetalinger = eksisterendeUtbetalinger,
         behandler = saksbehandler,
         beregning = beregning,
         clock = clock,
@@ -172,10 +172,7 @@ fun simuleringStans(
         ).simulerUtbetaling(
             SimulerUtbetalingForPeriode(
                 utbetaling = it,
-                simuleringsperiode = Periode.create(
-                    fraOgMed = stans.virkningstidspunkt,
-                    tilOgMed = stans.tilOgMed,
-                ),
+                simuleringsperiode = stans.virkningsperiode
             ),
         )
     }.getOrFail()
@@ -192,7 +189,7 @@ fun simuleringGjenopptak(
         sakId = sakId,
         saksnummer = saksnummer,
         fnr = fnr,
-        utbetalinger = eksisterendeUtbetalinger,
+        eksisterendeUtbetalinger = eksisterendeUtbetalinger,
         behandler = saksbehandler,
         clock = clock,
         sakstype = Sakstype.UFØRE, // TODO("simulering_utbetaling_alder utled fra sak/behandling")
@@ -207,17 +204,14 @@ fun simuleringGjenopptak(
         ).simulerUtbetaling(
             SimulerUtbetalingForPeriode(
                 utbetaling = it,
-                simuleringsperiode = Periode.create(
-                    fraOgMed = reaktivering.virkningstidspunkt,
-                    tilOgMed = reaktivering.tilOgMed,
-                ),
+                simuleringsperiode = reaktivering.virkningsperiode
             ),
         )
     }.getOrFail()
 }
 
 fun simuleringOpphørt(
-    opphørsdato: LocalDate,
+    opphørsperiode: Periode,
     eksisterendeUtbetalinger: List<Utbetaling>,
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
@@ -228,10 +222,11 @@ fun simuleringOpphørt(
         sakId = sakId,
         saksnummer = saksnummer,
         fnr = fnr,
-        utbetalinger = eksisterendeUtbetalinger,
+        eksisterendeUtbetalinger = eksisterendeUtbetalinger,
         behandler = saksbehandler,
         clock = clock,
-        opphørsDato = opphørsdato,
+        // TODO send med periode
+        periode = opphørsperiode,
         sakstype = Sakstype.UFØRE, // TODO("simulering_utbetaling_alder utled fra sak/behandling")
     ).generate().let {
         val opphør = it.utbetalingslinjer
@@ -244,10 +239,7 @@ fun simuleringOpphørt(
         ).simulerUtbetaling(
             request = SimulerUtbetalingForPeriode(
                 utbetaling = it,
-                simuleringsperiode = Periode.create(
-                    fraOgMed = opphør.virkningstidspunkt,
-                    tilOgMed = opphør.tilOgMed,
-                ),
+                simuleringsperiode = opphør.virkningsperiode
             ),
         )
     }.getOrFail()

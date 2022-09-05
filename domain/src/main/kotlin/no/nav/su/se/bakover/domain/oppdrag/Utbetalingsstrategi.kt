@@ -1,15 +1,14 @@
 package no.nav.su.se.bakover.domain.oppdrag
 
 import arrow.core.Either
-import arrow.core.NonEmptyList
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.between
 import no.nav.su.se.bakover.common.erFørsteDagIMåned
+import no.nav.su.se.bakover.common.nonEmpty
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.periode.harOverlappende
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -19,7 +18,6 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Uføregrunnlag.Companion.slåSammenPeriodeOgUføregrad
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling.Companion.hentOversendteUtbetalingerUtenFeil
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import java.time.Clock
 import java.time.LocalDate
@@ -31,7 +29,7 @@ sealed class Utbetalingsstrategi {
     abstract val sakId: UUID
     abstract val saksnummer: Saksnummer
     abstract val fnr: Fnr
-    abstract val utbetalinger: List<Utbetaling>
+    abstract val eksisterendeUtbetalinger: List<Utbetaling>
     abstract val behandler: NavIdentBruker
     abstract val sakstype: Sakstype
 
@@ -44,13 +42,13 @@ sealed class Utbetalingsstrategi {
     protected fun unngåBugMedReaktiveringAvOpphørIOppdrag(
         datoForStanEllerReaktivering: LocalDate,
     ): Either<Unit, Unit> {
-        if (utbetalinger.flatMap { it.utbetalingslinjer }
+        if (eksisterendeUtbetalinger.flatMap { it.utbetalingslinjer }
             .filterIsInstance<Utbetalingslinje.Endring.Opphør>()
             .any {
-                it.virkningstidspunkt.between(
+                it.virkningsperiode.fraOgMed.between(
                         Periode.create(
                                 fraOgMed = datoForStanEllerReaktivering,
-                                tilOgMed = utbetalinger.maxOf { it.senesteDato() },
+                                tilOgMed = eksisterendeUtbetalinger.maxOf { it.senesteDato() },
                             ),
                     )
             }
@@ -64,7 +62,7 @@ sealed class Utbetalingsstrategi {
         override val sakId: UUID,
         override val saksnummer: Saksnummer,
         override val fnr: Fnr,
-        override val utbetalinger: List<Utbetaling>,
+        override val eksisterendeUtbetalinger: List<Utbetaling>,
         override val behandler: NavIdentBruker,
         override val sakstype: Sakstype,
         val stansDato: LocalDate,
@@ -72,22 +70,25 @@ sealed class Utbetalingsstrategi {
     ) : Utbetalingsstrategi() {
 
         fun generer(): Either<Feil, Utbetaling.UtbetalingForSimulering> {
-            val sisteOversendteUtbetalingslinje =
-                sisteOversendteUtbetaling()?.sisteUtbetalingslinje() ?: return Feil.FantIngenUtbetalinger.left()
+            val sisteOversendteUtbetalingslinje = eksisterendeUtbetalinger.hentSisteOversendteUtbetalingslinjeUtenFeil()
+                ?: return Feil.FantIngenUtbetalinger.left()
 
             when {
                 !harOversendteUtbetalingerEtter(stansDato) -> {
                     return Feil.IngenUtbetalingerEtterStansDato.left()
                 }
+
                 !(
                     LocalDate.now(clock).startOfMonth() == stansDato || LocalDate.now(clock).plusMonths(1)
                         .startOfMonth() == stansDato
                     ) -> {
                     return Feil.StansDatoErIkkeFørsteDatoIInneværendeEllerNesteMåned.left()
                 }
+
                 sisteOversendteUtbetalingslinje is Utbetalingslinje.Endring.Stans -> {
                     return Feil.SisteUtbetalingErEnStans.left()
                 }
+
                 sisteOversendteUtbetalingslinje is Utbetalingslinje.Endring.Opphør -> {
                     return Feil.SisteUtbetalingErOpphør.left()
                 }
@@ -113,11 +114,12 @@ sealed class Utbetalingsstrategi {
                         opprettet = opprettet,
                     ),
                 ),
-                type = Utbetaling.UtbetalingsType.STANS,
                 behandler = behandler,
                 avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
                 sakstype = sakstype,
-            ).right()
+            ).also {
+                check(it.erStans()) { "Generert utbetaling er ikke en stans" }
+            }.right()
         }
 
         sealed class Feil {
@@ -134,7 +136,7 @@ sealed class Utbetalingsstrategi {
         override val sakId: UUID,
         override val saksnummer: Saksnummer,
         override val fnr: Fnr,
-        override val utbetalinger: List<Utbetaling>,
+        override val eksisterendeUtbetalinger: List<Utbetaling>,
         override val behandler: NavIdentBruker,
         override val sakstype: Sakstype,
         val beregning: Beregning,
@@ -145,29 +147,33 @@ sealed class Utbetalingsstrategi {
         fun generate(): Utbetaling.UtbetalingForSimulering {
             val opprettet = Tidspunkt.now(clock)
 
-            val utbetalingslinjer = createUtbetalingsperioder(beregning, uføregrunnlag).map {
+            val nyeUtbetalingslinjer = createUtbetalingsperioder(
+                beregning = beregning,
+                uføregrunnlag = uføregrunnlag,
+            ).map {
                 Utbetalingslinje.Ny(
                     opprettet = opprettet,
                     fraOgMed = it.fraOgMed,
                     tilOgMed = it.tilOgMed,
-                    forrigeUtbetalingslinjeId = sisteOversendteUtbetaling()?.sisteUtbetalingslinje()?.id,
+                    forrigeUtbetalingslinjeId = eksisterendeUtbetalinger.hentSisteOversendteUtbetalingslinjeUtenFeil()?.id,
                     beløp = it.beløp,
                     uføregrad = it.uføregrad,
                     utbetalingsinstruksjonForEtterbetalinger = kjøreplan,
                 )
-            }.also {
-                it.zipWithNext { a, b -> b.link(a) }
+            }.nonEmpty().also {
+                it.sjekkIngenNyeOverlapper()
             }
-
-            check(!utbetalingslinjer.map { it.periode }.harOverlappende()) { "Overlappende utbetalingslinjer" }
 
             return Utbetaling.UtbetalingForSimulering(
                 opprettet = opprettet,
                 sakId = sakId,
                 saksnummer = saksnummer,
                 fnr = fnr,
-                utbetalingslinjer = NonEmptyList.fromListUnsafe(utbetalingslinjer),
-                type = Utbetaling.UtbetalingsType.NY,
+                utbetalingslinjer = Utbetalingshistorikk(
+                    nyeUtbetalingslinjer = nyeUtbetalingslinjer,
+                    eksisterendeUtbetalingslinjer = eksisterendeUtbetalinger.hentOversendteUtbetalingslinjerUtenFeil(),
+                    clock = clock,
+                ).generer().nonEmpty(),
                 behandler = behandler,
                 avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
                 sakstype = sakstype,
@@ -207,7 +213,11 @@ sealed class Utbetalingsstrategi {
             return slåttSammenUføregrunnlag.flatMap { grunnlag ->
                 slåttSammenMånedsberegninger.mapNotNull { månedsbereging ->
                     månedsbereging.periode.snitt(grunnlag.first)?.let {
-                        Triple(månedsbereging, grunnlag.second, it)
+                        Triple(
+                            månedsbereging,
+                            grunnlag.second,
+                            it,
+                        )
                     }
                 }.map {
                     Utbetalingsperiode(
@@ -225,7 +235,7 @@ sealed class Utbetalingsstrategi {
         override val sakId: UUID,
         override val saksnummer: Saksnummer,
         override val fnr: Fnr,
-        override val utbetalinger: List<Utbetaling>,
+        override val eksisterendeUtbetalinger: List<Utbetaling>,
         override val behandler: NavIdentBruker,
         override val sakstype: Sakstype,
         val beregning: Beregning,
@@ -235,31 +245,32 @@ sealed class Utbetalingsstrategi {
         fun generate(): Utbetaling.UtbetalingForSimulering {
             val opprettet = Tidspunkt.now(clock)
 
-            val utbetalingslinjer = SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(
+            val nyeUtbetalingslinjer = SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(
                 beregning.getMånedsberegninger(),
             ).beregningsperioder.map {
                 Utbetalingslinje.Ny(
                     opprettet = opprettet,
                     fraOgMed = it.periode.fraOgMed,
                     tilOgMed = it.periode.tilOgMed,
-                    forrigeUtbetalingslinjeId = sisteOversendteUtbetaling()?.sisteUtbetalingslinje()?.id,
+                    forrigeUtbetalingslinjeId = eksisterendeUtbetalinger.hentSisteOversendteUtbetalingslinjeUtenFeil()?.id,
                     beløp = it.getSumYtelse(),
                     uføregrad = null,
                     utbetalingsinstruksjonForEtterbetalinger = kjøreplan,
                 )
             }.also {
-                it.zipWithNext { a, b -> b.link(a) }
-            }
-
-            check(!utbetalingslinjer.map { it.periode }.harOverlappende()) { "Overlappende utbetalingslinjer" }
+                it.sjekkIngenNyeOverlapper()
+            }.nonEmpty()
 
             return Utbetaling.UtbetalingForSimulering(
                 opprettet = opprettet,
                 sakId = sakId,
                 saksnummer = saksnummer,
-                utbetalingslinjer = NonEmptyList.fromListUnsafe(utbetalingslinjer),
+                utbetalingslinjer = Utbetalingshistorikk(
+                    nyeUtbetalingslinjer = nyeUtbetalingslinjer,
+                    eksisterendeUtbetalingslinjer = eksisterendeUtbetalinger.hentOversendteUtbetalingslinjerUtenFeil(),
+                    clock = clock,
+                ).generer().nonEmpty(),
                 fnr = fnr,
-                type = Utbetaling.UtbetalingsType.NY,
                 behandler = behandler,
                 avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
                 sakstype = sakstype,
@@ -271,33 +282,37 @@ sealed class Utbetalingsstrategi {
         override val sakId: UUID,
         override val saksnummer: Saksnummer,
         override val fnr: Fnr,
-        override val utbetalinger: List<Utbetaling>,
+        override val eksisterendeUtbetalinger: List<Utbetaling>,
         override val behandler: NavIdentBruker,
         override val sakstype: Sakstype,
-        val opphørsDato: LocalDate,
+        val periode: Periode,
         val clock: Clock,
     ) : Utbetalingsstrategi() {
         fun generate(): Utbetaling.UtbetalingForSimulering {
-            val sisteUtbetalingslinje = sisteOversendteUtbetaling()?.sisteUtbetalingslinje()?.also {
-                validate(opphørsDato.isBefore(it.tilOgMed)) { "Dato for opphør må være tidligere enn tilOgMed for siste utbetalingslinje" }
-                validate(opphørsDato.erFørsteDagIMåned()) { "Ytelse kan kun opphøres fra første dag i måneden" }
+            val sisteUtbetalingslinje = eksisterendeUtbetalinger.hentSisteOversendteUtbetalingslinjeUtenFeil()?.also {
+                validate(periode.fraOgMed.isBefore(it.tilOgMed)) { "Dato for opphør må være tidligere enn tilOgMed for siste utbetalingslinje" }
+                validate(periode.fraOgMed.erFørsteDagIMåned()) { "Ytelse kan kun opphøres fra første dag i måneden" }
             } ?: throw UtbetalingStrategyException("Ingen oversendte utbetalinger å opphøre")
 
             val opprettet = Tidspunkt.now(clock)
+
             return Utbetaling.UtbetalingForSimulering(
                 opprettet = opprettet,
                 sakId = sakId,
                 saksnummer = saksnummer,
                 fnr = fnr,
-                utbetalingslinjer = nonEmptyListOf(
-                    Utbetalingslinje.Endring.Opphør(
-                        utbetalingslinje = sisteUtbetalingslinje,
-                        virkningstidspunkt = opphørsDato,
-                        opprettet = opprettet,
-                        clock = clock,
-                    ),
-                ),
-                type = Utbetaling.UtbetalingsType.OPPHØR,
+                utbetalingslinjer = Utbetalingshistorikk(
+                    nyeUtbetalingslinjer = listOf(
+                        Utbetalingslinje.Endring.Opphør(
+                            utbetalingslinje = sisteUtbetalingslinje,
+                            virkningsperiode = periode,
+                            opprettet = opprettet,
+                            clock = clock,
+                        ),
+                    ).nonEmpty(),
+                    eksisterendeUtbetalingslinjer = eksisterendeUtbetalinger.hentOversendteUtbetalingslinjerUtenFeil(),
+                    clock = clock,
+                ).generer().nonEmpty(),
                 behandler = behandler,
                 avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
                 sakstype = sakstype,
@@ -309,13 +324,13 @@ sealed class Utbetalingsstrategi {
         override val sakId: UUID,
         override val saksnummer: Saksnummer,
         override val fnr: Fnr,
-        override val utbetalinger: List<Utbetaling>,
+        override val eksisterendeUtbetalinger: List<Utbetaling>,
         override val behandler: NavIdentBruker,
         override val sakstype: Sakstype,
         val clock: Clock,
     ) : Utbetalingsstrategi() {
         fun generer(): Either<Feil, Utbetaling.UtbetalingForSimulering> {
-            val sisteOversendteUtbetalingslinje = sisteOversendteUtbetaling()?.sisteUtbetalingslinje()
+            val sisteOversendteUtbetalingslinje = eksisterendeUtbetalinger.hentSisteOversendteUtbetalingslinjeUtenFeil()
                 ?: return Feil.FantIngenUtbetalinger.left()
 
             if (sisteOversendteUtbetalingslinje !is Utbetalingslinje.Endring.Stans) return Feil.SisteUtbetalingErIkkeStans.left()
@@ -326,7 +341,7 @@ sealed class Utbetalingsstrategi {
              * tilfeller hvor perioden som gjenopptas inneholder opphør (skal alt etter denne datoen reaktiveres
              * uansett, eller skal kun et spesifikt opphør reaktivers). Default oppførsel er at kun match med dato reaktivers.
              */
-            if (unngåBugMedReaktiveringAvOpphørIOppdrag(sisteOversendteUtbetalingslinje.virkningstidspunkt).isLeft()) return Feil.KanIkkeGjenopptaOpphørtePeriode.left()
+            if (unngåBugMedReaktiveringAvOpphørIOppdrag(sisteOversendteUtbetalingslinje.periode.fraOgMed).isLeft()) return Feil.KanIkkeGjenopptaOpphørtePeriode.left()
 
             val opprettet = Tidspunkt.now(clock)
             return Utbetaling.UtbetalingForSimulering(
@@ -337,16 +352,17 @@ sealed class Utbetalingsstrategi {
                 utbetalingslinjer = nonEmptyListOf(
                     Utbetalingslinje.Endring.Reaktivering(
                         utbetalingslinje = sisteOversendteUtbetalingslinje,
-                        virkningstidspunkt = sisteOversendteUtbetalingslinje.virkningstidspunkt,
+                        virkningstidspunkt = sisteOversendteUtbetalingslinje.virkningsperiode.fraOgMed,
                         opprettet = opprettet,
                         clock = clock,
                     ),
                 ),
-                type = Utbetaling.UtbetalingsType.GJENOPPTA,
                 behandler = behandler,
                 avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
                 sakstype = sakstype,
-            ).right()
+            ).also {
+                check(it.erReaktivering()) { "Generert utbetaling er ikke en reaktivering" }
+            }.right()
         }
 
         sealed class Feil {
@@ -367,14 +383,12 @@ sealed class Utbetalingsstrategi {
         }
     }
 
-    protected fun sisteOversendteUtbetaling(): Utbetaling? =
-        utbetalinger.hentOversendteUtbetalingerUtenFeil().lastOrNull()
-
-    protected fun harOversendteUtbetalingerEtter(value: LocalDate) = utbetalinger.hentOversendteUtbetalingerUtenFeil()
-        .flatMap { it.utbetalingslinjer }
-        .any {
-            it.tilOgMed.isEqual(value) || it.tilOgMed.isAfter(value)
-        }
+    protected fun harOversendteUtbetalingerEtter(value: LocalDate) =
+        eksisterendeUtbetalinger.hentOversendteUtbetalingerUtenFeil()
+            .flatMap { it.utbetalingslinjer }
+            .any {
+                it.tilOgMed.isEqual(value) || it.tilOgMed.isAfter(value)
+            }
 
     class UtbetalingStrategyException(msg: String) : RuntimeException(msg)
 }

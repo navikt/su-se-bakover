@@ -3,9 +3,6 @@ package no.nav.su.se.bakover.web.revurdering.flyktning
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
-import no.nav.su.se.bakover.common.periode.desember
-import no.nav.su.se.bakover.common.periode.januar
-import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.web.SharedRegressionTestData
@@ -38,6 +35,7 @@ internal class LeggTilFlyktningVilkårIT {
                 opprettRevurdering(
                     sakId = sakId,
                     fraOgMed = fraOgMed,
+                    tilOgMed = tilOgMed,
                 ).let {
                     val revurderingId = hentRevurderingId(it)
 

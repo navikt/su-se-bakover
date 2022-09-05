@@ -2,10 +2,12 @@ package no.nav.su.se.bakover.domain.oppdrag
 
 import arrow.core.Either
 import arrow.core.NonEmptyList
-import arrow.core.rightIfNotNull
+import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.periode.minAndMaxOf
+import no.nav.su.se.bakover.common.and
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
@@ -15,7 +17,6 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
-import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -27,17 +28,43 @@ sealed interface Utbetaling {
     val saksnummer: Saksnummer
     val fnr: Fnr
     val utbetalingslinjer: NonEmptyList<Utbetalingslinje>
-    val type: UtbetalingsType
     val behandler: NavIdentBruker
     val avstemmingsnøkkel: Avstemmingsnøkkel
     val sakstype: Sakstype
 
     fun sisteUtbetalingslinje() = utbetalingslinjer.last()
-    fun erFørstegangsUtbetaling() = utbetalingslinjer.any { it.forrigeUtbetalingslinjeId == null }
 
-    fun tidligsteDato() = utbetalingslinjer.minByOrNull { it.fraOgMed }!!.fraOgMed
-    fun senesteDato() = utbetalingslinjer.maxByOrNull { it.tilOgMed }!!.tilOgMed
+    fun tidligsteDato() = utbetalingslinjer.minOf { it.fraOgMed }
+    fun senesteDato() = utbetalingslinjer.maxOf { it.tilOgMed }
     fun bruttoBeløp() = utbetalingslinjer.sumOf { it.beløp }
+
+    /**
+     * Vi tillater vi kun stans som en midlertidig operasjon i nåtid. Ved stans vil vi sende med en ønsket
+     * dato for stans, for deretter å stanse den siste utbetalte linjen fra denne datoen - følgelig skal en stans
+     * inneholde nøyaktig 1 utbetalingslinje av typen stans. [Utbetalingslinje.Endring.virkningsperiode] for en stans
+     * skal alltid gjelde fra angitt stansdato til og med seneste til og med dato for sakens utbetalinger.
+     *
+     * @see Utbetalingsstrategi.Stans
+     * @see no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
+     */
+    fun erStans() = utbetalingslinjer.all { it is Utbetalingslinje.Endring.Stans }
+        .and { utbetalingslinjer.count() == 1 }
+
+    /**
+     * Vi tillater kun å reaktivere utbetalinger som har blitt stanset ved hjelp av en utbetaling av typen [erStans].
+     * Forholdet mellom en stans og en reaktivering er 1-1 i den forstand at en reaktivering ikke kan gjennomføres med
+     * mindre den siste oversendte utbetalingen til OS er en [erStans].
+     *
+     * @see Utbetalingsstrategi.Gjenoppta
+     * @see no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
+     */
+    fun erReaktivering() = utbetalingslinjer.all { it is Utbetalingslinje.Endring.Reaktivering }
+        .and { utbetalingslinjer.count() == 1 }
+
+    fun kontrollerUtbetalingslinjer() {
+        utbetalingslinjer.sjekkAlleNyeLinjerHarForskjelligForrigeReferanse()
+        utbetalingslinjer.sjekkSortering()
+    }
 
     data class UtbetalingForSimulering(
         override val id: UUID30 = UUID30.randomUUID(),
@@ -46,11 +73,13 @@ sealed interface Utbetaling {
         override val saksnummer: Saksnummer,
         override val fnr: Fnr,
         override val utbetalingslinjer: NonEmptyList<Utbetalingslinje>,
-        override val type: UtbetalingsType,
         override val behandler: NavIdentBruker,
         override val avstemmingsnøkkel: Avstemmingsnøkkel,
         override val sakstype: Sakstype,
     ) : Utbetaling {
+        init {
+            kontrollerUtbetalingslinjer()
+        }
         fun toSimulertUtbetaling(simulering: Simulering) =
             SimulertUtbetaling(
                 this,
@@ -79,6 +108,9 @@ sealed interface Utbetaling {
             override val simulering: Simulering,
             override val utbetalingsrequest: Utbetalingsrequest,
         ) : OversendtUtbetaling, Utbetaling by simulertUtbetaling {
+            init {
+                kontrollerUtbetalingslinjer()
+            }
             fun toKvittertUtbetaling(kvittering: Kvittering) =
                 MedKvittering(
                     this,
@@ -90,6 +122,9 @@ sealed interface Utbetaling {
             private val utenKvittering: UtenKvittering,
             val kvittering: Kvittering,
         ) : OversendtUtbetaling by utenKvittering {
+            init {
+                kontrollerUtbetalingslinjer()
+            }
             fun kvittertMedFeilEllerVarsel() =
                 listOf(
                     Kvittering.Utbetalingsstatus.OK_MED_VARSEL,
@@ -97,23 +132,22 @@ sealed interface Utbetaling {
                 ).contains(kvittering.utbetalingsstatus)
         }
     }
+}
 
-    enum class UtbetalingsType {
-        NY,
-        STANS,
-        GJENOPPTA,
-        OPPHØR,
-    }
+/**
+ * Returnerer utbetalingene sortert økende etter tidspunktet de er sendt til oppdrag. Filtrer bort de som er kvittert feil.
+ * TODO jah: Ved initialisering e.l. gjør en faktisk verifikasjon på at ref-verdier på utbetalingslinjene har riktig rekkefølge
+ */
+internal fun List<Utbetaling>.hentOversendteUtbetalingerUtenFeil(): List<Utbetaling> =
+    this.filter { it is Utbetaling.OversendtUtbetaling.UtenKvittering || it is Utbetaling.OversendtUtbetaling.MedKvittering && it.kvittering.erKvittertOk() }
+        .sortedWith(utbetalingsSortering)
 
-    companion object {
-        /**
-         * Returnerer utbetalingene sortert økende etter tidspunktet de er sendt til oppdrag. Filtrer bort de som er kvittert feil.
-         * TODO jah: Ved initialisering e.l. gjør en faktisk verifikasjon på at ref-verdier på utbetalingslinjene har riktig rekkefølge
-         */
-        fun List<Utbetaling>.hentOversendteUtbetalingerUtenFeil(): List<Utbetaling> =
-            this.filter { it is OversendtUtbetaling.UtenKvittering || it is OversendtUtbetaling.MedKvittering && it.kvittering.erKvittertOk() }
-                .sortedBy { it.opprettet.instant } // TODO potentially fix sorting
-    }
+internal fun List<Utbetaling>.hentOversendteUtbetalingslinjerUtenFeil(): List<Utbetalingslinje> {
+    return hentOversendteUtbetalingerUtenFeil().flatMap { it.utbetalingslinjer }
+}
+
+internal fun List<Utbetaling>.hentSisteOversendteUtbetalingslinjeUtenFeil(): Utbetalingslinje? {
+    return hentOversendteUtbetalingerUtenFeil().lastOrNull()?.sisteUtbetalingslinje()
 }
 
 sealed class UtbetalingFeilet {
@@ -124,26 +158,62 @@ sealed class UtbetalingFeilet {
     object FantIkkeSak : UtbetalingFeilet()
 }
 
+fun List<Utbetaling>.tidslinje(
+    clock: Clock,
+    periode: Periode? = null,
+): Either<IngenUtbetalinger, TidslinjeForUtbetalinger> {
+    return flatMap { it.utbetalingslinjer }.tidslinje(
+        clock = clock,
+        periode = periode,
+    )
+}
+
+@JvmName("utbetalingslinjeTidslinje")
+fun List<Utbetalingslinje>.tidslinje(
+    clock: Clock,
+    periode: Periode? = null,
+): Either<IngenUtbetalinger, TidslinjeForUtbetalinger> {
+    return ifEmpty { return IngenUtbetalinger.left() }
+        .let { utbetalingslinjer ->
+            TidslinjeForUtbetalinger(
+                periode = periode ?: Periode.create(
+                    fraOgMed = minOf { it.fraOgMed },
+                    tilOgMed = maxOf { it.tilOgMed },
+                ),
+                utbetalingslinjer = utbetalingslinjer,
+                clock = clock,
+            ).right()
+        }
+}
+
+object IngenUtbetalinger
+
 fun Sak.hentGjeldendeUtbetaling(
     forDato: LocalDate,
     clock: Clock,
 ): Either<FantIkkeGjeldendeUtbetaling, UtbetalingslinjePåTidslinje> {
-    return this.utbetalinger.hentGjeldendeUtbetaling(forDato, clock)
+    return this.utbetalinger.hentGjeldendeUtbetaling(
+        forDato = forDato,
+        clock = clock,
+    )
 }
 
 fun List<Utbetaling>.hentGjeldendeUtbetaling(
     forDato: LocalDate,
     clock: Clock,
 ): Either<FantIkkeGjeldendeUtbetaling, UtbetalingslinjePåTidslinje> {
-    return this
-        .flatMap { it.utbetalingslinjer }
-        .ifNotEmpty {
-            TidslinjeForUtbetalinger(
-                periode = this.map { it.periode }.minAndMaxOf(),
-                utbetalingslinjer = this,
-                clock = clock,
-            ).gjeldendeForDato(forDato)
-        }.rightIfNotNull { FantIkkeGjeldendeUtbetaling }
+    return tidslinje(clock).fold(
+        { FantIkkeGjeldendeUtbetaling.left() },
+        { it.gjeldendeForDato(forDato)?.right() ?: FantIkkeGjeldendeUtbetaling.left() },
+    )
 }
 
 object FantIkkeGjeldendeUtbetaling
+
+val utbetalingsSortering = Comparator<Utbetaling> { o1, o2 ->
+    o1.opprettet.instant.compareTo(o2.opprettet.instant)
+}
+
+val utbetalingslinjeSortering = Comparator<Utbetalingslinje> { o1, o2 ->
+    o1.opprettet.instant.compareTo(o2.opprettet.instant)
+}

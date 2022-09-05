@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.client.oppdrag.avstemming.sakId
 import no.nav.su.se.bakover.client.oppdrag.avstemming.saksnummer
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.startOfDay
@@ -15,6 +16,7 @@ import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.utbetalingslinje
 import org.hamcrest.MatcherAssert.assertThat
@@ -22,7 +24,6 @@ import org.junit.jupiter.api.Test
 import org.xmlunit.diff.DefaultNodeMatcher
 import org.xmlunit.diff.ElementSelectors
 import org.xmlunit.matchers.CompareMatcher.isSimilarTo
-import java.time.Clock
 
 class UtbetalingXmlMappingTest {
 
@@ -49,8 +50,8 @@ class UtbetalingXmlMappingTest {
 
     private val tredjeUtbetalingslinje = Utbetalingslinje.Endring.Opphør(
         andreUtbetalingslinje,
-        virkningstidspunkt = 1.februar(2020),
-        clock = Clock.systemUTC(),
+        virkningsperiode = Periode.create(1.februar(2020), andreUtbetalingslinje.tilOgMed),
+        clock = fixedClock,
     )
 
     private val fnr = Fnr("12345678910")
@@ -64,7 +65,6 @@ class UtbetalingXmlMappingTest {
             andreUtbetalingslinje,
             tredjeUtbetalingslinje,
         ),
-        type = Utbetaling.UtbetalingsType.NY,
         behandler = NavIdentBruker.Attestant("A123456"),
         avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay()),
         sakstype = Sakstype.UFØRE,

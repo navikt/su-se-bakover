@@ -98,7 +98,7 @@ internal class SimuleringSoapClientTest {
             utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Endring.Opphør(
                     utbetalingslinje = nyUtbetaling.sisteUtbetalingslinje(),
-                    virkningstidspunkt = 1.januar(2018),
+                    virkningsperiode = Periode.create(1.januar(2018), nyUtbetaling.sisteUtbetalingslinje().tilOgMed),
                     clock = Clock.systemUTC(),
                 ),
             ),
@@ -252,7 +252,6 @@ internal class SimuleringSoapClientTest {
                     beløp = 0,
                 ),
             ),
-            type = Utbetaling.UtbetalingsType.NY,
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt),
             sakstype = Sakstype.UFØRE,
@@ -289,7 +288,6 @@ internal class SimuleringSoapClientTest {
                 beløp = 405,
             ),
         ),
-        type = Utbetaling.UtbetalingsType.NY,
         behandler = NavIdentBruker.Saksbehandler("Z123"),
         avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt),
         sakstype = Sakstype.UFØRE,

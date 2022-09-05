@@ -34,7 +34,7 @@ import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
-import no.nav.su.se.bakover.domain.revurdering.OpphørsdatoForUtbetalinger
+import no.nav.su.se.bakover.domain.revurdering.OpphørsperiodeForUtbetalinger
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
@@ -135,8 +135,8 @@ fun opprettRevurderingFraSaksopplysninger(
     vilkårOverrides: List<Vilkår> = emptyList(),
     grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
 ): Pair<Sak, OpprettetRevurdering> {
-    val gjeldendeVedtaksdata = sakOgVedtakSomKanRevurderes.first.kopierGjeldendeVedtaksdata(
-        fraOgMed = revurderingsperiode.fraOgMed,
+    val gjeldendeVedtaksdata = sakOgVedtakSomKanRevurderes.first.hentGjeldendeVedtaksdata(
+        periode = revurderingsperiode,
         clock = clock,
     ).getOrFail()
 
@@ -167,7 +167,7 @@ fun opprettRevurderingFraSaksopplysninger(
             vilkårsvurderinger = vilkårOverrides.fold(it.vilkårsvurderinger) { acc, vilkår -> acc.leggTil(vilkår) },
         )
     }
-
+    // TODO refaktorer slik at vi ikke får til å opprette med mismatch mellom periode og gjeldende data
     val opprettetRevurdering = OpprettetRevurdering(
         id = UUID.randomUUID(),
         periode = revurderingsperiode,
@@ -294,34 +294,27 @@ fun simulertRevurdering(
             }
 
             is BeregnetRevurdering.Innvilget -> {
-                val simulert = beregnet.toSimulert(
-                    simuleringNy(
-                        beregning = beregnet.beregning,
-                        eksisterendeUtbetalinger = sak.utbetalinger,
-                        fnr = beregnet.fnr,
-                        sakId = beregnet.sakId,
-                        saksnummer = beregnet.saksnummer,
-                        clock = clock,
-                        uføregrunnlag = beregnet.vilkårsvurderinger.uføreVilkår().fold(
-                            {
-                                TODO("vilkårsvurdering_alder kan ikke hente uførevilkår for alder")
-                            },
-                            {
-                                it.grunnlag
-                            },
-                        ),
-                    ),
-                    clock = clock,
-                )
+                val simulert = beregnet.simuler(
+                    saksbehandler = saksbehandler,
+                    clock = clock
+                ) {
+                    nyUtbetalingSimulert(
+                        sakOgBehandling = sak to beregnet,
+                        beregning = it.beregning,
+                        clock = clock
+                    ).right()
+                }.getOrFail()
 
                 oppdaterTilbakekrevingsbehandling(simulert)
             }
 
             is BeregnetRevurdering.Opphørt -> {
-                val simulert = beregnet.toSimulert { _, _, opphørsdato ->
+                val simulert = beregnet.simuler(
+                    saksbehandler = saksbehandler
+                ) {
                     opphørUtbetalingSimulert(
                         sakOgBehandling = sak to beregnet,
-                        opphørsdato = opphørsdato,
+                        opphørsperiode = it.opphørsperiode,
                         clock = clock,
                     ).right()
                 }.getOrFail()
@@ -528,7 +521,7 @@ fun iverksattRevurdering(
             is RevurderingTilAttestering.Opphørt -> {
                 val utbetaling = opphørUtbetalingOversendUtenKvittering(
                     sakOgBehandling = sak to tilAttestering,
-                    opphørsdato = OpphørsdatoForUtbetalinger(tilAttestering).value,
+                    opphørsperiode = OpphørsperiodeForUtbetalinger(tilAttestering).value,
                     clock = clock,
                 )
                 tilAttestering.tilIverksatt(
@@ -956,28 +949,21 @@ fun simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
         revurderingsårsak = revurderingsårsak,
     ).let { (sak, revurdering) ->
-        val innvilgetSimulertRevurdering = revurdering.toSimulert(
-            simulering = simuleringNy(
-                eksisterendeUtbetalinger = sak.utbetalinger,
-                beregning = revurdering.beregning,
-                fnr = revurdering.fnr,
-                sakId = revurdering.sakId,
-                saksnummer = revurdering.saksnummer,
-                uføregrunnlag = revurdering.vilkårsvurderinger.uføreVilkår().fold(
-                    {
-                        TODO("vilkårsvurdering_alder kan ikke hente uførevilkår for alder")
-                    },
-                    {
-                        it.grunnlag
-                    },
-                ),
-            ),
-            clock = clock,
-        ).prøvÅLeggTilForhåndsvarselPåSimulertRevurdering(
-            forhåndsvarsel = forhåndsvarsel,
-        ).oppdaterTilbakekrevingsbehandling(
-            tilbakekrevingsbehandling = tilbakekrevingsbehandling,
-        )
+        val innvilgetSimulertRevurdering = revurdering.simuler(
+            saksbehandler = saksbehandler,
+            clock = clock
+        ) {
+            nyUtbetalingSimulert(
+                sakOgBehandling = sak to revurdering,
+                beregning = it.beregning,
+                clock = clock
+            ).right()
+        }.getOrFail()
+            .prøvÅLeggTilForhåndsvarselPåSimulertRevurdering(
+                forhåndsvarsel = forhåndsvarsel,
+            ).oppdaterTilbakekrevingsbehandling(
+                tilbakekrevingsbehandling = tilbakekrevingsbehandling,
+            )
         Pair(
             sak.copy(
                 // Erstatter den gamle versjonen av samme revurderinger.
@@ -1020,16 +1006,14 @@ fun simulertRevurderingOpphørtPgaVilkårFraInnvilgetSøknadsbehandlingsVedtak(
         grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
         revurderingsårsak = revurderingsårsak,
     ).let { (sak, revurdering) ->
-        val opphørtSimulertRevurdering = revurdering.toSimulert { sakId, _, opphørsdato ->
-            simulertUtbetalingOpphør(
-                periode = revurdering.periode,
-                opphørsdato = opphørsdato,
-                fnr = revurdering.fnr,
-                sakId = sakId,
-                saksnummer = saksnummer,
-                clock = fixedClock,
-                eksisterendeUtbetalinger = sak.utbetalinger,
-            )
+        val opphørtSimulertRevurdering = revurdering.simuler(
+            saksbehandler = saksbehandler
+        ) {
+            opphørUtbetalingSimulert(
+                sakOgBehandling = sak to revurdering,
+                opphørsperiode = it.opphørsperiode,
+                clock = clock
+            ).right()
         }.getOrFail()
             .prøvÅLeggTilForhåndsvarselPåSimulertRevurdering(
                 forhåndsvarsel = forhåndsvarsel,
@@ -1512,8 +1496,7 @@ fun iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
         clock = clock,
     ).let { (sak, simulert) ->
-        val iverksatt = simulert.iverksett(attestering)
-            .getOrFail("Feil ved oppsett av testdata for iverksatt stans av ytelse")
+        val iverksatt = simulert.iverksett(attestering).getOrFail()
 
         sak.copy(
             // Erstatter den gamle versjonen av samme revurderinger.
@@ -1540,7 +1523,7 @@ fun avsluttetStansAvYtelseFraIverksattSøknadsbehandlignsvedtak(
 }
 
 fun simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
-    clock: Clock = fixedClock,
+    clock: Clock = TikkendeKlokke(fixedClock),
     periodeForStans: Periode = Periode.create(
         fraOgMed = LocalDate.now(clock).plusMonths(1).startOfMonth(),
         tilOgMed = år(2021).tilOgMed,
@@ -1589,11 +1572,11 @@ fun simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
  * [GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse] vil få clock+2
  */
 fun iverksattGjenopptakelseAvYtelseFraVedtakStansAvYtelse(
+    clock: Clock = TikkendeKlokke(fixedClock),
     periode: Periode = Periode.create(
-        fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
+        fraOgMed = LocalDate.now(clock).plusMonths(1).startOfMonth(),
         tilOgMed = år(2021).tilOgMed,
     ),
-    clock: Clock = fixedClock,
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         periode = periode,
         clock = clock,
@@ -1603,7 +1586,7 @@ fun iverksattGjenopptakelseAvYtelseFraVedtakStansAvYtelse(
     return simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
         periodeForStans = periode,
         sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
-        clock = clock.plus(2, ChronoUnit.SECONDS),
+        clock = clock,
     ).let { (sak, simulert) ->
         val iverksatt = simulert.iverksett(attestering)
             .getOrFail("Feil i oppsett for testdata")

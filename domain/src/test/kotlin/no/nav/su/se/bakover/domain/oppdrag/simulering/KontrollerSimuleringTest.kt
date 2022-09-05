@@ -40,7 +40,6 @@ internal class KontrollerSimuleringTest {
     fun `kontroll av simulering går bra dersom simulering ikke inneholder noen utbetalinger`() {
         val eksisterendeUtetaling = eksisterendeUtbetaling(
             periode = januar(2021),
-            type = Utbetaling.UtbetalingsType.NY,
             utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Ny(
                     id = UUID30.randomUUID(),
@@ -57,11 +56,10 @@ internal class KontrollerSimuleringTest {
             utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Endring.Opphør(
                     utbetalingslinje = eksisterendeUtetaling.sisteUtbetalingslinje(),
-                    virkningstidspunkt = 1.januar(2021),
+                    virkningsperiode = Periode.create(1.januar(2021), eksisterendeUtetaling.sisteUtbetalingslinje().tilOgMed),
                     clock = Clock.systemUTC(),
                 ),
             ),
-            type = Utbetaling.UtbetalingsType.OPPHØR,
             simulering = simulering(
                 januar(2021),
                 simulertePerioder = emptyList(),
@@ -89,7 +87,6 @@ internal class KontrollerSimuleringTest {
                     uføregrad = Uføregrad.parse(50),
                 ),
             ),
-            type = Utbetaling.UtbetalingsType.NY,
             simulering = simulering(januar(2021)),
         )
 
@@ -114,7 +111,6 @@ internal class KontrollerSimuleringTest {
                     uføregrad = Uføregrad.parse(50),
                 ),
             ),
-            type = Utbetaling.UtbetalingsType.NY,
             simulering = simulering(januar(2021)),
         )
 
@@ -131,7 +127,6 @@ internal class KontrollerSimuleringTest {
 
         val eksisterendeUtetaling = eksisterendeUtbetaling(
             periode = periode,
-            type = Utbetaling.UtbetalingsType.NY,
             utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Ny(
                     id = UUID30.randomUUID(),
@@ -157,7 +152,6 @@ internal class KontrollerSimuleringTest {
                     uføregrad = Uføregrad.parse(50),
                 ),
             ),
-            type = Utbetaling.UtbetalingsType.NY,
             simulering = simulering(
                 periode,
                 simulertePerioder = listOf(
@@ -196,7 +190,6 @@ internal class KontrollerSimuleringTest {
 
         val eksisterendeUtetaling = eksisterendeUtbetaling(
             periode = periode,
-            type = Utbetaling.UtbetalingsType.NY,
             utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Ny(
                     id = UUID30.randomUUID(),
@@ -214,11 +207,10 @@ internal class KontrollerSimuleringTest {
             utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Endring.Opphør(
                     utbetalingslinje = eksisterendeUtetaling.sisteUtbetalingslinje(),
-                    virkningstidspunkt = 1.januar(2021),
+                    virkningsperiode = Periode.create(1.januar(2021), eksisterendeUtetaling.sisteUtbetalingslinje().tilOgMed),
                     clock = fixedClock,
                 ),
             ),
-            type = Utbetaling.UtbetalingsType.OPPHØR,
             simulering = simulering(
                 periode,
                 simulertePerioder = listOf(
@@ -257,7 +249,6 @@ internal class KontrollerSimuleringTest {
 
     private fun simulertUtbetaling(
         utbetalingslinjer: NonEmptyList<Utbetalingslinje>,
-        type: Utbetaling.UtbetalingsType,
         simulering: Simulering,
     ): Utbetaling.SimulertUtbetaling {
         return Utbetaling.UtbetalingForSimulering(
@@ -267,7 +258,6 @@ internal class KontrollerSimuleringTest {
             saksnummer = Saksnummer(9999),
             fnr = fnr,
             utbetalingslinjer = utbetalingslinjer,
-            type = type,
             behandler = NavIdentBruker.Saksbehandler("saksa"),
             avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt),
             sakstype = Sakstype.UFØRE,
@@ -279,10 +269,8 @@ internal class KontrollerSimuleringTest {
     private fun eksisterendeUtbetaling(
         periode: Periode,
         utbetalingslinjer: NonEmptyList<Utbetalingslinje>,
-        type: Utbetaling.UtbetalingsType,
     ): Utbetaling.OversendtUtbetaling.UtenKvittering = simulertUtbetaling(
         utbetalingslinjer,
-        type,
         simulering(periode),
     ).toOversendtUtbetaling(Utbetalingsrequest(""))
 }

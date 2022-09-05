@@ -57,7 +57,10 @@ data class TidslinjeForUtbetalinger(
                     is UtbetalingslinjePåTidslinje.Reaktivering -> {
                         result.add(last)
                         result.addAll(
-                            queue.subList(0, queue.size)
+                            queue.subList(
+                                0,
+                                queue.size,
+                            )
                                 .filterIsInstance<UtbetalingslinjePåTidslinje.Ny>()
                                 .filter { it.periode overlapper last.periode && it.beløp != last.beløp }
                                 .map { utbetalingslinje ->
@@ -72,8 +75,14 @@ data class TidslinjeForUtbetalinger(
                                      * med original informasjon som er ferskere.
                                      */
                                     val periode = Periode.create(
-                                        maxOf(utbetalingslinje.periode.fraOgMed, last.periode.fraOgMed),
-                                        minOf(utbetalingslinje.periode.tilOgMed, last.periode.tilOgMed),
+                                        maxOf(
+                                            utbetalingslinje.periode.fraOgMed,
+                                            last.periode.fraOgMed,
+                                        ),
+                                        minOf(
+                                            utbetalingslinje.periode.tilOgMed,
+                                            last.periode.tilOgMed,
+                                        ),
                                     )
                                     val opprettet = last.opprettet.plusUnits(1)
 
@@ -93,6 +102,7 @@ data class TidslinjeForUtbetalinger(
                                 },
                         )
                     }
+
                     else -> result.add(last)
                 }
             } else {
@@ -136,25 +146,48 @@ data class TidslinjeForUtbetalinger(
             is Utbetalingslinje.Endring.Opphør -> UtbetalingslinjePåTidslinje.Opphør(
                 kopiertFraId = id,
                 opprettet = opprettet,
-                periode = Periode.create(virkningstidspunkt, tilOgMed),
+                periode = virkningsperiode,
             )
+
             is Utbetalingslinje.Endring.Reaktivering -> UtbetalingslinjePåTidslinje.Reaktivering(
                 kopiertFraId = id,
                 opprettet = opprettet,
-                periode = Periode.create(virkningstidspunkt, tilOgMed),
+                periode = virkningsperiode,
                 beløp = beløp,
             )
+
             is Utbetalingslinje.Endring.Stans -> UtbetalingslinjePåTidslinje.Stans(
                 kopiertFraId = id,
                 opprettet = opprettet,
-                periode = Periode.create(virkningstidspunkt, tilOgMed),
+                periode = virkningsperiode,
             )
+
             is Utbetalingslinje.Ny -> UtbetalingslinjePåTidslinje.Ny(
                 kopiertFraId = id,
                 opprettet = opprettet,
-                periode = Periode.create(fraOgMed, tilOgMed),
+                periode = periode,
                 beløp = beløp,
             )
         }
+    }
+
+    /**
+     * Sjekker om [this] er ekvivalent med [tidslinje] for den spesifiserte perioden.
+     *
+     * @param periode ekvivalens skal sjekkes for, default er perioden definert av [this]
+     */
+    fun ekvivalentMed(
+        tidslinje: TidslinjeForUtbetalinger,
+        periode: Periode = this.periode
+    ): Boolean {
+        return periode.måneder().map {
+            gjeldendeForDato(it.fraOgMed) to tidslinje.gjeldendeForDato(it.fraOgMed)
+        }.map {
+            when {
+                it.first == null && it.second == null -> true
+                (it.first != null && it.second != null) -> it.first!!.ekvivalentMed(it.second!!)
+                else -> false
+            }
+        }.all { it }
     }
 }

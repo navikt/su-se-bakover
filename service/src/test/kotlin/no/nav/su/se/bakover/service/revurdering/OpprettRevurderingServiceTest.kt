@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.periode.juli
 import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.startOfMonth
+import no.nav.su.se.bakover.common.toPeriode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -81,7 +82,7 @@ internal class OpprettRevurderingServiceTest {
             val actual = it.revurderingService.opprettRevurdering(
                 OpprettRevurderingRequest(
                     sakId = sakId,
-                    fraOgMed = periodeNesteMånedOgTreMånederFram.fraOgMed,
+                    periode = periodeNesteMånedOgTreMånederFram.fraOgMed.rangeTo(søknadsvedtak.periode.tilOgMed).toPeriode(),
                     årsak = "MELDING_FRA_BRUKER",
                     begrunnelse = "Ny informasjon",
                     saksbehandler = saksbehandler,
@@ -161,7 +162,7 @@ internal class OpprettRevurderingServiceTest {
             val actual = it.revurderingService.opprettRevurdering(
                 OpprettRevurderingRequest(
                     sakId = sakId,
-                    fraOgMed = periodeNesteMånedOgTreMånederFram.fraOgMed,
+                    periode = periodeNesteMånedOgTreMånederFram.fraOgMed.rangeTo(søknadsvedtak.periode.tilOgMed).toPeriode(),
                     årsak = "REGULER_GRUNNBELØP",
                     begrunnelse = "g-regulering",
                     saksbehandler = saksbehandler,
@@ -243,7 +244,7 @@ internal class OpprettRevurderingServiceTest {
             val actual = it.revurderingService.opprettRevurdering(
                 OpprettRevurderingRequest(
                     sakId = sakId,
-                    fraOgMed = periode.tilOgMed.minusMonths(1).startOfMonth(),
+                    periode = periode.tilOgMed.minusMonths(1).startOfMonth().rangeTo(søknadsvedtak.periode.tilOgMed).toPeriode(),
                     årsak = "REGULER_GRUNNBELØP",
                     begrunnelse = "g-regulering",
                     saksbehandler = saksbehandler,
@@ -306,7 +307,7 @@ internal class OpprettRevurderingServiceTest {
             it.revurderingService.opprettRevurdering(
                 OpprettRevurderingRequest(
                     sakId = sakId,
-                    fraOgMed = periodeNesteMånedOgTreMånederFram.fraOgMed,
+                    periode = år(2021),
                     årsak = "MELDING_FRA_BRUKER",
                     begrunnelse = "Ny informasjon",
                     saksbehandler = saksbehandler,
@@ -326,7 +327,7 @@ internal class OpprettRevurderingServiceTest {
             it.revurderingService.opprettRevurdering(
                 OpprettRevurderingRequest(
                     sakId = sakId,
-                    fraOgMed = periodeNesteMånedOgTreMånederFram.fraOgMed,
+                    periode = år(2021),
                     årsak = "MELDING_FRA_BRUKER",
                     begrunnelse = "Ny informasjon",
                     saksbehandler = saksbehandler,
@@ -334,10 +335,9 @@ internal class OpprettRevurderingServiceTest {
                 ),
             ) shouldBe KunneIkkeOppretteRevurdering.FeilVedOpprettelseAvRevurdering(
                 Sak.KunneIkkeOppretteRevurdering.KunneIkkeHenteGjeldendeVedtaksdataSak(
-                    Sak.KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes(periodeNesteMånedOgTreMånederFram.fraOgMed),
+                    Sak.KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes(år(2021)),
                 ),
-            )
-                .left()
+            ).left()
         }
     }
 
@@ -385,7 +385,7 @@ internal class OpprettRevurderingServiceTest {
             val revurderingForFebruar = it.revurderingService.opprettRevurdering(
                 OpprettRevurderingRequest(
                     sakId = sakId,
-                    fraOgMed = fraOgMedDatoFebruar,
+                    periode = fraOgMedDatoFebruar.rangeTo(vedtaksperiode.tilOgMed).toPeriode(),
                     årsak = "MELDING_FRA_BRUKER",
                     begrunnelse = "Ny informasjon",
                     saksbehandler = saksbehandler,
@@ -398,7 +398,7 @@ internal class OpprettRevurderingServiceTest {
             val revurderingForApril = it.revurderingService.opprettRevurdering(
                 OpprettRevurderingRequest(
                     sakId = sakId,
-                    fraOgMed = fraOgMedDatoApril,
+                    periode = fraOgMedDatoApril.rangeTo(vedtaksperiode.tilOgMed).toPeriode(),
                     årsak = "MELDING_FRA_BRUKER",
                     begrunnelse = "Ny informasjon",
                     saksbehandler = saksbehandler,
@@ -431,7 +431,7 @@ internal class OpprettRevurderingServiceTest {
             val actual = it.revurderingService.opprettRevurdering(
                 OpprettRevurderingRequest(
                     sakId = sakId,
-                    fraOgMed = periodeNesteMånedOgTreMånederFram.fraOgMed,
+                    periode = periodeNesteMånedOgTreMånederFram.fraOgMed.rangeTo(revurderingVedtak.periode.tilOgMed).toPeriode(),
                     årsak = "MELDING_FRA_BRUKER",
                     begrunnelse = "Ny informasjon",
                     saksbehandler = saksbehandler,
@@ -466,9 +466,10 @@ internal class OpprettRevurderingServiceTest {
 
     @Test
     fun `fant ikke aktør id`() {
+        val (sak, iverksatt) = iverksattSøknadsbehandlingUføre()
         RevurderingServiceMocks(
             sakService = mock {
-                on { hentSak(any<UUID>()) } doReturn iverksattSøknadsbehandlingUføre().first.right()
+                on { hentSak(any<UUID>()) } doReturn sak.right()
             },
             personService = mock {
                 on { hentAktørId(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
@@ -477,7 +478,7 @@ internal class OpprettRevurderingServiceTest {
             it.revurderingService.opprettRevurdering(
                 OpprettRevurderingRequest(
                     sakId = sakId,
-                    fraOgMed = periodeNesteMånedOgTreMånederFram.fraOgMed,
+                    periode = periodeNesteMånedOgTreMånederFram.fraOgMed.rangeTo(iverksatt.periode.tilOgMed).toPeriode(),
                     årsak = "MELDING_FRA_BRUKER",
                     begrunnelse = "Ny informasjon",
                     saksbehandler = saksbehandler,
@@ -494,9 +495,10 @@ internal class OpprettRevurderingServiceTest {
 
     @Test
     fun `kunne ikke opprette oppgave`() {
+        val (sak, iverksatt) = iverksattSøknadsbehandlingUføre()
         RevurderingServiceMocks(
             sakService = mock {
-                on { hentSak(any<UUID>()) } doReturn iverksattSøknadsbehandlingUføre().first.right()
+                on { hentSak(any<UUID>()) } doReturn sak.right()
             },
             oppgaveService = mock {
                 on { opprettOppgave(any()) } doReturn KunneIkkeOppretteOppgave.left()
@@ -508,7 +510,7 @@ internal class OpprettRevurderingServiceTest {
             val actual = it.revurderingService.opprettRevurdering(
                 OpprettRevurderingRequest(
                     sakId = sakId,
-                    fraOgMed = periodeNesteMånedOgTreMånederFram.fraOgMed,
+                    periode = periodeNesteMånedOgTreMånederFram.fraOgMed.rangeTo(iverksatt.periode.tilOgMed).toPeriode(),
                     årsak = "MELDING_FRA_BRUKER",
                     begrunnelse = "Ny informasjon",
                     saksbehandler = saksbehandler,
@@ -545,7 +547,7 @@ internal class OpprettRevurderingServiceTest {
             it.revurderingService.opprettRevurdering(
                 OpprettRevurderingRequest(
                     sakId = sakId,
-                    fraOgMed = periodeNesteMånedOgTreMånederFram.fraOgMed,
+                    periode = år(2021),
                     årsak = "MELDING_FRA_BRUKER",
                     begrunnelse = "Ny informasjon",
                     saksbehandler = saksbehandler,
@@ -579,7 +581,7 @@ internal class OpprettRevurderingServiceTest {
             val actual = it.revurderingService.opprettRevurdering(
                 OpprettRevurderingRequest(
                     sakId = sakId,
-                    fraOgMed = 1.januar(2021),
+                    periode = 1.januar(2021).rangeTo(sakMedNyStønadsperiode.third.periode.tilOgMed).toPeriode(),
                     årsak = "MELDING_FRA_BRUKER",
                     begrunnelse = "Ny informasjon",
                     saksbehandler = saksbehandler,
@@ -620,7 +622,7 @@ internal class OpprettRevurderingServiceTest {
             it.revurderingService.opprettRevurdering(
                 OpprettRevurderingRequest(
                     sakId = sakId,
-                    fraOgMed = nyRevurderingsperiode.fraOgMed,
+                    periode = nyRevurderingsperiode,
                     årsak = "MELDING_FRA_BRUKER",
                     begrunnelse = "Ny informasjon",
                     saksbehandler = saksbehandler,

@@ -222,11 +222,12 @@ internal class GjenopptaUtbetalingerServiceTest {
 
     @Test
     fun `Utbetaling feilet`() {
+        val klokke = TikkendeKlokke(nåtidForSimuleringStub)
+
         val (sak, _) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
-            clock = nåtidForSimuleringStub,
+            clock = klokke,
         )
 
-        val klokke = TikkendeKlokke(nåtidForSimuleringStub)
         val sakServiceMock = mock<SakService> {
             on { hentSak(any<UUID>()) } doReturn sak.right()
         }

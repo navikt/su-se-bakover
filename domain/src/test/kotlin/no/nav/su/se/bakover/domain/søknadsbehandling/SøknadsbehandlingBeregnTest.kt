@@ -4,6 +4,7 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.doubles.plusOrMinus
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
@@ -18,6 +19,7 @@ import no.nav.su.se.bakover.test.nåtidForSimuleringStub
 import no.nav.su.se.bakover.test.oversendtUtbetalingMedKvittering
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simuleringOpphørt
+import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -115,7 +117,9 @@ internal class SøknadsbehandlingBeregnTest {
         val expectedAvkortingBeløp = eksisterendeUtbetalinger.flatMap { it.utbetalingslinjer }
             .sumOf { it.beløp } * antallMånederMedFeilutbetaling.toDouble()
 
-        søknadsbehandlingVilkårsvurdertInnvilget().let { (_, førBeregning) ->
+        søknadsbehandlingVilkårsvurdertInnvilget(
+            stønadsperiode = stønadsperiode2021
+        ).let { (_, førBeregning) ->
             førBeregning.copy(
                 avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
                     Avkortingsvarsel.Utenlandsopphold.Opprettet(
@@ -124,8 +128,10 @@ internal class SøknadsbehandlingBeregnTest {
                         revurderingId = UUID.randomUUID(),
                         opprettet = førBeregning.opprettet,
                         simulering = simuleringOpphørt(
-                            opphørsdato = LocalDate.now(nåtidForSimuleringStub).startOfMonth()
-                                .minusMonths(antallMånederMedFeilutbetaling),
+                            opphørsperiode = Periode.create(
+                                fraOgMed = LocalDate.now(nåtidForSimuleringStub).startOfMonth().minusMonths(antallMånederMedFeilutbetaling),
+                                tilOgMed = stønadsperiode2021.periode.tilOgMed
+                            ),
                             eksisterendeUtbetalinger = eksisterendeUtbetalinger,
                             fnr = førBeregning.fnr,
                             sakId = førBeregning.sakId,
@@ -159,7 +165,9 @@ internal class SøknadsbehandlingBeregnTest {
         val expectedAvkortingBeløp = eksisterendeUtbetalinger.flatMap { it.utbetalingslinjer }
             .sumOf { it.beløp } * antallMånederMedFeilutbetaling.toDouble()
 
-        søknadsbehandlingVilkårsvurdertInnvilget().let { (_, vilkårsvurdert) ->
+        søknadsbehandlingVilkårsvurdertInnvilget(
+            stønadsperiode = stønadsperiode2021
+        ).let { (_, vilkårsvurdert) ->
             vilkårsvurdert.leggTilFradragsgrunnlag(
                 fradragsgrunnlag = listOf(
                     Grunnlag.Fradragsgrunnlag.create(
@@ -182,8 +190,10 @@ internal class SøknadsbehandlingBeregnTest {
                         revurderingId = UUID.randomUUID(),
                         opprettet = vilkårsvurdert.opprettet,
                         simulering = simuleringOpphørt(
-                            opphørsdato = LocalDate.now(nåtidForSimuleringStub).startOfMonth()
-                                .minusMonths(antallMånederMedFeilutbetaling),
+                            opphørsperiode = Periode.create(
+                                fraOgMed = LocalDate.now(nåtidForSimuleringStub).startOfMonth().minusMonths(antallMånederMedFeilutbetaling),
+                                tilOgMed = stønadsperiode2021.periode.tilOgMed
+                            ),
                             eksisterendeUtbetalinger = eksisterendeUtbetalinger,
                             fnr = vilkårsvurdert.fnr,
                             sakId = vilkårsvurdert.sakId,

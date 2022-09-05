@@ -80,15 +80,14 @@ internal class UtbetalingPostgresRepo(
         dbMetrics.timeQuery("opprettUtbetaling") {
             transactionContext.withTransaction { session ->
                 """
-            insert into utbetaling (id, opprettet, sakId, fnr, type, avstemmingsnøkkel, simulering, utbetalingsrequest, behandler)
-            values (:id, :opprettet, :sakId, :fnr, :type, to_json(:avstemmingsnokkel::json), to_json(:simulering::json), to_json(:utbetalingsrequest::json), :behandler)
+            insert into utbetaling (id, opprettet, sakId, fnr, avstemmingsnøkkel, simulering, utbetalingsrequest, behandler)
+            values (:id, :opprettet, :sakId, :fnr, to_json(:avstemmingsnokkel::json), to_json(:simulering::json), to_json(:utbetalingsrequest::json), :behandler)
                 """.insert(
                     mapOf(
                         "id" to utbetaling.id,
                         "opprettet" to utbetaling.opprettet,
                         "sakId" to utbetaling.sakId,
                         "fnr" to utbetaling.fnr,
-                        "type" to utbetaling.type.name,
                         "avstemmingsnokkel" to serialize(utbetaling.avstemmingsnøkkel),
                         "simulering" to serialize(utbetaling.simulering),
                         "utbetalingsrequest" to serialize(utbetaling.utbetalingsrequest),
@@ -126,15 +125,16 @@ internal class UtbetalingPostgresRepo(
                 baseParams.plus(
                     mapOf(
                         "status" to utbetalingslinje.linjeStatus,
-                        "statusFraOgMed" to utbetalingslinje.virkningstidspunkt,
+                        "statusFraOgMed" to utbetalingslinje.virkningsperiode.fraOgMed,
+                        "statusTilOgMed" to utbetalingslinje.virkningsperiode.tilOgMed,
                     ),
                 )
             }
             is Utbetalingslinje.Ny -> baseParams
         }
         """
-            insert into utbetalingslinje (id, opprettet, fom, tom, utbetalingId, forrigeUtbetalingslinjeId, beløp, status, statusFraOgMed, uføregrad, kjøreplan)
-            values (:id, :opprettet, :fom, :tom, :utbetalingId, :forrigeUtbetalingslinjeId, :belop, :status, :statusFraOgMed, :uforegrad, :kjoreplan)
+            insert into utbetalingslinje (id, opprettet, fom, tom, utbetalingId, forrigeUtbetalingslinjeId, beløp, status, statusFraOgMed, statusTilOgMed, uføregrad, kjøreplan)
+            values (:id, :opprettet, :fom, :tom, :utbetalingId, :forrigeUtbetalingslinjeId, :belop, :status, :statusFraOgMed, :statusTilOgMed, :uforegrad, :kjoreplan)
         """.insert(params, session)
 
         return utbetalingslinje

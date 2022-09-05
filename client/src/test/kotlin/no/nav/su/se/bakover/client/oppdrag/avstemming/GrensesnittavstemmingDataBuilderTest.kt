@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.client.oppdrag.avstemming
 
 import arrow.core.NonEmptyList
-import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.mars
+import no.nav.su.se.bakover.common.nonEmpty
 import no.nav.su.se.bakover.common.periode.april
 import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.common.periode.mai
@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
+import no.nav.su.se.bakover.domain.oppdrag.ForrigeUtbetbetalingslinjeKoblendeListe
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -123,7 +124,6 @@ internal fun lagUtbetaling(
             saksnummer = saksnummer,
             fnr = fnr,
             utbetalingslinjer = linjer,
-            type = Utbetaling.UtbetalingsType.NY,
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             avstemmingsnøkkel = Avstemmingsnøkkel(opprettet.atStartOfDay(zoneIdOslo).toTidspunkt()),
             sakstype = Sakstype.UFØRE,
@@ -141,7 +141,6 @@ internal fun lagUtbetaling(
             saksnummer = saksnummer,
             fnr = fnr,
             utbetalingslinjer = linjer,
-            type = Utbetaling.UtbetalingsType.NY,
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             avstemmingsnøkkel = Avstemmingsnøkkel(opprettet.atStartOfDay(zoneIdOslo).toTidspunkt()),
             sakstype = Sakstype.UFØRE,
@@ -178,47 +177,57 @@ internal fun alleUtbetalinger() = listOf(
         id = ok1Id,
         opprettet = 1.mars(2020),
         status = Kvittering.Utbetalingsstatus.OK,
-        linjer = nonEmptyListOf(
-            utbetalingslinje(periode = mars(2020), beløp = 100),
-            utbetalingslinje(periode = april(2020), beløp = 200),
-        ),
+        linjer = ForrigeUtbetbetalingslinjeKoblendeListe(
+            listOf(
+                utbetalingslinje(periode = mars(2020), beløp = 100),
+                utbetalingslinje(periode = april(2020), beløp = 200),
+            )
+        ).nonEmpty()
     ),
     lagUtbetaling(
         id = ok2Id,
         opprettet = 1.mars(2020),
         status = Kvittering.Utbetalingsstatus.OK,
-        linjer = nonEmptyListOf(
-            utbetalingslinje(periode = mars(2020), beløp = 600, uføregrad = 60),
-            utbetalingslinje(periode = april(2020), beløp = 700, uføregrad = 60),
-        ),
+        linjer = ForrigeUtbetbetalingslinjeKoblendeListe(
+            listOf(
+                utbetalingslinje(periode = mars(2020), beløp = 600, uføregrad = 60),
+                utbetalingslinje(periode = april(2020), beløp = 700, uføregrad = 60),
+            )
+        ).nonEmpty(),
     ),
     lagUtbetaling(
         id = okMedVarselId,
         opprettet = 2.mars(2020),
         status = Kvittering.Utbetalingsstatus.OK_MED_VARSEL,
-        linjer = nonEmptyListOf(
-            utbetalingslinje(periode = mars(2020), beløp = 400, uføregrad = 70),
-            utbetalingslinje(periode = april(2020), beløp = 500, uføregrad = 70),
-            utbetalingslinje(periode = mai(2020), beløp = 500, uføregrad = 75),
-        ),
+        linjer = ForrigeUtbetbetalingslinjeKoblendeListe(
+            listOf(
+                utbetalingslinje(periode = mars(2020), beløp = 400, uføregrad = 70),
+                utbetalingslinje(periode = april(2020), beløp = 500, uføregrad = 70),
+                utbetalingslinje(periode = mai(2020), beløp = 500, uføregrad = 75),
+            )
+        ).nonEmpty()
     ),
     lagUtbetaling(
         id = feildId,
         opprettet = 1.mars(2020),
         status = Kvittering.Utbetalingsstatus.FEIL,
-        linjer = nonEmptyListOf(
-            utbetalingslinje(periode = mars(2020), beløp = 1000, uføregrad = 10),
-            utbetalingslinje(periode = april(2020), beløp = 2000, uføregrad = 20),
-            utbetalingslinje(periode = mai(2020), beløp = 3000, uføregrad = 30),
-            utbetalingslinje(periode = juni(2020), beløp = 4000, uføregrad = 50),
-        ),
+        linjer = ForrigeUtbetbetalingslinjeKoblendeListe(
+            listOf(
+                utbetalingslinje(periode = mars(2020), beløp = 1000, uføregrad = 10),
+                utbetalingslinje(periode = april(2020), beløp = 2000, uføregrad = 20),
+                utbetalingslinje(periode = mai(2020), beløp = 3000, uføregrad = 30),
+                utbetalingslinje(periode = juni(2020), beløp = 4000, uføregrad = 50),
+            )
+        ).nonEmpty(),
     ),
     lagUtbetaling(
         id = manglerKvitteringId,
         opprettet = 2.mars(2020),
         status = null,
-        linjer = nonEmptyListOf(
-            utbetalingslinje(periode = år(2020), beløp = 5000, uføregrad = 15),
-        ),
+        linjer = ForrigeUtbetbetalingslinjeKoblendeListe(
+            listOf(
+                utbetalingslinje(periode = år(2020), beløp = 5000, uføregrad = 15),
+            )
+        ).nonEmpty(),
     ),
 )

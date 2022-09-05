@@ -5,6 +5,7 @@ import kotliquery.Row
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.deserializeNullable
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
@@ -69,7 +70,6 @@ internal fun Row.toUtbetaling(session: Session): Utbetaling.OversendtUtbetaling 
     val sakId = uuid("sakId")
     val saksnummer = Saksnummer(long("saksnummer"))
     val fnr = Fnr(string("fnr"))
-    val type = Utbetaling.UtbetalingsType.valueOf(string("type"))
     val behandler = NavIdentBruker.Attestant(string("behandler"))
     val avstemmingsnøkkel = deserialize<Avstemmingsnøkkel>(string("avstemmingsnøkkel"))
     val sakstype = Sakstype.from(string("sakstype"))
@@ -81,7 +81,6 @@ internal fun Row.toUtbetaling(session: Session): Utbetaling.OversendtUtbetaling 
         saksnummer = saksnummer,
         fnr = fnr,
         utbetalingslinjer = NonEmptyList.fromListUnsafe(utbetalingslinjer),
-        type = type,
         avstemmingsnøkkel = avstemmingsnøkkel,
         simulering = simulering,
         utbetalingsrequest = utbetalingsrequest,
@@ -95,6 +94,7 @@ internal fun Row.toUtbetaling(session: Session): Utbetaling.OversendtUtbetaling 
 internal fun Row.toUtbetalingslinje(): Utbetalingslinje {
     val status = stringOrNull("status")
     val statusFraOgMed = localDateOrNull("statusFraOgMed")
+    val statusTilOgMed = localDateOrNull("statusTilOgMed")
 
     val linje = Utbetalingslinje.Ny(
         id = uuid30("id"),
@@ -107,7 +107,7 @@ internal fun Row.toUtbetalingslinje(): Utbetalingslinje {
         utbetalingsinstruksjonForEtterbetalinger = toKjøreplan(),
     )
 
-    return if (status != null && statusFraOgMed != null) {
+    return if (status != null && statusFraOgMed != null && statusTilOgMed != null) {
         when (Utbetalingslinje.Endring.LinjeStatus.valueOf(status)) {
             Utbetalingslinje.Endring.LinjeStatus.OPPHØR -> {
                 Utbetalingslinje.Endring.Opphør(
@@ -117,7 +117,7 @@ internal fun Row.toUtbetalingslinje(): Utbetalingslinje {
                     tilOgMed = linje.tilOgMed,
                     forrigeUtbetalingslinjeId = linje.forrigeUtbetalingslinjeId,
                     beløp = linje.beløp,
-                    virkningstidspunkt = statusFraOgMed,
+                    virkningsperiode = Periode.create(statusFraOgMed, statusTilOgMed),
                     uføregrad = linje.uføregrad,
                     utbetalingsinstruksjonForEtterbetalinger = toKjøreplan(),
                 )
@@ -130,7 +130,7 @@ internal fun Row.toUtbetalingslinje(): Utbetalingslinje {
                     tilOgMed = linje.tilOgMed,
                     forrigeUtbetalingslinjeId = linje.forrigeUtbetalingslinjeId,
                     beløp = linje.beløp,
-                    virkningstidspunkt = statusFraOgMed,
+                    virkningsperiode = Periode.create(statusFraOgMed, statusTilOgMed),
                     uføregrad = linje.uføregrad,
                     utbetalingsinstruksjonForEtterbetalinger = toKjøreplan(),
                 )
@@ -143,7 +143,7 @@ internal fun Row.toUtbetalingslinje(): Utbetalingslinje {
                     tilOgMed = linje.tilOgMed,
                     forrigeUtbetalingslinjeId = linje.forrigeUtbetalingslinjeId,
                     beløp = linje.beløp,
-                    virkningstidspunkt = statusFraOgMed,
+                    virkningsperiode = Periode.create(statusFraOgMed, statusTilOgMed),
                     uføregrad = linje.uføregrad,
                     utbetalingsinstruksjonForEtterbetalinger = toKjøreplan(),
                 )

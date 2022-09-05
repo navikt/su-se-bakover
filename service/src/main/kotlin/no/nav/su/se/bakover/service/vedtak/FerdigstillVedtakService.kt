@@ -47,27 +47,24 @@ internal class FerdigstillVedtakServiceImpl(
      * Entry point for kvittering consumer.
      */
     override fun ferdigstillVedtakEtterUtbetaling(utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering): Either<KunneIkkeFerdigstilleVedtak, Unit> {
-        return when (utbetaling.type) {
-            Utbetaling.UtbetalingsType.STANS,
-            Utbetaling.UtbetalingsType.GJENOPPTA,
-            -> {
-                log.info("Utbetaling ${utbetaling.id} er av type ${utbetaling.type} og vil derfor ikke bli prøvd ferdigstilt.")
+        return if (utbetaling.trengerIkkeFerdigstilles()) {
+            log.info("Utbetaling ${utbetaling.id} trenger ikke ferdigstilles.")
+            Unit.right()
+        } else {
+            if (!utbetaling.kvittering.erKvittertOk()) {
+                log.error("Prøver ikke å ferdigstille innvilgelse siden kvitteringen fra oppdrag ikke var OK.")
                 Unit.right()
-            }
-            Utbetaling.UtbetalingsType.NY,
-            Utbetaling.UtbetalingsType.OPPHØR,
-            -> {
-                if (!utbetaling.kvittering.erKvittertOk()) {
-                    log.error("Prøver ikke å ferdigstille innvilgelse siden kvitteringen fra oppdrag ikke var OK.")
-                    Unit.right()
-                } else {
-                    log.info("Ferdigstiller vedtak etter utbetaling")
-                    vedtakRepo.hentForUtbetaling(utbetaling.id)?.let { return ferdigstillVedtak(it).map { Unit.right() } }
-                        ?: return KunneIkkeFerdigstilleVedtak.FantIkkeVedtakForUtbetalingId(utbetaling.id).left()
-                            .also { log.warn("Kunne ikke ferdigstille vedtak - fant ikke vedtaket som tilhører utbetaling ${utbetaling.id}.") }
-                }
+            } else {
+                log.info("Ferdigstiller vedtak etter utbetaling")
+                vedtakRepo.hentForUtbetaling(utbetaling.id)?.let { return ferdigstillVedtak(it).map { Unit.right() } }
+                    ?: return KunneIkkeFerdigstilleVedtak.FantIkkeVedtakForUtbetalingId(utbetaling.id).left()
+                        .also { log.warn("Kunne ikke ferdigstille vedtak - fant ikke vedtaket som tilhører utbetaling ${utbetaling.id}.") }
             }
         }
+    }
+
+    private fun Utbetaling.trengerIkkeFerdigstilles(): Boolean {
+        return erStans() || erReaktivering()
     }
 
     private fun ferdigstillVedtak(vedtak: VedtakSomKanRevurderes): Either<KunneIkkeFerdigstilleVedtak, VedtakSomKanRevurderes> {

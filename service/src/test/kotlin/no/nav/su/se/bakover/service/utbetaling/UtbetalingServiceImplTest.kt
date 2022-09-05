@@ -10,14 +10,17 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.nonEmpty
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.mars
+import no.nav.su.se.bakover.common.toPeriode
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
+import no.nav.su.se.bakover.domain.oppdrag.ForrigeUtbetbetalingslinjeKoblendeListe
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -30,9 +33,9 @@ import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.opphørUtbetalingSimulert
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simuleringNy
-import no.nav.su.se.bakover.test.simuleringOpphørt
 import no.nav.su.se.bakover.test.simuleringStans
 import no.nav.su.se.bakover.test.utbetalingslinje
 import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
@@ -70,7 +73,6 @@ internal class UtbetalingServiceImplTest {
         saksnummer = saksnummer,
         fnr = fnr,
         utbetalingslinjer = dummyUtbetalingslinjer,
-        type = Utbetaling.UtbetalingsType.NY,
         behandler = attestant,
         avstemmingsnøkkel = avstemmingsnøkkel,
         sakstype = Sakstype.UFØRE,
@@ -118,7 +120,6 @@ internal class UtbetalingServiceImplTest {
                     saksnummer = it.saksnummer,
                     fnr = it.fnr,
                     utbetalingslinjer = it.utbetalingslinjer,
-                    type = it.type,
                     behandler = it.behandler,
                     avstemmingsnøkkel = it.avstemmingsnøkkel,
                     sakstype = Sakstype.UFØRE,
@@ -156,7 +157,6 @@ internal class UtbetalingServiceImplTest {
                     saksnummer = it.saksnummer,
                     fnr = it.fnr,
                     utbetalingslinjer = it.utbetalingslinjer,
-                    type = it.type,
                     behandler = it.behandler,
                     avstemmingsnøkkel = it.avstemmingsnøkkel,
                     sakstype = Sakstype.UFØRE,
@@ -197,17 +197,19 @@ internal class UtbetalingServiceImplTest {
             val utbetalingRepoMock = mock<UtbetalingRepo> {
                 on { hentUtbetalinger(any()) } doReturn listOf(
                     utbetalingForSimulering.copy(
-                        utbetalingslinjer = nonEmptyListOf(
-                            expectedGjeldendeUtbetalingslinje,
-                            utbetalingslinje(
-                                periode = februar(2020),
-                                beløp = 53821,
-                            ),
-                            utbetalingslinje(
-                                periode = mars(2020),
-                                beløp = 53821,
-                            ),
-                        ),
+                        utbetalingslinjer = ForrigeUtbetbetalingslinjeKoblendeListe(
+                            listOf(
+                                expectedGjeldendeUtbetalingslinje,
+                                utbetalingslinje(
+                                    periode = februar(2020),
+                                    beløp = 53821,
+                                ),
+                                utbetalingslinje(
+                                    periode = mars(2020),
+                                    beløp = 53821,
+                                ),
+                            )
+                        ).nonEmpty()
                     ),
                 )
             }
@@ -270,7 +272,7 @@ internal class UtbetalingServiceImplTest {
                 verify(it.simuleringClient).simulerUtbetaling(
                     request = argThat {
                         it shouldBe beOfType<SimulerUtbetalingForPeriode>()
-                        it.utbetaling.type shouldBe Utbetaling.UtbetalingsType.STANS
+                        it.utbetaling.erStans() shouldBe true
                         it.simuleringsperiode shouldBe Periode.create(1.februar(2021), 31.desember(2021))
                     },
                 )
@@ -279,21 +281,18 @@ internal class UtbetalingServiceImplTest {
 
         @Test
         fun `simuleringsperiode settes til fra virkningstidspunkt til slutt på utbetalingslinje ved opphør`() {
-            val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget()
+            val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
 
             UtbetalingServiceAndMocks(
                 sakService = mock {
                     on { hentSak(any<UUID>()) } doReturn sak.right()
                 },
                 simuleringClient = mock {
-                    on { simulerUtbetaling(any()) } doReturn simuleringOpphørt(
-                        opphørsdato = 1.februar(2021),
-                        eksisterendeUtbetalinger = sak.utbetalinger,
-                        fnr = sak.fnr,
-                        sakId = sak.id,
-                        saksnummer = sak.saksnummer,
+                    on { simulerUtbetaling(any()) } doReturn opphørUtbetalingSimulert(
+                        sakOgBehandling = sak to vedtak.behandling,
+                        opphørsperiode = 1.februar(2021).rangeTo(vedtak.periode.tilOgMed).toPeriode(),
                         clock = fixedClock,
-                    ).right()
+                    ).simulering.right()
                 },
                 clock = fixedClock,
             ).let {
@@ -301,14 +300,13 @@ internal class UtbetalingServiceImplTest {
                     request = SimulerUtbetalingRequest.Opphør(
                         sakId = sak.id,
                         saksbehandler = saksbehandler,
-                        opphørsdato = 1.februar(2021),
+                        opphørsperiode = 1.februar(2021).rangeTo(vedtak.periode.tilOgMed).toPeriode(),
                     ),
                 ).getOrFail() shouldBe beOfType<Utbetaling.SimulertUtbetaling>()
 
                 verify(it.simuleringClient).simulerUtbetaling(
                     request = argThat {
                         it shouldBe beOfType<SimulerUtbetalingForPeriode>()
-                        it.utbetaling.type shouldBe Utbetaling.UtbetalingsType.OPPHØR
                         it.simuleringsperiode shouldBe Periode.create(1.februar(2021), 31.desember(2021))
                     },
                 )
@@ -344,7 +342,7 @@ internal class UtbetalingServiceImplTest {
                 verify(it.simuleringClient).simulerUtbetaling(
                     request = argThat {
                         it shouldBe beOfType<SimulerUtbetalingForPeriode>()
-                        it.utbetaling.type shouldBe Utbetaling.UtbetalingsType.GJENOPPTA
+                        it.utbetaling.erReaktivering() shouldBe true
                         it.simuleringsperiode shouldBe Periode.create(1.februar(2021), 31.desember(2021))
                     },
                 )

@@ -61,7 +61,6 @@ internal class UtbetalingKvitteringConsumerTest {
                 uføregrad = Uføregrad.parse(50),
             ),
         ),
-        type = Utbetaling.UtbetalingsType.NY,
         behandler = NavIdentBruker.Attestant("Z123"),
         avstemmingsnøkkel = avstemmingsnøkkel,
         sakstype = Sakstype.UFØRE,

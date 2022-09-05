@@ -1,11 +1,16 @@
 package no.nav.su.se.bakover.web.revurdering
 
-import no.nav.su.se.bakover.common.endOfMonth
-import no.nav.su.se.bakover.common.startOfMonth
+import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.juli
+import no.nav.su.se.bakover.common.mai
+import no.nav.su.se.bakover.common.periode.desember
+import no.nav.su.se.bakover.common.periode.januar
+import no.nav.su.se.bakover.common.periode.juli
+import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.sak.assertSakJson
@@ -21,8 +26,8 @@ internal class NyRevurderingIT {
         SharedRegressionTestData.withTestApplicationAndEmbeddedDb(
             clock = TikkendeKlokke(fixedClock),
         ) {
-            val stønadStart = fixedLocalDate.startOfMonth()
-            val stønadSlutt = fixedLocalDate.plusMonths(11).endOfMonth()
+            val stønadStart = 1.januar(2021)
+            val stønadSlutt = 31.desember(2021)
             val fnr = Fnr.generer().toString()
 
             opprettInnvilgetSøknadsbehandling(
@@ -35,8 +40,8 @@ internal class NyRevurderingIT {
 
                 opprettIverksattRevurdering(
                     sakId = sakId,
-                    fraOgMed = stønadStart.plusMonths(4).startOfMonth().toString(),
-                    tilOgMed = stønadSlutt.toString(),
+                    fraOgMed = 1.mai(2021).toString(),
+                    tilOgMed = 31.juli(2021).toString(),
                 ).let { revurderingJson ->
                     hentSak(sakId).also {
                         assertSakJson(
@@ -56,6 +61,12 @@ internal class NyRevurderingIT {
                                     {
                                         "beløp":8563,
                                         "fraOgMed": "2021-05-01",
+                                        "tilOgMed": "2021-07-31",
+                                        "type": "NY"
+                                    },
+                                    {
+                                        "beløp":20946,
+                                        "fraOgMed": "2021-08-01",
                                         "tilOgMed": "2021-12-31",
                                         "type": "NY"
                                     }
@@ -101,10 +112,10 @@ internal class NyRevurderingIT {
                                         "fnr":"$fnr",
                                         "periode":{
                                           "fraOgMed":"2021-05-01",
-                                          "tilOgMed":"2021-12-31"
+                                          "tilOgMed":"2021-07-31"
                                         },
                                         "type":"ENDRING"
-                                    }
+                                    },
                             ]
                             """.trimIndent(),
                         )
