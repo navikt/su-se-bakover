@@ -52,6 +52,7 @@ import no.nav.su.se.bakover.service.søknad.AvslåManglendeDokumentasjonRequest
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
+import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.satsFactoryTest
@@ -59,7 +60,6 @@ import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagUtenBeregning
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.TestServicesBuilder
-import no.nav.su.se.bakover.web.applicationConfig
 import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.dbMetricsStub
 import no.nav.su.se.bakover.web.defaultRequest
@@ -208,7 +208,7 @@ internal class SøknadRoutesKtTest {
                 satsFactory = satsFactoryTest
             )
 
-            val clients = TestClientsBuilder(fixedClock, repos).build(applicationConfig).copy(
+            val clients = TestClientsBuilder(fixedClock, repos).build(applicationConfig()).copy(
                 pdfGenerator = pdfGenerator,
                 dokArkiv = dokArkiv,
                 personOppslag = personOppslag,

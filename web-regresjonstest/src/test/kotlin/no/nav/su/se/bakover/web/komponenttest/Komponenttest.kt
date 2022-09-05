@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.service.AccessCheckProxy
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
+import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
@@ -92,7 +93,7 @@ internal fun withKomptestApplication(
         TestClientsBuilder(
             clock = clock,
             databaseRepos = it,
-        ).build(SharedRegressionTestData.applicationConfig)
+        ).build(applicationConfig())
     },
     test: ApplicationTestBuilder.(appComponents: AppComponents) -> Unit,
 ) {
@@ -108,7 +109,7 @@ internal fun withKomptestApplication(
 private fun Application.testSusebakover(appComponents: AppComponents) {
     return susebakover(
         clock = appComponents.clock,
-        applicationConfig = SharedRegressionTestData.applicationConfig,
+        applicationConfig = applicationConfig(),
         unleash = appComponents.unleash,
         databaseRepos = appComponents.databaseRepos,
         clients = appComponents.clients,

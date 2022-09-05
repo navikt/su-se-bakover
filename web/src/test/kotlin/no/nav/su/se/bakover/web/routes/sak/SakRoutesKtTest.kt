@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.service.ServiceBuilder
+import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.satsFactoryTest
@@ -32,7 +33,6 @@ import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.web.TestClientsBuilder
-import no.nav.su.se.bakover.web.applicationConfig
 import no.nav.su.se.bakover.web.dbMetricsStub
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.testSusebakover
@@ -55,7 +55,7 @@ internal class SakRoutesKtTest {
     )
     private fun services(reps: DatabaseRepos) = ServiceBuilder.build(
         databaseRepos = reps,
-        clients = TestClientsBuilder(fixedClock, reps).build(applicationConfig),
+        clients = TestClientsBuilder(fixedClock, reps).build(applicationConfig()),
         behandlingMetrics = mock(),
         søknadMetrics = mock(),
         clock = fixedClock,

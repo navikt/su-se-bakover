@@ -51,6 +51,7 @@ import no.nav.su.se.bakover.service.vilkår.LovligOppholdVilkårStatus
 import no.nav.su.se.bakover.service.vilkår.LovligOppholdVurderinger
 import no.nav.su.se.bakover.service.vilkår.UførevilkårStatus
 import no.nav.su.se.bakover.service.vilkår.UtenlandsoppholdStatus
+import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
@@ -60,7 +61,6 @@ import no.nav.su.se.bakover.test.vilkår.fastOppholdVilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.flyktningVilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårInnvilget
 import no.nav.su.se.bakover.web.TestClientsBuilder
-import no.nav.su.se.bakover.web.applicationConfig
 import no.nav.su.se.bakover.web.dbMetricsStub
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.sak.sakPath
@@ -86,7 +86,7 @@ internal class BeregnRoutesKtTest {
     private fun services(dataSource: DataSource, databaseRepos: DatabaseRepos = repos(dataSource)) =
         ServiceBuilder.build(
             databaseRepos = databaseRepos,
-            clients = TestClientsBuilder(fixedClock, databaseRepos).build(applicationConfig),
+            clients = TestClientsBuilder(fixedClock, databaseRepos).build(applicationConfig()),
             behandlingMetrics = mock(),
             søknadMetrics = mock(),
             clock = fixedClock,

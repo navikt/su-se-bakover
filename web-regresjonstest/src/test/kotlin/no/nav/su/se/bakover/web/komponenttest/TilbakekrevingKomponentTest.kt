@@ -23,10 +23,10 @@ import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingsvedtakF
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.brev.HentDokumenterForIdType
 import no.nav.su.se.bakover.test.TikkendeKlokke
+import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.shouldBeType
-import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.revurdering.attestering.sendTilAttestering
 import no.nav.su.se.bakover.web.revurdering.avgjørTilbakekreving
@@ -200,7 +200,6 @@ class TilbakekrevingKomponentTest {
                     """.replace("\n", "").trimWhitespace()
                 }
 
-            @Suppress("UNCHECKED_CAST")
             appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.Vedtak(vedtak.id))
                 .also { dokumenter ->
                     dokumenter.single().also { brev ->
@@ -310,7 +309,7 @@ class TilbakekrevingKomponentTest {
                 TestClientsBuilder(
                     clock = clock,
                     databaseRepos = it,
-                ).build(SharedRegressionTestData.applicationConfig).copy(
+                ).build(applicationConfig()).copy(
                     tilbakekrevingClient = mock {
                         on { sendTilbakekrevingsvedtak(any()) } doReturn TilbakekrevingsvedtakForsendelseFeil.left()
                     },

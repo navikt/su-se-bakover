@@ -13,9 +13,9 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.service.vedtak.VedtakService
+import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.web.DEFAULT_CALL_ID
 import no.nav.su.se.bakover.web.TestServicesBuilder
-import no.nav.su.se.bakover.web.applicationConfig
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.jwtStub
 import no.nav.su.se.bakover.web.stubs.asBearerToken
@@ -57,7 +57,7 @@ internal class FrikortRoutesKtTest {
                 header(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
                 header(
                     HttpHeaders.Authorization,
-                    jwtStub.createJwtToken(subject = applicationConfig.frikort.serviceUsername.first()).asBearerToken(),
+                    jwtStub.createJwtToken(subject = applicationConfig().frikort.serviceUsername.first()).asBearerToken(),
                 )
             }.apply {
                 this.status shouldBe HttpStatusCode.OK
@@ -75,7 +75,7 @@ internal class FrikortRoutesKtTest {
                 header(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
                 header(
                     HttpHeaders.Authorization,
-                    jwtStub.createJwtToken(subject = applicationConfig.frikort.serviceUsername.first()).asBearerToken(),
+                    jwtStub.createJwtToken(subject = applicationConfig().frikort.serviceUsername.first()).asBearerToken(),
                 )
             }.apply {
                 this.status shouldBe HttpStatusCode.BadRequest
@@ -103,7 +103,7 @@ internal class FrikortRoutesKtTest {
                 header(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
                 header(
                     HttpHeaders.Authorization,
-                    jwtStub.createJwtToken(subject = applicationConfig.frikort.serviceUsername.first()).asBearerToken(),
+                    jwtStub.createJwtToken(subject = applicationConfig().frikort.serviceUsername.first()).asBearerToken(),
                 )
             }
             JSONAssert.assertEquals(frikortJsonString, response.bodyAsText(), true)
@@ -130,7 +130,7 @@ internal class FrikortRoutesKtTest {
                 header(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
                 header(
                     HttpHeaders.Authorization,
-                    jwtStub.createJwtToken(subject = applicationConfig.frikort.serviceUsername.first()).asBearerToken(),
+                    jwtStub.createJwtToken(subject = applicationConfig().frikort.serviceUsername.first()).asBearerToken(),
                 )
             }
             JSONAssert.assertEquals(frikortJsonString, response.bodyAsText(), true)
@@ -156,7 +156,7 @@ internal class FrikortRoutesKtTest {
                 header(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
                 header(
                     HttpHeaders.Authorization,
-                    jwtStub.createJwtToken(subject = applicationConfig.frikort.serviceUsername.first()).asBearerToken(),
+                    jwtStub.createJwtToken(subject = applicationConfig().frikort.serviceUsername.first()).asBearerToken(),
                 )
             }
             JSONAssert.assertEquals(frikortJsonString, response.bodyAsText(), true)
