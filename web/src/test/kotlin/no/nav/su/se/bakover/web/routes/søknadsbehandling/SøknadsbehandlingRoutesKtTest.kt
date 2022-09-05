@@ -78,6 +78,7 @@ import no.nav.su.se.bakover.service.vilkår.LovligOppholdVilkårStatus
 import no.nav.su.se.bakover.service.vilkår.LovligOppholdVurderinger
 import no.nav.su.se.bakover.service.vilkår.UførevilkårStatus
 import no.nav.su.se.bakover.service.vilkår.UtenlandsoppholdStatus
+import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
@@ -90,7 +91,6 @@ import no.nav.su.se.bakover.test.vilkår.flyktningVilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårInnvilget
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.TestServicesBuilder
-import no.nav.su.se.bakover.web.applicationConfig
 import no.nav.su.se.bakover.web.dbMetricsStub
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.jwtStub
@@ -125,7 +125,7 @@ internal class SøknadsbehandlingRoutesKtTest {
 
     private fun services(
         databaseRepos: DatabaseRepos,
-        clients: Clients = TestClientsBuilder(fixedClock, databaseRepos).build(applicationConfig),
+        clients: Clients = TestClientsBuilder(fixedClock, databaseRepos).build(applicationConfig()),
     ) =
         ServiceBuilder.build(
             databaseRepos = databaseRepos,
@@ -224,7 +224,7 @@ internal class SøknadsbehandlingRoutesKtTest {
     fun `Opprette en oppgave til attestering feiler mot oppgave`() {
         withMigratedDb { dataSource ->
             val repos = repos(dataSource)
-            val clients = TestClientsBuilder(fixedClock, repos).build(applicationConfig).copy(
+            val clients = TestClientsBuilder(fixedClock, repos).build(applicationConfig()).copy(
                 oppgaveClient = object : OppgaveClient {
                     override fun opprettOppgave(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, OppgaveId> {
                         return Either.Left(KunneIkkeOppretteOppgave)
@@ -762,7 +762,7 @@ internal class SøknadsbehandlingRoutesKtTest {
         fun `Feiler dersom man ikke får sendt til utbetaling`() {
             withMigratedDb { dataSource ->
                 val repos = repos(dataSource)
-                val clients = TestClientsBuilder(fixedClock, repos).build(applicationConfig).copy(
+                val clients = TestClientsBuilder(fixedClock, repos).build(applicationConfig()).copy(
                     utbetalingPublisher = object : UtbetalingPublisher {
                         override fun publish(
                             utbetaling: Utbetaling.SimulertUtbetaling,
@@ -1055,7 +1055,7 @@ internal class SøknadsbehandlingRoutesKtTest {
             application {
                 testSusebakover(
                     databaseRepos = repos,
-                    clients = TestClientsBuilder(fixedClock, repos).build(applicationConfig),
+                    clients = TestClientsBuilder(fixedClock, repos).build(applicationConfig()),
                     services = services,
                 )
             }

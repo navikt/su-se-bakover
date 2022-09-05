@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.PersonOppslag
+import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.routes.person.personPath
@@ -75,7 +76,7 @@ class RoutesTest {
             application {
                 testSusebakover(
                     clients = TestClientsBuilder(fixedClock, mock { on { utbetaling } doReturn mock() }).build(
-                        applicationConfig,
+                        applicationConfig(),
                     ).copy(
                         personOppslag = object :
                             PersonOppslag {

@@ -19,11 +19,11 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.PersonOppslag
 import no.nav.su.se.bakover.service.AccessCheckProxy
 import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.TestServicesBuilder
-import no.nav.su.se.bakover.web.applicationConfig
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
@@ -144,7 +144,7 @@ internal class PersonRoutesKtTest {
 
     @Test
     fun `skal svare med 500 hvis ukjent feil`() {
-        val clients = TestClientsBuilder(fixedClock, mock { on { utbetaling } doReturn mock() }).build(applicationConfig).copy(
+        val clients = TestClientsBuilder(fixedClock, mock { on { utbetaling } doReturn mock() }).build(applicationConfig()).copy(
             personOppslag = object : PersonOppslag {
                 override fun person(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
                 override fun personMedSystembruker(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
@@ -179,7 +179,7 @@ internal class PersonRoutesKtTest {
 
     @Test
     fun `skal svare med 404 hvis person ikke funnet`() {
-        val clients = TestClientsBuilder(fixedClock, mock { on { utbetaling } doReturn mock() }).build(applicationConfig).copy(
+        val clients = TestClientsBuilder(fixedClock, mock { on { utbetaling } doReturn mock() }).build(applicationConfig()).copy(
             personOppslag = object : PersonOppslag {
                 override fun person(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
                 override fun personMedSystembruker(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
@@ -214,7 +214,7 @@ internal class PersonRoutesKtTest {
 
     @Test
     fun `skal gi 403 når man ikke har tilgang til person`() {
-        val clients = TestClientsBuilder(fixedClock, mock { on { utbetaling } doReturn mock() }).build(applicationConfig).copy(
+        val clients = TestClientsBuilder(fixedClock, mock { on { utbetaling } doReturn mock() }).build(applicationConfig()).copy(
             personOppslag = object : PersonOppslag {
                 override fun person(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
                 override fun personMedSystembruker(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
