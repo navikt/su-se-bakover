@@ -18,7 +18,7 @@ subprojects {
     }
     val junitJupiterVersion = "5.9.0"
     val kotestVersion = "5.4.2"
-    val jacksonVersion = "2.13.3"
+    val jacksonVersion = "2.13.4"
     val kotlinVersion: String by this
     dependencies {
         implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
