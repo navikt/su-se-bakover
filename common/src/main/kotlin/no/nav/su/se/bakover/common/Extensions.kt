@@ -53,3 +53,11 @@ fun ClosedRange<LocalDate>.toPeriode(): Periode {
         tilOgMed = this.endInclusive
     )
 }
+
+fun LocalDate.førsteINesteMåned(): LocalDate {
+    return this.plusMonths(1).startOfMonth()
+}
+
+fun LocalDate.sisteIForrigeMåned(): LocalDate {
+    return this.minusMonths(1).endOfMonth()
+}

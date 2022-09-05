@@ -37,17 +37,13 @@ internal data class SimuleringJson(
             SimuleringJson(
                 perioder = it.simulertePerioder.map { sp -> sp.toJson() },
                 totalBruttoYtelse = it.simulertePerioder
-                    .sumOf { sp ->
-                        sp.utbetalinger
-                            .sumOf { u -> u.bruttobeløp() }
-                    },
+                    .sumOf { sp -> sp.utbetaling.bruttobeløp() },
             )
         }
     }
 }
 
 internal fun TolketPeriode.toJson(): SimuleringJson.SimulertPeriodeJson {
-    val utbetaling = utbetalinger.singleOrNull() ?: throw MerEnnEnUtbetalingIMinstEnAvPeriodene
     return when (utbetaling) {
         is TolketUtbetaling.Etterbetaling -> SimuleringJson.SimulertPeriodeJson(
             fraOgMed = periode.fraOgMed,

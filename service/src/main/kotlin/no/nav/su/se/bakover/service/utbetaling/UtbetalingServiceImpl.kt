@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.FantIkkeGjeldendeUtbetaling
+import no.nav.su.se.bakover.domain.oppdrag.KryssjekkUtbetalingerOgSimuleringForRekonstruertPeriode
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
@@ -129,18 +130,19 @@ internal class UtbetalingServiceImpl(
             fnr = sak.fnr,
             eksisterendeUtbetalinger = sak.utbetalinger,
             behandler = request.saksbehandler,
-            // TODO send med periode
-            periode = Periode.create(
-                fraOgMed = request.opphørsperiode.fraOgMed,
-                tilOgMed = sak.utbetalinger.last().sisteUtbetalingslinje().tilOgMed,
-            ),
+            periode = request.opphørsperiode,
             clock = clock,
             sakstype = sak.type,
         ).generate()
 
-        val simuleringsperiode = Periode.create(
-            fraOgMed = request.opphørsperiode.fraOgMed,
-            tilOgMed = utbetaling.senesteDato(),
+        val simuleringsperiode = request.opphørsperiode
+
+        KryssjekkUtbetalingerOgSimuleringForRekonstruertPeriode(
+            endringsperiode = simuleringsperiode,
+            utbetaling = utbetaling,
+            eksisterendeUtbetalinger = sak.utbetalinger,
+            simuler = this::simulerUtbetaling,
+            clock = clock
         )
 
         return simulerUtbetaling(
@@ -224,6 +226,14 @@ internal class UtbetalingServiceImpl(
         }
 
         val simuleringsperiode = request.beregning.periode
+
+        KryssjekkUtbetalingerOgSimuleringForRekonstruertPeriode(
+            endringsperiode = simuleringsperiode,
+            utbetaling = utbetaling,
+            eksisterendeUtbetalinger = sak.utbetalinger,
+            simuler = this::simulerUtbetaling,
+            clock = clock
+        )
 
         return simulerUtbetaling(
             request = SimulerUtbetalingForPeriode(

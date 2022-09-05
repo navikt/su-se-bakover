@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling
 
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.periode.februar
@@ -22,13 +21,6 @@ internal class SimuleringJsonTest {
     @Test
     fun `should deserialize json string`() {
         deserialize<SimuleringJson>(expectedJson) shouldBe simulering.toJson()
-    }
-
-    @Test
-    fun `throws when there are more than one utbetaling in a SimulertPeriode`() {
-        shouldThrow<MerEnnEnUtbetalingIMinstEnAvPeriodene> {
-            serialize(simuleringMedFlereUtbetalingerISammePeriode.toJson())
-        }
     }
 
     //language=JSON

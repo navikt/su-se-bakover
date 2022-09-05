@@ -40,7 +40,7 @@ data class KontrollerSimulering(
                 )
 
                 val tolkedeUtbetalinger = tolketSimulering.simulertePerioder
-                    .flatMap { it.utbetalinger }
+                    .map { it.utbetaling }
                     .flatMap { it.tolketDetalj }
                     .filterIsInstance<TolketDetalj.Ordinær>()
 

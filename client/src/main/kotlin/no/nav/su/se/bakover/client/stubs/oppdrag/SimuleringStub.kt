@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.idag
+import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
@@ -65,9 +66,8 @@ class SimuleringStub(
                     { throw RuntimeException("Disse skal eksistere") },
                     { it.gjeldendeForDato(måned.fraOgMed) },
                 )
-                if (utbetaltLinje == null) {
+                if (utbetaltLinje == null && nyLinje != null) {
                     // ingen tidligere utbetaling for måned
-                    checkNotNull(nyLinje)
                     when (nyLinje) {
                         is UtbetalingslinjePåTidslinje.Ny -> {
                             måned to SimulertUtbetaling(
@@ -92,156 +92,226 @@ class SimuleringStub(
                         }
 
                         is UtbetalingslinjePåTidslinje.Reaktivering -> {
-                            måned to null
+                            måned to SimulertUtbetaling(
+                                fagSystemId = utbetaling.saksnummer.toString(),
+                                utbetalesTilId = utbetaling.fnr,
+                                utbetalesTilNavn = "LYR MYGG",
+                                forfall = LocalDate.now(clock),
+                                feilkonto = false,
+                                detaljer = listOf(
+                                    createOrdinær(
+                                        fraOgMed = måned.fraOgMed,
+                                        tilOgMed = måned.tilOgMed,
+                                        beløp = nyLinje.beløp,
+                                        sakstype = utbetaling.sakstype,
+                                    ),
+                                ),
+                            )
                         }
 
                         is UtbetalingslinjePåTidslinje.Stans -> {
                             måned to null
+                        }
+                    }
+                } else if (utbetaltLinje != null && nyLinje != null) {
+                    when (nyLinje) {
+                        is UtbetalingslinjePåTidslinje.Ny -> {
+                            val diff = nyLinje.beløp - utbetaltLinje.beløp
+                            when {
+                                /**
+                                 * Endringer tilbake i tid, ny utbetaling er lavere enn allerede utbetalt beløp -> feilutbetaling
+                                 */
+                                diff < 0 && erIFortiden(måned) -> {
+                                    måned to SimulertUtbetaling(
+                                        fagSystemId = utbetaling.saksnummer.toString(),
+                                        utbetalesTilId = utbetaling.fnr,
+                                        utbetalesTilNavn = "LYR MYGG",
+                                        forfall = LocalDate.now(clock),
+                                        feilkonto = true,
+                                        detaljer = listOf(
+                                            createTidligereUtbetalt(
+                                                fraOgMed = måned.fraOgMed,
+                                                tilOgMed = måned.tilOgMed,
+                                                beløp = utbetaltLinje.beløp,
+                                                sakstype = utbetaling.sakstype,
+                                            ),
+                                            createOrdinær(
+                                                fraOgMed = måned.fraOgMed,
+                                                tilOgMed = måned.tilOgMed,
+                                                beløp = nyLinje.beløp,
+                                                sakstype = utbetaling.sakstype,
+                                            ),
+                                            createFeilutbetaling(
+                                                fraOgMed = måned.fraOgMed,
+                                                tilOgMed = måned.tilOgMed,
+                                                beløp = diff,
+                                                sakstype = utbetaling.sakstype,
+                                            ),
+                                        ),
+                                    )
+                                }
+                                /**
+                                 * Endringer tilbake i tid, ny utbetaling er større enn allerede utbetalt beløp -> etterbetaling
+                                 */
+                                diff > 0 && erIFortiden(måned) -> {
+                                    måned to SimulertUtbetaling(
+                                        fagSystemId = utbetaling.saksnummer.toString(),
+                                        utbetalesTilId = utbetaling.fnr,
+                                        utbetalesTilNavn = "LYR MYGG",
+                                        forfall = LocalDate.now(clock),
+                                        feilkonto = false,
+                                        detaljer = listOf(
+                                            createTidligereUtbetalt(
+                                                fraOgMed = måned.fraOgMed,
+                                                tilOgMed = måned.tilOgMed,
+                                                beløp = utbetaltLinje.beløp,
+                                                sakstype = utbetaling.sakstype,
+                                            ),
+                                            createOrdinær(
+                                                fraOgMed = måned.fraOgMed,
+                                                tilOgMed = måned.tilOgMed,
+                                                beløp = nyLinje.beløp,
+                                                sakstype = utbetaling.sakstype,
+                                            ),
+                                        ),
+                                    )
+                                }
+                                /**
+                                 * Endringer tilbake i tid, ny utbetaling er det samme som allerede utbetalt beløp -> uendret
+                                 */
+                                diff == 0 && erIFortiden(måned) -> {
+                                    måned to SimulertUtbetaling(
+                                        fagSystemId = utbetaling.saksnummer.toString(),
+                                        utbetalesTilId = utbetaling.fnr,
+                                        utbetalesTilNavn = "LYR MYGG",
+                                        forfall = LocalDate.now(clock),
+                                        feilkonto = false,
+                                        detaljer = listOf(
+                                            createOrdinær(
+                                                fraOgMed = måned.fraOgMed,
+                                                tilOgMed = måned.tilOgMed,
+                                                beløp = nyLinje.beløp,
+                                                sakstype = utbetaling.sakstype,
+                                            ),
+                                            createTidligereUtbetalt(
+                                                fraOgMed = måned.fraOgMed,
+                                                tilOgMed = måned.tilOgMed,
+                                                beløp = utbetaltLinje.beløp,
+                                                sakstype = utbetaling.sakstype,
+                                            ),
+                                        ),
+                                    )
+                                }
+                                /**
+                                 * Endringer fremover i tid, ingen utbetalinger er gjennomført -> ordinær
+                                 */
+                                else -> {
+                                    måned to SimulertUtbetaling(
+                                        fagSystemId = utbetaling.saksnummer.toString(),
+                                        utbetalesTilId = utbetaling.fnr,
+                                        utbetalesTilNavn = "LYR MYGG",
+                                        forfall = LocalDate.now(clock),
+                                        feilkonto = false,
+                                        detaljer = listOf(
+                                            createOrdinær(
+                                                fraOgMed = måned.fraOgMed,
+                                                tilOgMed = måned.tilOgMed,
+                                                beløp = nyLinje.beløp,
+                                                sakstype = utbetaling.sakstype,
+                                            ),
+                                        ),
+                                    )
+                                }
+                            }
+                        }
+
+                        is UtbetalingslinjePåTidslinje.Opphør -> {
+                            val diff = nyLinje.beløp - utbetaltLinje.beløp
+                            val feilutbetaling = diff < 0 && erIFortiden(måned)
+
+                            if (feilutbetaling) {
+                                måned to SimulertUtbetaling(
+                                    fagSystemId = utbetaling.saksnummer.toString(),
+                                    utbetalesTilId = utbetaling.fnr,
+                                    utbetalesTilNavn = "LYR MYGG",
+                                    forfall = LocalDate.now(clock),
+                                    feilkonto = feilutbetaling,
+                                    detaljer = listOf(
+                                        createTidligereUtbetalt(
+                                            fraOgMed = måned.fraOgMed,
+                                            tilOgMed = måned.tilOgMed,
+                                            beløp = utbetaltLinje.beløp,
+                                            sakstype = utbetaling.sakstype,
+                                        ),
+                                        createFeilutbetaling(
+                                            fraOgMed = måned.fraOgMed,
+                                            tilOgMed = måned.tilOgMed,
+                                            beløp = diff,
+                                            sakstype = utbetaling.sakstype,
+                                        ),
+                                    ),
+                                )
+                            } else {
+                                måned to null
+                            }
+                        }
+
+                        is UtbetalingslinjePåTidslinje.Reaktivering -> {
+                            måned to SimulertUtbetaling(
+                                fagSystemId = utbetaling.saksnummer.toString(),
+                                utbetalesTilId = utbetaling.fnr,
+                                utbetalesTilNavn = "LYR MYGG",
+                                forfall = LocalDate.now(clock),
+                                feilkonto = false,
+                                detaljer = listOf(
+                                    createOrdinær(
+                                        fraOgMed = måned.fraOgMed,
+                                        tilOgMed = måned.tilOgMed,
+                                        beløp = nyLinje.beløp,
+                                        sakstype = utbetaling.sakstype,
+                                    ),
+                                ),
+                            )
+                        }
+
+                        is UtbetalingslinjePåTidslinje.Stans -> {
+                            val diff = nyLinje.beløp - utbetaltLinje.beløp
+                            val feilutbetaling = diff < 0 && erIFortiden(måned)
+
+                            if (feilutbetaling) {
+                                måned to SimulertUtbetaling(
+                                    fagSystemId = utbetaling.saksnummer.toString(),
+                                    utbetalesTilId = utbetaling.fnr,
+                                    utbetalesTilNavn = "LYR MYGG",
+                                    forfall = LocalDate.now(clock),
+                                    feilkonto = feilutbetaling,
+                                    detaljer = listOf(
+                                        createTidligereUtbetalt(
+                                            fraOgMed = måned.fraOgMed,
+                                            tilOgMed = måned.tilOgMed,
+                                            beløp = utbetaltLinje.beløp,
+                                            sakstype = utbetaling.sakstype,
+                                        ),
+                                        createFeilutbetaling(
+                                            fraOgMed = måned.fraOgMed,
+                                            tilOgMed = måned.tilOgMed,
+                                            beløp = diff,
+                                            sakstype = utbetaling.sakstype,
+                                        ),
+                                    ),
+                                )
+                            } else {
+                                måned to null
+                            }
                         }
                     }
                 } else {
-                    checkNotNull(nyLinje)
-                    when (nyLinje) {
-                        is UtbetalingslinjePåTidslinje.Ny -> {
-                            val diff = nyLinje.beløp - utbetaltLinje.beløp
-                            val feilutbetaling = diff < 0 && måned.tilOgMed < Tidspunkt.now(clock).toLocalDate(zoneIdOslo)
-
-                            if (feilutbetaling) {
-                                måned to SimulertUtbetaling(
-                                    fagSystemId = utbetaling.saksnummer.toString(),
-                                    utbetalesTilId = utbetaling.fnr,
-                                    utbetalesTilNavn = "LYR MYGG",
-                                    forfall = LocalDate.now(clock),
-                                    feilkonto = feilutbetaling,
-                                    detaljer = listOf(
-                                        createTidligereUtbetalt(
-                                            fraOgMed = måned.fraOgMed,
-                                            tilOgMed = måned.tilOgMed,
-                                            beløp = utbetaltLinje.beløp,
-                                            sakstype = utbetaling.sakstype,
-                                        ),
-                                        createOrdinær(
-                                            fraOgMed = måned.fraOgMed,
-                                            tilOgMed = måned.tilOgMed,
-                                            beløp = nyLinje.beløp,
-                                            sakstype = utbetaling.sakstype,
-                                        ),
-                                        createFeilutbetaling(
-                                            fraOgMed = måned.fraOgMed,
-                                            tilOgMed = måned.tilOgMed,
-                                            beløp = diff,
-                                            sakstype = utbetaling.sakstype,
-                                        ),
-                                    ),
-                                )
-                            } else {
-                                måned to SimulertUtbetaling(
-                                    fagSystemId = utbetaling.saksnummer.toString(),
-                                    utbetalesTilId = utbetaling.fnr,
-                                    utbetalesTilNavn = "LYR MYGG",
-                                    forfall = LocalDate.now(clock),
-                                    feilkonto = false,
-                                    detaljer = listOf(
-                                        createOrdinær(
-                                            fraOgMed = måned.fraOgMed,
-                                            tilOgMed = måned.tilOgMed,
-                                            beløp = nyLinje.beløp,
-                                            sakstype = utbetaling.sakstype,
-                                        ),
-                                    ),
-                                )
-                            }
-                        }
-
-                        is UtbetalingslinjePåTidslinje.Opphør -> {
-                            val diff = nyLinje.beløp - utbetaltLinje.beløp
-                            val feilutbetaling = diff < 0 && måned.tilOgMed < Tidspunkt.now(clock).toLocalDate(zoneIdOslo)
-
-                            if (feilutbetaling) {
-                                måned to SimulertUtbetaling(
-                                    fagSystemId = utbetaling.saksnummer.toString(),
-                                    utbetalesTilId = utbetaling.fnr,
-                                    utbetalesTilNavn = "LYR MYGG",
-                                    forfall = LocalDate.now(clock),
-                                    feilkonto = feilutbetaling,
-                                    detaljer = listOf(
-                                        createTidligereUtbetalt(
-                                            fraOgMed = måned.fraOgMed,
-                                            tilOgMed = måned.tilOgMed,
-                                            beløp = utbetaltLinje.beløp,
-                                            sakstype = utbetaling.sakstype,
-                                        ),
-                                        createFeilutbetaling(
-                                            fraOgMed = måned.fraOgMed,
-                                            tilOgMed = måned.tilOgMed,
-                                            beløp = diff,
-                                            sakstype = utbetaling.sakstype,
-                                        ),
-                                    ),
-                                )
-                            } else {
-                                måned to null
-                            }
-                        }
-
-                        is UtbetalingslinjePåTidslinje.Reaktivering -> {
-                            måned to SimulertUtbetaling(
-                                fagSystemId = utbetaling.saksnummer.toString(),
-                                utbetalesTilId = utbetaling.fnr,
-                                utbetalesTilNavn = "LYR MYGG",
-                                forfall = LocalDate.now(clock),
-                                feilkonto = false,
-                                detaljer = listOf(
-                                    createOrdinær(
-                                        fraOgMed = måned.fraOgMed,
-                                        tilOgMed = måned.tilOgMed,
-                                        beløp = nyLinje.beløp,
-                                        sakstype = utbetaling.sakstype,
-                                    ),
-                                ),
-                            )
-                        }
-
-                        is UtbetalingslinjePåTidslinje.Stans -> {
-                            val diff = nyLinje.beløp - utbetaltLinje.beløp
-                            val feilutbetaling = diff < 0 && måned.tilOgMed < Tidspunkt.now(clock).toLocalDate(zoneIdOslo)
-
-                            if (feilutbetaling) {
-                                måned to SimulertUtbetaling(
-                                    fagSystemId = utbetaling.saksnummer.toString(),
-                                    utbetalesTilId = utbetaling.fnr,
-                                    utbetalesTilNavn = "LYR MYGG",
-                                    forfall = LocalDate.now(clock),
-                                    feilkonto = feilutbetaling,
-                                    detaljer = listOf(
-                                        createTidligereUtbetalt(
-                                            fraOgMed = måned.fraOgMed,
-                                            tilOgMed = måned.tilOgMed,
-                                            beløp = utbetaltLinje.beløp,
-                                            sakstype = utbetaling.sakstype,
-                                        ),
-                                        createFeilutbetaling(
-                                            fraOgMed = måned.fraOgMed,
-                                            tilOgMed = måned.tilOgMed,
-                                            beløp = diff,
-                                            sakstype = utbetaling.sakstype,
-                                        ),
-                                    ),
-                                )
-                            } else {
-                                måned to null
-                            }
-                        }
-                    }
+                    måned to null
                 }
             }
-            .map { (periode, simulertUtbetaling) ->
+            .mapNotNull { (periode, simulertUtbetaling) ->
                 if (simulertUtbetaling == null) {
-                    SimulertPeriode(
-                        fraOgMed = periode.fraOgMed,
-                        tilOgMed = periode.tilOgMed,
-                        utbetaling = emptyList(),
-                    )
+                    null
                 } else {
                     SimulertPeriode(
                         fraOgMed = periode.fraOgMed,
@@ -261,6 +331,9 @@ class SimuleringStub(
                 )
             }
     }
+
+    private fun erIFortiden(måned: Måned) =
+        måned.tilOgMed < Tidspunkt.now(clock).toLocalDate(zoneIdOslo)
 }
 
 private fun createOrdinær(fraOgMed: LocalDate, tilOgMed: LocalDate, beløp: Int, sakstype: Sakstype) = SimulertDetaljer(

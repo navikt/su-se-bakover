@@ -216,7 +216,7 @@ fun opphørUtbetalingSimulert(
             clock = clock,
         ).toSimulertUtbetaling(
             simuleringOpphørt(
-                opphørsdato = opphørsperiode.fraOgMed,
+                opphørsperiode = opphørsperiode,
                 eksisterendeUtbetalinger = sak.utbetalinger,
                 fnr = behandling.fnr,
                 sakId = behandling.sakId,
@@ -367,8 +367,7 @@ fun simulertUtbetaling(
 }
 
 fun simulertUtbetalingOpphør(
-    periode: Periode = år(2021),
-    opphørsdato: LocalDate = periode.fraOgMed,
+    opphørsperiode: Periode,
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
@@ -383,15 +382,12 @@ fun simulertUtbetalingOpphør(
         eksisterendeUtbetalinger = eksisterendeUtbetalinger,
         behandler = behandler,
         sakstype = Sakstype.UFØRE,
-        periode = Periode.create(
-            opphørsdato,
-            eksisterendeUtbetalinger.last().sisteUtbetalingslinje().tilOgMed,
-        ),
+        periode = opphørsperiode,
         clock = clock,
     ).generate()
         .toSimulertUtbetaling(
             simulering = simuleringOpphørt(
-                opphørsdato = opphørsdato,
+                opphørsperiode = opphørsperiode,
                 eksisterendeUtbetalinger = eksisterendeUtbetalinger,
                 fnr = fnr,
                 sakId = sakId,

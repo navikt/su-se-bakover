@@ -211,7 +211,7 @@ fun simuleringGjenopptak(
 }
 
 fun simuleringOpphørt(
-    opphørsdato: LocalDate,
+    opphørsperiode: Periode,
     eksisterendeUtbetalinger: List<Utbetaling>,
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
@@ -226,10 +226,7 @@ fun simuleringOpphørt(
         behandler = saksbehandler,
         clock = clock,
         // TODO send med periode
-        periode = Periode.create(
-            fraOgMed = opphørsdato,
-            tilOgMed = eksisterendeUtbetalinger.last().sisteUtbetalingslinje().tilOgMed
-        ),
+        periode = opphørsperiode,
         sakstype = Sakstype.UFØRE, // TODO("simulering_utbetaling_alder utled fra sak/behandling")
     ).generate().let {
         val opphør = it.utbetalingslinjer

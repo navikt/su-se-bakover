@@ -24,13 +24,13 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
+import no.nav.su.se.bakover.test.opphørUtbetalingSimulert
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
-import no.nav.su.se.bakover.test.simulertUtbetalingOpphør
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vilkår.formuevilkårIkkeVurdert
 import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
@@ -233,14 +233,11 @@ internal class LagBrevutkastForRevurderingTest {
         RevurderingServiceMocks(
             revurderingRepo = mock(),
             utbetalingService = mock {
-                on { simulerOpphør(any()) } doReturn simulertUtbetalingOpphør(
-                    opphørsdato = revurdering.periode.fraOgMed,
-                    fnr = sak.fnr,
-                    sakId = sak.id,
-                    saksnummer = sak.saksnummer,
+                on { simulerOpphør(any()) } doReturn opphørUtbetalingSimulert(
+                    sakOgBehandling = sak to revurdering,
+                    opphørsperiode = revurdering.periode,
                     clock = fixedClock,
-                    eksisterendeUtbetalinger = sak.utbetalinger,
-                )
+                ).right()
             },
             sakService = mock {
                 on { hentSakForRevurdering(any()) } doReturn sak

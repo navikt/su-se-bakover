@@ -33,9 +33,9 @@ import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.opphørUtbetalingSimulert
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simuleringNy
-import no.nav.su.se.bakover.test.simuleringOpphørt
 import no.nav.su.se.bakover.test.simuleringStans
 import no.nav.su.se.bakover.test.utbetalingslinje
 import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
@@ -286,14 +286,11 @@ internal class UtbetalingServiceImplTest {
                     on { hentSak(any<UUID>()) } doReturn sak.right()
                 },
                 simuleringClient = mock {
-                    on { simulerUtbetaling(any()) } doReturn simuleringOpphørt(
-                        opphørsdato = 1.februar(2021),
-                        eksisterendeUtbetalinger = sak.utbetalinger,
-                        fnr = sak.fnr,
-                        sakId = sak.id,
-                        saksnummer = sak.saksnummer,
+                    on { simulerUtbetaling(any()) } doReturn opphørUtbetalingSimulert(
+                        sakOgBehandling = sak to vedtak.behandling,
+                        opphørsperiode = 1.februar(2021).rangeTo(vedtak.periode.tilOgMed).toPeriode(),
                         clock = fixedClock,
-                    ).right()
+                    ).simulering.right()
                 },
                 clock = fixedClock,
             ).let {

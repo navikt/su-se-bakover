@@ -5,7 +5,6 @@ import arrow.core.getOrHandle
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.periode.harOverlappende
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import java.time.Clock
 import java.time.LocalDate
@@ -19,40 +18,29 @@ class Utbetalingshistorikk(
     private val sorterteNyeUtbetalingslinjer = nyeUtbetalingslinjer.sortedWith(utbetalingslinjeSortering)
     private val sorterteEksisterendeUtbetalingslinjer = eksisterendeUtbetalingslinjer.sortedWith(utbetalingslinjeSortering)
     init {
-        require(!nyeUtbetalingslinjer.harOverlappende()) { "Nye utbetalingslinjer kan ikke overlappe" }
+        nyeUtbetalingslinjer.sjekkIngenNyeOverlapper()
     }
+
     fun generer(): List<Utbetalingslinje> {
-        val nyopprettedeLinjer = sorterteNyeUtbetalingslinjer.oppdaterReferanseTilForrigeUtbetalingslinje()
-
-        val nyeForRekonstruksjon = finnUtbetalingslinjerSomSkalRekonstrueres()
-            /**
-             * Oppdater referansene før [rekonstruer] slik at kopiene som opprettes bevarer korrekte forrige ref.
-             * Fjerner nyopprettede linjer til slutt da disse ikke er kandidater for rekonstruksjon.
-             */
-            .let { (nyopprettedeLinjer + it).oppdaterReferanseTilForrigeUtbetalingslinje() - nyopprettedeLinjer.toSet() }
-            .filterIsInstance<Utbetalingslinje.Ny>()
-
-        val enringerForRekonstruksjon = finnUtbetalingslinjerSomSkalRekonstrueres()
-            .filterIsInstance<Utbetalingslinje.Endring>()
-
-        val rekonstruerte = finnEndringerForNyeLinjer(
-            nye = nyeForRekonstruksjon,
-            endringer = enringerForRekonstruksjon,
-        ).map { rekonstruer(it) }
-            .flatMap { (rekonstruertNy, rekonstruerteEndringer) ->
+        return KobleMedSisteUtbetalingslinjeListe().apply {
+            sorterteNyeUtbetalingslinjer.forEach { this.addLast(it) }
+            finnEndringerForNyeLinjer(
+                nye = finnUtbetalingslinjerSomSkalRekonstrueres()
+                    .filterIsInstance<Utbetalingslinje.Ny>(),
+                endringer = finnUtbetalingslinjerSomSkalRekonstrueres()
+                    .filterIsInstance<Utbetalingslinje.Endring>(),
+            ).map {
+                rekonstruer(it)
+            }.flatMap { (rekonstruertNy, rekonstruerteEndringer) ->
                 listOf(rekonstruertNy) + rekonstruerteEndringer
-            }
-
-        return (nyopprettedeLinjer + rekonstruerte).oppdaterReferanseTilForrigeUtbetalingslinje()
-            .sortedWith(utbetalingslinjeSortering)
-            .also {
-                kontrollerAtTidslinjeForRekonstruertPeriodeErUforandret()
-                it.kontrollerAtNyeLinjerHarFåttNyId()
-                it.kontrollerAtEksisterendeErKjedetMedNyeUtbetalinger()
-                it.sjekkAlleNyeLinjerHarForskjelligForrigeReferanse()
-                it.sjekkSortering()
-                it.sjekkIngenNyeOverlapper()
-            }
+            }.forEach { this.addLast(it) }
+        }.also {
+            kontrollerAtTidslinjeForRekonstruertPeriodeErUforandret()
+            it.kontrollerAtNyeLinjerHarFåttNyId()
+            it.kontrollerAtEksisterendeErKjedetMedNyeUtbetalinger()
+            it.sjekkAlleNyeLinjerHarForskjelligForrigeReferanse()
+            it.sjekkSortering()
+        }
     }
 
     private fun minumumFraOgMedDatoForRekonstruerteLinjer(): LocalDate {
@@ -203,4 +191,29 @@ fun List<Utbetalingslinje>.oppdaterReferanseTilForrigeUtbetalingslinje(): List<U
         }
     }
     return result.reversed()
+}
+
+private class KobleMedSisteUtbetalingslinjeListe : LinkedList<Utbetalingslinje>() {
+    override fun addLast(e: Utbetalingslinje?) {
+        checkNotNull(e) { "Kan ikke legge til null" }
+        val siste = peekLast()
+        if (siste != null) {
+            when (e) {
+                is Utbetalingslinje.Endring.Opphør -> {
+                    super.addLast(e.oppdaterReferanseTilForrigeUtbetalingslinje(siste.forrigeUtbetalingslinjeId))
+                }
+                is Utbetalingslinje.Endring.Reaktivering -> {
+                    super.addLast(e.oppdaterReferanseTilForrigeUtbetalingslinje(siste.forrigeUtbetalingslinjeId))
+                }
+                is Utbetalingslinje.Endring.Stans -> {
+                    super.addLast(e.oppdaterReferanseTilForrigeUtbetalingslinje(siste.forrigeUtbetalingslinjeId))
+                }
+                is Utbetalingslinje.Ny -> {
+                    super.addLast(e.oppdaterReferanseTilForrigeUtbetalingslinje(siste.id))
+                }
+            }
+        } else {
+            super.addLast(e)
+        }
+    }
 }

@@ -62,7 +62,6 @@ sealed interface Utbetaling {
         .and { utbetalingslinjer.count() == 1 }
 
     fun kontrollerUtbetalingslinjer() {
-        utbetalingslinjer.sjekkIngenNyeOverlapper()
         utbetalingslinjer.sjekkAlleNyeLinjerHarForskjelligForrigeReferanse()
         utbetalingslinjer.sjekkSortering()
     }

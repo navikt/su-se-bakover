@@ -268,7 +268,7 @@ internal class SøknadsbehandlingAlderKomponentTest {
                 ),
             ).getOrFail().also {
                 it.simulering.bruttoYtelse() shouldBe 195188
-                it.simulering.tolk().simulertePerioder.all { it.utbetalinger.all { it is TolketUtbetaling.Ordinær } }
+                it.simulering.tolk().simulertePerioder.all { it.utbetaling is TolketUtbetaling.Ordinær }
             }
 
             appComponents.services.søknadsbehandling.leggTilOpplysningspliktVilkår(
