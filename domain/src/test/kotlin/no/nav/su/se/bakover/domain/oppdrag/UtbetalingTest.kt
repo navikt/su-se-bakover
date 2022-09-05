@@ -96,19 +96,21 @@ internal class UtbetalingTest {
     )
 
     private fun createUtbetalingslinjer(): NonEmptyList<Utbetalingslinje> {
-        return listOf(
-            createUtbetalingslinje(
-                fraOgMed = 1.januar(2019),
-                tilOgMed = 30.april(2020)
-            ),
-            createUtbetalingslinje(
-                fraOgMed = 1.mai(2020),
-                tilOgMed = 31.august(2020),
-            ),
-            createUtbetalingslinje(
-                fraOgMed = 1.september(2020),
-                tilOgMed = 31.januar(2021),
+        return ForrigeUtbetbetalingslinjeKoblendeListe(
+            listOf(
+                createUtbetalingslinje(
+                    fraOgMed = 1.januar(2019),
+                    tilOgMed = 30.april(2020)
+                ),
+                createUtbetalingslinje(
+                    fraOgMed = 1.mai(2020),
+                    tilOgMed = 31.august(2020),
+                ),
+                createUtbetalingslinje(
+                    fraOgMed = 1.september(2020),
+                    tilOgMed = 31.januar(2021),
+                )
             )
-        ).oppdaterReferanseTilForrigeUtbetalingslinje().nonEmpty()
+        ).nonEmpty()
     }
 }

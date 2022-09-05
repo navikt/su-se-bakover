@@ -22,8 +22,8 @@ class Utbetalingshistorikk(
     }
 
     fun generer(): List<Utbetalingslinje> {
-        return KobleMedSisteUtbetalingslinjeListe().apply {
-            sorterteNyeUtbetalingslinjer.forEach { this.addLast(it) }
+        return ForrigeUtbetbetalingslinjeKoblendeListe().apply {
+            sorterteNyeUtbetalingslinjer.forEach { this.add(it) }
             finnEndringerForNyeLinjer(
                 nye = finnUtbetalingslinjerSomSkalRekonstrueres()
                     .filterIsInstance<Utbetalingslinje.Ny>(),
@@ -33,7 +33,7 @@ class Utbetalingshistorikk(
                 rekonstruer(it)
             }.flatMap { (rekonstruertNy, rekonstruerteEndringer) ->
                 listOf(rekonstruertNy) + rekonstruerteEndringer
-            }.forEach { this.addLast(it) }
+            }.forEach { this.add(it) }
         }.also {
             kontrollerAtTidslinjeForRekonstruertPeriodeErUforandret()
             it.kontrollerAtNyeLinjerHarFåttNyId()
@@ -171,29 +171,20 @@ class Utbetalingshistorikk(
     }
 }
 
-fun List<Utbetalingslinje>.oppdaterReferanseTilForrigeUtbetalingslinje(): List<Utbetalingslinje> {
-    val queue = LinkedList(this.reversed())
-    val result = mutableListOf<Utbetalingslinje>()
-    while (queue.isNotEmpty()) {
-        val siste = queue.poll()
-        if (queue.isNotEmpty()) {
-            val forrige = queue.peek()
-            result.add(
-                when (siste) {
-                    is Utbetalingslinje.Endring.Opphør -> siste.oppdaterReferanseTilForrigeUtbetalingslinje(forrige.forrigeUtbetalingslinjeId)
-                    is Utbetalingslinje.Endring.Reaktivering -> siste.oppdaterReferanseTilForrigeUtbetalingslinje(forrige.forrigeUtbetalingslinjeId)
-                    is Utbetalingslinje.Endring.Stans -> siste.oppdaterReferanseTilForrigeUtbetalingslinje(forrige.forrigeUtbetalingslinjeId)
-                    is Utbetalingslinje.Ny -> siste.oppdaterReferanseTilForrigeUtbetalingslinje(forrige.id)
-                }
-            )
-        } else {
-            result.add(siste)
+class ForrigeUtbetbetalingslinjeKoblendeListe() : LinkedList<Utbetalingslinje>() {
+
+    constructor(utbetalingslinje: List<Utbetalingslinje>) : this() {
+        apply {
+            utbetalingslinje.sortedWith(utbetalingslinjeSortering).forEach {
+                add(it)
+            }
         }
     }
-    return result.reversed()
-}
 
-private class KobleMedSisteUtbetalingslinjeListe : LinkedList<Utbetalingslinje>() {
+    override fun add(element: Utbetalingslinje): Boolean {
+        addLast(element)
+        return true
+    }
     override fun addLast(e: Utbetalingslinje?) {
         checkNotNull(e) { "Kan ikke legge til null" }
         val siste = peekLast()

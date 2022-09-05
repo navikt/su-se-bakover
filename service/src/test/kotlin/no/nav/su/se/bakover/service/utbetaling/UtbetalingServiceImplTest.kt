@@ -20,12 +20,12 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
+import no.nav.su.se.bakover.domain.oppdrag.ForrigeUtbetbetalingslinjeKoblendeListe
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
-import no.nav.su.se.bakover.domain.oppdrag.oppdaterReferanseTilForrigeUtbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingForPeriode
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
@@ -197,17 +197,19 @@ internal class UtbetalingServiceImplTest {
             val utbetalingRepoMock = mock<UtbetalingRepo> {
                 on { hentUtbetalinger(any()) } doReturn listOf(
                     utbetalingForSimulering.copy(
-                        utbetalingslinjer = listOf(
-                            expectedGjeldendeUtbetalingslinje,
-                            utbetalingslinje(
-                                periode = februar(2020),
-                                beløp = 53821,
-                            ),
-                            utbetalingslinje(
-                                periode = mars(2020),
-                                beløp = 53821,
-                            ),
-                        ).oppdaterReferanseTilForrigeUtbetalingslinje().nonEmpty(),
+                        utbetalingslinjer = ForrigeUtbetbetalingslinjeKoblendeListe(
+                            listOf(
+                                expectedGjeldendeUtbetalingslinje,
+                                utbetalingslinje(
+                                    periode = februar(2020),
+                                    beløp = 53821,
+                                ),
+                                utbetalingslinje(
+                                    periode = mars(2020),
+                                    beløp = 53821,
+                                ),
+                            )
+                        ).nonEmpty()
                     ),
                 )
             }
