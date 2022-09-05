@@ -3,11 +3,9 @@ package no.nav.su.se.bakover.domain.oppdrag
 import arrow.core.Either
 import arrow.core.getOrHandle
 import no.nav.su.se.bakover.common.førsteINesteMåned
-import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.komplement
 import no.nav.su.se.bakover.common.sikkerLogg
-import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingForPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
@@ -46,7 +44,6 @@ class KryssjekkUtbetalingerOgSimuleringForRekonstruertPeriode(
                             .getOrHandle { throw IllegalStateException("Klarte ikke å konstruere tidslinje utbetalinger") }
                         val tidslinjeRekonstruert = listOf(utbetaling).tidslinje(periode = kontrollPeriode, clock = clock)
                             .getOrHandle { throw IllegalStateException("Klarte ikke å konstruere tidslinje utbetalinger") }
-                        val månedBeregnet = Måned.fra(simulertUtbetaling.simulering.datoBeregnet.startOfMonth())
 
                         check(
                             tidslinjeEksisterende.ekvivalentMed(
@@ -75,71 +72,31 @@ class KryssjekkUtbetalingerOgSimuleringForRekonstruertPeriode(
                         }
 
                         tolketSimulering.simulertePerioder.forEach { tolketPeriode ->
-                            if (tolketPeriode.periode slutterTidligere månedBeregnet) {
-                                when (val tolket = tolketPeriode.utbetaling) {
-                                    is TolketUtbetaling.Etterbetaling -> {
-                                        throw IllegalStateException("Rekonstruksjon har medført uventet endring av utbetalinger!")
-                                    }
-                                    is TolketUtbetaling.Feilutbetaling -> {
-                                        throw IllegalStateException("Rekonstruksjon har medført uventet endring av utbetalinger!")
-                                    }
-                                    is TolketUtbetaling.IngenUtbetaling -> {
-                                        kryssjekkTyper(
-                                            tolketPeriode = tolketPeriode.periode,
-                                            tolket = tolket,
-                                            tidslinjeEksisterende = tidslinjeEksisterende,
-                                            tidslinjeRekonstruert = tidslinjeRekonstruert,
-                                        )
-                                    }
-                                    is TolketUtbetaling.Ordinær -> {
-                                        throw IllegalStateException("Rekonstruksjon har medført uventet endring av utbetalinger!")
-                                    }
-                                    is TolketUtbetaling.UendretUtbetaling -> {
-                                        kryssjekkBeløp(
-                                            tolketPeriode = tolketPeriode.periode,
-                                            tolket = tolket,
-                                            tidslinjeEksisterende = tidslinjeEksisterende,
-                                            tidslinjeRekonstruert = tidslinjeRekonstruert
-                                        )
-                                        kryssjekkTyper(
-                                            tolketPeriode = tolketPeriode.periode,
-                                            tolket = tolket,
-                                            tidslinjeEksisterende = tidslinjeEksisterende,
-                                            tidslinjeRekonstruert = tidslinjeRekonstruert,
-                                        )
-                                    }
+                            when (val tolket = tolketPeriode.utbetaling) {
+                                is TolketUtbetaling.IngenUtbetaling -> {
+                                    kryssjekkTyper(
+                                        tolketPeriode = tolketPeriode.periode,
+                                        tolket = tolket,
+                                        tidslinjeEksisterende = tidslinjeEksisterende,
+                                        tidslinjeRekonstruert = tidslinjeRekonstruert,
+                                    )
                                 }
-                            } else {
-                                when (val tolket = tolketPeriode.utbetaling) {
-                                    is TolketUtbetaling.Etterbetaling -> {
-                                        throw IllegalStateException("Rekonstruksjon har medført uventet endring av utbetalinger!")
-                                    }
-                                    is TolketUtbetaling.Feilutbetaling -> {
-                                        throw IllegalStateException("Rekonstruksjon har medført uventet endring av utbetalinger!")
-                                    }
-                                    is TolketUtbetaling.IngenUtbetaling -> {
-                                        kryssjekkTyper(
-                                            tolketPeriode = tolketPeriode.periode,
-                                            tolket = tolket,
-                                            tidslinjeEksisterende = tidslinjeEksisterende,
-                                            tidslinjeRekonstruert = tidslinjeRekonstruert,
-                                        )
-                                    }
-                                    is TolketUtbetaling.Ordinær,
-                                    is TolketUtbetaling.UendretUtbetaling -> {
-                                        kryssjekkBeløp(
-                                            tolketPeriode = tolketPeriode.periode,
-                                            tolket = tolket,
-                                            tidslinjeEksisterende = tidslinjeEksisterende,
-                                            tidslinjeRekonstruert = tidslinjeRekonstruert
-                                        )
-                                        kryssjekkTyper(
-                                            tolketPeriode = tolketPeriode.periode,
-                                            tolket = tolket,
-                                            tidslinjeEksisterende = tidslinjeEksisterende,
-                                            tidslinjeRekonstruert = tidslinjeRekonstruert,
-                                        )
-                                    }
+                                is TolketUtbetaling.Etterbetaling,
+                                is TolketUtbetaling.Feilutbetaling,
+                                is TolketUtbetaling.Ordinær,
+                                is TolketUtbetaling.UendretUtbetaling -> {
+                                    kryssjekkBeløp(
+                                        tolketPeriode = tolketPeriode.periode,
+                                        tolket = tolket,
+                                        tidslinjeEksisterende = tidslinjeEksisterende,
+                                        tidslinjeRekonstruert = tidslinjeRekonstruert
+                                    )
+                                    kryssjekkTyper(
+                                        tolketPeriode = tolketPeriode.periode,
+                                        tolket = tolket,
+                                        tidslinjeEksisterende = tidslinjeEksisterende,
+                                        tidslinjeRekonstruert = tidslinjeRekonstruert,
+                                    )
                                 }
                             }
                         }
@@ -162,9 +119,6 @@ private fun kryssjekkTyper(
     val rekonstruert = tidslinjeRekonstruert.gjeldendeForDato(tolketPeriode.fraOgMed)!!
 
     when (tolket) {
-        is TolketUtbetaling.Feilutbetaling -> {
-            throw IllegalStateException("Rekonstruksjon har medført uventet endring av utbetalinger!")
-        }
         is TolketUtbetaling.IngenUtbetaling -> {
             check(
                 (eksisterende is UtbetalingslinjePåTidslinje.Stans || eksisterende is UtbetalingslinjePåTidslinje.Opphør) &&
@@ -179,6 +133,7 @@ private fun kryssjekkTyper(
             }
         }
         is TolketUtbetaling.Etterbetaling,
+        is TolketUtbetaling.Feilutbetaling,
         is TolketUtbetaling.Ordinær,
         is TolketUtbetaling.UendretUtbetaling -> {
             check(
