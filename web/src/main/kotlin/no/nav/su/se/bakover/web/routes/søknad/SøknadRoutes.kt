@@ -158,7 +158,20 @@ internal fun Route.søknadRoutes(
                     lukkSøknadService.lukkSøknad(request).fold(
                         { call.svar(LukkSøknadErrorHandler.kunneIkkeLukkeSøknadResponse(request, it)) },
                         {
-                            call.audit(it.fnr, AuditLogEvent.Action.UPDATE, null)
+
+                            call.audit(
+                                berørtBruker = it.fnr,
+                                action = AuditLogEvent.Action.UPDATE,
+                                behandlingId = it.hentSøknadsbehandlingForSøknad(søknadId).fold(
+                                    {
+                                        // Her bruker vi søknadId siden det ikke er opprettet en søknadsbehandling enda
+                                        søknadId
+                                    },
+                                    {
+                                        it.id
+                                    },
+                                ),
+                            )
                             call.sikkerlogg("Lukket søknad for søknad: $søknadId")
                             call.svar(Resultat.json(OK, serialize(it.toJson(clock, satsFactory))))
                         },
