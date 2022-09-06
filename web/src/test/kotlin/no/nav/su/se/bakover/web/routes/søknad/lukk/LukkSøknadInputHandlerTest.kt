@@ -4,11 +4,16 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
+import no.nav.su.se.bakover.common.fixedClock
 import no.nav.su.se.bakover.common.oktober
+import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.brev.BrevConfig
-import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
+import no.nav.su.se.bakover.domain.brev.Brevvalg
+import no.nav.su.se.bakover.test.avvisSøknadMedBrev
+import no.nav.su.se.bakover.test.avvisSøknadUtenBrev
+import no.nav.su.se.bakover.test.bortfallSøknad
+import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.trekkSøknad
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.util.UUID
@@ -20,7 +25,8 @@ internal class LukkSøknadInputHandlerTest {
             LukkSøknadInputHandler.handle(
                 body = null,
                 søknadId = UUID.randomUUID(),
-                saksbehandler = NavIdentBruker.Saksbehandler("Z123")
+                saksbehandler = NavIdentBruker.Saksbehandler("Z123"),
+                clock = fixedClock,
             ) shouldBe UgyldigLukkSøknadRequest.left()
         }
     }
@@ -31,7 +37,8 @@ internal class LukkSøknadInputHandlerTest {
             LukkSøknadInputHandler.handle(
                 body = """{"bogus":"json"}""",
                 søknadId = UUID.randomUUID(),
-                saksbehandler = NavIdentBruker.Saksbehandler("Z123")
+                saksbehandler = NavIdentBruker.Saksbehandler("Z123"),
+                clock = fixedClock,
             ) shouldBe UgyldigLukkSøknadRequest.left()
         }
     }
@@ -48,11 +55,13 @@ internal class LukkSøknadInputHandlerTest {
                     }
                 """.trimIndent(),
                 søknadId = søknadId,
-                saksbehandler = NavIdentBruker.Saksbehandler("Z123")
-            ) shouldBe LukkSøknadRequest.MedBrev.TrekkSøknad(
+                saksbehandler = NavIdentBruker.Saksbehandler("Z123"),
+                clock = 1.oktober(2020).startOfDay().fixedClock(),
+            ) shouldBe trekkSøknad(
                 søknadId = søknadId,
                 saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "Z123"),
-                trukketDato = 1.oktober(2020)
+                trukketDato = 1.oktober(2020),
+                lukketTidspunkt = 1.oktober(2020).startOfDay(),
             ).right()
         }
     }
@@ -68,10 +77,11 @@ internal class LukkSøknadInputHandlerTest {
                     }
                 """.trimIndent(),
                 søknadId = søknadId,
-                saksbehandler = NavIdentBruker.Saksbehandler("Z123")
-            ) shouldBe LukkSøknadRequest.UtenBrev.BortfaltSøknad(
+                saksbehandler = NavIdentBruker.Saksbehandler("Z123"),
+                clock = fixedClock,
+            ) shouldBe bortfallSøknad(
                 søknadId = søknadId,
-                saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "Z123")
+                saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "Z123"),
             ).right()
         }
     }
@@ -90,11 +100,12 @@ internal class LukkSøknadInputHandlerTest {
                     }
                 """.trimIndent(),
                 søknadId = søknadId,
-                saksbehandler = NavIdentBruker.Saksbehandler("Z123")
-            ) shouldBe LukkSøknadRequest.MedBrev.AvvistSøknad(
+                saksbehandler = NavIdentBruker.Saksbehandler("Z123"),
+                clock = fixedClock,
+            ) shouldBe avvisSøknadMedBrev(
                 søknadId = søknadId,
                 saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "Z123"),
-                brevConfig = BrevConfig.Vedtak(null)
+                brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.VedtaksbrevUtenFritekst(),
             ).right()
         }
     }
@@ -114,11 +125,12 @@ internal class LukkSøknadInputHandlerTest {
                     }
                 """.trimIndent(),
                 søknadId = søknadId,
-                saksbehandler = NavIdentBruker.Saksbehandler("Z123")
-            ) shouldBe LukkSøknadRequest.MedBrev.AvvistSøknad(
+                saksbehandler = NavIdentBruker.Saksbehandler("Z123"),
+                clock = fixedClock,
+            ) shouldBe avvisSøknadMedBrev(
                 søknadId = søknadId,
                 saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "Z123"),
-                brevConfig = BrevConfig.Vedtak("Jeg er fritekst")
+                brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.VedtaksbrevUtenFritekst(),
             ).right()
         }
     }
@@ -134,8 +146,9 @@ internal class LukkSøknadInputHandlerTest {
                     }
                 """.trimIndent(),
                 søknadId = søknadId,
-                saksbehandler = NavIdentBruker.Saksbehandler("Z123")
-            ) shouldBe LukkSøknadRequest.UtenBrev.AvvistSøknad(
+                saksbehandler = NavIdentBruker.Saksbehandler("Z123"),
+                clock = fixedClock,
+            ) shouldBe avvisSøknadUtenBrev(
                 søknadId = søknadId,
                 saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "Z123"),
             ).right()
@@ -156,7 +169,8 @@ internal class LukkSøknadInputHandlerTest {
                     }
                 """.trimIndent(),
                 søknadId = søknadId,
-                saksbehandler = NavIdentBruker.Saksbehandler("Z123")
+                saksbehandler = NavIdentBruker.Saksbehandler("Z123"),
+                clock = fixedClock,
             ) shouldBe UgyldigLukkSøknadRequest.left()
         }
     }
@@ -165,17 +179,17 @@ internal class LukkSøknadInputHandlerTest {
     fun `instansiering av input json fungerer bare med korrekt type`() {
         assertThrows<IllegalArgumentException> {
             LukketJson.TrukketJson(
-                type = Søknad.Journalført.MedOppgave.Lukket.LukketType.BORTFALT,
-                datoSøkerTrakkSøknad = 1.oktober(2020)
+                type = LukketJson.LukketType.BORTFALT,
+                datoSøkerTrakkSøknad = 1.oktober(2020),
             )
         }
         assertThrows<IllegalArgumentException> {
             LukketJson.AvvistJson(
-                type = Søknad.Journalført.MedOppgave.Lukket.LukketType.BORTFALT,
+                type = LukketJson.LukketType.BORTFALT,
             )
         }
         assertThrows<IllegalArgumentException> {
-            LukketJson.BortfaltJson(type = Søknad.Journalført.MedOppgave.Lukket.LukketType.TRUKKET)
+            LukketJson.BortfaltJson(type = LukketJson.LukketType.TRUKKET)
         }
     }
 
@@ -194,13 +208,12 @@ internal class LukkSøknadInputHandlerTest {
                     }
                 """.trimIndent(),
                 søknadId = søknadId,
-                saksbehandler = NavIdentBruker.Saksbehandler("Z123")
-            ) shouldBe LukkSøknadRequest.MedBrev.AvvistSøknad(
+                saksbehandler = NavIdentBruker.Saksbehandler("Z123"),
+                clock = fixedClock,
+            ) shouldBe avvisSøknadMedBrev(
                 søknadId = søknadId,
                 saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "Z123"),
-                brevConfig = BrevConfig.Fritekst(
-                    fritekst = "jeg er fritekst"
-                )
+                brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst("jeg er fritekst"),
             ).right()
         }
     }

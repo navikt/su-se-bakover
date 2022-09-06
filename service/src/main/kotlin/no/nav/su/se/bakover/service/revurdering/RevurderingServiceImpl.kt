@@ -50,6 +50,8 @@ import no.nav.su.se.bakover.domain.revurdering.erKlarForAttestering
 import no.nav.su.se.bakover.domain.revurdering.harSendtForhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.medFritekst
 import no.nav.su.se.bakover.domain.satser.SatsFactory
+import no.nav.su.se.bakover.domain.statistikk.Statistikkhendelse
+import no.nav.su.se.bakover.domain.statistikk.Statistikkhendelse.Revurdering.Avsluttet
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
@@ -61,8 +63,6 @@ import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
-import no.nav.su.se.bakover.service.statistikk.Event
-import no.nav.su.se.bakover.service.statistikk.Event.Statistikk.RevurderingStatistikk.RevurderingAvsluttet
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
@@ -187,7 +187,7 @@ internal class RevurderingServiceImpl(
                 revurderingRepo.lagre(opprettetRevurdering)
 
                 observers.forEach { observer ->
-                    observer.handle(Event.Statistikk.RevurderingStatistikk.RevurderingOpprettet(opprettetRevurdering))
+                    observer.handle(Statistikkhendelse.Revurdering.Opprettet(opprettetRevurdering))
                 }
                 opprettetRevurdering
             }
@@ -926,7 +926,7 @@ internal class RevurderingServiceImpl(
         revurderingRepo.lagre(tilAttestering)
         observers.forEach { observer ->
             observer.handle(
-                Event.Statistikk.RevurderingStatistikk.RevurderingTilAttestering(
+                Statistikkhendelse.Revurdering.Attestering(
                     tilAttestering,
                 ),
             )
@@ -1178,8 +1178,8 @@ internal class RevurderingServiceImpl(
         }.map {
             Either.catch {
                 observers.forEach { observer ->
-                    observer.handle(Event.Statistikk.RevurderingStatistikk.RevurderingIverksatt(it.first))
-                    observer.handle(Event.Statistikk.Vedtaksstatistikk(it.second))
+                    observer.handle(Statistikkhendelse.Revurdering.Iverksatt(it.first))
+                    observer.handle(Statistikkhendelse.Vedtak(it.second))
                 }
             }.mapLeft { e ->
                 log.error(
@@ -1245,7 +1245,7 @@ internal class RevurderingServiceImpl(
 
         observers.forEach { observer ->
             observer.handle(
-                Event.Statistikk.RevurderingStatistikk.RevurderingUnderkjent(underkjent),
+                Statistikkhendelse.Revurdering.Underkjent(underkjent),
             )
         }
 
@@ -1364,10 +1364,10 @@ internal class RevurderingServiceImpl(
             revurderingRepo.lagre(avsluttetRevurdering)
             avsluttetRevurdering.right()
         }
-        val event: Event? = when (val result = resultat.getOrElse { null }) {
-            is AvsluttetRevurdering -> RevurderingAvsluttet(result)
-            is GjenopptaYtelseRevurdering.AvsluttetGjenoppta -> Event.Statistikk.RevurderingStatistikk.Gjenoppta(result)
-            is StansAvYtelseRevurdering.AvsluttetStansAvYtelse -> Event.Statistikk.RevurderingStatistikk.Stans(result)
+        val event: Statistikkhendelse? = when (val result = resultat.getOrElse { null }) {
+            is AvsluttetRevurdering -> Avsluttet(result)
+            is GjenopptaYtelseRevurdering.AvsluttetGjenoppta -> Statistikkhendelse.Revurdering.Gjenoppta(result)
+            is StansAvYtelseRevurdering.AvsluttetStansAvYtelse -> Statistikkhendelse.Revurdering.Stans(result)
             else -> null
         }
         event?.let {
@@ -1393,7 +1393,7 @@ internal class RevurderingServiceImpl(
         // Lager en midlertidig avsluttet revurdering for å konstruere brevet - denne skal ikke lagres
         val avsluttetRevurdering = revurdering.avslutt(
             begrunnelse = "",
-            brevvalg = fritekst?.let { Brevvalg.SaksbehandlersValg.SkalSendeBrev.MedFritekst(it) },
+            brevvalg = fritekst?.let { Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst(it) },
             tidspunktAvsluttet = Tidspunkt.now(clock),
         ).getOrHandle {
             return KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeLageBrevutkast.left()

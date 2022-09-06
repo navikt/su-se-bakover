@@ -42,11 +42,11 @@ import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.domain.statistikk.Statistikkhendelse
 import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
-import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.statistikk.notify
 import no.nav.su.se.bakover.service.vedtak.VedtakService
@@ -108,7 +108,7 @@ class KlageServiceImpl(
             clock = clock,
         ).also {
             klageRepo.lagre(it)
-            observers.notify(Event.Statistikk.Klagestatistikk.Opprettet(it))
+            observers.notify(Statistikkhendelse.Klagestatistikk.Opprettet(it))
         }.right()
     }
 
@@ -326,7 +326,7 @@ class KlageServiceImpl(
             return KunneIkkeOversendeKlage.KunneIkkeOversendeTilKlageinstans.left()
         }
         oppgaveService.lukkOppgave(oversendtKlage.oppgaveId)
-        observers.notify(Event.Statistikk.Klagestatistikk.Oversendt(oversendtKlage))
+        observers.notify(Statistikkhendelse.Klagestatistikk.Oversendt(oversendtKlage))
         return oversendtKlage.right()
     }
 
@@ -389,7 +389,7 @@ class KlageServiceImpl(
         }
 
         oppgaveService.lukkOppgave(avvistKlage.oppgaveId)
-        observers.notify(Event.Statistikk.Klagestatistikk.Avvist(avvistKlage))
+        observers.notify(Statistikkhendelse.Klagestatistikk.Avvist(avvistKlage))
         return avvistKlage.right()
     }
 
@@ -435,7 +435,7 @@ class KlageServiceImpl(
         ).tap {
             klageRepo.lagre(it)
             oppgaveService.lukkOppgave(it.oppgaveId)
-            observers.notify(Event.Statistikk.Klagestatistikk.Avsluttet(it))
+            observers.notify(Statistikkhendelse.Klagestatistikk.Avsluttet(it))
         }
     }
 }

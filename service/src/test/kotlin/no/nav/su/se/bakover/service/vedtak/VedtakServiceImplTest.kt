@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
-import no.nav.su.se.bakover.test.plus
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn

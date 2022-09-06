@@ -1,39 +1,24 @@
 package no.nav.su.se.bakover.service.søknad.lukk
 
-import arrow.core.Either
-import arrow.core.flatMap
-import arrow.core.getOrElse
 import arrow.core.getOrHandle
-import arrow.core.left
-import arrow.core.right
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.persistence.SessionFactory
-import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.common.persistence.TransactionContext
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
-import no.nav.su.se.bakover.domain.brev.søknad.lukk.AvvistSøknadBrevRequest
-import no.nav.su.se.bakover.domain.brev.søknad.lukk.TrukketSøknadBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.person.IdentClient
-import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
-import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
-import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest.Companion.lukk
-import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
+import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
-import no.nav.su.se.bakover.service.statistikk.Event
-import no.nav.su.se.bakover.service.statistikk.Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingLukket
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import org.slf4j.LoggerFactory
 import java.time.Clock
-import java.time.LocalDate
 import java.util.UUID
 
 internal class LukkSøknadServiceImpl(
@@ -54,181 +39,102 @@ internal class LukkSøknadServiceImpl(
         observers.add(observer)
     }
 
-    override fun lukkSøknad(request: LukkSøknadRequest): Either<KunneIkkeLukkeSøknad, Sak> {
-        val søknad = hentSøknad(request.søknadId).getOrHandle {
-            return it.left()
+    override fun lukkSøknad(
+        command: LukkSøknadCommand,
+    ): Sak {
+        val søknadId = command.søknadId
+        val sak = sakService.hentSakForSøknad(søknadId).getOrHandle {
+            throw IllegalArgumentException("Fant ikke sak for søknadId $søknadId")
         }
-        if (request is LukkSøknadRequest.MedBrev.TrekkSøknad && !request.erDatoGyldig(søknad.mottaksdato, clock)) {
-            log.info(
-                "Kan ikke lukke søknad ${søknad.id}. ${request.trukketDato} må være mellom ${søknad.mottaksdato} og idag (${
-                LocalDate.now(clock)
-                })",
-            )
-            return KunneIkkeLukkeSøknad.UgyldigTrukketDato.left()
-        }
-        val lukketSøknadbehandling = søknadsbehandlingService.hentForSøknad(søknad.id)?.let { søknadsbehandling ->
-            søknadsbehandling.lukkSøknadsbehandling().getOrHandle {
-                return KunneIkkeLukkeSøknad.BehandlingErIFeilTilstand(it).left()
-            }
-        }
-        return when (søknad) {
-            is Søknad.Journalført.MedOppgave.Lukket -> {
-                log.info("Søknad ${søknad.id} er allerede lukket")
-                KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
-            }
-            is Søknad.Ny, is Søknad.Journalført.UtenOppgave -> {
-                log.warn("Kan ikke lukke søknad ${søknad.id} siden den mangler oppgave. Se drifts-endepunktet /drift/søknader/fix.")
-                KunneIkkeLukkeSøknad.SøknadManglerOppgave.left()
-            }
-            is Søknad.Journalført.MedOppgave.IkkeLukket -> {
-                val person: Person = personService.hentPerson(søknad.søknadInnhold.personopplysninger.fnr)
-                    .getOrElse {
-                        log.error("Kan ikke lukke søknad ${søknad.id}. Fant ikke person.")
-                        return KunneIkkeLukkeSøknad.FantIkkePerson.left()
-                    }
-                log.info("Lukker journalført søknad ${søknad.id} og tilhørende oppgave ${søknad.oppgaveId}")
-
-                lukkSøknad(person, request, søknad, lukketSøknadbehandling)
-                    .flatMap { lukket ->
-                        oppgaveService.lukkOppgave(søknad.oppgaveId)
-                            .mapLeft {
-                                log.warn("Kunne ikke lukke oppgave ${søknad.oppgaveId} for søknad ${søknad.id}")
-                            }
-                        val sak = hentSak(lukket.sakId)
-
-                        val event = if (lukketSøknadbehandling == null) {
-                            Event.Statistikk.SøknadStatistikk.SøknadLukket(søknad = lukket, saksnummer = sak.saksnummer)
-                        } else {
-                            SøknadsbehandlingLukket(lukketSøknadbehandling)
-                        }
-
-                        observers.forEach { observer ->
-                            observer.handle(event)
-                        }
-                        sak.right()
-                    }
+        return sessionFactory.withTransactionContext { tx ->
+            sak.lukkSøknadOgSøknadsbehandling(
+                lukkSøknadCommand = command,
+                hentPerson = { personService.hentPerson(sak.fnr) },
+                clock = clock,
+                hentSaksbehandlerNavn = { identClient.hentNavnForNavIdent(it) },
+            ).let {
+                it.lagBrevRequest.tap { lagBrevRequest ->
+                    persisterBrevKlartForSending(
+                        tx = tx,
+                        brev = lagBrevRequest,
+                        sakId = it.sak.id,
+                        søknadId = it.søknad.id,
+                    )
+                }
+                søknadService.persisterSøknad(it.søknad, tx)
+                it.søknadsbehandling?.also {
+                    søknadsbehandlingService.persisterSøknadsbehandling(it, tx)
+                }
+                oppgaveService.lukkOppgave(it.søknad.oppgaveId).tapLeft { feil ->
+                    // Fire and forget. De som følger med på alerts kan evt. gi beskjed til saksbehandlerene.
+                    log.error("Kunne ikke lukke oppgave knyttet til søknad/søknadsbehandling med søknadId ${it.søknad.id} og oppgaveId ${it.søknad.oppgaveId}. Underliggende feil: $feil")
+                }
+                observers.forEach { e ->
+                    // TODO: Fire and forget. Det vil logges i observerne, men vil ikke kunne resende denne dersom dette feiler.
+                    e.handle(it.hendelse)
+                }
+                it.sak
             }
         }
     }
 
-    private fun lukkSøknad(
-        person: Person,
-        request: LukkSøknadRequest,
-        søknad: Søknad.Journalført.MedOppgave.IkkeLukket,
-        lukketSøknadsbehandling: LukketSøknadsbehandling?,
-    ): Either<KunneIkkeLukkeSøknad, Søknad.Journalført.MedOppgave.Lukket> {
-        return when (request) {
-            is LukkSøknadRequest.MedBrev -> {
-                lukkSøknadMedBrev(person, request, søknad, lukketSøknadsbehandling)
+    private fun persisterBrevKlartForSending(
+        tx: TransactionContext,
+        brev: LagBrevRequest,
+        sakId: UUID,
+        søknadId: UUID,
+    ) {
+        brev.tilDokument {
+            brevService.lagBrev(it).mapLeft {
+                log.error("Kunne ikke konvertere LagBrevRequest til dokument ved lukking av søknad $søknadId og søknadsbehandling. Underliggende grunn: $it")
+                LagBrevRequest.KunneIkkeGenererePdf
             }
-            is LukkSøknadRequest.UtenBrev -> {
-                lukkSøknadUtenBrev(request, søknad, lukketSøknadsbehandling).right()
-            }
+        }.getOrHandle {
+            throw IllegalArgumentException("Kunne ikke konvertere LagBrevRequest til dokument ved lukking av søknad $søknadId og søknadsbehandling. Underliggende grunn: $it")
+        }.let {
+            brevService.lagreDokument(
+                it.leggTilMetadata(
+                    metadata = Dokument.Metadata(
+                        sakId = sakId,
+                        søknadId = søknadId,
+                        bestillBrev = true,
+                    ),
+                ),
+                tx,
+            )
         }
     }
 
     override fun lagBrevutkast(
-        request: LukkSøknadRequest,
-    ): Either<KunneIkkeLageBrevutkast, ByteArray> {
-        return hentSøknad(request.søknadId).mapLeft {
-            KunneIkkeLageBrevutkast.FantIkkeSøknad
-        }.flatMap { søknad ->
-            personService.hentPerson(søknad.søknadInnhold.personopplysninger.fnr)
-                .mapLeft {
-                    log.error("Kunne ikke lage brevutkast siden vi ikke fant personen for søknad ${request.søknadId}")
-                    KunneIkkeLageBrevutkast.FantIkkePerson
-                }.flatMap { person ->
-                    val sak = sakService.hentSakidOgSaksnummer(fnr = person.ident.fnr)
-                        .getOrHandle { return KunneIkkeLageBrevutkast.FantIkkeSak.left() }
-                    val brevRequest = when (request) {
-                        is LukkSøknadRequest.MedBrev -> lagBrevRequest(person, søknad, request, sak.saksnummer)
-                        is LukkSøknadRequest.UtenBrev -> return KunneIkkeLageBrevutkast.UkjentBrevtype.left()
-                    }
-                    brevService.lagBrev(brevRequest)
-                        .mapLeft {
-                            KunneIkkeLageBrevutkast.KunneIkkeLageBrev
-                        }
+        command: LukkSøknadCommand,
+    ): Pair<Fnr, ByteArray> {
+        val søknadId = command.søknadId
+        val søknad = søknadService.hentSøknad(søknadId).getOrHandle {
+            throw IllegalArgumentException("Kunne ikke lage brevutkast for lukk søknad med søknadId $søknadId - Fant ikke sak. Underliggende feil: $it")
+        } as? Søknad.Journalført.MedOppgave.IkkeLukket
+            ?: throw IllegalArgumentException("Kunne ikke lage brevutkast for lukk søknad med søknadId $søknadId - Søknad i feil tilstand.")
+        val fnr = søknad.fnr
+        val brevRequest = søknad.toBrevRequest(
+            lukkSøknadCommand = command,
+            hentPerson = {
+                personService.hentPerson(fnr).getOrHandle {
+                    throw RuntimeException("Kunne ikke lage brevutkast for lukk søknad med søknadId $søknadId - fant ikke person. Underliggende feil: $it")
                 }
+            },
+            clock = clock,
+            hentSaksbehandlerNavn = { identClient.hentNavnForNavIdent(it).getOrHandle { "" } },
+            hentSaksnummer = {
+                sakService.hentSakidOgSaksnummer(fnr).getOrHandle {
+                    throw RuntimeException("Kunne ikke lage brevutkast for lukk søknad med søknadId $søknadId - fant ikke saksnummer. Underliggende feil: $it")
+                }.saksnummer
+            },
+        ).getOrHandle {
+            throw IllegalArgumentException("Kunne ikke lage brevutkast for lukk søknad med søknadId $søknadId - kan ikke lages brev i denne tilstanden. Underliggende feil: $it")
+        }
+        return brevService.lagBrev(brevRequest).getOrHandle {
+            throw IllegalArgumentException("Kunne ikke lage brevutkast for lukk søknad med søknadId $søknadId - feil ved generering av brev. Underliggende feil: $it")
+        }.let {
+            Pair(fnr, it)
         }
     }
-
-    private fun lagBrevRequest(
-        person: Person,
-        søknad: Søknad,
-        request: LukkSøknadRequest.MedBrev,
-        saksnummer: Saksnummer,
-    ): LagBrevRequest {
-        return when (request) {
-            is LukkSøknadRequest.MedBrev.TrekkSøknad -> TrukketSøknadBrevRequest(
-                person = person,
-                søknad = søknad,
-                trukketDato = request.trukketDato,
-                saksbehandlerNavn = hentNavnForNavIdent(request.saksbehandler).getOrHandle { "" },
-                dagensDato = LocalDate.now(clock),
-                saksnummer = saksnummer,
-            )
-            is LukkSøknadRequest.MedBrev.AvvistSøknad -> AvvistSøknadBrevRequest(
-                person = person,
-                brevConfig = request.brevConfig,
-                saksbehandlerNavn = hentNavnForNavIdent(request.saksbehandler).getOrHandle { "" },
-                dagensDato = LocalDate.now(clock),
-                saksnummer = saksnummer,
-            )
-        }
-    }
-
-    private fun hentNavnForNavIdent(navIdent: NavIdentBruker): Either<KunneIkkeHenteNavnForNavIdent, String> {
-        return identClient.hentNavnForNavIdent(navIdent)
-    }
-
-    private fun hentSøknad(søknadId: UUID): Either<KunneIkkeLukkeSøknad.FantIkkeSøknad, Søknad> {
-        return søknadService.hentSøknad(søknadId).mapLeft { KunneIkkeLukkeSøknad.FantIkkeSøknad }
-    }
-
-    private fun lukkSøknadUtenBrev(
-        request: LukkSøknadRequest.UtenBrev,
-        søknad: Søknad.Journalført.MedOppgave.IkkeLukket,
-        lukketSøknadsbehandling: LukketSøknadsbehandling?,
-    ): Søknad.Journalført.MedOppgave.Lukket {
-        val lukketSøknad = søknad.lukk(request, Tidspunkt.now(clock))
-        sessionFactory.withTransactionContext { transactionContext ->
-            søknadService.lukkSøknad(lukketSøknad, transactionContext)
-            lukketSøknadsbehandling?.also { søknadsbehandlingService.lukk(it, transactionContext) }
-        }
-        return lukketSøknad
-    }
-
-    private fun lukkSøknadMedBrev(
-        person: Person,
-        request: LukkSøknadRequest.MedBrev,
-        søknad: Søknad.Journalført.MedOppgave.IkkeLukket,
-        lukketSøknadsbehandling: LukketSøknadsbehandling?,
-    ): Either<KunneIkkeLukkeSøknad, Søknad.Journalført.MedOppgave.Lukket> {
-        val sak = sakService.hentSakidOgSaksnummer(fnr = person.ident.fnr)
-            .getOrHandle { return KunneIkkeLukkeSøknad.FantIkkeSak.left() }
-        val dokument = lagBrevRequest(person, søknad, request, sak.saksnummer)
-            .tilDokument {
-                brevService.lagBrev(it).mapLeft { LagBrevRequest.KunneIkkeGenererePdf }
-            }.map {
-                it.leggTilMetadata(
-                    metadata = Dokument.Metadata(
-                        sakId = søknad.sakId,
-                        søknadId = søknad.id,
-                        bestillBrev = true,
-                    ),
-                )
-            }.getOrHandle { return KunneIkkeLukkeSøknad.KunneIkkeGenerereDokument.left() }
-
-        val lukketSøknad = søknad.lukk(request, Tidspunkt.now(clock))
-
-        sessionFactory.withTransactionContext { transactionContext ->
-            søknadService.lukkSøknad(lukketSøknad, transactionContext)
-            brevService.lagreDokument(dokument, transactionContext)
-            lukketSøknadsbehandling?.also { søknadsbehandlingService.lukk(it, transactionContext) }
-        }
-
-        return lukketSøknad.right()
-    }
-
-    private fun hentSak(id: UUID) = sakService.hentSak(id).orNull()!!
 }

@@ -4,45 +4,52 @@ import arrow.core.Either
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.brev.BrevConfig
-import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
+import no.nav.su.se.bakover.domain.brev.Brevvalg
+import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
+import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
 internal sealed class LukketJson {
-    abstract val type: Søknad.Journalført.MedOppgave.Lukket.LukketType
+    abstract val type: LukketType
+
+    enum class LukketType {
+        AVVIST,
+        BORTFALT,
+        TRUKKET;
+    }
 
     data class TrukketJson(
-        override val type: Søknad.Journalført.MedOppgave.Lukket.LukketType,
-        val datoSøkerTrakkSøknad: LocalDate
+        override val type: LukketType,
+        val datoSøkerTrakkSøknad: LocalDate,
     ) : LukketJson() {
         init {
-            require(type == Søknad.Journalført.MedOppgave.Lukket.LukketType.TRUKKET)
+            require(type == LukketType.TRUKKET)
         }
     }
 
     data class BortfaltJson(
-        override val type: Søknad.Journalført.MedOppgave.Lukket.LukketType
+        override val type: LukketType,
     ) : LukketJson() {
         init {
-            require(type == Søknad.Journalført.MedOppgave.Lukket.LukketType.BORTFALT)
+            require(type == LukketType.BORTFALT)
         }
     }
 
     data class AvvistJson(
-        override val type: Søknad.Journalført.MedOppgave.Lukket.LukketType,
-        val brevConfig: BrevConfigJson? = null
+        override val type: LukketType,
+        val brevConfig: BrevConfigJson? = null,
     ) : LukketJson() {
         init {
-            require(type == Søknad.Journalført.MedOppgave.Lukket.LukketType.AVVIST)
+            require(type == LukketType.AVVIST)
         }
 
         data class BrevConfigJson(
             val brevtype: BrevType,
-            val fritekst: String?
+            val fritekst: String?,
         )
     }
 
@@ -56,8 +63,9 @@ internal object LukkSøknadInputHandler {
     fun handle(
         body: String?,
         søknadId: UUID,
-        saksbehandler: NavIdentBruker.Saksbehandler
-    ): Either<UgyldigLukkSøknadRequest, LukkSøknadRequest> {
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        clock: Clock,
+    ): Either<UgyldigLukkSøknadRequest, LukkSøknadCommand> {
         if (body == null) {
             return UgyldigLukkSøknadRequest.left()
         }
@@ -67,29 +75,35 @@ internal object LukkSøknadInputHandler {
         }
 
         return when (bodyAsJson) {
-            is LukketJson.TrukketJson -> LukkSøknadRequest.MedBrev.TrekkSøknad(
+            is LukketJson.TrukketJson -> LukkSøknadCommand.MedBrev.TrekkSøknad(
                 søknadId = søknadId,
                 saksbehandler = saksbehandler,
-                trukketDato = bodyAsJson.datoSøkerTrakkSøknad
+                trukketDato = bodyAsJson.datoSøkerTrakkSøknad,
+                lukketTidspunkt = Tidspunkt.now(clock),
             ).right()
 
-            is LukketJson.BortfaltJson -> LukkSøknadRequest.UtenBrev.BortfaltSøknad(
+            is LukketJson.BortfaltJson -> LukkSøknadCommand.UtenBrev.BortfaltSøknad(
                 søknadId = søknadId,
-                saksbehandler = saksbehandler
+                saksbehandler = saksbehandler,
+                lukketTidspunkt = Tidspunkt.now(clock),
             ).right()
+
             is LukketJson.AvvistJson -> when (bodyAsJson.brevConfig) {
-                null -> LukkSøknadRequest.UtenBrev.AvvistSøknad(
+                null -> LukkSøknadCommand.UtenBrev.AvvistSøknad(
                     søknadId = søknadId,
-                    saksbehandler = saksbehandler
+                    saksbehandler = saksbehandler,
+                    lukketTidspunkt = Tidspunkt.now(clock),
                 ).right()
+
                 else -> {
                     if (bodyAsJson.brevConfig.brevtype == LukketJson.BrevType.FRITEKST && bodyAsJson.brevConfig.fritekst == null) {
                         UgyldigLukkSøknadRequest.left()
                     } else {
-                        LukkSøknadRequest.MedBrev.AvvistSøknad(
+                        LukkSøknadCommand.MedBrev.AvvistSøknad(
                             søknadId = søknadId,
                             saksbehandler = saksbehandler,
-                            brevConfig = configForType(bodyAsJson.brevConfig)
+                            lukketTidspunkt = Tidspunkt.now(clock),
+                            brevvalg = toBrevvalg(bodyAsJson.brevConfig),
                         ).right()
                     }
                 }
@@ -97,11 +111,13 @@ internal object LukkSøknadInputHandler {
         }
     }
 
-    private fun configForType(brevConfig: LukketJson.AvvistJson.BrevConfigJson): BrevConfig {
+    private fun toBrevvalg(brevConfig: LukketJson.AvvistJson.BrevConfigJson): Brevvalg.SaksbehandlersValg {
         return when (brevConfig.brevtype) {
-            LukketJson.BrevType.VEDTAK -> BrevConfig.Vedtak(brevConfig.fritekst)
+            LukketJson.BrevType.VEDTAK -> Brevvalg.SaksbehandlersValg.SkalSendeBrev.VedtaksbrevUtenFritekst()
             // Vi sjekker for null hvis brevet er av typen fritekst på steget over
-            LukketJson.BrevType.FRITEKST -> BrevConfig.Fritekst(brevConfig.fritekst!!)
+            LukketJson.BrevType.FRITEKST -> Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst(
+                brevConfig.fritekst!!,
+            )
         }
     }
 }

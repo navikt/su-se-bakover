@@ -29,6 +29,11 @@ sealed interface Brevvalg {
     ) : Brevvalg {
         override fun skalSendeBrev() = false
         override val fritekst = null
+
+        override fun toString(): String {
+            // Vi ønsker ikke logge fritekst eller begrunnelse i tilfelle den inneholder sensitiv informasjon.
+            return "SkalIkkeSendeBrev(begrunnelse='***')"
+        }
     }
 
     /**
@@ -44,10 +49,26 @@ sealed interface Brevvalg {
          *
          * @param begrunnelse Systemet sin begrunnelse for etterlevelse og evt. migrering.
          */
-        data class MedFritekst(
+        data class InformasjonsbrevMedFritekst(
             override val fritekst: String,
             override val begrunnelse: String,
-        ) : SkalSendeBrev
+        ) : SkalSendeBrev {
+            override fun toString(): String {
+                // Vi ønsker ikke logge fritekst eller begrunnelse i tilfelle den inneholder sensitiv informasjon.
+                return "InformasjonsbrevMedFritekst(fritekst='***', begrunnelse='***')"
+            }
+        }
+
+        data class InformasjonsbrevUtenFritekst(
+            override val begrunnelse: String? = null,
+        ) : SkalSendeBrev {
+            override val fritekst = null
+
+            override fun toString(): String {
+                // Vi ønsker ikke logge fritekst eller begrunnelse i tilfelle den inneholder sensitiv informasjon.
+                return "InformasjonsbrevUtenFritekst(begrunnelse='***')"
+            }
+        }
     }
 
     /**
@@ -66,23 +87,42 @@ sealed interface Brevvalg {
              * Denne brevtypen har støtte for friktekst.
              * Her er det mulig å utvide med UtenFritekst, evt. gjøre feltet nullable i supertypen.
              */
-            data class MedFritekst(
+            data class InformasjonsbrevMedFritekst(
                 override val fritekst: String,
                 // TODO jah: Spør John Are om vi trenger en begrunnelse i dette tilfellet.
             ) : SkalSendeBrev {
                 override val begrunnelse = null
+
+                override fun toString(): String {
+                    // Vi ønsker ikke logge fritekst eller begrunnelse i tilfelle den inneholder sensitiv informasjon.
+                    return "InformasjonsbrevMedFritekst(fritekst='***')"
+                }
+            }
+
+            data class VedtaksbrevUtenFritekst(
+                override val begrunnelse: String? = null,
+            ) : SkalSendeBrev {
+                override val fritekst = null
+
+                override fun toString(): String {
+                    // Vi ønsker ikke logge fritekst eller begrunnelse i tilfelle den inneholder sensitiv informasjon.
+                    return "VedtaksbrevUtenFritekst(begrunnelse='***')"
+                }
             }
         }
 
         /**
          * Saksbehandler har valgt at det ikke skal sendes brev.
-         * I første iterasjon krever vi en begrunnelse.
-         * Dersom det i senere iterasjoner ikke ønskes begrunnelse kan den gjøres nullable eller splittes i 2 typer.
          */
         data class SkalIkkeSendeBrev(
-            override val begrunnelse: String,
+            override val begrunnelse: String? = null,
         ) : SaksbehandlersValg {
             override val fritekst = null
+
+            override fun toString(): String {
+                // Vi ønsker ikke logge fritekst eller begrunnelse i tilfelle den inneholder sensitiv informasjon.
+                return "SkalIkkeSendeBrev(begrunnelse='***')"
+            }
         }
 
         override fun skalSendeBrev() = false

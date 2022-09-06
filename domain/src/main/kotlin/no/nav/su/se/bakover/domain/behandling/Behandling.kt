@@ -11,6 +11,9 @@ import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.util.UUID
 
+/**
+ * https://jira.adeo.no/browse/BEGREP-304 og https://jira.adeo.no/browse/BEGREP-2321
+ */
 interface Behandling {
     val id: UUID
     val opprettet: Tidspunkt

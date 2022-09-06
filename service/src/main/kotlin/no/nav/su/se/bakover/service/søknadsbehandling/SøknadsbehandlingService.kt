@@ -58,7 +58,7 @@ interface SøknadsbehandlingService {
 
     fun leggTilFormuevilkår(request: LeggTilFormuevilkårRequest): Either<KunneIkkeLeggeTilFormuegrunnlag, Søknadsbehandling>
     fun hentForSøknad(søknadId: UUID): Søknadsbehandling?
-    fun lukk(lukketSøknadbehandling: LukketSøknadsbehandling, tx: TransactionContext)
+    fun persisterSøknadsbehandling(lukketSøknadbehandling: LukketSøknadsbehandling, tx: TransactionContext)
     fun lagre(avslag: AvslagManglendeDokumentasjon, tx: TransactionContext)
     fun leggTilUtenlandsopphold(request: LeggTilFlereUtenlandsoppholdRequest): Either<KunneIkkeLeggeTilUtenlandsopphold, Søknadsbehandling.Vilkårsvurdert>
     fun leggTilOpplysningspliktVilkår(request: LeggTilOpplysningspliktRequest.Søknadsbehandling): Either<KunneIkkeLeggeTilOpplysningsplikt, Søknadsbehandling.Vilkårsvurdert>

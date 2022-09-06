@@ -36,6 +36,7 @@ sealed class HentDokumenterForIdType {
 }
 
 sealed class KunneIkkeLageDokument {
+    override fun toString() = this::class.simpleName!!
     object KunneIkkeFinneGjeldendeUtbetaling : KunneIkkeLageDokument()
     object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : KunneIkkeLageDokument()
     object KunneIkkeHentePerson : KunneIkkeLageDokument()
@@ -44,24 +45,27 @@ sealed class KunneIkkeLageDokument {
 }
 
 sealed class KunneIkkeLageBrev {
+    override fun toString() = this::class.simpleName!!
     object KunneIkkeGenererePDF : KunneIkkeLageBrev()
     object FantIkkePerson : KunneIkkeLageBrev()
 }
 
 sealed class KunneIkkeJournalføreBrev {
-    object KunneIkkeGenereBrev : KunneIkkeJournalføreBrev()
+    override fun toString() = this::class.simpleName!!
     object KunneIkkeOppretteJournalpost : KunneIkkeJournalføreBrev()
 }
 
 object KunneIkkeDistribuereBrev
 
 sealed class KunneIkkeJournalføreDokument {
+    override fun toString() = this::class.simpleName!!
     object KunneIkkeFinneSak : KunneIkkeJournalføreDokument()
     object KunneIkkeFinnePerson : KunneIkkeJournalføreDokument()
     object FeilVedOpprettelseAvJournalpost : KunneIkkeJournalføreDokument()
 }
 
 sealed class KunneIkkeBestilleBrevForDokument {
+    override fun toString() = this::class.simpleName!!
     object FeilVedBestillingAvBrev : KunneIkkeBestilleBrevForDokument()
     object MåJournalføresFørst : KunneIkkeBestilleBrevForDokument()
 }

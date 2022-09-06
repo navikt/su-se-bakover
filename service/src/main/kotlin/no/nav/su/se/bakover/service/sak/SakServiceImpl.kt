@@ -13,12 +13,12 @@ import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
-import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.domain.statistikk.Statistikkhendelse
+import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
-import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -92,7 +92,7 @@ internal class SakServiceImpl(
             hentSak(sak.id).fold(
                 ifLeft = { log.error("Opprettet sak men feilet ved henting av den.") },
                 ifRight = {
-                    observers.forEach { observer -> observer.handle(Event.Statistikk.SakOpprettet(it)) }
+                    observers.forEach { observer -> observer.handle(Statistikkhendelse.SakOpprettet(it)) }
                 },
             )
         }

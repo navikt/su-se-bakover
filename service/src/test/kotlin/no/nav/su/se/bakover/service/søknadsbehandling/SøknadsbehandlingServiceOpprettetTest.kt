@@ -8,11 +8,11 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.statistikk.Statistikkhendelse
 import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
@@ -188,7 +188,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                 saksnummer = saksnummer,
                 søknad = søknad,
                 oppgaveId = søknad.oppgaveId,
-                fnr = søknad.søknadInnhold.personopplysninger.fnr,
+                fnr = søknad.fnr,
                 fritekstTilBrev = "",
                 stønadsperiode = null,
                 grunnlagsdata = Grunnlagsdata.IkkeVurdert,
@@ -209,7 +209,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                     sakId = søknad.sakId,
                     søknad = søknad,
                     oppgaveId = søknad.oppgaveId,
-                    fnr = søknad.søknadInnhold.personopplysninger.fnr,
+                    fnr = søknad.fnr,
                     avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke(),
                     sakstype = sak.type,
                 )
@@ -222,7 +222,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
         verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe capturedSøknadsbehandling.firstValue.id })
         verify(serviceAndMocks.observer).handle(
             argThat {
-                it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingOpprettet(
+                it shouldBe Statistikkhendelse.Søknadsbehandling.Opprettet(
                     Søknadsbehandling.Vilkårsvurdert.Uavklart(
                         id = capturedSøknadsbehandling.firstValue.id,
                         opprettet = capturedSøknadsbehandling.firstValue.opprettet,
@@ -230,7 +230,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                         saksnummer = saksnummer,
                         søknad = søknad,
                         oppgaveId = søknad.oppgaveId,
-                        fnr = søknad.søknadInnhold.personopplysninger.fnr,
+                        fnr = søknad.fnr,
                         fritekstTilBrev = "",
                         stønadsperiode = null,
                         grunnlagsdata = Grunnlagsdata.IkkeVurdert,

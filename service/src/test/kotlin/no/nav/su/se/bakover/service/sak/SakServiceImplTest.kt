@@ -5,8 +5,8 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
 import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.domain.statistikk.Statistikkhendelse
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.nySakMedjournalførtSøknadOgOppgave
@@ -48,7 +48,7 @@ internal class SakServiceImplTest {
 
         verify(sakRepo).opprettSak(any())
         verify(sakRepo).hentSak(sak.id)
-        verify(observer).handle(argThat { it shouldBe Event.Statistikk.SakOpprettet(sak) })
+        verify(observer).handle(argThat { it shouldBe Statistikkhendelse.SakOpprettet(sak) })
     }
 
     @Test

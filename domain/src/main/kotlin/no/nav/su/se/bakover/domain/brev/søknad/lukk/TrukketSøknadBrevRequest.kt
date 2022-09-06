@@ -5,7 +5,6 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.brev.lagPersonalia
 import no.nav.su.se.bakover.domain.dokument.Dokument
@@ -14,7 +13,7 @@ import java.util.UUID
 
 data class TrukketSøknadBrevRequest(
     override val person: Person,
-    private val søknad: Søknad,
+    private val søknadOpprettet: Tidspunkt,
     private val trukketDato: LocalDate,
     private val saksbehandlerNavn: String,
     override val dagensDato: LocalDate,
@@ -22,7 +21,7 @@ data class TrukketSøknadBrevRequest(
 ) : LagBrevRequest {
     override val brevInnhold = TrukketSøknadBrevInnhold(
         personalia = lagPersonalia(),
-        datoSøknadOpprettet = søknad.opprettet.toLocalDate(zoneIdOslo),
+        datoSøknadOpprettet = søknadOpprettet.toLocalDate(zoneIdOslo),
         trukketDato = trukketDato,
         saksbehandlerNavn = saksbehandlerNavn,
     )

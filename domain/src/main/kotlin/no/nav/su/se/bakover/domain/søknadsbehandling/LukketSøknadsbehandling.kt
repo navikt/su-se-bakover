@@ -1,16 +1,17 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling
 
 import arrow.core.Either
-import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
+import no.nav.su.se.bakover.domain.søknad.Søknad
 
 data class LukketSøknadsbehandling private constructor(
     val lukketSøknadsbehandling: Søknadsbehandling,
+    override val søknad: Søknad.Journalført.MedOppgave.Lukket,
 ) : Søknadsbehandling() {
-    override val søknad = lukketSøknadsbehandling.søknad
     override val status = lukketSøknadsbehandling.status
     override val stønadsperiode = lukketSøknadsbehandling.stønadsperiode
     override val grunnlagsdata = lukketSøknadsbehandling.grunnlagsdata
@@ -23,45 +24,89 @@ data class LukketSøknadsbehandling private constructor(
     override val sakId = lukketSøknadsbehandling.sakId
     override val saksnummer = lukketSøknadsbehandling.saksnummer
     override val fnr = lukketSøknadsbehandling.fnr
+
     // Så vi kan initialiseres uten at periode er satt (typisk ved ny søknadsbehandling)
     override val periode by lazy { lukketSøknadsbehandling.periode }
     override val avkorting: AvkortingVedSøknadsbehandling = when (val avkorting = lukketSøknadsbehandling.avkorting) {
         is AvkortingVedSøknadsbehandling.Håndtert -> {
             avkorting.kanIkke()
         }
+
         is AvkortingVedSøknadsbehandling.Iverksatt -> {
             throw IllegalStateException("Kan ikke lukke iverksatt")
         }
+
         is AvkortingVedSøknadsbehandling.Uhåndtert -> {
             avkorting.kanIkke()
         }
     }
     override val sakstype: Sakstype = lukketSøknadsbehandling.sakstype
 
+    val lukketTidspunkt = søknad.lukketTidspunkt
+    val lukketAv = søknad.lukketAv
+    val lukketBrevvalg = søknad.brevvalg
+
     init {
         kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
+        validateState(this.lukketSøknadsbehandling).tapLeft {
+            throw IllegalArgumentException("Ugyldig tilstand. Underliggende feil: $it")
+        }
     }
+
     companion object {
 
+        /**
+         * Prøver lukke søknadsbehandlingen og tilhørende søknad.
+         * Den underliggende søknadsbehandlingen kan ikke være av typen [LukketSøknadsbehandling], [Søknadsbehandling.Iverksatt] eller [Søknadsbehandling.TilAttestering]
+         * @throws IllegalStateException Dersom den underliggende søknaden ikke er av typen [Søknad.Journalført.MedOppgave.IkkeLukket]
+         */
         fun tryCreate(
-            lukketSøknadsbehandling: Søknadsbehandling,
+            søknadsbehandlingSomSkalLukkes: Søknadsbehandling,
+            lukkSøknadCommand: LukkSøknadCommand,
         ): Either<KunneIkkeLukkeSøknadsbehandling, LukketSøknadsbehandling> {
-            if (lukketSøknadsbehandling is LukketSøknadsbehandling) {
-                return KunneIkkeLukkeSøknadsbehandling.KanIkkeLukkeEnAlleredeLukketSøknadsbehandling.left()
+            validateState(søknadsbehandlingSomSkalLukkes).tapLeft {
+                return it.left()
             }
-            if (lukketSøknadsbehandling is Iverksatt) {
-                return KunneIkkeLukkeSøknadsbehandling.KanIkkeLukkeEnIverksattSøknadsbehandling.left()
+            return when (val søknad = søknadsbehandlingSomSkalLukkes.søknad) {
+                is Søknad.Journalført.MedOppgave.IkkeLukket -> LukketSøknadsbehandling(
+                    lukketSøknadsbehandling = søknadsbehandlingSomSkalLukkes,
+                    søknad = søknad.lukk(
+                        lukkSøknadCommand = lukkSøknadCommand,
+                    ),
+                ).right()
+
+                is Søknad.Journalført.MedOppgave.Lukket -> throw IllegalStateException("Kan ikke opprette en LukketSøknadsbehandling dersom søknaden allerede er lukket.")
             }
-            if (lukketSøknadsbehandling is TilAttestering) {
-                return KunneIkkeLukkeSøknadsbehandling.KanIkkeLukkeEnSøknadsbehandlingTilAttestering.left()
-            }
-            return LukketSøknadsbehandling(lukketSøknadsbehandling).right()
         }
 
-        fun create(lukketSøknadsbehandling: Søknadsbehandling): LukketSøknadsbehandling {
-            return tryCreate(lukketSøknadsbehandling).getOrHandle {
-                throw IllegalArgumentException("Kunne ikke opprette LukketSøknadsbehandling: $it")
+        /**
+         * Denne funksjonen er reservert for persisteringslaget og asserts i tester og skal ikke brukes i domenesammenheng.
+         * Krever at søknadsbehandlingen allerede inneholder en lukket søknad.
+         */
+        fun createFromPersistedState(
+            søknadsbehandling: Søknadsbehandling,
+            søknad: Søknad.Journalført.MedOppgave.Lukket = søknadsbehandling.søknad as Søknad.Journalført.MedOppgave.Lukket,
+        ): LukketSøknadsbehandling {
+            validateState(søknadsbehandling).tapLeft {
+                throw IllegalArgumentException("Ugyldig tilstand. Underliggende feil: $it")
             }
+            return LukketSøknadsbehandling(
+                lukketSøknadsbehandling = søknadsbehandling,
+                søknad = søknad,
+            )
+        }
+
+        private fun validateState(søknadsbehandlingSomSkalLukkes: Søknadsbehandling): Either<KunneIkkeLukkeSøknadsbehandling, Unit> {
+            if (søknadsbehandlingSomSkalLukkes is LukketSøknadsbehandling) {
+                return KunneIkkeLukkeSøknadsbehandling.KanIkkeLukkeEnAlleredeLukketSøknadsbehandling.left()
+            }
+            if (søknadsbehandlingSomSkalLukkes is Iverksatt) {
+                return KunneIkkeLukkeSøknadsbehandling.KanIkkeLukkeEnIverksattSøknadsbehandling.left()
+            }
+            if (søknadsbehandlingSomSkalLukkes is TilAttestering) {
+                return KunneIkkeLukkeSøknadsbehandling.KanIkkeLukkeEnSøknadsbehandlingTilAttestering.left()
+            }
+            return Unit.right()
         }
     }
 

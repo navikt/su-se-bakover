@@ -1426,7 +1426,7 @@ fun avsluttetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
     return simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().let { (sak, simulert) ->
         val avsluttet = simulert.avslutt(
             begrunnelse = begrunnelse,
-            brevvalg = fritekst?.let { Brevvalg.SaksbehandlersValg.SkalSendeBrev.MedFritekst(it) },
+            brevvalg = fritekst?.let { Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst(it) },
             tidspunktAvsluttet = tidspunktAvsluttet,
         ).getOrFail()
 

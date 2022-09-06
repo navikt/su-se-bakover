@@ -3,20 +3,17 @@ package no.nav.su.se.bakover.web.routes.søknad
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.deserialize
-import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.common.startOfDay
-import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.fnrUnder67
+import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.test.nySakMedjournalførtSøknadOgOppgave
-import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.trekkSøknad
 import no.nav.su.se.bakover.test.veileder
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.sakId
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.søknadId
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.søknadInnhold
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
-import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
 internal class UføresøknadJsonTest {
@@ -182,22 +179,22 @@ internal class UføresøknadJsonTest {
 
     @Test
     fun `serialiserer og deserialiserer lukket`() {
-        val trukket = nySakMedjournalførtSøknadOgOppgave().second.lukk(
-            lukketAv = saksbehandler,
-            type = Søknad.Journalført.MedOppgave.Lukket.LukketType.TRUKKET,
-            lukketTidspunkt = 1.oktober(2020).startOfDay(ZoneOffset.UTC),
+        val trukket = nySakMedjournalførtSøknadOgOppgave(
+            søknadId = søknadId,
+        ).second.lukk(
+            trekkSøknad(søknadId),
         )
         //language=json
         val expectedJson = """
             {
-                "tidspunkt":"2020-10-01T00:00:00Z",
+                "tidspunkt":"2021-01-01T01:02:03.456789Z",
                 "saksbehandler":"saksbehandler",
                 "type":"TRUKKET"
             }
         """.trimIndent()
         JSONAssert.assertEquals(expectedJson, serialize(trukket.toJson()), true)
         deserialize<LukketJson>(expectedJson) shouldBe LukketJson(
-            tidspunkt = "2020-10-01T00:00:00Z",
+            tidspunkt = "2021-01-01T01:02:03.456789Z",
             saksbehandler = "saksbehandler",
             type = "TRUKKET"
         )

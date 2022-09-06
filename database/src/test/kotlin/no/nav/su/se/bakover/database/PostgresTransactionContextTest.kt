@@ -3,8 +3,9 @@ package no.nav.su.se.bakover.database
 import arrow.core.Either
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.test.avvisSøknadUtenBrev
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.trekkSøknad
 import org.junit.jupiter.api.Test
 import java.time.temporal.ChronoUnit
 
@@ -19,26 +20,34 @@ internal class PostgresTransactionContextTest {
                 testDataHelper.sessionFactory.withTransactionContext { context ->
                     testDataHelper.søknadRepo.lukkSøknad(
                         søknad.lukk(
-                            lukketAv = NavIdentBruker.Saksbehandler("1"),
-                            type = Søknad.Journalført.MedOppgave.Lukket.LukketType.TRUKKET,
-                            lukketTidspunkt = fixedTidspunkt,
+                            trekkSøknad(
+                                søknadId = søknad.id,
+                                saksbehandler = NavIdentBruker.Saksbehandler("1"),
+                                lukketTidspunkt = søknad.opprettet.plus(1, ChronoUnit.SECONDS),
+                                trukketDato = søknad.mottaksdato,
+                            ),
+
                         ),
                         context,
                     )
                     testDataHelper.søknadRepo.lukkSøknad(
                         søknad.lukk(
-                            lukketAv = NavIdentBruker.Saksbehandler("2"),
-                            type = Søknad.Journalført.MedOppgave.Lukket.LukketType.AVVIST,
-                            lukketTidspunkt = fixedTidspunkt.plus(1, ChronoUnit.DAYS),
+                            avvisSøknadUtenBrev(
+                                søknadId = søknad.id,
+                                saksbehandler = NavIdentBruker.Saksbehandler("2"),
+                                lukketTidspunkt = fixedTidspunkt.plus(1, ChronoUnit.DAYS),
+                            ),
                         ),
                         context,
                     )
                 }
             }
             TestDataHelper(dataSource).søknadRepo.hentSøknad(søknad.id) shouldBe søknad.lukk(
-                lukketAv = NavIdentBruker.Saksbehandler("2"),
-                type = Søknad.Journalført.MedOppgave.Lukket.LukketType.AVVIST,
-                lukketTidspunkt = fixedTidspunkt.plus(1, ChronoUnit.DAYS),
+                avvisSøknadUtenBrev(
+                    søknadId = søknad.id,
+                    saksbehandler = NavIdentBruker.Saksbehandler("2"),
+                    lukketTidspunkt = fixedTidspunkt.plus(1, ChronoUnit.DAYS),
+                ),
             )
         }
     }
@@ -58,17 +67,22 @@ internal class PostgresTransactionContextTest {
                     ).withTransactionContext { context ->
                         testDataHelper.søknadRepo.lukkSøknad(
                             søknad.lukk(
-                                lukketAv = NavIdentBruker.Saksbehandler("1"),
-                                type = Søknad.Journalført.MedOppgave.Lukket.LukketType.TRUKKET,
-                                lukketTidspunkt = fixedTidspunkt,
+                                trekkSøknad(
+                                    søknadId = søknad.id,
+                                    saksbehandler = NavIdentBruker.Saksbehandler("1"),
+                                    trukketDato = søknad.mottaksdato,
+                                ),
+
                             ),
                             context,
                         )
                         testDataHelper.søknadRepo.lukkSøknad(
                             søknad.lukk(
-                                lukketAv = NavIdentBruker.Saksbehandler("2"),
-                                type = Søknad.Journalført.MedOppgave.Lukket.LukketType.AVVIST,
-                                lukketTidspunkt = fixedTidspunkt.plus(1, ChronoUnit.DAYS),
+                                avvisSøknadUtenBrev(
+                                    søknadId = søknad.id,
+                                    saksbehandler = NavIdentBruker.Saksbehandler("2"),
+                                    lukketTidspunkt = fixedTidspunkt.plus(1, ChronoUnit.DAYS),
+                                ),
                             ),
                             context,
                         )

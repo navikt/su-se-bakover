@@ -22,9 +22,9 @@ import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeTilKlageinstans
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
+import no.nav.su.se.bakover.domain.statistikk.Statistikkhendelse
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
-import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.bekreftetAvvistVilkårsvurdertKlage
@@ -504,7 +504,7 @@ internal class OversendKlageTest {
                 klageinstanshendelser = Klageinstanshendelser.empty(),
             )
             it shouldBe expectedKlage
-            verify(observerMock).handle(argThat { actual -> Event.Statistikk.Klagestatistikk.Oversendt(it) shouldBe actual })
+            verify(observerMock).handle(argThat { actual -> Statistikkhendelse.Klagestatistikk.Oversendt(it) shouldBe actual })
         }
 
         verify(mocks.klageRepoMock).hentKnyttetVedtaksdato(argThat { it shouldBe klage.id })

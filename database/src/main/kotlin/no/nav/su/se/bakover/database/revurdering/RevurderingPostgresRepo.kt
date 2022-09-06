@@ -21,12 +21,12 @@ import no.nav.su.se.bakover.database.avkorting.AvkortingsvarselPostgresRepo
 import no.nav.su.se.bakover.database.avkorting.toDb
 import no.nav.su.se.bakover.database.avkorting.toDomain
 import no.nav.su.se.bakover.database.beregning.deserialiserBeregning
+import no.nav.su.se.bakover.database.brev.BrevvalgDatabaseJson.Companion.toJson
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagsdataOgVilkårsvurderingerPostgresRepo
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
-import no.nav.su.se.bakover.database.revurdering.AvsluttetRevurderingInfo.BrevvalgJson.Companion.toJson
 import no.nav.su.se.bakover.database.revurdering.RevurderingsType.Companion.toRevurderingsType
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.tilbakekreving.TilbakekrevingPostgresRepo
@@ -303,7 +303,7 @@ internal class RevurderingPostgresRepo(
             sakinfo = sakinfo,
         )
 
-        val avsluttet = deserializeNullable<AvsluttetRevurderingInfo>(stringOrNull("avsluttet"))
+        val avsluttet = deserializeNullable<AvsluttetRevurderingDatabaseJson>(stringOrNull("avsluttet"))
 
         if (avsluttet != null) {
             return when (revurdering) {
@@ -739,7 +739,7 @@ internal class RevurderingPostgresRepo(
                     "informasjonSomRevurderes" to serialize(revurdering.informasjonSomRevurderes),
                     "attestering" to revurdering.attesteringer.serialize(),
                     "avsluttet" to serialize(
-                        AvsluttetRevurderingInfo(
+                        AvsluttetRevurderingDatabaseJson(
                             begrunnelse = revurdering.begrunnelse,
                             brevvalg = revurdering.brevvalg.toJson(),
                             tidspunktAvsluttet = revurdering.tidspunktAvsluttet,

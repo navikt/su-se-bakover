@@ -4,6 +4,7 @@ import arrow.core.Either
 import no.nav.su.se.bakover.client.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.domain.statistikk.Statistikkhendelse
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.person.PersonService
@@ -45,10 +46,10 @@ internal class StatistikkServiceImpl(
         }
     }
 
-    override fun handle(event: Event) {
+    override fun handle(event: Statistikkhendelse) {
         Either.catch {
             when (event) {
-                is Event.Statistikk.SakOpprettet -> {
+                is Statistikkhendelse.SakOpprettet -> {
                     val sak = event.sak
                     personService.hentAktørIdMedSystembruker(sak.fnr).fold(
                         { log.info("Finner ikke person sak med sakid: ${sak.id} i PDL.") },
@@ -56,7 +57,7 @@ internal class StatistikkServiceImpl(
                     )
                 }
 
-                is Event.Statistikk.SøknadStatistikk.SøknadMottatt ->
+                is Statistikkhendelse.Søknad.Mottatt ->
                     publiser(
                         BehandlingStatistikkMapper(clock).map(
                             event.søknad,
@@ -65,7 +66,7 @@ internal class StatistikkServiceImpl(
                         ),
                     )
 
-                is Event.Statistikk.SøknadStatistikk.SøknadLukket ->
+                is Statistikkhendelse.Søknad.Lukket ->
                     publiser(
                         BehandlingStatistikkMapper(clock).map(
                             event.søknad,
@@ -74,9 +75,9 @@ internal class StatistikkServiceImpl(
                         ),
                     )
 
-                is Event.Statistikk.SøknadsbehandlingStatistikk -> publiser(BehandlingStatistikkMapper(clock).map(event.søknadsbehandling))
-                is Event.Statistikk.RevurderingStatistikk -> publiser(BehandlingStatistikkMapper(clock).map(event.revurdering))
-                is Event.Statistikk.Vedtaksstatistikk -> {
+                is Statistikkhendelse.Søknadsbehandling -> publiser(BehandlingStatistikkMapper(clock).map(event.søknadsbehandling))
+                is Statistikkhendelse.Revurdering -> publiser(BehandlingStatistikkMapper(clock).map(event.revurdering))
+                is Statistikkhendelse.Vedtak -> {
                     sakRepo.hentSak(event.vedtak.behandling.sakId)!!.let { sak ->
                         personService.hentAktørIdMedSystembruker(sak.fnr).fold(
                             ifLeft = { log.error("Finner ikke aktørId for person med sakId: ${sak.id}") },
@@ -98,14 +99,14 @@ internal class StatistikkServiceImpl(
                     }
                 }
 
-                is Event.Statistikk.RevurderingStatistikk.Gjenoppta -> publiser(
+                is Statistikkhendelse.Revurdering.Gjenoppta -> publiser(
                     BehandlingStatistikkMapper(clock).map(
                         event.gjenoppta,
                     ),
                 )
 
-                is Event.Statistikk.RevurderingStatistikk.Stans -> publiser(BehandlingStatistikkMapper(clock).map(event.stans))
-                is Event.Statistikk.Klagestatistikk -> publiser(BehandlingStatistikkMapper(clock).map(event.klage))
+                is Statistikkhendelse.Revurdering.Stans -> publiser(BehandlingStatistikkMapper(clock).map(event.stans))
+                is Statistikkhendelse.Klagestatistikk -> publiser(BehandlingStatistikkMapper(clock).map(event.klage))
             }
         }.mapLeft {
             log.error("Feil ved publisering av statistikk", it)

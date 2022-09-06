@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.database.revurdering
 
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.database.brev.BrevvalgDatabaseJson
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
@@ -14,7 +15,7 @@ internal class AvsluttetRevurderingJsonTest {
             "brevvalg": {
               "fritekst": "en fri tekst", 
               "begrunnelse": null,
-              "type": "SAKSBEHANDLER_VALG_SKAL_SENDE_BREV_MED_FRITEKST"
+              "type": "SAKSBEHANDLER_VALG_SKAL_SENDE_INFORMASJONSBREV_MED_FRITEKST"
             },
             "begrunnelse": "en begrunnelse", 
             "tidspunktAvsluttet": "2021-01-01T01:02:03.456789Z"
@@ -24,9 +25,9 @@ internal class AvsluttetRevurderingJsonTest {
         JSONAssert.assertEquals(
             avsluttetJson,
             serialize(
-                AvsluttetRevurderingInfo(
+                AvsluttetRevurderingDatabaseJson(
                     begrunnelse = "en begrunnelse",
-                    brevvalg = AvsluttetRevurderingInfo.BrevvalgJson("en fri tekst", null, AvsluttetRevurderingInfo.BrevvalgJson.Type.SAKSBEHANDLER_VALG_SKAL_SENDE_BREV_MED_FRITEKST),
+                    brevvalg = BrevvalgDatabaseJson("en fri tekst", null, BrevvalgDatabaseJson.Type.SAKSBEHANDLER_VALG_SKAL_SENDE_INFORMASJONSBREV_MED_FRITEKST),
                     tidspunktAvsluttet = fixedTidspunkt,
                 ),
             ),

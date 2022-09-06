@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.sak.SakInfo
+import no.nav.su.se.bakover.domain.statistikk.Statistikkhendelse
 import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -28,7 +29,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
-import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -361,7 +361,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe innvilgetBehandlingTilAttestering.oppgaveId })
             verify(observerMock).handle(
                 argThat {
-                    it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingUnderkjent(
+                    it shouldBe Statistikkhendelse.Søknadsbehandling.Underkjent(
                         underkjentMedNyOppgaveIdOgAttestering,
                     )
                 },

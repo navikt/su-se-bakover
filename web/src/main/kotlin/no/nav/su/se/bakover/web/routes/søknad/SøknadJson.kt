@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web.routes.søknad
 
-import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdJson.Companion.toSøknadsinnholdJson
 import java.time.format.DateTimeFormatter
@@ -36,5 +36,9 @@ internal fun Søknad.toJson(): SøknadJson {
 internal fun Søknad.Journalført.MedOppgave.Lukket.toJson() = LukketJson(
     tidspunkt = DateTimeFormatter.ISO_INSTANT.format(lukketTidspunkt),
     saksbehandler = lukketAv.toString(),
-    type = lukketType.toString()
+    type = when (this) {
+        is Søknad.Journalført.MedOppgave.Lukket.Avvist -> "AVVIST"
+        is Søknad.Journalført.MedOppgave.Lukket.Bortfalt -> "BORTFALT"
+        is Søknad.Journalført.MedOppgave.Lukket.TrukketAvSøker -> "TRUKKET"
+    },
 )

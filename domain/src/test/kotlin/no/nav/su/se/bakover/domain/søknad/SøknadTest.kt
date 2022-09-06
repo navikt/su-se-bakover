@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.søknad
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.søknadinnhold.ForNav
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt

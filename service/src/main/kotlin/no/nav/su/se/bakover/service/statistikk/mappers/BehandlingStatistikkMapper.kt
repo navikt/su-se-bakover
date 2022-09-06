@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.service.statistikk.mappers
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -26,6 +25,7 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
+import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadinnhold.ForNav
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -129,7 +129,11 @@ class BehandlingStatistikkMapper(
             totrinnsbehandling = false,
             versjon = clock.millis(),
             resultat = when (søknad) {
-                is Søknad.Journalført.MedOppgave.Lukket -> søknad.lukketType.value
+                is Søknad.Journalført.MedOppgave.Lukket -> when (søknad) {
+                    is Søknad.Journalført.MedOppgave.Lukket.Bortfalt -> "BORTFALT"
+                    is Søknad.Journalført.MedOppgave.Lukket.TrukketAvSøker -> "TRUKKET"
+                    is Søknad.Journalført.MedOppgave.Lukket.Avvist -> "AVVIST"
+                }
                 else -> null
             },
             resultatBegrunnelse = null,

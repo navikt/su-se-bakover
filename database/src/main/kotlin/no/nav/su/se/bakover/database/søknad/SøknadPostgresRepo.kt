@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.søknad.LukketJson.Companion.toLukketJson
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal.hentSøknadInternal
-import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknad.SøknadRepo
 import java.util.UUID
 
@@ -61,7 +61,7 @@ internal class SøknadPostgresRepo(
                 "update søknad set lukket=to_json(:lukket::json) where id=:id".oppdatering(
                     mapOf(
                         "id" to søknad.id,
-                        "lukket" to serialize(søknad.toLukketJson()),
+                        "lukket" to søknad.toLukketJson(),
                     ),
                     session,
                 )

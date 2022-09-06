@@ -42,7 +42,9 @@ interface SakService {
     fun hentSakForSøknad(søknadId: UUID): Either<FantIkkeSak, Sak>
 }
 
-object FantIkkeSak
+object FantIkkeSak {
+    override fun toString() = this::class.simpleName!!
+}
 
 sealed class KunneIkkeHenteGjeldendeVedtaksdata {
     object FantIkkeSak : KunneIkkeHenteGjeldendeVedtaksdata()

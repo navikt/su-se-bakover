@@ -14,11 +14,11 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
+import no.nav.su.se.bakover.domain.statistikk.Statistikkhendelse
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.sak.SakService
-import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import java.time.Clock
@@ -108,7 +108,7 @@ class GjenopptakAvYtelseService(
             revurderingRepo.lagre(simulertRevurdering)
             observers.forEach { observer ->
                 observer.handle(
-                    Event.Statistikk.RevurderingStatistikk.Gjenoppta(
+                    Statistikkhendelse.Revurdering.Gjenoppta(
                         simulertRevurdering,
                     ),
                 )
@@ -147,8 +147,8 @@ class GjenopptakAvYtelseService(
                 revurderingRepo.lagre(iverksattRevurdering)
                 vedtakRepo.lagre(vedtak)
                 observers.forEach { observer ->
-                    observer.handle(Event.Statistikk.RevurderingStatistikk.Gjenoppta(iverksattRevurdering))
-                    observer.handle(Event.Statistikk.Vedtaksstatistikk(vedtak))
+                    observer.handle(Statistikkhendelse.Revurdering.Gjenoppta(iverksattRevurdering))
+                    observer.handle(Statistikkhendelse.Vedtak(vedtak))
                 }
 
                 return iverksattRevurdering.right()

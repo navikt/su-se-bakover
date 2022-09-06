@@ -1,12 +1,13 @@
 package no.nav.su.se.bakover.test
 
 import arrow.core.nonEmptyListOf
+import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.zoneIdOslo
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
-import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
@@ -14,7 +15,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.sak.SakInfo
-import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsinnholdAlder
@@ -527,28 +528,25 @@ fun søknadsbehandlingIverksattAvslagUtenBeregning(
 fun søknadsbehandlingLukket(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
-): Pair<Sak, LukketSøknadsbehandling> {
+    saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
+    clock: Clock = fixedClock,
+): Pair<Sak, Søknadsbehandling> {
     return søknadsbehandlingVilkårsvurdertUavklart(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
     ).let { (sak, søknadsbehandling) ->
-        val lukketSøknad = søknadsbehandling.søknad.let {
-            Søknad.Journalført.MedOppgave.Lukket(
-                id = it.id,
-                opprettet = it.opprettet,
-                sakId = it.sakId,
-                søknadInnhold = it.søknadInnhold,
-                innsendtAv = it.innsendtAv,
-                journalpostId = it.journalpostId,
-                oppgaveId = it.oppgaveId,
-                lukketTidspunkt = fixedTidspunkt,
-                lukketAv = saksbehandler,
-                lukketType = Søknad.Journalført.MedOppgave.Lukket.LukketType.BORTFALT,
-            )
-        }
-        sak.copy(
-            søknader = sak.søknader.filterNot { it.id == søknadsbehandling.søknad.id } + lukketSøknad,
-        ) to søknadsbehandling.lukkSøknadsbehandling().getOrFail()
+        sak.lukkSøknadOgSøknadsbehandling(
+            lukkSøknadCommand = trekkSøknad(
+                søknadId = søknadsbehandling.søknad.id,
+                saksbehandler = saksbehandler,
+                lukketTidspunkt = fixedTidspunkt.plus(1, ChronoUnit.SECONDS),
+            ),
+            hentPerson = { person().right() },
+            clock = clock,
+            hentSaksbehandlerNavn = { "Saksbehandlers Navn".right() },
+        )
+    }.let {
+        Pair(it.sak, it.søknadsbehandling!!)
     }
 }
 

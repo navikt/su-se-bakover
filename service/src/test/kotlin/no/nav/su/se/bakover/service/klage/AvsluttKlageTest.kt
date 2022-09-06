@@ -7,8 +7,8 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeAvslutteKlage
+import no.nav.su.se.bakover.domain.statistikk.Statistikkhendelse
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.test.avsluttetKlage
 import no.nav.su.se.bakover.test.avvistKlage
@@ -178,7 +178,7 @@ internal class AvsluttKlageTest {
             begrunnelse = begrunnelse,
         ).let {
             it shouldBe AvsluttetKlage(klage, saksbehandler, begrunnelse, fixedTidspunkt).right()
-            verify(observerMock).handle(argThat { actual -> actual shouldBe Event.Statistikk.Klagestatistikk.Avsluttet(it.getOrFail()) })
+            verify(observerMock).handle(argThat { actual -> actual shouldBe Statistikkhendelse.Klagestatistikk.Avsluttet(it.getOrFail()) })
         }
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })

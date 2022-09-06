@@ -54,7 +54,7 @@ internal class AvsluttetRevurderingTest {
                 forhåndsvarsel = Forhåndsvarsel.UnderBehandling.Sendt,
             ),
             begrunnelse = "Begrunnelse for hvorfor denne har blitt avsluttet",
-            brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.MedFritekst("en god, og fri tekst"),
+            brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst("en god, og fri tekst"),
             tidspunktAvsluttet = fixedTidspunkt,
         ).shouldBeRight()
     }
@@ -101,7 +101,7 @@ internal class AvsluttetRevurderingTest {
                 assert(it.forhåndsvarsel == null)
             },
             begrunnelse = "Begrunnelse for hvorfor denne har blitt avsluttet",
-            brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.MedFritekst("forhåndsvarsel er null, men jeg er fyllt ut. dette skal ikke være lov"),
+            brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst("forhåndsvarsel er null, men jeg er fyllt ut. dette skal ikke være lov"),
             tidspunktAvsluttet = fixedTidspunkt,
         ) shouldBe KunneIkkeLageAvsluttetRevurdering.BrevvalgUtenForhåndsvarsel.left()
     }
@@ -115,7 +115,7 @@ internal class AvsluttetRevurderingTest {
                 assert(it.forhåndsvarsel == Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles)
             },
             begrunnelse = "Begrunnelse for hvorfor denne har blitt avsluttet",
-            brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.MedFritekst("forhåndsvarsel er ingen forhåndsvarsel, men jeg er fyllt ut. dette skal ikke være lov"),
+            brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst("forhåndsvarsel er ingen forhåndsvarsel, men jeg er fyllt ut. dette skal ikke være lov"),
             tidspunktAvsluttet = fixedTidspunkt,
         ) shouldBe KunneIkkeLageAvsluttetRevurdering.BrevvalgUtenForhåndsvarsel.left()
     }

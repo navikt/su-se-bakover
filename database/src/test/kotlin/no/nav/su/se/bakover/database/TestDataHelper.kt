@@ -56,7 +56,6 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
-import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
@@ -103,6 +102,7 @@ import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
+import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadinnhold.SøknadsinnholdUføre
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
@@ -139,6 +139,7 @@ import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulerNyUtbetaling
 import no.nav.su.se.bakover.test.simulertUtbetaling
 import no.nav.su.se.bakover.test.stønadsperiode2021
+import no.nav.su.se.bakover.test.trekkSøknad
 import no.nav.su.se.bakover.test.vilkår.formuevilkårIkkeVurdert
 import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårAvslag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkår
@@ -479,9 +480,7 @@ internal class TestDataHelper(
         ).second
             .let {
                 it.lukk(
-                    lukketAv = NavIdentBruker.Saksbehandler("saksbehandler"),
-                    type = Søknad.Journalført.MedOppgave.Lukket.LukketType.TRUKKET,
-                    lukketTidspunkt = fixedTidspunkt,
+                    trekkSøknad(søknadId),
                 ).also { lukketSøknad ->
                     søknadRepo.lukkSøknad(lukketSøknad)
                 }
@@ -1286,15 +1285,11 @@ internal class TestDataHelper(
             søknadId = søknadId,
             stønadsperiode = stønadsperiode,
         ).second.let {
-            it.lukkSøknadsbehandling().orNull()!!.let { lukketSøknadsbehandling ->
+            it.lukkSøknadsbehandlingOgSøknad(
+                trekkSøknad(søknadId = søknadId),
+            ).orNull()!!.let { lukketSøknadsbehandling ->
                 søknadsbehandlingRepo.lagre(lukketSøknadsbehandling)
-                søknadRepo.lukkSøknad(
-                    (it.søknad as Søknad.Journalført.MedOppgave.IkkeLukket).lukk(
-                        lukketAv = NavIdentBruker.Saksbehandler("saksbehandler"),
-                        type = Søknad.Journalført.MedOppgave.Lukket.LukketType.TRUKKET,
-                        lukketTidspunkt = fixedTidspunkt,
-                    ),
-                )
+                søknadRepo.lukkSøknad(lukketSøknadsbehandling.søknad)
                 Pair(sakRepo.hentSak(sakId)!!, lukketSøknadsbehandling)
             }
         }

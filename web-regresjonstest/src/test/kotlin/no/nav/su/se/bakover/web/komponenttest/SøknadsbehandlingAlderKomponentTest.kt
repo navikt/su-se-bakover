@@ -138,15 +138,15 @@ internal class SøknadsbehandlingAlderKomponentTest {
             appComponents.services.søknadsbehandling.leggTilPersonligOppmøteVilkår(
                 request = LeggTilPersonligOppmøteVilkårRequest(
                     behandlingId = søknadsbehandling.id,
-                    vilkår = personligOppmøtevilkårInnvilget(periode = stønadsperiode2022.periode)
-                )
+                    vilkår = personligOppmøtevilkårInnvilget(periode = stønadsperiode2022.periode),
+                ),
             )
 
             appComponents.services.søknadsbehandling.leggTilFastOppholdINorgeVilkår(
                 request = LeggTilFastOppholdINorgeRequest(
                     behandlingId = søknadsbehandling.id,
-                    vilkår = fastOppholdVilkårInnvilget(periode = stønadsperiode2022.periode)
-                )
+                    vilkår = fastOppholdVilkårInnvilget(periode = stønadsperiode2022.periode),
+                ),
             )
 
             appComponents.services.søknadsbehandling.leggTilInstitusjonsoppholdVilkår(
@@ -218,7 +218,7 @@ internal class SøknadsbehandlingAlderKomponentTest {
                             periode = stønadsperiode2022.periode,
                             status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
                         ),
-                    )
+                    ),
                 ),
             ).getOrFail()
 
