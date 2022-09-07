@@ -7,12 +7,11 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.FantIkkeGjeldendeUtbetaling
+import no.nav.su.se.bakover.domain.oppdrag.KryssjekkSaksbehandlersOgAttestantsSimulering
 import no.nav.su.se.bakover.domain.oppdrag.KryssjekkUtbetalingerOgSimuleringForRekonstruertPeriode
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
@@ -25,9 +24,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.hentGjeldendeUtbetaling
-import no.nav.su.se.bakover.domain.oppdrag.simulering.KontrollerSimulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingForPeriode
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
@@ -95,11 +92,13 @@ internal class UtbetalingServiceImpl(
         return simulerUtbetaling(request).mapLeft {
             UtbetalingFeilet.KunneIkkeSimulere(it)
         }.flatMap { simulertUtbetaling ->
-            if (harEndringerIUtbetalingSidenSaksbehandlersSimulering(
-                    saksbehandlersSimulering = request.simulering,
-                    attestantsSimulering = simulertUtbetaling,
-                )
-            ) return UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
+            KryssjekkSaksbehandlersOgAttestantsSimulering(
+                saksbehandlersSimulering = request.simulering,
+                attestantsSimulering = simulertUtbetaling,
+                clock = clock,
+            ).sjekk().getOrHandle {
+                return UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(it).left()
+            }
             simulertUtbetaling.right()
         }
     }
@@ -110,11 +109,13 @@ internal class UtbetalingServiceImpl(
         return simulerOpphør(request).mapLeft {
             UtbetalingFeilet.KunneIkkeSimulere(it)
         }.flatMap { simulertOpphør ->
-            if (harEndringerIUtbetalingSidenSaksbehandlersSimulering(
-                    saksbehandlersSimulering = request.simulering,
-                    attestantsSimulering = simulertOpphør,
-                )
-            ) return UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
+            KryssjekkSaksbehandlersOgAttestantsSimulering(
+                saksbehandlersSimulering = request.simulering,
+                attestantsSimulering = simulertOpphør,
+                clock = clock,
+            ).sjekk().getOrHandle {
+                return UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(it).left()
+            }
             simulertOpphør.right()
         }
     }
@@ -151,27 +152,6 @@ internal class UtbetalingServiceImpl(
                 simuleringsperiode = simuleringsperiode,
             ),
         )
-    }
-
-    /**
-     * Det kan ha gått en stund siden saksbehandler simulerte utbetalingen.
-     * Vi ønsker å sjekke at simuleringen ved utbetalingsøyeblikket er lik som den vi fremviste saksbehandler og senere, attestant.
-     *
-     * TODO: Må teste i preprod om denne sjekken er adekvat.
-     */
-    private fun harEndringerIUtbetalingSidenSaksbehandlersSimulering(
-        saksbehandlersSimulering: Simulering,
-        attestantsSimulering: Utbetaling.SimulertUtbetaling,
-    ): Boolean {
-        return if (saksbehandlersSimulering != attestantsSimulering.simulering) {
-            log.error("Utbetaling kunne ikke gjennomføres, kontrollsimulering er ulik saksbehandlers simulering. Se sikkerlogg for detaljer.")
-            sikkerLogg.error(
-                "Utbetaling kunne ikke gjennomføres, kontrollsimulering: {}, er ulik saksbehandlers simulering: {}",
-                objectMapper.writeValueAsString(attestantsSimulering.simulering),
-                objectMapper.writeValueAsString(saksbehandlersSimulering),
-            )
-            true
-        } else false
     }
 
     override fun simulerUtbetaling(
@@ -319,25 +299,16 @@ internal class UtbetalingServiceImpl(
     override fun stansUtbetalinger(
         request: UtbetalRequest.Stans,
     ): Either<UtbetalStansFeil, Utbetaling.OversendtUtbetaling.UtenKvittering> {
-        val sak: Sak = sakService.hentSak(request.sakId).orNull()!!
-
         return simulerStans(request = request)
             .mapLeft {
                 UtbetalStansFeil.KunneIkkeSimulere(it)
             }.flatMap { simulertStans ->
-                if (harEndringerIUtbetalingSidenSaksbehandlersSimulering(
-                        saksbehandlersSimulering = request.simulering,
-                        attestantsSimulering = simulertStans,
-                    )
-                ) return UtbetalStansFeil.KunneIkkeUtbetale(UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte)
-                    .left()
-
-                KontrollerSimulering(
-                    simulertUtbetaling = simulertStans,
-                    eksisterendeUtbetalinger = sak.utbetalinger,
+                KryssjekkSaksbehandlersOgAttestantsSimulering(
+                    saksbehandlersSimulering = request.simulering,
+                    attestantsSimulering = simulertStans,
                     clock = clock,
-                ).resultat.getOrHandle {
-                    return UtbetalStansFeil.KunneIkkeUtbetale(UtbetalingFeilet.KontrollAvSimuleringFeilet).left()
+                ).sjekk().getOrHandle {
+                    return UtbetalStansFeil.KunneIkkeUtbetale(UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(it)).left()
                 }
 
                 utbetal(simulertStans)
@@ -396,19 +367,12 @@ internal class UtbetalingServiceImpl(
         ).mapLeft {
             UtbetalGjenopptakFeil.KunneIkkeSimulere(it)
         }.flatMap { simulertGjenopptak ->
-            if (harEndringerIUtbetalingSidenSaksbehandlersSimulering(
-                    saksbehandlersSimulering = request.simulering,
-                    attestantsSimulering = simulertGjenopptak,
-                )
-            ) return UtbetalGjenopptakFeil.KunneIkkeUtbetale(UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte)
-                .left()
-
-            KontrollerSimulering(
-                simulertUtbetaling = simulertGjenopptak,
-                eksisterendeUtbetalinger = sak.utbetalinger,
+            KryssjekkSaksbehandlersOgAttestantsSimulering(
+                saksbehandlersSimulering = request.simulering,
+                attestantsSimulering = simulertGjenopptak,
                 clock = clock,
-            ).resultat.getOrHandle {
-                return UtbetalGjenopptakFeil.KunneIkkeUtbetale(UtbetalingFeilet.KontrollAvSimuleringFeilet).left()
+            ).sjekk().getOrHandle {
+                return UtbetalGjenopptakFeil.KunneIkkeUtbetale(UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(it)).left()
             }
 
             utbetal(simulertGjenopptak)

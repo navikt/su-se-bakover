@@ -4,12 +4,14 @@ import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Forbidden
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
+import no.nav.su.se.bakover.domain.oppdrag.KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeSimulereBehandling
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
+import no.nav.su.se.bakover.web.routes.Feilresponser.tilResultat
 import kotlin.reflect.KClass
 
 internal object Feilresponser {
@@ -318,15 +320,43 @@ internal object Feilresponser {
                 "Kunne ikke utføre utbetaling",
                 "kunne_ikke_utbetale",
             )
-            UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> InternalServerError.errorJson(
-                "Oppdaget inkonsistens mellom tidligere utført simulering og kontrollsimulering. Ny simulering må utføres og kontrolleres før iverksetting kan gjennomføres",
-                "kontrollsimulering_ulik_saksbehandlers_simulering",
-            )
+            is UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> this.feil.tilResultat()
             UtbetalingFeilet.FantIkkeSak -> InternalServerError.errorJson("Fant ikke sak", "kunne_ikke_finne_sak")
-            UtbetalingFeilet.KontrollAvSimuleringFeilet -> InternalServerError.errorJson(
-                "Kontroll av simulering feilet. Inkonsistens må undersøkes",
-                "kontroll_av_simulering_feilet",
-            )
+        }
+    }
+
+    internal fun KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.tilResultat(): Resultat {
+        return when (this) {
+            KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UlikFeilutbetaling -> {
+                InternalServerError.errorJson(
+                    "Kryssjekk av saksbehandlers og attestants simulering feilet - ulik verdi for feilutbetaling",
+                    "kontrollsimulering_ulik_saksbehandlers_simulering",
+                )
+            }
+            KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UlikGjelderId -> {
+                InternalServerError.errorJson(
+                    "Kryssjekk av saksbehandlers og attestants simulering feilet - ulik verdi for gjelder id",
+                    "kontrollsimulering_ulik_saksbehandlers_simulering",
+                )
+            }
+            KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UlikPeriode -> {
+                InternalServerError.errorJson(
+                    "Kryssjekk av saksbehandlers og attestants simulering feilet - ulik verdi for periode",
+                    "kontrollsimulering_ulik_saksbehandlers_simulering",
+                )
+            }
+            KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UliktBeløp -> {
+                InternalServerError.errorJson(
+                    "Kryssjekk av saksbehandlers og attestants simulering feilet - ulik verdi for beløp",
+                    "kontrollsimulering_ulik_saksbehandlers_simulering",
+                )
+            }
+            KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UliktBeløpFraTidslinje -> {
+                InternalServerError.errorJson(
+                    "Kryssjekk av saksbehandlers og attestants simulering feilet - ulik verdi for beløp og beløp på utbetalingstidslinje",
+                    "kontrollsimulering_ulik_saksbehandlers_simulering",
+                )
+            }
         }
     }
 
