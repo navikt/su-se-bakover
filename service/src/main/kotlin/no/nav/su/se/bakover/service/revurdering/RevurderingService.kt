@@ -229,28 +229,14 @@ sealed class KunneIkkeOppretteRevurdering {
     object MåVelgeInformasjonSomSkalRevurderes : KunneIkkeOppretteRevurdering()
     object UgyldigÅrsak : KunneIkkeOppretteRevurdering()
     object UgyldigBegrunnelse : KunneIkkeOppretteRevurdering()
-    data class FeilVedOpprettelseAvRevurdering(val feil: Sak.KunneIkkeOppretteRevurdering) :
-        KunneIkkeOppretteRevurdering()
+    data class FeilVedOpprettelseAvRevurdering(val feil: Sak.KunneIkkeOppretteRevurdering) : KunneIkkeOppretteRevurdering()
 }
 
 sealed class KunneIkkeOppdatereRevurdering {
-    object FantIkkeSak : KunneIkkeOppdatereRevurdering()
-    object FantIngenVedtakSomKanRevurderes : KunneIkkeOppdatereRevurdering()
     object MåVelgeInformasjonSomSkalRevurderes : KunneIkkeOppdatereRevurdering()
-    object TidslinjeForVedtakErIkkeKontinuerlig : KunneIkkeOppdatereRevurdering()
     object UgyldigÅrsak : KunneIkkeOppdatereRevurdering()
     object UgyldigBegrunnelse : KunneIkkeOppdatereRevurdering()
-    data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) :
-        KunneIkkeOppdatereRevurdering()
-
-    object FantIkkeRevurdering : KunneIkkeOppdatereRevurdering()
-    object KanIkkeOppdatereRevurderingSomErForhåndsvarslet : KunneIkkeOppdatereRevurdering()
-    object FormueSomFørerTilOpphørMåRevurderes : KunneIkkeOppdatereRevurdering()
-    object EpsFormueMedFlereBosituasjonsperioderMåRevurderes : KunneIkkeOppdatereRevurdering()
-    data class UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(val periode: Periode) :
-        KunneIkkeOppdatereRevurdering()
-
-    object UtenlandsoppholdSomFørerTilOpphørMåRevurderes : KunneIkkeOppdatereRevurdering()
+    data class FeilVedOppdateringAvRevurdering(val feil: Sak.KunneIkkeOppdatereRevurdering) : KunneIkkeOppdatereRevurdering()
 }
 
 sealed class KunneIkkeBeregneOgSimulereRevurdering {

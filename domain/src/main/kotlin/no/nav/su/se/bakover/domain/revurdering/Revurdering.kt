@@ -166,6 +166,61 @@ sealed class Revurdering :
         object PerioderMangler : KunneIkkeLeggeTilBosituasjon()
     }
 
+    open fun oppdater(
+        periode: Periode,
+        revurderingsårsak: Revurderingsårsak,
+        grunnlagsdata: Grunnlagsdata,
+        vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
+        informasjonSomRevurderes: InformasjonSomRevurderes,
+        tilRevurdering: UUID,
+        avkorting: AvkortingVedRevurdering.Uhåndtert,
+        saksbehandler: Saksbehandler,
+    ): Either<KunneIkkeOppdatereRevurdering, OpprettetRevurdering> {
+        return KunneIkkeOppdatereRevurdering.UgyldigTilstand(
+            fra = this::class,
+            til = OpprettetRevurdering::class
+        ).left()
+    }
+
+    protected fun oppdaterInternal(
+        periode: Periode,
+        revurderingsårsak: Revurderingsårsak,
+        grunnlagsdata: Grunnlagsdata,
+        vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
+        informasjonSomRevurderes: InformasjonSomRevurderes,
+        tilRevurdering: UUID,
+        avkorting: AvkortingVedRevurdering.Uhåndtert,
+        saksbehandler: Saksbehandler,
+    ): Either<KunneIkkeOppdatereRevurdering, OpprettetRevurdering> {
+        if (forhåndsvarsel.harSendtForhåndsvarsel()) {
+            return KunneIkkeOppdatereRevurdering.KanIkkeOppdatereRevurderingSomErForhåndsvarslet.left()
+        }
+
+        return OpprettetRevurdering(
+            id = id,
+            periode = periode,
+            opprettet = opprettet,
+            tilRevurdering = tilRevurdering,
+            saksbehandler = saksbehandler,
+            oppgaveId = oppgaveId,
+            fritekstTilBrev = fritekstTilBrev,
+            revurderingsårsak = revurderingsårsak,
+            // TODO jah: Bytt til Either (modellen bør passe på dette selv og ikke la ansvaret ligge bredt i servicen)
+            forhåndsvarsel = if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles else null,
+            grunnlagsdata = grunnlagsdata,
+            vilkårsvurderinger = vilkårsvurderinger,
+            informasjonSomRevurderes = informasjonSomRevurderes,
+            attesteringer = attesteringer,
+            avkorting = avkorting,
+            sakinfo = sakinfo,
+        ).right()
+    }
+
+    sealed class KunneIkkeOppdatereRevurdering {
+        data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) : KunneIkkeOppdatereRevurdering()
+        object KanIkkeOppdatereRevurderingSomErForhåndsvarslet : KunneIkkeOppdatereRevurdering()
+    }
+
     open fun oppdaterUføreOgMarkerSomVurdert(uføre: UføreVilkår.Vurdert): Either<UgyldigTilstand, OpprettetRevurdering> =
         UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
 
@@ -834,7 +889,7 @@ data class OpprettetRevurdering(
         return oppdaterFastOppholdINorgeOgMarkerSomVurdertInternal(vilkår)
     }
 
-    fun oppdater(
+    override fun oppdater(
         periode: Periode,
         revurderingsårsak: Revurderingsårsak,
         grunnlagsdata: Grunnlagsdata,
@@ -842,17 +897,19 @@ data class OpprettetRevurdering(
         informasjonSomRevurderes: InformasjonSomRevurderes,
         tilRevurdering: UUID,
         avkorting: AvkortingVedRevurdering.Uhåndtert,
-    ): OpprettetRevurdering = this.copy(
-        periode = periode,
-        revurderingsårsak = revurderingsårsak,
-        // TODO jah: Bytt til Either (modellen bør passe på dette selv og ikke la ansvaret ligge bredt i servicen)
-        forhåndsvarsel = if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles else null,
-        grunnlagsdata = grunnlagsdata,
-        vilkårsvurderinger = vilkårsvurderinger,
-        informasjonSomRevurderes = informasjonSomRevurderes,
-        tilRevurdering = tilRevurdering,
-        avkorting = avkorting,
-    )
+        saksbehandler: Saksbehandler,
+    ): Either<KunneIkkeOppdatereRevurdering, OpprettetRevurdering> {
+        return oppdaterInternal(
+            periode = periode,
+            revurderingsårsak = revurderingsårsak,
+            grunnlagsdata = grunnlagsdata,
+            vilkårsvurderinger = vilkårsvurderinger,
+            informasjonSomRevurderes = informasjonSomRevurderes,
+            tilRevurdering = tilRevurdering,
+            avkorting = avkorting,
+            saksbehandler = saksbehandler
+        )
+    }
 }
 
 sealed class BeregnetRevurdering : Revurdering() {
@@ -908,7 +965,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         return oppdaterInstitusjonsoppholdOgMarkerSomVurdertInternal(institusjonsoppholdVilkår)
     }
 
-    fun oppdater(
+    override fun oppdater(
         periode: Periode,
         revurderingsårsak: Revurderingsårsak,
         grunnlagsdata: Grunnlagsdata,
@@ -916,24 +973,19 @@ sealed class BeregnetRevurdering : Revurdering() {
         informasjonSomRevurderes: InformasjonSomRevurderes,
         tilRevurdering: UUID,
         avkorting: AvkortingVedRevurdering.Uhåndtert,
-    ) = OpprettetRevurdering(
-        id = id,
-        periode = periode,
-        opprettet = opprettet,
-        tilRevurdering = tilRevurdering,
-        saksbehandler = saksbehandler,
-        oppgaveId = oppgaveId,
-        fritekstTilBrev = fritekstTilBrev,
-        revurderingsårsak = revurderingsårsak,
-        // TODO jah: Bytt til Either (modellen bør passe på dette selv og ikke la ansvaret ligge bredt i servicen)
-        forhåndsvarsel = if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles else null,
-        grunnlagsdata = grunnlagsdata,
-        vilkårsvurderinger = vilkårsvurderinger,
-        informasjonSomRevurderes = informasjonSomRevurderes,
-        attesteringer = attesteringer,
-        avkorting = avkorting,
-        sakinfo = sakinfo,
-    )
+        saksbehandler: Saksbehandler,
+    ): Either<KunneIkkeOppdatereRevurdering, OpprettetRevurdering> {
+        return oppdaterInternal(
+            periode = periode,
+            revurderingsårsak = revurderingsårsak,
+            grunnlagsdata = grunnlagsdata,
+            vilkårsvurderinger = vilkårsvurderinger,
+            informasjonSomRevurderes = informasjonSomRevurderes,
+            tilRevurdering = tilRevurdering,
+            avkorting = avkorting,
+            saksbehandler = saksbehandler
+        )
+    }
 
     data class Innvilget(
         override val id: UUID,
@@ -1400,6 +1452,28 @@ sealed class SimulertRevurdering : Revurdering() {
         object TilbakekrevingsbehandlingErIkkeFullstendig : KunneIkkeSendeInnvilgetRevurderingTilAttestering
     }
 
+    override fun oppdater(
+        periode: Periode,
+        revurderingsårsak: Revurderingsårsak,
+        grunnlagsdata: Grunnlagsdata,
+        vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
+        informasjonSomRevurderes: InformasjonSomRevurderes,
+        tilRevurdering: UUID,
+        avkorting: AvkortingVedRevurdering.Uhåndtert,
+        saksbehandler: Saksbehandler,
+    ): Either<KunneIkkeOppdatereRevurdering, OpprettetRevurdering> {
+        return oppdaterInternal(
+            periode = periode,
+            revurderingsårsak = revurderingsårsak,
+            grunnlagsdata = grunnlagsdata,
+            vilkårsvurderinger = vilkårsvurderinger,
+            informasjonSomRevurderes = informasjonSomRevurderes,
+            tilRevurdering = tilRevurdering,
+            avkorting = avkorting,
+            saksbehandler = saksbehandler
+        )
+    }
+
     data class Innvilget(
         override val id: UUID,
         override val periode: Periode,
@@ -1636,33 +1710,6 @@ sealed class SimulertRevurdering : Revurdering() {
             ).right()
         }
     }
-
-    fun oppdater(
-        periode: Periode,
-        revurderingsårsak: Revurderingsårsak,
-        grunnlagsdata: Grunnlagsdata,
-        vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
-        informasjonSomRevurderes: InformasjonSomRevurderes,
-        tilRevurdering: UUID,
-        avkorting: AvkortingVedRevurdering.Uhåndtert,
-    ) = OpprettetRevurdering(
-        id = id,
-        periode = periode,
-        opprettet = opprettet,
-        tilRevurdering = tilRevurdering,
-        saksbehandler = saksbehandler,
-        oppgaveId = oppgaveId,
-        fritekstTilBrev = fritekstTilBrev,
-        revurderingsårsak = revurderingsårsak,
-        // TODO jah: Bytt til Either (modellen bør passe på dette selv og ikke la ansvaret ligge bredt i servicen)
-        forhåndsvarsel = if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles else null,
-        grunnlagsdata = grunnlagsdata,
-        vilkårsvurderinger = vilkårsvurderinger,
-        informasjonSomRevurderes = informasjonSomRevurderes,
-        attesteringer = attesteringer,
-        avkorting = avkorting,
-        sakinfo = sakinfo,
-    )
 }
 
 sealed class RevurderingTilAttestering : Revurdering() {
@@ -2162,6 +2209,28 @@ sealed class UnderkjentRevurdering : Revurdering() {
         return oppdaterFastOppholdINorgeOgMarkerSomVurdertInternal(vilkår)
     }
 
+    override fun oppdater(
+        periode: Periode,
+        revurderingsårsak: Revurderingsårsak,
+        grunnlagsdata: Grunnlagsdata,
+        vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
+        informasjonSomRevurderes: InformasjonSomRevurderes,
+        tilRevurdering: UUID,
+        avkorting: AvkortingVedRevurdering.Uhåndtert,
+        saksbehandler: Saksbehandler,
+    ): Either<KunneIkkeOppdatereRevurdering, OpprettetRevurdering> {
+        return oppdaterInternal(
+            periode = periode,
+            revurderingsårsak = revurderingsårsak,
+            grunnlagsdata = grunnlagsdata,
+            vilkårsvurderinger = vilkårsvurderinger,
+            informasjonSomRevurderes = informasjonSomRevurderes,
+            tilRevurdering = tilRevurdering,
+            avkorting = avkorting,
+            saksbehandler = saksbehandler
+        )
+    }
+
     data class Innvilget(
         override val id: UUID,
         override val periode: Periode,
@@ -2187,8 +2256,6 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
         }
-
-        fun harSimuleringFeilutbetaling() = simulering.harFeilutbetalinger()
 
         fun tilAttestering(
             oppgaveId: OppgaveId,
@@ -2254,8 +2321,6 @@ sealed class UnderkjentRevurdering : Revurdering() {
                 OpphørVedRevurdering.Nei -> emptyList()
             }
         }
-
-        fun harSimuleringFeilutbetaling() = simulering.harFeilutbetalinger()
 
         object KanIkkeSendeEnOpphørtGReguleringTilAttestering
 
@@ -2343,33 +2408,6 @@ sealed class UnderkjentRevurdering : Revurdering() {
             )
         }
     }
-
-    fun oppdater(
-        periode: Periode,
-        revurderingsårsak: Revurderingsårsak,
-        grunnlagsdata: Grunnlagsdata,
-        vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
-        informasjonSomRevurderes: InformasjonSomRevurderes,
-        tilRevurdering: UUID,
-        avkorting: AvkortingVedRevurdering.Uhåndtert,
-    ) = OpprettetRevurdering(
-        id = id,
-        periode = periode,
-        opprettet = opprettet,
-        tilRevurdering = tilRevurdering,
-        saksbehandler = saksbehandler,
-        oppgaveId = oppgaveId,
-        fritekstTilBrev = fritekstTilBrev,
-        revurderingsårsak = revurderingsårsak,
-        // TODO jah: Bytt til Either (modellen bør passe på dette selv og ikke la ansvaret ligge bredt i servicen)
-        forhåndsvarsel = if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles else null,
-        grunnlagsdata = grunnlagsdata,
-        vilkårsvurderinger = vilkårsvurderinger,
-        informasjonSomRevurderes = informasjonSomRevurderes,
-        attesteringer = attesteringer,
-        avkorting = avkorting,
-        sakinfo = sakinfo,
-    )
 }
 
 fun Revurdering.medFritekst(fritekstTilBrev: String) =

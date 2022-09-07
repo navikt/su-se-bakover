@@ -27,11 +27,8 @@ import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeAktørId
 import no.nav.su.se.bakover.web.routes.Feilresponser.harAlleredeÅpenBehandling
 import no.nav.su.se.bakover.web.routes.Feilresponser.kunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.begrunnelseKanIkkeVæreTom
-import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.formueSomFørerTilOpphørMåRevurderes
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.måVelgeInformasjonSomRevurderes
-import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.tidslinjeForVedtakErIkkeKontinuerlig
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.ugyldigÅrsak
-import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.utenlandsoppholdSomFørerTilOpphørMåRevurderes
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.uteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeSak
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIngenVedtakSomKanRevurderes
@@ -102,20 +99,31 @@ private fun KunneIkkeOppretteRevurdering.tilResultat(): Resultat {
 }
 
 internal fun Sak.KunneIkkeOppretteRevurdering.tilResultat() = when (this) {
-    Sak.KunneIkkeOppretteRevurdering.FantIkkeAktørId -> fantIkkeAktørId
-    Sak.KunneIkkeOppretteRevurdering.FantIngenVedtakSomKanRevurderes -> fantIngenVedtakSomKanRevurderes
-    Sak.KunneIkkeOppretteRevurdering.FormueSomFørerTilOpphørMåRevurderes -> formueSomFørerTilOpphørMåRevurderes
-    Sak.KunneIkkeOppretteRevurdering.HarÅpenBehandling -> harAlleredeÅpenBehandling
-    is Sak.KunneIkkeOppretteRevurdering.KunneIkkeHenteGjeldendeVedtaksdataSak -> this.feil.tilResultat()
-    Sak.KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
-    Sak.KunneIkkeOppretteRevurdering.TidslinjeForVedtakErIkkeKontinuerlig -> tidslinjeForVedtakErIkkeKontinuerlig
-    Sak.KunneIkkeOppretteRevurdering.UtenlandsoppholdSomFørerTilOpphørMåRevurderes -> utenlandsoppholdSomFørerTilOpphørMåRevurderes
-    is Sak.KunneIkkeOppretteRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode -> uteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(
-        this.periode,
-    )
+    Sak.KunneIkkeOppretteRevurdering.FantIkkeAktørId -> {
+        fantIkkeAktørId
+    }
+    Sak.KunneIkkeOppretteRevurdering.HarÅpenBehandling -> {
+        harAlleredeÅpenBehandling
+    }
+    Sak.KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave -> {
+        kunneIkkeOppretteOppgave
+    }
+    is Sak.KunneIkkeOppretteRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode -> {
+        uteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(this.periode)
+    }
+    is Sak.KunneIkkeOppretteRevurdering.GjeldendeVedtaksdataKanIkkeRevurderes -> {
+        this.feil.tilResultat()
+    }
+    is Sak.KunneIkkeOppretteRevurdering.OpphørteVilkårMåRevurderes -> {
+        this.feil.tilResultat()
+    }
 }
 
 internal fun Sak.KunneIkkeHenteGjeldendeVedtaksdata.tilResultat() = when (this) {
-    is Sak.KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes -> fantIngenVedtakSomKanRevurderes
-    is Sak.KunneIkkeHenteGjeldendeVedtaksdata.UgyldigPeriode -> ugyldigPeriode(this.feil)
+    is Sak.KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes -> {
+        fantIngenVedtakSomKanRevurderes
+    }
+    is Sak.KunneIkkeHenteGjeldendeVedtaksdata.UgyldigPeriode -> {
+        ugyldigPeriode(this.feil)
+    }
 }
