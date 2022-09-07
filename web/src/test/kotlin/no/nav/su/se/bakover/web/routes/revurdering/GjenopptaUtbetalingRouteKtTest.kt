@@ -11,6 +11,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.domain.oppdrag.KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
@@ -114,7 +115,11 @@ internal class GjenopptaUtbetalingRouteKtTest {
                                     any(),
                                 )
                             } doReturn KunneIkkeIverksetteGjenopptakAvYtelse.KunneIkkeUtbetale(
-                                UtbetalGjenopptakFeil.KunneIkkeUtbetale(UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte),
+                                UtbetalGjenopptakFeil.KunneIkkeUtbetale(
+                                    UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(
+                                        KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UliktBeløp
+                                    )
+                                ),
                             ).left()
                         },
                     ),

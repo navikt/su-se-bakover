@@ -151,10 +151,9 @@ internal fun List<Utbetaling>.hentSisteOversendteUtbetalingslinjeUtenFeil(): Utb
 }
 
 sealed class UtbetalingFeilet {
-    object SimuleringHarBlittEndretSidenSaksbehandlerSimulerte : UtbetalingFeilet()
+    data class SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(val feil: KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet) : UtbetalingFeilet()
     object Protokollfeil : UtbetalingFeilet()
     data class KunneIkkeSimulere(val simuleringFeilet: SimuleringFeilet) : UtbetalingFeilet()
-    object KontrollAvSimuleringFeilet : UtbetalingFeilet()
     object FantIkkeSak : UtbetalingFeilet()
 }
 

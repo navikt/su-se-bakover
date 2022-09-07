@@ -50,7 +50,7 @@ data class TolketSimulering(
      * Sjekk for spesialtilfellet hvor vi har mottatt en tom respons.
      * @see no.nav.su.se.bakover.client.oppdrag.simulering.SimuleringResponseMapper
      */
-    private fun erTomSimulering(): Boolean {
+    fun erTomSimulering(): Boolean {
         return simulertePerioder.all { it.utbetaling is TolketUtbetaling.IngenUtbetaling }
     }
 

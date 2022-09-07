@@ -1,16 +1,13 @@
 package no.nav.su.se.bakover.test
 
-import arrow.core.Either
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
-import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
@@ -25,7 +22,6 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import java.time.Clock
@@ -364,37 +360,6 @@ fun simulertUtbetaling(
             clock = clock,
         ),
     )
-}
-
-fun simulertUtbetalingOpphør(
-    opphørsperiode: Periode,
-    fnr: Fnr = no.nav.su.se.bakover.test.fnr,
-    sakId: UUID = no.nav.su.se.bakover.test.sakId,
-    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
-    behandler: NavIdentBruker = attestant,
-    clock: Clock = fixedClock,
-    eksisterendeUtbetalinger: List<Utbetaling>,
-): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
-    return Utbetalingsstrategi.Opphør(
-        sakId = sakId,
-        saksnummer = saksnummer,
-        fnr = fnr,
-        eksisterendeUtbetalinger = eksisterendeUtbetalinger,
-        behandler = behandler,
-        sakstype = Sakstype.UFØRE,
-        periode = opphørsperiode,
-        clock = clock,
-    ).generate()
-        .toSimulertUtbetaling(
-            simulering = simuleringOpphørt(
-                opphørsperiode = opphørsperiode,
-                eksisterendeUtbetalinger = eksisterendeUtbetalinger,
-                fnr = fnr,
-                sakId = sakId,
-                saksnummer = saksnummer,
-                clock = clock,
-            ),
-        ).right()
 }
 
 fun simulertFeilutbetaling(
