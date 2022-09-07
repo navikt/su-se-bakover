@@ -40,6 +40,7 @@ import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.OpphørVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.VurderOmVilkårGirOpphørVedRevurdering
@@ -596,29 +597,11 @@ data class Sak(
         ).right()
     }
 
-    sealed interface KunneIkkeOppretteRevurdering {
-        data class KunneIkkeHenteGjeldendeVedtaksdataSak(val feil: KunneIkkeHenteGjeldendeVedtaksdata) :
-            KunneIkkeOppretteRevurdering
-
-        object HarÅpenBehandling : KunneIkkeOppretteRevurdering
-        object FantIngenVedtakSomKanRevurderes : KunneIkkeOppretteRevurdering
-        object TidslinjeForVedtakErIkkeKontinuerlig : KunneIkkeOppretteRevurdering
-        object UtenlandsoppholdSomFørerTilOpphørMåRevurderes : KunneIkkeOppretteRevurdering
-        object FormueSomFørerTilOpphørMåRevurderes : KunneIkkeOppretteRevurdering
-        object FantIkkeAktørId : KunneIkkeOppretteRevurdering
-        object KunneIkkeOppretteOppgave : KunneIkkeOppretteRevurdering
-
-        data class UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(val periode: Periode) :
-            KunneIkkeOppretteRevurdering
-    }
-
     private fun kontrollerAtUteståendeAvkortingRevurderes(
-        gjeldendeVedtaksdata: GjeldendeVedtaksdata,
+        periode: Periode,
         uteståendeAvkorting: AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting,
     ): Either<Unit, AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting> {
-        return if (!gjeldendeVedtaksdata.periodeFørsteTilOgMedSeneste()
-            .inneholder(uteståendeAvkorting.avkortingsvarsel.periode())
-        ) Unit.left() else uteståendeAvkorting.right()
+        return if (!periode.inneholder(uteståendeAvkorting.avkortingsvarsel.periode())) Unit.left() else uteståendeAvkorting.right()
     }
 
     fun opprettNyRevurdering(
@@ -633,49 +616,31 @@ data class Sak(
         return if (!kanOppretteBehandling()) {
             KunneIkkeOppretteRevurdering.HarÅpenBehandling.left()
         } else {
-            val gjeldendeVedtaksdata = hentGjeldendeVedtaksdata(
+            val gjeldendeVedtaksdata = hentGjeldendeVedtaksdataOgSjekkGyldighetForRevurderingsperiode(
                 periode = periode,
-                clock = clock,
-            ).fold(
-                { return KunneIkkeOppretteRevurdering.KunneIkkeHenteGjeldendeVedtaksdataSak(it).left() },
-                {
-                    it.also {
-                        if (!it.tidslinjeForVedtakErSammenhengende()) return KunneIkkeOppretteRevurdering.TidslinjeForVedtakErIkkeKontinuerlig.left()
-                    }
-                },
-            )
+                clock = clock
+            ).getOrHandle { return KunneIkkeOppretteRevurdering.GjeldendeVedtaksdataKanIkkeRevurderes(it).left() }
 
-            val gjeldendeVedtakPåFraOgMedDato = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(dato = periode.fraOgMed)
-                ?: return KunneIkkeOppretteRevurdering.FantIngenVedtakSomKanRevurderes.left()
-
-            when (val r = VurderOmVilkårGirOpphørVedRevurdering(gjeldendeVedtaksdata.vilkårsvurderinger).resultat) {
-                is OpphørVedRevurdering.Ja -> {
-                    if (!informasjonSomRevurderes.harValgtFormue() && r.opphørsgrunner.contains(Opphørsgrunn.FORMUE)) {
-                        return KunneIkkeOppretteRevurdering.FormueSomFørerTilOpphørMåRevurderes.left()
-                    }
-                    if (!informasjonSomRevurderes.harValgtUtenlandsopphold() && r.opphørsgrunner.contains(Opphørsgrunn.UTENLANDSOPPHOLD)) {
-                        return KunneIkkeOppretteRevurdering.UtenlandsoppholdSomFørerTilOpphørMåRevurderes.left()
-                    }
-                }
-
-                is OpphørVedRevurdering.Nei -> {
-                    // noop
-                }
-            }
+            informasjonSomRevurderes.sjekkAtOpphørteVilkårRevurderes(gjeldendeVedtaksdata)
+                .getOrHandle { return KunneIkkeOppretteRevurdering.OpphørteVilkårMåRevurderes(it).left() }
 
             val uteståendeAvkorting = hentUteståendeAvkortingForRevurdering().fold(
-                { it },
+                {
+                    it
+                },
                 { uteståendeAvkorting ->
-                    kontrollerAtUteståendeAvkortingRevurderes(gjeldendeVedtaksdata, uteståendeAvkorting)
-                        .getOrHandle {
-                            return KunneIkkeOppretteRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(
-                                periode = uteståendeAvkorting.avkortingsvarsel.periode(),
-                            ).left()
-                        }
+                    kontrollerAtUteståendeAvkortingRevurderes(
+                        periode = periode,
+                        uteståendeAvkorting = uteståendeAvkorting,
+                    ).getOrHandle {
+                        return KunneIkkeOppretteRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(
+                            periode = uteståendeAvkorting.avkortingsvarsel.periode(),
+                        ).left()
+                    }
                 },
             )
 
-            val aktørId = hentAktørId(gjeldendeVedtakPåFraOgMedDato.behandling.fnr).getOrElse {
+            val aktørId = hentAktørId(fnr).getOrElse {
                 log.error("Fant ikke aktør-id")
                 return KunneIkkeOppretteRevurdering.FantIkkeAktørId.left()
             }
@@ -694,9 +659,9 @@ data class Sak(
             }
 
             OpprettetRevurdering(
-                periode = gjeldendeVedtaksdata.vedtaksperioder().minsteAntallSammenhengendePerioder().single(),
+                periode = periode,
                 opprettet = Tidspunkt.now(clock),
-                tilRevurdering = gjeldendeVedtakPåFraOgMedDato.id,
+                tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(dato = periode.fraOgMed)!!.id,
                 saksbehandler = saksbehandler,
                 oppgaveId = oppgaveId,
                 fritekstTilBrev = "",
@@ -707,9 +672,134 @@ data class Sak(
                 informasjonSomRevurderes = informasjonSomRevurderes,
                 attesteringer = Attesteringshistorikk.empty(),
                 avkorting = uteståendeAvkorting,
-                sakinfo = gjeldendeVedtakPåFraOgMedDato.sakinfo(),
+                sakinfo = info(),
             ).right()
         }
+    }
+
+    sealed interface KunneIkkeOppretteRevurdering {
+        object HarÅpenBehandling : KunneIkkeOppretteRevurdering
+        object FantIkkeAktørId : KunneIkkeOppretteRevurdering
+        object KunneIkkeOppretteOppgave : KunneIkkeOppretteRevurdering
+
+        data class UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(val periode: Periode) : KunneIkkeOppretteRevurdering
+
+        data class GjeldendeVedtaksdataKanIkkeRevurderes(val feil: GjeldendeVedtaksdataErUgyldigForRevurdering) : KunneIkkeOppretteRevurdering
+        data class OpphørteVilkårMåRevurderes(val feil: OpphørtVilkårMåRevurderes) : KunneIkkeOppretteRevurdering
+    }
+
+    fun oppdaterRevurdering(
+        revurderingId: UUID,
+        periode: Periode,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        revurderingsårsak: Revurderingsårsak,
+        informasjonSomRevurderes: InformasjonSomRevurderes,
+        clock: Clock,
+    ): Either<KunneIkkeOppdatereRevurdering, OpprettetRevurdering> {
+        val revurdering = hentRevurdering(revurderingId).fold(
+            { return KunneIkkeOppdatereRevurdering.FantIkkeRevurdering.left() },
+            {
+                if (it is Revurdering) it else return KunneIkkeOppdatereRevurdering.FantIkkeRevurdering.left()
+            },
+        )
+
+        val gjeldendeVedtaksdata = hentGjeldendeVedtaksdataOgSjekkGyldighetForRevurderingsperiode(
+            periode = periode,
+            clock = clock
+        ).getOrHandle {
+            return KunneIkkeOppdatereRevurdering.GjeldendeVedtaksdataKanIkkeRevurderes(it).left()
+        }
+
+        informasjonSomRevurderes.sjekkAtOpphørteVilkårRevurderes(gjeldendeVedtaksdata)
+            .getOrHandle { return KunneIkkeOppdatereRevurdering.OpphørteVilkårMåRevurderes(it).left() }
+
+        val avkorting = hentUteståendeAvkortingForRevurdering()
+            .fold(
+                {
+                    it
+                },
+                { uteståendeAvkorting ->
+                    kontrollerAtUteståendeAvkortingRevurderes(
+                        periode = periode,
+                        uteståendeAvkorting = uteståendeAvkorting,
+                    ).getOrHandle {
+                        return KunneIkkeOppdatereRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(
+                            periode = uteståendeAvkorting.avkortingsvarsel.periode(),
+                        ).left()
+                    }
+                },
+            )
+
+        return revurdering.oppdater(
+            periode = periode,
+            revurderingsårsak = revurderingsårsak,
+            grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
+            vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
+            informasjonSomRevurderes = informasjonSomRevurderes,
+            tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(dato = periode.fraOgMed)!!.id,
+            avkorting = avkorting,
+            saksbehandler = saksbehandler,
+        ).mapLeft {
+            KunneIkkeOppdatereRevurdering.KunneIkkeOppdatere(it)
+        }
+    }
+
+    sealed class KunneIkkeOppdatereRevurdering {
+        object FantIkkeSak : KunneIkkeOppdatereRevurdering()
+        object FantIkkeRevurdering : KunneIkkeOppdatereRevurdering()
+        data class UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(val periode: Periode) : KunneIkkeOppdatereRevurdering()
+        data class KunneIkkeOppdatere(val feil: Revurdering.KunneIkkeOppdatereRevurdering) : KunneIkkeOppdatereRevurdering()
+        data class GjeldendeVedtaksdataKanIkkeRevurderes(val feil: GjeldendeVedtaksdataErUgyldigForRevurdering) : KunneIkkeOppdatereRevurdering()
+
+        data class OpphørteVilkårMåRevurderes(val feil: OpphørtVilkårMåRevurderes) : KunneIkkeOppdatereRevurdering()
+    }
+
+    private fun hentGjeldendeVedtaksdataOgSjekkGyldighetForRevurderingsperiode(periode: Periode, clock: Clock): Either<GjeldendeVedtaksdataErUgyldigForRevurdering, GjeldendeVedtaksdata> {
+        return hentGjeldendeVedtaksdata(
+            periode = periode,
+            clock = clock
+        ).getOrHandle {
+            return GjeldendeVedtaksdataErUgyldigForRevurdering.FantIngenVedtakSomKanRevurderes.left()
+        }.let {
+            if (!it.harVedtakIHelePerioden()) {
+                return GjeldendeVedtaksdataErUgyldigForRevurdering.HeleRevurderingsperiodenInneholderIkkeVedtak.left()
+            }
+            it.right()
+        }
+    }
+    sealed class GjeldendeVedtaksdataErUgyldigForRevurdering {
+        object FantIngenVedtakSomKanRevurderes : GjeldendeVedtaksdataErUgyldigForRevurdering()
+        object HeleRevurderingsperiodenInneholderIkkeVedtak : GjeldendeVedtaksdataErUgyldigForRevurdering()
+    }
+
+    /**
+     * TODO Vurder å implementer alle varianter eller bytte ut hele mekanismen
+     * Brukes til å varsle om at vilkår man ikke har valgt å revurdere vil gir opphør. Avverger bla. at man havner
+     * på oppsummeringen uten å ane hva som fører til opphør. Hvis mekanismen skal leve videre bør den utvides med alle
+     * manglende vilkår, alternativt kan den erstattes med noe annet som f.eks at man alltid har muligheten til å
+     * finne vilkårene på oppsummeringssiden (også de som ikke ble revurdert aktivt av saksbehandler) eller lignende.
+     */
+    private fun InformasjonSomRevurderes.sjekkAtOpphørteVilkårRevurderes(gjeldendeVedtaksdata: GjeldendeVedtaksdata): Either<OpphørtVilkårMåRevurderes, Unit> {
+        return VurderOmVilkårGirOpphørVedRevurdering(gjeldendeVedtaksdata.vilkårsvurderinger).resultat.let {
+            when (it) {
+                is OpphørVedRevurdering.Ja -> {
+                    if (!harValgtFormue() && it.opphørsgrunner.contains(Opphørsgrunn.FORMUE)) {
+                        OpphørtVilkårMåRevurderes.FormueSomFørerTilOpphørMåRevurderes.left()
+                    }
+                    if (!harValgtUtenlandsopphold() && it.opphørsgrunner.contains(Opphørsgrunn.UTENLANDSOPPHOLD)) {
+                        OpphørtVilkårMåRevurderes.UtenlandsoppholdSomFørerTilOpphørMåRevurderes.left()
+                    }
+                    Unit.right()
+                }
+                is OpphørVedRevurdering.Nei -> {
+                    Unit.right()
+                }
+            }
+        }
+    }
+    sealed class OpphørtVilkårMåRevurderes {
+        object FormueSomFørerTilOpphørMåRevurderes : OpphørtVilkårMåRevurderes()
+        object UtenlandsoppholdSomFørerTilOpphørMåRevurderes : OpphørtVilkårMåRevurderes()
     }
 
     fun harÅpenRegulering() = hentÅpneReguleringer().isRight()
@@ -732,8 +822,6 @@ data class Sak(
 
     object IngenÅpneRevurderinger
     object FantIkkeSøknadsbehandlingForSøknad
-
-    object HarÅpenBehandling
 
     sealed class KunneIkkeOppdatereStønadsperiode {
         object FantIkkeBehandling : KunneIkkeOppdatereStønadsperiode()

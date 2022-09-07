@@ -8,6 +8,8 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppdatereRevurdering
@@ -21,10 +23,9 @@ import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.begrunnelseKanIkkeVæreTom
-import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.epsFormueMedFlereBosituasjonsperioderMåRevurderes
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.formueSomFørerTilOpphørMåRevurderes
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.heleRevurderingsperiodenInneholderIkkeVedtak
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.måVelgeInformasjonSomRevurderes
-import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.tidslinjeForVedtakErIkkeKontinuerlig
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.ugyldigÅrsak
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.utenlandsoppholdSomFørerTilOpphørMåRevurderes
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.uteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode
@@ -88,23 +89,69 @@ internal fun Route.oppdaterRevurderingRoute(
 
 private fun KunneIkkeOppdatereRevurdering.tilResultat(): Resultat {
     return when (this) {
-        is KunneIkkeOppdatereRevurdering.FantIkkeRevurdering -> fantIkkeRevurdering
-        is KunneIkkeOppdatereRevurdering.UgyldigTilstand -> Feilresponser.ugyldigTilstand(this.fra, this.til)
-        KunneIkkeOppdatereRevurdering.UgyldigBegrunnelse -> begrunnelseKanIkkeVæreTom
-        KunneIkkeOppdatereRevurdering.UgyldigÅrsak -> ugyldigÅrsak
-        KunneIkkeOppdatereRevurdering.KanIkkeOppdatereRevurderingSomErForhåndsvarslet -> HttpStatusCode.BadRequest.errorJson(
-            "Kan ikke oppdatere revurdering som er forhåndsvarslet",
-            "kan_ikke_oppdatere_revurdering_som_er_forhåndsvarslet",
-        )
-        KunneIkkeOppdatereRevurdering.MåVelgeInformasjonSomSkalRevurderes -> måVelgeInformasjonSomRevurderes
-        KunneIkkeOppdatereRevurdering.FantIkkeSak -> fantIkkeSak
-        KunneIkkeOppdatereRevurdering.FantIngenVedtakSomKanRevurderes -> fantIngenVedtakSomKanRevurderes
-        KunneIkkeOppdatereRevurdering.TidslinjeForVedtakErIkkeKontinuerlig -> tidslinjeForVedtakErIkkeKontinuerlig
-        KunneIkkeOppdatereRevurdering.FormueSomFørerTilOpphørMåRevurderes -> formueSomFørerTilOpphørMåRevurderes
-        KunneIkkeOppdatereRevurdering.EpsFormueMedFlereBosituasjonsperioderMåRevurderes -> epsFormueMedFlereBosituasjonsperioderMåRevurderes
-        is KunneIkkeOppdatereRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode -> uteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(
-            periode,
-        )
-        KunneIkkeOppdatereRevurdering.UtenlandsoppholdSomFørerTilOpphørMåRevurderes -> utenlandsoppholdSomFørerTilOpphørMåRevurderes
+        KunneIkkeOppdatereRevurdering.UgyldigBegrunnelse -> {
+            begrunnelseKanIkkeVæreTom
+        }
+        KunneIkkeOppdatereRevurdering.UgyldigÅrsak -> {
+            ugyldigÅrsak
+        }
+        KunneIkkeOppdatereRevurdering.MåVelgeInformasjonSomSkalRevurderes -> {
+            måVelgeInformasjonSomRevurderes
+        }
+        is KunneIkkeOppdatereRevurdering.FeilVedOppdateringAvRevurdering -> {
+            when (val inner = this.feil) {
+                Sak.KunneIkkeOppdatereRevurdering.FantIkkeRevurdering -> {
+                    fantIkkeRevurdering
+                }
+                Sak.KunneIkkeOppdatereRevurdering.FantIkkeSak -> {
+                    fantIkkeSak
+                }
+                is Sak.KunneIkkeOppdatereRevurdering.GjeldendeVedtaksdataKanIkkeRevurderes -> {
+                    inner.feil.tilResultat()
+                }
+                is Sak.KunneIkkeOppdatereRevurdering.KunneIkkeOppdatere -> {
+                    when (val nested = inner.feil) {
+                        Revurdering.KunneIkkeOppdatereRevurdering.KanIkkeOppdatereRevurderingSomErForhåndsvarslet -> {
+                            HttpStatusCode.BadRequest.errorJson(
+                                "Kan ikke oppdatere revurdering som er forhåndsvarslet",
+                                "kan_ikke_oppdatere_revurdering_som_er_forhåndsvarslet",
+                            )
+                        }
+                        is Revurdering.KunneIkkeOppdatereRevurdering.UgyldigTilstand -> {
+                            Feilresponser.ugyldigTilstand(nested.fra, nested.til)
+                        }
+                    }
+                }
+                is Sak.KunneIkkeOppdatereRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode -> {
+                    uteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(inner.periode)
+                }
+
+                is Sak.KunneIkkeOppdatereRevurdering.OpphørteVilkårMåRevurderes -> {
+                    inner.feil.tilResultat()
+                }
+            }
+        }
+    }
+}
+
+internal fun Sak.OpphørtVilkårMåRevurderes.tilResultat(): Resultat {
+    return when (this) {
+        Sak.OpphørtVilkårMåRevurderes.FormueSomFørerTilOpphørMåRevurderes -> {
+            formueSomFørerTilOpphørMåRevurderes
+        }
+        Sak.OpphørtVilkårMåRevurderes.UtenlandsoppholdSomFørerTilOpphørMåRevurderes -> {
+            utenlandsoppholdSomFørerTilOpphørMåRevurderes
+        }
+    }
+}
+
+internal fun Sak.GjeldendeVedtaksdataErUgyldigForRevurdering.tilResultat(): Resultat {
+    return when (this) {
+        Sak.GjeldendeVedtaksdataErUgyldigForRevurdering.FantIngenVedtakSomKanRevurderes -> {
+            fantIngenVedtakSomKanRevurderes
+        }
+        Sak.GjeldendeVedtaksdataErUgyldigForRevurdering.HeleRevurderingsperiodenInneholderIkkeVedtak -> {
+            heleRevurderingsperiodenInneholderIkkeVedtak
+        }
     }
 }

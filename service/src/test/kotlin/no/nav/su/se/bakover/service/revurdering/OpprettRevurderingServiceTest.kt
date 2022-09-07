@@ -334,8 +334,8 @@ internal class OpprettRevurderingServiceTest {
                     informasjonSomRevurderes = listOf(Revurderingsteg.Uførhet),
                 ),
             ) shouldBe KunneIkkeOppretteRevurdering.FeilVedOpprettelseAvRevurdering(
-                Sak.KunneIkkeOppretteRevurdering.KunneIkkeHenteGjeldendeVedtaksdataSak(
-                    Sak.KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes(år(2021)),
+                Sak.KunneIkkeOppretteRevurdering.GjeldendeVedtaksdataKanIkkeRevurderes(
+                    Sak.GjeldendeVedtaksdataErUgyldigForRevurdering.FantIngenVedtakSomKanRevurderes,
                 ),
             ).left()
         }
@@ -540,6 +540,9 @@ internal class OpprettRevurderingServiceTest {
     @Test
     fun `må velge noe som skal revurderes`() {
         RevurderingServiceMocks(
+            sakService = mock {
+                on { hentSak(any<UUID>()) } doReturn nySakUføre().first.right()
+            },
             personService = mock {
                 on { hentAktørId(any()) } doReturn aktørId.right()
             },
@@ -590,8 +593,11 @@ internal class OpprettRevurderingServiceTest {
                     ),
                 ),
             )
-            actual shouldBe KunneIkkeOppretteRevurdering.FeilVedOpprettelseAvRevurdering(Sak.KunneIkkeOppretteRevurdering.TidslinjeForVedtakErIkkeKontinuerlig)
-                .left()
+            actual shouldBe KunneIkkeOppretteRevurdering.FeilVedOpprettelseAvRevurdering(
+                Sak.KunneIkkeOppretteRevurdering.GjeldendeVedtaksdataKanIkkeRevurderes(
+                    Sak.GjeldendeVedtaksdataErUgyldigForRevurdering.HeleRevurderingsperiodenInneholderIkkeVedtak
+                )
+            ).left()
         }
     }
 

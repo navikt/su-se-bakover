@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.august
 import no.nav.su.se.bakover.common.periode.desember
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.juli
@@ -19,11 +20,13 @@ import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.toPeriode
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
@@ -40,6 +43,7 @@ import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
+import no.nav.su.se.bakover.test.nySakUføre
 import no.nav.su.se.bakover.test.nySøknadJournalførtMedOppgave
 import no.nav.su.se.bakover.test.oppgaveIdRevurdering
 import no.nav.su.se.bakover.test.opprettetRevurdering
@@ -66,7 +70,11 @@ import java.util.UUID
 internal class OppdaterRevurderingServiceTest {
     @Test
     fun `ugyldig begrunnelse`() {
-        val mocks = RevurderingServiceMocks()
+        val mocks = RevurderingServiceMocks(
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn nySakUføre().first
+            }
+        )
         val actual = mocks.revurderingService.oppdaterRevurdering(
             OppdaterRevurderingRequest(
                 revurderingId = revurderingId,
@@ -78,12 +86,17 @@ internal class OppdaterRevurderingServiceTest {
             ),
         )
         actual shouldBe KunneIkkeOppdatereRevurdering.UgyldigBegrunnelse.left()
+        verify(mocks.sakService).hentSakForRevurdering(revurderingId)
         mocks.verifyNoMoreInteractions()
     }
 
     @Test
     fun `ugyldig årsak`() {
-        val mocks = RevurderingServiceMocks()
+        val mocks = RevurderingServiceMocks(
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn nySakUføre().first
+            }
+        )
         val actual = mocks.revurderingService.oppdaterRevurdering(
             OppdaterRevurderingRequest(
                 revurderingId = revurderingId,
@@ -95,6 +108,7 @@ internal class OppdaterRevurderingServiceTest {
             ),
         )
         actual shouldBe KunneIkkeOppdatereRevurdering.UgyldigÅrsak.left()
+        verify(mocks.sakService).hentSakForRevurdering(revurderingId)
         mocks.verifyNoMoreInteractions()
     }
 
@@ -115,7 +129,7 @@ internal class OppdaterRevurderingServiceTest {
                     saksbehandler = saksbehandler,
                     informasjonSomRevurderes = listOf(Revurderingsteg.Uførhet),
                 ),
-            ) shouldBe KunneIkkeOppdatereRevurdering.FantIkkeRevurdering.left()
+            ) shouldBe KunneIkkeOppdatereRevurdering.FeilVedOppdateringAvRevurdering(Sak.KunneIkkeOppdatereRevurdering.FantIkkeRevurdering).left()
         }
     }
 
@@ -140,7 +154,7 @@ internal class OppdaterRevurderingServiceTest {
                     informasjonSomRevurderes = listOf(Revurderingsteg.Uførhet),
                 ),
             )
-            actual shouldBe KunneIkkeOppdatereRevurdering.KanIkkeOppdatereRevurderingSomErForhåndsvarslet.left()
+            actual shouldBe KunneIkkeOppdatereRevurdering.FeilVedOppdateringAvRevurdering(Sak.KunneIkkeOppdatereRevurdering.KunneIkkeOppdatere(Revurdering.KunneIkkeOppdatereRevurdering.KanIkkeOppdatereRevurderingSomErForhåndsvarslet)).left()
         }
     }
 
@@ -163,7 +177,7 @@ internal class OppdaterRevurderingServiceTest {
                     saksbehandler = saksbehandler,
                     informasjonSomRevurderes = listOf(Revurderingsteg.Uførhet),
                 ),
-            ) shouldBe KunneIkkeOppdatereRevurdering.KanIkkeOppdatereRevurderingSomErForhåndsvarslet.left()
+            ) shouldBe KunneIkkeOppdatereRevurdering.FeilVedOppdateringAvRevurdering(Sak.KunneIkkeOppdatereRevurdering.KunneIkkeOppdatere(Revurdering.KunneIkkeOppdatereRevurdering.KanIkkeOppdatereRevurderingSomErForhåndsvarslet)).left()
         }
     }
 
@@ -186,9 +200,13 @@ internal class OppdaterRevurderingServiceTest {
                     informasjonSomRevurderes = listOf(Revurderingsteg.Uførhet),
                 ),
             )
-            actual shouldBe KunneIkkeOppdatereRevurdering.UgyldigTilstand(
-                IverksattRevurdering.Innvilget::class,
-                OpprettetRevurdering::class,
+            actual shouldBe KunneIkkeOppdatereRevurdering.FeilVedOppdateringAvRevurdering(
+                Sak.KunneIkkeOppdatereRevurdering.KunneIkkeOppdatere(
+                    Revurdering.KunneIkkeOppdatereRevurdering.UgyldigTilstand(
+                        IverksattRevurdering.Innvilget::class,
+                        OpprettetRevurdering::class,
+                    )
+                )
             ).left()
             verify(it.sakService).hentSakForRevurdering(iverksatt.id)
             it.verifyNoMoreInteractions()
@@ -226,7 +244,7 @@ internal class OppdaterRevurderingServiceTest {
             actual.let { oppdatertRevurdering ->
                 oppdatertRevurdering.periode shouldBe oppdatertPeriode
                 oppdatertRevurdering.tilRevurdering shouldBe sak.vedtakListe.single().id
-                oppdatertRevurdering.saksbehandler shouldBe saksbehandler
+                oppdatertRevurdering.saksbehandler shouldBe NavIdentBruker.Saksbehandler("En ny saksbehandlinger")
                 oppdatertRevurdering.oppgaveId shouldBe oppgaveIdRevurdering
                 oppdatertRevurdering.fritekstTilBrev shouldBe ""
                 oppdatertRevurdering.revurderingsårsak shouldBe Revurderingsårsak(
@@ -324,7 +342,7 @@ internal class OppdaterRevurderingServiceTest {
     }
 
     @Test
-    fun `støtter ikke tilfeller hvor gjeldende vedtaksdata ikke er sammenhengende i tid`() {
+    fun `kan ikke revurdere perioder hvor det ikke eksisterer vedtak for alle månedene i revurderingsperioden`() {
         val sakMedFørstegangsbehandling = iverksattSøknadsbehandlingUføre(
             stønadsperiode = Stønadsperiode.create(januar(2021).rangeTo(juli(2021))),
         )
@@ -348,6 +366,7 @@ internal class OppdaterRevurderingServiceTest {
                 on { hentSakForRevurdering(any()) } doReturn opprettetRevurdering.first
             },
         ).also {
+            // fullstendig overlapp med hull mellom stønadsperiodene
             it.revurderingService.oppdaterRevurdering(
                 OppdaterRevurderingRequest(
                     revurderingId = opprettetRevurdering.second.id,
@@ -357,7 +376,27 @@ internal class OppdaterRevurderingServiceTest {
                     saksbehandler = saksbehandler,
                     informasjonSomRevurderes = listOf(Revurderingsteg.Uførhet),
                 ),
-            ) shouldBe KunneIkkeOppdatereRevurdering.TidslinjeForVedtakErIkkeKontinuerlig.left()
+            ) shouldBe KunneIkkeOppdatereRevurdering.FeilVedOppdateringAvRevurdering(
+                Sak.KunneIkkeOppdatereRevurdering.GjeldendeVedtaksdataKanIkkeRevurderes(
+                    Sak.GjeldendeVedtaksdataErUgyldigForRevurdering.HeleRevurderingsperiodenInneholderIkkeVedtak
+                )
+            ).left()
+
+            // delvis overlapp med hull mellom stønadsperioder
+            it.revurderingService.oppdaterRevurdering(
+                OppdaterRevurderingRequest(
+                    revurderingId = opprettetRevurdering.second.id,
+                    periode = mai(2021).rangeTo(august(2021)),
+                    årsak = "MELDING_FRA_BRUKER",
+                    begrunnelse = "Test",
+                    saksbehandler = saksbehandler,
+                    informasjonSomRevurderes = listOf(Revurderingsteg.Uførhet),
+                ),
+            ) shouldBe KunneIkkeOppdatereRevurdering.FeilVedOppdateringAvRevurdering(
+                Sak.KunneIkkeOppdatereRevurdering.GjeldendeVedtaksdataKanIkkeRevurderes(
+                    Sak.GjeldendeVedtaksdataErUgyldigForRevurdering.HeleRevurderingsperiodenInneholderIkkeVedtak
+                )
+            ).left()
         }
     }
 
@@ -446,8 +485,9 @@ internal class OppdaterRevurderingServiceTest {
                     saksbehandler = saksbehandler,
                     informasjonSomRevurderes = listOf(Revurderingsteg.Utenlandsopphold),
                 ),
-            ) shouldBe KunneIkkeOppdatereRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(juni(2021))
-                .left()
+            ) shouldBe KunneIkkeOppdatereRevurdering.FeilVedOppdateringAvRevurdering(
+                Sak.KunneIkkeOppdatereRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(juni(2021))
+            ).left()
         }
     }
 }
