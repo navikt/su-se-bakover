@@ -119,6 +119,12 @@ data class GjeldendeVedtaksdata(
         return vedtaksperioder().minsteAntallSammenhengendePerioder().count() == 1
     }
 
+    fun harVedtakIHelePerioden(): Boolean {
+        return periode.måneder().map { gjeldendeVedtakPåDato(it.fraOgMed) }.none { it == null } &&
+            tidslinjeForVedtakErSammenhengende() &&
+            periode == garantertSammenhengendePeriode()
+    }
+
     fun inneholderOpphørsvedtakMedAvkortingUtenlandsopphold(): Boolean {
         return periode.måneder()
             .mapNotNull { gjeldendeVedtakPåDato(it.fraOgMed) }

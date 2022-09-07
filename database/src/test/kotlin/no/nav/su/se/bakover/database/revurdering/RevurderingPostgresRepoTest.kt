@@ -257,7 +257,8 @@ internal class RevurderingPostgresRepoTest {
                 informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
                 tilRevurdering = etAnnetVedtak.id,
                 avkorting = innvilgetBeregning.avkorting.uhåndtert(),
-            )
+                saksbehandler = saksbehandler,
+            ).getOrFail()
 
             repo.lagre(oppdatertRevurdering)
             repo.hent(innvilgetBeregning.id) shouldBe oppdatertRevurdering
