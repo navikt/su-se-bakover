@@ -37,11 +37,11 @@ internal fun ApplicationCall.audit(
 ) {
     AuditLogger.log(
         AuditLogEvent(
-            suUserContext.navIdent,
-            berørtBruker,
-            action,
-            behandlingId,
-            this.callId,
+            navIdent = suUserContext.navIdent,
+            berørtBrukerId = berørtBruker,
+            action = action,
+            behandlingId = behandlingId,
+            callId = this.callId,
         ),
     )
 }
