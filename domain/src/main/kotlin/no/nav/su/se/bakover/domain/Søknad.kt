@@ -33,6 +33,7 @@ sealed class Søknad {
     abstract val opprettet: Tidspunkt
     abstract val sakId: UUID
     abstract val søknadInnhold: SøknadInnhold
+    abstract val innsendtAv: NavIdentBruker
 
     val type: Sakstype by lazy {
         when (søknadInnhold) {
@@ -59,6 +60,7 @@ sealed class Søknad {
         override val opprettet: Tidspunkt,
         override val sakId: UUID,
         override val søknadInnhold: SøknadInnhold,
+        override val innsendtAv: NavIdentBruker,
     ) : Søknad() {
 
         fun journalfør(
@@ -69,6 +71,7 @@ sealed class Søknad {
                 opprettet = opprettet,
                 sakId = sakId,
                 søknadInnhold = søknadInnhold,
+                innsendtAv = innsendtAv,
                 journalpostId = journalpostId,
             )
         }
@@ -82,6 +85,7 @@ sealed class Søknad {
             override val opprettet: Tidspunkt,
             override val sakId: UUID,
             override val søknadInnhold: SøknadInnhold,
+            override val innsendtAv: NavIdentBruker,
             override val journalpostId: JournalpostId,
         ) : Journalført() {
 
@@ -93,6 +97,7 @@ sealed class Søknad {
                     opprettet = opprettet,
                     sakId = sakId,
                     søknadInnhold = søknadInnhold,
+                    innsendtAv = innsendtAv,
                     journalpostId = journalpostId,
                     oppgaveId = oppgaveId,
                 )
@@ -107,6 +112,7 @@ sealed class Søknad {
                 override val opprettet: Tidspunkt,
                 override val sakId: UUID,
                 override val søknadInnhold: SøknadInnhold,
+                override val innsendtAv: NavIdentBruker,
                 override val journalpostId: JournalpostId,
                 override val oppgaveId: OppgaveId,
             ) : MedOppgave() {
@@ -121,6 +127,7 @@ sealed class Søknad {
                         opprettet = opprettet,
                         sakId = sakId,
                         søknadInnhold = søknadInnhold,
+                        innsendtAv = innsendtAv,
                         journalpostId = journalpostId,
                         oppgaveId = oppgaveId,
                         lukketTidspunkt = lukketTidspunkt,
@@ -135,6 +142,7 @@ sealed class Søknad {
                 override val opprettet: Tidspunkt,
                 override val sakId: UUID,
                 override val søknadInnhold: SøknadInnhold,
+                override val innsendtAv: NavIdentBruker,
                 override val journalpostId: JournalpostId,
                 override val oppgaveId: OppgaveId,
                 val lukketTidspunkt: Tidspunkt,

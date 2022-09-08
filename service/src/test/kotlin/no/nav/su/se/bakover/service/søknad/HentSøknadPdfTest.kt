@@ -4,7 +4,6 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.ClientError
-import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
@@ -17,12 +16,10 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
-import no.nav.su.se.bakover.domain.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.søknadinnhold.SøknadsinnholdUføre
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.person.PersonService
-import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.veileder
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
@@ -43,6 +40,7 @@ class HentSøknadPdfTest {
         opprettet = Tidspunkt.EPOCH,
         sakId = sakId,
         søknadInnhold = søknadInnhold,
+        innsendtAv = veileder,
     )
 
     private val sak = Sak(
@@ -65,131 +63,94 @@ class HentSøknadPdfTest {
 
     @Test
     fun `fant ikke søknad`() {
-        val søknadRepoMock = mock<SøknadRepo> {
-            on { hentSøknad(any()) } doReturn null
+        SøknadServiceOgMocks(
+            søknadRepo = mock {
+                on { hentSøknad(any()) } doReturn null
+            }
+        ).also {
+            it.service.hentSøknadPdf(søknadId) shouldBe KunneIkkeLageSøknadPdf.FantIkkeSøknad.left()
+            verify(it.søknadRepo).hentSøknad(argThat { it shouldBe søknadId })
+            it.verifyNoMoreInteractions()
         }
-
-        val pdfGeneratorMock = mock<PdfGenerator>()
-        val søknadService = SøknadServiceImpl(
-            søknadRepo = søknadRepoMock,
-            sakService = mock(),
-            sakFactory = mock(),
-            pdfGenerator = pdfGeneratorMock,
-            dokArkiv = mock(),
-            personService = mock(),
-            oppgaveService = mock(),
-            søknadMetrics = mock(),
-            toggleService = mock(),
-            clock = fixedClock,
-        )
-
-        val actual = søknadService.hentSøknadPdf(søknadId)
-        actual shouldBe KunneIkkeLageSøknadPdf.FantIkkeSøknad.left()
-        verify(søknadRepoMock).hentSøknad(argThat { it shouldBe søknadId })
-        verifyNoMoreInteractions(søknadRepoMock, pdfGeneratorMock)
     }
 
     @Test
     fun `kunne ikke generere PDF`() {
-        val søknadRepoMock = mock<SøknadRepo> {
-            on { hentSøknad(any()) } doReturn søknad
-        }
-        val sakServiceMock = mock<SakService> {
-            on { hentSak(any<UUID>()) } doReturn sak.right()
-        }
-        val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn person.right()
-        }
-        val pdfGeneratorMock = mock<PdfGenerator> {
-            on { genererPdf(any<SøknadPdfInnhold>()) } doReturn ClientError(0, "").left()
-        }
+        SøknadServiceOgMocks(
+            søknadRepo = mock {
+                on { hentSøknad(any()) } doReturn søknad
+            },
+            sakService = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
+            },
+            personService = mock {
+                on { hentPerson(any()) } doReturn person.right()
+            },
+            pdfGenerator = mock {
+                on { genererPdf(any<SøknadPdfInnhold>()) } doReturn ClientError(0, "").left()
+            }
+        ).also {
+            it.service.hentSøknadPdf(søknadId) shouldBe KunneIkkeLageSøknadPdf.KunneIkkeLagePdf.left()
 
-        val søknadService = SøknadServiceImpl(
-            søknadRepo = søknadRepoMock,
-            sakService = sakServiceMock,
-            sakFactory = mock(),
-            pdfGenerator = pdfGeneratorMock,
-            dokArkiv = mock(),
-            personService = personServiceMock,
-            oppgaveService = mock(),
-            søknadMetrics = mock(),
-            toggleService = mock(),
-            clock = fixedClock,
-        )
-
-        val actual = søknadService.hentSøknadPdf(søknadId)
-        actual shouldBe KunneIkkeLageSøknadPdf.KunneIkkeLagePdf.left()
-
-        inOrder(søknadRepoMock, sakServiceMock, personServiceMock, pdfGeneratorMock) {
-            verify(søknadRepoMock).hentSøknad(argThat { it shouldBe søknadId })
-            verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe sakId })
-            verify(personServiceMock).hentPerson(argThat { it shouldBe søknad.søknadInnhold.personopplysninger.fnr })
-            verify(pdfGeneratorMock).genererPdf(
-                argThat<SøknadPdfInnhold> {
-                    it shouldBe SøknadPdfInnhold.create(
-                        saksnummer = sak.saksnummer,
-                        søknadsId = søknad.id,
-                        navn = person.navn,
-                        søknadOpprettet = søknad.opprettet,
-                        søknadInnhold = søknadInnhold,
-                        clock = fixedClock,
-                    )
-                }
-            )
+            inOrder(*it.allMocks()) {
+                verify(it.søknadRepo).hentSøknad(argThat { it shouldBe søknadId })
+                verify(it.sakService).hentSak(argThat<UUID> { it shouldBe sakId })
+                verify(it.personService).hentPerson(argThat { it shouldBe søknad.søknadInnhold.personopplysninger.fnr })
+                verify(it.pdfGenerator).genererPdf(
+                    argThat<SøknadPdfInnhold> {
+                        it shouldBe SøknadPdfInnhold.create(
+                            saksnummer = sak.saksnummer,
+                            søknadsId = søknad.id,
+                            navn = person.navn,
+                            søknadOpprettet = søknad.opprettet,
+                            søknadInnhold = søknadInnhold,
+                            clock = fixedClock,
+                        )
+                    }
+                )
+            }
+            it.verifyNoMoreInteractions()
         }
-        verifyNoMoreInteractions(søknadRepoMock, pdfGeneratorMock)
     }
 
     @Test
     fun `henter PDF`() {
         val pdf = "".toByteArray(StandardCharsets.UTF_8)
 
-        val søknadRepoMock = mock<SøknadRepo> {
-            on { hentSøknad(any()) } doReturn søknad
-        }
-        val sakServiceMock = mock<SakService> {
-            on { hentSak(any<UUID>()) } doReturn sak.right()
-        }
-        val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn person.right()
-        }
-        val pdfGeneratorMock = mock<PdfGenerator> {
-            on { genererPdf(any<SøknadPdfInnhold>()) } doReturn pdf.right()
-        }
+        SøknadServiceOgMocks(
+            søknadRepo = mock {
+                on { hentSøknad(any()) } doReturn søknad
+            },
+            sakService = mock {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
+            },
+            personService = mock {
+                on { hentPerson(any()) } doReturn person.right()
+            },
+            pdfGenerator = mock {
+                on { genererPdf(any<SøknadPdfInnhold>()) } doReturn pdf.right()
+            }
+        ).also {
+            it.service.hentSøknadPdf(søknadId) shouldBe pdf.right()
 
-        val søknadService = SøknadServiceImpl(
-            søknadRepo = søknadRepoMock,
-            sakService = sakServiceMock,
-            sakFactory = mock(),
-            pdfGenerator = pdfGeneratorMock,
-            dokArkiv = mock(),
-            personService = personServiceMock,
-            oppgaveService = mock(),
-            søknadMetrics = mock(),
-            toggleService = mock(),
-            clock = fixedClock,
-        )
-
-        val actual = søknadService.hentSøknadPdf(søknadId)
-        actual shouldBe pdf.right()
-        inOrder(søknadRepoMock, sakServiceMock, personServiceMock, pdfGeneratorMock) {
-
-            verify(søknadRepoMock).hentSøknad(argThat { it shouldBe søknadId })
-            verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe sakId })
-            verify(personServiceMock).hentPerson(argThat { it shouldBe søknad.søknadInnhold.personopplysninger.fnr })
-            verify(pdfGeneratorMock).genererPdf(
-                argThat<SøknadPdfInnhold> {
-                    it shouldBe SøknadPdfInnhold.create(
-                        saksnummer = sak.saksnummer,
-                        søknadsId = søknad.id,
-                        navn = person.navn,
-                        søknadOpprettet = søknad.opprettet,
-                        søknadInnhold = søknadInnhold,
-                        clock = fixedClock,
-                    )
-                }
-            )
+            inOrder(*it.allMocks()) {
+                verify(it.søknadRepo).hentSøknad(argThat { it shouldBe søknadId })
+                verify(it.sakService).hentSak(argThat<UUID> { it shouldBe sakId })
+                verify(it.personService).hentPerson(argThat { it shouldBe søknad.søknadInnhold.personopplysninger.fnr })
+                verify(it.pdfGenerator).genererPdf(
+                    argThat<SøknadPdfInnhold> {
+                        it shouldBe SøknadPdfInnhold.create(
+                            saksnummer = sak.saksnummer,
+                            søknadsId = søknad.id,
+                            navn = person.navn,
+                            søknadOpprettet = søknad.opprettet,
+                            søknadInnhold = søknadInnhold,
+                            clock = fixedClock,
+                        )
+                    }
+                )
+            }
+            it.verifyNoMoreInteractions()
         }
-        verifyNoMoreInteractions(søknadRepoMock, pdfGeneratorMock)
     }
 }

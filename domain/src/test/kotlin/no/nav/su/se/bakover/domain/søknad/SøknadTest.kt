@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.domain.søknadinnhold.ForNav
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.søknadinnhold
+import no.nav.su.se.bakover.test.veileder
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -21,6 +22,7 @@ internal class SøknadTest {
             søknadInnhold = søknadinnhold(
                 forNav = ForNav.DigitalSøknad(),
             ),
+            innsendtAv = veileder
         )
         søknad.mottaksdato shouldBe fixedLocalDate
     }
@@ -39,6 +41,7 @@ internal class SøknadTest {
                     annenGrunn = null,
                 ),
             ),
+            innsendtAv = veileder
         )
         søknad.mottaksdato shouldBe dato
     }

@@ -75,11 +75,15 @@ internal class SøknadServiceImpl(
         val (saksnummer: Saksnummer, søknad: Søknad.Ny) = sakService.hentSakidOgSaksnummer(fnr).fold(
             {
                 log.info("Ny søknad: Fant ikke sak for fødselsnummmer. Oppretter ny søknad og ny sak.")
-                val nySak = sakFactory.nySakMedNySøknad(fnr, søknadsinnholdMedNyesteFødselsnummer).also {
+                val nySak = sakFactory.nySakMedNySøknad(
+                    fnr = fnr,
+                    søknadInnhold = søknadsinnholdMedNyesteFødselsnummer,
+                    innsendtAv = identBruker
+                ).also {
                     sakService.opprettSak(it)
                 }
-                val sakIdSaksnummerFnr =
-                    sakService.hentSakidOgSaksnummer(fnr).getOrElse { throw RuntimeException("Feil ved henting av sak") }
+                val sakIdSaksnummerFnr = sakService.hentSakidOgSaksnummer(fnr)
+                    .getOrElse { throw RuntimeException("Feil ved henting av sak") }
                 Pair(sakIdSaksnummerFnr.saksnummer, nySak.søknad)
             },
             {
@@ -89,8 +93,9 @@ internal class SøknadServiceImpl(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(clock),
                     søknadInnhold = søknadsinnholdMedNyesteFødselsnummer,
+                    innsendtAv = identBruker
                 )
-                søknadRepo.opprettSøknad(søknad, identBruker)
+                søknadRepo.opprettSøknad(søknad)
 
                 Pair(it.saksnummer, søknad)
             },

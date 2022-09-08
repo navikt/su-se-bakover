@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.test
 
 import no.nav.su.se.bakover.common.UUIDFactory
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Sakstype
@@ -52,11 +53,13 @@ fun nySakUføre(
         type = Sakstype.UFØRE,
     ),
     søknadsInnhold: SøknadsinnholdUføre = søknadinnhold(sakInfo.fnr),
+    søknadInnsendtAv: NavIdentBruker = veileder,
 ): Pair<Sak, Søknad.Journalført.MedOppgave> {
     return nySak(
         clock = clock,
         sakInfo = sakInfo,
         søknadsinnhold = søknadsInnhold,
+        søknadInnsendtAv = søknadInnsendtAv,
     )
 }
 
@@ -69,11 +72,13 @@ fun nySakAlder(
         type = Sakstype.ALDER,
     ),
     søknadsInnhold: SøknadsinnholdAlder = søknadsinnholdAlder(),
+    søknadInnsendtAv: NavIdentBruker = veileder,
 ): Pair<Sak, Søknad.Journalført.MedOppgave> {
     return nySak(
         clock = clock,
         sakInfo = sakInfo,
         søknadsinnhold = søknadsInnhold,
+        søknadInnsendtAv = søknadInnsendtAv,
     )
 }
 
@@ -81,6 +86,7 @@ fun nySak(
     clock: Clock = fixedClock,
     sakInfo: SakInfo,
     søknadsinnhold: SøknadInnhold,
+    søknadInnsendtAv: NavIdentBruker = veileder,
 ): Pair<Sak, Søknad.Journalført.MedOppgave> {
     return SakFactory(
         clock = clock,
@@ -94,6 +100,7 @@ fun nySak(
         sakFactory.nySakMedNySøknad(
             fnr = sakInfo.fnr,
             søknadInnhold = søknadsinnhold,
+            innsendtAv = søknadInnsendtAv,
         ).let {
             val søknad = it.søknad.journalfør(journalpostIdSøknad).medOppgave(oppgaveIdSøknad)
             val sak = it.toSak(sakInfo.saksnummer)

@@ -9,25 +9,24 @@ import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.toggles.ToggleService
+import no.nav.su.se.bakover.test.defaultMock
 import no.nav.su.se.bakover.test.fixedClock
-import org.mockito.kotlin.mock
 import java.time.Clock
 
 /**
  * Kjører verifyNoMoreInteractions() etter runTest
  */
-internal data class SøknadserviceOgMocks(
-    val søknadRepo: SøknadRepo = mock(),
-    val sakService: SakService = mock(),
+internal data class SøknadServiceOgMocks(
+    val søknadRepo: SøknadRepo = defaultMock(),
+    val sakService: SakService = defaultMock(),
     val sakFactory: SakFactory = SakFactory(clock = fixedClock),
-    val pdfGenerator: PdfGenerator = mock(),
-    val dokArkiv: DokArkiv = mock(),
-    val personService: PersonService = mock(),
-    val oppgaveService: OppgaveService = mock(),
-    val søknadMetrics: SøknadMetrics = mock(),
-    val toggleService: ToggleService = mock(),
+    val pdfGenerator: PdfGenerator = defaultMock(),
+    val dokArkiv: DokArkiv = defaultMock(),
+    val personService: PersonService = defaultMock(),
+    val oppgaveService: OppgaveService = defaultMock(),
+    val søknadMetrics: SøknadMetrics = defaultMock(),
+    val toggleService: ToggleService = defaultMock(),
     val clock: Clock = fixedClock,
-    val runTest: SøknadserviceOgMocks.() -> Unit,
 ) {
     val service = SøknadServiceImpl(
         søknadRepo = søknadRepo,
@@ -42,11 +41,6 @@ internal data class SøknadserviceOgMocks(
         clock = fixedClock,
     )
 
-    init {
-        runTest()
-        verifyNoMoreInteractions()
-    }
-
     fun allMocks() = listOf(
         søknadRepo,
         sakService,
@@ -55,9 +49,10 @@ internal data class SøknadserviceOgMocks(
         personService,
         oppgaveService,
         søknadMetrics,
+        toggleService,
     ).toTypedArray()
 
-    private fun verifyNoMoreInteractions() {
+    fun verifyNoMoreInteractions() {
         org.mockito.kotlin.verifyNoMoreInteractions(
             *allMocks(),
         )

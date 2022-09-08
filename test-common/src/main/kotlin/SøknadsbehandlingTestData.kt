@@ -538,6 +538,7 @@ fun søknadsbehandlingLukket(
                 opprettet = it.opprettet,
                 sakId = it.sakId,
                 søknadInnhold = it.søknadInnhold,
+                innsendtAv = it.innsendtAv,
                 journalpostId = it.journalpostId,
                 oppgaveId = it.oppgaveId,
                 lukketTidspunkt = fixedTidspunkt,

@@ -44,6 +44,7 @@ import no.nav.su.se.bakover.test.søknadsbehandlingUnderkjentInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertAvslag
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
+import no.nav.su.se.bakover.test.veileder
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -60,6 +61,7 @@ internal class BehandlingStatistikkMapperTest {
             opprettet = fixedTidspunkt,
             sakId = UUID.randomUUID(),
             søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+            innsendtAv = veileder
         )
 
         BehandlingStatistikkMapper(fixedClock).map(
@@ -113,6 +115,7 @@ internal class BehandlingStatistikkMapperTest {
             opprettet = fixedTidspunkt,
             sakId = UUID.randomUUID(),
             søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+            innsendtAv = veileder,
             journalpostId = JournalpostId("journalpostid"),
             oppgaveId = OppgaveId("oppgaveid"),
             lukketTidspunkt = fixedTidspunkt,
@@ -666,6 +669,7 @@ internal class BehandlingStatistikkMapperTest {
         opprettet = fixedTidspunkt,
         sakId = UUID.randomUUID(),
         søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+        innsendtAv = veileder,
         journalpostId = JournalpostId(""),
         oppgaveId = OppgaveId(""),
     )

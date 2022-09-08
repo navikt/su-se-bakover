@@ -170,6 +170,7 @@ internal fun simulering(fnr: Fnr) = Simulering(
 )
 
 internal val saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler")
+internal val veileder = NavIdentBruker.Veileder("veileder")
 internal val underkjentAttestering =
     Attestering.Underkjent(
         attestant = attestant,
@@ -420,6 +421,7 @@ internal class TestDataHelper(
         søknadId: UUID = UUID.randomUUID(),
         fnr: Fnr = Fnr.generer(),
         søknadInnhold: SøknadsinnholdUføre = SøknadInnholdTestdataBuilder.build(),
+        søknadInnsendtAv: NavIdentBruker = veileder
     ): NySak {
         return SakFactory(
             clock = clock,
@@ -429,7 +431,11 @@ internal class TestDataHelper(
                     return ids.pop()
                 }
             },
-        ).nySakMedNySøknad(fnr, søknadInnhold).also {
+        ).nySakMedNySøknad(
+            fnr = fnr,
+            søknadInnhold = søknadInnhold,
+            innsendtAv = søknadInnsendtAv,
+        ).also {
             sakRepo.opprettSak(it)
         }
     }
@@ -449,7 +455,8 @@ internal class TestDataHelper(
             id = søknadId,
             søknadInnhold = søknadInnhold,
             opprettet = fixedTidspunkt,
-        ).also { søknadRepo.opprettSøknad(it, identBruker) }
+            innsendtAv = identBruker,
+        ).also { søknadRepo.opprettSøknad(it) }
     }
 
     /**
