@@ -61,4 +61,5 @@ class KontaktOgReservasjonsregisterClientTest : WiremockBase {
         .withHeader("Authorization", WireMock.equalTo("Bearer etFintSystemtoken"))
         .withHeader("Accept", WireMock.equalTo("application/json"))
         .withHeader("Nav-Call-Id", WireMock.equalTo("correlationId"))
+        .withHeader("Nav-Personident", WireMock.equalTo("10109900100"))
 }
