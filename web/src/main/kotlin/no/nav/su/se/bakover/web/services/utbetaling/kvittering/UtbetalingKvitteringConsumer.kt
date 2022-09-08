@@ -11,7 +11,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringResponse.Companion.toKvitteringResponse
@@ -36,17 +35,16 @@ class UtbetalingKvitteringConsumer(
     fun onMessage(xmlMessage: String) {
         val kvitteringResponse: UtbetalingKvitteringResponse = xmlMessage.toKvitteringResponse(xmlMapper)
 
-        val avstemmingsnøkkel = kvitteringResponse.oppdragRequest.avstemming.nokkelAvstemming.let {
-            Avstemmingsnøkkel.fromString(it)
-        }
-
         val kvittering: Kvittering = kvitteringResponse.toKvittering(xmlMessage, clock)
         if (!kvittering.erKvittertOk()) {
             log.error("Mottok en kvittering fra oppdragssystemet som ikke var OK: $kvittering, dette bør muligens følges opp!")
         }
 
         log.info("Oppdaterer utbetaling og ferdigstiller innvilgelse med kvittering fra Oppdrag")
-        utbetalingService.oppdaterMedKvittering(avstemmingsnøkkel, kvittering)
+        utbetalingService.oppdaterMedKvittering(
+            utbetalingId = kvitteringResponse.utbetalingsId(),
+            kvittering = kvittering
+        )
             .flatMap { ferdigstillInnvilgelse(it) }
             .mapLeft {
                 /**
@@ -60,8 +58,8 @@ class UtbetalingKvitteringConsumer(
                     delay(delayMs)
                 }
                 utbetalingService.oppdaterMedKvittering(
-                    avstemmingsnøkkel,
-                    kvittering,
+                    utbetalingId = kvitteringResponse.utbetalingsId(),
+                    kvittering = kvittering
                 )
                     .flatMap { ferdigstillInnvilgelse(it) }
                     .mapLeft {

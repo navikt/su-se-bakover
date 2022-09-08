@@ -55,7 +55,6 @@ import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
-import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Fagområde
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Kravgrunnlag
@@ -227,7 +226,7 @@ open class AccessCheckProxy(
                 override fun hentUtbetalingerForSakId(sakId: UUID) = kastKanKunKallesFraAnnenService()
 
                 override fun oppdaterMedKvittering(
-                    avstemmingsnøkkel: Avstemmingsnøkkel,
+                    utbetalingId: UUID30,
                     kvittering: Kvittering,
                 ) = kastKanKunKallesFraAnnenService()
 

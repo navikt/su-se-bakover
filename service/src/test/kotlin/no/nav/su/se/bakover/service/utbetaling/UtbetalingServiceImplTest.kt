@@ -1,43 +1,37 @@
 package no.nav.su.se.bakover.service.utbetaling
 
 import arrow.core.left
-import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.nonEmpty
+import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.common.toPeriode
-import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.Sakstype
-import no.nav.su.se.bakover.domain.oppdrag.ForrigeUtbetbetalingslinjeKoblendeListe
-import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingForPeriode
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
+import no.nav.su.se.bakover.test.kvittering
 import no.nav.su.se.bakover.test.opphørUtbetalingSimulert
+import no.nav.su.se.bakover.test.oversendtUtbetalingMedKvittering
+import no.nav.su.se.bakover.test.oversendtUtbetalingUtenKvittering
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simuleringNy
 import no.nav.su.se.bakover.test.simuleringStans
-import no.nav.su.se.bakover.test.utbetalingslinje
 import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Nested
@@ -50,40 +44,6 @@ import org.mockito.kotlin.verify
 import java.util.UUID
 
 internal class UtbetalingServiceImplTest {
-
-    private val sakId = UUID.randomUUID()
-    private val saksnummer = Saksnummer(2021)
-    private val fnr = Fnr("12345678910")
-
-    private val attestant = NavIdentBruker.Attestant("SU")
-
-    private val avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt)
-
-    private val dummyUtbetalingslinjer = nonEmptyListOf(
-        utbetalingslinje(
-            periode = januar(2020),
-            beløp = 0,
-        ),
-    )
-
-    private val utbetalingForSimulering = Utbetaling.UtbetalingForSimulering(
-        id = UUID30.randomUUID(),
-        opprettet = fixedTidspunkt,
-        sakId = sakId,
-        saksnummer = saksnummer,
-        fnr = fnr,
-        utbetalingslinjer = dummyUtbetalingslinjer,
-        behandler = attestant,
-        avstemmingsnøkkel = avstemmingsnøkkel,
-        sakstype = Sakstype.UFØRE,
-    )
-
-    private val kvitteringOK = Kvittering(
-        utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
-        originalKvittering = "",
-        mottattTidspunkt = fixedTidspunkt,
-    )
-
     @Test
     fun `hent utbetaling - ikke funnet`() {
         UtbetalingServiceAndMocks(
@@ -103,43 +63,25 @@ internal class UtbetalingServiceImplTest {
             },
         ).let {
             it.service.oppdaterMedKvittering(
-                avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.now(fixedClock)),
-                kvittering = kvitteringOK,
+                utbetalingId = UUID30.randomUUID(),
+                kvittering = kvittering(),
             ) shouldBe FantIkkeUtbetaling.left()
         }
     }
 
     @Test
     fun `oppdater med kvittering - kvittering eksisterer ikke fra før`() {
-        val utbetalingUtenKvittering = vedtakSøknadsbehandlingIverksattInnvilget().let { (sak, _) ->
-            (sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering).let {
-                Utbetaling.UtbetalingForSimulering(
-                    id = it.id,
-                    opprettet = it.opprettet,
-                    sakId = it.sakId,
-                    saksnummer = it.saksnummer,
-                    fnr = it.fnr,
-                    utbetalingslinjer = it.utbetalingslinjer,
-                    behandler = it.behandler,
-                    avstemmingsnøkkel = it.avstemmingsnøkkel,
-                    sakstype = Sakstype.UFØRE,
-                ).toSimulertUtbetaling(
-                    simulering = it.simulering,
-                ).toOversendtUtbetaling(
-                    oppdragsmelding = it.utbetalingsrequest,
-                )
-            }
-        }
-        val utbetalingMedKvittering = utbetalingUtenKvittering.toKvittertUtbetaling(kvitteringOK)
+        val utbetalingUtenKvittering = oversendtUtbetalingUtenKvittering()
+        val utbetalingMedKvittering = utbetalingUtenKvittering.toKvittertUtbetaling(kvittering())
 
         UtbetalingServiceAndMocks(
             utbetalingRepo = mock {
-                on { hentUtbetaling(any<Avstemmingsnøkkel>()) } doReturn utbetalingUtenKvittering
+                on { hentUtbetaling(any<UUID30>()) } doReturn utbetalingUtenKvittering
             },
         ).let {
             it.service.oppdaterMedKvittering(
-                avstemmingsnøkkel = utbetalingUtenKvittering.avstemmingsnøkkel,
-                kvittering = kvitteringOK,
+                utbetalingId = utbetalingUtenKvittering.id,
+                kvittering = kvittering(),
             ).getOrFail() shouldBe utbetalingMedKvittering
 
             verify(it.utbetalingRepo).oppdaterMedKvittering(utbetalingMedKvittering)
@@ -148,35 +90,16 @@ internal class UtbetalingServiceImplTest {
 
     @Test
     fun `oppdater med kvittering - kvittering eksisterer fra før`() {
-        val utbetalingUtenKvittering = vedtakSøknadsbehandlingIverksattInnvilget().let { (sak, _) ->
-            (sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering).let {
-                Utbetaling.UtbetalingForSimulering(
-                    id = it.id,
-                    opprettet = it.opprettet,
-                    sakId = it.sakId,
-                    saksnummer = it.saksnummer,
-                    fnr = it.fnr,
-                    utbetalingslinjer = it.utbetalingslinjer,
-                    behandler = it.behandler,
-                    avstemmingsnøkkel = it.avstemmingsnøkkel,
-                    sakstype = Sakstype.UFØRE,
-                ).toSimulertUtbetaling(
-                    simulering = it.simulering,
-                ).toOversendtUtbetaling(
-                    oppdragsmelding = it.utbetalingsrequest,
-                )
-            }
-        }
-        val utbetalingMedKvittering = utbetalingUtenKvittering.toKvittertUtbetaling(kvitteringOK)
+        val utbetalingMedKvittering = oversendtUtbetalingMedKvittering()
 
         UtbetalingServiceAndMocks(
             utbetalingRepo = mock {
-                on { hentUtbetaling(any<Avstemmingsnøkkel>()) } doReturn utbetalingMedKvittering
+                on { hentUtbetaling(any<UUID30>()) } doReturn utbetalingMedKvittering
             },
         ).let {
             it.service.oppdaterMedKvittering(
-                avstemmingsnøkkel = utbetalingUtenKvittering.avstemmingsnøkkel,
-                kvittering = kvitteringOK,
+                utbetalingId = utbetalingMedKvittering.id,
+                kvittering = kvittering(),
             ).getOrFail() shouldBe utbetalingMedKvittering
 
             verify(it.utbetalingRepo, never()).oppdaterMedKvittering(any())
@@ -187,55 +110,48 @@ internal class UtbetalingServiceImplTest {
     inner class hentGjeldendeUtbetaling {
         @Test
         fun `henter utbetalingslinjen som gjelder for datoen som sendes inn`() {
-            val expectedGjeldendeUtbetalingslinje =
-                utbetalingslinje(
-                    id = UUID30.randomUUID(),
-                    periode = januar(2020),
-                    beløp = 53821,
-                )
-
-            val utbetalingRepoMock = mock<UtbetalingRepo> {
-                on { hentUtbetalinger(any()) } doReturn listOf(
-                    utbetalingForSimulering.copy(
-                        utbetalingslinjer = ForrigeUtbetbetalingslinjeKoblendeListe(
-                            listOf(
-                                expectedGjeldendeUtbetalingslinje,
-                                utbetalingslinje(
-                                    periode = februar(2020),
-                                    beløp = 53821,
-                                ),
-                                utbetalingslinje(
-                                    periode = mars(2020),
-                                    beløp = 53821,
-                                ),
-                            )
-                        ).nonEmpty()
+            val (sak, _) = iverksattSøknadsbehandlingUføre(
+                customGrunnlag = listOf(
+                    fradragsgrunnlagArbeidsinntekt(
+                        periode = januar(2021),
+                        arbeidsinntekt = 1000.0
                     ),
+                    fradragsgrunnlagArbeidsinntekt(
+                        periode = februar(2021),
+                        arbeidsinntekt = 2000.0
+                    ),
+                    fradragsgrunnlagArbeidsinntekt(
+                        periode = mars(2021),
+                        arbeidsinntekt = 3000.0
+                    )
                 )
+            )
+
+            UtbetalingServiceAndMocks(
+                utbetalingRepo = mock {
+                    on { hentUtbetalinger(any()) } doReturn sak.utbetalinger
+                }
+            ).also {
+                it.service.hentGjeldendeUtbetaling(
+                    sakId = sak.id,
+                    forDato = 15.januar(2021)
+                ) shouldBe UtbetalingslinjePåTidslinje.Ny(
+                    kopiertFraId = sak.utbetalinger.first().utbetalingslinjer[0].id,
+                    opprettet = sak.utbetalinger.first().utbetalingslinjer[0].opprettet,
+                    periode = januar(2021),
+                    beløp = 19946
+                ).right()
+
+                it.service.hentGjeldendeUtbetaling(
+                    sakId = sak.id,
+                    forDato = 29.mars(2021)
+                ) shouldBe UtbetalingslinjePåTidslinje.Ny(
+                    kopiertFraId = sak.utbetalinger.first().utbetalingslinjer[2].id,
+                    opprettet = sak.utbetalinger.first().utbetalingslinjer[2].opprettet,
+                    periode = mars(2021),
+                    beløp = 17946
+                ).right()
             }
-
-            val service = UtbetalingServiceImpl(
-                utbetalingRepo = utbetalingRepoMock,
-                utbetalingPublisher = mock(),
-                sakService = mock(),
-                simuleringClient = mock(),
-                clock = fixedClock,
-            )
-
-            val actual = service.hentGjeldendeUtbetaling(
-                sakId = UUID.randomUUID(),
-                forDato = 15.januar(2020),
-            )
-
-            actual shouldBe UtbetalingslinjePåTidslinje.Ny(
-                kopiertFraId = expectedGjeldendeUtbetalingslinje.id,
-                opprettet = expectedGjeldendeUtbetalingslinje.opprettet,
-                periode = Periode.create(
-                    expectedGjeldendeUtbetalingslinje.fraOgMed,
-                    expectedGjeldendeUtbetalingslinje.tilOgMed,
-                ),
-                beløp = expectedGjeldendeUtbetalingslinje.beløp,
-            ).right()
         }
     }
 
