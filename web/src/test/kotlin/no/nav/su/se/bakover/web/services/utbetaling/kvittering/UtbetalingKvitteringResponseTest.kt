@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.services.utbetaling.kvittering
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringResponse.Companion.toKvitteringResponse
 import org.junit.jupiter.api.Test
 
@@ -9,7 +10,7 @@ internal class UtbetalingKvitteringResponseTest {
 
     @Test
     fun `deserialiserer KvitteringRespons`() {
-        kvitteringXml().toKvitteringResponse(UtbetalingKvitteringConsumer.xmlMapper) shouldBe UtbetalingKvitteringResponse(
+        kvitteringXml(UUID30.fromString("268e62fb-3079-4e8d-ab32-ff9fb9")).toKvitteringResponse(UtbetalingKvitteringConsumer.xmlMapper) shouldBe UtbetalingKvitteringResponse(
             mmel = UtbetalingKvitteringResponse.Mmel(
                 systemId = "231-OPPD",
                 kodeMelding = null,
@@ -66,7 +67,7 @@ internal class UtbetalingKvitteringResponseTest {
                             typeGrad = UtbetalingRequest.Oppdragslinje.TypeGrad.UFOR,
                             grad = 50,
                         ),
-                        utbetalingId = "1234567"
+                        utbetalingId = "268e62fb-3079-4e8d-ab32-ff9fb9"
                     ),
                 ),
             ),
@@ -78,7 +79,10 @@ internal class UtbetalingKvitteringResponseTest {
         const val avstemmingsnøkkelTidspunktIXml = "2200-10-06-09.19.48.123456"
 
         //language=XML
-        fun kvitteringXml(alvorlighetsgrad: UtbetalingKvitteringResponse.Alvorlighetsgrad = UtbetalingKvitteringResponse.Alvorlighetsgrad.ALVORLIG_FEIL) =
+        fun kvitteringXml(
+            utbetalingsId: UUID30,
+            alvorlighetsgrad: UtbetalingKvitteringResponse.Alvorlighetsgrad = UtbetalingKvitteringResponse.Alvorlighetsgrad.ALVORLIG_FEIL
+        ) =
             """
 <?xml version="1.0" encoding="UTF-8"?>
 <oppdrag xmlns="http://www.trygdeetaten.no/skjema/oppdrag">
@@ -125,7 +129,7 @@ internal class UtbetalingKvitteringResponseTest {
             <attestantId>A123456</attestantId>
          </attestant-180>
          <ukjentFeltBørIgnorereres>ukjent</ukjentFeltBørIgnorereres>
-         <henvisning>1234567</henvisning>
+         <henvisning>$utbetalingsId</henvisning>
       </oppdrags-linje-150>
    </oppdrag-110>
 </Oppdrag>

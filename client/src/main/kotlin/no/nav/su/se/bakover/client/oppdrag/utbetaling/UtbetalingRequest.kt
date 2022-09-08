@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonValue
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 
@@ -56,7 +57,14 @@ data class UtbetalingRequest(
         val oppdragsEnheter: List<OppdragsEnhet>,
         @field:JacksonXmlProperty(localName = "oppdrags-linje-150")
         val oppdragslinjer: List<Oppdragslinje>,
-    )
+    ) {
+        fun utbetalingsId(): UUID30 {
+            return oppdragslinjer.map { it.utbetalingId }.distinct().let {
+                check(it.count() == 1) { "Oppdragslinjer i samme oppdragsrequest refererer ikke til samme henvisning/utbetalingsId." }
+                UUID30.fromString(it.single())
+            }
+        }
+    }
 
     enum class KodeAksjon(@JsonValue val value: Int) {
         UTBETALING(1),

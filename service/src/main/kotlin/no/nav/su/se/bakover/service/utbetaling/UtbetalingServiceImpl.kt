@@ -22,7 +22,6 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
-import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.hentGjeldendeUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingForPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
@@ -54,10 +53,10 @@ internal class UtbetalingServiceImpl(
     }
 
     override fun oppdaterMedKvittering(
-        avstemmingsnøkkel: Avstemmingsnøkkel,
+        utbetalingId: UUID30,
         kvittering: Kvittering,
     ): Either<FantIkkeUtbetaling, Utbetaling.OversendtUtbetaling.MedKvittering> {
-        return utbetalingRepo.hentUtbetaling(avstemmingsnøkkel)
+        return utbetalingRepo.hentUtbetaling(utbetalingId)
             ?.let { utbetaling ->
                 when (utbetaling) {
                     is Utbetaling.OversendtUtbetaling.MedKvittering -> {
@@ -73,7 +72,7 @@ internal class UtbetalingServiceImpl(
                     }
                 }.right()
             } ?: FantIkkeUtbetaling.left()
-            .also { log.warn("Fant ikke utbetaling for avstemmingsnøkkel $avstemmingsnøkkel") }
+            .also { log.warn("Fant ikke utbetaling med id: $utbetalingId") }
     }
 
     override fun hentGjeldendeUtbetaling(

@@ -101,7 +101,7 @@ internal class LokalKvitteringJobTest {
         LokalKvitteringService(utbetalingRepoMock, utbetalingKvitteringConsumer).run()
         verify(utbetalingRepoMock).hentUkvitterteUtbetalinger()
         verify(utbetalingServiceMock).oppdaterMedKvittering(
-            avstemmingsnøkkel = argThat { it shouldBe utbetaling.avstemmingsnøkkel },
+            utbetalingId = argThat { it shouldBe utbetaling.id },
             kvittering = argThat { it shouldBe kvittering.copy(originalKvittering = it.originalKvittering) },
         )
         verify(ferdigstillVedtakServiceMock).ferdigstillVedtakEtterUtbetaling(

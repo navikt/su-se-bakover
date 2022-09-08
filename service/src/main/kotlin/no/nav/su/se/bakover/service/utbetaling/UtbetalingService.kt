@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
-import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import java.time.LocalDate
 import java.util.UUID
@@ -20,9 +19,10 @@ import java.util.UUID
 interface UtbetalingService {
     fun hentUtbetaling(utbetalingId: UUID30): Either<FantIkkeUtbetaling, Utbetaling>
     fun hentUtbetalingerForSakId(sakId: UUID): List<Utbetaling>
+
     fun oppdaterMedKvittering(
-        avstemmingsnøkkel: Avstemmingsnøkkel,
-        kvittering: Kvittering,
+        utbetalingId: UUID30,
+        kvittering: Kvittering
     ): Either<FantIkkeUtbetaling, Utbetaling.OversendtUtbetaling.MedKvittering>
 
     fun simulerUtbetaling(
