@@ -77,7 +77,10 @@ internal class ApplicationConfigTest {
             kodeverkUrl = "http://kodeverk.default.svc.nais.local",
             stsUrl = "stsUrl",
             skjermingUrl = "skjermingUrl",
-            dkifUrl = "http://dkif.default.svc.nais.local",
+            kontaktOgReservasjonsregisterConfig = ApplicationConfig.ClientsConfig.KontaktOgReservasjonsregisterConfig(
+                appId = "krrId",
+                url = "krrUrl"
+            ),
             kabalConfig = ApplicationConfig.ClientsConfig.KabalConfig(
                 url = "kabalUrl",
                 clientId = "kabalClientId",
@@ -211,6 +214,8 @@ internal class ApplicationConfigTest {
                 "MASKINPORTEN_ISSUER" to "maskinporten_issuer",
                 "MASKINPORTEN_JWKS_URI" to "maskinporten_jwks_uri",
                 "MASKINPORTEN_TOKEN_ENDPOINT" to "maskinporten_token_endpoint",
+                "KRR_URL" to "krrUrl",
+                "KRR_APP_ID" to "krrId"
             ),
         ) {
             ApplicationConfig.createFromEnvironmentVariables() shouldBe expectedApplicationConfig
@@ -279,9 +284,18 @@ internal class ApplicationConfigTest {
                     kodeverkUrl = "mocked",
                     stsUrl = "mocked",
                     skjermingUrl = "mocked",
-                    dkifUrl = "mocked",
-                    kabalConfig = ApplicationConfig.ClientsConfig.KabalConfig("mocked", "mocked"),
-                    safConfig = ApplicationConfig.ClientsConfig.SafConfig("mocked", "mocked"),
+                    kontaktOgReservasjonsregisterConfig = ApplicationConfig.ClientsConfig.KontaktOgReservasjonsregisterConfig(
+                        appId = "mocked",
+                        url = "mocked"
+                    ),
+                    kabalConfig = ApplicationConfig.ClientsConfig.KabalConfig(
+                        url = "mocked",
+                        clientId = "mocked"
+                    ),
+                    safConfig = ApplicationConfig.ClientsConfig.SafConfig(
+                        url = "mocked",
+                        clientId = "mocked"
+                    ),
                     maskinportenConfig = ApplicationConfig.ClientsConfig.MaskinportenConfig(
                         clientId = "mocked",
                         scopes = "mocked",

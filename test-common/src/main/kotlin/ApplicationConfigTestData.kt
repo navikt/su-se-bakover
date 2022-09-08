@@ -67,9 +67,18 @@ fun applicationConfig() = ApplicationConfig(
         kodeverkUrl = "kodeverkUrl",
         stsUrl = "stsUrl",
         skjermingUrl = "skjermingUrl",
-        dkifUrl = "dkifUrl",
-        kabalConfig = ApplicationConfig.ClientsConfig.KabalConfig(url = "kabalUrl", clientId = "KabalClientId"),
-        safConfig = ApplicationConfig.ClientsConfig.SafConfig(url = "safUrl", clientId = "safClientId"),
+        kontaktOgReservasjonsregisterConfig = ApplicationConfig.ClientsConfig.KontaktOgReservasjonsregisterConfig(
+            appId = "krrId",
+            url = "krrUrl"
+        ),
+        kabalConfig = ApplicationConfig.ClientsConfig.KabalConfig(
+            url = "kabalUrl",
+            clientId = "KabalClientId",
+        ),
+        safConfig = ApplicationConfig.ClientsConfig.SafConfig(
+            url = "safUrl",
+            clientId = "safClientId",
+        ),
         maskinportenConfig = ApplicationConfig.ClientsConfig.MaskinportenConfig(
             clientId = "maskinportenClientId",
             scopes = "maskinportenScopes",

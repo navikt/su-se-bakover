@@ -7,7 +7,7 @@ import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.su.se.bakover.client.PATCH
-import no.nav.su.se.bakover.client.azure.OAuth
+import no.nav.su.se.bakover.client.azure.AzureAd
 import no.nav.su.se.bakover.client.isSuccess
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.ApplicationConfig
@@ -36,7 +36,7 @@ internal const val oppgavePath = "/api/v1/oppgaver"
 
 internal class OppgaveHttpClient(
     private val connectionConfig: ApplicationConfig.ClientsConfig.OppgaveConfig,
-    private val exchange: OAuth,
+    private val exchange: AzureAd,
     private val tokenoppslagForSystembruker: TokenOppslag,
     private val clock: Clock,
 ) : OppgaveClient {

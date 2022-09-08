@@ -2,13 +2,13 @@ package no.nav.su.se.bakover.client
 
 import no.finn.unleash.Unleash
 import no.nav.su.se.bakover.client.azure.AzureClient
-import no.nav.su.se.bakover.client.dkif.DkifClient
 import no.nav.su.se.bakover.client.dokarkiv.DokArkivClient
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordelingClient
 import no.nav.su.se.bakover.client.journalpost.JournalpostHttpClient
 import no.nav.su.se.bakover.client.kabal.KabalHttpClient
 import no.nav.su.se.bakover.client.kafka.KafkaPublisherClient
 import no.nav.su.se.bakover.client.kodeverk.KodeverkHttpClient
+import no.nav.su.se.bakover.client.krr.KontaktOgReservasjonsregisterClient
 import no.nav.su.se.bakover.client.maskinporten.MaskinportenHTTPClient
 import no.nav.su.se.bakover.client.nais.LeaderPodLookupClient
 import no.nav.su.se.bakover.client.oppdrag.IbmMqPublisher
@@ -43,11 +43,26 @@ data class ProdClientsBuilder(
 
         val clientsConfig = applicationConfig.clientsConfig
         val azureConfig = applicationConfig.azure
-        val oAuth = AzureClient(azureConfig.clientId, azureConfig.clientSecret, azureConfig.wellKnownUrl)
-        val kodeverk = KodeverkHttpClient(clientsConfig.kodeverkUrl, consumerId)
+        val oAuth = AzureClient(
+            thisClientId = azureConfig.clientId,
+            thisClientSecret = azureConfig.clientSecret,
+            wellknownUrl = azureConfig.wellKnownUrl
+        )
+        val kodeverk = KodeverkHttpClient(
+            baseUrl = clientsConfig.kodeverkUrl,
+            consumerId = consumerId
+        )
         val serviceUser = applicationConfig.serviceUser
-        val tokenOppslag = StsClient(clientsConfig.stsUrl, serviceUser.username, serviceUser.password, clock)
-        val dkif = DkifClient(clientsConfig.dkifUrl, tokenOppslag, consumerId)
+        val tokenOppslag = StsClient(
+            baseUrl = clientsConfig.stsUrl,
+            username = serviceUser.username,
+            password = serviceUser.password,
+            clock = clock
+        )
+        val kontaktOgReservasjonsregisterClient = KontaktOgReservasjonsregisterClient(
+            config = clientsConfig.kontaktOgReservasjonsregisterConfig,
+            azure = oAuth
+        )
         val skjermingClient = SkjermingClient(clientsConfig.skjermingUrl)
         val pdlClientConfig = PdlClientConfig(
             vars = clientsConfig.pdlConfig,
@@ -58,12 +73,18 @@ data class ProdClientsBuilder(
             PersonClientConfig(
                 kodeverk = kodeverk,
                 skjerming = skjermingClient,
-                digitalKontaktinformasjon = dkif,
+                kontaktOgReservasjonsregister = kontaktOgReservasjonsregisterClient,
                 pdlClientConfig = pdlClientConfig,
             ),
         )
-        val klageClient = KabalHttpClient(applicationConfig.clientsConfig.kabalConfig, oAuth)
-        val journalpostClient = JournalpostHttpClient(applicationConfig.clientsConfig.safConfig, oAuth)
+        val klageClient = KabalHttpClient(
+            kabalConfig = applicationConfig.clientsConfig.kabalConfig,
+            exchange = oAuth
+        )
+        val journalpostClient = JournalpostHttpClient(
+            safConfig = applicationConfig.clientsConfig.safConfig,
+            azureAd = oAuth
+        )
 
         return Clients(
             oauth = oAuth,
@@ -108,7 +129,7 @@ data class ProdClientsBuilder(
                 ),
             ),
             identClient = MicrosoftGraphApiClient(oAuth),
-            digitalKontaktinformasjon = dkif,
+            kontaktOgReservasjonsregister = kontaktOgReservasjonsregisterClient,
             leaderPodLookup = LeaderPodLookupClient(applicationConfig.leaderPodLookupPath),
             kafkaPublisher = KafkaPublisherClient(applicationConfig.kafkaConfig.producerCfg),
             klageClient = klageClient,

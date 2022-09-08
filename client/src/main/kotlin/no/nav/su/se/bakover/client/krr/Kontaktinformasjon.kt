@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.client.dkif
+package no.nav.su.se.bakover.client.krr
 
 data class Kontaktinformasjon(
     val epostadresse: String?,

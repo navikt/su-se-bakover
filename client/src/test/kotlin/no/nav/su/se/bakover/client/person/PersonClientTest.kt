@@ -8,10 +8,10 @@ import com.github.benmanes.caffeine.cache.Cache
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeSameInstanceAs
 import io.kotest.matchers.types.shouldNotBeSameInstanceAs
-import no.nav.su.se.bakover.client.azure.OAuth
-import no.nav.su.se.bakover.client.dkif.DigitalKontaktinformasjon
-import no.nav.su.se.bakover.client.dkif.Kontaktinformasjon
+import no.nav.su.se.bakover.client.azure.AzureAd
 import no.nav.su.se.bakover.client.kodeverk.Kodeverk
+import no.nav.su.se.bakover.client.krr.KontaktOgReservasjonsregister
+import no.nav.su.se.bakover.client.krr.Kontaktinformasjon
 import no.nav.su.se.bakover.client.person.PersonClient.Companion.newCache
 import no.nav.su.se.bakover.client.skjerming.Skjerming
 import no.nav.su.se.bakover.client.sts.TokenOppslag
@@ -194,10 +194,10 @@ internal class PersonClientTest {
 
         val kodeverkMock: Kodeverk = mock()
         val skjermingMock: Skjerming = mock()
-        val digitalKontaktinformasjonMock: DigitalKontaktinformasjon = mock {
+        val kontaktOgReservasjonsregisterMock: KontaktOgReservasjonsregister = mock {
             on { hentKontaktinformasjon(fnr) } doReturn kontaktinformasjon.right()
         }
-        val oauthMock: OAuth = mock()
+        val oauthMock: AzureAd = mock()
         val tokenOppslagMock: TokenOppslag = mock()
 
         val hentBrukerToken = { brukerTokenGenerator.next() }
@@ -270,7 +270,7 @@ internal class PersonClientTest {
         val personClientConfig = PersonClientConfig(
             kodeverk = kodeverkMock,
             skjerming = skjermingMock,
-            digitalKontaktinformasjon = digitalKontaktinformasjonMock,
+            kontaktOgReservasjonsregister = kontaktOgReservasjonsregisterMock,
             pdlClientConfig = pdlClientConfig,
         )
 

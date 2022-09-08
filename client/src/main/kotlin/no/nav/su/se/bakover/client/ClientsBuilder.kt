@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.client
 
-import no.nav.su.se.bakover.client.azure.OAuth
-import no.nav.su.se.bakover.client.dkif.DigitalKontaktinformasjon
+import no.nav.su.se.bakover.client.azure.AzureAd
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
 import no.nav.su.se.bakover.client.kafka.KafkaPublisher
 import no.nav.su.se.bakover.client.kodeverk.Kodeverk
+import no.nav.su.se.bakover.client.krr.KontaktOgReservasjonsregister
 import no.nav.su.se.bakover.client.maskinporten.MaskinportenClient
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.skatteetaten.Skatteoppslag
@@ -27,7 +27,7 @@ interface ClientsBuilder {
 }
 
 data class Clients(
-    val oauth: OAuth,
+    val oauth: AzureAd,
     val personOppslag: PersonOppslag,
     val tokenOppslag: TokenOppslag,
     val pdfGenerator: PdfGenerator,
@@ -39,7 +39,7 @@ data class Clients(
     val dokDistFordeling: DokDistFordeling,
     val avstemmingPublisher: AvstemmingPublisher,
     val identClient: IdentClient,
-    val digitalKontaktinformasjon: DigitalKontaktinformasjon,
+    val kontaktOgReservasjonsregister: KontaktOgReservasjonsregister,
     val leaderPodLookup: LeaderPodLookup,
     val kafkaPublisher: KafkaPublisher,
     val klageClient: KlageClient,

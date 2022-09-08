@@ -1,9 +1,9 @@
-package no.nav.su.se.bakover.client.dkif
+package no.nav.su.se.bakover.client.krr
 
 import arrow.core.Either
 import no.nav.su.se.bakover.domain.Fnr
 
-interface DigitalKontaktinformasjon {
+interface KontaktOgReservasjonsregister {
     fun hentKontaktinformasjon(fnr: Fnr): Either<KunneIkkeHenteKontaktinformasjon, Kontaktinformasjon>
 
     object KunneIkkeHenteKontaktinformasjon

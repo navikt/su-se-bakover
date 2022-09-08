@@ -8,7 +8,7 @@ internal class AzureClient(
     private val thisClientId: String,
     private val thisClientSecret: String,
     private val wellknownUrl: String
-) : OAuth {
+) : AzureAd {
     private val tokenEndpoint = jwkConfig().getString("token_endpoint")
 
     companion object {

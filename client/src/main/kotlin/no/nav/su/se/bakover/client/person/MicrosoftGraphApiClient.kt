@@ -9,7 +9,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.github.kittinunf.fuel.core.Request
 import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpGet
-import no.nav.su.se.bakover.client.azure.OAuth
+import no.nav.su.se.bakover.client.azure.AzureAd
 import no.nav.su.se.bakover.client.fromResult
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -34,7 +34,7 @@ private data class ListOfMicrosoftGraphResponse(
 )
 
 internal class MicrosoftGraphApiClient(
-    private val exchange: OAuth,
+    private val exchange: AzureAd,
 ) : IdentClient {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 

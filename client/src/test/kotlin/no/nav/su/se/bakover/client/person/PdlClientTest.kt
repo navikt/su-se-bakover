@@ -6,7 +6,7 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
-import no.nav.su.se.bakover.client.azure.OAuth
+import no.nav.su.se.bakover.client.azure.AzureAd
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.desember
@@ -113,7 +113,7 @@ internal class PdlClientTest : WiremockBase {
               }
             }
             """.trimIndent()
-        val azureAdMock = mock<OAuth> {
+        val azureAdMock = mock<AzureAd> {
             on { onBehalfOfToken(any(), any()) } doReturn "etOnBehalfOfToken"
         }
 
@@ -154,7 +154,7 @@ internal class PdlClientTest : WiremockBase {
               }
             }
             """.trimIndent()
-        val azureAdMock = mock<OAuth> {
+        val azureAdMock = mock<AzureAd> {
             on { onBehalfOfToken(any(), any()) } doReturn "etOnBehalfOfToken"
         }
 
@@ -203,7 +203,7 @@ internal class PdlClientTest : WiremockBase {
               }
             }
             """.trimIndent()
-        val azureAdMock = mock<OAuth> {
+        val azureAdMock = mock<AzureAd> {
             on { onBehalfOfToken(any(), any()) } doReturn "etOnBehalfOfToken"
         }
 
@@ -343,7 +343,7 @@ internal class PdlClientTest : WiremockBase {
               }
             }
             """.trimIndent()
-        val azureAdMock = mock<OAuth> {
+        val azureAdMock = mock<AzureAd> {
             on { onBehalfOfToken(any(), any()) } doReturn "etOnBehalfOfToken"
         }
 
@@ -499,7 +499,7 @@ internal class PdlClientTest : WiremockBase {
               }
             }
             """.trimIndent()
-        val azureAdMock = mock<OAuth> {
+        val azureAdMock = mock<AzureAd> {
             on { onBehalfOfToken(any(), any()) } doReturn "etOnBehalfOfToken"
         }
 
@@ -658,7 +658,7 @@ internal class PdlClientTest : WiremockBase {
               }
             }
             """.trimIndent()
-        val azureAdMock = mock<OAuth> {
+        val azureAdMock = mock<AzureAd> {
             on { onBehalfOfToken(any(), any()) } doReturn "etOnBehalfOfToken"
         }
 
@@ -843,7 +843,7 @@ internal class PdlClientTest : WiremockBase {
             }
             """.trimIndent()
 
-        val azureAdMock = mock<OAuth> {
+        val azureAdMock = mock<AzureAd> {
             on { onBehalfOfToken(any(), any()) } doReturn "etOnBehalfOfToken"
         }
 

@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.client.stubs.azure
 
-import no.nav.su.se.bakover.client.azure.OAuth
+import no.nav.su.se.bakover.client.azure.AzureAd
 import no.nav.su.se.bakover.common.stubs.AuthStubCommonConfig
 import org.json.JSONObject
 
-object AzureClientStub : OAuth {
+object AzureClientStub : AzureAd {
     override fun onBehalfOfToken(originalToken: String, otherAppId: String): String = originalToken
 
     override fun jwkConfig(): JSONObject {
@@ -19,5 +19,5 @@ object AzureClientStub : OAuth {
         )
     }
 
-    override fun getSystemToken(otherAppId: String): String = throw NotImplementedError()
+    override fun getSystemToken(otherAppId: String): String = "etFintSystemtoken"
 }

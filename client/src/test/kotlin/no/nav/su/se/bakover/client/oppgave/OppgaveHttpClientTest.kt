@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.client.AccessToken
 import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
 import no.nav.su.se.bakover.client.argThat
-import no.nav.su.se.bakover.client.azure.OAuth
+import no.nav.su.se.bakover.client.azure.AzureAd
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.domain.AktørId
@@ -103,7 +103,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
             ),
         )
 
-        val oathMock = mock<OAuth> {
+        val oathMock = mock<AzureAd> {
             on { onBehalfOfToken(any(), any()) } doReturn "token"
         }
 
@@ -207,7 +207,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                     .withStatus(201),
             ),
         )
-        val oathMock = mock<OAuth> {
+        val oathMock = mock<AzureAd> {
             on { onBehalfOfToken(any(), any()) } doReturn "token"
         }
 
@@ -286,7 +286,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
             ),
         )
 
-        val oathMock = mock<OAuth> {
+        val oathMock = mock<AzureAd> {
             on { onBehalfOfToken(any(), any()) } doReturn "token"
         }
         val client = OppgaveHttpClient(
@@ -312,7 +312,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
     fun `returns KunneIkkeOppretteOppgave`() {
         wireMockServer.stubFor(stubMapping.willReturn(forbidden()))
 
-        val oathMock = mock<OAuth> {
+        val oathMock = mock<AzureAd> {
             on { onBehalfOfToken(any(), any()) } doReturn "token"
         }
         val client = OppgaveHttpClient(
@@ -402,7 +402,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                 ),
         )
 
-        val oathMock = mock<OAuth> {
+        val oathMock = mock<AzureAd> {
             on { onBehalfOfToken(any(), any()) } doReturn "token"
         }
         val client = OppgaveHttpClient(
@@ -604,7 +604,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                 ),
         )
 
-        val oathMock = mock<OAuth> {
+        val oathMock = mock<AzureAd> {
             on { onBehalfOfToken(any(), any()) } doReturn "token"
         }
         val client = OppgaveHttpClient(
@@ -692,7 +692,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
             ),
         )
 
-        val oathMock = mock<OAuth> {
+        val oathMock = mock<AzureAd> {
             on { onBehalfOfToken(any(), any()) } doReturn "token"
         }
 
@@ -785,7 +785,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
             ),
         )
 
-        val oathMock = mock<OAuth> {
+        val oathMock = mock<AzureAd> {
             on { onBehalfOfToken(any(), any()) } doReturn "token"
         }
         val client = OppgaveHttpClient(
@@ -817,7 +817,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
             ),
         )
 
-        val oathMock = mock<OAuth> {
+        val oathMock = mock<AzureAd> {
             on { onBehalfOfToken(any(), any()) } doReturn "token"
         }
         val client = OppgaveHttpClient(
@@ -903,7 +903,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                 ),
         )
 
-        val oauthMock = mock<OAuth> {
+        val oauthMock = mock<AzureAd> {
             on { onBehalfOfToken(any(), any()) } doReturn "token"
         }
 
@@ -998,7 +998,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
             ),
         )
 
-        val oathMock = mock<OAuth> {
+        val oathMock = mock<AzureAd> {
             on { onBehalfOfToken(any(), any()) } doReturn "token"
         }
         val client = OppgaveHttpClient(
@@ -1077,7 +1077,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
             ),
         )
 
-        val oathMock = mock<OAuth> {
+        val oathMock = mock<AzureAd> {
             on { onBehalfOfToken(any(), any()) } doReturn "token"
         }
         val client = OppgaveHttpClient(
@@ -1156,7 +1156,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
             ),
         )
 
-        val oathMock = mock<OAuth> {
+        val oathMock = mock<AzureAd> {
             on { onBehalfOfToken(any(), any()) } doReturn "token"
         }
         val client = OppgaveHttpClient(

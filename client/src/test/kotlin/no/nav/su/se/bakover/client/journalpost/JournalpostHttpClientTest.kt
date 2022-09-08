@@ -5,7 +5,7 @@ import arrow.core.right
 import com.github.tomakehurst.wiremock.client.WireMock
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.WiremockBase
-import no.nav.su.se.bakover.client.azure.OAuth
+import no.nav.su.se.bakover.client.azure.AzureAd
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -68,7 +68,7 @@ internal class JournalpostHttpClientTest {
                 .willReturn(WireMock.ok(suksessResponseJson)),
         )
 
-        val oAuthMock = mock<OAuth> {
+        val azureAdMock = mock<AzureAd> {
             on { onBehalfOfToken(any(), any()) } doReturn "token"
         }
 
@@ -77,7 +77,7 @@ internal class JournalpostHttpClientTest {
                 url = WiremockBase.wireMockServer.baseUrl(),
                 clientId = "clientId",
             ),
-            oAuth = oAuthMock,
+            azureAd = azureAdMock,
         )
 
         client.hentFerdigstiltJournalpost(Saksnummer(2021), JournalpostId("j")) shouldBe FerdigstiltJournalpost.create(
@@ -103,7 +103,7 @@ internal class JournalpostHttpClientTest {
                 .willReturn(WireMock.ok(suksessResponseJson)),
         )
 
-        val oAuthMock = mock<OAuth> {
+        val azureAdMock = mock<AzureAd> {
             on { onBehalfOfToken(any(), any()) } doReturn "token"
         }
 
@@ -112,7 +112,7 @@ internal class JournalpostHttpClientTest {
                 url = WiremockBase.wireMockServer.baseUrl(),
                 clientId = "clientId",
             ),
-            oAuth = oAuthMock,
+            azureAd = azureAdMock,
         )
 
         client.hentFerdigstiltJournalpost(
@@ -127,7 +127,7 @@ internal class JournalpostHttpClientTest {
             wiremockBuilderOnBehalfOf("Bearer ${tokenOppslag.token().value}")
                 .willReturn(WireMock.serverError()),
         )
-        val oAuthMock = mock<OAuth> {
+        val azureAdMock = mock<AzureAd> {
             on { onBehalfOfToken(any(), any()) } doReturn "token"
         }
 
@@ -136,7 +136,7 @@ internal class JournalpostHttpClientTest {
                 url = WiremockBase.wireMockServer.baseUrl(),
                 clientId = "clientId",
             ),
-            oAuth = oAuthMock,
+            azureAd = azureAdMock,
         )
         client.hentFerdigstiltJournalpost(Saksnummer(2022), JournalpostId("j")) shouldBe KunneIkkeHenteJournalpost.Ukjent.left()
     }
@@ -176,7 +176,7 @@ internal class JournalpostHttpClientTest {
                 .willReturn(WireMock.ok(errorResponseJson)),
         )
 
-        val oAuthMock = mock<OAuth> {
+        val azureAdMock = mock<AzureAd> {
             on { onBehalfOfToken(any(), any()) } doReturn "token"
         }
 
@@ -185,7 +185,7 @@ internal class JournalpostHttpClientTest {
                 url = WiremockBase.wireMockServer.baseUrl(),
                 clientId = "clientId",
             ),
-            oAuth = oAuthMock,
+            azureAd = azureAdMock,
         )
         client.hentFerdigstiltJournalpost(
             Saksnummer(2022),
