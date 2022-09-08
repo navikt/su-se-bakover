@@ -29,6 +29,7 @@ class KontaktOgReservasjonsregisterClient(
             .authentication().bearer(azure.getSystemToken(config.appId))
             .header("Accept", "application/json")
             .header("Nav-Call-Id", getOrCreateCorrelationId())
+            .header("Nav-Personident", fnr.toString())
             .responseString()
 
         return result.fold(
