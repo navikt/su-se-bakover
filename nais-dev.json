@@ -36,6 +36,8 @@
     "SAF_CLIENT_ID": "api://dev-fss.teamdokumenthandtering.saf",
     "MQ_TILBAKEKREVING_MOTTAK":"QA.Q1_SU_SE_BAKOVER.OPPDRAG_KRAVGRUNNLAG",
     "TILBAKEKREVING_URL": "https://cics-q1.adeo.no/oppdrag/K231CW80",
-    "SKATTEETATEN_URL": "https://api-test.sits.no"
+    "SKATTEETATEN_URL": "https://api-test.sits.no",
+    "KRR_URL": "https://digdir-krr-proxy.dev.intern.nav.no",
+    "KRR_APP_ID": "api://dev-gcp.team-rocket.digdir-krr-proxy"
   }
 }

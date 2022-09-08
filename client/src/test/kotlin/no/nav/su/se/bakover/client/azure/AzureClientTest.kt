@@ -24,7 +24,7 @@ private const val ISSUER = "azure"
 
 internal class AzureClientTest : WiremockBase {
 
-    private lateinit var oauth: OAuth
+    private lateinit var oauth: AzureAd
 
     @Test
     fun `exchange to on-behalf-of token`() {

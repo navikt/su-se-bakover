@@ -5,7 +5,7 @@ import arrow.core.flatten
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.client.azure.OAuth
+import no.nav.su.se.bakover.client.azure.AzureAd
 import no.nav.su.se.bakover.client.isSuccess
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.getOrCreateCorrelationId
@@ -27,7 +27,7 @@ const val oversendelsePath = "/api/oversendelse/v2/klage"
 
 class KabalHttpClient(
     private val kabalConfig: ApplicationConfig.ClientsConfig.KabalConfig,
-    private val exchange: OAuth,
+    private val exchange: AzureAd,
 ) : KlageClient {
     private val log = LoggerFactory.getLogger(this::class.java)
 

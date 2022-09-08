@@ -1,13 +1,13 @@
 package no.nav.su.se.bakover.client
 
 import no.nav.su.se.bakover.client.azure.AzureClient
-import no.nav.su.se.bakover.client.dkif.DigitalKontaktinformasjon
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordelingClient
 import no.nav.su.se.bakover.client.journalpost.JournalpostClientStub
 import no.nav.su.se.bakover.client.kabal.KlageClientStub
 import no.nav.su.se.bakover.client.kafka.KafkaPublisher
 import no.nav.su.se.bakover.client.kodeverk.KodeverkHttpClient
+import no.nav.su.se.bakover.client.krr.KontaktOgReservasjonsregister
 import no.nav.su.se.bakover.client.maskinporten.MaskinportenClient
 import no.nav.su.se.bakover.client.maskinporten.MaskinportenClientStub
 import no.nav.su.se.bakover.client.pdf.PdfClient
@@ -16,10 +16,10 @@ import no.nav.su.se.bakover.client.skatteetaten.SkatteClient
 import no.nav.su.se.bakover.client.skatteetaten.SkatteClientStub
 import no.nav.su.se.bakover.client.sts.StsClient
 import no.nav.su.se.bakover.client.sts.TokenOppslag
-import no.nav.su.se.bakover.client.stubs.dkif.DkifClientStub
 import no.nav.su.se.bakover.client.stubs.dokarkiv.DokArkivStub
 import no.nav.su.se.bakover.client.stubs.dokdistfordeling.DokDistFordelingStub
 import no.nav.su.se.bakover.client.stubs.kafka.KafkaPublisherStub
+import no.nav.su.se.bakover.client.stubs.krr.KontaktOgReservasjonsregisterStub
 import no.nav.su.se.bakover.client.stubs.nais.LeaderPodLookupStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.AvstemmingStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.SimuleringStub
@@ -84,7 +84,7 @@ class StubClientsBuilder(
             dokDistFordeling = DokDistFordelingStub.also { log.warn("********** Using stub for ${DokDistFordelingClient::class.java} **********") },
             avstemmingPublisher = AvstemmingStub.also { log.warn("********** Using stub for ${AvstemmingPublisher::class.java} **********") },
             identClient = IdentClientStub.also { log.warn("********** Using stub for ${IdentClient::class.java} **********") },
-            digitalKontaktinformasjon = DkifClientStub.also { log.warn("********** Using stub for ${DigitalKontaktinformasjon::class.java} **********") },
+            kontaktOgReservasjonsregister = KontaktOgReservasjonsregisterStub.also { log.warn("********** Using stub for ${KontaktOgReservasjonsregister::class.java} **********") },
             leaderPodLookup = LeaderPodLookupStub.also { log.warn("********** Using stub for ${LeaderPodLookup::class.java} **********") },
             kafkaPublisher = KafkaPublisherStub.also { log.warn("********** Using stub for ${KafkaPublisher::class.java} **********") },
             klageClient = KlageClientStub.also { log.warn("********** Using stub for ${KlageClientStub::class.java} **********") },

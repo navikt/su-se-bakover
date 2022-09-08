@@ -4,9 +4,8 @@ import arrow.core.Either
 import arrow.core.right
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
-import no.nav.su.se.bakover.client.dkif.DigitalKontaktinformasjon
-import no.nav.su.se.bakover.client.dkif.Kontaktinformasjon
 import no.nav.su.se.bakover.client.kodeverk.Kodeverk
+import no.nav.su.se.bakover.client.krr.KontaktOgReservasjonsregister
 import no.nav.su.se.bakover.client.skjerming.Skjerming
 import no.nav.su.se.bakover.common.metrics.SuMetrics
 import no.nav.su.se.bakover.common.token.JwtToken
@@ -21,7 +20,7 @@ import java.time.Duration
 internal data class PersonClientConfig(
     val kodeverk: Kodeverk,
     val skjerming: Skjerming,
-    val digitalKontaktinformasjon: DigitalKontaktinformasjon,
+    val kontaktOgReservasjonsregister: KontaktOgReservasjonsregister,
     val pdlClientConfig: PdlClientConfig,
 )
 
@@ -142,16 +141,20 @@ internal class PersonClient(
     )
 
     private fun kontaktinfo(fnr: Fnr): Person.Kontaktinfo? {
-        val dkifInfo: Kontaktinformasjon? = config.digitalKontaktinformasjon.hentKontaktinformasjon(fnr).orNull()
-        return dkifInfo?.let {
-            Person.Kontaktinfo(
-                it.epostadresse,
-                it.mobiltelefonnummer,
-                it.reservert,
-                it.kanVarsles,
-                it.språk,
-            )
-        }
+        return config.kontaktOgReservasjonsregister.hentKontaktinformasjon(fnr).fold(
+            {
+                null
+            },
+            {
+                Person.Kontaktinfo(
+                    it.epostadresse,
+                    it.mobiltelefonnummer,
+                    it.reservert,
+                    it.kanVarsles,
+                    it.språk,
+                )
+            }
+        )
     }
 
     companion object {

@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.client.AccessToken
 import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
 import no.nav.su.se.bakover.client.argThat
-import no.nav.su.se.bakover.client.azure.OAuth
+import no.nav.su.se.bakover.client.azure.AzureAd
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -82,7 +82,7 @@ internal class KabalHttpClientTest : WiremockBase {
                     .withStatus(500),
             ),
         )
-        val oathMock = mock<OAuth> {}
+        val oathMock = mock<AzureAd> {}
         val tokenoppslagMock = mock<TokenOppslag> {
             on { token() } doReturn AccessToken("token")
         }
@@ -115,7 +115,7 @@ internal class KabalHttpClientTest : WiremockBase {
                     .withFault(Fault.CONNECTION_RESET_BY_PEER),
             ),
         )
-        val oathMock = mock<OAuth> {}
+        val oathMock = mock<AzureAd> {}
         val tokenoppslagMock = mock<TokenOppslag> {
             on { token() } doReturn AccessToken("token")
         }
@@ -149,7 +149,7 @@ internal class KabalHttpClientTest : WiremockBase {
                     .withStatus(201),
             ),
         )
-        val oathMock = mock<OAuth> {
+        val oathMock = mock<AzureAd> {
             on { getSystemToken(any()) } doReturn "token"
         }
 

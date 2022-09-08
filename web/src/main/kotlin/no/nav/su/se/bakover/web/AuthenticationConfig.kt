@@ -6,7 +6,7 @@ import io.ktor.server.application.install
 import io.ktor.server.auth.Authentication
 import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.jwt.jwt
-import no.nav.su.se.bakover.client.azure.OAuth
+import no.nav.su.se.bakover.client.azure.AzureAd
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.web.stubs.JwkProviderStub
@@ -16,13 +16,13 @@ import java.net.URL
 import java.util.concurrent.TimeUnit
 
 internal fun Application.configureAuthentication(
-    oAuth: OAuth,
+    azureAd: AzureAd,
     applicationConfig: ApplicationConfig,
     tokenOppslag: TokenOppslag
 ) {
     val log: Logger = LoggerFactory.getLogger("Application.configureAuthentication()")
 
-    val jwkConfig = oAuth.jwkConfig()
+    val jwkConfig = azureAd.jwkConfig()
     val jwkProvider =
         if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Test) {
             JwkProviderStub

@@ -12,7 +12,7 @@ import com.github.kittinunf.fuel.core.Response
 import com.github.kittinunf.fuel.httpPost
 import com.github.kittinunf.result.Result
 import finnRiktigAdresseformatOgMapTilPdlAdresse
-import no.nav.su.se.bakover.client.azure.OAuth
+import no.nav.su.se.bakover.client.azure.AzureAd
 import no.nav.su.se.bakover.client.person.PdlData.Ident
 import no.nav.su.se.bakover.client.person.PdlData.Navn
 import no.nav.su.se.bakover.client.person.Variables.Companion.AKTORID
@@ -36,7 +36,7 @@ import java.time.LocalDate
 internal data class PdlClientConfig(
     val vars: ApplicationConfig.ClientsConfig.PdlConfig,
     val tokenOppslag: TokenOppslag,
-    val azureAd: OAuth,
+    val azureAd: AzureAd,
 )
 
 internal class PdlClient(

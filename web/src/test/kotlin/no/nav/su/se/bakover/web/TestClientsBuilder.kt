@@ -7,10 +7,10 @@ import no.nav.su.se.bakover.client.kabal.KlageClientStub
 import no.nav.su.se.bakover.client.maskinporten.MaskinportenClientStub
 import no.nav.su.se.bakover.client.skatteetaten.SkatteClientStub
 import no.nav.su.se.bakover.client.stubs.azure.AzureClientStub
-import no.nav.su.se.bakover.client.stubs.dkif.DkifClientStub
 import no.nav.su.se.bakover.client.stubs.dokarkiv.DokArkivStub
 import no.nav.su.se.bakover.client.stubs.dokdistfordeling.DokDistFordelingStub
 import no.nav.su.se.bakover.client.stubs.kafka.KafkaPublisherStub
+import no.nav.su.se.bakover.client.stubs.krr.KontaktOgReservasjonsregisterStub
 import no.nav.su.se.bakover.client.stubs.nais.LeaderPodLookupStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.AvstemmingStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.SimuleringStub
@@ -44,7 +44,7 @@ data class TestClientsBuilder(
         dokDistFordeling = DokDistFordelingStub,
         avstemmingPublisher = AvstemmingStub,
         identClient = IdentClientStub,
-        digitalKontaktinformasjon = DkifClientStub,
+        kontaktOgReservasjonsregister = KontaktOgReservasjonsregisterStub,
         leaderPodLookup = LeaderPodLookupStub,
         kafkaPublisher = KafkaPublisherStub,
         klageClient = KlageClientStub,

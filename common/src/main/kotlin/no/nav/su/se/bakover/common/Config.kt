@@ -333,7 +333,7 @@ data class ApplicationConfig(
         val kodeverkUrl: String,
         val stsUrl: String,
         val skjermingUrl: String,
-        val dkifUrl: String,
+        val kontaktOgReservasjonsregisterConfig: KontaktOgReservasjonsregisterConfig,
         val kabalConfig: KabalConfig,
         val safConfig: SafConfig,
         val maskinportenConfig: MaskinportenConfig,
@@ -352,7 +352,7 @@ data class ApplicationConfig(
                     "http://security-token-service.default.svc.nais.local",
                 ),
                 skjermingUrl = getEnvironmentVariableOrThrow("SKJERMING_URL"),
-                dkifUrl = getEnvironmentVariableOrDefault("DKIF_URL", "http://dkif.default.svc.nais.local"),
+                kontaktOgReservasjonsregisterConfig = KontaktOgReservasjonsregisterConfig.createFromEnvironmentVariables(),
                 kabalConfig = KabalConfig.createFromEnvironmentVariables(),
                 safConfig = SafConfig.createFromEnvironmentVariables(),
                 maskinportenConfig = MaskinportenConfig.createFromEnvironmentVariables(),
@@ -371,12 +371,29 @@ data class ApplicationConfig(
                     "mocked",
                 ),
                 skjermingUrl = "mocked",
-                dkifUrl = "mocked",
+                kontaktOgReservasjonsregisterConfig = KontaktOgReservasjonsregisterConfig.createLocalConfig(),
                 kabalConfig = KabalConfig.createLocalConfig(),
                 safConfig = SafConfig.createLocalConfig(),
                 maskinportenConfig = MaskinportenConfig.createLocalConfig(),
                 skatteetatenConfig = SkatteetatenConfig.createLocalConfig(),
             )
+        }
+
+        data class KontaktOgReservasjonsregisterConfig(
+            val appId: String,
+            val url: String
+        ) {
+            companion object {
+                fun createFromEnvironmentVariables() = KontaktOgReservasjonsregisterConfig(
+                    appId = getEnvironmentVariableOrThrow("KRR_APP_ID"),
+                    url = getEnvironmentVariableOrThrow("KRR_URL"),
+                )
+
+                fun createLocalConfig() = KontaktOgReservasjonsregisterConfig(
+                    appId = "mocked",
+                    url = "mocked",
+                )
+            }
         }
 
         data class OppgaveConfig(

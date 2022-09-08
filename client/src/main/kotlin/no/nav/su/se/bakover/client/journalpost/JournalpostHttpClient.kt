@@ -6,7 +6,7 @@ import arrow.core.flatten
 import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
-import no.nav.su.se.bakover.client.azure.OAuth
+import no.nav.su.se.bakover.client.azure.AzureAd
 import no.nav.su.se.bakover.client.isSuccess
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.log
@@ -39,7 +39,7 @@ private data class JournalpostVariables(
 
 internal class JournalpostHttpClient(
     private val safConfig: ApplicationConfig.ClientsConfig.SafConfig,
-    private val oAuth: OAuth,
+    private val azureAd: AzureAd,
 ) : JournalpostClient {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
@@ -64,7 +64,7 @@ internal class JournalpostHttpClient(
     }
 
     private fun hentJournalpostFraSaf(request: JournalpostRequest): Either<KunneIkkeHenteJournalpost, JournalpostResponse> {
-        val token = "Bearer ${oAuth.onBehalfOfToken(MDC.get("Authorization"), safConfig.clientId)}"
+        val token = "Bearer ${azureAd.onBehalfOfToken(MDC.get("Authorization"), safConfig.clientId)}"
 
         return Either.catch {
             val req = HttpRequest.newBuilder(URI.create("${safConfig.url}/graphql"))

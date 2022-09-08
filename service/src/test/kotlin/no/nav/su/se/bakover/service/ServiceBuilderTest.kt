@@ -50,7 +50,7 @@ internal class ServiceBuilderTest {
                 dokDistFordeling = mock(),
                 avstemmingPublisher = mock(),
                 identClient = mock(),
-                digitalKontaktinformasjon = mock(),
+                kontaktOgReservasjonsregister = mock(),
                 leaderPodLookup = mock(),
                 kafkaPublisher = mock(),
                 klageClient = mock(),
