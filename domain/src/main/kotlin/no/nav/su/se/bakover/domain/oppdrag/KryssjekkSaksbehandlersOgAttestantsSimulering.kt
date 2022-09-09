@@ -38,7 +38,7 @@ class KryssjekkSaksbehandlersOgAttestantsSimulering(
         val tolketSaksbehandlers = saksbehandlersSimulering.tolk()
         val tolketAttestants = attestantsSimulering.simulering.tolk()
         val utbetalingstidslinje = attestantsSimulering.utbetalingslinjer.tidslinje(clock = clock)
-            .getOrHandle { throw RuntimeException("Kunne ikke konstruere utbetalingstidslinje!") }
+            .getOrHandle { return KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.FantIngenGjeldendeUtbetalingerForDato.left() }
 
         if (!tolketSaksbehandlers.erTomSimulering() && !tolketAttestants.erTomSimulering()) {
             if (tolketSaksbehandlers.periode() != tolketAttestants.periode()) {
@@ -86,4 +86,6 @@ sealed interface KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet {
     object UlikPeriode : KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
     object UliktBeløp : KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
     object UliktBeløpFraTidslinje : KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
+
+    object FantIngenGjeldendeUtbetalingerForDato : KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
 }

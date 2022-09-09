@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.and
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.minAndMaxOf
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
@@ -175,10 +176,14 @@ fun List<Utbetalingslinje>.tidslinje(
     return ifEmpty { return IngenUtbetalinger.left() }
         .let { utbetalingslinjer ->
             TidslinjeForUtbetalinger(
-                periode = periode ?: Periode.create(
-                    fraOgMed = minOf { it.fraOgMed },
-                    tilOgMed = maxOf { it.tilOgMed },
-                ),
+                periode = periode ?: utbetalingslinjer.map {
+                    when (it) {
+                        is Utbetalingslinje.Endring.Opphør -> it.virkningsperiode
+                        is Utbetalingslinje.Endring.Reaktivering -> it.virkningsperiode
+                        is Utbetalingslinje.Endring.Stans -> it.virkningsperiode
+                        is Utbetalingslinje.Ny -> it.periode
+                    }
+                }.minAndMaxOf(),
                 utbetalingslinjer = utbetalingslinjer,
                 clock = clock,
             ).right()

@@ -357,6 +357,13 @@ internal object Feilresponser {
                     "kontrollsimulering_ulik_saksbehandlers_simulering",
                 )
             }
+
+            KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.FantIngenGjeldendeUtbetalingerForDato -> {
+                InternalServerError.errorJson(
+                    "Kryssjekk av saksbehandlers og attestants simulering feilet - fant ikke gjeldende utbetaling for dato",
+                    "kontrollsimulering_ulik_saksbehandlers_simulering",
+                )
+            }
         }
     }
 
