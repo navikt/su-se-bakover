@@ -48,7 +48,14 @@ class Utbetalingshistorikk(
     }
 
     private fun finnUtbetalingslinjerSomSkalRekonstrueres(): List<Utbetalingslinje> {
-        return sorterteEksisterendeUtbetalingslinjer.filter { it.tilOgMed.isAfter(rekonstruerEksisterendeUtbetalingerEtterDato()) }
+        return sorterteEksisterendeUtbetalingslinjer.filter {
+            when (it) {
+                is Utbetalingslinje.Endring.Opphør -> it.virkningsperiode.fraOgMed.isAfter(rekonstruerEksisterendeUtbetalingerEtterDato())
+                is Utbetalingslinje.Endring.Reaktivering -> it.virkningsperiode.fraOgMed.isAfter(rekonstruerEksisterendeUtbetalingerEtterDato())
+                is Utbetalingslinje.Endring.Stans -> it.virkningsperiode.fraOgMed.isAfter(rekonstruerEksisterendeUtbetalingerEtterDato())
+                is Utbetalingslinje.Ny -> it.tilOgMed.isAfter(rekonstruerEksisterendeUtbetalingerEtterDato())
+            }
+        }
     }
 
     private fun rekonstruerEksisterendeUtbetalingerEtterDato(): LocalDate {
