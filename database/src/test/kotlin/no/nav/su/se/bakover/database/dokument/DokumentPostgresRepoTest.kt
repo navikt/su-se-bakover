@@ -32,13 +32,13 @@ internal class DokumentPostgresRepoTest {
                 oppgaveId = oppgaveId,
             )
 
-            // Dette er en snarvei for å teste alle referasene til et dokument og ikke noe som vil oppstå naturlig.
+            // Dette er en snarvei for å teste alle referansene til et dokument og ikke noe som vil oppstå naturlig.
             val original = Dokument.MedMetadata.Vedtak(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
                 tittel = "tittel",
                 generertDokument = "".toByteArray(),
-                generertDokumentJson = """{"some":"json"}""",
+                generertDokumentJson = """{"some": "json"}""",
                 metadata = Dokument.Metadata(
                     sakId = sak.id,
                     søknadId = sak.søknader.first().id,

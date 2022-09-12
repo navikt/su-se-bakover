@@ -91,7 +91,7 @@ class AvslagManglendeDokumentasjonKomponentTest {
                         .let { dokumenter ->
                             dokumenter.single().let {
                                 it.tittel shouldBe "Vedtaksbrev for søknad om supplerende stønad"
-                                it.generertDokumentJson shouldContain """"avslagsgrunner":["MANGLENDE_DOKUMENTASJON"]"""
+                                it.generertDokumentJson shouldContain """"avslagsgrunner": ["MANGLENDE_DOKUMENTASJON"]"""
                             }
                         }
                 }
@@ -176,7 +176,7 @@ class AvslagManglendeDokumentasjonKomponentTest {
                             .let { dokumenter ->
                                 dokumenter.single().let {
                                     it.tittel shouldBe "Vedtaksbrev for søknad om supplerende stønad"
-                                    it.generertDokumentJson shouldContain """"avslagsgrunner":["MANGLENDE_DOKUMENTASJON"]"""
+                                    it.generertDokumentJson shouldContain """"avslagsgrunner": ["MANGLENDE_DOKUMENTASJON"]"""
                                 }
                             }
                     }
