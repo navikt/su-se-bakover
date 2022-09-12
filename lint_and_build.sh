@@ -1,2 +1,2 @@
 #!/bin/bash
-./gradlew spotlessApply build -Pskip-heavy-infrastructure-tests=true
+./gradlew spotlessApply build -Pskip-heavy-infrastructure-tests=true "$@"
