@@ -1,5 +1,5 @@
 val fuelVersion = "2.3.1"
-val tjenestespesifikasjonVersion = "2596.90425ef"
+val tjenestespesifikasjonVersion = "2600.3800cc4"
 val cxfVersion = "3.5.3"
 
 dependencies {
