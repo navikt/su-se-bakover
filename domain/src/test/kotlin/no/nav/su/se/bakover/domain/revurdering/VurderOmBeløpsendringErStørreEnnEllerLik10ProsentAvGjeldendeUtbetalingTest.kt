@@ -426,7 +426,10 @@ internal class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtb
     ) =
         Utbetalingslinje.Endring.Opphør(
             utbetalingslinje = forrigeUtbetaling,
-            virkningsperiode = Periode.create(opphørsdato, forrigeUtbetaling.tilOgMed),
+            virkningsperiode = Periode.create(
+                fraOgMed = opphørsdato,
+                tilOgMed = forrigeUtbetaling.periode.tilOgMed,
+            ),
             clock = fixedClock.plus(utbetalingsIndex.toLong(), ChronoUnit.SECONDS),
         )
 

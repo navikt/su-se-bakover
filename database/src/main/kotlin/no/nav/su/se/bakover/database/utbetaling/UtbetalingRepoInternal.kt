@@ -113,8 +113,8 @@ internal fun Row.toUtbetalingslinje(): Utbetalingslinje {
                 Utbetalingslinje.Endring.Opphør(
                     id = linje.id,
                     opprettet = linje.opprettet,
-                    fraOgMed = linje.fraOgMed,
-                    tilOgMed = linje.tilOgMed,
+                    fraOgMed = linje.originalFraOgMed(),
+                    tilOgMed = linje.originalTilOgMed(),
                     forrigeUtbetalingslinjeId = linje.forrigeUtbetalingslinjeId,
                     beløp = linje.beløp,
                     virkningsperiode = Periode.create(statusFraOgMed, statusTilOgMed),
@@ -126,8 +126,8 @@ internal fun Row.toUtbetalingslinje(): Utbetalingslinje {
                 Utbetalingslinje.Endring.Stans(
                     id = linje.id,
                     opprettet = linje.opprettet,
-                    fraOgMed = linje.fraOgMed,
-                    tilOgMed = linje.tilOgMed,
+                    fraOgMed = linje.originalFraOgMed(),
+                    tilOgMed = linje.originalTilOgMed(),
                     forrigeUtbetalingslinjeId = linje.forrigeUtbetalingslinjeId,
                     beløp = linje.beløp,
                     virkningsperiode = Periode.create(statusFraOgMed, statusTilOgMed),
@@ -139,8 +139,8 @@ internal fun Row.toUtbetalingslinje(): Utbetalingslinje {
                 Utbetalingslinje.Endring.Reaktivering(
                     id = linje.id,
                     opprettet = linje.opprettet,
-                    fraOgMed = linje.fraOgMed,
-                    tilOgMed = linje.tilOgMed,
+                    fraOgMed = linje.originalFraOgMed(),
+                    tilOgMed = linje.originalTilOgMed(),
                     forrigeUtbetalingslinjeId = linje.forrigeUtbetalingslinjeId,
                     beløp = linje.beløp,
                     virkningsperiode = Periode.create(statusFraOgMed, statusTilOgMed),

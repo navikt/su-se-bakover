@@ -108,8 +108,8 @@ internal class UtbetalingPostgresRepo(
         val baseParams = mapOf(
             "id" to utbetalingslinje.id,
             "opprettet" to utbetalingslinje.opprettet,
-            "fom" to utbetalingslinje.fraOgMed,
-            "tom" to utbetalingslinje.tilOgMed,
+            "fom" to utbetalingslinje.originalFraOgMed(),
+            "tom" to utbetalingslinje.originalTilOgMed(),
             "utbetalingId" to utbetalingId,
             "forrigeUtbetalingslinjeId" to utbetalingslinje.forrigeUtbetalingslinjeId,
             "belop" to utbetalingslinje.beløp,
@@ -125,8 +125,8 @@ internal class UtbetalingPostgresRepo(
                 baseParams.plus(
                     mapOf(
                         "status" to utbetalingslinje.linjeStatus,
-                        "statusFraOgMed" to utbetalingslinje.virkningsperiode.fraOgMed,
-                        "statusTilOgMed" to utbetalingslinje.virkningsperiode.tilOgMed,
+                        "statusFraOgMed" to utbetalingslinje.periode.fraOgMed,
+                        "statusTilOgMed" to utbetalingslinje.periode.tilOgMed,
                     ),
                 )
             }

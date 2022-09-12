@@ -146,20 +146,20 @@ data class TidslinjeForUtbetalinger(
             is Utbetalingslinje.Endring.Opphør -> UtbetalingslinjePåTidslinje.Opphør(
                 kopiertFraId = id,
                 opprettet = opprettet,
-                periode = virkningsperiode,
+                periode = periode,
             )
 
             is Utbetalingslinje.Endring.Reaktivering -> UtbetalingslinjePåTidslinje.Reaktivering(
                 kopiertFraId = id,
                 opprettet = opprettet,
-                periode = virkningsperiode,
+                periode = periode,
                 beløp = beløp,
             )
 
             is Utbetalingslinje.Endring.Stans -> UtbetalingslinjePåTidslinje.Stans(
                 kopiertFraId = id,
                 opprettet = opprettet,
-                periode = virkningsperiode,
+                periode = periode,
             )
 
             is Utbetalingslinje.Ny -> UtbetalingslinjePåTidslinje.Ny(

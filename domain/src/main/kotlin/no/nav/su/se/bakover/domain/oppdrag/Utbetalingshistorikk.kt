@@ -50,25 +50,11 @@ class Utbetalingshistorikk(
     }
 
     private fun finnUtbetalingslinjerSomSkalRekonstrueres(): List<Utbetalingslinje> {
-        return sorterteEksisterendeUtbetalingslinjer.filter {
-            when (it) {
-                is Utbetalingslinje.Endring.Opphør -> it.virkningsperiode.tilOgMed.isAfter(rekonstruerEtterDato)
-                is Utbetalingslinje.Endring.Reaktivering -> it.virkningsperiode.tilOgMed.isAfter(rekonstruerEtterDato)
-                is Utbetalingslinje.Endring.Stans -> it.virkningsperiode.tilOgMed.isAfter(rekonstruerEtterDato)
-                is Utbetalingslinje.Ny -> it.tilOgMed.isAfter(rekonstruerEtterDato)
-            }
-        }
+        return sorterteEksisterendeUtbetalingslinjer.filter { it.periode.tilOgMed.isAfter(rekonstruerEtterDato) }
     }
 
     private fun rekonstruerEksisterendeUtbetalingerEtterDato(): LocalDate {
-        return sorterteNyeUtbetalingslinjer.last().let {
-            when (it) {
-                is Utbetalingslinje.Endring.Opphør -> it.virkningsperiode.tilOgMed
-                is Utbetalingslinje.Endring.Reaktivering -> it.virkningsperiode.tilOgMed
-                is Utbetalingslinje.Endring.Stans -> it.virkningsperiode.tilOgMed
-                is Utbetalingslinje.Ny -> it.tilOgMed
-            }
-        }
+        return sorterteNyeUtbetalingslinjer.last().periode.tilOgMed
     }
 
     private fun finnEndringerForNyeLinjer(
@@ -84,7 +70,7 @@ class Utbetalingshistorikk(
                 id = UUID30.randomUUID(),
                 opprettet = Tidspunkt.now(clock),
                 fraOgMed = maxOf(
-                    ny.fraOgMed,
+                    ny.originalFraOgMed(),
                     minimumFraOgMedForRekonstruerteLinjer,
                 ),
             )
@@ -96,10 +82,10 @@ class Utbetalingshistorikk(
                             utbetalingslinje = rekonstruertNy,
                             virkningsperiode = Periode.create(
                                 fraOgMed = maxOf(
-                                    endring.virkningsperiode.fraOgMed,
+                                    endring.periode.fraOgMed,
                                     minimumFraOgMedForRekonstruerteLinjer,
                                 ),
-                                tilOgMed = endring.virkningsperiode.tilOgMed,
+                                tilOgMed = endring.periode.tilOgMed,
                             ),
                             clock = clock,
                         )
@@ -109,7 +95,7 @@ class Utbetalingshistorikk(
                         Utbetalingslinje.Endring.Reaktivering(
                             utbetalingslinje = rekonstruertNy,
                             virkningstidspunkt = maxOf(
-                                endring.virkningsperiode.fraOgMed,
+                                endring.periode.fraOgMed,
                                 minimumFraOgMedForRekonstruerteLinjer,
                             ),
                             clock = clock,
@@ -120,7 +106,7 @@ class Utbetalingshistorikk(
                         Utbetalingslinje.Endring.Stans(
                             utbetalingslinje = rekonstruertNy,
                             virkningstidspunkt = maxOf(
-                                endring.virkningsperiode.fraOgMed,
+                                endring.periode.fraOgMed,
                                 minimumFraOgMedForRekonstruerteLinjer,
                             ),
                             clock = clock,
@@ -136,14 +122,7 @@ class Utbetalingshistorikk(
             .ifNotEmpty {
                 val periode = Periode.create(
                     fraOgMed = minimumFraOgMedForRekonstruerteLinjer,
-                    tilOgMed = this.maxOf {
-                        when (it) {
-                            is Utbetalingslinje.Endring.Opphør -> it.virkningsperiode.tilOgMed
-                            is Utbetalingslinje.Endring.Reaktivering -> it.virkningsperiode.tilOgMed
-                            is Utbetalingslinje.Endring.Stans -> it.virkningsperiode.tilOgMed
-                            is Utbetalingslinje.Ny -> it.tilOgMed
-                        }
-                    },
+                    tilOgMed = maxOf { it.periode.tilOgMed },
                 )
 
                 val tidslinjeGammel = sorterteEksisterendeUtbetalingslinjer.tidslinje(
@@ -156,7 +135,7 @@ class Utbetalingshistorikk(
                     periode = periode,
                 ).getOrHandle { throw RuntimeException("Kunne ikke generere tidslinje: $it") }
 
-                check(tidslinjeGammel.ekvivalentMed(tidslinjeNy)) { "Rekonstuert tidslinje er ulik original" }
+                check(tidslinjeGammel.ekvivalentMed(tidslinjeNy)) { "Rekonstuert tidslinje: $tidslinjeNy er ulik original: $tidslinjeGammel" }
             }
     }
 

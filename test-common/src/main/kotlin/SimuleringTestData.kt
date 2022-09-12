@@ -172,7 +172,7 @@ fun simuleringStans(
         ).simulerUtbetaling(
             SimulerUtbetalingForPeriode(
                 utbetaling = it,
-                simuleringsperiode = stans.virkningsperiode
+                simuleringsperiode = stans.periode
             ),
         )
     }.getOrFail()
@@ -204,7 +204,7 @@ fun simuleringGjenopptak(
         ).simulerUtbetaling(
             SimulerUtbetalingForPeriode(
                 utbetaling = it,
-                simuleringsperiode = reaktivering.virkningsperiode
+                simuleringsperiode = reaktivering.periode
             ),
         )
     }.getOrFail()
@@ -239,7 +239,7 @@ fun simuleringOpphørt(
         ).simulerUtbetaling(
             request = SimulerUtbetalingForPeriode(
                 utbetaling = it,
-                simuleringsperiode = opphør.virkningsperiode
+                simuleringsperiode = opphør.periode
             ),
         )
     }.getOrFail()

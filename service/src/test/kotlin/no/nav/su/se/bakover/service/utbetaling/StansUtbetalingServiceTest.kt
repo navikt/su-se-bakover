@@ -45,11 +45,11 @@ internal class StansUtbetalingServiceTest {
             Utbetalingslinje.Endring.Stans(
                 id = it.sisteUtbetalingslinje().id,
                 opprettet = opprettet,
-                fraOgMed = it.sisteUtbetalingslinje().fraOgMed,
-                tilOgMed = it.sisteUtbetalingslinje().tilOgMed,
+                fraOgMed = it.sisteUtbetalingslinje().periode.fraOgMed,
+                tilOgMed = it.sisteUtbetalingslinje().periode.tilOgMed,
                 forrigeUtbetalingslinjeId = it.sisteUtbetalingslinje().forrigeUtbetalingslinjeId,
                 beløp = it.sisteUtbetalingslinje().beløp,
-                virkningsperiode = Periode.create(1.februar(2021), it.sisteUtbetalingslinje().tilOgMed),
+                virkningsperiode = Periode.create(1.februar(2021), it.sisteUtbetalingslinje().periode.tilOgMed),
                 uføregrad = it.sisteUtbetalingslinje().uføregrad,
             )
         }

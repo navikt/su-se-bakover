@@ -108,7 +108,7 @@ internal class UtbetalingsstrategiOpphørTest {
             clock = fixedClock,
             periode = Periode.create(
                 1.mars(2021),
-                siste.sisteUtbetalingslinje().tilOgMed,
+                siste.sisteUtbetalingslinje().periode.tilOgMed,
             ),
             sakstype = Sakstype.UFØRE,
         ).generate().also {
@@ -120,11 +120,11 @@ internal class UtbetalingsstrategiOpphørTest {
                 Utbetalingslinje.Endring.Opphør(
                     id = it.utbetalingslinjer.single().id,
                     opprettet = it.utbetalingslinjer.single().opprettet,
-                    fraOgMed = siste.utbetalingslinjer.single().fraOgMed,
-                    tilOgMed = siste.utbetalingslinjer.single().tilOgMed,
+                    fraOgMed = siste.utbetalingslinjer.single().periode.fraOgMed,
+                    tilOgMed = siste.utbetalingslinjer.single().periode.tilOgMed,
                     beløp = siste.utbetalingslinjer.single().beløp,
                     forrigeUtbetalingslinjeId = siste.utbetalingslinjer.single().forrigeUtbetalingslinjeId,
-                    virkningsperiode = Periode.create(1.mars(2021), siste.utbetalingslinjer.single().tilOgMed),
+                    virkningsperiode = Periode.create(1.mars(2021), siste.utbetalingslinjer.single().periode.tilOgMed),
                     uføregrad = siste.utbetalingslinjer.single().uføregrad,
                 ),
             )

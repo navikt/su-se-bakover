@@ -50,7 +50,7 @@ internal class SimuleringRequestBuilderTest {
 
         val linjeMedEndring = Utbetalingslinje.Endring.Opphør(
             utbetalingslinje = linjeSomSkalEndres,
-            virkningsperiode = Periode.create(1.februar(2020), linjeSomSkalEndres.tilOgMed),
+            virkningsperiode = Periode.create(1.februar(2020), linjeSomSkalEndres.periode.tilOgMed),
             clock = Clock.systemUTC(),
         )
         val utbetalingMedEndring = UtbetalingRequestTest.nyUtbetaling.copy(
@@ -88,7 +88,7 @@ internal class SimuleringRequestBuilderTest {
 
         val linjeMedEndring = Utbetalingslinje.Endring.Opphør(
             utbetalingslinje = linjeSomSkalEndres,
-            virkningsperiode = Periode.create(1.oktober(2020), linjeSomSkalEndres.tilOgMed),
+            virkningsperiode = Periode.create(1.oktober(2020), linjeSomSkalEndres.periode.tilOgMed),
             clock = Clock.systemUTC(),
         )
         val utbetalingMedEndring = UtbetalingRequestTest.nyUtbetaling.copy(

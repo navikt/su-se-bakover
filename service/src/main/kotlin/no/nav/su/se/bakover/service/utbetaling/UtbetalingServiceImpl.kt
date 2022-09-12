@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
@@ -142,7 +141,7 @@ internal class UtbetalingServiceImpl(
             utbetaling = utbetaling,
             eksisterendeUtbetalinger = sak.utbetalinger,
             simuler = this::simulerUtbetaling,
-            clock = clock
+            clock = clock,
         )
 
         return simulerUtbetaling(
@@ -211,7 +210,7 @@ internal class UtbetalingServiceImpl(
             utbetaling = utbetaling,
             eksisterendeUtbetalinger = sak.utbetalinger,
             simuler = this::simulerUtbetaling,
-            clock = clock
+            clock = clock,
         )
 
         return simulerUtbetaling(
@@ -281,7 +280,7 @@ internal class UtbetalingServiceImpl(
             }
 
         val simuleringsperiode = Periode.create(
-            fraOgMed = request.stansdato,
+            fraOgMed = utbetaling.tidligsteDato(),
             tilOgMed = utbetaling.senesteDato(),
         )
 
@@ -307,7 +306,11 @@ internal class UtbetalingServiceImpl(
                     attestantsSimulering = simulertStans,
                     clock = clock,
                 ).sjekk().getOrHandle {
-                    return UtbetalStansFeil.KunneIkkeUtbetale(UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(it)).left()
+                    return UtbetalStansFeil.KunneIkkeUtbetale(
+                        UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(
+                            it,
+                        ),
+                    ).left()
                 }
 
                 utbetal(simulertStans)
@@ -331,14 +334,9 @@ internal class UtbetalingServiceImpl(
         ).generer()
             .getOrHandle { return SimulerGjenopptakFeil.KunneIkkeGenerereUtbetaling(it).left() }
 
-        // TODO løse dette på en annen måte? Litt cheaky, men bør være safe (kan f.eks refaktorere modellen til at endringer kun har 1 linje.
-        val reaktiveringslinje = utbetaling.utbetalingslinjer
-            .filterIsInstance<Utbetalingslinje.Endring.Reaktivering>()
-            .single()
-
         val simuleringsperiode = Periode.create(
-            fraOgMed = reaktiveringslinje.virkningsperiode.fraOgMed,
-            tilOgMed = reaktiveringslinje.tilOgMed,
+            fraOgMed = utbetaling.tidligsteDato(),
+            tilOgMed = utbetaling.senesteDato(),
         )
 
         return simulerUtbetaling(
@@ -371,7 +369,11 @@ internal class UtbetalingServiceImpl(
                 attestantsSimulering = simulertGjenopptak,
                 clock = clock,
             ).sjekk().getOrHandle {
-                return UtbetalGjenopptakFeil.KunneIkkeUtbetale(UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(it)).left()
+                return UtbetalGjenopptakFeil.KunneIkkeUtbetale(
+                    UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(
+                        it,
+                    ),
+                ).left()
             }
 
             utbetal(simulertGjenopptak)

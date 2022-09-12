@@ -15,12 +15,39 @@ import java.time.LocalDate
 sealed class Utbetalingslinje : PeriodisertInformasjon {
     abstract val id: UUID30 // delytelseId
     abstract val opprettet: Tidspunkt
-    abstract val fraOgMed: LocalDate
-    abstract val tilOgMed: LocalDate
+
+    /**
+     * @see originalFraOgMed
+     */
+    protected abstract val fraOgMed: LocalDate
+    /**
+     * @see originalTilOgMed
+     */
+    protected abstract val tilOgMed: LocalDate
     abstract val forrigeUtbetalingslinjeId: UUID30?
     abstract val beløp: Int
     abstract val uføregrad: Uføregrad?
     abstract val utbetalingsinstruksjonForEtterbetalinger: UtbetalingsinstruksjonForEtterbetalinger
+
+    /**
+     * Original [fraOgMed] som ble satt da linjen ble oversendt til OS.
+     * Brukes i all hovedsak som [periode.fraOgMed] for [Ny] og nødvendig input-data til OS ved [Endring].
+     */
+    fun originalFraOgMed(): LocalDate = fraOgMed
+    /**
+     * Original [tilOgMed] som ble satt da linjen ble oversendt til OS.
+     * Brukes i all hovedsak som [periode.tilOgMed] for [Ny] og nødvendig input-data til OS ved [Endring].
+     */
+    fun originalTilOgMed(): LocalDate = tilOgMed
+
+    /**
+     * Representerer perioden hvor denne linjen har en betydning for oss.
+     * [Ny] linjer vil alltid ha en periode tilsvarende [originalFraOgMed]-[originalTilOgMed], mens [Endring]
+     * vil kunne ha en arbitrær periode.
+     *
+     * @see [Endring]
+     */
+    abstract override val periode: Periode
 
     companion object {
         /** Vi ønsker bare å bruke kjøreplan ved etterbetaling i noen spesifikke tilfeller som f.eks. regulering. */
@@ -44,16 +71,23 @@ sealed class Utbetalingslinje : PeriodisertInformasjon {
         }
 
         @JsonIgnore
-        override val periode = Periode.create(fraOgMed, tilOgMed)
-
-        init {
-            require(fraOgMed < tilOgMed) { "fraOgMed må være tidligere enn tilOgMed" }
-        }
+        override val periode = Periode.create(originalFraOgMed(), originalTilOgMed())
     }
 
+    /**
+     * Representerer en endring av en eksisterende linje. Linjen som endres kan være hvilken som helst type av
+     * [Utbetalingslinje].
+     *
+     * @property linjeStatus angir hvilken type endring som skal gjennomføres; [Opphør], [Stans] eller [Reaktivering].
+     * I OS er en endring en oppdatering av statusen på en linje.
+     * @property virkningsperiode en syntetisert periode som forteller vårt system om hvilken periode denne endringen
+     * gjelder for. Ved endring tilbyr OS kun muligheten for å sende én dato; denne representerer hvilken dato
+     * endringen skal gjelde fra - i utgangspunktet vil alle endringer i OS gjøre seg gjeldende for perioden
+     * ["angitt endringsdato" ([virkningsperiode.fraOgMed] for oss)]-[originalTilOgMed] for linjen som endres.
+     */
     sealed class Endring : Utbetalingslinje() {
         abstract val linjeStatus: LinjeStatus
-        abstract val virkningsperiode: Periode
+        protected abstract val virkningsperiode: Periode
 
         data class Opphør(
             override val id: UUID30,
@@ -73,7 +107,7 @@ sealed class Utbetalingslinje : PeriodisertInformasjon {
             }
 
             @JsonIgnore
-            override val periode = Periode.create(fraOgMed, tilOgMed)
+            override val periode = virkningsperiode
 
             constructor(
                 utbetalingslinje: Utbetalingslinje,
@@ -83,8 +117,8 @@ sealed class Utbetalingslinje : PeriodisertInformasjon {
             ) : this(
                 id = utbetalingslinje.id,
                 opprettet = opprettet,
-                fraOgMed = utbetalingslinje.fraOgMed,
-                tilOgMed = utbetalingslinje.tilOgMed,
+                fraOgMed = utbetalingslinje.originalFraOgMed(),
+                tilOgMed = utbetalingslinje.originalTilOgMed(),
                 forrigeUtbetalingslinjeId = utbetalingslinje.forrigeUtbetalingslinjeId,
                 beløp = utbetalingslinje.beløp,
                 virkningsperiode = virkningsperiode,
@@ -111,7 +145,7 @@ sealed class Utbetalingslinje : PeriodisertInformasjon {
             }
 
             @JsonIgnore
-            override val periode = Periode.create(fraOgMed, tilOgMed)
+            override val periode = virkningsperiode
 
             constructor(
                 utbetalingslinje: Utbetalingslinje,
@@ -121,11 +155,14 @@ sealed class Utbetalingslinje : PeriodisertInformasjon {
             ) : this(
                 id = utbetalingslinje.id,
                 opprettet = opprettet,
-                fraOgMed = utbetalingslinje.fraOgMed,
-                tilOgMed = utbetalingslinje.tilOgMed,
+                fraOgMed = utbetalingslinje.originalFraOgMed(),
+                tilOgMed = utbetalingslinje.originalTilOgMed(),
                 forrigeUtbetalingslinjeId = utbetalingslinje.forrigeUtbetalingslinjeId,
                 beløp = utbetalingslinje.beløp,
-                virkningsperiode = Periode.create(virkningstidspunkt, utbetalingslinje.tilOgMed),
+                virkningsperiode = Periode.create(
+                    fraOgMed = virkningstidspunkt,
+                    tilOgMed = utbetalingslinje.originalTilOgMed(),
+                ),
                 uføregrad = utbetalingslinje.uføregrad,
                 utbetalingsinstruksjonForEtterbetalinger = betalUtSåFortSomMulig,
             )
@@ -148,7 +185,7 @@ sealed class Utbetalingslinje : PeriodisertInformasjon {
             }
 
             @JsonIgnore
-            override val periode = Periode.create(fraOgMed, tilOgMed)
+            override val periode = virkningsperiode
 
             constructor(
                 utbetalingslinje: Utbetalingslinje,
@@ -158,11 +195,14 @@ sealed class Utbetalingslinje : PeriodisertInformasjon {
             ) : this(
                 id = utbetalingslinje.id,
                 opprettet = opprettet,
-                fraOgMed = utbetalingslinje.fraOgMed,
-                tilOgMed = utbetalingslinje.tilOgMed,
+                fraOgMed = utbetalingslinje.originalFraOgMed(),
+                tilOgMed = utbetalingslinje.originalTilOgMed(),
                 forrigeUtbetalingslinjeId = utbetalingslinje.forrigeUtbetalingslinjeId,
                 beløp = utbetalingslinje.beløp,
-                virkningsperiode = Periode.create(virkningstidspunkt, utbetalingslinje.tilOgMed),
+                virkningsperiode = Periode.create(
+                    fraOgMed = virkningstidspunkt,
+                    tilOgMed = utbetalingslinje.originalTilOgMed()
+                ),
                 uføregrad = utbetalingslinje.uføregrad,
                 utbetalingsinstruksjonForEtterbetalinger = betalUtSåFortSomMulig,
             )

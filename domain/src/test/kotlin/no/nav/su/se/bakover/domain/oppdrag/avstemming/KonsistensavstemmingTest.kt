@@ -436,7 +436,7 @@ internal class KonsistensavstemmingTest {
             utbetalingsLinjer = nonEmptyListOf(
                 Utbetalingslinje.Endring.Opphør(
                     utbetalingslinje = første.utbetalingslinjer[0],
-                    virkningsperiode = Periode.create(1.april(2021), første.utbetalingslinjer[0].tilOgMed),
+                    virkningsperiode = Periode.create(1.april(2021), første.utbetalingslinjer[0].periode.tilOgMed),
                     clock = andreKlokke,
                 ),
             ),
@@ -490,7 +490,7 @@ internal class KonsistensavstemmingTest {
             utbetalingsLinjer = nonEmptyListOf(
                 Utbetalingslinje.Endring.Opphør(
                     utbetalingslinje = første.utbetalingslinjer[0],
-                    virkningsperiode = Periode.create(1.april(2021), første.utbetalingslinjer[0].tilOgMed),
+                    virkningsperiode = Periode.create(1.april(2021), første.utbetalingslinjer[0].periode.tilOgMed),
                     clock = andreKlokke,
                 ),
             ),
@@ -559,7 +559,7 @@ internal class KonsistensavstemmingTest {
             utbetalingsLinjer = nonEmptyListOf(
                 Utbetalingslinje.Endring.Opphør(
                     utbetalingslinje = første.utbetalingslinjer[0],
-                    virkningsperiode = Periode.create(1.april(2021), første.utbetalingslinjer[0].tilOgMed),
+                    virkningsperiode = Periode.create(1.april(2021), første.utbetalingslinjer[0].periode.tilOgMed),
                     clock = andreKlokke,
                 ),
             ),

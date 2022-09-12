@@ -69,11 +69,11 @@ internal class UtbetalingsstrategiGjenopptaTest {
                 Utbetalingslinje.Endring.Reaktivering(
                     id = opprinnelig.utbetalingslinjer[0].id,
                     opprettet = actual.utbetalingslinjer[0].opprettet,
-                    fraOgMed = opprinnelig.utbetalingslinjer[0].fraOgMed,
-                    tilOgMed = opprinnelig.utbetalingslinjer[0].tilOgMed,
+                    fraOgMed = opprinnelig.utbetalingslinjer[0].periode.fraOgMed,
+                    tilOgMed = opprinnelig.utbetalingslinjer[0].periode.tilOgMed,
                     forrigeUtbetalingslinjeId = opprinnelig.utbetalingslinjer[0].forrigeUtbetalingslinjeId,
                     beløp = opprinnelig.utbetalingslinjer[0].beløp,
-                    virkningsperiode = Periode.create(1.oktober(2020), opprinnelig.utbetalingslinjer[0].tilOgMed),
+                    virkningsperiode = Periode.create(1.oktober(2020), opprinnelig.utbetalingslinjer[0].periode.tilOgMed),
                     uføregrad = opprinnelig.utbetalingslinjer[0].uføregrad,
                     utbetalingsinstruksjonForEtterbetalinger = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
                 ),
@@ -164,11 +164,11 @@ internal class UtbetalingsstrategiGjenopptaTest {
             Utbetalingslinje.Endring.Reaktivering(
                 id = andre.utbetalingslinjer[0].id,
                 opprettet = actual.utbetalingslinjer[0].opprettet,
-                fraOgMed = andre.utbetalingslinjer[0].fraOgMed,
-                tilOgMed = andre.utbetalingslinjer[0].tilOgMed,
+                fraOgMed = andre.utbetalingslinjer[0].periode.fraOgMed,
+                tilOgMed = andre.utbetalingslinjer[0].periode.tilOgMed,
                 forrigeUtbetalingslinjeId = andre.utbetalingslinjer[0].forrigeUtbetalingslinjeId,
                 beløp = andre.utbetalingslinjer[0].beløp,
-                virkningsperiode = Periode.create(1.mai(2021), andre.utbetalingslinjer[0].tilOgMed),
+                virkningsperiode = Periode.create(1.mai(2021), andre.utbetalingslinjer[0].periode.tilOgMed),
                 uføregrad = andre.utbetalingslinjer[0].uføregrad,
             ),
         )
@@ -277,11 +277,11 @@ internal class UtbetalingsstrategiGjenopptaTest {
             Utbetalingslinje.Endring.Reaktivering(
                 id = utbetaling.sisteUtbetalingslinje().id,
                 opprettet = it.utbetalingslinjer[0].opprettet,
-                fraOgMed = utbetaling.sisteUtbetalingslinje().fraOgMed,
-                tilOgMed = utbetaling.sisteUtbetalingslinje().tilOgMed,
+                fraOgMed = utbetaling.sisteUtbetalingslinje().periode.fraOgMed,
+                tilOgMed = utbetaling.sisteUtbetalingslinje().periode.tilOgMed,
                 forrigeUtbetalingslinjeId = utbetaling.sisteUtbetalingslinje().forrigeUtbetalingslinjeId,
                 beløp = utbetaling.sisteUtbetalingslinje().beløp,
-                virkningsperiode = Periode.create(1.april(2020), utbetaling.sisteUtbetalingslinje().tilOgMed),
+                virkningsperiode = Periode.create(1.april(2020), utbetaling.sisteUtbetalingslinje().periode.tilOgMed),
                 uføregrad = utbetaling.sisteUtbetalingslinje().uføregrad,
             )
         }
