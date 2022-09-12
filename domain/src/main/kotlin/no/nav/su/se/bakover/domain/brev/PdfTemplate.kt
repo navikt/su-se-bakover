@@ -14,7 +14,6 @@ sealed class PdfTemplate(
     object AvvistSøknadVedtak : PdfTemplate("avvistSøknadVedtak")
     object AvvistSøknadFritekst : PdfTemplate("avvistSøknadFritekst")
     object Opphørsvedtak : PdfTemplate("opphørsvedtak")
-    object OpphørMedTilbakekreving : PdfTemplate("opphørMedTilbakekreving")
     object VedtakIngenEndring : PdfTemplate("vedtakIngenEndring")
     object Forhåndsvarsel : PdfTemplate("forhåndsvarsel")
     object ForhåndsvarselTilbakekreving : PdfTemplate("forhåndsvarselTilbakekreving")
