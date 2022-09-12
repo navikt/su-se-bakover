@@ -17,6 +17,8 @@ class Utbetalingshistorikk(
 ) {
     private val sorterteNyeUtbetalingslinjer = nyeUtbetalingslinjer.sortedWith(utbetalingslinjeSortering)
     private val sorterteEksisterendeUtbetalingslinjer = eksisterendeUtbetalingslinjer.sortedWith(utbetalingslinjeSortering)
+    private val rekonstruerEtterDato = rekonstruerEksisterendeUtbetalingerEtterDato()
+    private val minimumFraOgMedForRekonstruerteLinjer = minumumFraOgMedDatoForRekonstruerteLinjer()
     init {
         nyeUtbetalingslinjer.sjekkIngenNyeOverlapper()
     }
@@ -44,16 +46,16 @@ class Utbetalingshistorikk(
     }
 
     private fun minumumFraOgMedDatoForRekonstruerteLinjer(): LocalDate {
-        return rekonstruerEksisterendeUtbetalingerEtterDato().plusDays(1)
+        return rekonstruerEtterDato.plusDays(1)
     }
 
     private fun finnUtbetalingslinjerSomSkalRekonstrueres(): List<Utbetalingslinje> {
         return sorterteEksisterendeUtbetalingslinjer.filter {
             when (it) {
-                is Utbetalingslinje.Endring.Opphør -> it.virkningsperiode.fraOgMed.isAfter(rekonstruerEksisterendeUtbetalingerEtterDato())
-                is Utbetalingslinje.Endring.Reaktivering -> it.virkningsperiode.fraOgMed.isAfter(rekonstruerEksisterendeUtbetalingerEtterDato())
-                is Utbetalingslinje.Endring.Stans -> it.virkningsperiode.fraOgMed.isAfter(rekonstruerEksisterendeUtbetalingerEtterDato())
-                is Utbetalingslinje.Ny -> it.tilOgMed.isAfter(rekonstruerEksisterendeUtbetalingerEtterDato())
+                is Utbetalingslinje.Endring.Opphør -> it.virkningsperiode.tilOgMed.isAfter(rekonstruerEtterDato)
+                is Utbetalingslinje.Endring.Reaktivering -> it.virkningsperiode.tilOgMed.isAfter(rekonstruerEtterDato)
+                is Utbetalingslinje.Endring.Stans -> it.virkningsperiode.tilOgMed.isAfter(rekonstruerEtterDato)
+                is Utbetalingslinje.Ny -> it.tilOgMed.isAfter(rekonstruerEtterDato)
             }
         }
     }
@@ -83,7 +85,7 @@ class Utbetalingshistorikk(
                 opprettet = Tidspunkt.now(clock),
                 fraOgMed = maxOf(
                     ny.fraOgMed,
-                    minumumFraOgMedDatoForRekonstruerteLinjer(),
+                    minimumFraOgMedForRekonstruerteLinjer,
                 ),
             )
 
@@ -95,7 +97,7 @@ class Utbetalingshistorikk(
                             virkningsperiode = Periode.create(
                                 fraOgMed = maxOf(
                                     endring.virkningsperiode.fraOgMed,
-                                    minumumFraOgMedDatoForRekonstruerteLinjer(),
+                                    minimumFraOgMedForRekonstruerteLinjer,
                                 ),
                                 tilOgMed = endring.virkningsperiode.tilOgMed,
                             ),
@@ -108,7 +110,7 @@ class Utbetalingshistorikk(
                             utbetalingslinje = rekonstruertNy,
                             virkningstidspunkt = maxOf(
                                 endring.virkningsperiode.fraOgMed,
-                                minumumFraOgMedDatoForRekonstruerteLinjer(),
+                                minimumFraOgMedForRekonstruerteLinjer,
                             ),
                             clock = clock,
                         )
@@ -119,7 +121,7 @@ class Utbetalingshistorikk(
                             utbetalingslinje = rekonstruertNy,
                             virkningstidspunkt = maxOf(
                                 endring.virkningsperiode.fraOgMed,
-                                minumumFraOgMedDatoForRekonstruerteLinjer(),
+                                minimumFraOgMedForRekonstruerteLinjer,
                             ),
                             clock = clock,
                         )
@@ -133,8 +135,15 @@ class Utbetalingshistorikk(
         finnUtbetalingslinjerSomSkalRekonstrueres()
             .ifNotEmpty {
                 val periode = Periode.create(
-                    fraOgMed = minumumFraOgMedDatoForRekonstruerteLinjer(),
-                    tilOgMed = maxOf { it.tilOgMed },
+                    fraOgMed = minimumFraOgMedForRekonstruerteLinjer,
+                    tilOgMed = this.maxOf {
+                        when (it) {
+                            is Utbetalingslinje.Endring.Opphør -> it.virkningsperiode.tilOgMed
+                            is Utbetalingslinje.Endring.Reaktivering -> it.virkningsperiode.tilOgMed
+                            is Utbetalingslinje.Endring.Stans -> it.virkningsperiode.tilOgMed
+                            is Utbetalingslinje.Ny -> it.tilOgMed
+                        }
+                    },
                 )
 
                 val tidslinjeGammel = sorterteEksisterendeUtbetalingslinjer.tidslinje(
