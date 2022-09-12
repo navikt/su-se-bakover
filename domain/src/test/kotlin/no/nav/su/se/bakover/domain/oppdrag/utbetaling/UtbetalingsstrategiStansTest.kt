@@ -72,13 +72,13 @@ internal class UtbetalingsstrategiStansTest {
         stans.utbetalingslinjer[0] shouldBe Utbetalingslinje.Endring.Stans(
             id = utbetalingslinje.id,
             opprettet = stans.utbetalingslinjer[0].opprettet,
-            fraOgMed = utbetalingslinje.fraOgMed,
-            tilOgMed = utbetalingslinje.tilOgMed,
+            fraOgMed = utbetalingslinje.periode.fraOgMed,
+            tilOgMed = utbetalingslinje.periode.tilOgMed,
             forrigeUtbetalingslinjeId = utbetalingslinje.forrigeUtbetalingslinjeId,
             beløp = utbetalingslinje.beløp,
             virkningsperiode = Periode.create(
                 fraOgMed = 1.juli(2020),
-                tilOgMed = utbetalingslinje.tilOgMed,
+                tilOgMed = utbetalingslinje.periode.tilOgMed,
             ),
             uføregrad = utbetalingslinje.uføregrad,
             utbetalingsinstruksjonForEtterbetalinger = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,

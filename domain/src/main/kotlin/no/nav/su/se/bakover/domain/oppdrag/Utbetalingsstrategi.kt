@@ -45,7 +45,7 @@ sealed class Utbetalingsstrategi {
         if (eksisterendeUtbetalinger.flatMap { it.utbetalingslinjer }
             .filterIsInstance<Utbetalingslinje.Endring.Opphør>()
             .any {
-                it.virkningsperiode.fraOgMed.between(
+                it.periode.fraOgMed.between(
                         Periode.create(
                                 fraOgMed = datoForStanEllerReaktivering,
                                 tilOgMed = eksisterendeUtbetalinger.maxOf { it.senesteDato() },
@@ -290,7 +290,7 @@ sealed class Utbetalingsstrategi {
     ) : Utbetalingsstrategi() {
         fun generate(): Utbetaling.UtbetalingForSimulering {
             val sisteUtbetalingslinje = eksisterendeUtbetalinger.hentSisteOversendteUtbetalingslinjeUtenFeil()?.also {
-                validate(periode.fraOgMed.isBefore(it.tilOgMed)) { "Dato for opphør må være tidligere enn tilOgMed for siste utbetalingslinje" }
+                validate(periode.fraOgMed.isBefore(it.periode.tilOgMed)) { "Dato for opphør må være tidligere enn tilOgMed for siste utbetalingslinje" }
                 validate(periode.fraOgMed.erFørsteDagIMåned()) { "Ytelse kan kun opphøres fra første dag i måneden" }
             } ?: throw UtbetalingStrategyException("Ingen oversendte utbetalinger å opphøre")
 
@@ -352,7 +352,7 @@ sealed class Utbetalingsstrategi {
                 utbetalingslinjer = nonEmptyListOf(
                     Utbetalingslinje.Endring.Reaktivering(
                         utbetalingslinje = sisteOversendteUtbetalingslinje,
-                        virkningstidspunkt = sisteOversendteUtbetalingslinje.virkningsperiode.fraOgMed,
+                        virkningstidspunkt = sisteOversendteUtbetalingslinje.periode.fraOgMed,
                         opprettet = opprettet,
                         clock = clock,
                     ),
@@ -387,7 +387,7 @@ sealed class Utbetalingsstrategi {
         eksisterendeUtbetalinger.hentOversendteUtbetalingerUtenFeil()
             .flatMap { it.utbetalingslinjer }
             .any {
-                it.tilOgMed.isEqual(value) || it.tilOgMed.isAfter(value)
+                it.periode.tilOgMed.isEqual(value) || it.periode.tilOgMed.isAfter(value)
             }
 
     class UtbetalingStrategyException(msg: String) : RuntimeException(msg)

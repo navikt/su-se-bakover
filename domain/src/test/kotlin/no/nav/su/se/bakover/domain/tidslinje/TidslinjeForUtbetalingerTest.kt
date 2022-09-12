@@ -274,7 +274,7 @@ internal class TidslinjeForUtbetalingerTest {
             utbetalingslinje = andre,
             virkningsperiode = Periode.create(
                 1.mars(2020),
-                andre.tilOgMed,
+                andre.periode.tilOgMed,
             ),
             clock = clock,
         )
@@ -353,7 +353,7 @@ internal class TidslinjeForUtbetalingerTest {
             utbetalingslinje = andre,
             virkningsperiode = Periode.create(
                 1.januar(2020),
-                andre.tilOgMed,
+                andre.periode.tilOgMed,
             ),
             clock = clock,
         )
@@ -399,7 +399,7 @@ internal class TidslinjeForUtbetalingerTest {
             utbetalingslinje = andre,
             virkningsperiode = Periode.create(
                 1.januar(2020),
-                andre.tilOgMed,
+                andre.periode.tilOgMed,
             ),
             clock = clock,
         )
@@ -868,7 +868,7 @@ internal class TidslinjeForUtbetalingerTest {
             utbetalingslinje = andre,
             virkningsperiode = Periode.create(
                 1.mars(2020),
-                andre.tilOgMed,
+                andre.periode.tilOgMed,
             ),
             clock = clock,
         )
@@ -947,7 +947,7 @@ internal class TidslinjeForUtbetalingerTest {
             utbetalingslinje = andre,
             virkningsperiode = Periode.create(
                 1.oktober(2020),
-                andre.tilOgMed,
+                andre.periode.tilOgMed,
             ),
             clock = clock,
         )

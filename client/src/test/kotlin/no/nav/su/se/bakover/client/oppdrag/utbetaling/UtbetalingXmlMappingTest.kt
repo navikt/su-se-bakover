@@ -50,7 +50,7 @@ class UtbetalingXmlMappingTest {
 
     private val tredjeUtbetalingslinje = Utbetalingslinje.Endring.Opphør(
         andreUtbetalingslinje,
-        virkningsperiode = Periode.create(1.februar(2020), andreUtbetalingslinje.tilOgMed),
+        virkningsperiode = Periode.create(1.februar(2020), andreUtbetalingslinje.periode.tilOgMed),
         clock = fixedClock,
     )
 

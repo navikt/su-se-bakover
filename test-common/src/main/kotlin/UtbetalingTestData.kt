@@ -192,7 +192,7 @@ fun opphørUtbetalingForSimulering(
             // TODO send med periode
             periode = Periode.create(
                 fraOgMed = opphørsperiode.fraOgMed,
-                tilOgMed = sak.utbetalinger.last().sisteUtbetalingslinje().tilOgMed,
+                tilOgMed = sak.utbetalinger.last().sisteUtbetalingslinje().periode.tilOgMed,
             ),
             clock = clock,
             sakstype = sakOgBehandling.first.type,

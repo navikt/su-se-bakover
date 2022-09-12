@@ -45,13 +45,13 @@ internal fun toUtbetalingRequest(
                         is Utbetalingslinje.Endring -> {
                             UtbetalingRequest.Oppdragslinje(
                                 kodeStatusLinje = it.tilKodeStatusLinje(),
-                                datoStatusFom = it.virkningsperiode.fraOgMed.toOppdragDate(),
+                                datoStatusFom = it.periode.fraOgMed.toOppdragDate(),
                                 kodeEndringLinje = UtbetalingRequest.Oppdragslinje.KodeEndringLinje.ENDRING,
                                 delytelseId = it.id.toString(),
                                 kodeKlassifik = utbetaling.sakstype.toFagområde()
                                     .toString(), // bruker bare fagområde siden vi ikke har flere "sub-ytelser" per fagområde
-                                datoVedtakFom = it.fraOgMed.toOppdragDate(),
-                                datoVedtakTom = it.tilOgMed.toOppdragDate(),
+                                datoVedtakFom = it.originalFraOgMed().toOppdragDate(),
+                                datoVedtakTom = it.originalTilOgMed().toOppdragDate(),
                                 sats = it.beløp.toString(),
                                 fradragTillegg = OppdragslinjeDefaults.fradragEllerTillegg,
                                 typeSats = OppdragslinjeDefaults.typeSats,
@@ -74,8 +74,8 @@ internal fun toUtbetalingRequest(
                                 delytelseId = it.id.toString(),
                                 kodeKlassifik = utbetaling.sakstype.toFagområde()
                                     .toString(), // bruker bare fagområde siden vi ikke har flere "sub-ytelser" per fagområde,
-                                datoVedtakFom = it.fraOgMed.toOppdragDate(),
-                                datoVedtakTom = it.tilOgMed.toOppdragDate(),
+                                datoVedtakFom = it.originalFraOgMed().toOppdragDate(),
+                                datoVedtakTom = it.originalTilOgMed().toOppdragDate(),
                                 sats = it.beløp.toString(),
                                 fradragTillegg = OppdragslinjeDefaults.fradragEllerTillegg,
                                 typeSats = OppdragslinjeDefaults.typeSats,

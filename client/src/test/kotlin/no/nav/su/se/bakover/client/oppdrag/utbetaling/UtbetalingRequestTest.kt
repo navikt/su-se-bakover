@@ -253,7 +253,7 @@ internal class UtbetalingRequestTest {
             utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Endring.Opphør(
                     utbetalingslinje = nyUtbetaling.sisteUtbetalingslinje(),
-                    virkningsperiode = Periode.create(1.januar(2020), nyUtbetaling.sisteUtbetalingslinje().tilOgMed),
+                    virkningsperiode = Periode.create(1.januar(2020), nyUtbetaling.sisteUtbetalingslinje().periode.tilOgMed),
                     clock = Clock.systemUTC(),
                 ),
             ),

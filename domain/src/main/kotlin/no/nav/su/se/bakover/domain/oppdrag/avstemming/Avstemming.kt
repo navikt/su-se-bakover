@@ -178,8 +178,8 @@ internal fun Utbetalingslinje.toOppdragslinjeForKonsistensavstemming(attestanter
     return OppdragslinjeForKonsistensavstemming(
         id = id,
         opprettet = opprettet,
-        fraOgMed = fraOgMed,
-        tilOgMed = tilOgMed,
+        fraOgMed = originalFraOgMed(),
+        tilOgMed = originalTilOgMed(),
         forrigeUtbetalingslinjeId = forrigeUtbetalingslinjeId,
         beløp = beløp,
         attestanter = attestanter,

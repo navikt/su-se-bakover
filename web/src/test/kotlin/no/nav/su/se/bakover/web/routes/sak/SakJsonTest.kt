@@ -103,7 +103,7 @@ internal class SakJsonTest {
             )
             val opphørslinje = Utbetalingslinje.Endring.Opphør(
                 utbetalingslinje = reaktivering,
-                virkningsperiode = Periode.create(1.april(2021), reaktivering.tilOgMed),
+                virkningsperiode = Periode.create(1.april(2021), reaktivering.periode.tilOgMed),
                 clock = Clock.systemUTC(),
             )
 
@@ -128,26 +128,26 @@ internal class SakJsonTest {
 
             val (actual1, actual2, actual3, actual4) = sak.toJson(fixedClock, satsFactoryTestPåDato()).utbetalinger
             actual1 shouldBe UtbetalingJson(
-                fraOgMed = nyUtbetaling.fraOgMed,
-                tilOgMed = midlertidigStans.virkningsperiode.fraOgMed.minusDays(1),
+                fraOgMed = nyUtbetaling.periode.fraOgMed,
+                tilOgMed = midlertidigStans.periode.fraOgMed.minusDays(1),
                 beløp = nyUtbetaling.beløp,
                 type = "NY",
             )
             actual2 shouldBe UtbetalingJson(
-                fraOgMed = midlertidigStans.virkningsperiode.fraOgMed,
-                tilOgMed = reaktivering.virkningsperiode.fraOgMed.minusDays(1),
+                fraOgMed = midlertidigStans.periode.fraOgMed,
+                tilOgMed = reaktivering.periode.fraOgMed.minusDays(1),
                 beløp = 0,
                 type = "STANS",
             )
             actual3 shouldBe UtbetalingJson(
-                fraOgMed = reaktivering.virkningsperiode.fraOgMed,
-                tilOgMed = opphørslinje.virkningsperiode.fraOgMed.minusDays(1),
+                fraOgMed = reaktivering.periode.fraOgMed,
+                tilOgMed = opphørslinje.periode.fraOgMed.minusDays(1),
                 beløp = nyUtbetaling.beløp,
                 type = "GJENOPPTA",
             )
             actual4 shouldBe UtbetalingJson(
-                fraOgMed = opphørslinje.virkningsperiode.fraOgMed,
-                tilOgMed = nyUtbetaling.tilOgMed,
+                fraOgMed = opphørslinje.periode.fraOgMed,
+                tilOgMed = nyUtbetaling.periode.tilOgMed,
                 beløp = 0,
                 type = "OPPHØR",
             )

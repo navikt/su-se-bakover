@@ -35,8 +35,8 @@ sealed interface Utbetaling {
 
     fun sisteUtbetalingslinje() = utbetalingslinjer.last()
 
-    fun tidligsteDato() = utbetalingslinjer.minOf { it.fraOgMed }
-    fun senesteDato() = utbetalingslinjer.maxOf { it.tilOgMed }
+    fun tidligsteDato() = utbetalingslinjer.minOf { it.periode.fraOgMed }
+    fun senesteDato() = utbetalingslinjer.maxOf { it.periode.tilOgMed }
     fun bruttoBeløp() = utbetalingslinjer.sumOf { it.beløp }
 
     /**
@@ -176,14 +176,7 @@ fun List<Utbetalingslinje>.tidslinje(
     return ifEmpty { return IngenUtbetalinger.left() }
         .let { utbetalingslinjer ->
             TidslinjeForUtbetalinger(
-                periode = periode ?: utbetalingslinjer.map {
-                    when (it) {
-                        is Utbetalingslinje.Endring.Opphør -> it.virkningsperiode
-                        is Utbetalingslinje.Endring.Reaktivering -> it.virkningsperiode
-                        is Utbetalingslinje.Endring.Stans -> it.virkningsperiode
-                        is Utbetalingslinje.Ny -> it.periode
-                    }
-                }.minAndMaxOf(),
+                periode = periode ?: utbetalingslinjer.map { it.periode }.minAndMaxOf(),
                 utbetalingslinjer = utbetalingslinjer,
                 clock = clock,
             ).right()
