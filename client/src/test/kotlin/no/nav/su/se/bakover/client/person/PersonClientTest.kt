@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.getOrFail
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -42,7 +43,7 @@ internal class PersonClientTest {
             val mocks = PersonClientConfigTestMocks()
             val first = mocks.personClient.person(fnr = mocks.fnr).also {
                 it shouldBe mocks.person().right()
-            }.orNull()!!
+            }.getOrFail()
             verify(mocks.pdlClient).person(mocks.fnr, mocks.brukerTokenGenerator.first())
             mocks.personClient.person(fnr = mocks.fnr).orNull()!! shouldBeSameInstanceAs first
             verifyNoMoreInteractions(mocks.pdlClient)

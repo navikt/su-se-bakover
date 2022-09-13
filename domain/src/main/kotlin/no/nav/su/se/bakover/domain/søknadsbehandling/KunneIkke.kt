@@ -164,10 +164,13 @@ sealed class KunneIkkeBeregne {
     data class UgyldigTilstandForEndringAvFradrag(val feil: KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag) :
         KunneIkkeBeregne()
 
-    object AvkortingErUfullstendig : KunneIkkeBeregne()
+    object AvkortingErUfullstendig : KunneIkkeBeregne() {
+        override fun toString() = this::class.simpleName!!
+    }
 }
 
 sealed class KunneIkkeLukkeSøknadsbehandling {
+    override fun toString() = this::class.simpleName!!
     object KanIkkeLukkeEnAlleredeLukketSøknadsbehandling : KunneIkkeLukkeSøknadsbehandling()
     object KanIkkeLukkeEnIverksattSøknadsbehandling : KunneIkkeLukkeSøknadsbehandling()
     object KanIkkeLukkeEnSøknadsbehandlingTilAttestering : KunneIkkeLukkeSøknadsbehandling()

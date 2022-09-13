@@ -16,10 +16,11 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.statistikk.Statistikkhendelse
+import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.domain.søknad.SøknadRepo
@@ -29,7 +30,6 @@ import no.nav.su.se.bakover.domain.søknadinnhold.SøknadsinnholdUføre
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
-import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.toggles.ToggleService
 import org.slf4j.LoggerFactory
@@ -105,13 +105,13 @@ internal class SøknadServiceImpl(
         opprettJournalpostOgOppgave(saksnummer, person, søknad)
         observers.forEach { observer ->
             observer.handle(
-                Event.Statistikk.SøknadStatistikk.SøknadMottatt(søknad, saksnummer),
+                Statistikkhendelse.Søknad.Mottatt(søknad, saksnummer),
             )
         }
         return Pair(saksnummer, søknad).right()
     }
 
-    override fun lukkSøknad(søknad: Søknad.Journalført.MedOppgave.Lukket, sessionContext: SessionContext) {
+    override fun persisterSøknad(søknad: Søknad.Journalført.MedOppgave.Lukket, sessionContext: SessionContext) {
         søknadRepo.lukkSøknad(søknad, sessionContext)
     }
 
@@ -248,7 +248,7 @@ internal class SøknadServiceImpl(
                 sakService.hentSak(søknad.sakId).mapLeft {
                     return KunneIkkeLageSøknadPdf.FantIkkeSak.left()
                 }.flatMap { sak ->
-                    personService.hentPerson(søknad.søknadInnhold.personopplysninger.fnr).mapLeft {
+                    personService.hentPerson(søknad.fnr).mapLeft {
                         log.error("Hent søknad-PDF: Fant ikke person")
                         return KunneIkkeLageSøknadPdf.FantIkkePerson.left()
                     }.flatMap { person ->

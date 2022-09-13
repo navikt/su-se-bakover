@@ -12,9 +12,9 @@ import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
-import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
+import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.domain.søknadinnhold.SøknadsinnholdUføre
 import no.nav.su.se.bakover.service.argThat
@@ -95,7 +95,7 @@ class HentSøknadPdfTest {
             inOrder(*it.allMocks()) {
                 verify(it.søknadRepo).hentSøknad(argThat { it shouldBe søknadId })
                 verify(it.sakService).hentSak(argThat<UUID> { it shouldBe sakId })
-                verify(it.personService).hentPerson(argThat { it shouldBe søknad.søknadInnhold.personopplysninger.fnr })
+                verify(it.personService).hentPerson(argThat { it shouldBe søknad.fnr })
                 verify(it.pdfGenerator).genererPdf(
                     argThat<SøknadPdfInnhold> {
                         it shouldBe SøknadPdfInnhold.create(
@@ -136,7 +136,7 @@ class HentSøknadPdfTest {
             inOrder(*it.allMocks()) {
                 verify(it.søknadRepo).hentSøknad(argThat { it shouldBe søknadId })
                 verify(it.sakService).hentSak(argThat<UUID> { it shouldBe sakId })
-                verify(it.personService).hentPerson(argThat { it shouldBe søknad.søknadInnhold.personopplysninger.fnr })
+                verify(it.personService).hentPerson(argThat { it shouldBe søknad.fnr })
                 verify(it.pdfGenerator).genererPdf(
                     argThat<SøknadPdfInnhold> {
                         it shouldBe SøknadPdfInnhold.create(

@@ -8,8 +8,8 @@ import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Person.Navn
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.brev.BrevConfig
 import no.nav.su.se.bakover.domain.brev.BrevInnhold.Personalia
+import no.nav.su.se.bakover.domain.brev.Brevvalg
 import no.nav.su.se.bakover.test.fixedLocalDate
 import org.junit.jupiter.api.Test
 
@@ -35,7 +35,7 @@ internal class AvvistSøknadBrevRequestTest {
     fun `lager vedtaks-brevdata`() {
         AvvistSøknadBrevRequest(
             person = person,
-            brevConfig = BrevConfig.Vedtak(null),
+            brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.VedtaksbrevUtenFritekst(),
             saksbehandlerNavn = "saksbehandler",
             dagensDato = fixedLocalDate,
             saksnummer = Saksnummer(2021),
@@ -47,27 +47,10 @@ internal class AvvistSøknadBrevRequestTest {
     }
 
     @Test
-    fun `lager vedtaks-brevdata med fritekst`() {
-        AvvistSøknadBrevRequest(
-            person = person,
-            brevConfig = BrevConfig.Vedtak("jeg er fritekst"),
-            saksbehandlerNavn = "saksbehandler",
-            dagensDato = fixedLocalDate,
-            saksnummer = Saksnummer(2021),
-        ).brevInnhold shouldBe AvvistSøknadVedtakBrevInnhold(
-            expectedPersonalia,
-            "saksbehandler",
-            "jeg er fritekst",
-        )
-    }
-
-    @Test
     fun `lager fritekst-brevdata`() {
         AvvistSøknadBrevRequest(
             person = person,
-            brevConfig = BrevConfig.Fritekst(
-                "jeg er fritekst",
-            ),
+            brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst("jeg er fritekst"),
             saksbehandlerNavn = "saksbehandler",
             dagensDato = fixedLocalDate,
             saksnummer = Saksnummer(2021),

@@ -29,10 +29,10 @@ fun Int.desember(year: Int): LocalDate = LocalDate.of(year, Month.DECEMBER, this
 fun idag(clock: Clock): LocalDate = LocalDate.now(clock)
 fun igår(clock: Clock = Clock.systemUTC()): LocalDate = idag(clock).minusDays(1)
 
-fun LocalDate.fixedClock() = startOfDay(ZoneOffset.UTC)
+fun LocalDate.fixedClock(): Clock = startOfDay(ZoneOffset.UTC)
     .let { Clock.fixed(it.instant, ZoneOffset.UTC) }
 
-fun Tidspunkt.fixedClock() = Clock.fixed(instant, ZoneOffset.UTC)
+fun Tidspunkt.fixedClock(): Clock = Clock.fixed(instant, ZoneOffset.UTC)
 
 fun LocalDate.startOfDay(zoneId: ZoneId = zoneIdOslo) = this.atStartOfDay().toTidspunkt(zoneId)
 fun LocalDate.endOfDay(zoneId: ZoneId = zoneIdOslo) = this.atStartOfDay().plusDays(1).minusNanos(1).toTidspunkt(zoneId)

@@ -12,9 +12,9 @@ import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteAvvistKlage
+import no.nav.su.se.bakover.domain.statistikk.Statistikkhendelse
 import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.avvistKlageTilAttestering
@@ -323,7 +323,7 @@ internal class IverksettAvvistKlageTest {
             argThat { it shouldBe TestSessionFactory.transactionContext },
         )
         verify(mocks.oppgaveService).lukkOppgave(argThat { it shouldBe expected.oppgaveId })
-        verify(observerMock).handle(argThat { it shouldBe Event.Statistikk.Klagestatistikk.Avvist(actual) })
+        verify(observerMock).handle(argThat { it shouldBe Statistikkhendelse.Klagestatistikk.Avvist(actual) })
         mocks.verifyNoMoreInteractions()
     }
 }

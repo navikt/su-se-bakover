@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
-import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsplan
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -39,6 +38,8 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.satser.SatsFactory
+import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
+import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling.Vilkårsvurdert.Companion.opprett
 import no.nav.su.se.bakover.domain.vilkår.FamiliegjenforeningVilkår
 import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
@@ -97,8 +98,13 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         }
     }
 
-    fun lukkSøknadsbehandling(): Either<KunneIkkeLukkeSøknadsbehandling, LukketSøknadsbehandling> {
-        return LukketSøknadsbehandling.tryCreate(this)
+    fun lukkSøknadsbehandlingOgSøknad(
+        lukkSøknadCommand: LukkSøknadCommand,
+    ): Either<KunneIkkeLukkeSøknadsbehandling, LukketSøknadsbehandling> {
+        return LukketSøknadsbehandling.tryCreate(
+            søknadsbehandlingSomSkalLukkes = this,
+            lukkSøknadCommand = lukkSøknadCommand,
+        )
     }
 
     private fun validerFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag, Unit> {

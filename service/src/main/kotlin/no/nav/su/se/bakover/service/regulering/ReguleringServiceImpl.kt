@@ -21,8 +21,8 @@ import no.nav.su.se.bakover.domain.regulering.inneholderAvslag
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.satser.SatsFactory
+import no.nav.su.se.bakover.domain.statistikk.Statistikkhendelse
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
-import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
@@ -252,7 +252,7 @@ class ReguleringServiceImpl(
                 val (iverksattRegulering, vedtak) = it
 
                 Either.catch {
-                    observers.forEach { observer -> observer.handle(Event.Statistikk.Vedtaksstatistikk(vedtak)) }
+                    observers.forEach { observer -> observer.handle(Statistikkhendelse.Vedtak(vedtak)) }
                 }.tapLeft {
                     log.error(
                         "Regulering for saksnummer ${iverksattRegulering.saksnummer}: Utsending av stønadsstatistikk feilet under automatisk regulering.",

@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.satser.SatsFactory
+import no.nav.su.se.bakover.domain.statistikk.Statistikkhendelse
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInnenforBehandlingsperioden
@@ -47,7 +48,6 @@ import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilOpplysningsplikt
 import no.nav.su.se.bakover.service.revurdering.LeggTilOpplysningspliktRequest
 import no.nav.su.se.bakover.service.sak.SakService
-import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.BeregnRequest
@@ -143,7 +143,7 @@ internal class SøknadsbehandlingServiceImpl(
             return (søknadsbehandlingRepo.hent(nySøknadsbehandling.id)!! as Søknadsbehandling.Vilkårsvurdert.Uavklart).let {
                 observers.forEach { observer ->
                     observer.handle(
-                        Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingOpprettet(
+                        Statistikkhendelse.Søknadsbehandling.Opprettet(
                             it,
                         ),
                     )
@@ -271,7 +271,7 @@ internal class SøknadsbehandlingServiceImpl(
         return søknadsbehandlingMedNyOppgaveIdOgFritekstTilBrev.let {
             observers.forEach { observer ->
                 observer.handle(
-                    Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingTilAttestering(
+                    Statistikkhendelse.Søknadsbehandling.TilAttestering(
                         it,
                     ),
                 )
@@ -331,7 +331,7 @@ internal class SøknadsbehandlingServiceImpl(
             søknadsbehandlingMedNyOppgaveId.also {
                 observers.forEach { observer ->
                     observer.handle(
-                        Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingUnderkjent(
+                        Statistikkhendelse.Søknadsbehandling.Underkjent(
                             it,
                         ),
                     )
@@ -451,9 +451,9 @@ internal class SøknadsbehandlingServiceImpl(
         }.map {
             Either.catch {
                 observers.forEach { observer ->
-                    observer.handle(Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(it.first))
+                    observer.handle(Statistikkhendelse.Søknadsbehandling.Iverksatt(it.first))
                     (it.second as? VedtakSomKanRevurderes.EndringIYtelse)?.let { v ->
-                        observer.handle(Event.Statistikk.Vedtaksstatistikk(v))
+                        observer.handle(Statistikkhendelse.Vedtak(v))
                     }
                 }
             }.mapLeft { e ->
@@ -678,7 +678,7 @@ internal class SøknadsbehandlingServiceImpl(
         }
     }
 
-    override fun lukk(lukketSøknadbehandling: LukketSøknadsbehandling, tx: TransactionContext) {
+    override fun persisterSøknadsbehandling(lukketSøknadbehandling: LukketSøknadsbehandling, tx: TransactionContext) {
         søknadsbehandlingRepo.lagre(lukketSøknadbehandling, tx)
     }
 

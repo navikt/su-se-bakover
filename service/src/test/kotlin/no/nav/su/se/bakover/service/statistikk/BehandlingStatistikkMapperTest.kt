@@ -7,11 +7,11 @@ import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadinnhold.ForNav
 import no.nav.su.se.bakover.domain.søknadinnhold.SøknadsinnholdAlder
 import no.nav.su.se.bakover.domain.søknadinnhold.SøknadsinnholdUføre
@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.service.statistikk.mappers.BehandlingStatistikkMapper
 import no.nav.su.se.bakover.service.statistikk.mappers.ManglendeStatistikkMappingException
+import no.nav.su.se.bakover.test.avvistSøknadUtenBrev
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
@@ -110,18 +111,7 @@ internal class BehandlingStatistikkMapperTest {
     @Test
     fun `mapper lukket søknad`() {
         val saksnummer = Saksnummer(2079L)
-        val søknad = Søknad.Journalført.MedOppgave.Lukket(
-            id = UUID.randomUUID(),
-            opprettet = fixedTidspunkt,
-            sakId = UUID.randomUUID(),
-            søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-            innsendtAv = veileder,
-            journalpostId = JournalpostId("journalpostid"),
-            oppgaveId = OppgaveId("oppgaveid"),
-            lukketTidspunkt = fixedTidspunkt,
-            lukketAv = NavIdentBruker.Saksbehandler(navIdent = "Mr Lukker"),
-            lukketType = Søknad.Journalført.MedOppgave.Lukket.LukketType.AVVIST,
-        )
+        val søknad = avvistSøknadUtenBrev()
 
         BehandlingStatistikkMapper(fixedClock).map(
             søknad,
@@ -156,7 +146,7 @@ internal class BehandlingStatistikkMapperTest {
             resultatBegrunnelseBeskrivelse = null,
             resultatBeskrivelse = null,
             beslutter = null,
-            saksbehandler = "Mr Lukker",
+            saksbehandler = "saksbehandler",
             behandlingOpprettetAv = null,
             behandlingOpprettetType = null,
             behandlingOpprettetTypeBeskrivelse = null,

@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain
 
 import arrow.core.Either
 import arrow.core.NonEmptyList
+import arrow.core.Tuple4
 import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.getOrHandle
@@ -10,7 +11,6 @@ import arrow.core.right
 import com.fasterxml.jackson.annotation.JsonValue
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUIDFactory
-import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.nonEmpty
 import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.Periode
@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
+import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
@@ -32,6 +33,7 @@ import no.nav.su.se.bakover.domain.oppdrag.hentOversendteUtbetalingslinjerUtenFe
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
@@ -45,7 +47,11 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.VurderOmVilkårGirOpphørVedRevurdering
 import no.nav.su.se.bakover.domain.sak.SakInfo
+import no.nav.su.se.bakover.domain.statistikk.Statistikkhendelse
+import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
+import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadinnhold.SøknadInnhold
+import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -57,6 +63,7 @@ import no.nav.su.se.bakover.domain.vedtak.beregningKanVæreGjeldende
 import no.nav.su.se.bakover.domain.vedtak.hentBeregningForGjeldendeVedtak
 import no.nav.su.se.bakover.domain.vedtak.lagTidslinje
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
+import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -102,6 +109,9 @@ data class Sak(
     val type: Sakstype,
     val uteståendeAvkorting: Avkortingsvarsel = Avkortingsvarsel.Ingen,
 ) {
+
+    private val log = LoggerFactory.getLogger(this::class.java)
+
     fun info(): SakInfo {
         return SakInfo(
             sakId = id,
@@ -481,7 +491,9 @@ data class Sak(
         return søknader.singleOrNull { it.id == id }?.right() ?: FantIkkeSøknad.left()
     }
 
-    object FantIkkeSøknad
+    object FantIkkeSøknad {
+        override fun toString() = this::class.simpleName!!
+    }
 
     fun hentÅpneSøknadsbehandlinger(): Either<IngenÅpneSøknadsbehandlinger, NonEmptyList<Søknadsbehandling>> {
         return søknadsbehandlinger
@@ -591,7 +603,7 @@ data class Sak(
             sakId = this.id,
             søknad = søknad,
             oppgaveId = søknad.oppgaveId,
-            fnr = søknad.søknadInnhold.personopplysninger.fnr,
+            fnr = søknad.fnr,
             avkorting = this.hentUteståendeAvkortingForSøknadsbehandling().fold({ it }, { it }).kanIkke(),
             sakstype = søknad.type,
         ).right()
@@ -618,7 +630,7 @@ data class Sak(
         } else {
             val gjeldendeVedtaksdata = hentGjeldendeVedtaksdataOgSjekkGyldighetForRevurderingsperiode(
                 periode = periode,
-                clock = clock
+                clock = clock,
             ).getOrHandle { return KunneIkkeOppretteRevurdering.GjeldendeVedtaksdataKanIkkeRevurderes(it).left() }
 
             informasjonSomRevurderes.sjekkAtOpphørteVilkårRevurderes(gjeldendeVedtaksdata)
@@ -682,9 +694,12 @@ data class Sak(
         object FantIkkeAktørId : KunneIkkeOppretteRevurdering
         object KunneIkkeOppretteOppgave : KunneIkkeOppretteRevurdering
 
-        data class UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(val periode: Periode) : KunneIkkeOppretteRevurdering
+        data class UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(val periode: Periode) :
+            KunneIkkeOppretteRevurdering
 
-        data class GjeldendeVedtaksdataKanIkkeRevurderes(val feil: GjeldendeVedtaksdataErUgyldigForRevurdering) : KunneIkkeOppretteRevurdering
+        data class GjeldendeVedtaksdataKanIkkeRevurderes(val feil: GjeldendeVedtaksdataErUgyldigForRevurdering) :
+            KunneIkkeOppretteRevurdering
+
         data class OpphørteVilkårMåRevurderes(val feil: OpphørtVilkårMåRevurderes) : KunneIkkeOppretteRevurdering
     }
 
@@ -705,7 +720,7 @@ data class Sak(
 
         val gjeldendeVedtaksdata = hentGjeldendeVedtaksdataOgSjekkGyldighetForRevurderingsperiode(
             periode = periode,
-            clock = clock
+            clock = clock,
         ).getOrHandle {
             return KunneIkkeOppdatereRevurdering.GjeldendeVedtaksdataKanIkkeRevurderes(it).left()
         }
@@ -747,17 +762,25 @@ data class Sak(
     sealed class KunneIkkeOppdatereRevurdering {
         object FantIkkeSak : KunneIkkeOppdatereRevurdering()
         object FantIkkeRevurdering : KunneIkkeOppdatereRevurdering()
-        data class UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(val periode: Periode) : KunneIkkeOppdatereRevurdering()
-        data class KunneIkkeOppdatere(val feil: Revurdering.KunneIkkeOppdatereRevurdering) : KunneIkkeOppdatereRevurdering()
-        data class GjeldendeVedtaksdataKanIkkeRevurderes(val feil: GjeldendeVedtaksdataErUgyldigForRevurdering) : KunneIkkeOppdatereRevurdering()
+        data class UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(val periode: Periode) :
+            KunneIkkeOppdatereRevurdering()
+
+        data class KunneIkkeOppdatere(val feil: Revurdering.KunneIkkeOppdatereRevurdering) :
+            KunneIkkeOppdatereRevurdering()
+
+        data class GjeldendeVedtaksdataKanIkkeRevurderes(val feil: GjeldendeVedtaksdataErUgyldigForRevurdering) :
+            KunneIkkeOppdatereRevurdering()
 
         data class OpphørteVilkårMåRevurderes(val feil: OpphørtVilkårMåRevurderes) : KunneIkkeOppdatereRevurdering()
     }
 
-    private fun hentGjeldendeVedtaksdataOgSjekkGyldighetForRevurderingsperiode(periode: Periode, clock: Clock): Either<GjeldendeVedtaksdataErUgyldigForRevurdering, GjeldendeVedtaksdata> {
+    private fun hentGjeldendeVedtaksdataOgSjekkGyldighetForRevurderingsperiode(
+        periode: Periode,
+        clock: Clock,
+    ): Either<GjeldendeVedtaksdataErUgyldigForRevurdering, GjeldendeVedtaksdata> {
         return hentGjeldendeVedtaksdata(
             periode = periode,
-            clock = clock
+            clock = clock,
         ).getOrHandle {
             return GjeldendeVedtaksdataErUgyldigForRevurdering.FantIngenVedtakSomKanRevurderes.left()
         }.let {
@@ -767,6 +790,7 @@ data class Sak(
             it.right()
         }
     }
+
     sealed class GjeldendeVedtaksdataErUgyldigForRevurdering {
         object FantIngenVedtakSomKanRevurderes : GjeldendeVedtaksdataErUgyldigForRevurdering()
         object HeleRevurderingsperiodenInneholderIkkeVedtak : GjeldendeVedtaksdataErUgyldigForRevurdering()
@@ -791,12 +815,14 @@ data class Sak(
                     }
                     Unit.right()
                 }
+
                 is OpphørVedRevurdering.Nei -> {
                     Unit.right()
                 }
             }
         }
     }
+
     sealed class OpphørtVilkårMåRevurderes {
         object FormueSomFørerTilOpphørMåRevurderes : OpphørtVilkårMåRevurderes()
         object UtenlandsoppholdSomFørerTilOpphørMåRevurderes : OpphørtVilkårMåRevurderes()
@@ -819,6 +845,110 @@ data class Sak(
             .right()
 
     fun kanOppretteBehandling(): Boolean = !harÅpenSøknadsbehandling() && !harÅpenRevurdering() && !harÅpenRegulering()
+
+    /**
+     * @return Den oppdaterte saken, søknaden som er lukket og dersom den fantes, den lukkede søknadsbehandlingen.
+     *
+     * @throws IllegalArgumentException dersom søknadId ikke finnes på saken
+     * @throws IllegalArgumentException dersom søknaden ikke er i tilstanden [Søknad.Journalført.MedOppgave.IkkeLukket]
+     * @throws IllegalStateException dersom noe uventet skjer ved lukking av søknad/søknadsbehandling
+     */
+    fun lukkSøknadOgSøknadsbehandling(
+        lukkSøknadCommand: LukkSøknadCommand,
+        clock: Clock,
+        hentPerson: () -> Either<KunneIkkeHentePerson, Person>,
+        hentSaksbehandlerNavn: (saksbehandler: NavIdentBruker.Saksbehandler) -> Either<KunneIkkeHenteNavnForNavIdent, String>,
+    ): LukkSøknadOgSøknadsbehandlingResponse {
+        val søknadId = lukkSøknadCommand.søknadId
+        val søknad = hentSøknad(søknadId).getOrHandle {
+            throw IllegalArgumentException("Kunne ikke lukke søknad og søknadsbehandling. Fant ikke søknad for sak $id og søknad $søknadId. Underliggende feil: $it")
+        }
+        return hentSøknadsbehandlingForSøknad(søknadId).fold(
+            {
+                // Finnes ingen søknadsbehandling. Lukker kun søknaden.
+                val lukketSøknad = søknad.lukk(
+                    lukkSøknadCommand = lukkSøknadCommand,
+                )
+                Tuple4(
+                    this.copy(
+                        søknader = this.søknader.filterNot { it.id == søknadId }.plus(lukketSøknad),
+                    ),
+                    lukketSøknad,
+                    null,
+                    Statistikkhendelse.Søknad.Lukket(lukketSøknad, saksnummer),
+                )
+            },
+            { søknadsbehandlingSomSkalLukkes ->
+                // Finnes søknadsbehandling. Lukker søknadsbehandlingen, som i sin tur lukker søknaden.
+                søknadsbehandlingSomSkalLukkes.lukkSøknadsbehandlingOgSøknad(
+                    lukkSøknadCommand = lukkSøknadCommand,
+                ).getOrHandle {
+                    throw IllegalArgumentException("Kunne ikke lukke søknad ${lukkSøknadCommand.søknadId} og søknadsbehandling. Underliggende feil: $it")
+                }.let { lukketSøknadsbehandling ->
+                    Tuple4(
+                        this.copy(
+                            søknader = this.søknader.filterNot { it.id == søknadId }.plus(lukketSøknadsbehandling.søknad),
+                            søknadsbehandlinger = this.søknadsbehandlinger.filterNot { it.id == lukketSøknadsbehandling.id }.plus(lukketSøknadsbehandling),
+                        ),
+                        lukketSøknadsbehandling.søknad,
+                        lukketSøknadsbehandling,
+                        Statistikkhendelse.Søknadsbehandling.Lukket(lukketSøknadsbehandling),
+                    )
+                }
+            },
+        ).let { (sak, søknad, søknadsbehandling, statistikkhendelse) ->
+            val lagBrevRequest = søknad.toBrevRequest(
+                hentPerson = {
+                    hentPerson().getOrHandle {
+                        throw IllegalStateException("Kunne ikke lukke søknad ${lukkSøknadCommand.søknadId} og søknadsbehandling. Underliggende grunn: $it")
+                    }
+                },
+                clock = clock,
+                hentSaksbehandlerNavn = {
+                    hentSaksbehandlerNavn(it).getOrHandle {
+                        throw IllegalStateException("Kunne ikke lukke søknad ${lukkSøknadCommand.søknadId} og søknadsbehandling. Underliggende grunn: $it")
+                    }
+                },
+            ) { sak.saksnummer }
+            LukkSøknadOgSøknadsbehandlingResponse(
+                sak = sak,
+                søknad = søknad,
+                søknadsbehandling = søknadsbehandling,
+                hendelse = statistikkhendelse,
+                lagBrevRequest = lagBrevRequest.mapLeft { LukkSøknadOgSøknadsbehandlingResponse.IkkeLagBrevRequest },
+            )
+        }
+    }
+
+    /**
+     * @param søknadsbehandling null dersom det ikke eksisterer en søknadsbehandling
+     * @param lagBrevRequest null dersom vi ikke skal lage brev
+     */
+    data class LukkSøknadOgSøknadsbehandlingResponse(
+        val sak: Sak,
+        val søknad: Søknad.Journalført.MedOppgave.Lukket,
+        val søknadsbehandling: LukketSøknadsbehandling?,
+        val hendelse: Statistikkhendelse,
+        val lagBrevRequest: Either<IkkeLagBrevRequest, LagBrevRequest>,
+    ) {
+        init {
+            // Guards spesielt med tanke på testdatasett.
+            require(
+                hendelse is Statistikkhendelse.Søknadsbehandling.Lukket ||
+                    hendelse is Statistikkhendelse.Søknad.Lukket,
+            )
+            lagBrevRequest.tap {
+                require(it.saksnummer == sak.saksnummer)
+            }
+            require(sak.hentSøknad(søknad.id).orNull()!! == søknad)
+            søknadsbehandling?.also {
+                require(sak.søknadsbehandlinger.contains(søknadsbehandling))
+                require(søknadsbehandling.søknad == søknad)
+            }
+        }
+
+        object IkkeLagBrevRequest
+    }
 
     object IngenÅpneRevurderinger
     object FantIkkeSøknadsbehandlingForSøknad

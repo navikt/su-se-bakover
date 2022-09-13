@@ -29,7 +29,6 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
-import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
@@ -37,6 +36,7 @@ import no.nav.su.se.bakover.domain.beregning.BeregningMedFradragBeregnetMånedsv
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
+import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
@@ -515,7 +515,9 @@ internal class SøknadsbehandlingPostgresRepo(
         }
 
         if (boolean("lukket")) {
-            return LukketSøknadsbehandling.create(søknadsbehandling)
+            return LukketSøknadsbehandling.createFromPersistedState(
+                søknadsbehandling = søknadsbehandling,
+            )
         }
         return søknadsbehandling
     }

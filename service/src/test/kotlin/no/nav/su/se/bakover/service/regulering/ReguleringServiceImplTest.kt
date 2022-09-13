@@ -31,9 +31,9 @@ import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 import no.nav.su.se.bakover.domain.sak.SakInfo
+import no.nav.su.se.bakover.domain.statistikk.Statistikkhendelse
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
-import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
@@ -448,7 +448,7 @@ internal class ReguleringServiceImplTest {
             addObserver(eventObserverMock)
         }.startRegulering(1.mai(2021))
 
-        verify(eventObserverMock).handle(argThat { it.shouldBeTypeOf<Event.Statistikk.Vedtaksstatistikk>() })
+        verify(eventObserverMock).handle(argThat { it.shouldBeTypeOf<Statistikkhendelse.Vedtak>() })
     }
 
     /**

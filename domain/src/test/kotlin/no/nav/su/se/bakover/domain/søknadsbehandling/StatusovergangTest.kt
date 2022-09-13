@@ -26,12 +26,14 @@ import no.nav.su.se.bakover.test.simulerNyUtbetaling
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.simulertSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.stønadsperiode2021
+import no.nav.su.se.bakover.test.søknadId
 import no.nav.su.se.bakover.test.søknadsbehandlingSimulert
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingUnderkjentInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertAvslag
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
+import no.nav.su.se.bakover.test.trekkSøknad
 import no.nav.su.se.bakover.test.underkjentSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.vilkår.avslåttFormueVilkår
 import no.nav.su.se.bakover.test.vilkår.fastOppholdVilkårInnvilget
@@ -128,7 +130,9 @@ internal class StatusovergangTest {
         tilAttesteringAvslagBeregning.tilIverksatt(attestering)
 
     private val lukketSøknadsbehandling =
-        underkjentInnvilget.lukkSøknadsbehandling().orNull()!!
+        underkjentInnvilget.lukkSøknadsbehandlingOgSøknad(
+            trekkSøknad(søknadId),
+        ).getOrFail()
 
     @Nested
     inner class TilVilkårsvurdert {

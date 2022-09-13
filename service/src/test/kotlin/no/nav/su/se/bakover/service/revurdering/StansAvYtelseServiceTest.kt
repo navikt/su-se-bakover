@@ -19,11 +19,11 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
+import no.nav.su.se.bakover.domain.statistikk.Statistikkhendelse
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.sak.SakService
-import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.utbetaling.SimulerStansFeilet
 import no.nav.su.se.bakover.service.utbetaling.UtbetalStansFeil
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
@@ -178,7 +178,7 @@ internal class StansAvYtelseServiceTest {
             verify(it.revurderingRepo).lagre(argThat { it shouldBe response }, anyOrNull())
             verify(it.observer).handle(
                 argThat { event ->
-                    event shouldBe Event.Statistikk.RevurderingStatistikk.Stans(response)
+                    event shouldBe Statistikkhendelse.Revurdering.Stans(response)
                 },
             )
             it.verifyNoMoreInteractions()
@@ -290,10 +290,10 @@ internal class StansAvYtelseServiceTest {
             },
         )
 
-        val eventCaptor = ArgumentCaptor.forClass(Event::class.java)
-        verify(serviceAndMocks.observer, times(2)).handle(capture<Event>(eventCaptor))
-        eventCaptor.allValues[0] shouldBe Event.Statistikk.RevurderingStatistikk.Stans(response)
-        eventCaptor.allValues[1].shouldBeTypeOf<Event.Statistikk.Vedtaksstatistikk>()
+        val eventCaptor = ArgumentCaptor.forClass(Statistikkhendelse::class.java)
+        verify(serviceAndMocks.observer, times(2)).handle(capture<Statistikkhendelse>(eventCaptor))
+        eventCaptor.allValues[0] shouldBe Statistikkhendelse.Revurdering.Stans(response)
+        eventCaptor.allValues[1].shouldBeTypeOf<Statistikkhendelse.Vedtak>()
         serviceAndMocks.verifyNoMoreInteractions()
     }
 

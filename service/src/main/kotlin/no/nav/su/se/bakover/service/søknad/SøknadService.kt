@@ -4,20 +4,22 @@ import arrow.core.Either
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadinnhold.SøknadInnhold
 import java.util.UUID
 
 interface SøknadService {
     fun nySøknad(søknadInnhold: SøknadInnhold, identBruker: NavIdentBruker): Either<KunneIkkeOppretteSøknad, Pair<Saksnummer, Søknad>>
-    fun lukkSøknad(søknad: Søknad.Journalført.MedOppgave.Lukket, sessionContext: SessionContext)
+    fun persisterSøknad(søknad: Søknad.Journalført.MedOppgave.Lukket, sessionContext: SessionContext)
     fun hentSøknad(søknadId: UUID): Either<FantIkkeSøknad, Søknad>
     fun hentSøknadPdf(søknadId: UUID): Either<KunneIkkeLageSøknadPdf, ByteArray>
     fun opprettManglendeJournalpostOgOppgave(): OpprettManglendeJournalpostOgOppgaveResultat
 }
 
-object FantIkkeSøknad
+object FantIkkeSøknad {
+    override fun toString() = this::class.simpleName!!
+}
 
 sealed class KunneIkkeOppretteSøknad {
     object FantIkkePerson : KunneIkkeOppretteSøknad()

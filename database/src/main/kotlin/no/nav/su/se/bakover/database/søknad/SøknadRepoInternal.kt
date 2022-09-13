@@ -9,9 +9,10 @@ import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.domain.brev.Brevvalg
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadinnhold.SøknadInnhold
 import java.util.UUID
 
@@ -53,18 +54,43 @@ internal fun Row.toSøknad(): Søknad {
     val journalpostId: JournalpostId? = stringOrNull("journalpostId")?.let { JournalpostId(it) }
 
     return when {
-        lukket != null -> Søknad.Journalført.MedOppgave.Lukket(
-            sakId = sakId,
-            id = id,
-            opprettet = opprettet,
-            søknadInnhold = søknadInnhold,
-            innsendtAv = innsendtAv,
-            journalpostId = journalpostId!!,
-            oppgaveId = oppgaveId!!,
-            lukketAv = NavIdentBruker.Saksbehandler(lukket.saksbehandler),
-            lukketTidspunkt = lukket.tidspunkt,
-            lukketType = lukket.type,
-        )
+        lukket != null -> when (lukket.type) {
+            LukketJson.Type.BORTFALT -> Søknad.Journalført.MedOppgave.Lukket.Bortfalt(
+                sakId = sakId,
+                id = id,
+                opprettet = opprettet,
+                søknadInnhold = søknadInnhold,
+                journalpostId = journalpostId!!,
+                oppgaveId = oppgaveId!!,
+                lukketAv = NavIdentBruker.Saksbehandler(lukket.saksbehandler),
+                lukketTidspunkt = lukket.tidspunkt,
+                innsendtAv = innsendtAv,
+            )
+            LukketJson.Type.AVVIST -> Søknad.Journalført.MedOppgave.Lukket.Avvist(
+                sakId = sakId,
+                id = id,
+                opprettet = opprettet,
+                søknadInnhold = søknadInnhold,
+                journalpostId = journalpostId!!,
+                oppgaveId = oppgaveId!!,
+                lukketAv = NavIdentBruker.Saksbehandler(lukket.saksbehandler),
+                lukketTidspunkt = lukket.tidspunkt,
+                brevvalg = lukket.toBrevvalg() as Brevvalg.SaksbehandlersValg,
+                innsendtAv = innsendtAv,
+            )
+            LukketJson.Type.TRUKKET -> Søknad.Journalført.MedOppgave.Lukket.TrukketAvSøker(
+                sakId = sakId,
+                id = id,
+                opprettet = opprettet,
+                søknadInnhold = søknadInnhold,
+                journalpostId = journalpostId!!,
+                oppgaveId = oppgaveId!!,
+                lukketAv = NavIdentBruker.Saksbehandler(lukket.saksbehandler),
+                lukketTidspunkt = lukket.tidspunkt,
+                trukketDato = lukket.trukketDato!!,
+                innsendtAv = innsendtAv,
+            )
+        }
         journalpostId == null -> Søknad.Ny(
             sakId = sakId,
             id = id,
@@ -77,8 +103,8 @@ internal fun Row.toSøknad(): Søknad {
             id = id,
             opprettet = opprettet,
             søknadInnhold = søknadInnhold,
-            innsendtAv = innsendtAv,
             journalpostId = journalpostId,
+            innsendtAv = innsendtAv,
         )
         else -> Søknad.Journalført.MedOppgave.IkkeLukket(
             sakId = sakId,

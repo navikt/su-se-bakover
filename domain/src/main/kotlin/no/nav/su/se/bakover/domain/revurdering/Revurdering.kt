@@ -2427,7 +2427,7 @@ fun Revurdering.medFritekst(fritekstTilBrev: String) =
         is IverksattRevurdering.IngenEndring -> copy(fritekstTilBrev = fritekstTilBrev)
         is RevurderingTilAttestering.IngenEndring -> copy(fritekstTilBrev = fritekstTilBrev)
         is UnderkjentRevurdering.IngenEndring -> copy(fritekstTilBrev = fritekstTilBrev)
-        is AvsluttetRevurdering -> copy(brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.MedFritekst(fritekstTilBrev))
+        is AvsluttetRevurdering -> copy(brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst(fritekstTilBrev))
     }
 
 enum class Vurderingstatus(val status: String) {

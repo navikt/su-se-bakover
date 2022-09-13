@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.web.routes.søknad
 
-import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.assertions.throwables.shouldNotThrow
@@ -35,7 +34,6 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
-import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder.build
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
@@ -44,20 +42,20 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.PersonOppslag
-import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.domain.søknadinnhold.SøknadsinnholdUføre
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.søknad.AvslåManglendeDokumentasjonRequest
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
-import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagUtenBeregning
+import no.nav.su.se.bakover.test.trekkSøknad
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.argThat
@@ -73,6 +71,7 @@ import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
@@ -110,7 +109,7 @@ internal class SøknadRoutesKtTest {
         satsFactory = satsFactoryTest,
     )
 
-    private val trekkSøknadRequest = LukkSøknadRequest.MedBrev.TrekkSøknad(
+    private val trekkSøknadRequest = trekkSøknad(
         søknadId = søknadId,
         saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "Z990Lokal"),
         trukketDato = 1.januar(2020),
@@ -256,7 +255,7 @@ internal class SøknadRoutesKtTest {
     @Test
     fun `lager en søknad, så trekker søknaden`() {
         val lukkSøknadServiceMock = mock<LukkSøknadService> {
-            on { lukkSøknad(any()) } doReturn sak.right()
+            on { lukkSøknad(any()) } doReturn sak
         }
         testApplication {
             application {
@@ -272,7 +271,7 @@ internal class SøknadRoutesKtTest {
                     objectMapper.writeValueAsString(
                         LukketJson.TrukketJson(
                             datoSøkerTrakkSøknad = 1.januar(2020),
-                            type = Søknad.Journalført.MedOppgave.Lukket.LukketType.TRUKKET,
+                            type = LukketJson.LukketType.TRUKKET,
                         ),
                     ),
                 )
@@ -286,39 +285,9 @@ internal class SøknadRoutesKtTest {
     }
 
     @Test
-    fun `en søknad som er trukket, skal ikke kunne bli trukket igjen`() {
-        val lukkSøknadServiceMock = mock<LukkSøknadService> {
-            on { lukkSøknad(any()) } doReturn KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
-        }
-        testApplication {
-            application { testSusebakover(services = mockServices.copy(lukkSøknad = lukkSøknadServiceMock)) }
-            defaultRequest(
-                method = Post,
-                uri = "soknad/$søknadId/lukk",
-                roller = listOf(Brukerrolle.Saksbehandler),
-            ) {
-                header(ContentType, Json.toString())
-                setBody(
-                    objectMapper.writeValueAsString(
-                        LukketJson.TrukketJson(
-                            datoSøkerTrakkSøknad = 1.januar(2020),
-                            type = Søknad.Journalført.MedOppgave.Lukket.LukketType.TRUKKET,
-                        ),
-                    ),
-                )
-            }.apply {
-                status shouldBe BadRequest
-                verify(lukkSøknadServiceMock).lukkSøknad(
-                    argThat { it shouldBe trekkSøknadRequest },
-                )
-            }
-        }
-    }
-
-    @Test
     fun `Krever fritekst`() {
         val lukkSøknadServiceMock = mock<LukkSøknadService> {
-            on { lukkSøknad(any()) } doReturn KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
+            on { lukkSøknad(any()) } doThrow IllegalArgumentException("")
         }
         testApplication {
             application { testSusebakover(services = mockServices.copy(lukkSøknad = lukkSøknadServiceMock)) }
@@ -331,7 +300,7 @@ internal class SøknadRoutesKtTest {
                 setBody(
                     objectMapper.writeValueAsString(
                         LukketJson.AvvistJson(
-                            type = Søknad.Journalført.MedOppgave.Lukket.LukketType.AVVIST,
+                            type = LukketJson.LukketType.AVVIST,
                             brevConfig = LukketJson.AvvistJson.BrevConfigJson(
                                 brevtype = LukketJson.BrevType.FRITEKST,
                                 null,
@@ -349,7 +318,7 @@ internal class SøknadRoutesKtTest {
     @Test
     fun `en søknad med ugyldig json gir badrequest og gjør ingen kall`() {
         val lukkSøknadServiceMock = mock<LukkSøknadService> {
-            on { lukkSøknad(any()) } doReturn KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
+            on { lukkSøknad(any()) } doThrow IllegalArgumentException("")
         }
         testApplication {
             application { testSusebakover(services = mockServices.copy(lukkSøknad = lukkSøknadServiceMock)) }
@@ -378,7 +347,7 @@ internal class SøknadRoutesKtTest {
     fun `kan lage brevutkast av trukket søknad`() {
         val pdf = "".toByteArray()
         val lukkSøknadServiceMock = mock<LukkSøknadService> {
-            on { lagBrevutkast(any()) } doReturn pdf.right()
+            on { lagBrevutkast(any()) } doReturn Pair(fnr, pdf)
         }
         testApplication {
             application {
@@ -393,7 +362,7 @@ internal class SøknadRoutesKtTest {
                     objectMapper.writeValueAsString(
                         LukketJson.TrukketJson(
                             datoSøkerTrakkSøknad = 1.januar(2020),
-                            type = Søknad.Journalført.MedOppgave.Lukket.LukketType.TRUKKET,
+                            type = LukketJson.LukketType.TRUKKET,
                         ),
                     ),
                 )

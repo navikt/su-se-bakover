@@ -104,7 +104,7 @@ internal class GjenopptakAvYtelsePostgresRepo(
                         params = mapOf(
                             "id" to revurdering.id,
                             "avsluttet" to serialize(
-                                AvsluttetRevurderingInfo(
+                                AvsluttetRevurderingDatabaseJson(
                                     begrunnelse = revurdering.begrunnelse,
                                     brevvalg = null,
                                     tidspunktAvsluttet = revurdering.tidspunktAvsluttet,

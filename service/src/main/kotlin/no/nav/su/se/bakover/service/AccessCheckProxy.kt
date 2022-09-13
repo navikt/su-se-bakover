@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.SendPåminnelseNyStønadsperiodeContext
 import no.nav.su.se.bakover.domain.Skattegrunnlag
-import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
@@ -76,7 +75,8 @@ import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
-import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
+import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
+import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadinnhold.SøknadInnhold
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
@@ -158,7 +158,6 @@ import no.nav.su.se.bakover.service.søknad.KunneIkkeLageSøknadPdf
 import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteSøknad
 import no.nav.su.se.bakover.service.søknad.OpprettManglendeJournalpostOgOppgaveResultat
 import no.nav.su.se.bakover.service.søknad.SøknadService
-import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
@@ -376,7 +375,7 @@ open class AccessCheckProxy(
                     return services.søknad.nySøknad(søknadInnhold, identBruker)
                 }
 
-                override fun lukkSøknad(
+                override fun persisterSøknad(
                     søknad: Søknad.Journalført.MedOppgave.Lukket,
                     sessionContext: SessionContext,
                 ) = kastKanKunKallesFraAnnenService()
@@ -435,18 +434,18 @@ open class AccessCheckProxy(
                 ) = kastKanKunKallesFraAnnenService()
             },
             lukkSøknad = object : LukkSøknadService {
-                override fun lukkSøknad(request: LukkSøknadRequest): Either<KunneIkkeLukkeSøknad, Sak> {
-                    assertHarTilgangTilSøknad(request.søknadId)
+                override fun lukkSøknad(command: LukkSøknadCommand): Sak {
+                    assertHarTilgangTilSøknad(command.søknadId)
 
-                    return services.lukkSøknad.lukkSøknad(request)
+                    return services.lukkSøknad.lukkSøknad(command)
                 }
 
                 override fun lagBrevutkast(
-                    request: LukkSøknadRequest,
-                ): Either<no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLageBrevutkast, ByteArray> {
-                    assertHarTilgangTilSøknad(request.søknadId)
+                    command: LukkSøknadCommand,
+                ): Pair<Fnr, ByteArray> {
+                    assertHarTilgangTilSøknad(command.søknadId)
 
-                    return services.lukkSøknad.lagBrevutkast(request)
+                    return services.lukkSøknad.lagBrevutkast(command)
                 }
             },
             oppgave = object : OppgaveService {
@@ -565,7 +564,7 @@ open class AccessCheckProxy(
 
                 override fun hentForSøknad(søknadId: UUID) = kastKanKunKallesFraAnnenService()
 
-                override fun lukk(
+                override fun persisterSøknadsbehandling(
                     lukketSøknadbehandling: LukketSøknadsbehandling,
                     tx: TransactionContext,
                 ) = kastKanKunKallesFraAnnenService()

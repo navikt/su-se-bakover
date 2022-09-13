@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import no.nav.su.se.bakover.domain.statistikk.Statistikkhendelse
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
 import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -27,7 +28,6 @@ import no.nav.su.se.bakover.domain.visitor.Visitable
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.service.kontrollsamtale.OpprettPlanlagtKontrollsamtaleResultat
-import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.avkortingsvarselUtenlandsopphold
 import no.nav.su.se.bakover.test.dokumentUtenMetadataVedtak
@@ -296,7 +296,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             verify(serviceAndMocks.ferdigstillVedtakService).lukkOppgaveMedBruker(any())
             verify(serviceAndMocks.observer).handle(
                 argThat {
-                    it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(expectedAvslag)
+                    it shouldBe Statistikkhendelse.Søknadsbehandling.Iverksatt(expectedAvslag)
                 },
             )
             serviceAndMocks.verifyNoMoreInteractions()

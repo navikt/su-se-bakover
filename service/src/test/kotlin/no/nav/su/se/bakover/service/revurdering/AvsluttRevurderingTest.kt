@@ -109,13 +109,13 @@ internal class AvsluttRevurderingTest {
         val actual = revurderingService.avsluttRevurdering(
             revurderingId = simulert.id,
             begrunnelse = "opprettet revurderingen med en feil",
-            brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.MedFritekst("en fri tekst"),
+            brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst("en fri tekst"),
         )
 
         val expectedAvsluttetRevurdering = AvsluttetRevurdering.tryCreate(
             underliggendeRevurdering = simulert,
             begrunnelse = "opprettet revurderingen med en feil",
-            brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.MedFritekst("en fri tekst"),
+            brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst("en fri tekst"),
             tidspunktAvsluttet = fixedTidspunkt,
         )
         actual shouldBe expectedAvsluttetRevurdering
@@ -189,7 +189,7 @@ internal class AvsluttRevurderingTest {
         revurderingService.avsluttRevurdering(
             revurderingId = simulert.id,
             begrunnelse = "begrunnelse",
-            brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.MedFritekst("medFritekst"),
+            brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst("medFritekst"),
         ) shouldBe KunneIkkeAvslutteRevurdering.KunneIkkeLageDokument.left()
 
         verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe simulert.oppgaveId })
@@ -199,7 +199,7 @@ internal class AvsluttRevurderingTest {
                 it shouldBe AvsluttetRevurdering.tryCreate(
                     underliggendeRevurdering = simulert,
                     begrunnelse = "begrunnelse",
-                    brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.MedFritekst("medFritekst"),
+                    brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst("medFritekst"),
                     tidspunktAvsluttet = fixedTidspunkt,
                 ).getOrFail()
             },

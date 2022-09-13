@@ -25,7 +25,7 @@ internal data class AvsluttRevurderingRequestJson(
         return when (brevvalg) {
             SaksbehandlerBrevvalgJson.SKAL_SENDE_BREV_MED_FRITEKST -> {
                 fritekst?.let {
-                    Brevvalg.SaksbehandlersValg.SkalSendeBrev.MedFritekst(it).right()
+                    Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst(it).right()
                 } ?: BadRequest.errorJson(
                     message = "Mangler fritekst",
                     code = "mangler_fritekst",

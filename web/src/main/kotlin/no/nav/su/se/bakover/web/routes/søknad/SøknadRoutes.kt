@@ -32,7 +32,6 @@ import no.nav.su.se.bakover.service.søknad.KunneIkkeAvslåSøknad
 import no.nav.su.se.bakover.service.søknad.KunneIkkeLageSøknadPdf
 import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteSøknad
 import no.nav.su.se.bakover.service.søknad.SøknadService
-import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.web.AuditLogEvent
@@ -43,9 +42,7 @@ import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.receiveTextUTF8
 import no.nav.su.se.bakover.web.routes.Feilresponser
-import no.nav.su.se.bakover.web.routes.Feilresponser.Brev.kunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
-import no.nav.su.se.bakover.web.routes.søknad.lukk.LukkSøknadErrorHandler
 import no.nav.su.se.bakover.web.routes.søknad.lukk.LukkSøknadInputHandler
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.FeilVedOpprettelseAvEktefelleJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.KunneIkkeLageSøknadinnhold
@@ -82,7 +79,7 @@ internal fun Route.søknadRoutes(
                                     { call.svar(it.tilResultat(type)) },
                                     { (saksnummer, søknad) ->
                                         call.audit(
-                                            søknad.søknadInnhold.personopplysninger.fnr,
+                                            søknad.fnr,
                                             AuditLogEvent.Action.CREATE,
                                             null,
                                         )
@@ -152,30 +149,27 @@ internal fun Route.søknadRoutes(
                     body = call.receiveTextUTF8(),
                     søknadId = søknadId,
                     saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
+                    clock = clock,
                 ).mapLeft {
                     call.svar(Feilresponser.ugyldigInput)
                 }.map { request ->
-                    lukkSøknadService.lukkSøknad(request).fold(
-                        { call.svar(LukkSøknadErrorHandler.kunneIkkeLukkeSøknadResponse(request, it)) },
-                        {
-
-                            call.audit(
-                                berørtBruker = it.fnr,
-                                action = AuditLogEvent.Action.UPDATE,
-                                behandlingId = it.hentSøknadsbehandlingForSøknad(søknadId).fold(
-                                    {
-                                        // Her bruker vi søknadId siden det ikke er opprettet en søknadsbehandling enda
-                                        søknadId
-                                    },
-                                    {
-                                        it.id
-                                    },
-                                ),
-                            )
-                            call.sikkerlogg("Lukket søknad for søknad: $søknadId")
-                            call.svar(Resultat.json(OK, serialize(it.toJson(clock, satsFactory))))
-                        },
-                    )
+                    lukkSøknadService.lukkSøknad(request).let {
+                        call.audit(
+                            berørtBruker = it.fnr,
+                            action = AuditLogEvent.Action.UPDATE,
+                            behandlingId = it.hentSøknadsbehandlingForSøknad(søknadId).fold(
+                                {
+                                    // Her bruker vi søknadId siden det ikke er opprettet en søknadsbehandling enda
+                                    søknadId
+                                },
+                                {
+                                    it.id
+                                },
+                            ),
+                        )
+                        call.sikkerlogg("Lukket søknad for søknad: $søknadId")
+                        call.svar(Resultat.json(OK, serialize(it.toJson(clock, satsFactory))))
+                    }
                 }
             }
         }
@@ -204,6 +198,7 @@ internal fun Route.søknadRoutes(
                                     KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> Feilresponser.fantIkkeSaksbehandlerEllerAttestant
                                     KunneIkkeLageDokument.KunneIkkeHentePerson -> Feilresponser.fantIkkePerson
                                 }
+
                                 KunneIkkeAvslåSøknad.FantIkkeSak -> Feilresponser.fantIkkeSak
                                 is KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling -> {
                                     when (it.feil) {
@@ -211,6 +206,7 @@ internal fun Route.søknadRoutes(
                                         is SøknadsbehandlingService.KunneIkkeOpprette.KunneIkkeOppretteSøknadsbehandling -> it.feil.tilResultat()
                                     }
                                 }
+
                                 KunneIkkeAvslåSøknad.FantIkkeSøknad -> Feilresponser.fantIkkeSøknad
                             },
                         )
@@ -229,31 +225,21 @@ internal fun Route.søknadRoutes(
                     body = call.receiveTextUTF8(),
                     søknadId = søknadId,
                     saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
+                    clock = clock,
                 ).mapLeft {
                     call.svar(Feilresponser.ugyldigInput)
                 }.map { request ->
                     lukkSøknadService.lagBrevutkast(
                         request,
-                    ).fold(
-                        {
-                            when (it) {
-                                KunneIkkeLageBrevutkast.FantIkkeSøknad ->
-                                    call.svar(NotFound.errorJson("Fant Ikke Søknad", "fant_ikke_søknad"))
-
-                                KunneIkkeLageBrevutkast.UkjentBrevtype ->
-                                    call.svar(
-                                        BadRequest.errorJson(
-                                            "Kunne ikke lage brev for ukjent brevtype",
-                                            "ukjent_brevtype",
-                                        ),
-                                    )
-
-                                else ->
-                                    call.svar(kunneIkkeLageBrevutkast)
-                            }
-                        },
-                        { call.respondBytes(it, ContentType.Application.Pdf) },
-                    )
+                    ).let {
+                        call.audit(
+                            berørtBruker = it.first,
+                            action = AuditLogEvent.Action.ACCESS,
+                            // TODO jah: Det kan hende vi også finnes en søknadsbehandling (som også kan bli lukket), men vi mangler søknadsbehandlings id i denne konteksten.
+                            behandlingId = søknadId,
+                        )
+                        call.respondBytes(it.second, ContentType.Application.Pdf)
+                    }
                 }
             }
         }

@@ -13,10 +13,10 @@ import no.nav.su.se.bakover.database.withTestContext
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.domain.søknad.Søknad
+import no.nav.su.se.bakover.test.trekkSøknad
 import org.junit.jupiter.api.Test
 
 internal class SøknadPostgresRepoTest {
@@ -54,11 +54,14 @@ internal class SøknadPostgresRepoTest {
                 nySak.journalførtSøknadMedOppgave()
             val saksbehandler = Saksbehandler("Z993156")
             val lukketSøknad = journalførtSøknadMedOppgave
-                .lukk(
-                    lukketAv = saksbehandler,
-                    type = Søknad.Journalført.MedOppgave.Lukket.LukketType.TRUKKET,
-                    lukketTidspunkt = fixedTidspunkt,
-                )
+                .let {
+                    it.lukk(
+                        trekkSøknad(
+                            søknadId = it.id,
+                            saksbehandler = saksbehandler,
+                        ),
+                    )
+                }
             withTestContext(dataSource, 2) { spiedDataSource ->
                 val søknadRepo = TestDataHelper(spiedDataSource).søknadRepo
                 søknadRepo.lukkSøknad(lukketSøknad)

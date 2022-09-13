@@ -14,8 +14,8 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.statistikk.Statistikkhendelse
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.avsluttetKlage
@@ -95,7 +95,7 @@ internal class OpprettKlageTest {
 
         val nyKlage = mocks.service.opprett(request).getOrFail()
 
-        verify(observerMock).handle(argThat { it shouldBe Event.Statistikk.Klagestatistikk.Opprettet(nyKlage) })
+        verify(observerMock).handle(argThat { it shouldBe Statistikkhendelse.Klagestatistikk.Opprettet(nyKlage) })
         nyKlage.shouldBeTypeOf<OpprettetKlage>()
         nyKlage.journalpostId shouldBe avsluttetKlage.journalpostId
     }
@@ -282,7 +282,7 @@ internal class OpprettKlageTest {
                 datoKlageMottatt = 1.januar(2021),
             )
             it shouldBe expectedKlage
-            verify(observerMock).handle(argThat { expected -> Event.Statistikk.Klagestatistikk.Opprettet(it) shouldBe expected })
+            verify(observerMock).handle(argThat { expected -> Statistikkhendelse.Klagestatistikk.Opprettet(it) shouldBe expected })
         }
 
         verify(mocks.sakRepoMock).hentSak(sak.id)

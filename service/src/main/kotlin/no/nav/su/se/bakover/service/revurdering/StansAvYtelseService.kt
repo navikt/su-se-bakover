@@ -14,10 +14,10 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
+import no.nav.su.se.bakover.domain.statistikk.Statistikkhendelse
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.sak.SakService
-import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
@@ -105,7 +105,7 @@ internal class StansAvYtelseService(
         }
 
         revurderingRepo.lagre(simulertRevurdering)
-        observers.forEach { observer -> observer.handle(Event.Statistikk.RevurderingStatistikk.Stans(simulertRevurdering)) }
+        observers.forEach { observer -> observer.handle(Statistikkhendelse.Revurdering.Stans(simulertRevurdering)) }
 
         return simulertRevurdering.right()
     }
@@ -142,8 +142,8 @@ internal class StansAvYtelseService(
                 revurderingRepo.lagre(iverksattRevurdering)
                 vedtakService.lagre(vedtak)
                 observers.forEach { observer ->
-                    observer.handle(Event.Statistikk.RevurderingStatistikk.Stans(iverksattRevurdering))
-                    observer.handle(Event.Statistikk.Vedtaksstatistikk(vedtak))
+                    observer.handle(Statistikkhendelse.Revurdering.Stans(iverksattRevurdering))
+                    observer.handle(Statistikkhendelse.Vedtak(vedtak))
                 }
 
                 return iverksattRevurdering.right()

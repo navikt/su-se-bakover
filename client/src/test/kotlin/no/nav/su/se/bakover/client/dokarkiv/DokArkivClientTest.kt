@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.VedtakInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.getOrFail
 import org.junit.jupiter.api.Test
 import java.util.Base64
 import java.util.UUID
@@ -41,7 +42,7 @@ internal class DokArkivClientTest : WiremockBase {
     )
     private val vedtakInnhold = VedtakInnholdTestdataBuilder.build()
 
-    private val pdf = PdfGeneratorStub.genererPdf(søknadPdfInnhold).orNull()!!
+    private val pdf = PdfGeneratorStub.genererPdf(søknadPdfInnhold).getOrFail()
     private val fnr = søknadInnhold.personopplysninger.fnr
     private val person: Person = PersonOppslagStub.person(fnr).getOrElse {
         throw RuntimeException("fnr fants ikke")

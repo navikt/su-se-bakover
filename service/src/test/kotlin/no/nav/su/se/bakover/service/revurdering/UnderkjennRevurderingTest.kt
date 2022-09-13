@@ -7,13 +7,12 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.statistikk.Statistikkhendelse
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.test.aktørId
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.revurderingTilAttestering
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
@@ -81,7 +80,7 @@ internal class UnderkjennRevurderingTest {
 
                 verify(it.observer).handle(
                     argThat {
-                        it shouldBe Event.Statistikk.RevurderingStatistikk.RevurderingUnderkjent(actual)
+                        it shouldBe Statistikkhendelse.Revurdering.Underkjent(actual)
                     },
                 )
             }
