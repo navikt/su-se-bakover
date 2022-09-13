@@ -57,6 +57,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
+import no.nav.su.se.bakover.test.veileder
 import no.nav.su.se.bakover.test.vilkår.fastOppholdVilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.flyktningVilkårInnvilget
 import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårInnvilget
@@ -230,7 +231,11 @@ internal class BeregnRoutesKtTest {
     private fun setup(services: Services, repos: DatabaseRepos): UavklartVilkårsvurdertSøknadsbehandling {
         val søknadInnhold = SøknadInnholdTestdataBuilder.build()
         val fnr: Fnr = Fnr.generer()
-        SakFactory(clock = fixedClock).nySakMedNySøknad(fnr, søknadInnhold).also {
+        SakFactory(clock = fixedClock).nySakMedNySøknad(
+            fnr = fnr,
+            søknadInnhold = søknadInnhold,
+            innsendtAv = veileder,
+        ).also {
             repos.sak.opprettSak(it)
         }
         val sak: Sak = repos.sak.hentSak(fnr, Sakstype.UFØRE)!!

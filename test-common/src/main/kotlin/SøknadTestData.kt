@@ -37,6 +37,7 @@ fun nySakMedNySøknad(
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     søknadId: UUID = no.nav.su.se.bakover.test.søknadId,
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
+    søknadInnsendtAv: NavIdentBruker = veileder,
 ): Pair<Sak, Søknad.Ny> = SakFactory(
     uuidFactory = object : UUIDFactory() {
         val ids = LinkedList(listOf(sakId, søknadId))
@@ -48,6 +49,7 @@ fun nySakMedNySøknad(
 ).nySakMedNySøknad(
     fnr = fnr,
     søknadInnhold = søknadinnhold(fnr),
+    innsendtAv = søknadInnsendtAv,
 ).let {
     assert(it.id == sakId)
     assert(it.søknad.id == søknadId)
@@ -118,12 +120,14 @@ fun nySøknad(
     clock: Clock = fixedClock,
     sakId: UUID,
     søknadInnhold: SøknadInnhold,
+    søknadInnsendtAv: NavIdentBruker = veileder,
 ): Søknad.Ny {
     return Søknad.Ny(
         id = UUID.randomUUID(),
         opprettet = Tidspunkt.now(clock),
         sakId = sakId,
         søknadInnhold = søknadInnhold,
+        innsendtAv = søknadInnsendtAv,
     )
 }
 

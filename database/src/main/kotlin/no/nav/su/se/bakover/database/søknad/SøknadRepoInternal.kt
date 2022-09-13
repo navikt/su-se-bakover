@@ -31,6 +31,22 @@ internal fun Row.toSøknad(): Søknad {
     val sakId: UUID = uuid("sakId")
     val id: UUID = uuid("id")
     val søknadInnhold: SøknadInnhold = deserialize(string("søknadInnhold"))
+
+    val innsendtAv = stringOrNull("ident")?.let {
+        /**
+         * Vi har ikke alltid lagret denne informasjonen og verdien eksisterer dermed ikke for alle søknader.
+         * Gjøre et kvalifisert gjett på om det var en saksbehandler eller veilder som sendte inn basert på om det er
+         * en papirsøknad eller ei - dette bør ikke ha veldig stor betydning i praksis.
+         */
+        when (søknadInnhold.erPapirsøknad()) {
+            true -> NavIdentBruker.Saksbehandler(it)
+            false -> NavIdentBruker.Veileder(it)
+        }
+    } ?: when (søknadInnhold.erPapirsøknad()) {
+        true -> NavIdentBruker.Saksbehandler("Ukjent")
+        false -> NavIdentBruker.Veileder("Ukjent")
+    }
+
     val opprettet: Tidspunkt = tidspunkt("opprettet")
     val lukket: LukketJson? = deserializeNullable(stringOrNull("lukket"))
     val oppgaveId: OppgaveId? = stringOrNull("oppgaveId")?.let { OppgaveId(it) }
@@ -42,6 +58,7 @@ internal fun Row.toSøknad(): Søknad {
             id = id,
             opprettet = opprettet,
             søknadInnhold = søknadInnhold,
+            innsendtAv = innsendtAv,
             journalpostId = journalpostId!!,
             oppgaveId = oppgaveId!!,
             lukketAv = NavIdentBruker.Saksbehandler(lukket.saksbehandler),
@@ -53,12 +70,14 @@ internal fun Row.toSøknad(): Søknad {
             id = id,
             opprettet = opprettet,
             søknadInnhold = søknadInnhold,
+            innsendtAv = innsendtAv,
         )
         oppgaveId == null -> Søknad.Journalført.UtenOppgave(
             sakId = sakId,
             id = id,
             opprettet = opprettet,
             søknadInnhold = søknadInnhold,
+            innsendtAv = innsendtAv,
             journalpostId = journalpostId,
         )
         else -> Søknad.Journalført.MedOppgave.IkkeLukket(
@@ -66,6 +85,7 @@ internal fun Row.toSøknad(): Søknad {
             id = id,
             opprettet = opprettet,
             søknadInnhold = søknadInnhold,
+            innsendtAv = innsendtAv,
             journalpostId = journalpostId,
             oppgaveId = oppgaveId,
         )

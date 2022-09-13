@@ -6,10 +6,11 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.startOfDay
-import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.fnrUnder67
 import no.nav.su.se.bakover.test.nySakMedjournalførtSøknadOgOppgave
+import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.veileder
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.sakId
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.søknadId
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.søknadInnhold
@@ -25,9 +26,9 @@ internal class UføresøknadJsonTest {
             opprettet = Tidspunkt.EPOCH,
             id = søknadId,
             søknadInnhold = søknadInnhold,
+            innsendtAv = veileder,
         )
         private val opprettetTidspunkt: String = DateTimeFormatter.ISO_INSTANT.format(søknad.opprettet)
-        private val saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler")
 
         //language=JSON
         val søknadJsonString =

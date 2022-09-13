@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
+import no.nav.su.se.bakover.test.veileder
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.dbMetricsStub
 import no.nav.su.se.bakover.web.defaultRequest
@@ -73,7 +74,11 @@ internal class SakRoutesKtTest {
             testApplication {
                 application { testSusebakover(databaseRepos = repos) }
 
-                SakFactory(clock = fixedClock).nySakMedNySøknad(Fnr(sakFnr01), søknadInnhold).also {
+                SakFactory(clock = fixedClock).nySakMedNySøknad(
+                    fnr = Fnr(sakFnr01),
+                    søknadInnhold = søknadInnhold,
+                    innsendtAv = veileder,
+                ).also {
                     repos.sak.opprettSak(it)
                 }
                 val opprettetSakId: Sak = repos.sak.hentSak(Fnr(sakFnr01), Sakstype.UFØRE)!!
@@ -97,7 +102,13 @@ internal class SakRoutesKtTest {
             testApplication {
                 application { testSusebakover(databaseRepos = repos) }
 
-                repos.sak.opprettSak(SakFactory(clock = fixedClock).nySakMedNySøknad(Fnr(sakFnr01), søknadInnhold))
+                repos.sak.opprettSak(
+                    SakFactory(clock = fixedClock).nySakMedNySøknad(
+                        fnr = Fnr(sakFnr01),
+                        søknadInnhold = søknadInnhold,
+                        innsendtAv = veileder,
+                    )
+                )
 
                 defaultRequest(HttpMethod.Post, "$sakPath/søk", listOf(Brukerrolle.Saksbehandler)) {
                     setBody("""{"fnr":"$sakFnr01", "type": "uføre"}""")
@@ -148,7 +159,11 @@ internal class SakRoutesKtTest {
 
                 testApplication {
                     application { testSusebakover(databaseRepos = repos) }
-                    SakFactory(clock = fixedClock).nySakMedNySøknad(Fnr(sakFnr01), søknadInnhold).also {
+                    SakFactory(clock = fixedClock).nySakMedNySøknad(
+                        fnr = Fnr(sakFnr01),
+                        søknadInnhold = søknadInnhold,
+                        innsendtAv = veileder
+                    ).also {
                         repos.sak.opprettSak(it)
 
                         defaultRequest(

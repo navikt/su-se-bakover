@@ -869,6 +869,7 @@ class SakFactory(
     fun nySakMedNySøknad(
         fnr: Fnr,
         søknadInnhold: SøknadInnhold,
+        innsendtAv: NavIdentBruker,
     ): NySak {
         val opprettet = Tidspunkt.now(clock)
         val sakId = uuidFactory.newUUID()
@@ -881,6 +882,7 @@ class SakFactory(
                 opprettet = opprettet,
                 sakId = sakId,
                 søknadInnhold = søknadInnhold,
+                innsendtAv = innsendtAv,
             ),
         )
     }

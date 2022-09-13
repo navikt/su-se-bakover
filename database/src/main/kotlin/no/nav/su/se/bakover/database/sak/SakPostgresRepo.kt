@@ -135,7 +135,7 @@ internal class SakPostgresRepo(
             sessionFactory.withSession { session ->
                 """
                 with inserted_sak as (insert into sak (id, fnr, opprettet, type) values (:sakId, :fnr, :opprettet, :type))
-                insert into søknad (id, sakId, søknadInnhold, opprettet) values (:soknadId, :sakId, to_json(:soknad::json), :opprettet)
+                insert into søknad (id, sakId, søknadInnhold, opprettet, ident) values (:soknadId, :sakId, to_json(:soknad::json), :opprettet, :ident)
                 """.insert(
                     mapOf(
                         "sakId" to sak.id,
@@ -144,6 +144,7 @@ internal class SakPostgresRepo(
                         "soknadId" to sak.søknad.id,
                         "soknad" to serialize(sak.søknad.søknadInnhold),
                         "type" to sak.søknad.type.value,
+                        "ident" to sak.søknad.innsendtAv.navIdent
                     ),
                     session,
                 )

@@ -43,6 +43,10 @@ sealed interface SøknadInnhold {
         is SøknadsinnholdUføre -> Sakstype.UFØRE
     }
 
+    fun erPapirsøknad(): Boolean {
+        return forNav.erPapirsøknad()
+    }
+
     // slipper å måtte ha den 2 steder
     companion object {
         internal fun validerBoforholdOgEktefelle(

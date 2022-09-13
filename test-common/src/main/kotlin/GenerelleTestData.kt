@@ -62,6 +62,7 @@ val enUkeEtterFixedTidspunkt: Tidspunkt = Tidspunkt.now(enUkeEtterFixedClock)
 val fixedLocalDate: LocalDate = 1.januar(2021)
 
 val saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler")
+val veileder = NavIdentBruker.Veileder("veileder")
 
 const val saksbehandlerNavn = "Sak S. Behandler"
 

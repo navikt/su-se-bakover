@@ -52,6 +52,7 @@ import no.nav.su.se.bakover.test.søknadsbehandlingLukket
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.trukketSøknad
+import no.nav.su.se.bakover.test.veileder
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
@@ -198,6 +199,7 @@ internal class LukkSøknadServiceImplTest {
                             opprettet = søknad.opprettet,
                             sakId = søknad.sakId,
                             søknadInnhold = søknad.søknadInnhold,
+                            innsendtAv = søknad.innsendtAv,
                             journalpostId = søknad.journalpostId,
                             oppgaveId = søknad.oppgaveId,
                             lukketAv = saksbehandler,
@@ -232,6 +234,7 @@ internal class LukkSøknadServiceImplTest {
                                 opprettet = søknad.opprettet,
                                 sakId = søknad.sakId,
                                 søknadInnhold = søknad.søknadInnhold,
+                                innsendtAv = søknad.innsendtAv,
                                 journalpostId = søknad.journalpostId,
                                 oppgaveId = søknad.oppgaveId,
                                 lukketAv = saksbehandler,
@@ -399,6 +402,7 @@ internal class LukkSøknadServiceImplTest {
                             opprettet = søknad.opprettet,
                             sakId = søknad.sakId,
                             søknadInnhold = søknad.søknadInnhold,
+                            innsendtAv = søknad.innsendtAv,
                             journalpostId = søknad.journalpostId,
                             oppgaveId = søknad.oppgaveId,
                             lukketAv = saksbehandler,
@@ -433,6 +437,7 @@ internal class LukkSøknadServiceImplTest {
                                 opprettet = søknad.opprettet,
                                 sakId = søknad.sakId,
                                 søknadInnhold = søknad.søknadInnhold,
+                                innsendtAv = søknad.innsendtAv,
                                 journalpostId = søknad.journalpostId,
                                 oppgaveId = søknad.oppgaveId,
                                 lukketAv = saksbehandler,
@@ -455,6 +460,7 @@ internal class LukkSøknadServiceImplTest {
             id = UUID.randomUUID(),
             opprettet = LocalDateTime.now().minusDays(3).toTidspunkt(zoneIdOslo),
             søknadInnhold = søknadinnhold(),
+            innsendtAv = veileder
         )
         val søknadServiceMock = mock<SøknadService> {
             on { hentSøknad(any()) } doReturn treDagerGammelSøknad.right()
@@ -930,6 +936,7 @@ internal class LukkSøknadServiceImplTest {
                             opprettet = søknad.opprettet,
                             sakId = søknad.sakId,
                             søknadInnhold = søknad.søknadInnhold,
+                            innsendtAv = søknad.innsendtAv,
                             journalpostId = søknad.journalpostId,
                             oppgaveId = søknad.oppgaveId,
                             lukketAv = saksbehandler,
@@ -964,6 +971,7 @@ internal class LukkSøknadServiceImplTest {
                                 opprettet = søknad.opprettet,
                                 sakId = søknad.sakId,
                                 søknadInnhold = søknad.søknadInnhold,
+                                innsendtAv = søknad.innsendtAv,
                                 journalpostId = søknad.journalpostId,
                                 oppgaveId = søknad.oppgaveId,
                                 lukketAv = saksbehandler,
