@@ -6,6 +6,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.ddMMyyyy
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.toBrevformat
 import no.nav.su.se.bakover.domain.Månedsbeløp
 import no.nav.su.se.bakover.domain.Person
@@ -17,6 +18,7 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn.Companion.get
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.beregning.LagBrevinnholdForBeregning
 import no.nav.su.se.bakover.domain.brev.beregning.Tilbakekreving
+import no.nav.su.se.bakover.domain.brev.beregning.tilBrevperiode
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import java.text.NumberFormat
 import java.time.LocalDate
@@ -134,7 +136,7 @@ interface LagBrevRequest {
         val attestantNavn: String
         val fritekst: String
         val opphørsgrunner: List<Opphørsgrunn>
-        val opphørsdato: LocalDate
+        val opphørsperiode: Periode
         val avkortingsBeløp: Int?
     }
 
@@ -149,7 +151,7 @@ interface LagBrevRequest {
         override val opphørsgrunner: List<Opphørsgrunn>,
         override val dagensDato: LocalDate,
         override val saksnummer: Saksnummer,
-        override val opphørsdato: LocalDate,
+        override val opphørsperiode: Periode,
         override val avkortingsBeløp: Int?,
         private val satsoversikt: Satsoversikt,
         private val halvtGrunnbeløp: Int,
@@ -168,7 +170,7 @@ interface LagBrevRequest {
             fritekst = fritekst,
             forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
             halvGrunnbeløp = halvtGrunnbeløp,
-            opphørsdato = opphørsdato.ddMMyyyy(),
+            opphørsperiode = opphørsperiode.tilBrevperiode(),
             avkortingsBeløp = avkortingsBeløp,
             satsoversikt = satsoversikt,
         )

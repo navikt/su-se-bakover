@@ -37,11 +37,6 @@ sealed class BrevTemplate(
             pdfTemplate = PdfTemplate.Opphørsvedtak,
             brevTittel = "Vedtak om opphør av supplerende stønad",
         )
-
-        object OpphørMedTilbakekreving : Opphør(
-            pdfTemplate = PdfTemplate.OpphørMedTilbakekreving,
-            brevTittel = "Vedtak om opphør og tilbakereving av supplerende stønad",
-        )
     }
 
     object VedtakIngenEndring : BrevTemplate(

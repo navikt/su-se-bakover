@@ -1299,7 +1299,7 @@ internal class LagBrevRequestVisitorTest {
             opphørsgrunner = emptyList(),
             dagensDato = fixedLocalDate,
             saksnummer = revurdering.saksnummer,
-            opphørsdato = revurdering.periode.fraOgMed,
+            opphørsperiode = revurdering.periode,
             avkortingsBeløp = null,
             satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
             halvtGrunnbeløp = 50676, // halvparten av grunnbeløp for 2020-05-01 som er 101351 avrundet
@@ -1349,7 +1349,7 @@ internal class LagBrevRequestVisitorTest {
             opphørsgrunner = listOf(Opphørsgrunn.UFØRHET),
             dagensDato = fixedLocalDate,
             saksnummer = revurdering.saksnummer,
-            opphørsdato = revurdering.periode.fraOgMed,
+            opphørsperiode = revurdering.periode,
             avkortingsBeløp = null,
             satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
             halvtGrunnbeløp = 50676, // halvparten av grunnbeløp for 2020-05-01 som er 101351 avrundet
@@ -1445,7 +1445,7 @@ internal class LagBrevRequestVisitorTest {
             opphørsgrunner = listOf(Opphørsgrunn.FOR_HØY_INNTEKT),
             dagensDato = fixedLocalDate,
             saksnummer = revurdering.saksnummer,
-            opphørsdato = revurdering.periode.fraOgMed,
+            opphørsperiode = revurdering.periode,
             avkortingsBeløp = null,
             satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
             halvtGrunnbeløp = 50676, // halvparten av grunnbeløp for 2020-05-01 som er 101351 avrundet

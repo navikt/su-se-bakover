@@ -635,7 +635,7 @@ class LagBrevRequestVisitor(
                 opphørsgrunner = opphørsgrunner,
                 dagensDato = LocalDate.now(clock),
                 saksnummer = revurdering.saksnummer,
-                opphørsdato = revurdering.periode.fraOgMed,
+                opphørsperiode = revurdering.periode,
                 avkortingsBeløp = avkortingsbeløp,
                 satsoversikt = Satsoversikt.fra(revurdering, satsFactory),
                 // TODO("håndter_formue egentlig knyttet til formuegrenser")

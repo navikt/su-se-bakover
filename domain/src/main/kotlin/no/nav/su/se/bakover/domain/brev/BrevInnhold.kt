@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn.Companion.getDistinkteParagrafer
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
+import no.nav.su.se.bakover.domain.brev.beregning.BrevPeriode
 import no.nav.su.se.bakover.domain.brev.beregning.BrevTilbakekrevingInfo
 
 abstract class BrevInnhold {
@@ -86,7 +87,7 @@ abstract class BrevInnhold {
         val fritekst: String,
         val forventetInntektStørreEnn0: Boolean,
         val halvGrunnbeløp: Int?,
-        val opphørsdato: String,
+        val opphørsperiode: BrevPeriode,
         val avkortingsBeløp: Int?,
         val satsoversikt: Satsoversikt,
     ) : BrevInnhold() {

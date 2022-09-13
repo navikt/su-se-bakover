@@ -200,7 +200,10 @@ internal class BrevInnholdTest {
             fritekst = "",
             forventetInntektStørreEnn0 = false,
             halvGrunnbeløp = 50000,
-            opphørsdato = "01.01.2020",
+            opphørsperiode = BrevPeriode(
+                fraOgMed = "01.01.2020",
+                tilOgMed = "31.12.2020",
+            ),
             avkortingsBeløp = null,
             satsoversikt = Satsoversikt(
                 perioder = listOf(
@@ -252,7 +255,10 @@ internal class BrevInnholdTest {
                 "avslagsparagrafer" : [1],
                 "forventetInntektStørreEnn0" : false,
                 "halvGrunnbeløp": 50000,
-                "opphørsdato": "01.01.2020",            
+                "opphørsperiode": {
+                  "fraOgMed": "01.01.2020",
+                  "tilOgMed": "31.12.2020"
+                },            
                 "avkortingsBeløp": null,
                 "harAvkorting": false,
                 "satsoversikt": {
