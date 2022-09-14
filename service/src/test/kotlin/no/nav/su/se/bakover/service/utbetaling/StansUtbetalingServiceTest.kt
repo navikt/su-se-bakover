@@ -30,6 +30,7 @@ import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehand
 import no.nav.su.se.bakover.test.utbetalingsRequest
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
@@ -219,7 +220,7 @@ internal class StansUtbetalingServiceTest {
     }
 
     @Test
-    fun `svarer med feil dersom kontroll av simulering ikke går bra`() {
+    fun `feiler dersom stans fører til feilutbetaling`() {
         val (sak, revurdering) = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak()
         val stansdato = 1.februar(2021)
 
@@ -236,19 +237,21 @@ internal class StansUtbetalingServiceTest {
                 on { simulerUtbetaling(any()) } doReturn simuleringMedProblemer.right()
             },
         ).also {
-            it.service.stansUtbetalinger(
-                request = UtbetalRequest.Stans(
-                    request = SimulerUtbetalingRequest.Stans(
-                        sakId = sakId,
-                        saksbehandler = saksbehandler,
-                        stansdato = stansdato,
+            assertThrows<IllegalStateException> {
+                it.service.stansUtbetalinger(
+                    request = UtbetalRequest.Stans(
+                        request = SimulerUtbetalingRequest.Stans(
+                            sakId = sakId,
+                            saksbehandler = saksbehandler,
+                            stansdato = stansdato,
+                        ),
+                        simulering = revurdering.simulering,
                     ),
-                    simulering = revurdering.simulering,
-                ),
-            ) shouldBe UtbetalStansFeil.KunneIkkeUtbetale(UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UlikFeilutbetaling)).left()
+                ) shouldBe UtbetalStansFeil.KunneIkkeUtbetale(UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UlikFeilutbetaling)).left()
 
-            verify(it.utbetalingPublisher, never()).publish(any())
-            verify(it.utbetalingRepo, never()).opprettUtbetaling(any(), anyOrNull())
+                verify(it.utbetalingPublisher, never()).publish(any())
+                verify(it.utbetalingRepo, never()).opprettUtbetaling(any(), anyOrNull())
+            }
         }
     }
 }

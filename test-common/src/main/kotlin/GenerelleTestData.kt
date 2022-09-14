@@ -25,8 +25,8 @@ import java.time.temporal.TemporalUnit
 import kotlin.concurrent.getOrSet
 
 /** Fixed UTC Clock at 2021-01-01T01:02:03.456789000Z */
-val fixedClock: Clock =
-    Clock.fixed(1.januar(2021).atTime(1, 2, 3, 456789000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
+val fixedClock: Clock = Clock.fixed(1.januar(2021).atTime(1, 2, 3, 456789000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
+val tikkendeFixedClock = TikkendeKlokke(fixedClock)
 
 fun fixedClockAt(date: LocalDate = 1.januar(2021)): Clock =
     Clock.fixed(date.atTime(1, 2, 3, 456789000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC)

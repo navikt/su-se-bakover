@@ -203,7 +203,8 @@ internal class GjenopptaUtbetalingerServiceTest {
                 on {
                     publish(any())
                 } doReturn UtbetalingPublisher.KunneIkkeSendeUtbetaling(utbetalingsRequest).left()
-            }
+            },
+            clock = klokke
         ).also {
             it.service.gjenopptaUtbetalinger(
                 request = UtbetalRequest.Gjenopptak(

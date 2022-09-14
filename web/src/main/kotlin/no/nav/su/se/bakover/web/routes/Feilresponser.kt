@@ -351,12 +351,6 @@ internal object Feilresponser {
                     "kontrollsimulering_ulik_saksbehandlers_simulering",
                 )
             }
-            KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UliktBeløpFraTidslinje -> {
-                InternalServerError.errorJson(
-                    "Kryssjekk av saksbehandlers og attestants simulering feilet - ulik verdi for beløp og beløp på utbetalingstidslinje",
-                    "kontrollsimulering_ulik_saksbehandlers_simulering",
-                )
-            }
 
             KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.FantIngenGjeldendeUtbetalingerForDato -> {
                 InternalServerError.errorJson(

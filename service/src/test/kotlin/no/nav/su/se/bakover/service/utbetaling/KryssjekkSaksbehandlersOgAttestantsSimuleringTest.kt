@@ -10,17 +10,13 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.oppdrag.KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.KryssjekkSaksbehandlersOgAttestantsSimulering
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
-import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
-import no.nav.su.se.bakover.test.nyUtbetalingForSimulering
 import no.nav.su.se.bakover.test.nyUtbetalingSimulert
-import no.nav.su.se.bakover.test.simulerNyUtbetaling
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
@@ -40,8 +36,7 @@ class KryssjekkSaksbehandlersOgAttestantsSimuleringTest {
 
         KryssjekkSaksbehandlersOgAttestantsSimulering(
             saksbehandlersSimulering = saksbehandlerSimulering,
-            attestantsSimulering = attestantSimulertUtbetaling,
-            clock = fixedClock
+            attestantsSimulering = attestantSimulertUtbetaling
         ).sjekk().shouldBeRight()
     }
 
@@ -64,8 +59,7 @@ class KryssjekkSaksbehandlersOgAttestantsSimuleringTest {
 
         KryssjekkSaksbehandlersOgAttestantsSimulering(
             saksbehandlersSimulering = saksbehandlerSimulering,
-            attestantsSimulering = attestantSimulertUtbetaling,
-            clock = fixedClock
+            attestantsSimulering = attestantSimulertUtbetaling
         ).sjekk() shouldBe KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UlikGjelderId.left()
     }
 
@@ -88,8 +82,7 @@ class KryssjekkSaksbehandlersOgAttestantsSimuleringTest {
 
         KryssjekkSaksbehandlersOgAttestantsSimulering(
             saksbehandlersSimulering = saksbehandlerSimulering,
-            attestantsSimulering = attestantSimulertUtbetaling,
-            clock = fixedClock
+            attestantsSimulering = attestantSimulertUtbetaling
         ).sjekk() shouldBe KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UlikFeilutbetaling.left()
     }
 
@@ -106,8 +99,7 @@ class KryssjekkSaksbehandlersOgAttestantsSimuleringTest {
 
         KryssjekkSaksbehandlersOgAttestantsSimulering(
             saksbehandlersSimulering = saksbehandlerSimulering,
-            attestantsSimulering = attestantSimulertUtbetaling,
-            clock = fixedClock
+            attestantsSimulering = attestantSimulertUtbetaling
         ).sjekk() shouldBe KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UlikPeriode.left()
     }
 
@@ -147,34 +139,7 @@ class KryssjekkSaksbehandlersOgAttestantsSimuleringTest {
 
         KryssjekkSaksbehandlersOgAttestantsSimulering(
             saksbehandlersSimulering = saksbehandlerSimulering,
-            attestantsSimulering = attestantSimulertUtbetaling,
-            clock = fixedClock
+            attestantsSimulering = attestantSimulertUtbetaling
         ).sjekk() shouldBe KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UliktBeløp.left()
-    }
-
-    @Test
-    fun `kontroll av simulering -  ulike beløp fra tidslinje`() {
-        val (sak, revurdering) = simulertRevurdering()
-
-        val saksbehandlerSimulering = revurdering.simulering
-        val attestantSimulertUtbetaling = nyUtbetalingForSimulering(
-            sakOgBehandling = sak to revurdering,
-            beregning = revurdering.beregning,
-            clock = fixedClock
-        ).let {
-            it.copy(
-                utbetalingslinjer = it.utbetalingslinjer.map {
-                    (it as Utbetalingslinje.Ny).copy(beløp = 2000)
-                }
-            ).toSimulertUtbetaling(
-                simulering = simulerNyUtbetaling(sak, it).getOrFail()
-            )
-        }
-
-        KryssjekkSaksbehandlersOgAttestantsSimulering(
-            saksbehandlersSimulering = saksbehandlerSimulering,
-            attestantsSimulering = attestantSimulertUtbetaling,
-            clock = fixedClock
-        ).sjekk() shouldBe KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UliktBeløpFraTidslinje.left()
     }
 }

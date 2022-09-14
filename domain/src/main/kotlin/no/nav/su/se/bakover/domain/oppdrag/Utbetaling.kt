@@ -151,6 +151,16 @@ internal fun List<Utbetaling>.hentSisteOversendteUtbetalingslinjeUtenFeil(): Utb
     return hentOversendteUtbetalingerUtenFeil().lastOrNull()?.sisteUtbetalingslinje()
 }
 
+internal fun List<Utbetaling>.harUtbetalingerEtter(date: LocalDate): Boolean {
+    return hentOversendteUtbetalingslinjerUtenFeil().let { utbetalingslinjer ->
+        if (utbetalingslinjer.isNotEmpty()) {
+            utbetalingslinjer.maxOf { it.periode.tilOgMed } > date
+        } else {
+            false
+        }
+    }
+}
+
 sealed class UtbetalingFeilet {
     data class SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(val feil: KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet) : UtbetalingFeilet()
     object Protokollfeil : UtbetalingFeilet()

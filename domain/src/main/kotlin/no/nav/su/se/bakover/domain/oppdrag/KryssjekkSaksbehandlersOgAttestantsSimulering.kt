@@ -1,19 +1,16 @@
 package no.nav.su.se.bakover.domain.oppdrag
 
 import arrow.core.Either
-import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import java.time.Clock
 
 class KryssjekkSaksbehandlersOgAttestantsSimulering(
     private val saksbehandlersSimulering: Simulering,
     private val attestantsSimulering: Utbetaling.SimulertUtbetaling,
-    private val clock: Clock,
 ) {
 
     fun sjekk(): Either<KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet, Unit> {
@@ -37,8 +34,6 @@ class KryssjekkSaksbehandlersOgAttestantsSimulering(
 
         val tolketSaksbehandlers = saksbehandlersSimulering.tolk()
         val tolketAttestants = attestantsSimulering.simulering.tolk()
-        val utbetalingstidslinje = attestantsSimulering.utbetalingslinjer.tidslinje(clock = clock)
-            .getOrHandle { throw RuntimeException("Kunne ikke konstruere utbetalingstidslinje!") }
 
         if (!tolketSaksbehandlers.erTomSimulering() && !tolketAttestants.erTomSimulering()) {
             if (tolketSaksbehandlers.periode() != tolketAttestants.periode()) {
@@ -51,17 +46,8 @@ class KryssjekkSaksbehandlersOgAttestantsSimulering(
         }
 
         tolketSaksbehandlers.simulertePerioder.forEach { tolketPeriode ->
-            val utbetalingFraTidslinje = utbetalingstidslinje.gjeldendeForDato(tolketPeriode.periode.fraOgMed)
-                ?: return KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.FantIngenGjeldendeUtbetalingerForDato.left()
-
             if (tolketSaksbehandlers.hentØnsketUtbetaling(tolketPeriode.periode).sum() != tolketAttestants.hentØnsketUtbetaling(tolketPeriode.periode).sum()) {
                 return KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UliktBeløp.left()
-            }
-            if (tolketSaksbehandlers.hentØnsketUtbetaling(tolketPeriode.periode).sum() != utbetalingFraTidslinje.beløp) {
-                return KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UliktBeløpFraTidslinje.left()
-            }
-            if (tolketAttestants.hentØnsketUtbetaling(tolketPeriode.periode).sum() != utbetalingFraTidslinje.beløp) {
-                return KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UliktBeløpFraTidslinje.left()
             }
         }
         return Unit.right()
@@ -86,7 +72,6 @@ sealed interface KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet {
     object UlikFeilutbetaling : KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
     object UlikPeriode : KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
     object UliktBeløp : KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
-    object UliktBeløpFraTidslinje : KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
 
     object FantIngenGjeldendeUtbetalingerForDato : KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
 }

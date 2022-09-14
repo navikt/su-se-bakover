@@ -19,9 +19,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingForPeriode
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
@@ -30,8 +28,9 @@ import no.nav.su.se.bakover.test.opphørUtbetalingSimulert
 import no.nav.su.se.bakover.test.oversendtUtbetalingMedKvittering
 import no.nav.su.se.bakover.test.oversendtUtbetalingUtenKvittering
 import no.nav.su.se.bakover.test.saksbehandler
-import no.nav.su.se.bakover.test.simuleringNy
 import no.nav.su.se.bakover.test.simuleringStans
+import no.nav.su.se.bakover.test.simulertGjenopptakUtbetaling
+import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Nested
@@ -40,6 +39,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import java.util.UUID
 
@@ -159,7 +159,9 @@ internal class UtbetalingServiceImplTest {
     inner class SimuleringsperiodeTest {
         @Test
         fun `simuleringsperiode settes til fra virkningstidspunkt til slutt på utbetalingslinje ved stans`() {
-            val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget()
+            val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget(
+                clock = tikkendeFixedClock
+            )
 
             UtbetalingServiceAndMocks(
                 sakService = mock {
@@ -172,10 +174,10 @@ internal class UtbetalingServiceImplTest {
                         fnr = sak.fnr,
                         sakId = sak.id,
                         saksnummer = sak.saksnummer,
-                        clock = fixedClock,
+                        clock = tikkendeFixedClock,
                     ).right()
                 },
-                clock = fixedClock,
+                clock = tikkendeFixedClock,
             ).let {
                 it.service.simulerStans(
                     request = SimulerUtbetalingRequest.Stans(
@@ -197,7 +199,9 @@ internal class UtbetalingServiceImplTest {
 
         @Test
         fun `simuleringsperiode settes til fra virkningstidspunkt til slutt på utbetalingslinje ved opphør`() {
-            val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
+            val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget(
+                clock = tikkendeFixedClock
+            )
 
             UtbetalingServiceAndMocks(
                 sakService = mock {
@@ -207,10 +211,10 @@ internal class UtbetalingServiceImplTest {
                     on { simulerUtbetaling(any()) } doReturn opphørUtbetalingSimulert(
                         sakOgBehandling = sak to vedtak.behandling,
                         opphørsperiode = 1.februar(2021).rangeTo(vedtak.periode.tilOgMed).toPeriode(),
-                        clock = fixedClock,
+                        clock = tikkendeFixedClock,
                     ).simulering.right()
                 },
-                clock = fixedClock,
+                clock = tikkendeFixedClock,
             ).let {
                 it.service.simulerOpphør(
                     request = SimulerUtbetalingRequest.Opphør(
@@ -220,7 +224,7 @@ internal class UtbetalingServiceImplTest {
                     ),
                 ).getOrFail() shouldBe beOfType<Utbetaling.SimulertUtbetaling>()
 
-                verify(it.simuleringClient).simulerUtbetaling(
+                verify(it.simuleringClient, times(2)).simulerUtbetaling(
                     request = argThat {
                         it shouldBe beOfType<SimulerUtbetalingForPeriode>()
                         it.simuleringsperiode shouldBe Periode.create(1.februar(2021), 31.desember(2021))
@@ -231,22 +235,24 @@ internal class UtbetalingServiceImplTest {
 
         @Test
         fun `simuleringsperiode settes til fra virkningstidspunkt til slutt på utbetalingslinje ved reaktivering`() {
-            val (sak, stans) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak()
+            val (sak, _) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+                clock = tikkendeFixedClock
+            )
 
             UtbetalingServiceAndMocks(
                 sakService = mock {
                     on { hentSak(any<UUID>()) } doReturn sak.right()
                 },
                 simuleringClient = mock {
-                    on { simulerUtbetaling(any()) } doReturn simuleringNy(
-                        beregning = (sak.vedtakListe.single { it.id == stans.behandling.tilRevurdering } as VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling).beregning,
-                        eksisterendeUtbetalinger = sak.utbetalinger,
+                    on { simulerUtbetaling(any()) } doReturn simulertGjenopptakUtbetaling(
                         fnr = sak.fnr,
                         sakId = sak.id,
                         saksnummer = sak.saksnummer,
-                        clock = fixedClock,
-                    ).right()
+                        clock = tikkendeFixedClock,
+                        eksisterendeUtbetalinger = sak.utbetalinger
+                    ).simulering.right()
                 },
+                clock = tikkendeFixedClock,
             ).let {
                 it.service.simulerGjenopptak(
                     request = SimulerUtbetalingRequest.Gjenopptak(

@@ -212,7 +212,7 @@ class TilbakekrevingKomponentTest {
     @Test
     fun `kaster hvis vi ikke finner tilbakekrevingsbehandling for kravgrunnlag`() {
         withKomptestApplication(
-            clock = 1.oktober(2021).fixedClock(),
+            clock = TikkendeKlokke(1.oktober(2021).fixedClock()),
         ) { appComponents ->
             val (_, revurderingId) = vedtakMedTilbakekreving(avgjørelse = TilbakekrevingsbehandlingJson.TilbakekrevingsAvgjørelseJson.TILBAKEKREV)
 
@@ -243,7 +243,7 @@ class TilbakekrevingKomponentTest {
     @Test
     fun `kaster hvis det ikke er samsvar mellom beløpene i simuleringen og kravgrunnlaget`() {
         withKomptestApplication(
-            clock = 1.oktober(2021).fixedClock(),
+            clock = TikkendeKlokke(1.oktober(2021).fixedClock()),
         ) { appComponents ->
             val (_, revurderingId) = vedtakMedTilbakekreving(avgjørelse = TilbakekrevingsbehandlingJson.TilbakekrevingsAvgjørelseJson.TILBAKEKREV)
 
@@ -273,7 +273,7 @@ class TilbakekrevingKomponentTest {
     @Test
     fun `kaster hvis det ikke er samsvar mellom periodene i simuleringen og kravgrunnlaget`() {
         withKomptestApplication(
-            clock = 1.oktober(2021).fixedClock(),
+            clock = TikkendeKlokke(1.oktober(2021).fixedClock()),
         ) { appComponents ->
             val (_, revurderingId) = vedtakMedTilbakekreving(avgjørelse = TilbakekrevingsbehandlingJson.TilbakekrevingsAvgjørelseJson.TILBAKEKREV)
 
@@ -302,7 +302,7 @@ class TilbakekrevingKomponentTest {
 
     @Test
     fun `send tilbakekrevingsvedtak lagrer ingenting dersom kall til økonomi feiler`() {
-        val clock = 1.oktober(2021).fixedClock()
+        val clock = TikkendeKlokke(1.oktober(2021).fixedClock())
         withKomptestApplication(
             clock = clock,
             clients = {
