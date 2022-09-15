@@ -844,7 +844,7 @@ data class Sak(
             .nonEmpty()
             .right()
 
-    fun kanOppretteBehandling(): Boolean = !harÅpenSøknadsbehandling() && !harÅpenRevurdering() && !harÅpenRegulering()
+    fun kanOppretteBehandling(): Boolean = !harÅpenSøknadsbehandling() && !harÅpenRevurdering() && !harÅpenRegulering() && !harÅpenRevurderingForStansAvYtelse() && !harÅpenRevurderingForGjenopptakAvYtelse()
 
     /**
      * @return Den oppdaterte saken, søknaden som er lukket og dersom den fantes, den lukkede søknadsbehandlingen.

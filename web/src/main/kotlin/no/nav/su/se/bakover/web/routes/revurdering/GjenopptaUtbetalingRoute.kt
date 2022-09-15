@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
+import no.nav.su.se.bakover.web.routes.Feilresponser.harAlleredeÅpenBehandling
 import no.nav.su.se.bakover.web.routes.Feilresponser.tilResultat
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeSak
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.tilResultat
@@ -173,11 +174,8 @@ private fun KunneIkkeGjenopptaYtelse.tilResultat(): Resultat {
             )
         }
         KunneIkkeGjenopptaYtelse.FantIkkeSak -> fantIkkeSak
-        KunneIkkeGjenopptaYtelse.SakHarÅpenRevurderingForGjenopptakAvYtelse -> {
-            BadRequest.errorJson(
-                message = "Åpen revurdering for gjenopptak eksisterer allerede",
-                code = "åpen_revurdering_gjenopptak_eksisterer",
-            )
+        KunneIkkeGjenopptaYtelse.SakHarÅpenBehandling -> {
+            harAlleredeÅpenBehandling
         }
     }
 }

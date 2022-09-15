@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
+import no.nav.su.se.bakover.web.routes.Feilresponser.harAlleredeÅpenBehandling
 import no.nav.su.se.bakover.web.routes.Feilresponser.tilResultat
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeSak
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.tilResultat
@@ -166,11 +167,8 @@ private fun KunneIkkeStanseYtelse.tilResultat(): Resultat {
             )
         }
         KunneIkkeStanseYtelse.FantIkkeSak -> fantIkkeSak
-        KunneIkkeStanseYtelse.SakHarÅpenRevurderingForStansAvYtelse -> {
-            HttpStatusCode.BadRequest.errorJson(
-                message = "Åpen revurdering for stans eksisterer allerede",
-                code = "åpen_revurdering_stans_eksisterer",
-            )
+        KunneIkkeStanseYtelse.SakHarÅpenBehandling -> {
+            harAlleredeÅpenBehandling
         }
     }
 }

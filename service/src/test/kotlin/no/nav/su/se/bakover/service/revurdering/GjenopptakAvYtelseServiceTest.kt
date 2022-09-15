@@ -7,6 +7,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -30,6 +31,7 @@ import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
+import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.oversendtGjenopptakUtbetalingUtenKvittering
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.sakId
@@ -74,6 +76,30 @@ internal class GjenopptakAvYtelseServiceTest {
                     ),
                 ),
             ) shouldBe KunneIkkeGjenopptaYtelse.FantIngenVedtak.left()
+        }
+    }
+
+    @Test
+    fun `svarer med feil dersom sak har åpen behandling`() {
+        val (sak, stans) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak()
+        RevurderingServiceMocks(
+            sakService = mock {
+                on { hentSak(any<UUID>()) } doReturn opprettetRevurdering(
+                    revurderingsperiode = mai(2021),
+                    sakOgVedtakSomKanRevurderes = sak to stans
+                ).first.right()
+            },
+        ).let {
+            it.revurderingService.gjenopptaYtelse(
+                GjenopptaYtelseRequest.Opprett(
+                    sakId = sakId,
+                    saksbehandler = saksbehandler,
+                    revurderingsårsak = Revurderingsårsak.create(
+                        årsak = Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING.toString(),
+                        begrunnelse = "begrunnelse",
+                    ),
+                ),
+            ) shouldBe KunneIkkeGjenopptaYtelse.SakHarÅpenBehandling.left()
         }
     }
 
@@ -397,7 +423,7 @@ internal class GjenopptakAvYtelseServiceTest {
                 ),
             )
 
-            response shouldBe KunneIkkeGjenopptaYtelse.SakHarÅpenRevurderingForGjenopptakAvYtelse.left()
+            response shouldBe KunneIkkeGjenopptaYtelse.SakHarÅpenBehandling.left()
 
             verify(it.sakService).hentSak(sakId)
             it.verifyNoMoreInteractions()

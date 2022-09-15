@@ -422,7 +422,7 @@ sealed class StansYtelseRequest {
 sealed class KunneIkkeStanseYtelse {
     object FantIkkeRevurdering : KunneIkkeStanseYtelse()
     object FantIkkeSak : KunneIkkeStanseYtelse()
-    object SakHarÅpenRevurderingForStansAvYtelse : KunneIkkeStanseYtelse()
+    object SakHarÅpenBehandling : KunneIkkeStanseYtelse()
     data class SimuleringAvStansFeilet(val feil: SimulerStansFeilet) : KunneIkkeStanseYtelse()
     object KunneIkkeOppretteRevurdering : KunneIkkeStanseYtelse()
     data class UgyldigTypeForOppdatering(val type: KClass<out AbstraktRevurdering>) : KunneIkkeStanseYtelse()
@@ -464,7 +464,7 @@ sealed class KunneIkkeGjenopptaYtelse {
     object FantIkkeRevurdering : KunneIkkeGjenopptaYtelse()
     object FantIngenVedtak : KunneIkkeGjenopptaYtelse()
     object FantIkkeSak : KunneIkkeGjenopptaYtelse()
-    object SakHarÅpenRevurderingForGjenopptakAvYtelse : KunneIkkeGjenopptaYtelse()
+    object SakHarÅpenBehandling : KunneIkkeGjenopptaYtelse()
     data class KunneIkkeSimulere(val feil: SimulerGjenopptakFeil) : KunneIkkeGjenopptaYtelse()
     object KunneIkkeOppretteRevurdering : KunneIkkeGjenopptaYtelse()
     data class UgyldigTypeForOppdatering(val type: KClass<out AbstraktRevurdering>) : KunneIkkeGjenopptaYtelse()

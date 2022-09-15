@@ -81,7 +81,9 @@ class GjenopptakAvYtelseService(
                 }
 
                 is GjenopptaYtelseRequest.Opprett -> {
-                    if (sak.harÅpenRevurderingForGjenopptakAvYtelse()) return KunneIkkeGjenopptaYtelse.SakHarÅpenRevurderingForGjenopptakAvYtelse.left()
+                    if (!sak.kanOppretteBehandling()) {
+                        return KunneIkkeGjenopptaYtelse.SakHarÅpenBehandling.left()
+                    }
 
                     val gjeldendeVedtaksdata: GjeldendeVedtaksdata = kopierGjeldendeVedtaksdata(
                         sak = sak,

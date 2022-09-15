@@ -77,8 +77,8 @@ internal class StansAvYtelseService(
                 val sak = sakService.hentSak(request.sakId)
                     .getOrHandle { return KunneIkkeStanseYtelse.FantIkkeSak.left() }
 
-                if (sak.harÅpenRevurderingForStansAvYtelse()) {
-                    return KunneIkkeStanseYtelse.SakHarÅpenRevurderingForStansAvYtelse.left()
+                if (!sak.kanOppretteBehandling()) {
+                    return KunneIkkeStanseYtelse.SakHarÅpenBehandling.left()
                 }
 
                 val gjeldendeVedtaksdata = kopierGjeldendeVedtaksdata(

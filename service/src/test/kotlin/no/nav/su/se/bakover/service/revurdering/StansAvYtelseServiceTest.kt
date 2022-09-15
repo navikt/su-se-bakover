@@ -39,6 +39,7 @@ import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.simulertUtbetaling
+import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagUtenBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Disabled
@@ -62,7 +63,7 @@ internal class StansAvYtelseServiceTest {
     fun `svarer med feil dersom vi ikke får tak i gjeldende grunnlagdata`() {
         RevurderingServiceMocks(
             sakService = mock {
-                on { hentSak(any<UUID>()) } doReturn søknadsbehandlingVilkårsvurdertUavklart().first.right()
+                on { hentSak(any<UUID>()) } doReturn søknadsbehandlingIverksattAvslagUtenBeregning().first.right()
             },
         ).let {
             it.revurderingService.stansAvYtelse(
@@ -79,6 +80,27 @@ internal class StansAvYtelseServiceTest {
 
             verify(it.sakService).hentSak(sakId)
             it.verifyNoMoreInteractions()
+        }
+    }
+
+    @Test
+    fun `får ikke opprettet dersom sak har åpen behandling`() {
+        RevurderingServiceMocks(
+            sakService = mock {
+                on { hentSak(any<UUID>()) } doReturn søknadsbehandlingVilkårsvurdertUavklart().first.right()
+            },
+        ).let {
+            it.revurderingService.stansAvYtelse(
+                StansYtelseRequest.Opprett(
+                    sakId = sakId,
+                    saksbehandler = saksbehandler,
+                    fraOgMed = 1.mai(2021),
+                    revurderingsårsak = Revurderingsårsak.create(
+                        årsak = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING.toString(),
+                        begrunnelse = "begrunnelse",
+                    ),
+                ),
+            ) shouldBe KunneIkkeStanseYtelse.SakHarÅpenBehandling.left()
         }
     }
 
@@ -164,7 +186,7 @@ internal class StansAvYtelseServiceTest {
                         begrunnelse = "begrunnelse",
                     ),
                 ),
-            ).getOrFail("skulle gått bra")
+            ).getOrFail()
 
             verify(it.sakService).hentSak(sakId)
             verify(it.utbetalingService).simulerStans(
@@ -459,7 +481,7 @@ internal class StansAvYtelseServiceTest {
                 ),
             )
 
-            response shouldBe KunneIkkeStanseYtelse.SakHarÅpenRevurderingForStansAvYtelse.left()
+            response shouldBe KunneIkkeStanseYtelse.SakHarÅpenBehandling.left()
 
             verify(sakServiceMock).hentSak(sakId)
             it.verifyNoMoreInteractions()
