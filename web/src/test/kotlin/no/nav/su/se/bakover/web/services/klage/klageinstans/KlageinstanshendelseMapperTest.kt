@@ -5,6 +5,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.klage.UprosessertKlageinstanshendelse
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.getOrFail
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -50,7 +51,7 @@ internal class KlageinstanshendelseMapperTest {
             message = ConsumerRecord(topic, partition, offset, key.toString(), value),
             topic = topic,
             clock = fixedClock,
-        ).orNull()!!
+        ).getOrFail()
         actual shouldBe UprosessertKlageinstanshendelse(
             id = actual.id,
             opprettet = fixedTidspunkt,

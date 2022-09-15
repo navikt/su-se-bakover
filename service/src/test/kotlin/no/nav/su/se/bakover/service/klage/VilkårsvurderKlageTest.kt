@@ -478,7 +478,7 @@ internal class VilkårsvurderKlageTest {
             begrunnelse = "SomeBegrunnelse",
         )
         var expectedKlage: VilkårsvurdertKlage.Utfylt?
-        mocks.service.vilkårsvurder(request).orNull()!!.also {
+        mocks.service.vilkårsvurder(request).getOrFail().also {
             expectedKlage = VilkårsvurdertKlage.Utfylt.create(
                 id = it.id,
                 opprettet = fixedTidspunkt,

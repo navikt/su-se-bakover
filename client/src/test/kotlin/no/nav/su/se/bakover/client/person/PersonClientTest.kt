@@ -45,7 +45,7 @@ internal class PersonClientTest {
                 it shouldBe mocks.person().right()
             }.getOrFail()
             verify(mocks.pdlClient).person(mocks.fnr, mocks.brukerTokenGenerator.first())
-            mocks.personClient.person(fnr = mocks.fnr).orNull()!! shouldBeSameInstanceAs first
+            mocks.personClient.person(fnr = mocks.fnr).getOrFail() shouldBeSameInstanceAs first
             verifyNoMoreInteractions(mocks.pdlClient)
         }
 
@@ -55,10 +55,10 @@ internal class PersonClientTest {
                 BrukertokenGenerator(listOf("1", "2")),
             )
             val first =
-                mocks.personClient.person(fnr = mocks.fnr).also { it shouldBe mocks.person().right() }.orNull()!!
+                mocks.personClient.person(fnr = mocks.fnr).also { it shouldBe mocks.person().right() }.getOrFail()
             mocks.personClient.person(fnr = mocks.fnr).also {
                 it shouldBe mocks.person().right()
-                it.orNull()!! shouldNotBeSameInstanceAs first
+                it.getOrFail() shouldNotBeSameInstanceAs first
             }
             verify(mocks.pdlClient, times(2)).person(eq(mocks.fnr), any())
             verifyNoMoreInteractions(mocks.pdlClient)
@@ -71,10 +71,10 @@ internal class PersonClientTest {
             val fnr2 = Fnr.generer()
             val first = mocks.personClient.person(fnr = fnr1).also {
                 it shouldBe mocks.person().right()
-            }.orNull()!!
+            }.getOrFail()
             mocks.personClient.person(fnr = fnr2).also {
                 it shouldBe mocks.person().right()
-                it.orNull()!! shouldNotBeSameInstanceAs first
+                it.getOrFail() shouldNotBeSameInstanceAs first
             }
             verify(mocks.pdlClient).person(eq(fnr1), any())
             verify(mocks.pdlClient).person(eq(fnr2), any())
@@ -90,9 +90,9 @@ internal class PersonClientTest {
             val mocks = PersonClientConfigTestMocks()
             val first = mocks.personClient.personMedSystembruker(fnr = mocks.fnr).also {
                 it shouldBe mocks.person().right()
-            }.orNull()!!
+            }.getOrFail()
             verify(mocks.pdlClient).personForSystembruker(mocks.fnr)
-            mocks.personClient.personMedSystembruker(fnr = mocks.fnr).orNull()!! shouldBeSameInstanceAs first
+            mocks.personClient.personMedSystembruker(fnr = mocks.fnr).getOrFail() shouldBeSameInstanceAs first
             verifyNoMoreInteractions(mocks.pdlClient)
         }
 
@@ -101,10 +101,10 @@ internal class PersonClientTest {
             val mocks = PersonClientConfigTestMocks()
             val first = mocks.personClient.person(fnr = mocks.fnr).also {
                 it shouldBe mocks.person().right()
-            }.orNull()!!
+            }.getOrFail()
             verify(mocks.pdlClient).person(mocks.fnr, mocks.brukerTokenGenerator.first())
             verifyNoMoreInteractions(mocks.pdlClient)
-            mocks.personClient.personMedSystembruker(fnr = mocks.fnr).orNull()!! shouldBeSameInstanceAs first
+            mocks.personClient.personMedSystembruker(fnr = mocks.fnr).getOrFail() shouldBeSameInstanceAs first
             verifyNoMoreInteractions(mocks.pdlClient)
         }
     }
@@ -116,9 +116,9 @@ internal class PersonClientTest {
             val mocks = PersonClientConfigTestMocks()
             val first = mocks.personClient.aktørId(fnr = mocks.fnr).also {
                 it shouldBe mocks.aktørId.right()
-            }.orNull()!!
+            }.getOrFail()
             verify(mocks.pdlClient).aktørId(mocks.fnr, mocks.brukerTokenGenerator.first())
-            mocks.personClient.aktørId(fnr = mocks.fnr).orNull()!! shouldBeSameInstanceAs first
+            mocks.personClient.aktørId(fnr = mocks.fnr).getOrFail() shouldBeSameInstanceAs first
             verifyNoMoreInteractions(mocks.pdlClient)
         }
     }
@@ -130,9 +130,9 @@ internal class PersonClientTest {
             val mocks = PersonClientConfigTestMocks()
             val first = mocks.personClient.aktørIdMedSystembruker(fnr = mocks.fnr).also {
                 it shouldBe mocks.aktørId.right()
-            }.orNull()!!
+            }.getOrFail()
             verify(mocks.pdlClient).aktørIdMedSystembruker(mocks.fnr)
-            mocks.personClient.aktørIdMedSystembruker(fnr = mocks.fnr).orNull()!! shouldBeSameInstanceAs first
+            mocks.personClient.aktørIdMedSystembruker(fnr = mocks.fnr).getOrFail() shouldBeSameInstanceAs first
             verifyNoMoreInteractions(mocks.pdlClient)
         }
 
@@ -141,10 +141,10 @@ internal class PersonClientTest {
             val mocks = PersonClientConfigTestMocks()
             val first = mocks.personClient.aktørId(fnr = mocks.fnr).also {
                 it shouldBe mocks.aktørId.right()
-            }.orNull()!!
+            }.getOrFail()
             verify(mocks.pdlClient).aktørId(mocks.fnr, mocks.brukerTokenGenerator.first())
             verifyNoMoreInteractions(mocks.pdlClient)
-            mocks.personClient.aktørIdMedSystembruker(fnr = mocks.fnr).orNull()!! shouldBeSameInstanceAs first
+            mocks.personClient.aktørIdMedSystembruker(fnr = mocks.fnr).getOrFail() shouldBeSameInstanceAs first
             verifyNoMoreInteractions(mocks.pdlClient)
         }
     }
@@ -156,9 +156,9 @@ internal class PersonClientTest {
             val mocks = PersonClientConfigTestMocks()
             val first = mocks.personClient.sjekkTilgangTilPerson(fnr = mocks.fnr).also {
                 it shouldBe Unit.right()
-            }.orNull()!!
+            }.getOrFail()
             verify(mocks.pdlClient).person(mocks.fnr, mocks.brukerTokenGenerator.first())
-            mocks.personClient.sjekkTilgangTilPerson(fnr = mocks.fnr).orNull()!! shouldBeSameInstanceAs first
+            mocks.personClient.sjekkTilgangTilPerson(fnr = mocks.fnr).getOrFail() shouldBeSameInstanceAs first
             verifyNoMoreInteractions(mocks.pdlClient)
         }
     }

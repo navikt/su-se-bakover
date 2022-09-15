@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUføre
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.getOrFail
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
@@ -237,7 +238,7 @@ internal class LeggTilUførevurderingerRequestTest {
                 tilOgMed = 28.februar(2021),
             ),
             fixedClock,
-        ).orNull()!!
+        ).getOrFail()
         actual shouldBe UføreVilkår.Vurdert.create(
             vurderingsperioder = nonEmptyListOf(
                 VurderingsperiodeUføre.create(
@@ -299,7 +300,7 @@ internal class LeggTilUførevurderingerRequestTest {
                 tilOgMed = 28.februar(2021),
             ),
             fixedClock,
-        ).orNull()!!
+        ).getOrFail()
         actual shouldBe UføreVilkår.Vurdert.create(
             vurderingsperioder = nonEmptyListOf(
                 VurderingsperiodeUføre.create(
@@ -347,7 +348,7 @@ internal class LeggTilUførevurderingerRequestTest {
                     begrunnelse = "blah",
                 ),
             ),
-        ).toVilkår(januar(2021), fixedClock).orNull()!!
+        ).toVilkår(januar(2021), fixedClock).getOrFail()
             .let { request ->
                 UføreVilkår.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
@@ -374,7 +375,7 @@ internal class LeggTilUførevurderingerRequestTest {
                     begrunnelse = "blah",
                 ),
             ),
-        ).toVilkår(januar(2021), fixedClock).orNull()!!
+        ).toVilkår(januar(2021), fixedClock).getOrFail()
             .let { request ->
                 UføreVilkår.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(

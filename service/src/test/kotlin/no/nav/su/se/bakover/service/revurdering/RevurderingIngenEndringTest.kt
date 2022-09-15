@@ -189,7 +189,7 @@ internal class RevurderingIngenEndringTest {
             skalFøreTilBrevutsending = true,
         )
 
-        val iverksattRevurdering = revurderingTilAttestering.tilIverksatt(attestant, fixedClock).orNull()!!
+        val iverksattRevurdering = revurderingTilAttestering.tilIverksatt(attestant, fixedClock).getOrFail()
         val vedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, fixedClock)
 
         RevurderingServiceMocks(
@@ -249,7 +249,7 @@ internal class RevurderingIngenEndringTest {
             skalFøreTilBrevutsending = false,
         )
 
-        val iverksattRevurdering = revurderingTilAttestering.tilIverksatt(attestant, fixedClock).orNull()!!
+        val iverksattRevurdering = revurderingTilAttestering.tilIverksatt(attestant, fixedClock).getOrFail()
         val vedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, fixedClock)
 
         val revurderingRepoMock = mock<RevurderingRepo> {

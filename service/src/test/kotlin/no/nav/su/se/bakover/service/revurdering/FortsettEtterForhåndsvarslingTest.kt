@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.aktørId
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simulertRevurdering
@@ -124,7 +125,7 @@ internal class FortsettEtterForhåndsvarslingTest {
                     attesteringsoppgaveId = OppgaveId("oppgaveId"),
                     saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerSomBesluttetForhåndsvarsling"),
                     fritekstTilBrev = "",
-                ).orNull()!!
+                ).getOrFail()
             },
             anyOrNull(),
         )

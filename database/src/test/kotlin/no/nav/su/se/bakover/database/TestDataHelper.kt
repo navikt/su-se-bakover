@@ -720,7 +720,7 @@ internal class TestDataHelper(
                     hentOpprinneligAvkorting = { avkortingid ->
                         avkortingsvarselRepo.hent(id = avkortingid)
                     },
-                ).orNull()!!.also {
+                ).getOrFail().also {
                     revurderingRepo.lagre(it)
                 },
                 utbetalingId = utbetaling.id,
@@ -1030,7 +1030,7 @@ internal class TestDataHelper(
      */
     fun persisterRevurderingTilAttesteringInnvilget(): Pair<Sak, RevurderingTilAttestering.Innvilget> {
         return persisterRevurderingSimulertInnvilget().let { (sak, simulert) ->
-            val håndtertForhåndsvarsel = if (simulert.forhåndsvarsel == null) simulert.ikkeSendForhåndsvarsel().orNull()!! else simulert
+            val håndtertForhåndsvarsel = if (simulert.forhåndsvarsel == null) simulert.ikkeSendForhåndsvarsel().getOrFail() else simulert
 
             håndtertForhåndsvarsel.tilAttestering(
                 attesteringsoppgaveId = oppgaveId,
@@ -1287,7 +1287,7 @@ internal class TestDataHelper(
         ).second.let {
             it.lukkSøknadsbehandlingOgSøknad(
                 trekkSøknad(søknadId = søknadId),
-            ).orNull()!!.let { lukketSøknadsbehandling ->
+            ).getOrFail().let { lukketSøknadsbehandling ->
                 søknadsbehandlingRepo.lagre(lukketSøknadsbehandling)
                 søknadRepo.lukkSøknad(lukketSøknadsbehandling.søknad)
                 Pair(sakRepo.hentSak(sakId)!!, lukketSøknadsbehandling)
@@ -1713,7 +1713,7 @@ internal class TestDataHelper(
     ): VilkårsvurdertKlage.Bekreftet.TilVurdering {
         return persisterKlageVilkårsvurdertUtfyltTilVurdering(vedtak = vedtak).bekreftVilkårsvurderinger(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerBekreftetVilkårsvurdertKlage"),
-        ).orNull()!!.let {
+        ).getOrFail().let {
             if (it !is VilkårsvurdertKlage.Bekreftet.TilVurdering) throw IllegalStateException("Forventet en Bekreftet(TilVurdering) vilkårsvurdert klage. fikk ${it::class} ved opprettelse av test-data")
             it
         }.also {
@@ -1797,7 +1797,7 @@ internal class TestDataHelper(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerSomAvsluttetKlagen"),
             begrunnelse = begrunnelse,
             tidspunktAvsluttet = tidspunktAvsluttet,
-        ).orNull()!!.also {
+        ).getOrFail().also {
             klagePostgresRepo.lagre(it)
         }
     }
@@ -1822,7 +1822,7 @@ internal class TestDataHelper(
         return persisterKlageVurdertBekreftet(vedtak = vedtak).sendTilAttestering(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerKlageTilAttestering"),
             opprettOppgave = { oppgaveId.right() },
-        ).orNull()!!.let {
+        ).getOrFail().let {
             if (it !is KlageTilAttestering.Vurdert) throw IllegalStateException("Forventet en KlageTilAttestering(TilVurdering). fikk ${it::class} ved opprettelse av test-data")
             it
         }.also {
@@ -1855,7 +1855,7 @@ internal class TestDataHelper(
                 grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
                 kommentar = "underkjennelseskommentar",
             ),
-        ) { oppgaveId.right() }.orNull()!!.also {
+        ) { oppgaveId.right() }.getOrFail().also {
             klagePostgresRepo.lagre(it)
         }
     }
@@ -1885,7 +1885,7 @@ internal class TestDataHelper(
                 attestant = NavIdentBruker.Attestant(navIdent = "saksbehandlerOversendtKlage"),
                 opprettet = fixedTidspunkt,
             ),
-        ).orNull()!!.also {
+        ).getOrFail().also {
             klagePostgresRepo.lagre(it)
         }
     }

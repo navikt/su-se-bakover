@@ -226,7 +226,7 @@ fun bekreftetVilkårsvurdertKlageTilVurdering(
     ).let {
         val klage = it.second.bekreftVilkårsvurderinger(
             saksbehandler = saksbehandler,
-        ).orNull()!!
+        ).getOrFail()
 
         if (klage !is VilkårsvurdertKlage.Bekreftet.TilVurdering) throw IllegalStateException("Forventet en Vilkårsvurdert.Bekreftet(TilVurdering), men fikk ${klage::class} ved oppretting av test-data")
 
@@ -342,8 +342,8 @@ fun utfyltVurdertKlage(
     begrunnelse: String = "begrunnelse",
     fritekstTilBrev: String = "fritekstTilBrev",
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
-        hjemler = Hjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).orNull()!!,
-    ).orNull()!!,
+        hjemler = Hjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
+    ).getOrFail(),
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
 ): Pair<Sak, VurdertKlage.Utfylt> {
     return bekreftetVilkårsvurdertKlageTilVurdering(
@@ -390,8 +390,8 @@ fun bekreftetVurdertKlage(
     begrunnelse: String = "begrunnelse",
     fritekstTilBrev: String = "fritekstTilBrev",
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
-        hjemler = Hjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).orNull()!!,
-    ).orNull()!!,
+        hjemler = Hjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
+    ).getOrFail(),
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
 ): Pair<Sak, VurdertKlage.Bekreftet> {
     return utfyltVurdertKlage(
@@ -476,7 +476,7 @@ fun avsluttetKlage(
             saksbehandler = saksbehandler,
             begrunnelse = begrunnelse,
             tidspunktAvsluttet = tidspunktAvsluttet,
-        ).orNull()!!
+        ).getOrFail()
     }
 }
 
@@ -495,8 +495,8 @@ fun vurdertKlageTilAttestering(
     begrunnelse: String = "begrunnelse",
     fritekstTilBrev: String = "fritekstTilBrev",
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
-        hjemler = Hjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).orNull()!!,
-    ).orNull()!!,
+        hjemler = Hjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
+    ).getOrFail(),
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
 ): Pair<Sak, KlageTilAttestering.Vurdert> {
     return bekreftetVurdertKlage(
@@ -519,7 +519,7 @@ fun vurdertKlageTilAttestering(
         val klage = it.second.sendTilAttestering(
             opprettOppgave = { oppgaveIdTilAttestering.right() },
             saksbehandler = saksbehandler,
-        ).orNull()!!
+        ).getOrFail()
 
         if (klage !is KlageTilAttestering.Vurdert) throw IllegalStateException("Forventet en KlageTilAttestering(TilVurdering) ved opprettelse av test data. Fikk ${klage::class}")
         Pair(
@@ -586,8 +586,8 @@ fun underkjentKlageTilVurdering(
     begrunnelse: String = "begrunnelse",
     fritekstTilBrev: String = "fritekstTilBrev",
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
-        hjemler = Hjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).orNull()!!,
-    ).orNull()!!,
+        hjemler = Hjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
+    ).getOrFail(),
     attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
     attesteringsgrunn: Attestering.Underkjent.Grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
     attesteringskommentar: String = "attesteringskommentar",
@@ -617,7 +617,7 @@ fun underkjentKlageTilVurdering(
                 grunn = attesteringsgrunn,
                 kommentar = attesteringskommentar,
             ),
-        ) { underkjentKlageOppgaveId.right() }.orNull()!!
+        ) { underkjentKlageOppgaveId.right() }.getOrFail()
         Pair(
             it.first.copy(klager = it.first.klager.filterNot { it.id == klage.id } + klage),
             klage,
@@ -664,7 +664,7 @@ fun underkjentAvvistKlage(
                 grunn = attesteringsgrunn,
                 kommentar = attesteringskommentar,
             ),
-        ) { underkjentKlageOppgaveId.right() }.orNull()!!
+        ) { underkjentKlageOppgaveId.right() }.getOrFail()
 
         Pair(
             it.first.copy(klager = it.first.klager.filterNot { it.id == klage.id } + klage),
@@ -688,8 +688,8 @@ fun underkjentTilVurderingKlageTilAttestering(
     begrunnelse: String = "begrunnelse",
     fritekstTilBrev: String = "fritekstTilBrev",
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
-        hjemler = Hjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).orNull()!!,
-    ).orNull()!!,
+        hjemler = Hjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
+    ).getOrFail(),
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
 ): Pair<Sak, KlageTilAttestering> {
     return underkjentKlageTilVurdering(
@@ -712,7 +712,7 @@ fun underkjentTilVurderingKlageTilAttestering(
         val klage = it.second.sendTilAttestering(
             saksbehandler = saksbehandler,
             opprettOppgave = { oppgaveIdTilAttestering.right() },
-        ).orNull()!!
+        ).getOrFail()
         Pair(
             it.first.copy(klager = it.first.klager.filterNot { it.id == klage.id } + klage),
             klage,
@@ -735,8 +735,8 @@ fun oversendtKlage(
     begrunnelse: String = "begrunnelse",
     fritekstTilBrev: String = "fritekstTilBrev",
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
-        hjemler = Hjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).orNull()!!,
-    ).orNull()!!,
+        hjemler = Hjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).getOrFail(),
+    ).getOrFail(),
     attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
 ): Pair<Sak, OversendtKlage> {
@@ -762,7 +762,7 @@ fun oversendtKlage(
                 attestant = attestant,
                 opprettet = opprettet,
             ),
-        ).orNull()!!
+        ).getOrFail()
         Pair(
             it.first.copy(klager = it.first.klager.filterNot { it.id == klage.id } + klage),
             klage,

@@ -140,7 +140,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 vilkårsvurdert.oppdaterStønadsperiode(
                     oppdatertStønadsperiode = stønadsperiode2021,
                     formuegrenserFactory = formuegrenserFactoryTestPåDato(fixedLocalDate),
-                ).orNull()!!,
+                ).getOrFail(),
             )
 
             repo.hent(vilkårsvurdert.id).also {

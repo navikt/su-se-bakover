@@ -250,7 +250,7 @@ internal class BekreftVilkårsvurdertKlageTest {
         mocks.service.bekreftVilkårsvurderinger(
             klageId = klage.id,
             saksbehandler = NavIdentBruker.Saksbehandler("bekreftetVilkårsvurderingene"),
-        ).orNull()!!.also {
+        ).getOrFail().also {
             expectedKlage = createBekreftetVilkårsvurdertKlage(
                 id = it.id,
                 opprettet = fixedTidspunkt,

@@ -267,7 +267,7 @@ internal class OpprettKlageTest {
             clock = fixedClock,
         )
         var expectedKlage: OpprettetKlage?
-        mocks.service.opprett(request).orNull()!!.also {
+        mocks.service.opprett(request).getOrFail().also {
             expectedKlage = OpprettetKlage(
                 id = it.id,
                 opprettet = fixedTidspunkt,

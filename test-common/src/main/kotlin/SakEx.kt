@@ -13,5 +13,5 @@ fun Sak.gjeldendeVedtaksdata(stønadsperiode: Stønadsperiode): GjeldendeVedtaks
 
 // TODO jah+Jacob: Her har vi allerede en opprettet revurdering med gitt stønadsperiode. Kan vi gjøre noe her? Produksjonskoden bruker vedtakservice, men tenker den burde bruke samme domenekode som her.
 fun Sak.gjeldendeVedtaksdata(fraOgMed: LocalDate): GjeldendeVedtaksdata {
-    return this.kopierGjeldendeVedtaksdata(fraOgMed, fixedClock).orNull()!!
+    return this.kopierGjeldendeVedtaksdata(fraOgMed, fixedClock).getOrFail()
 }
