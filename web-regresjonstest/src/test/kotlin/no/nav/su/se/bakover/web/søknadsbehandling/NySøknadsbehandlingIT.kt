@@ -66,6 +66,19 @@ internal class NySøknadsbehandlingIT {
                         }
                     ]
                 """.trimIndent(),
+                // language=JSON
+                expectedVedtakPåTidslinje = """
+                    [
+                        {
+                            "vedtakType": "SØKNAD",
+                            "periode":{
+                              "fraOgMed":"2021-01-01",
+                              "tilOgMed":"2021-12-31"
+                            },
+                            "vedtakId": "ignore-me"
+                        }
+                    ]
+                """.trimIndent()
             )
         }
     }

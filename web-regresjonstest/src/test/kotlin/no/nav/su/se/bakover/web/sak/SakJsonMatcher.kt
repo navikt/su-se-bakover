@@ -20,6 +20,7 @@ fun assertSakJson(
     expectedKlager: String = "[]",
     expectedReguleringer: String = "[]",
     expectedSakstype: String = "uføre",
+    expectedVedtakPåTidslinje: String = "[]",
 ) {
     // language=JSON
     val expectedSakJson = """
@@ -35,7 +36,8 @@ fun assertSakJson(
         "vedtak": $expectedVedtak,
         "klager": $expectedKlager,
         "reguleringer": $expectedReguleringer,
-        "sakstype": $expectedSakstype
+        "sakstype": $expectedSakstype,
+        "vedtakerPåTidslinje": $expectedVedtakPåTidslinje
     }
     """.trimIndent()
     jsonAssertEquals(
@@ -52,5 +54,6 @@ fun assertSakJson(
         "vedtak[*].behandlingId",
         "behandlinger[*].grunnlagsdataOgVilkårsvurderinger.formue.vurderinger[*].id", // Vi lagrer ikke formuegrunnlag i databasen for søknadsbehandlinger. Så denne vil bli generert på nytt hver gang vi gjør en hentSak etc.
         "behandlinger[*].grunnlagsdataOgVilkårsvurderinger.formue.vurderinger[*].opprettet", // Vi lagrer ikke formuegrunnlag i databasen for søknadsbehandlinger. Så denne vil bli generert på nytt hver gang vi gjør en hentSak etc.
+        "vedtakerPåTidslinje[*].vedtakId",
     )
 }

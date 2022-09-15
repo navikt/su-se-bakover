@@ -153,3 +153,13 @@ internal fun VedtakSomKanRevurderes.toJson(): VedtakJson = when (this) {
     is VedtakSomKanRevurderes.EndringIYtelse -> this.toJson()
     is VedtakSomKanRevurderes.IngenEndringIYtelse -> this.toJson()
 }
+
+internal fun VedtakSomKanRevurderes.toVedtakTypeJson(): VedtakTypeJson = when (this) {
+    is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse -> VedtakTypeJson.GJENOPPTAK_AV_YTELSE
+    is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering -> VedtakTypeJson.REGULERING
+    is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering -> VedtakTypeJson.ENDRING
+    is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling -> VedtakTypeJson.SØKNAD
+    is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering -> VedtakTypeJson.OPPHØR
+    is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse -> VedtakTypeJson.STANS_AV_YTELSE
+    is VedtakSomKanRevurderes.IngenEndringIYtelse -> VedtakTypeJson.INGEN_ENDRING
+}
