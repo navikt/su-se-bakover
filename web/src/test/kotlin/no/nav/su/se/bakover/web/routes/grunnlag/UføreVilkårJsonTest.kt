@@ -32,7 +32,8 @@ class UføreVilkårJsonTest {
     fun `serialiserer og deserialiserer vilkårsvurdering for uføre`() {
         JSONAssert.assertEquals(
             expectedVurderingUføreJson,
-            serialize(uførevurdering.toJson()), true
+            serialize(uførevurdering.toJson()),
+            true,
         )
         deserialize<UføreVilkårJson>(expectedVurderingUføreJson) shouldBe uførevurdering.toJson()
     }

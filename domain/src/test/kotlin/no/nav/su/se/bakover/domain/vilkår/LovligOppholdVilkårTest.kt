@@ -31,8 +31,8 @@ internal class LovligOppholdVilkårTest {
         LovligOppholdVilkår.Vurdert.tryCreate(
             vurderingsperioder = nonEmptyListOf(
                 vurderingsperiodeLovligOppholdInnvilget(),
-                vurderingsperiodeLovligOppholdInnvilget()
-            )
+                vurderingsperiodeLovligOppholdInnvilget(),
+            ),
         ) shouldBe KunneIkkeLageLovligOppholdVilkår.OverlappendeVurderingsperioder.left()
     }
 

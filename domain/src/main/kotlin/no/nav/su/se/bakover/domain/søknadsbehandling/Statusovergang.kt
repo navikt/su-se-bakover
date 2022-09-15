@@ -98,7 +98,6 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
 
         override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Innvilget) {
             result = if (saksbehandlerOgAttestantErForskjellig(søknadsbehandling, attestering)) {
-
                 /**
                  * Skulle ideelt gjort dette inne i [Søknadsbehandling.TilAttestering.Innvilget.tilIverksatt], men må få
                  * sjekket dette før vi oversender til oppdrag.

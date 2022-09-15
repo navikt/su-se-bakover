@@ -102,7 +102,8 @@ internal class OpprettRevurderingServiceTest {
                 opprettetRevurdering.oppgaveId shouldBe OppgaveId("oppgaveId")
                 opprettetRevurdering.fritekstTilBrev shouldBe ""
                 opprettetRevurdering.revurderingsårsak shouldBe Revurderingsårsak.create(
-                    årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER.toString(), begrunnelse = "Ny informasjon",
+                    årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER.toString(),
+                    begrunnelse = "Ny informasjon",
                 )
                 opprettetRevurdering.forhåndsvarsel shouldBe null
                 opprettetRevurdering.vilkårsvurderinger.erLik(søknadsbehandling.vilkårsvurderinger)
@@ -595,8 +596,8 @@ internal class OpprettRevurderingServiceTest {
             )
             actual shouldBe KunneIkkeOppretteRevurdering.FeilVedOpprettelseAvRevurdering(
                 Sak.KunneIkkeOppretteRevurdering.GjeldendeVedtaksdataKanIkkeRevurderes(
-                    Sak.GjeldendeVedtaksdataErUgyldigForRevurdering.HeleRevurderingsperiodenInneholderIkkeVedtak
-                )
+                    Sak.GjeldendeVedtaksdataErUgyldigForRevurdering.HeleRevurderingsperiodenInneholderIkkeVedtak,
+                ),
             ).left()
         }
     }

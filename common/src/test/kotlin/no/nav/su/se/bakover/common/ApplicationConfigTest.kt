@@ -79,7 +79,7 @@ internal class ApplicationConfigTest {
             skjermingUrl = "skjermingUrl",
             kontaktOgReservasjonsregisterConfig = ApplicationConfig.ClientsConfig.KontaktOgReservasjonsregisterConfig(
                 appId = "krrId",
-                url = "krrUrl"
+                url = "krrUrl",
             ),
             kabalConfig = ApplicationConfig.ClientsConfig.KabalConfig(
                 url = "kabalUrl",
@@ -215,7 +215,7 @@ internal class ApplicationConfigTest {
                 "MASKINPORTEN_JWKS_URI" to "maskinporten_jwks_uri",
                 "MASKINPORTEN_TOKEN_ENDPOINT" to "maskinporten_token_endpoint",
                 "KRR_URL" to "krrUrl",
-                "KRR_APP_ID" to "krrId"
+                "KRR_APP_ID" to "krrId",
             ),
         ) {
             ApplicationConfig.createFromEnvironmentVariables() shouldBe expectedApplicationConfig
@@ -286,15 +286,15 @@ internal class ApplicationConfigTest {
                     skjermingUrl = "mocked",
                     kontaktOgReservasjonsregisterConfig = ApplicationConfig.ClientsConfig.KontaktOgReservasjonsregisterConfig(
                         appId = "mocked",
-                        url = "mocked"
+                        url = "mocked",
                     ),
                     kabalConfig = ApplicationConfig.ClientsConfig.KabalConfig(
                         url = "mocked",
-                        clientId = "mocked"
+                        clientId = "mocked",
                     ),
                     safConfig = ApplicationConfig.ClientsConfig.SafConfig(
                         url = "mocked",
-                        clientId = "mocked"
+                        clientId = "mocked",
                     ),
                     maskinportenConfig = ApplicationConfig.ClientsConfig.MaskinportenConfig(
                         clientId = "mocked",
@@ -303,7 +303,7 @@ internal class ApplicationConfigTest {
                         wellKnownUrl = "mocked",
                         issuer = "mocked",
                         jwksUri = "mocked",
-                        tokenEndpoint = "mocked"
+                        tokenEndpoint = "mocked",
                     ),
                     skatteetatenConfig = ApplicationConfig.ClientsConfig.SkatteetatenConfig(apiUri = "mocked"),
                 ),

@@ -17,7 +17,7 @@ import java.util.UUID
 enum class UførevilkårStatus {
     VilkårOppfylt,
     VilkårIkkeOppfylt,
-    HarUføresakTilBehandling
+    HarUføresakTilBehandling,
 }
 
 data class LeggTilUførevilkårRequest(

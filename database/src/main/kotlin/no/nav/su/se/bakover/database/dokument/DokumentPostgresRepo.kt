@@ -32,7 +32,7 @@ internal class DokumentPostgresRepo(
         dbMetrics.timeQuery("lagreDokumentMedMetadata") {
             transactionContext.withTransaction { tx ->
                 """
-                insert into dokument(id, opprettet, sakId, generertDokument, generertDokumentJson, type, tittel, søknadId, vedtakId, revurderingId, klageId, bestillbrev) 
+                insert into dokument(id, opprettet, sakId, generertDokument, generertDokumentJson, type, tittel, søknadId, vedtakId, revurderingId, klageId, bestillbrev)
                 values (:id, :opprettet, :sakId, :generertDokument, to_json(:generertDokumentJson::json), :type, :tittel, :soknadId, :vedtakId, :revurderingId, :klageId, :bestillbrev)
                 """.trimIndent()
                     .insert(
@@ -58,7 +58,7 @@ internal class DokumentPostgresRepo(
                         tx,
                     )
 
-                if (dokument.metadata.bestillBrev)
+                if (dokument.metadata.bestillBrev) {
                     lagreDokumentdistribusjon(
                         dokumentdistribusjon = Dokumentdistribusjon(
                             id = UUID.randomUUID(),
@@ -69,6 +69,7 @@ internal class DokumentPostgresRepo(
                         ),
                         tx,
                     )
+                }
             }
         }
     }
@@ -168,7 +169,7 @@ internal class DokumentPostgresRepo(
         return dbMetrics.timeQuery("hentDokumenterForDistribusjon") {
             sessionFactory.withSession { session ->
                 """
-                select * from dokument_distribusjon 
+                select * from dokument_distribusjon
                 where journalpostId is null or brevbestillingId is null
                 order by opprettet asc
                 limit 10
@@ -184,11 +185,11 @@ internal class DokumentPostgresRepo(
         dbMetrics.timeQuery("oppdaterDokumentdistribusjon") {
             sessionFactory.withSession { session ->
                 """
-                update dokument_distribusjon set 
+                update dokument_distribusjon set
                     journalpostId = :journalpostId,
                     brevbestillingId = :brevbestillingId,
                     endret = :endret
-                where id = :id    
+                where id = :id
                 """.trimIndent()
                     .oppdatering(
                         mapOf(

@@ -12,19 +12,19 @@ import kotlin.time.Duration.Companion.seconds
 
 // Understands how to create a data source from environment variables
 internal class Postgres(
-    private val databaseConfig: ApplicationConfig.DatabaseConfig
+    private val databaseConfig: ApplicationConfig.DatabaseConfig,
 ) {
     fun build(): AbstractDatasource {
         return when (databaseConfig) {
             is ApplicationConfig.DatabaseConfig.StaticCredentials -> NonVaultPostgres(
                 jdbcUrl = databaseConfig.jdbcUrl,
                 username = databaseConfig.username,
-                password = databaseConfig.password
+                password = databaseConfig.password,
             )
             is ApplicationConfig.DatabaseConfig.RotatingCredentials -> VaultPostgres(
                 jdbcUrl = databaseConfig.jdbcUrl,
                 vaultMountPath = databaseConfig.vaultMountPath,
-                databaseName = databaseConfig.databaseName
+                databaseName = databaseConfig.databaseName,
             )
         }
     }
@@ -52,7 +52,7 @@ internal class NonVaultPostgres(jdbcUrl: String, private val username: String, p
         hikariConfig.apply {
             username = this@NonVaultPostgres.username
             password = this@NonVaultPostgres.password
-        }
+        },
     )
 }
 

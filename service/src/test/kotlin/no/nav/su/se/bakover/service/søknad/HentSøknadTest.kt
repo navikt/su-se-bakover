@@ -19,7 +19,7 @@ class HentSøknadTest {
         SøknadServiceOgMocks(
             søknadRepo = mock {
                 on { hentSøknad(any()) } doReturn null
-            }
+            },
         ).also {
             it.service.hentSøknad(UUID.randomUUID()) shouldBe FantIkkeSøknad.left()
         }
@@ -31,13 +31,13 @@ class HentSøknadTest {
             clock = fixedClock,
             sakId = UUID.randomUUID(),
             søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-            søknadInnsendtAv = veileder
+            søknadInnsendtAv = veileder,
         )
 
         SøknadServiceOgMocks(
             søknadRepo = mock {
                 on { hentSøknad(any()) } doReturn søknad
-            }
+            },
         ).also {
             it.service.hentSøknad(UUID.randomUUID()) shouldBe søknad.right()
         }

@@ -5,7 +5,8 @@ import no.nav.su.se.bakover.domain.vilkår.Vurdering
 internal enum class ResultatDto {
     AVSLAG,
     INNVILGET,
-    UAVKLART;
+    UAVKLART,
+    ;
 
     fun toDomain() = when (this) {
         AVSLAG -> Vurdering.Avslag

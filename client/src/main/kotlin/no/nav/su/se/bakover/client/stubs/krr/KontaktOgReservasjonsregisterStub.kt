@@ -13,7 +13,7 @@ object KontaktOgReservasjonsregisterStub : KontaktOgReservasjonsregister {
             mobiltelefonnummer = "90909090",
             reservert = false,
             kanVarsles = true,
-            språk = "nb"
+            språk = "nb",
         ).right()
     }
 }

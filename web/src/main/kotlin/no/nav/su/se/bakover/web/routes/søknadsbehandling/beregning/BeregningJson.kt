@@ -13,7 +13,7 @@ internal data class BeregningJson(
     val tilOgMed: String,
     val månedsberegninger: List<MånedsberegningJson> = emptyList(),
     val fradrag: List<FradragJson> = emptyList(),
-    val begrunnelse: String?
+    val begrunnelse: String?,
 )
 
 internal fun Beregning.toJson(): BeregningJson {
@@ -30,10 +30,10 @@ internal fun Beregning.toJson(): BeregningJson {
         månedsberegninger = getMånedsberegninger().map {
             it.toJson(
                 it.getFribeløpForEps(),
-                epsInputFradrag = epsInputFradragMap[it.periode] ?: emptyList()
+                epsInputFradrag = epsInputFradragMap[it.periode] ?: emptyList(),
             )
         },
         fradrag = getFradrag().toJson(),
-        begrunnelse = getBegrunnelse()
+        begrunnelse = getBegrunnelse(),
     )
 }

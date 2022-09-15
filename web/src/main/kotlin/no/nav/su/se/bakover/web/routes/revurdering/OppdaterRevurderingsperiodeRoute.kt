@@ -61,7 +61,7 @@ internal fun Route.oppdaterRevurderingRoute(
                             revurderingId = revurderingId,
                             periode = Periode.create(
                                 fraOgMed = body.fraOgMed,
-                                tilOgMed = body.tilOgMed
+                                tilOgMed = body.tilOgMed,
                             ),
                             årsak = body.årsak,
                             begrunnelse = body.begrunnelse,
@@ -76,8 +76,8 @@ internal fun Route.oppdaterRevurderingRoute(
                             call.svar(
                                 Resultat.json(
                                     HttpStatusCode.OK,
-                                    serialize(it.toJson(satsFactory))
-                                )
+                                    serialize(it.toJson(satsFactory)),
+                                ),
                             )
                         },
                     )

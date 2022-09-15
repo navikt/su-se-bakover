@@ -17,9 +17,9 @@ class KontaktOgReservasjonsregisterClientTest : WiremockBase {
     private val client = KontaktOgReservasjonsregisterClient(
         config = ApplicationConfig.ClientsConfig.KontaktOgReservasjonsregisterConfig(
             appId = "appId",
-            url = WiremockBase.wireMockServer.baseUrl()
+            url = WiremockBase.wireMockServer.baseUrl(),
         ),
-        azure = AzureClientStub
+        azure = AzureClientStub,
     )
     private val fnr: Fnr = Fnr(fødselsnummer)
 
@@ -38,16 +38,16 @@ class KontaktOgReservasjonsregisterClientTest : WiremockBase {
                           "mobiltelefonnummer": "11111111",
                           "spraak": "nb"
                         }
-                        """.trimIndent()
-                    )
-                )
+                        """.trimIndent(),
+                    ),
+                ),
         )
         client.hentKontaktinformasjon(fnr) shouldBe Kontaktinformasjon(
             epostadresse = "noreply@nav.no",
             mobiltelefonnummer = "11111111",
             reservert = false,
             kanVarsles = false,
-            språk = "nb"
+            språk = "nb",
         ).right()
     }
 

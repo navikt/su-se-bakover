@@ -42,6 +42,6 @@ class SkatteServiceImpl(
             grunnlag = skattegrunnlag.grunnlag.filter {
                 it.kategori.contains(Skattegrunnlag.Kategori.INNTEKT) ||
                     it.kategori.contains(Skattegrunnlag.Kategori.FORMUE)
-            }
+            },
         )
 }

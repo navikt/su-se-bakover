@@ -55,7 +55,7 @@ internal class PersonligOppmøteVilkårsvurderingPostgresRepo(
                     resultat,
                     fraOgMed,
                     tilOgMed
-                ) values 
+                ) values
                 (
                     :id,
                     :opprettet,

@@ -57,8 +57,10 @@ internal fun hentSøknad(sakJson: String, søknadId: String): String? {
     return JSONObject(sakJson).getJSONArray("søknader").let {
         if (it.isEmpty) {
             null
-        } else it.firstOrNull {
-            (it as JSONObject).get("id").toString() == søknadId
-        }?.toString()
+        } else {
+            it.firstOrNull {
+                (it as JSONObject).get("id").toString() == søknadId
+            }?.toString()
+        }
     }
 }

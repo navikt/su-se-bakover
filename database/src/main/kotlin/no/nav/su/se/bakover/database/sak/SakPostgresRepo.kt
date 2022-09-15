@@ -144,7 +144,7 @@ internal class SakPostgresRepo(
                         "soknadId" to sak.søknad.id,
                         "soknad" to serialize(sak.søknad.søknadInnhold),
                         "type" to sak.søknad.type.value,
-                        "ident" to sak.søknad.innsendtAv.navIdent
+                        "ident" to sak.søknad.innsendtAv.navIdent,
                     ),
                     session,
                 )

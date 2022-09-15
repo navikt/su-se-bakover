@@ -65,7 +65,7 @@ class StubClientsBuilder(
                     applicationConfig.clientsConfig.stsUrl,
                     applicationConfig.serviceUser.username,
                     applicationConfig.serviceUser.password,
-                    clock
+                    clock,
                 )
             },
             pdfGenerator = if (applicationConfig.pdfgenLocal) {

@@ -70,7 +70,8 @@ data class UtbetalingRequest(
         UTBETALING(1),
 
         @Suppress("unused")
-        SIMULERING(3);
+        SIMULERING(3),
+        ;
 
         override fun toString() = value.toString()
     }
@@ -80,7 +81,8 @@ data class UtbetalingRequest(
         ENDRING("ENDR"),
 
         @Suppress("unused")
-        UENDRET("UEND");
+        UENDRET("UEND"),
+        ;
 
         override fun toString() = value
     }
@@ -97,7 +99,8 @@ data class UtbetalingRequest(
         FJORTEN_DAGER("14DG"),
 
         @Suppress("unused")
-        ENGANGSUTBETALING("ENG");
+        ENGANGSUTBETALING("ENG"),
+        ;
 
         override fun toString() = value
     }
@@ -179,7 +182,8 @@ data class UtbetalingRequest(
     ) {
         enum class KodeEndringLinje(@JsonValue val value: String) {
             NY("NY"),
-            ENDRING("ENDR");
+            ENDRING("ENDR"),
+            ;
 
             override fun toString() = value
         }
@@ -204,7 +208,8 @@ data class UtbetalingRequest(
             /**
              * Reaktivering oppdragsliner med status OPPH/HVIL.
              */
-            REAKTIVER("REAK");
+            REAKTIVER("REAK"),
+            ;
 
             override fun toString() = value
 
@@ -239,7 +244,8 @@ data class UtbetalingRequest(
         enum class FradragTillegg(@JsonValue val value: String) {
             @Suppress("unused")
             FRADRAG("F"),
-            TILLEGG("T");
+            TILLEGG("T"),
+            ;
 
             override fun toString() = value
         }
@@ -254,7 +260,8 @@ data class UtbetalingRequest(
             MND("MND"),
             AAR("AAR"),
             ENGANGSUTBETALING("ENG"),
-            AKTO("AKTO");
+            AKTO("AKTO"),
+            ;
 
             override fun toString() = value
         }
@@ -265,7 +272,7 @@ data class UtbetalingRequest(
         )
 
         enum class TypeGrad(@JsonValue val value: String) {
-            UFOR("UFOR")
+            UFOR("UFOR"),
         }
 
         data class Attestant(
@@ -282,7 +289,8 @@ data class UtbetalingRequest(
          */
         enum class Kjøreplan(@JsonValue val value: String) {
             JA("J"),
-            NEI("N");
+            NEI("N"),
+            ;
 
             override fun toString() = value
         }

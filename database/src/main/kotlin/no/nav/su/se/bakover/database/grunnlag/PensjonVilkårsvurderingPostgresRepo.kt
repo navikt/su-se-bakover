@@ -52,7 +52,7 @@ internal class PensjonVilkårsvurderingPostgresRepo(
                     resultat,
                     fraOgMed,
                     tilOgMed
-                ) values 
+                ) values
                 (
                     :id,
                     :opprettet,

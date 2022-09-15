@@ -100,7 +100,10 @@ internal class EpsUnder67OgUførFlyktningStrategyTest {
             )
         val expectedEpsFradragJuli =
             lagPeriodisertFradrag(
-                BeregnetFradragEPS, 20000.0 - 19256.69, juli(2020), tilhører = EPS,
+                BeregnetFradragEPS,
+                20000.0 - 19256.69,
+                juli(2020),
+                tilhører = EPS,
             )
 
         FradragStrategy.Uføre.EpsUnder67ÅrOgUførFlyktning(satsFactoryTestPåDato()).beregn(

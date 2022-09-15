@@ -23,7 +23,7 @@ internal class NøkkeltallPostgresRepo(
                      gjeldende_vedtak as (select * from vedtak where :dato >= vedtak.fraogmed and :dato <= vedtak.tilogmed),
                      innvilgelser as (select count(*) from gjeldende_vedtak where vedtaktype = 'SØKNAD'),
                      opphør as (select count(*) from gjeldende_vedtak where vedtaktype = 'OPPHØR')
-                     
+
                 select
                 (select count(*) from søknadsinfo) as totalt,
                 (select count(*) from søknadsinfo where søknadsinfo.lukket is null and status is not null and status not like '%IVERKSATT%') as påbegynt,
@@ -54,6 +54,6 @@ internal class NøkkeltallPostgresRepo(
             papirsøknader = int("papirsøknader"),
         ),
         antallUnikePersoner = int("personer"),
-        løpendeSaker = int("løpendeSaker")
+        løpendeSaker = int("løpendeSaker"),
     )
 }

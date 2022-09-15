@@ -82,7 +82,7 @@ internal class OpprettKlageTest {
             oppgaveService = mock {
                 on { opprettOppgave(any()) } doReturn OppgaveId("nyOppgaveId").right()
             },
-            observer = observerMock
+            observer = observerMock,
         )
 
         val request = NyKlageRequest(
@@ -228,7 +228,7 @@ internal class OpprettKlageTest {
             journalpostId = JournalpostId("j2"),
             saksbehandler = NavIdentBruker.Saksbehandler("s2"),
             datoKlageMottatt = LocalDate.now(fixedClock).plusDays(1),
-            clock = fixedClock
+            clock = fixedClock,
         )
         mocks.service.opprett(request) shouldBe KunneIkkeOppretteKlage.UgyldigMottattDato.left()
         mocks.verifyNoMoreInteractions()
@@ -294,7 +294,7 @@ internal class OpprettKlageTest {
             },
             argThat {
                 it shouldBe TestSessionFactory.transactionContext
-            }
+            },
         )
         verify(mocks.oppgaveService).opprettOppgave(
             argThat {

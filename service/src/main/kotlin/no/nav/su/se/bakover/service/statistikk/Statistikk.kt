@@ -108,11 +108,11 @@ sealed class Statistikk {
         enum class BehandlingType(val beskrivelse: String) {
             SOKNAD("Søknad for SU Uføre"),
             REVURDERING("Revurdering av søknad for SU Uføre"),
-            KLAGE("Klage for SU Uføre")
+            KLAGE("Klage for SU Uføre"),
         }
         enum class SøknadStatus(val beskrivelse: String) {
             SØKNAD_MOTTATT("Søknaden er mottatt"),
-            SØKNAD_LUKKET("Søknaden er lukket")
+            SØKNAD_LUKKET("Søknaden er lukket"),
         }
     }
 
@@ -158,7 +158,7 @@ sealed class Statistikk {
         val versjon: Long,
         val opphorsgrunn: String? = null,
         val opphorsdato: LocalDate? = null,
-        val flyktningsstatus: String? = "FLYKTNING" // Alle som gjelder SU Ufør vil være flyktning
+        val flyktningsstatus: String? = "FLYKTNING", // Alle som gjelder SU Ufør vil være flyktning
     ) : Statistikk() {
         enum class Stønadstype(val beskrivelse: String) {
             SU_UFØR("SU Ufør"),
@@ -192,7 +192,7 @@ sealed class Statistikk {
         val inntektstype: String,
         val beløp: Long,
         val tilhører: String,
-        val erUtenlandsk: Boolean
+        val erUtenlandsk: Boolean,
     )
 
     data class Aktør(val aktorId: Int, val rolle: String, val rolleBeskrivelse: String)

@@ -248,7 +248,8 @@ internal class PersonRoutesKtTest {
                   "code": "ikke_tilgang_til_person"
                 }
                     """.trimIndent(),
-                    bodyAsText(), true,
+                    bodyAsText(),
+                    true,
                 )
             }
         }

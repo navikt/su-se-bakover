@@ -179,7 +179,8 @@ internal class FerdigeBehandlingerRepo(
     private enum class BehandlingsTypeDB {
         SØKNADSBEHANDLING,
         REVURDERING,
-        KLAGE;
+        KLAGE,
+        ;
 
         fun toBehandlingstype(): Behandlingsoversikt.Behandlingstype {
             return when (this) {

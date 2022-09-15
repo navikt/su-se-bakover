@@ -45,7 +45,7 @@ data class LeggTilFlereUtenlandsoppholdRequest(
 enum class UtenlandsoppholdStatus {
     SkalVæreMerEnn90DagerIUtlandet,
     SkalHoldeSegINorge,
-    Uavklart
+    Uavklart,
 }
 
 data class LeggTilUtenlandsoppholdRequest(

@@ -133,5 +133,5 @@ private class LeggTilOpplysningspliktVilkårBody private constructor(
 
 private enum class Behandlingstype {
     SØKNADSBEHANDLING,
-    REVURDERING
+    REVURDERING,
 }

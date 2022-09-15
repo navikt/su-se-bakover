@@ -33,7 +33,7 @@ internal fun ApplicationCall.sikkerlogg(msg: String) {
 internal fun ApplicationCall.audit(
     berørtBruker: Fnr,
     action: AuditLogEvent.Action,
-    behandlingId: UUID?
+    behandlingId: UUID?,
 ) {
     AuditLogger.log(
         AuditLogEvent(

@@ -86,7 +86,8 @@ class SøknadsbehandlingLeggTilUtenlandsoppholdTest {
                     ),
                 ),
             ) shouldBe SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.UgyldigTilstand(
-                fra = iverksatt::class, til = Søknadsbehandling.Vilkårsvurdert::class,
+                fra = iverksatt::class,
+                til = Søknadsbehandling.Vilkårsvurdert::class,
             ).left()
 
             verify(it.søknadsbehandlingRepo).hent(any())

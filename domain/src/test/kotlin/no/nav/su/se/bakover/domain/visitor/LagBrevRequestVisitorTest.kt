@@ -1397,7 +1397,7 @@ internal class LagBrevRequestVisitorTest {
                 opphørUtbetalingSimulert(
                     sakOgBehandling = sak to beregnet,
                     opphørsperiode = it.opphørsperiode,
-                    clock = fixedClock
+                    clock = fixedClock,
                 ).right()
             }.getOrFail()
         }.ikkeSendForhåndsvarsel().getOrFail()

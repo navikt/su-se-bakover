@@ -118,7 +118,7 @@ internal class SøknadsbehandlingBeregnTest {
             .sumOf { it.beløp } * antallMånederMedFeilutbetaling.toDouble()
 
         søknadsbehandlingVilkårsvurdertInnvilget(
-            stønadsperiode = stønadsperiode2021
+            stønadsperiode = stønadsperiode2021,
         ).let { (_, førBeregning) ->
             førBeregning.copy(
                 avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
@@ -130,7 +130,7 @@ internal class SøknadsbehandlingBeregnTest {
                         simulering = simuleringOpphørt(
                             opphørsperiode = Periode.create(
                                 fraOgMed = LocalDate.now(nåtidForSimuleringStub).startOfMonth().minusMonths(antallMånederMedFeilutbetaling),
-                                tilOgMed = stønadsperiode2021.periode.tilOgMed
+                                tilOgMed = stønadsperiode2021.periode.tilOgMed,
                             ),
                             eksisterendeUtbetalinger = eksisterendeUtbetalinger,
                             fnr = førBeregning.fnr,
@@ -166,7 +166,7 @@ internal class SøknadsbehandlingBeregnTest {
             .sumOf { it.beløp } * antallMånederMedFeilutbetaling.toDouble()
 
         søknadsbehandlingVilkårsvurdertInnvilget(
-            stønadsperiode = stønadsperiode2021
+            stønadsperiode = stønadsperiode2021,
         ).let { (_, vilkårsvurdert) ->
             vilkårsvurdert.leggTilFradragsgrunnlag(
                 fradragsgrunnlag = listOf(
@@ -192,7 +192,7 @@ internal class SøknadsbehandlingBeregnTest {
                         simulering = simuleringOpphørt(
                             opphørsperiode = Periode.create(
                                 fraOgMed = LocalDate.now(nåtidForSimuleringStub).startOfMonth().minusMonths(antallMånederMedFeilutbetaling),
-                                tilOgMed = stønadsperiode2021.periode.tilOgMed
+                                tilOgMed = stønadsperiode2021.periode.tilOgMed,
                             ),
                             eksisterendeUtbetalinger = eksisterendeUtbetalinger,
                             fnr = vilkårsvurdert.fnr,

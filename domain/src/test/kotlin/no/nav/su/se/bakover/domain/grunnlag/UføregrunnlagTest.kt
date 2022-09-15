@@ -28,7 +28,7 @@ internal class UføregrunnlagTest {
             opprettet = fixedTidspunkt,
             periode = år(2021),
             uføregrad = Uføregrad.parse(50),
-            forventetInntekt = 500
+            forventetInntekt = 500,
         )
         original.copy(CopyArgs.Tidslinje.Full).let {
             it.id shouldNotBe original.id
@@ -46,12 +46,12 @@ internal class UføregrunnlagTest {
             opprettet = fixedTidspunkt,
             periode = år(2021),
             uføregrad = Uføregrad.parse(50),
-            forventetInntekt = 500
+            forventetInntekt = 500,
         )
         original.copy(
             CopyArgs.Tidslinje.NyPeriode(
-                periode = Periode.create(1.mai(2021), 31.desember(2021))
-            )
+                periode = Periode.create(1.mai(2021), 31.desember(2021)),
+            ),
         ).let {
             it.id shouldNotBe original.id
             it.opprettet shouldBe original.opprettet

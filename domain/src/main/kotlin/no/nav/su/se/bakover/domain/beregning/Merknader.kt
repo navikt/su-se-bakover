@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 sealed class Merknader {
 
     class Beregningsmerknad(
-        private val merknader: MutableList<Merknad.Beregning> = mutableListOf()
+        private val merknader: MutableList<Merknad.Beregning> = mutableListOf(),
     ) {
 
         fun leggTil(vararg merknad: Merknad.Beregning) {

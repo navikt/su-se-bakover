@@ -17,7 +17,7 @@ internal object KabalRequestTestData {
         fagsak = KabalRequest.Fagsak(fagsakId = "2021"),
         hjemler = listOf(
             KabalRequest.Hjemmel.LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_3,
-            KabalRequest.Hjemmel.LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_4
+            KabalRequest.Hjemmel.LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_4,
         ),
         innsendtTilNav = LocalDate.now(fixedClock),
         mottattFoersteinstans = Tidspunkt.now(fixedClock).toLocalDate(ZoneOffset.UTC),

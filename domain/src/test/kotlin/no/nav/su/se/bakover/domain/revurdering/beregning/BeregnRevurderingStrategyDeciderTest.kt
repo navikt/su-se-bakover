@@ -522,7 +522,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                         periode = Periode.create(1.mai(2021), 31.desember(2021)),
                     ),
                 ),
-                sakOgVedtakSomKanRevurderes = sak to førsteStønadsperiode
+                sakOgVedtakSomKanRevurderes = sak to førsteStønadsperiode,
             ).let {
                 sak = it.first
                 it.second
@@ -600,7 +600,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                         periode = Periode.create(1.mai(2021), 31.desember(2021)),
                     ),
                 ),
-                sakOgVedtakSomKanRevurderes = sak to førsteStønadsperiode
+                sakOgVedtakSomKanRevurderes = sak to førsteStønadsperiode,
             ).let {
                 sak = it.first
                 it.second
@@ -686,7 +686,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                         periode = Periode.create(1.mai(2021), 31.desember(2021)),
                     ),
                 ),
-                sakOgVedtakSomKanRevurderes = sak to førsteStønadsperiode
+                sakOgVedtakSomKanRevurderes = sak to førsteStønadsperiode,
             ).let {
                 sak = it.first
                 it.second

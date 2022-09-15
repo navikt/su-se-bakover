@@ -26,7 +26,7 @@ internal class AvkortingsvarselPostgresRepo(
     enum class Status {
         SKAL_AVKORTES,
         AVKORTET,
-        ANNULLERT
+        ANNULLERT,
     }
 
     internal fun lagre(avkortingsvarsel: Avkortingsvarsel.Utenlandsopphold.SkalAvkortes, tx: TransactionalSession) {
@@ -74,18 +74,18 @@ internal class AvkortingsvarselPostgresRepo(
     ) {
         dbMetrics.timeQuery("insertAvkortingsvarsel") {
             """insert into avkortingsvarsel (
-            id, 
-            opprettet, 
-            sakId, 
+            id,
+            opprettet,
+            sakId,
             revurderingId,
             simulering,
             status
             ) values (
-                :id, 
-                :opprettet, 
-                :sakId, 
+                :id,
+                :opprettet,
+                :sakId,
                 :revurderingId,
-                to_jsonb(:simulering::json), 
+                to_jsonb(:simulering::json),
                 :status
              )
             """.trimMargin()

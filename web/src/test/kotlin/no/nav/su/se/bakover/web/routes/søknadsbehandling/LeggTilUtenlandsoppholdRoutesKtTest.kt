@@ -74,11 +74,11 @@ internal class LeggTilUtenlandsoppholdRoutesKtTest {
                         "vurderinger": [
                             {
                                 "periode": {"fraOgMed": "2021-01-01", "tilOgMed": "2021-01-31"},
-                                "status": "SkalHoldeSegINorge"           
+                                "status": "SkalHoldeSegINorge"
                             }
                         ]
                      }
-                    """.trimIndent()
+                    """.trimIndent(),
                 )
             }.apply {
                 status shouldBe HttpStatusCode.NotFound
@@ -111,17 +111,18 @@ internal class LeggTilUtenlandsoppholdRoutesKtTest {
                         "vurderinger": [
                             {
                                 "periode": {"fraOgMed": "2021-01-01", "tilOgMed": "2021-01-31"},
-                                "status": "SkalHoldeSegINorge"           
+                                "status": "SkalHoldeSegINorge"
                             }
                         ]
                      }
-                    """.trimIndent()
+                    """.trimIndent(),
                 )
             }.apply {
                 status shouldBe HttpStatusCode.OK
                 JSONAssert.assertEquals(
                     bodyAsText(),
-                    serialize(vilkårsvurdert.toJson(satsFactoryTestPåDato())), true,
+                    serialize(vilkårsvurdert.toJson(satsFactoryTestPåDato())),
+                    true,
                 )
             }
         }
@@ -144,11 +145,11 @@ internal class LeggTilUtenlandsoppholdRoutesKtTest {
                         "vurderinger": [
                             {
                                 "periode": {"fraOgMed": "2021-05-01", "tilOgMed": "2021-01-31"},
-                                "status": "SkalHoldeSegINorge"           
+                                "status": "SkalHoldeSegINorge"
                             }
                         ]
                      }
-                    """.trimIndent()
+                    """.trimIndent(),
                 )
             }.apply {
                 status shouldBe HttpStatusCode.BadRequest

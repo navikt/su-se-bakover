@@ -20,7 +20,6 @@ object MånedsberegningFactory {
         strategy: BeregningStrategy,
         fradrag: List<Fradrag>,
     ): BeregningForMåned {
-
         val ytelseFørFradrag = strategy.beregn(måned)
         val fradragForMåned = strategy.beregnFradrag(måned, fradrag)
         val fribeløpForEps = strategy.beregnFribeløpEPS(måned)

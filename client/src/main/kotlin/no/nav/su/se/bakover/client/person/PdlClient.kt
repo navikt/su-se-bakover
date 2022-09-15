@@ -324,7 +324,7 @@ internal data class Fullmakt(
     @Suppress("unused")
     enum class FullmaktsRolle {
         FULLMAKTSGIVER,
-        FULLMEKTIG
+        FULLMEKTIG,
     }
 }
 

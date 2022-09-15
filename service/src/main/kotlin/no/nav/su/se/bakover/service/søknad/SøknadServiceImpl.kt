@@ -78,7 +78,7 @@ internal class SøknadServiceImpl(
                 val nySak = sakFactory.nySakMedNySøknad(
                     fnr = fnr,
                     søknadInnhold = søknadsinnholdMedNyesteFødselsnummer,
-                    innsendtAv = identBruker
+                    innsendtAv = identBruker,
                 ).also {
                     sakService.opprettSak(it)
                 }
@@ -93,7 +93,7 @@ internal class SøknadServiceImpl(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(clock),
                     søknadInnhold = søknadsinnholdMedNyesteFødselsnummer,
-                    innsendtAv = identBruker
+                    innsendtAv = identBruker,
                 )
                 søknadRepo.opprettSøknad(søknad)
 
@@ -136,7 +136,7 @@ internal class SøknadServiceImpl(
             opprettJournalpost(
                 sak.saksnummer,
                 søknad,
-                person
+                person,
             )
         }
     }
@@ -174,7 +174,7 @@ internal class SøknadServiceImpl(
     private fun opprettJournalpost(
         saksnummer: Saksnummer,
         søknad: Søknad.Ny,
-        person: Person
+        person: Person,
     ): Either<KunneIkkeOppretteJournalpost, Søknad.Journalført.UtenOppgave> {
         val pdfByteArray = pdfGenerator.genererPdf(
             SøknadPdfInnhold.create(
@@ -184,7 +184,7 @@ internal class SøknadServiceImpl(
                 søknadOpprettet = søknad.opprettet,
                 søknadInnhold = søknad.søknadInnhold,
                 clock = clock,
-            )
+            ),
         ).getOrHandle {
             log.error("Ny søknad: Kunne ikke generere PDF. Originalfeil: $it")
             return KunneIkkeOppretteJournalpost(søknad.sakId, søknad.id, "Kunne ikke generere PDF").left()
@@ -214,7 +214,6 @@ internal class SøknadServiceImpl(
         person: Person,
         opprettOppgave: (oppgaveConfig: OppgaveConfig.Søknad) -> Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveId> = oppgaveService::opprettOppgave,
     ): Either<KunneIkkeOppretteOppgave, Søknad.Journalført.MedOppgave> {
-
         return opprettOppgave(
             OppgaveConfig.Søknad(
                 journalpostId = søknad.journalpostId,
@@ -222,7 +221,7 @@ internal class SøknadServiceImpl(
                 aktørId = person.ident.aktørId,
                 clock = clock,
                 tilordnetRessurs = null,
-                sakstype = søknad.søknadInnhold.type()
+                sakstype = søknad.søknadInnhold.type(),
             ),
         ).mapLeft {
             log.error("Ny søknad: Kunne ikke opprette oppgave for sak ${søknad.sakId} og søknad ${søknad.id}. Originalfeil: $it")

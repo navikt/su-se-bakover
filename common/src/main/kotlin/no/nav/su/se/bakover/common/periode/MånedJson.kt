@@ -5,7 +5,7 @@ import java.time.format.DateTimeFormatter
 
 data class MånedJson(
     val fraOgMed: String,
-    val tilOgMed: String
+    val tilOgMed: String,
 ) {
 
     /** @throws IllegalArgumentException dersom [fraOgMed] eller [tilOgMed] ikke kan parses til [Måned] */

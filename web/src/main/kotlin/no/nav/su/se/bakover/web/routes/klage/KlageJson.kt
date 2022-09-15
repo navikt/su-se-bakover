@@ -41,7 +41,8 @@ internal data class KlageJson(
     enum class Avsluttet {
         KAN_AVSLUTTES,
         ER_AVSLUTTET,
-        KAN_IKKE_AVSLUTTES;
+        KAN_IKKE_AVSLUTTES,
+        ;
 
         companion object {
             internal fun Klage.utledAvsluttet(): Avsluttet = when {
@@ -60,7 +61,8 @@ internal data class KlageJson(
 
         enum class Type {
             OMGJØR,
-            OPPRETTHOLD;
+            OPPRETTHOLD,
+            ;
         }
 
         data class OmgjørJson(
@@ -387,7 +389,8 @@ private enum class Typer(val verdi: String) {
      * Dette er en endelig tilstand.
      * Man kommer ikke tilbake fra denne tilstanden
      */
-    IVERKSATT_AVVIST("IVERKSATT_AVVIST");
+    IVERKSATT_AVVIST("IVERKSATT_AVVIST"),
+    ;
 
     override fun toString() = verdi
 }
@@ -396,7 +399,8 @@ enum class ÅrsakJson {
     FEIL_LOVANVENDELSE,
     ULIK_SKJØNNSVURDERING,
     SAKSBEHANDLINGSFEIL,
-    NYTT_FAKTUM;
+    NYTT_FAKTUM,
+    ;
 
     companion object {
         fun VurderingerTilKlage.Vedtaksvurdering.Årsak.toJson(): String {
@@ -412,7 +416,8 @@ enum class ÅrsakJson {
 
 enum class UtfallJson {
     TIL_GUNST,
-    TIL_UGUNST;
+    TIL_UGUNST,
+    ;
 
     companion object {
         fun VurderingerTilKlage.Vedtaksvurdering.Utfall.toJson(): String {

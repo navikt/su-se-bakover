@@ -50,7 +50,7 @@ inline fun Boolean.and(predicate: () -> Boolean): Boolean {
 fun ClosedRange<LocalDate>.toPeriode(): Periode {
     return Periode.create(
         fraOgMed = this.start,
-        tilOgMed = this.endInclusive
+        tilOgMed = this.endInclusive,
     )
 }
 

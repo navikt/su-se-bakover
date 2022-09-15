@@ -16,7 +16,7 @@ data class OpprettRevurderingRequest(
     val årsak: String,
     val begrunnelse: String,
     val saksbehandler: NavIdentBruker.Saksbehandler,
-    val informasjonSomRevurderes: List<Revurderingsteg>
+    val informasjonSomRevurderes: List<Revurderingsteg>,
 ) {
     val revurderingsårsak: Either<Revurderingsårsak.UgyldigRevurderingsårsak, Revurderingsårsak> =
         Revurderingsårsak.tryCreate(

@@ -65,8 +65,8 @@ internal fun Route.stansUtbetaling(
                             call.svar(
                                 Resultat.json(
                                     HttpStatusCode.Created,
-                                    serialize(it.toJson(satsFactory))
-                                )
+                                    serialize(it.toJson(satsFactory)),
+                                ),
                             )
                         },
                     )
@@ -103,8 +103,8 @@ internal fun Route.stansUtbetaling(
                                 call.svar(
                                     Resultat.json(
                                         HttpStatusCode.OK,
-                                        serialize(it.toJson(satsFactory))
-                                    )
+                                        serialize(it.toJson(satsFactory)),
+                                    ),
                                 )
                             },
                         )
@@ -129,8 +129,8 @@ internal fun Route.stansUtbetaling(
                             call.svar(
                                 Resultat.json(
                                     HttpStatusCode.OK,
-                                    serialize(it.toJson(satsFactory))
-                                )
+                                    serialize(it.toJson(satsFactory)),
+                                ),
                             )
                         },
                     )

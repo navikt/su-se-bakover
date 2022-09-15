@@ -39,10 +39,11 @@ sealed class FradragStrategy {
             val forventetInntekt =
                 fradrag.filter { it.tilhører == FradragTilhører.BRUKER && it.fradragstype == Fradragstype.ForventetInntekt }
 
-            return if (arbeidsinntekter.sumOf { it.månedsbeløp } > forventetInntekt.sumOf { it.månedsbeløp })
+            return if (arbeidsinntekter.sumOf { it.månedsbeløp } > forventetInntekt.sumOf { it.månedsbeløp }) {
                 fradrag.minus(forventetInntekt.toSet())
-            else
+            } else {
                 fradrag.minus(arbeidsinntekter.toSet())
+            }
         }
 
         private fun List<FradragForMåned>.`har nøyaktig en forventet inntekt for bruker`() =

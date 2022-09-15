@@ -26,7 +26,7 @@ internal class EnsligStrategyTest {
 
         FradragStrategy.Uføre.Enslig.beregn(
             fradrag = listOf(arbeidsinntekt, kontantstøtte, forventetInntekt),
-            beregningsperiode = periode
+            beregningsperiode = periode,
         ).let {
             it.size shouldBe 12
             it[januar(2020)]!! shouldContainAll listOf(
@@ -51,7 +51,7 @@ internal class EnsligStrategyTest {
 
         FradragStrategy.Uføre.Enslig.beregn(
             fradrag = listOf(arbeidsinntekt, kontantstøtte, forventetInntekt),
-            beregningsperiode = periode
+            beregningsperiode = periode,
         ).let {
             it.size shouldBe 12
             it[januar(2020)]!! shouldContainAll listOf(
@@ -71,7 +71,7 @@ internal class EnsligStrategyTest {
 
         FradragStrategy.Uføre.Enslig.beregn(
             fradrag = listOf(arbeidsinntekt, kontantstøtte, forventetInntekt),
-            beregningsperiode = periode
+            beregningsperiode = periode,
         ).let {
             it.values.forEach { it.none { it.tilhører == FradragTilhører.EPS } }
         }

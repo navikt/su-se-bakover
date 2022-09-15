@@ -37,7 +37,6 @@ import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.Utenlandsoppho
     JsonSubTypes.Type(value = SøknadsinnholdAlderJson::class, name = "alder"),
     JsonSubTypes.Type(value = SøknadsinnholdUføreJson::class, name = "uføre"),
 )
-
 sealed interface SøknadsinnholdJson {
     val personopplysninger: PersonopplysningerJson
     val boforhold: BoforholdJson

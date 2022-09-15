@@ -39,7 +39,8 @@ internal data class ReguleringJson(
     enum class Status {
         OPPRETTET,
         IVERKSATT,
-        AVSLUTTET;
+        AVSLUTTET,
+        ;
 
         override fun toString(): String {
             return this.name

@@ -34,7 +34,6 @@ internal fun Route.fastOppholdVilkårRoutes(
                             ),
                         ).fold(
                             {
-
                                 it.tilResultat()
                             },
                             {

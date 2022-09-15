@@ -298,7 +298,6 @@ internal class SøknadsbehandlingPostgresRepoTest {
     inner class Iverksatt {
         @Test
         fun `iverksatt avslag innvilget`() {
-
             withMigratedDb { dataSource ->
                 val testDataHelper = TestDataHelper(dataSource)
                 val repo = testDataHelper.søknadsbehandlingRepo

@@ -16,7 +16,7 @@ import java.util.UUID
 fun formueGrunnlagUtenEps0Innvilget(
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = år(2021),
-    bosituasjon: NonEmptyList<Grunnlag.Bosituasjon.Fullstendig>
+    bosituasjon: NonEmptyList<Grunnlag.Bosituasjon.Fullstendig>,
 ): Formuegrunnlag {
     val bosituasjonsperiode = bosituasjon.toList().periode()
     require(bosituasjonsperiode == periode) {
@@ -45,7 +45,7 @@ fun formueGrunnlagUtenEps0Innvilget(
 fun formueGrunnlagMedEps0Innvilget(
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = år(2021),
-    bosituasjon: NonEmptyList<Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer>
+    bosituasjon: NonEmptyList<Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer>,
 ): Formuegrunnlag {
     val bosituasjonsperiode = bosituasjon.toList().periode()
     require(bosituasjonsperiode == periode) {

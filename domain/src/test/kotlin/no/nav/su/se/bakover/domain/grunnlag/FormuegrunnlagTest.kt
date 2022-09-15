@@ -169,12 +169,13 @@ internal class FormuegrunnlagTest {
             Formuegrunnlag.tryCreate(
                 id = UUID.randomUUID(),
                 periode = år(2021),
-                opprettet = Tidspunkt.EPOCH, epsFormue = null,
+                opprettet = Tidspunkt.EPOCH,
+                epsFormue = null,
                 søkersFormue = Formuegrunnlag.Verdier.empty(),
                 bosituasjon = listOf(enslig),
                 behandlingsPeriode = år(2021),
             ) shouldBe KunneIkkeLageFormueGrunnlag.Konsistenssjekk(
-                Konsistensproblem.BosituasjonOgFormue.IngenFormueForBosituasjonsperiode
+                Konsistensproblem.BosituasjonOgFormue.IngenFormueForBosituasjonsperiode,
             ).left()
         }
 
@@ -185,7 +186,8 @@ internal class FormuegrunnlagTest {
             Formuegrunnlag.tryCreate(
                 id = UUID.randomUUID(),
                 periode = periode,
-                opprettet = Tidspunkt.EPOCH, epsFormue = null,
+                opprettet = Tidspunkt.EPOCH,
+                epsFormue = null,
                 søkersFormue = Formuegrunnlag.Verdier.empty(),
                 bosituasjon = listOf(enslig),
                 behandlingsPeriode = Periode.create(1.januar(2021), 31.mars(2021)),

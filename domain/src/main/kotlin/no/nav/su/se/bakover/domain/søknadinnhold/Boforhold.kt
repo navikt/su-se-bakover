@@ -19,7 +19,8 @@ data class Boforhold private constructor(
     enum class DelerBoligMed() {
         EKTEMAKE_SAMBOER, // TODO AI: Skal endres till ektefelle (14/10/2020 LOL)
         VOKSNE_BARN,
-        ANNEN_VOKSEN;
+        ANNEN_VOKSEN,
+        ;
     }
 
     companion object {

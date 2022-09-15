@@ -48,7 +48,7 @@ internal class InstitusjonsoppholdVilkårsvurderingPostgresRepo(
                     resultat,
                     fraOgMed,
                     tilOgMed
-                ) values 
+                ) values
                 (
                     :id,
                     :opprettet,

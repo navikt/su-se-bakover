@@ -8,7 +8,8 @@ package no.nav.su.se.bakover.domain
  * https://kodeverk-web.nais.adeo.no/kodeverksoversikt/kodeverk/Tema/
  */
 enum class Tema(val value: String) {
-    SUPPLERENDE_STØNAD("SUP");
+    SUPPLERENDE_STØNAD("SUP"),
+    ;
 
     override fun toString(): String = this.value
 }
@@ -20,10 +21,13 @@ enum class Tema(val value: String) {
 enum class Behandlingstype(val value: String) {
     /** UFOR_FLYKT_SOK_SUP;ab0431;ae0034;SUP */
     SØKNAD("ae0034"),
+
     /** UFOR_FLYKT_REVUR_SUP;ab0431;ae0028;SUP */
     REVURDERING("ae0028"),
+
     /** UFOR_FLYKT_KLAGE_SUP;ab0431;ae0058;SUP */
-    KLAGE("ae0058");
+    KLAGE("ae0058"),
+    ;
 
     override fun toString() = this.value
 }
@@ -34,7 +38,8 @@ enum class Behandlingstype(val value: String) {
  */
 enum class Behandlingstema(val value: String) {
     SU_UFØRE_FLYKTNING("ab0431"),
-    SU_ALDER("ab0432");
+    SU_ALDER("ab0432"),
+    ;
 
     override fun toString() = this.value
 }
@@ -47,7 +52,8 @@ enum class Oppgavetype(val value: String) {
     BEHANDLE_SAK("BEH_SAK"),
     ATTESTERING("ATT"),
     FREMLEGGING("FREM"),
-    VURDER_KONSEKVENS_FOR_YTELSE("VUR_KONS_YTE");
+    VURDER_KONSEKVENS_FOR_YTELSE("VUR_KONS_YTE"),
+    ;
 
     override fun toString() = this.value
 }

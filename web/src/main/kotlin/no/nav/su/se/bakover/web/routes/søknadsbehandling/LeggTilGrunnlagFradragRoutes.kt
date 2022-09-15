@@ -43,7 +43,6 @@ internal fun Route.leggTilGrunnlagFradrag(
     clock: Clock,
     satsFactory: SatsFactory,
 ) {
-
     data class Body(
         val fradrag: List<FradragsgrunnlagJson>,
     ) {

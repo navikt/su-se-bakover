@@ -41,12 +41,12 @@ data class Person(
 
     data class Kommune(
         val kommunenummer: String,
-        val kommunenavn: String?
+        val kommunenavn: String?,
     )
 
     data class Poststed(
         val postnummer: String,
-        val poststed: String?
+        val poststed: String?,
     )
 
     data class Kontaktinfo(
@@ -59,6 +59,6 @@ data class Person(
 
     data class Sivilstand(
         val type: SivilstandTyper,
-        val relatertVedSivilstand: Fnr?
+        val relatertVedSivilstand: Fnr?,
     )
 }

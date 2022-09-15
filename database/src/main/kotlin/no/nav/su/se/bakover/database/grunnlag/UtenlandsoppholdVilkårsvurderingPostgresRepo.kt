@@ -52,7 +52,7 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepo(
                     resultat,
                     fraOgMed,
                     tilOgMed
-                ) values 
+                ) values
                 (
                     :id,
                     :opprettet,
@@ -121,7 +121,7 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepo(
             grunnlag = uuidOrNull("grunnlag_utland_id")?.let {
                 utenlandsoppholdgrunnlagRepo.hent(it, session)
             },
-            periode = periode("fraOgMed", "tilOgMed")
+            periode = periode("fraOgMed", "tilOgMed"),
         )
     }
 }

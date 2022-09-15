@@ -178,7 +178,7 @@ sealed class Revurdering :
     ): Either<KunneIkkeOppdatereRevurdering, OpprettetRevurdering> {
         return KunneIkkeOppdatereRevurdering.UgyldigTilstand(
             fra = this::class,
-            til = OpprettetRevurdering::class
+            til = OpprettetRevurdering::class,
         ).left()
     }
 
@@ -907,7 +907,7 @@ data class OpprettetRevurdering(
             informasjonSomRevurderes = informasjonSomRevurderes,
             tilRevurdering = tilRevurdering,
             avkorting = avkorting,
-            saksbehandler = saksbehandler
+            saksbehandler = saksbehandler,
         )
     }
 }
@@ -983,7 +983,7 @@ sealed class BeregnetRevurdering : Revurdering() {
             informasjonSomRevurderes = informasjonSomRevurderes,
             tilRevurdering = tilRevurdering,
             avkorting = avkorting,
-            saksbehandler = saksbehandler
+            saksbehandler = saksbehandler,
         )
     }
 
@@ -1014,7 +1014,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         fun simuler(
             saksbehandler: Saksbehandler,
             clock: Clock,
-            simulerUtbetaling: (request: SimulerUtbetalingRequest.NyUtbetaling) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>
+            simulerUtbetaling: (request: SimulerUtbetalingRequest.NyUtbetaling) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
         ): Either<SimuleringFeilet, SimulertRevurdering.Innvilget> {
             return simulerUtbetaling(
                 SimulerUtbetalingRequest.NyUtbetaling.Uføre(
@@ -1022,8 +1022,8 @@ sealed class BeregnetRevurdering : Revurdering() {
                     saksbehandler = saksbehandler,
                     beregning = beregning,
                     utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
-                    uføregrunnlag = vilkårsvurderinger.uføreVilkår().getOrHandle { throw IllegalStateException("Uførevilkår mangler") }.grunnlag
-                )
+                    uføregrunnlag = vilkårsvurderinger.uføreVilkår().getOrHandle { throw IllegalStateException("Uførevilkår mangler") }.grunnlag,
+                ),
             ).mapLeft {
                 it
             }.map {
@@ -1149,7 +1149,7 @@ sealed class BeregnetRevurdering : Revurdering() {
                     sakId = sakId,
                     saksbehandler = saksbehandler,
                     opphørsperiode = periode,
-                )
+                ),
             ).getOrHandle { return it.left() }
                 .let { simulering ->
                     when (val avkortingsvarsel = lagAvkortingsvarsel(simulering, clock)) {
@@ -1178,7 +1178,7 @@ sealed class BeregnetRevurdering : Revurdering() {
                                         revurdering = this,
                                         avkortingsvarsel = avkortingsvarsel,
                                     ).value,
-                                )
+                                ),
                             ).getOrHandle { return it.left() }
 
                             if (simuleringMedNyOpphørsdato.simulering.harFeilutbetalinger()) {
@@ -1475,7 +1475,7 @@ sealed class SimulertRevurdering : Revurdering() {
             informasjonSomRevurderes = informasjonSomRevurderes,
             tilRevurdering = tilRevurdering,
             avkorting = avkorting,
-            saksbehandler = saksbehandler
+            saksbehandler = saksbehandler,
         )
     }
 
@@ -1903,7 +1903,6 @@ sealed class RevurderingTilAttestering : Revurdering() {
             attestant: NavIdentBruker.Attestant,
             clock: Clock = Clock.systemUTC(),
         ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering.IngenEndring> {
-
             if (saksbehandler.navIdent == attestant.navIdent) {
                 return KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
             }
@@ -2232,7 +2231,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
             informasjonSomRevurderes = informasjonSomRevurderes,
             tilRevurdering = tilRevurdering,
             avkorting = avkorting,
-            saksbehandler = saksbehandler
+            saksbehandler = saksbehandler,
         )
     }
 
@@ -2437,7 +2436,7 @@ fun Revurdering.medFritekst(fritekstTilBrev: String) =
 
 enum class Vurderingstatus(val status: String) {
     Vurdert("Vurdert"),
-    IkkeVurdert("IkkeVurdert")
+    IkkeVurdert("IkkeVurdert"),
 }
 
 enum class Revurderingsteg(val vilkår: String) {
@@ -2456,7 +2455,8 @@ enum class Revurderingsteg(val vilkår: String) {
     Inntekt("Inntekt"),
     Opplysningsplikt("Opplysningsplikt"),
     Pensjon("Pensjon"),
-    FastOppholdINorge("FastOppholdINorge");
+    FastOppholdINorge("FastOppholdINorge"),
+    ;
 }
 
 private fun validerTilIverksettOvergang(

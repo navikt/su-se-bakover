@@ -46,5 +46,5 @@ data class Services(
     val reguleringService: ReguleringService,
     val tilbakekrevingService: TilbakekrevingService,
     val sendPåminnelserOmNyStønadsperiodeService: SendPåminnelserOmNyStønadsperiodeService,
-    val skatteService: SkatteService
+    val skatteService: SkatteService,
 )

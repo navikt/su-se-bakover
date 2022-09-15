@@ -46,22 +46,22 @@ data class ProdClientsBuilder(
         val oAuth = AzureClient(
             thisClientId = azureConfig.clientId,
             thisClientSecret = azureConfig.clientSecret,
-            wellknownUrl = azureConfig.wellKnownUrl
+            wellknownUrl = azureConfig.wellKnownUrl,
         )
         val kodeverk = KodeverkHttpClient(
             baseUrl = clientsConfig.kodeverkUrl,
-            consumerId = consumerId
+            consumerId = consumerId,
         )
         val serviceUser = applicationConfig.serviceUser
         val tokenOppslag = StsClient(
             baseUrl = clientsConfig.stsUrl,
             username = serviceUser.username,
             password = serviceUser.password,
-            clock = clock
+            clock = clock,
         )
         val kontaktOgReservasjonsregisterClient = KontaktOgReservasjonsregisterClient(
             config = clientsConfig.kontaktOgReservasjonsregisterConfig,
-            azure = oAuth
+            azure = oAuth,
         )
         val skjermingClient = SkjermingClient(clientsConfig.skjermingUrl)
         val pdlClientConfig = PdlClientConfig(
@@ -79,11 +79,11 @@ data class ProdClientsBuilder(
         )
         val klageClient = KabalHttpClient(
             kabalConfig = applicationConfig.clientsConfig.kabalConfig,
-            exchange = oAuth
+            exchange = oAuth,
         )
         val journalpostClient = JournalpostHttpClient(
             safConfig = applicationConfig.clientsConfig.safConfig,
-            azureAd = oAuth
+            azureAd = oAuth,
         )
 
         return Clients(
@@ -145,12 +145,12 @@ data class ProdClientsBuilder(
             ),
             skatteOppslag = SkatteClient(
                 skatteetatenConfig = applicationConfig.clientsConfig.skatteetatenConfig,
-                clock = clock
+                clock = clock,
             ),
             maskinportenClient = MaskinportenHTTPClient(
                 maskinportenConfig = applicationConfig.clientsConfig.maskinportenConfig,
-                clock = clock
-            )
+                clock = clock,
+            ),
         )
     }
 }

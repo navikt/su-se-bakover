@@ -294,7 +294,8 @@ internal class TilbakekrevingPostgresRepo(
     private enum class Avgjørelsestype(private val value: String) {
         IKKE_AVGJORT("ikke_avgjort"),
         TILBAKEKREV("tilbakekrev"),
-        IKKE_TILBAKEKREV("ikke_tilbakekrev");
+        IKKE_TILBAKEKREV("ikke_tilbakekrev"),
+        ;
 
         override fun toString() = value
 
@@ -310,7 +311,8 @@ internal class TilbakekrevingPostgresRepo(
         UNDER_BEHANDLING("under_behandling"),
         AVVENTER_KRAVGRUNNLAG("avventer_kravgrunnlag"),
         MOTTATT_KRAVGRUNNLAG("mottatt_kravgrunnlag"),
-        SENDT_TILBAKEKREVINGSVEDTAK("sendt_tilbakekrevingsvedtak");
+        SENDT_TILBAKEKREVINGSVEDTAK("sendt_tilbakekrevingsvedtak"),
+        ;
 
         override fun toString() = value
 

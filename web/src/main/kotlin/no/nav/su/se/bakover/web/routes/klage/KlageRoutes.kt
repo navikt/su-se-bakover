@@ -237,7 +237,6 @@ internal fun Route.klageRoutes(
 
     post("$klagePath/{klageId}/vurderinger") {
         authorize(Brukerrolle.Saksbehandler) {
-
             fun KunneIkkeVurdereKlage.tilResultat(): Resultat {
                 return when (this) {
                     KunneIkkeVurdereKlage.FantIkkeKlage -> fantIkkeKlage

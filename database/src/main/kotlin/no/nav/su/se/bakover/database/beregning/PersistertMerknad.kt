@@ -72,6 +72,7 @@ internal fun Merknad.Beregning.Avslag.BeløpErNull.toSnapshot(): PersistertMerkn
 internal fun Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats.toSnapshot(): PersistertMerknad.Beregning.BeløpMellomNullOgToProsentAvHøySats {
     return PersistertMerknad.Beregning.BeløpMellomNullOgToProsentAvHøySats
 }
+
 @Suppress("unused")
 internal fun Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats.toSnapshot(): PersistertMerknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats {
     return PersistertMerknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats

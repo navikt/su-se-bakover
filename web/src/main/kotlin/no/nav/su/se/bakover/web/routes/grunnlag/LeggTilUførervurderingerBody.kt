@@ -20,10 +20,12 @@ import java.util.UUID
 
 internal data class LeggTilUførervurderingerBody(val vurderinger: List<Uførevurdering>) {
     fun toServiceCommand(behandlingId: UUID): Either<Resultat, LeggTilUførevurderingerRequest> {
-        if (vurderinger.isEmpty()) return HttpStatusCode.BadRequest.errorJson(
-            "Ingen perioder er vurdert",
-            "vurderingsperioder_mangler",
-        ).left()
+        if (vurderinger.isEmpty()) {
+            return HttpStatusCode.BadRequest.errorJson(
+                "Ingen perioder er vurdert",
+                "vurderingsperioder_mangler",
+            ).left()
+        }
 
         return LeggTilUførevurderingerRequest(
             behandlingId = behandlingId,
@@ -45,7 +47,6 @@ internal data class LeggTilUførervurderingerBody(val vurderinger: List<Uførevu
     ) {
 
         fun toServiceCommand(revurderingId: UUID): Either<Resultat, LeggTilUførevilkårRequest> {
-
             val periode = periode.toPeriodeOrResultat().getOrHandle {
                 return it.left()
             }

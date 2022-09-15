@@ -62,7 +62,7 @@ internal class BehandlingStatistikkMapperTest {
             opprettet = fixedTidspunkt,
             sakId = UUID.randomUUID(),
             søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-            innsendtAv = veileder
+            innsendtAv = veileder,
         )
 
         BehandlingStatistikkMapper(fixedClock).map(
@@ -574,19 +574,22 @@ internal class BehandlingStatistikkMapperTest {
             BehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.map(
                 søknadsbehandlingVilkårsvurdertUavklart().second,
             ) shouldBe BehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.BehandlingStatusOgBehandlingStatusBeskrivelse(
-                "OPPRETTET", "Ny søknadsbehandling opprettet",
+                "OPPRETTET",
+                "Ny søknadsbehandling opprettet",
             )
 
             BehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.map(
                 søknadsbehandlingTilAttesteringInnvilget().second,
             ) shouldBe BehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.BehandlingStatusOgBehandlingStatusBeskrivelse(
-                "TIL_ATTESTERING_INNVILGET", "Innvilget søkndsbehandling sendt til attestering",
+                "TIL_ATTESTERING_INNVILGET",
+                "Innvilget søkndsbehandling sendt til attestering",
             )
 
             BehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.map(
                 søknadsbehandlingTilAttesteringAvslagMedBeregning().second,
             ) shouldBe BehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.BehandlingStatusOgBehandlingStatusBeskrivelse(
-                "TIL_ATTESTERING_AVSLAG", "Avslått søknadsbehanding sendt til attestering",
+                "TIL_ATTESTERING_AVSLAG",
+                "Avslått søknadsbehanding sendt til attestering",
             )
 
             BehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.map(
@@ -606,19 +609,22 @@ internal class BehandlingStatistikkMapperTest {
             BehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.map(
                 søknadsbehandlingIverksattInnvilget().second,
             ) shouldBe BehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.BehandlingStatusOgBehandlingStatusBeskrivelse(
-                "IVERKSATT_INNVILGET", "Innvilget søknadsbehandling iverksatt",
+                "IVERKSATT_INNVILGET",
+                "Innvilget søknadsbehandling iverksatt",
             )
 
             BehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.map(
                 søknadsbehandlingIverksattAvslagMedBeregning().second,
             ) shouldBe BehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.BehandlingStatusOgBehandlingStatusBeskrivelse(
-                "IVERKSATT_AVSLAG", "Avslått søknadsbehandling iverksatt",
+                "IVERKSATT_AVSLAG",
+                "Avslått søknadsbehandling iverksatt",
             )
 
             BehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.map(
                 søknadsbehandlingLukket().second,
             ) shouldBe BehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.BehandlingStatusOgBehandlingStatusBeskrivelse(
-                "LUKKET", "Søknadsbehandling er lukket",
+                "LUKKET",
+                "Søknadsbehandling er lukket",
             )
 
             assertThrows<ManglendeStatistikkMappingException> {

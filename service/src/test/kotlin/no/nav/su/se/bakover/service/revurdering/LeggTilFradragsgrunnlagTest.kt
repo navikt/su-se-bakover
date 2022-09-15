@@ -48,7 +48,7 @@ internal class LeggTilFradragsgrunnlagTest {
             },
             sakService = mock {
                 on { hentSakForRevurdering(any()) } doReturn sak
-            }
+            },
         ).also {
             val request = LeggTilFradragsgrunnlagRequest(
                 behandlingId = eksisterendeRevurdering.id,

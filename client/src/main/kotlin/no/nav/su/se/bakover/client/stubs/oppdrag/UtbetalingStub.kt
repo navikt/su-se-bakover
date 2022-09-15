@@ -10,9 +10,9 @@ import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 
 object UtbetalingStub : UtbetalingPublisher {
     override fun publish(
-        utbetaling: Utbetaling.SimulertUtbetaling
+        utbetaling: Utbetaling.SimulertUtbetaling,
     ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Utbetalingsrequest> = Utbetalingsrequest(
-        value = XmlMapper.writeValueAsString(toUtbetalingRequest(utbetaling))
+        value = XmlMapper.writeValueAsString(toUtbetalingRequest(utbetaling)),
     ).right()
 
     override fun publishRequest(utbetalingsrequest: Utbetalingsrequest): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Utbetalingsrequest> =
@@ -20,6 +20,6 @@ object UtbetalingStub : UtbetalingPublisher {
 
     override fun generateRequest(utbetaling: Utbetaling.SimulertUtbetaling): Utbetalingsrequest =
         Utbetalingsrequest(
-            value = XmlMapper.writeValueAsString(toUtbetalingRequest(utbetaling))
+            value = XmlMapper.writeValueAsString(toUtbetalingRequest(utbetaling)),
         )
 }

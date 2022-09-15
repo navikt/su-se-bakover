@@ -80,7 +80,7 @@ internal fun Route.leggTilGrunnlagBosituasjonRoutes(
                                     {
                                         Resultat.json(
                                             HttpStatusCode.Created,
-                                            serialize(it.toJson(satsFactory))
+                                            serialize(it.toJson(satsFactory)),
                                         )
                                     },
                                 )
@@ -110,7 +110,7 @@ internal fun Route.leggTilGrunnlagBosituasjonRoutes(
                                 }.map {
                                     Resultat.json(
                                         HttpStatusCode.Created,
-                                        serialize(it.toJson(satsFactory))
+                                        serialize(it.toJson(satsFactory)),
                                     )
                                 }
                             }.getOrHandle {

@@ -66,7 +66,7 @@ internal class GjenopptakAvYtelsePostgresRepo(
                                 "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
                                 "attestering" to emptyList<Attestering>().serialize(),
                                 "skalFoereTilBrevutsending" to false,
-                                "sakid" to revurdering.sakId
+                                "sakid" to revurdering.sakId,
                             ),
                             tx,
                         )
@@ -78,9 +78,9 @@ internal class GjenopptakAvYtelsePostgresRepo(
                 }
                 is GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse -> {
                     """
-                    update revurdering set 
+                    update revurdering set
                         attestering = to_json(:attestering::json),
-                        revurderingsType = :revurderingsType 
+                        revurderingsType = :revurderingsType
                     where id = :id
                     """.trimIndent()
                         .oppdatering(
@@ -94,9 +94,9 @@ internal class GjenopptakAvYtelsePostgresRepo(
                 }
                 is GjenopptaYtelseRevurdering.AvsluttetGjenoppta -> {
                     """
-                        update 
+                        update
                             revurdering
-                        set 
+                        set
                             avsluttet = to_jsonb(:avsluttet::jsonb)
                         where
                             id = :id

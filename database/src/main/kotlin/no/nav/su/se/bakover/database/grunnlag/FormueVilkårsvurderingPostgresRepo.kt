@@ -49,7 +49,7 @@ internal class FormueVilkårsvurderingPostgresRepo(
                     resultat,
                     fraOgMed,
                     tilOgMed
-                ) values 
+                ) values
                 (
                     :id,
                     :opprettet,

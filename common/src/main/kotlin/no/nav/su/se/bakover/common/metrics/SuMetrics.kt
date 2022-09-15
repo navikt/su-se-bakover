@@ -42,7 +42,7 @@ object SuMetrics {
     enum class Metrikk(val navn: String) {
         SØKNAD_MOTTATT("soknad.mottatt"),
         BEHANDLING_STARTET("behandling.startet"),
-        VEDTAK_IVERKSATT("vedtak.iverksatt")
+        VEDTAK_IVERKSATT("vedtak.iverksatt"),
     }
 
     enum class Søknadstype(val type: String) {

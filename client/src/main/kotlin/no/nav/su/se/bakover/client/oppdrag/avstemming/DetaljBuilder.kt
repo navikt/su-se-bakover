@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Kvittering.Utbetalingsstatus.OK_MED_V
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 
 internal class DetaljBuilder(
-    internal val utbetalinger: List<Utbetaling.OversendtUtbetaling>
+    internal val utbetalinger: List<Utbetaling.OversendtUtbetaling>,
 ) {
     fun build(): List<Detaljdata> =
         utbetalinger.filter { it is Utbetaling.OversendtUtbetaling.UtenKvittering || it.kvittertMedFeilEllerVarsel() }
@@ -17,7 +17,7 @@ internal class DetaljBuilder(
                     detaljType = mapStatus(it),
                     offnr = it.fnr.toString(),
                     avleverendeTransaksjonNokkel = it.id.toString(),
-                    tidspunkt = it.opprettet.toOppdragTimestamp()
+                    tidspunkt = it.opprettet.toOppdragTimestamp(),
                 )
             }
 

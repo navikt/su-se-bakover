@@ -190,7 +190,7 @@ internal class SamletSkattegrunnlagTest {
                 ),
             ),
             skatteoppgjoersdato = LocalDate.of(2022, 2, 10),
-            hentetDato = fixedTidspunkt
+            hentetDato = fixedTidspunkt,
         ).right()
     }
 }

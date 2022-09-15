@@ -187,7 +187,8 @@ internal class SøknadsbehandlingPostgresRepo(
         return dbMetrics.timeQuery("hentSøknadsbehandlingForSøknadId") {
             sessionFactory.withSession { session ->
                 "select b.*, s.fnr, s.saksnummer, s.type from behandling b inner join sak s on s.id = b.sakId where søknadId=:soknadId".hent(
-                    mapOf("soknadId" to søknadId), session,
+                    mapOf("soknadId" to søknadId),
+                    session,
                 ) { it.toSøknadsbehandling(session) }
             }
         }
@@ -530,16 +531,16 @@ internal class SøknadsbehandlingPostgresRepo(
                         simulering = null,
                         stønadsperiode = to_json(:stonadsperiode::json),
                         avkorting = to_json(:avkorting::json)
-                    where id = :id    
+                    where id = :id
         """.trimIndent()
             .oppdatering(defaultParams(søknadsbehandling), tx)
     }
 
     private fun lagre(søknadsbehandling: Søknadsbehandling.Beregnet, tx: TransactionalSession) {
         """
-                   update behandling set 
-                       status = :status, 
-                       beregning = to_json(:beregning::json), 
+                   update behandling set
+                       status = :status,
+                       beregning = to_json(:beregning::json),
                        simulering = null,
                        avkorting = to_json(:avkorting::json)
                    where id = :id
@@ -554,9 +555,9 @@ internal class SøknadsbehandlingPostgresRepo(
 
     private fun lagre(søknadsbehandling: Søknadsbehandling.Simulert, tx: TransactionalSession) {
         """
-                   update behandling set 
-                       status = :status, 
-                       beregning = to_json(:beregning::json), 
+                   update behandling set
+                       status = :status,
+                       beregning = to_json(:beregning::json),
                        simulering = to_json(:simulering::json),
                        avkorting = to_json(:avkorting::json)
                    where id = :id
@@ -595,9 +596,9 @@ internal class SøknadsbehandlingPostgresRepo(
 
     private fun lagre(søknadsbehandling: Søknadsbehandling.Underkjent, tx: TransactionalSession) {
         """
-                    update behandling set 
-                        status = :status, 
-                        attestering = to_json(:attestering::json), 
+                    update behandling set
+                        status = :status,
+                        attestering = to_json(:attestering::json),
                         oppgaveId = :oppgaveId,
                         avkorting = to_json(:avkorting::json)
                     where id = :id
@@ -614,8 +615,8 @@ internal class SøknadsbehandlingPostgresRepo(
         when (søknadsbehandling) {
             is Søknadsbehandling.Iverksatt.Innvilget -> {
                 """
-                       update behandling set 
-                           status = :status, 
+                       update behandling set
+                           status = :status,
                            attestering = to_json(:attestering::json),
                            avkorting = to_json(:avkorting::json)
                        where id = :id
@@ -646,10 +647,10 @@ internal class SøknadsbehandlingPostgresRepo(
             }
             is Søknadsbehandling.Iverksatt.Avslag -> {
                 """
-                       update behandling set 
-                           status = :status, 
+                       update behandling set
+                           status = :status,
                            attestering = to_json(:attestering::json),
-                           avkorting = to_json(:avkorting::json) 
+                           avkorting = to_json(:avkorting::json)
                        where id = :id
                 """.trimIndent()
                     .oppdatering(
@@ -666,7 +667,7 @@ internal class SøknadsbehandlingPostgresRepo(
 
     private fun lagre(søknadsbehandling: LukketSøknadsbehandling, tx: TransactionalSession) {
         """
-            update behandling set 
+            update behandling set
                 lukket = true,
                 avkorting = to_json(:avkorting::json)
             where id = :id

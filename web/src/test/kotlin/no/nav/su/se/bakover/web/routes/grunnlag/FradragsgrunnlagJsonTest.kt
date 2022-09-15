@@ -19,7 +19,8 @@ class FradragsgrunnlagJsonTest {
     fun `serialiserer og deserialiserer fradragsgrunnlag`() {
         JSONAssert.assertEquals(
             expectedFradragsgrunnlagJson,
-            serialize(fradragsgrunnlag.toJson()), true
+            serialize(fradragsgrunnlag.toJson()),
+            true,
         )
         deserialize<FradragJson>(expectedFradragsgrunnlagJson) shouldBe fradragsgrunnlag.toJson()
     }

@@ -173,7 +173,7 @@ fun avsluttetRegulering(
     saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler(saksbehandlerNavn),
     reguleringstype: Reguleringstype = Reguleringstype.MANUELL(emptySet()),
     sakstype: Sakstype = Sakstype.UFØRE,
-    avsluttetTidspunkt: Clock = enUkeEtterFixedClock
+    avsluttetTidspunkt: Clock = enUkeEtterFixedClock,
 ): Regulering.AvsluttetRegulering {
     return opprettetRegulering(
         id = id,

@@ -68,6 +68,6 @@ interface StatusovergangVisitor : SøknadsbehandlingVisitor {
     data class UgyldigStatusovergangException(
         private val søknadsbehandling: Any,
         private val statusovergang: Any,
-        val msg: String = "Ugyldig statusovergang: ${statusovergang::class.qualifiedName} for type: ${søknadsbehandling::class.qualifiedName}"
+        val msg: String = "Ugyldig statusovergang: ${statusovergang::class.qualifiedName} for type: ${søknadsbehandling::class.qualifiedName}",
     ) : RuntimeException(msg)
 }

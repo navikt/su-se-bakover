@@ -67,12 +67,14 @@ internal data class FradragJson(
     }
 
     internal fun toFradrag(): Either<Resultat, Fradrag> {
-        return if (this.periode == null) HttpStatusCode.BadRequest.errorJson(
-            "Fradrag mangler periode",
-            "fradrag_mangler_periode",
-        ).left()
-        else
+        return if (this.periode == null) {
+            HttpStatusCode.BadRequest.errorJson(
+                "Fradrag mangler periode",
+                "fradrag_mangler_periode",
+            ).left()
+        } else {
             toFradrag(this.periode.toPeriodeOrResultat().getOrHandle { return it.left() })
+        }
     }
 
     companion object {

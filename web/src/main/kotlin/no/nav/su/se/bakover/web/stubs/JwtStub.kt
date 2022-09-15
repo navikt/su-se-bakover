@@ -43,6 +43,7 @@ class JwtStub(
             Brukerrolle.Drift -> azureConfig.groups.drift
         }
 }
+
 @TestOnly
 fun String.asBearerToken(): String {
     return "Bearer $this"

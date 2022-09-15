@@ -23,7 +23,6 @@ import java.time.LocalDate
  * @param tidligsteTilgjengeligeMåned filtrerer vekk alle månedene før dette.
  */
 fun <T> RåSatser<T>.periodisert(tidligsteTilgjengeligeMåned: Måned): Månedssatser<T> {
-
     assert(this.any { it.måned <= tidligsteTilgjengeligeMåned }) {
         "Kan ikke periodisere siden vi mangler data for første ønsket måned: $tidligsteTilgjengeligeMåned. Tidligste måned tilgjengelig er ${this.first().måned}"
     }
@@ -50,7 +49,9 @@ fun <T> RåSatser<T>.periodisert(tidligsteTilgjengeligeMåned: Måned): Månedss
                     tidligsteMåned.until(seneste.måned).map {
                         Månedssats(tidligste.virkningstidspunkt, it, tidligste.verdi)
                     }
-                } else emptyList()
+                } else {
+                    emptyList()
+                }
             }
         }.let { Månedssatser(it) }
 }

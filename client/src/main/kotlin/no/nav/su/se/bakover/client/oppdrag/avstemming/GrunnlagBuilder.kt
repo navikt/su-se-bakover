@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import java.math.BigDecimal
 
 internal class GrunnlagBuilder(
-    private val utbetalinger: List<Utbetaling.OversendtUtbetaling>
+    private val utbetalinger: List<Utbetaling.OversendtUtbetaling>,
 ) {
     fun build(): GrensesnittsavstemmingData.Grunnlagdata {
         val gruppertMedKvittering = utbetalinger.filterIsInstance(Utbetaling.OversendtUtbetaling.MedKvittering::class.java)
@@ -28,14 +28,14 @@ internal class GrunnlagBuilder(
             avvistFortegn = kvittertFeil.fortegn,
             manglerAntall = kvitteringMangler.antall,
             manglerBelop = kvitteringMangler.beløp,
-            manglerFortegn = kvitteringMangler.fortegn
+            manglerFortegn = kvitteringMangler.fortegn,
         )
     }
 
     private data class Sum(
         val antall: Int,
         val beløp: BigDecimal,
-        val fortegn: Fortegn
+        val fortegn: Fortegn,
     )
 
     private fun Map<Kvittering.Utbetalingsstatus, List<Utbetaling>>.sumForStatus(utbetalingsstatus: Kvittering.Utbetalingsstatus): Sum =

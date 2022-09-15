@@ -430,7 +430,7 @@ internal class LagBrevinnholdForBeregningTest {
                 no.nav.su.se.bakover.domain.beregning.Beregningsperiode(
                     periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
                     strategy = BeregningStrategy.Eps67EllerEldre(satsFactoryTestPåDato(), Sakstype.UFØRE),
-                )
+                ),
             ),
 
         )

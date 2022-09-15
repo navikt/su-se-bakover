@@ -23,5 +23,5 @@ internal fun Skattegrunnlag.toJSON() = SkattegrunnlagJSON(
         SkattegrunnlagJSON.Grunnlag(navn = it.navn, beløp = it.beløp, kategori = it.kategori.map { k -> k.stringVerdi })
     },
     skatteoppgjørsdato = skatteoppgjoersdato?.toString(),
-    hentetDato = hentetDato.toString()
+    hentetDato = hentetDato.toString(),
 )

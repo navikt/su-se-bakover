@@ -31,7 +31,7 @@ internal class AvkortingVedRevurderingDbTest {
             sakId = UUID.randomUUID(),
             revurderingId = revurderingId,
             simulering = simuleringFeilutbetaling(juni(2021)),
-            opprettet = Tidspunkt.now(fixedClock)
+            opprettet = Tidspunkt.now(fixedClock),
         ),
     )
     private val utestående1 = AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting(avkortingsvarsel = varsel)

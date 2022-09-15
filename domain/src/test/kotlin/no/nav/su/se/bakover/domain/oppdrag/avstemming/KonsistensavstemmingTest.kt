@@ -198,7 +198,7 @@ internal class KonsistensavstemmingTest {
                         tilOgMed = 31.desember(2021),
                         beløp = 20000,
                     ),
-                )
+                ),
             ).nonEmpty(),
         )
 
@@ -222,7 +222,7 @@ internal class KonsistensavstemmingTest {
                         tilOgMed = 31.desember(2021),
                         beløp = 18000,
                     ),
-                )
+                ),
             ).nonEmpty(),
         )
 
@@ -305,7 +305,7 @@ internal class KonsistensavstemmingTest {
                         tilOgMed = 31.desember(2021),
                         beløp = 20000,
                     ),
-                )
+                ),
             ).nonEmpty(),
         )
 
@@ -329,7 +329,7 @@ internal class KonsistensavstemmingTest {
                         tilOgMed = 31.desember(2021),
                         beløp = 18000,
                     ),
-                )
+                ),
             ).nonEmpty(),
         )
 
@@ -595,8 +595,8 @@ internal class KonsistensavstemmingTest {
                         fraOgMed = 1.mai(2021),
                         tilOgMed = 31.desember(2021),
                         beløp = 15000,
-                    )
-                )
+                    ),
+                ),
             ).nonEmpty(),
             behandler = NavIdentBruker.Attestant("a1"),
         )
@@ -744,8 +744,8 @@ internal class KonsistensavstemmingTest {
                         fraOgMed = 1.mai(2021),
                         tilOgMed = 31.desember(2021),
                         beløp = 15000,
-                    )
-                )
+                    ),
+                ),
             ).nonEmpty(),
             behandler = NavIdentBruker.Attestant("a1"),
         )
@@ -827,7 +827,7 @@ internal class KonsistensavstemmingTest {
                         tilOgMed = 31.desember(2021),
                         beløp = 17500,
                     ),
-                )
+                ),
             ).nonEmpty(),
             behandler = NavIdentBruker.Attestant("første"),
         )

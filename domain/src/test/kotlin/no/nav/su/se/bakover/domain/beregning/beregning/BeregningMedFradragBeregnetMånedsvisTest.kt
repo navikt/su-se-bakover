@@ -80,7 +80,8 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
         val beregning = BeregningFactory(clock = fixedClock).ny(
             fradrag = listOf(
                 FradragForPeriode(
-                    fradragstype = Fradragstype.ForventetInntekt, månedsbeløp = 1000.0,
+                    fradragstype = Fradragstype.ForventetInntekt,
+                    månedsbeløp = 1000.0,
                     periode = periode,
                     tilhører = FradragTilhører.BRUKER,
                 ),
@@ -103,12 +104,14 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
         val beregning = BeregningFactory(clock = fixedClock).ny(
             fradrag = listOf(
                 FradragForPeriode(
-                    fradragstype = Fradragstype.ForventetInntekt, månedsbeløp = 20500.0,
+                    fradragstype = Fradragstype.ForventetInntekt,
+                    månedsbeløp = 20500.0,
                     periode = Periode.create(1.januar(2020), 30.april(2020)),
                     tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragForPeriode(
-                    fradragstype = Fradragstype.ForventetInntekt, månedsbeløp = 20800.0,
+                    fradragstype = Fradragstype.ForventetInntekt,
+                    månedsbeløp = 20800.0,
                     periode = Periode.create(1.mai(2020), 31.desember(2020)),
                     tilhører = FradragTilhører.BRUKER,
                 ),
@@ -134,7 +137,8 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
         val beregning = BeregningFactory(clock = fixedClock).ny(
             fradrag = listOf(
                 FradragForPeriode(
-                    fradragstype = Fradragstype.ForventetInntekt, månedsbeløp = 150000.0,
+                    fradragstype = Fradragstype.ForventetInntekt,
+                    månedsbeløp = 150000.0,
                     periode = periode,
                     tilhører = FradragTilhører.BRUKER,
                 ),
@@ -489,7 +493,9 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                 FradragFactory.nyFradragsperiode(
                     fradragstype = Fradragstype.ForventetInntekt,
                     månedsbeløp = 0.0,
-                    periode = periode, utenlandskInntekt = null, tilhører = FradragTilhører.BRUKER,
+                    periode = periode,
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.nyFradragsperiode(
                     fradragstype = Fradragstype.Sosialstønad,
@@ -521,7 +527,9 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                 FradragFactory.nyFradragsperiode(
                     fradragstype = Fradragstype.ForventetInntekt,
                     månedsbeløp = 0.0,
-                    periode = periode, utenlandskInntekt = null, tilhører = FradragTilhører.BRUKER,
+                    periode = periode,
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.nyFradragsperiode(
                     fradragstype = Fradragstype.Sosialstønad,

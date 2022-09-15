@@ -75,7 +75,7 @@ class GrunnlagBosituasjonFullførRoutesTest {
                             behandlingId = søknadsbehandling.id,
                             bosituasjon = BosituasjonValg.DELER_BOLIG_MED_VOKSNE,
                         )
-                    }
+                    },
                 )
                 verifyNoMoreInteractions(søknadsbehandlingServiceMock)
             }
@@ -106,7 +106,7 @@ class GrunnlagBosituasjonFullførRoutesTest {
                             behandlingId = søknadsbehandling.id,
                             bosituasjon = BosituasjonValg.BOR_ALENE,
                         )
-                    }
+                    },
                 )
                 verifyNoMoreInteractions(søknadsbehandlingServiceMock)
             }
@@ -137,7 +137,7 @@ class GrunnlagBosituasjonFullførRoutesTest {
                             behandlingId = søknadsbehandling.id,
                             bosituasjon = BosituasjonValg.EPS_UFØR_FLYKTNING,
                         )
-                    }
+                    },
                 )
                 verifyNoMoreInteractions(søknadsbehandlingServiceMock)
             }
@@ -168,7 +168,7 @@ class GrunnlagBosituasjonFullførRoutesTest {
                             behandlingId = søknadsbehandling.id,
                             bosituasjon = BosituasjonValg.EPS_IKKE_UFØR_FLYKTNING,
                         )
-                    }
+                    },
                 )
                 verifyNoMoreInteractions(søknadsbehandlingServiceMock)
             }
@@ -199,7 +199,7 @@ class GrunnlagBosituasjonFullførRoutesTest {
                             behandlingId = søknadsbehandling.id,
                             bosituasjon = BosituasjonValg.EPS_67_ELLER_OVER,
                         )
-                    }
+                    },
                 )
                 verifyNoMoreInteractions(søknadsbehandlingServiceMock)
             }
@@ -230,7 +230,7 @@ class GrunnlagBosituasjonFullførRoutesTest {
                             behandlingId = søknadsbehandling.id,
                             bosituasjon = BosituasjonValg.EPS_67_ELLER_OVER,
                         )
-                    }
+                    },
                 )
                 verifyNoMoreInteractions(søknadsbehandlingServiceMock)
             }

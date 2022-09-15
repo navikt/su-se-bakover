@@ -77,7 +77,8 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
                     SakInfo(sak2.id, sak2.saksnummer, sak2.fnr, sak2.type),
                 )
                 on { hentSak(any<Saksnummer>()) } doReturnConsecutively listOf(
-                    sak1, sak2,
+                    sak1,
+                    sak2,
                 )
             },
             sessionFactory = TestSessionFactory(),
@@ -379,7 +380,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             fnr = Fnr.generer(),
             utbetalinger = emptyList(),
             type = Sakstype.UFØRE,
-            uteståendeAvkorting = Avkortingsvarsel.Ingen
+            uteståendeAvkorting = Avkortingsvarsel.Ingen,
         )
 
         SendPåminnelseNyStønadsperiodeServiceAndMocks(

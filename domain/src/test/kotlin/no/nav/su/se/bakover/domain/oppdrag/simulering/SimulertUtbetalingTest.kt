@@ -44,9 +44,9 @@ internal class SimulertUtbetalingTest {
                     uforegrad = 0,
                     klassekode = KlasseKode.SUUFORE,
                     klassekodeBeskrivelse = "",
-                    klasseType = KlasseType.YTEL
-                )
-            )
+                    klasseType = KlasseType.YTEL,
+                ),
+            ),
         )
     }
 

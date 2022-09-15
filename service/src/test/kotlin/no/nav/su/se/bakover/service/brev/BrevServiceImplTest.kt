@@ -93,7 +93,6 @@ internal class BrevServiceImplTest {
 
     @Test
     fun `lager ikke brev når pdf-generator kall failer`() {
-
         val pdfGeneratorMock = mock<PdfGenerator> {
             on { genererPdf(DummyBrevInnhold) } doReturn KunneIkkeGenererePdf.left()
         }
@@ -514,7 +513,7 @@ internal class BrevServiceImplTest {
         override val saksnummer: Saksnummer = Saksnummer(2021)
         override fun tilDokument(
             clock: Clock,
-            genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<LagBrevRequest.KunneIkkeGenererePdf, ByteArray>
+            genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<LagBrevRequest.KunneIkkeGenererePdf, ByteArray>,
         ): Either<LagBrevRequest.KunneIkkeGenererePdf, Dokument.UtenMetadata> {
             return genererDokument(clock, genererPdf).map {
                 Dokument.UtenMetadata.Vedtak(
@@ -604,6 +603,6 @@ internal class BrevServiceImplTest {
         revurderinger = listOf(),
         vedtakListe = listOf(),
         type = Sakstype.UFØRE,
-        uteståendeAvkorting = Avkortingsvarsel.Ingen
+        uteståendeAvkorting = Avkortingsvarsel.Ingen,
     )
 }

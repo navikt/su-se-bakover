@@ -20,13 +20,14 @@ class Flyway(
                     MigrationVersion.LATEST
                 } else {
                     MigrationVersion.fromVersion(version.toString())
-                }
+                },
             )
             .dataSource(dataSource).let {
-                if (role == null)
+                if (role == null) {
                     it
-                else
+                } else {
                     it.initSql("SET ROLE \"$role\"")
+                }
             }
             .load()
             .migrate()

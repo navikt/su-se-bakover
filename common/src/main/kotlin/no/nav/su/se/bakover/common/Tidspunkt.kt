@@ -16,12 +16,8 @@ import java.time.temporal.TemporalUnit
 import java.util.Date
 
 abstract class TruncatedInstant(
-    @JsonValue
-    val instant: Instant,
-) : Temporal by instant,
-    TemporalAdjuster by instant,
-    Comparable<Instant> by instant,
-    Serializable by instant {
+    @JsonValue val instant: Instant,
+) : Temporal by instant, TemporalAdjuster by instant, Comparable<Instant> by instant, Serializable by instant {
 
     val nano = instant.nano
     fun toEpochMilli() = instant.toEpochMilli()
@@ -35,7 +31,9 @@ abstract class TruncatedInstant(
  * based on the precision at hand - which may lead to rows not being picked up as expected. This case is especially
  * relevant i.e when combining timestamp-db-fields (truncated by db) with Instants stored as json (not truncated by db).
  */
-class Tidspunkt @JsonCreator(mode = JsonCreator.Mode.DELEGATING) constructor(
+class Tidspunkt
+@JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+constructor(
     instant: Instant,
 ) : TruncatedInstant(instant.truncatedTo(unit)) {
 

@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.web.svar
 data class UserData(
     val navn: String,
     val navIdent: String,
-    val roller: List<Brukerrolle>
+    val roller: List<Brukerrolle>,
 )
 
 internal fun Route.meRoutes(applicationConfig: ApplicationConfig, azureGroupMapper: AzureGroupMapper) {

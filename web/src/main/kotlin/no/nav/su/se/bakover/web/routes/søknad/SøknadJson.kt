@@ -7,7 +7,7 @@ import java.time.format.DateTimeFormatter
 
 internal data class OpprettetSøknadJson(
     val saksnummer: Long,
-    val søknad: SøknadJson
+    val søknad: SøknadJson,
 )
 internal data class SøknadJson(
     val id: String,
@@ -20,7 +20,7 @@ internal data class SøknadJson(
 data class LukketJson(
     val tidspunkt: String,
     val saksbehandler: String,
-    val type: String
+    val type: String,
 )
 
 internal fun Søknad.toJson(): SøknadJson {

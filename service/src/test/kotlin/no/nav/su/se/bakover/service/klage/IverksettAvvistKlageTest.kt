@@ -225,7 +225,6 @@ internal class IverksettAvvistKlageTest {
 
     @Test
     fun `kan iverksette en klage som er til attestering avvist`() {
-
         val (_, klage) = avvistKlageTilAttestering(fritekstTilBrev = "dette er min fritekst")
         val attestant = NavIdentBruker.Attestant("attestant")
         val person = person(fnr = klage.fnr)
@@ -252,7 +251,7 @@ internal class IverksettAvvistKlageTest {
             vedtakServiceMock = mock {
                 doNothing().whenever(it).lagre(any())
             },
-            observer = observerMock
+            observer = observerMock,
         )
 
         val actual = mocks.service.iverksettAvvistKlage(klage.id, attestant).getOrFail()

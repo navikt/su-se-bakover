@@ -273,7 +273,7 @@ internal class KontrollsamtaleServiceImplTest {
             sakService = mock {
                 on { hentSak(any<UUID>()) } doReturn søknadsbehandlingIverksattInnvilget().first.right()
             },
-            clock = fixedClock
+            clock = fixedClock,
         )
         services.kontrollsamtaleService.nyDato(
             sak.id,

@@ -12,7 +12,7 @@ class SimuleringConfig(
     private val simuleringServiceUrl: String,
     private val stsSoapUrl: String,
     private val disableCNCheck: Boolean,
-    private val serviceUser: ApplicationConfig.ServiceUserConfig
+    private val serviceUser: ApplicationConfig.ServiceUserConfig,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 

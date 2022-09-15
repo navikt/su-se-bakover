@@ -37,11 +37,10 @@ internal class BekreftVurdertKlageTest {
 
     @Test
     fun `fant ikke klage`() {
-
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn null
-            }
+            },
         )
 
         val klageId = UUID.randomUUID()
@@ -190,7 +189,6 @@ internal class BekreftVurdertKlageTest {
         klage: Klage,
         attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty(),
     ) {
-
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage

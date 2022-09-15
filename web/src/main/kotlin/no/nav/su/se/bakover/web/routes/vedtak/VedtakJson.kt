@@ -38,7 +38,8 @@ internal enum class VedtakTypeJson(private val beskrivelse: String) {
     OPPHØR("OPPHØR"),
     STANS_AV_YTELSE("STANS_AV_YTELSE"),
     GJENOPPTAK_AV_YTELSE("GJENOPPTAK_AV_YTELSE"),
-    AVVIST_KLAGE("AVVIST_KLAGE");
+    AVVIST_KLAGE("AVVIST_KLAGE"),
+    ;
 
     override fun toString(): String {
         return beskrivelse

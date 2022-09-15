@@ -604,8 +604,8 @@ internal class UtbetalingsstrategiNyTest {
             sakOgVedtakSomKanRevurderes = sak to vedtak as VedtakSomKanRevurderes,
             vilkårOverrides = listOf(
                 avslåttUførevilkårUtenGrunnlag(
-                    periode = februar(2021).rangeTo(desember(2021))
-                )
+                    periode = februar(2021).rangeTo(desember(2021)),
+                ),
             ),
             clock = tikkendeKlokke,
         )

@@ -526,7 +526,8 @@ class BehandlingStatistikkMapper(
             ResultatOgBegrunnelse(stans, stansAvYtelse.revurderingsårsak.årsak.hentGyldigStansBegrunnelse())
 
         fun map(gjenopptakAvYtelse: GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse) = ResultatOgBegrunnelse(
-            gjenopptak, gjenopptakAvYtelse.revurderingsårsak.årsak.hentGyldigGjenopptakBegrunnelse(),
+            gjenopptak,
+            gjenopptakAvYtelse.revurderingsårsak.årsak.hentGyldigGjenopptakBegrunnelse(),
         )
 
         fun lukket() = lukket

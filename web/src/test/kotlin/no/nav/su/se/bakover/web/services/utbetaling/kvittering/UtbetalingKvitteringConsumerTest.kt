@@ -75,7 +75,7 @@ internal class UtbetalingKvitteringConsumerTest {
 
         val xmlMessage = kvitteringXml(
             utbetalingsId = utbetalingMedKvittering.id,
-            alvorlighetsgrad = UtbetalingKvitteringResponse.Alvorlighetsgrad.OK
+            alvorlighetsgrad = UtbetalingKvitteringResponse.Alvorlighetsgrad.OK,
         )
 
         val kvittering = Kvittering(
@@ -95,7 +95,7 @@ internal class UtbetalingKvitteringConsumerTest {
         val consumer = UtbetalingKvitteringConsumer(
             utbetalingService = utbetalingServiceMock,
             ferdigstillVedtakService = ferdigstillVedtakServiceMock,
-            clock = fixedClock
+            clock = fixedClock,
         )
 
         assertThrows<RuntimeException> {

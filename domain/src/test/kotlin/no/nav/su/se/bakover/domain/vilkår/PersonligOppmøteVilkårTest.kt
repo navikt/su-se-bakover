@@ -63,7 +63,7 @@ internal class PersonligOppmøteVilkårTest {
                             id = UUID.randomUUID(),
                             opprettet = Tidspunkt.now(fixedClock),
                             periode = år(2021),
-                            årsak = PersonligOppmøteÅrsak.MøttPersonlig
+                            årsak = PersonligOppmøteÅrsak.MøttPersonlig,
                         ),
                         periode = år(2021),
                     ),
@@ -74,7 +74,7 @@ internal class PersonligOppmøteVilkårTest {
                             id = UUID.randomUUID(),
                             opprettet = Tidspunkt.now(fixedClock),
                             periode = år(2021),
-                            årsak = PersonligOppmøteÅrsak.MøttPersonlig
+                            årsak = PersonligOppmøteÅrsak.MøttPersonlig,
                         ),
                         periode = år(2021),
                     ),
@@ -92,7 +92,7 @@ internal class PersonligOppmøteVilkårTest {
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(fixedClock),
                 periode = mai(2021),
-                årsak = PersonligOppmøteÅrsak.IkkeMøttMenKortvarigSykMedLegeerklæring
+                årsak = PersonligOppmøteÅrsak.IkkeMøttMenKortvarigSykMedLegeerklæring,
             ),
             periode = mai(2021),
         )
@@ -104,7 +104,7 @@ internal class PersonligOppmøteVilkårTest {
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(fixedClock),
                 periode = juni(2021),
-                årsak = PersonligOppmøteÅrsak.IkkeMøttMenMidlertidigUnntakFraOppmøteplikt
+                årsak = PersonligOppmøteÅrsak.IkkeMøttMenMidlertidigUnntakFraOppmøteplikt,
             ),
             periode = juni(2021),
         )

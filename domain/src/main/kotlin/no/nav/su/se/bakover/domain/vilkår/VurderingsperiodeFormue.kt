@@ -142,7 +142,6 @@ data class VurderingsperiodeFormue private constructor(
             grunnlag: Formuegrunnlag,
             vurderingsperiode: Periode,
         ): Either<UgyldigVurderingsperiode, VurderingsperiodeFormue> {
-
             grunnlag.let {
                 if (vurderingsperiode != it.periode) return UgyldigVurderingsperiode.PeriodeForGrunnlagOgVurderingErForskjellig.left()
             }
@@ -188,7 +187,11 @@ data class VurderingsperiodeFormue private constructor(
                 vurdering = if (grunnlag.periode.måneder().all {
                     grunnlag.sumFormue() <= formuegrenserFactory.forMåned(it).formuegrense.avrund()
                 }
-                ) Vurdering.Innvilget else Vurdering.Avslag,
+                ) {
+                    Vurdering.Innvilget
+                } else {
+                    Vurdering.Avslag
+                },
                 grunnlag = grunnlag,
                 periode = grunnlag.periode,
             )

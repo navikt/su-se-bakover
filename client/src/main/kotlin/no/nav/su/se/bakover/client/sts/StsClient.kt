@@ -12,7 +12,7 @@ internal class StsClient(
     private val baseUrl: String,
     private val username: String,
     private val password: String,
-    private val clock: Clock
+    private val clock: Clock,
 ) : TokenOppslag {
     private var stsToken: ExpiringTokenResponse? = null
     private val wellKnownUrl = "$baseUrl/.well-known/openid-configuration"
@@ -26,7 +26,7 @@ internal class StsClient(
 
             stsToken = result.fold(
                 { ExpiringTokenResponse(JSONObject(it), clock = clock) },
-                { throw RuntimeException("Error while getting token from STS, message:${it.message}, error:${String(it.errorData)}") }
+                { throw RuntimeException("Error while getting token from STS, message:${it.message}, error:${String(it.errorData)}") },
             )
         }
         return stsToken?.accessToken!!
@@ -36,7 +36,7 @@ internal class StsClient(
         val (_, _, result) = wellKnownUrl.httpGet().responseString()
         return result.fold(
             { JSONObject(it) },
-            { throw RuntimeException("Could not get JWK config from url $wellKnownUrl, error:$it") }
+            { throw RuntimeException("Could not get JWK config from url $wellKnownUrl, error:$it") },
         )
     }
 }

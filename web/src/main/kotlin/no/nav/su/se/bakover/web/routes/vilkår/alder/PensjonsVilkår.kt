@@ -89,7 +89,8 @@ private fun Pensjonsopplysninger.SøktPensjonFolketrygd.Svar.toJson(): Pensjonso
 enum class PensjonsoppysningerSvarJson {
     JA,
     NEI,
-    IKKE_AKTUELT;
+    IKKE_AKTUELT,
+    ;
 
     fun toFolketrygdSvar(): Pensjonsopplysninger.SøktPensjonFolketrygd.Svar {
         return when (this) {

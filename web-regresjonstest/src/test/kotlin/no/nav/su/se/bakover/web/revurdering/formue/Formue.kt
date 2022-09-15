@@ -57,8 +57,8 @@ internal fun ApplicationTestBuilder.leggTilFormue(
                         "depositumskonto": 45000
                       },
                     "begrunnelse": "Lagt til automatisk av Formue.kt#leggTilFormue()"
-                  }                    
-                ] 
+                  }
+                ]
                 """.trimIndent(),
             )
         }.apply {

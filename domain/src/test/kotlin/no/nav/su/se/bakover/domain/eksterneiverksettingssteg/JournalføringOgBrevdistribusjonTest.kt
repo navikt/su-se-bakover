@@ -22,6 +22,7 @@ internal class JournalføringOgBrevdistribusjonTest {
     @Nested
     inner class Journalføring {
         private val skalIkkeBliKaltVedJournalføring = mock<Either<FeilVedJournalføring, JournalpostId>>()
+
         @Test
         fun `journalfører venter på kvittering og oppdaterer status`() {
             IkkeJournalførtEllerDistribuert.journalfør { okJournalføring() } shouldBe Journalført(journalpostId).right()
@@ -35,7 +36,7 @@ internal class JournalføringOgBrevdistribusjonTest {
         @Test
         fun `svarer med feil dersom man forsøker å journalføre en allerede journalført`() {
             Journalført(journalpostId).journalfør { skalIkkeBliKaltVedJournalføring } shouldBe AlleredeJournalført(
-                journalpostId
+                journalpostId,
             ).left()
             verifyNoMoreInteractions(skalIkkeBliKaltVedJournalføring)
         }
@@ -44,7 +45,7 @@ internal class JournalføringOgBrevdistribusjonTest {
         fun `svarer med feil dersom man forsøker å journalføre en allerede distribuert og journalført`() {
             JournalførtOgDistribuertBrev(
                 journalpostId,
-                brevbestillingId
+                brevbestillingId,
             ).journalfør { skalIkkeBliKaltVedJournalføring } shouldBe AlleredeJournalført(journalpostId).left()
             verifyNoMoreInteractions(skalIkkeBliKaltVedJournalføring)
         }

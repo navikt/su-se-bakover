@@ -45,7 +45,8 @@ internal data class VurderingsperiodeInstitusjonsoppholdJson(
 enum class VurderingInstitusjonsoppholdJson {
     VilkårOppfylt,
     VilkårIkkeOppfylt,
-    Uavklart;
+    Uavklart,
+    ;
 
     fun toDomain(): no.nav.su.se.bakover.domain.vilkår.Vurdering {
         return when (this) {

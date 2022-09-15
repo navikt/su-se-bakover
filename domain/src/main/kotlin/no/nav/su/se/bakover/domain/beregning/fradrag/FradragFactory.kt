@@ -9,14 +9,14 @@ object FradragFactory {
         månedsbeløp: Double,
         periode: Periode,
         utenlandskInntekt: UtenlandskInntekt? = null,
-        tilhører: FradragTilhører
+        tilhører: FradragTilhører,
     ): FradragForPeriode {
         return FradragForPeriode(
             periode = periode,
             fradragstype = fradragstype,
             månedsbeløp = månedsbeløp,
             utenlandskInntekt = utenlandskInntekt,
-            tilhører = tilhører
+            tilhører = tilhører,
         )
     }
 
@@ -25,14 +25,14 @@ object FradragFactory {
         månedsbeløp: Double,
         måned: Måned,
         utenlandskInntekt: UtenlandskInntekt? = null,
-        tilhører: FradragTilhører
+        tilhører: FradragTilhører,
     ): FradragForMåned {
         return FradragForMåned(
             måned = måned,
             fradragstype = fradragstype,
             månedsbeløp = månedsbeløp,
             utenlandskInntekt = utenlandskInntekt,
-            tilhører = tilhører
+            tilhører = tilhører,
         )
     }
 
@@ -43,7 +43,7 @@ object FradragFactory {
                 månedsbeløp = fradrag.månedsbeløp,
                 måned = it,
                 utenlandskInntekt = fradrag.utenlandskInntekt,
-                tilhører = fradrag.tilhører
+                tilhører = fradrag.tilhører,
             )
         }
 }

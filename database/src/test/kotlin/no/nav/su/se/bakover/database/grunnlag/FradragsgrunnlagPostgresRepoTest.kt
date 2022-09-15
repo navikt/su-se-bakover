@@ -26,7 +26,9 @@ internal class FradragsgrunnlagPostgresRepoTest {
                 månedsbeløp = 5000.0,
                 periode = år(2021),
                 utenlandskInntekt = UtenlandskInntekt.create(
-                    beløpIUtenlandskValuta = 5, valuta = "DKK", kurs = 10.5,
+                    beløpIUtenlandskValuta = 5,
+                    valuta = "DKK",
+                    kurs = 10.5,
                 ),
                 tilhører = FradragTilhører.BRUKER,
             )
@@ -55,7 +57,9 @@ internal class FradragsgrunnlagPostgresRepoTest {
                             månedsbeløp = 5000.0,
                             periode = år(2021),
                             utenlandskInntekt = UtenlandskInntekt.create(
-                                beløpIUtenlandskValuta = 5, valuta = "DKK", kurs = 10.5,
+                                beløpIUtenlandskValuta = 5,
+                                valuta = "DKK",
+                                kurs = 10.5,
                             ),
                             tilhører = FradragTilhører.BRUKER,
                         ),

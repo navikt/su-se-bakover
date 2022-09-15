@@ -151,7 +151,7 @@ internal class PersonPostgresRepo(
         return dbMetrics.timeQuery("hentFnrForVedtakId") {
             sessionFactory.withSession { session ->
                 """
-               SELECT 
+               SELECT
                     s.fnr søkersFnr,
                     eps_fnr epsFnr
                 FROM behandling_vedtak bv
@@ -179,7 +179,7 @@ internal class PersonPostgresRepo(
         return dbMetrics.timeQuery("hentFnrForKlageId") {
             sessionFactory.withSession { session ->
                 """
-               SELECT 
+               SELECT
                     s.fnr søkersFnr,
                     eps_fnr epsFnr
                 FROM klage k

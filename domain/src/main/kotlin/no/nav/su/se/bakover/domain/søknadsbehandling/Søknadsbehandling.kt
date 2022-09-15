@@ -2011,7 +2011,8 @@ enum class BehandlingsStatus {
     UNDERKJENT_INNVILGET,
     UNDERKJENT_AVSLAG,
     IVERKSATT_INNVILGET,
-    IVERKSATT_AVSLAG;
+    IVERKSATT_AVSLAG,
+    ;
 
     companion object {
         @Suppress("MemberVisibilityCanBePrivate")

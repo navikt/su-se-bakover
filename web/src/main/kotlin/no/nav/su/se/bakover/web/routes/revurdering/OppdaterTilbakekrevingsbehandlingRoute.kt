@@ -26,7 +26,6 @@ internal fun Route.oppdaterTilbakekrevingsbehandlingRoute(
     revurderingService: RevurderingService,
     satsFactory: SatsFactory,
 ) {
-
     data class Body(
         val avgjørelse: OppdaterTilbakekrevingsbehandlingRequest.Avgjørelse,
     )
@@ -48,8 +47,8 @@ internal fun Route.oppdaterTilbakekrevingsbehandlingRoute(
                             call.svar(
                                 Resultat.json(
                                     HttpStatusCode.OK,
-                                    serialize(it.toJson(satsFactory))
-                                )
+                                    serialize(it.toJson(satsFactory)),
+                                ),
                             )
                         },
                     )

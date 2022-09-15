@@ -30,7 +30,7 @@ private data class MicrosoftGraphResponse(
 )
 
 private data class ListOfMicrosoftGraphResponse(
-    val value: List<MicrosoftGraphResponse>
+    val value: List<MicrosoftGraphResponse>,
 )
 
 internal class MicrosoftGraphApiClient(
@@ -78,8 +78,11 @@ internal class MicrosoftGraphApiClient(
                 .authentication()
                 .bearer(token),
         ).flatMap {
-            if (it.value.size != 1) KunneIkkeHenteNavnForNavIdent.FantIkkeBrukerForNavIdent.left()
-            else it.value.first().right()
+            if (it.value.size != 1) {
+                KunneIkkeHenteNavnForNavIdent.FantIkkeBrukerForNavIdent.left()
+            } else {
+                it.value.first().right()
+            }
         }
     }
 

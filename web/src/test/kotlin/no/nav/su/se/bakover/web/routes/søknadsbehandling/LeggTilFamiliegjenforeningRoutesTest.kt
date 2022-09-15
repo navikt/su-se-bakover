@@ -86,7 +86,8 @@ internal class LeggTilFamiliegjenforeningRoutesTest {
                 status shouldBe HttpStatusCode.Created
                 JSONAssert.assertEquals(
                     bodyAsText(),
-                    serialize(vilkårsvurdert.toJson(satsFactoryTestPåDato())), true,
+                    serialize(vilkårsvurdert.toJson(satsFactoryTestPåDato())),
+                    true,
                 )
             }
         }

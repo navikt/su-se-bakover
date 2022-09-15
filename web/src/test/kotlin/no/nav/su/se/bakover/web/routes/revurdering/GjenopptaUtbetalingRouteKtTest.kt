@@ -117,8 +117,8 @@ internal class GjenopptaUtbetalingRouteKtTest {
                             } doReturn KunneIkkeIverksetteGjenopptakAvYtelse.KunneIkkeUtbetale(
                                 UtbetalGjenopptakFeil.KunneIkkeUtbetale(
                                     UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(
-                                        KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UliktBeløp
-                                    )
+                                        KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UliktBeløp,
+                                    ),
                                 ),
                             ).left()
                         },

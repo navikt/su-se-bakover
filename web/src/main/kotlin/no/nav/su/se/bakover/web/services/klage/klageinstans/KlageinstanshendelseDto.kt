@@ -132,7 +132,8 @@ sealed interface KlageinstanshendelseDto {
         DELVIS_MEDHOLD,
         STADFESTELSE,
         UGUNST,
-        AVVIST;
+        AVVIST,
+        ;
 
         fun toDomain(): KlageinstansUtfall = when (this) {
             TRUKKET -> KlageinstansUtfall.TRUKKET

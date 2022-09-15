@@ -4,5 +4,5 @@ internal data class EndreOppgaveRequest(
     val id: Long,
     val versjon: Int,
     val beskrivelse: String,
-    val status: String
+    val status: String,
 )

@@ -56,7 +56,8 @@ internal data class KabalRequest(
             ANNET("ANNET"),
             BRUKERS_KLAGE("BRUKERS_KLAGE"),
             OPPRINNELIG_VEDTAK("OPPRINNELIG_VEDTAK"),
-            OVERSENDELSESBREV("OVERSENDELSESBREV");
+            OVERSENDELSESBREV("OVERSENDELSESBREV"),
+            ;
 
             override fun toString(): String = this.verdi
         }
@@ -76,7 +77,8 @@ internal data class KabalRequest(
         LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_13("SUP_ST_L_13"),
         LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_17("SUP_ST_L_17"),
         LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_18("SUP_ST_L_18"),
-        LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_21("SUP_ST_L_21");
+        LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_21("SUP_ST_L_21"),
+        ;
 
         override fun toString(): String = this.verdi
 

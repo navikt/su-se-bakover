@@ -320,7 +320,8 @@ internal class RevurderingLeggTilFormueServiceTest {
         val (sak, opprettet) = opprettetRevurdering(
             grunnlagsdataOverrides = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                    id = UUID.randomUUID(), opprettet = fixedTidspunkt,
+                    id = UUID.randomUUID(),
+                    opprettet = fixedTidspunkt,
                     periode = stønadsperiode2021.periode,
                 ),
             ),

@@ -13,7 +13,8 @@ data class Oppholdstillatelse private constructor(
 ) {
     enum class OppholdstillatelseType() {
         MIDLERTIDIG,
-        PERMANENT;
+        PERMANENT,
+        ;
     }
 
     companion object {
@@ -25,7 +26,8 @@ data class Oppholdstillatelse private constructor(
             statsborgerskapAndreLandFritekst: String?,
         ): Either<FeilVedOpprettelseAvOppholdstillatelse, Oppholdstillatelse> {
             validerHarOppholdstillatelse(
-                erNorskStatsborger = erNorskStatsborger, harOppholdstillatelse = harOppholdstillatelse,
+                erNorskStatsborger = erNorskStatsborger,
+                harOppholdstillatelse = harOppholdstillatelse,
             ).mapLeft { return it.left() }
 
             validerOppholdstillatelseType(
@@ -51,21 +53,30 @@ data class Oppholdstillatelse private constructor(
         private fun validerHarOppholdstillatelse(
             erNorskStatsborger: Boolean,
             harOppholdstillatelse: Boolean?,
-        ) = if (!erNorskStatsborger && harOppholdstillatelse == null)
-            FeilVedOpprettelseAvOppholdstillatelse.OppholdstillatelseErIkkeUtfylt.left() else Unit.right()
+        ) = if (!erNorskStatsborger && harOppholdstillatelse == null) {
+            FeilVedOpprettelseAvOppholdstillatelse.OppholdstillatelseErIkkeUtfylt.left()
+        } else {
+            Unit.right()
+        }
 
         private fun validerOppholdstillatelseType(
             erNorskStatsborger: Boolean,
             harOppholdstillatelse: Boolean?,
             oppholdstillatelseType: OppholdstillatelseType?,
-        ) = if (!erNorskStatsborger && harOppholdstillatelse == true && oppholdstillatelseType == null)
-            FeilVedOpprettelseAvOppholdstillatelse.TypeOppholdstillatelseErIkkeUtfylt.left() else Unit.right()
+        ) = if (!erNorskStatsborger && harOppholdstillatelse == true && oppholdstillatelseType == null) {
+            FeilVedOpprettelseAvOppholdstillatelse.TypeOppholdstillatelseErIkkeUtfylt.left()
+        } else {
+            Unit.right()
+        }
 
         private fun validerStatsborgerskapAndreLand(
             statsborgerskapAndreLand: Boolean,
             statsborgerskapAndreLandFritekst: String?,
-        ) = if (statsborgerskapAndreLand && statsborgerskapAndreLandFritekst == null)
-            FeilVedOpprettelseAvOppholdstillatelse.FritekstForStatsborgerskapErIkkeUtfylt.left() else Unit.right()
+        ) = if (statsborgerskapAndreLand && statsborgerskapAndreLandFritekst == null) {
+            FeilVedOpprettelseAvOppholdstillatelse.FritekstForStatsborgerskapErIkkeUtfylt.left()
+        } else {
+            Unit.right()
+        }
     }
 }
 

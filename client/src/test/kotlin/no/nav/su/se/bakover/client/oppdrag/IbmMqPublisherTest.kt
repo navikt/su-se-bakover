@@ -26,7 +26,7 @@ internal class IbmMqPublisherTest {
     private val textMessageMock = mock(TextMessage::class.java)
     private val publisherConfig = MqPublisher.MqPublisherConfig(
         "sendQueue",
-        "replyTo"
+        "replyTo",
     )
 
     @BeforeEach
@@ -57,7 +57,7 @@ internal class IbmMqPublisherTest {
     @Test
     fun `rollback when exception is thrown`() {
         `when`(producerMock.send(any(Destination::class.java), any(Message::class.java))).thenThrow(
-            MessageFormatRuntimeException("error mate")
+            MessageFormatRuntimeException("error mate"),
         )
 
         val res = IbmMqPublisher(publisherConfig, parentJmsContext).publish("message")

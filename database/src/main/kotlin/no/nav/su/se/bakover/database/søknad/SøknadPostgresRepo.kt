@@ -29,17 +29,17 @@ internal class SøknadPostgresRepo(
         dbMetrics.timeQuery("opprettSøknad") {
             sessionFactory.withSession { session ->
                 """
-                    insert into søknad 
-                        (id, 
-                        sakId, 
-                        søknadInnhold, 
-                        opprettet, 
-                        ident) 
-                    values 
-                        (:id, 
-                        :sakId, 
-                        to_json(:soknad::json), 
-                        :opprettet, 
+                    insert into søknad
+                        (id,
+                        sakId,
+                        søknadInnhold,
+                        opprettet,
+                        ident)
+                    values
+                        (:id,
+                        :sakId,
+                        to_json(:soknad::json),
+                        :opprettet,
                         :ident)
                 """.trimIndent().insert(
                     mapOf(

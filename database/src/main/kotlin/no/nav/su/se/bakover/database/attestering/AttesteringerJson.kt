@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 
 internal fun Attesteringshistorikk.toDatabaseJson(): String {
-
     return this.map {
         when (it) {
             is Attestering.Iverksatt -> AttesteringJson.IverksattJson(

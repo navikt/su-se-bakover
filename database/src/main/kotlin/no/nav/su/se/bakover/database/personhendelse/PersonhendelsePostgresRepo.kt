@@ -193,7 +193,8 @@ internal class PersonhendelsePostgresRepo(
         UTFLYTTING_FRA_NORGE("utflytting_fra_norge"),
         SIVILSTAND("sivilstand"),
         BOSTEDSADRESSE("bostedsadresse"),
-        KONTAKTADRESSE("kontaktadresse");
+        KONTAKTADRESSE("kontaktadresse"),
+        ;
     }
 
     private fun Personhendelse.Endringstype.toDatabasetype(): String = when (this) {
@@ -207,7 +208,8 @@ internal class PersonhendelsePostgresRepo(
         OPPRETTET("opprettet"),
         KORRIGERT("korrigert"),
         ANNULLERT("annullert"),
-        OPPHØRT("opphørt");
+        OPPHØRT("opphørt"),
+        ;
 
         fun toDomain(): Personhendelse.Endringstype = when (this) {
             OPPRETTET -> Personhendelse.Endringstype.OPPRETTET
@@ -247,7 +249,8 @@ internal class PersonhendelsePostgresRepo(
                 REGISTRERT_PARTNER("registrert_partner"),
                 SEPARERT_PARTNER("separert_partner"),
                 SKILT_PARTNER("skilt_partner"),
-                GJENLEVENDE_PARTNER("gjenlevende_partner");
+                GJENLEVENDE_PARTNER("gjenlevende_partner"),
+                ;
 
                 companion object {
                     fun tryParse(value: String): Typer {

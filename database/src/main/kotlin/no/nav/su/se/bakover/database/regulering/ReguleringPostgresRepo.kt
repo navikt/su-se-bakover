@@ -85,7 +85,7 @@ internal class ReguleringPostgresRepo(
                 union
 
                 select saksnummer
-                from revurdering                                           
+                from revurdering
                          left join sak s on s.id = sakid
                 where revurderingstype in (${RevurderingsType.åpneRevurderingstyperKommaseparert()}) and avsluttet is null
 
@@ -113,10 +113,10 @@ internal class ReguleringPostgresRepo(
             """
             select *
             from regulering r
-            
+
             inner join sak s
             on s.id = r.sakId
-            
+
             where r.id = :id
             """.trimIndent()
                 .hent(mapOf("id" to id), session) { row ->
@@ -217,7 +217,7 @@ internal class ReguleringPostgresRepo(
 
     private enum class ReguleringstypeDb {
         MANUELL,
-        AUTOMATISK
+        AUTOMATISK,
     }
 
     private fun Row.toRegulering(session: Session): Regulering {
@@ -266,14 +266,15 @@ internal class ReguleringPostgresRepo(
             simulering = simulering,
             reguleringstype = type,
             avsluttetReguleringJson = avsluttet,
-            sakstype = sakstype
+            sakstype = sakstype,
         )
     }
 
     private enum class ReguleringStatus {
         OPPRETTET,
         IVERKSATT,
-        AVSLUTTET;
+        AVSLUTTET,
+        ;
     }
 
     private fun lagRegulering(
@@ -316,7 +317,7 @@ internal class ReguleringPostgresRepo(
             )
             ReguleringStatus.AVSLUTTET -> Regulering.AvsluttetRegulering(
                 opprettetRegulering = opprettetRegulering,
-                avsluttetTidspunkt = avsluttetReguleringJson!!.tidspunkt
+                avsluttetTidspunkt = avsluttetReguleringJson!!.tidspunkt,
             )
         }
     }

@@ -50,7 +50,7 @@ internal class KabalRequestTest {
         "sakenGjelder": null,
         "oversendtKaDato": null,
         "type": "KLAGE",
-        "ytelse": "SUP_UFF" 
+        "ytelse": "SUP_UFF"
     }
         """.trimIndent()
 

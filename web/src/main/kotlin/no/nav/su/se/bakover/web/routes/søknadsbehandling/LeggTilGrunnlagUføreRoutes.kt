@@ -37,7 +37,7 @@ internal fun Route.leggTilUføregrunnlagRoutes(
                                 }.map {
                                     Resultat.json(
                                         HttpStatusCode.Created,
-                                        serialize(it.toJson(satsFactory))
+                                        serialize(it.toJson(satsFactory)),
                                     )
                                 }
                             }.getOrHandle {

@@ -185,7 +185,7 @@ internal class StatistikkSchemaValidatorTest {
             "avsender": "su-se-bakover",
             "versjon": 12345678
             }
-            """.trimIndent()
+            """.trimIndent(),
         ) shouldBe false
     }
 }

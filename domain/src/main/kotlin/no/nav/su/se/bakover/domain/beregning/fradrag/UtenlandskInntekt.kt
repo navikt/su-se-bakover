@@ -8,21 +8,21 @@ import arrow.core.right
 data class UtenlandskInntekt private constructor(
     val beløpIUtenlandskValuta: Int,
     val valuta: String,
-    val kurs: Double
+    val kurs: Double,
 ) {
     companion object {
         fun create(beløpIUtenlandskValuta: Int, valuta: String, kurs: Double): UtenlandskInntekt {
             return tryCreate(
                 beløpIUtenlandskValuta,
                 valuta,
-                kurs
+                kurs,
             ).getOrHandle { throw IllegalArgumentException(it.toString()) }
         }
 
         fun tryCreate(
             beløpIUtenlandskValuta: Int,
             valuta: String,
-            kurs: Double
+            kurs: Double,
         ): Either<UgyldigUtenlandskInntekt, UtenlandskInntekt> {
             if (beløpIUtenlandskValuta < 0) return UgyldigUtenlandskInntekt.BeløpKanIkkeVæreNegativ.left()
             if (valuta.isBlank()) return UgyldigUtenlandskInntekt.ValutaMåFyllesUt.left()

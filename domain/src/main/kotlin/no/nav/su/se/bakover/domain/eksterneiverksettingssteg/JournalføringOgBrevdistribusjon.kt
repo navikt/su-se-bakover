@@ -10,7 +10,7 @@ sealed class JournalføringOgBrevdistribusjon {
     companion object {
         fun fromId(
             iverksattJournalpostId: JournalpostId?,
-            iverksattBrevbestillingId: BrevbestillingId?
+            iverksattBrevbestillingId: BrevbestillingId?,
         ): JournalføringOgBrevdistribusjon = when {
             iverksattJournalpostId == null && iverksattBrevbestillingId == null -> {
                 IkkeJournalførtEllerDistribuert
@@ -36,7 +36,8 @@ sealed class JournalføringOgBrevdistribusjon {
         fun iverksattBrevbestillingId(e: JournalføringOgBrevdistribusjon): BrevbestillingId? =
             when (e) {
                 is IkkeJournalførtEllerDistribuert,
-                is Journalført -> null
+                is Journalført,
+                -> null
                 is JournalførtOgDistribuertBrev -> e.brevbestillingId
             }
     }
@@ -85,7 +86,7 @@ sealed class JournalføringOgBrevdistribusjon {
 
     data class JournalførtOgDistribuertBrev(
         val journalpostId: JournalpostId,
-        val brevbestillingId: BrevbestillingId
+        val brevbestillingId: BrevbestillingId,
     ) : JournalføringOgBrevdistribusjon() {
         override fun journalpostId() = journalpostId
     }

@@ -6,6 +6,6 @@ data class Fradrag(
 ) {
     data class Eps(
         val fradrag: List<Månedsfradrag>,
-        val harFradragMedSumSomErLavereEnnFribeløp: Boolean
+        val harFradragMedSumSomErLavereEnnFribeløp: Boolean,
     )
 }

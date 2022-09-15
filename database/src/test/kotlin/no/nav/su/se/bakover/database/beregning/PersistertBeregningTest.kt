@@ -136,7 +136,8 @@ internal class PersistertBeregningTest {
     fun `should be equal to PersistertBeregning ignoring id, opprettet and begrunnelse`() {
         val a: Beregning =
             createBeregning(
-                opprettet = fixedTidspunkt, begrunnelse = "a",
+                opprettet = fixedTidspunkt,
+                begrunnelse = "a",
                 strategy = BeregningStrategy.BorAlene(
                     satsFactory = satsFactoryTestPåDato(),
                     sakstype = Sakstype.UFØRE,

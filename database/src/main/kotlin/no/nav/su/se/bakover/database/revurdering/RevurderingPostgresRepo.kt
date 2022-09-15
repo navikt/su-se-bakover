@@ -87,7 +87,8 @@ enum class RevurderingsType {
     SIMULERT_STANS,
     IVERKSATT_STANS,
     SIMULERT_GJENOPPTAK,
-    IVERKSATT_GJENOPPTAK;
+    IVERKSATT_GJENOPPTAK,
+    ;
 
     companion object {
         internal fun Revurdering.toRevurderingsType(): String {
@@ -161,13 +162,13 @@ internal class RevurderingPostgresRepo(
 
     internal fun hent(id: UUID, session: Session): AbstraktRevurdering? {
         return """
-                    SELECT 
+                    SELECT
                         r.*,
                         s.saksnummer,
                         s.fnr,
                         s.type
-                    FROM revurdering r                        
-                        JOIN sak s ON s.id = r.sakid 
+                    FROM revurdering r
+                        JOIN sak s ON s.id = r.sakid
                     WHERE r.id = :id
         """.trimIndent()
             .hent(mapOf("id" to id), session) { row ->
@@ -225,7 +226,7 @@ internal class RevurderingPostgresRepo(
                 s.fnr,
                 s.type
             FROM revurdering r
-                JOIN sak s on s.id = r.sakid             
+                JOIN sak s on s.id = r.sakid
             WHERE r.sakid=:sakId
         """.trimIndent()
             .hentListe(mapOf("sakId" to sakId), session) {
@@ -773,7 +774,6 @@ internal class RevurderingPostgresRepo(
         tilbakekrevingsbehandling: Tilbakekrevingsbehandling?,
         sakinfo: SakInfo,
     ): AbstraktRevurdering {
-
         return when (status) {
             RevurderingsType.UNDERKJENT_INNVILGET -> UnderkjentRevurdering.Innvilget(
                 id = id,

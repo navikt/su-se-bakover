@@ -82,7 +82,7 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
             argThat {
                 it shouldBe behandling.copy(grunnlagsdata = behandling.grunnlagsdata.copy(fradragsgrunnlag = fradragsgrunnlag))
             },
-            anyOrNull()
+            anyOrNull(),
         )
         verifyNoMoreInteractions(søknadsbehandlingRepoMock)
     }
@@ -151,7 +151,7 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
             request,
         ) shouldBe SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand(
             fra = uavklart::class,
-            til = Søknadsbehandling.Vilkårsvurdert.Innvilget::class
+            til = Søknadsbehandling.Vilkårsvurdert.Innvilget::class,
         ).left()
 
         verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe uavklart.id })
@@ -161,7 +161,6 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
 
     @Test
     fun `lagreFradrag har et fradrag med en periode som er utenfor behandlingen sin periode`() {
-
         val behandling = søknadsbehandlingVilkårsvurdertInnvilget().second
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {

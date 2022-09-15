@@ -18,7 +18,7 @@ internal class SøknadsbehandlingServiceHentTest {
             on { hent(any()) } doReturn null
         }
         createSøknadsbehandlingService(
-            søknadsbehandlingRepo = søknadsbehandlingRepoMock
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
         ).hent(SøknadsbehandlingService.HentRequest(UUID.randomUUID())).let {
             it shouldBe SøknadsbehandlingService.FantIkkeBehandling.left()
         }
@@ -31,7 +31,7 @@ internal class SøknadsbehandlingServiceHentTest {
             on { hent(any()) } doReturn behandlingMock
         }
         createSøknadsbehandlingService(
-            søknadsbehandlingRepo = søknadsbehandlingRepoMock
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
         ).hent(SøknadsbehandlingService.HentRequest(UUID.randomUUID())).let {
             it shouldBe behandlingMock.right()
         }

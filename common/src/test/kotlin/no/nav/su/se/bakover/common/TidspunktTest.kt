@@ -21,7 +21,6 @@ internal class TidspunktTest {
 
     @Test
     fun `truncate instant to same format as repo, precision in micros`() {
-
         val tidspunkt = instant.toTidspunkt()
         ChronoUnit.MICROS.between(instant, tidspunkt) shouldBe 0
         instant.toString().length.shouldNotBeLessThan(tidspunkt.toString().length)
@@ -109,12 +108,12 @@ internal class TidspunktTest {
         1.januar(2020).startOfDay(ZoneOffset.UTC).toLocalDate(ZoneOffset.UTC) shouldBe LocalDate.of(
             2020,
             Month.JANUARY,
-            1
+            1,
         )
         1.januar(2020).endOfDay(ZoneOffset.UTC).toLocalDate(ZoneOffset.UTC) shouldBe LocalDate.of(
             2020,
             Month.JANUARY,
-            1
+            1,
         )
         1.januar(2020).startOfDay(zoneIdOslo).toLocalDate(zoneIdOslo) shouldBe LocalDate.of(2020, Month.JANUARY, 1)
         1.januar(2020).endOfDay(zoneIdOslo).toLocalDate(zoneIdOslo) shouldBe LocalDate.of(2020, Month.JANUARY, 1)
@@ -127,6 +126,6 @@ internal class TidspunktTest {
 
     data class NestedSerialization(
         val tidspunkt: Tidspunkt,
-        val other: String = "other values"
+        val other: String = "other values",
     )
 }

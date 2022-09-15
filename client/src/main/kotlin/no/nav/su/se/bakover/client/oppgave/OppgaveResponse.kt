@@ -6,13 +6,13 @@ import java.time.LocalDate
 import java.time.ZonedDateTime
 
 internal data class OppgaveSøkResponse(
-    val oppgaver: List<OppgaveSøkeResultat>
+    val oppgaver: List<OppgaveSøkeResultat>,
 )
 
 internal data class OppdatertOppgaveResponse(
     val id: Long,
     val versjon: Int,
-    val status: String
+    val status: String,
 )
 internal data class OppgaveResponse(
     val id: Long,
@@ -33,7 +33,7 @@ internal data class OppgaveResponse(
     val metadata: Any?,
     val fristFerdigstillelse: LocalDate?,
     val aktivDato: LocalDate,
-    val opprettetTidspunkt: ZonedDateTime
+    val opprettetTidspunkt: ZonedDateTime,
 ) {
     fun getOppgaveId() = OppgaveId(id.toString())
     fun erFerdigstilt(): Boolean = status == "FERDIGSTILT"

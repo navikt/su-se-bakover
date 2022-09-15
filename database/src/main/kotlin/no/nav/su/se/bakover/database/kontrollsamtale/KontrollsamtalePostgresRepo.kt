@@ -28,7 +28,7 @@ internal class KontrollsamtalePostgresRepo(
                     values (:id, :opprettet, :sakId, :innkallingsdato, :status, :frist, :dokumentid)
                     on conflict(id)
                     do
-                        update set 
+                        update set
                             status=:status,
                             innkallingsdato=:innkallingsdato,
                             frist=:frist,

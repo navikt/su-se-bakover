@@ -68,7 +68,7 @@ internal class UtenlandsoppholdgrunnlagPostgresRepo(
                 behandlingId,
                 fraOgMed,
                 tilOgMed
-            ) values 
+            ) values
             (
                 :id,
                 :opprettet,

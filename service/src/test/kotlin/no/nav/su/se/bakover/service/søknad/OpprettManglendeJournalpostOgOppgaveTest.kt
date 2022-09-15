@@ -61,9 +61,9 @@ class OpprettManglendeJournalpostOgOppgaveTest {
     private val person = Person(
         ident = Ident(
             fnr = fnr,
-            aktørId = AktørId(aktørId = "123")
+            aktørId = AktørId(aktørId = "123"),
         ),
-        navn = Person.Navn(fornavn = "Tore", mellomnavn = "Johnas", etternavn = "Strømøy")
+        navn = Person.Navn(fornavn = "Tore", mellomnavn = "Johnas", etternavn = "Strømøy"),
     )
 
     @Test
@@ -72,7 +72,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             mock {
                 on { hentSøknaderUtenJournalpost() } doReturn emptyList()
                 on { hentSøknaderMedJournalpostMenUtenOppgave() } doReturn emptyList()
-            }
+            },
         ).also {
             it.service.opprettManglendeJournalpostOgOppgave() shouldBe OpprettManglendeJournalpostOgOppgaveResultat(emptyList(), emptyList())
             inOrder(*it.allMocks()) {
@@ -92,11 +92,11 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             },
             sakService = mock {
                 on { hentSak(sakId) } doReturn FantIkkeSak.left()
-            }
+            },
         ).also {
             it.service.opprettManglendeJournalpostOgOppgave() shouldBe OpprettManglendeJournalpostOgOppgaveResultat(
                 journalpostResultat = listOf(KunneIkkeOppretteJournalpost(sakId, nySøknad.id, "Fant ikke sak").left()),
-                oppgaveResultat = listOf(KunneIkkeOppretteOppgave(sakId, nySøknad.id, journalførtSøknad.journalpostId, "Fant ikke sak").left())
+                oppgaveResultat = listOf(KunneIkkeOppretteOppgave(sakId, nySøknad.id, journalførtSøknad.journalpostId, "Fant ikke sak").left()),
             )
 
             inOrder(*it.allMocks()) {
@@ -121,11 +121,11 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             },
             personService = mock {
                 on { hentPersonMedSystembruker(fnr) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
-            }
+            },
         ).also {
             it.service.opprettManglendeJournalpostOgOppgave() shouldBe OpprettManglendeJournalpostOgOppgaveResultat(
                 journalpostResultat = listOf(KunneIkkeOppretteJournalpost(sakId, nySøknad.id, "Fant ikke person").left()),
-                oppgaveResultat = listOf(KunneIkkeOppretteOppgave(sakId, journalførtSøknad.id, journalførtSøknad.journalpostId, "Fant ikke person").left())
+                oppgaveResultat = listOf(KunneIkkeOppretteOppgave(sakId, journalførtSøknad.id, journalførtSøknad.journalpostId, "Fant ikke person").left()),
             )
             inOrder(*it.allMocks()) {
                 verify(it.søknadRepo).hentSøknaderUtenJournalpost()
@@ -154,11 +154,11 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             },
             pdfGenerator = mock {
                 on { genererPdf(any<SøknadPdfInnhold>()) } doReturn ClientError(0, "").left()
-            }
+            },
         ).also {
             it.service.opprettManglendeJournalpostOgOppgave() shouldBe OpprettManglendeJournalpostOgOppgaveResultat(
                 journalpostResultat = listOf(KunneIkkeOppretteJournalpost(sakId, nySøknad.id, "Kunne ikke generere PDF").left()),
-                oppgaveResultat = emptyList()
+                oppgaveResultat = emptyList(),
             )
             inOrder(*it.allMocks()) {
                 verify(it.søknadRepo).hentSøknaderUtenJournalpost()
@@ -174,7 +174,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                             søknadInnhold = søknadInnhold,
                             clock = fixedClock,
                         )
-                    }
+                    },
                 )
                 verify(it.søknadRepo).hentSøknaderMedJournalpostMenUtenOppgave()
             }
@@ -197,11 +197,11 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             },
             oppgaveService = mock {
                 on { opprettOppgaveMedSystembruker(any()) } doReturn no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeOppretteOppgave.left()
-            }
+            },
         ).also {
             it.service.opprettManglendeJournalpostOgOppgave() shouldBe OpprettManglendeJournalpostOgOppgaveResultat(
                 journalpostResultat = emptyList(),
-                oppgaveResultat = listOf(KunneIkkeOppretteOppgave(sakId, journalførtSøknad.id, journalførtSøknad.journalpostId, "Kunne ikke opprette oppgave").left())
+                oppgaveResultat = listOf(KunneIkkeOppretteOppgave(sakId, journalførtSøknad.id, journalførtSøknad.journalpostId, "Kunne ikke opprette oppgave").left()),
             )
 
             inOrder(*it.allMocks()) {
@@ -251,11 +251,11 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             dokArkiv = mock {
                 on { opprettJournalpost(any()) } doReturn journalførtSøknad.journalpostId.right()
             },
-            søknadMetrics = mock()
+            søknadMetrics = mock(),
         ).also {
             it.service.opprettManglendeJournalpostOgOppgave() shouldBe OpprettManglendeJournalpostOgOppgaveResultat(
                 journalpostResultat = listOf(journalførtSøknad.right()),
-                oppgaveResultat = listOf(journalførtSøknad.medOppgave(oppgaveId).right())
+                oppgaveResultat = listOf(journalførtSøknad.medOppgave(oppgaveId).right()),
             )
 
             inOrder(*it.allMocks()) {
@@ -272,7 +272,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                             søknadInnhold = søknadInnhold,
                             clock = fixedClock,
                         )
-                    }
+                    },
                 )
                 verify(it.dokArkiv).opprettJournalpost(
                     argThat {
@@ -310,9 +310,9 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                             søknadInnhold = søknadInnhold,
                             innsendtAv = veileder,
                             journalpostId = journalførtSøknad.journalpostId,
-                            oppgaveId = oppgaveId
+                            oppgaveId = oppgaveId,
                         )
-                    }
+                    },
                 )
                 verify(it.søknadMetrics).incrementNyCounter(SøknadMetrics.NyHandlinger.OPPRETTET_OPPGAVE)
             }

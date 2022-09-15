@@ -122,9 +122,13 @@ internal class OpprettKlageTest {
         status: HttpStatusCode,
         body: String,
     ) {
-        val klageServiceMock = if (feilkode != null) mock<KlageService> {
-            on { opprett(any()) } doReturn feilkode.left()
-        } else mock()
+        val klageServiceMock = if (feilkode != null) {
+            mock<KlageService> {
+                on { opprett(any()) } doReturn feilkode.left()
+            }
+        } else {
+            mock()
+        }
         testApplication {
             application {
                 testSusebakover(

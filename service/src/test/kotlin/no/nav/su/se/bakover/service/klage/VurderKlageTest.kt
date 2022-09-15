@@ -34,7 +34,6 @@ internal class VurderKlageTest {
 
     @Test
     fun `fant ikke klage`() {
-
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn null
@@ -56,7 +55,6 @@ internal class VurderKlageTest {
 
     @Test
     fun `ugyldig omgjøringsårsak`() {
-
         val mocks = KlageServiceMocks()
         val request = KlageVurderingerRequest(
             klageId = UUID.randomUUID(),

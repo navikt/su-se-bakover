@@ -56,15 +56,19 @@ class FormuegrenserFactory private constructor(
      */
     fun forMåned(måned: Måned): FormuegrenseForMåned {
         return månedTilFormuegrense[måned]
-            ?: if (måned > sisteMånedMedEndring) månedTilFormuegrense[sisteMånedMedEndring]!!.let {
-                it.copy(
-                    grunnbeløpForMåned = it.grunnbeløpForMåned.copy(
-                        måned = måned,
-                    ),
+            ?: if (måned > sisteMånedMedEndring) {
+                månedTilFormuegrense[sisteMånedMedEndring]!!.let {
+                    it.copy(
+                        grunnbeløpForMåned = it.grunnbeløpForMåned.copy(
+                            måned = måned,
+                        ),
+                    )
+                }
+            } else {
+                throw IllegalArgumentException(
+                    "Har ikke data for etterspurt måned: $måned. Vi har bare data fra og med måned: ${månedTilFormuegrense.keys.first()}",
                 )
-            } else throw IllegalArgumentException(
-                "Har ikke data for etterspurt måned: $måned. Vi har bare data fra og med måned: ${månedTilFormuegrense.keys.first()}",
-            )
+            }
     }
 
     fun forDato(dato: LocalDate): FormuegrenseForMåned {

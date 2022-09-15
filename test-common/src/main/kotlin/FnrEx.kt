@@ -11,6 +11,6 @@ fun Fnr.Companion.generer(): Fnr {
     return Fnr(
         (1..11)
             .map { numbers.random() }
-            .joinToString("")
+            .joinToString(""),
     )
 }

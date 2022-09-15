@@ -35,7 +35,8 @@ internal object Feilresponser {
     )
 
     val ikkeTilgangTilPerson = Forbidden.errorJson(
-        "Ikke tilgang til å se person", "ikke_tilgang_til_person",
+        "Ikke tilgang til å se person",
+        "ikke_tilgang_til_person",
     )
 
     val fantIkkePerson = NotFound.errorJson(
@@ -44,7 +45,8 @@ internal object Feilresponser {
     )
 
     val feilVedOppslagPåPerson = InternalServerError.errorJson(
-        "Feil ved oppslag på person", "feil_ved_oppslag_person",
+        "Feil ved oppslag på person",
+        "feil_ved_oppslag_person",
     )
 
     val fantIkkeSøknad = NotFound.errorJson(
@@ -69,12 +71,12 @@ internal object Feilresponser {
 
     val vilkårKunRelevantForAlder = BadRequest.errorJson(
         "Vilkår er kun relevant for alderssaker!",
-        "vilkår_kun_relevant_for_alder"
+        "vilkår_kun_relevant_for_alder",
     )
 
     val vilkårKunRelevantForUføre = BadRequest.errorJson(
         "Vilkår er kun relevant for uføresaker!",
-        "vilkår_kun_relevant_for_uføre"
+        "vilkår_kun_relevant_for_uføre",
     )
 
     val søknadHarBehandlingFraFør = BadRequest.errorJson(
@@ -382,17 +384,20 @@ internal object Feilresponser {
     internal fun SimuleringFeilet.tilResultat(): Resultat {
         return when (this) {
             SimuleringFeilet.OPPDRAG_UR_ER_STENGT -> InternalServerError.errorJson(
-                "Simuleringsfeil: Oppdrag/UR er stengt eller nede", "simulering_feilet_oppdrag_stengt_eller_nede",
+                "Simuleringsfeil: Oppdrag/UR er stengt eller nede",
+                "simulering_feilet_oppdrag_stengt_eller_nede",
             )
             SimuleringFeilet.PERSONEN_FINNES_IKKE_I_TPS -> InternalServerError.errorJson(
-                "Simuleringsfeil: Finner ikke person i TPS", "simulering_feilet_finner_ikke_person_i_tps",
+                "Simuleringsfeil: Finner ikke person i TPS",
+                "simulering_feilet_finner_ikke_person_i_tps",
             )
             SimuleringFeilet.FINNER_IKKE_KJØREPLANSPERIODE_FOR_FOM -> InternalServerError.errorJson(
                 "Simuleringsfeil: Finner ikke kjøreplansperiode for fom-dato",
                 "simulering_feilet_finner_ikke_kjøreplansperiode_for_fom",
             )
             SimuleringFeilet.OPPDRAGET_FINNES_IKKE -> InternalServerError.errorJson(
-                "Simuleringsfeil: Oppdraget finnes ikke fra før", "simulering_feilet_oppdraget_finnes_ikke",
+                "Simuleringsfeil: Oppdraget finnes ikke fra før",
+                "simulering_feilet_oppdraget_finnes_ikke",
             )
             SimuleringFeilet.FUNKSJONELL_FEIL, SimuleringFeilet.TEKNISK_FEIL -> InternalServerError.errorJson(
                 "Simulering feilet",

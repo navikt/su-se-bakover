@@ -50,7 +50,7 @@ object TestServicesBuilder {
         regulerServices: ReguleringService = mock(),
         tilbakekrevingService: TilbakekrevingService = mock(),
         sendPåminnelserOmNyStønadsperiodeService: SendPåminnelserOmNyStønadsperiodeService = mock(),
-        skatteService: SkatteService = mock()
+        skatteService: SkatteService = mock(),
     ): Services = Services(
         avstemming = avstemming,
         utbetaling = utbetaling,
@@ -74,6 +74,6 @@ object TestServicesBuilder {
         reguleringService = regulerServices,
         tilbakekrevingService = tilbakekrevingService,
         sendPåminnelserOmNyStønadsperiodeService = sendPåminnelserOmNyStønadsperiodeService,
-        skatteService = skatteService
+        skatteService = skatteService,
     )
 }

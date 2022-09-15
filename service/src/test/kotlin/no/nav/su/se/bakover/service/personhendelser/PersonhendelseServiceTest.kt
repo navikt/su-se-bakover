@@ -60,7 +60,7 @@ internal class PersonhendelseServiceTest {
                         sakId,
                         Saksnummer(2021),
                         fnr,
-                        Sakstype.UFØRE
+                        Sakstype.UFØRE,
                     ),
                 )
             },

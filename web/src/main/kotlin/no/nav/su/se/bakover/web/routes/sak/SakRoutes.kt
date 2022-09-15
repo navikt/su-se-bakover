@@ -142,12 +142,12 @@ internal fun Route.sakRoutes(
                             AlleredeGjeldendeSakForBrukerJson(
                                 uføre = BegrensetSakinfoJson(
                                     harÅpenSøknad = info.uføre.harÅpenSøknad,
-                                    iverksattInnvilgetStønadsperiode = info.uføre.iverksattInnvilgetStønadsperiode?.toJson()
+                                    iverksattInnvilgetStønadsperiode = info.uføre.iverksattInnvilgetStønadsperiode?.toJson(),
                                 ),
                                 alder = BegrensetSakinfoJson(
                                     harÅpenSøknad = info.alder.harÅpenSøknad,
-                                    iverksattInnvilgetStønadsperiode = info.alder.iverksattInnvilgetStønadsperiode?.toJson()
-                                )
+                                    iverksattInnvilgetStønadsperiode = info.alder.iverksattInnvilgetStønadsperiode?.toJson(),
+                                ),
                             )
                         }
                 }.map {

@@ -9,7 +9,6 @@ internal class PostgresTest {
 
     @Test
     internal fun `bygger riktig dataSource basert på vaultMountPath`() {
-
         Postgres(
             ApplicationConfig.DatabaseConfig.StaticCredentials(
                 jdbcUrl = "postgresql://localhost",
@@ -27,14 +26,13 @@ internal class PostgresTest {
 
     @Test
     internal fun `kaster ikke exception når tilkobling konfigureres riktig`() {
-
         shouldNotThrowAny {
             Postgres(
                 ApplicationConfig.DatabaseConfig.RotatingCredentials(
                     jdbcUrl = "postgresql://localhost",
                     vaultMountPath = "aVaultPath",
-                    databaseName = "dbName"
-                )
+                    databaseName = "dbName",
+                ),
             ).build()
         }
 
@@ -42,7 +40,7 @@ internal class PostgresTest {
             Postgres(
                 ApplicationConfig.DatabaseConfig.StaticCredentials(
                     jdbcUrl = "postgresql://localhost",
-                )
+                ),
             ).build()
         }
     }

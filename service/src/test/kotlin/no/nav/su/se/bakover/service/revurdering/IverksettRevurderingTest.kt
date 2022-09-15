@@ -120,7 +120,7 @@ internal class IverksettRevurderingTest {
         val simulertOpphør = opphørUtbetalingSimulert(
             sakOgBehandling = sak to revurdering,
             opphørsperiode = revurdering.periode,
-            clock = fixedClock
+            clock = fixedClock,
         )
         val serviceAndMocks = RevurderingServiceMocks(
             revurderingRepo = mock {
@@ -373,7 +373,7 @@ internal class IverksettRevurderingTest {
         val simulertOpphør = opphørUtbetalingSimulert(
             sakOgBehandling = sak to revurdering,
             opphørsperiode = revurdering.periode,
-            clock = fixedClock
+            clock = fixedClock,
         )
         val serviceAndMocks = RevurderingServiceMocks(
             revurderingRepo = mock {

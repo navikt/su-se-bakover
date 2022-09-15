@@ -10,7 +10,7 @@ interface WiremockBase {
 
         val wireMockServer: WireMockServer by lazy {
             WireMockServer(
-                WireMockConfiguration.options().dynamicPort()
+                WireMockConfiguration.options().dynamicPort(),
             ).also {
                 it.start()
                 // Denne kan da ikke overskrives fra testene.

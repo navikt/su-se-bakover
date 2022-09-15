@@ -68,7 +68,7 @@ internal class LovligOppholdgrunnlagPostgresRepo(
                 behandlingId,
                 fraOgMed,
                 tilOgMed
-            ) values 
+            ) values
             (
                 :id,
                 :opprettet,

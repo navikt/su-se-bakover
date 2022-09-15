@@ -7,7 +7,7 @@ interface MqPublisher {
 
     data class MqPublisherConfig(
         val sendQueue: String,
-        val replyTo: String? = null
+        val replyTo: String? = null,
     )
 
     object CouldNotPublish

@@ -20,7 +20,7 @@ import java.time.LocalDate
 import java.util.UUID
 
 internal fun Route.kontrollsamtaleRoutes(
-    kontrollsamtaleService: KontrollsamtaleService
+    kontrollsamtaleService: KontrollsamtaleService,
 ) {
     post("kontrollsamtale/nyDato") {
         authorize(Brukerrolle.Saksbehandler) {
@@ -57,7 +57,8 @@ internal fun Route.kontrollsamtaleRoutes(
                             when (it) {
                                 KunneIkkeHenteKontrollsamtale.KunneIkkeHenteKontrollsamtaler -> Feilresponser.kunneIkkeHenteNesteKontrollsamtale
                                 KunneIkkeHenteKontrollsamtale.FantIkkeKontrollsamtale -> Resultat.json(
-                                    HttpStatusCode.OK, "null",
+                                    HttpStatusCode.OK,
+                                    "null",
                                 )
                             },
                         )

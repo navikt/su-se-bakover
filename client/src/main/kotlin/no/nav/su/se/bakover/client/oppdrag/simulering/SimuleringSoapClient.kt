@@ -61,7 +61,9 @@ internal class SimuleringSoapClient(
         } catch (e: WebServiceException) {
             if (e.cause is SSLException || e.rootCause is SocketException) {
                 utenforÅpningstidResponse(e)
-            } else unknownTechnicalExceptionResponse(e)
+            } else {
+                unknownTechnicalExceptionResponse(e)
+            }
         } catch (e: Throwable) {
             unknownTechnicalExceptionResponse(e)
         }

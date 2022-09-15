@@ -14,8 +14,8 @@ object TokenOppslagStub : TokenOppslag {
                 "token_endpoint" to "http://localhost:8080/login",
                 "issuer" to AuthStubCommonConfig.issuer,
                 "end_session_endpoint" to "http://localhost:8080/logout",
-                "jwks_uri" to "http://localhost:8080/jwks"
-            )
+                "jwks_uri" to "http://localhost:8080/jwks",
+            ),
         )
     }
 }

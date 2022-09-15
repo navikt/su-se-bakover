@@ -44,7 +44,6 @@ internal class UnderkjennKlageTest {
 
     @Test
     fun `fant ikke klage`() {
-
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn null

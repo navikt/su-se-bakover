@@ -139,8 +139,14 @@ internal class PersonhendelseConsumerKafkaTest {
                 vegadresse, null, null, null,
             ),
             no.nav.person.pdl.leesah.bostedsadresse.Bostedsadresse(
-                1.januar(2021), 1.januar(2021), 5.juni(2025), "coAdressenavn",
-                vegadresse, null, null, null,
+                1.januar(2021),
+                1.januar(2021),
+                5.juni(2025),
+                "coAdressenavn",
+                vegadresse,
+                null,
+                null,
+                null,
             ),
         )
         // Emulerer at PDL-kafka legger på 6 ukjente karakterer før de appender key
@@ -166,7 +172,7 @@ internal class PersonhendelseConsumerKafkaTest {
         private fun kafkaServer() = no.nav.common.KafkaEnvironment(
             topicInfos = listOf(
                 no.nav.common.KafkaEnvironment.TopicInfo(TOPIC1, 1),
-                no.nav.common.KafkaEnvironment.TopicInfo(TOPIC2, 1)
+                no.nav.common.KafkaEnvironment.TopicInfo(TOPIC2, 1),
             ),
             withSchemaRegistry = true,
             withSecurity = true,

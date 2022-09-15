@@ -78,7 +78,7 @@ internal class NySøknadsbehandlingIT {
                             "vedtakId": "ignore-me"
                         }
                     ]
-                """.trimIndent()
+                """.trimIndent(),
             )
         }
     }

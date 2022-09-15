@@ -17,7 +17,9 @@ internal class AttesteringerJsonTest {
         val attestering1 = Attestering.Iverksatt(NavIdentBruker.Attestant("Attestant1"), opprettet)
         val attestering2 = Attestering.Underkjent(
             NavIdentBruker.Attestant("Attestant2"),
-            opprettet.plus(1, ChronoUnit.DAYS), Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL, "kommentar",
+            opprettet.plus(1, ChronoUnit.DAYS),
+            Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL,
+            "kommentar",
         )
         val actual = Attesteringshistorikk.create(mutableListOf(attestering1, attestering2)).toDatabaseJson()
         val expected = """
@@ -51,7 +53,9 @@ internal class AttesteringerJsonTest {
         val attestering1 = Attestering.Iverksatt(NavIdentBruker.Attestant("Attestant1"), opprettet)
         val attestering2 = Attestering.Underkjent(
             NavIdentBruker.Attestant("Attestant2"),
-            opprettet.plus(1, ChronoUnit.DAYS), Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL, "kommentar",
+            opprettet.plus(1, ChronoUnit.DAYS),
+            Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL,
+            "kommentar",
         )
         val json = """
                 [

@@ -181,7 +181,7 @@ internal class AttesteringshistorikkTest {
     fun `kan ikke legge til 2 iverksatte attesteringer`() {
         val attestering1 = Attestering.Iverksatt(
             attestant = NavIdentBruker.Attestant(navIdent = "Den første attestanten som iverksatte."),
-            opprettet = fixedTidspunkt
+            opprettet = fixedTidspunkt,
         )
         val attestering2 = Attestering.Iverksatt(
             attestant = NavIdentBruker.Attestant(navIdent = "Den andre attestanten som iverksatte (dette skal feile.)"),

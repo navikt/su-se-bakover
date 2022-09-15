@@ -33,7 +33,10 @@ internal class BrevInnholdTest {
     )
 
     private val trukketSøknad = TrukketSøknadBrevInnhold(
-        personalia, 1.januar(2020), 1.februar(2020), "saksbehandler",
+        personalia,
+        1.januar(2020),
+        1.februar(2020),
+        "saksbehandler",
     )
 
     @Test
@@ -91,7 +94,7 @@ internal class BrevInnholdTest {
                     ),
                 ),
             ),
-            sakstype = Sakstype.UFØRE
+            sakstype = Sakstype.UFØRE,
         )
 
         val actualJson = objectMapper.writeValueAsString(innvilgetVedtak)
@@ -149,7 +152,7 @@ internal class BrevInnholdTest {
                       "satsBeløp": 5000,
                       "satsGrunn": "DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN"
                     }
-                  ]      
+                  ]
                 }
             }
             """.trimIndent()
@@ -258,7 +261,7 @@ internal class BrevInnholdTest {
                 "opphørsperiode": {
                   "fraOgMed": "01.01.2020",
                   "tilOgMed": "31.12.2020"
-                },            
+                },
                 "avkortingsBeløp": null,
                 "harAvkorting": false,
                 "satsoversikt": {
@@ -270,7 +273,7 @@ internal class BrevInnholdTest {
                       "satsBeløp": 1000,
                       "satsGrunn": "ENSLIG"
                     }
-                  ]      
+                  ]
                 }
             }
         """.trimIndent()

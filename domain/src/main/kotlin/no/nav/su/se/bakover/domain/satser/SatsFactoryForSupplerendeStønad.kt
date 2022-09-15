@@ -129,7 +129,6 @@ class SatsFactoryForSupplerendeStønad(
     }
 
     private fun getOrAdd(knekkpunkt: Knekkpunkt): SatsFactoryForSupplerendeStønadPåKnekkpunkt {
-
         return datoTilFactory.getOrPut(knekkpunkt) {
             val grunnbeløpFactoryPåKnekkpunkt = GrunnbeløpFactory(
                 grunnbeløpsendringer = grunnbeløpsendringer,

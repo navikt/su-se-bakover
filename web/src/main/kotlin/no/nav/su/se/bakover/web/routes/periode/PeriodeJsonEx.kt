@@ -12,15 +12,15 @@ internal fun PeriodeJson.toPeriodeOrResultat(): Either<Resultat, Periode> {
         when (it) {
             Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden -> HttpStatusCode.BadRequest.errorJson(
                 "Perioder kan kun starte på første dag i måneden",
-                "ugyldig_periode_fom"
+                "ugyldig_periode_fom",
             )
             Periode.UgyldigPeriode.TilOgMedDatoMåVæreSisteDagIMåneden -> HttpStatusCode.BadRequest.errorJson(
                 "Perioder kan kun avsluttes siste dag i måneden",
-                "ugyldig_periode_tom"
+                "ugyldig_periode_tom",
             )
             Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørTilOgMedDato -> HttpStatusCode.BadRequest.errorJson(
                 "Startmåned må være tidligere eller lik sluttmåned",
-                "ugyldig_periode_start_slutt"
+                "ugyldig_periode_start_slutt",
             )
         }
     }

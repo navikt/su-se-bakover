@@ -38,7 +38,7 @@ internal fun Route.leggTilGrunnlagRevurderingRoutes(
                                     }.map {
                                         Resultat.json(
                                             HttpStatusCode.Created,
-                                            serialize(it.toJson(satsFactory))
+                                            serialize(it.toJson(satsFactory)),
                                         )
                                     }
                             }.getOrHandle { it },

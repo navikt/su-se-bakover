@@ -10,7 +10,7 @@ import java.util.UUID
  * Holder hendelsene sortert på opprettet-tidspunkt.
  */
 data class Klageinstanshendelser private constructor(
-    private val underlying: List<ProsessertKlageinstanshendelse>
+    private val underlying: List<ProsessertKlageinstanshendelse>,
 ) : List<ProsessertKlageinstanshendelse> by underlying {
     companion object {
         fun empty() = Klageinstanshendelser(emptyList())
@@ -65,12 +65,13 @@ enum class KlageinstansUtfall {
     DELVIS_MEDHOLD,
     STADFESTELSE,
     UGUNST,
-    AVVIST
+    AVVIST,
 }
 
 sealed interface KunneIkkeTolkeKlageinstanshendelse {
     object KunneIkkeDeserialisere : KunneIkkeTolkeKlageinstanshendelse
     object UgyldigeVerdier : KunneIkkeTolkeKlageinstanshendelse
+
     // TODO jah: Vi bør legge inn støtte for anke hendelser når de begynner å dukke opp.
     object AnkehendelserStøttesIkke : KunneIkkeTolkeKlageinstanshendelse
 }

@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 
 internal class OppgaveServiceImpl(
-    private val oppgaveClient: OppgaveClient
+    private val oppgaveClient: OppgaveClient,
 ) : OppgaveService {
 
     override fun opprettOppgave(config: OppgaveConfig): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveId> {

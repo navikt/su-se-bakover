@@ -49,7 +49,7 @@ class RevurderingSimulerTest {
                         opphørUtbetalingSimulert(
                             sakOgBehandling = sak to beregnet,
                             opphørsperiode = it.opphørsperiode,
-                            clock = fixedClock
+                            clock = fixedClock,
                         ).right()
                     }.getOrFail()
                     .let { simulert ->
@@ -92,7 +92,7 @@ class RevurderingSimulerTest {
                             opphørUtbetalingSimulert(
                                 sakOgBehandling = sak to beregnet,
                                 opphørsperiode = beregnet.periode,
-                                clock = fixedClock
+                                clock = fixedClock,
                             ).right()
                         }.getOrFail()
                 }
@@ -122,7 +122,7 @@ class RevurderingSimulerTest {
                         opphørUtbetalingSimulert(
                             sakOgBehandling = sak to beregnet,
                             opphørsperiode = it.opphørsperiode,
-                            clock = fixedClock
+                            clock = fixedClock,
                         ).right()
                     }.getOrFail()
                     .let {
@@ -163,7 +163,7 @@ class RevurderingSimulerTest {
                             opphørUtbetalingSimulert(
                                 sakOgBehandling = sak to beregnet,
                                 opphørsperiode = it.opphørsperiode,
-                                clock = fixedClock
+                                clock = fixedClock,
                             ).right()
                         }.getOrFail()
                         .let {
@@ -189,12 +189,12 @@ class RevurderingSimulerTest {
                 when (
                     it.simuler(
                         saksbehandler = saksbehandler,
-                        clock = fixedClock
+                        clock = fixedClock,
                     ) {
                         nyUtbetalingSimulert(
                             sakOgBehandling = sak to beregnet,
                             beregning = it.beregning,
-                            clock = fixedClock
+                            clock = fixedClock,
                         ).right()
                     }.getOrFail().tilbakekrevingsbehandling
                 ) {

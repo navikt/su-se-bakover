@@ -311,7 +311,7 @@ internal class LukkSøknadServiceImpl_lagBrevutkastTest {
         }
 
         fun verifyLagBrev(
-            saksbehandlerNavn: String = saksbehandlernavn
+            saksbehandlerNavn: String = saksbehandlernavn,
         ) {
             verify(brevService).lagBrev(
                 argThat {

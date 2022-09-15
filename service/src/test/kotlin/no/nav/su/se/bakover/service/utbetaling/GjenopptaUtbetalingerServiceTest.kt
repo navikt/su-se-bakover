@@ -88,7 +88,7 @@ internal class GjenopptaUtbetalingerServiceTest {
                     sakId = sak.id,
                     saksbehandler = saksbehandler,
                     simulering = simulering,
-                )
+                ),
             ).getOrFail()
 
             verify(it.sakService).hentSak(
@@ -126,7 +126,7 @@ internal class GjenopptaUtbetalingerServiceTest {
         UtbetalingServiceAndMocks(
             sakService = mock {
                 on { hentSak(any<UUID>()) } doReturn FantIkkeSak.left()
-            }
+            },
         ).also {
             it.service.gjenopptaUtbetalinger(
                 request = UtbetalRequest.Gjenopptak(
@@ -148,7 +148,7 @@ internal class GjenopptaUtbetalingerServiceTest {
             },
             simuleringClient = mock {
                 on { simulerUtbetaling(any()) } doReturn SimuleringFeilet.TEKNISK_FEIL.left()
-            }
+            },
         ).also {
             it.service.gjenopptaUtbetalinger(
                 request = UtbetalRequest.Gjenopptak(
@@ -204,14 +204,14 @@ internal class GjenopptaUtbetalingerServiceTest {
                     publish(any())
                 } doReturn UtbetalingPublisher.KunneIkkeSendeUtbetaling(utbetalingsRequest).left()
             },
-            clock = klokke
+            clock = klokke,
         ).also {
             it.service.gjenopptaUtbetalinger(
                 request = UtbetalRequest.Gjenopptak(
                     sakId = sak.id,
                     saksbehandler = saksbehandler,
                     simulering = simulering,
-                )
+                ),
             ) shouldBe UtbetalGjenopptakFeil.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil).left()
 
             inOrder(it.sakService, it.simuleringClient, it.utbetalingPublisher) {
@@ -232,7 +232,7 @@ internal class GjenopptaUtbetalingerServiceTest {
     fun `svarer med feil dersom kontroll av simulering ikke går bra`() {
         val tikkendeKlokke = TikkendeKlokke(fixedClock)
         val (sak, revurdering) = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
-            clock = tikkendeKlokke
+            clock = tikkendeKlokke,
         )
 
         val simuleringMedFeil = simulertGjenopptakUtbetaling(
@@ -240,7 +240,7 @@ internal class GjenopptaUtbetalingerServiceTest {
             sakId = sak.id,
             saksnummer = sak.saksnummer,
             clock = tikkendeKlokke,
-            eksisterendeUtbetalinger = sak.utbetalinger
+            eksisterendeUtbetalinger = sak.utbetalinger,
         )
         UtbetalingServiceAndMocks(
             sakService = mock {

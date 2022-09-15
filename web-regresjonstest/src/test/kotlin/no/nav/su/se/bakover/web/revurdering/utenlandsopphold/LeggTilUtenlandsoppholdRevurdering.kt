@@ -33,10 +33,10 @@ internal fun ApplicationTestBuilder.leggTilUtenlandsoppholdRevurdering(
                 //language=JSON
                 """
                 {
-                    "vurderinger" : [ 
+                    "vurderinger" : [
                        {
                             "periode": {
-                                "fraOgMed": "$fraOgMed", 
+                                "fraOgMed": "$fraOgMed",
                                 "tilOgMed": "$tilOgMed"
                               },
                             "status": "$vurdering",

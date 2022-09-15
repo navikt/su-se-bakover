@@ -6,6 +6,6 @@ interface SøknadMetrics {
     enum class NyHandlinger {
         PERSISTERT,
         JOURNALFØRT,
-        OPPRETTET_OPPGAVE
+        OPPRETTET_OPPGAVE,
     }
 }

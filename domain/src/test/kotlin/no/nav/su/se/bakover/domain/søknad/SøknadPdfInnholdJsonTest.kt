@@ -26,7 +26,7 @@ class SøknadPdfInnholdJsonTest {
         navn = Person.Navn(fornavn = "Tore", mellomnavn = "Johnas", etternavn = "Strømøy"),
         søknadOpprettet = 1.januar(2021).startOfDay(),
         søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-        clock = fixedClock
+        clock = fixedClock,
     )
 
     @Test

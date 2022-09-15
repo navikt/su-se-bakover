@@ -16,7 +16,7 @@ data class FormueJson(
     val innskuddsBeløp: Number? = null,
     val verdipapirBeløp: Number? = null,
     val skylderNoenMegPengerBeløp: Number? = null,
-    val kontanterBeløp: Number? = null
+    val kontanterBeløp: Number? = null,
 ) {
     fun toFormue() = Formue.tryCreate(
         eierBolig = eierBolig,
@@ -30,7 +30,7 @@ data class FormueJson(
         innskuddsBeløp = innskuddsBeløp,
         verdipapirBeløp = verdipapirBeløp,
         skylderNoenMegPengerBeløp = skylderNoenMegPengerBeløp,
-        kontanterBeløp = kontanterBeløp
+        kontanterBeløp = kontanterBeløp,
     )
 
     private fun List<KjøretøyJson>?.toKjøretøyList() = this?.map {
@@ -51,7 +51,7 @@ data class FormueJson(
                 innskuddsBeløp = innskuddsBeløp,
                 verdipapirBeløp = verdipapirBeløp,
                 skylderNoenMegPengerBeløp = skylderNoenMegPengerBeløp,
-                kontanterBeløp = kontanterBeløp
+                kontanterBeløp = kontanterBeløp,
             )
 
         fun List<Kjøretøy>?.toKjøretøyListJson() = this?.map {
@@ -63,14 +63,14 @@ data class FormueJson(
 data class KjøretøyJson(val verdiPåKjøretøy: Number, val kjøretøyDeEier: String) {
     fun toKjøretøy() = Kjøretøy(
         kjøretøyDeEier = kjøretøyDeEier,
-        verdiPåKjøretøy = verdiPåKjøretøy
+        verdiPåKjøretøy = verdiPåKjøretøy,
     )
 
     companion object {
         fun Kjøretøy.toKjøretøyJson() =
             KjøretøyJson(
                 kjøretøyDeEier = kjøretøyDeEier,
-                verdiPåKjøretøy = verdiPåKjøretøy
+                verdiPåKjøretøy = verdiPåKjøretøy,
             )
     }
 }

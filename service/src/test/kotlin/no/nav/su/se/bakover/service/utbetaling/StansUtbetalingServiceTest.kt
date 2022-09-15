@@ -65,7 +65,7 @@ internal class StansUtbetalingServiceTest {
             fnr = sak.fnr,
             sakId = sak.id,
             saksnummer = sak.saksnummer,
-            clock = fixedClock
+            clock = fixedClock,
         )
         UtbetalingServiceAndMocks(
             sakService = mock {
@@ -83,7 +83,7 @@ internal class StansUtbetalingServiceTest {
                         any(),
                     )
                 } doReturn utbetalingsRequest.right()
-            }
+            },
         ).also { serviceAndMocks ->
             serviceAndMocks.service.stansUtbetalinger(
                 request = UtbetalRequest.Stans(
@@ -131,7 +131,7 @@ internal class StansUtbetalingServiceTest {
             fnr = sak.fnr,
             sakId = sak.id,
             saksnummer = sak.saksnummer,
-            clock = fixedClock
+            clock = fixedClock,
         )
         UtbetalingServiceAndMocks(
             sakService = mock {
@@ -139,7 +139,7 @@ internal class StansUtbetalingServiceTest {
             },
             simuleringClient = mock {
                 on { simulerUtbetaling(any()) } doReturn SimuleringFeilet.TEKNISK_FEIL.left()
-            }
+            },
         ).also {
             it.service.stansUtbetalinger(
                 request = UtbetalRequest.Stans(
@@ -149,7 +149,7 @@ internal class StansUtbetalingServiceTest {
                         stansdato = 1.februar(2021),
                     ),
                     simulering = simulering,
-                )
+                ),
             ) shouldBe UtbetalStansFeil.KunneIkkeSimulere(SimulerStansFeilet.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL)).left()
 
             inOrder(it.sakService, it.simuleringClient) {
@@ -174,7 +174,7 @@ internal class StansUtbetalingServiceTest {
             fnr = sak.fnr,
             sakId = sak.id,
             saksnummer = sak.saksnummer,
-            clock = fixedClock
+            clock = fixedClock,
         )
         UtbetalingServiceAndMocks(
             sakService = mock {
@@ -206,7 +206,7 @@ internal class StansUtbetalingServiceTest {
                 it.utbetalingRepo,
                 it.utbetalingPublisher,
             ) {
-                verify(it.sakService).hentSak(sakId = argThat { it shouldBe sakId },)
+                verify(it.sakService).hentSak(sakId = argThat { it shouldBe sakId })
                 verify(it.simuleringClient).simulerUtbetaling(any())
                 verify(it.utbetalingPublisher).publish(any())
             }

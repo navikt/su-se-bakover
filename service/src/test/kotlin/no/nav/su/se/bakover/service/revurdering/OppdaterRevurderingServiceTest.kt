@@ -73,7 +73,7 @@ internal class OppdaterRevurderingServiceTest {
         val mocks = RevurderingServiceMocks(
             sakService = mock {
                 on { hentSakForRevurdering(any()) } doReturn nySakUføre().first
-            }
+            },
         )
         val actual = mocks.revurderingService.oppdaterRevurdering(
             OppdaterRevurderingRequest(
@@ -95,7 +95,7 @@ internal class OppdaterRevurderingServiceTest {
         val mocks = RevurderingServiceMocks(
             sakService = mock {
                 on { hentSakForRevurdering(any()) } doReturn nySakUføre().first
-            }
+            },
         )
         val actual = mocks.revurderingService.oppdaterRevurdering(
             OppdaterRevurderingRequest(
@@ -205,8 +205,8 @@ internal class OppdaterRevurderingServiceTest {
                     Revurdering.KunneIkkeOppdatereRevurdering.UgyldigTilstand(
                         IverksattRevurdering.Innvilget::class,
                         OpprettetRevurdering::class,
-                    )
-                )
+                    ),
+                ),
             ).left()
             verify(it.sakService).hentSakForRevurdering(iverksatt.id)
             it.verifyNoMoreInteractions()
@@ -378,8 +378,8 @@ internal class OppdaterRevurderingServiceTest {
                 ),
             ) shouldBe KunneIkkeOppdatereRevurdering.FeilVedOppdateringAvRevurdering(
                 Sak.KunneIkkeOppdatereRevurdering.GjeldendeVedtaksdataKanIkkeRevurderes(
-                    Sak.GjeldendeVedtaksdataErUgyldigForRevurdering.HeleRevurderingsperiodenInneholderIkkeVedtak
-                )
+                    Sak.GjeldendeVedtaksdataErUgyldigForRevurdering.HeleRevurderingsperiodenInneholderIkkeVedtak,
+                ),
             ).left()
 
             // delvis overlapp med hull mellom stønadsperioder
@@ -394,8 +394,8 @@ internal class OppdaterRevurderingServiceTest {
                 ),
             ) shouldBe KunneIkkeOppdatereRevurdering.FeilVedOppdateringAvRevurdering(
                 Sak.KunneIkkeOppdatereRevurdering.GjeldendeVedtaksdataKanIkkeRevurderes(
-                    Sak.GjeldendeVedtaksdataErUgyldigForRevurdering.HeleRevurderingsperiodenInneholderIkkeVedtak
-                )
+                    Sak.GjeldendeVedtaksdataErUgyldigForRevurdering.HeleRevurderingsperiodenInneholderIkkeVedtak,
+                ),
             ).left()
         }
     }
@@ -486,7 +486,7 @@ internal class OppdaterRevurderingServiceTest {
                     informasjonSomRevurderes = listOf(Revurderingsteg.Utenlandsopphold),
                 ),
             ) shouldBe KunneIkkeOppdatereRevurdering.FeilVedOppdateringAvRevurdering(
-                Sak.KunneIkkeOppdatereRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(juni(2021))
+                Sak.KunneIkkeOppdatereRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(juni(2021)),
             ).left()
         }
     }

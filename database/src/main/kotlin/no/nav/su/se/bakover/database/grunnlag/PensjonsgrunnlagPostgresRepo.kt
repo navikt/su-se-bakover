@@ -73,7 +73,7 @@ internal class PensjonsgrunnlagPostgresRepo(
                 fraOgMed,
                 tilOgMed,
                 pensjonsopplysninger
-            ) values 
+            ) values
             (
                 :id,
                 :opprettet,
@@ -166,7 +166,8 @@ internal data class PensjonsopplysningerDb(
 
 internal enum class PensjonFraFolketrygdenSvarDb {
     HAR_IKKE_SØKT_PENSJON_FRA_FOLKETRYGDEN,
-    HAR_SØKT_PENSJON_FRA_FOLKETRYGDEN;
+    HAR_SØKT_PENSJON_FRA_FOLKETRYGDEN,
+    ;
 
     fun toDomain(): Pensjonsopplysninger.SøktPensjonFolketrygd.Svar {
         return when (this) {
@@ -183,7 +184,8 @@ internal enum class PensjonFraFolketrygdenSvarDb {
 internal enum class PensjonFraAndreNorskeSvarDb {
     HAR_IKKE_SØKT_ANDRE_NORSKE_PENSJONER_ENN_FOLKETRYGDEN,
     HAR_SØKT_ANDRE_NORSKE_PENSJONER_ENN_FOLKETRYGDEN,
-    IKKE_AKTUELT;
+    IKKE_AKTUELT,
+    ;
 
     fun toDomain(): Pensjonsopplysninger.SøktAndreNorskePensjoner.Svar {
         return when (this) {
@@ -203,7 +205,8 @@ internal enum class PensjonFraAndreNorskeSvarDb {
 internal enum class PensjonFraUtenlandskeSvarDb {
     HAR_IKKE_SØKT_UTENLANDSKE_PENSJONER,
     HAR_SØKT_UTENLANDSKE_PENSJONER,
-    IKKE_AKTUELT;
+    IKKE_AKTUELT,
+    ;
 
     fun toDomain(): Pensjonsopplysninger.SøktUtenlandskePensjoner.Svar {
         return when (this) {

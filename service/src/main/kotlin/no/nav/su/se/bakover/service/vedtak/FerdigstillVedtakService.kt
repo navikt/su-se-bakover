@@ -22,10 +22,10 @@ import org.slf4j.LoggerFactory
 
 interface FerdigstillVedtakService {
     fun ferdigstillVedtakEtterUtbetaling(
-        utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering
+        utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering,
     ): Either<KunneIkkeFerdigstilleVedtak, Unit>
     fun lukkOppgaveMedBruker(
-        behandling: Behandling
+        behandling: Behandling,
     ): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Unit>
 
     sealed class KunneIkkeFerdigstilleVedtak {

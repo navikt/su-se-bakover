@@ -24,7 +24,8 @@ internal class UtenlandsoppholdVilkårJsonTest {
     fun `serialiserer vurdert opphold i utlandet`() {
         JSONAssert.assertEquals(
             expectedUtenlandsoppholdVurdert,
-            serialize(utenlandsopphold.toJson()), true
+            serialize(utenlandsopphold.toJson()),
+            true,
         )
     }
 
@@ -77,7 +78,7 @@ internal class UtenlandsoppholdVilkårJsonTest {
                 }
               ],
               "status": "SkalVæreMerEnn90DagerIUtlandet"
-            } 
+            }
         """.trimIndent()
     }
 }

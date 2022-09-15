@@ -14,7 +14,7 @@ data class Kvittering(
         OK_MED_VARSEL,
 
         /** Ikke lagret */
-        FEIL
+        FEIL,
     }
 
     /**

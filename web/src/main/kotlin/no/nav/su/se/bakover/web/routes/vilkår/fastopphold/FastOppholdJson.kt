@@ -75,7 +75,8 @@ internal data class LeggTilVurderingsperiodeFastOppholdJson(
 enum class FastOppholdINorgeVurderingJson {
     VilkårOppfylt,
     VilkårIkkeOppfylt,
-    Uavklart;
+    Uavklart,
+    ;
 
     fun toDomain(): Vurdering {
         return when (this) {

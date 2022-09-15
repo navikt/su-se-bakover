@@ -384,8 +384,9 @@ data class Sak(
                         utbetalingslinjePåTidslinje is UtbetalingslinjePåTidslinje.Opphør
                     }
 
-                if (!alleUtbetalingerErOpphørt)
+                if (!alleUtbetalingerErOpphørt) {
                     return KunneIkkeOppdatereStønadsperiode.StønadsperiodeInneholderAvkortingPgaUtenlandsopphold.left()
+                }
             }
         }
 
@@ -1032,5 +1033,6 @@ data class BegrensetSakinfo(
 enum class KanStansesEllerGjenopptas {
     STANS,
     GJENOPPTA,
-    INGEN;
+    INGEN,
+    ;
 }

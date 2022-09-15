@@ -6,7 +6,7 @@ import java.time.LocalDateTime
 
 open class ExpiringTokenResponse(
     json: JSONObject,
-    private val clock: Clock
+    private val clock: Clock,
 ) {
     val accessToken: AccessToken = AccessToken(json.getString("access_token"))
     private val expiresIn: Long = json.getLong("expires_in")

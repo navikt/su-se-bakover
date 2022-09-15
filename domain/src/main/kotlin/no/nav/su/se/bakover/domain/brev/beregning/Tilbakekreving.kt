@@ -12,7 +12,7 @@ data class BrevTilbakekrevingInfo(
 )
 
 data class Tilbakekreving(
-    private val månedBeløp: List<MånedBeløp>
+    private val månedBeløp: List<MånedBeløp>,
 ) {
     val tilbakekrevingavdrag = månedBeløp.map {
         BrevTilbakekrevingInfo(

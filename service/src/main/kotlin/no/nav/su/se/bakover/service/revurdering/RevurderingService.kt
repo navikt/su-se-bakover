@@ -221,7 +221,8 @@ data class SendTilAttesteringRequest(
 
 enum class Forhåndsvarselhandling {
     INGEN_FORHÅNDSVARSEL,
-    FORHÅNDSVARSLE;
+    FORHÅNDSVARSLE,
+    ;
 }
 
 sealed class KunneIkkeOppretteRevurdering {
@@ -536,7 +537,9 @@ data class LeggTilBosituasjonRequest(
             val epsAlder = if (eps.getAlder(LocalDate.now(clock)) == null) {
                 log.error("Alder på EPS er null. Denne har i tidligere PDL kall hatt en verdi")
                 return KunneIkkeLeggeTilBosituasjongrunnlag.EpsAlderErNull.left()
-            } else eps.getAlder(LocalDate.now(clock))!!
+            } else {
+                eps.getAlder(LocalDate.now(clock))!!
+            }
 
             return when {
                 epsAlder >= 67 -> Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre(
@@ -601,6 +604,6 @@ data class OppdaterTilbakekrevingsbehandlingRequest(
 ) {
     enum class Avgjørelse {
         TILBAKEKREV,
-        IKKE_TILBAKEKREV
+        IKKE_TILBAKEKREV,
     }
 }

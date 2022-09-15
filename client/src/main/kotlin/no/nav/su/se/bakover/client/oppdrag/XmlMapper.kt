@@ -7,7 +7,7 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator
 
 internal val XmlMapper = XmlMapper(
-    JacksonXmlModule().apply { setDefaultUseWrapper(false) }
+    JacksonXmlModule().apply { setDefaultUseWrapper(false) },
 ).apply {
     configure(ToXmlGenerator.Feature.WRITE_XML_DECLARATION, true)
     enable(SerializationFeature.INDENT_OUTPUT)

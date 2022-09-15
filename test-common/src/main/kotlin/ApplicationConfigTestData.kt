@@ -69,7 +69,7 @@ fun applicationConfig() = ApplicationConfig(
         skjermingUrl = "skjermingUrl",
         kontaktOgReservasjonsregisterConfig = ApplicationConfig.ClientsConfig.KontaktOgReservasjonsregisterConfig(
             appId = "krrId",
-            url = "krrUrl"
+            url = "krrUrl",
         ),
         kabalConfig = ApplicationConfig.ClientsConfig.KabalConfig(
             url = "kabalUrl",
@@ -86,7 +86,7 @@ fun applicationConfig() = ApplicationConfig(
             wellKnownUrl = "maskinportenWellKnownUrl",
             issuer = "maskinportenIssuer",
             jwksUri = "maskinportenJwksUri",
-            tokenEndpoint = "maskinporteTokenEndpointn"
+            tokenEndpoint = "maskinporteTokenEndpointn",
         ),
         skatteetatenConfig = ApplicationConfig.ClientsConfig.SkatteetatenConfig(apiUri = "a"),
     ),

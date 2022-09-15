@@ -16,7 +16,8 @@ internal class BosituasjonJsonTest {
     fun `serialiserer bosituasjon`() {
         JSONAssert.assertEquals(
             expectedBosituasjonJson,
-            serialize(listOf(bosituasjon).toJson()), true
+            serialize(listOf(bosituasjon).toJson()),
+            true,
         )
     }
 

@@ -91,10 +91,14 @@ open class Periode protected constructor(
      * Perioden som overlapper begge perioder eller ingenting hvis periodene ikke overlapper i det heletatt. (se mengdelære).
      */
     infix fun snitt(other: Periode): Periode? {
-        return if (this overlapper other) create(
-            fraOgMed = maxOf(this.fraOgMed, other.fraOgMed),
-            tilOgMed = minOf(this.tilOgMed, other.tilOgMed),
-        ) else null
+        return if (this overlapper other) {
+            create(
+                fraOgMed = maxOf(this.fraOgMed, other.fraOgMed),
+                tilOgMed = minOf(this.tilOgMed, other.tilOgMed),
+            )
+        } else {
+            null
+        }
     }
 
     /**
@@ -310,9 +314,12 @@ fun List<Periode>.harDuplikater(): Boolean {
  * En tom liste gir `true`
  */
 fun List<Periode>.erSammenhengende(): Boolean {
-    return if (this.isEmpty()) true
-    else this.flatMap { it.måneder() }.distinct().size == NonEmptyList.fromListUnsafe(this).minAndMaxOf()
-        .getAntallMåneder()
+    return if (this.isEmpty()) {
+        true
+    } else {
+        this.flatMap { it.måneder() }.distinct().size == NonEmptyList.fromListUnsafe(this).minAndMaxOf()
+            .getAntallMåneder()
+    }
 }
 
 /**
@@ -341,8 +348,8 @@ fun List<Periode>.komplement(): List<Periode> {
                     result.add(
                         Periode.create(
                             fraOgMed = current.tilOgMed.førsteINesteMåned(),
-                            tilOgMed = next.fraOgMed.sisteIForrigeMåned()
-                        )
+                            tilOgMed = next.fraOgMed.sisteIForrigeMåned(),
+                        ),
                     )
                 }
             }

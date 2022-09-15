@@ -18,7 +18,7 @@ internal enum class SimulertUtbetalingstype {
     FEILUTBETALING,
     ORDINÆR,
     UENDRET,
-    INGEN_UTBETALING
+    INGEN_UTBETALING,
 }
 
 internal data class SimuleringJson(

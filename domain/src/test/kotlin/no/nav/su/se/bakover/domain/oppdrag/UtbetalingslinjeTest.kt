@@ -24,7 +24,7 @@ internal class UtbetalingslinjeTest {
                     forrigeUtbetalingslinjeId = null,
                     beløp = 5000,
                     uføregrad = Uføregrad.parse(100),
-                    utbetalingsinstruksjonForEtterbetalinger = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig
+                    utbetalingsinstruksjonForEtterbetalinger = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
                 ),
                 Utbetalingslinje.Ny(
                     id = UUID30.randomUUID(),
@@ -34,8 +34,8 @@ internal class UtbetalingslinjeTest {
                     forrigeUtbetalingslinjeId = null,
                     beløp = 5000,
                     uføregrad = Uføregrad.parse(100),
-                    utbetalingsinstruksjonForEtterbetalinger = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig
-                )
+                    utbetalingsinstruksjonForEtterbetalinger = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                ),
             ).sjekkSortering()
         }.also {
             it.message shouldBe "Utbetalingslinjer er ikke sortert i stigende rekkefølge"
@@ -54,7 +54,7 @@ internal class UtbetalingslinjeTest {
                     forrigeUtbetalingslinjeId = UUID30.fromString("268e62fb-3079-4e8d-ab32-ff9fb9"),
                     beløp = 5000,
                     uføregrad = Uføregrad.parse(100),
-                    utbetalingsinstruksjonForEtterbetalinger = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig
+                    utbetalingsinstruksjonForEtterbetalinger = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
                 ),
                 Utbetalingslinje.Ny(
                     id = UUID30.randomUUID(),
@@ -64,8 +64,8 @@ internal class UtbetalingslinjeTest {
                     forrigeUtbetalingslinjeId = UUID30.fromString("268e62fb-3079-4e8d-ab32-ff9fb9"),
                     beløp = 5000,
                     uføregrad = Uføregrad.parse(100),
-                    utbetalingsinstruksjonForEtterbetalinger = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig
-                )
+                    utbetalingsinstruksjonForEtterbetalinger = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                ),
             ).sjekkAlleNyeLinjerHarForskjelligForrigeReferanse()
         }.also {
             it.message shouldBe "Alle nye utbetalingslinjer skal referere til forskjellig forrige utbetalingid"
@@ -84,7 +84,7 @@ internal class UtbetalingslinjeTest {
                     forrigeUtbetalingslinjeId = UUID30.fromString("268e62fb-3079-4e8d-ab32-ff9fb9"),
                     beløp = 5000,
                     uføregrad = Uføregrad.parse(100),
-                    utbetalingsinstruksjonForEtterbetalinger = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig
+                    utbetalingsinstruksjonForEtterbetalinger = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
                 ),
                 Utbetalingslinje.Ny(
                     id = UUID30.randomUUID(),
@@ -94,8 +94,8 @@ internal class UtbetalingslinjeTest {
                     forrigeUtbetalingslinjeId = UUID30.fromString("268e62fb-3079-4e8d-ab32-ff9fb9"),
                     beløp = 5000,
                     uføregrad = Uføregrad.parse(100),
-                    utbetalingsinstruksjonForEtterbetalinger = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig
-                )
+                    utbetalingsinstruksjonForEtterbetalinger = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                ),
             ).sjekkIngenNyeOverlapper()
         }.also {
             it.message shouldBe "Nye linjer kan ikke overlappe"

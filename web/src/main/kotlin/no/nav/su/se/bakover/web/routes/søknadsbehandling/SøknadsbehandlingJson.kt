@@ -21,7 +21,6 @@ internal fun Søknadsbehandling.json(satsFactory: SatsFactory): String {
 }
 
 internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson {
-
     return when (this) {
         is Søknadsbehandling.Vilkårsvurdert -> BehandlingJson(
             id = id.toString(),

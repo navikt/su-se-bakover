@@ -197,7 +197,6 @@ data class VurderingsperiodeUtenlandsopphold private constructor(
             grunnlag: Utenlandsoppholdgrunnlag?,
             vurderingsperiode: Periode,
         ): Either<UgyldigVurderingsperiode, VurderingsperiodeUtenlandsopphold> {
-
             grunnlag?.let {
                 if (vurderingsperiode != it.periode) return UgyldigVurderingsperiode.PeriodeForGrunnlagOgVurderingErForskjellig.left()
             }

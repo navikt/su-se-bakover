@@ -2,7 +2,7 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 plugins {
     kotlin("jvm")
-    id("com.diffplug.spotless") version "6.7.2"
+    id("com.diffplug.spotless") version "6.11.0"
 }
 
 version = "0.0.1"
@@ -126,7 +126,15 @@ subprojects {
 
     configure<com.diffplug.gradle.spotless.SpotlessExtension> {
         kotlin {
-            ktlint()
+            /** spotless støtter ikke .editorconfig enda så vi må duplisere den her :( */
+            ktlint("0.47.1").editorConfigOverride(
+                mapOf(
+                    "indent_size" to 4,
+                    "insert_final_newline" to true,
+                    "ij_kotlin_allow_trailing_comma_on_call_site" to true,
+                    "ij_kotlin_allow_trailing_comma" to true,
+                ),
+            )
             // jah: diktat er veldig intrusive - virker ikke som den gir så stor verdi uten å disable veldig mange regler.
             // jah: ktfmt er et alternativ til ktlint som vi kan vurdere bytte til på sikt. Skal være strengere som vil gjøre kodebasen mer enhetlig.
             // jah: prettier for kotlin virker umodent.
@@ -137,7 +145,6 @@ subprojects {
         }
     }
 }
-
 
 configure(listOf(project(":client"))) {
 // :client er vanskelig å parallellisere så lenge den bruker Wiremock på en statisk måte. Samtidig gir det ikke så mye mening siden testene er raske og ikke? feiler på timing issues.
@@ -213,4 +220,3 @@ tasks.register<Copy>("gitHooks") {
 tasks.named("build") {
     dependsOn(":gitHooks")
 }
-

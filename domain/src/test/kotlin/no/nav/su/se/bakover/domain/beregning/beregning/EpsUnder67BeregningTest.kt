@@ -70,15 +70,15 @@ internal class EpsUnder67BeregningTest {
                     type = Fradragstype.OffentligPensjon,
                     månedsbeløp = folketrygdPrMnd,
                     periode = periode,
-                    tilhører = FradragTilhører.BRUKER
+                    tilhører = FradragTilhører.BRUKER,
                 ),
                 lagFradragsgrunnlag(
                     type = Fradragstype.OffentligPensjon,
                     månedsbeløp = folketrygdEpsPrMnd,
                     periode = periode,
-                    tilhører = FradragTilhører.EPS
+                    tilhører = FradragTilhører.EPS,
                 ),
-            )
+            ),
         )
         BeregningFactory(fixedClock).ny(
             fradrag = beregningsgrunnlag.fradrag,
@@ -87,7 +87,7 @@ internal class EpsUnder67BeregningTest {
                 Beregningsperiode(
                     periode = beregningsgrunnlag.beregningsperiode,
                     strategy = BeregningStrategy.EpsUnder67År(satsFactoryTestPåDato(), Sakstype.UFØRE),
-                )
+                ),
             ),
         ).let {
             it.getSumYtelse() shouldBe 83700

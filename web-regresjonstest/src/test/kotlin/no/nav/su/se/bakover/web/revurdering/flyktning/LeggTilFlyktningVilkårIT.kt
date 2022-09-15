@@ -46,7 +46,7 @@ internal class LeggTilFlyktningVilkårIT {
                         tilOgMed = tilOgMed,
                         body = { innvilgetFlyktningVilkårJson(fraOgMed, tilOgMed) },
                         brukerrolle = Brukerrolle.Saksbehandler,
-                        url = "/saker/$sakId/revurderinger/$revurderingId/flyktning"
+                        url = "/saker/$sakId/revurderinger/$revurderingId/flyktning",
                     ).also { revurderingJson ->
                         JSONAssert.assertEquals(
                             JSONObject(RevurderingJson.hentFlyktningVilkår(revurderingJson)).toString(),
@@ -59,7 +59,7 @@ internal class LeggTilFlyktningVilkårIT {
                                       "periode": {
                                         "fraOgMed": "2022-05-01",
                                         "tilOgMed": "2022-12-31"
-                                      }                                      
+                                      }
                                     }
                                   ],
                                   "resultat": "VilkårOppfylt"
@@ -76,7 +76,7 @@ internal class LeggTilFlyktningVilkårIT {
                         tilOgMed = tilOgMed,
                         body = { avslåttFlyktningVilkårJson(fraOgMed, tilOgMed) },
                         brukerrolle = Brukerrolle.Saksbehandler,
-                        url = "/saker/$sakId/revurderinger/$revurderingId/flyktning"
+                        url = "/saker/$sakId/revurderinger/$revurderingId/flyktning",
                     ).also { revurderingJson ->
                         JSONAssert.assertEquals(
                             JSONObject(RevurderingJson.hentFlyktningVilkår(revurderingJson)).toString(),
@@ -89,7 +89,7 @@ internal class LeggTilFlyktningVilkårIT {
                                       "periode": {
                                         "fraOgMed": "2022-05-01",
                                         "tilOgMed": "2022-12-31"
-                                      }                                      
+                                      }
                                     }
                                   ],
                                   "resultat": "VilkårIkkeOppfylt"

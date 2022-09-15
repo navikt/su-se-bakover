@@ -46,7 +46,7 @@ class MaskinportenHTTPClient(private val maskinportenConfig: ApplicationConfig.C
                 .claim("scope", maskinportenConfig.scopes)
                 .issueTime(Tidspunkt.now(clock).toDate())
                 .expirationTime(Tidspunkt.now(clock).plus(60, ChronoUnit.SECONDS).toDate())
-                .build()
+                .build(),
         ).apply {
             sign(RSASSASigner(key.toRSAPrivateKey()))
         }

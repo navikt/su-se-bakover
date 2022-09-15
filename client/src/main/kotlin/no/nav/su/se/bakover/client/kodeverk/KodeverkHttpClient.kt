@@ -46,29 +46,29 @@ class KodeverkHttpClient(val baseUrl: String, private val consumerId: String) : 
                     "Feil i kallet mot kodeverk. status={} body={}",
                     response.statusCode,
                     response.body().asString("application/json"),
-                    it
+                    it,
                 )
                 CouldNotGetKode.left()
-            }
+            },
         )
     }
 
     data class KodeverkResponse(
-        val betydninger: Map<String, List<Betydning>>
+        val betydninger: Map<String, List<Betydning>>,
     )
 
     data class Betydning(
         val gyldigFra: String,
         val gyldigTil: String,
-        val beskrivelser: Beskrivelser
+        val beskrivelser: Beskrivelser,
     )
 
     data class Beskrivelser(
-        val nb: Beskrivelse
+        val nb: Beskrivelse,
     )
 
     data class Beskrivelse(
         val tekst: String,
-        val term: String
+        val term: String,
     )
 }

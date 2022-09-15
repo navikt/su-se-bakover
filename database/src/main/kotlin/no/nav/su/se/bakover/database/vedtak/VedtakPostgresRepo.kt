@@ -180,11 +180,11 @@ internal class VedtakPostgresRepo(
         return dbMetrics.timeQuery("hentAktiveVedtak") {
             sessionFactory.withSession { session ->
                 """
-                select * from vedtak 
+                select * from vedtak
                 where fraogmed <= :dato
                   and tilogmed >= :dato
                 order by fraogmed, tilogmed, opprettet
-    
+
                 """.trimIndent()
                     .hentListe(mapOf("dato" to dato), session) {
                         it.toVedtak(session)

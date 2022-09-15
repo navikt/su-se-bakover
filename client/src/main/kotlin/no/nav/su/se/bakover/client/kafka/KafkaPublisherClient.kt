@@ -16,7 +16,7 @@ import kotlin.concurrent.timer
 internal class KafkaPublisherClient(
     private val producerConfig: ApplicationConfig.KafkaConfig.ProducerCfg,
     private val log: Logger = LoggerFactory.getLogger(KafkaPublisherClient::class.java),
-    private val initProducer: () -> Producer<String, String> = { KafkaProducer(producerConfig.kafkaConfig) }
+    private val initProducer: () -> Producer<String, String> = { KafkaProducer(producerConfig.kafkaConfig) },
 ) : KafkaPublisher {
     private var producer: Producer<String, String> = initProducer()
     private val failed: Queue<ProducerRecord<String, String>> = LinkedList()

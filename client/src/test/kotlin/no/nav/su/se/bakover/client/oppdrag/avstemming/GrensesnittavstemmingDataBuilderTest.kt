@@ -181,8 +181,8 @@ internal fun alleUtbetalinger() = listOf(
             listOf(
                 utbetalingslinje(periode = mars(2020), beløp = 100),
                 utbetalingslinje(periode = april(2020), beløp = 200),
-            )
-        ).nonEmpty()
+            ),
+        ).nonEmpty(),
     ),
     lagUtbetaling(
         id = ok2Id,
@@ -192,7 +192,7 @@ internal fun alleUtbetalinger() = listOf(
             listOf(
                 utbetalingslinje(periode = mars(2020), beløp = 600, uføregrad = 60),
                 utbetalingslinje(periode = april(2020), beløp = 700, uføregrad = 60),
-            )
+            ),
         ).nonEmpty(),
     ),
     lagUtbetaling(
@@ -204,8 +204,8 @@ internal fun alleUtbetalinger() = listOf(
                 utbetalingslinje(periode = mars(2020), beløp = 400, uføregrad = 70),
                 utbetalingslinje(periode = april(2020), beløp = 500, uføregrad = 70),
                 utbetalingslinje(periode = mai(2020), beløp = 500, uføregrad = 75),
-            )
-        ).nonEmpty()
+            ),
+        ).nonEmpty(),
     ),
     lagUtbetaling(
         id = feildId,
@@ -217,7 +217,7 @@ internal fun alleUtbetalinger() = listOf(
                 utbetalingslinje(periode = april(2020), beløp = 2000, uføregrad = 20),
                 utbetalingslinje(periode = mai(2020), beløp = 3000, uføregrad = 30),
                 utbetalingslinje(periode = juni(2020), beløp = 4000, uføregrad = 50),
-            )
+            ),
         ).nonEmpty(),
     ),
     lagUtbetaling(
@@ -227,7 +227,7 @@ internal fun alleUtbetalinger() = listOf(
         linjer = ForrigeUtbetbetalingslinjeKoblendeListe(
             listOf(
                 utbetalingslinje(periode = år(2020), beløp = 5000, uføregrad = 15),
-            )
+            ),
         ).nonEmpty(),
     ),
 )

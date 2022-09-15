@@ -179,7 +179,11 @@ interface LagBrevRequest {
             beregningsperioder = if (
                 opphørsgrunner.contains(Opphørsgrunn.FOR_HØY_INNTEKT) ||
                 opphørsgrunner.contains(Opphørsgrunn.SU_UNDER_MINSTEGRENSE)
-            ) LagBrevinnholdForBeregning(beregning).brevInnhold else emptyList(),
+            ) {
+                LagBrevinnholdForBeregning(beregning).brevInnhold
+            } else {
+                emptyList()
+            },
             saksbehandlerNavn = saksbehandlerNavn,
             attestantNavn = attestantNavn,
             fritekst = fritekst,

@@ -204,7 +204,8 @@ internal class RevurderingBeregnTest {
     fun `beregning med beløpsendring mindre enn 10 prosent fører til endring - g regulering`() {
         opprettetRevurdering(
             revurderingsårsak = Revurderingsårsak.create(
-                årsak = Revurderingsårsak.Årsak.REGULER_GRUNNBELØP.toString(), begrunnelse = "a",
+                årsak = Revurderingsårsak.Årsak.REGULER_GRUNNBELØP.toString(),
+                begrunnelse = "a",
             ),
             grunnlagsdataOverrides = listOf(
                 fradragsgrunnlagArbeidsinntekt(
@@ -233,7 +234,8 @@ internal class RevurderingBeregnTest {
     fun `beregning uten beløpsendring fører til ingen endring - g regulering`() {
         opprettetRevurdering(
             revurderingsårsak = Revurderingsårsak.create(
-                årsak = Revurderingsårsak.Årsak.REGULER_GRUNNBELØP.toString(), begrunnelse = "a",
+                årsak = Revurderingsårsak.Årsak.REGULER_GRUNNBELØP.toString(),
+                begrunnelse = "a",
             ),
         ).let { (sak, revurdering) ->
             revurdering.beregn(
@@ -255,7 +257,8 @@ internal class RevurderingBeregnTest {
     fun `beregning som fører til beløp lik 0 gir opphør - g regulering`() {
         opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
             revurderingsårsak = Revurderingsårsak.create(
-                årsak = Revurderingsårsak.Årsak.REGULER_GRUNNBELØP.toString(), begrunnelse = "a",
+                årsak = Revurderingsårsak.Årsak.REGULER_GRUNNBELØP.toString(),
+                begrunnelse = "a",
             ),
         ).let { (sak, revurdering) ->
             revurdering.oppdaterFradragOgMarkerSomVurdert(

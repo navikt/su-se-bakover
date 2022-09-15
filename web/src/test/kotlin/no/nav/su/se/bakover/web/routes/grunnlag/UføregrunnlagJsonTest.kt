@@ -18,7 +18,8 @@ internal class UføregrunnlagJsonTest {
     fun `serialiserer og deserialiserer uføregrunnlag`() {
         JSONAssert.assertEquals(
             expectedUføregrunnlagJson,
-            serialize(uføregrunnlag.toJson()), true
+            serialize(uføregrunnlag.toJson()),
+            true,
         )
         deserialize<UføregrunnlagJson>(expectedUføregrunnlagJson) shouldBe uføregrunnlag.toJson()
     }

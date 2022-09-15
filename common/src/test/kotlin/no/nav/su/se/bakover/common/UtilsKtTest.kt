@@ -44,27 +44,27 @@ internal class UtilsKtTest {
         val sept5 = 5.september(2020).startOfDay()
         sept5.between(
             fraOgMed = 5.september(2020).startOfDay(),
-            tilOgMed = 5.september(2020).endOfDay()
+            tilOgMed = 5.september(2020).endOfDay(),
         ) shouldBe true
 
         sept5.between(
             fraOgMed = 4.september(2020).startOfDay(),
-            tilOgMed = 5.september(2020).startOfDay()
+            tilOgMed = 5.september(2020).startOfDay(),
         ) shouldBe true
 
         sept5.between(
             fraOgMed = 1.september(2020).startOfDay(),
-            tilOgMed = 10.september(2020).startOfDay()
+            tilOgMed = 10.september(2020).startOfDay(),
         ) shouldBe true
 
         sept5.between(
             fraOgMed = 1.januar(2020).startOfDay(),
-            tilOgMed = 10.januar(2020).startOfDay()
+            tilOgMed = 10.januar(2020).startOfDay(),
         ) shouldBe false
 
         sept5.between(
             fraOgMed = 1.desember(2020).startOfDay(),
-            tilOgMed = 10.desember(2020).startOfDay()
+            tilOgMed = 10.desember(2020).startOfDay(),
         ) shouldBe false
     }
 

@@ -78,7 +78,7 @@ internal class OpplysningspliktGrunnlagPostgresRepo(
                 fraOgMed,
                 tilOgMed,
                 beskrivelse
-            ) values 
+            ) values
             (
                 :id,
                 :opprettet,

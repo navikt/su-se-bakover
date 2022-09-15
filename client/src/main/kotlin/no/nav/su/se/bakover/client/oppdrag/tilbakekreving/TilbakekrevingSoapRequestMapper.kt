@@ -10,7 +10,7 @@ import java.math.BigInteger
 import javax.xml.datatype.DatatypeFactory
 
 internal enum class AksjonsKode(val nummer: String) {
-    FATT_VEDTAK("8")
+    FATT_VEDTAK("8"),
 }
 
 /**
@@ -19,14 +19,16 @@ internal enum class AksjonsKode(val nummer: String) {
  * Vi har også bestilt SUL_13-1, SUL_13-2, SUL_13-3 og SUL_13-4 som vi ikke har tatt i bruk enda.
  */
 internal enum class TilbakekrevingsHjemmel(val value: String) {
-    T("SUL_13");
+    T("SUL_13"),
+    ;
 
     override fun toString() = value
 }
 
 internal enum class Tilbakekrevingsresultat {
     FULL_TILBAKEKREV,
-    INGEN_TILBAKEKREV;
+    INGEN_TILBAKEKREV,
+    ;
 
     companion object {
         fun fra(tilbakekrevingsresultat: Tilbakekrevingsvedtak.Tilbakekrevingsresultat): Tilbakekrevingsresultat {
@@ -43,12 +45,14 @@ internal enum class Tilbakekrevingsresultat {
 }
 
 internal enum class TilbakekrevingsÅrsak {
-    ANNET;
+    ANNET,
+    ;
 }
 
 enum class Skyld {
     BRUKER,
-    IKKE_FORDELT;
+    IKKE_FORDELT,
+    ;
 
     companion object {
         fun fra(skyld: Tilbakekrevingsvedtak.Skyld): Skyld {
@@ -69,7 +73,6 @@ enum class Skyld {
 fun mapToTilbakekrevingsvedtakRequest(tilbakekrevingsvedtak: Tilbakekrevingsvedtak): TilbakekrevingsvedtakRequest {
     return TilbakekrevingsvedtakRequest().apply {
         this.tilbakekrevingsvedtak = TilbakekrevingsvedtakDto().apply {
-
             // 1 - 441 - Kode-aksjon - X(01) - Krav - Aksjonskode:
             // 7 - midlertidig lagring
             // 8 - fatte vedtak
@@ -109,7 +112,6 @@ val datatypeFactory: DatatypeFactory = DatatypeFactory.newInstance()
 private fun mapTilbakekrevingsperioder(tilbakekrevingsperioder: List<Tilbakekrevingsvedtak.Tilbakekrevingsperiode>): List<TilbakekrevingsperiodeDto> {
     return tilbakekrevingsperioder.map {
         TilbakekrevingsperiodeDto().apply {
-
             periode = PeriodeDto().apply {
                 // Disse mappes om til en xsd:date. Vi bruker verdiene som kommer fra kravgrunnlaget og skal ikke trenge ta høyde for tidssone når vi serialiserer datoen, så lenge vi ikke tar høyde for tidsone når vi deserialiserer datoen.
                 // TODO: jah test edge-caser med en utc vs cet-klokke
@@ -134,7 +136,6 @@ private fun mapTilbakekrevingsperioder(tilbakekrevingsperioder: List<Tilbakekrev
 private fun mapTilbakekrevingsbeløp(tilbakekrevingsbeløp: List<Tilbakekrevingsvedtak.Tilbakekrevingsperiode.Tilbakekrevingsbeløp>): List<TilbakekrevingsbelopDto> {
     return tilbakekrevingsbeløp.map {
         TilbakekrevingsbelopDto().apply {
-
             // 1 - 443 - Kode-klasse - X(20) - Krav - Klassifisering av stønad, skatt, trekk etc. Det må minimum sendes med klassekoder for feilutbetaling og de ytelsesklassekoder som er feilutbetalt.
             this.kodeKlasse = it.kodeKlasse.toString()
 

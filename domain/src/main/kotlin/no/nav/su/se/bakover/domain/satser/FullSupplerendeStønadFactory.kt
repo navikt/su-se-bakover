@@ -94,16 +94,20 @@ sealed class FullSupplerendeStønadFactory {
 
             override fun forMåned(måned: Måned): FullSupplerendeStønadForMåned.Uføre {
                 return månedTilFullSupplerendeStønad[måned]
-                    ?: if (måned > senesteTilgjengeligeMåned) månedTilFullSupplerendeStønad[senesteTilgjengeligeMåned]!!.copy(
-                        måned = måned,
-                        grunnbeløp = grunnbeløpFactory.forMåned(måned),
-                        minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdedeFactory.forMåned(
-                            måned,
-                            satskategori,
-                        ),
-                    ) else throw IllegalArgumentException(
-                        "Har ikke data for etterspurt måned: $måned. Vi har bare data fra og med måned: ${månedTilFullSupplerendeStønad.keys.first()}",
-                    )
+                    ?: if (måned > senesteTilgjengeligeMåned) {
+                        månedTilFullSupplerendeStønad[senesteTilgjengeligeMåned]!!.copy(
+                            måned = måned,
+                            grunnbeløp = grunnbeløpFactory.forMåned(måned),
+                            minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdedeFactory.forMåned(
+                                måned,
+                                satskategori,
+                            ),
+                        )
+                    } else {
+                        throw IllegalArgumentException(
+                            "Har ikke data for etterspurt måned: $måned. Vi har bare data fra og med måned: ${månedTilFullSupplerendeStønad.keys.first()}",
+                        )
+                    }
             }
         }
 
@@ -140,12 +144,16 @@ sealed class FullSupplerendeStønadFactory {
 
             override fun forMåned(måned: Måned): FullSupplerendeStønadForMåned.Alder {
                 return månedTilFullSupplerendeStønad[måned]
-                    ?: if (måned > senesteTilgjengeligeMåned) månedTilFullSupplerendeStønad[senesteTilgjengeligeMåned]!!.copy(
-                        måned = måned,
-                        garantipensjonForMåned = garantipensjonFactory.forMåned(måned, satskategori),
-                    ) else throw IllegalArgumentException(
-                        "Har ikke data for etterspurt måned: $måned. Vi har bare data fra og med måned: ${månedTilFullSupplerendeStønad.keys.first()}",
-                    )
+                    ?: if (måned > senesteTilgjengeligeMåned) {
+                        månedTilFullSupplerendeStønad[senesteTilgjengeligeMåned]!!.copy(
+                            måned = måned,
+                            garantipensjonForMåned = garantipensjonFactory.forMåned(måned, satskategori),
+                        )
+                    } else {
+                        throw IllegalArgumentException(
+                            "Har ikke data for etterspurt måned: $måned. Vi har bare data fra og med måned: ${månedTilFullSupplerendeStønad.keys.first()}",
+                        )
+                    }
             }
         }
     }
@@ -182,16 +190,20 @@ sealed class FullSupplerendeStønadFactory {
 
             override fun forMåned(måned: Måned): FullSupplerendeStønadForMåned.Uføre {
                 return månedTilFullSupplerendeStønad[måned]
-                    ?: if (måned > senesteTilgjengeligeMåned) månedTilFullSupplerendeStønad[senesteTilgjengeligeMåned]!!.copy(
-                        måned = måned,
-                        grunnbeløp = grunnbeløpFactory.forMåned(måned),
-                        minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdedeFactory.forMåned(
-                            måned,
-                            satskategori,
-                        ),
-                    ) else throw IllegalArgumentException(
-                        "Har ikke data for etterspurt måned: $måned. Vi har bare data fra og med måned: ${månedTilFullSupplerendeStønad.keys.first()}",
-                    )
+                    ?: if (måned > senesteTilgjengeligeMåned) {
+                        månedTilFullSupplerendeStønad[senesteTilgjengeligeMåned]!!.copy(
+                            måned = måned,
+                            grunnbeløp = grunnbeløpFactory.forMåned(måned),
+                            minsteÅrligYtelseForUføretrygdede = minsteÅrligYtelseForUføretrygdedeFactory.forMåned(
+                                måned,
+                                satskategori,
+                            ),
+                        )
+                    } else {
+                        throw IllegalArgumentException(
+                            "Har ikke data for etterspurt måned: $måned. Vi har bare data fra og med måned: ${månedTilFullSupplerendeStønad.keys.first()}",
+                        )
+                    }
             }
         }
 
@@ -224,12 +236,16 @@ sealed class FullSupplerendeStønadFactory {
 
             override fun forMåned(måned: Måned): FullSupplerendeStønadForMåned.Alder {
                 return månedTilFullSupplerendeStønad[måned]
-                    ?: if (måned > senesteTilgjengeligeMåned) månedTilFullSupplerendeStønad[senesteTilgjengeligeMåned]!!.copy(
-                        måned = måned,
-                        garantipensjonForMåned = garantipensjonFactory.forMåned(måned, satskategori),
-                    ) else throw IllegalArgumentException(
-                        "Har ikke data for etterspurt måned: $måned. Vi har bare data fra og med måned: ${månedTilFullSupplerendeStønad.keys.first()}",
-                    )
+                    ?: if (måned > senesteTilgjengeligeMåned) {
+                        månedTilFullSupplerendeStønad[senesteTilgjengeligeMåned]!!.copy(
+                            måned = måned,
+                            garantipensjonForMåned = garantipensjonFactory.forMåned(måned, satskategori),
+                        )
+                    } else {
+                        throw IllegalArgumentException(
+                            "Har ikke data for etterspurt måned: $måned. Vi har bare data fra og med måned: ${månedTilFullSupplerendeStønad.keys.first()}",
+                        )
+                    }
             }
         }
     }

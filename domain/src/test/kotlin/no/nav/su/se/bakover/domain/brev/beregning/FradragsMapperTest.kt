@@ -21,7 +21,7 @@ internal class FradragsMapperTest {
             månedsbeløp = 3000.0,
             periode = periode,
             utenlandskInntekt = null,
-            tilhører = FradragTilhører.EPS
+            tilhører = FradragTilhører.EPS,
         )
         val fradrag = listOf(
             FradragFactory.nyFradragsperiode(
@@ -29,28 +29,28 @@ internal class FradragsMapperTest {
                 månedsbeløp = 5000.0,
                 periode = periode,
                 utenlandskInntekt = null,
-                tilhører = FradragTilhører.BRUKER
+                tilhører = FradragTilhører.BRUKER,
             ),
-            fradragForEps
+            fradragForEps,
         )
 
         BrukerFradragBenyttetIBeregningsperiode(fradrag).fradrag shouldBe listOf(
             Månedsfradrag(
                 type = Fradragstype.Kapitalinntekt.toReadableTypeName(false),
                 beløp = 5000,
-                utenlandskInntekt = null
-            )
+                utenlandskInntekt = null,
+            ),
         )
 
         EpsFradragFraSaksbehandlerIBeregningsperiode(
             fradragFraSaksbehandler = fradrag,
-            beregningsperiode = periode
+            beregningsperiode = periode,
         ).fradrag shouldBe listOf(
             Månedsfradrag(
                 type = Fradragstype.BidragEtterEkteskapsloven.toReadableTypeName(false),
                 beløp = 3000,
-                utenlandskInntekt = null
-            )
+                utenlandskInntekt = null,
+            ),
         )
     }
 
@@ -63,23 +63,23 @@ internal class FradragsMapperTest {
                 månedsbeløp = 3337.0,
                 periode = periode,
                 utenlandskInntekt = null,
-                tilhører = FradragTilhører.BRUKER
+                tilhører = FradragTilhører.BRUKER,
             ),
             FradragFactory.nyFradragsperiode(
                 fradragstype = Fradragstype.ForventetInntekt,
                 månedsbeløp = 0.0,
                 periode = periode,
                 utenlandskInntekt = null,
-                tilhører = FradragTilhører.BRUKER
-            )
+                tilhører = FradragTilhører.BRUKER,
+            ),
         )
 
         BrukerFradragBenyttetIBeregningsperiode(fradrag).fradrag shouldBe listOf(
             Månedsfradrag(
                 type = Fradragstype.Kapitalinntekt.toReadableTypeName(false),
                 beløp = 3337,
-                utenlandskInntekt = null
-            )
+                utenlandskInntekt = null,
+            ),
         )
     }
 
@@ -92,48 +92,48 @@ internal class FradragsMapperTest {
                 månedsbeløp = 3337.0,
                 periode = periode,
                 utenlandskInntekt = null,
-                tilhører = FradragTilhører.EPS
+                tilhører = FradragTilhører.EPS,
             ),
             FradragFactory.nyFradragsperiode(
                 fradragstype = Fradragstype.ForventetInntekt,
                 månedsbeløp = 10000.0,
                 periode = Periode.create(fraOgMed = 1.juni(2020), tilOgMed = 31.august(2020)),
                 utenlandskInntekt = null,
-                tilhører = FradragTilhører.EPS
+                tilhører = FradragTilhører.EPS,
             ),
             FradragFactory.nyFradragsperiode(
                 fradragstype = Fradragstype.Arbeidsinntekt,
                 månedsbeløp = 10000.0,
                 periode = januar(2020),
                 utenlandskInntekt = null,
-                tilhører = FradragTilhører.EPS
-            )
+                tilhører = FradragTilhører.EPS,
+            ),
         )
 
         EpsFradragFraSaksbehandlerIBeregningsperiode(
             fradrag,
-            januar(2020)
+            januar(2020),
         ).fradrag shouldBe listOf(
             Månedsfradrag(
                 type = Fradragstype.Arbeidsinntekt.toReadableTypeName(false),
                 beløp = 10000,
-                utenlandskInntekt = null
+                utenlandskInntekt = null,
             ),
             Månedsfradrag(
                 type = Fradragstype.Kapitalinntekt.toReadableTypeName(false),
                 beløp = 3337,
-                utenlandskInntekt = null
+                utenlandskInntekt = null,
             ),
         )
 
         EpsFradragFraSaksbehandlerIBeregningsperiode(
             fradrag,
-            periode
+            periode,
         ).fradrag shouldBe listOf(
             Månedsfradrag(
                 type = Fradragstype.Kapitalinntekt.toReadableTypeName(false),
                 beløp = 3337,
-                utenlandskInntekt = null
+                utenlandskInntekt = null,
             ),
         )
     }

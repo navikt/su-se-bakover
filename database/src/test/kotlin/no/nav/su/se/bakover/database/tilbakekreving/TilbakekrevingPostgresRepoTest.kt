@@ -28,10 +28,10 @@ internal class TilbakekrevingPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
 
             val (sak, vedtak, _) = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
-                stønadsperiode = stønadsperiode2022
+                stønadsperiode = stønadsperiode2022,
             )
             val (_, revurdering) = testDataHelper.persisterRevurderingSimulertInnvilget(
-                sakOgVedtak = sak to vedtak
+                sakOgVedtak = sak to vedtak,
             )
 
             (testDataHelper.revurderingRepo.hent(revurdering.id) as SimulertRevurdering).tilbakekrevingsbehandling shouldBe IkkeBehovForTilbakekrevingUnderBehandling
@@ -116,13 +116,13 @@ internal class TilbakekrevingPostgresRepoTest {
             val iverksatt = revurdering.tilAttestering(
                 attesteringsoppgaveId = oppgaveId,
                 saksbehandler = saksbehandler,
-                fritekstTilBrev = "nei"
+                fritekstTilBrev = "nei",
             ).getOrFail().let {
                 testDataHelper.revurderingRepo.lagre(it)
                 it.tilIverksatt(
                     attestant = attestant,
                     hentOpprinneligAvkorting = { null },
-                    clock = fixedClock
+                    clock = fixedClock,
                 ).getOrFail().let {
                     testDataHelper.revurderingRepo.lagre(it)
                     it

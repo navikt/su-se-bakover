@@ -35,12 +35,12 @@ internal class EpsUnder67Test {
 
         FradragStrategy.Uføre.EpsUnder67År.beregn(
             fradrag = listOf(arbeidsinntekt, kontantstøtte, forventetInntekt),
-            beregningsperiode = periode
+            beregningsperiode = periode,
         ).let {
             it.size shouldBe 12
             it[januar(2020)]!! shouldContainAll listOf(
                 expectedArbeidsinntekt,
-                expectedKontantstøtte
+                expectedKontantstøtte,
             )
             it.values.forEach { it.none { it.fradragstype == ForventetInntekt } }
         }
@@ -60,12 +60,12 @@ internal class EpsUnder67Test {
 
         FradragStrategy.Uføre.EpsUnder67År.beregn(
             fradrag = listOf(arbeidsinntekt, kontantstøtte, forventetInntekt),
-            beregningsperiode = periode
+            beregningsperiode = periode,
         ).let {
             it.size shouldBe 12
             it[januar(2020)]!! shouldContainAll listOf(
                 expectedForventetInntekt,
-                expectedKontantstøtte
+                expectedKontantstøtte,
             )
             it.values.forEach { it.none { it.fradragstype == Arbeidsinntekt } }
         }
@@ -80,17 +80,20 @@ internal class EpsUnder67Test {
         val expectedBrukerInntekt =
             lagPeriodisertFradrag(ForventetInntekt, 1000.0, januar(2020))
         val expectedEpsInntekt = lagPeriodisertFradrag(
-            BeregnetFradragEPS, 2000.0, januar(2020), EPS
+            BeregnetFradragEPS,
+            2000.0,
+            januar(2020),
+            EPS,
         )
 
         FradragStrategy.Uføre.EpsUnder67År.beregn(
             fradrag = listOf(epsArbeidsinntekt, forventetInntekt),
-            beregningsperiode = periode
+            beregningsperiode = periode,
         ).let {
             it.size shouldBe 12
             it[januar(2020)]!! shouldBe listOf(
                 expectedBrukerInntekt,
-                expectedEpsInntekt
+                expectedEpsInntekt,
             )
             it.values.forEach { it.any { it.tilhører == BRUKER } shouldBe true }
             it.values.forEach { it.any { it.tilhører == EPS } shouldBe true }
@@ -114,9 +117,9 @@ internal class EpsUnder67Test {
                 epsUføretrygd,
                 epsArbeidsinntekt,
                 epsKapitalinntekt,
-                epsPensjon
+                epsPensjon,
             ),
-            beregningsperiode = periode
+            beregningsperiode = periode,
         ).let { fradrag ->
             fradrag.size shouldBe 12
             fradrag.values.forEach { alleFradrag ->
