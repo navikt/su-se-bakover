@@ -47,7 +47,7 @@ class SøknadTest {
 
     private val søknadInnhold: SøknadsinnholdUføre = SøknadInnholdTestdataBuilder.build()
     private val fnr = søknadInnhold.personopplysninger.fnr
-    private val person: Person = PersonOppslagStub.person(fnr).orNull()!!
+    private val person: Person = PersonOppslagStub.person(fnr).getOrFail()
     private val sakId = UUID.randomUUID()
     private val saksnummer = Saksnummer(2021)
     private val sak: Sak = Sak(

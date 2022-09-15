@@ -124,7 +124,7 @@ internal class AvsluttRevurderingTest {
         verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe simulert.oppgaveId })
         verify(brevServiceMock).lagDokument(
             argThat<Visitable<LagBrevRequestVisitor>> {
-                it shouldBe expectedAvsluttetRevurdering.orNull()!!
+                it shouldBe expectedAvsluttetRevurdering.getOrFail()
             },
         )
         verify(brevServiceMock).lagreDokument(

@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
+import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.vilkår.formuevilkårIkkeVurdert
 import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt0
@@ -211,7 +212,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
 
         val actual = grunnlagsdata.oppdaterGrunnlagsperioder(
             oppdatertPeriode = oppdatertPeriode,
-        ).orNull()!!
+        ).getOrFail()
 
         actual.fradragsgrunnlag.size shouldBe 1
         actual.fradragsgrunnlag.first().periode shouldBe oppdatertPeriode

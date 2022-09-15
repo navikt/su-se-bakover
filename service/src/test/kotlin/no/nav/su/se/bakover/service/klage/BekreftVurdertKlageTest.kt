@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.test.avvistKlage
 import no.nav.su.se.bakover.test.bekreftetAvvistVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.bekreftetVilkårsvurdertKlageTilVurdering
 import no.nav.su.se.bakover.test.bekreftetVurdertKlage
+import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattAvvistKlage
 import no.nav.su.se.bakover.test.opprettetKlage
 import no.nav.su.se.bakover.test.oversendtKlage
@@ -203,7 +204,7 @@ internal class BekreftVurdertKlageTest {
         mocks.service.bekreftVurderinger(
             klageId = klage.id,
             saksbehandler = NavIdentBruker.Saksbehandler("bekreftetVilkårsvurderingene"),
-        ).orNull()!!.also {
+        ).getOrFail().also {
             it.saksbehandler shouldBe NavIdentBruker.Saksbehandler("bekreftetVilkårsvurderingene")
             it.oppgaveId shouldBe klage.oppgaveId
             it.attesteringer shouldBe attesteringer

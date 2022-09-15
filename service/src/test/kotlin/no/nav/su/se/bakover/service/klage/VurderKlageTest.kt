@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.bekreftetAvvistVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.bekreftetVilkårsvurdertKlageTilVurdering
 import no.nav.su.se.bakover.test.bekreftetVurdertKlage
+import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattAvvistKlage
 import no.nav.su.se.bakover.test.opprettetKlage
 import no.nav.su.se.bakover.test.oversendtKlage
@@ -280,7 +281,7 @@ internal class VurderKlageTest {
             oppretthold = null,
         )
 
-        mocks.service.vurder(request).orNull()!!.also {
+        mocks.service.vurder(request).getOrFail().also {
             it.saksbehandler shouldBe NavIdentBruker.Saksbehandler("nySaksbehandler")
             it.vurderinger shouldBe VurderingerTilKlage.empty()
         }
@@ -312,12 +313,12 @@ internal class VurderKlageTest {
             omgjør = null,
             oppretthold = KlageVurderingerRequest.Oppretthold(listOf("SU_PARAGRAF_3")),
         )
-        mocks.service.vurder(request).orNull()!!.also {
+        mocks.service.vurder(request).getOrFail().also {
             it.saksbehandler shouldBe NavIdentBruker.Saksbehandler("nySaksbehandler")
             it.vurderinger shouldBe VurderingerTilKlage.Utfylt(
                 fritekstTilOversendelsesbrev = "fritekstTilBrev",
                 vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(listOf(Hjemmel.SU_PARAGRAF_3))
-                    .orNull()!! as VurderingerTilKlage.Vedtaksvurdering.Utfylt,
+                    .getOrFail() as VurderingerTilKlage.Vedtaksvurdering.Utfylt,
             )
         }
 

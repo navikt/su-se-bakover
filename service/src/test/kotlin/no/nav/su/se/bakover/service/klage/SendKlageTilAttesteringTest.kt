@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.test.bekreftetAvvistVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.bekreftetVilkårsvurdertKlageTilVurdering
 import no.nav.su.se.bakover.test.bekreftetVurdertKlage
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattAvvistKlage
 import no.nav.su.se.bakover.test.opprettetKlage
 import no.nav.su.se.bakover.test.oversendtKlage
@@ -282,7 +283,7 @@ internal class SendKlageTilAttesteringTest {
         mocks.service.sendTilAttestering(
             klageId = klage.id,
             saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomSendteTilAttestering"),
-        ).orNull()!!.also {
+        ).getOrFail().also {
             expectedKlage = if (klage is AvvistKlage) KlageTilAttestering.Avvist(
                 forrigeSteg = klage,
                 oppgaveId = OppgaveId("oppgaveIdTilAttestering"),

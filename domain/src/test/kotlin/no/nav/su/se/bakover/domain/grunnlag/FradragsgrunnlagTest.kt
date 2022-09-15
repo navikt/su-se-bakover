@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.slåSammenPeriodeOgFradrag
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.getOrFail
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -107,7 +108,7 @@ internal class FradragsgrunnlagTest {
 
         fradragsgrunnlag.oppdaterFradragsperiode(
             oppdatertPeriode,
-        ).orNull()!!.periode shouldBe oppdatertPeriode
+        ).getOrFail().periode shouldBe oppdatertPeriode
     }
 
     @Test
@@ -127,7 +128,7 @@ internal class FradragsgrunnlagTest {
 
         fradragsgrunnlag.oppdaterFradragsperiode(
             oppdatertPeriode,
-        ).orNull()!!.periode shouldBe oppdatertPeriode
+        ).getOrFail().periode shouldBe oppdatertPeriode
     }
 
     @Test
@@ -147,7 +148,7 @@ internal class FradragsgrunnlagTest {
 
         fradragsgrunnlag.oppdaterFradragsperiode(
             oppdatertPeriode,
-        ).orNull()!!.periode shouldBe oppdatertPeriode
+        ).getOrFail().periode shouldBe oppdatertPeriode
     }
 
     @Test
@@ -167,7 +168,7 @@ internal class FradragsgrunnlagTest {
 
         fradragsgrunnlag.oppdaterFradragsperiode(
             oppdatertPeriode,
-        ).orNull()!!.periode shouldBe oppdatertPeriode
+        ).getOrFail().periode shouldBe oppdatertPeriode
     }
 
     @Test

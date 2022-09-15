@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
@@ -160,7 +161,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             val repo = testDataHelper.revurderingRepo
             val (_, simulert) = testDataHelper.persisterRevurderingSimulertInnvilget()
             val simulertIngenForhåndsvarsel =
-                simulert.ikkeSendForhåndsvarsel().orNull()!!.also {
+                simulert.ikkeSendForhåndsvarsel().getOrFail().also {
                     repo.lagre(it)
                 }
             (repo.hent(simulert.id) as Revurdering) shouldBe simulertIngenForhåndsvarsel
@@ -174,7 +175,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             val repo = testDataHelper.revurderingRepo
             val (_, simulert) = testDataHelper.persisterRevurderingSimulertInnvilget()
             val simulertIngenForhåndsvarsel =
-                simulert.markerForhåndsvarselSomSendt().orNull()!!.also {
+                simulert.markerForhåndsvarselSomSendt().getOrFail().also {
                     repo.lagre(it)
                 }
             (repo.hent(simulert.id) as Revurdering) shouldBe simulertIngenForhåndsvarsel
@@ -188,7 +189,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             val repo = testDataHelper.revurderingRepo
             val (_, simulert) = testDataHelper.persisterRevurderingSimulertInnvilget()
             val simulertIngenForhåndsvarsel =
-                simulert.markerForhåndsvarselSomSendt().orNull()!!.copy(
+                simulert.markerForhåndsvarselSomSendt().getOrFail().copy(
                     // Vi har fjernet muligheten for å endre til denne tilstanden, men vi må støtte ikke-migrerte verdier i databasen.
                     forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.Avsluttet("")
                 ).also {

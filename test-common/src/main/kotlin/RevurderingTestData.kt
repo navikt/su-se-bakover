@@ -723,7 +723,7 @@ fun lagFradragsgrunnlag(
         utenlandskInntekt = utenlandskInntekt,
         tilhører = tilhører,
     ),
-).orNull()!!
+).getOrFail()
 
 fun beregnetRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
@@ -1043,22 +1043,22 @@ private fun <T : SimulertRevurdering> T.prøvÅLeggTilForhåndsvarselPåSimulert
         }
 
         is Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.EndreGrunnlaget -> {
-            this.markerForhåndsvarselSomSendt().orNull()!!
-                .prøvOvergangTilEndreGrunnlaget(forhåndsvarsel.begrunnelse).orNull()!!
+            this.markerForhåndsvarselSomSendt().getOrFail()
+                .prøvOvergangTilEndreGrunnlaget(forhåndsvarsel.begrunnelse).getOrFail()
         }
 
         is Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.FortsettMedSammeGrunnlag -> {
-            this.markerForhåndsvarselSomSendt().orNull()!!
+            this.markerForhåndsvarselSomSendt().getOrFail()
                 .prøvOvergangTilFortsettMedSammeGrunnlag(forhåndsvarsel.begrunnelse)
-                .orNull()!!
+                .getOrFail()
         }
 
         Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles -> {
-            this.ikkeSendForhåndsvarsel().orNull()!!
+            this.ikkeSendForhåndsvarsel().getOrFail()
         }
 
         Forhåndsvarsel.UnderBehandling.Sendt -> {
-            this.markerForhåndsvarselSomSendt().orNull()!!
+            this.markerForhåndsvarselSomSendt().getOrFail()
         }
 
         null -> this
@@ -1128,7 +1128,7 @@ fun tilAttesteringRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
         grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
         revurderingsårsak = revurderingsårsak,
     ).let { (sak, revurdering) ->
-        val attestert = revurdering.ikkeSendForhåndsvarsel().orNull()!!.tilAttestering(
+        val attestert = revurdering.ikkeSendForhåndsvarsel().getOrFail().tilAttestering(
             attesteringsoppgaveId = OppgaveId("attestering"),
             saksbehandler = saksbehandler,
             fritekstTilBrev = fritekstTilBrev,

@@ -192,7 +192,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
                 behandlingId = uavklart.id,
                 epsFnr = null,
             ),
-        ).orNull()!!
+        ).getOrFail()
 
         response shouldBe expected.copy(
             grunnlagsdata = Grunnlagsdata.create(
@@ -252,7 +252,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             clock = fixedClock,
         ).leggTilBosituasjonEpsgrunnlag(
             LeggTilBosituasjonEpsRequest(behandlingId = uavklart.id, epsFnr = bosituasjon.fnr),
-        ).orNull()!!
+        ).getOrFail()
 
         response shouldBe expected.copy(
             grunnlagsdata = Grunnlagsdata.create(
@@ -361,7 +361,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
                 behandlingId = uavklart.id,
                 bosituasjon = BosituasjonValg.BOR_ALENE,
             ),
-        ).orNull()!!
+        ).getOrFail()
 
         response shouldBe expected.copy(
             grunnlagsdata = Grunnlagsdata.create(
