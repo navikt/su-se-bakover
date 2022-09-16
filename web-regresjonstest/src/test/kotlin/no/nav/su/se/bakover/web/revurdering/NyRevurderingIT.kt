@@ -127,7 +127,7 @@ internal class NyRevurderingIT {
                                           "tilOgMed":"2021-04-30"
                                         },
                                         "vedtakType":"SØKNAD",
-                                        "vedtakId": "ignire-me"
+                                        "vedtakId": "ignore-me"
                                   },
                                   {
                                        "periode":{
@@ -135,7 +135,7 @@ internal class NyRevurderingIT {
                                           "tilOgMed":"2021-07-31"
                                         },
                                         "vedtakType":"ENDRING",
-                                        "vedtakId": "ignire-me"
+                                        "vedtakId": "ignore-me"
                                   },
                                   {
                                         "periode":{
@@ -143,7 +143,7 @@ internal class NyRevurderingIT {
                                           "tilOgMed":"2021-12-31"
                                         },
                                         "vedtakType":"SØKNAD",
-                                        "vedtakId": "ignire-me"
+                                        "vedtakId": "ignore-me"
                                   }
                                 ]
                             """.trimIndent(),

@@ -35,7 +35,7 @@ internal data class SakJson(
     val klager: List<KlageJson>,
     val reguleringer: List<ReguleringJson>,
     val sakstype: String,
-    val vedtakerPåTidslinje: List<VedtakPåTidslinjeJson>,
+    val vedtakPåTidslinje: List<VedtakPåTidslinjeJson>,
 ) {
     companion object {
         internal fun Sak.toJson(clock: Clock, satsFactory: SatsFactory) = SakJson(
@@ -65,7 +65,7 @@ internal data class SakJson(
                 it.toJson(satsFactory)
             },
             sakstype = type.toJson(),
-            vedtakerPåTidslinje = this.vedtakstidslinje().toJson(),
+            vedtakPåTidslinje = this.vedtakstidslinje().toJson(),
         )
     }
 }
