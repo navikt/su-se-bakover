@@ -63,7 +63,8 @@ internal class SakJsonTest {
                 "vedtak": [],
                 "klager": [],
                 "reguleringer": [],
-                "sakstype": "uføre"
+                "sakstype": "uføre",
+                "vedtakPåTidslinje": []
             }
         """.trimIndent()
 

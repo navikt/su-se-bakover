@@ -118,6 +118,35 @@ internal class NyRevurderingIT {
                                     },
                             ]
                             """.trimIndent(),
+                            //language=JSON
+                            expectedVedtakPåTidslinje = """
+                                [
+                                  {
+                                        "periode":{
+                                          "fraOgMed":"2021-01-01",
+                                          "tilOgMed":"2021-04-30"
+                                        },
+                                        "vedtakType":"SØKNAD",
+                                        "vedtakId": "ignore-me"
+                                  },
+                                  {
+                                       "periode":{
+                                          "fraOgMed":"2021-05-01",
+                                          "tilOgMed":"2021-07-31"
+                                        },
+                                        "vedtakType":"ENDRING",
+                                        "vedtakId": "ignore-me"
+                                  },
+                                  {
+                                        "periode":{
+                                          "fraOgMed":"2021-08-01",
+                                          "tilOgMed":"2021-12-31"
+                                        },
+                                        "vedtakType":"SØKNAD",
+                                        "vedtakId": "ignore-me"
+                                  }
+                                ]
+                            """.trimIndent(),
                         )
                     }
                 }

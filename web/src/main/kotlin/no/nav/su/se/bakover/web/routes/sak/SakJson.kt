@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.UtbetalingJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.toJson
 import no.nav.su.se.bakover.web.routes.vedtak.VedtakJson
+import no.nav.su.se.bakover.web.routes.vedtak.VedtakPåTidslinjeJson
 import no.nav.su.se.bakover.web.routes.vedtak.toJson
 import java.time.Clock
 
@@ -34,6 +35,7 @@ internal data class SakJson(
     val klager: List<KlageJson>,
     val reguleringer: List<ReguleringJson>,
     val sakstype: String,
+    val vedtakPåTidslinje: List<VedtakPåTidslinjeJson>,
 ) {
     companion object {
         internal fun Sak.toJson(clock: Clock, satsFactory: SatsFactory) = SakJson(
@@ -63,6 +65,7 @@ internal data class SakJson(
                 it.toJson(satsFactory)
             },
             sakstype = type.toJson(),
+            vedtakPåTidslinje = this.vedtakstidslinje().toJson(),
         )
     }
 }
