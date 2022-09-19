@@ -4,9 +4,8 @@ import arrow.core.left
 import arrow.core.right
 import com.github.tomakehurst.wiremock.client.WireMock
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.client.AccessToken
 import no.nav.su.se.bakover.client.WiremockBase
-import no.nav.su.se.bakover.client.azure.AzureAd
-import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -62,23 +61,11 @@ internal class JournalpostHttpClientTest {
             """.trimIndent()
 
         WiremockBase.wireMockServer.stubFor(
-            wiremockBuilderOnBehalfOf("Bearer token")
+            token("Bearer aadToken")
                 .willReturn(WireMock.ok(suksessResponseJson)),
         )
 
-        val azureAdMock = mock<AzureAd> {
-            on { onBehalfOfToken(any(), any()) } doReturn "token"
-        }
-
-        val client = JournalpostHttpClient(
-            safConfig = ApplicationConfig.ClientsConfig.SafConfig(
-                url = WiremockBase.wireMockServer.baseUrl(),
-                clientId = "clientId",
-            ),
-            azureAd = azureAdMock,
-        )
-
-        client.hentFerdigstiltJournalpost(Saksnummer(2021), JournalpostId("j")) shouldBe FerdigstiltJournalpost(
+        setupClient().hentFerdigstiltJournalpost(Saksnummer(2021), JournalpostId("j")) shouldBe FerdigstiltJournalpost(
             tema = JournalpostTema.SUP,
             journalstatus = JournalpostStatus.JOURNALFOERT,
             journalposttype = JournalpostType.INNKOMMENDE_DOKUMENT,
@@ -97,23 +84,11 @@ internal class JournalpostHttpClientTest {
             """.trimIndent()
 
         WiremockBase.wireMockServer.stubFor(
-            wiremockBuilderOnBehalfOf("Bearer token")
+            token("Bearer aadToken")
                 .willReturn(WireMock.ok(suksessResponseJson)),
         )
 
-        val azureAdMock = mock<AzureAd> {
-            on { onBehalfOfToken(any(), any()) } doReturn "token"
-        }
-
-        val client = JournalpostHttpClient(
-            safConfig = ApplicationConfig.ClientsConfig.SafConfig(
-                url = WiremockBase.wireMockServer.baseUrl(),
-                clientId = "clientId",
-            ),
-            azureAd = azureAdMock,
-        )
-
-        client.hentFerdigstiltJournalpost(
+        setupClient().hentFerdigstiltJournalpost(
             Saksnummer(2021),
             JournalpostId("j"),
         ) shouldBe KunneIkkeHenteJournalpost.TekniskFeil.left()
@@ -122,21 +97,11 @@ internal class JournalpostHttpClientTest {
     @Test
     fun `får ukjent feil dersom client kall feiler`() {
         WiremockBase.wireMockServer.stubFor(
-            wiremockBuilderOnBehalfOf("Bearer ${TokenOppslagStub.token().value}")
+            token("Bearer aadToken")
                 .willReturn(WireMock.serverError()),
         )
-        val azureAdMock = mock<AzureAd> {
-            on { onBehalfOfToken(any(), any()) } doReturn "token"
-        }
 
-        val client = JournalpostHttpClient(
-            safConfig = ApplicationConfig.ClientsConfig.SafConfig(
-                url = WiremockBase.wireMockServer.baseUrl(),
-                clientId = "clientId",
-            ),
-            azureAd = azureAdMock,
-        )
-        client.hentFerdigstiltJournalpost(Saksnummer(2022), JournalpostId("j")) shouldBe KunneIkkeHenteJournalpost.Ukjent.left()
+        setupClient().hentFerdigstiltJournalpost(Saksnummer(2022), JournalpostId("j")) shouldBe KunneIkkeHenteJournalpost.Ukjent.left()
     }
 
     @Test
@@ -170,22 +135,11 @@ internal class JournalpostHttpClientTest {
             """.trimIndent()
 
         WiremockBase.wireMockServer.stubFor(
-            wiremockBuilderOnBehalfOf("Bearer token")
+            token("Bearer aadToken")
                 .willReturn(WireMock.ok(errorResponseJson)),
         )
 
-        val azureAdMock = mock<AzureAd> {
-            on { onBehalfOfToken(any(), any()) } doReturn "token"
-        }
-
-        val client = JournalpostHttpClient(
-            safConfig = ApplicationConfig.ClientsConfig.SafConfig(
-                url = WiremockBase.wireMockServer.baseUrl(),
-                clientId = "clientId",
-            ),
-            azureAd = azureAdMock,
-        )
-        client.hentFerdigstiltJournalpost(
+        setupClient().hentFerdigstiltJournalpost(
             Saksnummer(2022),
             JournalpostId("j"),
         ) shouldBe KunneIkkeHenteJournalpost.FantIkkeJournalpost.left()
@@ -217,9 +171,21 @@ internal class JournalpostHttpClientTest {
 
         httpResponse.mapGraphQLHttpFeil("j") shouldBe expected
     }
-
-    private fun wiremockBuilderOnBehalfOf(authorization: String) = WireMock.post(WireMock.urlPathEqualTo("/graphql"))
-        .withHeader("Authorization", WireMock.equalTo(authorization))
-        .withHeader("Content-Type", WireMock.equalTo("application/json"))
-        .withHeader("Nav-Consumer-Id", WireMock.equalTo("su-se-bakover"))
 }
+
+internal fun setupClient() = JournalpostHttpClient(
+    safConfig = ApplicationConfig.ClientsConfig.SafConfig(
+        url = WiremockBase.wireMockServer.baseUrl(),
+        clientId = "clientId",
+    ),
+    azureAd = mock {
+        on { onBehalfOfToken(any(), any()) } doReturn "aadToken"
+    },
+    sts = mock {
+        on { token() } doReturn AccessToken("stsToken")
+    }
+)
+internal fun token(authorization: String) = WireMock.post(WireMock.urlPathEqualTo("/graphql"))
+    .withHeader("Authorization", WireMock.equalTo(authorization))
+    .withHeader("Content-Type", WireMock.equalTo("application/json"))
+    .withHeader("Nav-Consumer-Id", WireMock.equalTo("su-se-bakover"))

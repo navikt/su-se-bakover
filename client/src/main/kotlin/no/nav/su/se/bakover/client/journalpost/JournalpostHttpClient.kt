@@ -6,6 +6,7 @@ import arrow.core.left
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.su.se.bakover.client.azure.AzureAd
 import no.nav.su.se.bakover.client.isSuccess
+import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
@@ -28,6 +29,7 @@ import java.time.Duration
 internal class JournalpostHttpClient(
     private val safConfig: ApplicationConfig.ClientsConfig.SafConfig,
     private val azureAd: AzureAd,
+    private val sts: TokenOppslag,
 ) : JournalpostClient {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
     private val graphQLUrl: URI = URI.create("${safConfig.url}/graphql")
@@ -46,29 +48,30 @@ internal class JournalpostHttpClient(
             ),
             HentJournalpostVariables(journalpostId.toString()),
         )
-        return gqlRequest(request)
-            .mapLeft {
-                when (it) {
-                    is GraphQLApiFeil.HttpFeil.BadRequest -> KunneIkkeHenteJournalpost.UgyldigInput
-                    is GraphQLApiFeil.HttpFeil.Forbidden -> KunneIkkeHenteJournalpost.IkkeTilgang
-                    is GraphQLApiFeil.HttpFeil.NotFound -> KunneIkkeHenteJournalpost.FantIkkeJournalpost
-                    is GraphQLApiFeil.HttpFeil.ServerError -> KunneIkkeHenteJournalpost.TekniskFeil
-                    is GraphQLApiFeil.HttpFeil.Ukjent -> KunneIkkeHenteJournalpost.Ukjent
-                    is GraphQLApiFeil.TekniskFeil -> KunneIkkeHenteJournalpost.TekniskFeil
-                }
+        return gqlRequest(
+            request = request,
+            token = azureAd.onBehalfOfToken(MDC.get("Authorization"), safConfig.clientId)
+        ).mapLeft {
+            when (it) {
+                is GraphQLApiFeil.HttpFeil.BadRequest -> KunneIkkeHenteJournalpost.UgyldigInput
+                is GraphQLApiFeil.HttpFeil.Forbidden -> KunneIkkeHenteJournalpost.IkkeTilgang
+                is GraphQLApiFeil.HttpFeil.NotFound -> KunneIkkeHenteJournalpost.FantIkkeJournalpost
+                is GraphQLApiFeil.HttpFeil.ServerError -> KunneIkkeHenteJournalpost.TekniskFeil
+                is GraphQLApiFeil.HttpFeil.Ukjent -> KunneIkkeHenteJournalpost.Ukjent
+                is GraphQLApiFeil.TekniskFeil -> KunneIkkeHenteJournalpost.TekniskFeil
             }
-            .flatMap { response ->
-                response.data!!.journalpost.toFerdigstiltJournalpost(saksnummer)
-                    .mapLeft {
-                        when (it) {
-                            JournalpostErIkkeFerdigstilt.FantIkkeJournalpost -> KunneIkkeHenteJournalpost.FantIkkeJournalpost
-                            JournalpostErIkkeFerdigstilt.JournalpostIkkeKnyttetTilSak -> KunneIkkeHenteJournalpost.JournalpostIkkeKnyttetTilSak
-                            JournalpostErIkkeFerdigstilt.JournalpostTemaErIkkeSUP -> KunneIkkeHenteJournalpost.JournalpostTemaErIkkeSUP
-                            JournalpostErIkkeFerdigstilt.JournalpostenErIkkeEtInnkommendeDokument -> KunneIkkeHenteJournalpost.JournalpostenErIkkeEtInnkommendeDokument
-                            JournalpostErIkkeFerdigstilt.JournalpostenErIkkeFerdigstilt -> KunneIkkeHenteJournalpost.JournalpostenErIkkeFerdigstilt
-                        }
+        }.flatMap { response ->
+            response.data!!.journalpost.toFerdigstiltJournalpost(saksnummer)
+                .mapLeft {
+                    when (it) {
+                        JournalpostErIkkeFerdigstilt.FantIkkeJournalpost -> KunneIkkeHenteJournalpost.FantIkkeJournalpost
+                        JournalpostErIkkeFerdigstilt.JournalpostIkkeKnyttetTilSak -> KunneIkkeHenteJournalpost.JournalpostIkkeKnyttetTilSak
+                        JournalpostErIkkeFerdigstilt.JournalpostTemaErIkkeSUP -> KunneIkkeHenteJournalpost.JournalpostTemaErIkkeSUP
+                        JournalpostErIkkeFerdigstilt.JournalpostenErIkkeEtInnkommendeDokument -> KunneIkkeHenteJournalpost.JournalpostenErIkkeEtInnkommendeDokument
+                        JournalpostErIkkeFerdigstilt.JournalpostenErIkkeFerdigstilt -> KunneIkkeHenteJournalpost.JournalpostenErIkkeFerdigstilt
                     }
-            }
+                }
+        }
     }
 
     override fun kontrollnotatMotatt(saksnummer: Saksnummer, periode: Periode): Either<KunneIkkeSjekkKontrollnotatMottatt, Boolean> {
@@ -87,18 +90,16 @@ internal class JournalpostHttpClient(
                 foerste = 100
             )
         )
-        return gqlRequest(request)
-            .mapLeft { error ->
-                KunneIkkeSjekkKontrollnotatMottatt(error).also { log.error("Feil: $it ved henting av journalposter for saksnummer:$saksnummer") }
-            }
-            .map { response ->
-                response.data!!.dokumentoversiktFagsak.journalposter
-                    .toDomain()
-                    .any { periode.inneholder(it.datoOpprettet) && it.tittel.contains("NAV SU Kontrollnotat") }
-            }
-    }
-    private fun hentOnBehalfOfTokenFraMDCAuth(): String {
-        return "Bearer ${azureAd.onBehalfOfToken(MDC.get("Authorization"), safConfig.clientId)}"
+        return gqlRequest(
+            request = request,
+            token = sts.token().value,
+        ).mapLeft { error ->
+            KunneIkkeSjekkKontrollnotatMottatt(error).also { log.error("Feil: $it ved henting av journalposter for saksnummer:$saksnummer") }
+        }.map { response ->
+            response.data!!.dokumentoversiktFagsak.journalposter
+                .toDomain()
+                .any { periode.inneholder(it.datoOpprettet) && it.tittel.contains("NAV SU Kontrollnotat") }
+        }
     }
 
     private fun lagRequest(
@@ -110,10 +111,10 @@ internal class JournalpostHttpClient(
         return gqlQuery.replace("<<DATAFELTER>>", data)
     }
 
-    private inline fun <reified Response : GraphQLHttpResponse> gqlRequest(request: GraphQLQuery<Response>): Either<GraphQLApiFeil, Response> {
+    private inline fun <reified Response : GraphQLHttpResponse> gqlRequest(request: GraphQLQuery<Response>, token: String): Either<GraphQLApiFeil, Response> {
         return Either.catch {
             HttpRequest.newBuilder(graphQLUrl)
-                .header("Authorization", hentOnBehalfOfTokenFraMDCAuth())
+                .header("Authorization", "Bearer $token")
                 .header("Content-Type", "application/json")
                 .header("Nav-Consumer-Id", "su-se-bakover")
                 .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(request)))
