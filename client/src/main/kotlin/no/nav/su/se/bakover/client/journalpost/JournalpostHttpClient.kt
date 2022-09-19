@@ -2,21 +2,19 @@ package no.nav.su.se.bakover.client.journalpost
 
 import arrow.core.Either
 import arrow.core.flatMap
-import arrow.core.flatten
 import arrow.core.left
-import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.su.se.bakover.client.azure.AzureAd
 import no.nav.su.se.bakover.client.isSuccess
 import no.nav.su.se.bakover.common.ApplicationConfig
-import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.common.sikkerLogg
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.journalpost.FerdigstiltJournalpost
 import no.nav.su.se.bakover.domain.journalpost.JournalpostClient
 import no.nav.su.se.bakover.domain.journalpost.KunneIkkeHenteJournalpost
+import no.nav.su.se.bakover.domain.journalpost.KunneIkkeSjekkKontrollnotatMottatt
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
@@ -27,126 +25,173 @@ import java.net.http.HttpResponse
 import java.time.Duration
 
 // docs: https://confluence.adeo.no/display/BOA/saf+-+Utviklerveiledning#
-
-private data class JournalpostRequest(
-    val query: String,
-    val variables: JournalpostVariables,
-)
-
-private data class JournalpostVariables(
-    val journalpostId: String,
-)
-
 internal class JournalpostHttpClient(
     private val safConfig: ApplicationConfig.ClientsConfig.SafConfig,
     private val azureAd: AzureAd,
 ) : JournalpostClient {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
-
-    var client: HttpClient = HttpClient.newBuilder()
+    private val graphQLUrl: URI = URI.create("${safConfig.url}/graphql")
+    private val client: HttpClient = HttpClient.newBuilder()
         .connectTimeout(Duration.ofSeconds(20))
         .followRedirects(HttpClient.Redirect.NEVER)
         .build()
-
     override fun hentFerdigstiltJournalpost(
         saksnummer: Saksnummer,
         journalpostId: JournalpostId,
     ): Either<KunneIkkeHenteJournalpost, FerdigstiltJournalpost> {
-        val request = JournalpostRequest(
-            this::class.java.getResource("/hentJournalpost.graphql")?.readText()!!,
-            JournalpostVariables(journalpostId.toString()),
+        val request = GraphQLQuery<HentJournalpostHttpResponse>(
+            lagRequest(
+                query = "/hentJournalpostQuery.graphql",
+                datafelter = "/hentFerdigstiltJournalpostDatafelter.graphql",
+            ),
+            HentJournalpostVariables(journalpostId.toString()),
         )
-        return hentJournalpostFraSaf(request).mapLeft {
-            it
-        }.flatMap {
-            it.toValidertInnkommendeJournalførtJournalpost(saksnummer)
+        return gqlRequest(request)
+            .mapLeft {
+                when (it) {
+                    is GraphQLApiFeil.HttpFeil.BadRequest -> KunneIkkeHenteJournalpost.UgyldigInput
+                    is GraphQLApiFeil.HttpFeil.Forbidden -> KunneIkkeHenteJournalpost.IkkeTilgang
+                    is GraphQLApiFeil.HttpFeil.NotFound -> KunneIkkeHenteJournalpost.FantIkkeJournalpost
+                    is GraphQLApiFeil.HttpFeil.ServerError -> KunneIkkeHenteJournalpost.TekniskFeil
+                    is GraphQLApiFeil.HttpFeil.Ukjent -> KunneIkkeHenteJournalpost.Ukjent
+                    is GraphQLApiFeil.TekniskFeil -> KunneIkkeHenteJournalpost.TekniskFeil
+                }
+            }
+            .flatMap { response ->
+                response.data!!.journalpost.toFerdigstiltJournalpost(saksnummer)
+                    .mapLeft {
+                        when (it) {
+                            JournalpostErIkkeFerdigstilt.FantIkkeJournalpost -> KunneIkkeHenteJournalpost.FantIkkeJournalpost
+                            JournalpostErIkkeFerdigstilt.JournalpostIkkeKnyttetTilSak -> KunneIkkeHenteJournalpost.JournalpostIkkeKnyttetTilSak
+                            JournalpostErIkkeFerdigstilt.JournalpostTemaErIkkeSUP -> KunneIkkeHenteJournalpost.JournalpostTemaErIkkeSUP
+                            JournalpostErIkkeFerdigstilt.JournalpostenErIkkeEtInnkommendeDokument -> KunneIkkeHenteJournalpost.JournalpostenErIkkeEtInnkommendeDokument
+                            JournalpostErIkkeFerdigstilt.JournalpostenErIkkeFerdigstilt -> KunneIkkeHenteJournalpost.JournalpostenErIkkeFerdigstilt
+                        }
+                    }
+            }
+    }
+
+    override fun kontrollnotatMotatt(saksnummer: Saksnummer, periode: Periode): Either<KunneIkkeSjekkKontrollnotatMottatt, Boolean> {
+        val request = GraphQLQuery<HentDokumentoversiktFagsakHttpResponse>(
+            query = lagRequest(
+                query = "/dokumentoversiktFagsakQuery.graphql",
+                datafelter = "/hentMottattKontrollnotatDatafelter.graphql"
+            ),
+            variables = HentJournalpostForFagsakVariables(
+                fagsakId = saksnummer.toString(),
+                fagsaksystem = "SUPSTONAD",
+                fraDato = periode.fraOgMed.toString(),
+                tema = "SUP",
+                journalposttyper = listOf("I"),
+                journalstatuser = listOf("JOURNALFOERT"),
+                foerste = 100
+            )
+        )
+        return gqlRequest(request)
+            .mapLeft { error ->
+                KunneIkkeSjekkKontrollnotatMottatt(error).also { log.error("Feil: $it ved henting av journalposter for saksnummer:$saksnummer") }
+            }
+            .map { response ->
+                response.data!!.dokumentoversiktFagsak.journalposter
+                    .toDomain()
+                    .any { periode.inneholder(it.datoOpprettet) && it.tittel.contains("NAV SU Kontrollnotat") }
+            }
+    }
+    private fun hentOnBehalfOfTokenFraMDCAuth(): String {
+        return "Bearer ${azureAd.onBehalfOfToken(MDC.get("Authorization"), safConfig.clientId)}"
+    }
+
+    private fun lagRequest(
+        query: String,
+        datafelter: String,
+    ): String {
+        val gqlQuery = javaClass.getResource(query)?.readText() ?: throw IllegalArgumentException("Fant ikke fil med navn: $query")
+        val data = javaClass.getResource(datafelter)?.readText() ?: throw IllegalArgumentException("Fant ikke fil med navn: $query")
+        return gqlQuery.replace("<<DATAFELTER>>", data)
+    }
+
+    private inline fun <reified Response : GraphQLHttpResponse> gqlRequest(request: GraphQLQuery<Response>): Either<GraphQLApiFeil, Response> {
+        return Either.catch {
+            HttpRequest.newBuilder(graphQLUrl)
+                .header("Authorization", hentOnBehalfOfTokenFraMDCAuth())
+                .header("Content-Type", "application/json")
+                .header("Nav-Consumer-Id", "su-se-bakover")
+                .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(request)))
+                .build()
+                .let { httpRequest ->
+                    client.send(httpRequest, HttpResponse.BodyHandlers.ofString())
+                        .let { httpResponse ->
+                            if (httpResponse.isSuccess()) {
+                                // GraphQL returnerer 200 for det meste
+                                objectMapper.readValue<Response>(httpResponse.body()).let { response ->
+                                    if (response.hasErrors()) {
+                                        return response.mapGraphQLHttpFeil(request)
+                                            .also { log.warn("Feil: $it ved kall mot: $graphQLUrl") }
+                                            .left()
+                                    } else {
+                                        response
+                                    }
+                                }
+                            } else {
+                                // ting som ikke når helt til GraphQL - typisk 401 uten token eller lignende
+                                return GraphQLApiFeil.HttpFeil.Ukjent(request, """Status: ${httpResponse.statusCode()}, Body:${httpResponse.body()}""")
+                                    .also { log.warn("Feil: $it ved kall mot: $graphQLUrl") }
+                                    .left()
+                            }
+                        }
+                }
+        }.mapLeft { throwable ->
+            GraphQLApiFeil.TekniskFeil(request, throwable.toString())
+                .also { log.warn("Feil: $it ved kall mot: $graphQLUrl") }
         }
     }
 
-    private fun hentJournalpostFraSaf(request: JournalpostRequest): Either<KunneIkkeHenteJournalpost, JournalpostResponse> {
-        val token = "Bearer ${azureAd.onBehalfOfToken(MDC.get("Authorization"), safConfig.clientId)}"
+    sealed class GraphQLApiFeil {
 
-        return Either.catch {
-            val req = HttpRequest.newBuilder(URI.create("${safConfig.url}/graphql"))
-                .header("Authorization", token)
-                .header("Content-Type", "application/json")
-                .header("Nav-Consumer-Id", "su-se-bakover")
-                .POST(
-                    HttpRequest.BodyPublishers.ofString(
-                        objectMapper.writeValueAsString(request),
-                    ),
-                ).build()
+        data class TekniskFeil(val request: Any, val msg: String) : GraphQLApiFeil()
+        sealed class HttpFeil : GraphQLApiFeil() {
+            data class NotFound(val request: Any, val msg: String) : HttpFeil()
+            data class ServerError(val request: Any, val msg: String) : HttpFeil()
+            data class BadRequest(val request: Any, val msg: String) : HttpFeil()
+            data class Forbidden(val request: Any, val msg: String) : HttpFeil()
 
-            client.send(req, HttpResponse.BodyHandlers.ofString()).let {
-                val body = it.body()
-                if (it.isSuccess()) {
-                    Either.catch {
-                        val journalpostHttpResponse = objectMapper.readValue<JournalpostHttpResponse>(body)
-                        if (journalpostHttpResponse.hasErrors()) {
-                            return journalpostHttpResponse.tilKunneIkkeHenteJournalpost(request.variables.journalpostId)
-                                .left()
-                        }
-                        return journalpostHttpResponse.data.right()
-                    }.mapLeft { exception ->
-                        log.error("Feil i kallet mot SAF. status: ${it.statusCode()} for journalpostId: ${request.variables.journalpostId}. Se sikker logg for innholdet av body, og exception")
-                        sikkerLogg.info(
-                            "Feil i kallet mot SAF for journalpostId: ${request.variables.journalpostId}. status: ${it.statusCode()}, body: $body",
-                            exception,
-                        )
-                        return KunneIkkeHenteJournalpost.TekniskFeil.left()
-                    }
-                }
-
-                log.error("Feil i kallet mot SAF. status: ${it.statusCode()} for journalpostId: ${request.variables.journalpostId}. Se sikker logg for innholdet av body")
-                sikkerLogg.info("Feil i kallet mot SAF. status: ${it.statusCode()}, body: $body for journalpostId: ${request.variables.journalpostId}")
-                KunneIkkeHenteJournalpost.Ukjent.left()
-            }
-        }.mapLeft {
-            log.error("Feil i kallet mot SAF.", it)
-            KunneIkkeHenteJournalpost.Ukjent
-        }.flatten()
+            data class Ukjent(val request: Any, val msg: String) : HttpFeil()
+        }
     }
 }
 
-// https://confluence.adeo.no/display/BOA/saf+-+Utviklerveiledning#safUtviklerveiledning-Feilh%C3%A5ndtering
-internal data class JournalpostHttpResponse(
-    val data: JournalpostResponse,
-    val errors: List<Error>?,
-) {
+internal abstract class GraphQLHttpResponse {
+    abstract val data: Any?
+    abstract val errors: List<Error>?
     fun hasErrors(): Boolean {
-        return errors !== null && errors.isNotEmpty()
+        return errors?.isNotEmpty() ?: false
     }
-
-    fun tilKunneIkkeHenteJournalpost(journalpostId: String): KunneIkkeHenteJournalpost {
+    // https://confluence.adeo.no/display/BOA/saf+-+Utviklerveiledning#safUtviklerveiledning-Feilh%C3%A5ndtering
+    fun mapGraphQLHttpFeil(request: Any): JournalpostHttpClient.GraphQLApiFeil {
         return errors.orEmpty().map { error ->
-            when (error.extensions.code) {
-                "forbidden" -> KunneIkkeHenteJournalpost.IkkeTilgang.also {
-                    log.error("Ikke tilgang til Journalpost. Id $journalpostId")
-                }
-                "not_found" -> KunneIkkeHenteJournalpost.FantIkkeJournalpost.also {
-                    log.info("Fant ikke journalpost. Id $journalpostId")
-                }
-                "bad_request" -> KunneIkkeHenteJournalpost.UgyldigInput.also {
-                    log.error("Sendt ugyldig input til SAF. Id $journalpostId")
-                }
-                "server_error" -> KunneIkkeHenteJournalpost.TekniskFeil.also {
-                    log.error("Teknisk feil hos SAF. Id $journalpostId")
-                }
-                else -> KunneIkkeHenteJournalpost.Ukjent.also {
-                    log.error("Uhåndtert feil fra SAF. code ${error.extensions.code}. Id $journalpostId")
-                }
+            when (error.extensions?.code) {
+                "forbidden" -> JournalpostHttpClient.GraphQLApiFeil.HttpFeil.Forbidden(request, error.message)
+                "not_found" -> JournalpostHttpClient.GraphQLApiFeil.HttpFeil.NotFound(request, error.message)
+                "bad_request" -> JournalpostHttpClient.GraphQLApiFeil.HttpFeil.BadRequest(request, error.message)
+                "server_error" -> JournalpostHttpClient.GraphQLApiFeil.HttpFeil.ServerError(request, error.message)
+                else -> JournalpostHttpClient.GraphQLApiFeil.HttpFeil.Ukjent(request, error.message)
             }
         }.first()
     }
 }
 
+internal data class GraphQLQuery<ResponseType>(
+    val query: String,
+    val variables: Any
+)
+
 internal data class Error(
     val message: String,
-    val path: List<String>,
-    val extensions: Extensions,
+    val path: List<String>?,
+    val extensions: Extensions?,
 )
 
 internal data class Extensions(
-    val code: String,
+    val code: String?,
     val classification: String,
 )

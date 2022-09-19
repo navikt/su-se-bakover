@@ -1,0 +1,5 @@
+query($fagsakId: String!, $fagsaksystem: String! $fraDato: Date!, $tema: [Tema]!, $journalposttyper: [Journalposttype]!, $journalstatuser: [Journalstatus]!, $foerste:Int!) {
+  dokumentoversiktFagsak(fagsak:{fagsakId:$fagsakId,fagsaksystem:$fagsaksystem}, fraDato:$fraDato, tema:$tema, journalposttyper:$journalposttyper, journalstatuser:$journalstatuser, foerste:$foerste){
+    <<DATAFELTER>>
+  }
+}

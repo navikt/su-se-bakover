@@ -1,0 +1,6 @@
+query($journalpostId: String!){
+    journalpost(journalpostId: $journalpostId){
+        <<DATAFELTER>>
+    }
+}
+
