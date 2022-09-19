@@ -13,6 +13,7 @@ internal data class Journalpost(
     val sak: Sak? = null,
     val tittel: String? = null,
     val datoOpprettet: LocalDate? = null,
+    val journalpostId: String? = null,
 )
 
 internal data class Sak(

@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.journalpost.ErKontrollNotatMottatt
 import no.nav.su.se.bakover.domain.journalpost.FerdigstiltJournalpost
 import no.nav.su.se.bakover.domain.journalpost.JournalpostClient
 import no.nav.su.se.bakover.domain.journalpost.KunneIkkeHenteJournalpost
@@ -74,7 +75,7 @@ internal class JournalpostHttpClient(
         }
     }
 
-    override fun kontrollnotatMotatt(saksnummer: Saksnummer, periode: Periode): Either<KunneIkkeSjekkKontrollnotatMottatt, Boolean> {
+    override fun kontrollnotatMotatt(saksnummer: Saksnummer, periode: Periode): Either<KunneIkkeSjekkKontrollnotatMottatt, ErKontrollNotatMottatt> {
         val request = GraphQLQuery<HentDokumentoversiktFagsakHttpResponse>(
             query = lagRequest(
                 query = "/dokumentoversiktFagsakQuery.graphql",
@@ -98,7 +99,9 @@ internal class JournalpostHttpClient(
         }.map { response ->
             response.data!!.dokumentoversiktFagsak.journalposter
                 .toDomain()
-                .any { periode.inneholder(it.datoOpprettet) && it.tittel.contains("NAV SU Kontrollnotat") }
+                .sortedBy { it.datoOpprettet }
+                .lastOrNull { periode.inneholder(it.datoOpprettet) && it.tittel.contains("NAV SU Kontrollnotat") }
+                ?.let { ErKontrollNotatMottatt.Ja(it) } ?: ErKontrollNotatMottatt.Nei
         }
     }
 

@@ -20,10 +20,15 @@ interface JournalpostClient {
     fun kontrollnotatMotatt(
         saksnummer: Saksnummer,
         periode: Periode
-    ): Either<KunneIkkeSjekkKontrollnotatMottatt, Boolean>
+    ): Either<KunneIkkeSjekkKontrollnotatMottatt, ErKontrollNotatMottatt>
 }
 
 data class KunneIkkeSjekkKontrollnotatMottatt(val feil: Any)
+
+sealed interface ErKontrollNotatMottatt {
+    object Nei : ErKontrollNotatMottatt
+    data class Ja(val kontrollnotat: KontrollnotatMottattJournalpost) : ErKontrollNotatMottatt
+}
 
 sealed interface KunneIkkeHenteJournalpost {
     object Ukjent : KunneIkkeHenteJournalpost

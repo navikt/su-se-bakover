@@ -7,13 +7,18 @@ import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.september
 import no.nav.su.se.bakover.common.periode.år
+import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.journalpost.ErKontrollNotatMottatt
+import no.nav.su.se.bakover.domain.journalpost.JournalpostStatus
+import no.nav.su.se.bakover.domain.journalpost.JournalpostTema
+import no.nav.su.se.bakover.domain.journalpost.JournalpostType
+import no.nav.su.se.bakover.domain.journalpost.KontrollnotatMottattJournalpost
 import no.nav.su.se.bakover.test.shouldBeType
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.junit.jupiter.api.parallel.Isolated
 
-@Isolated
 internal class HentKontrollnotatMottattTest : WiremockBase {
 
     @Test
@@ -24,9 +29,29 @@ internal class HentKontrollnotatMottattTest : WiremockBase {
         )
 
         setupClient().also {
-            it.kontrollnotatMotatt(Saksnummer(10002027), september(2022)) shouldBe true.right()
-            it.kontrollnotatMotatt(Saksnummer(10002027), januar(2022)) shouldBe false.right()
-            it.kontrollnotatMotatt(Saksnummer(10002027), år(2022)) shouldBe true.right()
+            it.kontrollnotatMotatt(Saksnummer(10002027), september(2022)) shouldBe ErKontrollNotatMottatt.Ja(
+                kontrollnotat = KontrollnotatMottattJournalpost(
+                    tema = JournalpostTema.SUP,
+                    journalstatus = JournalpostStatus.JOURNALFOERT,
+                    journalposttype = JournalpostType.INNKOMMENDE_DOKUMENT,
+                    saksnummer = Saksnummer(10002027),
+                    tittel = "NAV 00-03.01 NAV SU Kontrollnotat",
+                    datoOpprettet = 9.september(2022),
+                    journalpostId = JournalpostId(value = "453812131")
+                )
+            ).right()
+            it.kontrollnotatMotatt(Saksnummer(10002027), januar(2022)) shouldBe ErKontrollNotatMottatt.Nei.right()
+            it.kontrollnotatMotatt(Saksnummer(10002027), år(2022)) shouldBe ErKontrollNotatMottatt.Ja(
+                kontrollnotat = KontrollnotatMottattJournalpost(
+                    tema = JournalpostTema.SUP,
+                    journalstatus = JournalpostStatus.JOURNALFOERT,
+                    journalposttype = JournalpostType.INNKOMMENDE_DOKUMENT,
+                    saksnummer = Saksnummer(10002027),
+                    tittel = "NAV 00-03.01 NAV SU Kontrollnotat",
+                    datoOpprettet = 9.september(2022),
+                    journalpostId = JournalpostId(value = "453812131")
+                )
+            ).right()
         }
     }
 
@@ -99,7 +124,7 @@ internal class HentKontrollnotatMottattTest : WiremockBase {
         )
 
         setupClient().also {
-            it.kontrollnotatMotatt(Saksnummer(10002027), september(2022)) shouldBe false.right()
+            it.kontrollnotatMotatt(Saksnummer(10002027), september(2022)) shouldBe ErKontrollNotatMottatt.Nei.right()
         }
     }
 
@@ -147,6 +172,61 @@ internal class HentKontrollnotatMottattTest : WiremockBase {
             client.kontrollnotatMotatt(Saksnummer(10002027), september(2022)).tapLeft {
                 it.feil.shouldBeType<JournalpostHttpClient.GraphQLApiFeil.HttpFeil.Ukjent>()
             }
+        }
+    }
+
+    @Test
+    fun `velger nyeste journalpost dersom det eksisterer flere for periode`() {
+        val flereKontrollnotat = """
+            {
+            "data": {
+                "dokumentoversiktFagsak": {
+                    "journalposter": [                        
+                        {
+                            "tema": "SUP",
+                            "journalstatus": "JOURNALFOERT",
+                            "journalposttype": "I",
+                            "sak": {
+                                "fagsakId": "10002027"
+                            },
+                            "journalpostId": "453899999",
+                            "tittel": "NAV 00-03.01 NAV SU Kontrollnotat",
+                            "datoOpprettet": "2022-09-28T09:30:42"
+                        },
+                        {
+                            "tema": "SUP",
+                            "journalstatus": "JOURNALFOERT",
+                            "journalposttype": "I",
+                            "sak": {
+                                "fagsakId": "10002027"
+                            },
+                            "journalpostId": "453812131",
+                            "tittel": "NAV 00-03.01 NAV SU Kontrollnotat",
+                            "datoOpprettet": "2022-09-09T09:30:42"
+                        }
+                    ]
+                }
+            }
+        }
+        """.trimIndent()
+
+        WiremockBase.wireMockServer.stubFor(
+            token("Bearer stsToken")
+                .willReturn(WireMock.ok(flereKontrollnotat)),
+        )
+
+        setupClient().also { client ->
+            client.kontrollnotatMotatt(Saksnummer(10002027), september(2022)) shouldBe ErKontrollNotatMottatt.Ja(
+                kontrollnotat = KontrollnotatMottattJournalpost(
+                    tema = JournalpostTema.SUP,
+                    journalstatus = JournalpostStatus.JOURNALFOERT,
+                    journalposttype = JournalpostType.INNKOMMENDE_DOKUMENT,
+                    saksnummer = Saksnummer(10002027),
+                    tittel = "NAV 00-03.01 NAV SU Kontrollnotat",
+                    datoOpprettet = 28.september(2022),
+                    journalpostId = JournalpostId(value = "453899999")
+                )
+            ).right()
         }
     }
 

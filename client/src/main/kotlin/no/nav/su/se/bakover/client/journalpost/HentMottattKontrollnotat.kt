@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.client.journalpost
 
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.journalpost.JournalpostStatus
 import no.nav.su.se.bakover.domain.journalpost.JournalpostTema
 import no.nav.su.se.bakover.domain.journalpost.JournalpostType
@@ -21,6 +22,7 @@ internal fun Journalpost.toDomain(): KontrollnotatMottattJournalpost {
         journalposttype = JournalpostType.fromString(journalposttype!!),
         saksnummer = Saksnummer(sak!!.fagsakId!!.toLong()),
         tittel = tittel!!,
-        datoOpprettet = datoOpprettet!!
+        datoOpprettet = datoOpprettet!!,
+        journalpostId = JournalpostId(journalpostId!!)
     )
 }
