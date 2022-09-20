@@ -14,7 +14,7 @@ sealed class BrevTemplate(
 
     object AvslagsVedtak : BrevTemplate(
         pdfTemplate = PdfTemplate.AvslagsVedtak,
-        brevTittel = "Vedtaksbrev for søknad om supplerende stønad",
+        brevTittel = "Avslag supplerende stønad",
     )
 
     object TrukketSøknad : BrevTemplate(

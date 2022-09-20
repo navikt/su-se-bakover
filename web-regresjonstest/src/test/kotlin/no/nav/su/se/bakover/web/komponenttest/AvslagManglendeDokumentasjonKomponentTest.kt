@@ -90,7 +90,7 @@ class AvslagManglendeDokumentasjonKomponentTest {
                     appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.Sak(avslag.sakId))
                         .let { dokumenter ->
                             dokumenter.single().let {
-                                it.tittel shouldBe "Vedtaksbrev for søknad om supplerende stønad"
+                                it.tittel shouldBe "Avslag supplerende stønad"
                                 it.generertDokumentJson shouldContain """"avslagsgrunner": ["MANGLENDE_DOKUMENTASJON"]"""
                             }
                         }
@@ -175,7 +175,7 @@ class AvslagManglendeDokumentasjonKomponentTest {
                         appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.Sak(avslag.sakId))
                             .let { dokumenter ->
                                 dokumenter.single().let {
-                                    it.tittel shouldBe "Vedtaksbrev for søknad om supplerende stønad"
+                                    it.tittel shouldBe "Avslag supplerende stønad"
                                     it.generertDokumentJson shouldContain """"avslagsgrunner": ["MANGLENDE_DOKUMENTASJON"]"""
                                 }
                             }
