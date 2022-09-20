@@ -42,23 +42,12 @@ sealed interface Avkortingsvarsel {
          * TODO: Refaktorer bort denne tilstanden, kan gå direkte til neste tilstand.
          */
         data class Opprettet(
-            override val id: UUID,
+            override val id: UUID = UUID.randomUUID(),
             override val sakId: UUID,
             override val revurderingId: UUID,
             override val opprettet: Tidspunkt,
             override val simulering: Simulering,
         ) : Utenlandsopphold {
-            constructor(
-                sakId: UUID,
-                revurderingId: UUID,
-                simulering: Simulering,
-            ) : this(
-                id = UUID.randomUUID(),
-                sakId = sakId,
-                revurderingId = revurderingId,
-                opprettet = Tidspunkt.now(),
-                simulering = simulering,
-            )
 
             fun skalAvkortes(): SkalAvkortes {
                 return SkalAvkortes(this)

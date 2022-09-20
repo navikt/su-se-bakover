@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Uføregrunnlag
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
+import java.time.Clock
 
 // TODO: Del inn i tom og utleda grunnlagsdata. F.eks. ved å bruke NonEmptyList
 /**
@@ -35,9 +36,10 @@ data class Grunnlagsdata private constructor(
     // TODO("flere_satser det gir egentlig ikke mening at vi oppdaterer flere verdier på denne måten, bør sees på/vurderes fjernet")
     fun oppdaterGrunnlagsperioder(
         oppdatertPeriode: Periode,
+        clock: Clock,
     ): Either<KunneIkkeLageGrunnlagsdata, Grunnlagsdata> {
         return tryCreateTillatUfullstendigBosituasjon(
-            fradragsgrunnlag = fradragsgrunnlag.oppdaterFradragsperiode(oppdatertPeriode)
+            fradragsgrunnlag = fradragsgrunnlag.oppdaterFradragsperiode(oppdatertPeriode, clock)
                 .getOrHandle { return KunneIkkeLageGrunnlagsdata.UgyldigFradragsgrunnlag(it).left() },
             bosituasjon = bosituasjon.oppdaterBosituasjonsperiode(oppdatertPeriode),
         )

@@ -6,8 +6,6 @@ import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.stubs.AuthStubCommonConfig
 import no.nav.su.se.bakover.domain.Brukerrolle
 import org.jetbrains.annotations.TestOnly
-import java.time.Instant
-import java.time.temporal.ChronoUnit
 import java.util.Date
 
 class JwtStub(
@@ -20,7 +18,7 @@ class JwtStub(
         navIdent: String? = "Z990Lokal",
         navn: String? = "Brukerens navn",
         audience: String = azureConfig.clientId,
-        expiresAt: Date = Date.from(Instant.now().plus(1L, ChronoUnit.DAYS)),
+        expiresAt: Date = Date(Long.MAX_VALUE),
         issuer: String = AuthStubCommonConfig.issuer,
     ): String {
         return JWT.create()

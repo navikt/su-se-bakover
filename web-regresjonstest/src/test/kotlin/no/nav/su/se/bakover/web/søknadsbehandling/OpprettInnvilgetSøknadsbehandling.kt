@@ -4,6 +4,7 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.leggTilOpplysningsplikt
 import no.nav.su.se.bakover.web.søknad.ny.NySøknadJson
@@ -25,7 +26,6 @@ import no.nav.su.se.bakover.web.søknadsbehandling.sendTilAttestering.sendTilAtt
 import no.nav.su.se.bakover.web.søknadsbehandling.simulering.simuler
 import no.nav.su.se.bakover.web.søknadsbehandling.uførhet.leggTilUføregrunnlag
 import no.nav.su.se.bakover.web.søknadsbehandling.virkningstidspunkt.leggTilVirkningstidspunkt
-import java.time.LocalDate
 
 /**
  * Oppretter en ny søknad med søknadbehandling.
@@ -34,8 +34,8 @@ import java.time.LocalDate
  */
 internal fun ApplicationTestBuilder.opprettInnvilgetSøknadsbehandling(
     fnr: String = Fnr.generer().toString(),
-    fraOgMed: String = LocalDate.now().startOfMonth().toString(),
-    tilOgMed: String = LocalDate.now().startOfMonth().plusMonths(11).endOfMonth().toString(),
+    fraOgMed: String = fixedLocalDate.startOfMonth().toString(),
+    tilOgMed: String = fixedLocalDate.startOfMonth().plusMonths(11).endOfMonth().toString(),
 ): String {
     val søknadResponseJson = nyDigitalSøknad(
         fnr = fnr,
@@ -55,8 +55,8 @@ internal fun ApplicationTestBuilder.opprettInnvilgetSøknadsbehandling(
 internal fun ApplicationTestBuilder.opprettInnvilgetSøknadsbehandling(
     sakId: String,
     søknadId: String,
-    fraOgMed: String = LocalDate.now().startOfMonth().toString(),
-    tilOgMed: String = LocalDate.now().startOfMonth().plusMonths(11).endOfMonth().toString(),
+    fraOgMed: String = fixedLocalDate.startOfMonth().toString(),
+    tilOgMed: String = fixedLocalDate.startOfMonth().plusMonths(11).endOfMonth().toString(),
 ): String {
     val nySøknadsbehandlingResponseJson = nySøknadsbehandling(
         sakId = sakId,

@@ -90,7 +90,7 @@ class StubClientsBuilder(
             klageClient = KlageClientStub.also { log.warn("********** Using stub for ${KlageClientStub::class.java} **********") },
             journalpostClient = JournalpostClientStub.also { log.warn("********** Using stub for ${JournalpostClientStub::class.java} **********") },
             tilbakekrevingClient = TilbakekrevingClientStub(clock).also { log.warn("********** Using stub for ${TilbakekrevingClient::class.java} **********") },
-            skatteOppslag = SkatteClientStub().also { log.warn("********** Using stub for ${SkatteClient::class.java} **********") },
+            skatteOppslag = SkatteClientStub(clock).also { log.warn("********** Using stub for ${SkatteClient::class.java} **********") },
             maskinportenClient = MaskinportenClientStub(clock).also { log.warn("********** Using stub for ${MaskinportenClient::class.java} **********") },
         )
     }

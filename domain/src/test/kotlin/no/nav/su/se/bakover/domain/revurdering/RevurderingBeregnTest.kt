@@ -359,6 +359,7 @@ internal class RevurderingBeregnTest {
                             simulering = simuleringFeilutbetaling(
                                 perioder = feilutbetaltePerioder.toTypedArray(),
                             ),
+                            opprettet = Tidspunkt.now(fixedClock),
                         ),
                     ),
                 ),
@@ -446,6 +447,7 @@ internal class RevurderingBeregnTest {
                             simulering = simuleringFeilutbetaling(
                                 perioder = feilutbetaltePerioder.toTypedArray(),
                             ),
+                            opprettet = Tidspunkt.now(fixedClock),
                         ),
                     ),
                 ),
@@ -563,6 +565,7 @@ internal class RevurderingBeregnTest {
                             sakId = UUID.randomUUID(),
                             revurderingId = UUID.randomUUID(),
                             simulering = simuleringFeilutbetaling(mai(2021), juni(2021)),
+                            opprettet = Tidspunkt.now(fixedClock),
                         ),
                     ),
                 ),
@@ -593,6 +596,7 @@ internal class RevurderingBeregnTest {
                             sakId = UUID.randomUUID(),
                             revurderingId = UUID.randomUUID(),
                             simulering = simuleringFeilutbetaling(mai(2021), juni(2021)),
+                            opprettet = Tidspunkt.now(fixedClock),
                         ),
                     ),
                 ),

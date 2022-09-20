@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.november
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.september
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
 import org.junit.jupiter.api.Test
 import java.time.Clock
@@ -78,14 +79,22 @@ class KontrollsamtaleTest {
 
     @Test
     fun `annullering av en planlagt kontrollsamtale er mulig`() {
-        val kontrollsamtale = Kontrollsamtale.opprettNyKontrollsamtale(UUID.randomUUID(), 1.januar(2022))
+        val kontrollsamtale = Kontrollsamtale.opprettNyKontrollsamtale(
+            sakId = UUID.randomUUID(),
+            innkallingsdato = 1.januar(2022),
+            clock = fixedClock,
+        )
         kontrollsamtale.annuller() shouldBeRight kontrollsamtale.copy(status = Kontrollsamtalestatus.ANNULLERT)
     }
 
     @Test
     fun `endre innkallingsdato på kontrollsamtale skal også endre frist`() {
         val innkallingsdato = 1.februar(2022)
-        val kontrollsamtale = Kontrollsamtale.opprettNyKontrollsamtale(UUID.randomUUID(), 1.januar(2022))
+        val kontrollsamtale = Kontrollsamtale.opprettNyKontrollsamtale(
+            sakId = UUID.randomUUID(),
+            innkallingsdato = 1.januar(2022),
+            clock = fixedClock,
+        )
         kontrollsamtale.endreDato(innkallingsdato).getOrFail() shouldBe kontrollsamtale.copy(innkallingsdato = innkallingsdato, frist = regnUtFristFraInnkallingsdato(innkallingsdato))
     }
 }

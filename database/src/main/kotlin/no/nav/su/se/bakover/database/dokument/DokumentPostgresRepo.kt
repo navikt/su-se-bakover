@@ -19,11 +19,13 @@ import no.nav.su.se.bakover.domain.dokument.DokumentRepo
 import no.nav.su.se.bakover.domain.dokument.Dokumentdistribusjon
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import java.time.Clock
 import java.util.UUID
 
 internal class DokumentPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
     private val dbMetrics: DbMetrics,
+    private val clock: Clock,
 ) : DokumentRepo {
 
     override fun lagre(dokument: Dokument.MedMetadata, transactionContext: TransactionContext) {
@@ -197,7 +199,7 @@ internal class DokumentPostgresRepo(
                             "brevbestillingId" to JournalføringOgBrevdistribusjon.iverksattBrevbestillingId(
                                 dokumentdistribusjon.journalføringOgBrevdistribusjon,
                             ),
-                            "endret" to Tidspunkt.now(),
+                            "endret" to Tidspunkt.now(clock),
                         ),
                         session,
                     )

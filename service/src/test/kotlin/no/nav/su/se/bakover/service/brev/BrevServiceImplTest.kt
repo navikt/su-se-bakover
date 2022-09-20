@@ -512,8 +512,11 @@ internal class BrevServiceImplTest {
         override val person: Person = BrevServiceImplTest.person
         override val brevInnhold: BrevInnhold = DummyBrevInnhold
         override val saksnummer: Saksnummer = Saksnummer(2021)
-        override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<LagBrevRequest.KunneIkkeGenererePdf, ByteArray>): Either<LagBrevRequest.KunneIkkeGenererePdf, Dokument.UtenMetadata> {
-            return genererDokument(genererPdf).map {
+        override fun tilDokument(
+            clock: Clock,
+            genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<LagBrevRequest.KunneIkkeGenererePdf, ByteArray>
+        ): Either<LagBrevRequest.KunneIkkeGenererePdf, Dokument.UtenMetadata> {
+            return genererDokument(clock, genererPdf).map {
                 Dokument.UtenMetadata.Vedtak(
                     id = UUID.randomUUID(),
                     opprettet = fixedTidspunkt,

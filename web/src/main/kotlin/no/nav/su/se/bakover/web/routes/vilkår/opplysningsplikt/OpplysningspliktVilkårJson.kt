@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.NonEmptyList
 import arrow.core.flatMap
 import arrow.core.sequence
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.PeriodeJson
 import no.nav.su.se.bakover.common.periode.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
@@ -13,6 +12,7 @@ import no.nav.su.se.bakover.domain.vilkår.KunneIkkeLageOpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOpplysningsplikt
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilOpplysningsplikt
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import java.util.UUID
 
 internal data class OpplysningspliktVilkårJson(
@@ -31,11 +31,11 @@ internal data class VurderingsperiodeOpplysningspliktVilkårJson(
     fun toDomain(): Either<KunneIkkeLageOpplysningspliktVilkår.Vurderingsperiode, VurderingsperiodeOpplysningsplikt> {
         return VurderingsperiodeOpplysningsplikt.tryCreate(
             id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(),
+            opprettet = fixedTidspunkt,
             vurderingsperiode = periode.toPeriode(),
             grunnlag = Opplysningspliktgrunnlag(
                 id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(),
+                opprettet = fixedTidspunkt,
                 periode = periode.toPeriode(),
                 beskrivelse = when (beskrivelse) {
                     OpplysningspliktBeskrivelseJson.TilstrekkeligDokumentasjon -> {

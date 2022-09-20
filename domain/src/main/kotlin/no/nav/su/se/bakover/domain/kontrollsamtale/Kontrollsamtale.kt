@@ -18,7 +18,7 @@ import java.util.UUID
 
 data class Kontrollsamtale(
     val id: UUID = UUID.randomUUID(),
-    val opprettet: Tidspunkt = Tidspunkt.now(),
+    val opprettet: Tidspunkt,
     val sakId: UUID,
     val innkallingsdato: LocalDate,
     val status: Kontrollsamtalestatus,
@@ -59,17 +59,20 @@ data class Kontrollsamtale(
                     innkallingsdato = it,
                     status = Kontrollsamtalestatus.PLANLAGT_INNKALLING,
                     dokumentId = null,
+                    opprettet = Tidspunkt.now(clock)
                 )
             }
 
         fun opprettNyKontrollsamtale(
             sakId: UUID,
             innkallingsdato: LocalDate,
+            clock: Clock,
         ) = Kontrollsamtale(
             sakId = sakId,
             innkallingsdato = innkallingsdato,
             status = Kontrollsamtalestatus.PLANLAGT_INNKALLING,
             dokumentId = null,
+            opprettet = Tidspunkt.now(clock),
         )
 
         fun opprettNyKontrollsamtale(
@@ -85,6 +88,7 @@ data class Kontrollsamtale(
                     innkallingsdato = it,
                     status = Kontrollsamtalestatus.PLANLAGT_INNKALLING,
                     dokumentId = null,
+                    opprettet = Tidspunkt.now(clock),
                 )
             }
     }

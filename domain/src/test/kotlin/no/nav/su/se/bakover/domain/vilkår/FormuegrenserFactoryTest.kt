@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.vilkår
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.april
 import no.nav.su.se.bakover.common.periode.februar
@@ -18,11 +19,10 @@ import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
-import java.time.LocalDate
 
 internal class FormuegrenserFactoryTest {
 
-    private val formuegrense = formuegrenserFactoryTestPåDato(LocalDate.now())
+    private val formuegrense = formuegrenserFactoryTestPåDato(1.juni(2022))
 
     @Nested
     inner class `forMåned()` {
@@ -117,7 +117,7 @@ internal class FormuegrenserFactoryTest {
     inner class `virkningstidspunkt()` {
         @Test
         fun `virkningstidspunkt fra januar 2016`() {
-            SatsFactoryForSupplerendeStønad(tidligsteTilgjengeligeMåned = januar(2016)).gjeldende(LocalDate.now()).formuegrenserFactory.virkningstidspunkt(
+            SatsFactoryForSupplerendeStønad(tidligsteTilgjengeligeMåned = januar(2016)).gjeldende(1.juni(2022)).formuegrenserFactory.virkningstidspunkt(
                 januar(2016),
             ) shouldBe listOf(
                 1.mai(2022) to BigDecimal("55738.5"),
@@ -144,7 +144,7 @@ internal class FormuegrenserFactoryTest {
 
         @Test
         fun `virkningstidspunkt fra mai 2021`() {
-            formuegrenserFactoryTestPåDato(LocalDate.now()).virkningstidspunkt(
+            formuegrenserFactoryTestPåDato(1.juni(2022)).virkningstidspunkt(
                 mai(2021),
             ) shouldBe listOf(
                 1.mai(2022) to BigDecimal("55738.5"),
@@ -154,7 +154,7 @@ internal class FormuegrenserFactoryTest {
 
         @Test
         fun `virkningstidspunkt fra mai 2022`() {
-            formuegrenserFactoryTestPåDato(LocalDate.now()).virkningstidspunkt(
+            formuegrenserFactoryTestPåDato(1.juni(2022)).virkningstidspunkt(
                 mai(2022),
             ) shouldBe listOf(
                 1.mai(2022) to BigDecimal("55738.5"),
@@ -163,7 +163,7 @@ internal class FormuegrenserFactoryTest {
 
         @Test
         fun `virkningstidspunkt fra mai 2023`() {
-            formuegrenserFactoryTestPåDato(LocalDate.now()).virkningstidspunkt(
+            formuegrenserFactoryTestPåDato(1.juni(2022)).virkningstidspunkt(
                 mai(2023),
             ) shouldBe listOf(
                 1.mai(2022) to BigDecimal("55738.5"),

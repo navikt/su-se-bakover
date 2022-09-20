@@ -310,7 +310,8 @@ fun simulertRevurdering(
 
             is BeregnetRevurdering.Opphørt -> {
                 val simulert = beregnet.simuler(
-                    saksbehandler = saksbehandler
+                    saksbehandler = saksbehandler,
+                    clock = clock,
                 ) {
                     opphørUtbetalingSimulert(
                         sakOgBehandling = sak to beregnet,
@@ -1007,7 +1008,8 @@ fun simulertRevurderingOpphørtPgaVilkårFraInnvilgetSøknadsbehandlingsVedtak(
         revurderingsårsak = revurderingsårsak,
     ).let { (sak, revurdering) ->
         val opphørtSimulertRevurdering = revurdering.simuler(
-            saksbehandler = saksbehandler
+            saksbehandler = saksbehandler,
+            clock = clock,
         ) {
             opphørUtbetalingSimulert(
                 sakOgBehandling = sak to revurdering,

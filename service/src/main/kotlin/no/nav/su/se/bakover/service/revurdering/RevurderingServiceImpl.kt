@@ -578,6 +578,7 @@ internal class RevurderingServiceImpl(
                         // TODO er tanken at vi skal oppdatere saksbehandler her? Det kan se ut som vi har tenkt det, men aldri fullført.
                         beregnetRevurdering.simuler(
                             saksbehandler = saksbehandler,
+                            clock = clock,
                         ) { request ->
                             utbetalingService.simulerOpphør(request)
                         }.mapLeft { KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(it) }.map { simulert ->
@@ -661,7 +662,7 @@ internal class RevurderingServiceImpl(
                     ).mapLeft {
                         KunneIkkeForhåndsvarsle.UgyldigTilstandsovergangForForhåndsvarsling
                     }.flatMap { forhåndsvarselBrev ->
-                        forhåndsvarselBrev.tilDokument {
+                        forhåndsvarselBrev.tilDokument(clock) {
                             brevService.lagBrev(it).mapLeft {
                                 LagBrevRequest.KunneIkkeGenererePdf
                             }

@@ -5,6 +5,7 @@ import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.beOfType
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
@@ -34,6 +35,7 @@ import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUføre
 import no.nav.su.se.bakover.test.create
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
@@ -140,6 +142,7 @@ class SøknadsbehandlingServiceBeregningTest {
                 simulering = simuleringFeilutbetaling(
                     juni(2021),
                 ),
+                opprettet = Tidspunkt.now(fixedClock),
             ),
         )
 
@@ -189,6 +192,7 @@ class SøknadsbehandlingServiceBeregningTest {
                 simulering = simuleringFeilutbetaling(
                     juni(2021),
                 ),
+                opprettet = Tidspunkt.now(fixedClock),
             ),
         )
 

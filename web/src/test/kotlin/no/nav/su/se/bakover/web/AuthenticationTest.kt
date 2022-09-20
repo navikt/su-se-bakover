@@ -14,6 +14,7 @@ import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.web.stubs.asBearerToken
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -102,7 +103,7 @@ internal class AuthenticationTest {
             client.get(secureEndpoint) {
                 header(
                     Authorization,
-                    jwtStub.createJwtToken(expiresAt = Date.from(Instant.now().minusSeconds(1))).asBearerToken(),
+                    jwtStub.createJwtToken(expiresAt = Date.from(Instant.now(fixedClock).minusSeconds(1))).asBearerToken(),
                 )
             }.apply {
                 assertEquals(Unauthorized, status)

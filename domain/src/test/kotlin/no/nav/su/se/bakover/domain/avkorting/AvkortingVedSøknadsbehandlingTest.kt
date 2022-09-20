@@ -1,19 +1,22 @@
 package no.nav.su.se.bakover.domain.avkorting
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.juni
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
 internal class AvkortingVedSøknadsbehandlingTest {
 
-    val id = UUID.randomUUID()
-    val avkortingsvarsel = Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
+    private val id = UUID.randomUUID()
+    private val avkortingsvarsel = Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
         objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
             sakId = UUID.randomUUID(),
             revurderingId = UUID.randomUUID(),
             simulering = simuleringFeilutbetaling(juni(2021)),
+            opprettet = Tidspunkt.now(fixedClock),
         ),
     )
 

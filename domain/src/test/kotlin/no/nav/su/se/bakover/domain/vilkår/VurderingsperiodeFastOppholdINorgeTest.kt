@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.vilkår
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.år
@@ -70,7 +69,7 @@ internal class VurderingsperiodeFastOppholdINorgeTest {
             .erLik(
                 VurderingsperiodeFastOppholdINorge.tryCreate(
                     id = UUID.randomUUID(),
-                    opprettet = Tidspunkt.now(),
+                    opprettet = fixedTidspunkt,
                     vurdering = Vurdering.Innvilget,
                     vurderingsperiode = februar(2021),
                 ).getOrFail(),
@@ -85,7 +84,7 @@ internal class VurderingsperiodeFastOppholdINorgeTest {
             .erLik(
                 VurderingsperiodeFastOppholdINorge.tryCreate(
                     id = UUID.randomUUID(),
-                    opprettet = Tidspunkt.now(),
+                    opprettet = fixedTidspunkt,
                     vurdering = Vurdering.Avslag,
                     vurderingsperiode = februar(2021),
                 ).getOrFail(),

@@ -94,7 +94,7 @@ internal class TidspunktTest {
     }
 
     @Test
-    fun now() {
+    fun januar2020() {
         val fixedUTC = Clock.fixed(1.januar(2020).endOfDay(ZoneOffset.UTC).instant, ZoneOffset.UTC)
         val nowUTC = Tidspunkt.now(fixedUTC)
         nowUTC.toString() shouldBe "2020-01-01T23:59:59.999999Z"

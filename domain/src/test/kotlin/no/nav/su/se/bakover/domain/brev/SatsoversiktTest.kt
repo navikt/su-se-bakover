@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEpsUførFlyktning
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.junit.jupiter.api.Test
-import java.time.LocalDate
 
 internal class SatsoversiktTest {
     @Test
@@ -21,7 +20,7 @@ internal class SatsoversiktTest {
             listOf(
                 bosituasjongrunnlagEnslig(periode = år(2021)),
             ),
-            satsFactory = satsFactoryTestPåDato(påDato = LocalDate.now()),
+            satsFactory = satsFactoryTestPåDato(påDato = 21.mai(2021)),
             sakstype = Sakstype.UFØRE,
         ) shouldBe Satsoversikt(
             perioder = listOf(
@@ -50,7 +49,7 @@ internal class SatsoversiktTest {
                 bosituasjongrunnlagEnslig(periode = Periode.create(1.april(2021), 31.mai(2021))),
                 bosituasjongrunnlagEpsUførFlyktning(periode = Periode.create(1.juni(2021), 31.desember(2021))),
             ),
-            satsFactory = satsFactoryTestPåDato(påDato = LocalDate.now()),
+            satsFactory = satsFactoryTestPåDato(påDato = 21.mai(2021)),
             sakstype = Sakstype.UFØRE,
         ) shouldBe Satsoversikt(
             perioder = listOf(

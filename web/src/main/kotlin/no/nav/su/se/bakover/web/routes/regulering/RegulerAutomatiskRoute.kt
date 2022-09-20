@@ -12,7 +12,6 @@ import io.ktor.server.routing.post
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -20,6 +19,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.service.regulering.KunneIkkeAvslutte
 import no.nav.su.se.bakover.service.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.service.regulering.ReguleringService
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
@@ -159,7 +159,7 @@ private fun List<FradragJson>.toDomain(): Either<Resultat, List<Grunnlag.Fradrag
     return f.map {
         Grunnlag.Fradragsgrunnlag.tryCreate(
             id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(),
+            opprettet = fixedTidspunkt,
             fradrag = it,
         ).getOrHandle {
             return HttpStatusCode.BadRequest.errorJson(
@@ -175,7 +175,7 @@ private fun List<UføregrunnlagJson>.toDomain(): Either<Resultat, List<Grunnlag.
     return this.map {
         Grunnlag.Uføregrunnlag(
             id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(),
+            opprettet = fixedTidspunkt,
             periode = it.periode.toPeriode(),
             uføregrad = Uføregrad.tryParse(it.uføregrad).getOrHandle {
                 return Feilresponser.Uføre.uføregradMåVæreMellomEnOgHundre.left()

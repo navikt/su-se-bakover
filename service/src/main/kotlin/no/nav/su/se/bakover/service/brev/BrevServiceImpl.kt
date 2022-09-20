@@ -59,7 +59,7 @@ internal class BrevServiceImpl(
     }
 
     override fun lagDokument(request: LagBrevRequest): Either<KunneIkkeLageDokument, Dokument.UtenMetadata> {
-        return request.tilDokument {
+        return request.tilDokument(clock) {
             lagBrev(it).mapLeft {
                 LagBrevRequest.KunneIkkeGenererePdf
             }

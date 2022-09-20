@@ -236,7 +236,7 @@ object DatabaseBuilder {
             revurderingRepo = revurderingRepo,
             vedtakRepo = vedtakRepo,
             personhendelseRepo = hendelseRepo,
-            dokumentRepo = DokumentPostgresRepo(sessionFactory, dbMetrics),
+            dokumentRepo = DokumentPostgresRepo(sessionFactory, dbMetrics, clock),
             nøkkeltallRepo = nøkkeltallRepo,
             sessionFactory = sessionFactory,
             klageRepo = klageRepo,

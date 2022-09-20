@@ -210,7 +210,7 @@ data class TestClientsBuilder(
         klageClient = KlageClientStub,
         journalpostClient = JournalpostClientStub,
         tilbakekrevingClient = TilbakekrevingClientStub(clock),
-        skatteOppslag = SkatteClientStub(),
+        skatteOppslag = SkatteClientStub(clock),
         maskinportenClient = MaskinportenClientStub(clock)
     )
 

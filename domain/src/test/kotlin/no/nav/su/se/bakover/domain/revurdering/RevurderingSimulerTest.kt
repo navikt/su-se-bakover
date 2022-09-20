@@ -43,7 +43,8 @@ class RevurderingSimulerTest {
             ).getOrFail().let { beregnet ->
                 (beregnet as BeregnetRevurdering.Opphørt)
                     .simuler(
-                        saksbehandler = saksbehandler
+                        saksbehandler = saksbehandler,
+                        clock = fixedClock,
                     ) {
                         opphørUtbetalingSimulert(
                             sakOgBehandling = sak to beregnet,
@@ -85,7 +86,8 @@ class RevurderingSimulerTest {
                 ).getOrFail().let { beregnet ->
                     (beregnet as BeregnetRevurdering.Opphørt)
                         .simuler(
-                            saksbehandler = saksbehandler
+                            saksbehandler = saksbehandler,
+                            clock = fixedClock,
                         ) {
                             opphørUtbetalingSimulert(
                                 sakOgBehandling = sak to beregnet,
@@ -114,7 +116,8 @@ class RevurderingSimulerTest {
             ).getOrFail().let { beregnet ->
                 (beregnet as BeregnetRevurdering.Opphørt)
                     .simuler(
-                        saksbehandler = saksbehandler
+                        saksbehandler = saksbehandler,
+                        clock = fixedClock,
                     ) {
                         opphørUtbetalingSimulert(
                             sakOgBehandling = sak to beregnet,
@@ -154,7 +157,8 @@ class RevurderingSimulerTest {
                 ).getOrFail().let { beregnet ->
                     (beregnet as BeregnetRevurdering.Opphørt)
                         .simuler(
-                            saksbehandler = saksbehandler
+                            saksbehandler = saksbehandler,
+                            clock = fixedClock,
                         ) {
                             opphørUtbetalingSimulert(
                                 sakOgBehandling = sak to beregnet,

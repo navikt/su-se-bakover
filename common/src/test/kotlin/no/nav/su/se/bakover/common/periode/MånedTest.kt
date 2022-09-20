@@ -90,7 +90,7 @@ internal class MånedTest {
     }
 
     @Test
-    fun now() {
+    fun januar2021() {
         Måned.now(fixedClock) shouldBe januar(2021)
     }
 

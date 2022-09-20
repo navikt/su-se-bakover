@@ -287,7 +287,7 @@ class KlageServiceImpl(
         ).mapLeft {
             return KunneIkkeOversendeKlage.KunneIkkeLageBrevRequest(it).left()
         }.flatMap {
-            it.tilDokument { brevRequest ->
+            it.tilDokument(clock) { brevRequest ->
                 brevService.lagBrev(brevRequest).mapLeft {
                     LagBrevRequest.KunneIkkeGenererePdf
                 }
@@ -358,7 +358,7 @@ class KlageServiceImpl(
         ).mapLeft {
             return KunneIkkeIverksetteAvvistKlage.KunneIkkeLageBrevRequest(it).left()
         }.flatMap {
-            it.tilDokument { brevRequest ->
+            it.tilDokument(clock) { brevRequest ->
                 brevService.lagBrev(brevRequest).mapLeft {
                     LagBrevRequest.KunneIkkeGenererePdf
                 }

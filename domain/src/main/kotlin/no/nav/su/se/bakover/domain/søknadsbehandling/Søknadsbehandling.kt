@@ -255,9 +255,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     fun oppdaterStønadsperiode(
         oppdatertStønadsperiode: Stønadsperiode,
         formuegrenserFactory: FormuegrenserFactory,
+        clock: Clock,
     ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
         return if (this is KanOppdaterePeriodeGrunnlagVilkår) {
-            oppdaterStønadsperiodeInternal(oppdatertStønadsperiode, formuegrenserFactory)
+            oppdaterStønadsperiodeInternal(oppdatertStønadsperiode, formuegrenserFactory, clock)
         } else {
             KunneIkkeOppdatereStønadsperiode.UgyldigTilstand(this::class).left()
         }
@@ -266,10 +267,12 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     private fun oppdaterStønadsperiodeInternal(
         oppdatertStønadsperiode: Stønadsperiode,
         formuegrenserFactory: FormuegrenserFactory,
+        clock: Clock,
     ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
         return grunnlagsdataOgVilkårsvurderinger.oppdaterStønadsperiode(
             stønadsperiode = oppdatertStønadsperiode,
             formuegrenserFactory = formuegrenserFactory,
+            clock = clock,
         ).mapLeft {
             KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it)
         }.map {

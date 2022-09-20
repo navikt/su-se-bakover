@@ -49,7 +49,7 @@ data class GjeldendeVedtaksdata(
         grunnlagsdata = Grunnlagsdata.create(
             fradragsgrunnlag = vedtakPåTidslinje.flatMap {
                 it.grunnlagsdata.fradragsgrunnlag
-            }.slåSammenPeriodeOgFradrag(),
+            }.slåSammenPeriodeOgFradrag(clock),
             bosituasjon = vedtakPåTidslinje.flatMap {
                 it.grunnlagsdata.bosituasjon
             }.slåSammenPeriodeOgBosituasjon(),

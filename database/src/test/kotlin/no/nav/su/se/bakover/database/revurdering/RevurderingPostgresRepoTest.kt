@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.database.revurdering
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.common.periode.år
@@ -936,6 +937,7 @@ internal class RevurderingPostgresRepoTest {
                     sakId = beregnet.sakId,
                     revurderingId = beregnet.id,
                     simulering = simuleringFeilutbetaling(juni(2021)),
+                    opprettet = Tidspunkt.now(fixedClock),
                 ),
             )
 
