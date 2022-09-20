@@ -53,6 +53,8 @@ interface KontrollsamtaleService {
     ): Either<UgyldigStatusovergang, AnnulerKontrollsamtaleResultat>
 
     fun defaultSessionContext(): SessionContext
+
+    fun hentForSak(sakId: UUID): List<Kontrollsamtale>
 }
 
 class KontrollsamtaleServiceImpl(
@@ -244,6 +246,9 @@ class KontrollsamtaleServiceImpl(
     }
 
     override fun defaultSessionContext(): SessionContext = sessionFactory.newSessionContext()
+    override fun hentForSak(sakId: UUID): List<Kontrollsamtale> {
+        return kontrollsamtaleRepo.hentForSakId(sakId)
+    }
 }
 
 sealed interface KunneIkkeSetteNyDatoForKontrollsamtale {

@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.service.brev.BrevServiceImpl
 import no.nav.su.se.bakover.service.klage.KlageServiceImpl
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseServiceImpl
 import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleServiceImpl
+import no.nav.su.se.bakover.service.kontrollsamtale.UtløptFristForKontrollsamtaleServiceImpl
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallServiceImpl
 import no.nav.su.se.bakover.service.oppgave.OppgaveServiceImpl
 import no.nav.su.se.bakover.service.person.PersonServiceImpl
@@ -146,6 +147,13 @@ object ServiceBuilder {
             satsFactory = satsFactory,
         ).apply { addObserver(statistikkEventObserver) }
 
+        val utgåttKontrollsamtaleFristService = UtløptFristForKontrollsamtaleServiceImpl(
+            sakService = sakService,
+            journalpostClient = clients.journalpostClient,
+            kontrollsamtaleRepo = databaseRepos.kontrollsamtaleRepo,
+            revurderingService = revurderingService
+        )
+
         val reguleringService = ReguleringServiceImpl(
             reguleringRepo = databaseRepos.reguleringRepo,
             sakRepo = databaseRepos.sak,
@@ -259,6 +267,7 @@ object ServiceBuilder {
                 formuegrenserFactory = satsFactory.formuegrenserFactory,
             ),
             skatteService = skatteServiceImpl,
+            utløptFristForKontrollsamtaleService = utgåttKontrollsamtaleFristService,
         )
     }
 }

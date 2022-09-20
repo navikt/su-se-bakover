@@ -78,6 +78,7 @@ import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
+import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadinnhold.SøknadInnhold
@@ -105,6 +106,7 @@ import no.nav.su.se.bakover.service.klage.VurderKlagevilkårRequest
 import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
 import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeHenteKontrollsamtale
 import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeSetteNyDatoForKontrollsamtale
+import no.nav.su.se.bakover.service.kontrollsamtale.UtløptFristForKontrollsamtaleService
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.regulering.KunneIkkeAvslutte
@@ -329,6 +331,9 @@ open class AccessCheckProxy(
                 }
 
                 override fun hentSakidOgSaksnummer(fnr: Fnr) = kastKanKunKallesFraAnnenService()
+                override fun hentSakInfo(sakId: UUID): Either<FantIkkeSak, SakInfo> {
+                    kastKanKunKallesFraAnnenService()
+                }
 
                 override fun hentSakForRevurdering(revurderingId: UUID): Sak {
                     assertHarTilgangTilRevurdering(revurderingId)
@@ -881,6 +886,9 @@ open class AccessCheckProxy(
                 ) = kastKanKunKallesFraAnnenService()
 
                 override fun defaultSessionContext() = services.kontrollsamtale.defaultSessionContext()
+                override fun hentForSak(sakId: UUID): List<Kontrollsamtale> {
+                    return services.kontrollsamtale.hentForSak(sakId)
+                }
             },
             klageService = object : KlageService {
                 override fun opprett(request: NyKlageRequest): Either<KunneIkkeOppretteKlage, OpprettetKlage> {
@@ -1036,6 +1044,11 @@ open class AccessCheckProxy(
                     return services.skatteService.hentSamletSkattegrunnlag(fnr)
                 }
             },
+            utløptFristForKontrollsamtaleService = object : UtløptFristForKontrollsamtaleService {
+                override fun håndterKontrollsamtalerMedFristUtløpt(dato: LocalDate) {
+                    kastKanKunKallesFraAnnenService()
+                }
+            }
         )
     }
 

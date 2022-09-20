@@ -13,6 +13,7 @@ interface SakRepo {
     fun hentSak(fnr: Fnr, type: Sakstype): Sak?
     fun hentSak(saksnummer: Saksnummer): Sak?
     fun hentSakInfoForIdenter(personidenter: NonEmptyList<String>): SakInfo?
+    fun hentSakInfo(sakId: UUID): SakInfo?
     fun opprettSak(sak: NySak)
     fun hentÅpneBehandlinger(): List<Behandlingsoversikt>
     fun hentFerdigeBehandlinger(): List<Behandlingsoversikt>

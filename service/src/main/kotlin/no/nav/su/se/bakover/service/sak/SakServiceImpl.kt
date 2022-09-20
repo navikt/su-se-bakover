@@ -85,6 +85,11 @@ internal class SakServiceImpl(
             ?: FantIkkeSak.left()
     }
 
+    override fun hentSakInfo(sakId: UUID): Either<FantIkkeSak, SakInfo> {
+        return sakRepo.hentSakInfo(sakId)?.right()
+            ?: FantIkkeSak.left()
+    }
+
     override fun hentSakForRevurdering(revurderingId: UUID): Sak {
         return sakRepo.hentSakForRevurdering(revurderingId)
     }

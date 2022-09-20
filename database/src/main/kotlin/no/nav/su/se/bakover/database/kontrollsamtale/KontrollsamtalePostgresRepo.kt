@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.persistence.DbMetrics
 import no.nav.su.se.bakover.common.persistence.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.common.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.persistence.hentListe
 import no.nav.su.se.bakover.common.persistence.insert
 import no.nav.su.se.bakover.common.persistence.tidspunkt
@@ -76,7 +77,25 @@ internal class KontrollsamtalePostgresRepo(
         }
     }
 
+    override fun hentInnkalteKontrollsamtalerMedFristUtløpt(dato: LocalDate): List<Kontrollsamtale> {
+        return dbMetrics.timeQuery("hentKontrollsamtaleFristUtløpt") {
+            sessionFactory.withSession { session ->
+                "select * from kontrollsamtale where status=:status and frist = :dato"
+                    .hentListe(
+                        mapOf(
+                            "status" to Kontrollsamtalestatus.INNKALT.toString(),
+                            "dato" to dato
+                        ),
+                        session
+                    ) { it.toKontrollsamtale() }
+            }
+        }
+    }
+
     override fun defaultSessionContext(): SessionContext = sessionFactory.newSessionContext()
+    override fun defaultTransactionContext(): TransactionContext {
+        return sessionFactory.newTransactionContext()
+    }
 
     private fun Row.toKontrollsamtale(): Kontrollsamtale {
         return Kontrollsamtale(

@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.erMindreEnnEnMånedSenere
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.common.zoneIdOslo
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import java.time.Clock
 import java.time.LocalDate
@@ -48,6 +49,15 @@ data class Kontrollsamtale(
         if (this.status != Kontrollsamtalestatus.PLANLAGT_INNKALLING) return KunneIkkeEndreDato.UgyldigStatusovergang.left()
         if (!innkallingsdato.erFørsteDagIMåned()) return KunneIkkeEndreDato.DatoErIkkeFørsteIMåned.left()
         return this.copy(innkallingsdato = innkallingsdato, frist = regnUtFristFraInnkallingsdato(innkallingsdato)).right()
+    }
+
+    fun settGjennomført(journalpostId: JournalpostId): Either<UgyldigStatusovergang, Kontrollsamtale> {
+        println(journalpostId) // TODO ta vare på denne
+        return if (status == Kontrollsamtalestatus.INNKALT) {
+            copy(status = Kontrollsamtalestatus.GJENNOMFØRT).right()
+        } else {
+            UgyldigStatusovergang.left()
+        }
     }
 
     sealed interface KunneIkkeEndreDato {
