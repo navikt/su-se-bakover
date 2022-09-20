@@ -41,8 +41,8 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.kontrollsamtale
 import no.nav.su.se.bakover.test.nyUtbetalingOversendUtenKvittering
+import no.nav.su.se.bakover.test.planlagtKontrollsamtale
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulerNyUtbetaling
@@ -342,7 +342,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                             any(),
                             any(),
                         )
-                    } doReturn OpprettPlanlagtKontrollsamtaleResultat.Opprettet(kontrollsamtale())
+                    } doReturn OpprettPlanlagtKontrollsamtaleResultat.Opprettet(planlagtKontrollsamtale())
                 },
                 vedtakRepo = mock {
                     doNothing().whenever(it).lagre(any(), anyOrNull())
@@ -380,7 +380,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                             any(),
                             any(),
                         )
-                    } doReturn OpprettPlanlagtKontrollsamtaleResultat.Opprettet(kontrollsamtale())
+                    } doReturn OpprettPlanlagtKontrollsamtaleResultat.Opprettet(planlagtKontrollsamtale())
                 },
                 vedtakRepo = mock {
                     doThrow(RuntimeException()).whenever(it).lagre(any(), anyOrNull())
@@ -418,7 +418,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                             any(),
                             any(),
                         )
-                    } doReturn OpprettPlanlagtKontrollsamtaleResultat.Opprettet(kontrollsamtale())
+                    } doReturn OpprettPlanlagtKontrollsamtaleResultat.Opprettet(planlagtKontrollsamtale())
                 },
                 vedtakRepo = mock {
                     doNothing().whenever(it).lagre(any(), anyOrNull())
@@ -474,7 +474,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                             any(),
                             any(),
                         )
-                    } doReturn OpprettPlanlagtKontrollsamtaleResultat.Opprettet(kontrollsamtale())
+                    } doReturn OpprettPlanlagtKontrollsamtaleResultat.Opprettet(planlagtKontrollsamtale())
                 },
                 tilbakekrevingService = mock {
                     on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
@@ -517,7 +517,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                             any(),
                             any(),
                         )
-                    } doReturn OpprettPlanlagtKontrollsamtaleResultat.Opprettet(kontrollsamtale())
+                    } doReturn OpprettPlanlagtKontrollsamtaleResultat.Opprettet(planlagtKontrollsamtale())
                 },
                 vedtakRepo = mock {
                     doNothing().whenever(it).lagre(any(), anyOrNull())
@@ -634,7 +634,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                             any(),
                             any(),
                         )
-                    } doReturn OpprettPlanlagtKontrollsamtaleResultat.Opprettet(kontrollsamtale())
+                    } doReturn OpprettPlanlagtKontrollsamtaleResultat.Opprettet(planlagtKontrollsamtale())
                 },
                 vedtakRepo = mock {
                     doNothing().whenever(it).lagre(any(), anyOrNull())
@@ -698,7 +698,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                             any(),
                         )
                     } doReturn OpprettPlanlagtKontrollsamtaleResultat.PlanlagtKontrollsamtaleFinnesAllerede(
-                        kontrollsamtale(),
+                        planlagtKontrollsamtale(),
                     )
                 },
                 vedtakRepo = mock {
@@ -786,7 +786,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                             any(),
                             any(),
                         )
-                    } doReturn OpprettPlanlagtKontrollsamtaleResultat.Opprettet(kontrollsamtale())
+                    } doReturn OpprettPlanlagtKontrollsamtaleResultat.Opprettet(planlagtKontrollsamtale())
                 },
                 vedtakRepo = mock {
                     doNothing().whenever(it).lagre(any(), anyOrNull())
@@ -823,7 +823,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                             any(),
                             any(),
                         )
-                    } doReturn OpprettPlanlagtKontrollsamtaleResultat.Opprettet(kontrollsamtale())
+                    } doReturn OpprettPlanlagtKontrollsamtaleResultat.Opprettet(planlagtKontrollsamtale())
                 },
                 vedtakRepo = mock {
                     doNothing().whenever(it).lagre(any(), anyOrNull())
@@ -859,7 +859,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                             any(),
                             any(),
                         )
-                    } doReturn OpprettPlanlagtKontrollsamtaleResultat.Opprettet(kontrollsamtale())
+                    } doReturn OpprettPlanlagtKontrollsamtaleResultat.Opprettet(planlagtKontrollsamtale())
                 },
                 vedtakRepo = mock {
                     doThrow(RuntimeException()).whenever(it).lagre(any(), anyOrNull())

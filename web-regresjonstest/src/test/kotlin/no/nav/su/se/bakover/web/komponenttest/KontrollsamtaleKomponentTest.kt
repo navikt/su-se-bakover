@@ -1,26 +1,35 @@
 package no.nav.su.se.bakover.web.komponenttest
 
+import arrow.core.right
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
+import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.fixedClock
 import no.nav.su.se.bakover.common.førsteINesteMåned
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.journalpost.ErKontrollNotatMottatt
 import no.nav.su.se.bakover.domain.kontrollsamtale.Kontrollsamtalestatus
 import no.nav.su.se.bakover.service.vilkår.UtenlandsoppholdStatus
 import no.nav.su.se.bakover.test.TikkendeKlokke
+import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.revurdering.opprettIverksattRevurdering
 import no.nav.su.se.bakover.web.revurdering.utenlandsopphold.leggTilUtenlandsoppholdRevurdering
 import no.nav.su.se.bakover.web.sak.hent.hentSak
 import no.nav.su.se.bakover.web.sak.hent.hentSakId
-import no.nav.su.se.bakover.web.sak.hent.hentSaksnummer
 import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
 import java.time.LocalDate
 import java.util.UUID
 
@@ -41,26 +50,12 @@ internal class KontrollsamtaleKomponentTest {
         ) { appComponents ->
             val kontrollsamtaleService = appComponents.services.kontrollsamtale
 
-            val (sakId, _) = opprettInnvilgetSøknadsbehandling(
-                fnr = Fnr.generer().toString(),
-                fraOgMed = stønadStart.toString(),
-                tilOgMed = stønadSlutt.toString(),
-            ).let {
-                hentSak(BehandlingJson.hentSakId(it)).let { sakJson ->
-                    UUID.fromString(hentSakId(sakJson)) to Saksnummer(hentSaksnummer(sakJson).toLong())
-                }
-            }
+            val sakId = innvilgSøknad(
+                fraOgMed = stønadStart,
+                tilOgMed = stønadSlutt
+            )
 
-            val førstePlanlagteKontrollsamtale = kontrollsamtaleService.hentForSak(sakId = sakId)
-                .let { kontrollsamtaler ->
-                    kontrollsamtaler.single().also {
-                        it.innkallingsdato shouldBe førsteInnkalling
-                        it.frist shouldBe førsteFrist
-                        it.dokumentId shouldBe beNull()
-                        it.status shouldBe Kontrollsamtalestatus.PLANLAGT_INNKALLING
-                        it.sakId shouldBe sakId
-                    }
-                }
+            val førstePlanlagteKontrollsamtale = kontrollsamtaleService.hentForSak(sakId = sakId).first()
 
             tikkendeKlokke.spolTil(førstePlanlagteKontrollsamtale.innkallingsdato)
 
@@ -69,24 +64,7 @@ internal class KontrollsamtaleKomponentTest {
                 kontrollsamtale = førstePlanlagteKontrollsamtale
             )
 
-            val andrePlanlagteKontrollsamtale = kontrollsamtaleService.hentForSak(sakId = sakId)
-                .let { kontrollsamtaler ->
-                    kontrollsamtaler.first().also {
-                        it.innkallingsdato shouldBe førsteInnkalling
-                        it.frist shouldBe førsteFrist
-                        it.dokumentId shouldNot beNull()
-                        it.status shouldBe Kontrollsamtalestatus.INNKALT
-                        it.sakId shouldBe sakId
-                    }
-                    // ny samtale planlegges ved innkalling av forrige
-                    kontrollsamtaler.last().also {
-                        it.innkallingsdato shouldBe andreInnkalling
-                        it.frist shouldBe andreFrist
-                        it.dokumentId shouldBe beNull()
-                        it.status shouldBe Kontrollsamtalestatus.PLANLAGT_INNKALLING
-                        it.sakId shouldBe sakId
-                    }
-                }
+            val andrePlanlagteKontrollsamtale = kontrollsamtaleService.hentForSak(sakId = sakId).last()
 
             tikkendeKlokke.spolTil(andrePlanlagteKontrollsamtale.innkallingsdato)
 
@@ -139,26 +117,12 @@ internal class KontrollsamtaleKomponentTest {
             val kontrollsamtaleService = appComponents.services.kontrollsamtale
             val utløptFristForKontrollsamtaleService = appComponents.services.utløptFristForKontrollsamtaleService
 
-            val (sakId, _) = opprettInnvilgetSøknadsbehandling(
-                fnr = Fnr.generer().toString(),
-                fraOgMed = stønadStart.toString(),
-                tilOgMed = stønadSlutt.toString(),
-            ).let {
-                hentSak(BehandlingJson.hentSakId(it)).let { sakJson ->
-                    UUID.fromString(hentSakId(sakJson)) to Saksnummer(hentSaksnummer(sakJson).toLong())
-                }
-            }
+            val sakId = innvilgSøknad(
+                fraOgMed = stønadStart,
+                tilOgMed = stønadSlutt
+            )
 
-            val førstePlanlagteKontrollsamtale = kontrollsamtaleService.hentForSak(sakId = sakId)
-                .let { kontrollsamtaler ->
-                    kontrollsamtaler.single().also {
-                        it.innkallingsdato shouldBe førsteInnkalling
-                        it.frist shouldBe førsteFrist
-                        it.dokumentId shouldBe beNull()
-                        it.status shouldBe Kontrollsamtalestatus.PLANLAGT_INNKALLING
-                        it.sakId shouldBe sakId
-                    }
-                }
+            val førstePlanlagteKontrollsamtale = kontrollsamtaleService.hentForSak(sakId = sakId).single()
 
             tikkendeKlokke.spolTil(førstePlanlagteKontrollsamtale.innkallingsdato)
 
@@ -180,8 +144,92 @@ internal class KontrollsamtaleKomponentTest {
                             it.dokumentId shouldNot beNull()
                             it.status shouldBe Kontrollsamtalestatus.GJENNOMFØRT
                             it.sakId shouldBe sakId
+                            it.journalpostIdKontrollnotat shouldBe JournalpostId("453812134")
                         }
                 }
+        }
+    }
+
+    @Test
+    fun `stanser ytelse dersom kontrollnotat ikke er mottatt innen utløp av frist`() {
+        val tikkendeKlokke = TikkendeKlokke(LocalDate.now().fixedClock())
+        val stønadStart = LocalDate.now().førsteINesteMåned()
+        val stønadSlutt = stønadStart.plusMonths(11).endOfMonth()
+        val førsteInnkalling = stønadStart.plusMonths(4).startOfMonth()
+        val førsteFrist = stønadStart.plusMonths(4).endOfMonth()
+
+        withKomptestApplication(
+            clock = tikkendeKlokke,
+            clients = {
+                TestClientsBuilder(
+                    clock = tikkendeKlokke,
+                    databaseRepos = it,
+                ).build(applicationConfig()).copy(
+                    journalpostClient = mock {
+                        on { kontrollnotatMotatt(any(), any()) } doReturn ErKontrollNotatMottatt.Nei.right()
+                    },
+                )
+            }
+        ) { appComponents ->
+            val kontrollsamtaleService = appComponents.services.kontrollsamtale
+            val utløptFristForKontrollsamtaleService = appComponents.services.utløptFristForKontrollsamtaleService
+
+            val sakId = innvilgSøknad(
+                fraOgMed = stønadStart,
+                tilOgMed = stønadSlutt
+            )
+
+            val førstePlanlagteKontrollsamtale = kontrollsamtaleService.hentForSak(sakId = sakId).single()
+
+            tikkendeKlokke.spolTil(førstePlanlagteKontrollsamtale.innkallingsdato)
+
+            kontrollsamtaleService.kallInn(
+                sakId = sakId,
+                kontrollsamtale = førstePlanlagteKontrollsamtale
+            )
+
+            tikkendeKlokke.spolTil(førstePlanlagteKontrollsamtale.frist)
+
+            utløptFristForKontrollsamtaleService.håndterKontrollsamtalerMedFristUtløpt(førstePlanlagteKontrollsamtale.frist)
+
+            kontrollsamtaleService.hentForSak(sakId = sakId)
+                .let { kontrollsamtaler ->
+                    kontrollsamtaler.find { it.id == førstePlanlagteKontrollsamtale.id }!!
+                        .also {
+                            it.innkallingsdato shouldBe førsteInnkalling
+                            it.frist shouldBe førsteFrist
+                            it.dokumentId shouldNot beNull()
+                            it.status shouldBe Kontrollsamtalestatus.IKKE_MØTT_INNEN_FRIST
+                            it.sakId shouldBe sakId
+                            it.journalpostIdKontrollnotat shouldBe beNull()
+                        }
+                }
+
+            appComponents.services.sak.hentSak(sakId).getOrFail().also { sak ->
+                sak.vedtakstidslinje().also { vedtakstidslinje ->
+                    Periode.create(
+                        førsteFrist.førsteINesteMåned(),
+                        stønadSlutt.endOfMonth()
+                    ).måneder().forEach {
+                        vedtakstidslinje.gjeldendeForDato(it.fraOgMed)!!.erStans() shouldBe true
+                    }
+                }
+            }
+        }
+    }
+
+    private fun ApplicationTestBuilder.innvilgSøknad(
+        fraOgMed: LocalDate,
+        tilOgMed: LocalDate,
+    ): UUID {
+        return opprettInnvilgetSøknadsbehandling(
+            fnr = Fnr.generer().toString(),
+            fraOgMed = fraOgMed.toString(),
+            tilOgMed = tilOgMed.toString(),
+        ).let {
+            hentSak(BehandlingJson.hentSakId(it)).let { sakJson ->
+                UUID.fromString(hentSakId(sakJson))
+            }
         }
     }
 }

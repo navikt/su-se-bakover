@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.kontrollsamtale.KontrollsamtaleRepo
-import no.nav.su.se.bakover.domain.kontrollsamtale.Kontrollsamtalestatus
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -22,8 +21,10 @@ import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
-import no.nav.su.se.bakover.test.kontrollsamtale
+import no.nav.su.se.bakover.test.gjennomførtKontrollsamtale
+import no.nav.su.se.bakover.test.innkaltKontrollsamtale
 import no.nav.su.se.bakover.test.person
+import no.nav.su.se.bakover.test.planlagtKontrollsamtale
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
@@ -44,7 +45,7 @@ internal class KontrollsamtaleServiceImplTest {
     private val sak = vedtakSøknadsbehandlingIverksattInnvilget().first
     private val person = person()
     private val pdf = ByteArray(1)
-    private val kontrollsamtale = kontrollsamtale()
+    private val kontrollsamtale = planlagtKontrollsamtale()
 
     @Test
     fun `feiler hvis vi ikke finner sak`() {
@@ -218,8 +219,8 @@ internal class KontrollsamtaleServiceImplTest {
         val services = ServiceOgMocks(
             kontrollsamtaleRepo = mock {
                 on { hentForSakId(any(), anyOrNull()) } doReturn listOf(
-                    kontrollsamtale(status = Kontrollsamtalestatus.INNKALT),
-                    kontrollsamtale(status = Kontrollsamtalestatus.GJENNOMFØRT),
+                    innkaltKontrollsamtale(),
+                    gjennomførtKontrollsamtale(),
                 )
                 on { defaultSessionContext() } doReturn TestSessionFactory.sessionContext
             },
@@ -232,15 +233,12 @@ internal class KontrollsamtaleServiceImplTest {
     @Test
     fun `hentNestePlanlagteKontrollsamtale skal hente den neste planlagte innkallingen om det finnes flere`() {
         val expected =
-            kontrollsamtale(status = Kontrollsamtalestatus.PLANLAGT_INNKALLING, innkallingsdato = fixedLocalDate)
+            planlagtKontrollsamtale(innkallingsdato = fixedLocalDate)
         val services = ServiceOgMocks(
             kontrollsamtaleRepo = mock {
                 on { hentForSakId(any(), anyOrNull()) } doReturn listOf(
-                    kontrollsamtale(
-                        status = Kontrollsamtalestatus.PLANLAGT_INNKALLING,
-                        innkallingsdato = fixedLocalDate.plusMonths(1),
-                    ),
-                    kontrollsamtale(status = Kontrollsamtalestatus.GJENNOMFØRT),
+                    planlagtKontrollsamtale(innkallingsdato = fixedLocalDate.plusMonths(1)),
+                    gjennomførtKontrollsamtale(),
                     expected,
                 )
                 on { defaultSessionContext() } doReturn TestSessionFactory.sessionContext
@@ -288,7 +286,7 @@ internal class KontrollsamtaleServiceImplTest {
     fun `endre dato skal endre dato ved normal flyt`() {
         val services = ServiceOgMocks(
             kontrollsamtaleRepo = mock {
-                on { hentForSakId(any(), anyOrNull()) } doReturn listOf(kontrollsamtale())
+                on { hentForSakId(any(), anyOrNull()) } doReturn listOf(planlagtKontrollsamtale())
                 on { defaultSessionContext() } doReturn TestSessionFactory.sessionContext
             },
             sakService = mock {

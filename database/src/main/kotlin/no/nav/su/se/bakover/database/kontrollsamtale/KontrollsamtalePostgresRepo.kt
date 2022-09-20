@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.persistence.hentListe
 import no.nav.su.se.bakover.common.persistence.insert
 import no.nav.su.se.bakover.common.persistence.tidspunkt
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.kontrollsamtale.Kontrollsamtale
 import no.nav.su.se.bakover.domain.kontrollsamtale.KontrollsamtaleRepo
 import no.nav.su.se.bakover.domain.kontrollsamtale.Kontrollsamtalestatus
@@ -25,15 +26,16 @@ internal class KontrollsamtalePostgresRepo(
             sessionContext.withSession { session ->
                 (
                     """
-                    insert into kontrollsamtale (id, opprettet, sakid, innkallingsdato, status, frist, dokumentid)
-                    values (:id, :opprettet, :sakId, :innkallingsdato, :status, :frist, :dokumentid)
+                    insert into kontrollsamtale (id, opprettet, sakid, innkallingsdato, status, frist, dokumentid, journalpostId)
+                    values (:id, :opprettet, :sakId, :innkallingsdato, :status, :frist, :dokumentid, :journalpostId)
                     on conflict(id)
                     do
                         update set
                             status=:status,
                             innkallingsdato=:innkallingsdato,
                             frist=:frist,
-                            dokumentid=:dokumentId
+                            dokumentid=:dokumentId,
+                            journalpostId=:journalpostId
                     """
                     ).trimIndent().insert(
                     mapOf(
@@ -44,6 +46,7 @@ internal class KontrollsamtalePostgresRepo(
                         "status" to kontrollsamtale.status.toString(),
                         "frist" to kontrollsamtale.frist,
                         "dokumentId" to kontrollsamtale.dokumentId,
+                        "journalpostId" to kontrollsamtale.journalpostIdKontrollnotat
                     ),
                     session,
                 )
@@ -106,6 +109,9 @@ internal class KontrollsamtalePostgresRepo(
             frist = localDate("frist"),
             status = Kontrollsamtalestatus.valueOf(string("status")),
             dokumentId = uuidOrNull("dokumentid"),
+            journalpostIdKontrollnotat = stringOrNull("journalpostId")?.let {
+                JournalpostId(it)
+            }
         )
     }
 }

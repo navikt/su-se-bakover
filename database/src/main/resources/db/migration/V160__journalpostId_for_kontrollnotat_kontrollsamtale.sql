@@ -1,0 +1,1 @@
+alter table if exists kontrollsamtale add column if not exists journalpostId text default null;

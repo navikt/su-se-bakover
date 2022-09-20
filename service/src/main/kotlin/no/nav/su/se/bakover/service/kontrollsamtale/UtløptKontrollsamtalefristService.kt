@@ -53,7 +53,7 @@ internal class UtløptFristForKontrollsamtaleServiceImpl(
                                 is ErKontrollNotatMottatt.Ja -> {
                                     kontrollnotatMottatt(
                                         kontrollsamtale = kontrollsamtale,
-                                        journalpostId = JournalpostId("$it"), // TODO koble mot journalpostid
+                                        journalpostId = it.kontrollnotat.journalpostId,
                                     )
                                 }
                                 is ErKontrollNotatMottatt.Nei -> {
@@ -80,6 +80,16 @@ internal class UtløptFristForKontrollsamtaleServiceImpl(
     }
 
     private fun kontrollnotatIkkeMottatt(kontrollsamtale: Kontrollsamtale) {
+        // TODO transaction?
+        kontrollsamtale.settIkkeMøttInnenFrist().fold(
+            {
+                log.error("Feil: $it ved oppdatering av gjennomført kontrollsamtale: $it")
+            },
+            {
+                kontrollsamtaleRepo.lagre(it)
+            },
+        )
+
         return revurderingService.stansAvYtelse(
             request = StansYtelseRequest.Opprett(
                 sakId = kontrollsamtale.sakId,
