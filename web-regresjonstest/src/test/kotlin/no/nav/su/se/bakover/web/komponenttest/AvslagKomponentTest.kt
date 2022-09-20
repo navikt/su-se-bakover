@@ -45,7 +45,7 @@ class AvslagKomponentTest {
                     it.first().shouldBeType<Dokument.MedMetadata.Vedtak>().let { dokument ->
                         dokument.generertDokument shouldNotBe null
                         dokument.generertDokumentJson shouldNotBe null
-                        dokument.tittel shouldBe "Vedtaksbrev for søknad om supplerende stønad"
+                        dokument.tittel shouldBe "Avslag supplerende stønad"
                         dokument.metadata.bestillBrev shouldBe true
                         dokument.metadata.vedtakId shouldBe avslagsvedtak.id
 
