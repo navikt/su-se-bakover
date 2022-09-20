@@ -33,7 +33,7 @@ subprojects {
         implementation("ch.qos.logback:logback-classic:1.4.1")
         implementation("net.logstash.logback:logstash-logback-encoder:7.2")
         implementation("io.github.cdimascio:dotenv-kotlin:6.3.1")
-        implementation("org.apache.kafka:kafka-clients:3.2.2")
+        implementation("org.apache.kafka:kafka-clients:3.2.3")
         implementation("com.networknt:json-schema-validator:1.0.72")
         implementation("no.finn.unleash:unleash-client-java:4.4.1")
 
