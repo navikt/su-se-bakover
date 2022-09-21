@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
@@ -43,11 +44,14 @@ internal class StansAvYtelseService(
 
     fun stansAvYtelse(
         request: StansYtelseRequest,
+        sessionContext: TransactionContext,
     ): Either<KunneIkkeStanseYtelse, StansAvYtelseRevurdering.SimulertStansAvYtelse> {
         val simulertRevurdering = when (request) {
             is StansYtelseRequest.Oppdater -> {
-                val sak = sakService.hentSak(request.sakId)
-                    .getOrHandle { return KunneIkkeStanseYtelse.FantIkkeSak.left() }
+                val sak = sakService.hentSak(
+                    sakId = request.sakId,
+                    sessionContext = sessionContext
+                ).getOrHandle { return KunneIkkeStanseYtelse.FantIkkeSak.left() }
 
                 val eksisterende = sak.hentRevurdering(request.revurderingId)
                     .getOrHandle { return KunneIkkeStanseYtelse.FantIkkeRevurdering.left() }
@@ -77,8 +81,10 @@ internal class StansAvYtelseService(
             }
 
             is StansYtelseRequest.Opprett -> {
-                val sak = sakService.hentSak(request.sakId)
-                    .getOrHandle { return KunneIkkeStanseYtelse.FantIkkeSak.left() }
+                val sak = sakService.hentSak(
+                    sakId = request.sakId,
+                    sessionContext = sessionContext
+                ).getOrHandle { return KunneIkkeStanseYtelse.FantIkkeSak.left() }
 
                 if (!sak.kanOppretteBehandling()) {
                     return KunneIkkeStanseYtelse.SakHarÅpenBehandling.left()
@@ -89,8 +95,8 @@ internal class StansAvYtelseService(
                     fraOgMed = request.fraOgMed,
                 ).getOrHandle { return it.left() }
 
-                val simulering = simuler(request)
-                    .getOrHandle { return it.left() }
+                // TODO send sak
+                val simulering = simuler(request).getOrHandle { return it.left() }
 
                 StansAvYtelseRevurdering.SimulertStansAvYtelse(
                     id = UUID.randomUUID(),
@@ -107,7 +113,11 @@ internal class StansAvYtelseService(
             }
         }
 
-        revurderingRepo.lagre(simulertRevurdering)
+        revurderingRepo.lagre(
+            revurdering = simulertRevurdering,
+            transactionContext = sessionContext
+        )
+        // TODO håndtering av statistikk i transaksjoner
         observers.notify(StatistikkEvent.Behandling.Stans.Opprettet(simulertRevurdering))
 
         return simulertRevurdering.right()
@@ -116,9 +126,12 @@ internal class StansAvYtelseService(
     fun iverksettStansAvYtelse(
         revurderingId: UUID,
         attestant: NavIdentBruker.Attestant,
+        sessionContext: TransactionContext,
     ): Either<KunneIkkeIverksetteStansYtelse, StansAvYtelseRevurdering.IverksattStansAvYtelse> {
-        val revurdering = revurderingRepo.hent(revurderingId)
-            ?: return KunneIkkeIverksetteStansYtelse.FantIkkeRevurdering.left()
+        val revurdering = revurderingRepo.hent(
+            id = revurderingId,
+            sessionContext = sessionContext
+        ) ?: return KunneIkkeIverksetteStansYtelse.FantIkkeRevurdering.left()
 
         return when (revurdering) {
             is StansAvYtelseRevurdering.SimulertStansAvYtelse -> {

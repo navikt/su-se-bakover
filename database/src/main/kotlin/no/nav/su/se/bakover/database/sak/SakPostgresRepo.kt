@@ -56,6 +56,12 @@ internal class SakPostgresRepo(
         }
     }
 
+    override fun hentSak(sakId: UUID, sessionContext: SessionContext): Sak? {
+        return dbMetrics.timeQuery("hentSakForId") {
+            hentSakInternal(sakId, sessionContext)
+        }
+    }
+
     override fun hentSak(fnr: Fnr, type: Sakstype): Sak? {
         return dbMetrics.timeQuery("hentSakForFnr") {
             sessionFactory.withSessionContext {

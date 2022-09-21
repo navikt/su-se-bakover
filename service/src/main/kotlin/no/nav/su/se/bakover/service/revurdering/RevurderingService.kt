@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -61,11 +62,13 @@ interface RevurderingService {
 
     fun stansAvYtelse(
         request: StansYtelseRequest,
+        sessionContext: TransactionContext = defaultTransactionContext(),
     ): Either<KunneIkkeStanseYtelse, StansAvYtelseRevurdering.SimulertStansAvYtelse>
 
     fun iverksettStansAvYtelse(
         revurderingId: UUID,
         attestant: NavIdentBruker.Attestant,
+        sessionContext: TransactionContext = defaultTransactionContext(),
     ): Either<KunneIkkeIverksetteStansYtelse, StansAvYtelseRevurdering.IverksattStansAvYtelse>
 
     fun gjenopptaYtelse(
@@ -188,6 +191,8 @@ interface RevurderingService {
     fun leggTilInstitusjonsoppholdVilkår(
         request: LeggTilInstitusjonsoppholdVilkårRequest,
     ): Either<KunneIkkeLeggeTilInstitusjonsoppholdVilkår, RevurderingOgFeilmeldingerResponse>
+
+    fun defaultTransactionContext(): TransactionContext
 }
 
 data class RevurderingOgFeilmeldingerResponse(

@@ -288,6 +288,10 @@ open class AccessCheckProxy(
                     return services.sak.hentSak(sakId)
                 }
 
+                override fun hentSak(sakId: UUID, sessionContext: SessionContext): Either<FantIkkeSak, Sak> {
+                    return services.sak.hentSak(sakId, sessionContext)
+                }
+
                 override fun hentSaker(fnr: Fnr): Either<FantIkkeSak, List<Sak>> {
                     return services.sak.hentSaker(fnr)
                         .also {
@@ -621,17 +625,22 @@ open class AccessCheckProxy(
                     return services.revurdering.hentRevurdering(revurderingId)
                 }
 
-                override fun stansAvYtelse(request: StansYtelseRequest): Either<KunneIkkeStanseYtelse, StansAvYtelseRevurdering.SimulertStansAvYtelse> {
+                override fun stansAvYtelse(request: StansYtelseRequest, sessionContext: TransactionContext): Either<KunneIkkeStanseYtelse, StansAvYtelseRevurdering.SimulertStansAvYtelse> {
                     assertHarTilgangTilSak(request.sakId)
-                    return services.revurdering.stansAvYtelse(request)
+                    return services.revurdering.stansAvYtelse(request, sessionContext)
                 }
 
                 override fun iverksettStansAvYtelse(
                     revurderingId: UUID,
                     attestant: NavIdentBruker.Attestant,
+                    sessionContext: TransactionContext,
                 ): Either<KunneIkkeIverksetteStansYtelse, StansAvYtelseRevurdering.IverksattStansAvYtelse> {
                     assertHarTilgangTilRevurdering(revurderingId)
-                    return services.revurdering.iverksettStansAvYtelse(revurderingId, attestant)
+                    return services.revurdering.iverksettStansAvYtelse(
+                        revurderingId = revurderingId,
+                        attestant = attestant,
+                        sessionContext = sessionContext
+                    )
                 }
 
                 override fun gjenopptaYtelse(request: GjenopptaYtelseRequest): Either<KunneIkkeGjenopptaYtelse, GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse> {
@@ -808,6 +817,10 @@ open class AccessCheckProxy(
                 override fun leggTilInstitusjonsoppholdVilkår(request: LeggTilInstitusjonsoppholdVilkårRequest): Either<KunneIkkeLeggeTilInstitusjonsoppholdVilkår, RevurderingOgFeilmeldingerResponse> {
                     assertHarTilgangTilRevurdering(request.behandlingId)
                     return services.revurdering.leggTilInstitusjonsoppholdVilkår(request)
+                }
+
+                override fun defaultTransactionContext(): TransactionContext {
+                    return services.revurdering.defaultTransactionContext()
                 }
 
                 override fun lagBrevutkastForAvslutting(

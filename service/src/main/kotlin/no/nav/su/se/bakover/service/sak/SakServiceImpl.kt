@@ -7,6 +7,7 @@ import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.domain.AlleredeGjeldendeSakForBruker
 import no.nav.su.se.bakover.domain.BegrensetSakinfo
 import no.nav.su.se.bakover.domain.NySak
@@ -39,6 +40,10 @@ internal class SakServiceImpl(
 
     override fun hentSak(sakId: UUID): Either<FantIkkeSak, Sak> {
         return sakRepo.hentSak(sakId)?.right() ?: FantIkkeSak.left()
+    }
+
+    override fun hentSak(sakId: UUID, sessionContext: SessionContext): Either<FantIkkeSak, Sak> {
+        return sakRepo.hentSak(sakId, sessionContext)?.right() ?: FantIkkeSak.left()
     }
 
     override fun hentSak(fnr: Fnr, type: Sakstype): Either<FantIkkeSak, Sak> {

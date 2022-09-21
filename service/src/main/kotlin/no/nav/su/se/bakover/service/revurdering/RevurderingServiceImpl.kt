@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -138,15 +139,28 @@ internal class RevurderingServiceImpl(
 
     override fun stansAvYtelse(
         request: StansYtelseRequest,
+        sessionContext: TransactionContext,
     ): Either<KunneIkkeStanseYtelse, StansAvYtelseRevurdering.SimulertStansAvYtelse> {
-        return stansAvYtelseService.stansAvYtelse(request)
+        return sessionFactory.use(sessionContext) {
+            stansAvYtelseService.stansAvYtelse(
+                request = request,
+                sessionContext = sessionContext
+            )
+        }
     }
 
     override fun iverksettStansAvYtelse(
         revurderingId: UUID,
         attestant: NavIdentBruker.Attestant,
+        sessionContext: TransactionContext,
     ): Either<KunneIkkeIverksetteStansYtelse, StansAvYtelseRevurdering.IverksattStansAvYtelse> {
-        return stansAvYtelseService.iverksettStansAvYtelse(revurderingId, attestant)
+        return sessionFactory.use(sessionContext) {
+            stansAvYtelseService.iverksettStansAvYtelse(
+                revurderingId = revurderingId,
+                attestant = attestant,
+                sessionContext = sessionContext
+            )
+        }
     }
 
     override fun gjenopptaYtelse(request: GjenopptaYtelseRequest): Either<KunneIkkeGjenopptaYtelse, GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse> {
@@ -429,6 +443,10 @@ internal class RevurderingServiceImpl(
             revurderingRepo.lagre(it)
             identifiserFeilOgLagResponse(it)
         }
+    }
+
+    override fun defaultTransactionContext(): TransactionContext {
+        return sessionFactory.newTransactionContext()
     }
 
     private fun identifiserFeilOgLagResponse(revurdering: Revurdering): RevurderingOgFeilmeldingerResponse {

@@ -56,6 +56,12 @@ class PostgresSessionFactory(
         }
     }
 
+    override fun <T> use(transactionContext: TransactionContext, action: (TransactionContext) -> T): T {
+        return transactionContext.withTransaction {
+            action(transactionContext)
+        }
+    }
+
     /** Lager en ny context og starter sesjonen - lukkes automatisk  */
     fun <T> withTransaction(action: (TransactionalSession) -> T): T {
         return newTransactionContext().let { context ->
