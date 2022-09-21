@@ -10,6 +10,8 @@ import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.sikkerLogg
+import no.nav.su.se.bakover.common.token.JwtToken
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.journalpost.ErKontrollNotatMottatt
@@ -19,7 +21,6 @@ import no.nav.su.se.bakover.domain.journalpost.KunneIkkeHenteJournalpost
 import no.nav.su.se.bakover.domain.journalpost.KunneIkkeSjekkKontrollnotatMottatt
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.slf4j.MDC
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
@@ -51,7 +52,10 @@ internal class JournalpostHttpClient(
         )
         return gqlRequest(
             request = request,
-            token = azureAd.onBehalfOfToken(MDC.get("Authorization"), safConfig.clientId)
+            token = azureAd.onBehalfOfToken(
+                originalToken = JwtToken.BrukerToken.fraMdc().value,
+                otherAppId = safConfig.clientId
+            )
         ).mapLeft {
             when (it) {
                 is GraphQLApiFeil.HttpFeil.BadRequest -> KunneIkkeHenteJournalpost.UgyldigInput
@@ -146,7 +150,7 @@ internal class JournalpostHttpClient(
                 }
         }.mapLeft { throwable ->
             GraphQLApiFeil.TekniskFeil(request, throwable.toString())
-                .also { log.warn("Feil: $it ved kall mot: $graphQLUrl") }
+                .also { sikkerLogg.warn("Feil: $it ved kall mot: $graphQLUrl") }
         }
     }
 

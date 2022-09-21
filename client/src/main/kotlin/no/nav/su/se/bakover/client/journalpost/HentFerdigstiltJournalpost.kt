@@ -5,9 +5,6 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.journalpost.FerdigstiltJournalpost
-import no.nav.su.se.bakover.domain.journalpost.JournalpostStatus
-import no.nav.su.se.bakover.domain.journalpost.JournalpostTema
-import no.nav.su.se.bakover.domain.journalpost.JournalpostType
 
 internal fun Journalpost?.toFerdigstiltJournalpost(saksnummer: Saksnummer): Either<JournalpostErIkkeFerdigstilt, FerdigstiltJournalpost> {
     if (this == null) {
@@ -16,7 +13,7 @@ internal fun Journalpost?.toFerdigstiltJournalpost(saksnummer: Saksnummer): Eith
     if (tema == null || tema != JournalpostTema.SUP.toString()) {
         return JournalpostErIkkeFerdigstilt.JournalpostTemaErIkkeSUP.left()
     }
-    if (journalposttype == null || journalposttype != JournalpostType.INNKOMMENDE_DOKUMENT.value) {
+    if (journalposttype == null || journalposttype != JournalpostType.I.toString()) {
         return JournalpostErIkkeFerdigstilt.JournalpostenErIkkeEtInnkommendeDokument.left()
     }
 
@@ -29,9 +26,9 @@ internal fun Journalpost?.toFerdigstiltJournalpost(saksnummer: Saksnummer): Eith
     }
 
     return FerdigstiltJournalpost(
-        tema = JournalpostTema.valueOf(tema),
-        journalstatus = JournalpostStatus.valueOf(journalstatus),
-        journalposttype = JournalpostType.fromString(journalposttype),
+        tema = JournalpostTema.valueOf(tema).toDomain(),
+        journalstatus = JournalpostStatus.valueOf(journalstatus).toDomain(),
+        journalposttype = JournalpostType.valueOf(journalposttype).toDomain(),
         saksnummer = Saksnummer(sak.fagsakId.toLong()),
     ).right()
 }

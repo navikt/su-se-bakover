@@ -2,9 +2,6 @@ package no.nav.su.se.bakover.client.journalpost
 
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.journal.JournalpostId
-import no.nav.su.se.bakover.domain.journalpost.JournalpostStatus
-import no.nav.su.se.bakover.domain.journalpost.JournalpostTema
-import no.nav.su.se.bakover.domain.journalpost.JournalpostType
 import no.nav.su.se.bakover.domain.journalpost.KontrollnotatMottattJournalpost
 
 internal fun List<Journalpost>.toDomain(): List<KontrollnotatMottattJournalpost> {
@@ -17,9 +14,9 @@ internal fun List<Journalpost>.toDomain(): List<KontrollnotatMottattJournalpost>
  */
 internal fun Journalpost.toDomain(): KontrollnotatMottattJournalpost {
     return KontrollnotatMottattJournalpost(
-        tema = JournalpostTema.valueOf(tema!!),
-        journalstatus = JournalpostStatus.valueOf(journalstatus!!),
-        journalposttype = JournalpostType.fromString(journalposttype!!),
+        tema = no.nav.su.se.bakover.client.journalpost.JournalpostTema.valueOf(tema!!).toDomain(),
+        journalstatus = no.nav.su.se.bakover.client.journalpost.JournalpostStatus.valueOf(journalstatus!!).toDomain(),
+        journalposttype = no.nav.su.se.bakover.client.journalpost.JournalpostType.valueOf(journalposttype!!).toDomain(),
         saksnummer = Saksnummer(sak!!.fagsakId!!.toLong()),
         tittel = tittel!!,
         datoOpprettet = datoOpprettet!!,

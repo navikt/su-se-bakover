@@ -67,3 +67,35 @@ internal data class HentJournalpostResponse(
 internal data class HentJournalpostVariables(
     val journalpostId: String,
 )
+
+internal enum class JournalpostTema {
+    SUP
+}
+
+internal fun JournalpostTema.toDomain(): no.nav.su.se.bakover.domain.journalpost.JournalpostTema {
+    return when (this) {
+        JournalpostTema.SUP -> no.nav.su.se.bakover.domain.journalpost.JournalpostTema.SUP
+    }
+}
+
+internal enum class JournalpostStatus {
+    JOURNALFOERT,
+    FERDIGSTILT;
+}
+
+internal fun JournalpostStatus.toDomain(): no.nav.su.se.bakover.domain.journalpost.JournalpostStatus {
+    return when (this) {
+        JournalpostStatus.JOURNALFOERT -> no.nav.su.se.bakover.domain.journalpost.JournalpostStatus.JOURNALFOERT
+        JournalpostStatus.FERDIGSTILT -> no.nav.su.se.bakover.domain.journalpost.JournalpostStatus.FERDIGSTILT
+    }
+}
+
+internal enum class JournalpostType {
+    I // Innkommende dokument
+}
+
+internal fun JournalpostType.toDomain(): no.nav.su.se.bakover.domain.journalpost.JournalpostType {
+    return when (this) {
+        JournalpostType.I -> no.nav.su.se.bakover.domain.journalpost.JournalpostType.INNKOMMENDE_DOKUMENT
+    }
+}
