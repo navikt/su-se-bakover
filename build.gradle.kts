@@ -16,7 +16,7 @@ subprojects {
         maven("https://oss.sonatype.org/content/repositories/releases/")
         maven("https://packages.confluent.io/maven/")
     }
-    val junitJupiterVersion = "5.9.0"
+    val junitJupiterVersion = "5.9.1"
     val kotestVersion = "5.4.2"
     val jacksonVersion = "2.13.4"
     val kotlinVersion: String by this
