@@ -1,0 +1,1 @@
+update dokument set type = 'INFORMASJON_ANNET' where type = 'INFORMASJON' and tittel = 'Påminnelse om ny stønadsperiode';
