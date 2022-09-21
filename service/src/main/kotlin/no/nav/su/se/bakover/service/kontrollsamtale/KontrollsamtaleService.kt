@@ -141,6 +141,7 @@ class KontrollsamtaleServiceImpl(
                     Kontrollsamtale.opprettNyKontrollsamtale(
                         sakId = sakId,
                         innkallingsdato = dato,
+                        clock = clock,
                     ),
                 ).right()
             },

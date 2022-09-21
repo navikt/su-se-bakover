@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.web.routes.vilkår
 
 import arrow.core.NonEmptyList
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.PeriodeJson
 import no.nav.su.se.bakover.common.periode.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.domain.grunnlag.PersonligOppmøteGrunnlag
@@ -12,6 +11,7 @@ import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodePersonligOppmøte
 import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeTilPersonligOppmøteVilkår
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.routes.Feilresponser
 import java.util.UUID
@@ -50,7 +50,7 @@ internal data class LeggTilVurderingsperiodePersonligOppmøteJson(
     val vurdering: PersonligOppmøteÅrsakJson,
 ) {
     fun toDomain(): VurderingsperiodePersonligOppmøte {
-        val opprettet = Tidspunkt.now()
+        val opprettet = fixedTidspunkt
         return VurderingsperiodePersonligOppmøte(
             id = UUID.randomUUID(),
             opprettet = opprettet,

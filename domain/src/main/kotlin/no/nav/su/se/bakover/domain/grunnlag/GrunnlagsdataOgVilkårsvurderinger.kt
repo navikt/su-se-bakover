@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
+import java.time.Clock
 
 sealed class GrunnlagsdataOgVilkårsvurderinger {
     abstract val grunnlagsdata: Grunnlagsdata
@@ -154,10 +155,12 @@ sealed class GrunnlagsdataOgVilkårsvurderinger {
         fun oppdaterStønadsperiode(
             stønadsperiode: Stønadsperiode,
             formuegrenserFactory: FormuegrenserFactory,
+            clock: Clock,
         ): Either<KunneIkkeLageGrunnlagsdata, Søknadsbehandling> {
             return Søknadsbehandling(
                 grunnlagsdata = grunnlagsdata.oppdaterGrunnlagsperioder(
                     oppdatertPeriode = stønadsperiode.periode,
+                    clock = clock,
                 ).getOrHandle { return it.left() },
                 vilkårsvurderinger = vilkårsvurderinger.oppdaterStønadsperiode(
                     stønadsperiode = stønadsperiode,

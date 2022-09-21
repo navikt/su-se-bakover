@@ -9,6 +9,7 @@ import io.kotest.matchers.types.shouldBeSameInstanceAs
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.november
 import no.nav.su.se.bakover.common.periode.april
@@ -38,34 +39,34 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
         @Test
         fun `ordinær - desember 2019 er ikke tilgjengelig`() {
             shouldThrow<IllegalArgumentException> {
-                satsFactoryTestPåDato(påDato = LocalDate.now()).ordinærUføre(desember(2019))
+                satsFactoryTestPåDato(påDato = fixedLocalDate).ordinærUføre(desember(2019))
             }.message shouldBe "Har ikke data for etterspurt måned: Måned(årOgMåned=2019-12). Vi har bare data fra og med måned: Måned(årOgMåned=2020-01)"
         }
 
         @Test
         fun `høy - desember 2019 er ikke tilgjengelig`() {
             shouldThrow<IllegalArgumentException> {
-                satsFactoryTestPåDato(påDato = LocalDate.now()).høyUføre(desember(2019))
+                satsFactoryTestPåDato(påDato = fixedLocalDate).høyUføre(desember(2019))
             }.message shouldBe "Har ikke data for etterspurt måned: Måned(årOgMåned=2019-12). Vi har bare data fra og med måned: Måned(årOgMåned=2020-01)"
         }
 
         @Test
         fun `ordinær - januar 2020 er tilgjengelig`() {
             shouldNotThrowAny {
-                satsFactoryTestPåDato(påDato = LocalDate.now()).ordinærUføre(januar(2020))
+                satsFactoryTestPåDato(påDato = fixedLocalDate).ordinærUføre(januar(2020))
             }
         }
 
         @Test
         fun `høy - januar 2020 er tilgjengelig`() {
             shouldNotThrowAny {
-                satsFactoryTestPåDato(påDato = LocalDate.now()).høyUføre(mai(2020))
+                satsFactoryTestPåDato(påDato = fixedLocalDate).høyUføre(mai(2020))
             }
         }
 
         @Test
         fun `ordinær - januar 2021`() {
-            satsFactoryTestPåDato(påDato = LocalDate.now()).ordinærUføre(januar(2021)).let {
+            satsFactoryTestPåDato(påDato = fixedLocalDate).ordinærUføre(januar(2021)).let {
                 it shouldBe FullSupplerendeStønadForMåned.Uføre(
                     måned = januar(2021),
                     satskategori = Satskategori.ORDINÆR,
@@ -95,7 +96,7 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
 
         @Test
         fun `høy - januar 2021`() {
-            satsFactoryTestPåDato(påDato = LocalDate.now()).høyUføre(januar(2021)).let {
+            satsFactoryTestPåDato(påDato = fixedLocalDate).høyUføre(januar(2021)).let {
                 it shouldBe FullSupplerendeStønadForMåned.Uføre(
                     måned = januar(2021),
                     satskategori = Satskategori.HØY,
@@ -125,7 +126,7 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
 
         @Test
         fun `ordinær - mai 2021`() {
-            satsFactoryTestPåDato(påDato = LocalDate.now()).ordinærUføre(mai(2021)).let {
+            satsFactoryTestPåDato(påDato = 1.juni(2022)).ordinærUføre(mai(2021)).let {
                 it shouldBe FullSupplerendeStønadForMåned.Uføre(
                     måned = mai(2021),
                     satskategori = Satskategori.ORDINÆR,
@@ -155,7 +156,7 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
 
         @Test
         fun `høy - mai 2021`() {
-            satsFactoryTestPåDato(påDato = LocalDate.now()).høyUføre(mai(2021)).let {
+            satsFactoryTestPåDato(påDato = 1.juni(2021)).høyUføre(mai(2021)).let {
                 it shouldBe FullSupplerendeStønadForMåned.Uføre(
                     måned = mai(2021),
                     satskategori = Satskategori.HØY,
@@ -185,7 +186,7 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
 
         @Test
         fun `ordinær - mai 2022`() {
-            satsFactoryTestPåDato(påDato = LocalDate.now()).ordinærUføre(mai(2022)).let {
+            satsFactoryTestPåDato(påDato = 1.juni(2022)).ordinærUføre(mai(2022)).let {
                 it shouldBe FullSupplerendeStønadForMåned.Uføre(
                     måned = mai(2022),
                     satskategori = Satskategori.ORDINÆR,
@@ -215,7 +216,7 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
 
         @Test
         fun `høy - mai 2022`() {
-            satsFactoryTestPåDato(påDato = LocalDate.now()).høyUføre(mai(2022)).let {
+            satsFactoryTestPåDato(påDato = 1.juni(2022)).høyUføre(mai(2022)).let {
                 it shouldBe FullSupplerendeStønadForMåned.Uføre(
                     måned = mai(2022),
                     satskategori = Satskategori.HØY,
@@ -246,7 +247,7 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
         @Test
         fun `finn siste g-endringsdato for 2021-04-30`() {
             val expectedIkrafttredelse = 4.september(2020)
-            satsFactoryTestPåDato(påDato = LocalDate.now()).høyUføre(april(2021)).let {
+            satsFactoryTestPåDato(påDato = fixedLocalDate).høyUføre(april(2021)).let {
                 it.grunnbeløp.ikrafttredelse shouldBe expectedIkrafttredelse
                 it.ikrafttredelse shouldBe expectedIkrafttredelse
             }
@@ -255,7 +256,7 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
         @Test
         fun `finn siste g-endringsdato for 2021-05-01`() {
             val expectedIkrafttredelse = LocalDate.of(2021, Month.MAY, 21)
-            satsFactoryTestPåDato(påDato = LocalDate.now()).høyUføre(mai(2021)).let {
+            satsFactoryTestPåDato(påDato = 1.juni(2022)).høyUføre(mai(2021)).let {
                 it.grunnbeløp.ikrafttredelse shouldBe expectedIkrafttredelse
                 it.ikrafttredelse shouldBe expectedIkrafttredelse
             }
@@ -263,11 +264,11 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
 
         @Test
         fun `historisk med dagens dato er lik seg selv`() {
-            satsFactoryTestPåDato(påDato = LocalDate.now()).forSatskategoriUføre(
+            satsFactoryTestPåDato(påDato = fixedLocalDate).forSatskategoriUføre(
                 mai(2022),
                 Satskategori.HØY,
             ) shouldBe
-                satsFactoryTestPåDato(påDato = LocalDate.now()).forSatskategoriUføre(mai(2022), Satskategori.HØY)
+                satsFactoryTestPåDato(påDato = fixedLocalDate).forSatskategoriUføre(mai(2022), Satskategori.HØY)
         }
 
         @Test
@@ -303,11 +304,11 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
 
         @Test
         fun `klokke påvirker hvilke satser som er tilgjengelig`() {
-            val nåDate = LocalDate.now()
-            val førDate = fixedLocalDate
+            val etterDato = 1.juni(2021)
+            val førDate = 1.januar(2021)
             val forMåned = mai(2021)
 
-            satsFactoryTest.gjeldende(nåDate).høyUføre(forMåned).grunnbeløp shouldBe GrunnbeløpForMåned(
+            satsFactoryTest.gjeldende(etterDato).høyUføre(forMåned).grunnbeløp shouldBe GrunnbeløpForMåned(
                 måned = mai(2021),
                 grunnbeløpPerÅr = 106399,
                 ikrafttredelse = 21.mai(2021),

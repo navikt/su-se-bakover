@@ -81,7 +81,7 @@ class BrevForTilbakekrevingTest {
                     ).getOrFail(),
                 )
                 requireType<Dokument.UtenMetadata.Informasjon>(
-                    forhåndsvarsel.tilDokument { "fakePDF".toByteArray().right() }
+                    forhåndsvarsel.tilDokument(fixedClock) { "fakePDF".toByteArray().right() }
                         .getOrFail(),
                 )
 
@@ -156,7 +156,7 @@ class BrevForTilbakekrevingTest {
                     },
                 )
                 requireType<Dokument.UtenMetadata.Vedtak>(
-                    brev.tilDokument { "fakePDF".toByteArray().right() }
+                    brev.tilDokument(fixedClock) { "fakePDF".toByteArray().right() }
                         .getOrFail(),
                 )
             }
@@ -178,7 +178,7 @@ class BrevForTilbakekrevingTest {
                     ).getOrFail(),
                 )
                 requireType<Dokument.UtenMetadata.Informasjon>(
-                    forhåndsvarsel.tilDokument { "fakePDF".toByteArray().right() }
+                    forhåndsvarsel.tilDokument(fixedClock) { "fakePDF".toByteArray().right() }
                         .getOrFail(),
                 )
 
@@ -253,7 +253,7 @@ class BrevForTilbakekrevingTest {
                     },
                 )
                 requireType<Dokument.UtenMetadata.Vedtak>(
-                    brev.tilDokument { "fakePDF".toByteArray().right() }
+                    brev.tilDokument(fixedClock) { "fakePDF".toByteArray().right() }
                         .getOrFail(),
                 )
             }

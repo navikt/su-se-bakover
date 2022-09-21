@@ -4,6 +4,7 @@ import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.beOfType
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
@@ -75,6 +76,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                                 sakId = UUID.randomUUID(),
                                 revurderingId = UUID.randomUUID(),
                                 simulering = simuleringFeilutbetaling(mai(2021), juni(2021)),
+                                opprettet = Tidspunkt.now(fixedClock),
                             ),
                         ),
                     ),
@@ -247,6 +249,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                             sakId = UUID.randomUUID(),
                             revurderingId = UUID.randomUUID(),
                             simulering = simuleringFeilutbetaling(mai(2021), juni(2021)),
+                            opprettet = Tidspunkt.now(fixedClock),
                         ),
                     ),
                 ),
@@ -272,6 +275,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                                 sakId = UUID.randomUUID(),
                                 revurderingId = UUID.randomUUID(),
                                 simulering = simuleringFeilutbetaling(mai(2021), juni(2021)),
+                                opprettet = Tidspunkt.now(fixedClock),
                             ),
                         ),
                     ),
@@ -282,6 +286,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                             sakId = UUID.randomUUID(),
                             revurderingId = UUID.randomUUID(),
                             simulering = simuleringFeilutbetaling(mai(2021), juni(2021)),
+                            opprettet = Tidspunkt.now(fixedClock),
                         ),
                     ),
                 ),
@@ -465,6 +470,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                                 sakId = UUID.randomUUID(),
                                 revurderingId = UUID.randomUUID(),
                                 simulering = simuleringFeilutbetaling(mai(2021), juni(2021)),
+                                opprettet = Tidspunkt.now(fixedClock),
                             ),
                         ),
                     ),
@@ -475,6 +481,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                             sakId = UUID.randomUUID(),
                             revurderingId = UUID.randomUUID(),
                             simulering = simuleringFeilutbetaling(mai(2021), juni(2021)),
+                            opprettet = Tidspunkt.now(fixedClock),
                         ),
                     ),
                 ),
@@ -548,6 +555,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                             sakId = UUID.randomUUID(),
                             revurderingId = UUID.randomUUID(),
                             simulering = simuleringFeilutbetaling(mai(2021), juni(2021)),
+                            opprettet = Tidspunkt.now(fixedClock),
                         ),
                     ),
                 ),
@@ -633,6 +641,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                             sakId = UUID.randomUUID(),
                             revurderingId = UUID.randomUUID(),
                             simulering = simuleringFeilutbetaling(mai(2021), juni(2021)),
+                            opprettet = Tidspunkt.now(fixedClock),
                         ),
                     ),
                 ),

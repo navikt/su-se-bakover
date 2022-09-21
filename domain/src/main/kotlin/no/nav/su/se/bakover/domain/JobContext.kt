@@ -50,7 +50,7 @@ data class SendPåminnelseNyStønadsperiodeContext(
         prosessert: Set<Saksnummer> = emptySet(),
         sendt: Set<Saksnummer> = emptySet(),
     ) : this(
-        id, opprettet, endret, prosessert, sendt,
+        id, opprettet, endret, prosessert, sendt
     )
 
     override fun id(): NameAndYearMonthId {
@@ -81,11 +81,11 @@ data class SendPåminnelseNyStønadsperiodeContext(
         return prosessert(saksnummer, clock).copy(sendt = sendt + saksnummer, endret = Tidspunkt.now(clock))
     }
 
-    fun oppsummering(): String {
+    fun oppsummering(clock: Clock): String {
         return """
             ${"\n"}
             ***********************************
-            Oppsummering av jobb: ${id.jobName}, tidspunkt:${Tidspunkt.now()},
+            Oppsummering av jobb: ${id.jobName}, tidspunkt:${Tidspunkt.now(clock)},
             Måned: ${id.yearMonth},
             Opprettet: $opprettet,
             Endret: $endret,

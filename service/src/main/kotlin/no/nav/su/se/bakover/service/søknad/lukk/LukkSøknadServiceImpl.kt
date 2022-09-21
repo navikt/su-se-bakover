@@ -84,7 +84,7 @@ internal class LukkSøknadServiceImpl(
         sakId: UUID,
         søknadId: UUID,
     ) {
-        brev.tilDokument {
+        brev.tilDokument(clock) {
             brevService.lagBrev(it).mapLeft {
                 log.error("Kunne ikke konvertere LagBrevRequest til dokument ved lukking av søknad $søknadId og søknadsbehandling. Underliggende grunn: $it")
                 LagBrevRequest.KunneIkkeGenererePdf

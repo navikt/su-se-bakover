@@ -45,7 +45,7 @@ fun FormueVilkår.Vurdert.Companion.createFromGrunnlag(
 
 fun Formuegrunnlag.Companion.create(
     id: UUID = UUID.randomUUID(),
-    opprettet: Tidspunkt = Tidspunkt.now(),
+    opprettet: Tidspunkt,
     periode: Periode,
     epsFormue: Formuegrunnlag.Verdier?,
     søkersFormue: Formuegrunnlag.Verdier,
@@ -63,7 +63,7 @@ fun Formuegrunnlag.Companion.create(
 
 fun Formuegrunnlag.Companion.create(
     id: UUID = UUID.randomUUID(),
-    opprettet: Tidspunkt = Tidspunkt.now(),
+    opprettet: Tidspunkt,
     periode: Periode,
     epsFormue: Formuegrunnlag.Verdier?,
     søkersFormue: Formuegrunnlag.Verdier,
@@ -81,7 +81,7 @@ fun Formuegrunnlag.Companion.create(
 
 fun Formuegrunnlag.Companion.create(
     id: UUID = UUID.randomUUID(),
-    opprettet: Tidspunkt = Tidspunkt.now(),
+    opprettet: Tidspunkt,
     periode: Periode,
     epsFormue: Formuegrunnlag.Verdier?,
     søkersFormue: Formuegrunnlag.Verdier,

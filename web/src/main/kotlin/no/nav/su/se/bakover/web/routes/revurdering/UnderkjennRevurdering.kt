@@ -7,7 +7,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.patch
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.enumContains
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.serialize
@@ -17,6 +16,7 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeUnderkjenneRevurdering
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.web.AuditLogEvent
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
@@ -45,7 +45,7 @@ data class UnderkjennBody(
                 attestant = NavIdentBruker.Attestant(navIdent),
                 grunn = Attestering.Underkjent.Grunn.valueOf(this.grunn),
                 kommentar = this.kommentar,
-                opprettet = Tidspunkt.now()
+                opprettet = fixedTidspunkt,
             ).right()
         }
         return ugyldigBody.left()

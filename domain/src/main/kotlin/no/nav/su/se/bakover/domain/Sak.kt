@@ -392,6 +392,7 @@ data class Sak(
         return søknadsbehandling.oppdaterStønadsperiode(
             oppdatertStønadsperiode = stønadsperiode,
             formuegrenserFactory = formuegrenserFactory,
+            clock = clock,
         ).mapLeft {
             when (it) {
                 is no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata -> {

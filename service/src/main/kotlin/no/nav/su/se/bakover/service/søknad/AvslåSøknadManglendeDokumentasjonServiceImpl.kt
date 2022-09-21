@@ -140,6 +140,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImpl(
                     ),
                 ),
             formuegrenserFactory = satsFactory.formuegrenserFactory,
+            clock = clock,
         ).getOrHandle { throw IllegalArgumentException(it.toString()) }
     }
 

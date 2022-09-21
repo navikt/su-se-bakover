@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.NonEmptyList
 import arrow.core.flatMap
 import arrow.core.sequence
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.PeriodeJson
 import no.nav.su.se.bakover.common.periode.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.domain.grunnlag.Pensjonsgrunnlag
@@ -16,6 +15,7 @@ import no.nav.su.se.bakover.domain.vilkår.PensjonsVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodePensjon
 import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeTilPensjonsVilkår
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.web.routes.Feilresponser
 import java.util.UUID
 
@@ -158,7 +158,7 @@ internal data class LeggTilVurderingsperiodePensjonsvilkårJson(
     val pensjonsopplysninger: PensjonsopplysningerJson,
 ) {
     fun toDomain(): Either<KunneIkkeLagePensjonsVilkår.Vurderingsperiode, VurderingsperiodePensjon> {
-        val opprettet = Tidspunkt.now()
+        val opprettet = fixedTidspunkt
         return VurderingsperiodePensjon.tryCreate(
             id = UUID.randomUUID(),
             opprettet = opprettet,

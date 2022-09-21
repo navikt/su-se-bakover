@@ -899,6 +899,7 @@ internal class StatusovergangTest {
                 it.oppdaterStønadsperiode(
                     oppdatertStønadsperiode = stønadsperiode,
                     formuegrenserFactory = formuegrenserFactoryTestPåDato(),
+                    clock = fixedClock,
                 ).isRight() shouldBe true
             }
         }
@@ -917,6 +918,7 @@ internal class StatusovergangTest {
                 it.oppdaterStønadsperiode(
                     oppdatertStønadsperiode = stønadsperiode,
                     formuegrenserFactory = formuegrenserFactoryTestPåDato(),
+                    clock = fixedClock,
                 ).isLeft() shouldBe true
             }
         }

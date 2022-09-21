@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.web.routes.vilkår.fastopphold
 
 import arrow.core.Either
 import arrow.core.NonEmptyList
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.PeriodeJson
 import no.nav.su.se.bakover.common.periode.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
@@ -11,6 +10,7 @@ import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFastOppholdINorge
 import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeFastOppholdINorgeVilkår
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.routes.Feilresponser
 import java.util.UUID
@@ -65,7 +65,7 @@ internal data class LeggTilVurderingsperiodeFastOppholdJson(
     fun toDomain(): VurderingsperiodeFastOppholdINorge {
         return VurderingsperiodeFastOppholdINorge.create(
             id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(),
+            opprettet = fixedTidspunkt,
             vurdering = vurdering.toDomain(),
             periode = periode.toPeriode(),
         )

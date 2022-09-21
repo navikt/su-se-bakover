@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.grunnlag
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.år
@@ -54,7 +53,7 @@ internal class UtenlandsoppholdgrunnlagTest {
         ).erLik(
             Utenlandsoppholdgrunnlag(
                 id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(),
+                opprettet = fixedTidspunkt,
                 periode = februar(2021),
             ),
         ) shouldBe true

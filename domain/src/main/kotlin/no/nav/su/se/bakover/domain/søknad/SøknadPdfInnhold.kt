@@ -15,7 +15,8 @@ data class SøknadPdfInnhold private constructor(
     val saksnummer: Saksnummer,
     val søknadsId: UUID,
     val navn: Person.Navn,
-    val dagensDatoOgTidspunkt: String = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")),
+    private val clock: Clock,
+    val dagensDatoOgTidspunkt: String = LocalDateTime.now(clock).format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")),
     val søknadOpprettet: String,
     val søknadInnhold: SøknadInnhold,
 ) {
@@ -34,6 +35,7 @@ data class SøknadPdfInnhold private constructor(
             dagensDatoOgTidspunkt = LocalDateTime.now(clock.withZone(zoneIdOslo)).format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")),
             søknadOpprettet = søknadOpprettet.toLocalDate(zoneIdOslo).ddMMyyyy(),
             søknadInnhold = søknadInnhold,
+            clock = clock,
         )
     }
 }

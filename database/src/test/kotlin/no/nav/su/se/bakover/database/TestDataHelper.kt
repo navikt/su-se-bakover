@@ -391,7 +391,7 @@ internal class TestDataHelper(
     )
     internal val nøkkeltallRepo =
         NøkkeltallPostgresRepo(sessionFactory = sessionFactory, dbMetrics = dbMetrics, clock = fixedClock)
-    internal val dokumentRepo = DokumentPostgresRepo(sessionFactory, dbMetrics)
+    internal val dokumentRepo = DokumentPostgresRepo(sessionFactory, dbMetrics, clock)
     internal val hendelsePostgresRepo = PersonhendelsePostgresRepo(sessionFactory, dbMetrics, fixedClock)
 
     internal val sakRepo = SakPostgresRepo(
@@ -996,7 +996,8 @@ internal class TestDataHelper(
     ): Pair<Sak, SimulertRevurdering.Opphørt> {
         return persisterRevurderingBeregnetOpphørt(sakOgVedtak).let { (sak, beregnet) ->
             beregnet.simuler(
-                saksbehandler = no.nav.su.se.bakover.test.saksbehandler
+                saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
+                clock = clock,
             ) {
                 opphørUtbetalingSimulert(
                     sakOgBehandling = sak to beregnet,

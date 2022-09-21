@@ -1,19 +1,19 @@
 package no.nav.su.se.bakover.domain.satser
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.scaleTo4
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
-import java.time.LocalDate
 
 internal class SatsFactoryForSupplerendeStønadAlderTest {
 
     @Test
     fun `ordinær - mai 2022`() {
-        satsFactoryTestPåDato(påDato = LocalDate.now()).ordinærAlder(mai(2022)).let {
+        satsFactoryTestPåDato(påDato = 1.juni(2022)).ordinærAlder(mai(2022)).let {
             it shouldBe FullSupplerendeStønadForMåned.Alder(
                 måned = mai(2022),
                 satskategori = Satskategori.ORDINÆR,
@@ -37,7 +37,7 @@ internal class SatsFactoryForSupplerendeStønadAlderTest {
 
     @Test
     fun `høy - mai 2022`() {
-        satsFactoryTestPåDato(påDato = LocalDate.now()).høyAlder(mai(2022)).let {
+        satsFactoryTestPåDato(påDato = 1.juni(2022)).høyAlder(mai(2022)).let {
             it shouldBe FullSupplerendeStønadForMåned.Alder(
                 måned = mai(2022),
                 satskategori = Satskategori.HØY,

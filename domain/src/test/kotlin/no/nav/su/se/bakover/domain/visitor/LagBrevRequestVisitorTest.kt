@@ -212,7 +212,7 @@ internal class LagBrevRequestVisitorTest {
                 ).right()
 
                 it.brevRequest.map { brevRequest ->
-                    brevRequest.tilDokument { generertPdf.right() }
+                    brevRequest.tilDokument(fixedClock) { generertPdf.right() }
                         .map { dokument ->
                             assertDokument<Dokument.UtenMetadata.Vedtak>(dokument, brevRequest)
                         }
@@ -274,7 +274,7 @@ internal class LagBrevRequestVisitorTest {
                 ).right()
 
                 it.brevRequest.map { brevRequest ->
-                    brevRequest.tilDokument { generertPdf.right() }
+                    brevRequest.tilDokument(fixedClock) { generertPdf.right() }
                         .map { dokument ->
                             assertDokument<Dokument.UtenMetadata.Vedtak>(dokument, brevRequest)
                         }
@@ -403,7 +403,7 @@ internal class LagBrevRequestVisitorTest {
                     ).right()
 
                     it.brevRequest.map { brevRequest ->
-                        brevRequest.tilDokument { generertPdf.right() }
+                        brevRequest.tilDokument(fixedClock) { generertPdf.right() }
                             .map { dokument ->
                                 assertDokument<Dokument.UtenMetadata.Vedtak>(dokument, brevRequest)
                             }
@@ -1183,7 +1183,7 @@ internal class LagBrevRequestVisitorTest {
         ).right()
 
         brevRevurdering.brevRequest.map { brevRequest ->
-            brevRequest.tilDokument { generertPdf.right() }
+            brevRequest.tilDokument(fixedClock) { generertPdf.right() }
                 .map { dokument ->
                     assertDokument<Dokument.UtenMetadata.Vedtak>(dokument, brevRequest)
                 }
@@ -1306,7 +1306,7 @@ internal class LagBrevRequestVisitorTest {
         ).right()
 
         brevRevurdering.brevRequest.map { brevRequest ->
-            brevRequest.tilDokument { generertPdf.right() }
+            brevRequest.tilDokument(fixedClock) { generertPdf.right() }
                 .map { dokument ->
                     assertDokument<Dokument.UtenMetadata.Vedtak>(dokument, brevRequest)
                 }
@@ -1391,7 +1391,8 @@ internal class LagBrevRequestVisitorTest {
             satsFactory = satsFactoryTestPåDato(),
         ).getOrFail().let { beregnet ->
             (beregnet as BeregnetRevurdering.Opphørt).simuler(
-                saksbehandler = no.nav.su.se.bakover.test.saksbehandler
+                saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
+                clock = fixedClock,
             ) {
                 opphørUtbetalingSimulert(
                     sakOgBehandling = sak to beregnet,

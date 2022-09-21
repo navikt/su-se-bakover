@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
 import no.nav.su.se.bakover.test.getOrFail
@@ -182,6 +183,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
 
         tomGrunnlagsdata.oppdaterGrunnlagsperioder(
             oppdatertPeriode = januar(2021),
+            clock = fixedClock,
         ) shouldBe Grunnlagsdata.create(emptyList(), emptyList()).right()
     }
 
@@ -212,6 +214,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
 
         val actual = grunnlagsdata.oppdaterGrunnlagsperioder(
             oppdatertPeriode = oppdatertPeriode,
+            clock = fixedClock,
         ).getOrFail()
 
         actual.fradragsgrunnlag.size shouldBe 1

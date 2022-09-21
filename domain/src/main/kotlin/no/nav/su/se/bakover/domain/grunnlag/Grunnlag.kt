@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinjeMedSegSelv
 import no.nav.su.se.bakover.domain.tidslinje.masker
 import org.jetbrains.annotations.TestOnly
+import java.time.Clock
 import java.util.UUID
 
 sealed class Grunnlag {
@@ -112,11 +113,12 @@ sealed class Grunnlag {
 
         fun oppdaterFradragsperiode(
             oppdatertPeriode: Periode,
+            clock: Clock,
         ): Either<UgyldigFradragsgrunnlag, Fradragsgrunnlag> {
             return this.copyInternal(CopyArgs.Snitt(oppdatertPeriode)).flatMap {
                 it?.right() ?: tryCreate(
                     id = UUID.randomUUID(),
-                    opprettet = Tidspunkt.now(), // TODO jah: Ta inn clock
+                    opprettet = Tidspunkt.now(clock),
                     fradrag = FradragFactory.nyFradragsperiode(
                         fradragstype = this.fradrag.fradragstype,
                         månedsbeløp = this.fradrag.månedsbeløp,
@@ -185,8 +187,9 @@ sealed class Grunnlag {
             // TODO("flere_satser det gir egentlig ikke mening at vi oppdaterer flere verdier på denne måten, bør sees på/vurderes fjernet")
             fun List<Fradragsgrunnlag>.oppdaterFradragsperiode(
                 oppdatertPeriode: Periode,
+                clock: Clock,
             ): Either<UgyldigFradragsgrunnlag, List<Fradragsgrunnlag>> {
-                return this.map { it.oppdaterFradragsperiode(oppdatertPeriode) }.sequence()
+                return this.map { it.oppdaterFradragsperiode(oppdatertPeriode, clock) }.sequence()
             }
 
             fun List<Fradragsgrunnlag>.harEpsInntekt() = this.any { it.fradrag.tilhørerEps() }
@@ -195,7 +198,7 @@ sealed class Grunnlag {
                 return filter { it.tilhørerEps() }.map { it.periode }.minsteAntallSammenhengendePerioder()
             }
 
-            fun List<Fradragsgrunnlag>.slåSammenPeriodeOgFradrag(): List<Fradragsgrunnlag> {
+            fun List<Fradragsgrunnlag>.slåSammenPeriodeOgFradrag(clock: Clock): List<Fradragsgrunnlag> {
                 return this.sortedBy { it.periode.fraOgMed }
                     .fold(mutableListOf<MutableList<Fradragsgrunnlag>>()) { acc, fradragsgrunnlag ->
                         if (acc.isEmpty()) {
@@ -211,7 +214,7 @@ sealed class Grunnlag {
 
                         tryCreate(
                             id = UUID.randomUUID(),
-                            opprettet = Tidspunkt.now(), // TODO jah: Ta inn clock
+                            opprettet = Tidspunkt.now(clock),
                             fradrag = FradragFactory.nyFradragsperiode(
                                 fradragstype = it.first().fradragstype,
                                 månedsbeløp = it.first().månedsbeløp,

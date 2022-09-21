@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.database.søknadsbehandling
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeTypeOf
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.database.PostgresSessionFactory
@@ -140,6 +141,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 vilkårsvurdert.oppdaterStønadsperiode(
                     oppdatertStønadsperiode = stønadsperiode2021,
                     formuegrenserFactory = formuegrenserFactoryTestPåDato(fixedLocalDate),
+                    clock = fixedClock,
                 ).getOrFail(),
             )
 
@@ -473,6 +475,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                         sakId = UUID.randomUUID(),
                         revurderingId = UUID.randomUUID(),
                         simulering = simuleringFeilutbetaling(juni(2021)),
+                        opprettet = Tidspunkt.now(fixedClock),
                     ),
                 ),
             ).håndter().iverksett(UUID.randomUUID())

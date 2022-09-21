@@ -1141,6 +1141,7 @@ sealed class BeregnetRevurdering : Revurdering() {
 
         fun simuler(
             saksbehandler: Saksbehandler,
+            clock: Clock,
             simulerOpphør: (request: SimulerUtbetalingRequest.Opphør) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
         ): Either<SimuleringFeilet, SimulertRevurdering.Opphørt> {
             val (simulertUtbetaling, håndtertAvkorting) = simulerOpphør(
@@ -1151,7 +1152,7 @@ sealed class BeregnetRevurdering : Revurdering() {
                 )
             ).getOrHandle { return it.left() }
                 .let { simulering ->
-                    when (val avkortingsvarsel = lagAvkortingsvarsel(simulering)) {
+                    when (val avkortingsvarsel = lagAvkortingsvarsel(simulering, clock)) {
                         is Avkortingsvarsel.Ingen -> {
                             simulering to when (avkorting) {
                                 is AvkortingVedRevurdering.DelvisHåndtert.AnnullerUtestående -> {
@@ -1208,7 +1209,7 @@ sealed class BeregnetRevurdering : Revurdering() {
                 true -> {
                     IkkeAvgjort(
                         id = UUID.randomUUID(),
-                        opprettet = Tidspunkt.now(),
+                        opprettet = Tidspunkt.now(clock),
                         sakId = sakId,
                         revurderingId = id,
                         periode = periode,
@@ -1280,7 +1281,10 @@ sealed class BeregnetRevurdering : Revurdering() {
             if (førerTilAvkorting && måBehandleTilbakekreving) throw IllegalStateException("Kan ikke håndtere avkorting og tilbakekreving på samme tid.")
         }
 
-        private fun lagAvkortingsvarsel(simulertUtbetaling: Utbetaling.SimulertUtbetaling): Avkortingsvarsel {
+        private fun lagAvkortingsvarsel(
+            simulertUtbetaling: Utbetaling.SimulertUtbetaling,
+            clock: Clock,
+        ): Avkortingsvarsel {
             return when (simulertUtbetaling.simulering.harFeilutbetalinger()) {
                 true -> {
                     when (val vilkårsvurdering = vilkårsvurderinger.vurdering) {
@@ -1291,6 +1295,7 @@ sealed class BeregnetRevurdering : Revurdering() {
                                         sakId = this.sakId,
                                         revurderingId = this.id,
                                         simulering = simulertUtbetaling.simulering,
+                                        opprettet = Tidspunkt.now(clock),
                                     ).skalAvkortes()
                                 }
 

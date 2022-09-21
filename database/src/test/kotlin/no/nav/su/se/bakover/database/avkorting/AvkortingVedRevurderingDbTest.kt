@@ -3,10 +3,12 @@ package no.nav.su.se.bakover.database.avkorting
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
@@ -14,31 +16,32 @@ import java.util.UUID
 
 internal class AvkortingVedRevurderingDbTest {
 
-    val ingen1 = AvkortingVedRevurdering.Uhåndtert.IngenUtestående
-    val ingen2 = ingen1.håndter()
-    val ingen3 = ingen2.håndter()
-    val ingen4 = ingen3.iverksett(UUID.randomUUID())
+    private val ingen1 = AvkortingVedRevurdering.Uhåndtert.IngenUtestående
+    private val ingen2 = ingen1.håndter()
+    private val ingen3 = ingen2.håndter()
+    private val ingen4 = ingen3.iverksett(UUID.randomUUID())
 
-    val kanIkke1 = ingen1.kanIkke()
-    val kanIkke2 = ingen2.kanIkke()
-    val kanIkke3 = ingen3.kanIkke()
+    private val kanIkke1 = ingen1.kanIkke()
+    private val kanIkke2 = ingen2.kanIkke()
+    private val kanIkke3 = ingen3.kanIkke()
 
-    val revurderingId = UUID.randomUUID()
-    val varsel = Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
+    val revurderingId: UUID = UUID.randomUUID()
+    private val varsel = Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
         objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
             sakId = UUID.randomUUID(),
             revurderingId = revurderingId,
             simulering = simuleringFeilutbetaling(juni(2021)),
+            opprettet = Tidspunkt.now(fixedClock)
         ),
     )
-    val utestående1 = AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting(avkortingsvarsel = varsel)
-    val utestående2 = utestående1.håndter()
-    val utestående3 = utestående2.håndter()
-    val utestående4 = AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående(
+    private val utestående1 = AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting(avkortingsvarsel = varsel)
+    private val utestående2 = utestående1.håndter()
+    private val utestående3 = utestående2.håndter()
+    private val utestående4 = AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående(
         avkortingsvarsel = varsel,
         annullerUtestående = utestående2.avkortingsvarsel,
     )
-    val utestående5 = AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel(
+    private val utestående5 = AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel(
         avkortingsvarsel = varsel,
     )
 

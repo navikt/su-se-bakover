@@ -3,10 +3,12 @@ package no.nav.su.se.bakover.database.avkorting
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
@@ -14,26 +16,27 @@ import java.util.UUID
 
 internal class AvkortingVedSøknadsbehandlingDbKtTest {
 
-    val ingen1 = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående
-    val ingen2 = ingen1.håndter()
-    val ingen3 = ingen2.iverksett(UUID.randomUUID())
+    private val ingen1 = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående
+    private val ingen2 = ingen1.håndter()
+    private val ingen3 = ingen2.iverksett(UUID.randomUUID())
 
-    val kanIkke1 = ingen1.kanIkke()
-    val kanIkke2 = ingen2.kanIkke()
+    private val kanIkke1 = ingen1.kanIkke()
+    private val kanIkke2 = ingen2.kanIkke()
 
-    val varsel = Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
+    private val varsel = Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
         objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
             sakId = UUID.randomUUID(),
             revurderingId = UUID.randomUUID(),
             simulering = simuleringFeilutbetaling(juni(2021)),
+            opprettet = Tidspunkt.now(fixedClock),
         ),
     )
 
-    val behandlingId = UUID.randomUUID()
-    val varselAvkortet = varsel.avkortet(behandlingId)
-    val utestående1 = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(avkortingsvarsel = varsel)
-    val utestående2 = utestående1.håndter()
-    val utestående3 = utestående2.iverksett(behandlingId)
+    private val behandlingId = UUID.randomUUID()
+    private val varselAvkortet = varsel.avkortet(behandlingId)
+    private val utestående1 = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(avkortingsvarsel = varsel)
+    private val utestående2 = utestående1.håndter()
+    private val utestående3 = utestående2.iverksett(behandlingId)
 
     @Test
     fun `ingen utestående`() {

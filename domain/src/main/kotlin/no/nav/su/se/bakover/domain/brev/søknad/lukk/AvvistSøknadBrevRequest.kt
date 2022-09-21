@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.brev.Brevvalg
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.brev.lagPersonalia
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
@@ -24,6 +25,7 @@ data class AvvistSøknadBrevRequest(
             saksbehandlerNavn = saksbehandlerNavn,
             fritekst = brevvalg.fritekst,
         )
+
         is Brevvalg.SaksbehandlersValg.SkalSendeBrev.VedtaksbrevUtenFritekst -> AvvistSøknadVedtakBrevInnhold(
             personalia = lagPersonalia(),
             saksbehandlerNavn = saksbehandlerNavn,
@@ -31,24 +33,28 @@ data class AvvistSøknadBrevRequest(
         )
     }
 
-    override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<LagBrevRequest.KunneIkkeGenererePdf, ByteArray>): Either<LagBrevRequest.KunneIkkeGenererePdf, Dokument.UtenMetadata> {
+    override fun tilDokument(
+        clock: Clock,
+        genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<LagBrevRequest.KunneIkkeGenererePdf, ByteArray>,
+    ): Either<LagBrevRequest.KunneIkkeGenererePdf, Dokument.UtenMetadata> {
         when (brevvalg) {
             is Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst -> {
-                return genererDokument(genererPdf).map {
+                return genererDokument(clock, genererPdf).map {
                     Dokument.UtenMetadata.Informasjon.Annet(
                         id = UUID.randomUUID(),
-                        opprettet = Tidspunkt.now(), // TODO jah: Ta inn clock
+                        opprettet = Tidspunkt.now(clock),
                         tittel = it.first,
                         generertDokument = it.second,
                         generertDokumentJson = it.third,
                     )
                 }
             }
+
             is Brevvalg.SaksbehandlersValg.SkalSendeBrev.VedtaksbrevUtenFritekst -> {
-                return genererDokument(genererPdf).map {
+                return genererDokument(clock, genererPdf).map {
                     Dokument.UtenMetadata.Vedtak(
                         id = UUID.randomUUID(),
-                        opprettet = Tidspunkt.now(), // TODO jah: Ta inn clock
+                        opprettet = Tidspunkt.now(clock),
                         tittel = it.first,
                         generertDokument = it.second,
                         generertDokumentJson = it.third,

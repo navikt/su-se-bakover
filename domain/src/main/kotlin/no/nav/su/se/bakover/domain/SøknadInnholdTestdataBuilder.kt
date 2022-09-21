@@ -29,7 +29,6 @@ import java.time.LocalDate
 import java.time.Month.JANUARY
 
 fun fnrUnder67(): Fnr {
-    // Bør ikke basere oss på .now() i tester. Dersom vi begynner å validere på dette, bør vi sende inn en klokke hit.
     return Fnr("01017001337")
 }
 
