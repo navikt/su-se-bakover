@@ -32,7 +32,7 @@ object NySøknadJson {
 
         internal fun nyDigitalAlderssøknad(
             brukerFnr: String,
-            epsFnr: String
+            epsFnr: String,
         ): String {
             return digitalSøknadsinnholdAlderJson(
                 brukerFnr = brukerFnr,

@@ -175,7 +175,6 @@ internal class StansAvYtelseServiceTest {
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
         ).also {
-
             val response = it.revurderingService.stansAvYtelse(
                 StansYtelseRequest.Opprett(
                     sakId = sakId,

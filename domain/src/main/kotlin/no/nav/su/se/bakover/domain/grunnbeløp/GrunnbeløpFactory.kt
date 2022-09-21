@@ -47,11 +47,15 @@ class GrunnbeløpFactory(
 
     fun forMåned(måned: Måned): GrunnbeløpForMåned {
         return månedTilGrunnbeløp[måned]
-            ?: if (måned > sisteMånedMedEndring) månedTilGrunnbeløp[sisteMånedMedEndring]!!.copy(
-                måned = måned,
-            ) else throw IllegalArgumentException(
-                "Har ikke data for etterspurt måned: $måned. Vi har bare data fra og med måned: ${månedTilGrunnbeløp.keys.first()}",
-            )
+            ?: if (måned > sisteMånedMedEndring) {
+                månedTilGrunnbeløp[sisteMånedMedEndring]!!.copy(
+                    måned = måned,
+                )
+            } else {
+                throw IllegalArgumentException(
+                    "Har ikke data for etterspurt måned: $måned. Vi har bare data fra og med måned: ${månedTilGrunnbeløp.keys.first()}",
+                )
+            }
     }
 
     fun alleGrunnbeløp(fraOgMed: Måned): List<GrunnbeløpForMåned> {

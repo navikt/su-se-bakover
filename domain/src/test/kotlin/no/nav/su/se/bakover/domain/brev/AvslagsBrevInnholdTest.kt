@@ -40,7 +40,7 @@ class AvslagsBrevInnholdTest {
                 ),
             ),
         ),
-        sakstype = Sakstype.UFØRE
+        sakstype = Sakstype.UFØRE,
     )
 
     @Test
@@ -77,7 +77,7 @@ class AvslagsBrevInnholdTest {
                       "satsBeløp": 1000,
                       "satsGrunn": "ENSLIG"
                     }
-                  ]      
+                  ]
                 }
             }
         """.trimIndent()
@@ -179,7 +179,7 @@ class AvslagsBrevInnholdTest {
                       "satsBeløp": 1000,
                       "satsGrunn": "ENSLIG"
                     }
-                  ]      
+                  ]
                 }
             }
         """.trimIndent()
@@ -265,10 +265,10 @@ class AvslagsBrevInnholdTest {
                       "satsBeløp": 1000,
                       "satsGrunn": "ENSLIG"
                     }
-                  ]      
+                  ]
                 }
             }
-            
+
         """.trimIndent()
         JSONAssert.assertEquals(expectedJson, actualJson, true)
     }

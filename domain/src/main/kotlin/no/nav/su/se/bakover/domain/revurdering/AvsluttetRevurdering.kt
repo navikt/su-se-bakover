@@ -111,7 +111,6 @@ data class AvsluttetRevurdering private constructor(
             brevvalg: Brevvalg?,
             tidspunktAvsluttet: Tidspunkt,
         ): Either<KunneIkkeLageAvsluttetRevurdering, AvsluttetRevurdering> {
-
             return when (underliggendeRevurdering) {
                 is IverksattRevurdering -> KunneIkkeLageAvsluttetRevurdering.RevurderingenErIverksatt.left()
 

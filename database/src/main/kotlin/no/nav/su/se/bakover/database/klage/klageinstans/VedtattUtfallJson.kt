@@ -10,7 +10,8 @@ internal enum class UtfallJson(val databaseType: String) {
     DELVIS_MEDHOLD("DELVIS_MEDHOLD"),
     STADFESTELSE("STADFESTELSE"),
     UGUNST("UGUNST"),
-    AVVIST("AVVIST");
+    AVVIST("AVVIST"),
+    ;
 
     fun toDomain() = when (this) {
         TRUKKET -> KlageinstansUtfall.TRUKKET

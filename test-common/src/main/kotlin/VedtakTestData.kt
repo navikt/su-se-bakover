@@ -343,6 +343,7 @@ val brevbestillingIdVedtak = BrevbestillingId("brevbestillingIdVedtak")
 val journalført: JournalføringOgBrevdistribusjon.Journalført = JournalføringOgBrevdistribusjon.Journalført(
     journalpostId = journalpostIdVedtak,
 )
+
 @Suppress("unused")
 val journalførtOgDistribuertBrev: JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev =
     JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(

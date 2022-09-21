@@ -171,8 +171,11 @@ internal class PersonPostgresRepoTest {
             val revurdering = testDataHelper.persisterRevurderingOpprettet((sak to vedtak), vedtak.periode, epsFnr).second
 
             Ctx(
-                dataSource, testDataHelper.personRepo,
-                sak.søknadsbehandlinger.first() as Søknadsbehandling.Iverksatt.Innvilget, utbetaling, revurdering,
+                dataSource,
+                testDataHelper.personRepo,
+                sak.søknadsbehandlinger.first() as Søknadsbehandling.Iverksatt.Innvilget,
+                utbetaling,
+                revurdering,
             ).test()
         }
     }
@@ -182,7 +185,6 @@ internal class PersonPostgresRepoTest {
         epsFnrRevurdering: Fnr?,
         test: Ctx.() -> Unit,
     ) {
-
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val (sak, vedtak, utbetaling) = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
@@ -191,7 +193,8 @@ internal class PersonPostgresRepoTest {
             val revurdering = testDataHelper.persisterRevurderingOpprettet((sak to vedtak), vedtak.periode, epsFnrRevurdering).second
 
             Ctx(
-                dataSource = dataSource, repo = testDataHelper.personRepo,
+                dataSource = dataSource,
+                repo = testDataHelper.personRepo,
                 innvilgetSøknadsbehandling = sak.søknadsbehandlinger.first() as Søknadsbehandling.Iverksatt.Innvilget,
                 utbetaling = utbetaling,
                 revurdering = revurdering,
@@ -204,7 +207,6 @@ internal class PersonPostgresRepoTest {
         epsFnrRevurdering: Fnr?,
         test: VedtakCtx.() -> Unit,
     ) {
-
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val (sak, vedtak, _) = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(

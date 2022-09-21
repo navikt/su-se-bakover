@@ -20,6 +20,7 @@ sealed class Utbetalingslinje : PeriodisertInformasjon {
      * @see originalFraOgMed
      */
     protected abstract val fraOgMed: LocalDate
+
     /**
      * @see originalTilOgMed
      */
@@ -34,6 +35,7 @@ sealed class Utbetalingslinje : PeriodisertInformasjon {
      * Brukes i all hovedsak som [periode.fraOgMed] for [Ny] og nødvendig input-data til OS ved [Endring].
      */
     fun originalFraOgMed(): LocalDate = fraOgMed
+
     /**
      * Original [tilOgMed] som ble satt da linjen ble oversendt til OS.
      * Brukes i all hovedsak som [periode.tilOgMed] for [Ny] og nødvendig input-data til OS ved [Endring].
@@ -64,7 +66,7 @@ sealed class Utbetalingslinje : PeriodisertInformasjon {
         override val forrigeUtbetalingslinjeId: UUID30?,
         override val beløp: Int,
         override val uføregrad: Uføregrad?,
-        override val utbetalingsinstruksjonForEtterbetalinger: UtbetalingsinstruksjonForEtterbetalinger = betalUtSåFortSomMulig
+        override val utbetalingsinstruksjonForEtterbetalinger: UtbetalingsinstruksjonForEtterbetalinger = betalUtSåFortSomMulig,
     ) : Utbetalingslinje() {
         override fun oppdaterReferanseTilForrigeUtbetalingslinje(id: UUID30?): Ny {
             return copy(forrigeUtbetalingslinjeId = id)
@@ -98,7 +100,7 @@ sealed class Utbetalingslinje : PeriodisertInformasjon {
             override val beløp: Int,
             override val virkningsperiode: Periode,
             override val uføregrad: Uføregrad?,
-            override val utbetalingsinstruksjonForEtterbetalinger: UtbetalingsinstruksjonForEtterbetalinger = betalUtSåFortSomMulig
+            override val utbetalingsinstruksjonForEtterbetalinger: UtbetalingsinstruksjonForEtterbetalinger = betalUtSåFortSomMulig,
         ) : Endring() {
             override val linjeStatus = LinjeStatus.OPPHØR
 
@@ -136,7 +138,7 @@ sealed class Utbetalingslinje : PeriodisertInformasjon {
             override val beløp: Int,
             override val virkningsperiode: Periode,
             override val uføregrad: Uføregrad?,
-            override val utbetalingsinstruksjonForEtterbetalinger: UtbetalingsinstruksjonForEtterbetalinger = betalUtSåFortSomMulig
+            override val utbetalingsinstruksjonForEtterbetalinger: UtbetalingsinstruksjonForEtterbetalinger = betalUtSåFortSomMulig,
         ) : Endring() {
             override val linjeStatus = LinjeStatus.STANS
 
@@ -151,7 +153,7 @@ sealed class Utbetalingslinje : PeriodisertInformasjon {
                 utbetalingslinje: Utbetalingslinje,
                 virkningstidspunkt: LocalDate,
                 clock: Clock,
-                opprettet: Tidspunkt = Tidspunkt.now(clock)
+                opprettet: Tidspunkt = Tidspunkt.now(clock),
             ) : this(
                 id = utbetalingslinje.id,
                 opprettet = opprettet,
@@ -177,7 +179,7 @@ sealed class Utbetalingslinje : PeriodisertInformasjon {
             override val beløp: Int,
             override val virkningsperiode: Periode,
             override val uføregrad: Uføregrad?,
-            override val utbetalingsinstruksjonForEtterbetalinger: UtbetalingsinstruksjonForEtterbetalinger = betalUtSåFortSomMulig
+            override val utbetalingsinstruksjonForEtterbetalinger: UtbetalingsinstruksjonForEtterbetalinger = betalUtSåFortSomMulig,
         ) : Endring() {
             override val linjeStatus = LinjeStatus.REAKTIVERING
             override fun oppdaterReferanseTilForrigeUtbetalingslinje(id: UUID30?): Reaktivering {
@@ -201,7 +203,7 @@ sealed class Utbetalingslinje : PeriodisertInformasjon {
                 beløp = utbetalingslinje.beløp,
                 virkningsperiode = Periode.create(
                     fraOgMed = virkningstidspunkt,
-                    tilOgMed = utbetalingslinje.originalTilOgMed()
+                    tilOgMed = utbetalingslinje.originalTilOgMed(),
                 ),
                 uføregrad = utbetalingslinje.uføregrad,
                 utbetalingsinstruksjonForEtterbetalinger = betalUtSåFortSomMulig,
@@ -211,7 +213,8 @@ sealed class Utbetalingslinje : PeriodisertInformasjon {
         enum class LinjeStatus {
             OPPHØR,
             STANS,
-            REAKTIVERING;
+            REAKTIVERING,
+            ;
         }
     }
 }
@@ -317,7 +320,7 @@ fun List<Utbetalingslinje>.sjekkAlleNyeLinjerHarForskjelligForrigeReferanse() {
     check(
         this.filterIsInstance<Utbetalingslinje.Ny>()
             .map { it.forrigeUtbetalingslinjeId }
-            .let { it.distinct() == it }
+            .let { it.distinct() == it },
     ) { "Alle nye utbetalingslinjer skal referere til forskjellig forrige utbetalingid" }
 }
 

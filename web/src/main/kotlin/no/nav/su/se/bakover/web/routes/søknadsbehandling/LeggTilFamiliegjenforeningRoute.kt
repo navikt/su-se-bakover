@@ -47,7 +47,8 @@ internal data class FamiliegjenforeningBody(
 ) {
     fun toLeggTilFamiliegjenforeningRequest(behandlingId: UUID) =
         LeggTilFamiliegjenforeningRequest(
-            behandlingId = behandlingId, vurderinger = vurderinger.map { FamiliegjenforeningVurderinger(it.status) },
+            behandlingId = behandlingId,
+            vurderinger = vurderinger.map { FamiliegjenforeningVurderinger(it.status) },
         )
 }
 

@@ -33,7 +33,7 @@ sealed class Personhendelse {
             sakId = sakIdSaksnummerFnr.sakId,
             saksnummer = sakIdSaksnummerFnr.saksnummer,
             metadata = metadata,
-            antallFeiledeForsøk = 0
+            antallFeiledeForsøk = 0,
         )
     }
 
@@ -61,7 +61,7 @@ sealed class Personhendelse {
                     saksnummer = saksnummer,
                     oppgaveId = oppgaveId,
                     metadata = metadata,
-                    antallFeiledeForsøk = antallFeiledeForsøk
+                    antallFeiledeForsøk = antallFeiledeForsøk,
                 )
         }
 

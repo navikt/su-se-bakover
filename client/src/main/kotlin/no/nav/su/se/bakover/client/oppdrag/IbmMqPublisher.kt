@@ -11,7 +11,7 @@ import javax.jms.Session
 
 class IbmMqPublisher(
     private val publisherConfig: MqPublisherConfig,
-    private val jmsContext: JMSContext
+    private val jmsContext: JMSContext,
 ) : MqPublisher {
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
@@ -32,7 +32,7 @@ class IbmMqPublisher(
                             if (publisherConfig.replyTo != null) {
                                 jmsReplyTo = MQQueue(publisherConfig.replyTo)
                             }
-                        }
+                        },
                     )
                 }
                 context.commit()

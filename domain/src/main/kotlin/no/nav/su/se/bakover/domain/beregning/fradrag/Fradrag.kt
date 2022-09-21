@@ -22,7 +22,8 @@ interface Fradrag : PeriodisertInformasjon, KopierbarForSnitt<Fradrag?> {
 
 enum class FradragTilhører {
     BRUKER,
-    EPS;
+    EPS,
+    ;
 }
 
 fun List<Fradrag>.utenSosialstønad(): List<Fradrag> =

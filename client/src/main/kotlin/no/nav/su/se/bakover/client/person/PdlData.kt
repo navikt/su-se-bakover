@@ -21,13 +21,13 @@ internal data class PdlData(
 ) {
     internal data class Ident(
         val fnr: Fnr,
-        val aktørId: AktørId
+        val aktørId: AktørId,
     )
 
     internal data class Navn(
         val fornavn: String,
         val mellomnavn: String?,
-        val etternavn: String
+        val etternavn: String,
     )
 
     internal data class Adresse(
@@ -37,7 +37,7 @@ internal data class PdlData(
         val kommunenummer: String? = null,
         val landkode: String? = null,
         val adressetype: String,
-        val adresseformat: String
+        val adresseformat: String,
     ) {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true

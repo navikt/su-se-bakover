@@ -18,7 +18,7 @@ import no.nav.su.se.bakover.web.withBody
 import no.nav.su.se.bakover.web.withRevurderingId
 
 internal fun Route.brevutkastForRevurdering(
-    revurderingService: RevurderingService
+    revurderingService: RevurderingService,
 ) {
     data class Body(val fritekst: String?)
 

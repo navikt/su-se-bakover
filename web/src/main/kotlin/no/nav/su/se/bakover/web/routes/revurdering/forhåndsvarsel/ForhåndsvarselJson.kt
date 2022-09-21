@@ -51,5 +51,5 @@ internal sealed class ForhåndsvarselJson {
 internal enum class BeslutningEtterForhåndsvarsling(val beslutning: String) {
     FortsettSammeOpplysninger("FORTSETT_MED_SAMME_OPPLYSNINGER"),
     FortsettMedAndreOpplysninger("FORTSETT_MED_ANDRE_OPPLYSNINGER"),
-    AvsluttUtenEndringer("AVSLUTT_UTEN_ENDRINGER")
+    AvsluttUtenEndringer("AVSLUTT_UTEN_ENDRINGER"),
 }

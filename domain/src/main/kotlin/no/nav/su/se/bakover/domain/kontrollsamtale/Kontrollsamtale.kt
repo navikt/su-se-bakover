@@ -30,7 +30,7 @@ data class Kontrollsamtale(
         if (this.status != Kontrollsamtalestatus.PLANLAGT_INNKALLING) return UgyldigStatusovergang.left()
         return this.copy(
             status = Kontrollsamtalestatus.INNKALT,
-            dokumentId = dokumentId
+            dokumentId = dokumentId,
         ).right()
     }
 
@@ -59,7 +59,7 @@ data class Kontrollsamtale(
                     innkallingsdato = it,
                     status = Kontrollsamtalestatus.PLANLAGT_INNKALLING,
                     dokumentId = null,
-                    opprettet = Tidspunkt.now(clock)
+                    opprettet = Tidspunkt.now(clock),
                 )
             }
 
@@ -119,7 +119,7 @@ fun regnUtInnkallingsdato(periode: Periode, vedtaksdato: LocalDate, clock: Clock
             }
             else -> eightMonthsDate
         }
-    } else if (fourMonthsDate.isAfter(today))
+    } else if (fourMonthsDate.isAfter(today)) {
         when {
             stønadsslutt.erMindreEnnEnMånedSenere(fourMonthsDate) -> null
             fourMonthsDate.erMindreEnnEnMånedSenere(vedtaksdato.endOfMonth()) -> {
@@ -128,7 +128,9 @@ fun regnUtInnkallingsdato(periode: Periode, vedtaksdato: LocalDate, clock: Clock
             }
             else -> fourMonthsDate
         }
-    else null
+    } else {
+        null
+    }
 }
 
 fun regnUtInnkallingsdatoOm4Mnd(stønadsslutt: LocalDate, fraDato: LocalDate): LocalDate? {

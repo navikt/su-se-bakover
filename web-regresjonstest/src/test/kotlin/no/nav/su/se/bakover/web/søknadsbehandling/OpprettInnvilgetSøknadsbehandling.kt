@@ -97,7 +97,7 @@ internal fun ApplicationTestBuilder.opprettInnvilgetSøknadsbehandling(
         sakId = sakId,
         behandlingId = behandlingId,
         fraOgMed = fraOgMed,
-        tilOgMed = tilOgMed
+        tilOgMed = tilOgMed,
     )
     leggTilInstitusjonsopphold(
         sakId = sakId,
@@ -125,7 +125,7 @@ internal fun ApplicationTestBuilder.opprettInnvilgetSøknadsbehandling(
         sakId = sakId,
         behandlingId = behandlingId,
         fraOgMed = fraOgMed,
-        tilOgMed = tilOgMed
+        tilOgMed = tilOgMed,
     )
     fullførBosituasjon(
         sakId = sakId,

@@ -44,7 +44,8 @@ internal class LeggTilUførevurderingerRequestTest {
                 behandlingId = behandlingId,
                 vurderinger = nonEmptyListOf(leggTilUførevilkårRequest),
             ).toVilkår(
-                januar(2021), fixedClock,
+                januar(2021),
+                fixedClock,
             ) shouldBe testArg.second.left()
         }
     }

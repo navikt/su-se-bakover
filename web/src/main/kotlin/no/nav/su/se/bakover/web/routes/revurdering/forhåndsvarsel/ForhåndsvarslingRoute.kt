@@ -37,7 +37,6 @@ internal fun Route.forhåndsvarslingRoute(
     revurderingService: RevurderingService,
     satsFactory: SatsFactory,
 ) {
-
     data class ForhåndsvarsleBody(val forhåndsvarselhandling: Forhåndsvarselhandling, val fritekst: String)
     post("$revurderingPath/{revurderingId}/forhandsvarsel") {
         authorize(Brukerrolle.Saksbehandler) {

@@ -362,7 +362,8 @@ internal class VedtakstidslinjeTest {
                                             vurderingsperiodecopy.id shouldNotBe expectedVurderingsperiode.id
                                             vurderingsperiodecopy.vurdering shouldBe expectedVurderingsperiode.vurdering
                                             vurderingsperiodecopy.periode shouldBe Periode.create(
-                                                1.mai(2021), 30.juni(2021),
+                                                1.mai(2021),
+                                                30.juni(2021),
                                             )
                                             vurderingsperiodecopy.grunnlag.let {
                                                 formueVilkår.grunnlag.map { it.id } shouldNotContain it.id
@@ -378,7 +379,8 @@ internal class VedtakstidslinjeTest {
                                             vurderingsperiodecopy.id shouldNotBe expectedVurderingsperiode.id
                                             vurderingsperiodecopy.vurdering shouldBe expectedVurderingsperiode.vurdering
                                             vurderingsperiodecopy.periode shouldBe Periode.create(
-                                                1.juli(2021), 31.juli(2021),
+                                                1.juli(2021),
+                                                31.juli(2021),
                                             )
                                             vurderingsperiodecopy.grunnlag.let {
                                                 formueVilkår.grunnlag.map { it.id } shouldNotContain it.id

@@ -14,7 +14,7 @@ data class TilbakekrevingsbehandlingJson(
     enum class TilbakekrevingsAvgjørelseJson {
         IKKE_AVGJORT,
         TILBAKEKREV,
-        IKKE_TILBAKEKREV
+        IKKE_TILBAKEKREV,
     }
 }
 

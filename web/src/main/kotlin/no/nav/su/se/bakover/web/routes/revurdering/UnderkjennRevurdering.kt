@@ -35,7 +35,7 @@ import no.nav.su.se.bakover.web.withRevurderingId
 
 data class UnderkjennBody(
     val grunn: String,
-    val kommentar: String
+    val kommentar: String,
 ) {
     private fun valid() = enumContains<Attestering.Underkjent.Grunn>(grunn) && kommentar.isNotBlank()
 
@@ -72,7 +72,7 @@ internal fun Route.underkjennRevurdering(
                             ifRight = { underkjent ->
                                 revurderingService.underkjenn(
                                     revurderingId = revurderingId,
-                                    attestering = underkjent
+                                    attestering = underkjent,
                                 ).fold(
                                     ifLeft = {
                                         val resultat = when (it) {
@@ -81,7 +81,7 @@ internal fun Route.underkjennRevurdering(
                                             KunneIkkeUnderkjenneRevurdering.KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
                                             is KunneIkkeUnderkjenneRevurdering.UgyldigTilstand -> ugyldigTilstand(
                                                 it.fra,
-                                                it.til
+                                                it.til,
                                             )
                                             KunneIkkeUnderkjenneRevurdering.SaksbehandlerOgAttestantKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
                                         }
@@ -93,12 +93,12 @@ internal fun Route.underkjennRevurdering(
                                         call.svar(
                                             Resultat.json(
                                                 HttpStatusCode.OK,
-                                                serialize(it.toJson(satsFactory))
-                                            )
+                                                serialize(it.toJson(satsFactory)),
+                                            ),
                                         )
-                                    }
+                                    },
                                 )
-                            }
+                            },
                         )
                     },
                 )

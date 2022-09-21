@@ -18,7 +18,8 @@ data class Behandlingsoversikt(
     enum class Behandlingstype {
         SØKNADSBEHANDLING,
         REVURDERING,
-        KLAGE;
+        KLAGE,
+        ;
     }
 
     enum class Behandlingsstatus {
@@ -32,6 +33,7 @@ data class Behandlingsoversikt(
         INNVILGET,
         STANS,
         GJENOPPTAK,
-        OVERSENDT;
+        OVERSENDT,
+        ;
     }
 }

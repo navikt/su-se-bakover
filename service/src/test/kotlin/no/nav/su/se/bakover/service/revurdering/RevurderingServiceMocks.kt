@@ -61,7 +61,7 @@ internal data class RevurderingServiceMocks(
         sakService = sakService,
         avkortingsvarselRepo = avkortingsvarselRepo,
         tilbakekrevingService = tilbakekrevingService,
-        satsFactory = satsFactory
+        satsFactory = satsFactory,
     ).apply { addObserver(observer) }
 
     fun all() = listOf(

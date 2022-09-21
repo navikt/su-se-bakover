@@ -267,7 +267,8 @@ internal class SøknadsbehandlingRoutesKtTest {
                 )
                 services.søknadsbehandling.simuler(
                     SimulerRequest(
-                        objects.søknadsbehandling.id, saksbehandler,
+                        objects.søknadsbehandling.id,
+                        saksbehandler,
                     ),
                 )
                 defaultRequest(
@@ -801,7 +802,6 @@ internal class SøknadsbehandlingRoutesKtTest {
                     ).fold(
                         { it },
                         {
-
                             services.søknadsbehandling.sendTilAttestering(
                                 SendTilAttesteringRequest(
                                     objects.søknadsbehandling.id,
@@ -838,7 +838,7 @@ internal class SøknadsbehandlingRoutesKtTest {
         SakFactory(clock = fixedClock).nySakMedNySøknad(
             fnr = fnr,
             søknadInnhold = søknadInnhold,
-            innsendtAv = veileder
+            innsendtAv = veileder,
         ).also {
             repos.sak.opprettSak(it)
         }
@@ -940,7 +940,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                         periode = år(2021),
                         status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
                     ),
-                )
+                ),
             ),
         )
         services.søknadsbehandling.leggTilBosituasjonEpsgrunnlag(

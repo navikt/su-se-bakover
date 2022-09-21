@@ -17,5 +17,7 @@ enum class UtbetalingsinstruksjonForEtterbetalinger {
      * Angir at vi ønsker å utbetale etterbetaling ved første anledning. Forskjellen fra [SammenMedNestePlanlagteUtbetaling]
      * er at denne innstillingne fører til at prosessen med å utbetale starter med en gang oppdrag mottar utbetalingen.
      */
-    SåFortSomMulig;
+    SåFortSomMulig,
+
+    ;
 }

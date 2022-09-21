@@ -63,7 +63,7 @@ abstract class BrevInnhold {
         val attestantNavn: String,
         val fritekst: String,
         val satsoversikt: Satsoversikt,
-        override val sakstype: Sakstype
+        override val sakstype: Sakstype,
     ) : BrevInnhold() {
         override val brevTemplate: BrevTemplate = BrevTemplate.InnvilgetVedtak
 

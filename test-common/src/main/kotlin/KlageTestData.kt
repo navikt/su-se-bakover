@@ -181,7 +181,11 @@ fun utfyltAvvistVilkårsvurdertKlage(
         val klage = it.second.vilkårsvurder(
             saksbehandler,
             VilkårsvurderingerTilKlage.create(
-                vedtakId, innenforFristen, klagesDetPåKonkreteElementerIVedtaket, erUnderskrevet, begrunnelse,
+                vedtakId,
+                innenforFristen,
+                klagesDetPåKonkreteElementerIVedtaket,
+                erUnderskrevet,
+                begrunnelse,
             ),
         ).getOrFail()
 
@@ -453,7 +457,8 @@ fun avvistKlage(
         sakMedVedtak = sakMedVedtak,
     ).let {
         val klage = it.second.leggTilFritekstTilAvvistVedtaksbrev(
-            saksbehandler, fritekstTilBrev,
+            saksbehandler,
+            fritekstTilBrev,
         )
 
         Pair(
@@ -833,32 +838,36 @@ fun createBekreftetVilkårsvurdertKlage(
     fritekstTilBrev: String? = null,
     klageinstanshendelser: Klageinstanshendelser = Klageinstanshendelser.empty(),
 ): VilkårsvurdertKlage.Bekreftet {
-    return if (vilkårsvurderinger.erAvvist()) VilkårsvurdertKlage.Bekreftet.Avvist(
-        id = id,
-        opprettet = opprettet,
-        sakId = sakId,
-        saksnummer = saksnummer,
-        fnr = fnr,
-        journalpostId = journalpostId,
-        oppgaveId = oppgaveId,
-        saksbehandler = saksbehandler,
-        vilkårsvurderinger = vilkårsvurderinger,
-        attesteringer = attesteringer,
-        datoKlageMottatt = datoKlageMottatt,
-        fritekstTilAvvistVedtaksbrev = fritekstTilBrev,
-    ) else VilkårsvurdertKlage.Bekreftet.TilVurdering(
-        id = id,
-        opprettet = opprettet,
-        sakId = sakId,
-        saksnummer = saksnummer,
-        fnr = fnr,
-        journalpostId = journalpostId,
-        oppgaveId = oppgaveId,
-        saksbehandler = saksbehandler,
-        vilkårsvurderinger = vilkårsvurderinger,
-        vurderinger = vurderinger,
-        attesteringer = attesteringer,
-        datoKlageMottatt = datoKlageMottatt,
-        klageinstanshendelser = klageinstanshendelser,
-    )
+    return if (vilkårsvurderinger.erAvvist()) {
+        VilkårsvurdertKlage.Bekreftet.Avvist(
+            id = id,
+            opprettet = opprettet,
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            journalpostId = journalpostId,
+            oppgaveId = oppgaveId,
+            saksbehandler = saksbehandler,
+            vilkårsvurderinger = vilkårsvurderinger,
+            attesteringer = attesteringer,
+            datoKlageMottatt = datoKlageMottatt,
+            fritekstTilAvvistVedtaksbrev = fritekstTilBrev,
+        )
+    } else {
+        VilkårsvurdertKlage.Bekreftet.TilVurdering(
+            id = id,
+            opprettet = opprettet,
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            journalpostId = journalpostId,
+            oppgaveId = oppgaveId,
+            saksbehandler = saksbehandler,
+            vilkårsvurderinger = vilkårsvurderinger,
+            vurderinger = vurderinger,
+            attesteringer = attesteringer,
+            datoKlageMottatt = datoKlageMottatt,
+            klageinstanshendelser = klageinstanshendelser,
+        )
+    }
 }

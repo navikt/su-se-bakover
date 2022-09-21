@@ -69,7 +69,7 @@ class SøknadTest {
         SøknadServiceOgMocks(
             personService = mock {
                 on { hentPerson(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
-            }
+            },
         ).also {
             it.service.nySøknad(søknadInnhold, innsender) shouldBe KunneIkkeOppretteSøknad.FantIkkePerson.left()
         }
@@ -87,14 +87,14 @@ class SøknadTest {
             pdfGenerator = mock {
                 on { genererPdf(any<SøknadPdfInnhold>()) } doReturn ClientError(1, "").left()
             },
-            søknadMetrics = mock()
+            søknadMetrics = mock(),
         ).also {
             val actual = it.service.nySøknad(søknadInnhold, innsender)
 
             inOrder(
                 it.personService,
                 it.sakService,
-                it.pdfGenerator
+                it.pdfGenerator,
             ) {
                 verify(it.personService).hentPerson(argThat { it shouldBe fnr })
                 verify(it.sakService).hentSakidOgSaksnummer(argThat { it shouldBe fnr })
@@ -112,7 +112,7 @@ class SøknadTest {
                                 innsendtAv = innsender,
                             ),
                         )
-                    }
+                    },
                 )
                 verify(it.sakService).hentSakidOgSaksnummer(argThat { it shouldBe fnr })
                 verify(it.pdfGenerator).genererPdf(
@@ -125,7 +125,7 @@ class SøknadTest {
                             søknadInnhold = søknadInnhold,
                             clock = fixedClock,
                         )
-                    }
+                    },
                 )
             }
             actual.getOrFail().apply {
@@ -138,7 +138,8 @@ class SøknadTest {
                         søknadInnhold = søknadInnhold,
                         innsendtAv = innsender,
                     ),
-                    Søknad.Ny::id, Søknad.Ny::sakId
+                    Søknad.Ny::id,
+                    Søknad.Ny::sakId,
                 )
             }
         }
@@ -160,7 +161,7 @@ class SøknadTest {
             dokArkiv = mock {
                 on { opprettJournalpost(any()) } doReturn ClientError(1, "").left()
             },
-            søknadRepo = mock()
+            søknadRepo = mock(),
         ).also {
             val actual = it.service.nySøknad(søknadInnhold, innsender)
 
@@ -169,7 +170,7 @@ class SøknadTest {
                 it.sakService,
                 it.søknadRepo,
                 it.pdfGenerator,
-                it.dokArkiv
+                it.dokArkiv,
             ) {
                 verify(it.personService).hentPerson(argThat { it shouldBe fnr })
                 verify(it.sakService).hentSakidOgSaksnummer(argThat { it shouldBe fnr })
@@ -182,7 +183,7 @@ class SøknadTest {
                             søknadInnhold = søknadInnhold,
                             innsendtAv = innsender,
                         )
-                    }
+                    },
                 )
                 verify(it.pdfGenerator).genererPdf(
                     argThat<SøknadPdfInnhold> {
@@ -194,7 +195,7 @@ class SøknadTest {
                             søknadInnhold = søknadInnhold,
                             clock = fixedClock,
                         )
-                    }
+                    },
                 )
                 verify(it.dokArkiv).opprettJournalpost(
                     argThat {
@@ -217,7 +218,8 @@ class SøknadTest {
                         søknadInnhold = søknadInnhold,
                         innsendtAv = innsender,
                     ),
-                    Søknad.Ny::id, Søknad.Ny::sakId
+                    Søknad.Ny::id,
+                    Søknad.Ny::sakId,
                 )
             }
         }
@@ -262,7 +264,7 @@ class SøknadTest {
                             søknadInnhold = søknadInnhold,
                             innsendtAv = innsender,
                         )
-                    }
+                    },
                 )
                 verify(it.søknadMetrics).incrementNyCounter(SøknadMetrics.NyHandlinger.PERSISTERT)
                 verify(it.pdfGenerator).genererPdf(
@@ -330,7 +332,8 @@ class SøknadTest {
                         søknadInnhold = søknadInnhold,
                         innsendtAv = innsender,
                     ),
-                    Søknad.Ny::id, Søknad.Ny::sakId,
+                    Søknad.Ny::id,
+                    Søknad.Ny::sakId,
                 )
             }
         }
@@ -355,7 +358,7 @@ class SøknadTest {
                 on { opprettOppgave(any()) } doReturn oppgaveId.right()
             },
             søknadRepo = mock(),
-            søknadMetrics = mock()
+            søknadMetrics = mock(),
         ).also {
             val actual = it.service.nySøknad(søknadInnhold, innsender)
 
@@ -365,7 +368,7 @@ class SøknadTest {
                 it.søknadRepo,
                 it.pdfGenerator,
                 it.dokArkiv,
-                it.oppgaveService
+                it.oppgaveService,
             ) {
                 verify(it.personService).hentPerson(argThat { it shouldBe fnr })
                 verify(it.sakService).hentSakidOgSaksnummer(argThat { it shouldBe fnr })
@@ -378,7 +381,7 @@ class SøknadTest {
                             søknadInnhold = søknadInnhold,
                             innsendtAv = innsender,
                         )
-                    }
+                    },
                 )
                 verify(it.pdfGenerator).genererPdf(
                     argThat<SøknadPdfInnhold> {
@@ -390,7 +393,7 @@ class SøknadTest {
                             søknadInnhold = søknadInnhold,
                             clock = fixedClock,
                         )
-                    }
+                    },
                 )
                 verify(it.dokArkiv).opprettJournalpost(
                     argThat {
@@ -413,9 +416,9 @@ class SøknadTest {
                                 innsendtAv = innsender,
                                 journalpostId = journalpostId,
                             ),
-                            Søknad.Journalført.MedOppgave::id
+                            Søknad.Journalført.MedOppgave::id,
                         )
-                    }
+                    },
                 )
                 verify(it.oppgaveService).opprettOppgave(
                     argThat {
@@ -443,11 +446,11 @@ class SøknadTest {
                                 søknadInnhold = søknadInnhold,
                                 innsendtAv = innsender,
                                 journalpostId = journalpostId,
-                                oppgaveId = oppgaveId
+                                oppgaveId = oppgaveId,
                             ),
-                            Søknad.Journalført.MedOppgave::id
+                            Søknad.Journalført.MedOppgave::id,
                         )
-                    }
+                    },
                 )
             }
             verifyNoMoreInteractions(
@@ -456,7 +459,7 @@ class SøknadTest {
                 it.sakService,
                 it.pdfGenerator,
                 it.dokArkiv,
-                it.oppgaveService
+                it.oppgaveService,
             )
 
             actual.getOrFail().apply {
@@ -469,7 +472,8 @@ class SøknadTest {
                         søknadInnhold = søknadInnhold,
                         innsendtAv = innsender,
                     ),
-                    Søknad.Ny::id, Søknad.Ny::sakId
+                    Søknad.Ny::id,
+                    Søknad.Ny::sakId,
                 )
             }
         }

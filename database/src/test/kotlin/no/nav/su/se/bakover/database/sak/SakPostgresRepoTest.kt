@@ -46,7 +46,7 @@ internal class SakPostgresRepoTest {
                 nySak.id,
                 nySak.saksnummer,
                 nySak.fnr,
-                nySak.type
+                nySak.type,
             )
         }
     }
@@ -61,13 +61,13 @@ internal class SakPostgresRepoTest {
                 nySak.id,
                 nySak.saksnummer,
                 nySak.fnr,
-                nySak.type
+                nySak.type,
             )
             repo.hentSakInfoForIdenter(nonEmptyListOf(nySak.fnr.toString(), "1234567890123")) shouldBe SakInfo(
                 nySak.id,
                 nySak.saksnummer,
                 nySak.fnr,
-                nySak.type
+                nySak.type,
             )
         }
     }

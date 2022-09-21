@@ -6,16 +6,16 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 
 interface UtbetalingPublisher {
     fun publish(
-        utbetaling: Utbetaling.SimulertUtbetaling
+        utbetaling: Utbetaling.SimulertUtbetaling,
     ): Either<KunneIkkeSendeUtbetaling, Utbetalingsrequest>
 
     fun publishRequest(
-        utbetalingsrequest: Utbetalingsrequest
+        utbetalingsrequest: Utbetalingsrequest,
     ): Either<KunneIkkeSendeUtbetaling, Utbetalingsrequest>
 
     fun generateRequest(utbetaling: Utbetaling.SimulertUtbetaling): Utbetalingsrequest
 
     data class KunneIkkeSendeUtbetaling(
-        val oppdragsmelding: Utbetalingsrequest
+        val oppdragsmelding: Utbetalingsrequest,
     )
 }

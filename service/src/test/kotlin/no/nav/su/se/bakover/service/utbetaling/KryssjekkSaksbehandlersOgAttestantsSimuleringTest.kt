@@ -31,12 +31,12 @@ class KryssjekkSaksbehandlersOgAttestantsSimuleringTest {
         val attestantSimulertUtbetaling = nyUtbetalingSimulert(
             sakOgBehandling = sak to revurdering,
             beregning = revurdering.beregning,
-            clock = fixedClock
+            clock = fixedClock,
         )
 
         KryssjekkSaksbehandlersOgAttestantsSimulering(
             saksbehandlersSimulering = saksbehandlerSimulering,
-            attestantsSimulering = attestantSimulertUtbetaling
+            attestantsSimulering = attestantSimulertUtbetaling,
         ).sjekk().shouldBeRight()
     }
 
@@ -48,18 +48,18 @@ class KryssjekkSaksbehandlersOgAttestantsSimuleringTest {
         val attestantSimulertUtbetaling = nyUtbetalingSimulert(
             sakOgBehandling = sak to revurdering,
             beregning = revurdering.beregning,
-            clock = fixedClock
+            clock = fixedClock,
         ).let {
             it.copy(
                 simulering = it.simulering.copy(
-                    gjelderId = Fnr.generer()
-                )
+                    gjelderId = Fnr.generer(),
+                ),
             )
         }
 
         KryssjekkSaksbehandlersOgAttestantsSimulering(
             saksbehandlersSimulering = saksbehandlerSimulering,
-            attestantsSimulering = attestantSimulertUtbetaling
+            attestantsSimulering = attestantSimulertUtbetaling,
         ).sjekk() shouldBe KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UlikGjelderId.left()
     }
 
@@ -71,18 +71,18 @@ class KryssjekkSaksbehandlersOgAttestantsSimuleringTest {
         val attestantSimulertUtbetaling = nyUtbetalingSimulert(
             sakOgBehandling = sak to revurdering,
             beregning = revurdering.beregning,
-            clock = fixedClock
+            clock = fixedClock,
         ).let {
             it.copy(
                 simulering = simuleringFeilutbetaling(
-                    perioder = revurdering.periode.måneder().toTypedArray()
-                )
+                    perioder = revurdering.periode.måneder().toTypedArray(),
+                ),
             )
         }
 
         KryssjekkSaksbehandlersOgAttestantsSimulering(
             saksbehandlersSimulering = saksbehandlerSimulering,
-            attestantsSimulering = attestantSimulertUtbetaling
+            attestantsSimulering = attestantSimulertUtbetaling,
         ).sjekk() shouldBe KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UlikFeilutbetaling.left()
     }
 
@@ -94,12 +94,12 @@ class KryssjekkSaksbehandlersOgAttestantsSimuleringTest {
         val attestantSimulertUtbetaling = nyUtbetalingSimulert(
             sakOgBehandling = sak to revurdering,
             beregning = (sak.søknadsbehandlinger.first() as Søknadsbehandling.Iverksatt.Innvilget).beregning, // lager simulering for søknadsbehandlingen
-            clock = fixedClock
+            clock = fixedClock,
         )
 
         KryssjekkSaksbehandlersOgAttestantsSimulering(
             saksbehandlersSimulering = saksbehandlerSimulering,
-            attestantsSimulering = attestantSimulertUtbetaling
+            attestantsSimulering = attestantSimulertUtbetaling,
         ).sjekk() shouldBe KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UlikPeriode.left()
     }
 
@@ -112,9 +112,9 @@ class KryssjekkSaksbehandlersOgAttestantsSimuleringTest {
                     månedsbeløp = 1000.0,
                     periode = februar(2021),
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
-                )
-            )
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            ),
         )
 
         val (sak2, revurdering) = simulertRevurdering(
@@ -125,21 +125,21 @@ class KryssjekkSaksbehandlersOgAttestantsSimuleringTest {
                     månedsbeløp = 1000.0,
                     periode = august(2021),
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
-                )
-            )
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            ),
         )
 
         val saksbehandlerSimulering = (søknadsbehandling as VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling).simulering // bruker simulering fra søknadsbehandling
         val attestantSimulertUtbetaling = nyUtbetalingSimulert(
             sakOgBehandling = sak2 to revurdering,
             beregning = revurdering.beregning,
-            clock = fixedClock
+            clock = fixedClock,
         )
 
         KryssjekkSaksbehandlersOgAttestantsSimulering(
             saksbehandlersSimulering = saksbehandlerSimulering,
-            attestantsSimulering = attestantSimulertUtbetaling
+            attestantsSimulering = attestantSimulertUtbetaling,
         ).sjekk() shouldBe KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UliktBeløp.left()
     }
 }

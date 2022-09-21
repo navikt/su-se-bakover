@@ -35,7 +35,7 @@ sealed class KunneIkkeLageSøknadPdf {
 
 data class OpprettManglendeJournalpostOgOppgaveResultat(
     val journalpostResultat: List<Either<KunneIkkeOppretteJournalpost, Søknad.Journalført.UtenOppgave>>,
-    val oppgaveResultat: List<Either<KunneIkkeOppretteOppgave, Søknad.Journalført.MedOppgave>>
+    val oppgaveResultat: List<Either<KunneIkkeOppretteOppgave, Søknad.Journalført.MedOppgave>>,
 ) {
     fun harFeil(): Boolean = journalpostResultat.mapNotNull { it.swap().orNull() }.isNotEmpty() ||
         oppgaveResultat.mapNotNull { it.swap().orNull() }.isNotEmpty()

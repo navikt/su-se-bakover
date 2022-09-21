@@ -58,7 +58,8 @@ internal class UnderkjennRevurderingTest {
             ).getOrFail()
 
             actual shouldBe tilAttestering.underkjenn(
-                attestering, nyOppgaveId,
+                attestering,
+                nyOppgaveId,
             )
 
             inOrder(it.revurderingRepo, it.personService, it.oppgaveService, it.observer) {

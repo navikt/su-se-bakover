@@ -156,7 +156,7 @@ private fun søknadsinnholdUføreJson(
           "verdiPåEiendom":0,
           "eiendomBrukesTil":"",
           "kjøretøy":[
-            
+
           ],
           "innskuddsBeløp":0,
           "verdipapirBeløp":0,

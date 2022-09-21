@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.web.svar
 
 internal fun Route.reguleringOversiktRoutes(
     reguleringService: ReguleringService,
-    satsFactory: SatsFactory
+    satsFactory: SatsFactory,
 ) {
     get("$reguleringPath/status") {
         authorize(Brukerrolle.Saksbehandler) {

@@ -14,12 +14,12 @@ data class Beregningsperiode(
 
 data class BrevPeriode(
     val fraOgMed: String,
-    val tilOgMed: String
+    val tilOgMed: String,
 )
 
 fun Periode.tilBrevperiode(): BrevPeriode {
     return BrevPeriode(
         fraOgMed = fraOgMed.ddMMyyyy(),
-        tilOgMed = tilOgMed.ddMMyyyy()
+        tilOgMed = tilOgMed.ddMMyyyy(),
     )
 }

@@ -139,7 +139,7 @@ internal class UtbetalingServiceImpl(
             underArbeid = utbetaling,
             eksisterende = sak.utbetalinger,
             simuler = this::simulerUtbetaling,
-            clock = clock
+            clock = clock,
         )
 
         return simulerUtbetaling(
@@ -208,7 +208,7 @@ internal class UtbetalingServiceImpl(
             underArbeid = utbetaling,
             eksisterende = sak.utbetalinger,
             simuler = this::simulerUtbetaling,
-            clock = clock
+            clock = clock,
         )
 
         return simulerUtbetaling(
@@ -347,7 +347,7 @@ internal class UtbetalingServiceImpl(
             KryssjekkTidslinjerOgSimulering.sjekkGjenopptak(
                 underArbeid = it,
                 eksisterende = request.sak.utbetalinger,
-                clock = clock
+                clock = clock,
             )
             it
         }.mapLeft {

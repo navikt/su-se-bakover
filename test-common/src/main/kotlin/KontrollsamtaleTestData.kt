@@ -13,7 +13,7 @@ fun kontrollsamtale(
     innkallingsdato: LocalDate = fixedLocalDate.plusMonths(4),
     status: Kontrollsamtalestatus = Kontrollsamtalestatus.PLANLAGT_INNKALLING,
     frist: LocalDate = fixedLocalDate.plusMonths(5),
-    dokumentId: UUID? = null
+    dokumentId: UUID? = null,
 ): Kontrollsamtale = Kontrollsamtale(
     id = id,
     opprettet = opprettet,
@@ -21,5 +21,5 @@ fun kontrollsamtale(
     innkallingsdato = innkallingsdato,
     status = status,
     frist = frist,
-    dokumentId = dokumentId
+    dokumentId = dokumentId,
 )

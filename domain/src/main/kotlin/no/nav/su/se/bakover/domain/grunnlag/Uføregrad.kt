@@ -6,7 +6,7 @@ import arrow.core.left
 import arrow.core.right
 
 data class Uføregrad private constructor(
-    val value: Int
+    val value: Int,
 ) {
     companion object {
         fun tryParse(uføregrad: Int): Either<UføregradMåVæreMellomEnOgHundre, Uføregrad> {

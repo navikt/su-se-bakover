@@ -31,6 +31,7 @@ class Tidslinje<T : KanPlasseresPåTidslinjeMedSegSelv<T>> private constructor(
         ): Tidslinje<T> {
             return Tidslinje(periode, objekter)
         }
+
         @JvmName("tidslinje")
         operator fun <T : KanPlasseresPåTidslinje<T>> invoke(
             periode: Periode,

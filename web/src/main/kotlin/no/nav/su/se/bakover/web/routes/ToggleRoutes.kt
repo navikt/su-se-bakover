@@ -17,14 +17,13 @@ private const val TOGGLES_PATH = "/toggles"
 internal val togglePaths = listOf(TOGGLES_PATH)
 
 internal fun Route.toggleRoutes(toggleService: ToggleService) {
-
     get("$TOGGLES_PATH/{toggleName}") {
         call.parameter("toggleName").fold(
             ifLeft = { call.svar(it) },
             ifRight = { toggleName ->
                 val toggle = mapOf(Pair(toggleName, toggleService.isEnabled(toggleName)))
                 call.respond(toggle)
-            }
+            },
         )
     }
 
@@ -37,7 +36,7 @@ internal fun Route.toggleRoutes(toggleService: ToggleService) {
             ifRight = { toggleNames ->
                 val toggles = toggleNames.associateWith { toggleService.isEnabled(it) }
                 call.respond(toggles)
-            }
+            },
         )
     }
 }

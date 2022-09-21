@@ -47,11 +47,11 @@ internal class FlyktningVilkårsvurderingPostgresRepo(
                     resultat,
                     fraOgMed,
                     tilOgMed
-                ) values 
+                ) values
                 (
                     :id,
                     :opprettet,
-                    :behandlingId,               
+                    :behandlingId,
                     :resultat,
                     :fraOgMed,
                     :tilOgMed
@@ -114,7 +114,7 @@ internal class FlyktningVilkårsvurderingPostgresRepo(
                 fraOgMed = localDate("fraOgMed"),
                 tilOgMed = localDate("tilOgMed"),
             ),
-            vurdering = ResultatDto.valueOf(string("resultat")).toDomain()
+            vurdering = ResultatDto.valueOf(string("resultat")).toDomain(),
         )
     }
 }

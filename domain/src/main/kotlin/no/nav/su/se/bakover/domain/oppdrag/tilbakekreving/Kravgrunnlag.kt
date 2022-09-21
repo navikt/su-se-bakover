@@ -70,6 +70,7 @@ data class Kravgrunnlag(
         FEIL,
         MANU,
         NY,
-        SPER;
+        SPER,
+        ;
     }
 }

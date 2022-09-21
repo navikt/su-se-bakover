@@ -174,14 +174,17 @@ class ReguleringServiceImpl(
         )
             .getOrHandle { throw RuntimeException("Feil skjedde under manuell regulering for saksnummer ${sak.saksnummer}. $it") }
 
-        if (gjeldendeVedtaksdata.harStans())
+        if (gjeldendeVedtaksdata.harStans()) {
             return KunneIkkeRegulereManuelt.StansetYtelseMåStartesFørDenKanReguleres.left()
+        }
 
-        if (gjeldendeVedtaksdata.pågåendeAvkortingEllerBehovForFremtidigAvkorting)
+        if (gjeldendeVedtaksdata.pågåendeAvkortingEllerBehovForFremtidigAvkorting) {
             return KunneIkkeRegulereManuelt.HarPågåendeEllerBehovForAvkorting.left()
+        }
 
-        if (tilbakekrevingService.hentAvventerKravgrunnlag(sak.id).isNotEmpty())
+        if (tilbakekrevingService.hentAvventerKravgrunnlag(sak.id).isNotEmpty()) {
             return KunneIkkeRegulereManuelt.AvventerKravgrunnlag.left()
+        }
 
         return sak.opprettEllerOppdaterRegulering(regulering.periode.fraOgMed, clock).mapLeft {
             return when (it) {

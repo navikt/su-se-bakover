@@ -13,14 +13,14 @@ interface BehandlingMetrics {
         PERSISTERT,
         JOURNALFØRT,
         LUKKET_OPPGAVE,
-        DISTRIBUERT_BREV
+        DISTRIBUERT_BREV,
     }
 
     enum class AvslåttHandlinger {
         PERSISTERT,
         JOURNALFØRT,
         LUKKET_OPPGAVE,
-        DISTRIBUERT_BREV
+        DISTRIBUERT_BREV,
     }
 
     enum class TilAttesteringHandlinger {

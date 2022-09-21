@@ -32,7 +32,7 @@ internal object KabalRequestMapper {
                 ),
                 KabalRequest.TilknyttedeJournalposter(
                     journalpostId = journalpostIdForVedtak,
-                    type = KabalRequest.TilknyttedeJournalposter.Type.OPPRINNELIG_VEDTAK
+                    type = KabalRequest.TilknyttedeJournalposter.Type.OPPRINNELIG_VEDTAK,
                 ),
             ),
         )

@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit
 internal fun Application.configureAuthentication(
     azureAd: AzureAd,
     applicationConfig: ApplicationConfig,
-    tokenOppslag: TokenOppslag
+    tokenOppslag: TokenOppslag,
 ) {
     val log: Logger = LoggerFactory.getLogger("Application.configureAuthentication()")
 
@@ -32,7 +32,7 @@ internal fun Application.configureAuthentication(
                 .rateLimited(
                     10,
                     1,
-                    TimeUnit.MINUTES
+                    TimeUnit.MINUTES,
                 ) // if not cached, only allow max 10 different keys per minute to be fetched from external provider
                 .build()
         }
@@ -47,7 +47,7 @@ internal fun Application.configureAuthentication(
                 .rateLimited(
                     10,
                     1,
-                    TimeUnit.MINUTES
+                    TimeUnit.MINUTES,
                 ) // if not cached, only allow max 10 different keys per minute to be fetched from external provider
                 .build()
         }
@@ -66,7 +66,7 @@ internal fun Application.configureAuthentication(
                             it == applicationConfig.azure.clientId ||
                                 // TODO jah, ia: En tilpasning for mock-oauth. Vi kan f.eks. bytte til en mer Azure-spesifikk mock.
                                 it == """api://${applicationConfig.azure.clientId}/.default"""
-                        }
+                        },
                     ) {
                         "Auth: Valid audience not found in claims"
                     }

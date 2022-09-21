@@ -4,5 +4,5 @@ import no.nav.su.se.bakover.common.Tidspunkt
 
 data class AvstemmingsPeriode(
     val fraOgMed: Tidspunkt,
-    val tilOgMed: Tidspunkt
+    val tilOgMed: Tidspunkt,
 )

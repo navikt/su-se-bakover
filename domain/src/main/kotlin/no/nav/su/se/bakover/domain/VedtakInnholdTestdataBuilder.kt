@@ -47,6 +47,6 @@ object VedtakInnholdTestdataBuilder {
                 ),
             ),
         ),
-        sakstype = Sakstype.UFØRE
+        sakstype = Sakstype.UFØRE,
     )
 }

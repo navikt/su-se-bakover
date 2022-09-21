@@ -793,7 +793,8 @@ fun iverksattSøknadsbehandling(
                 vedtakListe = sak.vedtakListe + vedtak,
                 utbetalinger = utbetaling?.let { sak.utbetalinger + it } ?: sak.utbetalinger,
             ),
-            iverksatt, vedtak,
+            iverksatt,
+            vedtak,
         )
     }
 }

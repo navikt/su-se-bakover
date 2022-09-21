@@ -27,7 +27,6 @@ internal data class VurderingsperiodeFormueJson(
 )
 
 internal fun FormueVilkår.toJson(satsFactory: SatsFactory): FormuevilkårJson {
-
     return FormuevilkårJson(
         vurderinger = when (this) {
             is FormueVilkår.IkkeVurdert -> emptyList()
@@ -54,7 +53,7 @@ internal fun Vurdering.toFormueStatusString() = when (this) {
 internal enum class FormuevilkårStatus {
     VilkårOppfylt,
     VilkårIkkeOppfylt,
-    MåInnhenteMerInformasjon
+    MåInnhenteMerInformasjon,
 }
 
 internal fun VurderingsperiodeFormue.toJson(): VurderingsperiodeFormueJson {

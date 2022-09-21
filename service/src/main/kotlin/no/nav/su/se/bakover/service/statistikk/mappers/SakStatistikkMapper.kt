@@ -19,7 +19,7 @@ class SakStatistikkMapper(
             saksnummer = sak.saksnummer.nummer,
             sakStatus = "OPPRETTET",
             sakStatusBeskrivelse = "Sak er opprettet men ingen vedtak er fattet.",
-            versjon = clock.millis()
+            versjon = clock.millis(),
         )
     }
 }

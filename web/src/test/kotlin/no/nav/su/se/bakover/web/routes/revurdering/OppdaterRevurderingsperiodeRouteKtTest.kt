@@ -135,8 +135,8 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
                     Revurdering.KunneIkkeOppdatereRevurdering.UgyldigTilstand(
                         fra = IverksattRevurdering::class,
                         til = OpprettetRevurdering::class,
-                    )
-                )
+                    ),
+                ),
             ),
             expectedStatusCode = HttpStatusCode.BadRequest,
             expectedJsonResponse = """

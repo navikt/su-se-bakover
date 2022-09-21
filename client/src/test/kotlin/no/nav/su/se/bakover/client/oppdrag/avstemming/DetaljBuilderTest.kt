@@ -11,21 +11,21 @@ internal class DetaljBuilderTest {
             detaljType = Detaljdata.Detaljtype.GODKJENT_MED_VARSEL,
             offnr = "12345678910",
             avleverendeTransaksjonNokkel = okMedVarselId.toString(),
-            tidspunkt = "2020-03-02-00.00.00.000000"
+            tidspunkt = "2020-03-02-00.00.00.000000",
         )
 
         val expectedAvvist = Detaljdata(
             detaljType = Detaljdata.Detaljtype.AVVIST,
             offnr = "12345678910",
             avleverendeTransaksjonNokkel = feildId.toString(),
-            tidspunkt = "2020-03-01-00.00.00.000000"
+            tidspunkt = "2020-03-01-00.00.00.000000",
         )
 
         val expectedManglerKvittering = Detaljdata(
             detaljType = Detaljdata.Detaljtype.MANGLENDE_KVITTERING,
             offnr = "12345678910",
             avleverendeTransaksjonNokkel = manglerKvitteringId.toString(),
-            tidspunkt = "2020-03-02-00.00.00.000000"
+            tidspunkt = "2020-03-02-00.00.00.000000",
         )
     }
 
@@ -34,7 +34,7 @@ internal class DetaljBuilderTest {
         DetaljBuilder(alleUtbetalinger()).build() shouldBe listOf(
             expectedOkMedVarsel,
             expectedAvvist,
-            expectedManglerKvittering
+            expectedManglerKvittering,
         )
     }
 }

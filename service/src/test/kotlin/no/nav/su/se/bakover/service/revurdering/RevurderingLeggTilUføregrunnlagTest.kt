@@ -27,8 +27,8 @@ internal class RevurderingLeggTilUføregrunnlagTest {
     fun `avslår uførhet, med avslått formue, gir feilmelding om at utfallet ikke støttes`() {
         val (sak, opprettetRevurdering) = opprettetRevurdering(
             vilkårOverrides = listOf(
-                formuevilkårAvslåttPgrBrukersformue()
-            )
+                formuevilkårAvslåttPgrBrukersformue(),
+            ),
         )
 
         RevurderingServiceMocks(
@@ -37,7 +37,7 @@ internal class RevurderingLeggTilUføregrunnlagTest {
             },
             sakService = mock {
                 on { hentSakForRevurdering(any()) } doReturn sak
-            }
+            },
         ).also {
             val actual = it.revurderingService.leggTilUførevilkår(
                 request = LeggTilUførevurderingerRequest(

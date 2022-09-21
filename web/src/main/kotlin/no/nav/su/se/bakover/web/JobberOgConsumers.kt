@@ -102,21 +102,25 @@ internal fun startJobberOgConsumers(
         KonsistensavstemmingJob(
             avstemmingService = services.avstemming,
             leaderPodLookup = clients.leaderPodLookup,
-            kjøreplan = if (isProd) setOf(
-                22.november(2021),
-                5.januar(2022),
-                28.januar(2022),
-                25.februar(2022),
-                25.mars(2022),
-                26.april(2022),
-                27.mai(2022),
-                29.juni(2022),
-                29.juli(2022),
-                30.august(2022),
-                29.september(2022),
-                28.oktober(2022),
-                21.november(2022),
-            ) else emptySet(),
+            kjøreplan = if (isProd) {
+                setOf(
+                    22.november(2021),
+                    5.januar(2022),
+                    28.januar(2022),
+                    25.februar(2022),
+                    25.mars(2022),
+                    26.april(2022),
+                    27.mai(2022),
+                    29.juni(2022),
+                    29.juli(2022),
+                    30.august(2022),
+                    29.september(2022),
+                    28.oktober(2022),
+                    21.november(2022),
+                )
+            } else {
+                emptySet()
+            },
             initialDelay = initialDelay.next(),
             periode = Duration.of(4, ChronoUnit.HOURS),
             clock = clock,

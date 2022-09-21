@@ -191,7 +191,6 @@ internal class PeriodeTest {
 
     @Test
     fun `overlapper fler perioder`() {
-
         år(2021) fullstendigOverlapp
             listOf(år(2021)) shouldBe true
 
@@ -767,7 +766,7 @@ internal class PeriodeTest {
         listOf(
             mai(2021),
             år(2021),
-            år(2022)
+            år(2022),
         ).harOverlappende() shouldBe true
     }
 
@@ -846,7 +845,7 @@ internal class PeriodeTest {
         @Test
         fun `sorter liste en måned`() {
             listOf(
-                januar(2021)
+                januar(2021),
             ).erSortert() shouldBe true
         }
 
@@ -857,6 +856,7 @@ internal class PeriodeTest {
                 Periode.create(1.januar(2021), 28.februar(2021)),
             ).erSortert() shouldBe true
         }
+
         @Test
         fun `sorter liste usammenhengende`() {
             listOf(
@@ -1130,7 +1130,7 @@ internal class PeriodeTest {
         fun `komplement av overlappende uten hull er tom liste`() {
             listOf(
                 januar(2022).rangeTo(april(2022)),
-                februar((2022)).rangeTo(desember(2022))
+                februar((2022)).rangeTo(desember(2022)),
             ).komplement() shouldBe emptyList()
         }
 
@@ -1140,7 +1140,7 @@ internal class PeriodeTest {
                 januar(2022).rangeTo(april(2022)),
                 februar((2022)).rangeTo(mai(2022)),
                 juli(2022).rangeTo(september(2022)),
-                juli((2022)).rangeTo(desember(2022))
+                juli((2022)).rangeTo(desember(2022)),
             ).komplement() shouldBe listOf(juni(2022))
         }
     }

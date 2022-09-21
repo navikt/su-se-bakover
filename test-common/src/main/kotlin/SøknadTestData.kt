@@ -235,7 +235,7 @@ fun nySakMedLukketSøknad(
     lukkSøknadCommand: LukkSøknadCommand = trekkSøknad(
         søknadId = søknadId,
         lukketTidspunkt = fixedTidspunkt.plus(1, ChronoUnit.SECONDS),
-    )
+    ),
 ): Pair<Sak, Søknad.Journalført.MedOppgave.Lukket> {
     val (sak, søknad) = nySakMedjournalførtSøknadOgOppgave(
         søknadId = søknadId,

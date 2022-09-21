@@ -39,7 +39,8 @@ internal fun Route.iverksettRevurderingRoute(
         authorize(Brukerrolle.Attestant) {
             call.withRevurderingId { revurderingId ->
                 revurderingService.iverksett(
-                    revurderingId = revurderingId, attestant = NavIdentBruker.Attestant(call.suUserContext.navIdent),
+                    revurderingId = revurderingId,
+                    attestant = NavIdentBruker.Attestant(call.suUserContext.navIdent),
                 ).fold(
                     ifLeft = {
                         val message = it.tilResultat()

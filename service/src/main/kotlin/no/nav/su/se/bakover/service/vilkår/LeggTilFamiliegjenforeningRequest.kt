@@ -25,12 +25,13 @@ data class LeggTilFamiliegjenforeningRequest(
         clock: Clock,
         stønadsperiode: Periode?,
     ) =
-        if (stønadsperiode == null)
+        if (stønadsperiode == null) {
             throw IllegalArgumentException("Stønadsperiode er ikke lagt i søknadsbehandling for å legge til familiegjenforening vilkår. id $behandlingId")
-        else
+        } else {
             FamiliegjenforeningVilkår.Vurdert.create(
                 vurderingsperioder = NonEmptyList.fromListUnsafe(toVurderingsperiode(clock, stønadsperiode)),
             )
+        }
 
     private fun toVurderingsperiode(
         clock: Clock,

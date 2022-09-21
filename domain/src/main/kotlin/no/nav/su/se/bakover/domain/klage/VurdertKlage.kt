@@ -153,7 +153,9 @@ sealed interface VurdertKlage : Klage, VurdertKlageFelter {
                     begrunnelse = begrunnelse,
                     tidspunktAvsluttet = tidspunktAvsluttet,
                 ).right()
-            } else KunneIkkeAvslutteKlage.UgyldigTilstand(this::class).left()
+            } else {
+                KunneIkkeAvslutteKlage.UgyldigTilstand(this::class).left()
+            }
         }
     }
 
@@ -206,7 +208,9 @@ sealed interface VurdertKlage : Klage, VurdertKlageFelter {
                     begrunnelse = begrunnelse,
                     tidspunktAvsluttet = tidspunktAvsluttet,
                 ).right()
-            } else KunneIkkeAvslutteKlage.UgyldigTilstand(this::class).left()
+            } else {
+                KunneIkkeAvslutteKlage.UgyldigTilstand(this::class).left()
+            }
         }
     }
 
@@ -275,7 +279,9 @@ sealed interface VurdertKlage : Klage, VurdertKlageFelter {
                     begrunnelse = begrunnelse,
                     tidspunktAvsluttet = tidspunktAvsluttet,
                 ).right()
-            } else KunneIkkeAvslutteKlage.UgyldigTilstand(this::class).left()
+            } else {
+                KunneIkkeAvslutteKlage.UgyldigTilstand(this::class).left()
+            }
         }
     }
 }

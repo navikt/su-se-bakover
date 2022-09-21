@@ -9,20 +9,20 @@ import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher.KunneIkkeSendeUtbetaling
 
 class UtbetalingMqPublisher(
-    private val mqPublisher: MqPublisher
+    private val mqPublisher: MqPublisher,
 ) : UtbetalingPublisher {
 
     override fun publish(
-        utbetaling: Utbetaling.SimulertUtbetaling
+        utbetaling: Utbetaling.SimulertUtbetaling,
     ): Either<KunneIkkeSendeUtbetaling, Utbetalingsrequest> {
         val xml = XmlMapper.writeValueAsString(toUtbetalingRequest(utbetaling))
         return mqPublisher.publish(xml)
-            .mapLeft { KunneIkkeSendeUtbetaling(Utbetalingsrequest(xml),) }
+            .mapLeft { KunneIkkeSendeUtbetaling(Utbetalingsrequest(xml)) }
             .map { Utbetalingsrequest(value = xml) }
     }
 
     override fun publishRequest(
-        utbetalingsrequest: Utbetalingsrequest
+        utbetalingsrequest: Utbetalingsrequest,
     ): Either<KunneIkkeSendeUtbetaling, Utbetalingsrequest> {
         return mqPublisher.publish(utbetalingsrequest.value)
             .mapLeft { KunneIkkeSendeUtbetaling(utbetalingsrequest) }

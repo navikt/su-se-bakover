@@ -482,7 +482,7 @@ internal class OversendKlageTest {
             oppgaveService = mock {
                 on { lukkOppgave(any()) } doReturn Unit.right()
             },
-            observer = observerMock
+            observer = observerMock,
         )
         val attestant = NavIdentBruker.Attestant("s2")
 

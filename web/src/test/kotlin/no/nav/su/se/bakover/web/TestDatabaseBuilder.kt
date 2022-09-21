@@ -63,7 +63,7 @@ object TestDatabaseBuilder {
             avkortingsvarselRepo = avkortingsvarselRepo,
             reguleringRepo = reguleringRepo,
             tilbakekrevingRepo = tilbakekrevingRepo,
-            jobContextRepo = jobContextRepo
+            jobContextRepo = jobContextRepo,
         )
     }
 }

@@ -27,7 +27,8 @@ private class VurderingsperiodeFamiliegjenforeningTest {
     fun `copy ny periode`() {
         vurderingsperiodeFamiliegjenforeningInnvilget().copy(CopyArgs.Tidslinje.NyPeriode(år(2025)))
             .shouldBeEqualToIgnoringFields(
-                vurderingsperiodeFamiliegjenforeningInnvilget(periode = år(2025)), Vurderingsperiode::id,
+                vurderingsperiodeFamiliegjenforeningInnvilget(periode = år(2025)),
+                Vurderingsperiode::id,
             )
     }
 }

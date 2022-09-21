@@ -66,5 +66,5 @@ internal sealed interface ForhåndsvarselDatabaseJson {
 internal enum class BeslutningEtterForhåndsvarsling(val beslutning: String) {
     FortsettSammeOpplysninger("FortsettSammeOpplysninger"),
     FortsettMedAndreOpplysninger("FortsettMedAndreOpplysninger"),
-    AvsluttUtenEndringer("AvsluttUtenEndringer")
+    AvsluttUtenEndringer("AvsluttUtenEndringer"),
 }

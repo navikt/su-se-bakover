@@ -102,17 +102,18 @@ fun Application.susebakover(
     ),
     jmsConfig: JmsConfig = JmsConfig(applicationConfig),
     clients: Clients =
-        if (applicationConfig.runtimeEnvironment != ApplicationConfig.RuntimeEnvironment.Nais)
+        if (applicationConfig.runtimeEnvironment != ApplicationConfig.RuntimeEnvironment.Nais) {
             StubClientsBuilder(
                 clock = clock,
                 databaseRepos = databaseRepos,
             ).build(applicationConfig)
-        else
+        } else {
             ProdClientsBuilder(
                 jmsConfig,
                 clock = clock,
                 unleash = unleash,
-            ).build(applicationConfig),
+            ).build(applicationConfig)
+        },
     services: Services = ServiceBuilder.build(
         databaseRepos = databaseRepos,
         clients = clients,

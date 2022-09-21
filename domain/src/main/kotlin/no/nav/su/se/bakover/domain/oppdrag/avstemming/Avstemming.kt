@@ -219,7 +219,8 @@ data class OppdragslinjeForKonsistensavstemming(
 
 enum class Fagområde {
     SUALDER,
-    SUUFORE;
+    SUUFORE,
+    ;
 }
 
 fun Sakstype.toFagområde(): Fagområde {

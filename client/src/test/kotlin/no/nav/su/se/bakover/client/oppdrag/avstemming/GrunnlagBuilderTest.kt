@@ -23,7 +23,7 @@ internal class GrunnlagBuilderTest {
             avvistFortegn = Fortegn.TILLEGG,
             manglerAntall = 1,
             manglerBelop = 5000.toBigDecimal(),
-            manglerFortegn = Fortegn.TILLEGG
+            manglerFortegn = Fortegn.TILLEGG,
         )
 
         GrunnlagBuilder(alleUtbetalinger()).build() shouldBe expected
@@ -34,7 +34,7 @@ internal class GrunnlagBuilderTest {
         val expected = expected().copy(
             godkjentAntall = 1,
             godkjentBelop = 1000.toBigDecimal(),
-            godkjentFortegn = Fortegn.TILLEGG
+            godkjentFortegn = Fortegn.TILLEGG,
         )
 
         GrunnlagBuilder(
@@ -58,7 +58,7 @@ internal class GrunnlagBuilderTest {
             godkjentFortegn = Fortegn.TILLEGG,
             avvistAntall = 1,
             avvistBelop = (-1000).toBigDecimal(),
-            avvistFortegn = Fortegn.FRADRAG
+            avvistFortegn = Fortegn.FRADRAG,
         )
 
         GrunnlagBuilder(
@@ -93,6 +93,6 @@ internal class GrunnlagBuilderTest {
         avvistFortegn = Fortegn.TILLEGG,
         manglerAntall = 0,
         manglerBelop = 0.toBigDecimal(),
-        manglerFortegn = Fortegn.TILLEGG
+        manglerFortegn = Fortegn.TILLEGG,
     )
 }

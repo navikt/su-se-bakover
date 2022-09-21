@@ -61,7 +61,7 @@ internal fun Route.opprettRevurderingRoute(
                             sakId = sakId,
                             periode = Periode.create(
                                 fraOgMed = body.fraOgMed,
-                                tilOgMed = body.tilOgMed
+                                tilOgMed = body.tilOgMed,
                             ),
                             årsak = body.årsak,
                             begrunnelse = body.begrunnelse,

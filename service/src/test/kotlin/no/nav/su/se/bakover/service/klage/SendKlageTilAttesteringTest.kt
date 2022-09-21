@@ -44,7 +44,6 @@ internal class SendKlageTilAttesteringTest {
 
     @Test
     fun `fant ikke klage`() {
-
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn null
@@ -284,15 +283,19 @@ internal class SendKlageTilAttesteringTest {
             klageId = klage.id,
             saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomSendteTilAttestering"),
         ).getOrFail().also {
-            expectedKlage = if (klage is AvvistKlage) KlageTilAttestering.Avvist(
-                forrigeSteg = klage,
-                oppgaveId = OppgaveId("oppgaveIdTilAttestering"),
-                saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomSendteTilAttestering"),
-            ) else KlageTilAttestering.Vurdert(
-                forrigeSteg = klage as VurdertKlage.Bekreftet,
-                oppgaveId = OppgaveId("oppgaveIdTilAttestering"),
-                saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomSendteTilAttestering"),
-            )
+            expectedKlage = if (klage is AvvistKlage) {
+                KlageTilAttestering.Avvist(
+                    forrigeSteg = klage,
+                    oppgaveId = OppgaveId("oppgaveIdTilAttestering"),
+                    saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomSendteTilAttestering"),
+                )
+            } else {
+                KlageTilAttestering.Vurdert(
+                    forrigeSteg = klage as VurdertKlage.Bekreftet,
+                    oppgaveId = OppgaveId("oppgaveIdTilAttestering"),
+                    saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerSomSendteTilAttestering"),
+                )
+            }
             it shouldBe expectedKlage!!
         }
 

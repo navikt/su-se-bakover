@@ -67,7 +67,8 @@ enum class CefFieldName(val kode: String) {
      * Om handlingen blir tillatt eller ikke (permit/deny)
      */
     DECISION_VERDI("flexString1"),
-    DECISION_LABEL("flexString1Label");
+    DECISION_LABEL("flexString1Label"),
+    ;
 }
 
 data class CefField(val cefFieldName: CefFieldName, val value: String)

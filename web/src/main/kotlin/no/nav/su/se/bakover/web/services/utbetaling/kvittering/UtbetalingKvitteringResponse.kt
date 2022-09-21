@@ -25,7 +25,7 @@ import java.time.Clock
 data class UtbetalingKvitteringResponse(
     val mmel: Mmel,
     @field:JacksonXmlProperty(localName = "oppdrag-110")
-    val oppdragRequest: OppdragRequest
+    val oppdragRequest: OppdragRequest,
 ) {
     data class Mmel(
         val systemId: String?,
@@ -47,11 +47,14 @@ data class UtbetalingKvitteringResponse(
 
     enum class Alvorlighetsgrad(@JsonValue val value: String) {
         OK("00"),
+
         /** En varselmelding følger med */
         OK_MED_VARSEL("04"),
+
         /** Alvorlig feil som logges og stopper behandling av aktuelt tilfelle*/
         ALVORLIG_FEIL("08"),
-        SQL_FEIL("12");
+        SQL_FEIL("12"),
+        ;
 
         override fun toString() = value
     }
@@ -63,7 +66,7 @@ data class UtbetalingKvitteringResponse(
             ALVORLIG_FEIL, SQL_FEIL -> Utbetalingsstatus.FEIL
         },
         originalKvittering = originalKvittering,
-        mottattTidspunkt = Tidspunkt.now(clock)
+        mottattTidspunkt = Tidspunkt.now(clock),
     )
 
     companion object {

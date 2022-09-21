@@ -66,7 +66,7 @@ sealed class Journalpost {
                     pdf = pdf,
                     søknadInnhold = søknadInnhold,
                 ),
-                sakstype = søknadInnhold.type()
+                sakstype = søknadInnhold.type(),
             )
 
             private fun lagDokumenter(pdf: ByteArray, søknadInnhold: SøknadInnhold): List<JournalpostDokument> =
@@ -119,7 +119,7 @@ sealed class Journalpost {
                     originalJson = brevInnhold.toJson(),
                 ),
                 tittel = brevInnhold.brevTemplate.tittel(),
-                sakstype = sakstype
+                sakstype = sakstype,
             )
 
             fun from(
@@ -136,7 +136,7 @@ sealed class Journalpost {
                     originalJson = dokument.generertDokumentJson,
                 ),
                 tittel = dokument.tittel,
-                sakstype = sakstype
+                sakstype = sakstype,
             )
 
             private fun lagDokumenter(tittel: String, pdf: ByteArray, originalJson: String): List<JournalpostDokument> =
@@ -160,7 +160,7 @@ sealed class Journalpost {
         val saksnummer: Saksnummer,
         override val dokumenter: List<JournalpostDokument>,
         override val tittel: String,
-        override val sakstype: Sakstype
+        override val sakstype: Sakstype,
     ) : Journalpost() {
         override val avsenderMottaker: AvsenderMottaker = AvsenderMottaker(
             id = person.ident.fnr.toString(),
@@ -188,14 +188,14 @@ sealed class Journalpost {
                     originalJson = brevInnhold.toJson(),
                 ),
                 tittel = brevInnhold.brevTemplate.tittel(),
-                sakstype = sakstype
+                sakstype = sakstype,
             )
 
             fun from(
                 person: Person,
                 saksnummer: Saksnummer,
                 dokument: Dokument,
-                sakstype: Sakstype
+                sakstype: Sakstype,
             ) = Info(
                 person = person,
                 saksnummer = saksnummer,
@@ -284,11 +284,11 @@ sealed class DokumentVariant {
 
 enum class JournalPostType(val type: String) {
     INNGAAENDE("INNGAAENDE"),
-    UTGAAENDE("UTGAAENDE")
+    UTGAAENDE("UTGAAENDE"),
 }
 
 enum class DokumentKategori(val type: String) {
     SOK("SOK"),
     VB("VB"),
-    IB("IB")
+    IB("IB"),
 }

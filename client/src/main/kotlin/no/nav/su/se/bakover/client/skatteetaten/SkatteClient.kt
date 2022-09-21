@@ -96,10 +96,11 @@ class SkatteClient(private val skatteetatenConfig: SkatteetatenConfig, private v
 }
 
 private data class SkattedataFeilrespons(val kode: Feilkode, val melding: String, val korrelasjonsid: String) {
-    /*
-    * Docs: https://skatteetaten.github.io/datasamarbeid-api-dokumentasjon/reference_summertskattegrunnlag.html
-    */
+    /**
+     * Docs: https://skatteetaten.github.io/datasamarbeid-api-dokumentasjon/reference_summertskattegrunnlag.html
+     */
     enum class Feilkode(val httpKode: Int, val beskrivelse: String) {
+        /* ktlint-disable enum-entry-name-case */
         `SSG-001`(500, "Uventet feil på tjenesten"),
         `SSG-002`(500, "Uventet feil i et bakenforliggende system"),
         `SSG-003`(404, "Ukjent url benyttet"),
@@ -110,5 +111,6 @@ private data class SkattedataFeilrespons(val kode: Feilkode, val melding: String
         `SSG-008`(404, "Ingen summert skattegrunnlag funnet på oppgitt personidentifikator og inntektsår"),
         `SSG-009`(406, "Feil tilknyttet dataformat. Kun json eller xml er støttet"),
         `SSG-010`(410, "Skattegrunnlag finnes ikke lenger"),
+        /* ktlint-enable enum-entry-name-case */
     }
 }

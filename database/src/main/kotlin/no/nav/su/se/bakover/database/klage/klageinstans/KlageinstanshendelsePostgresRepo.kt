@@ -27,7 +27,8 @@ internal class KlageinstanshendelsePostgresRepo(
     internal enum class KlageinstanshendelseType(private val verdi: String) {
         UPROSESSERT("UPROSESSERT"),
         PROSESSERT("PROSESSERT"),
-        FEIL("FEIL");
+        FEIL("FEIL"),
+        ;
 
         override fun toString(): String = verdi
     }

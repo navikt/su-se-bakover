@@ -9,26 +9,26 @@ import no.nav.su.se.bakover.web.errorJson
 internal data class UtenlandskInntektJson(
     val beløpIUtenlandskValuta: Int,
     val valuta: String,
-    val kurs: Double
+    val kurs: Double,
 ) {
     fun toUtenlandskInntekt(): Either<Resultat, UtenlandskInntekt> {
         return UtenlandskInntekt.tryCreate(
             beløpIUtenlandskValuta = beløpIUtenlandskValuta,
             valuta = valuta,
-            kurs = kurs
+            kurs = kurs,
         ).mapLeft {
             when (it) {
                 UtenlandskInntekt.UgyldigUtenlandskInntekt.BeløpKanIkkeVæreNegativ -> HttpStatusCode.BadRequest.errorJson(
                     "Beløpet kan ikke være negativt",
-                    "utenlandsk_inntekt_negativt_beløp"
+                    "utenlandsk_inntekt_negativt_beløp",
                 )
                 UtenlandskInntekt.UgyldigUtenlandskInntekt.ValutaMåFyllesUt -> HttpStatusCode.BadRequest.errorJson(
                     "Valuta må fylles ut",
-                    "utenlandsk_inntekt_mangler_valuta"
+                    "utenlandsk_inntekt_mangler_valuta",
                 )
                 UtenlandskInntekt.UgyldigUtenlandskInntekt.KursKanIkkeVæreNegativ -> HttpStatusCode.BadRequest.errorJson(
                     "Kursen kan ikke være negativ",
-                    "utenlandsk_inntekt_negativ_kurs"
+                    "utenlandsk_inntekt_negativ_kurs",
                 )
             }
         }

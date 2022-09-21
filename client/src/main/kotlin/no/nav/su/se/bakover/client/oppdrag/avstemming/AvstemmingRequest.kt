@@ -80,7 +80,8 @@ internal data class GrensesnittsavstemmingData(
         enum class Detaljtype(@JsonValue val value: String) {
             GODKJENT_MED_VARSEL("VARS"),
             AVVIST("AVVI"),
-            MANGLENDE_KVITTERING("MANG");
+            MANGLENDE_KVITTERING("MANG"),
+            ;
 
             override fun toString() = value
         }
@@ -106,7 +107,8 @@ internal data class Periodedata(
 
 internal enum class Fortegn(@JsonValue val value: String) {
     TILLEGG("T"),
-    FRADRAG("F");
+    FRADRAG("F"),
+    ;
 
     override fun toString() = value
 }
@@ -192,14 +194,16 @@ sealed class Aksjonsdata {
     enum class AksjonType(@JsonValue val value: String) {
         START("START"),
         DATA("DATA"),
-        AVSLUTT("AVSL");
+        AVSLUTT("AVSL"),
+        ;
 
         override fun toString() = value
     }
 
     enum class KildeType(@JsonValue val value: String) {
         AVLEVERENDE("AVLEV"),
-        MOTTAKENDE("MOTT");
+        MOTTAKENDE("MOTT"),
+        ;
 
         override fun toString() = value
     }
@@ -207,7 +211,8 @@ sealed class Aksjonsdata {
     enum class AvstemmingType(@JsonValue val value: String) {
         GRENSESNITTAVSTEMMING("GRSN"),
         KONSISTENSAVSTEMMING("KONS"),
-        PERIODEAVSTEMMING("PERI");
+        PERIODEAVSTEMMING("PERI"),
+        ;
 
         override fun toString() = value
     }

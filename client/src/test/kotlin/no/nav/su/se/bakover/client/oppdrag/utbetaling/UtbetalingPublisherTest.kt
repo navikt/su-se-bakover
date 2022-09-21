@@ -78,7 +78,10 @@ internal class UtbetalingPublisherTest {
             gjelderId = Fnr(
                 fnr = "12345678910",
             ),
-            gjelderNavn = "navn", datoBeregnet = idag(fixedClock), nettoBeløp = 0, periodeList = listOf(),
+            gjelderNavn = "navn",
+            datoBeregnet = idag(fixedClock),
+            nettoBeløp = 0,
+            periodeList = listOf(),
         ),
     )
 }

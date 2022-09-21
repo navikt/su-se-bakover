@@ -60,6 +60,6 @@ interface ReguleringService {
         reguleringId: UUID,
         uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
         fradrag: List<Grunnlag.Fradragsgrunnlag>,
-        saksbehandler: NavIdentBruker.Saksbehandler
+        saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeRegulereManuelt, Regulering.IverksattRegulering>
 }

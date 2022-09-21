@@ -328,7 +328,6 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
 
         @Test
         fun `factory for allerede utregnede verdier caches`() {
-
             // Trenger en egen her siden vi asserter på cachen (hvis ikke kan de andre testene forstyrre)
             val satsFactoryTest = SatsFactoryForSupplerendeStønad()
 
@@ -373,7 +372,6 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
 
         @Test
         fun `Cache tar høyde for knekkpunkter på tvers av satser og grunnbeløps ikraftredelser`() {
-
             val satsFactory = SatsFactoryForSupplerendeStønad(
                 tidligsteTilgjengeligeMåned = november(2021),
                 garantipensjonsendringerOrdinær = nonEmptyListOf(
@@ -403,7 +401,6 @@ internal class SatsFactoryForSupplerendeStønadUføreTest {
                 ),
             )
             satsFactory.gjeldende(1.januar(2022)).let {
-
                 it.høyAlder(januar(2022)) shouldBe FullSupplerendeStønadForMåned.Alder(
                     måned = januar(2022),
                     satskategori = Satskategori.HØY,

@@ -48,8 +48,8 @@ internal class AttesteringTest {
         val expected = """
            {
            "type": "Underkjent",
-           "attestant": "I1337", 
-           "grunn": "BEREGNINGEN_ER_FEIL", 
+           "attestant": "I1337",
+           "grunn": "BEREGNINGEN_ER_FEIL",
            "kommentar": "Kan ikke dele på 0",
            "opprettet": "$fixedTidspunkt"
            }
@@ -59,8 +59,8 @@ internal class AttesteringTest {
                 attestant = NavIdentBruker.Attestant("I1337"),
                 grunn = Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL,
                 kommentar = "Kan ikke dele på 0",
-                opprettet = fixedTidspunkt
-            )
+                opprettet = fixedTidspunkt,
+            ),
         )
 
         JSONAssert.assertEquals(expected, actual, true)
@@ -72,19 +72,19 @@ internal class AttesteringTest {
         val json = """
            {
            "type": "Underkjent",
-           "attestant": "I1337", 
-           "grunn": "BEREGNINGEN_ER_FEIL", 
+           "attestant": "I1337",
+           "grunn": "BEREGNINGEN_ER_FEIL",
            "kommentar": "Kan ikke dele på 0",
            "opprettet": "$fixedTidspunkt"
              }
-        
+
         """.trimIndent()
         val actual: Attestering = objectMapper.readValue(json)
         val expected = Attestering.Underkjent(
             attestant = NavIdentBruker.Attestant("I1337"),
             grunn = Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL,
             kommentar = "Kan ikke dele på 0",
-            opprettet = fixedTidspunkt
+            opprettet = fixedTidspunkt,
         )
 
         actual shouldBe expected

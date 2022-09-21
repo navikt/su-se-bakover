@@ -93,7 +93,7 @@ internal class BrevutkastForRevurderingRouteTest {
                     "message":"Fant ikke revurdering",
                     "code":"fant_ikke_revurdering"
                 }
-            """.trimIndent()
+            """.trimIndent(),
 
         )
     }
@@ -108,7 +108,7 @@ internal class BrevutkastForRevurderingRouteTest {
                     "message":"Kunne ikke lage brevutkast",
                     "code":"kunne_ikke_lage_brevutkast"
                 }
-            """.trimIndent()
+            """.trimIndent(),
 
         )
     }
@@ -123,7 +123,7 @@ internal class BrevutkastForRevurderingRouteTest {
                     "message":"Fant ikke person",
                     "code":"fant_ikke_person"
                 }
-            """.trimIndent()
+            """.trimIndent(),
 
         )
     }
@@ -138,7 +138,7 @@ internal class BrevutkastForRevurderingRouteTest {
                     "message":"Kunne ikke hente navn for saksbehandler eller attestant",
                     "code":"navneoppslag_feilet"
                 }
-            """.trimIndent()
+            """.trimIndent(),
 
         )
     }
@@ -146,7 +146,7 @@ internal class BrevutkastForRevurderingRouteTest {
     private fun shouldMapErrorCorrectly(
         error: KunneIkkeLageBrevutkastForRevurdering,
         expectedStatusCode: HttpStatusCode,
-        expectedJsonResponse: String
+        expectedJsonResponse: String,
     ) {
         val revurderingServiceMock = mock<RevurderingService> {
             on { lagBrevutkastForRevurdering(any(), any()) } doReturn error.left()

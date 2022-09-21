@@ -55,8 +55,8 @@ internal fun Route.sendRevurderingTilAttestering(
                             call.svar(
                                 Resultat.json(
                                     HttpStatusCode.OK,
-                                    serialize(it.toJson(satsFactory))
-                                )
+                                    serialize(it.toJson(satsFactory)),
+                                ),
                             )
                         },
                     )

@@ -23,7 +23,7 @@ internal val formatter = DateTimeFormatter.ofPattern("yyyy-MM")
 
 internal fun Route.frikortVedtakRoutes(
     vedtakService: VedtakService,
-    clock: Clock
+    clock: Clock,
 ) {
     fun hentDato(dato: String): Either<Resultat, LocalDate> {
         return Either.catch { YearMonth.parse(dato, formatter).atDay(1) }

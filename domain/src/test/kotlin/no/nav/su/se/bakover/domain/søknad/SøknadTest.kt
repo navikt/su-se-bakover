@@ -21,7 +21,7 @@ internal class SøknadTest {
             søknadInnhold = søknadinnhold(
                 forNav = ForNav.DigitalSøknad(),
             ),
-            innsendtAv = veileder
+            innsendtAv = veileder,
         )
         søknad.mottaksdato shouldBe fixedLocalDate
     }
@@ -40,7 +40,7 @@ internal class SøknadTest {
                     annenGrunn = null,
                 ),
             ),
-            innsendtAv = veileder
+            innsendtAv = veileder,
         )
         søknad.mottaksdato shouldBe dato
     }

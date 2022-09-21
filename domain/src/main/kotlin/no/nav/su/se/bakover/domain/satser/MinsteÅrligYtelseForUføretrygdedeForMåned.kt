@@ -9,7 +9,7 @@ data class MinsteÅrligYtelseForUføretrygdedeForMåned(
     val satsKategori: Satskategori,
     val ikrafttredelse: LocalDate,
     val virkningstidspunkt: LocalDate,
-    val måned: Måned
+    val måned: Måned,
 ) {
     val faktorSomBigDecimal: BigDecimal = faktor.toBigDecimal()
 }

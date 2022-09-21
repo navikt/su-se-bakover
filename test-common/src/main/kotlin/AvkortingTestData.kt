@@ -14,8 +14,10 @@ fun avkortingsvarselUtenlandsopphold(
     sakId: UUID = UUID.randomUUID(),
     revurderingId: UUID = UUID.randomUUID(),
     simulering: Simulering = simuleringFeilutbetaling(
-        oktober(2020), november(2020), desember(2020),
-    )
+        oktober(2020),
+        november(2020),
+        desember(2020),
+    ),
 ) = Avkortingsvarsel.Utenlandsopphold.Opprettet(
     id = id,
     opprettet = opprettet,

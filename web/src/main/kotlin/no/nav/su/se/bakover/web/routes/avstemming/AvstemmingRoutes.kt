@@ -122,12 +122,14 @@ internal fun Route.avstemmingRoutes(
             val fraOgMed = call.parameters["fraOgMed"]
             val fagområdeString = call.parameters["fagomrade"]
 
-            if (fraOgMed == null) call.svar(
-                HttpStatusCode.BadRequest.errorJson(
-                    "Parameter 'fraOgMed' mangler",
-                    "ugyldig_parameter",
-                ),
-            )
+            if (fraOgMed == null) {
+                call.svar(
+                    HttpStatusCode.BadRequest.errorJson(
+                        "Parameter 'fraOgMed' mangler",
+                        "ugyldig_parameter",
+                    ),
+                )
+            }
 
             val fagområde = Either.catch {
                 fagområdeString?.toFagområde()

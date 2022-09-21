@@ -86,7 +86,7 @@ internal class GjenopptakAvYtelseServiceTest {
             sakService = mock {
                 on { hentSak(any<UUID>()) } doReturn opprettetRevurdering(
                     revurderingsperiode = mai(2021),
-                    sakOgVedtakSomKanRevurderes = sak to stans
+                    sakOgVedtakSomKanRevurderes = sak to stans,
                 ).first.right()
             },
         ).let {
@@ -219,7 +219,8 @@ internal class GjenopptakAvYtelseServiceTest {
         verify(serviceAndMocks.utbetalingService).simulerGjenopptak(
             request = argThat {
                 it shouldBe SimulerUtbetalingRequest.Gjenopptak(
-                    saksbehandler = saksbehandler, sak = sak,
+                    saksbehandler = saksbehandler,
+                    sak = sak,
                 )
             },
         )

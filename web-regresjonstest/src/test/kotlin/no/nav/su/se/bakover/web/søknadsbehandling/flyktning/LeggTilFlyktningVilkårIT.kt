@@ -74,7 +74,7 @@ internal class LeggTilFlyktningVilkårIT {
                                       "periode": {
                                         "fraOgMed": "2022-01-01",
                                         "tilOgMed": "2022-12-31"
-                                      }                                      
+                                      }
                                     }
                                   ],
                                   "resultat": "VilkårOppfylt"
@@ -105,7 +105,7 @@ internal class LeggTilFlyktningVilkårIT {
                                       "periode": {
                                         "fraOgMed": "2022-01-01",
                                         "tilOgMed": "2022-12-31"
-                                      }                                      
+                                      }
                                     }
                                   ],
                                   "resultat": "VilkårIkkeOppfylt"

@@ -32,7 +32,9 @@ data class VurderingsperiodeFamiliegjenforening private constructor(
             true
         } else if (grunnlag == null || other == null) {
             false
-        } else grunnlag.erLik(other)
+        } else {
+            grunnlag.erLik(other)
+        }
     }
 
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): VurderingsperiodeFamiliegjenforening {
@@ -53,7 +55,11 @@ data class VurderingsperiodeFamiliegjenforening private constructor(
             grunnlag: Grunnlag? = null,
             periode: Periode,
         ) = VurderingsperiodeFamiliegjenforening(
-            id = id, opprettet = opprettet, vurdering = vurdering, grunnlag = grunnlag, periode = periode,
+            id = id,
+            opprettet = opprettet,
+            vurdering = vurdering,
+            grunnlag = grunnlag,
+            periode = periode,
         )
     }
 }

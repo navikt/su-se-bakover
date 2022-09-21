@@ -15,5 +15,5 @@ internal data class OppgaveRequest(
     val aktivDato: LocalDate,
     val fristFerdigstillelse: LocalDate,
     val prioritet: String,
-    val tilordnetRessurs: String?
+    val tilordnetRessurs: String?,
 )

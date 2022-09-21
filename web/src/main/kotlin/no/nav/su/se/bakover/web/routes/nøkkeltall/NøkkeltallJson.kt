@@ -34,5 +34,5 @@ internal fun Nøkkeltall.Søknader.toJson() =
         påbegynt = påbegynt,
         lukket = lukket,
         digitalsøknader = digitalsøknader,
-        papirsøknader = papirsøknader
+        papirsøknader = papirsøknader,
     )

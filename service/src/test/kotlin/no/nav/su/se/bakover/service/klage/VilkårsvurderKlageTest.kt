@@ -448,7 +448,7 @@ internal class VilkårsvurderKlageTest {
             },
             argThat {
                 it shouldBe TestSessionFactory.transactionContext
-            }
+            },
         )
         mocks.verifyNoMoreInteractions()
     }
@@ -513,7 +513,7 @@ internal class VilkårsvurderKlageTest {
             },
             argThat {
                 it shouldBe TestSessionFactory.transactionContext
-            }
+            },
         )
         mocks.verifyNoMoreInteractions()
     }

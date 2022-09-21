@@ -391,7 +391,8 @@ internal class RevurderingServiceImpl(
             hent(request.behandlingId).getOrHandle { return KunneIkkeLeggeTilFormuegrunnlag.FantIkkeRevurdering.left() }
 
         // TODO("flere_satser mulig å gjøre noe for å unngå casting?")
-        @Suppress("UNCHECKED_CAST") val bosituasjon =
+        @Suppress("UNCHECKED_CAST")
+        val bosituasjon =
             revurdering.grunnlagsdata.bosituasjon as List<Grunnlag.Bosituasjon.Fullstendig>
 
         val vilkår = request.toDomain(bosituasjon, revurdering.periode, clock, formuegrenserFactory).getOrHandle {
@@ -484,7 +485,7 @@ internal class RevurderingServiceImpl(
                     }.left()
                 },
                 informasjonSomRevurderes = InformasjonSomRevurderes.tryCreate(
-                    revurderingsteg = oppdaterRevurderingRequest.informasjonSomRevurderes
+                    revurderingsteg = oppdaterRevurderingRequest.informasjonSomRevurderes,
                 ).getOrHandle {
                     return KunneIkkeOppdatereRevurdering.MåVelgeInformasjonSomSkalRevurderes.left()
                 },
@@ -624,9 +625,11 @@ internal class RevurderingServiceImpl(
         fritekst: String,
     ): Either<KunneIkkeForhåndsvarsle, Revurdering> {
         val revurdering = hent(revurderingId).getOrHandle { return KunneIkkeForhåndsvarsle.FantIkkeRevurdering.left() }
-        if (revurdering !is SimulertRevurdering) return KunneIkkeForhåndsvarsle.MåVæreITilstandenSimulert(
-            revurdering::class,
-        ).left()
+        if (revurdering !is SimulertRevurdering) {
+            return KunneIkkeForhåndsvarsle.MåVæreITilstandenSimulert(
+                revurdering::class,
+            ).left()
+        }
         kanSendesTilAttestering(revurdering).getOrHandle {
             return KunneIkkeForhåndsvarsle.Attestering(it).left()
         }
@@ -1041,10 +1044,12 @@ internal class RevurderingServiceImpl(
     ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering> {
         val revurdering =
             revurderingRepo.hent(revurderingId) ?: return KunneIkkeIverksetteRevurdering.FantIkkeRevurdering.left()
-        if (revurdering !is RevurderingTilAttestering) return KunneIkkeIverksetteRevurdering.UgyldigTilstand(
-            revurdering::class,
-            IverksattRevurdering::class,
-        ).left()
+        if (revurdering !is RevurderingTilAttestering) {
+            return KunneIkkeIverksetteRevurdering.UgyldigTilstand(
+                revurdering::class,
+                IverksattRevurdering::class,
+            ).left()
+        }
 
         return when (revurdering) {
             is RevurderingTilAttestering.IngenEndring -> {
@@ -1137,7 +1142,8 @@ internal class RevurderingServiceImpl(
                     KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it)
                 }.flatMap { utbetaling ->
                     val opphørtVedtak = VedtakSomKanRevurderes.from(
-                        revurdering = iverksattRevurdering, utbetalingId = utbetaling.id,
+                        revurdering = iverksattRevurdering,
+                        utbetalingId = utbetaling.id,
                         clock = clock,
                     )
                     Either.catch {
@@ -1309,7 +1315,6 @@ internal class RevurderingServiceImpl(
         begrunnelse: String,
         brevvalg: Brevvalg.SaksbehandlersValg?,
     ): Either<KunneIkkeAvslutteRevurdering, AbstraktRevurdering> {
-
         val (avsluttetRevurdering, skalSendeAvslutningsbrev) = when (revurdering) {
             is GjenopptaYtelseRevurdering -> {
                 if (brevvalg != null) return KunneIkkeAvslutteRevurdering.BrevvalgIkkeTillatt.left()

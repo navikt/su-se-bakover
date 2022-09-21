@@ -35,9 +35,9 @@ fun fnrUnder67(): Fnr {
 val fnrOver67 = Fnr("05064535694")
 
 fun personopplysninger(
-    fnr: String = "12345678910"
+    fnr: String = "12345678910",
 ) = Personopplysninger(
-    Fnr(fnr)
+    Fnr(fnr),
 )
 
 fun boforhold(
@@ -72,14 +72,14 @@ fun utenlandsopphold(
         UtenlandsoppholdPeriode(
             1.februar(2020),
             5.februar(2020),
-        )
+        ),
     ),
     planlagtePerioder: List<UtenlandsoppholdPeriode>? = listOf(
         UtenlandsoppholdPeriode(
             1.juli(2020),
             31.juli(2020),
-        )
-    )
+        ),
+    ),
 ) =
     Utenlandsopphold(
         registrertePerioder = registrertePerioder,
@@ -91,7 +91,7 @@ fun oppholdstillatelse(
     harOppholdstillatelse: Boolean? = true,
     oppholdstillatelseType: Oppholdstillatelse.OppholdstillatelseType? = Oppholdstillatelse.OppholdstillatelseType.MIDLERTIDIG,
     statsborgerskapAndreLand: Boolean = false,
-    statsborgerskapAndreLandFritekst: String? = null
+    statsborgerskapAndreLandFritekst: String? = null,
 ) =
     Oppholdstillatelse.tryCreate(
         erNorskStatsborger = erNorskStatsborger,
@@ -108,12 +108,12 @@ fun inntektOgPensjon() = InntektOgPensjon(
     søktAndreYtelserIkkeBehandletBegrunnelse = "uføre",
     trygdeytelseIUtlandet = listOf(
         TrygdeytelseIUtlandet(beløp = 200, type = "trygd", valuta = "En valuta"),
-        TrygdeytelseIUtlandet(beløp = 500, type = "Annen trygd", valuta = "En annen valuta")
+        TrygdeytelseIUtlandet(beløp = 500, type = "Annen trygd", valuta = "En annen valuta"),
     ),
     pensjon = listOf(
         PensjonsOrdningBeløp("KLP", 2000.0),
-        PensjonsOrdningBeløp("SPK", 5000.0)
-    )
+        PensjonsOrdningBeløp("SPK", 5000.0),
+    ),
 )
 
 fun formue() = Formue.tryCreate(
@@ -162,7 +162,7 @@ fun ektefelle() = Ektefelle(
 )
 
 fun forNavDigitalSøknad() = ForNav.DigitalSøknad(
-    harFullmektigEllerVerge = ForNav.DigitalSøknad.Vergemål.VERGE
+    harFullmektigEllerVerge = ForNav.DigitalSøknad.Vergemål.VERGE,
 )
 
 fun søknadsinnholdAlder(
@@ -194,9 +194,9 @@ fun søknadsinnholdAlder(
 
 object SøknadInnholdTestdataBuilder {
     fun personopplysninger(
-        fnr: String = "12345678910"
+        fnr: String = "12345678910",
     ) = Personopplysninger(
-        Fnr(fnr)
+        Fnr(fnr),
     )
 
     fun build(

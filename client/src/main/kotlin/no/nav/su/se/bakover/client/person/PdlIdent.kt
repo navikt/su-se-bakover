@@ -5,5 +5,5 @@ import no.nav.su.se.bakover.domain.Fnr
 
 data class PdlIdent(
     val fnr: Fnr,
-    val aktørId: AktørId
+    val aktørId: AktørId,
 )

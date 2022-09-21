@@ -14,5 +14,5 @@ fun familiegjenforeningVilkårInnvilget(
     FamiliegjenforeningVilkår.Vurdert.create(vurderingsperioder = vurderingsperioder).getOrFail()
 
 fun familiegjenforeningVilkårAvslag(
-    vurderingsperioder: Nel<VurderingsperiodeFamiliegjenforening> = nonEmptyListOf(vurderingsperiodeFamiliegjenforeningAvslag())
+    vurderingsperioder: Nel<VurderingsperiodeFamiliegjenforening> = nonEmptyListOf(vurderingsperiodeFamiliegjenforeningAvslag()),
 ) = FamiliegjenforeningVilkår.Vurdert.create(vurderingsperioder = vurderingsperioder).getOrFail()

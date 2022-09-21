@@ -35,8 +35,8 @@ internal class PdfClientTest : WiremockBase {
         wireMockServer.stubFor(
             wiremockBuilder
                 .willReturn(
-                    WireMock.ok("pdf-byte-array-here")
-                )
+                    WireMock.ok("pdf-byte-array-here"),
+                ),
         )
         val client = PdfClient(wireMockServer.baseUrl())
         client.genererPdf(søknadPdfInnhold)
@@ -48,8 +48,8 @@ internal class PdfClientTest : WiremockBase {
         wireMockServer.stubFor(
             wiremockBuilder
                 .willReturn(
-                    WireMock.forbidden()
-                )
+                    WireMock.forbidden(),
+                ),
         )
         val client = PdfClient(wireMockServer.baseUrl())
 

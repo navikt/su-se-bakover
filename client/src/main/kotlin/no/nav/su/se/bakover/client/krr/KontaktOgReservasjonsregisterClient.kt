@@ -45,7 +45,7 @@ class KontaktOgReservasjonsregisterClient(
                     log.error(errorMessage, it)
                 }
                 KontaktOgReservasjonsregister.KunneIkkeHenteKontaktinformasjon.left()
-            }
+            },
         )
     }
 }
@@ -55,7 +55,7 @@ private data class HentKontaktinformasjonRepsonse(
     val kanVarsles: Boolean,
     val epostadresse: String?,
     val mobiltelefonnummer: String?,
-    val spraak: String?
+    val spraak: String?,
 ) {
     fun toKontaktinformasjon(): Kontaktinformasjon {
         return Kontaktinformasjon(
@@ -63,7 +63,7 @@ private data class HentKontaktinformasjonRepsonse(
             mobiltelefonnummer = mobiltelefonnummer,
             reservert = reservert,
             kanVarsles = kanVarsles,
-            språk = spraak
+            språk = spraak,
         )
     }
 }

@@ -24,7 +24,7 @@ internal class KafkaPublisherClientTest {
         val producers: MutableList<MockProducer<String, String>> = mutableListOf()
         KafkaPublisherClient(producerConfig = config, log = NOPLogger.NOP_LOGGER) { autoProducer(producers) }.publiser(
             topic = "happy",
-            melding = "path"
+            melding = "path",
         )
         producers shouldHaveSize 1
         producers.first().let {
@@ -42,7 +42,7 @@ internal class KafkaPublisherClientTest {
                 }
             }.publiser(
                 topic = "not so happy",
-                melding = "path"
+                melding = "path",
             )
             producers shouldHaveSize 1
             producers.first().history() shouldBe emptyList()
@@ -55,7 +55,7 @@ internal class KafkaPublisherClientTest {
         assertDoesNotThrow {
             KafkaPublisherClient(producerConfig = config, log = NOPLogger.NOP_LOGGER) { manualProducer(producers) }.publiser(
                 topic = "not so happy",
-                melding = "path"
+                melding = "path",
             )
 
             val producer = producers.first()
@@ -70,7 +70,7 @@ internal class KafkaPublisherClientTest {
         val producers: MutableList<MockProducer<String, String>> = mutableListOf()
         KafkaPublisherClient(producerConfig = config, log = NOPLogger.NOP_LOGGER) { manualProducer(producers) }.publiser(
             topic = "not so happy",
-            melding = "path"
+            melding = "path",
         )
 
         val producer = producers.first()
@@ -89,7 +89,7 @@ internal class KafkaPublisherClientTest {
         val producers: MutableList<MockProducer<String, String>> = mutableListOf()
         KafkaPublisherClient(producerConfig = config, log = NOPLogger.NOP_LOGGER) { manualProducer(producers) }.publiser(
             topic = "not so happy",
-            melding = "path"
+            melding = "path",
         )
 
         val producer = producers.first()

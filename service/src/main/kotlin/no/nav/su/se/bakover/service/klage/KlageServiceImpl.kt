@@ -336,9 +336,11 @@ class KlageServiceImpl(
     ): Either<KunneIkkeIverksetteAvvistKlage, IverksattAvvistKlage> {
         val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeIverksetteAvvistKlage.FantIkkeKlage.left()
 
-        if (klage !is KlageTilAttestering.Avvist) return KunneIkkeIverksetteAvvistKlage.UgyldigTilstand(
-            klage::class,
-        ).left()
+        if (klage !is KlageTilAttestering.Avvist) {
+            return KunneIkkeIverksetteAvvistKlage.UgyldigTilstand(
+                klage::class,
+            ).left()
+        }
 
         val avvistKlage = klage.iverksett(
             Attestering.Iverksatt(
@@ -397,7 +399,6 @@ class KlageServiceImpl(
         klageId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeLageBrevutkast, ByteArray> {
-
         val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeLageBrevutkast.FantIkkeKlage.left()
 
         return klage.lagBrevRequest(

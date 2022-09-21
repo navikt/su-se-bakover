@@ -55,7 +55,7 @@ sealed class FamiliegjenforeningVilkår : Vilkår() {
         override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): FamiliegjenforeningVilkår {
             check(vurderingsperioder.count() == 1) { "Kan ikke oppdatere stønadsperiode for vilkår med mer enn én vurdering" }
             return copy(
-                vurderingsperioder = vurderingsperioder.map { it.oppdaterStønadsperiode(stønadsperiode) }
+                vurderingsperioder = vurderingsperioder.map { it.oppdaterStønadsperiode(stønadsperiode) },
             )
         }
 
@@ -63,8 +63,11 @@ sealed class FamiliegjenforeningVilkår : Vilkår() {
             fun create(
                 vurderingsperioder: Nel<VurderingsperiodeFamiliegjenforening>,
             ) =
-                if (vurderingsperioder.harOverlappende()) UgyldigFamiliegjenforeningVilkår.OverlappendeVurderingsperioder.left()
-                else Vurdert(vurderingsperioder).right()
+                if (vurderingsperioder.harOverlappende()) {
+                    UgyldigFamiliegjenforeningVilkår.OverlappendeVurderingsperioder.left()
+                } else {
+                    Vurdert(vurderingsperioder).right()
+                }
 
             fun createFromVilkårsvurderinger(
                 vurderingsperioder: Nel<VurderingsperiodeFamiliegjenforening>,

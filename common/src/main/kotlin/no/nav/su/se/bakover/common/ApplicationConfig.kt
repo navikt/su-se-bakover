@@ -61,12 +61,12 @@ data class ApplicationConfig(
     enum class RuntimeEnvironment {
         Test,
         Local,
-        Nais
+        Nais,
     }
 
     enum class NaisCluster {
         Dev,
-        Prod
+        Prod,
     }
 
     data class ServiceUserConfig(
@@ -381,7 +381,7 @@ data class ApplicationConfig(
 
         data class KontaktOgReservasjonsregisterConfig(
             val appId: String,
-            val url: String
+            val url: String,
         ) {
             companion object {
                 fun createFromEnvironmentVariables() = KontaktOgReservasjonsregisterConfig(
@@ -494,7 +494,7 @@ data class ApplicationConfig(
                     wellKnownUrl = getEnvironmentVariableOrDefault("MASKINPORTEN_WELL_KNOWN_URL", "maskinporten_well_known_url"),
                     issuer = getEnvironmentVariableOrDefault("MASKINPORTEN_ISSUER", "maskinporten_issuer"),
                     jwksUri = getEnvironmentVariableOrDefault("MASKINPORTEN_JWKS_URI", "maskinporten_jwks_uri"),
-                    tokenEndpoint = getEnvironmentVariableOrDefault("MASKINPORTEN_TOKEN_ENDPOINT", "maskinporten_token_endpoint")
+                    tokenEndpoint = getEnvironmentVariableOrDefault("MASKINPORTEN_TOKEN_ENDPOINT", "maskinporten_token_endpoint"),
                 )
 
                 fun createLocalConfig(): MaskinportenConfig {

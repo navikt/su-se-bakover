@@ -41,8 +41,8 @@ internal fun ApplicationTestBuilder.leggTilOpplysningsplikt(
                             "tilOgMed": "$tilOgMed"
                           },
                           "beskrivelse": "$beskrivelse"
-                        } 
-                    ]      
+                        }
+                    ]
                   }
                 """.trimIndent(),
             )

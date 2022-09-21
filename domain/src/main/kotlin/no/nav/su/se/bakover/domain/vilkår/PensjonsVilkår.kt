@@ -194,7 +194,6 @@ data class VurderingsperiodePensjon private constructor(
             vurderingsperiode: Periode,
             grunnlag: Pensjonsgrunnlag,
         ): Either<KunneIkkeLagePensjonsVilkår.Vurderingsperiode, VurderingsperiodePensjon> {
-
             grunnlag.let {
                 if (vurderingsperiode != it.periode) return KunneIkkeLagePensjonsVilkår.Vurderingsperiode.PeriodeForGrunnlagOgVurderingErForskjellig.left()
             }

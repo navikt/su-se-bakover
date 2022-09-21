@@ -237,7 +237,7 @@ internal class RevurderingPostgresRepoTest {
             val etAnnetVedtak =
                 testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
                     sakId = sakId,
-                    stønadsperiode = stønadsperiode2022
+                    stønadsperiode = stønadsperiode2022,
                 ).second
 
             val opprettetRevurdering = opprettet(vedtak)
@@ -268,7 +268,6 @@ internal class RevurderingPostgresRepoTest {
 
     @Test
     fun `beregnet ingen endring kan overskrives med ny saksbehandler`() {
-
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo

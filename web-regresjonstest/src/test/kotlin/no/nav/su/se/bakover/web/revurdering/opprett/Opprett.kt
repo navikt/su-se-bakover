@@ -43,7 +43,7 @@ internal fun ApplicationTestBuilder.opprettRevurdering(
                     "tilOgMed": "$tilOgMed",
                     "årsak": "$årsak",
                     "begrunnelse": "$begrunnelse",
-                    "informasjonSomRevurderes": $informasjonSomRevurderes 
+                    "informasjonSomRevurderes": $informasjonSomRevurderes
                   }
                 """.trimIndent(),
             )

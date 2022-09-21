@@ -393,7 +393,7 @@ class TilbakekrevingKomponentTest {
                               "utenlandskInntekt": null,
                               "tilhører": "BRUKER"
                             }
-                          ]                    
+                          ]
                         }
                         """
                 },

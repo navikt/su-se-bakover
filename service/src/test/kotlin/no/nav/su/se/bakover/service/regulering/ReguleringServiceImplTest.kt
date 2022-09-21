@@ -190,7 +190,8 @@ internal class ReguleringServiceImplTest {
                 vilkårOverrides = listOf(
                     innvilgetUførevilkår(
                         periode = Periode.create(
-                            1.juni(2021), 31.desember(2021),
+                            1.juni(2021),
+                            31.desember(2021),
                         ),
                     ),
                 ),
@@ -294,7 +295,7 @@ internal class ReguleringServiceImplTest {
             val tikkendeKlokke = TikkendeKlokke(fixedClock)
             val (sak, regulering) = stansetSøknadsbehandlingMedÅpenRegulering(
                 regulerFraOgMed = 1.mai(2021),
-                clock = tikkendeKlokke
+                clock = tikkendeKlokke,
             )
 
             val reguleringService = lagReguleringServiceImpl(sak)
@@ -459,16 +460,20 @@ internal class ReguleringServiceImplTest {
         simulerUtbetaling: Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> = simulertUtbetaling().right(),
         scrambleUtbetaling: Boolean = true,
     ): ReguleringServiceImpl {
-        val _sak = if (scrambleUtbetaling) sak.copy(
-            // Endrer utbetalingene for å trigge behov for regulering (hvis ikke vil vi ikke ha beregningsdiff)
-            utbetalinger = listOf(
-                oversendtUtbetalingUtenKvittering(
-                    beregning = beregning(
-                        fradragsgrunnlag = listOf(fradragsgrunnlagArbeidsinntekt1000()),
+        val _sak = if (scrambleUtbetaling) {
+            sak.copy(
+                // Endrer utbetalingene for å trigge behov for regulering (hvis ikke vil vi ikke ha beregningsdiff)
+                utbetalinger = listOf(
+                    oversendtUtbetalingUtenKvittering(
+                        beregning = beregning(
+                            fradragsgrunnlag = listOf(fradragsgrunnlagArbeidsinntekt1000()),
+                        ),
                     ),
                 ),
-            ),
-        ) else sak
+            )
+        } else {
+            sak
+        }
         val testData = lagTestdata(_sak)
         val utbetaling = oversendtUtbetalingUtenKvittering(
             beregning = beregning(

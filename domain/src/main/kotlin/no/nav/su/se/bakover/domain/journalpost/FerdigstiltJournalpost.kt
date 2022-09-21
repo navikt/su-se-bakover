@@ -23,15 +23,17 @@ data class FerdigstiltJournalpost private constructor(
 }
 
 enum class Tema {
-    SUP
+    SUP,
 }
 
 enum class JournalpostStatus {
-    JOURNALFOERT;
+    JOURNALFOERT,
+    ;
 }
 
 enum class JournalpostType(val value: String) {
-    INNKOMMENDE_DOKUMENT("I");
+    INNKOMMENDE_DOKUMENT("I"),
+    ;
 
     companion object {
         fun fromString(value: String): JournalpostType {

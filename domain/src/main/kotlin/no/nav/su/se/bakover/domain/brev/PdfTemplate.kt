@@ -4,7 +4,7 @@ package no.nav.su.se.bakover.domain.brev
  * 1-1 mapping to templates defined by pdf-generator.
  */
 sealed class PdfTemplate(
-    private val templateName: String
+    private val templateName: String,
 ) {
     fun name() = templateName
 

@@ -14,7 +14,7 @@ data class FradragForMåned(
     override val månedsbeløp: Double,
     val måned: Måned,
     override val utenlandskInntekt: UtenlandskInntekt? = null,
-    override val tilhører: FradragTilhører
+    override val tilhører: FradragTilhører,
 ) : Fradrag {
 
     init {

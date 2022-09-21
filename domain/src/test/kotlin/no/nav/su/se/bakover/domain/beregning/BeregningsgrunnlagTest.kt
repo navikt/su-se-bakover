@@ -44,7 +44,7 @@ internal class BeregningsgrunnlagTest {
                     periode = beregningsperiode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
-                )
+                ),
             ),
         ).fradrag shouldBe listOf(
             FradragFactory.nyFradragsperiode(

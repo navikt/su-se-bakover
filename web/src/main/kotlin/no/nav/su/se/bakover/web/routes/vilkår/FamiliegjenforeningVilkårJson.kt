@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.web.routes.vilkår.VurderingsperiodeFamiliegjenforen
 
 data class FamiliegjenforeningVilkårJson(
     val vurderinger: List<VurderingsperiodeFamiliegjenforeningJson>,
-    val resultat: FamiliegjenforeningvilkårStatus
+    val resultat: FamiliegjenforeningvilkårStatus,
 ) {
     companion object {
         fun FamiliegjenforeningVilkår.toJson() = when (this) {

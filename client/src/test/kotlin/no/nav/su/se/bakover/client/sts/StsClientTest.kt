@@ -36,9 +36,9 @@ internal class StsClientTest : WiremockBase {
                                 "access_token": "token",
                                 "expires_in": "3600"
                             }
-                        """.trimIndent()
-                    )
-                )
+                        """.trimIndent(),
+                    ),
+                ),
         )
     }
 }

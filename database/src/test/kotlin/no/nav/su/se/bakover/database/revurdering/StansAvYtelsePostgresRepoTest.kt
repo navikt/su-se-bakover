@@ -40,7 +40,7 @@ internal class StansAvYtelsePostgresRepoTest {
                     årsak = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING.toString(),
                     begrunnelse = "huffa",
                 ),
-                sakinfo = vedtak.sakinfo()
+                sakinfo = vedtak.sakinfo(),
             )
 
             testDataHelper.revurderingRepo.lagre(simulertRevurdering)
@@ -138,7 +138,8 @@ internal class StansAvYtelsePostgresRepoTest {
             val persistertSimulert = testDataHelper.revurderingRepo.hent(simulertRevurdering.id) as StansAvYtelseRevurdering.SimulertStansAvYtelse
 
             val avsluttet = persistertSimulert.avslutt(
-                begrunnelse = "jeg opprettet en stans av ytelse, så gjennom, og så teknte 'neh'", tidspunktAvsluttet = fixedTidspunkt
+                begrunnelse = "jeg opprettet en stans av ytelse, så gjennom, og så teknte 'neh'",
+                tidspunktAvsluttet = fixedTidspunkt,
             ).getOrFail("her skulle vi ha hatt en avsluttet stans av ytelse revurdering")
 
             testDataHelper.revurderingRepo.lagre(avsluttet)

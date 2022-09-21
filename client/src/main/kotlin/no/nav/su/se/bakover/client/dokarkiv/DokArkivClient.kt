@@ -17,7 +17,7 @@ internal const val dokArkivPath = "/rest/journalpostapi/v1/journalpost"
 
 class DokArkivClient(
     private val baseUrl: String,
-    private val tokenOppslag: TokenOppslag
+    private val tokenOppslag: TokenOppslag,
 ) : DokArkiv {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -42,9 +42,9 @@ class DokArkivClient(
                         avsenderMottaker = dokumentInnhold.avsenderMottaker,
                         bruker = dokumentInnhold.bruker,
                         sak = dokumentInnhold.sak,
-                        dokumenter = dokumentInnhold.dokumenter
-                    )
-                )
+                        dokumenter = dokumentInnhold.dokumenter,
+                    ),
+                ),
             ).responseString()
 
         return result.fold(
@@ -68,7 +68,7 @@ class DokArkivClient(
             {
                 log.error("Feil ved journalføring. status=${response.statusCode} body=${String(response.data)}", it)
                 ClientError(response.statusCode, "Feil ved journalføring").left()
-            }
+            },
 
         )
     }

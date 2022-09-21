@@ -75,7 +75,8 @@ internal data class LeggTilVurderingsperiodeFlyktningVilkårJson(
 enum class FlyktningVurderingJson {
     VilkårOppfylt,
     VilkårIkkeOppfylt,
-    Uavklart;
+    Uavklart,
+    ;
 
     fun toDomain(): Vurdering {
         return when (this) {

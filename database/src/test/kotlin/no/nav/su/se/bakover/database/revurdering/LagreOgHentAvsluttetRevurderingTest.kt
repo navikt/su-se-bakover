@@ -42,9 +42,9 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             repo.hent(avsluttetRevurdering.id) shouldBe avsluttetRevurdering.copy(
                 underliggendeRevurdering = revurdering.copy(
                     avkorting = AvkortingVedRevurdering.Uhåndtert.KanIkkeHåndtere(
-                        uhåndtert = AvkortingVedRevurdering.Uhåndtert.IngenUtestående
-                    )
-                )
+                        uhåndtert = AvkortingVedRevurdering.Uhåndtert.IngenUtestående,
+                    ),
+                ),
             )
         }
     }
@@ -68,9 +68,9 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             repo.hent(avsluttetRevurdering.id) shouldBe avsluttetRevurdering.copy(
                 underliggendeRevurdering = revurdering.copy(
                     avkorting = AvkortingVedRevurdering.DelvisHåndtert.KanIkkeHåndtere(
-                        delvisHåndtert = AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående
-                    )
-                )
+                        delvisHåndtert = AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående,
+                    ),
+                ),
             )
         }
     }
@@ -94,9 +94,9 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             repo.hent(avsluttetRevurdering.id) shouldBe avsluttetRevurdering.copy(
                 underliggendeRevurdering = revurdering.copy(
                     avkorting = AvkortingVedRevurdering.DelvisHåndtert.KanIkkeHåndtere(
-                        delvisHåndtert = AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående
-                    )
-                )
+                        delvisHåndtert = AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående,
+                    ),
+                ),
             )
         }
     }
@@ -121,9 +121,9 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             repo.hent(avsluttetRevurdering.id) shouldBe avsluttetRevurdering.copy(
                 underliggendeRevurdering = revurdering.copy(
                     avkorting = AvkortingVedRevurdering.DelvisHåndtert.KanIkkeHåndtere(
-                        delvisHåndtert = AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående
-                    )
-                )
+                        delvisHåndtert = AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående,
+                    ),
+                ),
             )
         }
     }
@@ -147,9 +147,9 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             repo.hent(avsluttetRevurdering.id) shouldBe avsluttetRevurdering.copy(
                 underliggendeRevurdering = revurdering.copy(
                     avkorting = AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres(
-                        håndtert = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
-                    )
-                )
+                        håndtert = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
+                    ),
+                ),
             )
         }
     }
@@ -191,7 +191,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             val simulertIngenForhåndsvarsel =
                 simulert.markerForhåndsvarselSomSendt().getOrFail().copy(
                     // Vi har fjernet muligheten for å endre til denne tilstanden, men vi må støtte ikke-migrerte verdier i databasen.
-                    forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.Avsluttet("")
+                    forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.Avsluttet(""),
                 ).also {
                     repo.lagre(it)
                 }
@@ -218,9 +218,9 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             repo.hent(avsluttetRevurdering.id) shouldBe avsluttetRevurdering.copy(
                 underliggendeRevurdering = revurdering.copy(
                     avkorting = AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres(
-                        håndtert = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
-                    )
-                )
+                        håndtert = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
+                    ),
+                ),
             )
         }
     }

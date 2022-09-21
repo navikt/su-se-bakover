@@ -191,8 +191,8 @@ internal class KlagePostgresRepo(
 
     private fun lagreTilAttestering(klage: KlageTilAttestering, session: Session) {
         """
-            update 
-                klage 
+            update
+                klage
             set
                 oppgaveid=:oppgaveid,
                 type=:type,
@@ -326,7 +326,6 @@ internal class KlagePostgresRepo(
     }
 
     private fun rowToKlage(row: Row, session: Session): Klage {
-
         val id: UUID = row.uuid("id")
         val opprettet: Tidspunkt = row.tidspunkt("opprettet")
         val sakId: UUID = row.uuid("sakid")
@@ -362,10 +361,14 @@ internal class KlagePostgresRepo(
         val vedtaksvurdering = row.stringOrNull("vedtaksvurdering")?.let {
             deserialize<VedtaksvurderingJson>(it).toDomain()
         }
-        val vurderinger = if (fritekstTilBrev == null && vedtaksvurdering == null) null else VurderingerTilKlage.create(
-            fritekstTilOversendelsesbrev = fritekstTilBrev,
-            vedtaksvurdering = vedtaksvurdering,
-        )
+        val vurderinger = if (fritekstTilBrev == null && vedtaksvurdering == null) {
+            null
+        } else {
+            VurderingerTilKlage.create(
+                fritekstTilOversendelsesbrev = fritekstTilBrev,
+                vedtaksvurdering = vedtaksvurdering,
+            )
+        }
 
         fun bekreftetVilkårsvurdertKlageTilVurdering() = VilkårsvurdertKlage.Bekreftet.TilVurdering(
             id = id,
@@ -527,7 +530,8 @@ internal class KlagePostgresRepo(
     private enum class Svarord {
         JA,
         NEI_MEN_SKAL_VURDERES,
-        NEI;
+        NEI,
+        ;
 
         companion object {
             fun VilkårsvurderingerTilKlage.Svarord.tilDatabaseType(): String {
@@ -559,7 +563,8 @@ internal class KlagePostgresRepo(
         TIL_ATTESTERING_AVVIST("til_attestering_avvist"),
 
         OVERSENDT("oversendt"),
-        IVERKSATT_AVVIST("iverksatt_avvist");
+        IVERKSATT_AVVIST("iverksatt_avvist"),
+        ;
 
         companion object {
             fun Klage.databasetype(): String {
@@ -631,7 +636,8 @@ internal class KlagePostgresRepo(
                 FEIL_LOVANVENDELSE("feil_lovanvendelse"),
                 ULIK_SKJØNNSVURDERING("ulik_skjønnsvurdering"),
                 SAKSBEHANDLINGSFEIL("saksbehandlingsfeil"),
-                NYTT_FAKTUM("nytt_faktum");
+                NYTT_FAKTUM("nytt_faktum"),
+                ;
 
                 fun toDomain(): VurderingerTilKlage.Vedtaksvurdering.Årsak {
                     return when (this) {
@@ -663,7 +669,8 @@ internal class KlagePostgresRepo(
 
             enum class Omgjøringsutfall(val verdi: String) {
                 TIL_GUNST("til_gunst"),
-                TIL_UGUNST("til_ugunst");
+                TIL_UGUNST("til_ugunst"),
+                ;
 
                 fun toDomain(): VurderingerTilKlage.Vedtaksvurdering.Utfall {
                     return when (this) {
@@ -706,7 +713,8 @@ internal class KlagePostgresRepo(
                 SU_PARAGRAF_13("su_paragraf_13"),
                 SU_PARAGRAF_17("su_paragraf_17"),
                 SU_PARAGRAF_18("su_paragraf_18"),
-                SU_PARAGRAF_21("su_paragraf_21");
+                SU_PARAGRAF_21("su_paragraf_21"),
+                ;
 
                 fun toDomain(): no.nav.su.se.bakover.domain.klage.Hjemmel {
                     return when (this) {

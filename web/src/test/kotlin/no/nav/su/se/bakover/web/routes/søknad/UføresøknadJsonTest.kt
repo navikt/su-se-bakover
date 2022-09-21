@@ -196,7 +196,7 @@ internal class UføresøknadJsonTest {
         deserialize<LukketJson>(expectedJson) shouldBe LukketJson(
             tidspunkt = "2021-01-01T01:02:03.456789Z",
             saksbehandler = "saksbehandler",
-            type = "TRUKKET"
+            type = "TRUKKET",
         )
     }
 }

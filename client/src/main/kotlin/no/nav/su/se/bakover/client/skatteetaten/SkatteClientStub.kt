@@ -19,7 +19,7 @@ class SkatteClientStub(private val clock: Clock) : Skatteoppslag {
                 Skattegrunnlag.Grunnlag(navn = "fradragForFagforeningskontingent", beløp = 1238, kategori = listOf(Skattegrunnlag.Kategori.FORMUESFRADRAG)),
             ),
             skatteoppgjoersdato = null,
-            hentetDato = Tidspunkt.now(clock)
+            hentetDato = Tidspunkt.now(clock),
         ).right()
     }
 }

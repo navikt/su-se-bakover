@@ -42,6 +42,7 @@ import java.time.temporal.ChronoUnit
 internal class UtbetalingsstrategiStansTest {
 
     private val fixedClock = Clock.fixed(15.juni(2020).atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
+
     @Test
     fun `stans av utbetaling`() {
         val utbetalingslinje = Utbetalingslinje.Ny(

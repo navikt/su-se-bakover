@@ -106,7 +106,7 @@ internal class FixSøknaderTest {
             opprettet = Tidspunkt.EPOCH,
             søknadInnhold = SøknadInnholdTestdataBuilder.build(),
             innsendtAv = veileder,
-            oppgaveId = OppgaveId("2")
+            oppgaveId = OppgaveId("2"),
         )
 
         val søknadIdJournalpost = UUID.fromString("18e19f68-029d-4731-ad4a-48d902fc92a2")

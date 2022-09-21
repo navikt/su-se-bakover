@@ -108,9 +108,10 @@ enum class Hjemmel(val lov: Lov, val kapittel: Int, val paragrafnummer: Int) {
     SU_PARAGRAF_18(Lov.LOV_OM_SUPPLERENDE_STØNAD_TIL_PERSONER_MED_KORT_BOTID_I_NORGE, 4, 18),
 
     /** Kapittel 4 - § 21.Kontroll (2021-01-01) */
-    SU_PARAGRAF_21(Lov.LOV_OM_SUPPLERENDE_STØNAD_TIL_PERSONER_MED_KORT_BOTID_I_NORGE, 4, 21);
+    SU_PARAGRAF_21(Lov.LOV_OM_SUPPLERENDE_STØNAD_TIL_PERSONER_MED_KORT_BOTID_I_NORGE, 4, 21),
+    ;
 }
 
 enum class Lov(val tittel: String) {
-    LOV_OM_SUPPLERENDE_STØNAD_TIL_PERSONER_MED_KORT_BOTID_I_NORGE("Lov om supplerande stønad til personar med kort butid i Noreg")
+    LOV_OM_SUPPLERENDE_STØNAD_TIL_PERSONER_MED_KORT_BOTID_I_NORGE("Lov om supplerande stønad til personar med kort butid i Noreg"),
 }

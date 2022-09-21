@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 internal data class AttesteringJson(
     val attestant: String,
     val underkjennelse: UnderkjennelseJson?,
-    val opprettet: Tidspunkt
+    val opprettet: Tidspunkt,
 ) {
     companion object {
         internal fun Attesteringshistorikk.toJson() = this.map { it.toJson() }

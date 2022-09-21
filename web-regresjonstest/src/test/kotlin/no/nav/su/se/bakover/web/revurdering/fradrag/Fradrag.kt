@@ -44,7 +44,7 @@ internal fun ApplicationTestBuilder.leggTilFradrag(
                       "utenlandskInntekt": null,
                       "tilhører": "EPS"
                     }
-                  ]                    
+                  ]
                 }
                 """
         },

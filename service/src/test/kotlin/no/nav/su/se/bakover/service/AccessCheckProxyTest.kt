@@ -48,7 +48,7 @@ internal class AccessCheckProxyTest {
         reguleringService = mock(),
         tilbakekrevingService = mock(),
         sendPåminnelserOmNyStønadsperiodeService = mock(),
-        skatteService = mock()
+        skatteService = mock(),
     )
 
     @Nested
@@ -76,7 +76,7 @@ internal class AccessCheckProxyTest {
                                 fnr = fnr,
                                 utbetalinger = emptyList(),
                                 type = Sakstype.UFØRE,
-                                uteståendeAvkorting = Avkortingsvarsel.Ingen
+                                uteståendeAvkorting = Avkortingsvarsel.Ingen,
                             ),
                         )
                     },
@@ -219,7 +219,7 @@ internal class AccessCheckProxyTest {
                         fnr = fnr,
                         utbetalinger = emptyList(),
                         type = Sakstype.UFØRE,
-                        uteståendeAvkorting = Avkortingsvarsel.Ingen
+                        uteståendeAvkorting = Avkortingsvarsel.Ingen,
                     ),
                 )
             },

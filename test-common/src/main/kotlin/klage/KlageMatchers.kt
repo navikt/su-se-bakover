@@ -33,8 +33,11 @@ fun List<Klage?>.shouldBeEqualComparingPublicFieldsAndInterface(expected: List<K
 
 fun Klage?.shouldBeEqualComparingPublicFieldsAndInterface(expected: Klage?, ignoreProperty: KProperty<*>? = null) {
     if (this == null) {
-        if (expected == null) return
-        else actualIsNull(expected)
+        if (expected == null) {
+            return
+        } else {
+            actualIsNull(expected)
+        }
     }
     if (expected == null) expectedIsNull(this!!)
 

@@ -13,11 +13,11 @@ internal class AvsluttetRevurderingJsonTest {
         val avsluttetJson = """
           {
             "brevvalg": {
-              "fritekst": "en fri tekst", 
+              "fritekst": "en fri tekst",
               "begrunnelse": null,
               "type": "SAKSBEHANDLER_VALG_SKAL_SENDE_INFORMASJONSBREV_MED_FRITEKST"
             },
-            "begrunnelse": "en begrunnelse", 
+            "begrunnelse": "en begrunnelse",
             "tidspunktAvsluttet": "2021-01-01T01:02:03.456789Z"
           }
         """.trimIndent()

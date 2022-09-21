@@ -14,7 +14,7 @@ fun tomGrunnlagsdataOgVilkårsvurderingerResponse(): String {
       "formue":{
         "vurderinger":[],
         "resultat": null,
-        "formuegrenser":[        
+        "formuegrenser":[
           {
             "gyldigFra":"2020-05-01",
             "beløp":50676

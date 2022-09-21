@@ -32,7 +32,7 @@ internal class DokDistFordelingClientTest : WiremockBase {
                         {
                             "bestillingsId": "id på tingen"
                         }
-                        """.trimIndent()
+                        """.trimIndent(),
                     ),
                 ),
         )

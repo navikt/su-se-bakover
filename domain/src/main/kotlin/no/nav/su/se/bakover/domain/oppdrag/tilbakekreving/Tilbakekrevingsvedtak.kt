@@ -123,7 +123,7 @@ sealed interface Tilbakekrevingsvedtak {
 
     enum class Tilbakekrevingsresultat {
         FULL_TILBAKEKREVING,
-        INGEN_TILBAKEKREVING
+        INGEN_TILBAKEKREVING,
     }
 
     enum class Skyld {

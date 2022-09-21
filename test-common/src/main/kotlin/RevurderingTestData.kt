@@ -296,12 +296,12 @@ fun simulertRevurdering(
             is BeregnetRevurdering.Innvilget -> {
                 val simulert = beregnet.simuler(
                     saksbehandler = saksbehandler,
-                    clock = clock
+                    clock = clock,
                 ) {
                     nyUtbetalingSimulert(
                         sakOgBehandling = sak to beregnet,
                         beregning = it.beregning,
-                        clock = clock
+                        clock = clock,
                     ).right()
                 }.getOrFail()
 
@@ -677,7 +677,6 @@ fun beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
     ),
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
 ): Pair<Sak, BeregnetRevurdering.Innvilget> {
-
     return opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
@@ -867,7 +866,6 @@ fun beregnetRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
     },
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
 ): Pair<Sak, BeregnetRevurdering.Opphørt> {
-
     return opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
@@ -940,7 +938,6 @@ fun simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
     forhåndsvarsel: Forhåndsvarsel? = null,
     tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling = IkkeBehovForTilbakekrevingUnderBehandling,
 ): Pair<Sak, SimulertRevurdering.Innvilget> {
-
     return beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
@@ -952,12 +949,12 @@ fun simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
     ).let { (sak, revurdering) ->
         val innvilgetSimulertRevurdering = revurdering.simuler(
             saksbehandler = saksbehandler,
-            clock = clock
+            clock = clock,
         ) {
             nyUtbetalingSimulert(
                 sakOgBehandling = sak to revurdering,
                 beregning = it.beregning,
-                clock = clock
+                clock = clock,
             ).right()
         }.getOrFail()
             .prøvÅLeggTilForhåndsvarselPåSimulertRevurdering(
@@ -996,7 +993,6 @@ fun simulertRevurderingOpphørtPgaVilkårFraInnvilgetSøknadsbehandlingsVedtak(
     forhåndsvarsel: Forhåndsvarsel? = null,
     tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling = IkkeBehovForTilbakekrevingUnderBehandling,
 ): Pair<Sak, SimulertRevurdering.Opphørt> {
-
     return beregnetRevurderingOpphørtPgaVilkårFraInnvilgetSøknadsbehandlingsVedtak(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
@@ -1014,7 +1010,7 @@ fun simulertRevurderingOpphørtPgaVilkårFraInnvilgetSøknadsbehandlingsVedtak(
             opphørUtbetalingSimulert(
                 sakOgBehandling = sak to revurdering,
                 opphørsperiode = it.opphørsperiode,
-                clock = clock
+                clock = clock,
             ).right()
         }.getOrFail()
             .prøvÅLeggTilForhåndsvarselPåSimulertRevurdering(
@@ -1514,7 +1510,8 @@ fun avsluttetStansAvYtelseFraIverksattSøknadsbehandlignsvedtak(
     return simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak().let { (sak, simulert) ->
 
         val avsluttet = simulert.avslutt(
-            begrunnelse = begrunnelse, tidspunktAvsluttet = tidspunktAvsluttet,
+            begrunnelse = begrunnelse,
+            tidspunktAvsluttet = tidspunktAvsluttet,
         ).getOrFail()
 
         sak.copy(
@@ -1605,7 +1602,8 @@ fun avsluttetGjenopptakelseAvYtelseeFraIverksattSøknadsbehandlignsvedtak(
     return simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse().let { (sak, simulert) ->
 
         val avsluttet = simulert.avslutt(
-            begrunnelse = begrunnelse, tidspunktAvsluttet = tidspunktAvsluttet,
+            begrunnelse = begrunnelse,
+            tidspunktAvsluttet = tidspunktAvsluttet,
         ).getOrFail()
 
         sak.copy(

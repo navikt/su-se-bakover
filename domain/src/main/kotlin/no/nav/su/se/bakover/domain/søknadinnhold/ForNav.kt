@@ -7,7 +7,7 @@ import java.time.LocalDate
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,
     include = JsonTypeInfo.As.PROPERTY,
-    property = "type"
+    property = "type",
 )
 @JsonSubTypes(
     JsonSubTypes.Type(value = ForNav.DigitalSøknad::class, name = "DigitalSøknad"),
@@ -18,11 +18,12 @@ sealed class ForNav {
     abstract fun erPapirsøknad(): Boolean
 
     data class DigitalSøknad(
-        val harFullmektigEllerVerge: Vergemål? = null
+        val harFullmektigEllerVerge: Vergemål? = null,
     ) : ForNav() {
         enum class Vergemål() {
             FULLMEKTIG,
-            VERGE;
+            VERGE,
+            ;
         }
 
         override fun erPapirsøknad(): Boolean {
@@ -33,7 +34,7 @@ sealed class ForNav {
     data class Papirsøknad(
         val mottaksdatoForSøknad: LocalDate,
         val grunnForPapirinnsending: GrunnForPapirinnsending,
-        val annenGrunn: String?
+        val annenGrunn: String?,
     ) : ForNav() {
         override fun erPapirsøknad(): Boolean {
             return true
@@ -41,7 +42,7 @@ sealed class ForNav {
         enum class GrunnForPapirinnsending() {
             VergeHarSøktPåVegneAvBruker,
             MidlertidigUnntakFraOppmøteplikt,
-            Annet
+            Annet,
         }
     }
 }

@@ -19,7 +19,8 @@ internal sealed class LukketJson {
     enum class LukketType {
         AVVIST,
         BORTFALT,
-        TRUKKET;
+        TRUKKET,
+        ;
     }
 
     data class TrukketJson(

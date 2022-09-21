@@ -56,10 +56,10 @@ internal class LeggTilInstitusjonsoppholdIT {
                                       "periode": {
                                         "fraOgMed": "2022-05-01",
                                         "tilOgMed": "2022-12-31"
-                                      }                                      
+                                      }
                                     }
                                   ],
-                                  "resultat": "VilkårOppfylt"                                  
+                                  "resultat": "VilkårOppfylt"
                                 }
                             """.trimIndent(),
                             JSONObject(RevurderingJson.hentInstitusjonsoppholdVilkår(revurderingJson)).toString(),
@@ -86,7 +86,7 @@ internal class LeggTilInstitusjonsoppholdIT {
                                       "periode": {
                                         "fraOgMed": "2022-05-01",
                                         "tilOgMed": "2022-12-31"
-                                      }                                      
+                                      }
                                     }
                                   ],
                                   "resultat": "VilkårIkkeOppfylt"

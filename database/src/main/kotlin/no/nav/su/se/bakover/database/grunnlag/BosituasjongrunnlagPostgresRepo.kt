@@ -37,13 +37,20 @@ internal class BosituasjongrunnlagPostgresRepo(
 
         return when (Bosituasjonstype.valueOf(string("bosituasjontype"))) {
             Bosituasjonstype.ALENE -> Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                id = id, opprettet = opprettet, periode = periode,
+                id = id,
+                opprettet = opprettet,
+                periode = periode,
             )
             Bosituasjonstype.MED_VOKSNE -> Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen(
-                id = id, opprettet = opprettet, periode = periode,
+                id = id,
+                opprettet = opprettet,
+                periode = periode,
             )
             Bosituasjonstype.EPS_67_ELLER_ELDRE -> Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre(
-                id = id, opprettet = opprettet, periode = periode, fnr = epsFnr!!,
+                id = id,
+                opprettet = opprettet,
+                periode = periode,
+                fnr = epsFnr!!,
             )
             Bosituasjonstype.EPS_UNDER_67 -> Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
                 id = id,
@@ -107,14 +114,14 @@ internal class BosituasjongrunnlagPostgresRepo(
                 tilOgMed,
                 bosituasjontype,
                 eps_fnr
-            ) values 
+            ) values
             (
                 :id,
                 :opprettet,
                 :behandlingId,
                 :fraOgMed,
                 :tilOgMed,
-                :bosituasjontype, 
+                :bosituasjontype,
                 :eps_fnr
             )
         """.trimIndent()

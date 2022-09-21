@@ -422,7 +422,7 @@ internal class TestDataHelper(
         søknadId: UUID = UUID.randomUUID(),
         fnr: Fnr = Fnr.generer(),
         søknadInnhold: SøknadsinnholdUføre = SøknadInnholdTestdataBuilder.build(),
-        søknadInnsendtAv: NavIdentBruker = veileder
+        søknadInnsendtAv: NavIdentBruker = veileder,
     ): NySak {
         return SakFactory(
             clock = clock,
@@ -587,10 +587,14 @@ internal class TestDataHelper(
         vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling.Uføre = vilkårsvurderingerSøknadsbehandlingInnvilget(
             stønadsperiode.periode,
         ),
-        grunnlagsdata: Grunnlagsdata = if (epsFnr != null) grunnlagsdataMedEpsMedFradrag(
-            periode = stønadsperiode.periode,
-            epsFnr = epsFnr,
-        ) else grunnlagsdataEnsligMedFradrag(stønadsperiode.periode),
+        grunnlagsdata: Grunnlagsdata = if (epsFnr != null) {
+            grunnlagsdataMedEpsMedFradrag(
+                periode = stønadsperiode.periode,
+                epsFnr = epsFnr,
+            )
+        } else {
+            grunnlagsdataEnsligMedFradrag(stønadsperiode.periode)
+        },
         søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget = persisterSøknadsbehandlingIverksattInnvilget(
             sakId = sakId,
             søknadId = søknadId,
@@ -700,7 +704,6 @@ internal class TestDataHelper(
         utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(utbetalingslinje(periode)),
         utbetalingId: UUID30 = UUID30.randomUUID(),
     ): Pair<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering> {
-
         val utbetaling = oversendtUtbetalingUtenKvittering(
             id = utbetalingId,
             revurdering = revurdering,
@@ -735,7 +738,6 @@ internal class TestDataHelper(
     fun persisterVedtakForKlageIverksattAvvist(
         klage: IverksattAvvistKlage = persisterKlageIverksattAvvist(),
     ): Klagevedtak.Avvist {
-
         return Klagevedtak.Avvist.fromIverksattAvvistKlage(klage, fixedClock).also {
             vedtakRepo.lagre(it)
         }
@@ -831,10 +833,14 @@ internal class TestDataHelper(
         sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().let { Pair(it.first, it.second) },
         periode: Periode = år(2021),
         epsFnr: Fnr? = null,
-        grunnlagsdata: Grunnlagsdata = if (epsFnr != null) grunnlagsdataMedEpsMedFradrag(
-            periode,
-            epsFnr,
-        ) else grunnlagsdataEnsligMedFradrag(periode),
+        grunnlagsdata: Grunnlagsdata = if (epsFnr != null) {
+            grunnlagsdataMedEpsMedFradrag(
+                periode,
+                epsFnr,
+            )
+        } else {
+            grunnlagsdataEnsligMedFradrag(periode)
+        },
         vilkårsvurderinger: Vilkårsvurderinger.Revurdering = vilkårsvurderingerSøknadsbehandlingInnvilget(periode = periode)
             .tilVilkårsvurderingerRevurdering(),
     ): Pair<Sak, OpprettetRevurdering> {
@@ -861,14 +867,14 @@ internal class TestDataHelper(
             ).let {
                 revurderingRepo.lagre(it)
                 sak.copy(
-                    revurderinger = sak.revurderinger + listOf(it)
+                    revurderinger = sak.revurderinger + listOf(it),
                 ) to it
             }
         }
     }
 
     fun persisterRevurderingBeregnetInnvilget(
-        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().let { Pair(it.first, it.second) }
+        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().let { Pair(it.first, it.second) },
     ): Pair<Sak, BeregnetRevurdering.Innvilget> {
         val (sak, vedtak) = sakOgVedtak
         return persisterRevurderingOpprettet(
@@ -884,7 +890,7 @@ internal class TestDataHelper(
             ).getOrFail().let { beregnet ->
                 revurderingRepo.lagre(beregnet)
                 sak.copy(
-                    revurderinger = sak.revurderinger.filterNot { it.id == opprettet.id } + listOf(beregnet)
+                    revurderinger = sak.revurderinger.filterNot { it.id == opprettet.id } + listOf(beregnet),
                 ) to beregnet as BeregnetRevurdering.Innvilget
             }
         }
@@ -915,7 +921,7 @@ internal class TestDataHelper(
                 ).getOrFail().let { opphørt ->
                     revurderingRepo.lagre(opphørt)
                     sak.copy(
-                        revurderinger = sak.revurderinger.filterNot { it.id == opphørt.id } + listOf(opphørt)
+                        revurderinger = sak.revurderinger.filterNot { it.id == opphørt.id } + listOf(opphørt),
                     ) to opphørt as BeregnetRevurdering.Opphørt
                 }
             }
@@ -942,17 +948,17 @@ internal class TestDataHelper(
             ).getOrFail().let { beregnet ->
                 revurderingRepo.lagre(beregnet)
                 sak.copy(
-                    revurderinger = sak.revurderinger.filterNot { it.id == beregnet.id } + listOf(beregnet)
+                    revurderinger = sak.revurderinger.filterNot { it.id == beregnet.id } + listOf(beregnet),
                 ) to beregnet as BeregnetRevurdering.IngenEndring
             }
         }
     }
 
     fun persisterRevurderingSimulertInnvilget(
-        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().let { Pair(it.first, it.second) }
+        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().let { Pair(it.first, it.second) },
     ): Pair<Sak, SimulertRevurdering.Innvilget> {
         return persisterRevurderingBeregnetInnvilget(
-            sakOgVedtak = sakOgVedtak
+            sakOgVedtak = sakOgVedtak,
         ).let { (sak, beregnet) ->
             beregnet.simuler(
                 saksbehandler = saksbehandler,
@@ -961,7 +967,7 @@ internal class TestDataHelper(
                 nyUtbetalingSimulert(
                     sakOgBehandling = sak to beregnet,
                     beregning = beregnet.beregning,
-                    clock = clock
+                    clock = clock,
                 ).right()
             }.getOrFail().let { simulert ->
                 val håndtertForhåndsvarsel = simulert.ikkeSendForhåndsvarsel().getOrFail()
@@ -980,7 +986,7 @@ internal class TestDataHelper(
                 }
                 revurderingRepo.lagre(oppdatertTilbakekrevingsbehandling)
                 sak.copy(
-                    revurderinger = sak.revurderinger.filterNot { it.id == oppdatertTilbakekrevingsbehandling.id } + listOf(oppdatertTilbakekrevingsbehandling)
+                    revurderinger = sak.revurderinger.filterNot { it.id == oppdatertTilbakekrevingsbehandling.id } + listOf(oppdatertTilbakekrevingsbehandling),
                 ) to oppdatertTilbakekrevingsbehandling
             }
         }
@@ -1002,7 +1008,7 @@ internal class TestDataHelper(
                 opphørUtbetalingSimulert(
                     sakOgBehandling = sak to beregnet,
                     opphørsperiode = it.opphørsperiode,
-                    clock = fixedClock
+                    clock = fixedClock,
                 ).right()
             }.getOrFail().let { simulert ->
                 val oppdatertTilbakekrevingsbehandling = if (simulert.harSimuleringFeilutbetaling()) {
@@ -1020,7 +1026,7 @@ internal class TestDataHelper(
                 }
                 revurderingRepo.lagre(oppdatertTilbakekrevingsbehandling)
                 sak.copy(
-                    revurderinger = sak.revurderinger.filterNot { it.id == oppdatertTilbakekrevingsbehandling.id } + listOf(oppdatertTilbakekrevingsbehandling)
+                    revurderinger = sak.revurderinger.filterNot { it.id == oppdatertTilbakekrevingsbehandling.id } + listOf(oppdatertTilbakekrevingsbehandling),
                 ) to oppdatertTilbakekrevingsbehandling
             }
         }
@@ -1040,7 +1046,7 @@ internal class TestDataHelper(
             ).getOrFail().let { tilAttestering ->
                 revurderingRepo.lagre(tilAttestering)
                 sak.copy(
-                    revurderinger = sak.revurderinger.filterNot { it.id == tilAttestering.id } + listOf(tilAttestering)
+                    revurderinger = sak.revurderinger.filterNot { it.id == tilAttestering.id } + listOf(tilAttestering),
                 ) to tilAttestering
             }
         }
@@ -1597,10 +1603,14 @@ internal class TestDataHelper(
             stønadsperiode.periode,
         ),
         epsFnr: Fnr? = null,
-        grunnlagsdata: Grunnlagsdata = if (epsFnr != null) grunnlagsdataMedEpsMedFradrag(
-            periode = stønadsperiode.periode,
-            epsFnr = epsFnr,
-        ) else grunnlagsdataEnsligMedFradrag(stønadsperiode.periode),
+        grunnlagsdata: Grunnlagsdata = if (epsFnr != null) {
+            grunnlagsdataMedEpsMedFradrag(
+                periode = stønadsperiode.periode,
+                epsFnr = epsFnr,
+            )
+        } else {
+            grunnlagsdataEnsligMedFradrag(stønadsperiode.periode)
+        },
     ): Pair<Sak, Søknadsbehandling.Iverksatt.Innvilget> {
         return persisterSøknadsbehandlingTilAttesteringInnvilget(
             sakId = sakId,

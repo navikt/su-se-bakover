@@ -9,7 +9,9 @@ object VurderAvslagGrunnetBeregning {
 
     fun vurderAvslagGrunnetBeregning(
         beregning: Beregning?,
-    ): AvslagGrunnetBeregning = if (beregning == null) AvslagGrunnetBeregning.Nei else {
+    ): AvslagGrunnetBeregning = if (beregning == null) {
+        AvslagGrunnetBeregning.Nei
+    } else {
         beregning.finnFørsteMånedMedMerknadForAvslag()
             .getOrHandle { return AvslagGrunnetBeregning.Nei }
             .let { (_, merknad) -> AvslagGrunnetBeregning.Ja(grunn = merknad.tilAvslagsgrunn()) }
@@ -22,7 +24,7 @@ sealed class AvslagGrunnetBeregning {
 
     enum class Grunn {
         FOR_HØY_INNTEKT,
-        SU_UNDER_MINSTEGRENSE
+        SU_UNDER_MINSTEGRENSE,
     }
 }
 

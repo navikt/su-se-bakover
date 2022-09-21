@@ -22,7 +22,6 @@ internal fun ApplicationTestBuilder.leggTilInstitusjonsopphold(
     url: String = "/saker/$sakId/behandlinger/$behandlingId/institusjonsopphold",
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
 ): String {
-
     return runBlocking {
         defaultRequest(
             method = HttpMethod.Post,

@@ -10,6 +10,7 @@ data class FortsettEtterForhåndsvarslingBody(
 ) {
     enum class BeslutningEtterForhåndsvarsling {
         FORTSETT_MED_SAMME_OPPLYSNINGER,
-        FORTSETT_MED_ANDRE_OPPLYSNINGER;
+        FORTSETT_MED_ANDRE_OPPLYSNINGER,
+        ;
     }
 }

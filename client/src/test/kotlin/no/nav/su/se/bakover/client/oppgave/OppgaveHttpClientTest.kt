@@ -711,7 +711,10 @@ internal class OppgaveHttpClientTest : WiremockBase {
 
         client.opprettOppgave(
             OppgaveConfig.Revurderingsbehandling(
-                saksnummer = saksnummer, aktørId = AktørId(aktørId), tilordnetRessurs = null, clock = fixedClock,
+                saksnummer = saksnummer,
+                aktørId = AktørId(aktørId),
+                tilordnetRessurs = null,
+                clock = fixedClock,
             ),
         ) shouldBe OppgaveId("111").right()
 
@@ -723,7 +726,10 @@ internal class OppgaveHttpClientTest : WiremockBase {
 
         client.opprettOppgaveMedSystembruker(
             OppgaveConfig.Revurderingsbehandling(
-                saksnummer = saksnummer, aktørId = AktørId(aktørId), tilordnetRessurs = null, clock = fixedClock,
+                saksnummer = saksnummer,
+                aktørId = AktørId(aktørId),
+                tilordnetRessurs = null,
+                clock = fixedClock,
             ),
         ) shouldBe OppgaveId("111").right()
 

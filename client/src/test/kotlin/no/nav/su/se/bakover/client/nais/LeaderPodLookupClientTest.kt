@@ -24,9 +24,9 @@ internal class LeaderPodLookupClientTest : WiremockBase {
                             {
                               "name": $localHostName
                             }
-                        """.trimIndent()
-                    )
-                )
+                        """.trimIndent(),
+                    ),
+                ),
         )
 
         LeaderPodLookupClient("${wireMockServer.baseUrl()}$endpoint").amITheLeader(localHostName) shouldBe true.right()
@@ -42,9 +42,9 @@ internal class LeaderPodLookupClientTest : WiremockBase {
                             {
                               "name": "foooooo"
                             }
-                        """.trimIndent()
-                    )
-                )
+                        """.trimIndent(),
+                    ),
+                ),
         )
 
         LeaderPodLookupClient("${wireMockServer.baseUrl()}$endpoint").amITheLeader(localHostName) shouldBe false.right()
@@ -60,9 +60,9 @@ internal class LeaderPodLookupClientTest : WiremockBase {
                             {
                               "foo": "bar"
                             }
-                        """.trimIndent()
-                    )
-                )
+                        """.trimIndent(),
+                    ),
+                ),
         )
 
         LeaderPodLookupClient("${wireMockServer.baseUrl()}$endpoint").amITheLeader(localHostName) shouldBe LeaderPodLookupFeil.UkjentSvarFraLeaderElectorContainer.left()

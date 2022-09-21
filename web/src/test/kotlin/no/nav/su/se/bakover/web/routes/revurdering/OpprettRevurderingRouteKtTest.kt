@@ -69,7 +69,7 @@ internal class OpprettRevurderingRouteKtTest {
     @Test
     fun `kan opprette revurdering`() {
         val (_, opprettetRevurdering) = opprettetRevurdering(
-            revurderingsperiode = periode
+            revurderingsperiode = periode,
         )
         val revurderingServiceMock = mock<RevurderingService> {
             on { opprettRevurdering(any()) } doReturn opprettetRevurdering.right()

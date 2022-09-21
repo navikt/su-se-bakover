@@ -90,7 +90,7 @@ internal class UføregrunnlagPostgresRepo(
                 tilOgMed,
                 uføregrad,
                 forventetInntekt
-            ) values 
+            ) values
             (
                 :id,
                 :opprettet,

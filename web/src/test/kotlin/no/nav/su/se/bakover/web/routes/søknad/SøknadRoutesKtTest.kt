@@ -204,7 +204,7 @@ internal class SøknadRoutesKtTest {
                 embeddedDatasource = dataSource,
                 dbMetrics = dbMetricsStub,
                 clock = fixedClock,
-                satsFactory = satsFactoryTest
+                satsFactory = satsFactoryTest,
             )
 
             val clients = TestClientsBuilder(fixedClock, repos).build(applicationConfig()).copy(

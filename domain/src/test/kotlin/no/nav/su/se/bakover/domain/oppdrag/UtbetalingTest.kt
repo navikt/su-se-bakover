@@ -92,7 +92,7 @@ internal class UtbetalingTest {
         periode = Periode.create(fraOgMed, tilOgMed),
         beløp = beløp,
         forrigeUtbetalingslinjeId = forrigeUtbetalingslinjeId,
-        uføregrad = uføregrad.value
+        uføregrad = uføregrad.value,
     )
 
     private fun createUtbetalingslinjer(): NonEmptyList<Utbetalingslinje> {
@@ -100,7 +100,7 @@ internal class UtbetalingTest {
             listOf(
                 createUtbetalingslinje(
                     fraOgMed = 1.januar(2019),
-                    tilOgMed = 30.april(2020)
+                    tilOgMed = 30.april(2020),
                 ),
                 createUtbetalingslinje(
                     fraOgMed = 1.mai(2020),
@@ -109,8 +109,8 @@ internal class UtbetalingTest {
                 createUtbetalingslinje(
                     fraOgMed = 1.september(2020),
                     tilOgMed = 31.januar(2021),
-                )
-            )
+                ),
+            ),
         ).nonEmpty()
     }
 }

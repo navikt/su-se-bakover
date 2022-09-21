@@ -27,10 +27,10 @@ internal class SkjermingClient(private val skjermingUrl: String) : Skjerming {
                     "Feil i kallet mot skjermingsregisteret.",
                     response.statusCode,
                     response.body().asString("application/json"),
-                    it
+                    it,
                 )
                 throw RuntimeException("Feil i kallet mot skjermingsregisteret.")
-            }
+            },
         )
     }
 }

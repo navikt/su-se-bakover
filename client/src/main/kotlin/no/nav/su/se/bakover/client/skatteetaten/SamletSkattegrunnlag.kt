@@ -54,7 +54,7 @@ internal fun SamletSkattegrunnlag.toDomain(clock: Clock): Either<Throwable, no.n
                 )
             },
             skatteoppgjoersdato = skatteoppgjoersdato?.let { LocalDate.parse(it) },
-            hentetDato = Tidspunkt.now(clock)
+            hentetDato = Tidspunkt.now(clock),
         )
     }
 }

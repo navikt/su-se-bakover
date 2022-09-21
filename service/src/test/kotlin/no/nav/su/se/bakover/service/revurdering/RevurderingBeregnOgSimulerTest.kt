@@ -145,7 +145,7 @@ internal class RevurderingBeregnOgSimulerTest {
                 on { simulerOpphør(any()) } doReturn opphørUtbetalingSimulert(
                     sakOgBehandling = sak to revurdering,
                     opphørsperiode = revurdering.periode,
-                    clock = fixedClock
+                    clock = fixedClock,
 
                 ).right()
             },

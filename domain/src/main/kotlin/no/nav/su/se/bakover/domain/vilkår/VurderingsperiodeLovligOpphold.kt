@@ -28,14 +28,14 @@ data class VurderingsperiodeLovligOpphold private constructor(
         CopyArgs.Tidslinje.Full -> {
             copy(
                 id = UUID.randomUUID(),
-                grunnlag = grunnlag?.copy(args)
+                grunnlag = grunnlag?.copy(args),
             )
         }
         is CopyArgs.Tidslinje.NyPeriode -> {
             copy(
                 id = UUID.randomUUID(),
                 periode = args.periode,
-                grunnlag = grunnlag?.copy(args)
+                grunnlag = grunnlag?.copy(args),
             )
         }
         is CopyArgs.Tidslinje.Maskert -> {
@@ -51,7 +51,9 @@ data class VurderingsperiodeLovligOpphold private constructor(
             true
         } else if (grunnlag == null || other == null) {
             false
-        } else grunnlag.erLik(other)
+        } else {
+            grunnlag.erLik(other)
+        }
     }
 
     companion object {

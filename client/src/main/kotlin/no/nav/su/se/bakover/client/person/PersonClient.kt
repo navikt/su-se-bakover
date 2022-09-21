@@ -153,7 +153,7 @@ internal class PersonClient(
                     it.kanVarsles,
                     it.språk,
                 )
-            }
+            },
         )
     }
 

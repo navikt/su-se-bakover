@@ -22,7 +22,9 @@ data class Revurderingsårsak(
         IKKE_MOTTATT_ETTERSPURT_DOKUMENTASJON,
 
         /* Reservert for migrering */
-        MIGRERT;
+        MIGRERT,
+
+        ;
 
         companion object {
             fun tryCreate(value: String): Either<UgyldigÅrsak, Årsak> {

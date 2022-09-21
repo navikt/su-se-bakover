@@ -18,17 +18,17 @@ object KryssjekkTidslinjerOgSimulering {
         underArbeid: Utbetaling.UtbetalingForSimulering,
         eksisterende: List<Utbetaling>,
         simuler: (request: SimulerUtbetalingForPeriode) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
-        clock: Clock
+        clock: Clock,
     ) {
         val periode = Periode.create(
             fraOgMed = underArbeid.tidligsteDato(),
-            tilOgMed = underArbeid.senesteDato()
+            tilOgMed = underArbeid.senesteDato(),
         )
         val simulertUtbetaling = simuler(
             SimulerUtbetalingForPeriode(
                 utbetaling = underArbeid,
-                simuleringsperiode = periode
-            )
+                simuleringsperiode = periode,
+            ),
         ).getOrHandle { throw RuntimeException("Kunne ikke simulere utbetaling: $it") }
 
         val tidslinjeEksisterendeOgUnderArbeid = (eksisterende + underArbeid)
@@ -37,13 +37,13 @@ object KryssjekkTidslinjerOgSimulering {
 
         sjekkTidslinjeMotSimulering(
             tidslinje = tidslinjeEksisterendeOgUnderArbeid,
-            simulering = simulertUtbetaling.simulering
+            simulering = simulertUtbetaling.simulering,
         )
 
         if (eksisterende.harUtbetalingerEtter(underArbeidEndringsperiode.tilOgMed)) {
             val rekonstruertPeriode = Periode.create(
                 fraOgMed = underArbeidEndringsperiode.tilOgMed.førsteINesteMåned(),
-                tilOgMed = eksisterende.maxOf { it.senesteDato() }
+                tilOgMed = eksisterende.maxOf { it.senesteDato() },
             )
             val tidslinjeUnderArbeid = listOf(underArbeid).tidslinje(
                 periode = rekonstruertPeriode,
@@ -73,7 +73,7 @@ object KryssjekkTidslinjerOgSimulering {
             tidslinje = (eksisterende + underArbeid)
                 .tidslinje(periode = periode, clock = clock)
                 .getOrHandle { throw IllegalStateException("Kunne ikke generere tidslinje, feil: $it") },
-            simulering = underArbeid.simulering
+            simulering = underArbeid.simulering,
         )
     }
 
@@ -88,7 +88,7 @@ object KryssjekkTidslinjerOgSimulering {
 
 private fun sjekkTidslinjeMotSimulering(
     tidslinje: TidslinjeForUtbetalinger,
-    simulering: Simulering
+    simulering: Simulering,
 ) {
     val tolketSimulering = simulering.tolk()
 
@@ -121,11 +121,12 @@ private fun sjekkTidslinjeMotSimulering(
             is TolketUtbetaling.Etterbetaling,
             is TolketUtbetaling.Feilutbetaling,
             is TolketUtbetaling.Ordinær,
-            is TolketUtbetaling.UendretUtbetaling -> {
+            is TolketUtbetaling.UendretUtbetaling,
+            -> {
                 kryssjekkBeløp(
                     tolketPeriode = tolketPeriode.periode,
                     tolket = tolket,
-                    utbetaling = utbetaling
+                    utbetaling = utbetaling,
                 )
                 kryssjekkType(
                     tolketPeriode = tolketPeriode.periode,
@@ -148,7 +149,7 @@ private fun kryssjekkType(
                 errMsgType(
                     periode = tolketPeriode,
                     tolket = tolket,
-                    utbetaling = utbetaling
+                    utbetaling = utbetaling,
                 )
             }
         }
@@ -157,7 +158,7 @@ private fun kryssjekkType(
                 errMsgType(
                     periode = tolketPeriode,
                     tolket = tolket,
-                    utbetaling = utbetaling
+                    utbetaling = utbetaling,
                 )
             }
         }
@@ -166,7 +167,7 @@ private fun kryssjekkType(
                 errMsgType(
                     periode = tolketPeriode,
                     tolket = tolket,
-                    utbetaling = utbetaling
+                    utbetaling = utbetaling,
                 )
             }
         }
@@ -175,7 +176,7 @@ private fun kryssjekkType(
                 errMsgType(
                     periode = tolketPeriode,
                     tolket = tolket,
-                    utbetaling = utbetaling
+                    utbetaling = utbetaling,
                 )
             }
         }
@@ -184,7 +185,7 @@ private fun kryssjekkType(
                 errMsgType(
                     periode = tolketPeriode,
                     tolket = tolket,
-                    utbetaling = utbetaling
+                    utbetaling = utbetaling,
                 )
             }
         }

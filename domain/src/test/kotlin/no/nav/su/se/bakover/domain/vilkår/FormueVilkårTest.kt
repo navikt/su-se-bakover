@@ -37,7 +37,8 @@ internal class FormueVilkårTest {
         val f1 = lagFormueVurderingsperiode(periodeInnenfor2021 = januar(2021))
         val f2 = lagFormueVurderingsperiode(periodeInnenfor2021 = februar(2021))
         val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen(
-            id = UUID.randomUUID(), opprettet = fixedTidspunkt,
+            id = UUID.randomUUID(),
+            opprettet = fixedTidspunkt,
             periode = mars(2021),
         )
         val f3 = lagFormueVurderingsperiode(
@@ -82,7 +83,8 @@ internal class FormueVilkårTest {
     fun `2 formue-perioder som tilstøter, men resultat er ulik`() {
         val f1 = lagFormueVurderingsperiode(periodeInnenfor2021 = januar(2021))
         val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen(
-            id = UUID.randomUUID(), opprettet = fixedTidspunkt,
+            id = UUID.randomUUID(),
+            opprettet = fixedTidspunkt,
             periode = februar(2021),
         )
         val f2 = lagFormueVurderingsperiode(

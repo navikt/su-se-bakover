@@ -127,7 +127,9 @@ enum class KlasseType {
     FEIL,
 
     @Deprecated("Filtreres ut av klient") // TODO flytt dette lenger ut
-    MOTP;
+    MOTP,
+
+    ;
 
     companion object {
         fun skalIkkeFiltreres() = setOf(YTEL, FEIL)
@@ -148,7 +150,8 @@ enum class KlasseKode {
     UFOREUT,
 
     SUALDER,
-    KL_KODE_FEIL;
+    KL_KODE_FEIL,
+    ;
 
     companion object {
         fun skalIkkeFiltreres() = setOf(SUUFORE, KL_KODE_FEIL_INNT, SUALDER, KL_KODE_FEIL)

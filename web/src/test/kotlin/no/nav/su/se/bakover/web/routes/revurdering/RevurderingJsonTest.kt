@@ -148,7 +148,7 @@ internal class RevurderingJsonTest {
                   "formue": {
                     "resultat": null,
                     "formuegrenser": [
-                     
+
                       {
                           "gyldigFra": "2020-05-01",
                           "beløp": 50676
@@ -245,7 +245,7 @@ internal class RevurderingJsonTest {
                       {
                           "gyldigFra": "2020-05-01",
                           "beløp": 50676
-                      }                     
+                      }
                     ],
                     "vurderinger": []
                   },
@@ -333,7 +333,7 @@ internal class RevurderingJsonTest {
                   "formue": {
                     "resultat": null,
                     "formuegrenser": [
-                     
+
                       {
                           "gyldigFra": "2020-05-01",
                           "beløp": 50676
@@ -419,7 +419,7 @@ internal class RevurderingJsonTest {
                   "formue": {
                     "resultat": null,
                     "formuegrenser": [
-                     
+
                       {
                           "gyldigFra": "2020-05-01",
                           "beløp": 50676
@@ -517,7 +517,7 @@ internal class RevurderingJsonTest {
                   "formue": {
                     "resultat": null,
                     "formuegrenser": [
-                     
+
                       {
                           "gyldigFra": "2020-05-01",
                           "beløp": 50676
@@ -613,7 +613,7 @@ internal class RevurderingJsonTest {
                   "formue": {
                     "resultat": null,
                     "formuegrenser": [
-                     
+
                       {
                           "gyldigFra": "2020-05-01",
                           "beløp": 50676
@@ -708,7 +708,7 @@ internal class RevurderingJsonTest {
                   "formue": {
                     "resultat": null,
                     "formuegrenser": [
-                     
+
                       {
                           "gyldigFra": "2020-05-01",
                           "beløp": 50676
@@ -803,7 +803,7 @@ internal class RevurderingJsonTest {
                   "formue": {
                     "resultat": null,
                     "formuegrenser": [
-                     
+
                       {
                           "gyldigFra": "2020-05-01",
                           "beløp": 50676
@@ -1004,7 +1004,7 @@ internal class RevurderingJsonTest {
                   "bosituasjon": [],
                   "formue": {
                     "resultat": null,
-                    "formuegrenser": [                     
+                    "formuegrenser": [
                       {
                           "gyldigFra": "2020-05-01",
                           "beløp": 50676
@@ -1326,7 +1326,7 @@ internal class RevurderingJsonTest {
                   "formue": {
                   "resultat": null,
                     "formuegrenser": [
-                     
+
                       {
                           "gyldigFra": "2020-05-01",
                           "beløp": 50676
@@ -1596,7 +1596,7 @@ internal class RevurderingJsonTest {
                   "pensjon": null,
                   "familiegjenforening": null,
                   "flyktning": ${serialize(simulertRevurdering.vilkårsvurderinger.flyktningVilkår().getOrFail().toJson()!!)},
-                  "fastOpphold": ${serialize(simulertRevurdering.vilkårsvurderinger.fastOpphold.toJson()!!)},                  
+                  "fastOpphold": ${serialize(simulertRevurdering.vilkårsvurderinger.fastOpphold.toJson()!!)},
                   "personligOppmøte": ${serialize(simulertRevurdering.vilkårsvurderinger.personligOppmøte.toJson()!!)},
                   "institusjonsopphold": ${serialize(simulertRevurdering.vilkårsvurderinger.institusjonsopphold.toJson()!!)}
                 },
@@ -1607,7 +1607,8 @@ internal class RevurderingJsonTest {
 
         JSONAssert.assertEquals(
             simulertRevurderingJson,
-            serialize(simulertRevurdering.toJson(satsFactoryTestPåDato())), true,
+            serialize(simulertRevurdering.toJson(satsFactoryTestPåDato())),
+            true,
         )
 
         val iverksattRevurdering = simulertRevurdering.iverksett(
@@ -1657,7 +1658,8 @@ internal class RevurderingJsonTest {
 
         JSONAssert.assertEquals(
             iverksattRevurderingJson,
-            serialize(iverksattRevurdering.toJson(satsFactoryTestPåDato())), true,
+            serialize(iverksattRevurdering.toJson(satsFactoryTestPåDato())),
+            true,
         )
     }
 
@@ -1710,7 +1712,8 @@ internal class RevurderingJsonTest {
 
         JSONAssert.assertEquals(
             simulertRevurderingJson,
-            serialize(simulertRevurdering.toJson(satsFactoryTestPåDato())), true,
+            serialize(simulertRevurdering.toJson(satsFactoryTestPåDato())),
+            true,
         )
 
         val iverksattRevurdering = simulertRevurdering.iverksett(attesteringIverksatt(clock = fixedClock))
@@ -1759,7 +1762,8 @@ internal class RevurderingJsonTest {
 
         JSONAssert.assertEquals(
             iverksattRevurderingJson,
-            serialize(iverksattRevurdering.toJson(satsFactoryTestPåDato())), true,
+            serialize(iverksattRevurdering.toJson(satsFactoryTestPåDato())),
+            true,
         )
     }
 

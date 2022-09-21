@@ -85,10 +85,11 @@ internal fun Route.søknadRoutes(
                                         )
                                         call.sikkerlogg("Lagrer søknad ${søknad.id} på sak ${søknad.sakId}")
                                         SuMetrics.søknadMottatt(
-                                            if (søknad.søknadInnhold.forNav is ForNav.Papirsøknad)
+                                            if (søknad.søknadInnhold.forNav is ForNav.Papirsøknad) {
                                                 SuMetrics.Søknadstype.PAPIR
-                                            else
-                                                SuMetrics.Søknadstype.DIGITAL,
+                                            } else {
+                                                SuMetrics.Søknadstype.DIGITAL
+                                            },
                                         )
                                         call.svar(
                                             Resultat.json(

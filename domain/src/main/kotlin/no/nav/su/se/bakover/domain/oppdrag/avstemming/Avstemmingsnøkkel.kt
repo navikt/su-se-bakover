@@ -7,7 +7,7 @@ import java.time.Instant
 import java.util.concurrent.TimeUnit
 
 data class Avstemmingsnøkkel(
-    val opprettet: Tidspunkt
+    val opprettet: Tidspunkt,
 ) : Comparable<Avstemmingsnøkkel> {
 
     @JsonProperty

@@ -38,7 +38,8 @@ internal class TilbakekrevingsbehandlingJsonTest {
 
         JSONAssert.assertEquals(
             forsto,
-            serialize(this.ikkeAvgjort.tilbakekrev().toJson()), true
+            serialize(this.ikkeAvgjort.tilbakekrev().toJson()),
+            true,
         )
 
         val kunneIkkeForstått = """
@@ -49,7 +50,8 @@ internal class TilbakekrevingsbehandlingJsonTest {
 
         JSONAssert.assertEquals(
             kunneIkkeForstått,
-            serialize(this.ikkeAvgjort.ikkeTilbakekrev().toJson()), true
+            serialize(this.ikkeAvgjort.ikkeTilbakekrev().toJson()),
+            true,
         )
     }
 }

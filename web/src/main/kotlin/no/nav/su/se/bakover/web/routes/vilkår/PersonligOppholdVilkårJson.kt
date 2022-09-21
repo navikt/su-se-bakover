@@ -72,7 +72,8 @@ enum class PersonligOppmøteÅrsakJson {
     IkkeMøttMenKortvarigSykMedLegeerklæring,
     IkkeMøttMenMidlertidigUnntakFraOppmøteplikt,
     IkkeMøttPersonlig,
-    Uavklart;
+    Uavklart,
+    ;
 
     fun toDomain(): PersonligOppmøteÅrsak {
         return when (this) {

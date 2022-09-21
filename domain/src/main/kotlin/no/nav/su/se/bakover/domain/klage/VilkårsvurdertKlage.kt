@@ -216,7 +216,6 @@ sealed interface VilkårsvurdertKlage : Klage, VilkårsvurdertKlageFelter {
                 saksbehandler: NavIdentBruker.Saksbehandler,
                 vilkårsvurderinger: VilkårsvurderingerTilKlage,
             ): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage> {
-
                 if (klageinstanshendelser.isNotEmpty() && vilkårsvurderinger.erAvvist()) {
                     return KunneIkkeVilkårsvurdereKlage.KanIkkeAvviseEnKlageSomHarVærtOversendt.left()
                 }
@@ -288,7 +287,9 @@ sealed interface VilkårsvurdertKlage : Klage, VilkårsvurdertKlageFelter {
                         begrunnelse = begrunnelse,
                         tidspunktAvsluttet = tidspunktAvsluttet,
                     ).right()
-                } else KunneIkkeAvslutteKlage.UgyldigTilstand(this::class).left()
+                } else {
+                    KunneIkkeAvslutteKlage.UgyldigTilstand(this::class).left()
+                }
             }
         }
 
@@ -588,7 +589,9 @@ sealed interface VilkårsvurdertKlage : Klage, VilkårsvurdertKlageFelter {
                         begrunnelse = begrunnelse,
                         tidspunktAvsluttet = tidspunktAvsluttet,
                     ).right()
-                } else KunneIkkeAvslutteKlage.UgyldigTilstand(this::class).left()
+                } else {
+                    KunneIkkeAvslutteKlage.UgyldigTilstand(this::class).left()
+                }
             }
         }
     }

@@ -45,7 +45,7 @@ internal fun ApplicationTestBuilder.leggTilUtenlandsopphold(
                         },
                       "status":"$vurdering"
                       }
-                    ]   
+                    ]
                   }
                 """.trimIndent(),
             )

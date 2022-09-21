@@ -79,7 +79,6 @@ data class VurderingsperiodeUføre private constructor(
             grunnlag: Grunnlag.Uføregrunnlag?,
             vurderingsperiode: Periode,
         ): Either<UgyldigVurderingsperiode, VurderingsperiodeUføre> {
-
             grunnlag?.let {
                 if (vurderingsperiode != it.periode) return UgyldigVurderingsperiode.PeriodeForGrunnlagOgVurderingErForskjellig.left()
             }

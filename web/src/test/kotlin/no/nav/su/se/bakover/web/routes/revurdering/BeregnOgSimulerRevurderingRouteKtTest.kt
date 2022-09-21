@@ -85,7 +85,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
             vilkårOverrides = listOf(
                 innvilgetUførevilkår(
                     forventetInntekt = 12000,
-                )
+                ),
             ),
         ).let { (sak, revurdering) ->
             sak to revurdering.beregn(
@@ -103,12 +103,12 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
             is BeregnetRevurdering.Innvilget -> {
                 beregnetRevurdering.simuler(
                     saksbehandler = saksbehandler,
-                    clock = fixedClock
+                    clock = fixedClock,
                 ) {
                     nyUtbetalingSimulert(
                         sakOgBehandling = sak to beregnetRevurdering,
                         beregning = it.beregning,
-                        clock = fixedClock
+                        clock = fixedClock,
                     ).right()
                 }.getOrFail()
             }

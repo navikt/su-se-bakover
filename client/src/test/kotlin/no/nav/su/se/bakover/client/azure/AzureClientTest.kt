@@ -31,8 +31,8 @@ internal class AzureClientTest : WiremockBase {
         wireMockServer.stubFor(
             WireMock.post(
                 WireMock.urlPathEqualTo(
-                    TOKEN_ENDPOINT_PATH
-                )
+                    TOKEN_ENDPOINT_PATH,
+                ),
             )
                 .withHeader("Content-Type", WireMock.equalTo("application/x-www-form-urlencoded"))
                 .withRequestBody(WireMock.containing("grant_type=${urlEncode(AZURE_ON_BEHALF_OF_GRANT_TYPE)}"))
@@ -41,7 +41,7 @@ internal class AzureClientTest : WiremockBase {
                 .withRequestBody(WireMock.containing("assertion=$TOKEN_TO_EXCHANGE"))
                 .withRequestBody(WireMock.containing("scope=$SCOPE${urlEncode("/.default")}"))
                 .withRequestBody(WireMock.containing("requested_token_use=$REQUESTED_TOKEN_USE"))
-                .willReturn(WireMock.okJson(okAzureResponse))
+                .willReturn(WireMock.okJson(okAzureResponse)),
         )
 
         val exchangedToken: String = oauth.onBehalfOfToken(TOKEN_TO_EXCHANGE, "personClientId")
@@ -59,9 +59,9 @@ internal class AzureClientTest : WiremockBase {
         wireMockServer.stubFor(
             WireMock.post(
                 WireMock.urlPathEqualTo(
-                    TOKEN_ENDPOINT_PATH
-                )
-            ).willReturn(WireMock.okJson(errorAzureResponse))
+                    TOKEN_ENDPOINT_PATH,
+                ),
+            ).willReturn(WireMock.okJson(errorAzureResponse)),
         )
         assertThrows<RuntimeException> { oauth.onBehalfOfToken(TOKEN_TO_EXCHANGE, "someAppId") }
     }
@@ -106,15 +106,15 @@ internal class AzureClientTest : WiremockBase {
                 "token_endpoint": "${wireMockServer.baseUrl()}$TOKEN_ENDPOINT_PATH",
                 "issuer": "$ISSUER"
             }
-                    """.trimIndent()
-                )
-            )
+                    """.trimIndent(),
+                ),
+            ),
         )
         oauth =
             AzureClient(
                 thisClientId = CLIENT_ID,
                 thisClientSecret = CLIENT_SECRET,
-                wellknownUrl = "${wireMockServer.baseUrl()}$WELLKNOWN_URL"
+                wellknownUrl = "${wireMockServer.baseUrl()}$WELLKNOWN_URL",
             )
     }
 }

@@ -74,7 +74,7 @@ internal class PersonligOppmøteGrunnlagPostgresRepo(
                 fraOgMed,
                 tilOgMed,
                 årsak
-            ) values 
+            ) values
             (
                 :id,
                 :opprettet,
@@ -105,7 +105,7 @@ internal enum class PersonligOppmøteÅrsakDb {
     IkkeMøttMenKortvarigSykMedLegeerklæring,
     IkkeMøttMenMidlertidigUnntakFraOppmøteplikt,
     IkkeMøttPersonlig,
-    Uavklart
+    Uavklart,
 }
 
 internal fun PersonligOppmøteÅrsak.toDb(): String {

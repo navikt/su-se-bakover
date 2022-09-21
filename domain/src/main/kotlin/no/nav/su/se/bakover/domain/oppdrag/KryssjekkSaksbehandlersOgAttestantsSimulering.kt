@@ -18,7 +18,7 @@ class KryssjekkSaksbehandlersOgAttestantsSimulering(
             logErr(
                 saksbehandlersSimulering = saksbehandlersSimulering,
                 attestantsSimulering = attestantsSimulering.simulering,
-                feil = it
+                feil = it,
             )
             it
         }
@@ -57,7 +57,7 @@ class KryssjekkSaksbehandlersOgAttestantsSimulering(
 private fun logErr(
     saksbehandlersSimulering: Simulering,
     attestantsSimulering: Simulering,
-    feil: KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
+    feil: KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet,
 ) {
     log.error("Utbetaling kunne ikke gjennomføres, kontrollsimulering er ulik saksbehandlers simulering: ${feil::class}. Se sikkerlogg for detaljer.")
     sikkerLogg.error(

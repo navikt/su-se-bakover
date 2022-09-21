@@ -45,12 +45,12 @@ internal class ÅpneBehandlingerRepo(
                      where k.type not like ('iverksatt%') and k.type not like 'oversendt' and k.avsluttet is null
                  ),
                  søknader as (
-                     select 
-                        sak.sakId, 
-                        sak.saksnummer, 
+                     select
+                        sak.sakId,
+                        sak.saksnummer,
                         s.id,
                         null::timestamp as opprettet,
-                        'NY_SØKNAD' as status, 
+                        'NY_SØKNAD' as status,
                         'SØKNAD' as type
                      from sak
                               join søknad s on sak.sakId = s.sakid
@@ -185,7 +185,8 @@ private enum class BehandlingsTypeDB {
     SØKNAD,
     SØKNADSBEHANDLING,
     REVURDERING,
-    KLAGE;
+    KLAGE,
+    ;
 
     fun toBehandlingstype(): Behandlingsoversikt.Behandlingstype {
         return when (this) {

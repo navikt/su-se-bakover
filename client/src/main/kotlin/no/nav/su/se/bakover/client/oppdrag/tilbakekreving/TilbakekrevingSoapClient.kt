@@ -78,7 +78,8 @@ class TilbakekrevingSoapClient(
 
         /** Alvorlig feil som logges og stopper behandling av aktuelt tilfelle*/
         ALVORLIG_FEIL("08"),
-        SQL_FEIL("12");
+        SQL_FEIL("12"),
+        ;
 
         override fun toString() = value
 

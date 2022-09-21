@@ -42,10 +42,10 @@ internal class UtbetalingMapperTest {
                 gjelderNavn = "navn",
                 datoBeregnet = idag(fixedClock),
                 nettoBeløp = 0,
-                periodeList = listOf()
+                periodeList = listOf(),
             ),
             utbetalingsrequest = Utbetalingsrequest(
-                value = ""
+                value = "",
             ),
             kvittering = null,
             avstemmingId = null,
@@ -71,15 +71,15 @@ internal class UtbetalingMapperTest {
                 gjelderNavn = "navn",
                 datoBeregnet = idag(fixedClock),
                 nettoBeløp = 0,
-                periodeList = listOf()
+                periodeList = listOf(),
             ),
             utbetalingsrequest = Utbetalingsrequest(
-                value = ""
+                value = "",
             ),
             kvittering = Kvittering(
                 utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
                 originalKvittering = "",
-                mottattTidspunkt = fixedTidspunkt
+                mottattTidspunkt = fixedTidspunkt,
 
             ),
             avstemmingId = null,

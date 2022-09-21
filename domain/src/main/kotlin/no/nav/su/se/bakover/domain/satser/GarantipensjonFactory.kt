@@ -91,9 +91,13 @@ data class GarantipensjonFactory private constructor(
         }
         return satser[måned]
             ?: (
-                if (måned > sisteMånedMedEndring) satser[sisteMånedMedEndring]!!.copy(
-                    måned = måned,
-                ) else throw IllegalArgumentException("Har ikke data for etterspurt måned: $måned. Vi har bare data fra og med måned: ${satser.keys.first()}")
+                if (måned > sisteMånedMedEndring) {
+                    satser[sisteMånedMedEndring]!!.copy(
+                        måned = måned,
+                    )
+                } else {
+                    throw IllegalArgumentException("Har ikke data for etterspurt måned: $måned. Vi har bare data fra og med måned: ${satser.keys.first()}")
+                }
                 )
     }
 

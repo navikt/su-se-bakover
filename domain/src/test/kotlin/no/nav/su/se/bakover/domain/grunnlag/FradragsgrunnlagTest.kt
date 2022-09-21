@@ -196,7 +196,8 @@ internal class FradragsgrunnlagTest {
     fun `2 fradragsgrunnlag som tilstøter, men fradragstype er ulik`() {
         val f1 = lagFradragsgrunnlag(periode = januar(2021))
         val f2 = lagFradragsgrunnlag(
-            periode = februar(2021), type = Fradragstype.Sosialstønad,
+            periode = februar(2021),
+            type = Fradragstype.Sosialstønad,
         )
         f1.tilstøterOgErLik(f2) shouldBe false
     }
@@ -279,7 +280,8 @@ internal class FradragsgrunnlagTest {
     @Test
     fun `fjerner fradrag som tilhører EPS, når vi har bosituasjon uten EPS`() {
         val f1 = Grunnlag.Fradragsgrunnlag.create(
-            id = UUID.randomUUID(), opprettet = fixedTidspunkt,
+            id = UUID.randomUUID(),
+            opprettet = fixedTidspunkt,
             fradrag = FradragFactory.nyFradragsperiode(
                 fradragstype = Fradragstype.Sosialstønad,
                 månedsbeløp = 100.0,
@@ -290,7 +292,8 @@ internal class FradragsgrunnlagTest {
         )
 
         val f2 = Grunnlag.Fradragsgrunnlag.create(
-            id = UUID.randomUUID(), opprettet = fixedTidspunkt,
+            id = UUID.randomUUID(),
+            opprettet = fixedTidspunkt,
             fradrag = FradragFactory.nyFradragsperiode(
                 fradragstype = Fradragstype.PrivatPensjon,
                 månedsbeløp = 100.0,
@@ -312,7 +315,8 @@ internal class FradragsgrunnlagTest {
     @Test
     fun `fjerner ikke fradrag for EPS, dersom søker bor med EPS`() {
         val f1 = Grunnlag.Fradragsgrunnlag.create(
-            id = UUID.randomUUID(), opprettet = fixedTidspunkt,
+            id = UUID.randomUUID(),
+            opprettet = fixedTidspunkt,
             fradrag = FradragFactory.nyFradragsperiode(
                 fradragstype = Fradragstype.Sosialstønad,
                 månedsbeløp = 100.0,
@@ -323,7 +327,8 @@ internal class FradragsgrunnlagTest {
         )
 
         val f2 = Grunnlag.Fradragsgrunnlag.create(
-            id = UUID.randomUUID(), opprettet = fixedTidspunkt,
+            id = UUID.randomUUID(),
+            opprettet = fixedTidspunkt,
             fradrag = FradragFactory.nyFradragsperiode(
                 fradragstype = Fradragstype.PrivatPensjon,
                 månedsbeløp = 100.0,

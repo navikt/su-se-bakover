@@ -116,5 +116,5 @@ private enum class IdType {
     SAK,
     SØKNAD,
     VEDTAK,
-    REVURDERING
+    REVURDERING,
 }

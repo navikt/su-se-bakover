@@ -11,7 +11,7 @@ import org.skyscreamer.jsonassert.comparator.CustomComparator
 fun jsonAssertEquals(
     expected: String,
     actual: String,
-    vararg ignorePaths: String
+    vararg ignorePaths: String,
 ) {
     JSONAssert.assertEquals(
         expected,
@@ -22,7 +22,7 @@ fun jsonAssertEquals(
                 Customization(
                     it,
                 ) { _, _ -> true }
-            }.toTypedArray()
-        )
+            }.toTypedArray(),
+        ),
     )
 }

@@ -23,9 +23,8 @@ internal const val STS_SAML_POLICY = "classpath:requestSamlPolicy.xml"
 internal inline fun <reified T> ClientProxyFactoryBean.wrapInStsClient(
     stsSoapUrl: String,
     serviceUser: ApplicationConfig.ServiceUserConfig,
-    disableCNCheck: Boolean
+    disableCNCheck: Boolean,
 ): T {
-
     return this.create(T::class.java).apply {
         val bus: Bus = ExtensionManagerBus()
         val sts = STSClient(bus).apply {
@@ -35,7 +34,7 @@ internal inline fun <reified T> ClientProxyFactoryBean.wrapInStsClient(
             location = stsSoapUrl
             properties = mapOf(
                 SecurityConstants.USERNAME to serviceUser.username,
-                SecurityConstants.PASSWORD to serviceUser.password
+                SecurityConstants.PASSWORD to serviceUser.password,
             )
             setPolicy(bus.resolvePolicy(STS_CLIENT_AUTHENTICATION_POLICY))
         }

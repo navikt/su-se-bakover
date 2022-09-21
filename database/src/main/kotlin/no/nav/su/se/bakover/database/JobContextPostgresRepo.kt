@@ -44,18 +44,18 @@ internal class JobContextPostgresRepo(
             }
         }.let {
             transactionContext.withSession { session ->
-                """insert into job_context 
+                """insert into job_context
                     (
-                        id, 
+                        id,
                         context
-                    ) 
-                    values 
+                    )
+                    values
                     (
-                        :id, 
+                        :id,
                         to_json(:context::json)
-                    ) 
-                    on conflict(id) do 
-                    update set 
+                    )
+                    on conflict(id) do
+                    update set
                         context = to_json(:context::json)
                 """.trimIndent().insert(
                     mapOf(

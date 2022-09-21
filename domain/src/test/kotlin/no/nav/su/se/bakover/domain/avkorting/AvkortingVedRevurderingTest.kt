@@ -43,7 +43,7 @@ internal class AvkortingVedRevurderingTest {
         original.uhåndtert() shouldBe AvkortingVedRevurdering.Uhåndtert.IngenUtestående
         original.håndter() shouldBe AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
         original.håndter(avkortingsvarsel) shouldBe AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel(
-            avkortingsvarsel
+            avkortingsvarsel,
         )
         original.kanIkke() shouldBe AvkortingVedRevurdering.DelvisHåndtert.KanIkkeHåndtere(
             original,
@@ -103,7 +103,7 @@ internal class AvkortingVedRevurderingTest {
         )
         original.håndter(avkortingsvarsel) shouldBe AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående(
             avkortingsvarsel,
-            avkortingsvarsel
+            avkortingsvarsel,
         )
         original.kanIkke() shouldBe AvkortingVedRevurdering.DelvisHåndtert.KanIkkeHåndtere(
             original,
@@ -141,29 +141,29 @@ internal class AvkortingVedRevurderingTest {
             original,
         )
         val nyttVarsel = AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel(
-            avkortingsvarsel
+            avkortingsvarsel,
         )
         nyttVarsel.uhåndtert() shouldBe AvkortingVedRevurdering.Uhåndtert.IngenUtestående
         nyttVarsel.iverksett(id) shouldBe AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarsel(
             avkortingsvarsel,
         )
         nyttVarsel.kanIkke() shouldBe AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres(
-            nyttVarsel
+            nyttVarsel,
         )
 
         val nyttOgEksisterende = AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående(
             avkortingsvarsel,
-            avkortingsvarsel
+            avkortingsvarsel,
         )
         nyttOgEksisterende.uhåndtert() shouldBe AvkortingVedRevurdering.Uhåndtert.UteståendeAvkorting(
-            avkortingsvarsel
+            avkortingsvarsel,
         )
         nyttOgEksisterende.iverksett(id) shouldBe AvkortingVedRevurdering.Iverksatt.OpprettNyttAvkortingsvarselOgAnnullerUtestående(
             avkortingsvarsel,
             avkortingsvarsel.annuller(id),
         )
         nyttOgEksisterende.kanIkke() shouldBe AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres(
-            nyttOgEksisterende
+            nyttOgEksisterende,
         )
     }
 

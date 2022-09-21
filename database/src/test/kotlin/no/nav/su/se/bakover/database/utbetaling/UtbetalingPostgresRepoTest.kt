@@ -122,8 +122,8 @@ internal class UtbetalingPostgresRepoTest {
                     utbetalingslinjer = nonEmptyListOf(
                         utbetalingslinje(
                             kjøreplan = UtbetalingsinstruksjonForEtterbetalinger.SammenMedNestePlanlagteUtbetaling,
-                        )
-                    )
+                        ),
+                    ),
                 ).third
             repo.hentUtbetaling(utbetalingMedKvittering.id) shouldBe utbetalingMedKvittering
         }

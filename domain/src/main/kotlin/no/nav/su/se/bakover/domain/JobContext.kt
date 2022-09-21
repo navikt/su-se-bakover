@@ -21,7 +21,7 @@ sealed class JobContext {
     abstract fun id(): JobContextId
 
     enum class Typer {
-        SendPåminnelseNyStønadsperiode
+        SendPåminnelseNyStønadsperiode,
     }
 }
 
@@ -50,7 +50,11 @@ data class SendPåminnelseNyStønadsperiodeContext(
         prosessert: Set<Saksnummer> = emptySet(),
         sendt: Set<Saksnummer> = emptySet(),
     ) : this(
-        id, opprettet, endret, prosessert, sendt
+        id,
+        opprettet,
+        endret,
+        prosessert,
+        sendt,
     )
 
     override fun id(): NameAndYearMonthId {

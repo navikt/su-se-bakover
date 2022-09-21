@@ -54,7 +54,7 @@ class AvstemmingPublisherTest {
                     avleverendeAvstemmingId = grensesnittavstemming.id.toString(),
                     nokkelFom = Avstemmingsnøkkel(grensesnittavstemming.fraOgMed).toString(),
                     nokkelTom = Avstemmingsnøkkel(grensesnittavstemming.tilOgMed).toString(),
-                    underkomponentKode = "SUUFORE"
+                    underkomponentKode = "SUUFORE",
                 ),
             ),
         )
@@ -65,7 +65,7 @@ class AvstemmingPublisherTest {
                     avleverendeAvstemmingId = grensesnittavstemming.id.toString(),
                     nokkelFom = Avstemmingsnøkkel(grensesnittavstemming.fraOgMed).toString(),
                     nokkelTom = Avstemmingsnøkkel(grensesnittavstemming.tilOgMed).toString(),
-                    underkomponentKode = "SUUFORE"
+                    underkomponentKode = "SUUFORE",
                 ),
                 total = Totaldata(
                     totalAntall = 1,
@@ -100,7 +100,7 @@ class AvstemmingPublisherTest {
                     avleverendeAvstemmingId = grensesnittavstemming.id.toString(),
                     nokkelFom = Avstemmingsnøkkel(grensesnittavstemming.fraOgMed).toString(),
                     nokkelTom = Avstemmingsnøkkel(grensesnittavstemming.tilOgMed).toString(),
-                    underkomponentKode = "SUUFORE"
+                    underkomponentKode = "SUUFORE",
                 ),
             ),
         )

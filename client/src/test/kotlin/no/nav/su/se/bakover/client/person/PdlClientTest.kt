@@ -29,7 +29,6 @@ internal class PdlClientTest : WiremockBase {
 
     @Test
     fun `hent aktørid inneholder errors`() {
-
         //language=JSON
         val errorResponseJson =
             """
@@ -74,7 +73,6 @@ internal class PdlClientTest : WiremockBase {
 
     @Test
     fun `hent aktørid ukjent feil`() {
-
         wireMockServer.stubFor(
             wiremockBuilderSystembruker("Bearer ${tokenOppslag.token().value}")
                 .willReturn(WireMock.serverError()),
@@ -92,7 +90,6 @@ internal class PdlClientTest : WiremockBase {
 
     @Test
     fun `hent aktørid OK`() {
-
         //language=JSON
         val suksessResponseJson =
             """
@@ -175,7 +172,6 @@ internal class PdlClientTest : WiremockBase {
 
     @Test
     fun `hent person inneholder kjent feil`() {
-
         //language=JSON
         val errorResponseJson =
             """
@@ -241,7 +237,6 @@ internal class PdlClientTest : WiremockBase {
 
     @Test
     fun `hent person OK og fjerner duplikate adresser`() {
-
         //language=JSON
         val suksessResponseJson =
             """
@@ -325,7 +320,7 @@ internal class PdlClientTest : WiremockBase {
                   "doedsfall": [
                     {
                       "doedsdato": "2021-12-21"
-                    }    
+                    }
                   ]
                 },
                 "hentIdenter": {
@@ -393,7 +388,6 @@ internal class PdlClientTest : WiremockBase {
 
     @Test
     fun `hent person OK og viser alle ulike adresser, the sequel`() {
-
         //language=JSON
         val suksessResponseJson =
             """
@@ -481,7 +475,7 @@ internal class PdlClientTest : WiremockBase {
                   "doedsfall": [
                     {
                       "doedsdato": "2021-12-21"
-                    }    
+                    }
                   ]
                 },
                 "hentIdenter": {
@@ -557,7 +551,6 @@ internal class PdlClientTest : WiremockBase {
 
     @Test
     fun `hent person OK og viser alle ulike adresser`() {
-
         //language=JSON
         val suksessResponseJson =
             """
@@ -881,7 +874,6 @@ internal class PdlClientTest : WiremockBase {
 
     @Test
     fun `hent person OK for systembruker`() {
-
         //language=JSON
         val suksessResponseJson =
             """

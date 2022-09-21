@@ -107,7 +107,7 @@ internal class SakRoutesKtTest {
                         fnr = Fnr(sakFnr01),
                         søknadInnhold = søknadInnhold,
                         innsendtAv = veileder,
-                    )
+                    ),
                 )
 
                 defaultRequest(HttpMethod.Post, "$sakPath/søk", listOf(Brukerrolle.Saksbehandler)) {
@@ -162,7 +162,7 @@ internal class SakRoutesKtTest {
                     SakFactory(clock = fixedClock).nySakMedNySøknad(
                         fnr = Fnr(sakFnr01),
                         søknadInnhold = søknadInnhold,
-                        innsendtAv = veileder
+                        innsendtAv = veileder,
                     ).also {
                         repos.sak.opprettSak(it)
 
@@ -247,7 +247,9 @@ internal class SakRoutesKtTest {
             application { testSusebakover() }
 
             defaultRequest(
-                HttpMethod.Post, "$sakPath/søk", listOf(Brukerrolle.Saksbehandler),
+                HttpMethod.Post,
+                "$sakPath/søk",
+                listOf(Brukerrolle.Saksbehandler),
             ).apply {
                 status shouldBe BadRequest
             }

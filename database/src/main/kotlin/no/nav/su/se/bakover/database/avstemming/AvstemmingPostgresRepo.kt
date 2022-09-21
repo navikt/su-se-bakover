@@ -172,7 +172,7 @@ internal class AvstemmingPostgresRepo(
                     s.saksnummer,
                     s.type as sakstype,
                     u.*
-                from utbetaling u    
+                from utbetaling u
                 join utbetalingslinje ul on ul.utbetalingid = u.id
                 join sak s on s.id = u.sakid
                 where s.type = :fagomrade and ul.tom >= :lopendeFraOgMed

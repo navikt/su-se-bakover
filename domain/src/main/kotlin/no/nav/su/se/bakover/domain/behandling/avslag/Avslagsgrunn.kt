@@ -22,7 +22,8 @@ enum class Avslagsgrunn {
     MANGLER_VEDTAK_ALDERSPENSJON_FOLKETRYGDEN,
     MANGLER_VEDTAK_ANDRE_NORSKE_PENSJONSORDNINGER,
     MANGLER_VEDTAK_UTENLANDSKE_PENSJONSORDNINGER,
-    FAMILIEGJENFORENING;
+    FAMILIEGJENFORENING,
+    ;
 
     companion object {
         fun List<Avslagsgrunn>.getDistinkteParagrafer(): List<Int> =
@@ -95,7 +96,8 @@ enum class Opphørsgrunn {
     FLYKTNING,
     BOR_OG_OPPHOLDER_SEG_I_NORGE,
     PERSONLIG_OPPMØTE,
-    INNLAGT_PÅ_INSTITUSJON;
+    INNLAGT_PÅ_INSTITUSJON,
+    ;
 
     companion object {
         fun List<Opphørsgrunn>.getDistinkteParagrafer(): List<Int> =

@@ -25,7 +25,7 @@ value class OpphørsperiodeForUtbetalinger private constructor(
         ): OpphørsperiodeForUtbetalinger {
             return bestem(
                 revurdering = revurdering,
-                avkortingsvarsel = revurdering.avkorting.avkortingsvarsel()
+                avkortingsvarsel = revurdering.avkorting.avkortingsvarsel(),
             )
         }
 
@@ -34,7 +34,7 @@ value class OpphørsperiodeForUtbetalinger private constructor(
         ): OpphørsperiodeForUtbetalinger {
             return bestem(
                 revurdering = revurdering,
-                avkortingsvarsel = revurdering.avkorting.avkortingsvarsel()
+                avkortingsvarsel = revurdering.avkorting.avkortingsvarsel(),
             )
         }
 

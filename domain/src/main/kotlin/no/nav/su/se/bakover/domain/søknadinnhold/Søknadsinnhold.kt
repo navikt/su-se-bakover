@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.domain.søknadinnhold.SøknadInnhold.Companion.valid
     JsonSubTypes.Type(value = SøknadsinnholdAlder::class, name = "alder"),
     JsonSubTypes.Type(value = SøknadsinnholdUføre::class, name = "uføre"),
 )
-
 sealed interface SøknadInnhold {
     val personopplysninger: Personopplysninger
     val boforhold: Boforhold
@@ -33,6 +32,7 @@ sealed interface SøknadInnhold {
         is SøknadsinnholdAlder -> this.copy(
             personopplysninger = personopplysninger.copy(fnr = fnr),
         )
+
         is SøknadsinnholdUføre -> this.copy(
             personopplysninger = personopplysninger.copy(fnr = fnr),
         )

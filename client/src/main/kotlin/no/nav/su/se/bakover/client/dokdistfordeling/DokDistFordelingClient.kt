@@ -91,11 +91,13 @@ private sealed class PayloadTyper {
     enum class Distribusjonstype(val value: String) {
         VEDTAK("VEDTAK"),
         VIKTIG("VIKTIG"),
-        ANNET("ANNET");
+        ANNET("ANNET"),
+        ;
     }
 
     enum class Distribusjonstidspunkt(val value: String) {
         UMIDDELBART("UMIDDELBART"),
-        KJERNETID("KJERNETID");
+        KJERNETID("KJERNETID"),
+        ;
     }
 }

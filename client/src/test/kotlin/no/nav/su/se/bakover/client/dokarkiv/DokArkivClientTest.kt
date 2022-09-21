@@ -50,7 +50,7 @@ internal class DokArkivClientTest : WiremockBase {
 
     private val client = DokArkivClient(
         wireMockServer.baseUrl(),
-        TokenOppslagStub
+        TokenOppslagStub,
     )
 
     private val forventetSøknadsRequest =
@@ -166,9 +166,9 @@ internal class DokArkivClientTest : WiremockBase {
                             }
                           ]
                         }
-                        """.trimIndent()
-                    )
-                )
+                        """.trimIndent(),
+                    ),
+                ),
         )
         client.opprettJournalpost(
             Journalpost.Søknadspost.from(
@@ -178,7 +178,7 @@ internal class DokArkivClientTest : WiremockBase {
                 pdf = pdf,
             ),
         ).shouldBe(
-            JournalpostId("1").right()
+            JournalpostId("1").right(),
         )
     }
 
@@ -187,7 +187,7 @@ internal class DokArkivClientTest : WiremockBase {
         wireMockServer.stubFor(
             wiremockBuilder
                 .withRequestBody(WireMock.equalToJson(forventetSøknadsRequest))
-                .willReturn(WireMock.forbidden())
+                .willReturn(WireMock.forbidden()),
         )
 
         client.opprettJournalpost(
@@ -219,9 +219,9 @@ internal class DokArkivClientTest : WiremockBase {
                             }
                           ]
                         }
-                        """.trimIndent()
-                    )
-                )
+                        """.trimIndent(),
+                    ),
+                ),
         )
 
         client.opprettJournalpost(
@@ -231,7 +231,7 @@ internal class DokArkivClientTest : WiremockBase {
                 brevInnhold = VedtakInnholdTestdataBuilder.build(),
                 pdf = pdf,
                 sakstype = Sakstype.UFØRE,
-            )
+            ),
         ) shouldBe(
             JournalpostId("1").right()
             )

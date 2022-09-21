@@ -325,7 +325,7 @@ internal class BeregnRoutesKtTest {
                         periode = år(2021),
                         status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
                     ),
-                )
+                ),
             ),
         )
         services.søknadsbehandling.leggTilBosituasjonEpsgrunnlag(
@@ -351,20 +351,20 @@ internal class BeregnRoutesKtTest {
         services.søknadsbehandling.leggTilFlyktningVilkår(
             request = LeggTilFlyktningVilkårRequest(
                 behandlingId = objects.søknadsbehandling.id,
-                vilkår = flyktningVilkårInnvilget(periode = objects.søknadsbehandling.periode)
-            )
+                vilkår = flyktningVilkårInnvilget(periode = objects.søknadsbehandling.periode),
+            ),
         )
         services.søknadsbehandling.leggTilFastOppholdINorgeVilkår(
             request = LeggTilFastOppholdINorgeRequest(
                 behandlingId = objects.søknadsbehandling.id,
-                vilkår = fastOppholdVilkårInnvilget(periode = objects.søknadsbehandling.periode)
-            )
+                vilkår = fastOppholdVilkårInnvilget(periode = objects.søknadsbehandling.periode),
+            ),
         )
         services.søknadsbehandling.leggTilPersonligOppmøteVilkår(
             request = LeggTilPersonligOppmøteVilkårRequest(
                 behandlingId = objects.søknadsbehandling.id,
-                vilkår = personligOppmøtevilkårInnvilget(periode = objects.søknadsbehandling.periode)
-            )
+                vilkår = personligOppmøtevilkårInnvilget(periode = objects.søknadsbehandling.periode),
+            ),
         )
         services.søknadsbehandling.fullførBosituasjongrunnlag(
             FullførBosituasjonRequest(

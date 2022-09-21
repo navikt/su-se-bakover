@@ -7,6 +7,7 @@ import org.slf4j.MDC
  */
 sealed interface JwtToken {
     object SystemToken : JwtToken
+
     // Kan ikke bruke inline class her på grunn av Mockito.verify()
     data class BrukerToken(val value: String) : JwtToken {
         companion object {

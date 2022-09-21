@@ -58,7 +58,7 @@ internal class LeggTilPersonligOppmøteIT {
                                       "periode": {
                                         "fraOgMed": "2022-05-01",
                                         "tilOgMed": "2022-12-31"
-                                      }                                      
+                                      }
                                     }
                                   ],
                                   "resultat": "VilkårOppfylt"
@@ -89,7 +89,7 @@ internal class LeggTilPersonligOppmøteIT {
                                       "periode": {
                                         "fraOgMed": "2022-05-01",
                                         "tilOgMed": "2022-12-31"
-                                      }                                      
+                                      }
                                     }
                                   ],
                                   "resultat": "VilkårIkkeOppfylt"

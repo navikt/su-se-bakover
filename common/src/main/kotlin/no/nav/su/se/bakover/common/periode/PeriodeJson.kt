@@ -6,7 +6,7 @@ import java.time.format.DateTimeFormatter
 
 data class PeriodeJson(
     val fraOgMed: String,
-    val tilOgMed: String
+    val tilOgMed: String,
 ) {
 
     /** @throws IllegalArgumentException dersom [fraOgMed] eller [tilOgMed] ikke kan parses til [LocalDate] */

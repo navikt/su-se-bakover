@@ -9,7 +9,7 @@ data class TrukketSøknadBrevInnhold private constructor(
     val personalia: Personalia,
     val datoSøknadOpprettet: String,
     val trukketDato: String,
-    val saksbehandlerNavn: String
+    val saksbehandlerNavn: String,
 ) : BrevInnhold() {
     override val brevTemplate: BrevTemplate = BrevTemplate.TrukketSøknad
 
@@ -17,6 +17,6 @@ data class TrukketSøknadBrevInnhold private constructor(
         personalia: Personalia,
         datoSøknadOpprettet: LocalDate,
         trukketDato: LocalDate,
-        saksbehandlerNavn: String
+        saksbehandlerNavn: String,
     ) : this(personalia, datoSøknadOpprettet.ddMMyyyy(), trukketDato.ddMMyyyy(), saksbehandlerNavn)
 }

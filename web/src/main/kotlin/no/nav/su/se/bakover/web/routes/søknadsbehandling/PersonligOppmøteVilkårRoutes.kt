@@ -33,7 +33,6 @@ internal fun Route.personligOppmøteVilkårRoutes(
                             ),
                         ).fold(
                             {
-
                                 it.tilResultat()
                             },
                             {

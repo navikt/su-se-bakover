@@ -114,42 +114,42 @@ internal class UtbetalingServiceImplTest {
                 customGrunnlag = listOf(
                     fradragsgrunnlagArbeidsinntekt(
                         periode = januar(2021),
-                        arbeidsinntekt = 1000.0
+                        arbeidsinntekt = 1000.0,
                     ),
                     fradragsgrunnlagArbeidsinntekt(
                         periode = februar(2021),
-                        arbeidsinntekt = 2000.0
+                        arbeidsinntekt = 2000.0,
                     ),
                     fradragsgrunnlagArbeidsinntekt(
                         periode = mars(2021),
-                        arbeidsinntekt = 3000.0
-                    )
-                )
+                        arbeidsinntekt = 3000.0,
+                    ),
+                ),
             )
 
             UtbetalingServiceAndMocks(
                 utbetalingRepo = mock {
                     on { hentUtbetalinger(any()) } doReturn sak.utbetalinger
-                }
+                },
             ).also {
                 it.service.hentGjeldendeUtbetaling(
                     sakId = sak.id,
-                    forDato = 15.januar(2021)
+                    forDato = 15.januar(2021),
                 ) shouldBe UtbetalingslinjePåTidslinje.Ny(
                     kopiertFraId = sak.utbetalinger.first().utbetalingslinjer[0].id,
                     opprettet = sak.utbetalinger.first().utbetalingslinjer[0].opprettet,
                     periode = januar(2021),
-                    beløp = 19946
+                    beløp = 19946,
                 ).right()
 
                 it.service.hentGjeldendeUtbetaling(
                     sakId = sak.id,
-                    forDato = 29.mars(2021)
+                    forDato = 29.mars(2021),
                 ) shouldBe UtbetalingslinjePåTidslinje.Ny(
                     kopiertFraId = sak.utbetalinger.first().utbetalingslinjer[2].id,
                     opprettet = sak.utbetalinger.first().utbetalingslinjer[2].opprettet,
                     periode = mars(2021),
-                    beløp = 17946
+                    beløp = 17946,
                 ).right()
             }
         }
@@ -160,7 +160,7 @@ internal class UtbetalingServiceImplTest {
         @Test
         fun `simuleringsperiode settes til fra virkningstidspunkt til slutt på utbetalingslinje ved stans`() {
             val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget(
-                clock = tikkendeFixedClock
+                clock = tikkendeFixedClock,
             )
 
             UtbetalingServiceAndMocks(
@@ -200,7 +200,7 @@ internal class UtbetalingServiceImplTest {
         @Test
         fun `simuleringsperiode settes til fra virkningstidspunkt til slutt på utbetalingslinje ved opphør`() {
             val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget(
-                clock = tikkendeFixedClock
+                clock = tikkendeFixedClock,
             )
 
             UtbetalingServiceAndMocks(
@@ -236,7 +236,7 @@ internal class UtbetalingServiceImplTest {
         @Test
         fun `simuleringsperiode settes til fra virkningstidspunkt til slutt på utbetalingslinje ved reaktivering`() {
             val (sak, _) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
-                clock = tikkendeFixedClock
+                clock = tikkendeFixedClock,
             )
 
             UtbetalingServiceAndMocks(
@@ -249,7 +249,7 @@ internal class UtbetalingServiceImplTest {
                         sakId = sak.id,
                         saksnummer = sak.saksnummer,
                         clock = tikkendeFixedClock,
-                        eksisterendeUtbetalinger = sak.utbetalinger
+                        eksisterendeUtbetalinger = sak.utbetalinger,
                     ).simulering.right()
                 },
                 clock = tikkendeFixedClock,

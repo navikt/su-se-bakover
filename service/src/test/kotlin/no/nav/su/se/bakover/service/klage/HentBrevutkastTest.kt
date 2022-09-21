@@ -243,7 +243,7 @@ internal class HentBrevutkastTest {
                     fritekst = "",
                     klageDato = 1.desember(2021),
                     vedtakDato = 1.januar(2021),
-                    saksnummer = Saksnummer(12345676)
+                    saksnummer = Saksnummer(12345676),
                 )
             },
         )

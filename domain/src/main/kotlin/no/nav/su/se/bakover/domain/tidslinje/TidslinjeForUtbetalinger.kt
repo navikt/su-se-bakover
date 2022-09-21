@@ -91,7 +91,9 @@ data class TidslinjeForUtbetalinger(
                                             tilOgMed = opprettet.instant,
                                             periode = periode,
                                         )
-                                    ) throw RegenerertInformasjonVilOverskriveOriginaleOpplysningerSomErFerskereException
+                                    ) {
+                                        throw RegenerertInformasjonVilOverskriveOriginaleOpplysningerSomErFerskereException
+                                    }
 
                                     UtbetalingslinjePåTidslinje.Reaktivering(
                                         kopiertFraId = utbetalingslinje.kopiertFraId,
@@ -178,7 +180,7 @@ data class TidslinjeForUtbetalinger(
      */
     fun ekvivalentMed(
         tidslinje: TidslinjeForUtbetalinger,
-        periode: Periode = this.periode
+        periode: Periode = this.periode,
     ): Boolean {
         return periode.måneder().map {
             gjeldendeForDato(it.fraOgMed) to tidslinje.gjeldendeForDato(it.fraOgMed)

@@ -18,8 +18,8 @@ internal class KodeverkHttpClientTest : WiremockBase {
         wireMockServer.stubFor(
             wiremockBuilder(kodeverkPoststedPath)
                 .willReturn(
-                    WireMock.ok(resultatPoststedJson)
-                )
+                    WireMock.ok(resultatPoststedJson),
+                ),
         )
         val client = KodeverkHttpClient(wireMockServer.baseUrl(), "srvsupstonad")
         client.hentPoststed("1479") shouldBe "KURLAND".right()
@@ -35,8 +35,8 @@ internal class KodeverkHttpClientTest : WiremockBase {
                 .withQueryParam("ekskluderUgyldige", WireMock.equalTo("true"))
                 .withQueryParam("spraak", WireMock.equalTo("nb"))
                 .willReturn(
-                    WireMock.ok(resultatPoststedJson)
-                )
+                    WireMock.ok(resultatPoststedJson),
+                ),
         )
 
         val client = KodeverkHttpClient(wireMockServer.baseUrl(), "srvsupstonad")
@@ -49,8 +49,8 @@ internal class KodeverkHttpClientTest : WiremockBase {
         wireMockServer.stubFor(
             wiremockBuilder(kodeverkPoststedPath)
                 .willReturn(
-                    WireMock.ok(resultatPoststedJson)
-                )
+                    WireMock.ok(resultatPoststedJson),
+                ),
         )
         val client = KodeverkHttpClient(wireMockServer.baseUrl(), "srvsupstonad")
         client.hentPoststed("XXXX") shouldBe null.right()
@@ -61,8 +61,8 @@ internal class KodeverkHttpClientTest : WiremockBase {
         wireMockServer.stubFor(
             wiremockBuilder(kodeverkPoststedPath)
                 .willReturn(
-                    WireMock.serverError()
-                )
+                    WireMock.serverError(),
+                ),
         )
         val client = KodeverkHttpClient(wireMockServer.baseUrl(), "srvsupstonad")
         client.hentPoststed("XXXX") shouldBe CouldNotGetKode.left()
@@ -72,11 +72,11 @@ internal class KodeverkHttpClientTest : WiremockBase {
     fun `Sjekk at vi finner kommunenavn`() {
         wireMockServer.stubFor(
             wiremockBuilder(
-                kodeverkKommunePath
+                kodeverkKommunePath,
             )
                 .willReturn(
-                    WireMock.ok(resultatKommuneJson)
-                )
+                    WireMock.ok(resultatKommuneJson),
+                ),
         )
         val client = KodeverkHttpClient(wireMockServer.baseUrl(), "srvsupstonad")
         client.hentKommunenavn("1103") shouldBe "Stavanger".right()

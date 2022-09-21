@@ -24,7 +24,7 @@ internal data class DokumentJson(
     val opprettet: String,
     val dokument: ByteArray,
     val journalført: Boolean,
-    val brevErBestilt: Boolean
+    val brevErBestilt: Boolean,
 )
 
 private fun String?.isNotNullOrEmpty() = !this.isNullOrEmpty()

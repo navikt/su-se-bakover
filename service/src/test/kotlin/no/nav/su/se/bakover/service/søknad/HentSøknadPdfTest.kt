@@ -56,9 +56,9 @@ class HentSøknadPdfTest {
     private val person = Person(
         ident = Ident(
             fnr = Fnr(fnr = "12345678901"),
-            aktørId = AktørId(aktørId = "1234")
+            aktørId = AktørId(aktørId = "1234"),
         ),
-        navn = Person.Navn(fornavn = "Tore", mellomnavn = "Johnas", etternavn = "Strømøy")
+        navn = Person.Navn(fornavn = "Tore", mellomnavn = "Johnas", etternavn = "Strømøy"),
     )
 
     @Test
@@ -66,7 +66,7 @@ class HentSøknadPdfTest {
         SøknadServiceOgMocks(
             søknadRepo = mock {
                 on { hentSøknad(any()) } doReturn null
-            }
+            },
         ).also {
             it.service.hentSøknadPdf(søknadId) shouldBe KunneIkkeLageSøknadPdf.FantIkkeSøknad.left()
             verify(it.søknadRepo).hentSøknad(argThat { it shouldBe søknadId })
@@ -88,7 +88,7 @@ class HentSøknadPdfTest {
             },
             pdfGenerator = mock {
                 on { genererPdf(any<SøknadPdfInnhold>()) } doReturn ClientError(0, "").left()
-            }
+            },
         ).also {
             it.service.hentSøknadPdf(søknadId) shouldBe KunneIkkeLageSøknadPdf.KunneIkkeLagePdf.left()
 
@@ -106,7 +106,7 @@ class HentSøknadPdfTest {
                             søknadInnhold = søknadInnhold,
                             clock = fixedClock,
                         )
-                    }
+                    },
                 )
             }
             it.verifyNoMoreInteractions()
@@ -129,7 +129,7 @@ class HentSøknadPdfTest {
             },
             pdfGenerator = mock {
                 on { genererPdf(any<SøknadPdfInnhold>()) } doReturn pdf.right()
-            }
+            },
         ).also {
             it.service.hentSøknadPdf(søknadId) shouldBe pdf.right()
 
@@ -147,7 +147,7 @@ class HentSøknadPdfTest {
                             søknadInnhold = søknadInnhold,
                             clock = fixedClock,
                         )
-                    }
+                    },
                 )
             }
             it.verifyNoMoreInteractions()

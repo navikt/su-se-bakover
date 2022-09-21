@@ -67,7 +67,7 @@ internal class UtbetalingKvitteringResponseTest {
                             typeGrad = UtbetalingRequest.Oppdragslinje.TypeGrad.UFOR,
                             grad = 50,
                         ),
-                        utbetalingId = "268e62fb-3079-4e8d-ab32-ff9fb9"
+                        utbetalingId = "268e62fb-3079-4e8d-ab32-ff9fb9",
                     ),
                 ),
             ),
@@ -81,7 +81,7 @@ internal class UtbetalingKvitteringResponseTest {
         //language=XML
         fun kvitteringXml(
             utbetalingsId: UUID30,
-            alvorlighetsgrad: UtbetalingKvitteringResponse.Alvorlighetsgrad = UtbetalingKvitteringResponse.Alvorlighetsgrad.ALVORLIG_FEIL
+            alvorlighetsgrad: UtbetalingKvitteringResponse.Alvorlighetsgrad = UtbetalingKvitteringResponse.Alvorlighetsgrad.ALVORLIG_FEIL,
         ) =
             """
 <?xml version="1.0" encoding="UTF-8"?>

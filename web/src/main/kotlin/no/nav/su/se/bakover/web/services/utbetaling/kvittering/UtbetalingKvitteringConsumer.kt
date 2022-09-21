@@ -20,7 +20,7 @@ import java.time.Clock
 class UtbetalingKvitteringConsumer(
     private val utbetalingService: UtbetalingService,
     private val ferdigstillVedtakService: FerdigstillVedtakService,
-    private val clock: Clock
+    private val clock: Clock,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -43,7 +43,7 @@ class UtbetalingKvitteringConsumer(
         log.info("Oppdaterer utbetaling og ferdigstiller innvilgelse med kvittering fra Oppdrag")
         utbetalingService.oppdaterMedKvittering(
             utbetalingId = kvitteringResponse.utbetalingsId(),
-            kvittering = kvittering
+            kvittering = kvittering,
         )
             .flatMap { ferdigstillInnvilgelse(it) }
             .mapLeft {
@@ -59,7 +59,7 @@ class UtbetalingKvitteringConsumer(
                 }
                 utbetalingService.oppdaterMedKvittering(
                     utbetalingId = kvitteringResponse.utbetalingsId(),
-                    kvittering = kvittering
+                    kvittering = kvittering,
                 )
                     .flatMap { ferdigstillInnvilgelse(it) }
                     .mapLeft {
