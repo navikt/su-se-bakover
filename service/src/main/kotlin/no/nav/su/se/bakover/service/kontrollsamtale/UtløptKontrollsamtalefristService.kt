@@ -1,8 +1,10 @@
 package no.nav.su.se.bakover.service.kontrollsamtale
 
+import arrow.core.Either
 import no.nav.su.se.bakover.common.førsteINesteMåned
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.journalpost.ErKontrollNotatMottatt
@@ -24,6 +26,7 @@ internal class UtløptFristForKontrollsamtaleServiceImpl(
     private val journalpostClient: JournalpostClient,
     private val kontrollsamtaleRepo: KontrollsamtaleRepo,
     private val revurderingService: RevurderingService,
+    private val sessionFactory: SessionFactory,
 ) : UtløptFristForKontrollsamtaleService {
     override fun håndterKontrollsamtalerMedFristUtløpt(dato: LocalDate) {
         kontrollsamtaleRepo.hentInnkalteKontrollsamtalerMedFristUtløpt(dato).forEach {
@@ -80,42 +83,57 @@ internal class UtløptFristForKontrollsamtaleServiceImpl(
     }
 
     private fun kontrollnotatIkkeMottatt(kontrollsamtale: Kontrollsamtale) {
-        // TODO transaction?
-        kontrollsamtale.settIkkeMøttInnenFrist().fold(
-            {
-                log.error("Feil: $it ved oppdatering av gjennomført kontrollsamtale: $it")
-            },
-            {
-                kontrollsamtaleRepo.lagre(it)
-            },
-        )
-
-        return revurderingService.stansAvYtelse(
-            request = StansYtelseRequest.Opprett(
-                sakId = kontrollsamtale.sakId,
-                saksbehandler = NavIdentBruker.Saksbehandler("srvsupstonad"),
-                fraOgMed = kontrollsamtale.frist.førsteINesteMåned(),
-                revurderingsårsak = Revurderingsårsak(
-                    årsak = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING,
-                    begrunnelse = Revurderingsårsak.Begrunnelse.create("Automatisk stans")
+        Either.catch {
+            sessionFactory.withTransactionContext { tx ->
+                kontrollsamtale.settIkkeMøttInnenFrist().fold(
+                    {
+                        log.error("Feil: $it ved oppdatering av gjennomført kontrollsamtale: $it")
+                        throw IllegalStateException("ROLLBACK")
+                    },
+                    {
+                        kontrollsamtaleRepo.lagre(
+                            kontrollsamtale = it,
+                            sessionContext = tx
+                        )
+                    },
                 )
-            )
-        ).fold(
-            {
-                log.error("Kunne ikke stanse ytelse for sakId: ${kontrollsamtale.sakId}, feil: $it")
-            },
-            { simulertStans ->
-                revurderingService.iverksettStansAvYtelse(
-                    revurderingId = simulertStans.id,
-                    attestant = NavIdentBruker.Attestant("srvsupstonad")
+
+                revurderingService.stansAvYtelse(
+                    request = StansYtelseRequest.Opprett(
+                        sakId = kontrollsamtale.sakId,
+                        saksbehandler = NavIdentBruker.Saksbehandler("srvsupstonad"),
+                        fraOgMed = kontrollsamtale.frist.førsteINesteMåned(),
+                        revurderingsårsak = Revurderingsårsak(
+                            årsak = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING,
+                            begrunnelse = Revurderingsårsak.Begrunnelse.create("Automatisk stans")
+                        )
+                    ),
+                    sessionContext = tx,
                 ).fold(
                     {
                         log.error("Kunne ikke stanse ytelse for sakId: ${kontrollsamtale.sakId}, feil: $it")
+                        throw IllegalStateException("ROLLBACK")
                     },
-                    {
+                    { simulertStans ->
+                        revurderingService.iverksettStansAvYtelse(
+                            revurderingId = simulertStans.id,
+                            attestant = NavIdentBruker.Attestant("srvsupstonad"),
+                            sessionContext = tx
+                        ).fold(
+                            {
+                                log.error("Kunne ikke stanse ytelse for sakId: ${kontrollsamtale.sakId}, feil: $it")
+                                throw IllegalStateException("ROLLBACK")
+                            },
+                            {
+                                log.info("Stanset ytelse for sakId: ${kontrollsamtale.sakId}, som følge av manglende oppmøte til kontrollsamtale")
+                            }
+                        )
                     }
                 )
             }
-        )
+        }.mapLeft {
+            // TODO opprett oppgave
+            log.error("$it")
+        }
     }
 }

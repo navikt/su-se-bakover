@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.komponenttest
 
 import arrow.core.right
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
@@ -9,16 +10,22 @@ import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.fixedClock
 import no.nav.su.se.bakover.common.førsteINesteMåned
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.persistence.TransactionContext
+import no.nav.su.se.bakover.common.sisteIForrigeMåned
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.journalpost.ErKontrollNotatMottatt
 import no.nav.su.se.bakover.domain.kontrollsamtale.Kontrollsamtalestatus
+import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.vilkår.UtenlandsoppholdStatus
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.revurdering.opprettIverksattRevurdering
 import no.nav.su.se.bakover.web.revurdering.utenlandsopphold.leggTilUtenlandsoppholdRevurdering
@@ -160,16 +167,16 @@ internal class KontrollsamtaleKomponentTest {
 
         withKomptestApplication(
             clock = tikkendeKlokke,
-            clients = {
+            clientsBuilder = { databaseRepos, klokke ->
                 TestClientsBuilder(
-                    clock = tikkendeKlokke,
-                    databaseRepos = it,
+                    clock = klokke,
+                    databaseRepos = databaseRepos,
                 ).build(applicationConfig()).copy(
                     journalpostClient = mock {
                         on { kontrollnotatMotatt(any(), any()) } doReturn ErKontrollNotatMottatt.Nei.right()
-                    },
+                    }
                 )
-            }
+            },
         ) { appComponents ->
             val kontrollsamtaleService = appComponents.services.kontrollsamtale
             val utløptFristForKontrollsamtaleService = appComponents.services.utløptFristForKontrollsamtaleService
@@ -206,14 +213,96 @@ internal class KontrollsamtaleKomponentTest {
                 }
 
             appComponents.services.sak.hentSak(sakId).getOrFail().also { sak ->
+                sak.revurderinger shouldHaveSize 1
                 sak.vedtakstidslinje().also { vedtakstidslinje ->
                     Periode.create(
-                        førsteFrist.førsteINesteMåned(),
-                        stønadSlutt.endOfMonth()
-                    ).måneder().forEach {
-                        vedtakstidslinje.gjeldendeForDato(it.fraOgMed)!!.erStans() shouldBe true
-                    }
+                        fraOgMed = stønadStart,
+                        tilOgMed = førsteFrist.sisteIForrigeMåned()
+                    ).måneder().map {
+                        vedtakstidslinje.gjeldendeForDato(it.fraOgMed)!!.originaltVedtak
+                    }.all { it is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling }
+
+                    Periode.create(
+                        fraOgMed = førsteFrist.førsteINesteMåned(),
+                        tilOgMed = stønadSlutt.endOfMonth()
+                    ).måneder().map {
+                        vedtakstidslinje.gjeldendeForDato(it.fraOgMed)!!.originaltVedtak
+                    }.all { it is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse }
                 }
+            }
+        }
+    }
+
+    @Test
+    fun `ruller tilbake endringer dersom noe går feil ved prosessering av utløpt kontrollsamtale`() {
+        val tikkendeKlokke = TikkendeKlokke(LocalDate.now().fixedClock())
+        val stønadStart = LocalDate.now().førsteINesteMåned()
+        val stønadSlutt = stønadStart.plusMonths(11).endOfMonth()
+
+        withKomptestApplication(
+            clock = tikkendeKlokke,
+            repoBuilder = { dataSource, klokke, satsFactory ->
+                SharedRegressionTestData.databaseRepos(
+                    dataSource = dataSource,
+                    clock = klokke,
+                    satsFactory = satsFactory,
+                ).let {
+                    // overstyrer vedtakrepo slik at vi kan kaste exception ved lagring av stansvedtak
+                    it.copy(
+                        vedtakRepo = object : VedtakRepo by it.vedtakRepo {
+                            override fun lagre(vedtak: Vedtak, sessionContext: TransactionContext) {
+                                if (vedtak is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse) {
+                                    throw NullPointerException("tull og fjas")
+                                } else {
+                                    it.vedtakRepo.lagre(vedtak, sessionContext)
+                                }
+                            }
+                        }
+                    )
+                }
+            },
+            clientsBuilder = { databaseRepos, klokke ->
+                TestClientsBuilder(
+                    clock = klokke,
+                    databaseRepos = databaseRepos,
+                ).build(applicationConfig()).copy(
+                    journalpostClient = mock {
+                        on { kontrollnotatMotatt(any(), any()) } doReturn ErKontrollNotatMottatt.Nei.right()
+                    }
+                )
+            },
+        ) { appComponents ->
+            val kontrollsamtaleService = appComponents.services.kontrollsamtale
+            val utløptFristForKontrollsamtaleService = appComponents.services.utløptFristForKontrollsamtaleService
+
+            val sakId = innvilgSøknad(
+                fraOgMed = stønadStart,
+                tilOgMed = stønadSlutt
+            )
+
+            val førstePlanlagteKontrollsamtale = kontrollsamtaleService.hentForSak(sakId = sakId).single()
+
+            tikkendeKlokke.spolTil(førstePlanlagteKontrollsamtale.innkallingsdato)
+
+            kontrollsamtaleService.kallInn(
+                sakId = sakId,
+                kontrollsamtale = førstePlanlagteKontrollsamtale
+            )
+
+            tikkendeKlokke.spolTil(førstePlanlagteKontrollsamtale.frist)
+
+            utløptFristForKontrollsamtaleService.håndterKontrollsamtalerMedFristUtløpt(førstePlanlagteKontrollsamtale.frist)
+
+            appComponents.services.sak.hentSak(sakId).getOrFail().also { sak ->
+                sak.revurderinger shouldHaveSize 0
+                sak.vedtakstidslinje().let { tidslinje ->
+                    Periode.create(stønadStart, stønadSlutt).måneder().map {
+                        tidslinje.gjeldendeForDato(it.fraOgMed)!!.originaltVedtak
+                    }.all { it is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling }
+                }
+                kontrollsamtaleService.hentForSak(sak.id)
+                    .single { it.id == førstePlanlagteKontrollsamtale.id }
+                    .status shouldBe Kontrollsamtalestatus.INNKALT
             }
         }
     }

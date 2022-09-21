@@ -151,7 +151,8 @@ object ServiceBuilder {
             sakService = sakService,
             journalpostClient = clients.journalpostClient,
             kontrollsamtaleRepo = databaseRepos.kontrollsamtaleRepo,
-            revurderingService = revurderingService
+            revurderingService = revurderingService,
+            sessionFactory = databaseRepos.sessionFactory,
         )
 
         val reguleringService = ReguleringServiceImpl(
