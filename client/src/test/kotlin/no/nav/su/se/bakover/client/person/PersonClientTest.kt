@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.client.person
 
-import arrow.core.Nel
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import arrow.core.right
@@ -17,6 +16,7 @@ import no.nav.su.se.bakover.client.skjerming.Skjerming
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.februar
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.common.token.JwtToken
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
@@ -171,8 +171,7 @@ internal class PersonClientTest {
     ) : List<JwtToken.BrukerToken> by brukerTokens {
 
         constructor(brukerTokens: List<String>) : this(
-            brukerTokens.map { JwtToken.BrukerToken(it) }
-                .let { Nel.fromListUnsafe(it) },
+            brukerTokens.map { JwtToken.BrukerToken(it) }.toNonEmptyList(),
         )
 
         var currentIndex = 0

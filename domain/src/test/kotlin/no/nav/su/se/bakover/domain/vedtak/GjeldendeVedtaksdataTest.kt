@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.domain.vedtak
 
-import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.april
@@ -10,6 +9,7 @@ import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.år
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
@@ -152,7 +152,7 @@ internal class GjeldendeVedtaksdataTest {
 
         GjeldendeVedtaksdata(
             periode = år(2021),
-            vedtakListe = NonEmptyList.fromListUnsafe(sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()),
+            vedtakListe = sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>().toNonEmptyList(),
             clock = fixedClock,
         ).let {
             it.inneholderOpphørsvedtakMedAvkortingUtenlandsopphold() shouldBe true

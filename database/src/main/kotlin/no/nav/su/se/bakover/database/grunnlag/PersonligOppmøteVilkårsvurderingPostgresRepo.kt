@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.database.grunnlag
 
-import arrow.core.Nel
 import kotliquery.Row
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.TransactionalSession
@@ -106,7 +106,10 @@ internal class PersonligOppmøteVilkårsvurderingPostgresRepo(
                     it.toVurderingsperiode(session)
                 }.let {
                     when (it.isNotEmpty()) {
-                        true -> PersonligOppmøteVilkår.Vurdert(vurderingsperioder = Nel.fromListUnsafe(it))
+                        true -> PersonligOppmøteVilkår.Vurdert(
+                            vurderingsperioder = it.toNonEmptyList(),
+
+                        )
                         false -> PersonligOppmøteVilkår.IkkeVurdert
                     }
                 }

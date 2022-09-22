@@ -5,12 +5,12 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.mars
-import no.nav.su.se.bakover.common.nonEmpty
 import no.nav.su.se.bakover.common.periode.april
 import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.common.periode.år
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.Fnr
@@ -182,7 +182,7 @@ internal fun alleUtbetalinger() = listOf(
                 utbetalingslinje(periode = mars(2020), beløp = 100),
                 utbetalingslinje(periode = april(2020), beløp = 200),
             ),
-        ).nonEmpty(),
+        ).toNonEmptyList(),
     ),
     lagUtbetaling(
         id = ok2Id,
@@ -193,7 +193,7 @@ internal fun alleUtbetalinger() = listOf(
                 utbetalingslinje(periode = mars(2020), beløp = 600, uføregrad = 60),
                 utbetalingslinje(periode = april(2020), beløp = 700, uføregrad = 60),
             ),
-        ).nonEmpty(),
+        ).toNonEmptyList(),
     ),
     lagUtbetaling(
         id = okMedVarselId,
@@ -205,7 +205,7 @@ internal fun alleUtbetalinger() = listOf(
                 utbetalingslinje(periode = april(2020), beløp = 500, uføregrad = 70),
                 utbetalingslinje(periode = mai(2020), beløp = 500, uføregrad = 75),
             ),
-        ).nonEmpty(),
+        ).toNonEmptyList(),
     ),
     lagUtbetaling(
         id = feildId,
@@ -218,7 +218,7 @@ internal fun alleUtbetalinger() = listOf(
                 utbetalingslinje(periode = mai(2020), beløp = 3000, uføregrad = 30),
                 utbetalingslinje(periode = juni(2020), beløp = 4000, uføregrad = 50),
             ),
-        ).nonEmpty(),
+        ).toNonEmptyList(),
     ),
     lagUtbetaling(
         id = manglerKvitteringId,
@@ -228,6 +228,6 @@ internal fun alleUtbetalinger() = listOf(
             listOf(
                 utbetalingslinje(periode = år(2020), beløp = 5000, uføregrad = 15),
             ),
-        ).nonEmpty(),
+        ).toNonEmptyList(),
     ),
 )

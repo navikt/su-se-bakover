@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.web.routes.vilkår.opplysningsplikt
 
 import arrow.core.Either
-import arrow.core.NonEmptyList
 import arrow.core.flatMap
 import arrow.core.sequence
 import no.nav.su.se.bakover.common.periode.PeriodeJson
 import no.nav.su.se.bakover.common.periode.PeriodeJson.Companion.toJson
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
 import no.nav.su.se.bakover.domain.grunnlag.Opplysningspliktgrunnlag
 import no.nav.su.se.bakover.domain.vilkår.KunneIkkeLageOpplysningspliktVilkår
@@ -54,7 +54,10 @@ internal fun List<VurderingsperiodeOpplysningspliktVilkårJson>.toDomain(): Eith
     return map { it.toDomain() }.sequence()
         .mapLeft { KunneIkkeLeggeTilOpplysningsplikt.UgyldigOpplysningspliktVilkår(it) }
         .flatMap { vurderingsperioder ->
-            OpplysningspliktVilkår.Vurdert.tryCreate(NonEmptyList.fromListUnsafe(vurderingsperioder))
+            OpplysningspliktVilkår.Vurdert.tryCreate(
+                vurderingsperioder.toNonEmptyList(),
+
+            )
                 .mapLeft { KunneIkkeLeggeTilOpplysningsplikt.UgyldigOpplysningspliktVilkår(it) }
         }
 }

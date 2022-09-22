@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.service.personhendelser
 
-import arrow.core.NonEmptyList
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -212,7 +212,7 @@ internal class PersonhendelseServiceTest {
                 partisjon = 0,
                 master = "FREG",
                 key = "key",
-                personidenter = NonEmptyList.fromListUnsafe(listOf(UUID.randomUUID().toString())),
+                personidenter = listOf(UUID.randomUUID().toString()).toNonEmptyList(),
             ),
             antallFeiledeForsøk = 0,
         )

@@ -7,9 +7,9 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.between
 import no.nav.su.se.bakover.common.erFørsteDagIMåned
-import no.nav.su.se.bakover.common.nonEmpty
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfMonth
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -160,7 +160,7 @@ sealed class Utbetalingsstrategi {
                     uføregrad = it.uføregrad,
                     utbetalingsinstruksjonForEtterbetalinger = kjøreplan,
                 )
-            }.nonEmpty().also {
+            }.toNonEmptyList().also {
                 it.sjekkIngenNyeOverlapper()
             }
 
@@ -173,7 +173,7 @@ sealed class Utbetalingsstrategi {
                     nyeUtbetalingslinjer = nyeUtbetalingslinjer,
                     eksisterendeUtbetalingslinjer = eksisterendeUtbetalinger.hentOversendteUtbetalingslinjerUtenFeil(),
                     clock = clock,
-                ).generer().nonEmpty(),
+                ).generer().toNonEmptyList(),
                 behandler = behandler,
                 avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
                 sakstype = sakstype,
@@ -258,7 +258,7 @@ sealed class Utbetalingsstrategi {
                 )
             }.also {
                 it.sjekkIngenNyeOverlapper()
-            }.nonEmpty()
+            }.toNonEmptyList()
 
             return Utbetaling.UtbetalingForSimulering(
                 opprettet = opprettet,
@@ -268,7 +268,7 @@ sealed class Utbetalingsstrategi {
                     nyeUtbetalingslinjer = nyeUtbetalingslinjer,
                     eksisterendeUtbetalingslinjer = eksisterendeUtbetalinger.hentOversendteUtbetalingslinjerUtenFeil(),
                     clock = clock,
-                ).generer().nonEmpty(),
+                ).generer().toNonEmptyList(),
                 fnr = fnr,
                 behandler = behandler,
                 avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
@@ -308,10 +308,10 @@ sealed class Utbetalingsstrategi {
                             opprettet = opprettet,
                             clock = clock,
                         ),
-                    ).nonEmpty(),
+                    ).toNonEmptyList(),
                     eksisterendeUtbetalingslinjer = eksisterendeUtbetalinger.hentOversendteUtbetalingslinjerUtenFeil(),
                     clock = clock,
-                ).generer().nonEmpty(),
+                ).generer().toNonEmptyList(),
                 behandler = behandler,
                 avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
                 sakstype = sakstype,

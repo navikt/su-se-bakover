@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.web.services.personhendelser
 
 import arrow.core.Either
-import arrow.core.NonEmptyList
 import arrow.core.left
 import arrow.core.right
 import no.nav.person.pdl.leesah.Endringstype
 import no.nav.su.se.bakover.common.orNull
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.person.SivilstandTyper
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
@@ -89,7 +89,7 @@ internal object PersonhendelseMapper {
                 endringstype = hentEndringstype(personhendelse.getEndringstype()),
                 hendelse = hendelse,
                 metadata = Personhendelse.Metadata(
-                    personidenter = NonEmptyList.fromListUnsafe(personhendelse.getPersonidenter()),
+                    personidenter = personhendelse.getPersonidenter().toNonEmptyList(),
                     hendelseId = personhendelse.getHendelseId(),
                     tidligereHendelseId = personhendelse.getTidligereHendelseId()
                         .let { if (it.isPresent) it.get() else null },

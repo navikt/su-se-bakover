@@ -2,12 +2,12 @@ package no.nav.su.se.bakover.domain.vilkår
 
 import arrow.core.Either
 import arrow.core.Nel
-import arrow.core.NonEmptyList
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.harOverlappende
 import no.nav.su.se.bakover.common.periode.minus
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
@@ -161,21 +161,21 @@ sealed class UføreVilkår : Vilkår() {
 
                 if (tidligere) {
                     Vurdert(
-                        vurderingsperioder = NonEmptyList.fromListUnsafe(
+                        vurderingsperioder = (
                             listOf(
                                 vurderingsperioder.minByOrNull { it.periode.fraOgMed }!!
                                     .oppdaterStønadsperiode(stønadsperiode),
-                            ),
-                        ).slåSammenLikePerioder(),
+                            ).toNonEmptyList()
+                            ).slåSammenLikePerioder(),
                     )
                 } else {
                     Vurdert(
-                        vurderingsperioder = NonEmptyList.fromListUnsafe(
+                        vurderingsperioder = (
                             listOf(
                                 vurderingsperioder.maxByOrNull { it.periode.tilOgMed }!!
                                     .oppdaterStønadsperiode(stønadsperiode),
-                            ),
-                        ).slåSammenLikePerioder(),
+                            ).toNonEmptyList()
+                            ).slåSammenLikePerioder(),
                     )
                 }
             }
@@ -183,12 +183,10 @@ sealed class UføreVilkår : Vilkår() {
 
         override fun lagTidslinje(periode: Periode): Vurdert {
             return Vurdert(
-                vurderingsperioder = NonEmptyList.fromListUnsafe(
-                    Tidslinje(
-                        periode = periode,
-                        objekter = vurderingsperioder,
-                    ).tidslinje,
-                ),
+                vurderingsperioder = Tidslinje(
+                    periode = periode,
+                    objekter = vurderingsperioder,
+                ).tidslinje.toNonEmptyList(),
             )
         }
     }

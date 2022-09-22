@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.database.grunnlag
 
-import arrow.core.Nel
 import kotliquery.Row
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.TransactionalSession
@@ -97,7 +97,10 @@ internal class InstitusjonsoppholdVilkårsvurderingPostgresRepo(
                     it.toVurderingsperiode()
                 }.let {
                     when (it.isNotEmpty()) {
-                        true -> InstitusjonsoppholdVilkår.Vurdert.create(vurderingsperioder = Nel.fromListUnsafe(it))
+                        true -> InstitusjonsoppholdVilkår.Vurdert.create(
+                            vurderingsperioder = it.toNonEmptyList(),
+
+                        )
                         false -> InstitusjonsoppholdVilkår.IkkeVurdert
                     }
                 }

@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.web.routes.vilkår.utenlandsopphold
 
 import arrow.core.Either
-import arrow.core.Nel
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
@@ -12,6 +11,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.periode.PeriodeJson
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilUtenlandsopphold
@@ -103,15 +103,13 @@ internal data class UtenlandsoppholdBody(
     fun toDomain(revurderingId: UUID): Either<Resultat, LeggTilFlereUtenlandsoppholdRequest> =
         LeggTilFlereUtenlandsoppholdRequest(
             behandlingId = revurderingId,
-            request = Nel.fromListUnsafe(
-                vurderinger.map {
-                    LeggTilUtenlandsoppholdRequest(
-                        behandlingId = revurderingId,
-                        periode = it.periode.toPeriodeOrResultat().getOrHandle { return it.left() },
-                        status = it.status,
-                    )
-                },
-            ),
+            request = vurderinger.map {
+                LeggTilUtenlandsoppholdRequest(
+                    behandlingId = revurderingId,
+                    periode = it.periode.toPeriodeOrResultat().getOrHandle { return it.left() },
+                    status = it.status,
+                )
+            }.toNonEmptyList(),
         ).right()
 }
 

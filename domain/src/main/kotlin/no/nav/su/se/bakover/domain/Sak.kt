@@ -11,13 +11,13 @@ import arrow.core.right
 import com.fasterxml.jackson.annotation.JsonValue
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUIDFactory
-import no.nav.su.se.bakover.common.nonEmpty
 import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørTilOgMedDato
 import no.nav.su.se.bakover.common.periode.Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden
 import no.nav.su.se.bakover.common.periode.Periode.UgyldigPeriode.TilOgMedDatoMåVæreSisteDagIMåneden
 import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
@@ -175,7 +175,7 @@ data class Sak(
             .let { vedtakSomKanRevurderes ->
                 GjeldendeVedtaksdata(
                     periode = periode,
-                    vedtakListe = vedtakSomKanRevurderes.nonEmpty(),
+                    vedtakListe = vedtakSomKanRevurderes.toNonEmptyList(),
                     clock = clock,
                 ).right()
             }
@@ -216,7 +216,7 @@ data class Sak(
             .let {
                 GjeldendeVedtaksdata(
                     periode = vedtak.periode,
-                    vedtakListe = NonEmptyList.fromListUnsafe(it),
+                    vedtakListe = it.toNonEmptyList(),
                     clock = clock,
                 ).right()
             }
@@ -241,11 +241,9 @@ data class Sak(
     ): Beregning? {
         return GjeldendeVedtaksdata(
             periode = måned,
-            vedtakListe = NonEmptyList.fromListUnsafe(
-                vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
-                    .filter { it.beregningKanVæreGjeldende().isRight() }
-                    .ifEmpty { return null },
-            ),
+            vedtakListe = vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
+                .filter { it.beregningKanVæreGjeldende().isRight() }
+                .ifEmpty { return null }.toNonEmptyList(),
             clock = clock,
         ).gjeldendeVedtakPåDato(måned.fraOgMed)?.hentBeregningForGjeldendeVedtak()
     }
@@ -256,11 +254,9 @@ data class Sak(
     ): List<Månedsberegning> {
         return GjeldendeVedtaksdata(
             periode = periode,
-            vedtakListe = NonEmptyList.fromListUnsafe(
-                vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
-                    .filter { it.beregningKanVæreGjeldende().isRight() }
-                    .ifEmpty { return emptyList() },
-            ),
+            vedtakListe = vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
+                .filter { it.beregningKanVæreGjeldende().isRight() }
+                .ifEmpty { return emptyList() }.toNonEmptyList(),
             clock = clock,
         ).let { gjeldendeVedtaksdata ->
             periode.måneder().mapNotNull { måned ->
@@ -501,7 +497,7 @@ data class Sak(
         return søknadsbehandlinger
             .filter { it.erÅpen() }
             .ifEmpty { return IngenÅpneSøknadsbehandlinger.left() }
-            .nonEmpty()
+            .toNonEmptyList()
             .right()
     }
 
@@ -835,7 +831,7 @@ data class Sak(
         reguleringer
             .filter { it.erÅpen() }
             .ifEmpty { return IngenÅpneReguleringer.left() }
-            .nonEmpty()
+            .toNonEmptyList()
             .right()
 
     fun harÅpenRevurdering() = hentÅpneRevurderinger().isRight()
@@ -843,7 +839,7 @@ data class Sak(
         revurderinger
             .filter { it.erÅpen() }
             .ifEmpty { return IngenÅpneRevurderinger.left() }
-            .nonEmpty()
+            .toNonEmptyList()
             .right()
 
     fun kanOppretteBehandling(): Boolean = !harÅpenSøknadsbehandling() && !harÅpenRevurdering() && !harÅpenRegulering() && !harÅpenRevurderingForStansAvYtelse() && !harÅpenRevurderingForGjenopptakAvYtelse()

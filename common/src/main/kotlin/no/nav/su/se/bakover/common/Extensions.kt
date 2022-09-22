@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.common
 
 import arrow.core.NonEmptyList
+import arrow.core.toNonEmptyListOrNull
 import no.nav.su.se.bakover.common.periode.Periode
 import org.slf4j.MDC
 import java.lang.Double.max
@@ -38,9 +39,8 @@ fun String.trimWhitespace(): String {
     return this.filterNot { it.isWhitespace() }
 }
 
-fun <T> List<T>.nonEmpty(): NonEmptyList<T> {
-    require(this.isNotEmpty()) { "Kan ikke lage NonEmptyList for en tom liste" }
-    return NonEmptyList.fromListUnsafe(this)
+fun <T> List<T>.toNonEmptyList(): NonEmptyList<T> {
+    return this.toNonEmptyListOrNull() ?: throw IllegalArgumentException("Kan ikke lage NonEmptyList fra en tom liste.")
 }
 
 inline fun Boolean.and(predicate: () -> Boolean): Boolean {

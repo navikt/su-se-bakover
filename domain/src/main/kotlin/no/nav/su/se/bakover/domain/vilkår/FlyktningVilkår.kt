@@ -8,6 +8,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.harOverlappende
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
@@ -50,12 +51,10 @@ sealed class FlyktningVilkår : Vilkår() {
 
         override fun lagTidslinje(periode: Periode): FlyktningVilkår {
             return copy(
-                vurderingsperioder = Nel.fromListUnsafe(
-                    Tidslinje(
-                        periode = periode,
-                        objekter = vurderingsperioder,
-                    ).tidslinje,
-                ),
+                vurderingsperioder = Tidslinje(
+                    periode = periode,
+                    objekter = vurderingsperioder,
+                ).tidslinje.toNonEmptyList(),
             )
         }
 

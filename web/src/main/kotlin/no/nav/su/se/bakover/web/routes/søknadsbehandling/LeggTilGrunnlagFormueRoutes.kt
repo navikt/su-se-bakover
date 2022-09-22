@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling
 
 import arrow.core.Either
-import arrow.core.NonEmptyList
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
@@ -11,6 +10,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.periode.PeriodeJson
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageFormueVerdier
@@ -67,24 +67,22 @@ private data class FormueBody(
 
             return LeggTilFormuevilkårRequest(
                 behandlingId = behandlingId,
-                formuegrunnlag = NonEmptyList.fromListUnsafe(
-                    this.map { formueBody ->
-                        LeggTilFormuevilkårRequest.Grunnlag.Søknadsbehandling(
-                            periode = formueBody.periode.toPeriodeOrResultat()
-                                .getOrHandle { return it.left() },
-                            epsFormue = formueBody.epsFormue?.let {
-                                lagFormuegrunnlag(formueBody.epsFormue).getOrHandle {
-                                    return it.tilResultat().left()
-                                }
-                            },
-                            søkersFormue = lagFormuegrunnlag(formueBody.søkersFormue).getOrHandle {
+                formuegrunnlag = this.map { formueBody ->
+                    LeggTilFormuevilkårRequest.Grunnlag.Søknadsbehandling(
+                        periode = formueBody.periode.toPeriodeOrResultat()
+                            .getOrHandle { return it.left() },
+                        epsFormue = formueBody.epsFormue?.let {
+                            lagFormuegrunnlag(formueBody.epsFormue).getOrHandle {
                                 return it.tilResultat().left()
-                            },
-                            begrunnelse = formueBody.begrunnelse,
-                            måInnhenteMerInformasjon = formueBody.måInnhenteMerInformasjon,
-                        )
-                    },
-                ),
+                            }
+                        },
+                        søkersFormue = lagFormuegrunnlag(formueBody.søkersFormue).getOrHandle {
+                            return it.tilResultat().left()
+                        },
+                        begrunnelse = formueBody.begrunnelse,
+                        måInnhenteMerInformasjon = formueBody.måInnhenteMerInformasjon,
+                    )
+                }.toNonEmptyList(),
             ).right()
         }
     }

@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.web.routes.vilkår.alder
 
 import arrow.core.Either
-import arrow.core.NonEmptyList
 import arrow.core.flatMap
 import arrow.core.sequence
 import no.nav.su.se.bakover.common.periode.PeriodeJson
 import no.nav.su.se.bakover.common.periode.PeriodeJson.Companion.toJson
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.grunnlag.Pensjonsgrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Pensjonsopplysninger
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
@@ -178,7 +178,10 @@ internal fun List<LeggTilVurderingsperiodePensjonsvilkårJson>.toDomain(): Eithe
     return map { it.toDomain() }.sequence()
         .mapLeft { KunneIkkeLeggeTilPensjonsVilkår.UgyldigPensjonsVilkår(it) }
         .flatMap { vurderingsperioder ->
-            PensjonsVilkår.Vurdert.tryCreate(NonEmptyList.fromListUnsafe(vurderingsperioder))
+            PensjonsVilkår.Vurdert.tryCreate(
+                vurderingsperioder.toNonEmptyList(),
+
+            )
                 .mapLeft { KunneIkkeLeggeTilPensjonsVilkår.UgyldigPensjonsVilkår(it) }
         }
 }

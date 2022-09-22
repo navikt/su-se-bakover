@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.domain.satser
 
-import arrow.core.Nel
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.erFørsteDagIMåned
@@ -10,6 +9,7 @@ import no.nav.su.se.bakover.common.periode.erSammenhengende
 import no.nav.su.se.bakover.common.periode.erSammenhengendeSortertOgUtenDuplikater
 import no.nav.su.se.bakover.common.periode.erSortert
 import no.nav.su.se.bakover.common.periode.harDuplikater
+import no.nav.su.se.bakover.common.toNonEmptyList
 import java.time.LocalDate
 
 /**
@@ -84,7 +84,9 @@ data class Månedssatser<T>(
     val satser: NonEmptyList<Månedssats<T>>,
 ) : List<Månedssats<T>> by satser {
     constructor(sats: Månedssats<T>) : this(nonEmptyListOf(sats))
-    constructor(satser: List<Månedssats<T>>) : this(Nel.fromListUnsafe(satser))
+    constructor(satser: List<Månedssats<T>>) : this(
+        satser.toNonEmptyList<Månedssats<T>>(),
+    )
 
     init {
         satser.map { it.måned }.let {

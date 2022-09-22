@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.database.utbetaling
 
-import arrow.core.NonEmptyList
 import kotliquery.Row
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.deserializeNullable
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
@@ -80,7 +80,7 @@ internal fun Row.toUtbetaling(session: Session): Utbetaling.OversendtUtbetaling 
         sakId = sakId,
         saksnummer = saksnummer,
         fnr = fnr,
-        utbetalingslinjer = NonEmptyList.fromListUnsafe(utbetalingslinjer),
+        utbetalingslinjer = utbetalingslinjer.toNonEmptyList(),
         avstemmingsnøkkel = avstemmingsnøkkel,
         simulering = simulering,
         utbetalingsrequest = utbetalingsrequest,

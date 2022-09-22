@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.service.klage
 
 import arrow.core.Either
-import arrow.core.NonEmptyList
 import arrow.core.flatMap
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.klage.Hjemler
 import no.nav.su.se.bakover.domain.klage.Hjemmel
@@ -88,7 +88,9 @@ data class KlageVurderingerRequest(
                 }
             }.let {
                 if (it.isEmpty()) return Hjemler.empty().right()
-                Hjemler.tryCreate(NonEmptyList.fromListUnsafe(it)).getOrHandle {
+                Hjemler.tryCreate(
+                    it.toNonEmptyList(),
+                ).getOrHandle {
                     return KunneIkkeVurdereKlage.UgyldigOpprettholdelseshjemler.left()
                 }.right()
             }

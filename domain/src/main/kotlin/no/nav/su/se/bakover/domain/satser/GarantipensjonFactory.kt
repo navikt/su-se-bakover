@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.domain.satser
 
-import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.erSortertOgUtenDuplikater
 import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.erSammenhengendeSortertOgUtenDuplikater
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.satser.Knekkpunkt.Companion.compareTo
 import java.time.LocalDate
 
@@ -70,7 +70,12 @@ data class GarantipensjonFactory private constructor(
         ): Map<Måned, GarantipensjonForMåned> {
             return filterNot { it.ikrafttredelse > knekkpunkt }
                 .map { RåSats(it.virkningstidspunkt, it) }
-                .let { RåSatser(NonEmptyList.fromListUnsafe(it)) }
+                .let {
+                    RåSatser(
+                        it.toNonEmptyList(),
+
+                    )
+                }
                 .periodisert(tidligsteTilgjengeligeMåned)
                 .associate { (virkningstidspunkt, måned, garantipensjonsendring) ->
                     måned to GarantipensjonForMåned(

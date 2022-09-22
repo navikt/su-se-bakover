@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.database.grunnlag
 
-import arrow.core.NonEmptyList
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.periode.år
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
@@ -55,7 +55,7 @@ internal class OpplysningspliktVilkårsvurderingPostgresRepoTest {
             val utilstrekkelig = utilstrekkeligDokumentert(periode = år(2022))
 
             val flerePerioder = OpplysningspliktVilkår.Vurdert.createFromVilkårsvurderinger(
-                NonEmptyList.fromListUnsafe(vilkår.vurderingsperioder + utilstrekkelig.vurderingsperioder),
+                (vilkår.vurderingsperioder + utilstrekkelig.vurderingsperioder).toNonEmptyList(),
             )
 
             testDataHelper.sessionFactory.withTransaction { tx ->

@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.test
 
-import arrow.core.Nel
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.startOfMonth
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
@@ -40,7 +40,7 @@ fun vedtakSøknadsbehandlingIverksattInnvilget(
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerSøknadsbehandlingInnvilget(
         periode = stønadsperiode.periode,
-        bosituasjon = Nel.fromListUnsafe(grunnlagsdata.bosituasjon.map { it as Grunnlag.Bosituasjon.Fullstendig }),
+        bosituasjon = grunnlagsdata.bosituasjon.map { it as Grunnlag.Bosituasjon.Fullstendig }.toNonEmptyList(),
     ),
     clock: Clock = fixedClock,
     avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
@@ -297,7 +297,8 @@ fun vedtakRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
         it.copy(
             vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(
                 periode = revurderingsperiode,
-                bosituasjon = Nel.fromListUnsafe(it.grunnlagsdata.bosituasjon.map { it as Grunnlag.Bosituasjon.Fullstendig }),
+                bosituasjon = it.grunnlagsdata.bosituasjon.map { it as Grunnlag.Bosituasjon.Fullstendig }
+                    .toNonEmptyList(),
             ),
         )
     },

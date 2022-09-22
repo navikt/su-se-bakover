@@ -5,6 +5,7 @@ import arrow.core.getOrHandle
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.minAndMaxOf
 import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.slåSammenPeriodeOgBosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.slåSammenPeriodeOgFradrag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -172,7 +173,10 @@ private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.uføreVilkår(): Uf�
         )
     }.let {
         if (it.isNotEmpty()) {
-            UføreVilkår.Vurdert.fromVurderingsperioder(vurderingsperioder = NonEmptyList.fromListUnsafe(it))
+            UføreVilkår.Vurdert.fromVurderingsperioder(
+                vurderingsperioder = it.toNonEmptyList(),
+
+            )
                 .getOrHandle { throw IllegalArgumentException("Kunne ikke instansiere ${UføreVilkår.Vurdert::class.simpleName}. Melding: $it") }
                 .slåSammenLikePerioder()
         } else {
@@ -187,7 +191,9 @@ private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.lovligoppholdVilkår
         .flatMap { it.vurderingsperioder }
         .let {
             if (it.isNotEmpty()) {
-                LovligOppholdVilkår.Vurdert.createFromVilkårsvurderinger(NonEmptyList.fromListUnsafe(it))
+                LovligOppholdVilkår.Vurdert.createFromVilkårsvurderinger(
+                    it.toNonEmptyList(),
+                )
                     .slåSammenLikePerioder()
             } else {
                 LovligOppholdVilkår.IkkeVurdert
@@ -201,7 +207,9 @@ private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.formueVilkår(): For
         .flatMap { it.vurderingsperioder }
         .let {
             if (it.isNotEmpty()) {
-                FormueVilkår.Vurdert.createFromVilkårsvurderinger(NonEmptyList.fromListUnsafe(it))
+                FormueVilkår.Vurdert.createFromVilkårsvurderinger(
+                    it.toNonEmptyList(),
+                )
                     .slåSammenLikePerioder()
             } else {
                 FormueVilkår.IkkeVurdert
@@ -215,7 +223,9 @@ private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.utenlandsoppholdVilk
         .flatMap { it.vurderingsperioder }
         .let {
             if (it.isNotEmpty()) {
-                UtenlandsoppholdVilkår.Vurdert.createFromVilkårsvurderinger(NonEmptyList.fromListUnsafe(it))
+                UtenlandsoppholdVilkår.Vurdert.createFromVilkårsvurderinger(
+                    it.toNonEmptyList(),
+                )
                     .slåSammenLikePerioder()
             } else {
                 UtenlandsoppholdVilkår.IkkeVurdert
@@ -229,7 +239,9 @@ private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.opplysningspliktVilk
         .flatMap { it.vurderingsperioder }
         .let {
             if (it.isNotEmpty()) {
-                OpplysningspliktVilkår.Vurdert.createFromVilkårsvurderinger(NonEmptyList.fromListUnsafe(it))
+                OpplysningspliktVilkår.Vurdert.createFromVilkårsvurderinger(
+                    it.toNonEmptyList(),
+                )
                     .slåSammenLikePerioder()
             } else {
                 OpplysningspliktVilkår.IkkeVurdert
@@ -252,7 +264,10 @@ private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.pensjonsVilkår(): P
         )
     }.let {
         if (it.isNotEmpty()) {
-            PensjonsVilkår.Vurdert.createFromVilkårsvurderinger(NonEmptyList.fromListUnsafe(it))
+            PensjonsVilkår.Vurdert.createFromVilkårsvurderinger(
+                it.toNonEmptyList(),
+
+            )
                 .slåSammenLikePerioder()
         } else {
             PensjonsVilkår.IkkeVurdert
@@ -275,7 +290,10 @@ private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.familiegjenforeningv
         )
     }.let {
         if (it.isNotEmpty()) {
-            FamiliegjenforeningVilkår.Vurdert.createFromVilkårsvurderinger(NonEmptyList.fromListUnsafe(it))
+            FamiliegjenforeningVilkår.Vurdert.createFromVilkårsvurderinger(
+                it.toNonEmptyList(),
+
+            )
                 .slåSammenLikePerioder()
         } else {
             FamiliegjenforeningVilkår.IkkeVurdert
@@ -298,7 +316,10 @@ private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.flyktningVilkår(): 
         )
     }.let {
         if (it.isNotEmpty()) {
-            FlyktningVilkår.Vurdert.create(NonEmptyList.fromListUnsafe(it)).slåSammenLikePerioder()
+            FlyktningVilkår.Vurdert.create(
+                it.toNonEmptyList(),
+
+            ).slåSammenLikePerioder()
         } else {
             FlyktningVilkår.IkkeVurdert
         }
@@ -311,7 +332,9 @@ private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.fastOppholdINorgeVil
         .flatMap { it.vurderingsperioder }
         .let { vurderingsperioder ->
             if (vurderingsperioder.isNotEmpty()) {
-                FastOppholdINorgeVilkår.Vurdert.tryCreate(NonEmptyList.fromListUnsafe(vurderingsperioder))
+                FastOppholdINorgeVilkår.Vurdert.tryCreate(
+                    vurderingsperioder.toNonEmptyList(),
+                )
                     .getOrHandle { throw IllegalArgumentException(it.toString()) }
                     .slåSammenLikePerioder()
             } else {
@@ -326,7 +349,9 @@ private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.personligOppmøteVil
         .flatMap { it.vurderingsperioder }
         .let {
             if (it.isNotEmpty()) {
-                PersonligOppmøteVilkår.Vurdert(NonEmptyList.fromListUnsafe(it)).slåSammenLikePerioder()
+                PersonligOppmøteVilkår.Vurdert(
+                    it.toNonEmptyList(),
+                ).slåSammenLikePerioder()
             } else {
                 PersonligOppmøteVilkår.IkkeVurdert
             }
@@ -339,7 +364,9 @@ private fun List<VedtakSomKanRevurderes.VedtakPåTidslinje>.institusjonsoppholdV
         .flatMap { it.vurderingsperioder }
         .let {
             if (it.isNotEmpty()) {
-                InstitusjonsoppholdVilkår.Vurdert.create(NonEmptyList.fromListUnsafe(it)).slåSammenLikePerioder()
+                InstitusjonsoppholdVilkår.Vurdert.create(
+                    it.toNonEmptyList(),
+                ).slåSammenLikePerioder()
             } else {
                 InstitusjonsoppholdVilkår.IkkeVurdert
             }

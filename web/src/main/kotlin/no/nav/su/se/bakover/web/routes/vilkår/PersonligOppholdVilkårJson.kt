@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.web.routes.vilkår
 
-import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.periode.PeriodeJson
 import no.nav.su.se.bakover.common.periode.PeriodeJson.Companion.toJson
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.grunnlag.PersonligOppmøteGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.PersonligOppmøteÅrsak
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
@@ -17,7 +17,11 @@ import no.nav.su.se.bakover.web.routes.Feilresponser
 import java.util.UUID
 
 internal fun List<LeggTilVurderingsperiodePersonligOppmøteJson>.toDomain(): PersonligOppmøteVilkår.Vurdert {
-    return map { it.toDomain() }.let { PersonligOppmøteVilkår.Vurdert(NonEmptyList.fromListUnsafe(it)) }
+    return map { it.toDomain() }.let {
+        PersonligOppmøteVilkår.Vurdert(
+            it.toNonEmptyList(),
+        )
+    }
 }
 
 internal fun KunneIkkeLeggeTilPersonligOppmøteVilkår.tilResultat(): Resultat {

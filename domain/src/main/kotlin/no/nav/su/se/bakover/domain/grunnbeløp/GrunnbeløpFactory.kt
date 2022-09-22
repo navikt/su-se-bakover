@@ -4,6 +4,7 @@ import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.erSortertOgUtenDuplikater
 import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.erSammenhengendeSortertOgUtenDuplikater
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.satser.Knekkpunkt
 import no.nav.su.se.bakover.domain.satser.Knekkpunkt.Companion.compareTo
 import no.nav.su.se.bakover.domain.satser.RåSats
@@ -84,7 +85,12 @@ private fun NonEmptyList<Grunnbeløpsendring>.periodiserIftVirkningstidspunkt(
 ): Map<Måned, GrunnbeløpForMåned> {
     return filterNot { it.ikrafttredelse > knekkpunkt }
         .map { RåSats(it.virkningstidspunkt, it) }
-        .let { RåSatser(NonEmptyList.fromListUnsafe(it)) }
+        .let {
+            RåSatser(
+                it.toNonEmptyList(),
+
+            )
+        }
         .periodisert(tidligsteTilgjengeligeMåned)
         .associate {
             it.måned to GrunnbeløpForMåned(

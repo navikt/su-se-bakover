@@ -4,6 +4,7 @@ import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.år
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.FamiliegjenforeningVilkår
@@ -175,7 +176,7 @@ fun vilkårsvurderingerAvslåttAlleRevurdering(
     ),
     formue: FormueVilkår = formuevilkårAvslåttPgrBrukersformue(
         periode = periode,
-        bosituasjon = NonEmptyList.fromListUnsafe(bosituasjon.toList()),
+        bosituasjon = bosituasjon.toList().toNonEmptyList(),
     ),
     utenlandsopphold: UtenlandsoppholdVilkår = utenlandsoppholdAvslag(periode = periode),
     opplysningsplikt: OpplysningspliktVilkår = utilstrekkeligDokumentert(periode = periode),

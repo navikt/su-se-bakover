@@ -8,6 +8,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.harOverlappende
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.grunnlag.Utenlandsoppholdgrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
@@ -53,12 +54,10 @@ sealed class UtenlandsoppholdVilkår : Vilkår() {
         override val grunnlag: List<Utenlandsoppholdgrunnlag> = vurderingsperioder.mapNotNull { it.grunnlag }
         override fun lagTidslinje(periode: Periode): UtenlandsoppholdVilkår {
             return copy(
-                vurderingsperioder = Nel.fromListUnsafe(
-                    Tidslinje(
-                        periode = periode,
-                        objekter = vurderingsperioder,
-                    ).tidslinje,
-                ),
+                vurderingsperioder = Tidslinje(
+                    periode = periode,
+                    objekter = vurderingsperioder,
+                ).tidslinje.toNonEmptyList(),
             )
         }
 

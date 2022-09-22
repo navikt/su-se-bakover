@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.domain.beregning
 
-import arrow.core.Nel
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
@@ -162,7 +162,7 @@ class BeregningFactory(val clock: Clock) {
                 .sumOf { it.getSumYtelse() },
             sumFradrag = månedTilMånedsberegning.values
                 .sumOf { it.getSumFradrag() },
-            månedsberegninger = Nel.fromListUnsafe(månedTilMånedsberegning.values.toList()),
+            månedsberegninger = månedTilMånedsberegning.values.toList().toNonEmptyList(),
         )
     }
 }

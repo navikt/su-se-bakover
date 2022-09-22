@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.web.routes.vilkår.flyktning
 
 import arrow.core.Either
-import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.periode.PeriodeJson
 import no.nav.su.se.bakover.common.periode.PeriodeJson.Companion.toJson
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
@@ -18,7 +18,10 @@ import java.util.UUID
 internal fun List<LeggTilVurderingsperiodeFlyktningVilkårJson>.toDomain(): Either<KunneIkkeLeggeTilFlyktningVilkår, FlyktningVilkår.Vurdert> {
     return map { it.toDomain() }
         .let { vurderingsperioder ->
-            FlyktningVilkår.Vurdert.tryCreate(NonEmptyList.fromListUnsafe(vurderingsperioder))
+            FlyktningVilkår.Vurdert.tryCreate(
+                vurderingsperioder.toNonEmptyList(),
+
+            )
                 .mapLeft { KunneIkkeLeggeTilFlyktningVilkår.UgyldigFlyktningVilkår(it) }
         }
 }
