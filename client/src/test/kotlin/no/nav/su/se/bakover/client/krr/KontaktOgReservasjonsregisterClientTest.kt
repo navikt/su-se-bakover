@@ -32,6 +32,7 @@ class KontaktOgReservasjonsregisterClientTest : WiremockBase {
                         """
                         {
                           "personident": "$fødselsnummer",
+                          "aktiv": true,
                           "kanVarsles": false,
                           "reservert": false,
                           "epostadresse": "noreply@nav.no",
@@ -52,9 +53,27 @@ class KontaktOgReservasjonsregisterClientTest : WiremockBase {
     }
 
     @Test
+    fun `ingen informasjon registrert`() {
+        WiremockBase.wireMockServer.stubFor(
+            wiremockBuilder
+                .willReturn(
+                    WireMock.okJson(
+                        """
+                        {
+                          "personident": "$fødselsnummer",
+                          "aktiv": false                        
+                        }
+                        """.trimIndent(),
+                    ),
+                ),
+        )
+        client.hentKontaktinformasjon(fnr) shouldBe KontaktOgReservasjonsregister.KunneIkkeHenteKontaktinformasjon.BrukerErIkkeRegistrert.left()
+    }
+
+    @Test
     fun `svarer med feil dersom respons fra krr indikerer feil`() {
         WiremockBase.wireMockServer.stubFor(wiremockBuilder.willReturn(WireMock.notFound()))
-        client.hentKontaktinformasjon(fnr) shouldBe KontaktOgReservasjonsregister.KunneIkkeHenteKontaktinformasjon.left()
+        client.hentKontaktinformasjon(fnr) shouldBe KontaktOgReservasjonsregister.KunneIkkeHenteKontaktinformasjon.FeilVedHenting.left()
     }
 
     private val wiremockBuilder: MappingBuilder = WireMock.get(WireMock.urlPathEqualTo(personPath))

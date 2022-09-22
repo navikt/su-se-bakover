@@ -52,9 +52,8 @@ data class Person(
     data class Kontaktinfo(
         val epostadresse: String?,
         val mobiltelefonnummer: String?,
-        val reservert: Boolean,
-        val kanVarsles: Boolean,
         val språk: String?,
+        val kanKontaktesDigitalt: Boolean,
     )
 
     data class Sivilstand(

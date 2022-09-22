@@ -244,9 +244,8 @@ internal class PersonClientTest {
             kontaktinfo = Person.Kontaktinfo(
                 epostadresse = kontaktinformasjon.epostadresse,
                 mobiltelefonnummer = kontaktinformasjon.mobiltelefonnummer,
-                reservert = kontaktinformasjon.reservert,
-                kanVarsles = kontaktinformasjon.kanVarsles,
                 språk = kontaktinformasjon.språk,
+                kanKontaktesDigitalt = true,
             ),
             vergemål = pdlData().vergemålEllerFremtidsfullmakt,
             fullmakt = pdlData().fullmakt,
