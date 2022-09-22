@@ -119,9 +119,8 @@ internal class PersonRoutesKtTest {
                     "kontaktinfo": {
                         "epostadresse": "mail@epost.com",
                         "mobiltelefonnummer": "90909090",
-                        "reservert": false,
-                        "kanVarsles": true,
-                        "språk": "nb"
+                        "språk": "nb",
+                        "kanKontaktesDigitalt": true
                     },
                     "fullmakt": null,
                     "vergemål": null,

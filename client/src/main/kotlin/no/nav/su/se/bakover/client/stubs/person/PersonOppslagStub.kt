@@ -43,9 +43,8 @@ object PersonOppslagStub :
         kontaktinfo = Person.Kontaktinfo(
             epostadresse = "mail@epost.com",
             mobiltelefonnummer = "90909090",
-            reservert = false,
-            kanVarsles = true,
             språk = "nb",
+            kanKontaktesDigitalt = true,
         ),
         vergemål = null,
         fullmakt = null,

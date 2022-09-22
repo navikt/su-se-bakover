@@ -34,7 +34,7 @@ class KontaktOgReservasjonsregisterClient(
 
         return result.fold(
             { json ->
-                return objectMapper.readValue<HentKontaktinformasjonRepsonse>(json).toKontaktinformasjon().right()
+                objectMapper.readValue<HentKontaktinformasjonRepsonse>(json).toKontaktinformasjon()
             },
             {
                 val errorMessage = "Feil ved henting av digital kontaktinformasjon. Status=${response.statusCode} Body=${String(response.data)}"
@@ -44,26 +44,32 @@ class KontaktOgReservasjonsregisterClient(
                 } else {
                     log.error(errorMessage, it)
                 }
-                KontaktOgReservasjonsregister.KunneIkkeHenteKontaktinformasjon.left()
+                KontaktOgReservasjonsregister.KunneIkkeHenteKontaktinformasjon.FeilVedHenting.left()
             },
         )
     }
 }
 
 private data class HentKontaktinformasjonRepsonse(
-    val reservert: Boolean,
-    val kanVarsles: Boolean,
+    val personident: String,
+    val aktiv: Boolean,
+    val reservert: Boolean?,
+    val kanVarsles: Boolean?,
     val epostadresse: String?,
     val mobiltelefonnummer: String?,
     val spraak: String?,
 ) {
-    fun toKontaktinformasjon(): Kontaktinformasjon {
-        return Kontaktinformasjon(
-            epostadresse = epostadresse,
-            mobiltelefonnummer = mobiltelefonnummer,
-            reservert = reservert,
-            kanVarsles = kanVarsles,
-            språk = spraak,
-        )
+    fun toKontaktinformasjon(): Either<KontaktOgReservasjonsregister.KunneIkkeHenteKontaktinformasjon.BrukerErIkkeRegistrert, Kontaktinformasjon> {
+        return if (aktiv) {
+            Kontaktinformasjon(
+                epostadresse = epostadresse,
+                mobiltelefonnummer = mobiltelefonnummer,
+                reservert = reservert,
+                kanVarsles = kanVarsles,
+                språk = spraak,
+            ).right()
+        } else {
+            KontaktOgReservasjonsregister.KunneIkkeHenteKontaktinformasjon.BrukerErIkkeRegistrert.left()
+        }
     }
 }

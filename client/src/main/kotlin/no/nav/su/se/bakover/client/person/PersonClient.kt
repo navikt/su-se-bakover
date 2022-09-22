@@ -143,15 +143,17 @@ internal class PersonClient(
     private fun kontaktinfo(fnr: Fnr): Person.Kontaktinfo? {
         return config.kontaktOgReservasjonsregister.hentKontaktinformasjon(fnr).fold(
             {
-                null
+                when (it) {
+                    KontaktOgReservasjonsregister.KunneIkkeHenteKontaktinformasjon.BrukerErIkkeRegistrert -> null
+                    KontaktOgReservasjonsregister.KunneIkkeHenteKontaktinformasjon.FeilVedHenting -> null
+                }
             },
             {
                 Person.Kontaktinfo(
-                    it.epostadresse,
-                    it.mobiltelefonnummer,
-                    it.reservert,
-                    it.kanVarsles,
-                    it.språk,
+                    epostadresse = it.epostadresse,
+                    mobiltelefonnummer = it.mobiltelefonnummer,
+                    språk = it.språk,
+                    kanKontaktesDigitalt = it.kanKontaktesDigitalt(),
                 )
             },
         )

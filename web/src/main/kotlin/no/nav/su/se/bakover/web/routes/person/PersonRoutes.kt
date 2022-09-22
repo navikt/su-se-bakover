@@ -110,9 +110,8 @@ data class PersonResponseJson(
     data class KontaktinfoJson(
         val epostadresse: String?,
         val mobiltelefonnummer: String?,
-        val reservert: Boolean,
-        val kanVarsles: Boolean,
         val språk: String?,
+        val kanKontaktesDigitalt: Boolean,
     )
 
     data class SivilstandJson(
@@ -163,9 +162,8 @@ data class PersonResponseJson(
                 KontaktinfoJson(
                     epostadresse = it.epostadresse,
                     mobiltelefonnummer = it.mobiltelefonnummer,
-                    reservert = it.reservert,
-                    kanVarsles = it.kanVarsles,
                     språk = it.språk,
+                    kanKontaktesDigitalt = it.kanKontaktesDigitalt,
                 )
             },
             vergemål = this.vergemål,
