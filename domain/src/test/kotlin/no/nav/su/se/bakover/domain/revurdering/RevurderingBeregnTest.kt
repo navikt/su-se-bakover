@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.domain.revurdering
 
-import arrow.core.NonEmptyList
 import arrow.core.left
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
@@ -20,6 +19,7 @@ import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.common.periode.år
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
@@ -631,7 +631,7 @@ internal class RevurderingBeregnTest {
         sakId = UUID.randomUUID(),
         saksnummer = Saksnummer(9999),
         fnr = Fnr.generer(),
-        utbetalingslinjer = NonEmptyList.fromListUnsafe(utbetalingslinjer.toList()),
+        utbetalingslinjer = utbetalingslinjer.toList().toNonEmptyList(),
         behandler = mock(),
         avstemmingsnøkkel = mock(),
         sakstype = Sakstype.UFØRE,

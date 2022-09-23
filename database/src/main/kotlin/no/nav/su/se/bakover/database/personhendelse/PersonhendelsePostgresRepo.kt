@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.database.personhendelse
 
-import arrow.core.NonEmptyList
 import kotliquery.Row
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.hent
@@ -344,7 +344,7 @@ internal class PersonhendelsePostgresRepo(
 
         fun toDomain() = Personhendelse.Metadata(
             hendelseId = hendelseId,
-            personidenter = NonEmptyList.fromListUnsafe(personidenter),
+            personidenter = personidenter.toNonEmptyList(),
             tidligereHendelseId = tidligereHendelseId,
             offset = offset,
             partisjon = partisjon,

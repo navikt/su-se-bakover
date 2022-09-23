@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.service.vilkår
 
-import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vilkår.KunneIkkeLageLovligOppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
@@ -36,7 +36,7 @@ data class LeggTilLovligOppholdRequest(
     fun toVilkår(
         clock: Clock,
     ) = LovligOppholdVilkår.Vurdert.tryCreate(
-        vurderingsperioder = NonEmptyList.fromListUnsafe(toVurderingsperiode(clock)),
+        vurderingsperioder = toVurderingsperiode(clock).toNonEmptyList(),
     )
 
     private fun toVurderingsperiode(

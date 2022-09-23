@@ -1,8 +1,8 @@
 package db.migration
 
-import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.DbMetrics
@@ -303,12 +303,10 @@ internal object KonstruerVilkårOgGrunnlag {
                 InsertRad(
                     behandlingInfo = behandlingInfo,
                     vilkår = PersonligOppmøteVilkår.Vurdert(
-                        NonEmptyList.fromListUnsafe(
-                            Tidslinje(
-                                periode = behandlingInfo.periode,
-                                objekter = vurderingsperioder,
-                            ).tidslinje,
-                        ),
+                        Tidslinje(
+                            periode = behandlingInfo.periode,
+                            objekter = vurderingsperioder,
+                        ).tidslinje.toNonEmptyList(),
                     ),
                 )
             }

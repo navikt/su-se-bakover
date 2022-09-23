@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.erSisteDagIMåned
 import no.nav.su.se.bakover.common.førsteINesteMåned
 import no.nav.su.se.bakover.common.sisteIForrigeMåned
 import no.nav.su.se.bakover.common.startOfMonth
+import no.nav.su.se.bakover.common.toNonEmptyList
 import java.time.LocalDate
 import java.time.Month
 import java.time.Period
@@ -32,12 +33,10 @@ open class Periode protected constructor(
     fun getAntallMåneder(): Int = Period.between(fraOgMed, tilOgMed.plusDays(1)).toTotalMonths().toInt()
 
     fun måneder(): NonEmptyList<Måned> {
-        return NonEmptyList.fromListUnsafe(
-            (0L until getAntallMåneder()).map {
-                val currentMonth = fraOgMed.plusMonths(it)
-                Måned.fra(YearMonth.of(currentMonth.year, currentMonth.month))
-            },
-        )
+        return (0L until getAntallMåneder()).map {
+            val currentMonth = fraOgMed.plusMonths(it)
+            Måned.fra(YearMonth.of(currentMonth.year, currentMonth.month))
+        }.toNonEmptyList()
     }
 
     infix fun inneholder(other: Periode): Boolean =
@@ -237,7 +236,7 @@ fun List<Periode>.minsteAntallSammenhengendePerioder(): List<Periode> {
 
 fun Nel<Periode>.minsteAntallSammenhengendePerioder(): Nel<Periode> {
     return (this as List<Periode>).minsteAntallSammenhengendePerioder().let {
-        Nel.fromListUnsafe(it)
+        it.toNonEmptyList()
     }
 }
 
@@ -278,7 +277,7 @@ fun List<Periode>.inneholderAlle(other: List<Periode>): Boolean {
  */
 fun List<Periode>.måneder(): List<Måned> {
     if (this.isEmpty()) return emptyList()
-    return Nel.fromListUnsafe(this).måneder()
+    return this.toNonEmptyList().måneder()
 }
 
 /**
@@ -287,7 +286,7 @@ fun List<Periode>.måneder(): List<Måned> {
  * @return En sortert liste med måneder uten duplikater som kan være usammenhengende.
  */
 fun NonEmptyList<Periode>.måneder(): NonEmptyList<Måned> {
-    return Nel.fromListUnsafe(this.flatMap { it.måneder() }.distinct().sorted())
+    return this.flatMap { it.måneder() }.distinct().sorted().toNonEmptyList()
 }
 
 /**
@@ -317,7 +316,7 @@ fun List<Periode>.erSammenhengende(): Boolean {
     return if (this.isEmpty()) {
         true
     } else {
-        this.flatMap { it.måneder() }.distinct().size == NonEmptyList.fromListUnsafe(this).minAndMaxOf()
+        this.flatMap { it.måneder() }.distinct().size == this.toNonEmptyList().minAndMaxOf()
             .getAntallMåneder()
     }
 }

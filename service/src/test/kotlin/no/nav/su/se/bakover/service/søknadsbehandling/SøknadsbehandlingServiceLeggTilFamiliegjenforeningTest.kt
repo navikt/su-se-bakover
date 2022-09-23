@@ -67,7 +67,7 @@ internal class SøknadsbehandlingServiceLeggTilFamiliegjenforeningTest {
 
     @Test
     fun `kaster hvis vurderinger ikke har noen elementer`() {
-        assertThrows<IndexOutOfBoundsException> {
+        assertThrows<IllegalArgumentException> {
             SøknadsbehandlingServiceAndMocks(
                 søknadsbehandlingRepo = mock {
                     on { hent(any()) } doReturn søknadsbehandlingVilkårsvurdertUavklart(vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingIkkeVurdertAlder()).second

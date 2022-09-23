@@ -14,10 +14,10 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
-import no.nav.su.se.bakover.common.nonEmpty
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.common.startOfDay
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -199,7 +199,7 @@ internal class KonsistensavstemmingTest {
                         beløp = 20000,
                     ),
                 ),
-            ).nonEmpty(),
+            ).toNonEmptyList(),
         )
 
         val fnr2 = Fnr.generer()
@@ -223,7 +223,7 @@ internal class KonsistensavstemmingTest {
                         beløp = 18000,
                     ),
                 ),
-            ).nonEmpty(),
+            ).toNonEmptyList(),
         )
 
         val s2u2 = createUtbetaling(
@@ -306,7 +306,7 @@ internal class KonsistensavstemmingTest {
                         beløp = 20000,
                     ),
                 ),
-            ).nonEmpty(),
+            ).toNonEmptyList(),
         )
 
         val fnr2 = Fnr.generer()
@@ -330,7 +330,7 @@ internal class KonsistensavstemmingTest {
                         beløp = 18000,
                     ),
                 ),
-            ).nonEmpty(),
+            ).toNonEmptyList(),
         )
 
         val s2u2 = createUtbetaling(
@@ -597,7 +597,7 @@ internal class KonsistensavstemmingTest {
                         beløp = 15000,
                     ),
                 ),
-            ).nonEmpty(),
+            ).toNonEmptyList(),
             behandler = NavIdentBruker.Attestant("a1"),
         )
 
@@ -746,7 +746,7 @@ internal class KonsistensavstemmingTest {
                         beløp = 15000,
                     ),
                 ),
-            ).nonEmpty(),
+            ).toNonEmptyList(),
             behandler = NavIdentBruker.Attestant("a1"),
         )
 
@@ -828,7 +828,7 @@ internal class KonsistensavstemmingTest {
                         beløp = 17500,
                     ),
                 ),
-            ).nonEmpty(),
+            ).toNonEmptyList(),
             behandler = NavIdentBruker.Attestant("første"),
         )
 

@@ -8,6 +8,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.harOverlappende
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
 import no.nav.su.se.bakover.domain.grunnlag.Opplysningspliktgrunnlag
@@ -53,12 +54,10 @@ sealed class OpplysningspliktVilkår : Vilkår() {
         override val grunnlag: List<Opplysningspliktgrunnlag> = vurderingsperioder.map { it.grunnlag }
         override fun lagTidslinje(periode: Periode): OpplysningspliktVilkår {
             return copy(
-                vurderingsperioder = Nel.fromListUnsafe(
-                    Tidslinje(
-                        periode = periode,
-                        objekter = vurderingsperioder,
-                    ).tidslinje,
-                ),
+                vurderingsperioder = Tidslinje(
+                    periode = periode,
+                    objekter = vurderingsperioder,
+                ).tidslinje.toNonEmptyList(),
             )
         }
 

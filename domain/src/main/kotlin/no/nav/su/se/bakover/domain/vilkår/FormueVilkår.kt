@@ -2,13 +2,13 @@ package no.nav.su.se.bakover.domain.vilkår
 
 import arrow.core.Either
 import arrow.core.Nel
-import arrow.core.NonEmptyList
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.harOverlappende
 import no.nav.su.se.bakover.common.periode.minAndMaxOf
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
@@ -100,12 +100,10 @@ sealed class FormueVilkår : Vilkår() {
 
         override fun lagTidslinje(periode: Periode): Vurdert {
             return Vurdert(
-                vurderingsperioder = NonEmptyList.fromListUnsafe(
-                    Tidslinje(
-                        periode = periode,
-                        objekter = vurderingsperioder,
-                    ).tidslinje,
-                ),
+                vurderingsperioder = Tidslinje(
+                    periode = periode,
+                    objekter = vurderingsperioder,
+                ).tidslinje.toNonEmptyList(),
             )
         }
 

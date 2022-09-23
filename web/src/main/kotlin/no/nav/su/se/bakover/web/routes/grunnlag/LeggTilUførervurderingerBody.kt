@@ -1,13 +1,13 @@
 package no.nav.su.se.bakover.web.routes.grunnlag
 
 import arrow.core.Either
-import arrow.core.Nel
 import arrow.core.getOrElse
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.periode.PeriodeJson
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
@@ -29,7 +29,9 @@ internal data class LeggTilUførervurderingerBody(val vurderinger: List<Uførevu
 
         return LeggTilUførevurderingerRequest(
             behandlingId = behandlingId,
-            vurderinger = Nel.fromListUnsafe(vurderinger).map { vurdering ->
+            vurderinger = (
+                vurderinger.toNonEmptyList()
+                ).map { vurdering ->
                 vurdering.toServiceCommand(behandlingId).getOrHandle {
                     return it.left()
                 }

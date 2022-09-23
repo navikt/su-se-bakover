@@ -5,6 +5,7 @@ import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.minAndMaxOf
 import no.nav.su.se.bakover.common.periode.minsteAntallSammenhengendePerioder
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
@@ -17,33 +18,31 @@ fun Periode.inneholderAlle(vurderingsperioder: NonEmptyList<Vurderingsperiode>):
 }
 
 fun <T : Vurderingsperiode> Nel<T>.kronologisk(): NonEmptyList<T> {
-    return NonEmptyList.fromListUnsafe(sortedBy { it.periode })
+    return sortedBy { it.periode }.toNonEmptyList()
 }
 
 fun <T> List<T>.slåSammenLikePerioder(): Nel<T> where T : Vurderingsperiode, T : KanPlasseresPåTidslinje<T> {
-    return Nel.fromListUnsafe(
-        Tidslinje(
-            periode = map { it.periode }.minAndMaxOf(),
-            objekter = this,
-        ).tidslinje.fold(mutableListOf()) { acc, t ->
-            if (acc.isEmpty()) {
-                acc.add(t)
-            } else if (acc.last().tilstøterOgErLik(t)) {
-                val last = acc.removeLast()
-                acc.add(
-                    last.copy(
-                        CopyArgs.Tidslinje.NyPeriode(
-                            Periode.create(
-                                last.periode.fraOgMed,
-                                (t as Vurderingsperiode).periode.tilOgMed,
-                            ),
+    return Tidslinje(
+        periode = map { it.periode }.minAndMaxOf(),
+        objekter = this,
+    ).tidslinje.fold(mutableListOf<T>()) { acc, t ->
+        if (acc.isEmpty()) {
+            acc.add(t)
+        } else if (acc.last().tilstøterOgErLik(t)) {
+            val last = acc.removeLast()
+            acc.add(
+                last.copy(
+                    CopyArgs.Tidslinje.NyPeriode(
+                        Periode.create(
+                            last.periode.fraOgMed,
+                            (t as Vurderingsperiode).periode.tilOgMed,
                         ),
                     ),
-                )
-            } else {
-                acc.add(t)
-            }
-            acc
-        },
-    )
+                ),
+            )
+        } else {
+            acc.add(t)
+        }
+        acc
+    }.toNonEmptyList()
 }

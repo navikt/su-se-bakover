@@ -5,6 +5,7 @@ import arrow.core.NonEmptyList
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.toNonEmptyList
 
 sealed interface Hjemler : List<Hjemmel> {
 
@@ -17,7 +18,9 @@ sealed interface Hjemler : List<Hjemmel> {
             return if (hjemler.isEmpty()) {
                 empty().right()
             } else {
-                Utfylt.tryCreate(NonEmptyList.fromListUnsafe(hjemler))
+                Utfylt.tryCreate(
+                    hjemler.toNonEmptyList(),
+                )
             }
         }
     }
@@ -50,7 +53,10 @@ sealed interface Hjemler : List<Hjemmel> {
 
             fun tryCreate(hjemler: NonEmptyList<Hjemmel>): Either<KunneIkkeLageHjemler, Utfylt> {
                 return if (hjemler.toList() == hjemler.distinct()) {
-                    Utfylt(NonEmptyList.fromListUnsafe(hjemler.sorted())).right()
+                    Utfylt(
+                        hjemler.sorted().toNonEmptyList(),
+
+                    ).right()
                 } else {
                     KunneIkkeLageHjemler.left()
                 }

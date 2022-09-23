@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.database.beregning
 
-import arrow.core.Nel
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.periode.PeriodeJson
 import no.nav.su.se.bakover.common.periode.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningMedFradragBeregnetMånedsvis
@@ -34,14 +34,12 @@ private data class PersistertBeregning(
             begrunnelse = begrunnelse,
             sumYtelse = sumYtelse,
             sumFradrag = sumFradrag,
-            månedsberegninger = Nel.fromListUnsafe(
-                månedsberegninger.map {
-                    it.toMånedsberegning(
-                        satsFactory = satsFactory,
-                        sakstype = sakstype,
-                    )
-                },
-            ),
+            månedsberegninger = månedsberegninger.map {
+                it.toMånedsberegning(
+                    satsFactory = satsFactory,
+                    sakstype = sakstype,
+                )
+            }.toNonEmptyList(),
         )
     }
 }

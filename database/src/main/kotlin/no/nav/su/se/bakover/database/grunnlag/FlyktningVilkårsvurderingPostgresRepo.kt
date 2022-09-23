@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.database.grunnlag
 
-import arrow.core.Nel
 import arrow.core.getOrHandle
 import kotliquery.Row
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.TransactionalSession
@@ -96,7 +96,10 @@ internal class FlyktningVilkårsvurderingPostgresRepo(
                     it.toVurderingsperiode()
                 }.let {
                     when (it.isNotEmpty()) {
-                        true -> FlyktningVilkår.Vurdert.tryCreate(vurderingsperioder = Nel.fromListUnsafe(it))
+                        true -> FlyktningVilkår.Vurdert.tryCreate(
+                            vurderingsperioder = it.toNonEmptyList(),
+
+                        )
                             .getOrHandle { feil ->
                                 throw IllegalStateException("Kunne ikke instansiere ${FlyktningVilkår.Vurdert::class.simpleName}. Melding: $feil")
                             }

@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.web.routes.vilkår.institusjonsopphold
 
 import arrow.core.Either
-import arrow.core.Nel
 import arrow.core.left
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.PeriodeJson
 import no.nav.su.se.bakover.common.periode.PeriodeJson.Companion.toJson
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeInstitusjonsopphold
 import no.nav.su.se.bakover.web.Resultat
@@ -20,15 +20,13 @@ internal data class LeggTilVurderingsperiodeInstitusjonsoppholdJson(
     fun toDomain(clock: Clock): Either<Resultat, InstitusjonsoppholdVilkår.Vurdert> {
         if (vurderingsperioder.isEmpty()) return heleBehandlingsperiodenMåHaVurderinger.left()
         return InstitusjonsoppholdVilkår.Vurdert.tryCreate(
-            vurderingsperioder = Nel.fromListUnsafe(
-                vurderingsperioder.map {
-                    VurderingsperiodeInstitusjonsopphold.create(
-                        opprettet = Tidspunkt.now(clock),
-                        vurdering = it.vurdering.toDomain(),
-                        periode = it.periode.toPeriode(),
-                    )
-                },
-            ),
+            vurderingsperioder = vurderingsperioder.map {
+                VurderingsperiodeInstitusjonsopphold.create(
+                    opprettet = Tidspunkt.now(clock),
+                    vurdering = it.vurdering.toDomain(),
+                    periode = it.periode.toPeriode(),
+                )
+            }.toNonEmptyList(),
         ).mapLeft {
             when (it) {
                 InstitusjonsoppholdVilkår.Vurdert.UgyldigInstitisjonsoppholdVilkår.OverlappendeVurderingsperioder -> overlappendeVurderingsperioder

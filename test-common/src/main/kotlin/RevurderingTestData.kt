@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.test
 
-import arrow.core.Nel
 import arrow.core.getOrHandle
 import arrow.core.nonEmptyListOf
 import arrow.core.right
@@ -8,6 +7,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.startOfMonth
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -860,7 +860,8 @@ fun beregnetRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
         it.copy(
             vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(
                 periode = revurderingsperiode,
-                bosituasjon = Nel.fromListUnsafe(it.grunnlagsdata.bosituasjon.map { it as Grunnlag.Bosituasjon.Fullstendig }),
+                bosituasjon = it.grunnlagsdata.bosituasjon.map { it as Grunnlag.Bosituasjon.Fullstendig }
+                    .toNonEmptyList(),
             ),
         )
     },
@@ -1110,7 +1111,8 @@ fun tilAttesteringRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
         it.copy(
             vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(
                 periode = revurderingsperiode,
-                bosituasjon = Nel.fromListUnsafe(it.grunnlagsdata.bosituasjon.map { it as Grunnlag.Bosituasjon.Fullstendig }),
+                bosituasjon = it.grunnlagsdata.bosituasjon.map { it as Grunnlag.Bosituasjon.Fullstendig }
+                    .toNonEmptyList(),
             ),
         )
     },
@@ -1159,7 +1161,8 @@ fun iverksattRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
         it.copy(
             vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(
                 periode = revurderingsperiode,
-                bosituasjon = Nel.fromListUnsafe(it.grunnlagsdata.bosituasjon.map { it as Grunnlag.Bosituasjon.Fullstendig }),
+                bosituasjon = it.grunnlagsdata.bosituasjon.map { it as Grunnlag.Bosituasjon.Fullstendig }
+                    .toNonEmptyList(),
             ),
         )
     },

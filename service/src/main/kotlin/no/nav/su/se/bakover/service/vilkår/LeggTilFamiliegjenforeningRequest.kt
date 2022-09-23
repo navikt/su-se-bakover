@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.service.vilkår
 
-import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.vilkår.FamiliegjenforeningVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFamiliegjenforening
@@ -29,7 +29,7 @@ data class LeggTilFamiliegjenforeningRequest(
             throw IllegalArgumentException("Stønadsperiode er ikke lagt i søknadsbehandling for å legge til familiegjenforening vilkår. id $behandlingId")
         } else {
             FamiliegjenforeningVilkår.Vurdert.create(
-                vurderingsperioder = NonEmptyList.fromListUnsafe(toVurderingsperiode(clock, stønadsperiode)),
+                vurderingsperioder = toVurderingsperiode(clock, stønadsperiode).toNonEmptyList(),
             )
         }
 

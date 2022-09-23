@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.web.routes.vilkår.fastopphold
 
 import arrow.core.Either
-import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.periode.PeriodeJson
 import no.nav.su.se.bakover.common.periode.PeriodeJson.Companion.toJson
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
@@ -18,7 +18,10 @@ import java.util.UUID
 internal fun List<LeggTilVurderingsperiodeFastOppholdJson>.toDomain(): Either<KunneIkkeLeggeFastOppholdINorgeVilkår, FastOppholdINorgeVilkår.Vurdert> {
     return map { it.toDomain() }
         .let { vurderingsperioder ->
-            FastOppholdINorgeVilkår.Vurdert.tryCreate(NonEmptyList.fromListUnsafe(vurderingsperioder))
+            FastOppholdINorgeVilkår.Vurdert.tryCreate(
+                vurderingsperioder.toNonEmptyList(),
+
+            )
                 .mapLeft { KunneIkkeLeggeFastOppholdINorgeVilkår.UgyldigFastOppholdINorgeVikår(it) }
         }
 }
