@@ -379,7 +379,8 @@ internal class UtbetalingServiceImpl(
 
     override fun gjenopptaUtbetalinger(
         request: UtbetalRequest.Gjenopptak,
-    ): Either<UtbetalGjenopptakFeil, Utbetaling.OversendtUtbetaling.UtenKvittering> {
+        transactionContext: TransactionContext,
+    ): Either<UtbetalGjenopptakFeil, UtbetalingKlargjortForOversendelseTilOS<UtbetalGjenopptakFeil.KunneIkkeUtbetale>> {
         val sak = sakService.hentSak(request.sakId).getOrElse {
             return UtbetalGjenopptakFeil.KunneIkkeUtbetale(UtbetalingFeilet.FantIkkeSak).left()
         }
@@ -403,10 +404,13 @@ internal class UtbetalingServiceImpl(
                 ).left()
             }
 
-            utbetal(simulertGjenopptak)
-                .mapLeft {
-                    UtbetalGjenopptakFeil.KunneIkkeUtbetale(it)
-                }
+            UtbetalingKlargjortForOversendelseTilOS(
+                utbetaling = simulertGjenopptak.forberedOversendelse(transactionContext),
+                callback = { utbetalingsrequest ->
+                    sendUtbetalingTilOS(utbetalingsrequest)
+                        .mapLeft { UtbetalGjenopptakFeil.KunneIkkeUtbetale(it) }
+                },
+            ).right()
         }
     }
 }

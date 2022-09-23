@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.service.revurdering
 
+import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
@@ -14,6 +15,8 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelseTilOS
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
@@ -247,7 +250,7 @@ internal class GjenopptakAvYtelseServiceTest {
         }
 
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { gjenopptaUtbetalinger(any()) } doReturn UtbetalGjenopptakFeil.KunneIkkeUtbetale(
+            on { gjenopptaUtbetalinger(any(), any()) } doReturn UtbetalGjenopptakFeil.KunneIkkeUtbetale(
                 UtbetalingFeilet.Protokollfeil,
             ).left()
         }
@@ -276,6 +279,7 @@ internal class GjenopptakAvYtelseServiceTest {
                         simulering = revurderingGjenopptak.second.simulering,
                     )
                 },
+                transactionContext = argThat { it shouldBe TestSessionFactory.transactionContext },
             )
             it.verifyNoMoreInteractions()
         }
@@ -444,12 +448,16 @@ internal class GjenopptakAvYtelseServiceTest {
         }
 
         val utbetaling = oversendtGjenopptakUtbetalingUtenKvittering()
+
+        val callback = mock<(utbetalingsrequest: Utbetalingsrequest) -> Either<UtbetalGjenopptakFeil.KunneIkkeUtbetale, Utbetalingsrequest>> {
+            on { it.invoke(any()) } doReturn utbetaling.utbetalingsrequest.right()
+        }
+
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on {
-                gjenopptaUtbetalinger(
-                    any(),
-                )
-            } doReturn utbetaling.right()
+            on { gjenopptaUtbetalinger(any(), any()) } doReturn UtbetalingKlargjortForOversendelseTilOS(
+                utbetaling = utbetaling,
+                callback = callback,
+            ).right()
         }
         val vedtakRepoMock: VedtakRepo = mock()
         val observerMock: StatistikkEventObserver = mock()
@@ -472,23 +480,29 @@ internal class GjenopptakAvYtelseServiceTest {
                     saksbehandler = NavIdentBruker.Attestant(simulertGjenopptak.saksbehandler.navIdent),
                     simulering = simulertGjenopptak.simulering,
                 ),
+                transactionContext = TestSessionFactory.transactionContext,
             )
 
-            verify(it.revurderingRepo).defaultTransactionContext()
-            verify(it.revurderingRepo).lagre(eq(response), anyOrNull())
+            verify(it.revurderingRepo).lagre(
+                revurdering = argThat { it shouldBe response },
+                transactionContext = argThat { it shouldBe TestSessionFactory.transactionContext },
+            )
+
             val expectedVedtak = VedtakSomKanRevurderes.from(
                 revurdering = response,
                 utbetalingId = utbetaling.id,
                 clock = fixedClock,
             )
             verify(it.vedtakRepo).lagre(
-                argThat { vedtak ->
+                vedtak = argThat { vedtak ->
                     vedtak.shouldBeEqualToIgnoringFields(
                         expectedVedtak,
                         VedtakSomKanRevurderes::id,
                     )
                 },
+                sessionContext = argThat { it shouldBe TestSessionFactory.transactionContext },
             )
+            verify(callback).invoke(any())
 
             val eventCaptor = argumentCaptor<StatistikkEvent.Behandling.Gjenoppta.Iverksatt>()
             verify(observerMock, times(2)).handle(eventCaptor.capture())

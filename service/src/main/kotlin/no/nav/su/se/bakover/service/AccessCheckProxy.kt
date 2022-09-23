@@ -271,6 +271,7 @@ open class AccessCheckProxy(
 
                 override fun gjenopptaUtbetalinger(
                     request: UtbetalRequest.Gjenopptak,
+                    transactionContext: TransactionContext,
                 ) = kastKanKunKallesFraAnnenService()
 
                 override fun verifiserOgSimulerOpphør(

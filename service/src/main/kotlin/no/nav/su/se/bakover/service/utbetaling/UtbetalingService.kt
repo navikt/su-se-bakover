@@ -62,7 +62,8 @@ interface UtbetalingService {
 
     fun gjenopptaUtbetalinger(
         request: UtbetalRequest.Gjenopptak,
-    ): Either<UtbetalGjenopptakFeil, Utbetaling.OversendtUtbetaling.UtenKvittering>
+        transactionContext: TransactionContext,
+    ): Either<UtbetalGjenopptakFeil, UtbetalingKlargjortForOversendelseTilOS<UtbetalGjenopptakFeil.KunneIkkeUtbetale>>
 
     fun verifiserOgSimulerOpphør(
         request: UtbetalRequest.Opphør,

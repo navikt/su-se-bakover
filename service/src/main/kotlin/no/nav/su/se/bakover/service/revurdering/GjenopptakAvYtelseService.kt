@@ -6,6 +6,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.log
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -31,6 +32,7 @@ class GjenopptakAvYtelseService(
     private val clock: Clock,
     private val vedtakRepo: VedtakRepo,
     private val sakService: SakService,
+    private val sessionFactory: SessionFactory,
 ) {
     private val observers: MutableList<StatistikkEventObserver> = mutableListOf()
 
@@ -134,31 +136,41 @@ class GjenopptakAvYtelseService(
                     ),
                 ).getOrHandle { return KunneIkkeIverksetteGjenopptakAvYtelse.SimuleringIndikererFeilutbetaling.left() }
 
-                val stansUtbetaling = utbetalingService.gjenopptaUtbetalinger(
-                    request = UtbetalRequest.Gjenopptak(
-                        sakId = iverksattRevurdering.sakId,
-                        saksbehandler = iverksattRevurdering.attesteringer.hentSisteAttestering().attestant,
-                        simulering = iverksattRevurdering.simulering,
-                    ),
-                ).getOrHandle { return KunneIkkeIverksetteGjenopptakAvYtelse.KunneIkkeUtbetale(it).left() }
+                sessionFactory.withTransactionContext { tx ->
+                    val gjenopptak = utbetalingService.gjenopptaUtbetalinger(
+                        request = UtbetalRequest.Gjenopptak(
+                            sakId = iverksattRevurdering.sakId,
+                            saksbehandler = iverksattRevurdering.attesteringer.hentSisteAttestering().attestant,
+                            simulering = iverksattRevurdering.simulering,
+                        ),
+                        transactionContext = tx,
+                    ).getOrHandle { return@withTransactionContext KunneIkkeIverksetteGjenopptakAvYtelse.KunneIkkeUtbetale(it).left() }
 
-                val vedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, stansUtbetaling.id, clock)
+                    val vedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, gjenopptak.utbetaling.id, clock)
 
-                revurderingRepo.lagre(iverksattRevurdering)
-                vedtakRepo.lagre(vedtak)
-                observers.forEach { observer ->
-                    observer.handle(StatistikkEvent.Behandling.Gjenoppta.Iverksatt(vedtak))
-                    observer.handle(StatistikkEvent.Stønadsvedtak(vedtak))
+                    revurderingRepo.lagre(
+                        revurdering = iverksattRevurdering,
+                        transactionContext = tx,
+                    )
+                    vedtakRepo.lagre(
+                        vedtak = vedtak,
+                        sessionContext = tx,
+                    )
+                    observers.forEach { observer ->
+                        observer.handle(StatistikkEvent.Behandling.Gjenoppta.Iverksatt(vedtak))
+                        observer.handle(StatistikkEvent.Stønadsvedtak(vedtak))
+                    }
+                    gjenopptak.sendUtbetalingTilOS()
+                        .mapLeft { throw TriggerRollbackException("""Feil:$it ved publisering av utbetaling for revurdering:$revurderingId - ruller tilbake.""") }
+
+                    iverksattRevurdering.right()
                 }
-
-                return iverksattRevurdering.right()
             }
-
-            else -> KunneIkkeIverksetteGjenopptakAvYtelse.UgyldigTilstand(
-                faktiskTilstand = revurdering::class,
-            ).left()
+            else -> { KunneIkkeIverksetteGjenopptakAvYtelse.UgyldigTilstand(faktiskTilstand = revurdering::class).left() }
         }
     }
+
+    data class TriggerRollbackException(val msg: String) : RuntimeException(msg)
 
     private fun kopierGjeldendeVedtaksdata(
         sak: Sak,

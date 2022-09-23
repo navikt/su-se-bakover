@@ -119,6 +119,7 @@ internal class RevurderingServiceImpl(
         clock = clock,
         vedtakRepo = vedtakRepo,
         sakService = sakService,
+        sessionFactory = sessionFactory,
     )
 
     private val observers: MutableList<StatistikkEventObserver> = mutableListOf()
