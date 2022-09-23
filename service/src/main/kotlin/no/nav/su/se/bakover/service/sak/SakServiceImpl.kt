@@ -16,10 +16,10 @@ import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakRepo
-import no.nav.su.se.bakover.domain.statistikk.Statistikkhendelse
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
-import no.nav.su.se.bakover.service.statistikk.EventObserver
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.util.UUID
@@ -29,7 +29,13 @@ internal class SakServiceImpl(
     private val clock: Clock,
 ) : SakService {
     private val log = LoggerFactory.getLogger(this::class.java)
-    val observers: MutableList<EventObserver> = mutableListOf()
+    private val observers: MutableList<StatistikkEventObserver> = mutableListOf()
+
+    fun addObserver(observer: StatistikkEventObserver) {
+        observers.add(observer)
+    }
+
+    fun getObservers(): List<StatistikkEventObserver> = observers.toList()
 
     override fun hentSak(sakId: UUID): Either<FantIkkeSak, Sak> {
         return sakRepo.hentSak(sakId)?.right() ?: FantIkkeSak.left()
@@ -92,7 +98,7 @@ internal class SakServiceImpl(
             hentSak(sak.id).fold(
                 ifLeft = { log.error("Opprettet sak men feilet ved henting av den.") },
                 ifRight = {
-                    observers.forEach { observer -> observer.handle(Statistikkhendelse.SakOpprettet(it)) }
+                    observers.forEach { observer -> observer.handle(StatistikkEvent.SakOpprettet(it)) }
                 },
             )
         }

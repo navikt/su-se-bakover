@@ -31,10 +31,10 @@ import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 import no.nav.su.se.bakover.domain.sak.SakInfo
-import no.nav.su.se.bakover.domain.statistikk.Statistikkhendelse
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
-import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argThat
@@ -444,12 +444,12 @@ internal class ReguleringServiceImplTest {
     @Test
     fun `iverksatte reguleringer sender statistikk`() {
         val sak = vedtakSøknadsbehandlingIverksattInnvilget().first
-        val eventObserverMock: EventObserver = mock()
+        val eventObserverMock: StatistikkEventObserver = mock()
         lagReguleringServiceImpl(sak).apply {
             addObserver(eventObserverMock)
         }.startRegulering(1.mai(2021))
 
-        verify(eventObserverMock).handle(argThat { it.shouldBeTypeOf<Statistikkhendelse.Vedtak>() })
+        verify(eventObserverMock).handle(argThat { it.shouldBeTypeOf<StatistikkEvent.Stønadsvedtak>() })
     }
 
     /**

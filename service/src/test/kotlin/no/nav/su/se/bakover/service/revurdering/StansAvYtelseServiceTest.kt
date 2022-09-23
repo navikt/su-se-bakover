@@ -19,7 +19,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
-import no.nav.su.se.bakover.domain.statistikk.Statistikkhendelse
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.argThat
@@ -44,9 +44,9 @@ import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
-import org.mockito.ArgumentCaptor
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.capture
 import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
@@ -199,7 +199,7 @@ internal class StansAvYtelseServiceTest {
             verify(it.revurderingRepo).lagre(argThat { it shouldBe response }, anyOrNull())
             verify(it.observer).handle(
                 argThat { event ->
-                    event shouldBe Statistikkhendelse.Revurdering.Stans(response)
+                    event shouldBe StatistikkEvent.Behandling.Stans.Opprettet(response)
                 },
             )
             it.verifyNoMoreInteractions()
@@ -311,10 +311,17 @@ internal class StansAvYtelseServiceTest {
             },
         )
 
-        val eventCaptor = ArgumentCaptor.forClass(Statistikkhendelse::class.java)
-        verify(serviceAndMocks.observer, times(2)).handle(capture<Statistikkhendelse>(eventCaptor))
-        eventCaptor.allValues[0] shouldBe Statistikkhendelse.Revurdering.Stans(response)
-        eventCaptor.allValues[1].shouldBeTypeOf<Statistikkhendelse.Vedtak>()
+        val eventCaptor = argumentCaptor<StatistikkEvent.Behandling.Stans.Iverksatt>()
+        verify(serviceAndMocks.observer, times(2)).handle(eventCaptor.capture())
+        val iverksatt = eventCaptor.allValues[0]
+        iverksatt shouldBe StatistikkEvent.Behandling.Stans.Iverksatt(
+            vedtak = VedtakSomKanRevurderes.from(
+                revurdering = response,
+                utbetalingId = utbetaling.id,
+                clock = fixedClock,
+            ).copy(id = iverksatt.vedtak.id),
+        )
+        eventCaptor.allValues[1].shouldBeTypeOf<StatistikkEvent.Stønadsvedtak>()
         serviceAndMocks.verifyNoMoreInteractions()
     }
 

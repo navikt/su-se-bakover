@@ -14,11 +14,11 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
-import no.nav.su.se.bakover.domain.statistikk.Statistikkhendelse
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.sak.SakService
-import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import java.time.Clock
@@ -32,9 +32,9 @@ internal class StansAvYtelseService(
     private val sakService: SakService,
     private val clock: Clock,
 ) {
-    private val observers: MutableList<EventObserver> = mutableListOf()
+    private val observers: MutableList<StatistikkEventObserver> = mutableListOf()
 
-    fun addObserver(eventObserver: EventObserver) {
+    fun addObserver(eventObserver: StatistikkEventObserver) {
         observers.add(eventObserver)
     }
 
@@ -105,7 +105,7 @@ internal class StansAvYtelseService(
         }
 
         revurderingRepo.lagre(simulertRevurdering)
-        observers.forEach { observer -> observer.handle(Statistikkhendelse.Revurdering.Stans(simulertRevurdering)) }
+        observers.forEach { observer -> observer.handle(StatistikkEvent.Behandling.Stans.Opprettet(simulertRevurdering)) }
 
         return simulertRevurdering.right()
     }
@@ -142,8 +142,8 @@ internal class StansAvYtelseService(
                 revurderingRepo.lagre(iverksattRevurdering)
                 vedtakService.lagre(vedtak)
                 observers.forEach { observer ->
-                    observer.handle(Statistikkhendelse.Revurdering.Stans(iverksattRevurdering))
-                    observer.handle(Statistikkhendelse.Vedtak(vedtak))
+                    observer.handle(StatistikkEvent.Behandling.Stans.Iverksatt(vedtak))
+                    observer.handle(StatistikkEvent.Stønadsvedtak(vedtak))
                 }
 
                 return iverksattRevurdering.right()

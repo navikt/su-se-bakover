@@ -57,6 +57,7 @@ class AppComponents private constructor(
                 clock = clock,
                 unleash = unleash,
                 satsFactory = satsFactory,
+                applicationConfig = applicationConfig(),
             )
             val accessCheckProxy = AccessCheckProxy(
                 personRepo = databaseRepos.person,

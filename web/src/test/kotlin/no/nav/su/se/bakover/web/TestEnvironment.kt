@@ -67,6 +67,7 @@ internal fun Application.testSusebakover(
         clock = clock,
         unleash = unleash,
         satsFactory = satsFactory,
+        applicationConfig = applicationConfig(),
     ),
     accessCheckProxy: AccessCheckProxy = AccessCheckProxy(
         databaseRepos.person,

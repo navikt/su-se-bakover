@@ -5,9 +5,9 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
 import no.nav.su.se.bakover.domain.sak.SakRepo
-import no.nav.su.se.bakover.domain.statistikk.Statistikkhendelse
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
@@ -40,15 +40,15 @@ internal class SakServiceImplTest {
             on { hentSak(any<UUID>()) } doReturn sak
         }
 
-        val observer: EventObserver = mock()
+        val observer: StatistikkEventObserver = mock()
 
         val sakService = SakServiceImpl(sakRepo, fixedClock)
-        sakService.observers.add(observer)
+        sakService.addObserver(observer)
         sakService.opprettSak(mock { on { id } doReturn sakId })
 
         verify(sakRepo).opprettSak(any())
         verify(sakRepo).hentSak(sak.id)
-        verify(observer).handle(argThat { it shouldBe Statistikkhendelse.SakOpprettet(sak) })
+        verify(observer).handle(argThat { it shouldBe StatistikkEvent.SakOpprettet(sak) })
     }
 
     @Test
@@ -57,10 +57,10 @@ internal class SakServiceImplTest {
             on { opprettSak(any()) } doThrow RuntimeException("hehe exception")
         }
 
-        val observer: EventObserver = mock()
+        val observer: StatistikkEventObserver = mock()
 
         val sakService = SakServiceImpl(sakRepo, fixedClock)
-        sakService.observers.add(observer)
+        sakService.addObserver(observer)
         assertThrows<RuntimeException> {
             sakService.opprettSak(mock())
             verify(sakRepo).opprettSak(any())

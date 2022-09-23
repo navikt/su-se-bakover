@@ -21,9 +21,9 @@ import no.nav.su.se.bakover.domain.regulering.inneholderAvslag
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.satser.SatsFactory
-import no.nav.su.se.bakover.domain.statistikk.Statistikkhendelse
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
-import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
@@ -44,11 +44,13 @@ class ReguleringServiceImpl(
     private val satsFactory: SatsFactory,
 ) : ReguleringService {
     private val log = LoggerFactory.getLogger(this::class.java)
-    private val observers: MutableList<EventObserver> = mutableListOf()
+    private val observers: MutableList<StatistikkEventObserver> = mutableListOf()
 
-    fun addObserver(observer: EventObserver) {
+    fun addObserver(observer: StatistikkEventObserver) {
         observers.add(observer)
     }
+
+    fun getObservers(): List<StatistikkEventObserver> = observers.toList()
 
     private fun blirBeregningEndret(sak: Sak, regulering: Regulering.OpprettetRegulering): Boolean {
         if (regulering.inneholderAvslag()) return true
@@ -255,7 +257,7 @@ class ReguleringServiceImpl(
                 val (iverksattRegulering, vedtak) = it
 
                 Either.catch {
-                    observers.forEach { observer -> observer.handle(Statistikkhendelse.Vedtak(vedtak)) }
+                    observers.forEach { observer -> observer.handle(StatistikkEvent.Stønadsvedtak(vedtak)) }
                 }.tapLeft {
                     log.error(
                         "Regulering for saksnummer ${iverksattRegulering.saksnummer}: Utsending av stønadsstatistikk feilet under automatisk regulering.",

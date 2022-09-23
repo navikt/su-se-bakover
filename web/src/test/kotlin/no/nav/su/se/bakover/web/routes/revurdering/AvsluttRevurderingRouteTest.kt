@@ -30,7 +30,7 @@ internal class AvsluttRevurderingRouteTest {
         val avsluttet = avsluttetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
 
         val revurderingServiceMock = mock<RevurderingService> {
-            on { avsluttRevurdering(anyOrNull(), anyOrNull(), anyOrNull()) } doReturn avsluttet.right()
+            on { avsluttRevurdering(anyOrNull(), anyOrNull(), anyOrNull(), any()) } doReturn avsluttet.right()
         }
 
         testApplication {

@@ -5,7 +5,6 @@ import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.client.stubs.oppgave.OppgaveClientStub.lukkOppgave
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.periode.Periode
@@ -43,6 +42,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.sakId
+import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.søknadId
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
@@ -166,10 +166,13 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
 
             verify(serviceAndMocks.søknadsbehandlingService).hentForSøknad(søknadId)
             verify(serviceAndMocks.søknadsbehandlingService).opprett(
-                SøknadsbehandlingService.OpprettRequest(
-                    søknadId = søknadId,
-                    sakId = sakId,
-                ),
+                argThat {
+                    it shouldBe SøknadsbehandlingService.OpprettRequest(
+                        søknadId = søknadId,
+                        sakId = sakId,
+                        saksbehandler = NavIdentBruker.Saksbehandler("saksemannen"),
+                    )
+                },
             )
             verify(serviceAndMocks.søknadsbehandlingService).lagre(
                 argThat {
@@ -505,18 +508,21 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
             serviceAndMocks.service.avslå(
                 AvslåManglendeDokumentasjonRequest(
                     søknadId,
-                    saksbehandler = NavIdentBruker.Saksbehandler("saksemannen"),
-                    fritekstTilBrev = "finfin tekst",
+                    saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler som avslår"),
+                    fritekstTilBrev = "fritekstTilBrev",
                 ),
-            ) shouldBe KunneIkkeAvslåSøknad.KunneIkkeLageDokument(no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument.KunneIkkeGenererePDF)
+            ) shouldBe KunneIkkeAvslåSøknad.KunneIkkeLageDokument(KunneIkkeLageDokument.KunneIkkeGenererePDF)
                 .left()
 
             verify(serviceAndMocks.søknadsbehandlingService).hentForSøknad(søknadId)
             verify(serviceAndMocks.søknadsbehandlingService).opprett(
-                SøknadsbehandlingService.OpprettRequest(
-                    søknadId = søknadId,
-                    sakId = sakId,
-                ),
+                argThat {
+                    it shouldBe SøknadsbehandlingService.OpprettRequest(
+                        søknadId = søknadId,
+                        sakId = sakId,
+                        saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler som avslår"),
+                    )
+                },
             )
             verify(serviceAndMocks.brevService).lagDokument(any<Visitable<LagBrevRequestVisitor>>())
             serviceAndMocks.verifyNoMoreInteractions()

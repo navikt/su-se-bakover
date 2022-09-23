@@ -8,8 +8,8 @@ import no.nav.su.se.bakover.test.bortfallSøknad
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.søknadId
-import no.nav.su.se.bakover.test.søknadsbehandlingLukket
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
+import no.nav.su.se.bakover.test.søknadsbehandlingTrukket
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.veileder
 import org.junit.jupiter.api.Test
@@ -19,7 +19,7 @@ internal class LukketSøknadsbehandlingTest {
     @Test
     fun `skal ikke kunne lukke en lukket søknadsbehandling`() {
         LukketSøknadsbehandling.tryCreate(
-            søknadsbehandlingSomSkalLukkes = søknadsbehandlingLukket().second,
+            søknadsbehandlingSomSkalLukkes = søknadsbehandlingTrukket().second,
             lukkSøknadCommand = bortfallSøknad(),
         ) shouldBe KunneIkkeLukkeSøknadsbehandling.KanIkkeLukkeEnAlleredeLukketSøknadsbehandling.left()
     }

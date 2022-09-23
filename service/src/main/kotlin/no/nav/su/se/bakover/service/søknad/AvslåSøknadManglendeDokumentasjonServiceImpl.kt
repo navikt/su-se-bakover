@@ -68,6 +68,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImpl(
             request = SøknadsbehandlingService.OpprettRequest(
                 søknadId = søknad.id,
                 sakId = sak.id,
+                saksbehandler = request.saksbehandler,
             ),
         ).mapLeft {
             KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling(it)

@@ -11,14 +11,14 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
-import no.nav.su.se.bakover.domain.statistikk.Statistikkhendelse
+import no.nav.su.se.bakover.domain.person.PersonService
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
-import no.nav.su.se.bakover.service.person.PersonService
-import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.saksbehandler
@@ -59,7 +59,7 @@ class SøknadsbehandlingServiceAttesteringTest {
             on { lukkOppgave(any()) } doReturn Unit.right()
         }
 
-        val eventObserver: EventObserver = mock()
+        val eventObserver: StatistikkEventObserver = mock()
 
         val gammelOppgaveId = simulertBehandling.oppgaveId
 
@@ -98,7 +98,7 @@ class SøknadsbehandlingServiceAttesteringTest {
             verify(oppgaveServiceMock).lukkOppgave(gammelOppgaveId)
             verify(eventObserver).handle(
                 argThat {
-                    it shouldBe Statistikkhendelse.Søknadsbehandling.TilAttestering(actual)
+                    it shouldBe StatistikkEvent.Behandling.Søknad.TilAttestering.Innvilget(actual as Søknadsbehandling.TilAttestering.Innvilget)
                 },
             )
         }
@@ -113,7 +113,7 @@ class SøknadsbehandlingServiceAttesteringTest {
 
         val personServiceMock: PersonService = mock()
         val oppgaveServiceMock: OppgaveService = mock()
-        val eventObserver: EventObserver = mock()
+        val eventObserver: StatistikkEventObserver = mock()
 
         val actual = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
@@ -147,7 +147,7 @@ class SøknadsbehandlingServiceAttesteringTest {
 
         val oppgaveServiceMock = mock<OppgaveService>()
 
-        val eventObserver: EventObserver = mock()
+        val eventObserver: StatistikkEventObserver = mock()
 
         val actual = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
@@ -182,7 +182,7 @@ class SøknadsbehandlingServiceAttesteringTest {
         val oppgaveServiceMock: OppgaveService = mock {
             on { opprettOppgave(any()) } doReturn KunneIkkeOppretteOppgave.left()
         }
-        val eventObserver: EventObserver = mock()
+        val eventObserver: StatistikkEventObserver = mock()
 
         val actual = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
@@ -230,7 +230,7 @@ class SøknadsbehandlingServiceAttesteringTest {
             on { lukkOppgave(any()) } doReturn KunneIkkeLukkeOppgave.left()
         }
 
-        val eventObserver: EventObserver = mock()
+        val eventObserver: StatistikkEventObserver = mock()
 
         val gammelOppgaveId = simulertBehandling.oppgaveId
 
@@ -268,7 +268,7 @@ class SøknadsbehandlingServiceAttesteringTest {
             verify(oppgaveServiceMock).lukkOppgave(gammelOppgaveId)
             verify(eventObserver).handle(
                 argThat {
-                    it shouldBe Statistikkhendelse.Søknadsbehandling.TilAttestering(actual)
+                    it shouldBe StatistikkEvent.Behandling.Søknad.TilAttestering.Innvilget(actual as Søknadsbehandling.TilAttestering.Innvilget)
                 },
             )
         }

@@ -42,7 +42,9 @@ data class Attesteringshistorikk private constructor(
     }
 
     /** @throws NoSuchElementException hvis lista er tom */
-    fun hentSisteAttestering() = this.last()
+    fun hentSisteAttestering(): Attestering = this.last()
+
+    fun prøvHentSisteAttestering(): Attestering? = if (this.isEmpty()) null else this.last()
 
     /** @throws NoSuchElementException hvis lista er tom */
     fun sisteAttesteringErIverksatt(): Boolean = hentSisteAttestering() is Attestering.Iverksatt

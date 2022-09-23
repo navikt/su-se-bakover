@@ -674,7 +674,7 @@ internal class SøknadsbehandlingPostgresRepo(
         """.trimIndent()
             .oppdatering(
                 params = mapOf(
-                    "id" to søknadsbehandling.lukketSøknadsbehandling.id,
+                    "id" to søknadsbehandling.underliggendeSøknadsbehandling.id,
                     "avkorting" to serialize(søknadsbehandling.avkorting.toDb()),
                 ),
                 session = tx,

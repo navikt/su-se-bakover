@@ -20,16 +20,16 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.SakInfo
-import no.nav.su.se.bakover.domain.statistikk.Statistikkhendelse
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
-import no.nav.su.se.bakover.service.person.PersonService
-import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
@@ -167,7 +167,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
         val personServiceMock = mock<PersonService>()
         val oppgaveServiceMock = mock<OppgaveService>()
         val behandlingMetricsMock = mock<BehandlingMetrics>()
-        val observerMock: EventObserver = mock()
+        val observerMock: StatistikkEventObserver = mock()
 
         val actual = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
@@ -299,7 +299,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             on { lukkOppgave(any()) } doReturn KunneIkkeLukkeOppgave.left()
         }
         val behandlingMetricsMock = mock<BehandlingMetrics>()
-        val observerMock: EventObserver = mock()
+        val observerMock: StatistikkEventObserver = mock()
 
         val actual = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
@@ -361,7 +361,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe innvilgetBehandlingTilAttestering.oppgaveId })
             verify(observerMock).handle(
                 argThat {
-                    it shouldBe Statistikkhendelse.Søknadsbehandling.Underkjent(
+                    it shouldBe StatistikkEvent.Behandling.Søknad.Underkjent.Innvilget(
                         underkjentMedNyOppgaveIdOgAttestering,
                     )
                 },

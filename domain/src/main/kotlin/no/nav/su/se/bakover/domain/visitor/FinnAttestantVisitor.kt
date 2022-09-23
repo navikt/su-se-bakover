@@ -52,7 +52,7 @@ class FinnAttestantVisitor : SøknadsbehandlingVisitor, RevurderingVisitor {
 
     override fun visit(søknadsbehandling: LukketSøknadsbehandling) {
         attestant = FinnAttestantVisitor().let {
-            søknadsbehandling.lukketSøknadsbehandling.accept(it)
+            søknadsbehandling.underliggendeSøknadsbehandling.accept(it)
             it.attestant
         }
     }
