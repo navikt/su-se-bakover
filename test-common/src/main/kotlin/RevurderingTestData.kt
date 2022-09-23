@@ -487,83 +487,49 @@ fun iverksattRevurdering(
         saksbehandler = saksbehandler,
         attesteringsoppgaveId = attesteringsoppgaveId,
     ).let { (sak, tilAttestering) ->
-        val (iverksatt, utbetaling) = when (tilAttestering) {
-            is RevurderingTilAttestering.IngenEndring -> {
-                tilAttestering.tilIverksatt(
-                    attestant = attestering.attestant,
-                    clock = clock,
-                ).getOrFail() to null
-            }
+        val (iverksatt, utbetaling) = tilAttestering.tilIverksatt(
+            attestant = attestering.attestant,
+            clock = clock,
+            hentOpprinneligAvkorting = {
+                when (val opprinnelig = tilAttestering.avkorting) {
+                    is AvkortingVedRevurdering.Håndtert.AnnullerUtestående -> {
+                        opprinnelig.avkortingsvarsel
+                    }
 
+                    AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående -> {
+                        null
+                    }
+
+                    is AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres -> {
+                        null
+                    }
+
+                    is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel -> {
+                        null
+                    }
+
+                    is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
+                        opprinnelig.annullerUtestående
+                    }
+                }
+            },
+        ).getOrFail() to when (tilAttestering) {
+            is RevurderingTilAttestering.IngenEndring -> {
+                null
+            }
             is RevurderingTilAttestering.Innvilget -> {
-                val utbetaling = nyUtbetalingOversendUtenKvittering(
+                nyUtbetalingOversendUtenKvittering(
                     sakOgBehandling = sak to tilAttestering,
                     beregning = tilAttestering.beregning,
                     clock = clock,
                 )
-
-                tilAttestering.tilIverksatt(
-                    attestant = attestering.attestant,
-                    clock = clock,
-                    hentOpprinneligAvkorting = {
-                        when (val opprinnelig = tilAttestering.avkorting) {
-                            is AvkortingVedRevurdering.Håndtert.AnnullerUtestående -> {
-                                opprinnelig.avkortingsvarsel
-                            }
-
-                            AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående -> {
-                                null
-                            }
-
-                            is AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres -> {
-                                null
-                            }
-
-                            is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel -> {
-                                null
-                            }
-
-                            is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
-                                opprinnelig.annullerUtestående
-                            }
-                        }
-                    },
-                ).getOrFail() to utbetaling
             }
-
             is RevurderingTilAttestering.Opphørt -> {
-                val utbetaling = opphørUtbetalingOversendUtenKvittering(
+                opphørUtbetalingOversendUtenKvittering(
                     sakOgBehandling = sak to tilAttestering,
                     opphørsperiode = OpphørsperiodeForUtbetalinger(tilAttestering).value,
                     clock = clock,
                 )
-                tilAttestering.tilIverksatt(
-                    attestant = attestering.attestant,
-                    clock = clock,
-                    hentOpprinneligAvkorting = {
-                        when (val opprinnelig = tilAttestering.avkorting) {
-                            is AvkortingVedRevurdering.Håndtert.AnnullerUtestående -> {
-                                opprinnelig.avkortingsvarsel
-                            }
-
-                            AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående -> {
-                                null
-                            }
-
-                            is AvkortingVedRevurdering.Håndtert.KanIkkeHåndteres -> {
-                                null
-                            }
-
-                            is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel -> {
-                                null
-                            }
-
-                            is AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarselOgAnnullerUtestående -> {
-                                opprinnelig.annullerUtestående
-                            }
-                        }
-                    },
-                ).getOrFail() to utbetaling
             }
         }
         Triple(
@@ -1482,6 +1448,7 @@ fun iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
         val innvilgetIverksattRevurdering = revurdering.tilIverksatt(
             attestant = attestant,
             clock = clock,
+            hentOpprinneligAvkorting = { null },
         ).getOrHandle { throw RuntimeException("Feilet med generering av test data for Iverksatt-revurdering") }
         Pair(
             sak.copy(

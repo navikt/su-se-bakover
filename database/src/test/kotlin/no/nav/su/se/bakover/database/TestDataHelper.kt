@@ -1094,7 +1094,9 @@ internal class TestDataHelper(
     @Suppress("unused")
     fun persisterRevurderingIverksattIngenEndring(): IverksattRevurdering.IngenEndring {
         return persisterRevurderingTilAttesteringIngenEndring().tilIverksatt(
-            attestant,
+            attestant = attestant,
+            clock = fixedClock,
+            hentOpprinneligAvkorting = { null },
         ).getOrHandle {
             throw IllegalStateException("Her skulle vi ha hatt en iverksatt revurdering")
         }.also {

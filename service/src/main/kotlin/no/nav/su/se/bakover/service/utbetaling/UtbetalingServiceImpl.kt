@@ -117,6 +117,30 @@ internal class UtbetalingServiceImpl(
         }
     }
 
+    override fun opphørUtbetalinger(
+        request: UtbetalRequest.Opphør,
+        transactionContext: TransactionContext,
+    ): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelseTilOS<UtbetalingFeilet.Protokollfeil>> {
+        return simulerOpphør(request).mapLeft {
+            UtbetalingFeilet.KunneIkkeSimulere(it)
+        }.flatMap { simulertOpphør ->
+            KryssjekkSaksbehandlersOgAttestantsSimulering(
+                saksbehandlersSimulering = request.simulering,
+                attestantsSimulering = simulertOpphør,
+            ).sjekk().getOrHandle {
+                return UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(it).left()
+            }
+
+            UtbetalingKlargjortForOversendelseTilOS(
+                utbetaling = simulertOpphør.forberedOversendelse(transactionContext),
+                callback = { utbetalingsrequest ->
+                    sendUtbetalingTilOS(utbetalingsrequest)
+                        .mapLeft { UtbetalingFeilet.Protokollfeil }
+                },
+            ).right()
+        }
+    }
+
     override fun simulerOpphør(
         request: SimulerUtbetalingRequest.OpphørRequest,
     ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {

@@ -1054,8 +1054,8 @@ internal class RevurderingServiceImpl(
         revurderingId: UUID,
         attestant: NavIdentBruker.Attestant,
     ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering> {
-        val revurdering =
-            revurderingRepo.hent(revurderingId) ?: return KunneIkkeIverksetteRevurdering.FantIkkeRevurdering.left()
+        val revurdering = revurderingRepo.hent(revurderingId) ?: return KunneIkkeIverksetteRevurdering.FantIkkeRevurdering.left()
+
         if (revurdering !is RevurderingTilAttestering) {
             return KunneIkkeIverksetteRevurdering.UgyldigTilstand(
                 revurdering::class,

@@ -1725,6 +1725,13 @@ sealed class RevurderingTilAttestering : Revurdering() {
 
     // TODO jah: Denne settes default til true i DB, men bør styres av domenet istedet. Se også TODO i RevurderingPostgresRepo.kt
     abstract val skalFøreTilUtsendingAvVedtaksbrev: Boolean
+    abstract override val avkorting: AvkortingVedRevurdering.Håndtert
+
+    abstract fun tilIverksatt(
+        attestant: NavIdentBruker.Attestant,
+        hentOpprinneligAvkorting: (id: UUID) -> Avkortingsvarsel?,
+        clock: Clock,
+    ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering>
 
     data class Innvilget(
         override val id: UUID,
@@ -1755,7 +1762,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
 
         override val skalFøreTilUtsendingAvVedtaksbrev = true
 
-        fun tilIverksatt(
+        override fun tilIverksatt(
             attestant: NavIdentBruker.Attestant,
             hentOpprinneligAvkorting: (id: UUID) -> Avkortingsvarsel?,
             clock: Clock,
@@ -1835,41 +1842,43 @@ sealed class RevurderingTilAttestering : Revurdering() {
             }
         }
 
-        fun tilIverksatt(
+        override fun tilIverksatt(
             attestant: NavIdentBruker.Attestant,
             hentOpprinneligAvkorting: (id: UUID) -> Avkortingsvarsel?,
             clock: Clock,
-        ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering.Opphørt> = validerTilIverksettOvergang(
-            attestant = attestant,
-            hentOpprinneligAvkorting = hentOpprinneligAvkorting,
-            saksbehandler = saksbehandler,
-            avkorting = avkorting,
-        ).map {
-            IverksattRevurdering.Opphørt(
-                id = id,
-                periode = periode,
-                opprettet = opprettet,
-                tilRevurdering = tilRevurdering,
+        ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering.Opphørt> {
+            return validerTilIverksettOvergang(
+                attestant = attestant,
+                hentOpprinneligAvkorting = hentOpprinneligAvkorting,
                 saksbehandler = saksbehandler,
-                beregning = beregning,
-                simulering = simulering,
-                oppgaveId = oppgaveId,
-                fritekstTilBrev = fritekstTilBrev,
-                revurderingsårsak = revurderingsårsak,
-                forhåndsvarsel = forhåndsvarsel,
-                grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger,
-                informasjonSomRevurderes = informasjonSomRevurderes,
-                attesteringer = attesteringer.leggTilNyAttestering(
-                    Attestering.Iverksatt(
-                        attestant,
-                        Tidspunkt.now(clock),
+                avkorting = avkorting,
+            ).map {
+                IverksattRevurdering.Opphørt(
+                    id = id,
+                    periode = periode,
+                    opprettet = opprettet,
+                    tilRevurdering = tilRevurdering,
+                    saksbehandler = saksbehandler,
+                    beregning = beregning,
+                    simulering = simulering,
+                    oppgaveId = oppgaveId,
+                    fritekstTilBrev = fritekstTilBrev,
+                    revurderingsårsak = revurderingsårsak,
+                    forhåndsvarsel = forhåndsvarsel,
+                    grunnlagsdata = grunnlagsdata,
+                    vilkårsvurderinger = vilkårsvurderinger,
+                    informasjonSomRevurderes = informasjonSomRevurderes,
+                    attesteringer = attesteringer.leggTilNyAttestering(
+                        Attestering.Iverksatt(
+                            attestant,
+                            Tidspunkt.now(clock),
+                        ),
                     ),
-                ),
-                avkorting = avkorting.iverksett(id),
-                tilbakekrevingsbehandling = tilbakekrevingsbehandling.fullførBehandling(),
-                sakinfo = sakinfo,
-            )
+                    avkorting = avkorting.iverksett(id),
+                    tilbakekrevingsbehandling = tilbakekrevingsbehandling.fullførBehandling(),
+                    sakinfo = sakinfo,
+                )
+            }
         }
     }
 
@@ -1899,37 +1908,42 @@ sealed class RevurderingTilAttestering : Revurdering() {
             visitor.visit(this)
         }
 
-        fun tilIverksatt(
+        override fun tilIverksatt(
             attestant: NavIdentBruker.Attestant,
-            clock: Clock = Clock.systemUTC(),
+            hentOpprinneligAvkorting: (id: UUID) -> Avkortingsvarsel?,
+            clock: Clock,
         ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering.IngenEndring> {
-            if (saksbehandler.navIdent == attestant.navIdent) {
-                return KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
-            }
-            return IverksattRevurdering.IngenEndring(
-                id = id,
-                periode = periode,
-                opprettet = opprettet,
-                tilRevurdering = tilRevurdering,
+            return validerTilIverksettOvergang(
+                attestant = attestant,
+                hentOpprinneligAvkorting = hentOpprinneligAvkorting,
                 saksbehandler = saksbehandler,
-                beregning = beregning,
-                oppgaveId = oppgaveId,
-                fritekstTilBrev = fritekstTilBrev,
-                revurderingsårsak = revurderingsårsak,
-                skalFøreTilUtsendingAvVedtaksbrev = skalFøreTilUtsendingAvVedtaksbrev,
-                forhåndsvarsel = forhåndsvarsel,
-                grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger,
-                informasjonSomRevurderes = informasjonSomRevurderes,
-                attesteringer = attesteringer.leggTilNyAttestering(
-                    Attestering.Iverksatt(
-                        attestant,
-                        Tidspunkt.now(clock),
+                avkorting = avkorting,
+            ).map {
+                return IverksattRevurdering.IngenEndring(
+                    id = id,
+                    periode = periode,
+                    opprettet = opprettet,
+                    tilRevurdering = tilRevurdering,
+                    saksbehandler = saksbehandler,
+                    beregning = beregning,
+                    oppgaveId = oppgaveId,
+                    fritekstTilBrev = fritekstTilBrev,
+                    revurderingsårsak = revurderingsårsak,
+                    skalFøreTilUtsendingAvVedtaksbrev = skalFøreTilUtsendingAvVedtaksbrev,
+                    forhåndsvarsel = forhåndsvarsel,
+                    grunnlagsdata = grunnlagsdata,
+                    vilkårsvurderinger = vilkårsvurderinger,
+                    informasjonSomRevurderes = informasjonSomRevurderes,
+                    attesteringer = attesteringer.leggTilNyAttestering(
+                        Attestering.Iverksatt(
+                            attestant,
+                            Tidspunkt.now(clock),
+                        ),
                     ),
-                ),
-                avkorting = avkorting.iverksett(id),
-                sakinfo = sakinfo,
-            ).right()
+                    avkorting = avkorting.iverksett(id),
+                    sakinfo = sakinfo,
+                ).right()
+            }
         }
     }
 

@@ -53,6 +53,8 @@ import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelseTilOS
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Fagområde
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
@@ -277,6 +279,13 @@ open class AccessCheckProxy(
                 override fun verifiserOgSimulerOpphør(
                     request: UtbetalRequest.Opphør,
                 ) = kastKanKunKallesFraAnnenService()
+
+                override fun opphørUtbetalinger(
+                    request: UtbetalRequest.Opphør,
+                    transactionContext: TransactionContext,
+                ): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelseTilOS<UtbetalingFeilet.Protokollfeil>> {
+                    kastKanKunKallesFraAnnenService()
+                }
 
                 override fun hentGjeldendeUtbetaling(
                     sakId: UUID,

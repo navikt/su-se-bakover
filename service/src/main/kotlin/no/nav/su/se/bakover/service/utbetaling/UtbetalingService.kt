@@ -69,6 +69,11 @@ interface UtbetalingService {
         request: UtbetalRequest.Opphør,
     ): Either<UtbetalingFeilet, Utbetaling.SimulertUtbetaling>
 
+    fun opphørUtbetalinger(
+        request: UtbetalRequest.Opphør,
+        transactionContext: TransactionContext,
+    ): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelseTilOS<UtbetalingFeilet.Protokollfeil>>
+
     fun hentGjeldendeUtbetaling(
         sakId: UUID,
         forDato: LocalDate,
