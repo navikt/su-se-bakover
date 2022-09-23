@@ -110,6 +110,7 @@ internal class RevurderingServiceImpl(
         vedtakService = vedtakService,
         sakService = sakService,
         clock = clock,
+        sessionFactory = sessionFactory,
     )
 
     private val gjenopptakAvYtelseService = GjenopptakAvYtelseService(

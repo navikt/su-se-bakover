@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelseTilOS
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
@@ -52,7 +53,8 @@ interface UtbetalingService {
 
     fun stansUtbetalinger(
         request: UtbetalRequest.Stans,
-    ): Either<UtbetalStansFeil, Utbetaling.OversendtUtbetaling.UtenKvittering>
+        transactionContext: TransactionContext,
+    ): Either<UtbetalStansFeil, UtbetalingKlargjortForOversendelseTilOS<UtbetalStansFeil.KunneIkkeUtbetale>>
 
     fun simulerGjenopptak(
         request: SimulerUtbetalingRequest.GjenopptakRequest,

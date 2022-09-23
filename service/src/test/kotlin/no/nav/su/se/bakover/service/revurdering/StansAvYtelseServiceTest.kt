@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.service.revurdering
 
+import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
@@ -15,6 +16,8 @@ import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelseTilOS
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
@@ -224,6 +227,7 @@ internal class StansAvYtelseServiceTest {
             on {
                 stansUtbetalinger(
                     any(),
+                    any(),
                 )
             } doReturn UtbetalStansFeil.KunneIkkeSimulere(SimulerStansFeilet.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL))
                 .left()
@@ -252,6 +256,7 @@ internal class StansAvYtelseServiceTest {
                     ),
                     simulering = simulertStans.simulering,
                 ),
+                transactionContext = TestSessionFactory.transactionContext,
             )
             it.verifyNoMoreInteractions()
         }
@@ -266,13 +271,20 @@ internal class StansAvYtelseServiceTest {
         val simulertStans = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(periode = periode).second
         val utbetaling = oversendtStansUtbetalingUtenKvittering(stansDato = periode.fraOgMed)
 
+        val callback = mock<(utbetalingsrequest: Utbetalingsrequest) -> Either<UtbetalStansFeil.KunneIkkeUtbetale, Utbetalingsrequest>> {
+            on { it.invoke(any()) } doReturn utbetaling.utbetalingsrequest.right()
+        }
+
         val serviceAndMocks = RevurderingServiceMocks(
             revurderingRepo = mock {
                 on { hent(any()) } doReturn simulertStans
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
             utbetalingService = mock {
-                on { stansUtbetalinger(any()) } doReturn utbetaling.right()
+                on { stansUtbetalinger(any(), any()) } doReturn UtbetalingKlargjortForOversendelseTilOS(
+                    utbetaling = utbetaling,
+                    callback = callback,
+                ).right()
             },
             vedtakService = mock {
                 doNothing().whenever(it).lagre(any(), anyOrNull())
@@ -294,23 +306,28 @@ internal class StansAvYtelseServiceTest {
                 ),
                 simulering = simulertStans.simulering,
             ),
+            transactionContext = TestSessionFactory.transactionContext,
         )
-        verify(serviceAndMocks.revurderingRepo).defaultTransactionContext()
-        verify(serviceAndMocks.revurderingRepo).lagre(argThat { it shouldBe response }, anyOrNull())
+        verify(serviceAndMocks.revurderingRepo).lagre(
+            revurdering = argThat { it shouldBe response },
+            transactionContext = argThat { TestSessionFactory.transactionContext },
+        )
         val expectedVedtak = VedtakSomKanRevurderes.from(
             revurdering = response,
             utbetalingId = utbetaling.id,
             clock = fixedClock,
         )
         verify(serviceAndMocks.vedtakService).lagre(
-            argThat { vedtak ->
+            vedtak = argThat { vedtak ->
                 vedtak.shouldBeEqualToIgnoringFields(
                     expectedVedtak,
                     VedtakSomKanRevurderes::id,
                 )
             },
+            sessionContext = argThat { TestSessionFactory.transactionContext },
         )
 
+        verify(callback).invoke(utbetaling.utbetalingsrequest)
         val eventCaptor = argumentCaptor<StatistikkEvent.Behandling.Stans.Iverksatt>()
         verify(serviceAndMocks.observer, times(2)).handle(eventCaptor.capture())
         val iverksatt = eventCaptor.allValues[0]

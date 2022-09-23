@@ -224,3 +224,19 @@ val utbetalingsSortering = Comparator<Utbetaling> { o1, o2 ->
 val utbetalingslinjeSortering = Comparator<Utbetalingslinje> { o1, o2 ->
     o1.opprettet.instant.compareTo(o2.opprettet.instant)
 }
+
+/**
+ * @param utbetaling en simulert utbetaling med generert XML for publisering på kø mot oppdragssystemet (OS).
+ * @param callback funksjon som publiserer generert XML for utbetalingen på kø mot OS
+ */
+data class UtbetalingKlargjortForOversendelseTilOS<T>(
+    val utbetaling: Utbetaling.OversendtUtbetaling,
+    private val callback: (utbetalingsrequest: Utbetalingsrequest) -> Either<T, Utbetalingsrequest>,
+) {
+    /**
+     * Publiserer utbetalingen på kø mot oppdrag.
+     */
+    fun sendUtbetalingTilOS(): Either<T, Utbetalingsrequest> {
+        return callback(utbetaling.utbetalingsrequest)
+    }
+}

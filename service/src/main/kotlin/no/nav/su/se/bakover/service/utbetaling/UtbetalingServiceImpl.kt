@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelseTilOS
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
@@ -297,7 +298,8 @@ internal class UtbetalingServiceImpl(
 
     override fun stansUtbetalinger(
         request: UtbetalRequest.Stans,
-    ): Either<UtbetalStansFeil, Utbetaling.OversendtUtbetaling.UtenKvittering> {
+        transactionContext: TransactionContext,
+    ): Either<UtbetalStansFeil, UtbetalingKlargjortForOversendelseTilOS<UtbetalStansFeil.KunneIkkeUtbetale>> {
         return simulerStans(request = request)
             .mapLeft {
                 UtbetalStansFeil.KunneIkkeSimulere(it)
@@ -312,11 +314,31 @@ internal class UtbetalingServiceImpl(
                         ),
                     ).left()
                 }
-                utbetal(simulertStans)
-                    .mapLeft {
-                        UtbetalStansFeil.KunneIkkeUtbetale(it)
-                    }
+
+                UtbetalingKlargjortForOversendelseTilOS(
+                    utbetaling = simulertStans.forberedOversendelse(transactionContext),
+                    callback = { utbetalingsrequest ->
+                        sendUtbetalingTilOS(utbetalingsrequest)
+                            .mapLeft { UtbetalStansFeil.KunneIkkeUtbetale(it) }
+                    },
+                ).right()
             }
+    }
+
+    private fun sendUtbetalingTilOS(utbetalingsRequest: Utbetalingsrequest): Either<UtbetalingFeilet.Protokollfeil, Utbetalingsrequest> {
+        return utbetalingPublisher.publishRequest(utbetalingsRequest)
+            .mapLeft {
+                UtbetalingFeilet.Protokollfeil
+            }
+    }
+
+    private fun Utbetaling.SimulertUtbetaling.forberedOversendelse(transactionContext: TransactionContext): Utbetaling.OversendtUtbetaling.UtenKvittering {
+        return toOversendtUtbetaling(utbetalingPublisher.generateRequest(this)).also {
+            utbetalingRepo.opprettUtbetaling(
+                utbetaling = it,
+                transactionContext = transactionContext,
+            )
+        }
     }
 
     override fun simulerGjenopptak(

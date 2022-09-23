@@ -6,6 +6,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.log
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -31,6 +32,7 @@ internal class StansAvYtelseService(
     private val vedtakService: VedtakService,
     private val sakService: SakService,
     private val clock: Clock,
+    private val sessionFactory: SessionFactory,
 ) {
     private val observers: MutableList<StatistikkEventObserver> = mutableListOf()
 
@@ -126,34 +128,46 @@ internal class StansAvYtelseService(
                     ),
                 ).getOrHandle { return KunneIkkeIverksetteStansYtelse.SimuleringIndikererFeilutbetaling.left() }
 
-                val stansUtbetaling = utbetalingService.stansUtbetalinger(
-                    request = UtbetalRequest.Stans(
-                        request = SimulerUtbetalingRequest.Stans(
-                            sakId = iverksattRevurdering.sakId,
-                            saksbehandler = iverksattRevurdering.attesteringer.hentSisteAttestering().attestant,
-                            stansdato = iverksattRevurdering.periode.fraOgMed,
+                sessionFactory.withTransactionContext { tx ->
+                    val stansUtbetaling = utbetalingService.stansUtbetalinger(
+                        request = UtbetalRequest.Stans(
+                            request = SimulerUtbetalingRequest.Stans(
+                                sakId = iverksattRevurdering.sakId,
+                                saksbehandler = iverksattRevurdering.attesteringer.hentSisteAttestering().attestant,
+                                stansdato = iverksattRevurdering.periode.fraOgMed,
+                            ),
+                            simulering = iverksattRevurdering.simulering,
                         ),
-                        simulering = iverksattRevurdering.simulering,
-                    ),
-                ).getOrHandle { return KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale(it).left() }
+                        transactionContext = tx,
+                    ).getOrHandle { return@withTransactionContext KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale(it).left() }
 
-                val vedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, stansUtbetaling.id, clock)
+                    val vedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, stansUtbetaling.utbetaling.id, clock)
 
-                revurderingRepo.lagre(iverksattRevurdering)
-                vedtakService.lagre(vedtak)
-                observers.forEach { observer ->
-                    observer.handle(StatistikkEvent.Behandling.Stans.Iverksatt(vedtak))
-                    observer.handle(StatistikkEvent.Stønadsvedtak(vedtak))
+                    revurderingRepo.lagre(
+                        revurdering = iverksattRevurdering,
+                        transactionContext = tx,
+                    )
+                    vedtakService.lagre(
+                        vedtak = vedtak,
+                        sessionContext = tx,
+                    )
+                    observers.forEach { observer ->
+                        observer.handle(StatistikkEvent.Behandling.Stans.Iverksatt(vedtak))
+                        observer.handle(StatistikkEvent.Stønadsvedtak(vedtak))
+                    }
+                    stansUtbetaling.sendUtbetalingTilOS()
+                        .mapLeft { throw TriggerRollbackException("""Feil:$it ved publisering av utbetaling for revurdering:$revurderingId - ruller tilbake.""") }
+
+                    iverksattRevurdering.right()
                 }
-
-                return iverksattRevurdering.right()
             }
-
-            else -> KunneIkkeIverksetteStansYtelse.UgyldigTilstand(
-                faktiskTilstand = revurdering::class,
-            ).left()
+            else -> {
+                KunneIkkeIverksetteStansYtelse.UgyldigTilstand(faktiskTilstand = revurdering::class).left()
+            }
         }
     }
+
+    data class TriggerRollbackException(val msg: String) : RuntimeException(msg)
 
     private fun kopierGjeldendeVedtaksdata(
         sak: Sak,
