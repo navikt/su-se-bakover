@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.domain.kontrollsamtale.UgyldigStatusovergang
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelseTilOS
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
@@ -66,7 +66,7 @@ internal class IverksettRevurderingTest {
             tilbakekrevingsbehandling = (revurderingTilAttestering as RevurderingTilAttestering.Innvilget).tilbakekrevingsbehandling.fullførBehandling(),
         )
 
-        val utbetalingKlargjortForOversendelse = UtbetalingKlargjortForOversendelseTilOS(
+        val utbetalingKlargjortForOversendelse = UtbetalingKlargjortForOversendelse(
             utbetaling = nyUtbetalingOversendUtenKvittering(
                 sakOgBehandling = sak to revurderingTilAttestering,
                 beregning = revurderingTilAttestering.beregning,
@@ -83,7 +83,7 @@ internal class IverksettRevurderingTest {
                 doNothing().whenever(it).lagre(any(), anyOrNull())
             },
             utbetalingService = mock {
-                on { nyUtbetaling(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
+                on { klargjørNyUtbetaling(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
             },
             vedtakRepo = mock {
                 doNothing().whenever(it).lagre(any(), anyOrNull())
@@ -96,7 +96,7 @@ internal class IverksettRevurderingTest {
         respone shouldBe expected
 
         verify(serviceAndMocks.revurderingRepo).hent(argThat { it shouldBe revurderingTilAttestering.id })
-        verify(serviceAndMocks.utbetalingService).nyUtbetaling(
+        verify(serviceAndMocks.utbetalingService).klargjørNyUtbetaling(
             request = argThat {
                 it shouldBe UtbetalRequest.NyUtbetaling(
                     request = SimulerUtbetalingRequest.NyUtbetaling.Uføre(
@@ -137,7 +137,7 @@ internal class IverksettRevurderingTest {
             on { it.invoke(any()) } doReturn utbetaling.utbetalingsrequest.right()
         }
 
-        val utbetalingKlarForOversendelse = UtbetalingKlargjortForOversendelseTilOS(
+        val utbetalingKlarForOversendelse = UtbetalingKlargjortForOversendelse(
             utbetaling = utbetaling,
             callback = callback,
         )
@@ -148,7 +148,7 @@ internal class IverksettRevurderingTest {
                 doNothing().whenever(it).lagre(any(), anyOrNull())
             },
             utbetalingService = mock {
-                on { opphørUtbetalinger(any(), any()) } doReturn utbetalingKlarForOversendelse.right()
+                on { klargjørOpphør(any(), any()) } doReturn utbetalingKlarForOversendelse.right()
             },
             vedtakRepo = mock {
                 doNothing().whenever(it).lagre(any(), anyOrNull())
@@ -161,7 +161,7 @@ internal class IverksettRevurderingTest {
         serviceAndMocks.revurderingService.iverksett(revurdering.id, attestant)
 
         verify(serviceAndMocks.revurderingRepo).hent(revurdering.id)
-        verify(serviceAndMocks.utbetalingService).opphørUtbetalinger(
+        verify(serviceAndMocks.utbetalingService).klargjørOpphør(
             request = argThat {
                 it shouldBe UtbetalRequest.Opphør(
                     request = SimulerUtbetalingRequest.Opphør(
@@ -194,7 +194,7 @@ internal class IverksettRevurderingTest {
     fun `iverksett opphør - opphøret skal publiseres etter alle databasekallene`() {
         val (sak, revurderingTilAttestering) = tilAttesteringRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak()
 
-        val utbetalingKlargjortForOversendelse = UtbetalingKlargjortForOversendelseTilOS(
+        val utbetalingKlargjortForOversendelse = UtbetalingKlargjortForOversendelse(
             utbetaling = opphørUtbetalingOversendUtenKvittering(
                 sakOgBehandling = sak to revurderingTilAttestering,
                 opphørsperiode = revurderingTilAttestering.opphørsperiodeForUtbetalinger,
@@ -211,7 +211,7 @@ internal class IverksettRevurderingTest {
                 doNothing().whenever(it).lagre(any(), anyOrNull())
             },
             utbetalingService = mock {
-                on { opphørUtbetalinger(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
+                on { klargjørOpphør(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
             },
             vedtakRepo = mock {
                 doNothing().whenever(it).lagre(any(), anyOrNull())
@@ -231,7 +231,7 @@ internal class IverksettRevurderingTest {
         serviceAndMocks.revurderingService.iverksett(revurderingTilAttestering.id, attestant)
 
         inOrder(*serviceAndMocks.all(), utbetalingKlargjortForOversendelse.callback) {
-            verify(serviceAndMocks.utbetalingService).opphørUtbetalinger(any(), argThat { it shouldBe TestSessionFactory.transactionContext })
+            verify(serviceAndMocks.utbetalingService).klargjørOpphør(any(), argThat { it shouldBe TestSessionFactory.transactionContext })
             verify(serviceAndMocks.vedtakRepo).lagre(any(), argThat { it shouldBe TestSessionFactory.transactionContext })
             verify(serviceAndMocks.kontrollsamtaleService).annullerKontrollsamtale(any(), argThat { it shouldBe TestSessionFactory.transactionContext })
             verify(serviceAndMocks.revurderingRepo).lagre(any(), argThat { it shouldBe TestSessionFactory.transactionContext })
@@ -243,7 +243,7 @@ internal class IverksettRevurderingTest {
     fun `iverksett innvilget - utbetaling skal publiseres etter alle databasekallene`() {
         val (sak, revurderingTilAttestering) = revurderingTilAttestering()
 
-        val utbetalingKlargjortForOversendelse = UtbetalingKlargjortForOversendelseTilOS(
+        val utbetalingKlargjortForOversendelse = UtbetalingKlargjortForOversendelse(
             utbetaling = nyUtbetalingOversendUtenKvittering(
                 sakOgBehandling = sak to revurderingTilAttestering,
                 beregning = revurderingTilAttestering.beregning,
@@ -260,7 +260,7 @@ internal class IverksettRevurderingTest {
                 doNothing().whenever(it).lagre(any(), anyOrNull())
             },
             utbetalingService = mock {
-                on { nyUtbetaling(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
+                on { klargjørNyUtbetaling(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
             },
             vedtakRepo = mock {
                 doNothing().whenever(it).lagre(any(), anyOrNull())
@@ -345,7 +345,7 @@ internal class IverksettRevurderingTest {
     @Test
     fun `skal returnere left dersom utbetaling feiler for opphørt`() {
         val (sak, revurderingTilAttestering) = tilAttesteringRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak()
-        val utbetalingKlargjortForOversendelse = UtbetalingKlargjortForOversendelseTilOS(
+        val utbetalingKlargjortForOversendelse = UtbetalingKlargjortForOversendelse(
             utbetaling = opphørUtbetalingOversendUtenKvittering(
                 sakOgBehandling = sak to revurderingTilAttestering,
                 opphørsperiode = revurderingTilAttestering.opphørsperiodeForUtbetalinger,
@@ -362,7 +362,7 @@ internal class IverksettRevurderingTest {
                 doNothing().whenever(it).lagre(any(), anyOrNull())
             },
             utbetalingService = mock {
-                on { opphørUtbetalinger(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
+                on { klargjørOpphør(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
             },
             vedtakRepo = mock {
                 doNothing().whenever(it).lagre(any(), anyOrNull())
@@ -410,7 +410,7 @@ internal class IverksettRevurderingTest {
     fun `skal ikke opphøre dersom annullering av kontrollsamtale feiler`() {
         val (sak, revurderingTilAttestering) = tilAttesteringRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak()
 
-        val utbetalingKlargjortForOversendelse = UtbetalingKlargjortForOversendelseTilOS(
+        val utbetalingKlargjortForOversendelse = UtbetalingKlargjortForOversendelse(
             utbetaling = opphørUtbetalingOversendUtenKvittering(
                 sakOgBehandling = sak to revurderingTilAttestering,
                 opphørsperiode = revurderingTilAttestering.opphørsperiodeForUtbetalinger,
@@ -425,7 +425,7 @@ internal class IverksettRevurderingTest {
                 on { hent(any()) } doReturn revurderingTilAttestering
             },
             utbetalingService = mock {
-                on { opphørUtbetalinger(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
+                on { klargjørOpphør(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
             },
             vedtakRepo = mock {
                 doNothing().whenever(it).lagre(any(), anyOrNull())
@@ -451,7 +451,7 @@ internal class IverksettRevurderingTest {
     fun `skal returnere left dersom utbetaling feiler for iverksett`() {
         val (sak, revurderingTilAttestering) = revurderingTilAttestering()
 
-        val utbetalingKlargjortForOversendelse = UtbetalingKlargjortForOversendelseTilOS(
+        val utbetalingKlargjortForOversendelse = UtbetalingKlargjortForOversendelse(
             utbetaling = nyUtbetalingOversendUtenKvittering(
                 sakOgBehandling = sak to revurderingTilAttestering,
                 beregning = revurderingTilAttestering.beregning,
@@ -467,7 +467,7 @@ internal class IverksettRevurderingTest {
                 on { hent(any()) } doReturn revurderingTilAttestering
             },
             utbetalingService = mock {
-                on { nyUtbetaling(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
+                on { klargjørNyUtbetaling(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
             },
             vedtakRepo = mock {
                 doNothing().whenever(it).lagre(any(), anyOrNull())

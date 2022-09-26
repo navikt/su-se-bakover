@@ -108,19 +108,19 @@ internal class SakJsonTest {
                 clock = Clock.systemUTC(),
             )
 
-            val utbetaling1 = mock<Utbetaling.OversendtUtbetaling.UtenKvittering> {
+            val utbetaling1 = mock<Utbetaling.UtbetalingKlargjortForOversendelse.UtenKvittering> {
                 on { utbetalingslinjer } doReturn nonEmptyListOf(nyUtbetaling)
                 on { opprettet } doReturn nyUtbetaling.opprettet
             }
-            val utbetaling2 = mock<Utbetaling.OversendtUtbetaling.UtenKvittering> {
+            val utbetaling2 = mock<Utbetaling.UtbetalingKlargjortForOversendelse.UtenKvittering> {
                 on { utbetalingslinjer } doReturn nonEmptyListOf(midlertidigStans)
                 on { opprettet } doReturn midlertidigStans.opprettet
             }
-            val utbetaling3 = mock<Utbetaling.OversendtUtbetaling.UtenKvittering> {
+            val utbetaling3 = mock<Utbetaling.UtbetalingKlargjortForOversendelse.UtenKvittering> {
                 on { utbetalingslinjer } doReturn nonEmptyListOf(reaktivering)
                 on { opprettet } doReturn reaktivering.opprettet
             }
-            val utbetaling4 = mock<Utbetaling.OversendtUtbetaling.UtenKvittering> {
+            val utbetaling4 = mock<Utbetaling.UtbetalingKlargjortForOversendelse.UtenKvittering> {
                 on { utbetalingslinjer } doReturn nonEmptyListOf(opphørslinje)
                 on { opprettet } doReturn opphørslinje.opprettet
             }

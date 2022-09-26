@@ -131,7 +131,7 @@ internal class StansAvYtelseService(
 
                 Either.catch {
                     sessionFactory.withTransactionContext { tx ->
-                        val stansUtbetaling = utbetalingService.stansUtbetalinger(
+                        val stansUtbetaling = utbetalingService.klargjørStans(
                             request = UtbetalRequest.Stans(
                                 request = SimulerUtbetalingRequest.Stans(
                                     sakId = iverksattRevurdering.sakId,
@@ -158,7 +158,7 @@ internal class StansAvYtelseService(
                             vedtak = vedtak,
                             sessionContext = tx,
                         )
-                        stansUtbetaling.sendUtbetalingTilOS()
+                        stansUtbetaling.sendUtbetaling()
                             .getOrHandle {
                                 throw IverksettTransactionException(
                                     message = """Feil:$it ved publisering av utbetaling for revurdering:$revurderingId - ruller tilbake.""",

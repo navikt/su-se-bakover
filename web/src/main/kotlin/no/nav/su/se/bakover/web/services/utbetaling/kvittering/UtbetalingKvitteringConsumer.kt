@@ -68,7 +68,7 @@ class UtbetalingKvitteringConsumer(
             }
     }
 
-    private fun ferdigstillInnvilgelse(utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering): Either<FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak, Unit> {
+    private fun ferdigstillInnvilgelse(utbetaling: Utbetaling.UtbetalingKlargjortForOversendelse.MedKvittering): Either<FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak, Unit> {
         return ferdigstillVedtakService.ferdigstillVedtakEtterUtbetaling(utbetaling)
     }
 }

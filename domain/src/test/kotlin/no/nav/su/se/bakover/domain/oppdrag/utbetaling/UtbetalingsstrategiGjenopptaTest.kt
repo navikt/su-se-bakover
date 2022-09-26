@@ -34,9 +34,9 @@ import org.junit.jupiter.api.Test
 internal class UtbetalingsstrategiGjenopptaTest {
     @Test
     fun `gjenopptar enkel utbetaling`() {
-        val opprinnelig: Utbetaling.OversendtUtbetaling.UtenKvittering = oversendtUtbetaling()
+        val opprinnelig: Utbetaling.UtbetalingKlargjortForOversendelse.UtenKvittering = oversendtUtbetaling()
 
-        val stans: Utbetaling.OversendtUtbetaling.UtenKvittering = createOversendtUtbetaling(
+        val stans: Utbetaling.UtbetalingKlargjortForOversendelse.UtenKvittering = createOversendtUtbetaling(
             nonEmptyListOf(
                 Utbetalingslinje.Endring.Stans(
                     utbetalingslinje = opprinnelig.sisteUtbetalingslinje(),
@@ -289,7 +289,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
 
     private fun createOversendtUtbetaling(
         utbetalingslinjer: NonEmptyList<Utbetalingslinje>,
-    ): Utbetaling.OversendtUtbetaling.UtenKvittering {
+    ): Utbetaling.UtbetalingKlargjortForOversendelse.UtenKvittering {
         return Utbetaling.UtbetalingForSimulering(
             opprettet = fixedTidspunkt,
             sakId = sakId,

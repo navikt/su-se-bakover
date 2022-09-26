@@ -115,7 +115,7 @@ internal fun lagUtbetaling(
     oppdragsmelding: Utbetalingsrequest = Utbetalingsrequest(
         value = "Melding",
     ),
-): Utbetaling.OversendtUtbetaling = when (status) {
+): Utbetaling.UtbetalingKlargjortForOversendelse = when (status) {
     null -> {
         Utbetaling.UtbetalingForSimulering(
             id = id,

@@ -18,7 +18,7 @@ import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelseTilOS
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
@@ -55,16 +55,16 @@ internal class UtbetalingServiceImpl(
     override fun oppdaterMedKvittering(
         utbetalingId: UUID30,
         kvittering: Kvittering,
-    ): Either<FantIkkeUtbetaling, Utbetaling.OversendtUtbetaling.MedKvittering> {
+    ): Either<FantIkkeUtbetaling, Utbetaling.UtbetalingKlargjortForOversendelse.MedKvittering> {
         return utbetalingRepo.hentUtbetaling(utbetalingId)
             ?.let { utbetaling ->
                 when (utbetaling) {
-                    is Utbetaling.OversendtUtbetaling.MedKvittering -> {
+                    is Utbetaling.UtbetalingKlargjortForOversendelse.MedKvittering -> {
                         log.info("Kvittering er allerede mottatt for utbetaling: ${utbetaling.id}")
                         utbetaling
                     }
 
-                    is Utbetaling.OversendtUtbetaling.UtenKvittering -> {
+                    is Utbetaling.UtbetalingKlargjortForOversendelse.UtenKvittering -> {
                         log.info("Oppdaterer utbetaling med kvittering fra Oppdrag")
                         utbetaling.toKvittertUtbetaling(kvittering).also {
                             utbetalingRepo.oppdaterMedKvittering(it)
@@ -85,7 +85,7 @@ internal class UtbetalingServiceImpl(
         )
     }
 
-    override fun nyUtbetaling(request: UtbetalRequest.NyUtbetaling, transactionContext: TransactionContext): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelseTilOS<UtbetalingFeilet.Protokollfeil>> {
+    override fun klargjørNyUtbetaling(request: UtbetalRequest.NyUtbetaling, transactionContext: TransactionContext): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>> {
         return simulerUtbetaling(request).mapLeft {
             UtbetalingFeilet.KunneIkkeSimulere(it)
         }.flatMap { simulertUtbetaling ->
@@ -96,7 +96,7 @@ internal class UtbetalingServiceImpl(
                 return UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(it).left()
             }
 
-            UtbetalingKlargjortForOversendelseTilOS(
+            UtbetalingKlargjortForOversendelse(
                 utbetaling = simulertUtbetaling.forberedOversendelse(transactionContext),
                 callback = { utbetalingsrequest ->
                     sendUtbetalingTilOS(utbetalingsrequest)
@@ -106,10 +106,10 @@ internal class UtbetalingServiceImpl(
         }
     }
 
-    override fun opphørUtbetalinger(
+    override fun klargjørOpphør(
         request: UtbetalRequest.Opphør,
         transactionContext: TransactionContext,
-    ): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelseTilOS<UtbetalingFeilet.Protokollfeil>> {
+    ): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>> {
         return simulerOpphør(request).mapLeft {
             UtbetalingFeilet.KunneIkkeSimulere(it)
         }.flatMap { simulertOpphør ->
@@ -120,7 +120,7 @@ internal class UtbetalingServiceImpl(
                 return UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(it).left()
             }
 
-            UtbetalingKlargjortForOversendelseTilOS(
+            UtbetalingKlargjortForOversendelse(
                 utbetaling = simulertOpphør.forberedOversendelse(transactionContext),
                 callback = { utbetalingsrequest ->
                     sendUtbetalingTilOS(utbetalingsrequest)
@@ -277,10 +277,10 @@ internal class UtbetalingServiceImpl(
         }
     }
 
-    override fun stansUtbetalinger(
+    override fun klargjørStans(
         request: UtbetalRequest.Stans,
         transactionContext: TransactionContext,
-    ): Either<UtbetalStansFeil, UtbetalingKlargjortForOversendelseTilOS<UtbetalStansFeil.KunneIkkeUtbetale>> {
+    ): Either<UtbetalStansFeil, UtbetalingKlargjortForOversendelse<UtbetalStansFeil.KunneIkkeUtbetale>> {
         return simulerStans(request = request)
             .mapLeft {
                 UtbetalStansFeil.KunneIkkeSimulere(it)
@@ -296,7 +296,7 @@ internal class UtbetalingServiceImpl(
                     ).left()
                 }
 
-                UtbetalingKlargjortForOversendelseTilOS(
+                UtbetalingKlargjortForOversendelse(
                     utbetaling = simulertStans.forberedOversendelse(transactionContext),
                     callback = { utbetalingsrequest ->
                         sendUtbetalingTilOS(utbetalingsrequest)
@@ -313,7 +313,7 @@ internal class UtbetalingServiceImpl(
             }
     }
 
-    private fun Utbetaling.SimulertUtbetaling.forberedOversendelse(transactionContext: TransactionContext): Utbetaling.OversendtUtbetaling.UtenKvittering {
+    private fun Utbetaling.SimulertUtbetaling.forberedOversendelse(transactionContext: TransactionContext): Utbetaling.UtbetalingKlargjortForOversendelse.UtenKvittering {
         return toOversendtUtbetaling(utbetalingPublisher.generateRequest(this)).also {
             utbetalingRepo.opprettUtbetaling(
                 utbetaling = it,
@@ -358,10 +358,10 @@ internal class UtbetalingServiceImpl(
         }
     }
 
-    override fun gjenopptaUtbetalinger(
+    override fun klargjørGjenopptak(
         request: UtbetalRequest.Gjenopptak,
         transactionContext: TransactionContext,
-    ): Either<UtbetalGjenopptakFeil, UtbetalingKlargjortForOversendelseTilOS<UtbetalGjenopptakFeil.KunneIkkeUtbetale>> {
+    ): Either<UtbetalGjenopptakFeil, UtbetalingKlargjortForOversendelse<UtbetalGjenopptakFeil.KunneIkkeUtbetale>> {
         val sak = sakService.hentSak(request.sakId).getOrElse {
             return UtbetalGjenopptakFeil.KunneIkkeUtbetale(UtbetalingFeilet.FantIkkeSak).left()
         }
@@ -385,7 +385,7 @@ internal class UtbetalingServiceImpl(
                 ).left()
             }
 
-            UtbetalingKlargjortForOversendelseTilOS(
+            UtbetalingKlargjortForOversendelse(
                 utbetaling = simulertGjenopptak.forberedOversendelse(transactionContext),
                 callback = { utbetalingsrequest ->
                     sendUtbetalingTilOS(utbetalingsrequest)

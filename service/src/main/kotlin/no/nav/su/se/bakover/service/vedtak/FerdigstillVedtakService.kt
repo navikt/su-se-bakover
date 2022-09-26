@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory
 
 interface FerdigstillVedtakService {
     fun ferdigstillVedtakEtterUtbetaling(
-        utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering,
+        utbetaling: Utbetaling.UtbetalingKlargjortForOversendelse.MedKvittering,
     ): Either<KunneIkkeFerdigstilleVedtak, Unit>
     fun lukkOppgaveMedBruker(
         behandling: Behandling,
@@ -46,7 +46,7 @@ internal class FerdigstillVedtakServiceImpl(
     /**
      * Entry point for kvittering consumer.
      */
-    override fun ferdigstillVedtakEtterUtbetaling(utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering): Either<KunneIkkeFerdigstilleVedtak, Unit> {
+    override fun ferdigstillVedtakEtterUtbetaling(utbetaling: Utbetaling.UtbetalingKlargjortForOversendelse.MedKvittering): Either<KunneIkkeFerdigstilleVedtak, Unit> {
         return if (utbetaling.trengerIkkeFerdigstilles()) {
             log.info("Utbetaling ${utbetaling.id} trenger ikke ferdigstilles.")
             Unit.right()

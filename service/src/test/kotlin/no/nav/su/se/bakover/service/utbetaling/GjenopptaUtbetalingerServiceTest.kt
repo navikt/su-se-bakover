@@ -83,7 +83,7 @@ internal class GjenopptaUtbetalingerServiceTest {
             },
             clock = tikkendeKlokke,
         ).also { serviceAndMocks ->
-            serviceAndMocks.service.gjenopptaUtbetalinger(
+            serviceAndMocks.service.klargjørGjenopptak(
                 request = UtbetalRequest.Gjenopptak(
                     sakId = sak.id,
                     saksbehandler = saksbehandler,
@@ -91,7 +91,7 @@ internal class GjenopptaUtbetalingerServiceTest {
                 ),
                 transactionContext = TestSessionFactory.transactionContext,
             ).getOrFail().let {
-                it.sendUtbetalingTilOS()
+                it.sendUtbetaling()
             }
 
             verify(serviceAndMocks.sakService).hentSak(
@@ -132,7 +132,7 @@ internal class GjenopptaUtbetalingerServiceTest {
                 on { hentSak(any<UUID>()) } doReturn FantIkkeSak.left()
             },
         ).also {
-            it.service.gjenopptaUtbetalinger(
+            it.service.klargjørGjenopptak(
                 request = UtbetalRequest.Gjenopptak(
                     sakId = sakId,
                     saksbehandler = saksbehandler,
@@ -155,7 +155,7 @@ internal class GjenopptaUtbetalingerServiceTest {
                 on { simulerUtbetaling(any()) } doReturn SimuleringFeilet.TEKNISK_FEIL.left()
             },
         ).also {
-            it.service.gjenopptaUtbetalinger(
+            it.service.klargjørGjenopptak(
                 request = UtbetalRequest.Gjenopptak(
                     sakId = sak.id,
                     saksbehandler = saksbehandler,
@@ -211,7 +211,7 @@ internal class GjenopptaUtbetalingerServiceTest {
             },
             clock = klokke,
         ).also { serviceAndMocks ->
-            serviceAndMocks.service.gjenopptaUtbetalinger(
+            serviceAndMocks.service.klargjørGjenopptak(
                 request = UtbetalRequest.Gjenopptak(
                     sakId = sak.id,
                     saksbehandler = saksbehandler,
@@ -219,7 +219,7 @@ internal class GjenopptaUtbetalingerServiceTest {
                 ),
                 transactionContext = TestSessionFactory.transactionContext,
             ).getOrFail().let {
-                it.sendUtbetalingTilOS() shouldBe UtbetalGjenopptakFeil.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil).left()
+                it.sendUtbetaling() shouldBe UtbetalGjenopptakFeil.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil).left()
             }
 
             inOrder(
@@ -267,7 +267,7 @@ internal class GjenopptaUtbetalingerServiceTest {
             utbetalingPublisher = mock(),
             clock = tikkendeKlokke,
         ).also {
-            it.service.gjenopptaUtbetalinger(
+            it.service.klargjørGjenopptak(
                 request = UtbetalRequest.Gjenopptak(
                     sakId = sak.id,
                     saksbehandler = attestant,

@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelseTilOS
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -50,7 +50,6 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.argumentCaptor
-import org.mockito.kotlin.capture
 import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
@@ -225,7 +224,7 @@ internal class StansAvYtelseServiceTest {
 
         val utbetalingServiceMock = mock<UtbetalingService> {
             on {
-                stansUtbetalinger(
+                klargjørStans(
                     any(),
                     any(),
                 )
@@ -247,7 +246,7 @@ internal class StansAvYtelseServiceTest {
             ).left()
 
             verify(it.revurderingRepo).hent(simulertStans.id)
-            verify(it.utbetalingService).stansUtbetalinger(
+            verify(it.utbetalingService).klargjørStans(
                 request = UtbetalRequest.Stans(
                     request = SimulerUtbetalingRequest.Stans(
                         sakId = simulertStans.sakId,
@@ -281,7 +280,7 @@ internal class StansAvYtelseServiceTest {
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
             utbetalingService = mock {
-                on { stansUtbetalinger(any(), any()) } doReturn UtbetalingKlargjortForOversendelseTilOS(
+                on { klargjørStans(any(), any()) } doReturn UtbetalingKlargjortForOversendelse(
                     utbetaling = utbetaling,
                     callback = callback,
                 ).right()
@@ -297,7 +296,7 @@ internal class StansAvYtelseServiceTest {
         ).getOrFail("Feil med oppsett av testdata")
 
         verify(serviceAndMocks.revurderingRepo).hent(simulertStans.id)
-        verify(serviceAndMocks.utbetalingService).stansUtbetalinger(
+        verify(serviceAndMocks.utbetalingService).klargjørStans(
             request = UtbetalRequest.Stans(
                 request = SimulerUtbetalingRequest.Stans(
                     sakId = simulertStans.sakId,

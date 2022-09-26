@@ -33,7 +33,7 @@ sealed class Avstemming {
         override val avstemmingXmlRequest: String? = null,
         val fraOgMed: Tidspunkt,
         val tilOgMed: Tidspunkt,
-        val utbetalinger: List<Utbetaling.OversendtUtbetaling>,
+        val utbetalinger: List<Utbetaling.UtbetalingKlargjortForOversendelse>,
     ) : Avstemming() {
         init {
             if (utbetalinger.isNotEmpty()) {
@@ -83,7 +83,7 @@ sealed class Avstemming {
             override val opprettetTilOgMed: Tidspunkt,
             override val fagområde: Fagområde,
             override val avstemmingXmlRequest: String? = null,
-            private val utbetalinger: List<Utbetaling.OversendtUtbetaling>,
+            private val utbetalinger: List<Utbetaling.UtbetalingKlargjortForOversendelse>,
         ) : Konsistensavstemming() {
 
             init {

@@ -1091,7 +1091,7 @@ internal class RevurderingServiceImpl(
                          * Det er også viktig at publiseringen av utbetalingen er det siste som skjer i blokka.
                          * Alt som ikke skal påvirke utfallet av iverksettingen skal flyttes ut av blokka. E.g. statistikk.
                          */
-                        val nyUtbetaling = utbetalingService.nyUtbetaling(
+                        val nyUtbetaling = utbetalingService.klargjørNyUtbetaling(
                             request = UtbetalRequest.NyUtbetaling(
                                 request = SimulerUtbetalingRequest.NyUtbetaling.Uføre(
                                     sakId = revurdering.sakId,
@@ -1130,7 +1130,7 @@ internal class RevurderingServiceImpl(
                             revurdering = iverksattRevurdering,
                             transactionContext = tx,
                         )
-                        nyUtbetaling.sendUtbetalingTilOS()
+                        nyUtbetaling.sendUtbetaling()
                             .getOrHandle { feil ->
                                 throw IverksettTransactionException(
                                     "Kunne ikke publisere utbetaling på køen. Underliggende feil: $feil.",
@@ -1173,7 +1173,7 @@ internal class RevurderingServiceImpl(
                      * Alt som ikke skal påvirke utfallet av iverksettingen skal flyttes ut av blokka. E.g. statistikk.
                      */
                     sessionFactory.withTransactionContext { tx ->
-                        val opphørUtbetaling = utbetalingService.opphørUtbetalinger(
+                        val opphørUtbetaling = utbetalingService.klargjørOpphør(
                             request = UtbetalRequest.Opphør(
                                 request = SimulerUtbetalingRequest.Opphør(
                                     sakId = iverksattRevurdering.sakId,
@@ -1211,7 +1211,7 @@ internal class RevurderingServiceImpl(
                             revurdering = iverksattRevurdering,
                             transactionContext = tx,
                         )
-                        opphørUtbetaling.sendUtbetalingTilOS()
+                        opphørUtbetaling.sendUtbetaling()
                             .getOrHandle {
                                 throw IverksettTransactionException(
                                     "Kunne ikke publisere utbetaling på køen. Underliggende feil: $it.",

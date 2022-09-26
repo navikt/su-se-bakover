@@ -374,7 +374,7 @@ internal class SøknadsbehandlingServiceImpl(
                              * Det er også viktig at publiseringen av utbetalingen er det siste som skjer i blokka.
                              * Alt som ikke skal påvirke utfallet av iverksettingen skal flyttes ut av blokka. E.g. statistikk.
                              */
-                            val nyUtbetaling = utbetalingService.nyUtbetaling(
+                            val nyUtbetaling = utbetalingService.klargjørNyUtbetaling(
                                 request = UtbetalRequest.NyUtbetaling(
                                     request = iverksattBehandling.lagSimulerUtbetalingRequest(
                                         saksbehandler = request.attestering.attestant,
@@ -409,7 +409,7 @@ internal class SøknadsbehandlingServiceImpl(
                                 vedtak = vedtak,
                                 sessionContext = tx,
                             )
-                            nyUtbetaling.sendUtbetalingTilOS()
+                            nyUtbetaling.sendUtbetaling()
                                 .getOrHandle { feil ->
                                     throw IverksettTransactionException(
                                         "Kunne ikke publisere utbetaling på køen. Underliggende feil: $feil.",

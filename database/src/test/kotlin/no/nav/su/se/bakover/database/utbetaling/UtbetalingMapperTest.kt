@@ -51,7 +51,7 @@ internal class UtbetalingMapperTest {
             avstemmingId = null,
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             sakstype = Sakstype.UFØRE,
-        ).map().shouldBeInstanceOf<Utbetaling.OversendtUtbetaling.UtenKvittering>()
+        ).map().shouldBeInstanceOf<Utbetaling.UtbetalingKlargjortForOversendelse.UtenKvittering>()
 
         UtbetalingMapper(
             id = UUID30.randomUUID(),
@@ -85,6 +85,6 @@ internal class UtbetalingMapperTest {
             avstemmingId = null,
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             sakstype = Sakstype.UFØRE,
-        ).map().shouldBeInstanceOf<Utbetaling.OversendtUtbetaling.MedKvittering>()
+        ).map().shouldBeInstanceOf<Utbetaling.UtbetalingKlargjortForOversendelse.MedKvittering>()
     }
 }

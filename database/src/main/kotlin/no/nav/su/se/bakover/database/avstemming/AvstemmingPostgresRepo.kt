@@ -141,7 +141,7 @@ internal class AvstemmingPostgresRepo(
         fraOgMed: Tidspunkt,
         tilOgMed: Tidspunkt,
         fagområde: Fagområde,
-    ): List<Utbetaling.OversendtUtbetaling> =
+    ): List<Utbetaling.UtbetalingKlargjortForOversendelse> =
         dbMetrics.timeQuery("hentUtbetalingerForGrensesnittsavstemming") {
             sessionFactory.withSession { session ->
                 val fraOgMedCondition = """(u.avstemmingsnøkkel ->> 'opprettet')::timestamptz >= :fom"""
@@ -164,7 +164,7 @@ internal class AvstemmingPostgresRepo(
         løpendeFraOgMed: Tidspunkt,
         opprettetTilOgMed: Tidspunkt,
         fagområde: Fagområde,
-    ): List<Utbetaling.OversendtUtbetaling> {
+    ): List<Utbetaling.UtbetalingKlargjortForOversendelse> {
         return dbMetrics.timeQuery("hentUtbetalingerForKonsistensavstemming") {
             sessionFactory.withSession { session ->
                 """

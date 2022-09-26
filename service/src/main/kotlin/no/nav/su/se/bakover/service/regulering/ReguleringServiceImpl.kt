@@ -304,7 +304,7 @@ class ReguleringServiceImpl(
     private fun lagVedtakOgUtbetal(regulering: Regulering.IverksattRegulering): Either<KunneIkkeFerdigstilleOgIverksette.KunneIkkeUtbetale, Pair<Regulering.IverksattRegulering, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering>> {
         return Either.catch {
             sessionFactory.withTransactionContext { tx ->
-                val nyUtbetaling = utbetalingService.nyUtbetaling(
+                val nyUtbetaling = utbetalingService.klargjørNyUtbetaling(
                     request = regulering.utbetalRequest(),
                     transactionContext = tx,
                 ).getOrHandle {
@@ -326,7 +326,7 @@ class ReguleringServiceImpl(
                     regulering = regulering,
                     sessionContext = tx,
                 )
-                nyUtbetaling.sendUtbetalingTilOS()
+                nyUtbetaling.sendUtbetaling()
                     .getOrHandle { throw KunneIkkeSendeTilUtbetalingException(it) }
 
                 vedtak

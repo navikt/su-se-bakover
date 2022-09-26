@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.domain.oppdrag.KryssjekkAvSaksbehandlersOgAttestants
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelseTilOS
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.service.argThat
@@ -64,7 +64,7 @@ internal class StansUtbetalingServiceTest {
                 on { publishRequest(any()) } doReturn utbetalingsRequest.right()
             },
         ).also { serviceAndMocks ->
-            serviceAndMocks.service.stansUtbetalinger(
+            serviceAndMocks.service.klargjørStans(
                 request = UtbetalRequest.Stans(
                     request = SimulerUtbetalingRequest.Stans(
                         sakId = sakId,
@@ -74,7 +74,7 @@ internal class StansUtbetalingServiceTest {
                     simulering = simulering,
                 ),
                 transactionContext = TestSessionFactory.transactionContext,
-            ).getOrFail().shouldBeType<UtbetalingKlargjortForOversendelseTilOS<UtbetalStansFeil>>().sendUtbetalingTilOS()
+            ).getOrFail().shouldBeType<UtbetalingKlargjortForOversendelse<UtbetalStansFeil>>().sendUtbetaling()
 
             inOrder(
                 serviceAndMocks.sakService,
@@ -118,7 +118,7 @@ internal class StansUtbetalingServiceTest {
                 on { simulerUtbetaling(any()) } doReturn SimuleringFeilet.TEKNISK_FEIL.left()
             },
         ).also {
-            it.service.stansUtbetalinger(
+            it.service.klargjørStans(
                 request = UtbetalRequest.Stans(
                     request = SimulerUtbetalingRequest.Stans(
                         sakId = sakId,
@@ -166,7 +166,7 @@ internal class StansUtbetalingServiceTest {
                 on { publishRequest(any()) } doReturn UtbetalingPublisher.KunneIkkeSendeUtbetaling(utbetalingsRequest).left()
             },
         ).also { serviceAndMocks ->
-            serviceAndMocks.service.stansUtbetalinger(
+            serviceAndMocks.service.klargjørStans(
                 request = UtbetalRequest.Stans(
                     request = SimulerUtbetalingRequest.Stans(
                         sakId = sakId,
@@ -177,8 +177,8 @@ internal class StansUtbetalingServiceTest {
                 ),
                 transactionContext = TestSessionFactory.transactionContext,
             ).let {
-                it.getOrFail().shouldBeType<UtbetalingKlargjortForOversendelseTilOS<UtbetalStansFeil>>().let {
-                    it.sendUtbetalingTilOS() shouldBe UtbetalStansFeil.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil).left()
+                it.getOrFail().shouldBeType<UtbetalingKlargjortForOversendelse<UtbetalStansFeil>>().let {
+                    it.sendUtbetaling() shouldBe UtbetalStansFeil.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil).left()
                 }
             }
 
@@ -223,7 +223,7 @@ internal class StansUtbetalingServiceTest {
             },
         ).also {
             assertThrows<IllegalStateException> {
-                it.service.stansUtbetalinger(
+                it.service.klargjørStans(
                     request = UtbetalRequest.Stans(
                         request = SimulerUtbetalingRequest.Stans(
                             sakId = sakId,

@@ -93,14 +93,14 @@ sealed interface Utbetaling {
         val simulering: Simulering,
     ) : Utbetaling by utbetalingForSimulering {
         fun toOversendtUtbetaling(oppdragsmelding: Utbetalingsrequest) =
-            OversendtUtbetaling.UtenKvittering(
+            UtbetalingKlargjortForOversendelse.UtenKvittering(
                 this,
                 simulering = simulering,
                 utbetalingsrequest = oppdragsmelding,
             )
     }
 
-    sealed interface OversendtUtbetaling : Utbetaling {
+    sealed interface UtbetalingKlargjortForOversendelse : Utbetaling {
         val simulering: Simulering
         val utbetalingsrequest: Utbetalingsrequest
 
@@ -108,7 +108,7 @@ sealed interface Utbetaling {
             private val simulertUtbetaling: SimulertUtbetaling,
             override val simulering: Simulering,
             override val utbetalingsrequest: Utbetalingsrequest,
-        ) : OversendtUtbetaling, Utbetaling by simulertUtbetaling {
+        ) : UtbetalingKlargjortForOversendelse, Utbetaling by simulertUtbetaling {
             init {
                 kontrollerUtbetalingslinjer()
             }
@@ -122,7 +122,7 @@ sealed interface Utbetaling {
         data class MedKvittering(
             private val utenKvittering: UtenKvittering,
             val kvittering: Kvittering,
-        ) : OversendtUtbetaling by utenKvittering {
+        ) : UtbetalingKlargjortForOversendelse by utenKvittering {
             init {
                 kontrollerUtbetalingslinjer()
             }
@@ -140,7 +140,7 @@ sealed interface Utbetaling {
  * TODO jah: Ved initialisering e.l. gjør en faktisk verifikasjon på at ref-verdier på utbetalingslinjene har riktig rekkefølge
  */
 internal fun List<Utbetaling>.hentOversendteUtbetalingerUtenFeil(): List<Utbetaling> =
-    this.filter { it is Utbetaling.OversendtUtbetaling.UtenKvittering || it is Utbetaling.OversendtUtbetaling.MedKvittering && it.kvittering.erKvittertOk() }
+    this.filter { it is Utbetaling.UtbetalingKlargjortForOversendelse.UtenKvittering || it is Utbetaling.UtbetalingKlargjortForOversendelse.MedKvittering && it.kvittering.erKvittertOk() }
         .sortedWith(utbetalingsSortering)
 
 internal fun List<Utbetaling>.hentOversendteUtbetalingslinjerUtenFeil(): List<Utbetalingslinje> {
@@ -229,14 +229,14 @@ val utbetalingslinjeSortering = Comparator<Utbetalingslinje> { o1, o2 ->
  * @param utbetaling en simulert utbetaling med generert XML for publisering på kø mot oppdragssystemet (OS).
  * @param callback funksjon som publiserer generert XML for utbetalingen på kø mot OS
  */
-data class UtbetalingKlargjortForOversendelseTilOS<T>(
-    val utbetaling: Utbetaling.OversendtUtbetaling,
+data class UtbetalingKlargjortForOversendelse<T>(
+    val utbetaling: Utbetaling.UtbetalingKlargjortForOversendelse,
     val callback: (utbetalingsrequest: Utbetalingsrequest) -> Either<T, Utbetalingsrequest>,
 ) {
     /**
      * Publiserer utbetalingen på kø mot oppdrag.
      */
-    fun sendUtbetalingTilOS(): Either<T, Utbetalingsrequest> {
+    fun sendUtbetaling(): Either<T, Utbetalingsrequest> {
         return callback(utbetaling.utbetalingsrequest)
     }
 }

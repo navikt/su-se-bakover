@@ -17,13 +17,13 @@ interface AvstemmingRepo {
         fraOgMed: Tidspunkt,
         tilOgMed: Tidspunkt,
         fagområde: Fagområde,
-    ): List<Utbetaling.OversendtUtbetaling>
+    ): List<Utbetaling.UtbetalingKlargjortForOversendelse>
 
     fun hentUtbetalingerForKonsistensavstemming(
         løpendeFraOgMed: Tidspunkt,
         opprettetTilOgMed: Tidspunkt,
         fagområde: Fagområde,
-    ): List<Utbetaling.OversendtUtbetaling>
+    ): List<Utbetaling.UtbetalingKlargjortForOversendelse>
 
     fun konsistensavstemmingUtførtForOgPåDato(
         dato: LocalDate,

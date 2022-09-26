@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelseTilOS
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
@@ -49,7 +49,6 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.argumentCaptor
-import org.mockito.kotlin.capture
 import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
@@ -250,7 +249,7 @@ internal class GjenopptakAvYtelseServiceTest {
         }
 
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { gjenopptaUtbetalinger(any(), any()) } doReturn UtbetalGjenopptakFeil.KunneIkkeUtbetale(
+            on { klargjørGjenopptak(any(), any()) } doReturn UtbetalGjenopptakFeil.KunneIkkeUtbetale(
                 UtbetalingFeilet.Protokollfeil,
             ).left()
         }
@@ -271,7 +270,7 @@ internal class GjenopptakAvYtelseServiceTest {
             ).left()
 
             verify(revurderingRepoMock).hent(revurderingGjenopptak.second.id)
-            verify(it.utbetalingService).gjenopptaUtbetalinger(
+            verify(it.utbetalingService).klargjørGjenopptak(
                 request = argThat {
                     it shouldBe UtbetalRequest.Gjenopptak(
                         sakId = sakId,
@@ -454,7 +453,7 @@ internal class GjenopptakAvYtelseServiceTest {
         }
 
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { gjenopptaUtbetalinger(any(), any()) } doReturn UtbetalingKlargjortForOversendelseTilOS(
+            on { klargjørGjenopptak(any(), any()) } doReturn UtbetalingKlargjortForOversendelse(
                 utbetaling = utbetaling,
                 callback = callback,
             ).right()
@@ -474,7 +473,7 @@ internal class GjenopptakAvYtelseServiceTest {
             ).getOrFail("Feil med oppsett av testdata")
 
             verify(it.revurderingRepo).hent(simulertGjenopptak.id)
-            verify(it.utbetalingService).gjenopptaUtbetalinger(
+            verify(it.utbetalingService).klargjørGjenopptak(
                 request = UtbetalRequest.Gjenopptak(
                     sakId = simulertGjenopptak.sakId,
                     saksbehandler = NavIdentBruker.Attestant(simulertGjenopptak.saksbehandler.navIdent),

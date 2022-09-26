@@ -25,7 +25,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelseTilOS
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
@@ -479,7 +479,7 @@ internal class ReguleringServiceImplTest {
         }
 
         val testData = lagTestdata(_sak)
-        val nyUtbetaling = UtbetalingKlargjortForOversendelseTilOS(
+        val nyUtbetaling = UtbetalingKlargjortForOversendelse(
             utbetaling = oversendtUtbetalingUtenKvittering(
                 beregning = beregning(
                     fradragsgrunnlag = listOf(fradragsgrunnlagArbeidsinntekt1000()),
@@ -509,7 +509,7 @@ internal class ReguleringServiceImplTest {
             },
             utbetalingService = mock {
                 on { simulerUtbetaling(any()) } doReturn simulerUtbetaling
-                on { nyUtbetaling(any(), any()) } doReturn nyUtbetaling.right()
+                on { klargjørNyUtbetaling(any(), any()) } doReturn nyUtbetaling.right()
             },
             vedtakService = mock(),
             sessionFactory = TestSessionFactory(),

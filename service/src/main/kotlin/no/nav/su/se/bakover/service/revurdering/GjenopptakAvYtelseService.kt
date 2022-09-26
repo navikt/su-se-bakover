@@ -135,7 +135,7 @@ class GjenopptakAvYtelseService(
 
                 Either.catch {
                     sessionFactory.withTransactionContext { tx ->
-                        val gjenopptak = utbetalingService.gjenopptaUtbetalinger(
+                        val gjenopptak = utbetalingService.klargjørGjenopptak(
                             request = UtbetalRequest.Gjenopptak(
                                 sakId = iverksattRevurdering.sakId,
                                 saksbehandler = iverksattRevurdering.attesteringer.hentSisteAttestering().attestant,
@@ -164,7 +164,7 @@ class GjenopptakAvYtelseService(
                             sessionContext = tx,
                         )
 
-                        gjenopptak.sendUtbetalingTilOS()
+                        gjenopptak.sendUtbetaling()
                             .getOrHandle {
                                 throw IverksettTransactionException(
                                     """Feil:$it ved publisering av utbetaling for revurdering:$revurderingId - ruller tilbake.""",

@@ -36,11 +36,11 @@ import java.util.UUID
 private data class UtbetalingRepoMock(
     private val eksisterendeUtbetalinger: List<Utbetaling>,
 ) : UtbetalingRepo {
-    override fun hentUtbetaling(utbetalingId: UUID30): Utbetaling.OversendtUtbetaling? {
+    override fun hentUtbetaling(utbetalingId: UUID30): Utbetaling.UtbetalingKlargjortForOversendelse? {
         TODO("Not yet implemented")
     }
 
-    override fun hentUtbetaling(avstemmingsnøkkel: Avstemmingsnøkkel): Utbetaling.OversendtUtbetaling? {
+    override fun hentUtbetaling(avstemmingsnøkkel: Avstemmingsnøkkel): Utbetaling.UtbetalingKlargjortForOversendelse? {
         TODO("Not yet implemented")
     }
 
@@ -48,18 +48,18 @@ private data class UtbetalingRepoMock(
         return eksisterendeUtbetalinger
     }
 
-    override fun oppdaterMedKvittering(utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering) {
+    override fun oppdaterMedKvittering(utbetaling: Utbetaling.UtbetalingKlargjortForOversendelse.MedKvittering) {
         TODO("Not yet implemented")
     }
 
     override fun opprettUtbetaling(
-        utbetaling: Utbetaling.OversendtUtbetaling.UtenKvittering,
+        utbetaling: Utbetaling.UtbetalingKlargjortForOversendelse.UtenKvittering,
         transactionContext: TransactionContext,
     ) {
         TODO("Not yet implemented")
     }
 
-    override fun hentUkvitterteUtbetalinger(): List<Utbetaling.OversendtUtbetaling.UtenKvittering> {
+    override fun hentUkvitterteUtbetalinger(): List<Utbetaling.UtbetalingKlargjortForOversendelse.UtenKvittering> {
         TODO("Not yet implemented")
     }
 

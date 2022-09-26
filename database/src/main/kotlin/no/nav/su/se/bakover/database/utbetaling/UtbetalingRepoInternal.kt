@@ -26,7 +26,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import java.util.UUID
 
 internal object UtbetalingInternalRepo {
-    fun hentUtbetalingInternal(utbetalingId: UUID30, session: Session): Utbetaling.OversendtUtbetaling? =
+    fun hentUtbetalingInternal(utbetalingId: UUID30, session: Session): Utbetaling.UtbetalingKlargjortForOversendelse? =
         "select u.*, s.saksnummer, s.type as sakstype from utbetaling u inner join sak s on s.id = u.sakId where u.id = :id".hent(
             mapOf(
                 "id" to utbetalingId,
@@ -34,7 +34,7 @@ internal object UtbetalingInternalRepo {
             session,
         ) { it.toUtbetaling(session) }
 
-    fun hentUtbetalinger(sakId: UUID, session: Session): List<Utbetaling.OversendtUtbetaling> =
+    fun hentUtbetalinger(sakId: UUID, session: Session): List<Utbetaling.UtbetalingKlargjortForOversendelse> =
         "select u.*, s.saksnummer, s.type as sakstype from utbetaling u inner join sak s on s.id = u.sakId where s.id = :id".hentListe(
             mapOf(
                 "id" to sakId,
@@ -59,7 +59,7 @@ internal object UtbetalingInternalRepo {
         }
 }
 
-internal fun Row.toUtbetaling(session: Session): Utbetaling.OversendtUtbetaling {
+internal fun Row.toUtbetaling(session: Session): Utbetaling.UtbetalingKlargjortForOversendelse {
     val utbetalingId = uuid30("id")
     val opprettet = tidspunkt("opprettet")
     val simulering = deserialize<Simulering>(string("simulering"))
