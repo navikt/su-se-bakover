@@ -767,12 +767,6 @@ internal class SøknadsbehandlingRoutesKtTest {
                 val repos = repos(dataSource)
                 val clients = TestClientsBuilder(fixedClock, repos).build(applicationConfig()).copy(
                     utbetalingPublisher = object : UtbetalingPublisher {
-                        override fun publish(
-                            utbetaling: Utbetaling.SimulertUtbetaling,
-                        ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Utbetalingsrequest> {
-                            return UtbetalingPublisher.KunneIkkeSendeUtbetaling(Utbetalingsrequest("")).left()
-                        }
-
                         override fun publishRequest(utbetalingsrequest: Utbetalingsrequest): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Utbetalingsrequest> {
                             return UtbetalingPublisher.KunneIkkeSendeUtbetaling(Utbetalingsrequest("")).left()
                         }

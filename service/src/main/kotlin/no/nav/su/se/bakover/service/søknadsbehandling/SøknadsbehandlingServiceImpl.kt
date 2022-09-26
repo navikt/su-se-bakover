@@ -368,9 +368,12 @@ internal class SøknadsbehandlingServiceImpl(
                 is Søknadsbehandling.Iverksatt.Innvilget -> {
                     Either.catch {
                         sessionFactory.withTransactionContext { tx ->
-                            // OBS: Det er kun exceptions som vil føre til at transaksjonen ruller tilbake. Hvis funksjonene returnerer Left/null o.l. vil transaksjonen gå igjennom. De tilfellene må håndteres eksplisitt per funksjon.
-                            // Det er også viktig at publiseringen av utbetalingen er det siste som skjer i blokka. Alt som ikke skal påvirke utfallet av iverksettingen skal flyttes ut av blokka. E.g. statistikk.
-
+                            /**
+                             * OBS: Det er kun exceptions som vil føre til at transaksjonen ruller tilbake.
+                             * Hvis funksjonene returnerer Left/null o.l. vil transaksjonen gå igjennom. De tilfellene må håndteres eksplisitt per funksjon.
+                             * Det er også viktig at publiseringen av utbetalingen er det siste som skjer i blokka.
+                             * Alt som ikke skal påvirke utfallet av iverksettingen skal flyttes ut av blokka. E.g. statistikk.
+                             */
                             val nyUtbetaling = utbetalingService.nyUtbetaling(
                                 request = UtbetalRequest.NyUtbetaling(
                                     request = iverksattBehandling.lagSimulerUtbetalingRequest(
@@ -452,8 +455,12 @@ internal class SøknadsbehandlingServiceImpl(
 
                     Either.catch {
                         sessionFactory.withTransactionContext {
-                            // OBS: Det er kun exceptions som vil føre til at transaksjonen ruller tilbake. Hvis funksjonene returnerer Left/null o.l. vil transaksjonen gå igjennom. De tilfellene må håndteres eksplisitt per funksjon.
-                            // Det er også viktig at publiseringen av utbetalingen er det siste som skjer i blokka. Alt som ikke skal påvirke utfallet av iverksettingen skal flyttes ut av blokka. E.g. statistikk.
+                            /**
+                             * OBS: Det er kun exceptions som vil føre til at transaksjonen ruller tilbake.
+                             * Hvis funksjonene returnerer Left/null o.l. vil transaksjonen gå igjennom. De tilfellene må håndteres eksplisitt per funksjon.
+                             * Det er også viktig at publiseringen av utbetalingen er det siste som skjer i blokka.
+                             * Alt som ikke skal påvirke utfallet av iverksettingen skal flyttes ut av blokka. E.g. statistikk.
+                             */
                             søknadsbehandlingRepo.lagre(iverksattBehandling, it)
                             vedtakRepo.lagre(vedtak, it)
                             brevService.lagreDokument(dokument, it)

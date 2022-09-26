@@ -136,41 +136,64 @@ class GjenopptakAvYtelseService(
                     ),
                 ).getOrHandle { return KunneIkkeIverksetteGjenopptakAvYtelse.SimuleringIndikererFeilutbetaling.left() }
 
-                sessionFactory.withTransactionContext { tx ->
-                    val gjenopptak = utbetalingService.gjenopptaUtbetalinger(
-                        request = UtbetalRequest.Gjenopptak(
-                            sakId = iverksattRevurdering.sakId,
-                            saksbehandler = iverksattRevurdering.attesteringer.hentSisteAttestering().attestant,
-                            simulering = iverksattRevurdering.simulering,
-                        ),
-                        transactionContext = tx,
-                    ).getOrHandle { return@withTransactionContext KunneIkkeIverksetteGjenopptakAvYtelse.KunneIkkeUtbetale(it).left() }
+                Either.catch {
+                    sessionFactory.withTransactionContext { tx ->
+                        val gjenopptak = utbetalingService.gjenopptaUtbetalinger(
+                            request = UtbetalRequest.Gjenopptak(
+                                sakId = iverksattRevurdering.sakId,
+                                saksbehandler = iverksattRevurdering.attesteringer.hentSisteAttestering().attestant,
+                                simulering = iverksattRevurdering.simulering,
+                            ),
+                            transactionContext = tx,
+                        ).getOrHandle {
+                            throw IverksettTransactionException(
+                                """Feil:$it ved opprettelse av utbetaling for revurdering:$revurderingId - ruller tilbake.""",
+                                KunneIkkeIverksetteGjenopptakAvYtelse.KunneIkkeUtbetale(it),
+                            )
+                        }
 
-                    val vedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, gjenopptak.utbetaling.id, clock)
+                        val vedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, gjenopptak.utbetaling.id, clock)
 
-                    revurderingRepo.lagre(
-                        revurdering = iverksattRevurdering,
-                        transactionContext = tx,
-                    )
-                    vedtakRepo.lagre(
-                        vedtak = vedtak,
-                        sessionContext = tx,
-                    )
+                        revurderingRepo.lagre(
+                            revurdering = iverksattRevurdering,
+                            transactionContext = tx,
+                        )
+                        vedtakRepo.lagre(
+                            vedtak = vedtak,
+                            sessionContext = tx,
+                        )
+
+                        gjenopptak.sendUtbetalingTilOS()
+                            .getOrHandle {
+                                throw IverksettTransactionException(
+                                    """Feil:$it ved publisering av utbetaling for revurdering:$revurderingId - ruller tilbake.""",
+                                    KunneIkkeIverksetteGjenopptakAvYtelse.KunneIkkeUtbetale(it),
+                                )
+                            }
+
+                        iverksattRevurdering to vedtak
+                    }
+                }.mapLeft {
+                    log.error("Feil ved iverksetting av gjenopptak for revurdering: $revurderingId", it)
+                    when (it) {
+                        is IverksettTransactionException -> it.feil
+                        else -> KunneIkkeIverksetteGjenopptakAvYtelse.LagringFeilet
+                    }
+                }.map { (iverksattRevurdering, vedtak) ->
                     observers.forEach { observer ->
                         observer.handle(StatistikkEvent.Behandling.Gjenoppta.Iverksatt(vedtak))
                         observer.handle(StatistikkEvent.Stønadsvedtak(vedtak))
                     }
-                    gjenopptak.sendUtbetalingTilOS()
-                        .mapLeft { throw TriggerRollbackException("""Feil:$it ved publisering av utbetaling for revurdering:$revurderingId - ruller tilbake.""") }
-
-                    iverksattRevurdering.right()
+                    iverksattRevurdering
                 }
             }
             else -> { KunneIkkeIverksetteGjenopptakAvYtelse.UgyldigTilstand(faktiskTilstand = revurdering::class).left() }
         }
     }
-
-    data class TriggerRollbackException(val msg: String) : RuntimeException(msg)
+    private data class IverksettTransactionException(
+        override val message: String,
+        val feil: KunneIkkeIverksetteGjenopptakAvYtelse,
+    ) : RuntimeException(message)
 
     private fun kopierGjeldendeVedtaksdata(
         sak: Sak,
