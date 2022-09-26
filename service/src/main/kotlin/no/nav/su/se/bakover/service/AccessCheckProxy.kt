@@ -245,19 +245,6 @@ open class AccessCheckProxy(
                     return services.utbetaling.simulerOpphør(request)
                 }
 
-                override fun publiserUtbetaling(
-                    utbetaling: Utbetaling.SimulertUtbetaling,
-                ) = kastKanKunKallesFraAnnenService()
-
-                override fun lagreUtbetaling(
-                    utbetaling: Utbetaling.SimulertUtbetaling,
-                    transactionContext: TransactionContext?,
-                ) = kastKanKunKallesFraAnnenService()
-
-                override fun verifiserOgSimulerUtbetaling(
-                    request: UtbetalRequest.NyUtbetaling,
-                ) = kastKanKunKallesFraAnnenService()
-
                 override fun nyUtbetaling(request: UtbetalRequest.NyUtbetaling, transactionContext: TransactionContext): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelseTilOS<UtbetalingFeilet.Protokollfeil>> {
                     kastKanKunKallesFraAnnenService()
                 }
@@ -278,10 +265,6 @@ open class AccessCheckProxy(
                 override fun gjenopptaUtbetalinger(
                     request: UtbetalRequest.Gjenopptak,
                     transactionContext: TransactionContext,
-                ) = kastKanKunKallesFraAnnenService()
-
-                override fun verifiserOgSimulerOpphør(
-                    request: UtbetalRequest.Opphør,
                 ) = kastKanKunKallesFraAnnenService()
 
                 override fun opphørUtbetalinger(

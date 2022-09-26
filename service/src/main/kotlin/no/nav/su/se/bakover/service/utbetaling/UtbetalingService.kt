@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelseTilOS
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import java.time.LocalDate
@@ -33,19 +32,6 @@ interface UtbetalingService {
     fun simulerOpphør(
         request: SimulerUtbetalingRequest.OpphørRequest,
     ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>
-
-    fun publiserUtbetaling(
-        utbetaling: Utbetaling.SimulertUtbetaling,
-    ): Either<UtbetalingFeilet, Utbetalingsrequest>
-
-    fun lagreUtbetaling(
-        utbetaling: Utbetaling.SimulertUtbetaling,
-        transactionContext: TransactionContext? = null,
-    ): Utbetaling.OversendtUtbetaling.UtenKvittering
-
-    fun verifiserOgSimulerUtbetaling(
-        request: UtbetalRequest.NyUtbetaling,
-    ): Either<UtbetalingFeilet, Utbetaling.SimulertUtbetaling>
 
     /**
      * Oppretter ny utbetaling, lagrer i databasen og klargjør utbetalingene for oversendelse til OS (lager XML-request)
@@ -93,10 +79,6 @@ interface UtbetalingService {
         request: UtbetalRequest.Gjenopptak,
         transactionContext: TransactionContext,
     ): Either<UtbetalGjenopptakFeil, UtbetalingKlargjortForOversendelseTilOS<UtbetalGjenopptakFeil.KunneIkkeUtbetale>>
-
-    fun verifiserOgSimulerOpphør(
-        request: UtbetalRequest.Opphør,
-    ): Either<UtbetalingFeilet, Utbetaling.SimulertUtbetaling>
 
     /**
      * Opphører utbetalinger, lagrer i databasen og klargjør utbetalingene for oversendelse til OS (lager XML-request)

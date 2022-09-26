@@ -40,11 +40,9 @@ import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.kontrollsamtale
 import no.nav.su.se.bakover.test.nyUtbetalingOversendUtenKvittering
-import no.nav.su.se.bakover.test.oversendtUtbetalingUtenKvittering
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulerNyUtbetaling
-import no.nav.su.se.bakover.test.simulertUtbetaling
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringAvslagMedBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
@@ -62,6 +60,7 @@ import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -319,15 +318,14 @@ internal class SøknadsbehandlingServiceIverksettTest {
         @Test
         fun `avslår ikke dersom vi ikke kan lagre søknadsbehandlinga`() {
             val innvilgetTilAttestering = søknadsbehandlingTilAttesteringAvslagMedBeregning().second
+            val utbetalingMedCallback = mock<UtbetalingKlargjortForOversendelseTilOS<UtbetalingFeilet.Protokollfeil>>()
             val serviceAndMocks = SøknadsbehandlingServiceAndMocks(
                 søknadsbehandlingRepo = mock {
                     on { hent(any()) } doReturn innvilgetTilAttestering
                     doThrow(RuntimeException()).whenever(it).lagre(any(), anyOrNull())
                 },
                 utbetalingService = mock {
-                    on { verifiserOgSimulerUtbetaling(any()) } doReturn simulertUtbetaling().right()
-                    on { publiserUtbetaling(any()) } doReturn Utbetalingsrequest("<xml></xml>").right()
-                    on { lagreUtbetaling(any(), anyOrNull()) } doReturn oversendtUtbetalingUtenKvittering()
+                    on { nyUtbetaling(any(), any()) } doReturn utbetalingMedCallback.right()
                 },
                 kontrollsamtaleService = mock {
                     on {
@@ -352,21 +350,20 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 ),
             ) shouldBe KunneIkkeIverksette.LagringFeilet.left()
 
-            verify(serviceAndMocks.utbetalingService, times(0)).publiserUtbetaling(any())
+            verify(utbetalingMedCallback, never()).sendUtbetalingTilOS()
         }
 
         @Test
         fun `avslår ikke dersom vi ikke kan lagre vedtaket`() {
             val innvilgetTilAttestering = søknadsbehandlingTilAttesteringAvslagMedBeregning().second
+            val utbetalingMedCallback = mock<UtbetalingKlargjortForOversendelseTilOS<UtbetalingFeilet.Protokollfeil>>()
             val serviceAndMocks = SøknadsbehandlingServiceAndMocks(
                 søknadsbehandlingRepo = mock {
                     on { hent(any()) } doReturn innvilgetTilAttestering
                     doNothing().whenever(it).lagre(any(), anyOrNull())
                 },
                 utbetalingService = mock {
-                    on { verifiserOgSimulerUtbetaling(any()) } doReturn simulertUtbetaling().right()
-                    on { publiserUtbetaling(any()) } doReturn Utbetalingsrequest("<xml></xml>").right()
-                    on { lagreUtbetaling(any(), anyOrNull()) } doReturn oversendtUtbetalingUtenKvittering()
+                    on { nyUtbetaling(any(), any()) } doReturn utbetalingMedCallback.right()
                 },
                 kontrollsamtaleService = mock {
                     on {
@@ -391,21 +388,20 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 ),
             ) shouldBe KunneIkkeIverksette.LagringFeilet.left()
 
-            verify(serviceAndMocks.utbetalingService, times(0)).publiserUtbetaling(any())
+            verify(utbetalingMedCallback, never()).sendUtbetalingTilOS()
         }
 
         @Test
         fun `avslår ikke dersom vi ikke kan lagre brevet`() {
             val innvilgetTilAttestering = søknadsbehandlingTilAttesteringAvslagMedBeregning().second
+            val utbetalingMedCallback = mock<UtbetalingKlargjortForOversendelseTilOS<UtbetalingFeilet.Protokollfeil>>()
             val serviceAndMocks = SøknadsbehandlingServiceAndMocks(
                 søknadsbehandlingRepo = mock {
                     on { hent(any()) } doReturn innvilgetTilAttestering
                     doNothing().whenever(it).lagre(any(), anyOrNull())
                 },
                 utbetalingService = mock {
-                    on { verifiserOgSimulerUtbetaling(any()) } doReturn simulertUtbetaling().right()
-                    on { publiserUtbetaling(any()) } doReturn Utbetalingsrequest("<xml></xml>").right()
-                    on { lagreUtbetaling(any(), anyOrNull()) } doReturn oversendtUtbetalingUtenKvittering()
+                    on { nyUtbetaling(any(), any()) } doReturn utbetalingMedCallback.right()
                 },
                 kontrollsamtaleService = mock {
                     on {
@@ -431,7 +427,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 ),
             ) shouldBe KunneIkkeIverksette.LagringFeilet.left()
 
-            verify(serviceAndMocks.utbetalingService, times(0)).publiserUtbetaling(any())
+            verify(utbetalingMedCallback, never()).sendUtbetalingTilOS()
         }
     }
 
@@ -750,14 +746,14 @@ internal class SøknadsbehandlingServiceIverksettTest {
         @Test
         fun `utbetaler ikke dersom vi ikke kan lagre behandlinga`() {
             val innvilgetTilAttestering = søknadsbehandlingTilAttesteringInnvilget().second
+            val utbetalingMedCallback = mock<UtbetalingKlargjortForOversendelseTilOS<UtbetalingFeilet.Protokollfeil>>()
             val serviceAndMocks = SøknadsbehandlingServiceAndMocks(
                 søknadsbehandlingRepo = mock {
                     on { hent(any()) } doReturn innvilgetTilAttestering
                     doThrow(RuntimeException()).whenever(it).lagre(any(), anyOrNull())
                 },
                 utbetalingService = mock {
-                    on { verifiserOgSimulerUtbetaling(any()) } doReturn simulertUtbetaling().right()
-                    on { publiserUtbetaling(any()) } doReturn Utbetalingsrequest("<xml></xml>").right()
+                    on { nyUtbetaling(any(), any()) } doReturn utbetalingMedCallback.right()
                 },
                 kontrollsamtaleService = mock {
                     on {
@@ -779,7 +775,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 ),
             ) shouldBe KunneIkkeIverksette.LagringFeilet.left()
 
-            verify(serviceAndMocks.utbetalingService, times(0)).publiserUtbetaling(any())
+            verify(utbetalingMedCallback, never()).sendUtbetalingTilOS()
         }
 
         @Test
@@ -791,9 +787,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     doNothing().whenever(it).lagre(any(), anyOrNull())
                 },
                 utbetalingService = mock {
-                    on { verifiserOgSimulerUtbetaling(any()) } doReturn simulertUtbetaling().right()
-                    on { publiserUtbetaling(any()) } doReturn Utbetalingsrequest("<xml></xml>").right()
-                    doThrow(RuntimeException()).whenever(it).lagreUtbetaling(any(), anyOrNull())
+                    on { nyUtbetaling(any(), any()) } doThrow RuntimeException()
                 },
                 kontrollsamtaleService = mock {
                     on {
@@ -814,22 +808,19 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     attestering = Attestering.Iverksatt(attestant, fixedTidspunkt),
                 ),
             ) shouldBe KunneIkkeIverksette.LagringFeilet.left()
-
-            verify(serviceAndMocks.utbetalingService, times(0)).publiserUtbetaling(any())
         }
 
         @Test
         fun `utbetaler ikke dersom vi ikke kan lagre vedtaket`() {
             val innvilgetTilAttestering = søknadsbehandlingTilAttesteringInnvilget().second
+            val utbetalingMedCallback = mock<UtbetalingKlargjortForOversendelseTilOS<UtbetalingFeilet.Protokollfeil>>()
             val serviceAndMocks = SøknadsbehandlingServiceAndMocks(
                 søknadsbehandlingRepo = mock {
                     on { hent(any()) } doReturn innvilgetTilAttestering
                     doNothing().whenever(it).lagre(any(), anyOrNull())
                 },
                 utbetalingService = mock {
-                    on { verifiserOgSimulerUtbetaling(any()) } doReturn simulertUtbetaling().right()
-                    on { publiserUtbetaling(any()) } doReturn Utbetalingsrequest("<xml></xml>").right()
-                    on { lagreUtbetaling(any(), anyOrNull()) } doReturn oversendtUtbetalingUtenKvittering()
+                    on { nyUtbetaling(any(), any()) } doReturn utbetalingMedCallback.right()
                 },
                 kontrollsamtaleService = mock {
                     on {
@@ -851,7 +842,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 ),
             ) shouldBe KunneIkkeIverksette.LagringFeilet.left()
 
-            verify(serviceAndMocks.utbetalingService, times(0)).publiserUtbetaling(any())
+            verify(utbetalingMedCallback, never()).sendUtbetalingTilOS()
         }
     }
 }

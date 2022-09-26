@@ -30,7 +30,6 @@ import no.nav.su.se.bakover.test.opphørUtbetalingOversendUtenKvittering
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.revurderingTilAttestering
 import no.nav.su.se.bakover.test.sakId
-import no.nav.su.se.bakover.test.simulertUtbetaling
 import no.nav.su.se.bakover.test.tilAttesteringRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.utbetalingsRequest
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
@@ -311,9 +310,6 @@ internal class IverksettRevurderingTest {
             revurderingRepo = mock {
                 on { hent(any()) } doReturn revurderingTilAttestering().second
             },
-            utbetalingService = mock {
-                on { verifiserOgSimulerUtbetaling(any()) } doReturn simulertUtbetaling().right()
-            },
             vedtakRepo = mock {
                 on { lagre(any(), anyOrNull()) } doThrow RuntimeException("Lagring feilet")
             },
@@ -332,9 +328,6 @@ internal class IverksettRevurderingTest {
         val serviceAndMocks = RevurderingServiceMocks(
             revurderingRepo = mock {
                 on { hent(any()) } doReturn tilAttesteringRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak().second
-            },
-            utbetalingService = mock {
-                on { verifiserOgSimulerOpphør(any()) } doReturn simulertUtbetaling().right()
             },
             vedtakRepo = mock {
                 on { lagre(any(), anyOrNull()) } doThrow RuntimeException("Lagring feilet")
@@ -399,9 +392,6 @@ internal class IverksettRevurderingTest {
         val serviceAndMocks = RevurderingServiceMocks(
             revurderingRepo = mock {
                 on { hent(any()) } doReturn revurderingTilAttestering().second
-            },
-            utbetalingService = mock {
-                on { verifiserOgSimulerUtbetaling(any()) } doReturn simulertUtbetaling().right()
             },
             vedtakRepo = mock {
                 on { lagre(any(), anyOrNull()) } doThrow RuntimeException("Lagring feilet")
