@@ -1117,15 +1117,6 @@ internal class RevurderingServiceImpl(
                                 )
                             }
                             vedtak
-                        }.also { vedtak ->
-                            observers.forEach {
-                                it.handle(StatistikkEvent.Stønadsvedtak(vedtak))
-                                it.handle(
-                                    StatistikkEvent.Behandling.Revurdering.Iverksatt.Innvilget(
-                                        vedtak = vedtak,
-                                    ),
-                                )
-                            }
                         }
                     }.mapLeft {
                         when (it) {
@@ -1133,7 +1124,11 @@ internal class RevurderingServiceImpl(
                             else -> KunneIkkeIverksetteRevurdering.LagringFeilet
                         }
                     }
-                }.map { iverksattRevurdering }
+                }.map { vedtak ->
+                    observers.notify(StatistikkEvent.Stønadsvedtak(vedtak))
+                    observers.notify(StatistikkEvent.Behandling.Revurdering.Iverksatt.Innvilget(vedtak))
+                    iverksattRevurdering
+                }
             }
 
             is RevurderingTilAttestering.Opphørt -> revurdering.tilIverksatt(
@@ -1150,53 +1145,60 @@ internal class RevurderingServiceImpl(
                     )
                 }
             }.flatMap { iverksattRevurdering ->
-                utbetalingService.verifiserOgSimulerOpphør(
-                    request = UtbetalRequest.Opphør(
-                        request = SimulerUtbetalingRequest.Opphør(
-                            sakId = iverksattRevurdering.sakId,
-                            saksbehandler = attestant,
-                            opphørsperiode = revurdering.opphørsperiodeForUtbetalinger,
-                        ),
-                        simulering = iverksattRevurdering.simulering,
-                    ),
-                ).mapLeft {
-                    KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it)
-                }.flatMap { utbetaling ->
-                    val opphørtVedtak = VedtakSomKanRevurderes.from(
-                        revurdering = iverksattRevurdering,
-                        utbetalingId = utbetaling.id,
-                        clock = clock,
-                    )
-                    Either.catch {
-                        sessionFactory.withTransactionContext { tx ->
-                            // OBS: Det er kun exceptions som vil føre til at transaksjonen ruller tilbake. Hvis funksjonene returnerer Left/null o.l. vil transaksjonen gå igjennom. De tilfellene må håndteres eksplisitt per funksjon.
-                            // Det er også viktig at publiseringen av utbetalingen er det siste som skjer i blokka. Alt som ikke skal påvirke utfallet av iverksettingen skal flyttes ut av blokka. E.g. statistikk.
-                            utbetalingService.lagreUtbetaling(utbetaling, tx)
-                            vedtakRepo.lagre(opphørtVedtak, tx)
-                            kontrollsamtaleService.annullerKontrollsamtale(opphørtVedtak.behandling.sakId, tx)
-                                .mapLeft { feil ->
-                                    throw IverksettTransactionException(
-                                        "Kunne ikke annullere kontrollsamtale. Underliggende feil: $feil.",
-                                        KunneIkkeIverksetteRevurdering.KunneIkkeAnnulereKontrollsamtale,
-                                    )
-                                }
-                            revurderingRepo.lagre(iverksattRevurdering, tx)
-                            utbetalingService.publiserUtbetaling(utbetaling).mapLeft { feil ->
+                Either.catch {
+                    /**
+                     * OBS: Det er kun exceptions som vil føre til at transaksjonen ruller tilbake.
+                     * Hvis funksjonene returnerer Left/null o.l. vil transaksjonen gå igjennom. De tilfellene må håndteres eksplisitt per funksjon.
+                     * Det er også viktig at publiseringen av utbetalingen er det siste som skjer i blokka.
+                     * Alt som ikke skal påvirke utfallet av iverksettingen skal flyttes ut av blokka. E.g. statistikk.
+                     */
+                    sessionFactory.withTransactionContext { tx ->
+                        val opphørUtbetaling = utbetalingService.opphørUtbetalinger(
+                            request = UtbetalRequest.Opphør(
+                                request = SimulerUtbetalingRequest.Opphør(
+                                    sakId = iverksattRevurdering.sakId,
+                                    saksbehandler = attestant,
+                                    opphørsperiode = revurdering.opphørsperiodeForUtbetalinger,
+                                ),
+                                simulering = iverksattRevurdering.simulering,
+                            ),
+                            transactionContext = tx,
+                        ).getOrHandle {
+                            throw IverksettTransactionException(
+                                "Kunne ikke opphøre utbetalinger. Underliggende feil: $it.",
+                                KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it),
+                            )
+                        }
+                        val opphørtVedtak = VedtakSomKanRevurderes.from(
+                            revurdering = iverksattRevurdering,
+                            utbetalingId = opphørUtbetaling.utbetaling.id,
+                            clock = clock,
+                        )
+                        vedtakRepo.lagre(
+                            vedtak = opphørtVedtak,
+                            sessionContext = tx,
+                        )
+                        kontrollsamtaleService.annullerKontrollsamtale(
+                            sakId = opphørtVedtak.behandling.sakId,
+                            sessionContext = tx,
+                        ).getOrHandle {
+                            throw IverksettTransactionException(
+                                "Kunne ikke annullere kontrollsamtale. Underliggende feil: $it.",
+                                KunneIkkeIverksetteRevurdering.KunneIkkeAnnulereKontrollsamtale,
+                            )
+                        }
+                        revurderingRepo.lagre(
+                            revurdering = iverksattRevurdering,
+                            transactionContext = tx,
+                        )
+                        opphørUtbetaling.sendUtbetalingTilOS()
+                            .getOrHandle {
                                 throw IverksettTransactionException(
-                                    "Kunne ikke publisere utbetaling på køen. Underliggende feil: $feil.",
-                                    KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(feil),
+                                    "Kunne ikke publisere utbetaling på køen. Underliggende feil: $it.",
+                                    KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it),
                                 )
                             }
                             opphørtVedtak
-                        }.also { vedtak ->
-                            observers.forEach {
-                                it.handle(StatistikkEvent.Stønadsvedtak(vedtak))
-                                it.handle(
-                                    StatistikkEvent.Behandling.Revurdering.Iverksatt.Opphørt(
-                                        vedtak = vedtak,
-                                    ),
-                                )
-                            }
                         }
                     }.mapLeft {
                         log.error(
@@ -1207,9 +1209,10 @@ internal class RevurderingServiceImpl(
                             is IverksettTransactionException -> it.feil
                             else -> KunneIkkeIverksetteRevurdering.LagringFeilet
                         }
-                    }
-                }.map {
-                    iverksattRevurdering
+                    }.map { vedtak ->
+                        observers.notify(StatistikkEvent.Stønadsvedtak(vedtak))
+                        observers.notify(StatistikkEvent.Behandling.Revurdering.Iverksatt.Opphørt(vedtak))
+                        iverksattRevurdering
                 }
             }
         }

@@ -231,7 +231,7 @@ val utbetalingslinjeSortering = Comparator<Utbetalingslinje> { o1, o2 ->
  */
 data class UtbetalingKlargjortForOversendelseTilOS<T>(
     val utbetaling: Utbetaling.OversendtUtbetaling,
-    private val callback: (utbetalingsrequest: Utbetalingsrequest) -> Either<T, Utbetalingsrequest>,
+    val callback: (utbetalingsrequest: Utbetalingsrequest) -> Either<T, Utbetalingsrequest>,
 ) {
     /**
      * Publiserer utbetalingen på kø mot oppdrag.

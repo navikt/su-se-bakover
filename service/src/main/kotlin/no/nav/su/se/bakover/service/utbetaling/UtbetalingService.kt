@@ -51,6 +51,14 @@ interface UtbetalingService {
         request: SimulerUtbetalingRequest.StansRequest,
     ): Either<SimulerStansFeilet, Utbetaling.SimulertUtbetaling>
 
+    /**
+     * Stanser utbetalinger, lagrer i databasen og klargjør utbetalingene for oversendelse til OS (lager XML-request)
+     * Konsumenten av denne funksjonen er ansvarlig for håndtering av [transactionContext].
+     *
+     * @return [UtbetalingKlargjortForOversendelseTilOS] inneholder [UtbetalingKlargjortForOversendelseTilOS.utbetaling] med generert XML for publisering på kø,
+     * i tillegg til [UtbetalingKlargjortForOversendelseTilOS.callback] for å publisere utbetalingen på kø mot OS. Kall til denne funksjonen bør gjennomføres
+     * som det siste steget i [transactionContext], slik at eventuelle feil her kan rulle tilbake hele transaksjonen.
+     */
     fun stansUtbetalinger(
         request: UtbetalRequest.Stans,
         transactionContext: TransactionContext,
@@ -60,6 +68,14 @@ interface UtbetalingService {
         request: SimulerUtbetalingRequest.GjenopptakRequest,
     ): Either<SimulerGjenopptakFeil, Utbetaling.SimulertUtbetaling>
 
+    /**
+     * Gjenopptar utbetalinger, lagrer i databasen og klargjør utbetalingene for oversendelse til OS (lager XML-request)
+     * Konsumenten av denne funksjonen er ansvarlig for håndtering av [transactionContext].
+     *
+     * @return [UtbetalingKlargjortForOversendelseTilOS] inneholder [UtbetalingKlargjortForOversendelseTilOS.utbetaling] med generert XML for publisering på kø,
+     * i tillegg til [UtbetalingKlargjortForOversendelseTilOS.callback] for å publisere utbetalingen på kø mot OS. Kall til denne funksjonen bør gjennomføres
+     * som det siste steget i [transactionContext], slik at eventuelle feil her kan rulle tilbake hele transaksjonen.
+     */
     fun gjenopptaUtbetalinger(
         request: UtbetalRequest.Gjenopptak,
         transactionContext: TransactionContext,
@@ -69,6 +85,14 @@ interface UtbetalingService {
         request: UtbetalRequest.Opphør,
     ): Either<UtbetalingFeilet, Utbetaling.SimulertUtbetaling>
 
+    /**
+     * Opphører utbetalinger, lagrer i databasen og klargjør utbetalingene for oversendelse til OS (lager XML-request)
+     * Konsumenten av denne funksjonen er ansvarlig for håndtering av [transactionContext].
+     *
+     * @return [UtbetalingKlargjortForOversendelseTilOS] inneholder [UtbetalingKlargjortForOversendelseTilOS.utbetaling] med generert XML for publisering på kø,
+     * i tillegg til [UtbetalingKlargjortForOversendelseTilOS.callback] for å publisere utbetalingen på kø mot OS. Kall til denne funksjonen bør gjennomføres
+     * som det siste steget i [transactionContext], slik at eventuelle feil her kan rulle tilbake hele transaksjonen.
+     */
     fun opphørUtbetalinger(
         request: UtbetalRequest.Opphør,
         transactionContext: TransactionContext,
