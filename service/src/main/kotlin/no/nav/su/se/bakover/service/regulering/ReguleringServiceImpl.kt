@@ -302,32 +302,44 @@ class ReguleringServiceImpl(
     }
 
     private fun lagVedtakOgUtbetal(regulering: Regulering.IverksattRegulering): Either<KunneIkkeFerdigstilleOgIverksette.KunneIkkeUtbetale, Pair<Regulering.IverksattRegulering, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering>> {
-        return regulering.verifiserOgSimulerUtbetaling(utbetalingService::verifiserOgSimulerUtbetaling)
-            .mapLeft {
-                log.error("Regulering for saksnummer ${regulering.saksnummer}: Kunne ikke verifisere og simulere utbetaling for regulering med underliggende grunn: $it")
-                KunneIkkeFerdigstilleOgIverksette.KunneIkkeUtbetale
-            }.flatMap {
-                val vedtak = VedtakSomKanRevurderes.from(regulering, it.id, clock)
-
-                Either.catch {
-                    sessionFactory.withTransactionContext { tx ->
-                        utbetalingService.lagreUtbetaling(it, tx)
-                        vedtakService.lagre(vedtak, tx)
-                        reguleringRepo.lagre(regulering, tx)
-                        utbetalingService.publiserUtbetaling(it).getOrHandle { utbetalingsfeil ->
-                            throw KunneIkkeSendeTilUtbetalingException(utbetalingsfeil)
-                        }
-                    }
-
-                    Pair(regulering, vedtak)
-                }.mapLeft {
-                    log.error(
-                        "Regulering for saksnummer ${regulering.saksnummer}: En feil skjedde mens vi prøvde lagre utbetalingen og vedtaket; og sende utbetalingen til oppdrag for regulering",
-                        it,
-                    )
-                    KunneIkkeFerdigstilleOgIverksette.KunneIkkeUtbetale
+        return Either.catch {
+            sessionFactory.withTransactionContext { tx ->
+                val nyUtbetaling = utbetalingService.nyUtbetaling(
+                    request = regulering.utbetalRequest(),
+                    transactionContext = tx,
+                ).getOrHandle {
+                    log.error("Regulering for saksnummer ${regulering.saksnummer}: Kunne ikke verifisere og simulere utbetaling for regulering med underliggende grunn: $it")
+                    throw KunneIkkeSendeTilUtbetalingException(it)
                 }
+
+                val vedtak = VedtakSomKanRevurderes.from(
+                    regulering = regulering,
+                    utbetalingId = nyUtbetaling.utbetaling.id,
+                    clock = clock,
+                )
+
+                vedtakService.lagre(
+                    vedtak = vedtak,
+                    sessionContext = tx,
+                )
+                reguleringRepo.lagre(
+                    regulering = regulering,
+                    sessionContext = tx,
+                )
+                nyUtbetaling.sendUtbetalingTilOS()
+                    .getOrHandle { throw KunneIkkeSendeTilUtbetalingException(it) }
+
+                vedtak
             }
+        }.mapLeft {
+            log.error(
+                "Regulering for saksnummer ${regulering.saksnummer}: En feil skjedde mens vi prøvde lagre utbetalingen og vedtaket; og sende utbetalingen til oppdrag for regulering",
+                it,
+            )
+            KunneIkkeFerdigstilleOgIverksette.KunneIkkeUtbetale
+        }.map {
+            Pair(regulering, it)
+        }
     }
 
     private data class KunneIkkeSendeTilUtbetalingException(val feil: UtbetalingFeilet) : RuntimeException()

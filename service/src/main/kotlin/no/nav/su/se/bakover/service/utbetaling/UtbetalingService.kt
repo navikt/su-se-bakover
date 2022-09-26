@@ -47,6 +47,19 @@ interface UtbetalingService {
         request: UtbetalRequest.NyUtbetaling,
     ): Either<UtbetalingFeilet, Utbetaling.SimulertUtbetaling>
 
+    /**
+     * Oppretter ny utbetaling, lagrer i databasen og klargjør utbetalingene for oversendelse til OS (lager XML-request)
+     * Konsumenten av denne funksjonen er ansvarlig for håndtering av [transactionContext].
+     *
+     * @return [UtbetalingKlargjortForOversendelseTilOS] inneholder [UtbetalingKlargjortForOversendelseTilOS.utbetaling] med generert XML for publisering på kø,
+     * i tillegg til [UtbetalingKlargjortForOversendelseTilOS.callback] for å publisere utbetalingen på kø mot OS. Kall til denne funksjonen bør gjennomføres
+     * som det siste steget i [transactionContext], slik at eventuelle feil her kan rulle tilbake hele transaksjonen.
+     */
+    fun nyUtbetaling(
+        request: UtbetalRequest.NyUtbetaling,
+        transactionContext: TransactionContext,
+    ): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelseTilOS<UtbetalingFeilet.Protokollfeil>>
+
     fun simulerStans(
         request: SimulerUtbetalingRequest.StansRequest,
     ): Either<SimulerStansFeilet, Utbetaling.SimulertUtbetaling>

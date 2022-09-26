@@ -258,6 +258,10 @@ open class AccessCheckProxy(
                     request: UtbetalRequest.NyUtbetaling,
                 ) = kastKanKunKallesFraAnnenService()
 
+                override fun nyUtbetaling(request: UtbetalRequest.NyUtbetaling, transactionContext: TransactionContext): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelseTilOS<UtbetalingFeilet.Protokollfeil>> {
+                    kastKanKunKallesFraAnnenService()
+                }
+
                 override fun simulerStans(
                     request: SimulerUtbetalingRequest.StansRequest,
                 ) = kastKanKunKallesFraAnnenService()

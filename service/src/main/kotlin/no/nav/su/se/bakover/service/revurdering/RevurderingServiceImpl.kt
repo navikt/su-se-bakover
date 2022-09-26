@@ -1083,34 +1083,55 @@ internal class RevurderingServiceImpl(
                     )
                 }
             }.flatMap { iverksattRevurdering ->
-                utbetalingService.verifiserOgSimulerUtbetaling(
-                    request = UtbetalRequest.NyUtbetaling(
-                        request = SimulerUtbetalingRequest.NyUtbetaling.Uføre(
-                            sakId = revurdering.sakId,
-                            saksbehandler = attestant,
-                            beregning = revurdering.beregning,
-                            uføregrunnlag = revurdering.vilkårsvurderinger.uføreVilkår().fold(
-                                {
-                                    TODO("vilkårsvurdering_alder utbetaling av alder ikke implementert")
-                                },
-                                {
-                                    it.grunnlag
-                                },
+                Either.catch {
+                    sessionFactory.withTransactionContext { tx ->
+                        /**
+                         * OBS: Det er kun exceptions som vil føre til at transaksjonen ruller tilbake.
+                         * Hvis funksjonene returnerer Left/null o.l. vil transaksjonen gå igjennom. De tilfellene må håndteres eksplisitt per funksjon.
+                         * Det er også viktig at publiseringen av utbetalingen er det siste som skjer i blokka.
+                         * Alt som ikke skal påvirke utfallet av iverksettingen skal flyttes ut av blokka. E.g. statistikk.
+                         */
+                        val nyUtbetaling = utbetalingService.nyUtbetaling(
+                            request = UtbetalRequest.NyUtbetaling(
+                                request = SimulerUtbetalingRequest.NyUtbetaling.Uføre(
+                                    sakId = revurdering.sakId,
+                                    saksbehandler = attestant,
+                                    beregning = revurdering.beregning,
+                                    uføregrunnlag = revurdering.vilkårsvurderinger.uføreVilkår().fold(
+                                        {
+                                            TODO("vilkårsvurdering_alder utbetaling av alder ikke implementert")
+                                        },
+                                        {
+                                            it.grunnlag
+                                        },
+                                    ),
+                                    utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                                ),
+                                simulering = revurdering.simulering,
                             ),
-                            utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
-                        ),
-                        simulering = revurdering.simulering,
-                    ),
-                ).mapLeft { KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it) }.flatMap { utbetaling ->
-                    val vedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, utbetaling.id, clock)
-                    Either.catch {
-                        sessionFactory.withTransactionContext { tx ->
-                            // OBS: Det er kun exceptions som vil føre til at transaksjonen ruller tilbake. Hvis funksjonene returnerer Left/null o.l. vil transaksjonen gå igjennom. De tilfellene må håndteres eksplisitt per funksjon.
-                            // Det er også viktig at publiseringen av utbetalingen er det siste som skjer i blokka. Alt som ikke skal påvirke utfallet av iverksettingen skal flyttes ut av blokka. E.g. statistikk.
-                            utbetalingService.lagreUtbetaling(utbetaling, tx)
-                            vedtakRepo.lagre(vedtak, tx)
-                            revurderingRepo.lagre(iverksattRevurdering, tx)
-                            utbetalingService.publiserUtbetaling(utbetaling).mapLeft { feil ->
+                            transactionContext = tx,
+                        ).getOrHandle {
+                            throw IverksettTransactionException(
+                                "Kunne ikke opprette ubetaling. Underliggende feil:$it",
+                                KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it),
+                            )
+                        }
+                        val vedtak = VedtakSomKanRevurderes.from(
+                            revurdering = iverksattRevurdering,
+                            utbetalingId = nyUtbetaling.utbetaling.id,
+                            clock = clock,
+                        )
+
+                        vedtakRepo.lagre(
+                            vedtak = vedtak,
+                            sessionContext = tx,
+                        )
+                        revurderingRepo.lagre(
+                            revurdering = iverksattRevurdering,
+                            transactionContext = tx,
+                        )
+                        nyUtbetaling.sendUtbetalingTilOS()
+                            .getOrHandle { feil ->
                                 throw IverksettTransactionException(
                                     "Kunne ikke publisere utbetaling på køen. Underliggende feil: $feil.",
                                     KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(feil),

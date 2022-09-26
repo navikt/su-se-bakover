@@ -24,6 +24,8 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelseTilOS
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
@@ -56,6 +58,7 @@ import no.nav.su.se.bakover.test.simulertFeilutbetaling
 import no.nav.su.se.bakover.test.simulertUtbetaling
 import no.nav.su.se.bakover.test.stansetSøknadsbehandlingMedÅpenRegulering
 import no.nav.su.se.bakover.test.stønadsperiode2021
+import no.nav.su.se.bakover.test.utbetalingsRequest
 import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
@@ -474,11 +477,17 @@ internal class ReguleringServiceImplTest {
         } else {
             sak
         }
+
         val testData = lagTestdata(_sak)
-        val utbetaling = oversendtUtbetalingUtenKvittering(
-            beregning = beregning(
-                fradragsgrunnlag = listOf(fradragsgrunnlagArbeidsinntekt1000()),
+        val nyUtbetaling = UtbetalingKlargjortForOversendelseTilOS(
+            utbetaling = oversendtUtbetalingUtenKvittering(
+                beregning = beregning(
+                    fradragsgrunnlag = listOf(fradragsgrunnlagArbeidsinntekt1000()),
+                ),
             ),
+            callback = mock<(utbetalingsrequest: Utbetalingsrequest) -> Either<UtbetalingFeilet.Protokollfeil, Utbetalingsrequest>> {
+                on { it.invoke(any()) } doReturn utbetalingsRequest.right()
+            },
         )
 
         return ReguleringServiceImpl(
@@ -500,9 +509,7 @@ internal class ReguleringServiceImplTest {
             },
             utbetalingService = mock {
                 on { simulerUtbetaling(any()) } doReturn simulerUtbetaling
-                on { verifiserOgSimulerUtbetaling(any()) } doReturn simulertUtbetaling().right()
-                on { lagreUtbetaling(any(), any()) } doReturn utbetaling
-                on { publiserUtbetaling(any()) } doReturn Utbetalingsrequest("").right()
+                on { nyUtbetaling(any(), any()) } doReturn nyUtbetaling.right()
             },
             vedtakService = mock(),
             sessionFactory = TestSessionFactory(),
