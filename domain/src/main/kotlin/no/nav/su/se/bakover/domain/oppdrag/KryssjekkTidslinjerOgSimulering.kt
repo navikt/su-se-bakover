@@ -3,8 +3,10 @@ package no.nav.su.se.bakover.domain.oppdrag
 import arrow.core.Either
 import arrow.core.getOrHandle
 import no.nav.su.se.bakover.common.førsteINesteMåned
+import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.komplement
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingForPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
@@ -35,10 +37,16 @@ object KryssjekkTidslinjerOgSimulering {
             .tidslinje(periode = periode, clock = clock)
             .getOrHandle { throw IllegalStateException("Kunne ikke generere tidslinje, feil: $it") }
 
-        sjekkTidslinjeMotSimulering(
-            tidslinje = tidslinjeEksisterendeOgUnderArbeid,
-            simulering = simulertUtbetaling.simulering,
-        )
+        Either.catch {
+            sjekkTidslinjeMotSimulering(
+                tidslinje = tidslinjeEksisterendeOgUnderArbeid,
+                simulering = simulertUtbetaling.simulering,
+            )
+        }.mapLeft {
+            log.error("Feil ved kryssjekk av tidslinje og simulering. Se sikkerlogg for detaljer")
+            sikkerLogg.error("Feil: $it ved kryssjekk av tidslinje: $tidslinjeEksisterendeOgUnderArbeid og simulering: ${simulertUtbetaling.simulering}")
+            throw it
+        }
 
         if (eksisterende.harUtbetalingerEtter(underArbeidEndringsperiode.tilOgMed)) {
             val rekonstruertPeriode = Periode.create(
@@ -69,12 +77,21 @@ object KryssjekkTidslinjerOgSimulering {
         val periode = underArbeid.simulering.tolk().periode()
 
         check(underArbeid.erReaktivering()) { "Forventet utbetaling for reaktivering" }
-        sjekkTidslinjeMotSimulering(
-            tidslinje = (eksisterende + underArbeid)
-                .tidslinje(periode = periode, clock = clock)
-                .getOrHandle { throw IllegalStateException("Kunne ikke generere tidslinje, feil: $it") },
-            simulering = underArbeid.simulering,
-        )
+
+        val tidslinje = (eksisterende + underArbeid)
+            .tidslinje(periode = periode, clock = clock)
+            .getOrHandle { throw IllegalStateException("Kunne ikke generere tidslinje, feil: $it") }
+
+        Either.catch {
+            sjekkTidslinjeMotSimulering(
+                tidslinje = tidslinje,
+                simulering = underArbeid.simulering,
+            )
+        }.mapLeft {
+            log.error("Feil ved kryssjekk av tidslinje og simulering. Se sikkerlogg for detaljer")
+            sikkerLogg.error("Feil: $it ved kryssjekk av tidslinje: $tidslinje og simulering: ${underArbeid.simulering}")
+            throw it
+        }
     }
 
     fun sjekkStans(
@@ -95,7 +112,7 @@ private fun sjekkTidslinjeMotSimulering(
     tolketSimulering.simulertePerioder.map { it.periode }.komplement().forEach { periode ->
         /**
          * Fravær av måneder her er det samme som at ingenting vil bli utbetalt. Dette kan skyldes
-         * at ytelsen er stanset/opphørt, eller at det aldri har eksistert utbetalinger for perioden
+         * at ytelsen er stanset/opphørt, avkortet, eller at det aldri har eksistert utbetalinger for perioden
          * (f.eks ved hull mellom stønadsperioder e.l). Dersom vi har utbetalinger på tidslinjen for
          * de aktuelle periodene må vi sjekke at vi er "enige" i at månedene ikke fører til utbetaling.
          */
@@ -145,7 +162,14 @@ private fun kryssjekkType(
 ) {
     when (tolket) {
         is TolketUtbetaling.IngenUtbetaling -> {
-            check((utbetaling is UtbetalingslinjePåTidslinje.Stans || utbetaling is UtbetalingslinjePåTidslinje.Opphør)) {
+            check(
+                (
+                    utbetaling is UtbetalingslinjePåTidslinje.Stans ||
+                        utbetaling is UtbetalingslinjePåTidslinje.Opphør ||
+                        utbetaling is UtbetalingslinjePåTidslinje.Ny && utbetaling.beløp == 0 ||
+                        utbetaling is UtbetalingslinjePåTidslinje.Reaktivering && utbetaling.beløp == 0
+                    ),
+            ) {
                 errMsgType(
                     periode = tolketPeriode,
                     tolket = tolket,
