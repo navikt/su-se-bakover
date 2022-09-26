@@ -5,14 +5,14 @@ import arrow.core.right
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.database.TestDataHelper
-import no.nav.su.se.bakover.database.oppgaveId
-import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.oppgaveIdKlage
+import no.nav.su.se.bakover.test.persistence.TestDataHelper
+import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import java.util.UUID
@@ -23,13 +23,13 @@ internal class DokumentPostgresRepoTest {
     fun `lagrer og henter dokumenter`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val dokumentRepo = testDataHelper.dokumentRepo
+            val dokumentRepo = testDataHelper.databaseRepos.dokumentRepo
 
             val (sak, vedtak, _) = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering()
             val revurdering = testDataHelper.persisterRevurderingIverksattInnvilget()
             val klage = testDataHelper.persisterKlageOversendt(
                 vedtak = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().second,
-                oppgaveId = oppgaveId,
+                oppgaveId = oppgaveIdKlage,
             )
 
             // Dette er en snarvei for å teste alle referansene til et dokument og ikke noe som vil oppstå naturlig.

@@ -30,11 +30,11 @@ import no.nav.su.se.bakover.domain.søknadinnhold.UtenlandsoppholdPeriode
 import java.time.LocalDate
 import java.time.Month.JANUARY
 
-fun fnrUnder67(): Fnr {
+private fun fnrUnder67(): Fnr {
     return Fnr("01017001337")
 }
 
-val fnrOver67 = Fnr("05064535694")
+private val fnrOver67 = Fnr("05064535694")
 
 fun personopplysninger(
     fnr: String = "12345678910",

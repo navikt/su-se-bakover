@@ -4,6 +4,8 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.SendPåminnelseNyStønadsperiodeContext
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.persistence.TestDataHelper
+import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import org.junit.jupiter.api.Test
 
 internal class JobContextPostgresRepoTest {
@@ -13,7 +15,7 @@ internal class JobContextPostgresRepoTest {
         withMigratedDb { dataSource ->
             TestDataHelper(dataSource).let { helper ->
                 val context = SendPåminnelseNyStønadsperiodeContext(fixedClock)
-                val repo = helper.jobContextRepo
+                val repo = helper.databaseRepos.jobContextRepo
 
                 helper.sessionFactory.withTransactionContext { tx ->
                     repo.lagre(context, tx)

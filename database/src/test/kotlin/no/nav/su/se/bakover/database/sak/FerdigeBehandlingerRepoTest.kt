@@ -2,14 +2,13 @@ package no.nav.su.se.bakover.database.sak
 
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.database.TestDataHelper
-import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
-import no.nav.su.se.bakover.test.enUkeEtterFixedTidspunkt
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.persistence.TestDataHelper
+import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.shouldBeType
 import org.junit.jupiter.api.Test
 
@@ -62,7 +61,7 @@ internal class FerdigeBehandlingerRepoTest {
     }
 
     @Test
-    fun `henter ferdige revurderinger for alle saker`() {
+    fun `henter ferdige behandlinger for alle saker`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.sakRepo
@@ -84,7 +83,7 @@ internal class FerdigeBehandlingerRepoTest {
                     behandlingsId = testDataHelper.vedtakRepo.hentVedtakForId(iverksattRevurderingInnvilget.tilRevurdering)!!
                         .shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling>().behandling.id,
                     behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
-                    behandlingStartet = enUkeEtterFixedTidspunkt,
+                    behandlingStartet = fixedTidspunkt,
                     status = Behandlingsoversikt.Behandlingsstatus.INNVILGET,
                 ),
                 Behandlingsoversikt(
@@ -99,7 +98,7 @@ internal class FerdigeBehandlingerRepoTest {
                     behandlingsId = testDataHelper.vedtakRepo.hentVedtakForId(iverksattRevurderingOpphørt.tilRevurdering)!!
                         .shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling>().behandling.id,
                     behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
-                    behandlingStartet = enUkeEtterFixedTidspunkt,
+                    behandlingStartet = fixedTidspunkt,
                     status = Behandlingsoversikt.Behandlingsstatus.INNVILGET,
                 ),
                 Behandlingsoversikt(
@@ -114,14 +113,14 @@ internal class FerdigeBehandlingerRepoTest {
                     behandlingsId = testDataHelper.vedtakRepo.hentVedtakForId(iverksattStansAvYtelse.tilRevurdering)!!
                         .shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling>().behandling.id,
                     behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
-                    behandlingStartet = enUkeEtterFixedTidspunkt,
+                    behandlingStartet = fixedTidspunkt,
                     status = Behandlingsoversikt.Behandlingsstatus.INNVILGET,
                 ),
                 Behandlingsoversikt(
                     saksnummer = Saksnummer(2023),
                     behandlingsId = iverksattStansAvYtelse.id,
                     behandlingstype = Behandlingsoversikt.Behandlingstype.REVURDERING,
-                    behandlingStartet = enUkeEtterFixedTidspunkt,
+                    behandlingStartet = fixedTidspunkt,
                     status = Behandlingsoversikt.Behandlingsstatus.STANS,
                 ),
                 Behandlingsoversikt(
@@ -129,14 +128,14 @@ internal class FerdigeBehandlingerRepoTest {
                     behandlingsId = testDataHelper.vedtakRepo.hentVedtakForId(iverksattGjenopptak.tilRevurdering)!!
                         .shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling>().behandling.id,
                     behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
-                    behandlingStartet = enUkeEtterFixedTidspunkt,
+                    behandlingStartet = fixedTidspunkt,
                     status = Behandlingsoversikt.Behandlingsstatus.INNVILGET,
                 ),
                 Behandlingsoversikt(
                     saksnummer = Saksnummer(2024),
                     behandlingsId = iverksattGjenopptak.id,
                     behandlingstype = Behandlingsoversikt.Behandlingstype.REVURDERING,
-                    behandlingStartet = enUkeEtterFixedTidspunkt,
+                    behandlingStartet = fixedTidspunkt,
                     status = Behandlingsoversikt.Behandlingsstatus.GJENOPPTAK,
                 ),
                 Behandlingsoversikt(
@@ -144,7 +143,7 @@ internal class FerdigeBehandlingerRepoTest {
                     behandlingsId = testDataHelper.vedtakRepo.hentVedtakForId(beregnetRevurdering.tilRevurdering)!!
                         .shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling>().behandling.id,
                     behandlingstype = Behandlingsoversikt.Behandlingstype.SØKNADSBEHANDLING,
-                    behandlingStartet = enUkeEtterFixedTidspunkt,
+                    behandlingStartet = fixedTidspunkt,
                     status = Behandlingsoversikt.Behandlingsstatus.INNVILGET,
                 ),
             )

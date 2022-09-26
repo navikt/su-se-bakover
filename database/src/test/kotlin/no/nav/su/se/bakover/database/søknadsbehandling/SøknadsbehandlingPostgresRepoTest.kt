@@ -7,17 +7,11 @@ import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.juni
-import no.nav.su.se.bakover.database.PostgresSessionFactory
-import no.nav.su.se.bakover.database.TestDataHelper
-import no.nav.su.se.bakover.database.antall
+import no.nav.su.se.bakover.common.persistence.PostgresSessionFactory
+import no.nav.su.se.bakover.common.persistence.antall
+import no.nav.su.se.bakover.common.persistence.hent
+import no.nav.su.se.bakover.database.DomainToQueryParameterMapper
 import no.nav.su.se.bakover.database.avkorting.AvkortingsvarselPostgresRepo
-import no.nav.su.se.bakover.database.dbMetricsStub
-import no.nav.su.se.bakover.database.hent
-import no.nav.su.se.bakover.database.iverksattAttestering
-import no.nav.su.se.bakover.database.saksbehandler
-import no.nav.su.se.bakover.database.sessionCounterStub
-import no.nav.su.se.bakover.database.withMigratedDb
-import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
@@ -29,11 +23,19 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.attestant
+import no.nav.su.se.bakover.test.attesteringIverksatt
+import no.nav.su.se.bakover.test.enUkeEtterFixedClock
 import no.nav.su.se.bakover.test.enUkeEtterFixedTidspunkt
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.persistence.TestDataHelper
+import no.nav.su.se.bakover.test.persistence.dbMetricsStub
+import no.nav.su.se.bakover.test.persistence.sessionCounterStub
+import no.nav.su.se.bakover.test.persistence.withMigratedDb
+import no.nav.su.se.bakover.test.persistence.withSession
+import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulerNyUtbetaling
@@ -323,7 +325,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 oppgaveId = iverksatt.oppgaveId,
                 fnr = iverksatt.fnr,
                 saksbehandler = saksbehandler,
-                attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(iverksattAttestering),
+                attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(attesteringIverksatt(clock = enUkeEtterFixedClock)),
                 fritekstTilBrev = "Dette er fritekst",
                 stønadsperiode = stønadsperiode2021,
                 grunnlagsdata = iverksatt.grunnlagsdata,
@@ -429,11 +431,11 @@ internal class SøknadsbehandlingPostgresRepoTest {
 
             val avkortingsvarselRepoMock = mock<AvkortingsvarselPostgresRepo>()
 
-            val sessionFactory = PostgresSessionFactory(dataSource, dbMetricsStub, sessionCounterStub)
+            val sessionFactory = PostgresSessionFactory(dataSource, dbMetricsStub, sessionCounterStub, listOf(DomainToQueryParameterMapper))
 
             val repo = SøknadsbehandlingPostgresRepo(
                 dbMetrics = dbMetricsStub,
-                sessionFactory = PostgresSessionFactory(dataSource, dbMetricsStub, sessionCounterStub),
+                sessionFactory = PostgresSessionFactory(dataSource, dbMetricsStub, sessionCounterStub, listOf(DomainToQueryParameterMapper)),
                 avkortingsvarselRepo = avkortingsvarselRepoMock,
                 grunnlagsdataOgVilkårsvurderingerPostgresRepo = mock(),
                 satsFactory = satsFactoryTest,
@@ -485,7 +487,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
 
             val avkortingsvarselRepoMock = mock<AvkortingsvarselPostgresRepo>()
 
-            val sessionFactory = PostgresSessionFactory(dataSource, dbMetricsStub, sessionCounterStub)
+            val sessionFactory = PostgresSessionFactory(dataSource, dbMetricsStub, sessionCounterStub, listOf(DomainToQueryParameterMapper))
 
             val repo = SøknadsbehandlingPostgresRepo(
                 dbMetrics = dbMetricsStub,

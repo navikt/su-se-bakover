@@ -1,9 +1,8 @@
 package no.nav.su.se.bakover.database.grunnlag
 
-import FastOppholdINorgeVilkårsvurderingPostgresRepo
-import no.nav.su.se.bakover.database.DbMetrics
-import no.nav.su.se.bakover.database.Session
-import no.nav.su.se.bakover.database.TransactionalSession
+import no.nav.su.se.bakover.common.persistence.DbMetrics
+import no.nav.su.se.bakover.common.persistence.Session
+import no.nav.su.se.bakover.common.persistence.TransactionalSession
 import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger

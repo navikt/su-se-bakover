@@ -2,17 +2,17 @@ package no.nav.su.se.bakover.database.dokument
 
 import kotliquery.Row
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.persistence.DbMetrics
+import no.nav.su.se.bakover.common.persistence.PostgresSessionFactory
+import no.nav.su.se.bakover.common.persistence.PostgresTransactionContext.Companion.withTransaction
+import no.nav.su.se.bakover.common.persistence.Session
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.database.DbMetrics
-import no.nav.su.se.bakover.database.PostgresSessionFactory
-import no.nav.su.se.bakover.database.PostgresTransactionContext.Companion.withTransaction
-import no.nav.su.se.bakover.database.Session
-import no.nav.su.se.bakover.database.TransactionalSession
-import no.nav.su.se.bakover.database.hent
-import no.nav.su.se.bakover.database.hentListe
-import no.nav.su.se.bakover.database.insert
-import no.nav.su.se.bakover.database.oppdatering
-import no.nav.su.se.bakover.database.tidspunkt
+import no.nav.su.se.bakover.common.persistence.TransactionalSession
+import no.nav.su.se.bakover.common.persistence.hent
+import no.nav.su.se.bakover.common.persistence.hentListe
+import no.nav.su.se.bakover.common.persistence.insert
+import no.nav.su.se.bakover.common.persistence.oppdatering
+import no.nav.su.se.bakover.common.persistence.tidspunkt
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo

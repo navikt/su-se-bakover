@@ -10,9 +10,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.common.periode.år
-import no.nav.su.se.bakover.database.TestDataHelper
-import no.nav.su.se.bakover.database.withMigratedDb
-import no.nav.su.se.bakover.database.withSession
+import no.nav.su.se.bakover.database.avkorting.AvkortingsvarselPostgresRepo
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -40,6 +38,9 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.persistence.TestDataHelper
+import no.nav.su.se.bakover.test.persistence.withMigratedDb
+import no.nav.su.se.bakover.test.persistence.withSession
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
@@ -410,7 +411,7 @@ internal class RevurderingPostgresRepoTest {
     fun `kan lagre og hente en iverksatt revurdering`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val repo = testDataHelper.revurderingRepo
+            val repo = testDataHelper.revurderingRepo as RevurderingPostgresRepo
             val iverksatt = testDataHelper.persisterRevurderingIverksattInnvilget()
 
             repo.hent(iverksatt.id) shouldBe iverksatt
@@ -919,6 +920,7 @@ internal class RevurderingPostgresRepoTest {
     fun `oppdaterer verdier for avkorting ved lagring med avkorting`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
+            val avkortingsvarselRepo = testDataHelper.avkortingsvarselRepo as AvkortingsvarselPostgresRepo
             val repo = testDataHelper.revurderingRepo
             val vedtak =
                 testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().second
@@ -959,8 +961,9 @@ internal class RevurderingPostgresRepoTest {
             (repo.hent(opprettet.id) as Revurdering).avkorting shouldBe AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel(
                 avkortingsvarsel = avkortingsvarsel,
             )
+
             testDataHelper.sessionFactory.withSession {
-                testDataHelper.avkortingsvarselRepo.hent(avkortingsvarsel.id, it) shouldBe null
+                avkortingsvarselRepo.hent(avkortingsvarsel.id, it) shouldBe null
             }
 
             val iverksatt = tilAttestering.tilIverksatt(
@@ -975,7 +978,7 @@ internal class RevurderingPostgresRepoTest {
                 avkortingsvarsel = avkortingsvarsel,
             )
             testDataHelper.sessionFactory.withSession {
-                testDataHelper.avkortingsvarselRepo.hent(avkortingsvarsel.id, it) shouldBe avkortingsvarsel
+                avkortingsvarselRepo.hent(avkortingsvarsel.id, it) shouldBe avkortingsvarsel
             }
         }
     }

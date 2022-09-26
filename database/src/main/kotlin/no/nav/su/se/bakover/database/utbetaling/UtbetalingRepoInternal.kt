@@ -7,12 +7,12 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.deserializeNullable
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.persistence.Session
+import no.nav.su.se.bakover.common.persistence.hent
+import no.nav.su.se.bakover.common.persistence.hentListe
+import no.nav.su.se.bakover.common.persistence.tidspunkt
+import no.nav.su.se.bakover.common.persistence.uuid30
 import no.nav.su.se.bakover.common.toNonEmptyList
-import no.nav.su.se.bakover.database.Session
-import no.nav.su.se.bakover.database.hent
-import no.nav.su.se.bakover.database.hentListe
-import no.nav.su.se.bakover.database.tidspunkt
-import no.nav.su.se.bakover.database.uuid30
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad

@@ -6,12 +6,12 @@ import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.fnrUnder67
 import no.nav.su.se.bakover.domain.søknadinnhold.Boforhold
 import no.nav.su.se.bakover.domain.søknadinnhold.EktefellePartnerSamboer
 import no.nav.su.se.bakover.domain.søknadinnhold.InnlagtPåInstitusjon
 import no.nav.su.se.bakover.domain.søknadinnhold.OppgittAdresse
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fnrUnder67
 import no.nav.su.se.bakover.test.getOrFail
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert

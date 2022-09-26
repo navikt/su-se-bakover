@@ -2,20 +2,21 @@ package no.nav.su.se.bakover.database.person
 
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import no.nav.su.se.bakover.common.Fnr
-import no.nav.su.se.bakover.database.TestDataHelper
-import no.nav.su.se.bakover.database.innvilgetBeregning
-import no.nav.su.se.bakover.database.simulering
-import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingUnderBehandling
+import no.nav.su.se.bakover.domain.person.PersonRepo
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.test.beregning
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.persistence.TestDataHelper
+import no.nav.su.se.bakover.test.persistence.withMigratedDb
+import no.nav.su.se.bakover.test.simulering
 import org.junit.jupiter.api.Test
 import javax.sql.DataSource
 
@@ -224,8 +225,8 @@ internal class PersonPostgresRepoTest {
                         oppgaveId = revurdering.oppgaveId,
                         fritekstTilBrev = revurdering.fritekstTilBrev,
                         revurderingsårsak = revurdering.revurderingsårsak,
-                        beregning = innvilgetBeregning(revurdering.periode),
-                        simulering = simulering(revurdering.fnr),
+                        beregning = beregning(periode = revurdering.periode),
+                        simulering = simulering(fnr = revurdering.fnr),
                         forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
                         grunnlagsdata = revurdering.grunnlagsdata,
                         vilkårsvurderinger = revurdering.vilkårsvurderinger,
@@ -269,7 +270,7 @@ internal class PersonPostgresRepoTest {
                         oppgaveId = revurdering.oppgaveId,
                         fritekstTilBrev = revurdering.fritekstTilBrev,
                         revurderingsårsak = revurdering.revurderingsårsak,
-                        beregning = innvilgetBeregning(revurdering.periode),
+                        beregning = beregning(periode = revurdering.periode),
                         simulering = simulering(revurdering.fnr),
                         forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
                         grunnlagsdata = revurdering.grunnlagsdata,
@@ -298,7 +299,7 @@ internal class PersonPostgresRepoTest {
 
     private data class Ctx(
         val dataSource: DataSource,
-        val repo: PersonPostgresRepo,
+        val repo: PersonRepo,
         val innvilgetSøknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget,
         val utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering,
         val revurdering: Revurdering,
@@ -306,7 +307,7 @@ internal class PersonPostgresRepoTest {
 
     private data class VedtakCtx(
         val dataSource: DataSource,
-        val repo: PersonPostgresRepo,
+        val repo: PersonRepo,
         val søknadsbehandlingVedtak: VedtakSomKanRevurderes,
         val revurderingVedtak: VedtakSomKanRevurderes,
     )

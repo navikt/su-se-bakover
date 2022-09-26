@@ -19,17 +19,17 @@ import no.nav.su.se.bakover.common.periode.april
 import no.nav.su.se.bakover.common.periode.desember
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.mai
+import no.nav.su.se.bakover.common.persistence.antall
+import no.nav.su.se.bakover.common.persistence.insert
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.common.zoneIdOslo
-import no.nav.su.se.bakover.database.TestDataHelper
-import no.nav.su.se.bakover.database.antall
-import no.nav.su.se.bakover.database.insert
-import no.nav.su.se.bakover.database.withMigratedDb
-import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Fagområde
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.persistence.TestDataHelper
+import no.nav.su.se.bakover.test.persistence.withMigratedDb
+import no.nav.su.se.bakover.test.persistence.withSession
 import org.junit.jupiter.api.Test
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
@@ -40,7 +40,7 @@ internal class AvstemmingPostgresRepoTest {
     fun `henter siste grensesnittsavstemming`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val repo = testDataHelper.avstemmingRepo
+            val repo = testDataHelper.databaseRepos.avstemming
 
             val zero = repo.hentSisteGrensesnittsavstemming(fagområde = Fagområde.SUUFORE)
             zero shouldBe null

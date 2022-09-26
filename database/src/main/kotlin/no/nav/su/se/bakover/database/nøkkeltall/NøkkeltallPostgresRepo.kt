@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.database.nøkkeltall
 
 import kotliquery.Row
-import no.nav.su.se.bakover.database.DbMetrics
-import no.nav.su.se.bakover.database.PostgresSessionFactory
-import no.nav.su.se.bakover.database.hent
+import no.nav.su.se.bakover.common.persistence.DbMetrics
+import no.nav.su.se.bakover.common.persistence.PostgresSessionFactory
+import no.nav.su.se.bakover.common.persistence.hent
 import no.nav.su.se.bakover.domain.nøkkeltall.Nøkkeltall
 import no.nav.su.se.bakover.domain.nøkkeltall.NøkkeltallRepo
 import java.time.Clock

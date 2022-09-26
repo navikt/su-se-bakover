@@ -5,12 +5,15 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import kotliquery.Row
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.persistence.PostgresSessionContext.Companion.withSession
+import no.nav.su.se.bakover.common.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
+import no.nav.su.se.bakover.common.persistence.hent
+import no.nav.su.se.bakover.common.persistence.insert
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.JobContextPostgresRepo.JobContextDb.SendPåminnelseNyStønadsperiodeContextDb.Companion.toDb
 import no.nav.su.se.bakover.database.JobContextPostgresRepo.JobContextDb.SendPåminnelseNyStønadsperiodeContextDb.Companion.toDomain
 import no.nav.su.se.bakover.database.JobContextPostgresRepo.JobContextDb.SendPåminnelseNyStønadsperiodeContextDb.Companion.toJson
-import no.nav.su.se.bakover.database.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.domain.JobContext
 import no.nav.su.se.bakover.domain.JobContextId
 import no.nav.su.se.bakover.domain.JobContextRepo

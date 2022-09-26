@@ -5,10 +5,10 @@ import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.deserializeNullable
-import no.nav.su.se.bakover.database.Session
-import no.nav.su.se.bakover.database.hent
-import no.nav.su.se.bakover.database.hentListe
-import no.nav.su.se.bakover.database.tidspunkt
+import no.nav.su.se.bakover.common.persistence.Session
+import no.nav.su.se.bakover.common.persistence.hent
+import no.nav.su.se.bakover.common.persistence.hentListe
+import no.nav.su.se.bakover.common.persistence.tidspunkt
 import no.nav.su.se.bakover.domain.brev.Brevvalg
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId

@@ -31,7 +31,7 @@ data class TestClientsBuilder(
     val databaseRepos: DatabaseRepos,
 ) : ClientsBuilder {
 
-    val testClients = Clients(
+    private val testClients = Clients(
         oauth = AzureClientStub,
         personOppslag = PersonOppslagStub,
         tokenOppslag = TokenOppslagStub,

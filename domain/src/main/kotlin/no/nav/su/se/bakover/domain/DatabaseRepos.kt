@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
+import no.nav.su.se.bakover.hendelse.application.HendelseRepo
 
 data class DatabaseRepos(
     val avstemming: AvstemmingRepo,
@@ -39,4 +40,5 @@ data class DatabaseRepos(
     val reguleringRepo: ReguleringRepo,
     val tilbakekrevingRepo: TilbakekrevingRepo,
     val jobContextRepo: JobContextRepo,
+    val hendelseRepo: HendelseRepo,
 )

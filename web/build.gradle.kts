@@ -15,6 +15,7 @@ dependencies {
     implementation(project(":service"))
     implementation(project(":database"))
     implementation(project(":client"))
+    implementation(project(":hendelse"))
     implementation(project(":test-common"))
 
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
@@ -30,7 +31,6 @@ dependencies {
     implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
     implementation("com.papertrailapp", "logback-syslog4j", "1.0.0")
 
-    testImplementation(project(":database", "testArchives"))
     testImplementation(project(":test-common"))
     testImplementation("org.xmlunit:xmlunit-matchers:2.9.0")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion") {

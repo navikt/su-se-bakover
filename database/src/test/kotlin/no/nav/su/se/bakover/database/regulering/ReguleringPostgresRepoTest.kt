@@ -7,8 +7,6 @@ import no.nav.su.se.bakover.common.periode.desember
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.september
-import no.nav.su.se.bakover.database.TestDataHelper
-import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.beregning.BeregningMedFradragBeregnetMånedsvis
 import no.nav.su.se.bakover.domain.grunnbeløp.GrunnbeløpForMåned
 import no.nav.su.se.bakover.domain.regulering.Regulering
@@ -18,6 +16,8 @@ import no.nav.su.se.bakover.domain.satser.MinsteÅrligYtelseForUføretrygdedeFor
 import no.nav.su.se.bakover.domain.satser.Satskategori
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.persistence.TestDataHelper
+import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 

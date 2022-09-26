@@ -1,12 +1,12 @@
 package no.nav.su.se.bakover.database.sak
 
 import kotliquery.Row
-import no.nav.su.se.bakover.database.DbMetrics
-import no.nav.su.se.bakover.database.Session
-import no.nav.su.se.bakover.database.hentListe
+import no.nav.su.se.bakover.common.persistence.DbMetrics
+import no.nav.su.se.bakover.common.persistence.Session
+import no.nav.su.se.bakover.common.persistence.hentListe
+import no.nav.su.se.bakover.common.persistence.tidspunktOrNull
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingsType
-import no.nav.su.se.bakover.database.tidspunktOrNull
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus

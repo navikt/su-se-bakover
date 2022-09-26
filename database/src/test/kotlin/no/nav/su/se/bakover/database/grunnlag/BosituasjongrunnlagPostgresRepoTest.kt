@@ -4,11 +4,11 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.januar
-import no.nav.su.se.bakover.database.TestDataHelper
-import no.nav.su.se.bakover.database.withMigratedDb
-import no.nav.su.se.bakover.database.withTransaction
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.persistence.dbMetricsStub
+import no.nav.su.se.bakover.test.persistence.withMigratedDb
+import no.nav.su.se.bakover.test.persistence.withTransaction
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -17,8 +17,7 @@ internal class BosituasjongrunnlagPostgresRepoTest {
     @Test
     fun `lagrer og henter bor alene`() {
         withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val grunnlagRepo = testDataHelper.bosituasjongrunnlagPostgresRepo
+            val grunnlagRepo = BosituasjongrunnlagPostgresRepo(dbMetrics = dbMetricsStub)
             val id = UUID.randomUUID()
             val periode = januar(2021)
             val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -36,8 +35,7 @@ internal class BosituasjongrunnlagPostgresRepoTest {
     @Test
     fun `lagrer og henter bor med voksne`() {
         withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val grunnlagRepo = testDataHelper.bosituasjongrunnlagPostgresRepo
+            val grunnlagRepo = BosituasjongrunnlagPostgresRepo(dbMetrics = dbMetricsStub)
             val id = UUID.randomUUID()
             val periode = januar(2021)
             val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen(
@@ -55,8 +53,7 @@ internal class BosituasjongrunnlagPostgresRepoTest {
     @Test
     fun `lagrer og henter har ikke eps`() {
         withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val grunnlagRepo = testDataHelper.bosituasjongrunnlagPostgresRepo
+            val grunnlagRepo = BosituasjongrunnlagPostgresRepo(dbMetrics = dbMetricsStub)
             val id = UUID.randomUUID()
             val periode = januar(2021)
             val bosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
@@ -74,8 +71,7 @@ internal class BosituasjongrunnlagPostgresRepoTest {
     @Test
     fun `lagrer og henter har eps ikke valgt uføre flykting`() {
         withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val grunnlagRepo = testDataHelper.bosituasjongrunnlagPostgresRepo
+            val grunnlagRepo = BosituasjongrunnlagPostgresRepo(dbMetrics = dbMetricsStub)
             val id = UUID.randomUUID()
             val periode = januar(2021)
             val bosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarEps(
@@ -94,8 +90,7 @@ internal class BosituasjongrunnlagPostgresRepoTest {
     @Test
     fun `lagrer og henter eps 67+`() {
         withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val grunnlagRepo = testDataHelper.bosituasjongrunnlagPostgresRepo
+            val grunnlagRepo = BosituasjongrunnlagPostgresRepo(dbMetrics = dbMetricsStub)
             val id = UUID.randomUUID()
             val periode = januar(2021)
             val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre(
@@ -114,8 +109,7 @@ internal class BosituasjongrunnlagPostgresRepoTest {
     @Test
     fun `lagrer og henter eps under 67 ufør flyktning`() {
         withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val grunnlagRepo = testDataHelper.bosituasjongrunnlagPostgresRepo
+            val grunnlagRepo = BosituasjongrunnlagPostgresRepo(dbMetrics = dbMetricsStub)
             val id = UUID.randomUUID()
             val periode = januar(2021)
             val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
@@ -134,8 +128,7 @@ internal class BosituasjongrunnlagPostgresRepoTest {
     @Test
     fun `lagrer og henter eps under 67 ikke ufør flyktning`() {
         withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val grunnlagRepo = testDataHelper.bosituasjongrunnlagPostgresRepo
+            val grunnlagRepo = BosituasjongrunnlagPostgresRepo(dbMetrics = dbMetricsStub)
             val id = UUID.randomUUID()
             val periode = januar(2021)
             val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(

@@ -239,8 +239,8 @@ fun opphørUtbetalingOversendUtenKvittering(
     }
 }
 
-@Suppress("unused")
 fun oversendtUtbetalingUtenKvittering(
+    id: UUID30 = UUID30.randomUUID(),
     søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget,
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.avstemmingsnøkkel,
     clock: Clock = fixedClock,
@@ -252,6 +252,7 @@ fun oversendtUtbetalingUtenKvittering(
     ),
     eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
 ) = oversendtUtbetalingUtenKvittering(
+    id = id,
     periode = søknadsbehandling.periode,
     fnr = søknadsbehandling.fnr,
     sakId = søknadsbehandling.sakId,
@@ -263,8 +264,8 @@ fun oversendtUtbetalingUtenKvittering(
     beregning = søknadsbehandling.beregning,
 )
 
-@Suppress("unused")
 fun oversendtUtbetalingUtenKvittering(
+    id: UUID30 = UUID30.randomUUID(),
     periode: Periode = år(2021),
     revurdering: RevurderingTilAttestering,
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.avstemmingsnøkkel,
@@ -277,6 +278,7 @@ fun oversendtUtbetalingUtenKvittering(
     ),
     eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
 ) = oversendtUtbetalingUtenKvittering(
+    id = id,
     fnr = revurdering.fnr,
     sakId = revurdering.sakId,
     saksnummer = revurdering.saksnummer,
