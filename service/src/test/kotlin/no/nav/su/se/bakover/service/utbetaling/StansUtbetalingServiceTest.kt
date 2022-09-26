@@ -235,7 +235,7 @@ internal class StansUtbetalingServiceTest {
                     transactionContext = TestSessionFactory.transactionContext,
                 ) shouldBe UtbetalStansFeil.KunneIkkeUtbetale(UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UlikFeilutbetaling)).left()
 
-                verify(it.utbetalingPublisher, never()).publish(any())
+                verify(it.utbetalingPublisher, never()).publishRequest(any())
                 verify(it.utbetalingRepo, never()).opprettUtbetaling(any(), anyOrNull())
             }
         }

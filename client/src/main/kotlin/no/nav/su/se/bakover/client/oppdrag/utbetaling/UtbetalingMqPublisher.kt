@@ -12,15 +12,6 @@ class UtbetalingMqPublisher(
     private val mqPublisher: MqPublisher,
 ) : UtbetalingPublisher {
 
-    override fun publish(
-        utbetaling: Utbetaling.SimulertUtbetaling,
-    ): Either<KunneIkkeSendeUtbetaling, Utbetalingsrequest> {
-        val xml = XmlMapper.writeValueAsString(toUtbetalingRequest(utbetaling))
-        return mqPublisher.publish(xml)
-            .mapLeft { KunneIkkeSendeUtbetaling(Utbetalingsrequest(xml)) }
-            .map { Utbetalingsrequest(value = xml) }
-    }
-
     override fun publishRequest(
         utbetalingsrequest: Utbetalingsrequest,
     ): Either<KunneIkkeSendeUtbetaling, Utbetalingsrequest> {
