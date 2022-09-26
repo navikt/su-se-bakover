@@ -423,20 +423,21 @@ internal class SøknadsbehandlingServiceImpl(
                             "Kunne ikke iverksette søknadsbehandling for sak ${iverksattBehandling.sakId} og søknadsbehandling ${iverksattBehandling.id}.",
                             it,
                         )
-                        return when (it) {
+                        when (it) {
                             is IverksettTransactionException -> it.feil
                             else -> KunneIkkeIverksette.LagringFeilet
-                        }.left()
+                        }
                     }.map { vedtak ->
                         log.info("Iverksatt innvilgelse for behandling ${iverksattBehandling.id}, vedtak: ${vedtak.id}")
 
                         behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.PERSISTERT)
 
-                    observers.notify(StatistikkEvent.Behandling.Søknad.Iverksatt.Innvilget(vedtak))
-                    observers.notify(StatistikkEvent.Stønadsvedtak(vedtak))
+                        observers.notify(StatistikkEvent.Behandling.Søknad.Iverksatt.Innvilget(vedtak))
+                        observers.notify(StatistikkEvent.Stønadsvedtak(vedtak))
 
-                    iverksattBehandling
-                }}
+                        iverksattBehandling
+                    }
+                }
 
                 is Søknadsbehandling.Iverksatt.Avslag -> {
                     val vedtak: Avslagsvedtak = opprettAvslagsvedtak(iverksattBehandling)
@@ -470,7 +471,7 @@ internal class SøknadsbehandlingServiceImpl(
                             "Kunne ikke iverksette søknadsbehandling for sak ${iverksattBehandling.sakId} og søknadsbehandling ${iverksattBehandling.id}.",
                             it,
                         )
-                        return KunneIkkeIverksette.LagringFeilet.left()
+                        KunneIkkeIverksette.LagringFeilet
                     }.map {
                         log.info("Iverksatt avslag for behandling: ${iverksattBehandling.id}, vedtak: ${vedtak.id}")
 
@@ -481,10 +482,11 @@ internal class SøknadsbehandlingServiceImpl(
                                 log.error("Lukking av oppgave for behandlingId: ${(vedtak.behandling as BehandlingMedOppgave).oppgaveId} feilet. Må ryddes opp manuelt.")
                             }
 
-                    observers.notify(StatistikkEvent.Behandling.Søknad.Iverksatt.Avslag(vedtak))
+                        observers.notify(StatistikkEvent.Behandling.Søknad.Iverksatt.Avslag(vedtak))
 
-                    iverksattBehandling
-                }}
+                        iverksattBehandling
+                    }
+                }
             }
         }
     }

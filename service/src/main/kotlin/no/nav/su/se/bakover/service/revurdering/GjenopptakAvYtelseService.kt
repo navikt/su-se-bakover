@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
+import no.nav.su.se.bakover.domain.statistikk.notify
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
@@ -110,11 +111,7 @@ class GjenopptakAvYtelseService(
             }
 
             revurderingRepo.lagre(simulertRevurdering)
-            observers.forEach { observer ->
-                observer.handle(
-                    StatistikkEvent.Behandling.Gjenoppta.Opprettet(simulertRevurdering),
-                )
-            }
+            observers.notify(StatistikkEvent.Behandling.Gjenoppta.Opprettet(simulertRevurdering))
 
             return simulertRevurdering.right()
         }
@@ -152,7 +149,11 @@ class GjenopptakAvYtelseService(
                             )
                         }
 
-                        val vedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, gjenopptak.utbetaling.id, clock)
+                        val vedtak = VedtakSomKanRevurderes.from(
+                            revurdering = iverksattRevurdering,
+                            utbetalingId = gjenopptak.utbetaling.id,
+                            clock = clock,
+                        )
 
                         revurderingRepo.lagre(
                             revurdering = iverksattRevurdering,
@@ -171,7 +172,7 @@ class GjenopptakAvYtelseService(
                                 )
                             }
 
-                        iverksattRevurdering to vedtak
+                        vedtak
                     }
                 }.mapLeft {
                     log.error("Feil ved iverksetting av gjenopptak for revurdering: $revurderingId", it)
@@ -179,11 +180,9 @@ class GjenopptakAvYtelseService(
                         is IverksettTransactionException -> it.feil
                         else -> KunneIkkeIverksetteGjenopptakAvYtelse.LagringFeilet
                     }
-                }.map { (iverksattRevurdering, vedtak) ->
-                    observers.forEach { observer ->
-                        observer.handle(StatistikkEvent.Behandling.Gjenoppta.Iverksatt(vedtak))
-                        observer.handle(StatistikkEvent.Stønadsvedtak(vedtak))
-                    }
+                }.map { vedtak ->
+                    observers.notify(StatistikkEvent.Behandling.Gjenoppta.Iverksatt(vedtak))
+                    observers.notify(StatistikkEvent.Stønadsvedtak(vedtak))
                     iverksattRevurdering
                 }
             }

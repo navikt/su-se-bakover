@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
+import no.nav.su.se.bakover.domain.statistikk.notify
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.sak.SakService
@@ -107,7 +108,7 @@ internal class StansAvYtelseService(
         }
 
         revurderingRepo.lagre(simulertRevurdering)
-        observers.forEach { observer -> observer.handle(StatistikkEvent.Behandling.Stans.Opprettet(simulertRevurdering)) }
+        observers.notify(StatistikkEvent.Behandling.Stans.Opprettet(simulertRevurdering))
 
         return simulertRevurdering.right()
     }
@@ -165,7 +166,7 @@ internal class StansAvYtelseService(
                                 )
                             }
 
-                        iverksattRevurdering to vedtak
+                        vedtak
                     }
                 }.mapLeft {
                     log.error("Feil ved iverksetting av stans for revurdering: $revurderingId", it)
@@ -173,11 +174,9 @@ internal class StansAvYtelseService(
                         is IverksettTransactionException -> it.feil
                         else -> KunneIkkeIverksetteStansYtelse.LagringFeilet
                     }
-                }.map { (iverksattRevurdering, vedtak) ->
-                    observers.forEach { observer ->
-                        observer.handle(StatistikkEvent.Behandling.Stans.Iverksatt(vedtak))
-                        observer.handle(StatistikkEvent.Stønadsvedtak(vedtak))
-                    }
+                }.map { vedtak ->
+                    observers.notify(StatistikkEvent.Behandling.Stans.Iverksatt(vedtak))
+                    observers.notify(StatistikkEvent.Stønadsvedtak(vedtak))
                     iverksattRevurdering
                 }
             }

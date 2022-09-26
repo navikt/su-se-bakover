@@ -1137,13 +1137,12 @@ internal class RevurderingServiceImpl(
                                     KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(feil),
                                 )
                             }
-                            vedtak
-                        }
-                    }.mapLeft {
-                        when (it) {
-                            is IverksettTransactionException -> it.feil
-                            else -> KunneIkkeIverksetteRevurdering.LagringFeilet
-                        }
+                        vedtak
+                    }
+                }.mapLeft {
+                    when (it) {
+                        is IverksettTransactionException -> it.feil
+                        else -> KunneIkkeIverksetteRevurdering.LagringFeilet
                     }
                 }.map { vedtak ->
                     observers.notify(StatistikkEvent.Stønadsvedtak(vedtak))
@@ -1219,21 +1218,21 @@ internal class RevurderingServiceImpl(
                                     KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it),
                                 )
                             }
-                            opphørtVedtak
-                        }
-                    }.mapLeft {
-                        log.error(
-                            "Kunne ikke iverksette revurdering for sak ${iverksattRevurdering.sakId} og søknadsbehandling ${iverksattRevurdering.id}.",
-                            it,
-                        )
-                        when (it) {
-                            is IverksettTransactionException -> it.feil
-                            else -> KunneIkkeIverksetteRevurdering.LagringFeilet
-                        }
-                    }.map { vedtak ->
-                        observers.notify(StatistikkEvent.Stønadsvedtak(vedtak))
-                        observers.notify(StatistikkEvent.Behandling.Revurdering.Iverksatt.Opphørt(vedtak))
-                        iverksattRevurdering
+                        opphørtVedtak
+                    }
+                }.mapLeft {
+                    log.error(
+                        "Kunne ikke iverksette revurdering for sak ${iverksattRevurdering.sakId} og søknadsbehandling ${iverksattRevurdering.id}.",
+                        it,
+                    )
+                    when (it) {
+                        is IverksettTransactionException -> it.feil
+                        else -> KunneIkkeIverksetteRevurdering.LagringFeilet
+                    }
+                }.map { vedtak ->
+                    observers.notify(StatistikkEvent.Stønadsvedtak(vedtak))
+                    observers.notify(StatistikkEvent.Behandling.Revurdering.Iverksatt.Opphørt(vedtak))
+                    iverksattRevurdering
                 }
             }
         }
