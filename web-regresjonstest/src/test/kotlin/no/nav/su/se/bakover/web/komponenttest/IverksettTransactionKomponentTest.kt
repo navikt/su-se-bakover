@@ -272,7 +272,7 @@ internal class IverksettTransactionKomponentTest {
 
                 val stansId = opprettStans(sakId, start.toString()).let { RevurderingJson.hentRevurderingId(it) }
                 iverksettStans(sakId, stansId)
-                val gjenopptakId = opprettGjenopptak(sakId, start.toString()).let { RevurderingJson.hentRevurderingId(it) }
+                val gjenopptakId = opprettGjenopptak(sakId).let { RevurderingJson.hentRevurderingId(it) }
                 iverksettGjenopptak(
                     sakId = sakId,
                     behandlingId = gjenopptakId,

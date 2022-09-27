@@ -477,7 +477,8 @@ fun oversendtStansUtbetalingUtenKvittering(
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     clock: Clock = fixedClock,
-    eksisterendeUtbetalinger: List<Utbetaling> = listOf(oversendtUtbetalingMedKvittering(clock = clock)),
+    periode: Periode = år(2021),
+    eksisterendeUtbetalinger: List<Utbetaling> = listOf(oversendtUtbetalingMedKvittering(clock = clock, periode = periode)),
 ): Utbetaling.OversendtUtbetaling.UtenKvittering {
     return simulertStansUtbetaling(
         stansDato = stansDato,
@@ -545,8 +546,10 @@ fun oversendtGjenopptakUtbetalingUtenKvittering(
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     clock: Clock = fixedClock,
+    periode: Periode = år(2021),
     eksisterendeUtbetalinger: List<Utbetaling> = listOf(
         oversendtStansUtbetalingUtenKvittering(
+            periode = periode,
             stansDato = LocalDate.now(clock).plusMonths(1).startOfMonth(),
         ),
     ),
