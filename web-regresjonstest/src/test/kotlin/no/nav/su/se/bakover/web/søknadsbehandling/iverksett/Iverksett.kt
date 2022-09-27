@@ -15,6 +15,7 @@ internal fun ApplicationTestBuilder.iverksett(
     sakId: String,
     behandlingId: String,
     brukerrolle: Brukerrolle = Brukerrolle.Attestant,
+    assertResponse: Boolean = true,
 ): String {
     return runBlocking {
         defaultRequest(
@@ -23,7 +24,9 @@ internal fun ApplicationTestBuilder.iverksett(
             listOf(brukerrolle),
             "automatiskAttesteringAvSøknadsbehandling",
         ).apply {
-            status shouldBe HttpStatusCode.OK
+            if (assertResponse) {
+                status shouldBe HttpStatusCode.OK
+            }
             contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
         }.bodyAsText()
     }
