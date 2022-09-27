@@ -23,3 +23,5 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+    ignore:
+      - dependency-name: java-18
