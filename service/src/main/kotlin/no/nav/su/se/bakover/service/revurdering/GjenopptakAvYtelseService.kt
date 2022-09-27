@@ -6,6 +6,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.log
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -16,6 +17,7 @@ import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
+import no.nav.su.se.bakover.domain.statistikk.notify
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
@@ -31,6 +33,7 @@ class GjenopptakAvYtelseService(
     private val clock: Clock,
     private val vedtakRepo: VedtakRepo,
     private val sakService: SakService,
+    private val sessionFactory: SessionFactory,
 ) {
     private val observers: MutableList<StatistikkEventObserver> = mutableListOf()
 
@@ -108,11 +111,7 @@ class GjenopptakAvYtelseService(
             }
 
             revurderingRepo.lagre(simulertRevurdering)
-            observers.forEach { observer ->
-                observer.handle(
-                    StatistikkEvent.Behandling.Gjenoppta.Opprettet(simulertRevurdering),
-                )
-            }
+            observers.notify(StatistikkEvent.Behandling.Gjenoppta.Opprettet(simulertRevurdering))
 
             return simulertRevurdering.right()
         }
@@ -134,31 +133,66 @@ class GjenopptakAvYtelseService(
                     ),
                 ).getOrHandle { return KunneIkkeIverksetteGjenopptakAvYtelse.SimuleringIndikererFeilutbetaling.left() }
 
-                val stansUtbetaling = utbetalingService.gjenopptaUtbetalinger(
-                    request = UtbetalRequest.Gjenopptak(
-                        sakId = iverksattRevurdering.sakId,
-                        saksbehandler = iverksattRevurdering.attesteringer.hentSisteAttestering().attestant,
-                        simulering = iverksattRevurdering.simulering,
-                    ),
-                ).getOrHandle { return KunneIkkeIverksetteGjenopptakAvYtelse.KunneIkkeUtbetale(it).left() }
+                Either.catch {
+                    sessionFactory.withTransactionContext { tx ->
+                        val gjenopptak = utbetalingService.klargjørGjenopptak(
+                            request = UtbetalRequest.Gjenopptak(
+                                sakId = iverksattRevurdering.sakId,
+                                saksbehandler = iverksattRevurdering.attesteringer.hentSisteAttestering().attestant,
+                                simulering = iverksattRevurdering.simulering,
+                            ),
+                            transactionContext = tx,
+                        ).getOrHandle {
+                            throw IverksettTransactionException(
+                                """Feil:$it ved opprettelse av utbetaling for revurdering:$revurderingId - ruller tilbake.""",
+                                KunneIkkeIverksetteGjenopptakAvYtelse.KunneIkkeUtbetale(it),
+                            )
+                        }
 
-                val vedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, stansUtbetaling.id, clock)
+                        val vedtak = VedtakSomKanRevurderes.from(
+                            revurdering = iverksattRevurdering,
+                            utbetalingId = gjenopptak.utbetaling.id,
+                            clock = clock,
+                        )
 
-                revurderingRepo.lagre(iverksattRevurdering)
-                vedtakRepo.lagre(vedtak)
-                observers.forEach { observer ->
-                    observer.handle(StatistikkEvent.Behandling.Gjenoppta.Iverksatt(vedtak))
-                    observer.handle(StatistikkEvent.Stønadsvedtak(vedtak))
+                        revurderingRepo.lagre(
+                            revurdering = iverksattRevurdering,
+                            transactionContext = tx,
+                        )
+                        vedtakRepo.lagre(
+                            vedtak = vedtak,
+                            sessionContext = tx,
+                        )
+
+                        gjenopptak.sendUtbetaling()
+                            .getOrHandle {
+                                throw IverksettTransactionException(
+                                    """Feil:$it ved publisering av utbetaling for revurdering:$revurderingId - ruller tilbake.""",
+                                    KunneIkkeIverksetteGjenopptakAvYtelse.KunneIkkeUtbetale(it),
+                                )
+                            }
+
+                        vedtak
+                    }
+                }.mapLeft {
+                    log.error("Feil ved iverksetting av gjenopptak for revurdering: $revurderingId", it)
+                    when (it) {
+                        is IverksettTransactionException -> it.feil
+                        else -> KunneIkkeIverksetteGjenopptakAvYtelse.LagringFeilet
+                    }
+                }.map { vedtak ->
+                    observers.notify(StatistikkEvent.Behandling.Gjenoppta.Iverksatt(vedtak))
+                    observers.notify(StatistikkEvent.Stønadsvedtak(vedtak))
+                    iverksattRevurdering
                 }
-
-                return iverksattRevurdering.right()
             }
-
-            else -> KunneIkkeIverksetteGjenopptakAvYtelse.UgyldigTilstand(
-                faktiskTilstand = revurdering::class,
-            ).left()
+            else -> { KunneIkkeIverksetteGjenopptakAvYtelse.UgyldigTilstand(faktiskTilstand = revurdering::class).left() }
         }
     }
+    private data class IverksettTransactionException(
+        override val message: String,
+        val feil: KunneIkkeIverksetteGjenopptakAvYtelse,
+    ) : RuntimeException(message)
 
     private fun kopierGjeldendeVedtaksdata(
         sak: Sak,

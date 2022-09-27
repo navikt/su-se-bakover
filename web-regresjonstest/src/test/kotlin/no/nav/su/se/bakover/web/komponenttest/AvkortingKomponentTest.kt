@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.web.revurdering.opprettIverksattRevurdering
+import no.nav.su.se.bakover.web.revurdering.utenlandsopphold.leggTilUtenlandsoppholdRevurdering
 import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
 import org.junit.jupiter.api.Test
@@ -56,10 +57,18 @@ class AvkortingKomponentTest {
                 val sakId = BehandlingJson.hentSakId(søknadsbehandlingJson)
 
                 opprettIverksattRevurdering(
-                    sakId = sakId,
-                    fraOgMed = opphørStartDato.toString(),
-                    tilOgMed = behandlingSluttDato.toString(),
-                    utenlandsOpphold = UtenlandsoppholdStatus.SkalVæreMerEnn90DagerIUtlandet,
+                    sakid = sakId,
+                    fraogmed = opphørStartDato.toString(),
+                    tilogmed = behandlingSluttDato.toString(),
+                    leggTilUtenlandsoppholdRevurdering = { _, behandlingId, fraOgMed, tilOgMed, _ ->
+                        leggTilUtenlandsoppholdRevurdering(
+                            sakId = sakId,
+                            behandlingId = behandlingId,
+                            fraOgMed = fraOgMed,
+                            tilOgMed = tilOgMed,
+                            vurdering = UtenlandsoppholdStatus.SkalVæreMerEnn90DagerIUtlandet.toString(),
+                        )
+                    },
                 )
                 UUID.fromString(sakId)
             }

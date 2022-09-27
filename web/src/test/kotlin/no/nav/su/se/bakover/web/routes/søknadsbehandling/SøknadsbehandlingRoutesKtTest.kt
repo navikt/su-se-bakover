@@ -767,18 +767,13 @@ internal class SøknadsbehandlingRoutesKtTest {
                 val repos = repos(dataSource)
                 val clients = TestClientsBuilder(fixedClock, repos).build(applicationConfig()).copy(
                     utbetalingPublisher = object : UtbetalingPublisher {
-                        override fun publish(
-                            utbetaling: Utbetaling.SimulertUtbetaling,
-                        ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Utbetalingsrequest> =
-                            UtbetalingPublisher.KunneIkkeSendeUtbetaling(
-                                Utbetalingsrequest(""),
-                            ).left()
+                        override fun publishRequest(utbetalingsrequest: Utbetalingsrequest): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Utbetalingsrequest> {
+                            return UtbetalingPublisher.KunneIkkeSendeUtbetaling(Utbetalingsrequest("")).left()
+                        }
 
-                        override fun publishRequest(utbetalingsrequest: Utbetalingsrequest): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Utbetalingsrequest> =
-                            utbetalingsrequest.right()
-
-                        override fun generateRequest(utbetaling: Utbetaling.SimulertUtbetaling): Utbetalingsrequest =
-                            Utbetalingsrequest("")
+                        override fun generateRequest(utbetaling: Utbetaling.SimulertUtbetaling): Utbetalingsrequest {
+                            return Utbetalingsrequest("")
+                        }
                     },
                 )
                 val services = services(databaseRepos = repos, clients = clients)

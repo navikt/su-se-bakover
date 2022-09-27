@@ -2,34 +2,31 @@ package no.nav.su.se.bakover.client.oppdrag.utbetaling
 
 import arrow.core.Either
 import arrow.core.left
-import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.oppdrag.MqPublisher
 import no.nav.su.se.bakover.client.oppdrag.MqPublisher.CouldNotPublish
-import no.nav.su.se.bakover.client.oppdrag.avstemming.sakId
-import no.nav.su.se.bakover.client.oppdrag.avstemming.saksnummer
-import no.nav.su.se.bakover.common.idag
-import no.nav.su.se.bakover.common.periode.januar
-import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.Sakstype
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.utbetalingslinje
+import no.nav.su.se.bakover.test.nyUtbetalingSimulert
+import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
 import org.junit.jupiter.api.Test
 
 internal class UtbetalingPublisherTest {
+
+    private val utbetaling = søknadsbehandlingTilAttesteringInnvilget().let { (sak, tilAttestering) ->
+        nyUtbetalingSimulert(
+            sakOgBehandling = sak to tilAttestering,
+            beregning = tilAttestering.beregning,
+            clock = fixedClock,
+        )
+    }
 
     @Test
     fun `feil skal ikke propageres`() {
         val mqClient = MqPublisherMock(CouldNotPublish.left())
         val client = UtbetalingMqPublisher(mqClient)
 
-        val res = client.publish(utbetaling = simulertUtbetaling)
+        val res = client.publishRequest(client.generateRequest(utbetaling))
         mqClient.count shouldBe 1
         res.isLeft() shouldBe true
         res.mapLeft { it.oppdragsmelding.value shouldBe mqClient.messages.first() }
@@ -40,7 +37,7 @@ internal class UtbetalingPublisherTest {
         val mqClient = MqPublisherMock(Unit.right())
         val client = UtbetalingMqPublisher(mqClient)
 
-        val res = client.publish(utbetaling = simulertUtbetaling)
+        val res = client.publishRequest(client.generateRequest(utbetaling))
         mqClient.count shouldBe 1
         res.isRight() shouldBe true
         res.map {
@@ -58,30 +55,4 @@ internal class UtbetalingPublisherTest {
             return response
         }
     }
-
-    private val simulertUtbetaling = Utbetaling.UtbetalingForSimulering(
-        opprettet = fixedTidspunkt,
-        sakId = sakId,
-        saksnummer = saksnummer,
-        fnr = Fnr("12345678910"),
-        utbetalingslinjer = nonEmptyListOf(
-            utbetalingslinje(
-                periode = januar(2020),
-                beløp = 0,
-            ),
-        ),
-        behandler = NavIdentBruker.Saksbehandler("Z123"),
-        avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt),
-        sakstype = Sakstype.UFØRE,
-    ).toSimulertUtbetaling(
-        simulering = Simulering(
-            gjelderId = Fnr(
-                fnr = "12345678910",
-            ),
-            gjelderNavn = "navn",
-            datoBeregnet = idag(fixedClock),
-            nettoBeløp = 0,
-            periodeList = listOf(),
-        ),
-    )
 }

@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.routes.Feilresponser.harAlleredeÅpenBehandling
+import no.nav.su.se.bakover.web.routes.Feilresponser.lagringFeilet
 import no.nav.su.se.bakover.web.routes.Feilresponser.tilResultat
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeSak
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.tilResultat
@@ -206,6 +207,10 @@ private fun KunneIkkeIverksetteGjenopptakAvYtelse.tilResultat(): Resultat {
                 message = "Iverksetting av gjenopptak vil føre til feilutbetaling",
                 code = "kunne_ikke_iverksette_gjenopptak_fører_til_feilutbetaling",
             )
+        }
+
+        KunneIkkeIverksetteGjenopptakAvYtelse.LagringFeilet -> {
+            lagringFeilet
         }
     }
 }

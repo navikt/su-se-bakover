@@ -24,7 +24,6 @@ import no.nav.su.se.bakover.domain.grunnlag.erGyldigTilstand
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
@@ -276,19 +275,12 @@ sealed interface Regulering : Reguleringsfelter {
 
         override val erFerdigstilt = true
 
-        fun verifiserOgSimulerUtbetaling(
-            callback: (request: UtbetalRequest.NyUtbetaling) -> Either<UtbetalingFeilet, Utbetaling.SimulertUtbetaling>,
-        ): Either<UtbetalingFeilet, Utbetaling.SimulertUtbetaling> {
-            return opprettetRegulering.simulerUtbetalingRequest()
-                .getOrHandle { throw IllegalStateException(it.toString()) }
-                .let {
-                    callback(
-                        UtbetalRequest.NyUtbetaling(
-                            request = it,
-                            simulering = simulering,
-                        ),
-                    )
-                }
+        fun utbetalRequest(): UtbetalRequest.NyUtbetaling {
+            return UtbetalRequest.NyUtbetaling(
+                request = opprettetRegulering.simulerUtbetalingRequest()
+                    .getOrHandle { throw IllegalStateException(it.toString()) },
+                simulering = simulering,
+            )
         }
     }
 

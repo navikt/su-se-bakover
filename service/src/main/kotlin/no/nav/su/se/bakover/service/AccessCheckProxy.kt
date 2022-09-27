@@ -53,6 +53,8 @@ import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Fagområde
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
@@ -243,38 +245,34 @@ open class AccessCheckProxy(
                     return services.utbetaling.simulerOpphør(request)
                 }
 
-                override fun publiserUtbetaling(
-                    utbetaling: Utbetaling.SimulertUtbetaling,
-                ) = kastKanKunKallesFraAnnenService()
-
-                override fun lagreUtbetaling(
-                    utbetaling: Utbetaling.SimulertUtbetaling,
-                    transactionContext: TransactionContext?,
-                ) = kastKanKunKallesFraAnnenService()
-
-                override fun verifiserOgSimulerUtbetaling(
-                    request: UtbetalRequest.NyUtbetaling,
-                ) = kastKanKunKallesFraAnnenService()
+                override fun klargjørNyUtbetaling(request: UtbetalRequest.NyUtbetaling, transactionContext: TransactionContext): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>> {
+                    kastKanKunKallesFraAnnenService()
+                }
 
                 override fun simulerStans(
                     request: SimulerUtbetalingRequest.StansRequest,
                 ) = kastKanKunKallesFraAnnenService()
 
-                override fun stansUtbetalinger(
+                override fun klargjørStans(
                     request: UtbetalRequest.Stans,
+                    transactionContext: TransactionContext,
                 ) = kastKanKunKallesFraAnnenService()
 
                 override fun simulerGjenopptak(
                     request: SimulerUtbetalingRequest.GjenopptakRequest,
                 ) = kastKanKunKallesFraAnnenService()
 
-                override fun gjenopptaUtbetalinger(
+                override fun klargjørGjenopptak(
                     request: UtbetalRequest.Gjenopptak,
+                    transactionContext: TransactionContext,
                 ) = kastKanKunKallesFraAnnenService()
 
-                override fun verifiserOgSimulerOpphør(
+                override fun klargjørOpphør(
                     request: UtbetalRequest.Opphør,
-                ) = kastKanKunKallesFraAnnenService()
+                    transactionContext: TransactionContext,
+                ): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>> {
+                    kastKanKunKallesFraAnnenService()
+                }
 
                 override fun hentGjeldendeUtbetaling(
                     sakId: UUID,

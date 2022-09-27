@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.Either
+import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.getOrHandle
 import arrow.core.left
@@ -362,58 +363,80 @@ internal class SøknadsbehandlingServiceImpl(
                     avkortingsvarselRepo.hent(id = avkortingid)
                 },
             ),
-        ).map { iverksattBehandling ->
+        ).flatMap { iverksattBehandling ->
             when (iverksattBehandling) {
                 is Søknadsbehandling.Iverksatt.Innvilget -> {
-                    val utbetaling = utbetalingService.verifiserOgSimulerUtbetaling(
-                        request = UtbetalRequest.NyUtbetaling(
-                            request = iverksattBehandling.lagSimulerUtbetalingRequest(
-                                saksbehandler = request.attestering.attestant,
-                                beregning = iverksattBehandling.beregning,
-                            ),
-                            simulering = iverksattBehandling.simulering,
-                        ),
-                    ).getOrHandle { kunneIkkeUtbetale ->
-                        log.error("Kunne ikke innvilge behandling ${søknadsbehandling.id} siden utbetaling feilet. Feiltype: $kunneIkkeUtbetale")
-                        return KunneIkkeIverksette.KunneIkkeUtbetale(kunneIkkeUtbetale).left()
-                    }
-
-                    val vedtak = VedtakSomKanRevurderes.fromSøknadsbehandling(iverksattBehandling, utbetaling.id, clock)
                     Either.catch {
-                        sessionFactory.withTransactionContext {
-                            // OBS: Det er kun exceptions som vil føre til at transaksjonen ruller tilbake. Hvis funksjonene returnerer Left/null o.l. vil transaksjonen gå igjennom. De tilfellene må håndteres eksplisitt per funksjon.
-                            // Det er også viktig at publiseringen av utbetalingen er det siste som skjer i blokka. Alt som ikke skal påvirke utfallet av iverksettingen skal flyttes ut av blokka. E.g. statistikk.
-                            søknadsbehandlingRepo.lagre(iverksattBehandling, it)
-                            utbetalingService.lagreUtbetaling(utbetaling, it)
-                            vedtakRepo.lagre(vedtak, it)
-                            // Så fremt denne ikke kaster ønsker vi å gå igjennom med iverksettingen.
-                            kontrollsamtaleService.opprettPlanlagtKontrollsamtale(vedtak, it)
-                            utbetalingService.publiserUtbetaling(utbetaling).mapLeft { feil ->
+                        sessionFactory.withTransactionContext { tx ->
+                            /**
+                             * OBS: Det er kun exceptions som vil føre til at transaksjonen ruller tilbake.
+                             * Hvis funksjonene returnerer Left/null o.l. vil transaksjonen gå igjennom. De tilfellene må håndteres eksplisitt per funksjon.
+                             * Det er også viktig at publiseringen av utbetalingen er det siste som skjer i blokka.
+                             * Alt som ikke skal påvirke utfallet av iverksettingen skal flyttes ut av blokka. E.g. statistikk.
+                             */
+                            val nyUtbetaling = utbetalingService.klargjørNyUtbetaling(
+                                request = UtbetalRequest.NyUtbetaling(
+                                    request = iverksattBehandling.lagSimulerUtbetalingRequest(
+                                        saksbehandler = request.attestering.attestant,
+                                        beregning = iverksattBehandling.beregning,
+                                    ),
+                                    simulering = iverksattBehandling.simulering,
+                                ),
+                                transactionContext = tx,
+                            ).getOrHandle { feil ->
+                                log.error("Kunne ikke innvilge behandling ${søknadsbehandling.id} siden utbetaling feilet. Feiltype: $feil")
                                 throw IverksettTransactionException(
-                                    "Kunne ikke publisere utbetaling på køen. Underliggende feil: $feil.",
+                                    "Kunne ikke opprette utbetaling. Underliggende feil:$feil.",
                                     KunneIkkeIverksette.KunneIkkeUtbetale(feil),
                                 )
                             }
+                            val vedtak = VedtakSomKanRevurderes.fromSøknadsbehandling(
+                                søknadsbehandling = iverksattBehandling,
+                                utbetalingId = nyUtbetaling.utbetaling.id,
+                                clock = clock,
+                            )
+
+                            søknadsbehandlingRepo.lagre(
+                                søknadsbehandling = iverksattBehandling,
+                                sessionContext = tx,
+                            )
+                            vedtakRepo.lagre(
+                                vedtak = vedtak,
+                                sessionContext = tx,
+                            )
+                            // Så fremt denne ikke kaster ønsker vi å gå igjennom med iverksettingen.
+                            kontrollsamtaleService.opprettPlanlagtKontrollsamtale(
+                                vedtak = vedtak,
+                                sessionContext = tx,
+                            )
+                            nyUtbetaling.sendUtbetaling()
+                                .getOrHandle { feil ->
+                                    throw IverksettTransactionException(
+                                        "Kunne ikke publisere utbetaling på køen. Underliggende feil: $feil.",
+                                        KunneIkkeIverksette.KunneIkkeUtbetale(feil),
+                                    )
+                                }
+                            vedtak
                         }
                     }.mapLeft {
                         log.error(
                             "Kunne ikke iverksette søknadsbehandling for sak ${iverksattBehandling.sakId} og søknadsbehandling ${iverksattBehandling.id}.",
                             it,
                         )
-                        return when (it) {
+                        when (it) {
                             is IverksettTransactionException -> it.feil
                             else -> KunneIkkeIverksette.LagringFeilet
-                        }.left()
+                        }
+                    }.map { vedtak ->
+                        log.info("Iverksatt innvilgelse for behandling ${iverksattBehandling.id}, vedtak: ${vedtak.id}")
+
+                        behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.PERSISTERT)
+
+                        observers.notify(StatistikkEvent.Behandling.Søknad.Iverksatt.Innvilget(vedtak))
+                        observers.notify(StatistikkEvent.Stønadsvedtak(vedtak))
+
+                        iverksattBehandling
                     }
-
-                    log.info("Iverksatt innvilgelse for behandling ${iverksattBehandling.id}, vedtak: ${vedtak.id}")
-
-                    behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.PERSISTERT)
-
-                    observers.notify(StatistikkEvent.Behandling.Søknad.Iverksatt.Innvilget(vedtak))
-                    observers.notify(StatistikkEvent.Stønadsvedtak(vedtak))
-
-                    iverksattBehandling
                 }
 
                 is Søknadsbehandling.Iverksatt.Avslag -> {
@@ -433,8 +456,12 @@ internal class SøknadsbehandlingServiceImpl(
 
                     Either.catch {
                         sessionFactory.withTransactionContext {
-                            // OBS: Det er kun exceptions som vil føre til at transaksjonen ruller tilbake. Hvis funksjonene returnerer Left/null o.l. vil transaksjonen gå igjennom. De tilfellene må håndteres eksplisitt per funksjon.
-                            // Det er også viktig at publiseringen av utbetalingen er det siste som skjer i blokka. Alt som ikke skal påvirke utfallet av iverksettingen skal flyttes ut av blokka. E.g. statistikk.
+                            /**
+                             * OBS: Det er kun exceptions som vil føre til at transaksjonen ruller tilbake.
+                             * Hvis funksjonene returnerer Left/null o.l. vil transaksjonen gå igjennom. De tilfellene må håndteres eksplisitt per funksjon.
+                             * Det er også viktig at publiseringen av utbetalingen er det siste som skjer i blokka.
+                             * Alt som ikke skal påvirke utfallet av iverksettingen skal flyttes ut av blokka. E.g. statistikk.
+                             */
                             søknadsbehandlingRepo.lagre(iverksattBehandling, it)
                             vedtakRepo.lagre(vedtak, it)
                             brevService.lagreDokument(dokument, it)
@@ -444,20 +471,21 @@ internal class SøknadsbehandlingServiceImpl(
                             "Kunne ikke iverksette søknadsbehandling for sak ${iverksattBehandling.sakId} og søknadsbehandling ${iverksattBehandling.id}.",
                             it,
                         )
-                        return KunneIkkeIverksette.LagringFeilet.left()
+                        KunneIkkeIverksette.LagringFeilet
+                    }.map {
+                        log.info("Iverksatt avslag for behandling: ${iverksattBehandling.id}, vedtak: ${vedtak.id}")
+
+                        behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
+
+                        ferdigstillVedtakService.lukkOppgaveMedBruker(vedtak.behandling)
+                            .mapLeft {
+                                log.error("Lukking av oppgave for behandlingId: ${(vedtak.behandling as BehandlingMedOppgave).oppgaveId} feilet. Må ryddes opp manuelt.")
+                            }
+
+                        observers.notify(StatistikkEvent.Behandling.Søknad.Iverksatt.Avslag(vedtak))
+
+                        iverksattBehandling
                     }
-                    log.info("Iverksatt avslag for behandling: ${iverksattBehandling.id}, vedtak: ${vedtak.id}")
-
-                    behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
-
-                    ferdigstillVedtakService.lukkOppgaveMedBruker(vedtak.behandling)
-                        .mapLeft {
-                            log.error("Lukking av oppgave for behandlingId: ${(vedtak.behandling as BehandlingMedOppgave).oppgaveId} feilet. Må ryddes opp manuelt.")
-                        }
-
-                    observers.notify(StatistikkEvent.Behandling.Søknad.Iverksatt.Avslag(vedtak))
-
-                    iverksattBehandling
                 }
             }
         }

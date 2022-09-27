@@ -4,10 +4,6 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.mai
-import no.nav.su.se.bakover.common.periode.desember
-import no.nav.su.se.bakover.common.periode.januar
-import no.nav.su.se.bakover.common.periode.juli
-import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
@@ -39,9 +35,9 @@ internal class NyRevurderingIT {
                 val sakId = BehandlingJson.hentSakId(søknadsbehandlingJson)
 
                 opprettIverksattRevurdering(
-                    sakId = sakId,
-                    fraOgMed = 1.mai(2021).toString(),
-                    tilOgMed = 31.juli(2021).toString(),
+                    sakid = sakId,
+                    fraogmed = 1.mai(2021).toString(),
+                    tilogmed = 31.juli(2021).toString(),
                 ).let { revurderingJson ->
                     hentSak(sakId).also {
                         assertSakJson(

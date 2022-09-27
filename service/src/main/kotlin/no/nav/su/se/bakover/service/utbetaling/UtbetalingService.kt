@@ -9,8 +9,8 @@ import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import java.time.LocalDate
@@ -33,38 +33,69 @@ interface UtbetalingService {
         request: SimulerUtbetalingRequest.OpphørRequest,
     ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>
 
-    fun publiserUtbetaling(
-        utbetaling: Utbetaling.SimulertUtbetaling,
-    ): Either<UtbetalingFeilet, Utbetalingsrequest>
-
-    fun lagreUtbetaling(
-        utbetaling: Utbetaling.SimulertUtbetaling,
-        transactionContext: TransactionContext? = null,
-    ): Utbetaling.OversendtUtbetaling.UtenKvittering
-
-    fun verifiserOgSimulerUtbetaling(
+    /**
+     * Oppretter nye utbetalinger, lagrer i databasen og klargjør utbetalingene for oversendelse til OS (lager XML-request)
+     * Konsumenten av denne funksjonen er ansvarlig for håndtering av [transactionContext] i tillegg til å kalle [UtbetalingKlargjortForOversendelse.callback]
+     * på et hensiktsmessig tidspunkt.
+     *
+     * @return [UtbetalingKlargjortForOversendelse] inneholder [UtbetalingKlargjortForOversendelse.utbetaling] med generert XML for publisering på kø,
+     * i tillegg til [UtbetalingKlargjortForOversendelse.callback] for å publisere utbetalingen på kø mot OS. Kall til denne funksjonen bør gjennomføres
+     * som det siste steget i [transactionContext], slik at eventuelle feil her kan rulle tilbake hele transaksjonen.
+     */
+    fun klargjørNyUtbetaling(
         request: UtbetalRequest.NyUtbetaling,
-    ): Either<UtbetalingFeilet, Utbetaling.SimulertUtbetaling>
+        transactionContext: TransactionContext,
+    ): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>
 
     fun simulerStans(
         request: SimulerUtbetalingRequest.StansRequest,
     ): Either<SimulerStansFeilet, Utbetaling.SimulertUtbetaling>
 
-    fun stansUtbetalinger(
+    /**
+     * Oppretter utbetalinger for stans, lagrer i databasen og klargjør utbetalingene for oversendelse til OS (lager XML-request)
+     * Konsumenten av denne funksjonen er ansvarlig for håndtering av [transactionContext] i tillegg til å kalle [UtbetalingKlargjortForOversendelse.callback]
+     * på et hensiktsmessig tidspunkt.
+     *
+     * @return [UtbetalingKlargjortForOversendelse] inneholder [UtbetalingKlargjortForOversendelse.utbetaling] med generert XML for publisering på kø,
+     * i tillegg til [UtbetalingKlargjortForOversendelse.callback] for å publisere utbetalingen på kø mot OS. Kall til denne funksjonen bør gjennomføres
+     * som det siste steget i [transactionContext], slik at eventuelle feil her kan rulle tilbake hele transaksjonen.
+     */
+    fun klargjørStans(
         request: UtbetalRequest.Stans,
-    ): Either<UtbetalStansFeil, Utbetaling.OversendtUtbetaling.UtenKvittering>
+        transactionContext: TransactionContext,
+    ): Either<UtbetalStansFeil, UtbetalingKlargjortForOversendelse<UtbetalStansFeil.KunneIkkeUtbetale>>
 
     fun simulerGjenopptak(
         request: SimulerUtbetalingRequest.GjenopptakRequest,
     ): Either<SimulerGjenopptakFeil, Utbetaling.SimulertUtbetaling>
 
-    fun gjenopptaUtbetalinger(
+    /**
+     * Oppretter utbetalinger for gjenopptak, lagrer i databasen og klargjør utbetalingene for oversendelse til OS (lager XML-request)
+     * Konsumenten av denne funksjonen er ansvarlig for håndtering av [transactionContext] i tillegg til å kalle [UtbetalingKlargjortForOversendelse.callback]
+     * på et hensiktsmessig tidspunkt.
+     *
+     * @return [UtbetalingKlargjortForOversendelse] inneholder [UtbetalingKlargjortForOversendelse.utbetaling] med generert XML for publisering på kø,
+     * i tillegg til [UtbetalingKlargjortForOversendelse.callback] for å publisere utbetalingen på kø mot OS. Kall til denne funksjonen bør gjennomføres
+     * som det siste steget i [transactionContext], slik at eventuelle feil her kan rulle tilbake hele transaksjonen.
+     */
+    fun klargjørGjenopptak(
         request: UtbetalRequest.Gjenopptak,
-    ): Either<UtbetalGjenopptakFeil, Utbetaling.OversendtUtbetaling.UtenKvittering>
+        transactionContext: TransactionContext,
+    ): Either<UtbetalGjenopptakFeil, UtbetalingKlargjortForOversendelse<UtbetalGjenopptakFeil.KunneIkkeUtbetale>>
 
-    fun verifiserOgSimulerOpphør(
+    /**
+     * Oppretter utbetalinger for opphør, lagrer i databasen og klargjør utbetalingene for oversendelse til OS (lager XML-request)
+     * Konsumenten av denne funksjonen er ansvarlig for håndtering av [transactionContext] i tillegg til å kalle [UtbetalingKlargjortForOversendelse.callback]
+     * på et hensiktsmessig tidspunkt.
+     *
+     * @return [UtbetalingKlargjortForOversendelse] inneholder [UtbetalingKlargjortForOversendelse.utbetaling] med generert XML for publisering på kø,
+     * i tillegg til [UtbetalingKlargjortForOversendelse.callback] for å publisere utbetalingen på kø mot OS. Kall til denne funksjonen bør gjennomføres
+     * som det siste steget i [transactionContext], slik at eventuelle feil her kan rulle tilbake hele transaksjonen.
+     */
+    fun klargjørOpphør(
         request: UtbetalRequest.Opphør,
-    ): Either<UtbetalingFeilet, Utbetaling.SimulertUtbetaling>
+        transactionContext: TransactionContext,
+    ): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>
 
     fun hentGjeldendeUtbetaling(
         sakId: UUID,

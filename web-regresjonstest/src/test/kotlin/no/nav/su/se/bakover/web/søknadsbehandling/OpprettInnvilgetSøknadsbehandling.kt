@@ -27,6 +27,8 @@ import no.nav.su.se.bakover.web.søknadsbehandling.simulering.simuler
 import no.nav.su.se.bakover.web.søknadsbehandling.uførhet.leggTilUføregrunnlag
 import no.nav.su.se.bakover.web.søknadsbehandling.virkningstidspunkt.leggTilVirkningstidspunkt
 
+internal val SKIP_STEP = "SKIP_STEP" // verdi som signaliserer at kallet skal hoppes over
+
 /**
  * Oppretter en ny søknad med søknadbehandling.
  * @param fnr Dersom det finnes en sak for dette fødselsnumret fra før, vil det knyttes til den eksisterende saken.
@@ -36,116 +38,149 @@ internal fun ApplicationTestBuilder.opprettInnvilgetSøknadsbehandling(
     fnr: String = Fnr.generer().toString(),
     fraOgMed: String = fixedLocalDate.startOfMonth().toString(),
     tilOgMed: String = fixedLocalDate.startOfMonth().plusMonths(11).endOfMonth().toString(),
+    leggTilVirkningstidspunkt: (sakId: String, behandlingId: String) -> String = { sakId, behandlingId ->
+        leggTilVirkningstidspunkt(
+            sakId = sakId,
+            behandlingId = behandlingId,
+            fraOgMed = fraOgMed,
+            tilOgMed = tilOgMed,
+        )
+    },
+    leggTilOpplysningsplikt: (behandlingId: String) -> String = { behandlingId ->
+        leggTilOpplysningsplikt(
+            behandlingId = behandlingId,
+            type = "SØKNADSBEHANDLING",
+            fraOgMed = fraOgMed,
+            tilOgMed = tilOgMed,
+        )
+    },
+    leggTilUføregrunnlag: (sakId: String, behandlingId: String) -> String = { sakId, behandlingId ->
+        leggTilUføregrunnlag(
+            sakId = sakId,
+            behandlingId = behandlingId,
+            fraOgMed = fraOgMed,
+            tilOgMed = tilOgMed,
+        )
+    },
+    leggTilFlyktningVilkår: (sakId: String, behandlingId: String) -> String = { sakId, behandlingId ->
+        leggTilFlyktningVilkår(
+            sakId = sakId,
+            behandlingId = behandlingId,
+            body = { innvilgetFlyktningVilkårJson(fraOgMed, tilOgMed) },
+        )
+    },
+    leggTilLovligOppholdINorge: (sakId: String, behandlingId: String) -> String = { sakId, behandlingId ->
+        leggTilLovligOppholdINorge(
+            sakId = sakId,
+            behandlingId = behandlingId,
+            fraOgMed = fraOgMed,
+            tilOgMed = tilOgMed,
+        )
+    },
+    leggTilFastOppholdINorge: (sakId: String, behandlingId: String) -> String = { sakId, behandlingId ->
+        leggTilFastOppholdINorge(
+            sakId = sakId,
+            behandlingId = behandlingId,
+            fraOgMed = fraOgMed,
+            tilOgMed = tilOgMed,
+        )
+    },
+    leggTilInstitusjonsopphold: (sakId: String, behandlingId: String) -> String = { sakId, behandlingId ->
+        leggTilInstitusjonsopphold(
+            sakId = sakId,
+            behandlingId = behandlingId,
+            fraOgMed = fraOgMed,
+            tilOgMed = tilOgMed,
+        )
+    },
+    leggTilUtenlandsopphold: (sakId: String, behandlingId: String) -> String = { sakId, behandlingId ->
+        leggTilUtenlandsopphold(
+            sakId = sakId,
+            behandlingId = behandlingId,
+            fraOgMed = fraOgMed,
+            tilOgMed = tilOgMed,
+        )
+    },
+    taStillingTilEps: (sakId: String, behandlingId: String) -> String = { sakId, behandlingId ->
+        taStillingTilEps(
+            sakId = sakId,
+            behandlingId = behandlingId,
+        )
+    },
+    leggTilFormue: (sakId: String, behandlingId: String) -> String = { sakId, behandlingId ->
+        leggTilFormue(
+            sakId = sakId,
+            behandlingId = behandlingId,
+            fraOgMed = fraOgMed,
+            tilOgMed = tilOgMed,
+        )
+    },
+    leggTilPersonligOppmøte: (sakId: String, behandlingId: String) -> String = { sakId, behandlingId ->
+        leggTilPersonligOppmøte(
+            sakId = sakId,
+            behandlingId = behandlingId,
+            fraOgMed = fraOgMed,
+            tilOgMed = tilOgMed,
+        )
+    },
+    fullførBosituasjon: (sakId: String, behandlingId: String) -> String = { sakId, behandlingId ->
+        fullførBosituasjon(
+            sakId = sakId,
+            behandlingId = behandlingId,
+        )
+    },
+    beregn: (sakId: String, behandlingId: String) -> String = { sakId, behandlingId ->
+        beregn(
+            sakId = sakId,
+            behandlingId = behandlingId,
+        )
+    },
+    simuler: (sakId: String, behandlingId: String) -> String = { sakId, behandlingId ->
+        simuler(
+            sakId = sakId,
+            behandlingId = behandlingId,
+        )
+    },
+    sendTilAttestering: (sakId: String, behandlingId: String) -> String = { sakId, behandlingId ->
+        sendTilAttestering(
+            sakId = sakId,
+            behandlingId = behandlingId,
+        )
+    },
+    iverksett: (sakId: String, behandlingId: String) -> String = { sakId, behandlingId ->
+        iverksett(
+            sakId = sakId,
+            behandlingId = behandlingId,
+        )
+    },
 ): String {
     val søknadResponseJson = nyDigitalSøknad(
         fnr = fnr,
     )
-    return opprettInnvilgetSøknadsbehandling(
-        sakId = NySøknadJson.Response.hentSakId(søknadResponseJson),
-        søknadId = NySøknadJson.Response.hentSøknadId(søknadResponseJson),
-        fraOgMed = fraOgMed,
-        tilOgMed = tilOgMed,
-    )
-}
-
-/**
- * Oppretter en innvilget søknadbehandling på en eksisterende sak og søknad
- * @return Den nylig opprettede søknadsbehandlingen
- */
-internal fun ApplicationTestBuilder.opprettInnvilgetSøknadsbehandling(
-    sakId: String,
-    søknadId: String,
-    fraOgMed: String = fixedLocalDate.startOfMonth().toString(),
-    tilOgMed: String = fixedLocalDate.startOfMonth().plusMonths(11).endOfMonth().toString(),
-): String {
+    val sakId = NySøknadJson.Response.hentSakId(søknadResponseJson)
+    val søknadId = NySøknadJson.Response.hentSøknadId(søknadResponseJson)
     val nySøknadsbehandlingResponseJson = nySøknadsbehandling(
         sakId = sakId,
         søknadId = søknadId,
     )
     val behandlingId = BehandlingJson.hentBehandlingId(nySøknadsbehandlingResponseJson)
 
-    leggTilVirkningstidspunkt(
-        sakId = sakId,
-        behandlingId = behandlingId,
-        fraOgMed = fraOgMed,
-        tilOgMed = tilOgMed,
-    )
-    leggTilOpplysningsplikt(
-        behandlingId = behandlingId,
-        type = "SØKNADSBEHANDLING",
-        fraOgMed = fraOgMed,
-        tilOgMed = tilOgMed,
-    )
-    leggTilUføregrunnlag(
-        sakId = sakId,
-        behandlingId = behandlingId,
-        fraOgMed = fraOgMed,
-        tilOgMed = tilOgMed,
-    )
-    leggTilFlyktningVilkår(
-        sakId = sakId,
-        behandlingId = behandlingId,
-        body = { innvilgetFlyktningVilkårJson(fraOgMed, tilOgMed) },
-    )
-    leggTilLovligOppholdINorge(
-        sakId = sakId,
-        behandlingId = behandlingId,
-        fraOgMed = fraOgMed,
-        tilOgMed = tilOgMed,
-    )
-    leggTilFastOppholdINorge(
-        sakId = sakId,
-        behandlingId = behandlingId,
-        fraOgMed = fraOgMed,
-        tilOgMed = tilOgMed,
-    )
-    leggTilInstitusjonsopphold(
-        sakId = sakId,
-        behandlingId = behandlingId,
-        fraOgMed = fraOgMed,
-        tilOgMed = tilOgMed,
-    )
-    leggTilUtenlandsopphold(
-        sakId = sakId,
-        behandlingId = behandlingId,
-        fraOgMed = fraOgMed,
-        tilOgMed = tilOgMed,
-    )
-    taStillingTilEps(
-        sakId = sakId,
-        behandlingId = behandlingId,
-    )
-    leggTilFormue(
-        sakId = sakId,
-        behandlingId = behandlingId,
-        fraOgMed = fraOgMed,
-        tilOgMed = tilOgMed,
-    )
-    leggTilPersonligOppmøte(
-        sakId = sakId,
-        behandlingId = behandlingId,
-        fraOgMed = fraOgMed,
-        tilOgMed = tilOgMed,
-    )
-    fullførBosituasjon(
-        sakId = sakId,
-        behandlingId = behandlingId,
-    )
-    // Hopper over fradrag for å gjøre det enklere
-    beregn(
-        sakId = sakId,
-        behandlingId = behandlingId,
-    )
-    simuler(
-        sakId = sakId,
-        behandlingId = behandlingId,
-    )
-    sendTilAttestering(
-        sakId = sakId,
-        behandlingId = behandlingId,
-    )
-    return iverksett(
-        sakId = sakId,
-        behandlingId = behandlingId,
-    )
+    return listOf(
+        leggTilVirkningstidspunkt(sakId, behandlingId),
+        leggTilOpplysningsplikt(behandlingId),
+        leggTilUføregrunnlag(sakId, behandlingId),
+        leggTilFlyktningVilkår(sakId, behandlingId),
+        leggTilLovligOppholdINorge(sakId, behandlingId),
+        leggTilFastOppholdINorge(sakId, behandlingId),
+        leggTilInstitusjonsopphold(sakId, behandlingId),
+        leggTilUtenlandsopphold(sakId, behandlingId),
+        taStillingTilEps(sakId, behandlingId),
+        leggTilFormue(sakId, behandlingId),
+        leggTilPersonligOppmøte(sakId, behandlingId),
+        fullførBosituasjon(sakId, behandlingId),
+        beregn(sakId, behandlingId),
+        simuler(sakId, behandlingId),
+        sendTilAttestering(sakId, behandlingId),
+        iverksett(sakId, behandlingId),
+    ).map { it }.last { it != SKIP_STEP } // returner siste verdi hvis steg ikke er hoppet over
 }

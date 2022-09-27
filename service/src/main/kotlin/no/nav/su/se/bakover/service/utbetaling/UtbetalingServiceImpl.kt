@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
@@ -84,9 +85,7 @@ internal class UtbetalingServiceImpl(
         )
     }
 
-    override fun verifiserOgSimulerUtbetaling(
-        request: UtbetalRequest.NyUtbetaling,
-    ): Either<UtbetalingFeilet, Utbetaling.SimulertUtbetaling> {
+    override fun klargjørNyUtbetaling(request: UtbetalRequest.NyUtbetaling, transactionContext: TransactionContext): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>> {
         return simulerUtbetaling(request).mapLeft {
             UtbetalingFeilet.KunneIkkeSimulere(it)
         }.flatMap { simulertUtbetaling ->
@@ -96,13 +95,21 @@ internal class UtbetalingServiceImpl(
             ).sjekk().getOrHandle {
                 return UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(it).left()
             }
-            simulertUtbetaling.right()
+
+            UtbetalingKlargjortForOversendelse(
+                utbetaling = simulertUtbetaling.forberedOversendelse(transactionContext),
+                callback = { utbetalingsrequest ->
+                    sendUtbetalingTilOS(utbetalingsrequest)
+                        .mapLeft { UtbetalingFeilet.Protokollfeil }
+                },
+            ).right()
         }
     }
 
-    override fun verifiserOgSimulerOpphør(
+    override fun klargjørOpphør(
         request: UtbetalRequest.Opphør,
-    ): Either<UtbetalingFeilet, Utbetaling.SimulertUtbetaling> {
+        transactionContext: TransactionContext,
+    ): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>> {
         return simulerOpphør(request).mapLeft {
             UtbetalingFeilet.KunneIkkeSimulere(it)
         }.flatMap { simulertOpphør ->
@@ -112,7 +119,14 @@ internal class UtbetalingServiceImpl(
             ).sjekk().getOrHandle {
                 return UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(it).left()
             }
-            simulertOpphør.right()
+
+            UtbetalingKlargjortForOversendelse(
+                utbetaling = simulertOpphør.forberedOversendelse(transactionContext),
+                callback = { utbetalingsrequest ->
+                    sendUtbetalingTilOS(utbetalingsrequest)
+                        .mapLeft { UtbetalingFeilet.Protokollfeil }
+                },
+            ).right()
         }
     }
 
@@ -226,38 +240,6 @@ internal class UtbetalingServiceImpl(
             .map { request.utbetaling.toSimulertUtbetaling(it) }
     }
 
-    override fun lagreUtbetaling(
-        utbetaling: Utbetaling.SimulertUtbetaling,
-        transactionContext: TransactionContext?,
-    ): Utbetaling.OversendtUtbetaling.UtenKvittering {
-        val oppdragsmelding = utbetalingPublisher.generateRequest(utbetaling)
-        val oversendtUtbetaling = utbetaling.toOversendtUtbetaling(oppdragsmelding)
-        val context = transactionContext ?: utbetalingRepo.defaultTransactionContext()
-        utbetalingRepo.opprettUtbetaling(
-            oversendtUtbetaling,
-            context,
-        )
-        return oversendtUtbetaling
-    }
-
-    override fun publiserUtbetaling(
-        utbetaling: Utbetaling.SimulertUtbetaling,
-    ): Either<UtbetalingFeilet, Utbetalingsrequest> =
-        utbetalingPublisher.publish(utbetaling).mapLeft {
-            UtbetalingFeilet.Protokollfeil
-        }
-
-    private fun utbetal(utbetaling: Utbetaling.SimulertUtbetaling): Either<UtbetalingFeilet.Protokollfeil, Utbetaling.OversendtUtbetaling.UtenKvittering> {
-        return utbetalingPublisher.publish(utbetaling = utbetaling)
-            .mapLeft {
-                UtbetalingFeilet.Protokollfeil
-            }.map { oppdragsmelding ->
-                val oversendtUtbetaling = utbetaling.toOversendtUtbetaling(oppdragsmelding)
-                utbetalingRepo.opprettUtbetaling(oversendtUtbetaling)
-                oversendtUtbetaling
-            }
-    }
-
     override fun simulerStans(
         request: SimulerUtbetalingRequest.StansRequest,
     ): Either<SimulerStansFeilet, Utbetaling.SimulertUtbetaling> {
@@ -295,9 +277,10 @@ internal class UtbetalingServiceImpl(
         }
     }
 
-    override fun stansUtbetalinger(
+    override fun klargjørStans(
         request: UtbetalRequest.Stans,
-    ): Either<UtbetalStansFeil, Utbetaling.OversendtUtbetaling.UtenKvittering> {
+        transactionContext: TransactionContext,
+    ): Either<UtbetalStansFeil, UtbetalingKlargjortForOversendelse<UtbetalStansFeil.KunneIkkeUtbetale>> {
         return simulerStans(request = request)
             .mapLeft {
                 UtbetalStansFeil.KunneIkkeSimulere(it)
@@ -312,11 +295,31 @@ internal class UtbetalingServiceImpl(
                         ),
                     ).left()
                 }
-                utbetal(simulertStans)
-                    .mapLeft {
-                        UtbetalStansFeil.KunneIkkeUtbetale(it)
-                    }
+
+                UtbetalingKlargjortForOversendelse(
+                    utbetaling = simulertStans.forberedOversendelse(transactionContext),
+                    callback = { utbetalingsrequest ->
+                        sendUtbetalingTilOS(utbetalingsrequest)
+                            .mapLeft { UtbetalStansFeil.KunneIkkeUtbetale(it) }
+                    },
+                ).right()
             }
+    }
+
+    private fun sendUtbetalingTilOS(utbetalingsRequest: Utbetalingsrequest): Either<UtbetalingFeilet.Protokollfeil, Utbetalingsrequest> {
+        return utbetalingPublisher.publishRequest(utbetalingsRequest)
+            .mapLeft {
+                UtbetalingFeilet.Protokollfeil
+            }
+    }
+
+    private fun Utbetaling.SimulertUtbetaling.forberedOversendelse(transactionContext: TransactionContext): Utbetaling.OversendtUtbetaling.UtenKvittering {
+        return toOversendtUtbetaling(utbetalingPublisher.generateRequest(this)).also {
+            utbetalingRepo.opprettUtbetaling(
+                utbetaling = it,
+                transactionContext = transactionContext,
+            )
+        }
     }
 
     override fun simulerGjenopptak(
@@ -355,9 +358,10 @@ internal class UtbetalingServiceImpl(
         }
     }
 
-    override fun gjenopptaUtbetalinger(
+    override fun klargjørGjenopptak(
         request: UtbetalRequest.Gjenopptak,
-    ): Either<UtbetalGjenopptakFeil, Utbetaling.OversendtUtbetaling.UtenKvittering> {
+        transactionContext: TransactionContext,
+    ): Either<UtbetalGjenopptakFeil, UtbetalingKlargjortForOversendelse<UtbetalGjenopptakFeil.KunneIkkeUtbetale>> {
         val sak = sakService.hentSak(request.sakId).getOrElse {
             return UtbetalGjenopptakFeil.KunneIkkeUtbetale(UtbetalingFeilet.FantIkkeSak).left()
         }
@@ -381,10 +385,13 @@ internal class UtbetalingServiceImpl(
                 ).left()
             }
 
-            utbetal(simulertGjenopptak)
-                .mapLeft {
-                    UtbetalGjenopptakFeil.KunneIkkeUtbetale(it)
-                }
+            UtbetalingKlargjortForOversendelse(
+                utbetaling = simulertGjenopptak.forberedOversendelse(transactionContext),
+                callback = { utbetalingsrequest ->
+                    sendUtbetalingTilOS(utbetalingsrequest)
+                        .mapLeft { UtbetalGjenopptakFeil.KunneIkkeUtbetale(it) }
+                },
+            ).right()
         }
     }
 }

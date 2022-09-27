@@ -6,6 +6,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.log
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -16,6 +17,7 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
+import no.nav.su.se.bakover.domain.statistikk.notify
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.sak.SakService
@@ -31,6 +33,7 @@ internal class StansAvYtelseService(
     private val vedtakService: VedtakService,
     private val sakService: SakService,
     private val clock: Clock,
+    private val sessionFactory: SessionFactory,
 ) {
     private val observers: MutableList<StatistikkEventObserver> = mutableListOf()
 
@@ -105,7 +108,7 @@ internal class StansAvYtelseService(
         }
 
         revurderingRepo.lagre(simulertRevurdering)
-        observers.forEach { observer -> observer.handle(StatistikkEvent.Behandling.Stans.Opprettet(simulertRevurdering)) }
+        observers.notify(StatistikkEvent.Behandling.Stans.Opprettet(simulertRevurdering))
 
         return simulertRevurdering.right()
     }
@@ -126,34 +129,67 @@ internal class StansAvYtelseService(
                     ),
                 ).getOrHandle { return KunneIkkeIverksetteStansYtelse.SimuleringIndikererFeilutbetaling.left() }
 
-                val stansUtbetaling = utbetalingService.stansUtbetalinger(
-                    request = UtbetalRequest.Stans(
-                        request = SimulerUtbetalingRequest.Stans(
-                            sakId = iverksattRevurdering.sakId,
-                            saksbehandler = iverksattRevurdering.attesteringer.hentSisteAttestering().attestant,
-                            stansdato = iverksattRevurdering.periode.fraOgMed,
-                        ),
-                        simulering = iverksattRevurdering.simulering,
-                    ),
-                ).getOrHandle { return KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale(it).left() }
+                Either.catch {
+                    sessionFactory.withTransactionContext { tx ->
+                        val stansUtbetaling = utbetalingService.klargjørStans(
+                            request = UtbetalRequest.Stans(
+                                request = SimulerUtbetalingRequest.Stans(
+                                    sakId = iverksattRevurdering.sakId,
+                                    saksbehandler = iverksattRevurdering.attesteringer.hentSisteAttestering().attestant,
+                                    stansdato = iverksattRevurdering.periode.fraOgMed,
+                                ),
+                                simulering = iverksattRevurdering.simulering,
+                            ),
+                            transactionContext = tx,
+                        ).getOrHandle {
+                            throw IverksettTransactionException(
+                                message = """Feil:$it ved opprettelse av utbetaling for revurdering:$revurderingId - ruller tilbake.""",
+                                feil = KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale(it),
+                            )
+                        }
 
-                val vedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, stansUtbetaling.id, clock)
+                        val vedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, stansUtbetaling.utbetaling.id, clock)
 
-                revurderingRepo.lagre(iverksattRevurdering)
-                vedtakService.lagre(vedtak)
-                observers.forEach { observer ->
-                    observer.handle(StatistikkEvent.Behandling.Stans.Iverksatt(vedtak))
-                    observer.handle(StatistikkEvent.Stønadsvedtak(vedtak))
+                        revurderingRepo.lagre(
+                            revurdering = iverksattRevurdering,
+                            transactionContext = tx,
+                        )
+                        vedtakService.lagre(
+                            vedtak = vedtak,
+                            sessionContext = tx,
+                        )
+                        stansUtbetaling.sendUtbetaling()
+                            .getOrHandle {
+                                throw IverksettTransactionException(
+                                    message = """Feil:$it ved publisering av utbetaling for revurdering:$revurderingId - ruller tilbake.""",
+                                    feil = KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale(it),
+                                )
+                            }
+
+                        vedtak
+                    }
+                }.mapLeft {
+                    log.error("Feil ved iverksetting av stans for revurdering: $revurderingId", it)
+                    when (it) {
+                        is IverksettTransactionException -> it.feil
+                        else -> KunneIkkeIverksetteStansYtelse.LagringFeilet
+                    }
+                }.map { vedtak ->
+                    observers.notify(StatistikkEvent.Behandling.Stans.Iverksatt(vedtak))
+                    observers.notify(StatistikkEvent.Stønadsvedtak(vedtak))
+                    iverksattRevurdering
                 }
-
-                return iverksattRevurdering.right()
             }
-
-            else -> KunneIkkeIverksetteStansYtelse.UgyldigTilstand(
-                faktiskTilstand = revurdering::class,
-            ).left()
+            else -> {
+                KunneIkkeIverksetteStansYtelse.UgyldigTilstand(faktiskTilstand = revurdering::class).left()
+            }
         }
     }
+
+    private data class IverksettTransactionException(
+        override val message: String,
+        val feil: KunneIkkeIverksetteStansYtelse,
+    ) : RuntimeException(message)
 
     private fun kopierGjeldendeVedtaksdata(
         sak: Sak,

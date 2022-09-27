@@ -441,6 +441,7 @@ sealed class KunneIkkeIverksetteStansYtelse {
     }
 
     object SimuleringIndikererFeilutbetaling : KunneIkkeIverksetteStansYtelse()
+    object LagringFeilet : KunneIkkeIverksetteStansYtelse()
 }
 
 sealed class GjenopptaYtelseRequest {
@@ -484,6 +485,7 @@ sealed class KunneIkkeIverksetteGjenopptakAvYtelse {
     }
 
     object SimuleringIndikererFeilutbetaling : KunneIkkeIverksetteGjenopptakAvYtelse()
+    object LagringFeilet : KunneIkkeIverksetteGjenopptakAvYtelse()
 }
 
 sealed class KunneIkkeLageBrevutkastForAvsluttingAvRevurdering {
