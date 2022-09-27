@@ -33,7 +33,7 @@ internal fun ApplicationTestBuilder.opprettStans(
                     "fraOgMed": "$fraOgMed",
                     "årsak": "$revurderingsårsak",
                     "begrunnelse": "$begrunnelse"
-                   } 
+                   }
                 """.trimIndent(),
             )
         }.apply {

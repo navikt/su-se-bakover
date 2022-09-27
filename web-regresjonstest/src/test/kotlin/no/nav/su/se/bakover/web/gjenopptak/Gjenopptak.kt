@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.web.SharedRegressionTestData.defaultRequest
 
 internal fun ApplicationTestBuilder.opprettGjenopptak(
     sakId: String,
-    fraOgMed: String,
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
     revurderingsårsak: String = Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING.toString(),
     begrunnelse: String = "Begrunnelse",
@@ -30,10 +29,9 @@ internal fun ApplicationTestBuilder.opprettGjenopptak(
             setBody(
                 """
                    {
-                    "fraOgMed": "$fraOgMed",
                     "årsak": "$revurderingsårsak",
                     "begrunnelse": "$begrunnelse"
-                   } 
+                   }
                 """.trimIndent(),
             )
         }.apply {

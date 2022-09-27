@@ -45,10 +45,10 @@ class GjenopptakAvYtelseService(
         val sak = sakService.hentSak(request.sakId)
             .getOrHandle { return KunneIkkeGjenopptaYtelse.FantIkkeSak.left() }
 
-        val sisteVedtak = sak.vedtakstidslinje()
-            .lastOrNull()?.originaltVedtak ?: return KunneIkkeGjenopptaYtelse.FantIngenVedtak.left()
+        val sisteVedtakPåTidslinje = sak.vedtakstidslinje()
+            .lastOrNull() ?: return KunneIkkeGjenopptaYtelse.FantIngenVedtak.left()
 
-        if (sisteVedtak !is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse) {
+        if (sisteVedtakPåTidslinje.originaltVedtak !is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse) {
             return KunneIkkeGjenopptaYtelse.SisteVedtakErIkkeStans.left()
         } else {
             val simulertRevurdering = when (request) {
@@ -58,7 +58,7 @@ class GjenopptakAvYtelseService(
 
                     val gjeldendeVedtaksdata: GjeldendeVedtaksdata = kopierGjeldendeVedtaksdata(
                         sak = sak,
-                        fraOgMed = sisteVedtak.periode.fraOgMed,
+                        fraOgMed = sisteVedtakPåTidslinje.periode.fraOgMed,
                     ).getOrHandle { return it.left() }
 
                     val simulering = simuler(sak, request).getOrHandle { return it.left() }
@@ -71,7 +71,7 @@ class GjenopptakAvYtelseService(
                                 periode = gjeldendeVedtaksdata.garantertSammenhengendePeriode(),
                                 grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
                                 vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger.tilVilkårsvurderingerRevurdering(),
-                                tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(sisteVedtak.periode.fraOgMed)!!.id,
+                                tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(sisteVedtakPåTidslinje.periode.fraOgMed)!!.id,
                                 saksbehandler = request.saksbehandler,
                                 simulering = simulering.simulering,
                                 revurderingsårsak = request.revurderingsårsak,
@@ -90,7 +90,7 @@ class GjenopptakAvYtelseService(
 
                     val gjeldendeVedtaksdata: GjeldendeVedtaksdata = kopierGjeldendeVedtaksdata(
                         sak = sak,
-                        fraOgMed = sisteVedtak.periode.fraOgMed,
+                        fraOgMed = sisteVedtakPåTidslinje.periode.fraOgMed,
                     ).getOrHandle { return it.left() }
 
                     val simulering = simuler(sak, request).getOrHandle { return it.left() }
@@ -101,7 +101,7 @@ class GjenopptakAvYtelseService(
                         periode = gjeldendeVedtaksdata.garantertSammenhengendePeriode(),
                         grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
                         vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger.tilVilkårsvurderingerRevurdering(),
-                        tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(sisteVedtak.periode.fraOgMed)!!.id,
+                        tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(sisteVedtakPåTidslinje.periode.fraOgMed)!!.id,
                         saksbehandler = request.saksbehandler,
                         simulering = simulering.simulering,
                         revurderingsårsak = request.revurderingsårsak,
