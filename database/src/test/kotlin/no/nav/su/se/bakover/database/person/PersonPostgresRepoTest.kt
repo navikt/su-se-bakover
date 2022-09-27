@@ -300,7 +300,7 @@ internal class PersonPostgresRepoTest {
         val dataSource: DataSource,
         val repo: PersonPostgresRepo,
         val innvilgetSøknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget,
-        val utbetaling: Utbetaling.UtbetalingKlargjortForOversendelse.MedKvittering,
+        val utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering,
         val revurdering: Revurdering,
     )
 

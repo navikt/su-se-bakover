@@ -55,16 +55,16 @@ internal class UtbetalingServiceImpl(
     override fun oppdaterMedKvittering(
         utbetalingId: UUID30,
         kvittering: Kvittering,
-    ): Either<FantIkkeUtbetaling, Utbetaling.UtbetalingKlargjortForOversendelse.MedKvittering> {
+    ): Either<FantIkkeUtbetaling, Utbetaling.OversendtUtbetaling.MedKvittering> {
         return utbetalingRepo.hentUtbetaling(utbetalingId)
             ?.let { utbetaling ->
                 when (utbetaling) {
-                    is Utbetaling.UtbetalingKlargjortForOversendelse.MedKvittering -> {
+                    is Utbetaling.OversendtUtbetaling.MedKvittering -> {
                         log.info("Kvittering er allerede mottatt for utbetaling: ${utbetaling.id}")
                         utbetaling
                     }
 
-                    is Utbetaling.UtbetalingKlargjortForOversendelse.UtenKvittering -> {
+                    is Utbetaling.OversendtUtbetaling.UtenKvittering -> {
                         log.info("Oppdaterer utbetaling med kvittering fra Oppdrag")
                         utbetaling.toKvittertUtbetaling(kvittering).also {
                             utbetalingRepo.oppdaterMedKvittering(it)
@@ -313,7 +313,7 @@ internal class UtbetalingServiceImpl(
             }
     }
 
-    private fun Utbetaling.SimulertUtbetaling.forberedOversendelse(transactionContext: TransactionContext): Utbetaling.UtbetalingKlargjortForOversendelse.UtenKvittering {
+    private fun Utbetaling.SimulertUtbetaling.forberedOversendelse(transactionContext: TransactionContext): Utbetaling.OversendtUtbetaling.UtenKvittering {
         return toOversendtUtbetaling(utbetalingPublisher.generateRequest(this)).also {
             utbetalingRepo.opprettUtbetaling(
                 utbetaling = it,

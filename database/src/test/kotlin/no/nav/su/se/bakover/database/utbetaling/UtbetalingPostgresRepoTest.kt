@@ -25,7 +25,7 @@ internal class UtbetalingPostgresRepoTest {
             val utbetalingMedKvittering =
                 testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().third
             val hentet =
-                repo.hentUtbetaling(utbetalingMedKvittering.avstemmingsnøkkel) as Utbetaling.UtbetalingKlargjortForOversendelse.MedKvittering
+                repo.hentUtbetaling(utbetalingMedKvittering.avstemmingsnøkkel) as Utbetaling.OversendtUtbetaling.MedKvittering
             utbetalingMedKvittering shouldBe hentet
         }
     }
@@ -106,7 +106,7 @@ internal class UtbetalingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.utbetalingRepo
-            val utbetalingMedKvittering: Utbetaling.UtbetalingKlargjortForOversendelse.MedKvittering =
+            val utbetalingMedKvittering: Utbetaling.OversendtUtbetaling.MedKvittering =
                 testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().third
             repo.hentUtbetaling(utbetalingMedKvittering.id) shouldBe utbetalingMedKvittering
         }
@@ -117,7 +117,7 @@ internal class UtbetalingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.utbetalingRepo
-            val utbetalingMedKvittering: Utbetaling.UtbetalingKlargjortForOversendelse.MedKvittering =
+            val utbetalingMedKvittering: Utbetaling.OversendtUtbetaling.MedKvittering =
                 testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
                     utbetalingslinjer = nonEmptyListOf(
                         utbetalingslinje(

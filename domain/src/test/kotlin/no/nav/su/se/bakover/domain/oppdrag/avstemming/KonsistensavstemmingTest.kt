@@ -953,7 +953,7 @@ internal class KonsistensavstemmingTest {
         opprettet: Tidspunkt = fixedTidspunkt,
         utbetalingsLinjer: NonEmptyList<Utbetalingslinje>,
         behandler: NavIdentBruker = defaultAttestant,
-    ): Utbetaling.UtbetalingKlargjortForOversendelse.UtenKvittering {
+    ): Utbetaling.OversendtUtbetaling.UtenKvittering {
         return Utbetaling.UtbetalingForSimulering(
             id = id,
             opprettet = opprettet,

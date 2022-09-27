@@ -843,7 +843,7 @@ fun oversendtUtbetaling(
     ),
     eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
     utbetalingsrequest: Utbetalingsrequest = Utbetalingsrequest(""),
-): Utbetaling.UtbetalingKlargjortForOversendelse.UtenKvittering {
+): Utbetaling.OversendtUtbetaling.UtenKvittering {
     return nyUtbetaling(
         uføregrunnlag = uføregrunnlag,
         beregning = beregning,
@@ -882,7 +882,7 @@ fun kvittertUtbetaling(
         "",
         mottattTidspunkt = fixedTidspunkt,
     ),
-): Utbetaling.UtbetalingKlargjortForOversendelse.MedKvittering {
+): Utbetaling.OversendtUtbetaling.MedKvittering {
     return oversendtUtbetaling(
         uføregrunnlag = uføregrunnlag,
         beregning = beregning,

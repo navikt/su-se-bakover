@@ -30,7 +30,7 @@ data class UtbetalingMapper(
     val behandler: NavIdentBruker,
     val sakstype: Sakstype,
 ) {
-    fun map(): Utbetaling.UtbetalingKlargjortForOversendelse {
+    fun map(): Utbetaling.OversendtUtbetaling {
         return Utbetaling.UtbetalingForSimulering(
             id = id,
             opprettet = opprettet,

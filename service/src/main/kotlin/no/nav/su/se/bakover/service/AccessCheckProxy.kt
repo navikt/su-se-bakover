@@ -604,7 +604,7 @@ open class AccessCheckProxy(
             },
             ferdigstillVedtak = object : FerdigstillVedtakService {
                 override fun ferdigstillVedtakEtterUtbetaling(
-                    utbetaling: Utbetaling.UtbetalingKlargjortForOversendelse.MedKvittering,
+                    utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering,
                 ) = kastKanKunKallesFraAnnenService()
 
                 override fun lukkOppgaveMedBruker(behandling: Behandling) = kastKanKunKallesFraAnnenService()

@@ -198,7 +198,7 @@ internal fun oversendtUtbetalingUtenKvittering(
     søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget,
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.database.avstemmingsnøkkel,
     utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(utbetalingslinje(søknadsbehandling.periode)),
-): Utbetaling.UtbetalingKlargjortForOversendelse.UtenKvittering {
+): Utbetaling.OversendtUtbetaling.UtenKvittering {
     return oversendtUtbetalingUtenKvittering(
         id = id,
         fnr = søknadsbehandling.fnr,
@@ -214,7 +214,7 @@ internal fun oversendtUtbetalingUtenKvittering(
     revurdering: RevurderingTilAttestering,
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.database.avstemmingsnøkkel,
     utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(utbetalingslinje(revurdering.periode)),
-): Utbetaling.UtbetalingKlargjortForOversendelse.UtenKvittering {
+): Utbetaling.OversendtUtbetaling.UtenKvittering {
     return oversendtUtbetalingUtenKvittering(
         id = id,
         fnr = revurdering.fnr,
@@ -232,7 +232,7 @@ internal fun oversendtUtbetalingUtenKvittering(
     saksnummer: Saksnummer,
     utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(utbetalingslinje()),
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.database.avstemmingsnøkkel,
-): Utbetaling.UtbetalingKlargjortForOversendelse.UtenKvittering {
+): Utbetaling.OversendtUtbetaling.UtenKvittering {
     return Utbetaling.UtbetalingForSimulering(
         id = id,
         opprettet = fixedTidspunkt,
@@ -571,7 +571,7 @@ internal class TestDataHelper(
     /**
      * Persisterer:
      * 1. [Søknadsbehandling.Iverksatt.Innvilget]
-     * 1. [Utbetaling.UtbetalingKlargjortForOversendelse]:
+     * 1. [Utbetaling.OversendtUtbetaling]:
      *    1. [Utbetaling.OversendtUtbetaling.UtenKvittering]
      *    1. [Utbetaling.OversendtUtbetaling.MedKvittering]
      * 1. [VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling]
@@ -603,10 +603,10 @@ internal class TestDataHelper(
             vilkårsvurderinger = vilkårsvurderinger,
             grunnlagsdata = grunnlagsdata,
         ).second,
-    ): Triple<Sak, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling, Utbetaling.UtbetalingKlargjortForOversendelse.MedKvittering> {
+    ): Triple<Sak, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling, Utbetaling.OversendtUtbetaling.MedKvittering> {
         assert(søknadsbehandling.sakId == sakId && søknadsbehandling.søknad.sakId == sakId && søknadsbehandling.søknad.id == søknadId)
 
-        val utbetalingMedKvittering: Utbetaling.UtbetalingKlargjortForOversendelse.MedKvittering = oversendtUtbetalingUtenKvittering(
+        val utbetalingMedKvittering: Utbetaling.OversendtUtbetaling.MedKvittering = oversendtUtbetalingUtenKvittering(
             id = utbetalingId,
             søknadsbehandling = søknadsbehandling,
             avstemmingsnøkkel = avstemmingsnøkkel,
@@ -634,7 +634,7 @@ internal class TestDataHelper(
     /**
      * Persisterer:
      * 1. [Søknadsbehandling.Iverksatt.Innvilget]
-     * 1. [Utbetaling.UtbetalingKlargjortForOversendelse.UtenKvittering]
+     * 1. [Utbetaling.OversendtUtbetaling.UtenKvittering]
      * 1. [VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling]
      */
     fun persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingUtenKvittering(
@@ -649,10 +649,10 @@ internal class TestDataHelper(
             søknadId = søknadId,
             stønadsperiode = stønadsperiode,
         ).second,
-    ): Pair<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling, Utbetaling.UtbetalingKlargjortForOversendelse.UtenKvittering> {
+    ): Pair<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling, Utbetaling.OversendtUtbetaling.UtenKvittering> {
         assert(søknadsbehandling.sakId == sakId && søknadsbehandling.søknad.sakId == sakId && søknadsbehandling.søknad.id == søknadId)
 
-        val utbetalingUtenKvittering: Utbetaling.UtbetalingKlargjortForOversendelse.UtenKvittering = oversendtUtbetalingUtenKvittering(
+        val utbetalingUtenKvittering: Utbetaling.OversendtUtbetaling.UtenKvittering = oversendtUtbetalingUtenKvittering(
             id = utbetalingId,
             søknadsbehandling = søknadsbehandling,
             avstemmingsnøkkel = avstemmingsnøkkel,
@@ -692,7 +692,7 @@ internal class TestDataHelper(
 
     /**
      * Persisterer:
-     * 1. [Utbetaling.UtbetalingKlargjortForOversendelse]:
+     * 1. [Utbetaling.OversendtUtbetaling]:
      *    1. [Utbetaling.OversendtUtbetaling.UtenKvittering]
      *    1. [Utbetaling.OversendtUtbetaling.MedKvittering]
      * 1. [VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering]
@@ -703,7 +703,7 @@ internal class TestDataHelper(
         avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.database.avstemmingsnøkkel,
         utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(utbetalingslinje(periode)),
         utbetalingId: UUID30 = UUID30.randomUUID(),
-    ): Pair<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering, Utbetaling.UtbetalingKlargjortForOversendelse.MedKvittering> {
+    ): Pair<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering, Utbetaling.OversendtUtbetaling.MedKvittering> {
         val utbetaling = oversendtUtbetalingUtenKvittering(
             id = utbetalingId,
             revurdering = revurdering,

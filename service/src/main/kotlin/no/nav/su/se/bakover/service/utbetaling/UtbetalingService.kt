@@ -23,7 +23,7 @@ interface UtbetalingService {
     fun oppdaterMedKvittering(
         utbetalingId: UUID30,
         kvittering: Kvittering,
-    ): Either<FantIkkeUtbetaling, Utbetaling.UtbetalingKlargjortForOversendelse.MedKvittering>
+    ): Either<FantIkkeUtbetaling, Utbetaling.OversendtUtbetaling.MedKvittering>
 
     fun simulerUtbetaling(
         request: SimulerUtbetalingRequest.NyUtbetalingRequest,

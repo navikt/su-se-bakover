@@ -8,10 +8,10 @@ import no.nav.su.se.bakover.domain.oppdrag.Kvittering.Utbetalingsstatus.OK_MED_V
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 
 internal class DetaljBuilder(
-    internal val utbetalinger: List<Utbetaling.UtbetalingKlargjortForOversendelse>,
+    internal val utbetalinger: List<Utbetaling.OversendtUtbetaling>,
 ) {
     fun build(): List<Detaljdata> =
-        utbetalinger.filter { it is Utbetaling.UtbetalingKlargjortForOversendelse.UtenKvittering || it.kvittertMedFeilEllerVarsel() }
+        utbetalinger.filter { it is Utbetaling.OversendtUtbetaling.UtenKvittering || it.kvittertMedFeilEllerVarsel() }
             .map {
                 Detaljdata(
                     detaljType = mapStatus(it),
@@ -21,9 +21,9 @@ internal class DetaljBuilder(
                 )
             }
 
-    private fun mapStatus(utbetaling: Utbetaling.UtbetalingKlargjortForOversendelse): Detaljdata.Detaljtype = when (utbetaling) {
-        is Utbetaling.UtbetalingKlargjortForOversendelse.MedKvittering -> mapUtbetalingsstatus(utbetaling.kvittering.utbetalingsstatus)
-        is Utbetaling.UtbetalingKlargjortForOversendelse.UtenKvittering -> Detaljdata.Detaljtype.MANGLENDE_KVITTERING
+    private fun mapStatus(utbetaling: Utbetaling.OversendtUtbetaling): Detaljdata.Detaljtype = when (utbetaling) {
+        is Utbetaling.OversendtUtbetaling.MedKvittering -> mapUtbetalingsstatus(utbetaling.kvittering.utbetalingsstatus)
+        is Utbetaling.OversendtUtbetaling.UtenKvittering -> Detaljdata.Detaljtype.MANGLENDE_KVITTERING
     }
 
     private fun mapUtbetalingsstatus(utbetalingsstatus: Utbetalingsstatus) = when (utbetalingsstatus) {
@@ -33,5 +33,5 @@ internal class DetaljBuilder(
     }
 
     private fun Utbetaling.kvittertMedFeilEllerVarsel() =
-        this is Utbetaling.UtbetalingKlargjortForOversendelse.MedKvittering && kvittertMedFeilEllerVarsel()
+        this is Utbetaling.OversendtUtbetaling.MedKvittering && kvittertMedFeilEllerVarsel()
 }

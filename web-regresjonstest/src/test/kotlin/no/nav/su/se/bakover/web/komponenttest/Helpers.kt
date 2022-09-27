@@ -17,7 +17,7 @@ import java.math.BigDecimal
 
 internal fun AppComponents.mottaKvitteringForUtbetalingFraØkonomi(utbetalingId: UUID30): String {
     return services.utbetaling.hentUtbetaling(utbetalingId).getOrFail()
-        .shouldBeType<Utbetaling.UtbetalingKlargjortForOversendelse.UtenKvittering>().let {
+        .shouldBeType<Utbetaling.OversendtUtbetaling.UtenKvittering>().let {
             lagUtbetalingsKvittering(it.utbetalingsrequest)
         }.also {
             consumers.utbetalingKvitteringConsumer.onMessage(it)

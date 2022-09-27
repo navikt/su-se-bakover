@@ -151,7 +151,7 @@ fun nyUtbetalingOversendtMedKvittering(
     sakOgBehandling: Pair<Sak, Behandling>,
     beregning: Beregning,
     clock: Clock,
-): Utbetaling.UtbetalingKlargjortForOversendelse.MedKvittering {
+): Utbetaling.OversendtUtbetaling.MedKvittering {
     return sakOgBehandling.let { (_, _) ->
         nyUtbetalingOversendUtenKvittering(
             sakOgBehandling = sakOgBehandling,
@@ -165,7 +165,7 @@ fun nyUtbetalingOversendUtenKvittering(
     sakOgBehandling: Pair<Sak, Behandling>,
     beregning: Beregning,
     clock: Clock,
-): Utbetaling.UtbetalingKlargjortForOversendelse.UtenKvittering {
+): Utbetaling.OversendtUtbetaling.UtenKvittering {
     return sakOgBehandling.let { (_, _) ->
         nyUtbetalingSimulert(
             sakOgBehandling = sakOgBehandling,
@@ -227,7 +227,7 @@ fun opphørUtbetalingOversendUtenKvittering(
     sakOgBehandling: Pair<Sak, Behandling>,
     opphørsperiode: Periode,
     clock: Clock,
-): Utbetaling.UtbetalingKlargjortForOversendelse.UtenKvittering {
+): Utbetaling.OversendtUtbetaling.UtenKvittering {
     return sakOgBehandling.let { (_, _) ->
         opphørUtbetalingSimulert(
             sakOgBehandling = sakOgBehandling,
@@ -302,7 +302,7 @@ fun oversendtUtbetalingUtenKvittering(
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.avstemmingsnøkkel,
     eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
     beregning: Beregning = beregning(periode),
-): Utbetaling.UtbetalingKlargjortForOversendelse.UtenKvittering {
+): Utbetaling.OversendtUtbetaling.UtenKvittering {
     return Utbetaling.UtbetalingForSimulering(
         id = id,
         opprettet = Tidspunkt.now(clock),
@@ -407,7 +407,7 @@ fun oversendtUtbetalingMedKvittering(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
     clock: Clock = fixedClock,
-): Utbetaling.UtbetalingKlargjortForOversendelse.MedKvittering {
+): Utbetaling.OversendtUtbetaling.MedKvittering {
     return oversendtUtbetalingUtenKvittering(
         id = id,
         periode = periode,
@@ -478,7 +478,7 @@ fun oversendtStansUtbetalingUtenKvittering(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     clock: Clock = fixedClock,
     eksisterendeUtbetalinger: List<Utbetaling> = listOf(oversendtUtbetalingMedKvittering(clock = clock)),
-): Utbetaling.UtbetalingKlargjortForOversendelse.UtenKvittering {
+): Utbetaling.OversendtUtbetaling.UtenKvittering {
     return simulertStansUtbetaling(
         stansDato = stansDato,
         fnr = fnr,
@@ -550,7 +550,7 @@ fun oversendtGjenopptakUtbetalingUtenKvittering(
             stansDato = LocalDate.now(clock).plusMonths(1).startOfMonth(),
         ),
     ),
-): Utbetaling.UtbetalingKlargjortForOversendelse.UtenKvittering {
+): Utbetaling.OversendtUtbetaling.UtenKvittering {
     return simulertGjenopptakUtbetaling(
         fnr = fnr,
         sakId = sakId,

@@ -70,7 +70,7 @@ class TilbakekrevingKomponentTest {
             appComponents.mottaKvitteringForUtbetalingFraØkonomi(vedtak.utbetalingId)
 
             appComponents.services.utbetaling.hentUtbetaling(vedtak.utbetalingId).getOrFail()
-                .shouldBeType<Utbetaling.UtbetalingKlargjortForOversendelse.MedKvittering>()
+                .shouldBeType<Utbetaling.OversendtUtbetaling.MedKvittering>()
 
             appComponents.services.brev.hentDokumenterFor(HentDokumenterForIdType.Vedtak(vedtak.id)).also {
                 it shouldBe emptyList()
