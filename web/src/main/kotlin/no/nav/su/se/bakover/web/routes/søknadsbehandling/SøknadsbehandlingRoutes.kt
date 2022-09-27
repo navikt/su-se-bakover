@@ -63,6 +63,7 @@ import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeSaksbehandlerEllerA
 import no.nav.su.se.bakover.web.routes.Feilresponser.feilVedGenereringAvDokument
 import no.nav.su.se.bakover.web.routes.Feilresponser.kunneIkkeSimulere
 import no.nav.su.se.bakover.web.routes.Feilresponser.lagringFeilet
+import no.nav.su.se.bakover.web.routes.Feilresponser.sakAvventerKravgrunnlagForTilbakekreving
 import no.nav.su.se.bakover.web.routes.Feilresponser.tilResultat
 import no.nav.su.se.bakover.web.routes.Feilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.web.routes.sak.sakPath
@@ -402,6 +403,7 @@ internal fun Route.søknadsbehandlingRoutes(
             )
 
             KunneIkkeIverksette.LagringFeilet -> lagringFeilet
+            KunneIkkeIverksette.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving -> sakAvventerKravgrunnlagForTilbakekreving
         }
     }
 

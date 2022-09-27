@@ -366,6 +366,11 @@ internal class SøknadsbehandlingServiceImpl(
         ).flatMap { iverksattBehandling ->
             when (iverksattBehandling) {
                 is Søknadsbehandling.Iverksatt.Innvilget -> {
+                    tilbakekrevingService.hentAvventerKravgrunnlag(søknadsbehandling.sakId)
+                        .ifNotEmpty {
+                            return KunneIkkeIverksette.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving.left()
+                        }
+
                     Either.catch {
                         sessionFactory.withTransactionContext { tx ->
                             /**

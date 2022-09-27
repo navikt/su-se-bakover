@@ -7,6 +7,7 @@ import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.beOfType
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -20,6 +21,7 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeTilbakekrev
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
 import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
@@ -32,6 +34,7 @@ import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.service.kontrollsamtale.OpprettPlanlagtKontrollsamtaleResultat
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.attestant
+import no.nav.su.se.bakover.test.attesteringIverksatt
 import no.nav.su.se.bakover.test.avkortingsvarselUtenlandsopphold
 import no.nav.su.se.bakover.test.dokumentUtenMetadataVedtak
 import no.nav.su.se.bakover.test.fixedClock
@@ -40,6 +43,7 @@ import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.kontrollsamtale
 import no.nav.su.se.bakover.test.nyUtbetalingOversendUtenKvittering
+import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulerNyUtbetaling
@@ -170,6 +174,9 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 utbetalingService = mock {
                     on { klargjørNyUtbetaling(any(), any()) } doReturn UtbetalingFeilet.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL).left()
                 },
+                tilbakekrevingService = mock {
+                    on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
+                },
             )
 
             val response = serviceAndMocks.søknadsbehandlingService.iverksett(
@@ -193,6 +200,9 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     on { klargjørNyUtbetaling(any(), any()) } doReturn UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(
                         KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UliktBeløp,
                     ).left()
+                },
+                tilbakekrevingService = mock {
+                    on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
                 },
             )
 
@@ -467,6 +477,9 @@ internal class SøknadsbehandlingServiceIverksettTest {
                         )
                     } doReturn OpprettPlanlagtKontrollsamtaleResultat.Opprettet(kontrollsamtale())
                 },
+                tilbakekrevingService = mock {
+                    on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
+                },
             )
             serviceAndMocks.søknadsbehandlingService.iverksett(
                 SøknadsbehandlingService.IverksettRequest(
@@ -509,6 +522,9 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 },
                 vedtakRepo = mock {
                     doNothing().whenever(it).lagre(any(), anyOrNull())
+                },
+                tilbakekrevingService = mock {
+                    on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
                 },
             )
 
@@ -586,6 +602,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             verify(utbetalingKlargjortForOversendelse.callback).invoke(utbetalingsRequest)
             verify(serviceAndMocks.behandlingMetrics).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.PERSISTERT)
             verify(serviceAndMocks.observer, times(2)).handle(any())
+            verify(serviceAndMocks.tilbakekrevingService).hentAvventerKravgrunnlag(argThat<UUID> { it shouldBe expected.sakId })
             serviceAndMocks.verifyNoMoreInteractions()
         }
 
@@ -622,6 +639,9 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 },
                 vedtakRepo = mock {
                     doNothing().whenever(it).lagre(any(), anyOrNull())
+                },
+                tilbakekrevingService = mock {
+                    on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
                 },
             )
 
@@ -685,6 +705,9 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 vedtakRepo = mock {
                     doNothing().whenever(it).lagre(any(), anyOrNull())
                 },
+                tilbakekrevingService = mock {
+                    on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
+                },
             )
 
             serviceAndMocks.søknadsbehandlingService.iverksett(
@@ -731,6 +754,9 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 vedtakRepo = mock {
                     doNothing().whenever(it).lagre(any(), anyOrNull())
                 },
+                tilbakekrevingService = mock {
+                    on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
+                },
             )
 
             serviceAndMocks.søknadsbehandlingService.iverksett(
@@ -766,6 +792,9 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 vedtakRepo = mock {
                     doNothing().whenever(it).lagre(any(), anyOrNull())
                 },
+                tilbakekrevingService = mock {
+                    on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
+                },
             )
 
             serviceAndMocks.søknadsbehandlingService.iverksett(
@@ -800,6 +829,9 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 vedtakRepo = mock {
                     doNothing().whenever(it).lagre(any(), anyOrNull())
                 },
+                tilbakekrevingService = mock {
+                    on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
+                },
             )
 
             serviceAndMocks.søknadsbehandlingService.iverksett(
@@ -833,6 +865,9 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 vedtakRepo = mock {
                     doThrow(RuntimeException()).whenever(it).lagre(any(), anyOrNull())
                 },
+                tilbakekrevingService = mock {
+                    on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
+                },
             )
 
             serviceAndMocks.søknadsbehandlingService.iverksett(
@@ -843,6 +878,35 @@ internal class SøknadsbehandlingServiceIverksettTest {
             ) shouldBe KunneIkkeIverksette.LagringFeilet.left()
 
             verify(utbetalingMedCallback, never()).sendUtbetaling()
+        }
+    }
+
+    @Test
+    fun `feil ved åpent kravgrunnlag`() {
+        val (_, søknadsbehandlingTilAttestering) = søknadsbehandlingTilAttesteringInnvilget()
+
+        SøknadsbehandlingServiceAndMocks(
+            søknadsbehandlingRepo = mock {
+                on { hent(any()) } doReturn søknadsbehandlingTilAttestering
+            },
+            tilbakekrevingService = mock {
+                on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn listOf(
+                    IkkeTilbakekrev(
+                        id = UUID.randomUUID(),
+                        opprettet = Tidspunkt.now(),
+                        sakId = søknadsbehandlingTilAttestering.sakId,
+                        revurderingId = søknadsbehandlingTilAttestering.id,
+                        periode = søknadsbehandlingTilAttestering.periode,
+                    ).fullførBehandling(),
+                )
+            },
+        ).also {
+            it.søknadsbehandlingService.iverksett(
+                SøknadsbehandlingService.IverksettRequest(
+                    behandlingId = søknadsbehandlingTilAttestering.id,
+                    attestering = attesteringIverksatt(),
+                ),
+            ) shouldBe KunneIkkeIverksette.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving.left()
         }
     }
 }
