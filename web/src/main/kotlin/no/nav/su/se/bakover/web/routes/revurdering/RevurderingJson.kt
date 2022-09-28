@@ -207,6 +207,7 @@ internal data class AvsluttetRevurderingJson(
     val simulering: SimuleringJson?,
     val fritekstTilBrev: String,
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
+    val avsluttetTidspunkt: String,
 ) : RevurderingJson()
 
 internal data class StansAvUtbetalingJson(
@@ -454,6 +455,7 @@ internal fun Revurdering.toJson(satsFactory: SatsFactory): RevurderingJson = whe
         simulering = simulering?.toJson(),
         attesteringer = attesteringer.toJson(),
         sakstype = sakstype.toJson(),
+        avsluttetTidspunkt = DateTimeFormatter.ISO_INSTANT.format(tidspunktAvsluttet),
     )
 }
 

@@ -196,7 +196,8 @@ internal class VurderKlageTest {
                   "vedtaksvurdering":null,
                   "attesteringer":[],
                   "klagevedtakshistorikk": [],
-                  "avsluttet": "KAN_AVSLUTTES"
+                  "avsluttet": "KAN_AVSLUTTES",
+                  "avsluttetTidspunkt": null
                 }
                     """.trimIndent(),
                     bodyAsText(),

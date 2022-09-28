@@ -160,7 +160,8 @@ internal class AvvistKlageTest {
                   "attesteringer":[],
                   "fritekstTilBrev": "dette er en fritekst med person opplysninger",
                   "klagevedtakshistorikk": [],
-                  "avsluttet": "KAN_AVSLUTTES"
+                  "avsluttet": "KAN_AVSLUTTES",
+                  "avsluttetTidspunkt": null
                 }
                     """.trimIndent(),
                     this.bodyAsText(),

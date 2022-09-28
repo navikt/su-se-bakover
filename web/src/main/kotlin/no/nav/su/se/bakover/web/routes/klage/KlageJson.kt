@@ -37,6 +37,7 @@ internal data class KlageJson(
     val attesteringer: List<AttesteringJson>,
     val klagevedtakshistorikk: List<VedtattUtfallJson>,
     val avsluttet: Avsluttet,
+    val avsluttetTidspunkt: String? = null,
 ) {
     enum class Avsluttet {
         KAN_AVSLUTTES,
@@ -283,6 +284,7 @@ internal fun Klage.toJson(): KlageJson {
         )
         is AvsluttetKlage -> this.hentUnderliggendeKlage().toJson().copy(
             avsluttet = KlageJson.Avsluttet.ER_AVSLUTTET,
+            avsluttetTidspunkt = this.tidspunktAvsluttet.toString(),
         )
     }
 }
