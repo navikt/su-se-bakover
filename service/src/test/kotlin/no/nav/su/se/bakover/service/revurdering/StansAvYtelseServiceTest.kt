@@ -82,7 +82,7 @@ internal class StansAvYtelseServiceTest {
 
             verify(it.sakService).hentSak(
                 sakId = sakId,
-                sessionContext = TestSessionFactory.transactionContext
+                sessionContext = TestSessionFactory.transactionContext,
             )
             it.verifyNoMoreInteractions()
         }
@@ -149,7 +149,7 @@ internal class StansAvYtelseServiceTest {
 
             verify(it.sakService).hentSak(
                 sakId = sakId,
-                sessionContext = TestSessionFactory.transactionContext
+                sessionContext = TestSessionFactory.transactionContext,
             )
             verify(it.utbetalingService).simulerStans(
                 request = SimulerUtbetalingRequest.Stans(
@@ -197,7 +197,7 @@ internal class StansAvYtelseServiceTest {
 
             verify(it.sakService).hentSak(
                 sakId = sakId,
-                sessionContext = TestSessionFactory.transactionContext
+                sessionContext = TestSessionFactory.transactionContext,
             )
             verify(it.utbetalingService).simulerStans(
                 request = SimulerUtbetalingRequest.Stans(
@@ -208,7 +208,7 @@ internal class StansAvYtelseServiceTest {
             )
             verify(it.revurderingRepo).lagre(
                 revurdering = argThat { it shouldBe response },
-                transactionContext = argThat { it shouldBe TestSessionFactory.transactionContext }
+                transactionContext = argThat { it shouldBe TestSessionFactory.transactionContext },
             )
             verify(it.observer).handle(
                 argThat { event ->
@@ -258,7 +258,7 @@ internal class StansAvYtelseServiceTest {
 
             verify(it.revurderingRepo).hent(
                 id = simulertStans.id,
-                sessionContext = TestSessionFactory.transactionContext
+                sessionContext = TestSessionFactory.transactionContext,
             )
             verify(it.utbetalingService).klargjørStans(
                 request = UtbetalRequest.Stans(
@@ -310,7 +310,7 @@ internal class StansAvYtelseServiceTest {
 
         verify(serviceAndMocks.revurderingRepo).hent(
             id = simulertStans.id,
-            sessionContext = TestSessionFactory.transactionContext
+            sessionContext = TestSessionFactory.transactionContext,
         )
         verify(serviceAndMocks.utbetalingService).klargjørStans(
             request = UtbetalRequest.Stans(
@@ -400,7 +400,7 @@ internal class StansAvYtelseServiceTest {
             )
             verify(it.revurderingRepo).hent(
                 id = enRevurdering.id,
-                sessionContext = TestSessionFactory.transactionContext
+                sessionContext = TestSessionFactory.transactionContext,
             )
             it.verifyNoMoreInteractions()
         }
@@ -458,11 +458,11 @@ internal class StansAvYtelseServiceTest {
             )
             verify(it.sakService).hentSak(
                 sakId = sak.id,
-                sessionContext = TestSessionFactory.transactionContext
+                sessionContext = TestSessionFactory.transactionContext,
             )
             verify(it.revurderingRepo).lagre(
                 revurdering = argThat { it shouldBe response },
-                transactionContext = argThat { it shouldBe TestSessionFactory.transactionContext }
+                transactionContext = argThat { it shouldBe TestSessionFactory.transactionContext },
             )
             it.verifyNoMoreInteractions()
         }
@@ -495,7 +495,7 @@ internal class StansAvYtelseServiceTest {
 
             verify(it.revurderingRepo).hent(
                 id = eksisterende.id,
-                sessionContext = TestSessionFactory.transactionContext
+                sessionContext = TestSessionFactory.transactionContext,
             )
             it.verifyNoMoreInteractions()
         }
@@ -534,7 +534,7 @@ internal class StansAvYtelseServiceTest {
 
             verify(sakServiceMock).hentSak(
                 sakId = sakId,
-                sessionContext = TestSessionFactory.transactionContext
+                sessionContext = TestSessionFactory.transactionContext,
             )
             it.verifyNoMoreInteractions()
         }

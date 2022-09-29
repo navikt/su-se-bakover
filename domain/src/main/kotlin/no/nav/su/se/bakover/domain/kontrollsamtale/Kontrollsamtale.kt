@@ -132,7 +132,7 @@ enum class Kontrollsamtalestatus(val value: String) {
     INNKALT("INNKALT"),
     GJENNOMFØRT("GJENNOMFØRT"),
     ANNULLERT("ANNULLERT"),
-    IKKE_MØTT_INNEN_FRIST("IKKE_MØTT_INNEN_FRIST")
+    IKKE_MØTT_INNEN_FRIST("IKKE_MØTT_INNEN_FRIST"),
 }
 
 fun regnUtFristFraInnkallingsdato(innkallingsdato: LocalDate): LocalDate {

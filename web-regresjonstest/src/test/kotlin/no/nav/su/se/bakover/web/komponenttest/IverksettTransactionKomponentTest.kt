@@ -54,9 +54,9 @@ internal class IverksettTransactionKomponentTest {
 
         withKomptestApplication(
             clock = klokke,
-            clients = { databaseRepos ->
+            clientsBuilder = { databaseRepos, clock ->
                 TestClientsBuilder(
-                    clock = klokke,
+                    clock = clock,
                     databaseRepos = databaseRepos,
                 ).build(applicationConfig()).let {
                     it.copy(
@@ -106,9 +106,9 @@ internal class IverksettTransactionKomponentTest {
 
         withKomptestApplication(
             clock = klokke,
-            clients = { databaseRepos ->
+            clientsBuilder = { databaseRepos, clock ->
                 TestClientsBuilder(
-                    clock = klokke,
+                    clock = clock,
                     databaseRepos = databaseRepos,
                 ).build(applicationConfig()).let {
                     it.copy(
@@ -169,9 +169,9 @@ internal class IverksettTransactionKomponentTest {
 
         withKomptestApplication(
             clock = klokke,
-            clients = { databaseRepos ->
+            clientsBuilder = { databaseRepos, clock ->
                 TestClientsBuilder(
-                    clock = klokke,
+                    clock = clock,
                     databaseRepos = databaseRepos,
                 ).build(applicationConfig()).let {
                     it.copy(
@@ -242,9 +242,9 @@ internal class IverksettTransactionKomponentTest {
 
         withKomptestApplication(
             clock = klokke,
-            clients = { databaseRepos ->
+            clientsBuilder = { databaseRepos, clock ->
                 TestClientsBuilder(
-                    clock = klokke,
+                    clock = clock,
                     databaseRepos = databaseRepos,
                 ).build(applicationConfig()).let {
                     it.copy(

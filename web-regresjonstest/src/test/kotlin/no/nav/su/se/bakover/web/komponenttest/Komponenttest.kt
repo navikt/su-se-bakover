@@ -41,7 +41,7 @@ class AppComponents private constructor(
             dataSource: DataSource,
             repoBuilder: (dataSource: DataSource, clock: Clock, satsFactory: SatsFactoryForSupplerendeStønad) -> DatabaseRepos,
             clientBuilder: (databaseRepos: DatabaseRepos, clock: Clock) -> Clients,
-            serviceBuilder: (databaseRepos: DatabaseRepos, clients: Clients, clock: Clock, satsFactory: SatsFactoryForSupplerendeStønad, unleash: Unleash) -> Services
+            serviceBuilder: (databaseRepos: DatabaseRepos, clients: Clients, clock: Clock, satsFactory: SatsFactoryForSupplerendeStønad, unleash: Unleash) -> Services,
         ): AppComponents {
             val databaseRepos = repoBuilder(dataSource, clock, satsFactoryTest)
             val clients = clientBuilder(databaseRepos, clock)
@@ -100,6 +100,7 @@ internal fun withKomptestApplication(
             clock = klokke,
             unleash = unleash,
             satsFactory = satsFactory.gjeldende(LocalDate.now(klokke)),
+            applicationConfig = applicationConfig(),
         )
     },
     test: ApplicationTestBuilder.(appComponents: AppComponents) -> Unit,

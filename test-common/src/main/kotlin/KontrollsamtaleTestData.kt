@@ -41,7 +41,7 @@ fun innkaltKontrollsamtale(
         innkallingsdato = innkallingsdato,
         frist = frist,
     ).settInnkalt(
-        dokumentId = dokumentId
+        dokumentId = dokumentId,
     ).getOrFail()
 }
 
@@ -52,7 +52,7 @@ fun gjennomførtKontrollsamtale(
     innkallingsdato: LocalDate = fixedLocalDate.plusMonths(4),
     frist: LocalDate = fixedLocalDate.plusMonths(5),
     dokumentId: UUID = UUID.randomUUID(),
-    journalpostId: JournalpostId = JournalpostId("done and done")
+    journalpostId: JournalpostId = JournalpostId("done and done"),
 ): Kontrollsamtale {
     return planlagtKontrollsamtale(
         id = id,
@@ -64,6 +64,6 @@ fun gjennomførtKontrollsamtale(
         dokumentId = dokumentId,
     ).getOrFail()
         .settGjennomført(
-            journalpostId = journalpostId
+            journalpostId = journalpostId,
         ).getOrFail()
 }

@@ -50,7 +50,7 @@ internal class StansAvYtelseService(
             is StansYtelseRequest.Oppdater -> {
                 val sak = sakService.hentSak(
                     sakId = request.sakId,
-                    sessionContext = sessionContext
+                    sessionContext = sessionContext,
                 ).getOrHandle { return KunneIkkeStanseYtelse.FantIkkeSak.left() }
 
                 val eksisterende = sak.hentRevurdering(request.revurderingId)
@@ -83,7 +83,7 @@ internal class StansAvYtelseService(
             is StansYtelseRequest.Opprett -> {
                 val sak = sakService.hentSak(
                     sakId = request.sakId,
-                    sessionContext = sessionContext
+                    sessionContext = sessionContext,
                 ).getOrHandle { return KunneIkkeStanseYtelse.FantIkkeSak.left() }
 
                 if (!sak.kanOppretteBehandling()) {
@@ -115,7 +115,7 @@ internal class StansAvYtelseService(
 
         revurderingRepo.lagre(
             revurdering = simulertRevurdering,
-            transactionContext = sessionContext
+            transactionContext = sessionContext,
         )
         // TODO håndtering av statistikk i transaksjoner
         observers.notify(StatistikkEvent.Behandling.Stans.Opprettet(simulertRevurdering))
@@ -130,7 +130,7 @@ internal class StansAvYtelseService(
     ): Either<KunneIkkeIverksetteStansYtelse, StansAvYtelseRevurdering.IverksattStansAvYtelse> {
         val revurdering = revurderingRepo.hent(
             id = revurderingId,
-            sessionContext = sessionContext
+            sessionContext = sessionContext,
         ) ?: return KunneIkkeIverksetteStansYtelse.FantIkkeRevurdering.left()
 
         return when (revurdering) {
@@ -143,44 +143,42 @@ internal class StansAvYtelseService(
                 ).getOrHandle { return KunneIkkeIverksetteStansYtelse.SimuleringIndikererFeilutbetaling.left() }
 
                 Either.catch {
-                    sessionFactory.withTransactionContext { tx ->
-                        val stansUtbetaling = utbetalingService.klargjørStans(
-                            request = UtbetalRequest.Stans(
-                                request = SimulerUtbetalingRequest.Stans(
-                                    sakId = iverksattRevurdering.sakId,
-                                    saksbehandler = iverksattRevurdering.attesteringer.hentSisteAttestering().attestant,
-                                    stansdato = iverksattRevurdering.periode.fraOgMed,
-                                ),
-                                simulering = iverksattRevurdering.simulering,
+                    val stansUtbetaling = utbetalingService.klargjørStans(
+                        request = UtbetalRequest.Stans(
+                            request = SimulerUtbetalingRequest.Stans(
+                                sakId = iverksattRevurdering.sakId,
+                                saksbehandler = iverksattRevurdering.attesteringer.hentSisteAttestering().attestant,
+                                stansdato = iverksattRevurdering.periode.fraOgMed,
                             ),
-                            transactionContext = tx,
-                        ).getOrHandle {
+                            simulering = iverksattRevurdering.simulering,
+                        ),
+                        transactionContext = sessionContext,
+                    ).getOrHandle {
+                        throw IverksettTransactionException(
+                            message = """Feil:$it ved opprettelse av utbetaling for revurdering:$revurderingId - ruller tilbake.""",
+                            feil = KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale(it),
+                        )
+                    }
+
+                    val vedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, stansUtbetaling.utbetaling.id, clock)
+
+                    revurderingRepo.lagre(
+                        revurdering = iverksattRevurdering,
+                        transactionContext = sessionContext,
+                    )
+                    vedtakService.lagre(
+                        vedtak = vedtak,
+                        sessionContext = sessionContext,
+                    )
+                    stansUtbetaling.sendUtbetaling()
+                        .getOrHandle {
                             throw IverksettTransactionException(
-                                message = """Feil:$it ved opprettelse av utbetaling for revurdering:$revurderingId - ruller tilbake.""",
+                                message = """Feil:$it ved publisering av utbetaling for revurdering:$revurderingId - ruller tilbake.""",
                                 feil = KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale(it),
                             )
                         }
 
-                        val vedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, stansUtbetaling.utbetaling.id, clock)
-
-                        revurderingRepo.lagre(
-                            revurdering = iverksattRevurdering,
-                            transactionContext = tx,
-                        )
-                        vedtakService.lagre(
-                            vedtak = vedtak,
-                            sessionContext = tx,
-                        )
-                        stansUtbetaling.sendUtbetaling()
-                            .getOrHandle {
-                                throw IverksettTransactionException(
-                                    message = """Feil:$it ved publisering av utbetaling for revurdering:$revurderingId - ruller tilbake.""",
-                                    feil = KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale(it),
-                                )
-                            }
-
-                        vedtak
-                    }
+                    vedtak
                 }.mapLeft {
                     log.error("Feil ved iverksetting av stans for revurdering: $revurderingId", it)
                     when (it) {

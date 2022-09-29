@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain
+package no.nav.su.se.bakover.domain.jobcontext
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe

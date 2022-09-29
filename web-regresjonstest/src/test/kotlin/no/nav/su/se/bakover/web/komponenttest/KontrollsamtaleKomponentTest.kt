@@ -1,7 +1,8 @@
 package no.nav.su.se.bakover.web.komponenttest
 
+import arrow.core.Either
+import arrow.core.left
 import arrow.core.right
-import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
@@ -10,22 +11,31 @@ import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.fixedClock
 import no.nav.su.se.bakover.common.førsteINesteMåned
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.common.sisteIForrigeMåned
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.jobcontext.NameAndLocalDateId
+import no.nav.su.se.bakover.domain.jobcontext.UtløptFristForKontrollsamtaleContext
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.journalpost.ErKontrollNotatMottatt
+import no.nav.su.se.bakover.domain.journalpost.JournalpostStatus
+import no.nav.su.se.bakover.domain.journalpost.JournalpostTema
+import no.nav.su.se.bakover.domain.journalpost.JournalpostType
+import no.nav.su.se.bakover.domain.journalpost.KontrollnotatMottattJournalpost
 import no.nav.su.se.bakover.domain.kontrollsamtale.Kontrollsamtalestatus
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
-import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
+import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
+import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.vilkår.UtenlandsoppholdStatus
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.web.SharedRegressionTestData
+import no.nav.su.se.bakover.test.saksnummer
+import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.revurdering.opprettIverksattRevurdering
 import no.nav.su.se.bakover.web.revurdering.utenlandsopphold.leggTilUtenlandsoppholdRevurdering
@@ -35,7 +45,7 @@ import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
-import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.doReturnConsecutively
 import org.mockito.kotlin.mock
 import java.time.LocalDate
 import java.util.UUID
@@ -59,7 +69,7 @@ internal class KontrollsamtaleKomponentTest {
 
             val sakId = innvilgSøknad(
                 fraOgMed = stønadStart,
-                tilOgMed = stønadSlutt
+                tilOgMed = stønadSlutt,
             )
 
             val førstePlanlagteKontrollsamtale = kontrollsamtaleService.hentForSak(sakId = sakId).first()
@@ -68,7 +78,7 @@ internal class KontrollsamtaleKomponentTest {
 
             kontrollsamtaleService.kallInn(
                 sakId = sakId,
-                kontrollsamtale = førstePlanlagteKontrollsamtale
+                kontrollsamtale = førstePlanlagteKontrollsamtale,
             )
 
             val andrePlanlagteKontrollsamtale = kontrollsamtaleService.hentForSak(sakId = sakId).last()
@@ -76,18 +86,18 @@ internal class KontrollsamtaleKomponentTest {
             tikkendeKlokke.spolTil(andrePlanlagteKontrollsamtale.innkallingsdato)
 
             opprettIverksattRevurdering(
-                sakId = sakId.toString(),
-                fraOgMed = andreInnkalling.toString(),
-                tilOgMed = stønadSlutt.toString(),
-                leggTilUtenlandsopphold = { revurderingId ->
+                sakid = sakId.toString(),
+                fraogmed = andreInnkalling.toString(),
+                tilogmed = stønadSlutt.toString(),
+                leggTilUtenlandsoppholdRevurdering = { sakid, behandlingId, fraOgMed, tilOgMed, _ ->
                     leggTilUtenlandsoppholdRevurdering(
-                        sakId = sakId.toString(),
-                        behandlingId = revurderingId,
-                        fraOgMed = andreInnkalling.toString(),
-                        tilOgMed = stønadSlutt.toString(),
+                        sakId = sakid,
+                        behandlingId = behandlingId,
+                        fraOgMed = fraOgMed,
+                        tilOgMed = tilOgMed,
                         vurdering = UtenlandsoppholdStatus.SkalVæreMerEnn90DagerIUtlandet.toString(),
                     )
-                }
+                },
             )
 
             kontrollsamtaleService.hentForSak(sakId)
@@ -111,59 +121,10 @@ internal class KontrollsamtaleKomponentTest {
     }
 
     @Test
-    fun `oppdaterer kontrollsamtale med journalpost for innsendt kontrollnotat hvis funnet`() {
+    fun `automatisk prosessering av kontollsamtaler med utløpt frist`() {
         val tikkendeKlokke = TikkendeKlokke(LocalDate.now().fixedClock())
         val stønadStart = LocalDate.now().førsteINesteMåned()
         val stønadSlutt = stønadStart.plusMonths(11).endOfMonth()
-        val førsteInnkalling = stønadStart.plusMonths(4).startOfMonth()
-        val førsteFrist = stønadStart.plusMonths(4).endOfMonth()
-
-        withKomptestApplication(
-            clock = tikkendeKlokke,
-        ) { appComponents ->
-            val kontrollsamtaleService = appComponents.services.kontrollsamtale
-            val utløptFristForKontrollsamtaleService = appComponents.services.utløptFristForKontrollsamtaleService
-
-            val sakId = innvilgSøknad(
-                fraOgMed = stønadStart,
-                tilOgMed = stønadSlutt
-            )
-
-            val førstePlanlagteKontrollsamtale = kontrollsamtaleService.hentForSak(sakId = sakId).single()
-
-            tikkendeKlokke.spolTil(førstePlanlagteKontrollsamtale.innkallingsdato)
-
-            kontrollsamtaleService.kallInn(
-                sakId = sakId,
-                kontrollsamtale = førstePlanlagteKontrollsamtale
-            )
-
-            tikkendeKlokke.spolTil(førstePlanlagteKontrollsamtale.frist)
-
-            utløptFristForKontrollsamtaleService.håndterKontrollsamtalerMedFristUtløpt(førstePlanlagteKontrollsamtale.frist)
-
-            kontrollsamtaleService.hentForSak(sakId = sakId)
-                .let { kontrollsamtaler ->
-                    kontrollsamtaler.find { it.id == førstePlanlagteKontrollsamtale.id }!!
-                        .also {
-                            it.innkallingsdato shouldBe førsteInnkalling
-                            it.frist shouldBe førsteFrist
-                            it.dokumentId shouldNot beNull()
-                            it.status shouldBe Kontrollsamtalestatus.GJENNOMFØRT
-                            it.sakId shouldBe sakId
-                            it.journalpostIdKontrollnotat shouldBe JournalpostId("453812134")
-                        }
-                }
-        }
-    }
-
-    @Test
-    fun `stanser ytelse dersom kontrollnotat ikke er mottatt innen utløp av frist`() {
-        val tikkendeKlokke = TikkendeKlokke(LocalDate.now().fixedClock())
-        val stønadStart = LocalDate.now().førsteINesteMåned()
-        val stønadSlutt = stønadStart.plusMonths(11).endOfMonth()
-        val førsteInnkalling = stønadStart.plusMonths(4).startOfMonth()
-        val førsteFrist = stønadStart.plusMonths(4).endOfMonth()
 
         withKomptestApplication(
             clock = tikkendeKlokke,
@@ -171,139 +132,169 @@ internal class KontrollsamtaleKomponentTest {
                 TestClientsBuilder(
                     clock = klokke,
                     databaseRepos = databaseRepos,
-                ).build(applicationConfig()).copy(
-                    journalpostClient = mock {
-                        on { kontrollnotatMotatt(any(), any()) } doReturn ErKontrollNotatMottatt.Nei.right()
-                    }
-                )
-            },
-        ) { appComponents ->
-            val kontrollsamtaleService = appComponents.services.kontrollsamtale
-            val utløptFristForKontrollsamtaleService = appComponents.services.utløptFristForKontrollsamtaleService
-
-            val sakId = innvilgSøknad(
-                fraOgMed = stønadStart,
-                tilOgMed = stønadSlutt
-            )
-
-            val førstePlanlagteKontrollsamtale = kontrollsamtaleService.hentForSak(sakId = sakId).single()
-
-            tikkendeKlokke.spolTil(førstePlanlagteKontrollsamtale.innkallingsdato)
-
-            kontrollsamtaleService.kallInn(
-                sakId = sakId,
-                kontrollsamtale = førstePlanlagteKontrollsamtale
-            )
-
-            tikkendeKlokke.spolTil(førstePlanlagteKontrollsamtale.frist)
-
-            utløptFristForKontrollsamtaleService.håndterKontrollsamtalerMedFristUtløpt(førstePlanlagteKontrollsamtale.frist)
-
-            kontrollsamtaleService.hentForSak(sakId = sakId)
-                .let { kontrollsamtaler ->
-                    kontrollsamtaler.find { it.id == førstePlanlagteKontrollsamtale.id }!!
-                        .also {
-                            it.innkallingsdato shouldBe førsteInnkalling
-                            it.frist shouldBe førsteFrist
-                            it.dokumentId shouldNot beNull()
-                            it.status shouldBe Kontrollsamtalestatus.IKKE_MØTT_INNEN_FRIST
-                            it.sakId shouldBe sakId
-                            it.journalpostIdKontrollnotat shouldBe beNull()
-                        }
-                }
-
-            appComponents.services.sak.hentSak(sakId).getOrFail().also { sak ->
-                sak.revurderinger shouldHaveSize 1
-                sak.vedtakstidslinje().also { vedtakstidslinje ->
-                    Periode.create(
-                        fraOgMed = stønadStart,
-                        tilOgMed = førsteFrist.sisteIForrigeMåned()
-                    ).måneder().map {
-                        vedtakstidslinje.gjeldendeForDato(it.fraOgMed)!!.originaltVedtak
-                    }.all { it is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling }
-
-                    Periode.create(
-                        fraOgMed = førsteFrist.førsteINesteMåned(),
-                        tilOgMed = stønadSlutt.endOfMonth()
-                    ).måneder().map {
-                        vedtakstidslinje.gjeldendeForDato(it.fraOgMed)!!.originaltVedtak
-                    }.all { it is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse }
-                }
-            }
-        }
-    }
-
-    @Test
-    fun `ruller tilbake endringer dersom noe går feil ved prosessering av utløpt kontrollsamtale`() {
-        val tikkendeKlokke = TikkendeKlokke(LocalDate.now().fixedClock())
-        val stønadStart = LocalDate.now().førsteINesteMåned()
-        val stønadSlutt = stønadStart.plusMonths(11).endOfMonth()
-
-        withKomptestApplication(
-            clock = tikkendeKlokke,
-            repoBuilder = { dataSource, klokke, satsFactory ->
-                SharedRegressionTestData.databaseRepos(
-                    dataSource = dataSource,
-                    clock = klokke,
-                    satsFactory = satsFactory,
-                ).let {
-                    // overstyrer vedtakrepo slik at vi kan kaste exception ved lagring av stansvedtak
+                ).build(applicationConfig()).let {
                     it.copy(
-                        vedtakRepo = object : VedtakRepo by it.vedtakRepo {
-                            override fun lagre(vedtak: Vedtak, sessionContext: TransactionContext) {
-                                if (vedtak is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse) {
-                                    throw NullPointerException("tull og fjas")
+                        utbetalingPublisher = object : UtbetalingPublisher by it.utbetalingPublisher {
+                            var count = 0
+                            override fun publishRequest(utbetalingsrequest: Utbetalingsrequest): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Utbetalingsrequest> {
+                                return if (utbetalingsrequest.value.contains("HVIL")) { // feil ved publisering av utbetalinger for stans
+                                    count++
+                                    if (count in (2..4)) {
+                                        UtbetalingPublisher.KunneIkkeSendeUtbetaling(utbetalingsrequest).left()
+                                    } else {
+                                        utbetalingsrequest.right()
+                                    }
                                 } else {
-                                    it.vedtakRepo.lagre(vedtak, sessionContext)
+                                    utbetalingsrequest.right()
                                 }
                             }
-                        }
+                        },
+                        journalpostClient = mock {
+                            on { kontrollnotatMotatt(any(), any()) } doReturnConsecutively listOf(
+                                ErKontrollNotatMottatt.Nei.right(),
+                                ErKontrollNotatMottatt.Ja(journalpostKontrollnotat(JournalpostId("1111"))).right(),
+                                ErKontrollNotatMottatt.Ja(journalpostKontrollnotat(JournalpostId("2222"))).right(),
+                                ErKontrollNotatMottatt.Nei.right(),
+                                ErKontrollNotatMottatt.Nei.right(),
+                            )
+                        },
                     )
                 }
             },
-            clientsBuilder = { databaseRepos, klokke ->
-                TestClientsBuilder(
-                    clock = klokke,
-                    databaseRepos = databaseRepos,
-                ).build(applicationConfig()).copy(
-                    journalpostClient = mock {
-                        on { kontrollnotatMotatt(any(), any()) } doReturn ErKontrollNotatMottatt.Nei.right()
-                    }
-                )
-            },
         ) { appComponents ->
             val kontrollsamtaleService = appComponents.services.kontrollsamtale
             val utløptFristForKontrollsamtaleService = appComponents.services.utløptFristForKontrollsamtaleService
 
-            val sakId = innvilgSøknad(
-                fraOgMed = stønadStart,
-                tilOgMed = stønadSlutt
+            val sakIds = listOf(
+                innvilgSøknad(
+                    fraOgMed = stønadStart,
+                    tilOgMed = stønadSlutt,
+                ),
+                innvilgSøknad(
+                    fraOgMed = stønadStart,
+                    tilOgMed = stønadSlutt,
+                ),
+                innvilgSøknad(
+                    fraOgMed = stønadStart,
+                    tilOgMed = stønadSlutt,
+                ),
+                innvilgSøknad(
+                    fraOgMed = stønadStart,
+                    tilOgMed = stønadSlutt,
+                ),
+                innvilgSøknad(
+                    fraOgMed = stønadStart,
+                    tilOgMed = stønadSlutt,
+                ),
             )
 
-            val førstePlanlagteKontrollsamtale = kontrollsamtaleService.hentForSak(sakId = sakId).single()
-
-            tikkendeKlokke.spolTil(førstePlanlagteKontrollsamtale.innkallingsdato)
-
-            kontrollsamtaleService.kallInn(
-                sakId = sakId,
-                kontrollsamtale = førstePlanlagteKontrollsamtale
-            )
-
-            tikkendeKlokke.spolTil(førstePlanlagteKontrollsamtale.frist)
-
-            utløptFristForKontrollsamtaleService.håndterKontrollsamtalerMedFristUtløpt(førstePlanlagteKontrollsamtale.frist)
-
-            appComponents.services.sak.hentSak(sakId).getOrFail().also { sak ->
-                sak.revurderinger shouldHaveSize 0
-                sak.vedtakstidslinje().let { tidslinje ->
-                    Periode.create(stønadStart, stønadSlutt).måneder().map {
-                        tidslinje.gjeldendeForDato(it.fraOgMed)!!.originaltVedtak
-                    }.all { it is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling }
-                }
-                kontrollsamtaleService.hentForSak(sak.id)
-                    .single { it.id == førstePlanlagteKontrollsamtale.id }
-                    .status shouldBe Kontrollsamtalestatus.INNKALT
+            val kontrollsamtaler = sakIds.map {
+                kontrollsamtaleService.hentForSak(sakId = it).single()
             }
+
+            tikkendeKlokke.spolTil(kontrollsamtaler.first().innkallingsdato)
+
+            kontrollsamtaler.forEach {
+                kontrollsamtaleService.kallInn(
+                    sakId = it.sakId,
+                    kontrollsamtale = it,
+                )
+            }
+
+            val utløpsfristKontrollsamtale = kontrollsamtaler.first().frist
+            tikkendeKlokke.spolTil(utløpsfristKontrollsamtale)
+
+            utløptFristForKontrollsamtaleService.håndterUtløpsdato(utløpsfristKontrollsamtale)
+
+            appComponents.databaseRepos.jobContextRepo.hent<UtløptFristForKontrollsamtaleContext>(
+                id = NameAndLocalDateId(
+                    jobName = "KontrollsamtaleFristUtløptContext",
+                    date = utløpsfristKontrollsamtale,
+                ),
+            )!!.also {
+                it shouldBe UtløptFristForKontrollsamtaleContext(
+                    id = NameAndLocalDateId(
+                        jobName = "KontrollsamtaleFristUtløptContext",
+                        date = utløpsfristKontrollsamtale,
+                    ),
+                    opprettet = it.opprettet(),
+                    endret = it.endret(),
+                    prosessert = setOf(
+                        kontrollsamtaler[0].id,
+                        kontrollsamtaler[1].id,
+                        kontrollsamtaler[2].id,
+                    ),
+                    ikkeMøtt = setOf(
+                        kontrollsamtaler[0].id,
+                    ),
+                    feilet = setOf(
+                        UtløptFristForKontrollsamtaleContext.Feilet(
+                            id = kontrollsamtaler[3].id,
+                            retries = 0,
+                            feil = """KunneIkkeHåndtereUtløptKontrollsamtale(feil=class no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteStansYtelse${"\$"}KunneIkkeUtbetale)""",
+                        ),
+                        UtløptFristForKontrollsamtaleContext.Feilet(
+                            id = kontrollsamtaler[4].id,
+                            retries = 0,
+                            feil = """KunneIkkeHåndtereUtløptKontrollsamtale(feil=class no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteStansYtelse${"\$"}KunneIkkeUtbetale)""",
+                        ),
+                    ),
+                )
+            }
+
+            utløptFristForKontrollsamtaleService.håndterUtløpsdato(utløpsfristKontrollsamtale)
+
+            appComponents.databaseRepos.jobContextRepo.hent<UtløptFristForKontrollsamtaleContext>(
+                id = NameAndLocalDateId(
+                    jobName = "KontrollsamtaleFristUtløptContext",
+                    date = utløpsfristKontrollsamtale,
+                ),
+            )!!.also {
+                it shouldBe UtløptFristForKontrollsamtaleContext(
+                    id = NameAndLocalDateId(
+                        jobName = "KontrollsamtaleFristUtløptContext",
+                        date = utløpsfristKontrollsamtale,
+                    ),
+                    opprettet = it.opprettet(),
+                    endret = it.endret(),
+                    prosessert = setOf(
+                        kontrollsamtaler[0].id,
+                        kontrollsamtaler[1].id,
+                        kontrollsamtaler[2].id,
+                        kontrollsamtaler[4].id,
+                    ),
+                    ikkeMøtt = setOf(
+                        kontrollsamtaler[0].id,
+                        kontrollsamtaler[4].id,
+                    ),
+                    feilet = setOf(
+                        UtløptFristForKontrollsamtaleContext.Feilet(
+                            id = kontrollsamtaler[3].id,
+                            retries = 1,
+                            feil = """KunneIkkeHåndtereUtløptKontrollsamtale(feil=class no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteStansYtelse${"\$"}KunneIkkeUtbetale)""",
+                        ),
+                    ),
+                )
+            }
+
+            assertMøttTilSamtale(
+                saker = listOf(kontrollsamtaler[1].sakId, kontrollsamtaler[2].sakId),
+                periode = Periode.create(stønadStart, stønadSlutt),
+                sakService = appComponents.services.sak,
+                kontrollsamtaleService = appComponents.services.kontrollsamtale,
+            )
+            assertIkkeMøttTilSamtale(
+                saker = listOf(kontrollsamtaler[0].sakId, kontrollsamtaler[4].sakId),
+                periode = Periode.create(utløpsfristKontrollsamtale.førsteINesteMåned(), stønadSlutt),
+                sakService = appComponents.services.sak,
+                kontrollsamtaleService = appComponents.services.kontrollsamtale,
+            )
+            assertUendret(
+                saker = listOf(kontrollsamtaler[3].sakId),
+                periode = Periode.create(stønadStart, stønadSlutt),
+                sakService = appComponents.services.sak,
+                kontrollsamtaleService = appComponents.services.kontrollsamtale,
+            )
         }
     }
 
@@ -318,6 +309,74 @@ internal class KontrollsamtaleKomponentTest {
         ).let {
             hentSak(BehandlingJson.hentSakId(it)).let { sakJson ->
                 UUID.fromString(hentSakId(sakJson))
+            }
+        }
+    }
+
+    private fun journalpostKontrollnotat(id: JournalpostId): KontrollnotatMottattJournalpost {
+        return KontrollnotatMottattJournalpost(
+            tema = JournalpostTema.SUP,
+            journalstatus = JournalpostStatus.JOURNALFOERT,
+            journalposttype = JournalpostType.INNKOMMENDE_DOKUMENT,
+            saksnummer = saksnummer,
+            tittel = "NAV SU Kontrollnotat",
+            datoOpprettet = LocalDate.now(),
+            journalpostId = id,
+        )
+    }
+
+    private fun assertIkkeMøttTilSamtale(saker: List<UUID>, periode: Periode, sakService: SakService, kontrollsamtaleService: KontrollsamtaleService) {
+        saker.forEach { sakId ->
+            sakService.hentSak(sakId).getOrFail().also { sak ->
+                sak.revurderinger.single().shouldBeType<StansAvYtelseRevurdering.IverksattStansAvYtelse>()
+                sak.vedtakListe.single { it is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse }
+                sak.vedtakstidslinje().also { vedtakstidslinje ->
+                    periode.måneder().map {
+                        vedtakstidslinje.gjeldendeForDato(it.fraOgMed)!!.originaltVedtak to sak.utbetalingstidslinje(it).gjeldendeForDato(it.fraOgMed)
+                    }.forEach { (vedtak, utbetaling) ->
+                        (vedtak is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse && utbetaling is UtbetalingslinjePåTidslinje.Stans) shouldBe true
+                    }
+                }
+                kontrollsamtaleService.hentForSak(sak.id).single { it.status == Kontrollsamtalestatus.IKKE_MØTT_INNEN_FRIST }.let {
+                    it.journalpostIdKontrollnotat shouldBe beNull()
+                }
+            }
+        }
+    }
+
+    private fun assertMøttTilSamtale(saker: List<UUID>, periode: Periode, sakService: SakService, kontrollsamtaleService: KontrollsamtaleService) {
+        saker.forEach { sakId ->
+            sakService.hentSak(sakId).getOrFail().also { sak ->
+                sak.revurderinger shouldBe emptyList()
+                sak.vedtakListe.single()
+                sak.vedtakstidslinje().also { vedtakstidslinje ->
+                    periode.måneder().map {
+                        vedtakstidslinje.gjeldendeForDato(it.fraOgMed)!!.originaltVedtak to sak.utbetalingstidslinje(it).gjeldendeForDato(it.fraOgMed)
+                    }.forEach { (vedtak, utbetaling) ->
+                        (vedtak is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling && utbetaling is UtbetalingslinjePåTidslinje.Ny) shouldBe true
+                    }
+                }
+                kontrollsamtaleService.hentForSak(sak.id).single { it.status == Kontrollsamtalestatus.GJENNOMFØRT }.let {
+                    it.journalpostIdKontrollnotat shouldNot beNull()
+                }
+            }
+        }
+    }
+    private fun assertUendret(saker: List<UUID>, periode: Periode, sakService: SakService, kontrollsamtaleService: KontrollsamtaleService) {
+        saker.forEach { sakId ->
+            sakService.hentSak(sakId).getOrFail().also { sak ->
+                sak.revurderinger shouldBe emptyList()
+                sak.vedtakListe.single()
+                sak.vedtakstidslinje().let { tidslinje ->
+                    periode.måneder().map {
+                        tidslinje.gjeldendeForDato(it.fraOgMed)!!.originaltVedtak to sak.utbetalingstidslinje(it).gjeldendeForDato(it.fraOgMed)
+                    }.forEach { (vedtak, utbetaling) ->
+                        (vedtak is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling && utbetaling is UtbetalingslinjePåTidslinje.Ny) shouldBe true
+                    }
+                }
+                kontrollsamtaleService.hentForSak(sak.id).forEach {
+                    ((it.status == Kontrollsamtalestatus.INNKALT || it.status == Kontrollsamtalestatus.PLANLAGT_INNKALLING) && it.journalpostIdKontrollnotat == null) shouldBe true
+                }
             }
         }
     }

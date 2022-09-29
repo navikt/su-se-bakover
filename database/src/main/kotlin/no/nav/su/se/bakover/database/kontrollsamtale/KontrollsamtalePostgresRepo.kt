@@ -46,7 +46,7 @@ internal class KontrollsamtalePostgresRepo(
                         "status" to kontrollsamtale.status.toString(),
                         "frist" to kontrollsamtale.frist,
                         "dokumentId" to kontrollsamtale.dokumentId,
-                        "journalpostId" to kontrollsamtale.journalpostIdKontrollnotat
+                        "journalpostId" to kontrollsamtale.journalpostIdKontrollnotat,
                     ),
                     session,
                 )
@@ -87,9 +87,9 @@ internal class KontrollsamtalePostgresRepo(
                     .hentListe(
                         mapOf(
                             "status" to Kontrollsamtalestatus.INNKALT.toString(),
-                            "dato" to dato
+                            "dato" to dato,
                         ),
-                        session
+                        session,
                     ) { it.toKontrollsamtale() }
             }
         }
@@ -111,7 +111,7 @@ internal class KontrollsamtalePostgresRepo(
             dokumentId = uuidOrNull("dokumentid"),
             journalpostIdKontrollnotat = stringOrNull("journalpostId")?.let {
                 JournalpostId(it)
-            }
+            },
         )
     }
 }

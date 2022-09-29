@@ -153,6 +153,8 @@ object ServiceBuilder {
             kontrollsamtaleRepo = databaseRepos.kontrollsamtaleRepo,
             revurderingService = revurderingService,
             sessionFactory = databaseRepos.sessionFactory,
+            jobContextRepo = databaseRepos.jobContextRepo,
+            clock = clock,
         )
 
         val reguleringService = ReguleringServiceImpl(

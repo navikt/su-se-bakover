@@ -144,7 +144,7 @@ internal class RevurderingServiceImpl(
         return sessionFactory.use(sessionContext) {
             stansAvYtelseService.stansAvYtelse(
                 request = request,
-                sessionContext = sessionContext
+                sessionContext = sessionContext,
             )
         }
     }
@@ -158,7 +158,7 @@ internal class RevurderingServiceImpl(
             stansAvYtelseService.iverksettStansAvYtelse(
                 revurderingId = revurderingId,
                 attestant = attestant,
-                sessionContext = sessionContext
+                sessionContext = sessionContext,
             )
         }
     }

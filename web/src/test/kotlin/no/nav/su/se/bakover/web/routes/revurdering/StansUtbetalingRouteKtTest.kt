@@ -78,7 +78,7 @@ internal class StansUtbetalingRouteKtTest {
         val enRevurdering = beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
         val revurderingServiceMock = mock<RevurderingService> {
             on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
-            on { iverksettStansAvYtelse(any(), any(), any()) } doReturn KunneIkkeIverksetteStansYtelse.UgyldigTilstand(enRevurdering::class,).left()
+            on { iverksettStansAvYtelse(any(), any(), any()) } doReturn KunneIkkeIverksetteStansYtelse.UgyldigTilstand(enRevurdering::class).left()
         }
         testApplication {
             application {

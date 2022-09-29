@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
-import no.nav.su.se.bakover.domain.SendPåminnelseNyStønadsperiodeContext
 import no.nav.su.se.bakover.domain.Skattegrunnlag
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
@@ -25,6 +24,8 @@ import no.nav.su.se.bakover.domain.brev.Brevvalg
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.jobcontext.SendPåminnelseNyStønadsperiodeContext
+import no.nav.su.se.bakover.domain.jobcontext.UtløptFristForKontrollsamtaleContext
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
@@ -639,7 +640,7 @@ open class AccessCheckProxy(
                     return services.revurdering.iverksettStansAvYtelse(
                         revurderingId = revurderingId,
                         attestant = attestant,
-                        sessionContext = sessionContext
+                        sessionContext = sessionContext,
                     )
                 }
 
@@ -1058,10 +1059,10 @@ open class AccessCheckProxy(
                 }
             },
             utløptFristForKontrollsamtaleService = object : UtløptFristForKontrollsamtaleService {
-                override fun håndterKontrollsamtalerMedFristUtløpt(dato: LocalDate) {
+                override fun håndterUtløpsdato(dato: LocalDate): UtløptFristForKontrollsamtaleContext {
                     kastKanKunKallesFraAnnenService()
                 }
-            }
+            },
         )
     }
 
