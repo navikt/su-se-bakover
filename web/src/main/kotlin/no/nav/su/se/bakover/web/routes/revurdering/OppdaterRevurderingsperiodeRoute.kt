@@ -111,10 +111,10 @@ private fun KunneIkkeOppdatereRevurdering.tilResultat(): Resultat {
                 }
                 is Sak.KunneIkkeOppdatereRevurdering.KunneIkkeOppdatere -> {
                     when (val nested = inner.feil) {
-                        Revurdering.KunneIkkeOppdatereRevurdering.KanIkkeOppdatereRevurderingSomErForhåndsvarslet -> {
+                        Revurdering.KunneIkkeOppdatereRevurdering.KanIkkeEndreÅrsakTilReguleringVedForhåndsvarsletRevurdering -> {
                             HttpStatusCode.BadRequest.errorJson(
-                                "Kan ikke oppdatere revurdering som er forhåndsvarslet",
-                                "kan_ikke_oppdatere_revurdering_som_er_forhåndsvarslet",
+                                "Kan ikke oppdatere revurdering med årsak `REGULER_GRUNNBELØP` som er forhåndsvarslet",
+                                "kan_ikke_oppdatere_revurdering_med_årsak_reguler_grunnbeløp_som_er_forhåndsvarslet",
                             )
                         }
                         is Revurdering.KunneIkkeOppdatereRevurdering.UgyldigTilstand -> {

@@ -192,9 +192,29 @@ sealed class Revurdering :
         avkorting: AvkortingVedRevurdering.Uhåndtert,
         saksbehandler: Saksbehandler,
     ): Either<KunneIkkeOppdatereRevurdering, OpprettetRevurdering> {
-        if (forhåndsvarsel.harSendtForhåndsvarsel()) {
-            return KunneIkkeOppdatereRevurdering.KanIkkeOppdatereRevurderingSomErForhåndsvarslet.left()
-        }
+        val forhåndsvarsel =
+            if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) {
+                when (this.forhåndsvarsel) {
+                    is Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet,
+                    is Forhåndsvarsel.UnderBehandling.Sendt,
+                    -> return KunneIkkeOppdatereRevurdering.KanIkkeEndreÅrsakTilReguleringVedForhåndsvarsletRevurdering.left()
+                    /* I disse casene er det ikke forhåndsvarslet og det er akseptabelt å endre til Regulering (selvom det kan virke som et corner case.) */
+                    is Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
+                    null,
+                    -> Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles
+                }
+            } else {
+                when (this.forhåndsvarsel) {
+                    /* I disse casene er det forhåndsvarslet og vi ønsker ikke å slette denne informasjonen.) */
+                    is Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet,
+                    is Forhåndsvarsel.UnderBehandling.Sendt,
+                    -> this.forhåndsvarsel
+                    /* I disse casene er det ikke forhåndsvarslet og vi kan resette valget.) */
+                    is Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
+                    null,
+                    -> null
+                }
+            }
 
         return OpprettetRevurdering(
             id = id,
@@ -205,8 +225,7 @@ sealed class Revurdering :
             oppgaveId = oppgaveId,
             fritekstTilBrev = fritekstTilBrev,
             revurderingsårsak = revurderingsårsak,
-            // TODO jah: Bytt til Either (modellen bør passe på dette selv og ikke la ansvaret ligge bredt i servicen)
-            forhåndsvarsel = if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles else null,
+            forhåndsvarsel = forhåndsvarsel,
             grunnlagsdata = grunnlagsdata,
             vilkårsvurderinger = vilkårsvurderinger,
             informasjonSomRevurderes = informasjonSomRevurderes,
@@ -217,8 +236,12 @@ sealed class Revurdering :
     }
 
     sealed class KunneIkkeOppdatereRevurdering {
-        data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) : KunneIkkeOppdatereRevurdering()
-        object KanIkkeOppdatereRevurderingSomErForhåndsvarslet : KunneIkkeOppdatereRevurdering()
+        data class UgyldigTilstand(
+            val fra: KClass<out Revurdering>,
+            val til: KClass<out Revurdering>,
+        ) : KunneIkkeOppdatereRevurdering()
+
+        object KanIkkeEndreÅrsakTilReguleringVedForhåndsvarsletRevurdering : KunneIkkeOppdatereRevurdering()
     }
 
     open fun oppdaterUføreOgMarkerSomVurdert(uføre: UføreVilkår.Vurdert): Either<UgyldigTilstand, OpprettetRevurdering> =
@@ -1022,7 +1045,8 @@ sealed class BeregnetRevurdering : Revurdering() {
                     saksbehandler = saksbehandler,
                     beregning = beregning,
                     utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
-                    uføregrunnlag = vilkårsvurderinger.uføreVilkår().getOrHandle { throw IllegalStateException("Uførevilkår mangler") }.grunnlag,
+                    uføregrunnlag = vilkårsvurderinger.uføreVilkår()
+                        .getOrHandle { throw IllegalStateException("Uførevilkår mangler") }.grunnlag,
                 ),
             ).mapLeft {
                 it
@@ -2445,7 +2469,11 @@ fun Revurdering.medFritekst(fritekstTilBrev: String) =
         is IverksattRevurdering.IngenEndring -> copy(fritekstTilBrev = fritekstTilBrev)
         is RevurderingTilAttestering.IngenEndring -> copy(fritekstTilBrev = fritekstTilBrev)
         is UnderkjentRevurdering.IngenEndring -> copy(fritekstTilBrev = fritekstTilBrev)
-        is AvsluttetRevurdering -> copy(brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst(fritekstTilBrev))
+        is AvsluttetRevurdering -> copy(
+            brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst(
+                fritekstTilBrev,
+            ),
+        )
     }
 
 enum class Vurderingstatus(val status: String) {
