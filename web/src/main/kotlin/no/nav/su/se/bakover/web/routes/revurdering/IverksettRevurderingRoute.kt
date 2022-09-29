@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.web.routes.Feilresponser.attestantOgSaksbehandlerKan
 import no.nav.su.se.bakover.web.routes.Feilresponser.avkortingErAlleredeAvkortet
 import no.nav.su.se.bakover.web.routes.Feilresponser.ingenEndringUgyldig
 import no.nav.su.se.bakover.web.routes.Feilresponser.lagringFeilet
+import no.nav.su.se.bakover.web.routes.Feilresponser.sakAvventerKravgrunnlagForTilbakekreving
 import no.nav.su.se.bakover.web.routes.Feilresponser.tilResultat
 import no.nav.su.se.bakover.web.routes.Feilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
@@ -70,4 +71,6 @@ private fun KunneIkkeIverksetteRevurdering.tilResultat() = when (this) {
         "Kunne ikke annulere kontrollsamtale",
         "kunne_ikke_annulere_kontrollsamtale",
     )
+
+    KunneIkkeIverksetteRevurdering.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving -> sakAvventerKravgrunnlagForTilbakekreving
 }

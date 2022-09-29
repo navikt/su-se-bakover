@@ -1063,6 +1063,11 @@ internal class RevurderingServiceImpl(
             ).left()
         }
 
+        tilbakekrevingService.hentAvventerKravgrunnlag(revurdering.sakId)
+            .ifNotEmpty {
+                return KunneIkkeIverksetteRevurdering.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving.left()
+            }
+
         return when (revurdering) {
             is RevurderingTilAttestering.IngenEndring -> {
                 log.error("Revudere til INGEN_ENDRING er ikke lov. SakId: ${revurdering.sakId}")

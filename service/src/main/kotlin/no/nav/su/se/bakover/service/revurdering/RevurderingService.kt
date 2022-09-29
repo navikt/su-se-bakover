@@ -297,6 +297,7 @@ sealed interface KunneIkkeIverksetteRevurdering {
     object LagringFeilet : KunneIkkeIverksetteRevurdering
     object HarAlleredeBlittAvkortetAvEnAnnen : KunneIkkeIverksetteRevurdering
     object KunneIkkeAnnulereKontrollsamtale : KunneIkkeIverksetteRevurdering
+    object SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving : KunneIkkeIverksetteRevurdering
 
     data class UgyldigTilstand(
         val fra: KClass<out AbstraktRevurdering>,

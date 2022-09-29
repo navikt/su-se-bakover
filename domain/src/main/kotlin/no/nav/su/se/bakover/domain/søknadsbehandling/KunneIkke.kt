@@ -153,6 +153,7 @@ sealed interface KunneIkkeIverksette {
     object HarAlleredeBlittAvkortetAvEnAnnen : KunneIkkeIverksette
     object KunneIkkeOpprettePlanlagtKontrollsamtale : KunneIkkeIverksette
     object LagringFeilet : KunneIkkeIverksette
+    object SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving : KunneIkkeIverksette
 }
 
 sealed class KunneIkkeBeregne {
