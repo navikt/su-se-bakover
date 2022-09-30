@@ -131,7 +131,7 @@ internal class IverksettRevurderingRouteKtTest {
     @Test
     fun `kunne ikke kontrollsimulere`() {
         shouldMapErrorCorrectly(
-            error = KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(UtbetalingFeilet.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL)),
+            error = KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(UtbetalingFeilet.KunneIkkeSimulere(SimuleringFeilet.TekniskFeil)),
             expectedStatusCode = HttpStatusCode.InternalServerError,
             expectedJsonResponse = """
                 {

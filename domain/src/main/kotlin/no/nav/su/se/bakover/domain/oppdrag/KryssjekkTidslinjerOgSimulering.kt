@@ -2,6 +2,8 @@ package no.nav.su.se.bakover.domain.oppdrag
 
 import arrow.core.Either
 import arrow.core.getOrHandle
+import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.common.førsteINesteMåned
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.periode.Periode
@@ -21,7 +23,7 @@ object KryssjekkTidslinjerOgSimulering {
         eksisterende: List<Utbetaling>,
         simuler: (request: SimulerUtbetalingForPeriode) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
         clock: Clock,
-    ) {
+    ): Either<FeilVedKryssjekkAvTidslinjerOgSimulering.NyEllerOpphør, Unit> {
         val periode = Periode.create(
             fraOgMed = underArbeid.tidligsteDato(),
             tilOgMed = underArbeid.senesteDato(),
@@ -37,15 +39,13 @@ object KryssjekkTidslinjerOgSimulering {
             .tidslinje(periode = periode, clock = clock)
             .getOrHandle { throw IllegalStateException("Kunne ikke generere tidslinje, feil: $it") }
 
-        Either.catch {
-            sjekkTidslinjeMotSimulering(
-                tidslinje = tidslinjeEksisterendeOgUnderArbeid,
-                simulering = simulertUtbetaling.simulering,
-            )
-        }.mapLeft {
+        sjekkTidslinjeMotSimulering(
+            tidslinje = tidslinjeEksisterendeOgUnderArbeid,
+            simulering = simulertUtbetaling.simulering,
+        ).getOrHandle {
             log.error("Feil ved kryssjekk av tidslinje og simulering. Se sikkerlogg for detaljer")
             sikkerLogg.error("Feil: $it ved kryssjekk av tidslinje: $tidslinjeEksisterendeOgUnderArbeid og simulering: ${simulertUtbetaling.simulering}")
-            throw it
+            return FeilVedKryssjekkAvTidslinjerOgSimulering.NyEllerOpphør.FeilVedSjekkAvTidslinjeMotSimulering.left()
         }
 
         if (eksisterende.harUtbetalingerEtter(underArbeidEndringsperiode.tilOgMed)) {
@@ -63,51 +63,92 @@ object KryssjekkTidslinjerOgSimulering {
                 clock = clock,
             ).getOrHandle { throw IllegalStateException("Kunne ikke generere tidslinje, feil: $it") }
 
-            check(tidslinjeUnderArbeid.ekvivalentMed(tidslinje = tidslinjeEksisterende, periode = rekonstruertPeriode)) {
-                "Tidslinje for ny utbetaling:$tidslinjeUnderArbeid er ulik eksisterende:$tidslinjeEksisterende for rekonstruert periode:$rekonstruertPeriode"
+            if (!tidslinjeUnderArbeid.ekvivalentMed(tidslinje = tidslinjeEksisterende, periode = rekonstruertPeriode)) {
+                log.error("Feil ved kryssjekk av tidslinje og simulering. Se sikkerlogg for detaljer")
+                sikkerLogg.error("Feil ved kryssjekk av tidslinje: Tidslinje for ny utbetaling:$tidslinjeUnderArbeid er ulik eksisterende:$tidslinjeEksisterende for rekonstruert periode:$rekonstruertPeriode")
+                return FeilVedKryssjekkAvTidslinjerOgSimulering.NyEllerOpphør.RekonstruertUtbetalingsperiodeErUlikOpprinnelig.left()
             }
         }
+        return Unit.right()
     }
 
     fun sjekkGjenopptak(
         underArbeid: Utbetaling.SimulertUtbetaling,
         eksisterende: List<Utbetaling>,
         clock: Clock,
-    ) {
-        val periode = underArbeid.simulering.tolk().periode()
-
+    ): Either<FeilVedKryssjekkAvTidslinjerOgSimulering.Gjenopptak.FeilVedSjekkAvTidslinjeMotSimulering, Unit> {
         check(underArbeid.erReaktivering()) { "Forventet utbetaling for reaktivering" }
+
+        val periode = underArbeid.simulering.tolk().periode()
 
         val tidslinje = (eksisterende + underArbeid)
             .tidslinje(periode = periode, clock = clock)
             .getOrHandle { throw IllegalStateException("Kunne ikke generere tidslinje, feil: $it") }
 
-        Either.catch {
-            sjekkTidslinjeMotSimulering(
-                tidslinje = tidslinje,
-                simulering = underArbeid.simulering,
-            )
-        }.mapLeft {
+        sjekkTidslinjeMotSimulering(
+            tidslinje = tidslinje,
+            simulering = underArbeid.simulering,
+        ).getOrHandle {
             log.error("Feil ved kryssjekk av tidslinje og simulering. Se sikkerlogg for detaljer")
             sikkerLogg.error("Feil: $it ved kryssjekk av tidslinje: $tidslinje og simulering: ${underArbeid.simulering}")
-            throw it
+            return FeilVedKryssjekkAvTidslinjerOgSimulering.Gjenopptak.FeilVedSjekkAvTidslinjeMotSimulering.left()
         }
+        return Unit.right()
     }
 
     fun sjekkStans(
         underArbeid: Utbetaling.SimulertUtbetaling,
-    ) {
+    ): Either<FeilVedKryssjekkAvTidslinjerOgSimulering.Stans, Utbetaling.SimulertUtbetaling> {
         check(underArbeid.erStans()) { "Forventet utbetaling for stans" }
-        check(!underArbeid.simulering.harFeilutbetalinger()) { "Stans har feilutbetalinger" }
-        check(underArbeid.simulering.tolk().erTomSimulering()) { "Forventer ingen måneder med utbetaling ved stans" }
+        return when {
+            underArbeid.simulering.harFeilutbetalinger() -> {
+                FeilVedKryssjekkAvTidslinjerOgSimulering.Stans.SimuleringHarFeilutbetaling.left()
+            }
+            !underArbeid.simulering.tolk().erTomSimulering() -> {
+                FeilVedKryssjekkAvTidslinjerOgSimulering.Stans.SimuleringInneholderUtbetalinger.left()
+            }
+            else -> {
+                underArbeid.right()
+            }
+        }
     }
+}
+
+sealed interface FeilVedKryssjekkAvTidslinjerOgSimulering {
+
+    sealed interface NyEllerOpphør : FeilVedKryssjekkAvTidslinjerOgSimulering {
+        object FeilVedSjekkAvTidslinjeMotSimulering : NyEllerOpphør
+        object RekonstruertUtbetalingsperiodeErUlikOpprinnelig : NyEllerOpphør
+    }
+
+    sealed interface Gjenopptak : FeilVedKryssjekkAvTidslinjerOgSimulering {
+        object FeilVedSjekkAvTidslinjeMotSimulering : Gjenopptak
+    }
+    sealed interface Stans : FeilVedKryssjekkAvTidslinjerOgSimulering {
+        object SimuleringHarFeilutbetaling : Stans
+        object SimuleringInneholderUtbetalinger : Stans
+    }
+}
+
+sealed interface FeilVedSjekkAvTidslinjeMotSimulering {
+    data class KombinasjonAvSimulertTypeOgTidslinjeTypeErUgyldig(
+        val periode: Periode,
+        val simulertType: String,
+        val tidslinjeType: String,
+    ) : FeilVedSjekkAvTidslinjeMotSimulering
+    data class SimulertBeløpOgTidslinjeBeløpErForskjellig(
+        val periode: Periode,
+        val simulertBeløp: Int,
+        val tidslinjeBeløp: Int,
+    ) : FeilVedSjekkAvTidslinjeMotSimulering
 }
 
 private fun sjekkTidslinjeMotSimulering(
     tidslinje: TidslinjeForUtbetalinger,
     simulering: Simulering,
-) {
+): Either<List<FeilVedSjekkAvTidslinjeMotSimulering>, Unit> {
     val tolketSimulering = simulering.tolk()
+    val feil = mutableListOf<FeilVedSjekkAvTidslinjeMotSimulering>()
 
     tolketSimulering.simulertePerioder.map { it.periode }.komplement().forEach { periode ->
         /**
@@ -116,12 +157,12 @@ private fun sjekkTidslinjeMotSimulering(
          * (f.eks ved hull mellom stønadsperioder e.l). Dersom vi har utbetalinger på tidslinjen for
          * de aktuelle periodene må vi sjekke at vi er "enige" i at månedene ikke fører til utbetaling.
          */
-        tidslinje.gjeldendeForDato(periode.fraOgMed)?.also {
+        tidslinje.gjeldendeForDato(periode.fraOgMed)?.also { utbetalingslinjePåTidslinje ->
             kryssjekkType(
                 tolketPeriode = periode,
                 tolket = TolketUtbetaling.IngenUtbetaling(),
-                utbetaling = it,
-            )
+                utbetaling = utbetalingslinjePåTidslinje,
+            ).getOrHandle { feil.add(it) }
         }
     }
 
@@ -133,7 +174,7 @@ private fun sjekkTidslinjeMotSimulering(
                     tolketPeriode = tolketPeriode.periode,
                     tolket = tolket,
                     utbetaling = utbetaling,
-                )
+                ).getOrHandle { feil.add(it) }
             }
             is TolketUtbetaling.Etterbetaling,
             is TolketUtbetaling.Feilutbetaling,
@@ -144,14 +185,18 @@ private fun sjekkTidslinjeMotSimulering(
                     tolketPeriode = tolketPeriode.periode,
                     tolket = tolket,
                     utbetaling = utbetaling,
-                )
+                ).getOrHandle { feil.add(it) }
                 kryssjekkType(
                     tolketPeriode = tolketPeriode.periode,
                     tolket = tolket,
                     utbetaling = utbetaling,
-                )
+                ).getOrHandle { feil.add(it) }
             }
         }
+    }
+    return when (feil.isEmpty()) {
+        true -> Unit.right()
+        false -> feil.left()
     }
 }
 
@@ -159,88 +204,84 @@ private fun kryssjekkType(
     tolketPeriode: Periode,
     tolket: TolketUtbetaling,
     utbetaling: UtbetalingslinjePåTidslinje,
-) {
-    when (tolket) {
+): Either<FeilVedSjekkAvTidslinjeMotSimulering.KombinasjonAvSimulertTypeOgTidslinjeTypeErUgyldig, Unit> {
+    return when (tolket) {
         is TolketUtbetaling.IngenUtbetaling -> {
-            check(
-                (
-                    utbetaling is UtbetalingslinjePåTidslinje.Stans ||
-                        utbetaling is UtbetalingslinjePåTidslinje.Opphør ||
-                        utbetaling is UtbetalingslinjePåTidslinje.Ny && utbetaling.beløp == 0 ||
-                        utbetaling is UtbetalingslinjePåTidslinje.Reaktivering && utbetaling.beløp == 0
-                    ),
-            ) {
-                errMsgType(
-                    periode = tolketPeriode,
-                    tolket = tolket,
-                    utbetaling = utbetaling,
+            if (!(
+                utbetaling is UtbetalingslinjePåTidslinje.Stans ||
+                    utbetaling is UtbetalingslinjePåTidslinje.Opphør ||
+                    utbetaling is UtbetalingslinjePåTidslinje.Ny && utbetaling.beløp == 0 ||
+                    utbetaling is UtbetalingslinjePåTidslinje.Reaktivering && utbetaling.beløp == 0
                 )
+            ) {
+                FeilVedSjekkAvTidslinjeMotSimulering.KombinasjonAvSimulertTypeOgTidslinjeTypeErUgyldig(
+                    periode = tolketPeriode,
+                    simulertType = tolket::class.toString(),
+                    tidslinjeType = utbetaling::class.toString(),
+                ).left()
+            } else {
+                Unit.right()
             }
         }
         is TolketUtbetaling.Etterbetaling -> {
-            check((utbetaling is UtbetalingslinjePåTidslinje.Ny || utbetaling is UtbetalingslinjePåTidslinje.Reaktivering)) {
-                errMsgType(
+            if (!(utbetaling is UtbetalingslinjePåTidslinje.Ny || utbetaling is UtbetalingslinjePåTidslinje.Reaktivering)) {
+                FeilVedSjekkAvTidslinjeMotSimulering.KombinasjonAvSimulertTypeOgTidslinjeTypeErUgyldig(
                     periode = tolketPeriode,
-                    tolket = tolket,
-                    utbetaling = utbetaling,
-                )
+                    simulertType = tolket::class.toString(),
+                    tidslinjeType = utbetaling::class.toString(),
+                ).left()
+            } else {
+                Unit.right()
             }
         }
         is TolketUtbetaling.Feilutbetaling -> {
-            check((utbetaling is UtbetalingslinjePåTidslinje.Ny || utbetaling is UtbetalingslinjePåTidslinje.Opphør)) {
-                errMsgType(
+            if (!(utbetaling is UtbetalingslinjePåTidslinje.Ny || utbetaling is UtbetalingslinjePåTidslinje.Opphør)) {
+                FeilVedSjekkAvTidslinjeMotSimulering.KombinasjonAvSimulertTypeOgTidslinjeTypeErUgyldig(
                     periode = tolketPeriode,
-                    tolket = tolket,
-                    utbetaling = utbetaling,
-                )
+                    simulertType = tolket::class.toString(),
+                    tidslinjeType = utbetaling::class.toString(),
+                ).left()
+            } else {
+                Unit.right()
             }
         }
         is TolketUtbetaling.Ordinær -> {
-            check((utbetaling is UtbetalingslinjePåTidslinje.Ny || utbetaling is UtbetalingslinjePåTidslinje.Reaktivering)) {
-                errMsgType(
+            if (!(utbetaling is UtbetalingslinjePåTidslinje.Ny || utbetaling is UtbetalingslinjePåTidslinje.Reaktivering)) {
+                FeilVedSjekkAvTidslinjeMotSimulering.KombinasjonAvSimulertTypeOgTidslinjeTypeErUgyldig(
                     periode = tolketPeriode,
-                    tolket = tolket,
-                    utbetaling = utbetaling,
-                )
+                    simulertType = tolket::class.toString(),
+                    tidslinjeType = utbetaling::class.toString(),
+                ).left()
+            } else {
+                Unit.right()
             }
         }
         is TolketUtbetaling.UendretUtbetaling -> {
-            check((utbetaling is UtbetalingslinjePåTidslinje.Ny || utbetaling is UtbetalingslinjePåTidslinje.Reaktivering)) {
-                errMsgType(
+            if (!(utbetaling is UtbetalingslinjePåTidslinje.Ny || utbetaling is UtbetalingslinjePåTidslinje.Reaktivering)) {
+                FeilVedSjekkAvTidslinjeMotSimulering.KombinasjonAvSimulertTypeOgTidslinjeTypeErUgyldig(
                     periode = tolketPeriode,
-                    tolket = tolket,
-                    utbetaling = utbetaling,
-                )
+                    simulertType = tolket::class.toString(),
+                    tidslinjeType = utbetaling::class.toString(),
+                ).left()
+            } else {
+                Unit.right()
             }
         }
     }
-}
-
-private fun errMsgType(
-    periode: Periode,
-    tolket: TolketUtbetaling,
-    utbetaling: UtbetalingslinjePåTidslinje,
-): String {
-    return "Kombinasjon av simulert:${tolket::class} og ${utbetaling::class} for periode:$periode er ugyldig"
 }
 
 private fun kryssjekkBeløp(
     tolketPeriode: Periode,
     tolket: TolketUtbetaling,
     utbetaling: UtbetalingslinjePåTidslinje,
-) {
-    check(tolket.hentØnsketUtbetaling().sum() == utbetaling.beløp) {
-        errMsgBeløp(
+): Either<FeilVedSjekkAvTidslinjeMotSimulering.SimulertBeløpOgTidslinjeBeløpErForskjellig, Unit> {
+    return if (tolket.hentØnsketUtbetaling().sum() != utbetaling.beløp) {
+        FeilVedSjekkAvTidslinjeMotSimulering.SimulertBeløpOgTidslinjeBeløpErForskjellig(
             periode = tolketPeriode,
-            tolket = tolket.hentØnsketUtbetaling().sum(),
-            utbetaling = utbetaling.beløp,
-        )
+            simulertBeløp = tolket.hentØnsketUtbetaling().sum(),
+            tidslinjeBeløp = utbetaling.beløp,
+        ).left()
+    } else {
+        Unit.right()
     }
-}
-private fun errMsgBeløp(
-    periode: Periode,
-    tolket: Int,
-    utbetaling: Int,
-): String {
-    return "Beløp:$tolket for simulert periode:$periode er ikke likt beløp fra utbetalingstidlsinje:$utbetaling"
 }

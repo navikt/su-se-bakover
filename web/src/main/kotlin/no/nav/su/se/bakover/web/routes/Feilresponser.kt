@@ -4,6 +4,7 @@ import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Forbidden
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
+import no.nav.su.se.bakover.domain.oppdrag.FeilVedKryssjekkAvTidslinjerOgSimulering
 import no.nav.su.se.bakover.domain.oppdrag.KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
@@ -11,7 +12,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeSimulereBehandlin
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
-import no.nav.su.se.bakover.web.routes.Feilresponser.tilResultat
 import kotlin.reflect.KClass
 
 internal object Feilresponser {
@@ -244,6 +244,11 @@ internal object Feilresponser {
         "kunne_ikke_lagre",
     )
 
+    val kryssjekkTidslinjeSimuleringFeilet = InternalServerError.errorJson(
+        "Kryssjekk av utbetalingstidslinjer og simulering feilet",
+        "kryssjekk_utbetalingstidslinjer_simulering_feilet",
+    )
+
     fun ugyldigTilstand(fra: KClass<*>, til: KClass<*>): Resultat {
         return ugyldigTilstand(fra.simpleName.toString(), til.simpleName.toString())
     }
@@ -383,26 +388,57 @@ internal object Feilresponser {
 
     internal fun SimuleringFeilet.tilResultat(): Resultat {
         return when (this) {
-            SimuleringFeilet.OPPDRAG_UR_ER_STENGT -> InternalServerError.errorJson(
+            SimuleringFeilet.UtenforÅpningstid -> InternalServerError.errorJson(
                 "Simuleringsfeil: Oppdrag/UR er stengt eller nede",
                 "simulering_feilet_oppdrag_stengt_eller_nede",
             )
-            SimuleringFeilet.PERSONEN_FINNES_IKKE_I_TPS -> InternalServerError.errorJson(
+            SimuleringFeilet.PersonFinnesIkkeITPS -> InternalServerError.errorJson(
                 "Simuleringsfeil: Finner ikke person i TPS",
                 "simulering_feilet_finner_ikke_person_i_tps",
             )
-            SimuleringFeilet.FINNER_IKKE_KJØREPLANSPERIODE_FOR_FOM -> InternalServerError.errorJson(
+            SimuleringFeilet.FinnerIkkeKjøreplanForFraOgMed -> InternalServerError.errorJson(
                 "Simuleringsfeil: Finner ikke kjøreplansperiode for fom-dato",
                 "simulering_feilet_finner_ikke_kjøreplansperiode_for_fom",
             )
-            SimuleringFeilet.OPPDRAGET_FINNES_IKKE -> InternalServerError.errorJson(
+            SimuleringFeilet.OppdragEksistererIkke -> InternalServerError.errorJson(
                 "Simuleringsfeil: Oppdraget finnes ikke fra før",
                 "simulering_feilet_oppdraget_finnes_ikke",
             )
-            SimuleringFeilet.FUNKSJONELL_FEIL, SimuleringFeilet.TEKNISK_FEIL -> InternalServerError.errorJson(
+            SimuleringFeilet.FunksjonellFeil, SimuleringFeilet.TekniskFeil -> InternalServerError.errorJson(
                 "Simulering feilet",
                 "simulering_feilet",
             )
+
+            is SimuleringFeilet.KontrollAvSimuleringFeilet -> this.feil.tilResultat()
+        }
+    }
+
+    internal fun FeilVedKryssjekkAvTidslinjerOgSimulering.tilResultat(): Resultat {
+        return when (this) {
+            is FeilVedKryssjekkAvTidslinjerOgSimulering.Gjenopptak.FeilVedSjekkAvTidslinjeMotSimulering -> {
+                kryssjekkTidslinjeSimuleringFeilet
+            }
+            is FeilVedKryssjekkAvTidslinjerOgSimulering.NyEllerOpphør.FeilVedSjekkAvTidslinjeMotSimulering -> {
+                kryssjekkTidslinjeSimuleringFeilet
+            }
+            FeilVedKryssjekkAvTidslinjerOgSimulering.NyEllerOpphør.RekonstruertUtbetalingsperiodeErUlikOpprinnelig -> {
+                InternalServerError.errorJson(
+                    "Rekonstruert utbetalingshistorikk er ikke lik opprinnelig.",
+                    "rekonstruert_utbetalingshistorikk_ulik_original",
+                )
+            }
+            FeilVedKryssjekkAvTidslinjerOgSimulering.Stans.SimuleringHarFeilutbetaling -> {
+                BadRequest.errorJson(
+                    "Stans vil føre til feilutbetalinger",
+                    "stans_fører_til_feilutbetaling",
+                )
+            }
+            FeilVedKryssjekkAvTidslinjerOgSimulering.Stans.SimuleringInneholderUtbetalinger -> {
+                InternalServerError.errorJson(
+                    "Stans inneholder måneder med utbetaling",
+                    "stans_inneholder_måneder_til_utbetaling",
+                )
+            }
         }
     }
 }

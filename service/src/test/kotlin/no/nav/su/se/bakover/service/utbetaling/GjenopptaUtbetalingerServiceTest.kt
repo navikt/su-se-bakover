@@ -152,7 +152,7 @@ internal class GjenopptaUtbetalingerServiceTest {
                 on { hentSak(any<UUID>()) } doReturn sak.right()
             },
             simuleringClient = mock {
-                on { simulerUtbetaling(any()) } doReturn SimuleringFeilet.TEKNISK_FEIL.left()
+                on { simulerUtbetaling(any()) } doReturn SimuleringFeilet.TekniskFeil.left()
             },
         ).also {
             it.service.klargjørGjenopptak(
@@ -168,7 +168,7 @@ internal class GjenopptaUtbetalingerServiceTest {
                     ),
                 ),
                 transactionContext = TestSessionFactory.transactionContext,
-            ) shouldBe UtbetalGjenopptakFeil.KunneIkkeSimulere(SimulerGjenopptakFeil.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL)).left()
+            ) shouldBe UtbetalGjenopptakFeil.KunneIkkeSimulere(SimulerGjenopptakFeil.KunneIkkeSimulere(SimuleringFeilet.TekniskFeil)).left()
 
             inOrder(it.sakService, it.simuleringClient) {
                 verify(it.sakService).hentSak(sak.id)

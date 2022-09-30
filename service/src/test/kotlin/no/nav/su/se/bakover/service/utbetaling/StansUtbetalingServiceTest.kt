@@ -5,7 +5,7 @@ import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.toPeriode
-import no.nav.su.se.bakover.domain.oppdrag.KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
+import no.nav.su.se.bakover.domain.oppdrag.FeilVedKryssjekkAvTidslinjerOgSimulering
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
@@ -26,7 +26,6 @@ import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehand
 import no.nav.su.se.bakover.test.utbetalingsRequest
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
@@ -115,7 +114,7 @@ internal class StansUtbetalingServiceTest {
                 on { hentSak(sakId) } doReturn sak.right()
             },
             simuleringClient = mock {
-                on { simulerUtbetaling(any()) } doReturn SimuleringFeilet.TEKNISK_FEIL.left()
+                on { simulerUtbetaling(any()) } doReturn SimuleringFeilet.TekniskFeil.left()
             },
         ).also {
             it.service.klargjørStans(
@@ -128,7 +127,7 @@ internal class StansUtbetalingServiceTest {
                     simulering = simulering,
                 ),
                 transactionContext = TestSessionFactory.transactionContext,
-            ) shouldBe UtbetalStansFeil.KunneIkkeSimulere(SimulerStansFeilet.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL)).left()
+            ) shouldBe UtbetalStansFeil.KunneIkkeSimulere(SimulerStansFeilet.KunneIkkeSimulere(SimuleringFeilet.TekniskFeil)).left()
 
             inOrder(it.sakService, it.simuleringClient) {
                 verify(it.sakService).hentSak(sakId = argThat { it shouldBe sakId })
@@ -222,22 +221,20 @@ internal class StansUtbetalingServiceTest {
                 on { simulerUtbetaling(any()) } doReturn simuleringMedProblemer.right()
             },
         ).also {
-            assertThrows<IllegalStateException> {
-                it.service.klargjørStans(
-                    request = UtbetalRequest.Stans(
-                        request = SimulerUtbetalingRequest.Stans(
-                            sakId = sakId,
-                            saksbehandler = saksbehandler,
-                            stansdato = stansdato,
-                        ),
-                        simulering = revurdering.simulering,
+            it.service.klargjørStans(
+                request = UtbetalRequest.Stans(
+                    request = SimulerUtbetalingRequest.Stans(
+                        sakId = sakId,
+                        saksbehandler = saksbehandler,
+                        stansdato = stansdato,
                     ),
-                    transactionContext = TestSessionFactory.transactionContext,
-                ) shouldBe UtbetalStansFeil.KunneIkkeUtbetale(UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UlikFeilutbetaling)).left()
+                    simulering = revurdering.simulering,
+                ),
+                transactionContext = TestSessionFactory.transactionContext,
+            ) shouldBe UtbetalStansFeil.KunneIkkeSimulere(SimulerStansFeilet.KontrollFeilet(FeilVedKryssjekkAvTidslinjerOgSimulering.Stans.SimuleringHarFeilutbetaling)).left()
 
-                verify(it.utbetalingPublisher, never()).publishRequest(any())
-                verify(it.utbetalingRepo, never()).opprettUtbetaling(any(), anyOrNull())
-            }
+            verify(it.utbetalingPublisher, never()).publishRequest(any())
+            verify(it.utbetalingRepo, never()).opprettUtbetaling(any(), anyOrNull())
         }
     }
 }

@@ -276,7 +276,7 @@ internal class RevurderingBeregnOgSimulerTest {
         RevurderingServiceMocks(
             revurderingRepo = mock(),
             utbetalingService = mock {
-                on { simulerUtbetaling(any()) } doReturn SimuleringFeilet.TEKNISK_FEIL.left()
+                on { simulerUtbetaling(any()) } doReturn SimuleringFeilet.TekniskFeil.left()
             },
             sakService = mock {
                 on { hentSakForRevurdering(any()) } doReturn sak
@@ -287,7 +287,7 @@ internal class RevurderingBeregnOgSimulerTest {
                 saksbehandler = saksbehandler,
             )
 
-            response shouldBe KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL)
+            response shouldBe KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(SimuleringFeilet.TekniskFeil)
                 .left()
 
             verify(it.utbetalingService).simulerUtbetaling(

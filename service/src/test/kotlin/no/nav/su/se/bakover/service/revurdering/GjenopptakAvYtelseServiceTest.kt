@@ -142,7 +142,7 @@ internal class GjenopptakAvYtelseServiceTest {
                     simulerGjenopptak(
                         any(),
                     )
-                } doReturn SimulerGjenopptakFeil.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL).left()
+                } doReturn SimulerGjenopptakFeil.KunneIkkeSimulere(SimuleringFeilet.TekniskFeil).left()
             },
             sakService = mock {
                 on { hentSak(any<UUID>()) } doReturn sak.right()
@@ -157,11 +157,7 @@ internal class GjenopptakAvYtelseServiceTest {
                         begrunnelse = "begrunnelse",
                     ),
                 ),
-            ) shouldBe KunneIkkeGjenopptaYtelse.KunneIkkeSimulere(
-                SimulerGjenopptakFeil.KunneIkkeSimulere(
-                    SimuleringFeilet.TEKNISK_FEIL,
-                ),
-            ).left()
+            ) shouldBe KunneIkkeGjenopptaYtelse.KunneIkkeSimulere(SimulerGjenopptakFeil.KunneIkkeSimulere(SimuleringFeilet.TekniskFeil)).left()
 
             verify(it.sakService).hentSak(sak.id)
             verify(it.utbetalingService).simulerGjenopptak(

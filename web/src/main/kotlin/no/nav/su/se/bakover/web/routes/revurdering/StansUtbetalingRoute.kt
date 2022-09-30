@@ -212,6 +212,9 @@ private fun SimulerStansFeilet.tilResultat(): Resultat {
         is SimulerStansFeilet.KunneIkkeSimulere -> {
             this.feil.tilResultat()
         }
+        is SimulerStansFeilet.KontrollFeilet -> {
+            this.feil.tilResultat()
+        }
     }
 }
 

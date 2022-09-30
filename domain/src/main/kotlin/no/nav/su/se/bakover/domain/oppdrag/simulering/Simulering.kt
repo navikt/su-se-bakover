@@ -112,15 +112,6 @@ data class SimulertDetaljer(
     fun isYtelse() = KlasseType.YTEL == klasseType
 }
 
-enum class SimuleringFeilet {
-    OPPDRAG_UR_ER_STENGT,
-    PERSONEN_FINNES_IKKE_I_TPS,
-    FINNER_IKKE_KJØREPLANSPERIODE_FOR_FOM,
-    OPPDRAGET_FINNES_IKKE,
-    FUNKSJONELL_FEIL,
-    TEKNISK_FEIL,
-}
-
 enum class KlasseType {
     YTEL,
     SKAT,
