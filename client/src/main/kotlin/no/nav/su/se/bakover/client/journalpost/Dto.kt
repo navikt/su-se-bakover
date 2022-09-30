@@ -25,15 +25,15 @@ internal data class Sak(
  */
 internal data class HentDokumentoversiktFagsakHttpResponse(
     override val data: HentDokumentoversiktFagsakResponse?,
-    override val errors: List<Error>?
+    override val errors: List<Error>?,
 ) : GraphQLHttpResponse()
 
 internal data class HentDokumentoversiktFagsakResponse(
-    val dokumentoversiktFagsak: DokumentoversiktFagsak
+    val dokumentoversiktFagsak: DokumentoversiktFagsak,
 )
 
 internal data class DokumentoversiktFagsak(
-    val journalposter: List<Journalpost>
+    val journalposter: List<Journalpost>,
 )
 
 /**
@@ -69,7 +69,8 @@ internal data class HentJournalpostVariables(
 )
 
 internal enum class JournalpostTema {
-    SUP
+    SUP,
+    ;
 }
 
 internal fun JournalpostTema.toDomain(): no.nav.su.se.bakover.domain.journalpost.JournalpostTema {
@@ -80,7 +81,8 @@ internal fun JournalpostTema.toDomain(): no.nav.su.se.bakover.domain.journalpost
 
 internal enum class JournalpostStatus {
     JOURNALFOERT,
-    FERDIGSTILT;
+    FERDIGSTILT,
+    ;
 }
 
 internal fun JournalpostStatus.toDomain(): no.nav.su.se.bakover.domain.journalpost.JournalpostStatus {
@@ -91,7 +93,7 @@ internal fun JournalpostStatus.toDomain(): no.nav.su.se.bakover.domain.journalpo
 }
 
 internal enum class JournalpostType {
-    I // Innkommende dokument
+    I, // Innkommende dokument
 }
 
 internal fun JournalpostType.toDomain(): no.nav.su.se.bakover.domain.journalpost.JournalpostType {

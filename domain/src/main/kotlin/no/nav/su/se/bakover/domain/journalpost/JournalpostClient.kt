@@ -19,7 +19,7 @@ interface JournalpostClient {
      */
     fun kontrollnotatMotatt(
         saksnummer: Saksnummer,
-        periode: Periode
+        periode: Periode,
     ): Either<KunneIkkeSjekkKontrollnotatMottatt, ErKontrollNotatMottatt>
 }
 

@@ -183,7 +183,7 @@ internal fun setupClient() = JournalpostHttpClient(
     },
     sts = mock {
         on { token() } doReturn AccessToken("stsToken")
-    }
+    },
 )
 internal fun token(authorization: String) = WireMock.post(WireMock.urlPathEqualTo("/graphql"))
     .withHeader("Authorization", WireMock.equalTo(authorization))

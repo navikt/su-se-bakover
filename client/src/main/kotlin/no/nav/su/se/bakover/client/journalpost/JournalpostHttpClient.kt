@@ -54,8 +54,8 @@ internal class JournalpostHttpClient(
             request = request,
             token = azureAd.onBehalfOfToken(
                 originalToken = JwtToken.BrukerToken.fraMdc().value,
-                otherAppId = safConfig.clientId
-            )
+                otherAppId = safConfig.clientId,
+            ),
         ).mapLeft {
             when (it) {
                 is GraphQLApiFeil.HttpFeil.BadRequest -> KunneIkkeHenteJournalpost.UgyldigInput
@@ -83,7 +83,7 @@ internal class JournalpostHttpClient(
         val request = GraphQLQuery<HentDokumentoversiktFagsakHttpResponse>(
             query = lagRequest(
                 query = "/dokumentoversiktFagsakQuery.graphql",
-                datafelter = "/hentMottattKontrollnotatDatafelter.graphql"
+                datafelter = "/hentMottattKontrollnotatDatafelter.graphql",
             ),
             variables = HentJournalpostForFagsakVariables(
                 fagsakId = saksnummer.toString(),
@@ -92,8 +92,8 @@ internal class JournalpostHttpClient(
                 tema = "SUP",
                 journalposttyper = listOf("I"),
                 journalstatuser = listOf("JOURNALFOERT"),
-                foerste = 100
-            )
+                foerste = 100,
+            ),
         )
         return gqlRequest(
             request = request,
@@ -174,6 +174,7 @@ internal abstract class GraphQLHttpResponse {
     fun hasErrors(): Boolean {
         return errors?.isNotEmpty() ?: false
     }
+
     // https://confluence.adeo.no/display/BOA/saf+-+Utviklerveiledning#safUtviklerveiledning-Feilh%C3%A5ndtering
     fun mapGraphQLHttpFeil(request: Any): JournalpostHttpClient.GraphQLApiFeil {
         return errors.orEmpty().map { error ->
@@ -190,7 +191,7 @@ internal abstract class GraphQLHttpResponse {
 
 internal data class GraphQLQuery<ResponseType>(
     val query: String,
-    val variables: Any
+    val variables: Any,
 )
 
 internal data class Error(

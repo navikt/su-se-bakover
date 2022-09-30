@@ -20,6 +20,6 @@ internal fun Journalpost.toDomain(): KontrollnotatMottattJournalpost {
         saksnummer = Saksnummer(sak!!.fagsakId!!.toLong()),
         tittel = tittel!!,
         datoOpprettet = datoOpprettet!!,
-        journalpostId = JournalpostId(journalpostId!!)
+        journalpostId = JournalpostId(journalpostId!!),
     )
 }

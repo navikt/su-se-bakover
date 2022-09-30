@@ -1,14 +1,17 @@
 package no.nav.su.se.bakover.domain.journalpost
 
 enum class JournalpostTema {
-    SUP
+    SUP,
+    ;
 }
 
 enum class JournalpostStatus {
     JOURNALFOERT,
-    FERDIGSTILT;
+    FERDIGSTILT,
+    ;
 }
 
 enum class JournalpostType {
-    INNKOMMENDE_DOKUMENT;
+    INNKOMMENDE_DOKUMENT,
+    ;
 }

@@ -37,8 +37,8 @@ internal class HentKontrollnotatMottattTest : WiremockBase {
                     saksnummer = Saksnummer(10002027),
                     tittel = "NAV 00-03.01 NAV SU Kontrollnotat",
                     datoOpprettet = 9.september(2022),
-                    journalpostId = JournalpostId(value = "453812131")
-                )
+                    journalpostId = JournalpostId(value = "453812131"),
+                ),
             ).right()
             it.kontrollnotatMotatt(Saksnummer(10002027), januar(2022)) shouldBe ErKontrollNotatMottatt.Nei.right()
             it.kontrollnotatMotatt(Saksnummer(10002027), år(2022)) shouldBe ErKontrollNotatMottatt.Ja(
@@ -49,8 +49,8 @@ internal class HentKontrollnotatMottattTest : WiremockBase {
                     saksnummer = Saksnummer(10002027),
                     tittel = "NAV 00-03.01 NAV SU Kontrollnotat",
                     datoOpprettet = 9.september(2022),
-                    journalpostId = JournalpostId(value = "453812131")
-                )
+                    journalpostId = JournalpostId(value = "453812131"),
+                ),
             ).right()
         }
     }
@@ -224,8 +224,8 @@ internal class HentKontrollnotatMottattTest : WiremockBase {
                     saksnummer = Saksnummer(10002027),
                     tittel = "NAV 00-03.01 NAV SU Kontrollnotat",
                     datoOpprettet = 28.september(2022),
-                    journalpostId = JournalpostId(value = "453899999")
-                )
+                    journalpostId = JournalpostId(value = "453899999"),
+                ),
             ).right()
         }
     }

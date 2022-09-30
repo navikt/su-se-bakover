@@ -37,8 +37,8 @@ object JournalpostClientStub : JournalpostClient {
                 saksnummer = saksnummer,
                 tittel = "NAV SU Kontrollnotat",
                 datoOpprettet = periode.fraOgMed,
-                journalpostId = JournalpostId("453812134")
-            )
+                journalpostId = JournalpostId("453812134"),
+            ),
         ).right()
     }
 }
