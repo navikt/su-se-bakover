@@ -79,7 +79,7 @@ fun Fradragstype.toReadableTypeName(utenlandsk: Boolean) =
         Fradragstype.Sosialstønad -> "Sosialstønad"
         Fradragstype.SupplerendeStønad -> "Supplerende stønad"
         Fradragstype.Sykepenger -> "Sykepenger"
-        Fradragstype.Uføretrygd -> "uføretrygd"
+        Fradragstype.Uføretrygd -> "Uføretrygd"
         Fradragstype.UnderMinstenivå -> "Beløp under minstegrense for utbetaling"
     }.let { fradragsnavn ->
         if (utenlandsk) {

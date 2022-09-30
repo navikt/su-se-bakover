@@ -36,7 +36,7 @@ internal class FradragsMapperTest {
 
         BrukerFradragBenyttetIBeregningsperiode(fradrag).fradrag shouldBe listOf(
             Månedsfradrag(
-                type = Fradragstype.Kapitalinntekt.toReadableTypeName(false),
+                type = "Kapitalinntekt",
                 beløp = 5000,
                 utenlandskInntekt = null,
             ),
@@ -47,7 +47,7 @@ internal class FradragsMapperTest {
             beregningsperiode = periode,
         ).fradrag shouldBe listOf(
             Månedsfradrag(
-                type = Fradragstype.BidragEtterEkteskapsloven.toReadableTypeName(false),
+                type = "Bidrag etter ekteskapsloven",
                 beløp = 3000,
                 utenlandskInntekt = null,
             ),
@@ -76,7 +76,7 @@ internal class FradragsMapperTest {
 
         BrukerFradragBenyttetIBeregningsperiode(fradrag).fradrag shouldBe listOf(
             Månedsfradrag(
-                type = Fradragstype.Kapitalinntekt.toReadableTypeName(false),
+                type = "Kapitalinntekt",
                 beløp = 3337,
                 utenlandskInntekt = null,
             ),
@@ -115,12 +115,12 @@ internal class FradragsMapperTest {
             januar(2020),
         ).fradrag shouldBe listOf(
             Månedsfradrag(
-                type = Fradragstype.Arbeidsinntekt.toReadableTypeName(false),
+                type = "Arbeidsinntekt",
                 beløp = 10000,
                 utenlandskInntekt = null,
             ),
             Månedsfradrag(
-                type = Fradragstype.Kapitalinntekt.toReadableTypeName(false),
+                type = "Kapitalinntekt",
                 beløp = 3337,
                 utenlandskInntekt = null,
             ),
@@ -131,7 +131,7 @@ internal class FradragsMapperTest {
             periode,
         ).fradrag shouldBe listOf(
             Månedsfradrag(
-                type = Fradragstype.Kapitalinntekt.toReadableTypeName(false),
+                type = "Kapitalinntekt",
                 beløp = 3337,
                 utenlandskInntekt = null,
             ),
