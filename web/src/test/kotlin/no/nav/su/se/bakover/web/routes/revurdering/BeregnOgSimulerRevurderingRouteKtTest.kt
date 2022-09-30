@@ -201,7 +201,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
     @Test
     fun `simulering feilet`() {
         shouldMapErrorCorrectly(
-            error = KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL),
+            error = KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(SimuleringFeilet.TekniskFeil),
             expectedStatusCode = HttpStatusCode.InternalServerError,
             expectedJsonResponse = """
                 {

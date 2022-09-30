@@ -4,6 +4,7 @@ import arrow.core.Either
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.oppdrag.FantIkkeGjeldendeUtbetaling
+import no.nav.su.se.bakover.domain.oppdrag.FeilVedKryssjekkAvTidslinjerOgSimulering
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
@@ -108,6 +109,8 @@ object FantIkkeUtbetaling
 sealed class SimulerGjenopptakFeil {
     data class KunneIkkeSimulere(val feil: SimuleringFeilet) : SimulerGjenopptakFeil()
     data class KunneIkkeGenerereUtbetaling(val feil: Utbetalingsstrategi.Gjenoppta.Feil) : SimulerGjenopptakFeil()
+
+    data class KontrollFeilet(val feil: FeilVedKryssjekkAvTidslinjerOgSimulering.Gjenopptak) : SimulerGjenopptakFeil()
 }
 
 sealed class UtbetalGjenopptakFeil {
@@ -118,6 +121,8 @@ sealed class UtbetalGjenopptakFeil {
 sealed class SimulerStansFeilet {
     data class KunneIkkeSimulere(val feil: SimuleringFeilet) : SimulerStansFeilet()
     data class KunneIkkeGenerereUtbetaling(val feil: Utbetalingsstrategi.Stans.Feil) : SimulerStansFeilet()
+
+    data class KontrollFeilet(val feil: FeilVedKryssjekkAvTidslinjerOgSimulering.Stans) : SimulerStansFeilet()
 }
 
 sealed class UtbetalStansFeil {

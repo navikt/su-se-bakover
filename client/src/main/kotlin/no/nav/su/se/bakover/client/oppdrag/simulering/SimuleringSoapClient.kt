@@ -47,10 +47,10 @@ internal class SimuleringSoapClient(
             )
             with(e.faultInfo.errorMessage) {
                 when {
-                    startsWith("Personen finnes ikke i TPS") -> SimuleringFeilet.PERSONEN_FINNES_IKKE_I_TPS.left()
-                    startsWith("Finner ikke kjøreplansperiode for fom-dato") -> SimuleringFeilet.FINNER_IKKE_KJØREPLANSPERIODE_FOR_FOM.left()
-                    startsWith("OPPDRAGET/FAGSYSTEM-ID finnes ikke") -> SimuleringFeilet.OPPDRAGET_FINNES_IKKE.left()
-                    else -> SimuleringFeilet.FUNKSJONELL_FEIL.left()
+                    startsWith("Personen finnes ikke i TPS") -> SimuleringFeilet.PersonFinnesIkkeITPS.left()
+                    startsWith("Finner ikke kjøreplansperiode for fom-dato") -> SimuleringFeilet.FinnerIkkeKjøreplanForFraOgMed.left()
+                    startsWith("OPPDRAGET/FAGSYSTEM-ID finnes ikke") -> SimuleringFeilet.OppdragEksistererIkke.left()
+                    else -> SimuleringFeilet.FunksjonellFeil.left()
                 }
             }
         } catch (e: SOAPFaultException) {
@@ -71,11 +71,11 @@ internal class SimuleringSoapClient(
 
     private fun SimulerBeregningRequest.print() = objectMapper.writeValueAsString(this)
 
-    private fun unknownTechnicalExceptionResponse(exception: Throwable) = SimuleringFeilet.TEKNISK_FEIL.left().also {
+    private fun unknownTechnicalExceptionResponse(exception: Throwable) = SimuleringFeilet.TekniskFeil.left().also {
         log.error("Ukjent teknisk feil ved simulering", exception)
     }
 
-    private fun utenforÅpningstidResponse(exception: Throwable) = SimuleringFeilet.OPPDRAG_UR_ER_STENGT.left().also {
+    private fun utenforÅpningstidResponse(exception: Throwable) = SimuleringFeilet.UtenforÅpningstid.left().also {
         log.error("Feil ved simulering, Oppdrag/UR er stengt", exception)
     }
 

@@ -154,7 +154,9 @@ internal class UtbetalingServiceImpl(
             eksisterende = sak.utbetalinger,
             simuler = this::simulerUtbetaling,
             clock = clock,
-        )
+        ).getOrHandle {
+            return SimuleringFeilet.KontrollAvSimuleringFeilet(it).left()
+        }
 
         return simulerUtbetaling(
             request = SimulerUtbetalingForPeriode(
@@ -223,7 +225,9 @@ internal class UtbetalingServiceImpl(
             eksisterende = sak.utbetalinger,
             simuler = this::simulerUtbetaling,
             clock = clock,
-        )
+        ).getOrHandle {
+            return SimuleringFeilet.KontrollAvSimuleringFeilet(it).left()
+        }
 
         return simulerUtbetaling(
             request = SimulerUtbetalingForPeriode(
@@ -269,11 +273,11 @@ internal class UtbetalingServiceImpl(
                 utbetaling = utbetaling,
                 simuleringsperiode = simuleringsperiode,
             ),
-        ).map {
-            KryssjekkTidslinjerOgSimulering.sjekkStans(underArbeid = it)
-            it
-        }.mapLeft {
+        ).mapLeft {
             SimulerStansFeilet.KunneIkkeSimulere(it)
+        }.map { simulertUtbetaling ->
+            KryssjekkTidslinjerOgSimulering.sjekkStans(underArbeid = simulertUtbetaling)
+                .getOrHandle { return SimulerStansFeilet.KontrollFeilet(it).left() }
         }
     }
 
@@ -289,11 +293,7 @@ internal class UtbetalingServiceImpl(
                     saksbehandlersSimulering = request.simulering,
                     attestantsSimulering = simulertStans,
                 ).sjekk().getOrHandle {
-                    return UtbetalStansFeil.KunneIkkeUtbetale(
-                        UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(
-                            it,
-                        ),
-                    ).left()
+                    return UtbetalStansFeil.KunneIkkeUtbetale(UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(it)).left()
                 }
 
                 UtbetalingKlargjortForOversendelse(
@@ -346,13 +346,15 @@ internal class UtbetalingServiceImpl(
                 utbetaling = utbetaling,
                 simuleringsperiode = simuleringsperiode,
             ),
-        ).map {
+        ).map { simulertUtbetaling ->
             KryssjekkTidslinjerOgSimulering.sjekkGjenopptak(
-                underArbeid = it,
+                underArbeid = simulertUtbetaling,
                 eksisterende = request.sak.utbetalinger,
                 clock = clock,
-            )
-            it
+            ).getOrHandle {
+                return SimulerGjenopptakFeil.KontrollFeilet(it).left()
+            }
+            simulertUtbetaling
         }.mapLeft {
             SimulerGjenopptakFeil.KunneIkkeSimulere(it)
         }

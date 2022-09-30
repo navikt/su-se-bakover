@@ -223,6 +223,9 @@ private fun SimulerGjenopptakFeil.tilResultat(): Resultat {
         is SimulerGjenopptakFeil.KunneIkkeSimulere -> {
             feil.tilResultat()
         }
+        is SimulerGjenopptakFeil.KontrollFeilet -> {
+            feil.tilResultat()
+        }
     }
 }
 

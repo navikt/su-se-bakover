@@ -151,7 +151,7 @@ internal class SimuleringSoapClientTest {
                 simuleringsperiode = år(2020),
                 utbetaling = nyUtbetaling,
             ),
-        ) shouldBe SimuleringFeilet.FUNKSJONELL_FEIL.left()
+        ) shouldBe SimuleringFeilet.FunksjonellFeil.left()
     }
 
     @Test
@@ -174,7 +174,7 @@ internal class SimuleringSoapClientTest {
                 simuleringsperiode = år(2020),
                 utbetaling = nyUtbetaling,
             ),
-        ) shouldBe SimuleringFeilet.OPPDRAG_UR_ER_STENGT.left()
+        ) shouldBe SimuleringFeilet.UtenforÅpningstid.left()
     }
 
     @Test
@@ -199,7 +199,7 @@ internal class SimuleringSoapClientTest {
             ),
         )
 
-        response shouldBe SimuleringFeilet.OPPDRAG_UR_ER_STENGT.left()
+        response shouldBe SimuleringFeilet.UtenforÅpningstid.left()
     }
 
     @Test
@@ -222,7 +222,7 @@ internal class SimuleringSoapClientTest {
                 simuleringsperiode = år(2020),
                 utbetaling = nyUtbetaling,
             ),
-        ) shouldBe SimuleringFeilet.TEKNISK_FEIL.left()
+        ) shouldBe SimuleringFeilet.TekniskFeil.left()
     }
 
     @Test

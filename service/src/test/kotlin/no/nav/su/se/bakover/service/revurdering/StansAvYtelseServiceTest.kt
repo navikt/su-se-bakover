@@ -122,7 +122,7 @@ internal class StansAvYtelseServiceTest {
                     simulerStans(
                         any(),
                     )
-                } doReturn SimulerStansFeilet.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL).left()
+                } doReturn SimulerStansFeilet.KunneIkkeSimulere(SimuleringFeilet.TekniskFeil).left()
             },
             sakService = mock<SakService> {
                 on { hentSak(any<UUID>()) } doReturn sak.right()
@@ -140,7 +140,7 @@ internal class StansAvYtelseServiceTest {
                 ),
             ) shouldBe KunneIkkeStanseYtelse.SimuleringAvStansFeilet(
                 SimulerStansFeilet.KunneIkkeSimulere(
-                    SimuleringFeilet.TEKNISK_FEIL,
+                    SimuleringFeilet.TekniskFeil,
                 ),
             ).left()
 
@@ -228,7 +228,7 @@ internal class StansAvYtelseServiceTest {
                     any(),
                     any(),
                 )
-            } doReturn UtbetalStansFeil.KunneIkkeSimulere(SimulerStansFeilet.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL))
+            } doReturn UtbetalStansFeil.KunneIkkeSimulere(SimulerStansFeilet.KunneIkkeSimulere(SimuleringFeilet.TekniskFeil))
                 .left()
         }
 
@@ -241,7 +241,7 @@ internal class StansAvYtelseServiceTest {
                 attestant = NavIdentBruker.Attestant(simulertStans.saksbehandler.navIdent),
             ) shouldBe KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale(
                 UtbetalStansFeil.KunneIkkeSimulere(
-                    SimulerStansFeilet.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL),
+                    SimulerStansFeilet.KunneIkkeSimulere(SimuleringFeilet.TekniskFeil),
                 ),
             ).left()
 

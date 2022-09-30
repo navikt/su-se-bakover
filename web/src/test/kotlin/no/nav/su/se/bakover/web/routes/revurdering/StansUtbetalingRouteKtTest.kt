@@ -209,7 +209,7 @@ internal class StansUtbetalingRouteKtTest {
         val revurderingServiceMock = mock<RevurderingService> {
             on { stansAvYtelse(any()) } doReturn KunneIkkeStanseYtelse.SimuleringAvStansFeilet(
                 SimulerStansFeilet.KunneIkkeSimulere(
-                    SimuleringFeilet.OPPDRAGET_FINNES_IKKE,
+                    SimuleringFeilet.OppdragEksistererIkke,
                 ),
             ).left()
         }

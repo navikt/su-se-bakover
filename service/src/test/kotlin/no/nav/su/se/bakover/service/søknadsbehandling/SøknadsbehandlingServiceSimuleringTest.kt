@@ -92,7 +92,7 @@ internal class SøknadsbehandlingServiceSimuleringTest {
             on { hent(any()) } doReturn beregnetBehandling
         }
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { simulerUtbetaling(any()) } doReturn SimuleringFeilet.TEKNISK_FEIL.left()
+            on { simulerUtbetaling(any()) } doReturn SimuleringFeilet.TekniskFeil.left()
         }
 
         val response = createSøknadsbehandlingService(
@@ -103,7 +103,7 @@ internal class SøknadsbehandlingServiceSimuleringTest {
         )
 
         response shouldBe SøknadsbehandlingService.KunneIkkeSimulereBehandling.KunneIkkeSimulere(
-            KunneIkkeSimulereBehandling.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL),
+            KunneIkkeSimulereBehandling.KunneIkkeSimulere(SimuleringFeilet.TekniskFeil),
         ).left()
 
         verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe beregnetBehandling.id })
