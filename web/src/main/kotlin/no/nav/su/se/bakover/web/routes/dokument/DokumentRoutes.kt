@@ -58,6 +58,7 @@ internal fun Route.dokumentRoutes(
                                 ),
                             )
                         }
+
                         HentDokumentParameters.Companion.UgyldigParameter.UgyldigUUID -> {
                             call.svar(
                                 HttpStatusCode.BadRequest.errorJson(
@@ -108,6 +109,7 @@ private data class HentDokumentParameters(
             IdType.SØKNAD -> HentDokumenterForIdType.Søknad(id)
             IdType.VEDTAK -> HentDokumenterForIdType.Vedtak(id)
             IdType.REVURDERING -> HentDokumenterForIdType.Revurdering(id)
+            IdType.KLAGE -> HentDokumenterForIdType.Klage(id)
         }
     }
 }
@@ -117,4 +119,5 @@ private enum class IdType {
     SØKNAD,
     VEDTAK,
     REVURDERING,
+    KLAGE,
 }
