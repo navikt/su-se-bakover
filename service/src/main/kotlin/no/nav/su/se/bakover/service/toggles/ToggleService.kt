@@ -8,5 +8,6 @@ interface ToggleService {
         val toggleSendAutomatiskPåminnelseOmNyStønadsperiode = "supstonad.ufore.automatisk.paaminnelse.ny.stonadsperiode"
         val supstonadAalderInnsending = "supstonad.alder.innsending"
         val supstonadSkattemelding = "supstonad.skattemelding"
+        val supstonadAutomatiskStansVedManglendeOppmøteKontrollsamtale = "supstonad.automatisk.stans.manglende.oppmote.kontrollsamtale"
     }
 }

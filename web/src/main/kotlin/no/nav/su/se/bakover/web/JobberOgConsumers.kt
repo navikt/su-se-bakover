@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.web.services.dokument.DistribuerDokumentJob
 import no.nav.su.se.bakover.web.services.klage.klageinstans.KlageinstanshendelseConsumer
 import no.nav.su.se.bakover.web.services.klage.klageinstans.KlageinstanshendelseJob
 import no.nav.su.se.bakover.web.services.kontrollsamtale.KontrollsamtaleinnkallingJob
+import no.nav.su.se.bakover.web.services.kontrollsamtale.StansYtelseVedManglendeOppmøteKontrollsamtaleJob
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseConsumer
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseOppgaveJob
 import no.nav.su.se.bakover.web.services.tilbakekreving.LokalMottaKravgrunnlagJob
@@ -180,6 +181,15 @@ internal fun startJobberOgConsumers(
             toggleService = services.toggles,
             sendPåminnelseService = services.sendPåminnelserOmNyStønadsperiodeService,
         ).schedule()
+
+        StansYtelseVedManglendeOppmøteKontrollsamtaleJob(
+            leaderPodLookup = clients.leaderPodLookup,
+            intervall = Duration.of(4, ChronoUnit.HOURS),
+            initialDelay = initialDelay.next(),
+            toggleService = services.toggles,
+            service = services.utløptFristForKontrollsamtaleService,
+            clock = clock,
+        ).schedule()
     } else if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
         // Prøver å time starten på de lokale jobbene slik at heller ikke de går i beina på hverandre.
         val initialDelay = object {
@@ -264,6 +274,15 @@ internal fun startJobberOgConsumers(
             initialDelay = initialDelay.next(),
             toggleService = services.toggles,
             sendPåminnelseService = services.sendPåminnelserOmNyStønadsperiodeService,
+        ).schedule()
+
+        StansYtelseVedManglendeOppmøteKontrollsamtaleJob(
+            leaderPodLookup = clients.leaderPodLookup,
+            intervall = Duration.of(5, ChronoUnit.MINUTES),
+            initialDelay = initialDelay.next(),
+            toggleService = services.toggles,
+            service = services.utløptFristForKontrollsamtaleService,
+            clock = clock,
         ).schedule()
     }
 }

@@ -159,7 +159,7 @@ data class UtløptFristForKontrollsamtaleContext(
                                                     },
                                                     { ikkeMøttKontrollsamtale ->
                                                         lagreKontrollsamtale(ikkeMøttKontrollsamtale, tx)
-                                                        // TODO stans fra inneværnde måned hvis mulig
+                                                        // TODO stans fra inneværnde måned hvis muli
                                                         opprettStans(sakInfo.sakId, ikkeMøttKontrollsamtale.frist.førsteINesteMåned(), tx).let { opprettCallback ->
                                                             iverksettStans(opprettCallback.revurderingId, tx).let { iverksettCallback ->
                                                                 ikkeMøtt(ikkeMøttKontrollsamtale.id, clock).let { ctx ->
