@@ -41,6 +41,8 @@ import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.attesteringIverksatt
+import no.nav.su.se.bakover.test.avsluttetGjenopptakelseAvYtelseeFraIverksattSøknadsbehandlignsvedtak
+import no.nav.su.se.bakover.test.avsluttetStansAvYtelseFraIverksattSøknadsbehandlignsvedtak
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -1662,6 +1664,56 @@ internal class RevurderingJsonTest {
             serialize(iverksattRevurdering.toJson(satsFactoryTestPåDato())),
             true,
         )
+
+        val avsluttetStans = avsluttetStansAvYtelseFraIverksattSøknadsbehandlignsvedtak().second
+
+        val avsluttetStansJson =
+            //language=JSON
+            """
+            {
+                "id": "${avsluttetStans.id}",
+                "opprettet": "${avsluttetStans.opprettet}",
+                "tilRevurdering": ${avsluttetStans.tilRevurdering},
+                "simulering": ${serialize(avsluttetStans.simulering.toJson())},
+                "status": "${RevurderingsStatus.AVSLUTTET_STANS}",
+                "saksbehandler": "saksbehandler",
+                "periode": {
+                    "fraOgMed": "2021-02-01",
+                    "tilOgMed": "2021-12-31"
+                },
+                "årsak": ${Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING},
+                "begrunnelse": "valid",
+                "forhåndsvarsel": { "type": "INGEN_FORHÅNDSVARSEL" },
+                "grunnlagsdataOgVilkårsvurderinger": {
+                  "uføre": ${
+            serialize(
+                (avsluttetStans.vilkårsvurderinger.uføreVilkår().getOrFail() as UføreVilkår.Vurdert).toJson(),
+            )
+            },
+                  "lovligOpphold": ${serialize(avsluttetStans.vilkårsvurderinger.lovligOpphold.toJson()!!)},
+                  "fradrag": [],
+                  "bosituasjon": ${serialize(avsluttetStans.grunnlagsdata.bosituasjon.toJson())},
+                  "formue": ${serialize(avsluttetStans.vilkårsvurderinger.formue.toJson(satsFactoryTestPåDato()))},
+                  "utenlandsopphold": ${serialize(avsluttetStans.vilkårsvurderinger.utenlandsopphold.toJson()!!)},
+                  "opplysningsplikt": ${serialize(avsluttetStans.vilkårsvurderinger.opplysningsplikt.toJson()!!)},
+                  "pensjon": null,
+                  "familiegjenforening": null,
+                  "flyktning": ${serialize(avsluttetStans.vilkårsvurderinger.flyktningVilkår().getOrFail().toJson()!!)},
+                  "fastOpphold": ${serialize(avsluttetStans.vilkårsvurderinger.fastOpphold.toJson()!!)},
+                  "personligOppmøte": ${serialize(avsluttetStans.vilkårsvurderinger.personligOppmøte.toJson()!!)},
+                  "institusjonsopphold": ${serialize(avsluttetStans.vilkårsvurderinger.institusjonsopphold.toJson()!!)}
+                },
+                "attesteringer": [],
+                "sakstype": "uføre",
+                "tidspunktAvsluttet": "$fixedTidspunkt"
+            }
+            """.trimIndent()
+
+        JSONAssert.assertEquals(
+            avsluttetStansJson,
+            serialize(avsluttetStans.toJson(satsFactoryTestPåDato())),
+            true,
+        )
     }
 
     @Test
@@ -1766,6 +1818,56 @@ internal class RevurderingJsonTest {
         JSONAssert.assertEquals(
             iverksattRevurderingJson,
             serialize(iverksattRevurdering.toJson(satsFactoryTestPåDato())),
+            true,
+        )
+
+        val avsluttetGjenopptak = avsluttetGjenopptakelseAvYtelseeFraIverksattSøknadsbehandlignsvedtak().second
+
+        val avsluttetGjenopptakJson =
+            //language=JSON
+            """
+            {
+                "id": "${avsluttetGjenopptak.id}",
+                "opprettet": "${avsluttetGjenopptak.opprettet}",
+                "tilRevurdering": ${avsluttetGjenopptak.tilRevurdering},
+                "simulering": ${serialize(avsluttetGjenopptak.simulering.toJson())},
+                "status": "${RevurderingsStatus.AVSLUTTET_GJENOPPTAK}",
+                "saksbehandler": "saksbehandler",
+                "periode": {
+                    "fraOgMed": "2021-02-01",
+                    "tilOgMed": "2021-12-31"
+                },
+                "årsak": ${Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING},
+                "begrunnelse": "valid",
+                "forhåndsvarsel": { "type": "INGEN_FORHÅNDSVARSEL" },
+                "grunnlagsdataOgVilkårsvurderinger": {
+                  "uføre": ${
+            serialize(
+                (avsluttetGjenopptak.vilkårsvurderinger.uføreVilkår().getOrFail() as UføreVilkår.Vurdert).toJson(),
+            )
+            },
+                  "lovligOpphold": ${serialize(avsluttetGjenopptak.vilkårsvurderinger.lovligOpphold.toJson()!!)},
+                  "fradrag": [],
+                  "bosituasjon": ${serialize(avsluttetGjenopptak.grunnlagsdata.bosituasjon.toJson())},
+                  "formue": ${serialize(avsluttetGjenopptak.vilkårsvurderinger.formue.toJson(satsFactoryTestPåDato()))},
+                  "utenlandsopphold": ${serialize(avsluttetGjenopptak.vilkårsvurderinger.utenlandsopphold.toJson()!!)},
+                  "opplysningsplikt": ${serialize(avsluttetGjenopptak.vilkårsvurderinger.opplysningsplikt.toJson()!!)},
+                  "pensjon": null,
+                  "familiegjenforening": null,
+                  "flyktning": ${serialize(avsluttetGjenopptak.vilkårsvurderinger.flyktningVilkår().getOrFail().toJson()!!)},
+                  "fastOpphold": ${serialize(avsluttetGjenopptak.vilkårsvurderinger.fastOpphold.toJson()!!)},
+                  "personligOppmøte": ${serialize(avsluttetGjenopptak.vilkårsvurderinger.personligOppmøte.toJson()!!)},
+                  "institusjonsopphold": ${serialize(avsluttetGjenopptak.vilkårsvurderinger.institusjonsopphold.toJson()!!)}
+                },
+                "attesteringer": [],
+                "sakstype": "uføre",
+                "tidspunktAvsluttet": "$fixedTidspunkt"
+            }
+            """.trimIndent()
+
+        JSONAssert.assertEquals(
+            avsluttetGjenopptakJson,
+            serialize(avsluttetGjenopptak.toJson(satsFactoryTestPåDato())),
             true,
         )
     }
