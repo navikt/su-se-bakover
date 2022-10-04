@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.web.søknadsbehandling.flyktning
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.sak.assertSakJson
 import no.nav.su.se.bakover.web.sak.hent.hentSak

@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain
+package no.nav.su.se.bakover.common
 
 enum class Brukerrolle(val type: String) {
     Attestant("ATTESTANT"),

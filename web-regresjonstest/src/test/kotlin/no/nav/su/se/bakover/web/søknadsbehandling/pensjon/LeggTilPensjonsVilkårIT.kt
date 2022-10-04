@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.web.søknadsbehandling.pensjon
 
+import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.avslåttPensjonsvilkårJson
 import no.nav.su.se.bakover.web.innvilgetPensjonsvilkårJson

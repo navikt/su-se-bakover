@@ -10,7 +10,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.server.testing.ApplicationTestBuilder
 import kotlinx.coroutines.runBlocking
-import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.web.SharedRegressionTestData.defaultRequest
 
 internal fun ApplicationTestBuilder.opprettRevurdering(

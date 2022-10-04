@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web.søknadsbehandling.ny
 
-import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.web.SharedRegressionTestData.fnr
 import no.nav.su.se.bakover.web.SharedRegressionTestData.withTestApplicationAndEmbeddedDb
 import no.nav.su.se.bakover.web.søknad.ny.NySøknadJson

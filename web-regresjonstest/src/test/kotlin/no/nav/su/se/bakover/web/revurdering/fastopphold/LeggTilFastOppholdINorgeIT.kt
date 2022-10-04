@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.web.revurdering.fastopphold
 
+import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
-import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.SharedRegressionTestData.fnr
 import no.nav.su.se.bakover.web.revurdering.hentRevurderingId

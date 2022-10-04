@@ -6,8 +6,8 @@ import io.ktor.server.auth.authentication
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import no.nav.su.se.bakover.common.ApplicationConfig
+import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.web.AzureGroupMapper
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.features.suUserContext

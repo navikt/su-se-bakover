@@ -8,8 +8,8 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
+import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.deserialize
-import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.web.jwtStub
 import no.nav.su.se.bakover.web.stubs.asBearerToken
 import no.nav.su.se.bakover.web.testSusebakover
