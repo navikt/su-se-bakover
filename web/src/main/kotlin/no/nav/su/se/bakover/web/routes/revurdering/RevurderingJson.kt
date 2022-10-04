@@ -224,7 +224,7 @@ internal data class StansAvUtbetalingJson(
     override val forhåndsvarsel: ForhåndsvarselJson?,
     override val sakstype: String,
     val simulering: SimuleringJson,
-    val tidspunktAvsluttet: String? = null,
+    val avsluttetTidspunkt: String? = null,
 ) : RevurderingJson()
 
 internal data class GjenopptakAvYtelseJson(
@@ -241,7 +241,7 @@ internal data class GjenopptakAvYtelseJson(
     override val forhåndsvarsel: ForhåndsvarselJson?,
     override val sakstype: String,
     val simulering: SimuleringJson,
-    val tidspunktAvsluttet: String? = null,
+    val avsluttetTidspunkt: String? = null,
 ) : RevurderingJson()
 
 internal fun Revurdering.toJson(satsFactory: SatsFactory): RevurderingJson = when (this) {
@@ -556,7 +556,7 @@ internal fun StansAvYtelseRevurdering.toJson(satsFactory: SatsFactory): Revurder
             attesteringer = emptyList(),
             sakstype = sakstype.toJson(),
             forhåndsvarsel = ForhåndsvarselJson.IngenForhåndsvarsel,
-            tidspunktAvsluttet = DateTimeFormatter.ISO_INSTANT.format(tidspunktAvsluttet),
+            avsluttetTidspunkt = DateTimeFormatter.ISO_INSTANT.format(tidspunktAvsluttet),
         )
     }
 }
@@ -621,7 +621,7 @@ internal fun GjenopptaYtelseRevurdering.toJson(satsFactory: SatsFactory): Revurd
             attesteringer = emptyList(),
             sakstype = sakstype.toJson(),
             forhåndsvarsel = ForhåndsvarselJson.IngenForhåndsvarsel,
-            tidspunktAvsluttet = DateTimeFormatter.ISO_INSTANT.format(tidspunktAvsluttet),
+            avsluttetTidspunkt = DateTimeFormatter.ISO_INSTANT.format(tidspunktAvsluttet),
         )
     }
 }

@@ -1603,7 +1603,7 @@ internal class RevurderingJsonTest {
                 },
                 "attesteringer": [],
                 "sakstype": "uføre",
-                "tidspunktAvsluttet": null
+                "avsluttetTidspunkt": null
             }
             """.trimIndent()
 
@@ -1655,7 +1655,7 @@ internal class RevurderingJsonTest {
                 },
                 "attesteringer": [{"attestant": "attestant", "opprettet": "$fixedTidspunkt", "underkjennelse": null}],
                 "sakstype": "uføre",
-                "tidspunktAvsluttet": null
+                "avsluttetTidspunkt": null
             }
             """.trimIndent()
 
@@ -1705,7 +1705,7 @@ internal class RevurderingJsonTest {
                 },
                 "attesteringer": [],
                 "sakstype": "uføre",
-                "tidspunktAvsluttet": "$fixedTidspunkt"
+                "avsluttetTidspunkt": "$fixedTidspunkt"
             }
             """.trimIndent()
 
@@ -1759,7 +1759,7 @@ internal class RevurderingJsonTest {
                 },
                 "attesteringer": [],
                 "sakstype": "uføre",
-                "tidspunktAvsluttet": null 
+                "avsluttetTidspunkt": null 
 
             }
             """.trimIndent()
@@ -1811,7 +1811,7 @@ internal class RevurderingJsonTest {
                 },
                 "attesteringer": [{"attestant": "attestant", "opprettet": "$fixedTidspunkt", "underkjennelse": null}],
                 "sakstype": "uføre",
-                "tidspunktAvsluttet": null
+                "avsluttetTidspunkt": null
             }
             """.trimIndent()
 
@@ -1861,7 +1861,7 @@ internal class RevurderingJsonTest {
                 },
                 "attesteringer": [],
                 "sakstype": "uføre",
-                "tidspunktAvsluttet": "$fixedTidspunkt"
+                "avsluttetTidspunkt": "$fixedTidspunkt"
             }
             """.trimIndent()
 
