@@ -416,6 +416,7 @@ open class AccessCheckProxy(
                         is HentDokumenterForIdType.Sak -> assertHarTilgangTilSak(hentDokumenterForIdType.id)
                         is HentDokumenterForIdType.Søknad -> assertHarTilgangTilSøknad(hentDokumenterForIdType.id)
                         is HentDokumenterForIdType.Vedtak -> assertHarTilgangTilVedtak(hentDokumenterForIdType.id)
+                        is HentDokumenterForIdType.Klage -> assertHarTilgangTilKlage(hentDokumenterForIdType.id)
                     }.let {
                         return services.brev.hentDokumenterFor(hentDokumenterForIdType)
                     }

@@ -206,6 +206,7 @@ internal class BrevServiceImpl(
             is HentDokumenterForIdType.Søknad -> dokumentRepo.hentForSøknad(hentDokumenterForIdType.id)
             is HentDokumenterForIdType.Revurdering -> dokumentRepo.hentForRevurdering(hentDokumenterForIdType.id)
             is HentDokumenterForIdType.Vedtak -> dokumentRepo.hentForVedtak(hentDokumenterForIdType.id)
+            is HentDokumenterForIdType.Klage -> dokumentRepo.hentForKlage(hentDokumenterForIdType.id)
         }
     }
 

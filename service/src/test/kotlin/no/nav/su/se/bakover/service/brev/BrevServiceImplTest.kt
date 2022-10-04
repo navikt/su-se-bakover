@@ -294,7 +294,11 @@ internal class BrevServiceImplTest {
             dokDistFordeling = dokDistMock,
         ).let {
             it.brevService.distribuerDokument(dokumentdistribusjon) shouldBe KunneIkkeBestilleBrevForDokument.FeilVedBestillingAvBrev.left()
-            verify(dokDistMock).bestillDistribusjon(JournalpostId("sad"), Distribusjonstype.VEDTAK, distribusjonstidspunkt)
+            verify(dokDistMock).bestillDistribusjon(
+                JournalpostId("sad"),
+                Distribusjonstype.VEDTAK,
+                distribusjonstidspunkt,
+            )
             it.verifyNoMoreInteraction()
         }
     }
@@ -323,7 +327,11 @@ internal class BrevServiceImplTest {
             dokumentRepo = dokumentRepoMock,
         ).let {
             it.brevService.distribuerDokument(dokumentdistribusjon) shouldBe expected.right()
-            verify(dokDistMock).bestillDistribusjon(JournalpostId("very"), Distribusjonstype.VEDTAK, distribusjonstidspunkt)
+            verify(dokDistMock).bestillDistribusjon(
+                JournalpostId("very"),
+                Distribusjonstype.VEDTAK,
+                distribusjonstidspunkt,
+            )
             verify(dokumentRepoMock).oppdaterDokumentdistribusjon(expected)
             it.verifyNoMoreInteraction()
         }
@@ -335,6 +343,7 @@ internal class BrevServiceImplTest {
         val vedtakId = UUID.randomUUID()
         val søknadId = UUID.randomUUID()
         val revurderingId = UUID.randomUUID()
+        val klageId = UUID.randomUUID()
         val randomId = UUID.randomUUID()
 
         val sakDokument =
@@ -347,6 +356,7 @@ internal class BrevServiceImplTest {
             lagDokument(
                 Dokument.Metadata(sakId = sakId, revurderingId = revurderingId, bestillBrev = false),
             )
+        val klageDokument = lagDokument(Dokument.Metadata(sakId = sakId, klageId = klageId, bestillBrev = false))
 
         val dokumentRepoMock = mock<DokumentRepo> {
             on { hentForSak(sakId) } doReturn listOf(sakDokument)
@@ -356,6 +366,7 @@ internal class BrevServiceImplTest {
             on { hentForSøknad(søknadId) } doReturn listOf(søknadDokument)
             on { hentForSøknad(randomId) } doReturn emptyList()
             on { hentForRevurdering(revurderingId) } doReturn listOf(revurderingDokument)
+            on { hentForKlage(klageId) } doReturn listOf(klageDokument)
             on { hentForRevurdering(randomId) } doReturn emptyList()
         }
 
@@ -379,6 +390,7 @@ internal class BrevServiceImplTest {
             revurderingDokument,
         )
         service.hentDokumenterFor(HentDokumenterForIdType.Revurdering(randomId)) shouldBe emptyList()
+        service.hentDokumenterFor(HentDokumenterForIdType.Klage(klageId)) shouldBe listOf(klageDokument)
     }
 
     @Test
