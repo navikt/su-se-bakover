@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.revurdering
 
 import arrow.core.left
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.tilAttesteringRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
 import org.junit.jupiter.api.Test

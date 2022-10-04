@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling
 
-import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.common.NavIdentBruker
 
 class FinnSaksbehandlerVisitor : SøknadsbehandlingVisitor {
     var saksbehandler: NavIdentBruker.Saksbehandler? = null

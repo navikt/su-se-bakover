@@ -3,10 +3,10 @@ package no.nav.su.se.bakover.statistikk.sak
 import arrow.core.Either
 import com.networknt.schema.JsonSchema
 import com.networknt.schema.ValidationMessage
+import no.nav.su.se.bakover.common.AktørId
 import no.nav.su.se.bakover.common.GitCommit
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.zoneIdOslo
-import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.statistikk.SchemaValidator
 import no.nav.su.se.bakover.statistikk.ValidertStatistikkJsonMelding

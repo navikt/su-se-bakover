@@ -7,11 +7,11 @@ import com.github.benmanes.caffeine.cache.Caffeine
 import no.nav.su.se.bakover.client.kodeverk.Kodeverk
 import no.nav.su.se.bakover.client.krr.KontaktOgReservasjonsregister
 import no.nav.su.se.bakover.client.skjerming.Skjerming
+import no.nav.su.se.bakover.common.AktørId
 import no.nav.su.se.bakover.common.Fnr
+import no.nav.su.se.bakover.common.Ident
 import no.nav.su.se.bakover.common.metrics.SuMetrics
 import no.nav.su.se.bakover.common.token.JwtToken
-import no.nav.su.se.bakover.domain.AktørId
-import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.PersonOppslag

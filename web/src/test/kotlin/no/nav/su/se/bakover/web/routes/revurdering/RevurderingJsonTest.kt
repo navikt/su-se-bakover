@@ -2,11 +2,11 @@ package no.nav.su.se.bakover.web.routes.revurdering
 
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk

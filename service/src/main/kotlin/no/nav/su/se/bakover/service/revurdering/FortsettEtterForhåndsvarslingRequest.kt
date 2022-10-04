@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.service.revurdering
 
-import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import java.util.UUID
 import kotlin.reflect.KClass

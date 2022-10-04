@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.statistikk.behandling.søknadsbehandling
 
 import no.nav.su.se.bakover.common.GitCommit
+import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.zoneIdOslo
-import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.statistikk.behandling.BehandlingResultat

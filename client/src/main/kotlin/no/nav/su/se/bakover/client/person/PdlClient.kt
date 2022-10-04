@@ -18,12 +18,12 @@ import no.nav.su.se.bakover.client.person.PdlData.Navn
 import no.nav.su.se.bakover.client.person.Variables.Companion.AKTORID
 import no.nav.su.se.bakover.client.person.Variables.Companion.FOLKEREGISTERIDENT
 import no.nav.su.se.bakover.client.sts.TokenOppslag
+import no.nav.su.se.bakover.common.AktørId
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.token.JwtToken
-import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Telefonnummer
 import no.nav.su.se.bakover.domain.Tema
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson

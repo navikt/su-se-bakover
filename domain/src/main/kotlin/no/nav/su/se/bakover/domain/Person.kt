@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain
 
 import no.nav.su.se.bakover.common.Fnr
+import no.nav.su.se.bakover.common.Ident
 import no.nav.su.se.bakover.domain.person.SivilstandTyper
 import java.time.LocalDate
 import java.time.Period

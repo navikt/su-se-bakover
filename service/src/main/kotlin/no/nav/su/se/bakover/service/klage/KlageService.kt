@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.service.klage
 
 import arrow.core.Either
-import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage

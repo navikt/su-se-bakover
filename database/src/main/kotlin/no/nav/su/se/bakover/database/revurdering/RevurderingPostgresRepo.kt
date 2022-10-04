@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.database.revurdering
 import arrow.core.getOrHandle
 import kotliquery.Row
 import no.nav.su.se.bakover.common.Fnr
+import no.nav.su.se.bakover.common.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.deserializeList
@@ -31,7 +32,6 @@ import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.revurdering.RevurderingsType.Companion.toRevurderingsType
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.tilbakekreving.TilbakekrevingPostgresRepo
-import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
