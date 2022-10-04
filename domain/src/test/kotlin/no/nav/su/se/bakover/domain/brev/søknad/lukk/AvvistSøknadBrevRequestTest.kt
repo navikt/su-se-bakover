@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.domain.brev.søknad.lukk
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.AktørId
 import no.nav.su.se.bakover.common.Fnr
+import no.nav.su.se.bakover.common.Ident
 import no.nav.su.se.bakover.common.ddMMyyyy
-import no.nav.su.se.bakover.domain.AktørId
-import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Person.Navn
 import no.nav.su.se.bakover.domain.Saksnummer

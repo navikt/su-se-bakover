@@ -2,9 +2,9 @@ package no.nav.su.se.bakover.domain.behandling
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.deserializeList
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert

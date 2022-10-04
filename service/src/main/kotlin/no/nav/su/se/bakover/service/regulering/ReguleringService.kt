@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.service.regulering
 
 import arrow.core.Either
-import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag

@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.service.klage
 
-import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import java.util.UUID
 

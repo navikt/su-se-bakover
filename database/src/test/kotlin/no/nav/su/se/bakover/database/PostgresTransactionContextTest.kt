@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.database
 
 import arrow.core.Either
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.test.avvisSøknadUtenBrev
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.trekkSøknad

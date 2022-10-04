@@ -16,8 +16,8 @@ import io.ktor.server.routing.RouteSelectorEvaluation
 import io.ktor.server.routing.RoutingResolveContext
 import io.ktor.util.AttributeKey
 import no.nav.su.se.bakover.common.ApplicationConfig
+import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.log
-import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.web.AzureGroupMapper
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.getGroupsFromJWT
