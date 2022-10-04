@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.service.sak
 
 import arrow.core.Either
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.AlleredeGjeldendeSakForBruker
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer

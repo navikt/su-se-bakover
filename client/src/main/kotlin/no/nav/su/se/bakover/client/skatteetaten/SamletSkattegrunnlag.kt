@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.client.skatteetaten
 
 import arrow.core.Either
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.log
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Skattegrunnlag.Kategori
 import java.time.Clock
 import java.time.LocalDate

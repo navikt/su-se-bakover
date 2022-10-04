@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.søknadinnhold
 
 import arrow.core.left
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.domain.boforhold
 import no.nav.su.se.bakover.domain.ektefelle
 import no.nav.su.se.bakover.domain.forNavDigitalSøknad

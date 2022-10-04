@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.routes.grunnlag
 
 import arrow.core.nonEmptyListOf
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juli
@@ -8,7 +9,6 @@ import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår

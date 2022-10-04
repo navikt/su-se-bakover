@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain
 import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.right
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.avrund
 import no.nav.su.se.bakover.common.periode.Periode

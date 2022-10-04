@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.client.skatteetaten
 import arrow.core.Either
 import arrow.core.right
 import no.nav.su.se.bakover.client.AccessToken
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Skattegrunnlag
 import java.time.Clock
 

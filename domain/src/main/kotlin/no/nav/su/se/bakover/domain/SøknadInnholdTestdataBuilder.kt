@@ -2,10 +2,10 @@
 package no.nav.su.se.bakover.domain
 
 import arrow.core.getOrHandle
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juli
-import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.domain.søknadinnhold.Boforhold
 import no.nav.su.se.bakover.domain.søknadinnhold.Ektefelle
 import no.nav.su.se.bakover.domain.søknadinnhold.EktefellePartnerSamboer

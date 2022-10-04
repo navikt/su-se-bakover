@@ -14,10 +14,10 @@ import io.ktor.server.request.receiveStream
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import no.nav.su.se.bakover.common.ApplicationConfig
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.sikkerLogg
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.routes.Feilresponser
 import java.util.UUID

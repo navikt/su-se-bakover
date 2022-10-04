@@ -1,13 +1,13 @@
 package no.nav.su.se.bakover.web.komponenttest
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.juni
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NameAndYearMonthId
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.SendPåminnelseNyStønadsperiodeContext

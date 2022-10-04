@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.test
 
-import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.common.Fnr
 
 /**
  * 11 tilfeldige sifre mellom 0 og 9.

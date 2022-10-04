@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.web.søknadsbehandling
 
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.startOfMonth
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.SharedRegressionTestData.withTestApplicationAndEmbeddedDb

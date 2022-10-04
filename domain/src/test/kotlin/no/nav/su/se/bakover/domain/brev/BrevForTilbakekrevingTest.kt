@@ -3,12 +3,12 @@ package no.nav.su.se.bakover.domain.brev
 import arrow.core.Either
 import arrow.core.right
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.trimWhitespace
 import no.nav.su.se.bakover.domain.Beløp
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.MånedBeløp
 import no.nav.su.se.bakover.domain.Månedsbeløp
 import no.nav.su.se.bakover.domain.NavIdentBruker

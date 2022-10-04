@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.client.skjerming
 
 import com.github.kittinunf.fuel.httpGet
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.getOrCreateCorrelationId
-import no.nav.su.se.bakover.domain.Fnr
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 

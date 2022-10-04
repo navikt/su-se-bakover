@@ -30,12 +30,12 @@ import no.nav.su.se.bakover.client.StubClientsBuilder
 import no.nav.su.se.bakover.client.UnleashBuilder
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.JmsConfig
+import no.nav.su.se.bakover.common.UgyldigFnrException
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.metrics.SuMetrics
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.domain.DatabaseRepos
-import no.nav.su.se.bakover.domain.UgyldigFnrException
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad

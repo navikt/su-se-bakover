@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.komponenttest
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.november
@@ -10,7 +11,6 @@ import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.november
 import no.nav.su.se.bakover.common.periode.september
 import no.nav.su.se.bakover.common.september
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.generer

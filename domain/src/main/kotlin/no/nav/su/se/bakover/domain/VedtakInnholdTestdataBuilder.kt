@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain
 
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
 import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
@@ -7,7 +8,7 @@ import no.nav.su.se.bakover.domain.brev.beregning.BrevPeriode
 import no.nav.su.se.bakover.domain.brev.beregning.Fradrag
 
 /**
- * TODO John Andre Hestad: Det skal være mulig å bygge en testJar og importere denne fra gradle.
+ * TODO John Andre Hestad: Flytt til test-common modulen
  */
 object VedtakInnholdTestdataBuilder {
 
