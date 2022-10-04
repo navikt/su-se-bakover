@@ -184,10 +184,11 @@ internal fun startJobberOgConsumers(
 
         StansYtelseVedManglendeOppmøteKontrollsamtaleJob(
             leaderPodLookup = clients.leaderPodLookup,
-            intervall = Duration.of(4, ChronoUnit.HOURS),
+            intervall = Duration.of(2, ChronoUnit.HOURS),
             initialDelay = initialDelay.next(),
             toggleService = services.toggles,
             service = services.utløptFristForKontrollsamtaleService,
+            ordinærÅpningstidOppdrag = applicationConfig.oppdrag.ordinærÅpningstid,
             clock = clock,
         ).schedule()
     } else if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
@@ -282,6 +283,7 @@ internal fun startJobberOgConsumers(
             initialDelay = initialDelay.next(),
             toggleService = services.toggles,
             service = services.utløptFristForKontrollsamtaleService,
+            ordinærÅpningstidOppdrag = applicationConfig.oppdrag.ordinærÅpningstid,
             clock = clock,
         ).schedule()
     }

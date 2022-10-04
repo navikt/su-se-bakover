@@ -155,6 +155,7 @@ object ServiceBuilder {
             sessionFactory = databaseRepos.sessionFactory,
             jobContextRepo = databaseRepos.jobContextRepo,
             clock = clock,
+            serviceUser = applicationConfig.serviceUser.username,
         )
 
         val reguleringService = ReguleringServiceImpl(

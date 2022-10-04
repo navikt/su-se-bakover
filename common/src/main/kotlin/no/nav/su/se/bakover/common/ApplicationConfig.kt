@@ -16,6 +16,7 @@ import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.slf4j.LoggerFactory
 import java.time.Duration
+import java.time.LocalTime
 import java.time.temporal.ChronoUnit
 
 private object EnvironmentConfig {
@@ -181,6 +182,11 @@ data class ApplicationConfig(
         val simulering: SimuleringConfig,
         val tilbakekreving: TilbakekrevingConfig,
     ) {
+        /**
+         * https://navno.sharepoint.com/sites/fag-og-ytelser-fagsystemer/?cid=9ef8f6af-c41e-4f6f-9417-15e6fda16792
+         */
+        val ordinærÅpningstid = LocalTime.of(6, 0, 0) to LocalTime.of(21, 0, 0)
+
         data class UtbetalingConfig constructor(
             val mqSendQueue: String,
             val mqReplyTo: String,

@@ -31,7 +31,7 @@ internal class UtløptFristForKontrollsamtaleServiceImpl(
     private val sessionFactory: SessionFactory,
     private val jobContextRepo: JobContextRepo,
     private val clock: Clock,
-    private val serviceUser: String = "srvsupstonad",
+    private val serviceUser: String,
 ) : UtløptFristForKontrollsamtaleService {
     private val log = LoggerFactory.getLogger(this::class.java)
     override fun håndterUtløpsdato(dato: LocalDate): UtløptFristForKontrollsamtaleContext {

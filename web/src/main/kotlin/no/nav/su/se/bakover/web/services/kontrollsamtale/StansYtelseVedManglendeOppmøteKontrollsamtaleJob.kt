@@ -10,22 +10,26 @@ import org.slf4j.LoggerFactory
 import java.net.InetAddress
 import java.time.Clock
 import java.time.Duration
+import java.time.LocalTime
 import kotlin.concurrent.fixedRateTimer
 
+/**
+ * @param ordinærÅpningstidOppdrag begrenser jobben til å kjøre i et tidsintervall hvor vi kan forvente at OS/UR er tilgjengelig for å unngå unødvendige feil ved simulering/oversendelse av utbetalinger.
+ */
 internal class StansYtelseVedManglendeOppmøteKontrollsamtaleJob(
     private val leaderPodLookup: LeaderPodLookup,
     private val intervall: Duration,
     private val initialDelay: Duration,
     private val toggleService: ToggleService,
     private val service: UtløptFristForKontrollsamtaleService,
+    private val ordinærÅpningstidOppdrag: Pair<LocalTime, LocalTime>,
     private val clock: Clock,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
-
     private val jobName = "StansYtelseVedManglendeOppmøteTilKontrollsamtaleJob"
 
     fun schedule() {
-        log.info("Starter skeduleringsjobb '$jobName' med periode: $intervall. Mitt hostnavn er $hostName.")
+        log.info("Starter skeduleringsjobb '$jobName' med intervall: $intervall i tidsrommet:${ordinærÅpningstidOppdrag.first}-${ordinærÅpningstidOppdrag.second}. Mitt hostnavn er $hostName.")
 
         fixedRateTimer(
             name = jobName,
@@ -34,7 +38,13 @@ internal class StansYtelseVedManglendeOppmøteKontrollsamtaleJob(
             initialDelay = initialDelay.toMillis(),
         ) {
             Either.catch {
-                if (leaderPodLookup.erLeaderPod(hostname = hostName) && toggleService.isEnabled(ToggleService.supstonadAutomatiskStansVedManglendeOppmøteKontrollsamtale)) {
+                val now = LocalTime.now()
+                val run = now > ordinærÅpningstidOppdrag.first &&
+                    now < ordinærÅpningstidOppdrag.second &&
+                    leaderPodLookup.erLeaderPod(hostname = hostName) &&
+                    toggleService.isEnabled(ToggleService.supstonadAutomatiskStansVedManglendeOppmøteKontrollsamtale)
+
+                if (run) {
                     service.håndterUtløpsdato(idag(clock))
                 }
             }.mapLeft {
