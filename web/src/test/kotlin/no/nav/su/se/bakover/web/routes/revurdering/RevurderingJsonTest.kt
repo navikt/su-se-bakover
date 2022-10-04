@@ -61,7 +61,6 @@ import no.nav.su.se.bakover.web.routes.grunnlag.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.TestBeregning
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.toJson
-import no.nav.su.se.bakover.web.routes.vedtak.toJson
 import no.nav.su.se.bakover.web.routes.vilkår.fastopphold.toJson
 import no.nav.su.se.bakover.web.routes.vilkår.flyktning.toJson
 import no.nav.su.se.bakover.web.routes.vilkår.institusjonsopphold.InstitusjonsoppholdJson.Companion.toJson
@@ -1601,7 +1600,8 @@ internal class RevurderingJsonTest {
                   "institusjonsopphold": ${serialize(simulertRevurdering.vilkårsvurderinger.institusjonsopphold.toJson()!!)}
                 },
                 "attesteringer": [],
-                "sakstype": "uføre"
+                "sakstype": "uføre",
+                "tidspunktAvsluttet": null
             }
             """.trimIndent()
 
@@ -1652,7 +1652,8 @@ internal class RevurderingJsonTest {
                   "institusjonsopphold": ${serialize(simulertRevurdering.vilkårsvurderinger.institusjonsopphold.toJson()!!)}
                 },
                 "attesteringer": [{"attestant": "attestant", "opprettet": "$fixedTidspunkt", "underkjennelse": null}],
-                "sakstype": "uføre"
+                "sakstype": "uføre",
+                "tidspunktAvsluttet": null
             }
             """.trimIndent()
 
@@ -1705,7 +1706,8 @@ internal class RevurderingJsonTest {
                   "institusjonsopphold": ${serialize(simulertRevurdering.vilkårsvurderinger.institusjonsopphold.toJson()!!)}
                 },
                 "attesteringer": [],
-                "sakstype": "uføre"
+                "sakstype": "uføre",
+                "tidspunktAvsluttet": null 
 
             }
             """.trimIndent()
@@ -1756,7 +1758,8 @@ internal class RevurderingJsonTest {
                   "institusjonsopphold": ${serialize(simulertRevurdering.vilkårsvurderinger.institusjonsopphold.toJson()!!)}
                 },
                 "attesteringer": [{"attestant": "attestant", "opprettet": "$fixedTidspunkt", "underkjennelse": null}],
-                "sakstype": "uføre"
+                "sakstype": "uføre",
+                "tidspunktAvsluttet": null
             }
             """.trimIndent()
 
