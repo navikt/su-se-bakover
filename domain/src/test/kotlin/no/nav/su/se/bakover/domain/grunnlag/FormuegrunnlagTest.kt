@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.grunnlag
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mars
@@ -11,7 +12,6 @@ import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.common.periode.år
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.test.fixedTidspunkt

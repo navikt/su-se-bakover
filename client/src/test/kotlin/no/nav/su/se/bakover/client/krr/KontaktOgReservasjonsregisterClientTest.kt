@@ -8,7 +8,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.stubs.azure.AzureClientStub
 import no.nav.su.se.bakover.common.ApplicationConfig
-import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.common.Fnr
 import org.junit.jupiter.api.Test
 
 class KontaktOgReservasjonsregisterClientTest : WiremockBase {

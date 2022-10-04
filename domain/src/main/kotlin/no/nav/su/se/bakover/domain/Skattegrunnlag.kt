@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain
 
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.Tidspunkt
 import java.time.LocalDate
 

@@ -9,6 +9,7 @@ import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.beOfType
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.desember

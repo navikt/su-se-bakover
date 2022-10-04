@@ -37,7 +37,7 @@ private const val TOPIC2 = "kafkaTopic2"
 internal class PersonhendelseConsumerKafkaTest {
 
     private val PARTITION = 0
-    private val fnr = no.nav.su.se.bakover.domain.Fnr.generer()
+    private val fnr = no.nav.su.se.bakover.common.Fnr.generer()
     private val ident = fnr.toString() + "00"
     private val key = "HEADER$ident"
 

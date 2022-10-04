@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.client.isValid
 import no.nav.su.se.bakover.client.maskinporten.KunneIkkeHenteToken
 import no.nav.su.se.bakover.client.maskinporten.MaskinportenClient
 import no.nav.su.se.bakover.client.skatteetaten.Skatteoppslag
-import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.domain.Skattegrunnlag
 
 class SkatteServiceImpl(

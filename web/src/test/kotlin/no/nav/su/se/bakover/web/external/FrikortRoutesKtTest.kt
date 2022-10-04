@@ -9,9 +9,9 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.startOfDay
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.web.DEFAULT_CALL_ID

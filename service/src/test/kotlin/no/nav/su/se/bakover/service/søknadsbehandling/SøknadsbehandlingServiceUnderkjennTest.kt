@@ -5,9 +5,9 @@ import arrow.core.right
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.AktørId
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype

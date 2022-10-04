@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.oppdrag.simulering
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
@@ -13,7 +14,6 @@ import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.Beløp
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.MånedBeløp
 import no.nav.su.se.bakover.domain.Månedsbeløp
 import no.nav.su.se.bakover.domain.Sakstype

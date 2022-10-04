@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.desember
@@ -13,7 +14,6 @@ import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.persistence.SessionFactory
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.JobContextRepo
 import no.nav.su.se.bakover.domain.NameAndYearMonthId
 import no.nav.su.se.bakover.domain.Sak

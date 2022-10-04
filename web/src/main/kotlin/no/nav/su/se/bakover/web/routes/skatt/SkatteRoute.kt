@@ -8,9 +8,9 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import no.nav.su.se.bakover.client.skatteetaten.SkatteoppslagFeil
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.service.skatt.KunneIkkeHenteSkattemelding
 import no.nav.su.se.bakover.service.skatt.SkatteService
 import no.nav.su.se.bakover.service.toggles.ToggleService

@@ -9,6 +9,7 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.annotation.JsonValue
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUIDFactory
 import no.nav.su.se.bakover.common.periode.Måned

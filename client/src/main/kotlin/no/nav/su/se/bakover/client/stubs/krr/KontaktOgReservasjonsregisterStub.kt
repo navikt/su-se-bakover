@@ -4,7 +4,7 @@ import arrow.core.Either
 import arrow.core.right
 import no.nav.su.se.bakover.client.krr.KontaktOgReservasjonsregister
 import no.nav.su.se.bakover.client.krr.Kontaktinformasjon
-import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.common.Fnr
 
 object KontaktOgReservasjonsregisterStub : KontaktOgReservasjonsregister {
     override fun hentKontaktinformasjon(fnr: Fnr): Either<KontaktOgReservasjonsregister.KunneIkkeHenteKontaktinformasjon, Kontaktinformasjon> {

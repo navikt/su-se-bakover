@@ -2,12 +2,12 @@ package no.nav.su.se.bakover.domain.oppdrag.simulering
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.test.fixedClock
 import org.junit.jupiter.api.Test
 import java.time.LocalDate

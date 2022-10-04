@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.service.søknad.lukk
 
 import arrow.core.getOrHandle
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument

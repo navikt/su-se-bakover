@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.domain.brev
 
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.domain.Beløp
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.MånedBeløp
 import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn

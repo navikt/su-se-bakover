@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.service.vedtak
 
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes

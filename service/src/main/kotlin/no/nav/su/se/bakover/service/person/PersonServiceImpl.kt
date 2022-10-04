@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.service.person
 
 import arrow.core.Either
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.domain.AktørId
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.PersonOppslag

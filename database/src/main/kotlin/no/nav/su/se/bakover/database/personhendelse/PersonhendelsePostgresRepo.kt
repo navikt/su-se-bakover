@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.database.personhendelse
 
 import kotliquery.Row
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
@@ -13,7 +14,6 @@ import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.personhendelse.PersonhendelsePostgresRepo.HendelseJson.Companion.toJson
 import no.nav.su.se.bakover.database.personhendelse.PersonhendelsePostgresRepo.MetadataJson.Companion.toJson
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.SivilstandTyper

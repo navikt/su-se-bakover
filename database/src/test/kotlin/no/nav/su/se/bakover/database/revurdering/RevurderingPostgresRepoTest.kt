@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.database.revurdering
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.juni
@@ -10,7 +11,6 @@ import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering

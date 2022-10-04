@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.database.grunnlag
 
 import kotliquery.Row
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.Session
@@ -9,7 +10,6 @@ import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.tidspunkt
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import java.util.UUID
 

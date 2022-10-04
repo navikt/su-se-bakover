@@ -3,9 +3,9 @@ package no.nav.su.se.bakover.service
 import arrow.core.Either
 import arrow.core.right
 import io.kotest.assertions.throwables.shouldThrow
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.AktørId
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype

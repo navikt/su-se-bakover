@@ -8,10 +8,10 @@ import com.fasterxml.jackson.databind.JsonMappingException
 import no.nav.su.se.bakover.client.AccessToken
 import no.nav.su.se.bakover.client.isSuccess
 import no.nav.su.se.bakover.common.ApplicationConfig.ClientsConfig.SkatteetatenConfig
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.sikkerLogg
-import no.nav.su.se.bakover.domain.Fnr
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest

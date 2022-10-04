@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.database.sak
 
 import arrow.core.NonEmptyList
 import kotliquery.Row
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.DbMetrics
@@ -17,7 +18,6 @@ import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgr
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingInternalRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakPostgresRepo
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer

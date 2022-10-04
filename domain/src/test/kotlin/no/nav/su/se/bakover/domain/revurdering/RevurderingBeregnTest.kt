@@ -4,6 +4,7 @@ import arrow.core.left
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
@@ -20,7 +21,6 @@ import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.toNonEmptyList
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling

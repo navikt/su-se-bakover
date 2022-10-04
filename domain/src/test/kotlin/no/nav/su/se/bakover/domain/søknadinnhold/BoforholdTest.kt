@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.domain.søknadinnhold
 import arrow.core.left
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.domain.Fnr
 import org.junit.jupiter.api.Test
 
 internal class BoforholdTest() {

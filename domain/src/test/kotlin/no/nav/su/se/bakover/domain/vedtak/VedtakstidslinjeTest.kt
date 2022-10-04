@@ -5,6 +5,7 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
@@ -21,7 +22,6 @@ import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.CopyArgs
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag

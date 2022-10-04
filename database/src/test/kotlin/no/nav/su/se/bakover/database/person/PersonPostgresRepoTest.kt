@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.database.person
 
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.innvilgetBeregning
 import no.nav.su.se.bakover.database.simulering
 import no.nav.su.se.bakover.database.withMigratedDb
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling

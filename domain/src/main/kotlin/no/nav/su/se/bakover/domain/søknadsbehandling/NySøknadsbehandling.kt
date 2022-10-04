@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling
 
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId

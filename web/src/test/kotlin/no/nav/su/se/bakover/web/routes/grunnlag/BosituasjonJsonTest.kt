@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.web.routes.grunnlag
 
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer

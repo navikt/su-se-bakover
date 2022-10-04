@@ -2,10 +2,10 @@ package no.nav.su.se.bakover.database.utbetaling
 
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.types.shouldBeInstanceOf
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.periode.januar
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype

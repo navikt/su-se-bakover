@@ -2,8 +2,8 @@ package no.nav.su.se.bakover.domain.klage
 
 import arrow.core.Either
 import arrow.core.right
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk

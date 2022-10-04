@@ -6,6 +6,7 @@ import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.oppdrag.avstemming.sakId
 import no.nav.su.se.bakover.client.oppdrag.avstemming.saksnummer
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.oktober
@@ -13,7 +14,6 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.desember
 import no.nav.su.se.bakover.common.periode.oktober
 import no.nav.su.se.bakover.common.periode.år
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling

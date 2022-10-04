@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.service.søknad.lukk
 
-import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 

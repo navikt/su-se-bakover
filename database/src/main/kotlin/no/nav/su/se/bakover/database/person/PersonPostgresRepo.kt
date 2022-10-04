@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.database.person
 
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.hentListe
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.person.PersonRepo
 import java.util.UUID
 

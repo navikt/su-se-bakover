@@ -8,9 +8,9 @@ import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpGet
 import no.nav.su.se.bakover.client.azure.AzureAd
 import no.nav.su.se.bakover.common.ApplicationConfig
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.getOrCreateCorrelationId
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.domain.Fnr
 import org.slf4j.LoggerFactory
 
 internal const val personPath = "/rest/v1/person"

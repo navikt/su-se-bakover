@@ -13,8 +13,8 @@ import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.domain.Brukerrolle
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.PersonOppslag
 import no.nav.su.se.bakover.domain.person.PersonService

@@ -5,10 +5,10 @@ import arrow.core.flatMap
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.AlleredeGjeldendeSakForBruker
 import no.nav.su.se.bakover.domain.BegrensetSakinfo
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
