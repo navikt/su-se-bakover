@@ -63,7 +63,7 @@ internal class UtløptFristForKontrollsamtaleServiceImpl(
                     },
                     sessionFactory = sessionFactory,
                     opprettStans = { sakId: UUID, stansDato: LocalDate, transactionContext: TransactionContext ->
-                        revurderingService.stansAvYtelse(
+                        revurderingService.stansAvYtelseITransaksjon(
                             StansYtelseRequest.Opprett(
                                 sakId = sakId,
                                 saksbehandler = NavIdentBruker.Saksbehandler(serviceUser),
@@ -73,18 +73,24 @@ internal class UtløptFristForKontrollsamtaleServiceImpl(
                                     begrunnelse = Revurderingsårsak.Begrunnelse.create(value = "Automatisk stanset som følge av manglende oppmøte til kontrollsamtale"),
                                 ),
                             ),
-                            sessionContext = transactionContext,
-                        ).mapLeft {
-                            UtløptFristForKontrollsamtaleContext.KunneIkkeHåndtereUtløptKontrollsamtale(it::class.java.toString())
+                            transactionContext = transactionContext,
+                        ).let {
+                            UtløptFristForKontrollsamtaleContext.OpprettStansTransactionCallback(
+                                revurderingId = it.revurdering.id,
+                                sendStatistikkCallback = it.sendStatistikkCallback,
+                            )
                         }
                     },
                     iverksettStans = { revurderingId: UUID, transactionContext: TransactionContext ->
-                        revurderingService.iverksettStansAvYtelse(
+                        revurderingService.iverksettStansAvYtelseITransaksjon(
                             revurderingId = revurderingId,
                             attestant = NavIdentBruker.Attestant(serviceUser),
-                            sessionContext = transactionContext,
-                        ).mapLeft {
-                            UtløptFristForKontrollsamtaleContext.KunneIkkeHåndtereUtløptKontrollsamtale(it::class.java.toString())
+                            transactionContext = transactionContext,
+                        ).let {
+                            UtløptFristForKontrollsamtaleContext.IverksettStansTransactionCallback(
+                                sendUtbetalingCallback = it.sendUtbetalingCallback,
+                                sendStatistikkCallback = it.sendStatistikkCallback,
+                            )
                         }
                     },
                     lagreContext = { utløptFristForKontrollsamtaleContext: UtløptFristForKontrollsamtaleContext, transactionContext: TransactionContext ->

@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.jobcontext
 
 import arrow.core.Either
+import arrow.core.getOrHandle
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.førsteINesteMåned
 import no.nav.su.se.bakover.common.periode.Periode
@@ -9,7 +10,7 @@ import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.journalpost.ErKontrollNotatMottatt
 import no.nav.su.se.bakover.domain.kontrollsamtale.Kontrollsamtale
-import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -110,8 +111,8 @@ data class UtløptFristForKontrollsamtaleContext(
         hentSakInfo: (sakId: UUID) -> Either<KunneIkkeHåndtereUtløptKontrollsamtale, SakInfo>,
         hentKontrollnotatMottatt: (saksnummer: Saksnummer, periode: Periode) -> Either<KunneIkkeHåndtereUtløptKontrollsamtale, ErKontrollNotatMottatt>,
         sessionFactory: SessionFactory,
-        opprettStans: (sakId: UUID, fraOgMed: LocalDate, transactionContext: TransactionContext) -> Either<KunneIkkeHåndtereUtløptKontrollsamtale, StansAvYtelseRevurdering.SimulertStansAvYtelse>,
-        iverksettStans: (id: UUID, transactionContext: TransactionContext) -> Either<KunneIkkeHåndtereUtløptKontrollsamtale, StansAvYtelseRevurdering.IverksattStansAvYtelse>,
+        opprettStans: (sakId: UUID, fraOgMed: LocalDate, transactionContext: TransactionContext) -> OpprettStansTransactionCallback,
+        iverksettStans: (id: UUID, transactionContext: TransactionContext) -> IverksettStansTransactionCallback,
         lagreContext: (context: UtløptFristForKontrollsamtaleContext, transactionContext: TransactionContext) -> Unit,
         clock: Clock,
         lagreKontrollsamtale: (kontrollsamtale: Kontrollsamtale, transactionContext: TransactionContext) -> Unit,
@@ -120,7 +121,7 @@ data class UtløptFristForKontrollsamtaleContext(
             hentSakInfo(kontrollsamtale.sakId)
                 .fold(
                     {
-                        throw KanIkkeProsessereKontrollsamtaleException(msg = it.toString())
+                        throw FeilVedProsesseringAvKontrollsamtaleException(msg = it::class.java.toString())
                     },
                     { sakInfo ->
                         hentKontrollnotatMottatt(
@@ -131,7 +132,7 @@ data class UtløptFristForKontrollsamtaleContext(
                             ),
                         ).fold(
                             {
-                                throw KanIkkeProsessereKontrollsamtaleException(msg = it.toString())
+                                throw FeilVedProsesseringAvKontrollsamtaleException(msg = it::class.java.toString())
                             },
                             { erKontrollnotatMottatt ->
                                 sessionFactory.withTransactionContext { tx ->
@@ -140,7 +141,7 @@ data class UtløptFristForKontrollsamtaleContext(
                                             kontrollsamtale.settGjennomført(erKontrollnotatMottatt.kontrollnotat.journalpostId)
                                                 .fold(
                                                     {
-                                                        throw KanIkkeProsessereKontrollsamtaleException(msg = it.toString())
+                                                        throw FeilVedProsesseringAvKontrollsamtaleException(msg = it::class.java.toString())
                                                     },
                                                     { møttTilKontrollsamtale ->
                                                         lagreKontrollsamtale(møttTilKontrollsamtale, tx)
@@ -154,31 +155,25 @@ data class UtløptFristForKontrollsamtaleContext(
                                             kontrollsamtale.settIkkeMøttInnenFrist()
                                                 .fold(
                                                     {
-                                                        throw KanIkkeProsessereKontrollsamtaleException(msg = it.toString())
+                                                        throw FeilVedProsesseringAvKontrollsamtaleException(msg = it::class.java.toString())
                                                     },
                                                     { ikkeMøttKontrollsamtale ->
                                                         lagreKontrollsamtale(ikkeMøttKontrollsamtale, tx)
                                                         // TODO stans fra inneværnde måned hvis mulig
-                                                        opprettStans(sakInfo.sakId, ikkeMøttKontrollsamtale.frist.førsteINesteMåned(), tx)
-                                                            .fold(
-                                                                {
-                                                                    throw KanIkkeProsessereKontrollsamtaleException(msg = it.toString())
-                                                                },
-                                                                { simulertStans ->
-                                                                    // TODO returner callback for utbetalinger og statistikk
-                                                                    iverksettStans(simulertStans.id, tx)
-                                                                        .fold(
-                                                                            {
-                                                                                throw KanIkkeProsessereKontrollsamtaleException(msg = it.toString())
-                                                                            },
-                                                                            {
-                                                                                ikkeMøtt(ikkeMøttKontrollsamtale.id, clock).also {
-                                                                                    lagreContext(it, tx)
-                                                                                }
-                                                                            },
-                                                                        )
-                                                                },
-                                                            )
+                                                        opprettStans(sakInfo.sakId, ikkeMøttKontrollsamtale.frist.førsteINesteMåned(), tx).let { opprettCallback ->
+                                                            iverksettStans(opprettCallback.revurderingId, tx).let { iverksettCallback ->
+                                                                ikkeMøtt(ikkeMøttKontrollsamtale.id, clock).let { ctx ->
+                                                                    lagreContext(ctx, tx)
+                                                                    iverksettCallback.sendUtbetalingCallback()
+                                                                        .getOrHandle {
+                                                                            throw FeilVedProsesseringAvKontrollsamtaleException(msg = it::class.java.toString())
+                                                                        }
+                                                                    opprettCallback.sendStatistikkCallback()
+                                                                    iverksettCallback.sendStatistikkCallback()
+                                                                    ctx
+                                                                }
+                                                            }
+                                                        }
                                                     },
                                                 )
                                         }
@@ -205,7 +200,16 @@ data class UtløptFristForKontrollsamtaleContext(
 
     data class KunneIkkeHåndtereUtløptKontrollsamtale(val feil: String)
 
-    data class KanIkkeProsessereKontrollsamtaleException(val msg: String) : RuntimeException(msg)
+    private data class FeilVedProsesseringAvKontrollsamtaleException(val msg: String) : RuntimeException(msg)
+
+    data class OpprettStansTransactionCallback(
+        val revurderingId: UUID,
+        val sendStatistikkCallback: () -> Unit,
+    )
+    data class IverksettStansTransactionCallback(
+        val sendUtbetalingCallback: () -> Either<Any, Utbetalingsrequest>,
+        val sendStatistikkCallback: () -> Unit,
+    )
 
     companion object {
         fun genererIdForTidspunkt(clock: Clock): NameAndLocalDateId {

@@ -4,7 +4,6 @@ import ch.qos.logback.classic.ClassicConstants
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders.XCorrelationId
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
-import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.serialization.jackson.JacksonConverter
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCall
@@ -186,12 +185,7 @@ fun Application.susebakover(
         }
         exception<Throwable> { call, cause ->
             log.error("Got Throwable with message=${cause.message}", cause)
-            call.svar(
-                InternalServerError.errorJson(
-                    message = "Ukjent feil",
-                    code = "ukjent_feil",
-                ),
-            )
+            call.svar(Feilresponser.ukjentFeil)
         }
     }
 

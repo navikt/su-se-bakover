@@ -249,6 +249,11 @@ internal object Feilresponser {
         "kryssjekk_utbetalingstidslinjer_simulering_feilet",
     )
 
+    val ukjentFeil = InternalServerError.errorJson(
+        "Ukjent feil",
+        "ukjent_feil",
+    )
+
     fun ugyldigTilstand(fra: KClass<*>, til: KClass<*>): Resultat {
         return ugyldigTilstand(fra.simpleName.toString(), til.simpleName.toString())
     }

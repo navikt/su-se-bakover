@@ -3,10 +3,12 @@ package no.nav.su.se.bakover.web.komponenttest
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 import io.ktor.server.testing.ApplicationTestBuilder
+import no.nav.su.se.bakover.client.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.fixedClock
 import no.nav.su.se.bakover.common.førsteINesteMåned
@@ -37,6 +39,7 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.web.TestClientsBuilder
+import no.nav.su.se.bakover.web.revurdering.opprett.opprettRevurdering
 import no.nav.su.se.bakover.web.revurdering.opprettIverksattRevurdering
 import no.nav.su.se.bakover.web.revurdering.utenlandsopphold.leggTilUtenlandsoppholdRevurdering
 import no.nav.su.se.bakover.web.sak.hent.hentSak
@@ -45,8 +48,11 @@ import no.nav.su.se.bakover.web.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.søknadsbehandling.opprettInnvilgetSøknadsbehandling
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturnConsecutively
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import java.time.LocalDate
 import java.util.UUID
 
@@ -126,6 +132,11 @@ internal class KontrollsamtaleKomponentTest {
         val stønadStart = LocalDate.now().førsteINesteMåned()
         val stønadSlutt = stønadStart.plusMonths(11).endOfMonth()
 
+        val statistikkCaptor = argumentCaptor<String>()
+        val kafkaPublisherMock = mock<KafkaPublisher>() {
+            doNothing().whenever(it).publiser(any(), statistikkCaptor.capture())
+        }
+
         withKomptestApplication(
             clock = tikkendeKlokke,
             clientsBuilder = { databaseRepos, klokke ->
@@ -156,8 +167,11 @@ internal class KontrollsamtaleKomponentTest {
                                 ErKontrollNotatMottatt.Ja(journalpostKontrollnotat(JournalpostId("2222"))).right(),
                                 ErKontrollNotatMottatt.Nei.right(),
                                 ErKontrollNotatMottatt.Nei.right(),
+                                ErKontrollNotatMottatt.Nei.right(),
+                                ErKontrollNotatMottatt.Nei.right(),
                             )
                         },
+                        kafkaPublisher = kafkaPublisherMock,
                     )
                 }
             },
@@ -166,26 +180,36 @@ internal class KontrollsamtaleKomponentTest {
             val utløptFristForKontrollsamtaleService = appComponents.services.utløptFristForKontrollsamtaleService
 
             val sakIds = listOf(
-                innvilgSøknad(
+                innvilgSøknad( // ikke møtt - iverksatt stans ok
                     fraOgMed = stønadStart,
                     tilOgMed = stønadSlutt,
                 ),
-                innvilgSøknad(
+                innvilgSøknad( // møtt - oppdater kontrollsamtale med journalpost
                     fraOgMed = stønadStart,
                     tilOgMed = stønadSlutt,
                 ),
-                innvilgSøknad(
+                innvilgSøknad( // møtt - oppdater kontrollsamtale med journalpost
                     fraOgMed = stønadStart,
                     tilOgMed = stønadSlutt,
                 ),
-                innvilgSøknad(
+                innvilgSøknad( // ikke møtt - utbetaling feiler ved første kjøring - iverksatt stans ok ved andre kjøring
                     fraOgMed = stønadStart,
                     tilOgMed = stønadSlutt,
                 ),
-                innvilgSøknad(
+                innvilgSøknad( // ikke møtt - utbetaling feiler ved første og andre kjøring
                     fraOgMed = stønadStart,
                     tilOgMed = stønadSlutt,
                 ),
+                innvilgSøknad( // ikke møtt - opprettelse av stans feiler ved første og andre kjøring
+                    fraOgMed = stønadStart,
+                    tilOgMed = stønadSlutt,
+                ).also {
+                    opprettRevurdering(
+                        sakId = it.toString(),
+                        fraOgMed = stønadStart.toString(),
+                        tilOgMed = stønadSlutt.toString(),
+                    )
+                },
             )
 
             val kontrollsamtaler = sakIds.map {
@@ -231,12 +255,17 @@ internal class KontrollsamtaleKomponentTest {
                         UtløptFristForKontrollsamtaleContext.Feilet(
                             id = kontrollsamtaler[3].id,
                             retries = 0,
-                            feil = """KunneIkkeHåndtereUtløptKontrollsamtale(feil=class no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteStansYtelse${"\$"}KunneIkkeUtbetale)""",
+                            feil = """class no.nav.su.se.bakover.service.utbetaling.UtbetalStansFeil${"\$"}KunneIkkeUtbetale""",
                         ),
                         UtløptFristForKontrollsamtaleContext.Feilet(
                             id = kontrollsamtaler[4].id,
                             retries = 0,
-                            feil = """KunneIkkeHåndtereUtløptKontrollsamtale(feil=class no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteStansYtelse${"\$"}KunneIkkeUtbetale)""",
+                            feil = """class no.nav.su.se.bakover.service.utbetaling.UtbetalStansFeil${"\$"}KunneIkkeUtbetale""",
+                        ),
+                        UtløptFristForKontrollsamtaleContext.Feilet(
+                            id = kontrollsamtaler[5].id,
+                            retries = 0,
+                            feil = """class no.nav.su.se.bakover.service.revurdering.KunneIkkeStanseYtelse${"\$"}SakHarÅpenBehandling""",
                         ),
                     ),
                 )
@@ -271,7 +300,12 @@ internal class KontrollsamtaleKomponentTest {
                         UtløptFristForKontrollsamtaleContext.Feilet(
                             id = kontrollsamtaler[3].id,
                             retries = 1,
-                            feil = """KunneIkkeHåndtereUtløptKontrollsamtale(feil=class no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteStansYtelse${"\$"}KunneIkkeUtbetale)""",
+                            feil = """class no.nav.su.se.bakover.service.utbetaling.UtbetalStansFeil${"\$"}KunneIkkeUtbetale""",
+                        ),
+                        UtløptFristForKontrollsamtaleContext.Feilet(
+                            id = kontrollsamtaler[5].id,
+                            retries = 1,
+                            feil = """class no.nav.su.se.bakover.service.revurdering.KunneIkkeStanseYtelse${"\$"}SakHarÅpenBehandling""",
                         ),
                     ),
                 )
@@ -295,6 +329,9 @@ internal class KontrollsamtaleKomponentTest {
                 sakService = appComponents.services.sak,
                 kontrollsamtaleService = appComponents.services.kontrollsamtale,
             )
+            statistikkCaptor.allValues.filter { it.contains(""""behandlingStatus":"REGISTRERT"""") && it.contains(""""resultatBegrunnelse":"MANGLENDE_KONTROLLERKLÆRING"""") } shouldHaveSize 2
+            statistikkCaptor.allValues.filter { it.contains(""""behandlingStatus":"IVERKSATT"""") && it.contains(""""resultatBegrunnelse":"MANGLENDE_KONTROLLERKLÆRING"""") } shouldHaveSize 2
+            statistikkCaptor.allValues.filter { it.contains(""""vedtaksresultat":"STANSET"""") } shouldHaveSize 2
         }
     }
 

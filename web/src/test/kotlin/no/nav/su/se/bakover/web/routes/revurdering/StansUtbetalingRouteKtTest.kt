@@ -42,7 +42,7 @@ internal class StansUtbetalingRouteKtTest {
         val enRevurdering = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak().second
         val revurderingServiceMock = mock<RevurderingService> {
             on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
-            on { stansAvYtelse(any(), any()) } doReturn enRevurdering.right()
+            on { stansAvYtelse(any()) } doReturn enRevurdering.right()
         }
         testApplication {
             application {
@@ -78,7 +78,12 @@ internal class StansUtbetalingRouteKtTest {
         val enRevurdering = beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
         val revurderingServiceMock = mock<RevurderingService> {
             on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
-            on { iverksettStansAvYtelse(any(), any(), any()) } doReturn KunneIkkeIverksetteStansYtelse.UgyldigTilstand(enRevurdering::class).left()
+            on {
+                iverksettStansAvYtelse(
+                    any(),
+                    any(),
+                )
+            } doReturn KunneIkkeIverksetteStansYtelse.UgyldigTilstand(enRevurdering::class).left()
         }
         testApplication {
             application {
@@ -104,7 +109,12 @@ internal class StansUtbetalingRouteKtTest {
         val enRevurdering = beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
         val revurderingServiceMock = mock<RevurderingService> {
             on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
-            on { iverksettStansAvYtelse(any(), any(), any()) } doReturn KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale(UtbetalStansFeil.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil)).left()
+            on {
+                iverksettStansAvYtelse(
+                    any(),
+                    any(),
+                )
+            } doReturn KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale(UtbetalStansFeil.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil)).left()
         }
         testApplication {
             application {
@@ -136,7 +146,7 @@ internal class StansUtbetalingRouteKtTest {
                     periode = Periode.create(args.fraOgMed, eksisterende.periode.tilOgMed),
                     revurderingsårsak = args.revurderingsårsak,
                 ).right()
-            }.whenever(mock).stansAvYtelse(any(), any())
+            }.whenever(mock).stansAvYtelse(any())
         }
         testApplication {
             application {
@@ -174,7 +184,7 @@ internal class StansUtbetalingRouteKtTest {
         val enRevurdering = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak().second
         val revurderingServiceMock = mock<RevurderingService> {
             on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
-            on { stansAvYtelse(any(), any()) } doReturn enRevurdering.right()
+            on { stansAvYtelse(any()) } doReturn enRevurdering.right()
         }
         testApplication {
             application {
@@ -210,7 +220,7 @@ internal class StansUtbetalingRouteKtTest {
     fun `svarer med 500 hvis simulering ikke går bra`() {
         val revurderingServiceMock = mock<RevurderingService> {
             on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
-            on { stansAvYtelse(any(), any()) } doReturn KunneIkkeStanseYtelse.SimuleringAvStansFeilet(
+            on { stansAvYtelse(any()) } doReturn KunneIkkeStanseYtelse.SimuleringAvStansFeilet(
                 SimulerStansFeilet.KunneIkkeSimulere(
                     SimuleringFeilet.OppdragEksistererIkke,
                 ),

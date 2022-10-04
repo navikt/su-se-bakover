@@ -118,6 +118,7 @@ import no.nav.su.se.bakover.service.revurdering.Forhåndsvarselhandling
 import no.nav.su.se.bakover.service.revurdering.FortsettEtterForhåndsvarselFeil
 import no.nav.su.se.bakover.service.revurdering.FortsettEtterForhåndsvarslingRequest
 import no.nav.su.se.bakover.service.revurdering.GjenopptaYtelseRequest
+import no.nav.su.se.bakover.service.revurdering.IverksettStansAvYtelseITransaksjonResponse
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeForhåndsvarsle
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeGjenopptaYtelse
@@ -146,6 +147,7 @@ import no.nav.su.se.bakover.service.revurdering.OpprettRevurderingRequest
 import no.nav.su.se.bakover.service.revurdering.RevurderingOgFeilmeldingerResponse
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.revurdering.SendTilAttesteringRequest
+import no.nav.su.se.bakover.service.revurdering.StansAvYtelseITransaksjonResponse
 import no.nav.su.se.bakover.service.revurdering.StansYtelseRequest
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak
@@ -626,22 +628,28 @@ open class AccessCheckProxy(
                     return services.revurdering.hentRevurdering(revurderingId)
                 }
 
-                override fun stansAvYtelse(request: StansYtelseRequest, sessionContext: TransactionContext): Either<KunneIkkeStanseYtelse, StansAvYtelseRevurdering.SimulertStansAvYtelse> {
+                override fun stansAvYtelse(request: StansYtelseRequest): Either<KunneIkkeStanseYtelse, StansAvYtelseRevurdering.SimulertStansAvYtelse> {
                     assertHarTilgangTilSak(request.sakId)
-                    return services.revurdering.stansAvYtelse(request, sessionContext)
+                    return services.revurdering.stansAvYtelse(request)
+                }
+
+                override fun stansAvYtelseITransaksjon(request: StansYtelseRequest, transactionContext: TransactionContext): StansAvYtelseITransaksjonResponse {
+                    kastKanKunKallesFraAnnenService()
                 }
 
                 override fun iverksettStansAvYtelse(
                     revurderingId: UUID,
                     attestant: NavIdentBruker.Attestant,
-                    sessionContext: TransactionContext,
                 ): Either<KunneIkkeIverksetteStansYtelse, StansAvYtelseRevurdering.IverksattStansAvYtelse> {
                     assertHarTilgangTilRevurdering(revurderingId)
                     return services.revurdering.iverksettStansAvYtelse(
                         revurderingId = revurderingId,
                         attestant = attestant,
-                        sessionContext = sessionContext,
                     )
+                }
+
+                override fun iverksettStansAvYtelseITransaksjon(revurderingId: UUID, attestant: NavIdentBruker.Attestant, transactionContext: TransactionContext): IverksettStansAvYtelseITransaksjonResponse {
+                    kastKanKunKallesFraAnnenService()
                 }
 
                 override fun gjenopptaYtelse(request: GjenopptaYtelseRequest): Either<KunneIkkeGjenopptaYtelse, GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse> {

@@ -64,6 +64,7 @@ import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
+import no.nav.su.se.bakover.service.revurdering.IverksettStansAvYtelseTransactionException.Companion.exception
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
@@ -111,7 +112,6 @@ internal class RevurderingServiceImpl(
         vedtakService = vedtakService,
         sakService = sakService,
         clock = clock,
-        sessionFactory = sessionFactory,
     )
 
     private val gjenopptakAvYtelseService = GjenopptakAvYtelseService(
@@ -139,28 +139,79 @@ internal class RevurderingServiceImpl(
 
     override fun stansAvYtelse(
         request: StansYtelseRequest,
-        sessionContext: TransactionContext,
     ): Either<KunneIkkeStanseYtelse, StansAvYtelseRevurdering.SimulertStansAvYtelse> {
-        return sessionFactory.use(sessionContext) {
-            stansAvYtelseService.stansAvYtelse(
-                request = request,
-                sessionContext = sessionContext,
-            )
+        return Either.catch {
+            sessionFactory.withTransactionContext { tx ->
+                stansAvYtelseITransaksjon(
+                    request = request,
+                    transactionContext = tx,
+                ).also { response ->
+                    response.sendStatistikkCallback()
+                }
+            }
+        }.mapLeft {
+            when (it) {
+                is StansAvYtelseTransactionException -> {
+                    it.feil
+                }
+                else -> {
+                    KunneIkkeStanseYtelse.UkjentFeil(it.message.toString())
+                }
+            }
+        }.map {
+            it.revurdering
         }
+    }
+
+    override fun stansAvYtelseITransaksjon(request: StansYtelseRequest, transactionContext: TransactionContext): StansAvYtelseITransaksjonResponse {
+        return stansAvYtelseService.stansAvYtelse(
+            request = request,
+            transactionContext = transactionContext,
+        )
     }
 
     override fun iverksettStansAvYtelse(
         revurderingId: UUID,
         attestant: NavIdentBruker.Attestant,
-        sessionContext: TransactionContext,
     ): Either<KunneIkkeIverksetteStansYtelse, StansAvYtelseRevurdering.IverksattStansAvYtelse> {
-        return sessionFactory.use(sessionContext) {
-            stansAvYtelseService.iverksettStansAvYtelse(
-                revurderingId = revurderingId,
-                attestant = attestant,
-                sessionContext = sessionContext,
-            )
+        return Either.catch {
+            sessionFactory.withTransactionContext { tx ->
+                iverksettStansAvYtelseITransaksjon(
+                    revurderingId = revurderingId,
+                    attestant = attestant,
+                    transactionContext = tx,
+                ).also { response ->
+                    response.sendUtbetalingCallback()
+                        .getOrHandle {
+                            throw KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale(it).exception()
+                        }
+                    response.sendStatistikkCallback()
+                }
+            }
+        }.mapLeft {
+            when (it) {
+                is IverksettStansAvYtelseTransactionException -> {
+                    it.feil
+                }
+                else -> {
+                    KunneIkkeIverksetteStansYtelse.UkjentFeil(it.message.toString())
+                }
+            }
+        }.map {
+            it.revurdering
         }
+    }
+
+    override fun iverksettStansAvYtelseITransaksjon(
+        revurderingId: UUID,
+        attestant: NavIdentBruker.Attestant,
+        transactionContext: TransactionContext,
+    ): IverksettStansAvYtelseITransaksjonResponse {
+        return stansAvYtelseService.iverksettStansAvYtelse(
+            revurderingId = revurderingId,
+            attestant = attestant,
+            sessionContext = transactionContext,
+        )
     }
 
     override fun gjenopptaYtelse(request: GjenopptaYtelseRequest): Either<KunneIkkeGjenopptaYtelse, GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse> {
