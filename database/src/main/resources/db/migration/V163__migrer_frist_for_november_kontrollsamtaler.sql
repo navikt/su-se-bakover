@@ -1,0 +1,2 @@
+--sett frist tidligere for november måned slik at vi rekker å få stanset utbetalinger (utbetaling for desember kjøres tidligere enn normalt)
+update kontrollsamtale set frist = '2022-11-25' where frist = '2022-11-30' and status = 'PLANLAGT_INNKALLING';

@@ -7,6 +7,7 @@ import arrow.core.rightIfNotNull
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.between
 import no.nav.su.se.bakover.common.endOfMonth
+import no.nav.su.se.bakover.common.erFørsteDagIMåned
 import no.nav.su.se.bakover.common.erMindreEnnEnMånedSenere
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfMonth
@@ -14,6 +15,7 @@ import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import java.time.Clock
 import java.time.LocalDate
+import java.time.Month
 import java.util.UUID
 
 data class Kontrollsamtale(
@@ -41,9 +43,16 @@ data class Kontrollsamtale(
             UgyldigStatusovergang.left()
         }
 
-    fun endreDato(innkallingsdato: LocalDate): Either<UgyldigStatusovergang, Kontrollsamtale> {
-        if (this.status != Kontrollsamtalestatus.PLANLAGT_INNKALLING) return UgyldigStatusovergang.left()
+    // TODO det føles som det burde være noen restriksjoner her?
+    fun endreDato(innkallingsdato: LocalDate): Either<KunneIkkeEndreDato, Kontrollsamtale> {
+        if (this.status != Kontrollsamtalestatus.PLANLAGT_INNKALLING) return KunneIkkeEndreDato.UgyldigStatusovergang.left()
+        if (!innkallingsdato.erFørsteDagIMåned()) return KunneIkkeEndreDato.DatoErIkkeFørsteIMåned.left()
         return this.copy(innkallingsdato = innkallingsdato, frist = regnUtFristFraInnkallingsdato(innkallingsdato)).right()
+    }
+
+    sealed interface KunneIkkeEndreDato {
+        object UgyldigStatusovergang : KunneIkkeEndreDato
+        object DatoErIkkeFørsteIMåned : KunneIkkeEndreDato
     }
 
     companion object {
@@ -101,7 +110,13 @@ enum class Kontrollsamtalestatus(val value: String) {
     ANNULLERT("ANNULLERT"),
 }
 
-fun regnUtFristFraInnkallingsdato(innkallingsdato: LocalDate): LocalDate = innkallingsdato.endOfMonth()
+fun regnUtFristFraInnkallingsdato(innkallingsdato: LocalDate): LocalDate {
+    return if (innkallingsdato.month == Month.NOVEMBER) {
+        innkallingsdato.withDayOfMonth(25)
+    } else {
+        innkallingsdato.endOfMonth()
+    }
+}
 
 fun regnUtInnkallingsdato(periode: Periode, vedtaksdato: LocalDate, clock: Clock): LocalDate? {
     val stønadsstart = periode.fraOgMed
