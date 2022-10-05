@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.oppgave
 import no.nav.su.se.bakover.common.AktørId
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Behandlingstema
 import no.nav.su.se.bakover.domain.Behandlingstype
 import no.nav.su.se.bakover.domain.Oppgavetype
@@ -107,6 +108,22 @@ sealed class OppgaveConfig {
         override val oppgavetype = Oppgavetype.VURDER_KONSEKVENS_FOR_YTELSE
         override val aktivDato: LocalDate = LocalDate.now(clock)
         override val fristFerdigstillelse: LocalDate = aktivDato.plusDays(7)
+    }
+
+    data class KlarteIkkeÅStanseYtelseVedUtløpAvFristForKontrollsamtale(
+        val saksnummer: Saksnummer,
+        val periode: Periode,
+        override val aktørId: AktørId,
+        override val clock: Clock,
+    ) : OppgaveConfig() {
+        override val saksreferanse = saksnummer.toString()
+        override val journalpostId: JournalpostId? = null
+        override val tilordnetRessurs: NavIdentBruker? = null
+        override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKTNING
+        override val behandlingstype = Behandlingstype.REVURDERING
+        override val oppgavetype = Oppgavetype.VURDER_KONSEKVENS_FOR_YTELSE
+        override val aktivDato: LocalDate = LocalDate.now(clock)
+        override val fristFerdigstillelse: LocalDate = aktivDato.plusDays(3)
     }
 
     data class Kontrollsamtale(

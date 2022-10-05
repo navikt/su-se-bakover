@@ -156,6 +156,8 @@ object ServiceBuilder {
             jobContextRepo = databaseRepos.jobContextRepo,
             clock = clock,
             serviceUser = applicationConfig.serviceUser.username,
+            personService = personService,
+            oppgaveService = oppgaveService,
         )
 
         val reguleringService = ReguleringServiceImpl(

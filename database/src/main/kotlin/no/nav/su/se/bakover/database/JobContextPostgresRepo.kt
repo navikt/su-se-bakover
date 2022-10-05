@@ -152,6 +152,7 @@ internal class JobContextPostgresRepo(
         val opprettet: Tidspunkt,
         val endret: Tidspunkt,
         val prosessert: Set<UUID>,
+        val møtt: Set<UUID>,
         val ikkeMøtt: Set<UUID>,
         val feilet: Set<FeiletDb>,
     ) : JobContextDb() {
@@ -181,6 +182,7 @@ internal class JobContextPostgresRepo(
         val id: UUID,
         val retries: Int,
         val feil: String,
+        val oppgaveId: String?,
     ) {
 
         fun toDomain(): UtløptFristForKontrollsamtaleContext.Feilet {
@@ -188,6 +190,7 @@ internal class JobContextPostgresRepo(
                 id = id,
                 retries = retries,
                 feil = feil,
+                oppgaveId = oppgaveId,
             )
         }
         companion object {
@@ -196,7 +199,7 @@ internal class JobContextPostgresRepo(
                 return map { it.toDb() }.toSet()
             }
             fun UtløptFristForKontrollsamtaleContext.Feilet.toDb(): FeiletDb {
-                return FeiletDb(id, retries, feil)
+                return FeiletDb(id, retries, feil, oppgaveId)
             }
 
             fun Set<FeiletDb>.toDomain(): Set<UtløptFristForKontrollsamtaleContext.Feilet> {
@@ -213,6 +216,7 @@ internal class JobContextPostgresRepo(
                 opprettet = opprettet(),
                 endret = endret(),
                 prosessert = prosessert(),
+                møtt = møtt(),
                 ikkeMøtt = ikkeMøtt(),
                 feilet = feilet().toDb(),
             )

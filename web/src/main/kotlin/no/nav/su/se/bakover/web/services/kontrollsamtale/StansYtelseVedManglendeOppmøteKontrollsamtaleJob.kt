@@ -1,7 +1,8 @@
 package no.nav.su.se.bakover.web.services.kontrollsamtale
 
 import arrow.core.Either
-import no.nav.su.se.bakover.common.idag
+import no.nav.su.se.bakover.common.igår
+import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.nais.LeaderPodLookup
 import no.nav.su.se.bakover.service.kontrollsamtale.UtløptFristForKontrollsamtaleService
 import no.nav.su.se.bakover.service.toggles.ToggleService
@@ -38,14 +39,15 @@ internal class StansYtelseVedManglendeOppmøteKontrollsamtaleJob(
             initialDelay = initialDelay.toMillis(),
         ) {
             Either.catch {
-                val now = LocalTime.now()
-                val run = now > ordinærÅpningstidOppdrag.first &&
-                    now < ordinærÅpningstidOppdrag.second &&
-                    leaderPodLookup.erLeaderPod(hostname = hostName) &&
-                    toggleService.isEnabled(ToggleService.supstonadAutomatiskStansVedManglendeOppmøteKontrollsamtale)
-
-                if (run) {
-                    service.håndterUtløpsdato(idag(clock))
+                if (StansYtelseVedManglendeOppmøteKontrollsamtaleJobRunChecker(
+                        clock = clock,
+                        ordinærÅpningstidOppdrag = ordinærÅpningstidOppdrag,
+                        leaderPodLookup = leaderPodLookup,
+                        toggleService = toggleService,
+                        hostName = hostName,
+                    ).shouldRun()
+                ) {
+                    service.håndterUtløpsdato(igår(clock))
                 }
             }.mapLeft {
                 log.error("Skeduleringsjobb '$jobName' feilet med stacktrace:", it)
@@ -54,4 +56,20 @@ internal class StansYtelseVedManglendeOppmøteKontrollsamtaleJob(
     }
 
     private val hostName = InetAddress.getLocalHost().hostName
+}
+
+internal data class StansYtelseVedManglendeOppmøteKontrollsamtaleJobRunChecker(
+    val clock: Clock,
+    val ordinærÅpningstidOppdrag: Pair<LocalTime, LocalTime>,
+    val leaderPodLookup: LeaderPodLookup,
+    val toggleService: ToggleService,
+    val hostName: String,
+) {
+    fun shouldRun(): Boolean {
+        val now = LocalTime.now(clock.withZone(zoneIdOslo))
+        return now > ordinærÅpningstidOppdrag.first &&
+            now < ordinærÅpningstidOppdrag.second &&
+            leaderPodLookup.erLeaderPod(hostname = hostName) &&
+            toggleService.isEnabled(ToggleService.supstonadAutomatiskStansVedManglendeOppmøteKontrollsamtale)
+    }
 }

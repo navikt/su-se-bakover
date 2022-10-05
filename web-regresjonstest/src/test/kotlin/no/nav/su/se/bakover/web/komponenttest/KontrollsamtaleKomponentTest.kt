@@ -27,6 +27,10 @@ import no.nav.su.se.bakover.domain.kontrollsamtale.Kontrollsamtalestatus
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
+import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
+import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
@@ -136,7 +140,6 @@ internal class KontrollsamtaleKomponentTest {
         val kafkaPublisherMock = mock<KafkaPublisher>() {
             doNothing().whenever(it).publiser(any(), statistikkCaptor.capture())
         }
-
         withKomptestApplication(
             clock = tikkendeKlokke,
             clientsBuilder = { databaseRepos, klokke ->
@@ -172,6 +175,21 @@ internal class KontrollsamtaleKomponentTest {
                             )
                         },
                         kafkaPublisher = kafkaPublisherMock,
+                        oppgaveClient = object : OppgaveClient by it.oppgaveClient {
+                            var count = 0
+                            override fun opprettOppgave(config: OppgaveConfig): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveId> {
+                                return if (config is OppgaveConfig.KlarteIkkeÅStanseYtelseVedUtløpAvFristForKontrollsamtale) {
+                                    count++
+                                    if (count == 2) {
+                                        OppgaveFeil.KunneIkkeOppretteOppgave.left()
+                                    } else {
+                                        OppgaveId("stubbed").right()
+                                    }
+                                } else {
+                                    OppgaveId("stubbed").right()
+                                }
+                            }
+                        },
                     )
                 }
             },
@@ -196,11 +214,21 @@ internal class KontrollsamtaleKomponentTest {
                     fraOgMed = stønadStart,
                     tilOgMed = stønadSlutt,
                 ),
-                innvilgSøknad( // ikke møtt - utbetaling feiler ved første og andre kjøring
+                innvilgSøknad( // ikke møtt - utbetaling feiler ved første og andre og andre kjøring - iverksatt stans ok ved tredje kjøring
                     fraOgMed = stønadStart,
                     tilOgMed = stønadSlutt,
                 ),
-                innvilgSøknad( // ikke møtt - opprettelse av stans feiler ved første og andre kjøring
+                innvilgSøknad( // ikke møtt - opprettelse av stans feiler ved alle kjøringer
+                    fraOgMed = stønadStart,
+                    tilOgMed = stønadSlutt,
+                ).also {
+                    opprettRevurdering(
+                        sakId = it.toString(),
+                        fraOgMed = stønadStart.toString(),
+                        tilOgMed = stønadSlutt.toString(),
+                    )
+                },
+                innvilgSøknad( // ikke møtt - opprettelse av stans feiler ved alle kjøringer, opprettelse av oppgave feiler
                     fraOgMed = stønadStart,
                     tilOgMed = stønadSlutt,
                 ).also {
@@ -228,6 +256,7 @@ internal class KontrollsamtaleKomponentTest {
             val utløpsfristKontrollsamtale = kontrollsamtaler.first().frist
             tikkendeKlokke.spolTil(utløpsfristKontrollsamtale)
 
+            // 1
             utløptFristForKontrollsamtaleService.håndterUtløpsdato(utløpsfristKontrollsamtale)
 
             appComponents.databaseRepos.jobContextRepo.hent<UtløptFristForKontrollsamtaleContext>(
@@ -256,21 +285,31 @@ internal class KontrollsamtaleKomponentTest {
                             id = kontrollsamtaler[3].id,
                             retries = 0,
                             feil = """class no.nav.su.se.bakover.service.utbetaling.UtbetalStansFeil${"\$"}KunneIkkeUtbetale""",
+                            oppgaveId = null,
                         ),
                         UtløptFristForKontrollsamtaleContext.Feilet(
                             id = kontrollsamtaler[4].id,
                             retries = 0,
                             feil = """class no.nav.su.se.bakover.service.utbetaling.UtbetalStansFeil${"\$"}KunneIkkeUtbetale""",
+                            oppgaveId = null,
                         ),
                         UtløptFristForKontrollsamtaleContext.Feilet(
                             id = kontrollsamtaler[5].id,
                             retries = 0,
                             feil = """class no.nav.su.se.bakover.service.revurdering.KunneIkkeStanseYtelse${"\$"}SakHarÅpenBehandling""",
+                            oppgaveId = null,
+                        ),
+                        UtløptFristForKontrollsamtaleContext.Feilet(
+                            id = kontrollsamtaler[6].id,
+                            retries = 0,
+                            feil = """class no.nav.su.se.bakover.service.revurdering.KunneIkkeStanseYtelse${"\$"}SakHarÅpenBehandling""",
+                            oppgaveId = null,
                         ),
                     ),
                 )
             }
 
+            // 2
             utløptFristForKontrollsamtaleService.håndterUtløpsdato(utløpsfristKontrollsamtale)
 
             appComponents.databaseRepos.jobContextRepo.hent<UtløptFristForKontrollsamtaleContext>(
@@ -301,37 +340,92 @@ internal class KontrollsamtaleKomponentTest {
                             id = kontrollsamtaler[3].id,
                             retries = 1,
                             feil = """class no.nav.su.se.bakover.service.utbetaling.UtbetalStansFeil${"\$"}KunneIkkeUtbetale""",
+                            oppgaveId = null,
                         ),
                         UtløptFristForKontrollsamtaleContext.Feilet(
                             id = kontrollsamtaler[5].id,
                             retries = 1,
                             feil = """class no.nav.su.se.bakover.service.revurdering.KunneIkkeStanseYtelse${"\$"}SakHarÅpenBehandling""",
+                            oppgaveId = null,
+                        ),
+                        UtløptFristForKontrollsamtaleContext.Feilet(
+                            id = kontrollsamtaler[6].id,
+                            retries = 1,
+                            feil = """class no.nav.su.se.bakover.service.revurdering.KunneIkkeStanseYtelse${"\$"}SakHarÅpenBehandling""",
+                            oppgaveId = null,
                         ),
                     ),
                 )
+                assertUendret(
+                    saker = listOf(kontrollsamtaler[3].sakId),
+                    periode = Periode.create(stønadStart, stønadSlutt),
+                    sakService = appComponents.services.sak,
+                    kontrollsamtaleService = appComponents.services.kontrollsamtale,
+                )
             }
 
-            assertMøttTilSamtale(
-                saker = listOf(kontrollsamtaler[1].sakId, kontrollsamtaler[2].sakId),
-                periode = Periode.create(stønadStart, stønadSlutt),
-                sakService = appComponents.services.sak,
-                kontrollsamtaleService = appComponents.services.kontrollsamtale,
-            )
-            assertIkkeMøttTilSamtale(
-                saker = listOf(kontrollsamtaler[0].sakId, kontrollsamtaler[4].sakId),
-                periode = Periode.create(utløpsfristKontrollsamtale.førsteINesteMåned(), stønadSlutt),
-                sakService = appComponents.services.sak,
-                kontrollsamtaleService = appComponents.services.kontrollsamtale,
-            )
-            assertUendret(
-                saker = listOf(kontrollsamtaler[3].sakId),
-                periode = Periode.create(stønadStart, stønadSlutt),
-                sakService = appComponents.services.sak,
-                kontrollsamtaleService = appComponents.services.kontrollsamtale,
-            )
-            statistikkCaptor.allValues.filter { it.contains(""""behandlingStatus":"REGISTRERT"""") && it.contains(""""resultatBegrunnelse":"MANGLENDE_KONTROLLERKLÆRING"""") } shouldHaveSize 2
-            statistikkCaptor.allValues.filter { it.contains(""""behandlingStatus":"IVERKSATT"""") && it.contains(""""resultatBegrunnelse":"MANGLENDE_KONTROLLERKLÆRING"""") } shouldHaveSize 2
-            statistikkCaptor.allValues.filter { it.contains(""""vedtaksresultat":"STANSET"""") } shouldHaveSize 2
+            // 3
+            utløptFristForKontrollsamtaleService.håndterUtløpsdato(utløpsfristKontrollsamtale)
+            // 4
+            utløptFristForKontrollsamtaleService.håndterUtløpsdato(utløpsfristKontrollsamtale)
+
+            appComponents.databaseRepos.jobContextRepo.hent<UtløptFristForKontrollsamtaleContext>(
+                id = NameAndLocalDateId(
+                    jobName = "KontrollsamtaleFristUtløptContext",
+                    date = utløpsfristKontrollsamtale,
+                ),
+            )!!.also {
+                it shouldBe UtløptFristForKontrollsamtaleContext(
+                    id = NameAndLocalDateId(
+                        jobName = "KontrollsamtaleFristUtløptContext",
+                        date = utløpsfristKontrollsamtale,
+                    ),
+                    opprettet = it.opprettet(),
+                    endret = it.endret(),
+                    prosessert = setOf(
+                        kontrollsamtaler[0].id,
+                        kontrollsamtaler[1].id,
+                        kontrollsamtaler[2].id,
+                        kontrollsamtaler[4].id,
+                        kontrollsamtaler[3].id,
+                        kontrollsamtaler[5].id,
+                    ),
+                    ikkeMøtt = setOf(
+                        kontrollsamtaler[0].id,
+                        kontrollsamtaler[4].id,
+                        kontrollsamtaler[3].id,
+                    ),
+                    feilet = setOf(
+                        UtløptFristForKontrollsamtaleContext.Feilet(
+                            id = kontrollsamtaler[5].id,
+                            retries = 2,
+                            feil = """class no.nav.su.se.bakover.service.revurdering.KunneIkkeStanseYtelse${"\$"}SakHarÅpenBehandling""",
+                            oppgaveId = "stubbed",
+                        ),
+                        UtløptFristForKontrollsamtaleContext.Feilet(
+                            id = kontrollsamtaler[6].id,
+                            retries = 2,
+                            feil = """class no.nav.su.se.bakover.service.revurdering.KunneIkkeStanseYtelse${"\$"}SakHarÅpenBehandling""",
+                            oppgaveId = null,
+                        ),
+                    ),
+                )
+                assertMøttTilSamtale(
+                    saker = listOf(kontrollsamtaler[1].sakId, kontrollsamtaler[2].sakId),
+                    periode = Periode.create(stønadStart, stønadSlutt),
+                    sakService = appComponents.services.sak,
+                    kontrollsamtaleService = appComponents.services.kontrollsamtale,
+                )
+                assertIkkeMøttTilSamtale(
+                    saker = listOf(kontrollsamtaler[0].sakId, kontrollsamtaler[4].sakId, kontrollsamtaler[3].sakId),
+                    periode = Periode.create(utløpsfristKontrollsamtale.førsteINesteMåned(), stønadSlutt),
+                    sakService = appComponents.services.sak,
+                    kontrollsamtaleService = appComponents.services.kontrollsamtale,
+                )
+            }
+            statistikkCaptor.allValues.filter { it.contains(""""behandlingStatus":"REGISTRERT"""") && it.contains(""""resultatBegrunnelse":"MANGLENDE_KONTROLLERKLÆRING"""") } shouldHaveSize 3
+            statistikkCaptor.allValues.filter { it.contains(""""behandlingStatus":"IVERKSATT"""") && it.contains(""""resultatBegrunnelse":"MANGLENDE_KONTROLLERKLÆRING"""") } shouldHaveSize 3
+            statistikkCaptor.allValues.filter { it.contains(""""vedtaksresultat":"STANSET"""") } shouldHaveSize 3
         }
     }
 

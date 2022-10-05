@@ -7,10 +7,14 @@ import no.nav.su.se.bakover.common.førsteINesteMåned
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
+import no.nav.su.se.bakover.domain.AktørId
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.journalpost.ErKontrollNotatMottatt
 import no.nav.su.se.bakover.domain.kontrollsamtale.Kontrollsamtale
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
+import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -26,6 +30,7 @@ data class UtløptFristForKontrollsamtaleContext(
     private val feilet: Set<Feilet>,
 ) : JobContext() {
     private val logger = LoggerFactory.getLogger(this::class.java)
+    private val MAX_RETRIES = 2
 
     constructor(
         clock: Clock,
@@ -69,7 +74,21 @@ data class UtløptFristForKontrollsamtaleContext(
     fun feilet(id: UUID, feil: String, clock: Clock): UtløptFristForKontrollsamtaleContext {
         return feilet.find { it.id == id }?.let {
             copy(feilet = feilet.minus(it) + it.retried(feil), endret = Tidspunkt.now(clock))
-        } ?: copy(feilet = feilet + Feilet(id, 0, feil), endret = Tidspunkt.now(clock))
+        } ?: copy(feilet = feilet + Feilet(id, 0, feil, null), endret = Tidspunkt.now(clock))
+    }
+
+    fun retryLimitReached(id: UUID): Boolean {
+        return feilet.find { it.id == id }?.let { it.retries >= MAX_RETRIES } ?: false
+    }
+
+    fun prosessertMedFeil(id: UUID, clock: Clock, oppgaveId: OppgaveId): UtløptFristForKontrollsamtaleContext {
+        return feilet.find { it.id == id }!!.let {
+            copy(prosessert = prosessert + id, feilet = feilet.minus(it) + it.copy(oppgaveId = oppgaveId.toString()), endret = Tidspunkt.now(clock))
+        }
+    }
+
+    fun møtt(): Set<UUID> {
+        return prosessert() - ikkeMøtt() - feilet().map { it.id }.toSet()
     }
 
     fun feilet(): Set<Feilet> {
@@ -80,6 +99,7 @@ data class UtløptFristForKontrollsamtaleContext(
         val id: UUID,
         val retries: Int,
         val feil: String,
+        val oppgaveId: String?,
     ) {
         fun retried(feil: String): Feilet {
             return copy(retries = retries + 1, feil = feil)
@@ -99,6 +119,7 @@ data class UtløptFristForKontrollsamtaleContext(
             Opprettet: $opprettet,
             Endret: $endret,
             Prosessert: $prosessert,
+            Møtt: ${møtt()},
             IkkeMøtt: $ikkeMøtt,
             Feilet: $feilet
             ***********************************
@@ -116,23 +137,22 @@ data class UtløptFristForKontrollsamtaleContext(
         lagreContext: (context: UtløptFristForKontrollsamtaleContext, transactionContext: TransactionContext) -> Unit,
         clock: Clock,
         lagreKontrollsamtale: (kontrollsamtale: Kontrollsamtale, transactionContext: TransactionContext) -> Unit,
+        hentAktørId: (fnr: Fnr) -> Either<KunneIkkeHåndtereUtløptKontrollsamtale, AktørId>,
+        opprettOppgave: (oppgaveConfig: OppgaveConfig) -> Either<KunneIkkeHåndtereUtløptKontrollsamtale, OppgaveId>,
     ): UtløptFristForKontrollsamtaleContext {
         return Either.catch {
             hentSakInfo(kontrollsamtale.sakId)
                 .fold(
                     {
-                        throw FeilVedProsesseringAvKontrollsamtaleException(msg = it::class.java.toString())
+                        throw FeilVedProsesseringAvKontrollsamtaleException(msg = it.feil)
                     },
                     { sakInfo ->
                         hentKontrollnotatMottatt(
                             sakInfo.saksnummer,
-                            Periode.create(
-                                fraOgMed = kontrollsamtale.innkallingsdato,
-                                tilOgMed = kontrollsamtale.frist,
-                            ),
+                            kontrollsamtale.forventetMottattNotatPeriode(),
                         ).fold(
                             {
-                                throw FeilVedProsesseringAvKontrollsamtaleException(msg = it::class.java.toString())
+                                throw FeilVedProsesseringAvKontrollsamtaleException(msg = it.feil)
                             },
                             { erKontrollnotatMottatt ->
                                 sessionFactory.withTransactionContext { tx ->
@@ -184,17 +204,53 @@ data class UtløptFristForKontrollsamtaleContext(
                 )
         }.fold(
             { error ->
-                sessionFactory.withTransactionContext { tx ->
-                    logger.error("Feil: ${error.message!!} ved prosessering av kontrollsamtale: ${kontrollsamtale.id}")
-                    feilet(kontrollsamtale.id, error.message!!, clock).also {
-                        lagreContext(it, tx)
+                Either.catch {
+                    sessionFactory.withTransactionContext { tx ->
+                        feilet(kontrollsamtale.id, error.message!!, clock).let { ctx ->
+                            if (retryLimitReached(kontrollsamtale.id)) {
+                                val sakInfo = hentSakInfo(kontrollsamtale.sakId)
+                                    .getOrHandle { throw FeilVedProsesseringAvKontrollsamtaleException(msg = it.feil) }
+                                val aktørId = hentAktørId(sakInfo.fnr)
+                                    .getOrHandle { throw FeilVedProsesseringAvKontrollsamtaleException(msg = it.feil) }
+                                val oppgaveId = opprettOppgave(
+                                    OppgaveConfig.KlarteIkkeÅStanseYtelseVedUtløpAvFristForKontrollsamtale(
+                                        saksnummer = sakInfo.saksnummer,
+                                        periode = kontrollsamtale.forventetMottattNotatPeriode(),
+                                        aktørId = aktørId,
+                                        clock = clock,
+                                    ),
+                                ).getOrHandle { throw FeilVedProsesseringAvKontrollsamtaleException(msg = it.feil) }
+
+                                prosessertMedFeil(kontrollsamtale.id, clock, oppgaveId).also {
+                                    logger.info("Maks antall forsøk (${MAX_RETRIES + 1}) for kontrollsamtale:${kontrollsamtale.id} nådd. Gir opp videre prosessering. OppgaveId: $oppgaveId opprettet.")
+                                    lagreContext(it, tx)
+                                }
+                            } else {
+                                ctx.also {
+                                    lagreContext(ctx, tx)
+                                }
+                            }
+                        }
                     }
-                }
+                }.fold(
+                    {
+                        logger.error("Feil: ${it.message!!} ved håndtering av feilet kontrollsamtale: ${kontrollsamtale.id}")
+                        this
+                    },
+                    {
+                        logger.error("Feil: ${error.message!!} ved prosessering av kontrollsamtale: ${kontrollsamtale.id}")
+                        it
+                    },
+                )
             },
             {
                 it
             },
         )
+    }
+
+    private fun Kontrollsamtale.forventetMottattNotatPeriode(): Periode {
+        return Periode.create(this.innkallingsdato, this.frist)
     }
 
     data class KunneIkkeHåndtereUtløptKontrollsamtale(val feil: String)

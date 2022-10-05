@@ -121,6 +121,12 @@ internal class OppgaveHttpClient(
                 "--- ${
                 Tidspunkt.now(clock).toOppgaveFormat()
                 } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}"
+
+            is OppgaveConfig.KlarteIkkeÅStanseYtelseVedUtløpAvFristForKontrollsamtale -> {
+                "--- ${
+                Tidspunkt.now(clock).toOppgaveFormat()
+                } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}\nKontrollnotat ikke funnet for perioden: ${config.periode}. Maskinell stans kunne ikke gjennomføres."
+            }
         }
 
         return Either.catch {

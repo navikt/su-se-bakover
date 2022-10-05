@@ -10,7 +10,10 @@ import no.nav.su.se.bakover.domain.jobcontext.UtløptFristForKontrollsamtaleCont
 import no.nav.su.se.bakover.domain.journalpost.JournalpostClient
 import no.nav.su.se.bakover.domain.kontrollsamtale.Kontrollsamtale
 import no.nav.su.se.bakover.domain.kontrollsamtale.KontrollsamtaleRepo
+import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
+import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.revurdering.StansYtelseRequest
 import no.nav.su.se.bakover.service.sak.SakService
@@ -32,6 +35,8 @@ internal class UtløptFristForKontrollsamtaleServiceImpl(
     private val jobContextRepo: JobContextRepo,
     private val clock: Clock,
     private val serviceUser: String,
+    private val oppgaveService: OppgaveService,
+    private val personService: PersonService,
 ) : UtløptFristForKontrollsamtaleService {
     private val log = LoggerFactory.getLogger(this::class.java)
     override fun håndterUtløpsdato(dato: LocalDate): UtløptFristForKontrollsamtaleContext {
@@ -44,7 +49,7 @@ internal class UtløptFristForKontrollsamtaleServiceImpl(
                 return initialContext
             }
             .also {
-                log.info("Fant ${it.count()} kontrollsamtaler med utløp: $dato")
+                log.info("Fant ${it.count()} uprosesserte kontrollsamtaler med utløp: $dato")
             }
             .fold(initialContext) { context, prosesseres ->
                 context.håndter(
@@ -99,6 +104,18 @@ internal class UtløptFristForKontrollsamtaleServiceImpl(
                     clock = clock,
                     lagreKontrollsamtale = { kontrollsamtale: Kontrollsamtale, transactionContext: TransactionContext ->
                         kontrollsamtaleRepo.lagre(kontrollsamtale, transactionContext)
+                    },
+                    hentAktørId = { fnr ->
+                        personService.hentAktørIdMedSystembruker(fnr)
+                            .mapLeft {
+                                UtløptFristForKontrollsamtaleContext.KunneIkkeHåndtereUtløptKontrollsamtale(it::class.java.toString())
+                            }
+                    },
+                    opprettOppgave = { oppgaveConfig: OppgaveConfig ->
+                        oppgaveService.opprettOppgave(oppgaveConfig)
+                            .mapLeft {
+                                UtløptFristForKontrollsamtaleContext.KunneIkkeHåndtereUtløptKontrollsamtale(it::class.java.toString())
+                            }
                     },
                 )
             }
