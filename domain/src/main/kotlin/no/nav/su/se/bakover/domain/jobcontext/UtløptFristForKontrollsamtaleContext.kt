@@ -2,13 +2,13 @@ package no.nav.su.se.bakover.domain.jobcontext
 
 import arrow.core.Either
 import arrow.core.getOrHandle
+import no.nav.su.se.bakover.common.AktørId
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.førsteINesteMåned
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.domain.AktørId
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.journalpost.ErKontrollNotatMottatt
 import no.nav.su.se.bakover.domain.kontrollsamtale.Kontrollsamtale

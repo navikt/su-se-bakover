@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.service.kontrollsamtale
 
+import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.jobcontext.JobContextRepo
 import no.nav.su.se.bakover.domain.jobcontext.UtløptFristForKontrollsamtaleContext
