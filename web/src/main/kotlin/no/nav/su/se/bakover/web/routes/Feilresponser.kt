@@ -169,9 +169,9 @@ internal object Feilresponser {
         "fant_ikke_saksbehandler_eller_attestant",
     )
 
-    val kunneIkkeEndreDato = InternalServerError.errorJson(
-        "Kunne ikke endre dato",
-        "kunne_ikke_endre_dato",
+    val datoMåVæreFørsteIMåned = BadRequest.errorJson(
+        "Dato må være første dag i måneden.",
+        "dato_må_være_første_i_mnd",
     )
 
     val kunneIkkeHenteNesteKontrollsamtale = InternalServerError.errorJson(

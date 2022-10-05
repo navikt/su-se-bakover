@@ -145,11 +145,14 @@ class KontrollsamtaleServiceImpl(
                     ),
                 ).right()
             },
-            ifRight = {
-                it.endreDato(dato).map { endretKontrollsamtale ->
+            ifRight = { kontrollsamtale ->
+                kontrollsamtale.endreDato(dato).map { endretKontrollsamtale ->
                     kontrollsamtaleRepo.lagre(endretKontrollsamtale)
                 }.mapLeft {
-                    KunneIkkeSetteNyDatoForKontrollsamtale.UgyldigStatusovergang
+                    when (it) {
+                        Kontrollsamtale.KunneIkkeEndreDato.DatoErIkkeFørsteIMåned -> KunneIkkeSetteNyDatoForKontrollsamtale.DatoIkkeFørsteIMåned
+                        Kontrollsamtale.KunneIkkeEndreDato.UgyldigStatusovergang -> KunneIkkeSetteNyDatoForKontrollsamtale.UgyldigStatusovergang
+                    }
                 }
             },
         )
@@ -247,6 +250,8 @@ sealed interface KunneIkkeSetteNyDatoForKontrollsamtale {
     object FantIkkeSak : KunneIkkeSetteNyDatoForKontrollsamtale
     object UgyldigStatusovergang : KunneIkkeSetteNyDatoForKontrollsamtale
     object FantIkkeGjeldendeStønadsperiode : KunneIkkeSetteNyDatoForKontrollsamtale
+
+    object DatoIkkeFørsteIMåned : KunneIkkeSetteNyDatoForKontrollsamtale
 }
 
 sealed interface KunneIkkeKalleInnTilKontrollsamtale {
