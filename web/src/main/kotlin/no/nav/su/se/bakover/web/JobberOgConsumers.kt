@@ -104,19 +104,20 @@ internal fun startJobberOgConsumers(
             leaderPodLookup = clients.leaderPodLookup,
             kjøreplan = if (isProd) {
                 setOf(
-                    22.november(2021),
-                    5.januar(2022),
-                    28.januar(2022),
-                    25.februar(2022),
-                    25.mars(2022),
-                    26.april(2022),
-                    27.mai(2022),
-                    29.juni(2022),
-                    29.juli(2022),
-                    30.august(2022),
-                    29.september(2022),
                     28.oktober(2022),
                     21.november(2022),
+                    5.januar(2023),
+                    30.januar(2023),
+                    27.februar(2023),
+                    28.mars(2023),
+                    25.april(2023),
+                    30.mai(2023),
+                    29.juni(2023),
+                    28.juli(2023),
+                    30.august(2023),
+                    29.september(2023),
+                    30.oktober(2023),
+                    22.november(2023),
                 )
             } else {
                 emptySet()
