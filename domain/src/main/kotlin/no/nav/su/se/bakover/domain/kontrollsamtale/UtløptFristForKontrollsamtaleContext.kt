@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.jobcontext
+package no.nav.su.se.bakover.domain.kontrollsamtale
 
 import arrow.core.Either
 import arrow.core.getOrHandle
@@ -10,8 +10,9 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.jobcontext.JobContext
+import no.nav.su.se.bakover.domain.jobcontext.NameAndLocalDateId
 import no.nav.su.se.bakover.domain.journalpost.ErKontrollNotatMottatt
-import no.nav.su.se.bakover.domain.kontrollsamtale.Kontrollsamtale
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -28,7 +29,7 @@ data class UtløptFristForKontrollsamtaleContext(
     private val prosessert: Set<UUID>,
     private val ikkeMøtt: Set<UUID>,
     private val feilet: Set<Feilet>,
-) : JobContext() {
+) : JobContext {
     private val logger = LoggerFactory.getLogger(this::class.java)
     private val MAX_RETRIES = 2
 
@@ -114,7 +115,7 @@ data class UtløptFristForKontrollsamtaleContext(
         return """
             ${"\n"}
             ***********************************
-            Oppsummering av jobb: ${id.jobName}, tidspunkt:${Tidspunkt.now()},
+            Oppsummering av jobb: ${id.name}, tidspunkt:${Tidspunkt.now()},
             Dato: ${id.date},
             Opprettet: $opprettet,
             Endret: $endret,
@@ -269,13 +270,9 @@ data class UtløptFristForKontrollsamtaleContext(
     companion object {
         fun genererIdForTidspunkt(clock: Clock): NameAndLocalDateId {
             return NameAndLocalDateId(
-                jobName = type().toString(),
+                name = "HåndterUtløptFristForKontrollsamtale",
                 date = LocalDate.now(clock),
             )
-        }
-
-        fun type(): Typer {
-            return Typer.KontrollsamtaleFristUtløptContext
         }
     }
 }

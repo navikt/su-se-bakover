@@ -69,7 +69,7 @@ class SendPåminnelseNyStønadsperiodeKomponentTest {
             ) shouldBe SendPåminnelseNyStønadsperiodeContext(
                 clock = clock,
                 id = NameAndYearMonthId(
-                    jobName = "SendPåminnelseNyStønadsperiode",
+                    name = "SendPåminnelseNyStønadsperiode",
                     yearMonth = YearMonth.of(2022, Month.JULY),
                 ),
                 opprettet = Tidspunkt.now(clock),
@@ -111,7 +111,7 @@ class SendPåminnelseNyStønadsperiodeKomponentTest {
             ) shouldBe SendPåminnelseNyStønadsperiodeContext(
                 clock = clock,
                 id = NameAndYearMonthId(
-                    jobName = "SendPåminnelseNyStønadsperiode",
+                    name = "SendPåminnelseNyStønadsperiode",
                     yearMonth = YearMonth.of(2022, Month.JULY),
                 ),
                 opprettet = Tidspunkt.now(clock),

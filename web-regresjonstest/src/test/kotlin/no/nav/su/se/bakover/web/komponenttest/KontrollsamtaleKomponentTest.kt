@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.common.førsteINesteMåned
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.jobcontext.NameAndLocalDateId
-import no.nav.su.se.bakover.domain.jobcontext.UtløptFristForKontrollsamtaleContext
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.journalpost.ErKontrollNotatMottatt
 import no.nav.su.se.bakover.domain.journalpost.JournalpostStatus
@@ -24,6 +23,7 @@ import no.nav.su.se.bakover.domain.journalpost.JournalpostTema
 import no.nav.su.se.bakover.domain.journalpost.JournalpostType
 import no.nav.su.se.bakover.domain.journalpost.KontrollnotatMottattJournalpost
 import no.nav.su.se.bakover.domain.kontrollsamtale.Kontrollsamtalestatus
+import no.nav.su.se.bakover.domain.kontrollsamtale.UtløptFristForKontrollsamtaleContext
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
@@ -261,13 +261,13 @@ internal class KontrollsamtaleKomponentTest {
 
             appComponents.databaseRepos.jobContextRepo.hent<UtløptFristForKontrollsamtaleContext>(
                 id = NameAndLocalDateId(
-                    jobName = "KontrollsamtaleFristUtløptContext",
+                    name = "HåndterUtløptFristForKontrollsamtale",
                     date = utløpsfristKontrollsamtale,
                 ),
             )!!.also {
                 it shouldBe UtløptFristForKontrollsamtaleContext(
                     id = NameAndLocalDateId(
-                        jobName = "KontrollsamtaleFristUtløptContext",
+                        name = "HåndterUtløptFristForKontrollsamtale",
                         date = utløpsfristKontrollsamtale,
                     ),
                     opprettet = it.opprettet(),
@@ -314,13 +314,13 @@ internal class KontrollsamtaleKomponentTest {
 
             appComponents.databaseRepos.jobContextRepo.hent<UtløptFristForKontrollsamtaleContext>(
                 id = NameAndLocalDateId(
-                    jobName = "KontrollsamtaleFristUtløptContext",
+                    name = "HåndterUtløptFristForKontrollsamtale",
                     date = utløpsfristKontrollsamtale,
                 ),
             )!!.also {
                 it shouldBe UtløptFristForKontrollsamtaleContext(
                     id = NameAndLocalDateId(
-                        jobName = "KontrollsamtaleFristUtløptContext",
+                        name = "HåndterUtløptFristForKontrollsamtale",
                         date = utløpsfristKontrollsamtale,
                     ),
                     opprettet = it.opprettet(),
@@ -371,13 +371,13 @@ internal class KontrollsamtaleKomponentTest {
 
             appComponents.databaseRepos.jobContextRepo.hent<UtløptFristForKontrollsamtaleContext>(
                 id = NameAndLocalDateId(
-                    jobName = "KontrollsamtaleFristUtløptContext",
+                    name = "HåndterUtløptFristForKontrollsamtale",
                     date = utløpsfristKontrollsamtale,
                 ),
             )!!.also {
                 it shouldBe UtløptFristForKontrollsamtaleContext(
                     id = NameAndLocalDateId(
-                        jobName = "KontrollsamtaleFristUtløptContext",
+                        name = "HåndterUtløptFristForKontrollsamtale",
                         date = utløpsfristKontrollsamtale,
                     ),
                     opprettet = it.opprettet(),

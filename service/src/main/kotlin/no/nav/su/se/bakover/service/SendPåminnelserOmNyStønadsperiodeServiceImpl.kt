@@ -79,9 +79,9 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImpl(
         return jobContextRepo.hent<SendPåminnelseNyStønadsperiodeContext>(
             SendPåminnelseNyStønadsperiodeContext.genererIdForTidspunkt(clock),
         )?.also {
-            log.info("Gjenbruker eksisterende context for jobb: ${it.id().jobName}, måned: ${it.id().yearMonth}")
+            log.info("Gjenbruker eksisterende context for jobb: ${it.id().name}, måned: ${it.id().yearMonth}")
         } ?: SendPåminnelseNyStønadsperiodeContext(clock).also {
-            log.info("Oppretter ny context for jobb: ${it.id().jobName}, måned: ${it.id().yearMonth}")
+            log.info("Oppretter ny context for jobb: ${it.id().name}, måned: ${it.id().yearMonth}")
         }
     }
 }

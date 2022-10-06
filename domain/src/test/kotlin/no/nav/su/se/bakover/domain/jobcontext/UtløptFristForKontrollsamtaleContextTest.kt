@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.jobcontext
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.domain.kontrollsamtale.UtløptFristForKontrollsamtaleContext
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
@@ -13,7 +14,7 @@ internal class UtløptFristForKontrollsamtaleContextTest {
     fun `oppdatering av verdier`() {
         UtløptFristForKontrollsamtaleContext(
             id = NameAndLocalDateId(
-                jobName = "a",
+                name = "a",
                 date = fixedLocalDate,
             ),
             opprettet = fixedTidspunkt,
@@ -35,7 +36,7 @@ internal class UtløptFristForKontrollsamtaleContextTest {
                 .feilet(c, "c2feil", fixedClock).also {
                     it shouldBe UtløptFristForKontrollsamtaleContext(
                         id = NameAndLocalDateId(
-                            jobName = "a",
+                            name = "a",
                             date = fixedLocalDate,
                         ),
                         opprettet = fixedTidspunkt,
@@ -56,7 +57,7 @@ internal class UtløptFristForKontrollsamtaleContextTest {
                 .prosessert(d, fixedClock).also {
                     it shouldBe UtløptFristForKontrollsamtaleContext(
                         id = NameAndLocalDateId(
-                            jobName = "a",
+                            name = "a",
                             date = fixedLocalDate,
                         ),
                         opprettet = fixedTidspunkt,
@@ -73,7 +74,7 @@ internal class UtløptFristForKontrollsamtaleContextTest {
                     it.retryLimitReached(e) shouldBe true
                     it shouldBe UtløptFristForKontrollsamtaleContext(
                         id = NameAndLocalDateId(
-                            jobName = "a",
+                            name = "a",
                             date = fixedLocalDate,
                         ),
                         opprettet = fixedTidspunkt,

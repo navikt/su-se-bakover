@@ -34,7 +34,7 @@ data class SendPåminnelseNyStønadsperiodeContext(
     private val endret: Tidspunkt,
     private val prosessert: Set<Saksnummer>,
     private val sendt: Set<Saksnummer>,
-) : JobContext() {
+) : JobContext {
 
     constructor(
         clock: Clock,
@@ -83,7 +83,7 @@ data class SendPåminnelseNyStønadsperiodeContext(
         return """
             ${"\n"}
             ***********************************
-            Oppsummering av jobb: ${id.jobName}, tidspunkt:${Tidspunkt.now()},
+            Oppsummering av jobb: ${id.name}, tidspunkt:${Tidspunkt.now()},
             Måned: ${id.yearMonth},
             Opprettet: $opprettet,
             Endret: $endret,
@@ -153,13 +153,9 @@ data class SendPåminnelseNyStønadsperiodeContext(
     companion object {
         fun genererIdForTidspunkt(clock: Clock): NameAndYearMonthId {
             return NameAndYearMonthId(
-                jobName = type().toString(),
+                name = "SendPåminnelseNyStønadsperiode",
                 yearMonth = YearMonth.now(clock),
             )
-        }
-
-        fun type(): Typer {
-            return Typer.SendPåminnelseNyStønadsperiode
         }
     }
 

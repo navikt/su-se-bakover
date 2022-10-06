@@ -5,46 +5,40 @@ import no.nav.su.se.bakover.common.persistence.TransactionContext
 import java.time.LocalDate
 import java.time.YearMonth
 
-sealed class JobContext {
-
-    abstract fun id(): JobContextId
-
-    enum class Typer {
-        SendPåminnelseNyStønadsperiode,
-        KontrollsamtaleFristUtløptContext,
-    }
+interface JobContext {
+    fun id(): JobContextId
 }
 
 interface JobContextId {
     fun value(): String
 }
 
+interface JobContextRepo {
+    fun <T : JobContext> hent(id: JobContextId): T?
+    fun lagre(jobContext: JobContext, transactionContext: TransactionContext)
+}
+
 data class NameAndYearMonthId(
-    val jobName: String,
+    val name: String,
     val yearMonth: YearMonth,
 ) : JobContextId {
     override fun value(): String {
-        return """$jobName$yearMonth"""
+        return """$name$yearMonth"""
     }
 
     fun tilPeriode(): Periode {
         return Periode.create(
-            fraOgMed = LocalDate.of(yearMonth.year, yearMonth.month, 1),
+            fraOgMed = yearMonth.atDay(1),
             tilOgMed = yearMonth.atEndOfMonth(),
         )
     }
 }
 
 data class NameAndLocalDateId(
-    val jobName: String,
+    val name: String,
     val date: LocalDate,
 ) : JobContextId {
     override fun value(): String {
-        return """$jobName$date"""
+        return """$name$date"""
     }
-}
-
-interface JobContextRepo {
-    fun <T : JobContext> hent(id: JobContextId): T?
-    fun lagre(jobContext: JobContext, transactionContext: TransactionContext)
 }

@@ -20,7 +20,8 @@ import no.nav.su.se.bakover.domain.jobcontext.JobContextRepo
 import no.nav.su.se.bakover.domain.jobcontext.NameAndLocalDateId
 import no.nav.su.se.bakover.domain.jobcontext.NameAndYearMonthId
 import no.nav.su.se.bakover.domain.jobcontext.SendPåminnelseNyStønadsperiodeContext
-import no.nav.su.se.bakover.domain.jobcontext.UtløptFristForKontrollsamtaleContext
+import no.nav.su.se.bakover.domain.kontrollsamtale.UtløptFristForKontrollsamtaleContext
+import java.lang.IllegalArgumentException
 import java.time.LocalDate
 import java.time.YearMonth
 import java.util.UUID
@@ -51,6 +52,10 @@ internal class JobContextPostgresRepo(
 
             is UtløptFristForKontrollsamtaleContext -> {
                 jobContext.toDb()
+            }
+
+            else -> {
+                throw IllegalArgumentException("Ukjent type:$jobContext")
             }
         }.let {
             transactionContext.withSession { session ->
@@ -89,8 +94,8 @@ internal class JobContextPostgresRepo(
             name = "SendPåminnelseNyStønadsperiode",
         ),
         JsonSubTypes.Type(
-            value = UtløptKontrollsamtaleDb::class,
-            name = "UtløptKontrollsamtaleDb",
+            value = UtløptFristForKontrollsamtaleDb::class,
+            name = "HåndterUtløptFristForKontrollsamtale",
         ),
     )
     sealed class JobContextDb {
@@ -120,7 +125,7 @@ internal class JobContextPostgresRepo(
         override fun toDomain(): SendPåminnelseNyStønadsperiodeContext {
             return SendPåminnelseNyStønadsperiodeContext(
                 id = NameAndYearMonthId(
-                    jobName = jobName,
+                    name = jobName,
                     yearMonth = yearMonth,
                 ),
                 opprettet = opprettet,
@@ -134,7 +139,7 @@ internal class JobContextPostgresRepo(
             fun SendPåminnelseNyStønadsperiodeContext.toDb(): SendPåminnelseNyStønadsperiodeContextDb {
                 return SendPåminnelseNyStønadsperiodeContextDb(
                     id = id().value(),
-                    jobName = id().jobName,
+                    jobName = id().name,
                     yearMonth = id().yearMonth,
                     opprettet = opprettet(),
                     endret = endret(),
@@ -145,7 +150,7 @@ internal class JobContextPostgresRepo(
         }
     }
 
-    data class UtløptKontrollsamtaleDb(
+    data class UtløptFristForKontrollsamtaleDb(
         val id: String,
         val jobName: String,
         val dato: String,
@@ -166,7 +171,7 @@ internal class JobContextPostgresRepo(
         override fun toDomain(): JobContext {
             return UtløptFristForKontrollsamtaleContext(
                 id = NameAndLocalDateId(
-                    jobName = jobName,
+                    name = jobName,
                     date = LocalDate.parse(dato),
                 ),
                 opprettet = opprettet,
@@ -208,10 +213,10 @@ internal class JobContextPostgresRepo(
         }
     }
     companion object {
-        fun UtløptFristForKontrollsamtaleContext.toDb(): UtløptKontrollsamtaleDb {
-            return UtløptKontrollsamtaleDb(
+        fun UtløptFristForKontrollsamtaleContext.toDb(): UtløptFristForKontrollsamtaleDb {
+            return UtløptFristForKontrollsamtaleDb(
                 id = id().value(),
-                jobName = id().jobName,
+                jobName = id().name,
                 dato = id().date.toString(),
                 opprettet = opprettet(),
                 endret = endret(),

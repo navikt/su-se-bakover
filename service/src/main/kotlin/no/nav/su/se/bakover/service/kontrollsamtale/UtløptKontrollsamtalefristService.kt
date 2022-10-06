@@ -6,10 +6,10 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.jobcontext.JobContextRepo
-import no.nav.su.se.bakover.domain.jobcontext.UtløptFristForKontrollsamtaleContext
 import no.nav.su.se.bakover.domain.journalpost.JournalpostClient
 import no.nav.su.se.bakover.domain.kontrollsamtale.Kontrollsamtale
 import no.nav.su.se.bakover.domain.kontrollsamtale.KontrollsamtaleRepo
+import no.nav.su.se.bakover.domain.kontrollsamtale.UtløptFristForKontrollsamtaleContext
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
@@ -44,7 +44,7 @@ internal class UtløptFristForKontrollsamtaleServiceImpl(
         val kontrollsamtaler = kontrollsamtaleRepo.hentInnkalteKontrollsamtalerMedFristUtløpt(dato)
         return initialContext.uprosesserte { kontrollsamtaler.map { it.id } }
             .ifEmpty {
-                log.info("Fant ingen flere saker for mulig utsending av påminnelse om ny stønadsperiode.")
+                log.info("Fant ingen uprosesserte kontrollsamtaler med utløp: $dato.")
                 log.info(initialContext.oppsummering())
                 return initialContext
             }
@@ -128,9 +128,9 @@ internal class UtløptFristForKontrollsamtaleServiceImpl(
         return jobContextRepo.hent<UtløptFristForKontrollsamtaleContext>(
             UtløptFristForKontrollsamtaleContext.genererIdForTidspunkt(clock),
         )?.also {
-            log.info("Gjenbruker eksisterende context for jobb: ${it.id().jobName}, dato: ${it.id().date}")
+            log.info("Gjenbruker eksisterende context for jobb: ${it.id().name}, dato: ${it.id().date}")
         } ?: UtløptFristForKontrollsamtaleContext(clock).also {
-            log.info("Oppretter ny context for jobb: ${it.id().jobName}, dato: ${it.id().date}")
+            log.info("Oppretter ny context for jobb: ${it.id().name}, dato: ${it.id().date}")
         }
     }
 }
