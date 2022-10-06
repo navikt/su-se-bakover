@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.common.AktørId
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.førsteINesteMåned
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.DatoIntervall
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -35,7 +35,7 @@ data class UtløptFristForKontrollsamtaleContext(
 
     constructor(
         clock: Clock,
-        id: NameAndLocalDateId = genererIdForTidspunkt(clock),
+        id: NameAndLocalDateId,
         opprettet: Tidspunkt = Tidspunkt.now(clock),
         endret: Tidspunkt = opprettet,
         prosessert: Set<UUID> = emptySet(),
@@ -116,7 +116,7 @@ data class UtløptFristForKontrollsamtaleContext(
             ${"\n"}
             ***********************************
             Oppsummering av jobb: ${id.name}, tidspunkt:${Tidspunkt.now()},
-            Dato: ${id.date},
+            Frist utløpt: ${id.date},
             Opprettet: $opprettet,
             Endret: $endret,
             Prosessert: $prosessert,
@@ -131,7 +131,7 @@ data class UtløptFristForKontrollsamtaleContext(
     fun håndter(
         kontrollsamtale: Kontrollsamtale,
         hentSakInfo: (sakId: UUID) -> Either<KunneIkkeHåndtereUtløptKontrollsamtale, SakInfo>,
-        hentKontrollnotatMottatt: (saksnummer: Saksnummer, periode: Periode) -> Either<KunneIkkeHåndtereUtløptKontrollsamtale, ErKontrollNotatMottatt>,
+        hentKontrollnotatMottatt: (saksnummer: Saksnummer, periode: DatoIntervall) -> Either<KunneIkkeHåndtereUtløptKontrollsamtale, ErKontrollNotatMottatt>,
         sessionFactory: SessionFactory,
         opprettStans: (sakId: UUID, fraOgMed: LocalDate, transactionContext: TransactionContext) -> OpprettStansTransactionCallback,
         iverksettStans: (id: UUID, transactionContext: TransactionContext) -> IverksettStansTransactionCallback,
@@ -350,8 +350,8 @@ data class UtløptFristForKontrollsamtaleContext(
         }
     }
 
-    private fun Kontrollsamtale.forventetMottattKontrollnotatIPeriode(): Periode {
-        return Periode.create(this.innkallingsdato, this.frist)
+    private fun Kontrollsamtale.forventetMottattKontrollnotatIPeriode(): DatoIntervall {
+        return DatoIntervall(this.innkallingsdato, this.frist)
     }
 
     data class KunneIkkeHåndtereUtløptKontrollsamtale(val feil: String)
@@ -368,10 +368,10 @@ data class UtløptFristForKontrollsamtaleContext(
     )
 
     companion object {
-        fun genererIdForTidspunkt(clock: Clock): NameAndLocalDateId {
+        fun genererId(fristUtløpDato: LocalDate): NameAndLocalDateId {
             return NameAndLocalDateId(
                 name = "HåndterUtløptFristForKontrollsamtale",
-                date = LocalDate.now(clock),
+                date = fristUtløpDato,
             )
         }
     }

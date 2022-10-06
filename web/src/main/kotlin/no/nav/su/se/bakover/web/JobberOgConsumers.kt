@@ -279,7 +279,7 @@ internal fun startJobberOgConsumers(
 
         StansYtelseVedManglendeOppmøteKontrollsamtaleJob(
             leaderPodLookup = clients.leaderPodLookup,
-            intervall = Duration.of(5, ChronoUnit.MINUTES),
+            intervall = Duration.of(1, ChronoUnit.MINUTES),
             initialDelay = initialDelay.next(),
             toggleService = services.toggles,
             service = services.utløptFristForKontrollsamtaleService,

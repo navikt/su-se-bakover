@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.service.kontrollsamtale
 
 import no.nav.su.se.bakover.common.NavIdentBruker
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.DatoIntervall
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -40,7 +40,7 @@ internal class UtløptFristForKontrollsamtaleServiceImpl(
 ) : UtløptFristForKontrollsamtaleService {
     private val log = LoggerFactory.getLogger(this::class.java)
     override fun håndterUtløpsdato(dato: LocalDate): UtløptFristForKontrollsamtaleContext {
-        val initialContext = hentEllerOpprettContext()
+        val initialContext = hentEllerOpprettContext(dato)
         val kontrollsamtaler = kontrollsamtaleRepo.hentInnkalteKontrollsamtalerMedFristUtløpt(dato)
         return initialContext.uprosesserte { kontrollsamtaler.map { it.id } }
             .ifEmpty {
@@ -60,7 +60,7 @@ internal class UtløptFristForKontrollsamtaleServiceImpl(
                                 UtløptFristForKontrollsamtaleContext.KunneIkkeHåndtereUtløptKontrollsamtale(it::class.java.toString())
                             }
                     },
-                    hentKontrollnotatMottatt = { saksnummer: Saksnummer, periode: Periode ->
+                    hentKontrollnotatMottatt = { saksnummer: Saksnummer, periode: DatoIntervall ->
                         journalpostClient.kontrollnotatMotatt(saksnummer, periode)
                             .mapLeft {
                                 UtløptFristForKontrollsamtaleContext.KunneIkkeHåndtereUtløptKontrollsamtale(it::class.java.toString())
@@ -124,12 +124,15 @@ internal class UtløptFristForKontrollsamtaleServiceImpl(
             }
     }
 
-    private fun hentEllerOpprettContext(): UtløptFristForKontrollsamtaleContext {
+    private fun hentEllerOpprettContext(dato: LocalDate): UtløptFristForKontrollsamtaleContext {
         return jobContextRepo.hent<UtløptFristForKontrollsamtaleContext>(
-            UtløptFristForKontrollsamtaleContext.genererIdForTidspunkt(clock),
+            UtløptFristForKontrollsamtaleContext.genererId(dato),
         )?.also {
             log.info("Gjenbruker eksisterende context for jobb: ${it.id().name}, dato: ${it.id().date}")
-        } ?: UtløptFristForKontrollsamtaleContext(clock).also {
+        } ?: UtløptFristForKontrollsamtaleContext(
+            id = UtløptFristForKontrollsamtaleContext.genererId(dato),
+            clock = clock,
+        ).also {
             log.info("Oppretter ny context for jobb: ${it.id().name}, dato: ${it.id().date}")
         }
     }

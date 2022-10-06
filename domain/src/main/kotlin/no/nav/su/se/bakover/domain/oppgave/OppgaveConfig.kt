@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.domain.oppgave
 import no.nav.su.se.bakover.common.AktørId
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.DatoIntervall
 import no.nav.su.se.bakover.domain.Behandlingstema
 import no.nav.su.se.bakover.domain.Behandlingstype
 import no.nav.su.se.bakover.domain.Oppgavetype
@@ -112,7 +112,7 @@ sealed class OppgaveConfig {
 
     data class KlarteIkkeÅStanseYtelseVedUtløpAvFristForKontrollsamtale(
         val saksnummer: Saksnummer,
-        val periode: Periode,
+        val periode: DatoIntervall,
         override val aktørId: AktørId,
         override val clock: Clock,
     ) : OppgaveConfig() {
