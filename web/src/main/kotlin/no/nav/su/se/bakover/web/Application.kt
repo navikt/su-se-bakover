@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.metrics.SuMetrics
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
+import no.nav.su.se.bakover.database.DomainToQueryParameterMapper
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
@@ -98,6 +99,7 @@ fun Application.susebakover(
         dbMetrics = DbMicrometerMetrics(),
         clock = clock,
         satsFactory = satsFactory,
+        queryParameterMappers = listOf(DomainToQueryParameterMapper),
     ),
     jmsConfig: JmsConfig = JmsConfig(applicationConfig),
     clients: Clients =

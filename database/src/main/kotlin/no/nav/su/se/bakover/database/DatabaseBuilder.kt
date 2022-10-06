@@ -61,7 +61,7 @@ object DatabaseBuilder {
         dbMetrics: DbMetrics,
         clock: Clock,
         satsFactory: SatsFactoryForSupplerendeStønad,
-        queryParameterMappers: List<QueryParameterMapper> = emptyList(),
+        queryParameterMappers: List<QueryParameterMapper>,
     ): DatabaseRepos {
         val abstractDatasource = Postgres(databaseConfig = databaseConfig).build()
 
