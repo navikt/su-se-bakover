@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling
 
-import no.nav.su.se.bakover.domain.fnrOver67
-import no.nav.su.se.bakover.domain.fnrUnder67
+import no.nav.su.se.bakover.test.fnrOver67
+import no.nav.su.se.bakover.test.fnrUnder67
 
 //language=JSON
 val alderssøknadsinnholdJson =

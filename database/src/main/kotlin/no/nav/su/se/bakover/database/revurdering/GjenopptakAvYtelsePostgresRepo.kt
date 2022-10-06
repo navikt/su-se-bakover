@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.database.revurdering
 
+import no.nav.su.se.bakover.common.persistence.DbMetrics
+import no.nav.su.se.bakover.common.persistence.TransactionalSession
+import no.nav.su.se.bakover.common.persistence.insert
+import no.nav.su.se.bakover.common.persistence.oppdatering
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.database.DbMetrics
-import no.nav.su.se.bakover.database.TransactionalSession
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagsdataOgVilkårsvurderingerPostgresRepo
-import no.nav.su.se.bakover.database.insert
-import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 

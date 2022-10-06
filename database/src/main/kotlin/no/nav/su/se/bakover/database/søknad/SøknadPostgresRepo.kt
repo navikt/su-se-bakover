@@ -1,13 +1,13 @@
 package no.nav.su.se.bakover.database.søknad
 
+import no.nav.su.se.bakover.common.persistence.DbMetrics
+import no.nav.su.se.bakover.common.persistence.PostgresSessionContext.Companion.withSession
+import no.nav.su.se.bakover.common.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.common.persistence.hentListe
+import no.nav.su.se.bakover.common.persistence.insert
+import no.nav.su.se.bakover.common.persistence.oppdatering
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.database.DbMetrics
-import no.nav.su.se.bakover.database.PostgresSessionContext.Companion.withSession
-import no.nav.su.se.bakover.database.PostgresSessionFactory
-import no.nav.su.se.bakover.database.hentListe
-import no.nav.su.se.bakover.database.insert
-import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.søknad.LukketJson.Companion.toLukketJson
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal.hentSøknadInternal
 import no.nav.su.se.bakover.domain.søknad.Søknad

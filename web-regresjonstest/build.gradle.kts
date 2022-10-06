@@ -9,7 +9,7 @@ dependencies {
     testImplementation(project(":common"))
     testImplementation(project(":service"))
     testImplementation(project(":test-common"))
-    testImplementation(project(":database", "testArchives"))
+
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion") {
         exclude(group = "junit")
         exclude(group = "org.eclipse.jetty") // conflicts with WireMock

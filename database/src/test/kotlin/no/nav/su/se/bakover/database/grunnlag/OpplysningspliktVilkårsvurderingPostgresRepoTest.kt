@@ -3,11 +3,12 @@ package no.nav.su.se.bakover.database.grunnlag
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.toNonEmptyList
-import no.nav.su.se.bakover.database.TestDataHelper
-import no.nav.su.se.bakover.database.withMigratedDb
-import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
+import no.nav.su.se.bakover.test.persistence.TestDataHelper
+import no.nav.su.se.bakover.test.persistence.dbMetricsStub
+import no.nav.su.se.bakover.test.persistence.withMigratedDb
+import no.nav.su.se.bakover.test.persistence.withSession
 import no.nav.su.se.bakover.test.vilkår.tilstrekkeligDokumentert
 import no.nav.su.se.bakover.test.vilkår.utilstrekkeligDokumentert
 import org.junit.jupiter.api.Test
@@ -18,15 +19,20 @@ internal class OpplysningspliktVilkårsvurderingPostgresRepoTest {
     fun `lagrer og henter vilkårsvurdering`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
+            val opplysningspliktGrunnlagRepo = OpplysningspliktGrunnlagPostgresRepo(dbMetricsStub)
+            val opplysningspliktVilkårsvurderingPostgresRepo = OpplysningspliktVilkårsvurderingPostgresRepo(
+                opplysningspliktGrunnlagRepo,
+                dbMetricsStub,
+            )
             val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
             val vilkår = tilstrekkeligDokumentert()
 
             testDataHelper.sessionFactory.withTransaction { tx ->
-                testDataHelper.opplysningspliktVilkårsvurderingPostgresRepo.lagre(søknadsbehandling.id, vilkår, tx)
+                opplysningspliktVilkårsvurderingPostgresRepo.lagre(søknadsbehandling.id, vilkår, tx)
             }
 
             testDataHelper.sessionFactory.withSession { session ->
-                testDataHelper.opplysningspliktVilkårsvurderingPostgresRepo.hent(
+                opplysningspliktVilkårsvurderingPostgresRepo.hent(
                     søknadsbehandling.id,
                     session,
                 ) shouldBe vilkår
@@ -38,15 +44,20 @@ internal class OpplysningspliktVilkårsvurderingPostgresRepoTest {
     fun `sletting av eksisterende og lagrer nytt med flere vurderingsperioder og grunnlag`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
+            val opplysningspliktGrunnlagRepo = OpplysningspliktGrunnlagPostgresRepo(dbMetricsStub)
+            val opplysningspliktVilkårsvurderingPostgresRepo = OpplysningspliktVilkårsvurderingPostgresRepo(
+                opplysningspliktGrunnlagRepo,
+                dbMetricsStub,
+            )
             val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
             val vilkår = tilstrekkeligDokumentert(periode = år(2021))
 
             testDataHelper.sessionFactory.withTransaction { tx ->
-                testDataHelper.opplysningspliktVilkårsvurderingPostgresRepo.lagre(søknadsbehandling.id, vilkår, tx)
+                opplysningspliktVilkårsvurderingPostgresRepo.lagre(søknadsbehandling.id, vilkår, tx)
             }
 
             testDataHelper.sessionFactory.withSession { session ->
-                testDataHelper.opplysningspliktVilkårsvurderingPostgresRepo.hent(
+                opplysningspliktVilkårsvurderingPostgresRepo.hent(
                     søknadsbehandling.id,
                     session,
                 ) shouldBe vilkår
@@ -59,7 +70,7 @@ internal class OpplysningspliktVilkårsvurderingPostgresRepoTest {
             )
 
             testDataHelper.sessionFactory.withTransaction { tx ->
-                testDataHelper.opplysningspliktVilkårsvurderingPostgresRepo.lagre(
+                opplysningspliktVilkårsvurderingPostgresRepo.lagre(
                     søknadsbehandling.id,
                     flerePerioder,
                     tx,
@@ -67,7 +78,7 @@ internal class OpplysningspliktVilkårsvurderingPostgresRepoTest {
             }
 
             testDataHelper.sessionFactory.withSession { session ->
-                testDataHelper.opplysningspliktVilkårsvurderingPostgresRepo.hent(
+                opplysningspliktVilkårsvurderingPostgresRepo.hent(
                     søknadsbehandling.id,
                     session,
                 ) shouldBe flerePerioder
@@ -79,13 +90,18 @@ internal class OpplysningspliktVilkårsvurderingPostgresRepoTest {
     fun `sletter grunnlag hvis vurdering går fra vurdert til ikke vurdert`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
+            val opplysningspliktGrunnlagRepo = OpplysningspliktGrunnlagPostgresRepo(dbMetricsStub)
+            val opplysningspliktVilkårsvurderingPostgresRepo = OpplysningspliktVilkårsvurderingPostgresRepo(
+                opplysningspliktGrunnlagRepo,
+                dbMetricsStub,
+            )
             val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
             val (vilkår, grunnlag) = tilstrekkeligDokumentert(periode = søknadsbehandling.periode).let {
                 it to it.grunnlag
             }
 
             testDataHelper.sessionFactory.withTransaction { tx ->
-                testDataHelper.opplysningspliktVilkårsvurderingPostgresRepo.lagre(
+                opplysningspliktVilkårsvurderingPostgresRepo.lagre(
                     behandlingId = søknadsbehandling.id,
                     vilkår = vilkår,
                     tx = tx,
@@ -93,26 +109,26 @@ internal class OpplysningspliktVilkårsvurderingPostgresRepoTest {
             }
 
             testDataHelper.sessionFactory.withSession { session ->
-                testDataHelper.opplysningspliktVilkårsvurderingPostgresRepo.hent(
+                opplysningspliktVilkårsvurderingPostgresRepo.hent(
                     behandlingId = søknadsbehandling.id,
                     session = session,
                 ) shouldBe vilkår
             }
 
             testDataHelper.sessionFactory.withTransaction { tx ->
-                testDataHelper.opplysningspliktVilkårsvurderingPostgresRepo.lagre(
+                opplysningspliktVilkårsvurderingPostgresRepo.lagre(
                     behandlingId = søknadsbehandling.id,
                     vilkår = OpplysningspliktVilkår.IkkeVurdert,
                     tx = tx,
                 )
             }
             dataSource.withSession { session ->
-                testDataHelper.opplysningspliktVilkårsvurderingPostgresRepo.hent(
+                opplysningspliktVilkårsvurderingPostgresRepo.hent(
                     behandlingId = søknadsbehandling.id,
                     session = session,
                 ) shouldBe OpplysningspliktVilkår.IkkeVurdert
 
-                testDataHelper.opplysningspliktGrunnlagPostgresRepo.hent(
+                opplysningspliktGrunnlagRepo.hent(
                     id = grunnlag.first().id,
                     session = session,
                 ) shouldBe null

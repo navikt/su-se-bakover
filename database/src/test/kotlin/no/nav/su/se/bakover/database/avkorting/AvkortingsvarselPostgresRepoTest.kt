@@ -2,10 +2,10 @@ package no.nav.su.se.bakover.database.avkorting
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.database.TestDataHelper
-import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.persistence.TestDataHelper
+import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.stønadsperiode2022
@@ -20,6 +20,7 @@ internal class AvkortingsvarselPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val (sak, vedtak, _) = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering()
             val revurdering = testDataHelper.persisterRevurderingOpprettet(sakOgVedtak = (sak to vedtak), vedtak.periode).second
+            val avkortingsvarselRepo = testDataHelper.avkortingsvarselRepo as AvkortingsvarselPostgresRepo
 
             testDataHelper.sessionFactory.withTransaction { tx ->
 
@@ -31,24 +32,24 @@ internal class AvkortingsvarselPostgresRepoTest {
                     simulering = simuleringFeilutbetaling(),
                 ).skalAvkortes()
 
-                testDataHelper.avkortingsvarselRepo.lagre(
+                avkortingsvarselRepo.lagre(
                     avkortingsvarsel = avkortingsvarsel,
                     tx = tx,
                 )
 
-                testDataHelper.avkortingsvarselRepo.hent(
+                avkortingsvarselRepo.hent(
                     id = avkortingsvarsel.id,
                     session = tx,
                 ) shouldBe avkortingsvarsel
 
                 val annullert = avkortingsvarsel.annuller(revurdering.id)
 
-                testDataHelper.avkortingsvarselRepo.lagre(
+                avkortingsvarselRepo.lagre(
                     avkortingsvarsel = annullert,
                     tx = tx,
                 )
 
-                testDataHelper.avkortingsvarselRepo.hent(
+                avkortingsvarselRepo.hent(
                     id = avkortingsvarsel.id,
                     session = tx,
                 ) shouldBe annullert
@@ -60,6 +61,7 @@ internal class AvkortingsvarselPostgresRepoTest {
     fun `avkorting for utenlandsopphold`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
+            val avkortingsvarselRepo = testDataHelper.avkortingsvarselRepo as AvkortingsvarselPostgresRepo
             val (sak, vedtak, _) = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
                 stønadsperiode = stønadsperiode2021,
             )
@@ -75,11 +77,11 @@ internal class AvkortingsvarselPostgresRepoTest {
                 ).skalAvkortes()
 
             testDataHelper.sessionFactory.withTransaction {
-                testDataHelper.avkortingsvarselRepo.lagre(
+                avkortingsvarselRepo.lagre(
                     avkortingsvarsel = avkortingsvarsel,
                     tx = it,
                 )
-                testDataHelper.avkortingsvarselRepo.hent(
+                avkortingsvarselRepo.hent(
                     id = avkortingsvarsel.id,
                     session = it,
                 ) shouldBe avkortingsvarsel
@@ -94,12 +96,12 @@ internal class AvkortingsvarselPostgresRepoTest {
             val avkortet: Avkortingsvarsel.Utenlandsopphold.Avkortet = avkortingsvarsel.avkortet(nySøknadsbehandling.id)
 
             testDataHelper.sessionFactory.withTransaction {
-                testDataHelper.avkortingsvarselRepo.lagre(
+                avkortingsvarselRepo.lagre(
                     avkortingsvarsel = avkortet,
                     tx = it,
                 )
 
-                testDataHelper.avkortingsvarselRepo.hent(
+                avkortingsvarselRepo.hent(
                     id = avkortingsvarsel.id,
                     session = it,
                 ) shouldBe avkortet
@@ -111,6 +113,7 @@ internal class AvkortingsvarselPostgresRepoTest {
     fun `ikke lov å avkorte etter at det er annullert for utenlandsopphold`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
+            val avkortingsvarselRepo = testDataHelper.avkortingsvarselRepo as AvkortingsvarselPostgresRepo
             val (sak, vedtak, _) = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
                 stønadsperiode = stønadsperiode2021,
             )
@@ -130,24 +133,24 @@ internal class AvkortingsvarselPostgresRepoTest {
                     simulering = simuleringFeilutbetaling(),
                 ).skalAvkortes()
 
-                testDataHelper.avkortingsvarselRepo.lagre(
+                avkortingsvarselRepo.lagre(
                     avkortingsvarsel = avkortingsvarsel,
                     tx = tx,
                 )
 
-                testDataHelper.avkortingsvarselRepo.hent(
+                avkortingsvarselRepo.hent(
                     id = avkortingsvarsel.id,
                     session = tx,
                 ) shouldBe avkortingsvarsel
 
                 val annullert = avkortingsvarsel.annuller(revurdering.id)
 
-                testDataHelper.avkortingsvarselRepo.lagre(
+                avkortingsvarselRepo.lagre(
                     avkortingsvarsel = annullert,
                     tx = tx,
                 )
 
-                testDataHelper.avkortingsvarselRepo.hent(
+                avkortingsvarselRepo.hent(
                     id = avkortingsvarsel.id,
                     session = tx,
                 ) shouldBe annullert
@@ -155,7 +158,7 @@ internal class AvkortingsvarselPostgresRepoTest {
                 val avkortet = avkortingsvarsel.avkortet(nySøknadsbehandling.id)
 
                 shouldThrow<RuntimeException> {
-                    testDataHelper.avkortingsvarselRepo.lagre(
+                    avkortingsvarselRepo.lagre(
                         avkortingsvarsel = avkortet,
                         tx = tx,
                     )
@@ -168,6 +171,7 @@ internal class AvkortingsvarselPostgresRepoTest {
     fun `henter bare utestående avkortinger for sak`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
+            val avkortingsvarselRepo = testDataHelper.avkortingsvarselRepo as AvkortingsvarselPostgresRepo
             val (sak, vedtak, _) = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
                 stønadsperiode = stønadsperiode2021,
             )
@@ -196,32 +200,32 @@ internal class AvkortingsvarselPostgresRepoTest {
                 .skalAvkortes()
 
             testDataHelper.sessionFactory.withTransaction { tx ->
-                testDataHelper.avkortingsvarselRepo.lagre(
+                avkortingsvarselRepo.lagre(
                     avkortingsvarsel = skalAvkortes,
                     tx = tx,
                 )
-                testDataHelper.avkortingsvarselRepo.lagre(
+                avkortingsvarselRepo.lagre(
                     avkortingsvarsel = avkortet,
                     tx = tx,
                 )
-                testDataHelper.avkortingsvarselRepo.lagre(
+                avkortingsvarselRepo.lagre(
                     avkortingsvarsel = annullert,
                     tx = tx,
                 )
             }
 
             testDataHelper.sessionFactory.withTransaction { tx ->
-                testDataHelper.avkortingsvarselRepo.lagre(
+                avkortingsvarselRepo.lagre(
                     avkortingsvarsel = avkortet.avkortet(nySøknadsbehandling.id),
                     tx = tx,
                 )
-                testDataHelper.avkortingsvarselRepo.lagre(
+                avkortingsvarselRepo.lagre(
                     avkortingsvarsel = annullert.annuller(revurdering3.id),
                     tx = tx,
                 )
             }
 
-            testDataHelper.avkortingsvarselRepo.hentUtestående(
+            avkortingsvarselRepo.hentUtestående(
                 sakId = sak.id,
             ) shouldBe skalAvkortes
         }
@@ -231,6 +235,7 @@ internal class AvkortingsvarselPostgresRepoTest {
     fun `kaster exception hvis det finnes flere utestående avkortinger`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
+            val avkortingsvarselRepo = testDataHelper.avkortingsvarselRepo as AvkortingsvarselPostgresRepo
             val (sak, vedtak, _) = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering()
             val revurdering1 = testDataHelper.persisterRevurderingOpprettet(sakOgVedtak = (sak to vedtak), vedtak.periode).second
             val revurdering2 = testDataHelper.persisterRevurderingOpprettet(sakOgVedtak = (sak to vedtak), vedtak.periode).second
@@ -248,16 +253,16 @@ internal class AvkortingsvarselPostgresRepoTest {
             val skalAvkortes2 = opprettet.copy(id = UUID.randomUUID(), revurderingId = revurdering3.id).skalAvkortes()
 
             testDataHelper.sessionFactory.withTransaction { tx ->
-                testDataHelper.avkortingsvarselRepo.lagre(
+                avkortingsvarselRepo.lagre(
                     avkortingsvarsel = skalAvkortes1,
                     tx = tx,
                 )
-                testDataHelper.avkortingsvarselRepo.lagre(
+                avkortingsvarselRepo.lagre(
                     avkortingsvarsel = skalAvkortes2,
                     tx = tx,
                 )
                 assertThrows<IllegalStateException> {
-                    testDataHelper.avkortingsvarselRepo.hentUteståendeAvkorting(
+                    avkortingsvarselRepo.hentUteståendeAvkorting(
                         sakId = sak.id,
                         session = tx,
                     )

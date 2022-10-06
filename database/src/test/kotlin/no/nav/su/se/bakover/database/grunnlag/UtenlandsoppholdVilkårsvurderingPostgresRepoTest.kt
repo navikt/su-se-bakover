@@ -7,15 +7,16 @@ import no.nav.su.se.bakover.common.november
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.desember
 import no.nav.su.se.bakover.common.periode.år
-import no.nav.su.se.bakover.database.TestDataHelper
-import no.nav.su.se.bakover.database.withMigratedDb
-import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.grunnlag.Utenlandsoppholdgrunnlag
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUtenlandsopphold
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.persistence.TestDataHelper
+import no.nav.su.se.bakover.test.persistence.dbMetricsStub
+import no.nav.su.se.bakover.test.persistence.withMigratedDb
+import no.nav.su.se.bakover.test.persistence.withSession
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdInnvilget
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -26,6 +27,12 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepoTest {
     fun `lagrer og henter vilkårsvurdering uten grunnlag`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
+            val utenlandsoppholdVilkårsvurderingRepo = UtenlandsoppholdVilkårsvurderingPostgresRepo(
+                utenlandsoppholdgrunnlagRepo = UtenlandsoppholdgrunnlagPostgresRepo(
+                    dbMetrics = dbMetricsStub,
+                ),
+                dbMetrics = dbMetricsStub,
+            )
             val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
             val vilkår = UtenlandsoppholdVilkår.Vurdert.tryCreate(
                 vurderingsperioder = nonEmptyListOf(
@@ -40,11 +47,11 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepoTest {
             ).getOrFail()
 
             testDataHelper.sessionFactory.withTransaction { tx ->
-                testDataHelper.utenlandsoppholdVilkårsvurderingRepo.lagre(søknadsbehandling.id, vilkår, tx)
+                utenlandsoppholdVilkårsvurderingRepo.lagre(søknadsbehandling.id, vilkår, tx)
             }
 
             testDataHelper.sessionFactory.withSession { session ->
-                testDataHelper.utenlandsoppholdVilkårsvurderingRepo.hent(søknadsbehandling.id, session) shouldBe vilkår
+                utenlandsoppholdVilkårsvurderingRepo.hent(søknadsbehandling.id, session) shouldBe vilkår
             }
         }
     }
@@ -53,6 +60,12 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepoTest {
     fun `lagrer og henter vilkårsvurdering med grunnlag`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
+            val utenlandsoppholdVilkårsvurderingRepo = UtenlandsoppholdVilkårsvurderingPostgresRepo(
+                utenlandsoppholdgrunnlagRepo = UtenlandsoppholdgrunnlagPostgresRepo(
+                    dbMetrics = dbMetricsStub,
+                ),
+                dbMetrics = dbMetricsStub,
+            )
             val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
             val vilkår = UtenlandsoppholdVilkår.Vurdert.tryCreate(
                 vurderingsperioder = nonEmptyListOf(
@@ -82,11 +95,11 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepoTest {
             ).getOrFail()
 
             testDataHelper.sessionFactory.withTransaction { tx ->
-                testDataHelper.utenlandsoppholdVilkårsvurderingRepo.lagre(søknadsbehandling.id, vilkår, tx)
+                utenlandsoppholdVilkårsvurderingRepo.lagre(søknadsbehandling.id, vilkår, tx)
             }
 
             testDataHelper.sessionFactory.withSession { session ->
-                testDataHelper.utenlandsoppholdVilkårsvurderingRepo.hent(søknadsbehandling.id, session) shouldBe vilkår
+                utenlandsoppholdVilkårsvurderingRepo.hent(søknadsbehandling.id, session) shouldBe vilkår
             }
         }
     }
@@ -95,6 +108,12 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepoTest {
     fun `kan erstatte eksisterende vilkårsvurderinger med grunnlag`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
+            val utenlandsoppholdVilkårsvurderingRepo = UtenlandsoppholdVilkårsvurderingPostgresRepo(
+                utenlandsoppholdgrunnlagRepo = UtenlandsoppholdgrunnlagPostgresRepo(
+                    dbMetrics = dbMetricsStub,
+                ),
+                dbMetrics = dbMetricsStub,
+            )
             val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
             val gammel = UtenlandsoppholdVilkår.Vurdert.tryCreate(
                 vurderingsperioder = nonEmptyListOf(
@@ -129,19 +148,19 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepoTest {
             ).getOrFail()
 
             testDataHelper.sessionFactory.withTransaction { tx ->
-                testDataHelper.utenlandsoppholdVilkårsvurderingRepo.lagre(søknadsbehandling.id, gammel, tx)
+                utenlandsoppholdVilkårsvurderingRepo.lagre(søknadsbehandling.id, gammel, tx)
             }
 
             testDataHelper.sessionFactory.withSession { session ->
-                testDataHelper.utenlandsoppholdVilkårsvurderingRepo.hent(søknadsbehandling.id, session) shouldBe gammel
+                utenlandsoppholdVilkårsvurderingRepo.hent(søknadsbehandling.id, session) shouldBe gammel
             }
 
             testDataHelper.sessionFactory.withTransaction { tx ->
-                testDataHelper.utenlandsoppholdVilkårsvurderingRepo.lagre(søknadsbehandling.id, ny, tx)
+                utenlandsoppholdVilkårsvurderingRepo.lagre(søknadsbehandling.id, ny, tx)
             }
 
             testDataHelper.sessionFactory.withSession { session ->
-                testDataHelper.utenlandsoppholdVilkårsvurderingRepo.hent(søknadsbehandling.id, session) shouldBe ny
+                utenlandsoppholdVilkårsvurderingRepo.hent(søknadsbehandling.id, session) shouldBe ny
             }
         }
     }
@@ -150,6 +169,13 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepoTest {
     fun `sletter grunnlag hvis vurdering går fra vurdert til ikke vurdert`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
+            val utenlandsoppholdgrunnlagRepo = UtenlandsoppholdgrunnlagPostgresRepo(
+                dbMetrics = dbMetricsStub,
+            )
+            val utenlandsoppholdVilkårsvurderingRepo = UtenlandsoppholdVilkårsvurderingPostgresRepo(
+                utenlandsoppholdgrunnlagRepo = utenlandsoppholdgrunnlagRepo,
+                dbMetrics = dbMetricsStub,
+            )
             val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
             val (vilkår, grunnlag) = utenlandsoppholdInnvilget(
                 grunnlag = Utenlandsoppholdgrunnlag(
@@ -160,27 +186,27 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepoTest {
             ).let { it to it.grunnlag }
 
             testDataHelper.sessionFactory.withTransaction { tx ->
-                testDataHelper.utenlandsoppholdVilkårsvurderingRepo.lagre(søknadsbehandling.id, vilkår, tx)
+                utenlandsoppholdVilkårsvurderingRepo.lagre(søknadsbehandling.id, vilkår, tx)
             }
 
             testDataHelper.sessionFactory.withSession { session ->
-                testDataHelper.utenlandsoppholdVilkårsvurderingRepo.hent(søknadsbehandling.id, session) shouldBe vilkår
+                utenlandsoppholdVilkårsvurderingRepo.hent(søknadsbehandling.id, session) shouldBe vilkår
             }
 
             testDataHelper.sessionFactory.withTransaction { tx ->
-                testDataHelper.utenlandsoppholdVilkårsvurderingRepo.lagre(
+                utenlandsoppholdVilkårsvurderingRepo.lagre(
                     søknadsbehandling.id,
                     UtenlandsoppholdVilkår.IkkeVurdert,
                     tx,
                 )
             }
             dataSource.withSession { session ->
-                testDataHelper.utenlandsoppholdVilkårsvurderingRepo.hent(
+                utenlandsoppholdVilkårsvurderingRepo.hent(
                     behandlingId = søknadsbehandling.id,
                     session = session,
                 ) shouldBe UtenlandsoppholdVilkår.IkkeVurdert
 
-                testDataHelper.utenlandsoppholdgrunnlagPostgresRepo.hent(
+                utenlandsoppholdgrunnlagRepo.hent(
                     id = grunnlag.first().id,
                     session = session,
                 ) shouldBe null

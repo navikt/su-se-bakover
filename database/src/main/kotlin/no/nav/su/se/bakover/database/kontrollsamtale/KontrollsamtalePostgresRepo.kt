@@ -1,13 +1,13 @@
 package no.nav.su.se.bakover.database.kontrollsamtale
 
 import kotliquery.Row
+import no.nav.su.se.bakover.common.persistence.DbMetrics
+import no.nav.su.se.bakover.common.persistence.PostgresSessionContext.Companion.withSession
+import no.nav.su.se.bakover.common.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.persistence.SessionContext
-import no.nav.su.se.bakover.database.DbMetrics
-import no.nav.su.se.bakover.database.PostgresSessionContext.Companion.withSession
-import no.nav.su.se.bakover.database.PostgresSessionFactory
-import no.nav.su.se.bakover.database.hentListe
-import no.nav.su.se.bakover.database.insert
-import no.nav.su.se.bakover.database.tidspunkt
+import no.nav.su.se.bakover.common.persistence.hentListe
+import no.nav.su.se.bakover.common.persistence.insert
+import no.nav.su.se.bakover.common.persistence.tidspunkt
 import no.nav.su.se.bakover.domain.kontrollsamtale.Kontrollsamtale
 import no.nav.su.se.bakover.domain.kontrollsamtale.KontrollsamtaleRepo
 import no.nav.su.se.bakover.domain.kontrollsamtale.Kontrollsamtalestatus

@@ -12,7 +12,7 @@ import java.time.Duration
 
 // Environment bruker static context og er ikke thread safe
 @Execution(value = ExecutionMode.SAME_THREAD)
-internal class ApplicationConfigTest {
+class ApplicationConfigTest {
 
     private val expectedApplicationConfig = ApplicationConfig(
         runtimeEnvironment = ApplicationConfig.RuntimeEnvironment.Nais,

@@ -46,7 +46,6 @@ internal class SimuleringJsonTest {
         """.trimIndent()
 
     private val simuleringMedFlereUtbetalingerISammePeriode = simulering(
-        januar(2021),
         simulertePerioder = listOf(
             simulertPeriode(
                 periode = januar(2021),
@@ -59,7 +58,9 @@ internal class SimuleringJsonTest {
     )
 
     private val simulering = simulering(
-        januar(2020),
-        februar(2020),
+        perioder = listOf(
+            januar(2020),
+            februar(2020),
+        ),
     )
 }

@@ -17,24 +17,22 @@ import no.finn.unleash.FakeUnleash
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.database.DatabaseBuilder
-import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.DatabaseRepos
-import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.persistence.dbMetricsStub
+import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.veileder
 import no.nav.su.se.bakover.web.TestClientsBuilder
-import no.nav.su.se.bakover.web.dbMetricsStub
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Nested
@@ -66,35 +64,6 @@ internal class SakRoutesKtTest {
     )
 
     private val søknadInnhold = SøknadInnholdTestdataBuilder.build()
-
-    @Test
-    fun `henter sak for sak id`() {
-        withMigratedDb { dataSource ->
-            val repos = repos(dataSource)
-
-            testApplication {
-                application { testSusebakover(databaseRepos = repos) }
-
-                SakFactory(clock = fixedClock).nySakMedNySøknad(
-                    fnr = Fnr(sakFnr01),
-                    søknadInnhold = søknadInnhold,
-                    innsendtAv = veileder,
-                ).also {
-                    repos.sak.opprettSak(it)
-                }
-                val opprettetSakId: Sak = repos.sak.hentSak(Fnr(sakFnr01), Sakstype.UFØRE)!!
-
-                defaultRequest(
-                    Get,
-                    "$sakPath/${opprettetSakId.id}",
-                    listOf(Brukerrolle.Saksbehandler),
-                ).apply {
-                    status shouldBe OK
-                    bodyAsText() shouldContain """"fnr":"$sakFnr01""""
-                }
-            }
-        }
-    }
 
     @Test
     fun `henter sak for fødselsnummer`() {

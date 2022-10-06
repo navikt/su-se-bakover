@@ -1,8 +1,8 @@
 package db.migration
 
+import no.nav.su.se.bakover.common.persistence.DbMetrics
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.DatabaseBuilder
-import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import org.flywaydb.core.api.migration.BaseJavaMigration

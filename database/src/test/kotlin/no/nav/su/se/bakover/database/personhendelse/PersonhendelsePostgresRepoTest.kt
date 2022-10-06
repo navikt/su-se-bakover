@@ -4,10 +4,7 @@ import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.deserialize
-import no.nav.su.se.bakover.database.TestDataHelper
-import no.nav.su.se.bakover.database.hent
-import no.nav.su.se.bakover.database.withMigratedDb
-import no.nav.su.se.bakover.database.withSession
+import no.nav.su.se.bakover.common.persistence.hent
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.SivilstandTyper
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
@@ -15,6 +12,9 @@ import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.persistence.TestDataHelper
+import no.nav.su.se.bakover.test.persistence.withMigratedDb
+import no.nav.su.se.bakover.test.persistence.withSession
 import org.junit.jupiter.api.Test
 import java.util.UUID
 import javax.sql.DataSource
@@ -29,7 +29,7 @@ internal class PersonhendelsePostgresRepoTest {
     fun `Kan lagre og hente dødsfallshendelser`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val repo = testDataHelper.hendelsePostgresRepo
+            val repo = testDataHelper.personhendelseRepo as PersonhendelsePostgresRepo
 
             val hendelse = Personhendelse.IkkeTilknyttetSak(
                 endringstype = Personhendelse.Endringstype.OPPRETTET,
@@ -68,7 +68,7 @@ internal class PersonhendelsePostgresRepoTest {
     fun `Kan lagre og hente utflytting fra norge`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val repo = testDataHelper.hendelsePostgresRepo
+            val repo = testDataHelper.personhendelseRepo as PersonhendelsePostgresRepo
             val hendelse = Personhendelse.IkkeTilknyttetSak(
                 endringstype = Personhendelse.Endringstype.OPPRETTET,
                 hendelse = Personhendelse.Hendelse.UtflyttingFraNorge(fixedLocalDate),
@@ -107,7 +107,7 @@ internal class PersonhendelsePostgresRepoTest {
     fun `Kan lagre og hente sivilstand`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val repo = testDataHelper.hendelsePostgresRepo
+            val repo = testDataHelper.personhendelseRepo as PersonhendelsePostgresRepo
             val hendelse = Personhendelse.IkkeTilknyttetSak(
                 endringstype = Personhendelse.Endringstype.OPPRETTET,
                 hendelse = Personhendelse.Hendelse.Sivilstand(
@@ -150,7 +150,7 @@ internal class PersonhendelsePostgresRepoTest {
     fun `Kan lagre og hente bostedsadresse`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val repo = testDataHelper.hendelsePostgresRepo
+            val repo = testDataHelper.personhendelseRepo as PersonhendelsePostgresRepo
             val hendelse = Personhendelse.IkkeTilknyttetSak(
                 endringstype = Personhendelse.Endringstype.OPPRETTET,
                 hendelse = Personhendelse.Hendelse.Bostedsadresse,
@@ -188,7 +188,7 @@ internal class PersonhendelsePostgresRepoTest {
     fun `Kan lagre og hente kontaktadresse`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val repo = testDataHelper.hendelsePostgresRepo
+            val repo = testDataHelper.personhendelseRepo as PersonhendelsePostgresRepo
             val hendelse = Personhendelse.IkkeTilknyttetSak(
                 endringstype = Personhendelse.Endringstype.OPPRETTET,
                 hendelse = Personhendelse.Hendelse.Kontaktadresse,
@@ -226,7 +226,7 @@ internal class PersonhendelsePostgresRepoTest {
     fun `lagring av duplikate hendelser ignoreres`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val repo = testDataHelper.hendelsePostgresRepo
+            val repo = testDataHelper.personhendelseRepo as PersonhendelsePostgresRepo
             val hendelse = Personhendelse.IkkeTilknyttetSak(
                 endringstype = Personhendelse.Endringstype.OPPRETTET,
                 hendelse = Personhendelse.Hendelse.Dødsfall(fixedLocalDate),
@@ -384,8 +384,10 @@ internal class PersonhendelsePostgresRepoTest {
 
             val sak = testDataHelper.persisterJournalførtSøknadMedOppgave().first
 
-            val hendelse1TilknyttetSak = hendelse1.tilknyttSak(hendelseId1, SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type))
-            val hendelse2TilknyttetSak = hendelse2.tilknyttSak(hendelseId2, SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type))
+            val hendelse1TilknyttetSak =
+                hendelse1.tilknyttSak(hendelseId1, SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type))
+            val hendelse2TilknyttetSak =
+                hendelse2.tilknyttSak(hendelseId2, SakInfo(sak.id, sak.saksnummer, sak.fnr, sak.type))
             repo.lagre(hendelse1TilknyttetSak)
             repo.lagre(hendelse2TilknyttetSak)
 

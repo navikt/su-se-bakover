@@ -5,9 +5,6 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.år
-import no.nav.su.se.bakover.database.TestDataHelper
-import no.nav.su.se.bakover.database.withMigratedDb
-import no.nav.su.se.bakover.database.withTransaction
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
@@ -18,6 +15,10 @@ import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.createFromGrunnlag
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.persistence.TestDataHelper
+import no.nav.su.se.bakover.test.persistence.dbMetricsStub
+import no.nav.su.se.bakover.test.persistence.withMigratedDb
+import no.nav.su.se.bakover.test.persistence.withTransaction
 import no.nav.su.se.bakover.test.vilkår.formuevilkårIkkeVurdert
 import no.nav.su.se.bakover.test.vilkår.formuevilkårUtenEps0Innvilget
 import org.junit.jupiter.api.Test
@@ -28,8 +29,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
     @Test
     fun `lagrer og henter IkkeVurdert`() {
         withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val repo = testDataHelper.formueVilkårsvurderingPostgresRepo
+            val repo = FormueVilkårsvurderingPostgresRepo(FormuegrunnlagPostgresRepo(dbMetricsStub), dbMetricsStub)
             val behandlingId = UUID.randomUUID()
             val vilkår = formuevilkårIkkeVurdert()
             dataSource.withTransaction { session ->
@@ -89,8 +89,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
         val periode = år(2021)
 
         withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val repo = testDataHelper.formueVilkårsvurderingPostgresRepo
+            val repo = FormueVilkårsvurderingPostgresRepo(FormuegrunnlagPostgresRepo(dbMetricsStub), dbMetricsStub)
             val behandlingId = UUID.randomUUID()
             val vilkår = FormueVilkår.Vurdert.createFromGrunnlag(
                 grunnlag = nonEmptyListOf(formuegrunnlag(periode)),
@@ -112,8 +111,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
         val periode = år(2021)
 
         withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val repo = testDataHelper.formueVilkårsvurderingPostgresRepo
+            val repo = FormueVilkårsvurderingPostgresRepo(FormuegrunnlagPostgresRepo(dbMetricsStub), dbMetricsStub)
             val behandlingId = UUID.randomUUID()
             val vilkår = FormueVilkår.Vurdert.createFromGrunnlag(
                 grunnlag = nonEmptyListOf(
@@ -141,8 +139,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
         val periode = år(2021)
 
         withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val repo = testDataHelper.formueVilkårsvurderingPostgresRepo
+            val repo = FormueVilkårsvurderingPostgresRepo(FormuegrunnlagPostgresRepo(dbMetricsStub), dbMetricsStub)
             val behandlingId = UUID.randomUUID()
             val vilkår = FormueVilkår.Vurdert.createFromGrunnlag(
                 grunnlag = nonEmptyListOf(
@@ -178,8 +175,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
         val periode = år(2021)
 
         withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val repo = testDataHelper.formueVilkårsvurderingPostgresRepo
+            val repo = FormueVilkårsvurderingPostgresRepo(FormuegrunnlagPostgresRepo(dbMetricsStub), dbMetricsStub)
             val behandlingId = UUID.randomUUID()
             val vilkår = FormueVilkår.Vurdert.createFromVilkårsvurderinger(
                 nonEmptyListOf(
@@ -214,24 +210,26 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
+            val formuegrunnlagPostgresRepo = FormuegrunnlagPostgresRepo(dbMetricsStub)
+            val formueVilkårsvurderingPostgresRepo = FormueVilkårsvurderingPostgresRepo(formuegrunnlagPostgresRepo, dbMetricsStub)
             val (vilkår, grunnlag) = formuevilkårUtenEps0Innvilget(
                 bosituasjon = bosituasjongrunnlagEnslig(periode = år(2021)),
             ).let { it to it.grunnlag }
 
             dataSource.withTransaction { session ->
-                testDataHelper.formueVilkårsvurderingPostgresRepo.lagre(søknadsbehandling.id, vilkår, session)
-                testDataHelper.formueVilkårsvurderingPostgresRepo.hent(søknadsbehandling.id, session) shouldBe vilkår
-                testDataHelper.formueVilkårsvurderingPostgresRepo.lagre(
+                formueVilkårsvurderingPostgresRepo.lagre(søknadsbehandling.id, vilkår, session)
+                formueVilkårsvurderingPostgresRepo.hent(søknadsbehandling.id, session) shouldBe vilkår
+                formueVilkårsvurderingPostgresRepo.lagre(
                     søknadsbehandling.id,
                     formuevilkårIkkeVurdert(),
                     session,
                 )
-                testDataHelper.formueVilkårsvurderingPostgresRepo.hent(
+                formueVilkårsvurderingPostgresRepo.hent(
                     behandlingId = søknadsbehandling.id,
                     session = session,
                 ) shouldBe formuevilkårIkkeVurdert()
 
-                testDataHelper.formuegrunnlagPostgresRepo.hentFormuegrunnlag(
+                formuegrunnlagPostgresRepo.hentFormuegrunnlag(
                     formuegrunnlagId = grunnlag.first().id,
                     session = session,
                 ) shouldBe null

@@ -1,10 +1,12 @@
 package no.nav.su.se.bakover.database.vilkår
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.database.TestDataHelper
-import no.nav.su.se.bakover.database.withMigratedDb
-import no.nav.su.se.bakover.database.withTransaction
+import no.nav.su.se.bakover.database.grunnlag.FamiliegjenforeningVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.persistence.TestDataHelper
+import no.nav.su.se.bakover.test.persistence.dbMetricsStub
+import no.nav.su.se.bakover.test.persistence.withMigratedDb
+import no.nav.su.se.bakover.test.persistence.withTransaction
 import no.nav.su.se.bakover.test.vilkår.familiegjenforeningVilkårInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingSøknadsbehandlingVurdertInnvilgetAlder
 import org.junit.jupiter.api.Test
@@ -15,16 +17,19 @@ internal class FamiliegjenforeningVilkårsvurderingPostgresRepoTest {
     fun `lagrer og henter familiegjenforeningvilkår`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
+            val familiegjenforeningVilkårsvurderingPostgresRepo = FamiliegjenforeningVilkårsvurderingPostgresRepo(
+                dbMetrics = dbMetricsStub,
+            )
             val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
             val familiegjenforeningVilkår = familiegjenforeningVilkårInnvilget()
 
             dataSource.withTransaction { session ->
-                testDataHelper.familiegjenforeningVilkårsvurderingPostgresRepo.lagre(
+                familiegjenforeningVilkårsvurderingPostgresRepo.lagre(
                     søknadsbehandling.id,
                     familiegjenforeningVilkår,
                     session,
                 )
-                testDataHelper.familiegjenforeningVilkårsvurderingPostgresRepo.hent(
+                familiegjenforeningVilkårsvurderingPostgresRepo.hent(
                     søknadsbehandling.id,
                     session,
                 ) shouldBe familiegjenforeningVilkår
@@ -36,27 +41,30 @@ internal class FamiliegjenforeningVilkårsvurderingPostgresRepoTest {
     fun `erstatter gammel vilkår med ny`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
+            val familiegjenforeningVilkårsvurderingPostgresRepo = FamiliegjenforeningVilkårsvurderingPostgresRepo(
+                dbMetrics = dbMetricsStub,
+            )
             val søknadsbehandling =
                 testDataHelper.persisterSøknadsbehandlingVilkårsvurdertInnvilget(vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingVurdertInnvilgetAlder()).second
             val familiegjenforeningVilkår = familiegjenforeningVilkårInnvilget()
 
             dataSource.withTransaction { session ->
-                testDataHelper.familiegjenforeningVilkårsvurderingPostgresRepo.lagre(
+                familiegjenforeningVilkårsvurderingPostgresRepo.lagre(
                     søknadsbehandling.id,
                     søknadsbehandling.vilkårsvurderinger.familiegjenforening().getOrFail(),
                     session,
                 )
-                testDataHelper.familiegjenforeningVilkårsvurderingPostgresRepo.hent(
+                familiegjenforeningVilkårsvurderingPostgresRepo.hent(
                     søknadsbehandling.id,
                     session,
                 ) shouldBe søknadsbehandling.vilkårsvurderinger.familiegjenforening().getOrFail()
 
-                testDataHelper.familiegjenforeningVilkårsvurderingPostgresRepo.lagre(
+                familiegjenforeningVilkårsvurderingPostgresRepo.lagre(
                     søknadsbehandling.id,
                     familiegjenforeningVilkår,
                     session,
                 )
-                testDataHelper.familiegjenforeningVilkårsvurderingPostgresRepo.hent(
+                familiegjenforeningVilkårsvurderingPostgresRepo.hent(
                     søknadsbehandling.id,
                     session,
                 ) shouldBe familiegjenforeningVilkår

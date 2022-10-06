@@ -1,18 +1,12 @@
 package no.nav.su.se.bakover.web.routes.søknad
 
 import arrow.core.right
-import com.fasterxml.jackson.module.kotlin.readValue
-import io.kotest.assertions.throwables.shouldNotThrow
-import io.kotest.matchers.collections.shouldHaveAtLeastSize
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
-import io.kotest.matchers.string.shouldMatch
 import io.ktor.client.request.header
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType.Application.Json
 import io.ktor.http.HttpHeaders.ContentType
-import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpMethod.Companion.Post
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Created
@@ -30,7 +24,6 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.DatabaseBuilder
-import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
@@ -52,6 +45,8 @@ import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.persistence.dbMetricsStub
+import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagUtenBeregning
@@ -59,12 +54,8 @@ import no.nav.su.se.bakover.test.trekkSøknad
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.argThat
-import no.nav.su.se.bakover.web.dbMetricsStub
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.embeddedPostgres
-import no.nav.su.se.bakover.web.routes.sak.SakJson
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
-import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.routes.søknad.lukk.LukketJson
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdUføreJson.Companion.toSøknadsinnholdUføreJson
 import no.nav.su.se.bakover.web.testSusebakover
@@ -116,67 +107,6 @@ internal class SøknadRoutesKtTest {
     )
 
     private val mockServices = TestServicesBuilder.services()
-
-    @Test
-    fun `lagrer og henter søknad`() {
-        val fnr = Fnr.generer()
-        val søknadInnhold: SøknadsinnholdUføre = søknadInnhold(fnr)
-        val soknadJson: String = objectMapper.writeValueAsString(søknadInnhold.toSøknadsinnholdUføreJson())
-        withMigratedDb { dataSource ->
-            val repos = databaseRepos(dataSource)
-            testApplication {
-                application {
-                    testSusebakover(databaseRepos = repos)
-                }
-                val createResponse = defaultRequest(
-                    Post,
-                    "/soknad/ufore",
-                    listOf(Brukerrolle.Veileder),
-                ) {
-                    header(ContentType, Json.toString())
-                    setBody(soknadJson)
-                }.apply {
-                    status shouldBe Created
-                }
-
-                shouldNotThrow<Throwable> { objectMapper.readValue<OpprettetSøknadJson>(createResponse.bodyAsText()) }
-
-                val sakFraDb = repos.sak.hentSak(fnr, Sakstype.UFØRE)
-                sakFraDb shouldNotBe null
-                sakFraDb!!.søknader shouldHaveAtLeastSize 1
-            }
-        }
-    }
-
-    @Test
-    fun `knytter søknad til sak ved innsending`() {
-        var sakId: String
-        var saksnummer: Long
-        testApplication {
-            application {
-                testSusebakover(databaseRepos = embeddedPostgres())
-            }
-            val fnr = Fnr.generer()
-            val søknadInnhold: SøknadsinnholdUføre = søknadInnhold(fnr)
-            val soknadJson: String = objectMapper.writeValueAsString(søknadInnhold.toSøknadsinnholdUføreJson())
-            defaultRequest(Post, "/soknad/ufore", listOf(Brukerrolle.Veileder)) {
-                header("Content-type", Json.toString())
-                setBody(soknadJson)
-            }.apply {
-                status shouldBe Created
-                val response = objectMapper.readValue<OpprettetSøknadJson>(bodyAsText())
-                sakId = response.søknad.sakId
-                saksnummer = response.saksnummer
-            }
-
-            defaultRequest(Get, "$sakPath/$sakId", listOf(Brukerrolle.Saksbehandler)).apply {
-                status shouldBe OK
-                val sakJson = objectMapper.readValue<SakJson>(bodyAsText())
-                sakJson.søknader.first().søknadInnhold.personopplysninger.fnr shouldMatch fnr.toString()
-                sakJson.saksnummer shouldBe saksnummer
-            }
-        }
-    }
 
     @Test
     fun `skal opprette journalpost og oppgave ved opprettelse av søknad`() {

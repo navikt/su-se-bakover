@@ -32,6 +32,7 @@ import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
+val oppgaveIdKlage = OppgaveId("oppgaveIdKlage")
 fun opprettetKlage(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,

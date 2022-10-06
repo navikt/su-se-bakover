@@ -2,11 +2,11 @@ package db.migration
 
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.persistence.DbMetrics
+import no.nav.su.se.bakover.common.persistence.PostgresTransactionContext.Companion.withTransaction
 import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.database.DatabaseBuilder
-import no.nav.su.se.bakover.database.DbMetrics
-import no.nav.su.se.bakover.database.PostgresTransactionContext.Companion.withTransaction
 import no.nav.su.se.bakover.database.grunnlag.PersonligOppmøteGrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.PersonligOppmøteVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.PersonligOppmøteÅrsakDb

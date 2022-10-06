@@ -37,9 +37,6 @@ import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.database.DatabaseBuilder
-import no.nav.su.se.bakover.database.DbMetrics
-import no.nav.su.se.bakover.database.migratedDb
-import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.service.AccessCheckProxy
@@ -48,6 +45,9 @@ import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.persistence.dbMetricsStub
+import no.nav.su.se.bakover.test.persistence.migratedDb
+import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.web.stubs.JwtStub
@@ -69,12 +69,6 @@ internal object SharedRegressionTestData {
 
     private val applicationConfig = applicationConfig()
     private val jwtStub = JwtStub(applicationConfig.azure)
-
-    private val dbMetricsStub: DbMetrics = object : DbMetrics {
-        override fun <T> timeQuery(label: String, block: () -> T): T {
-            return block()
-        }
-    }
 
     internal fun databaseRepos(
         dataSource: DataSource = migratedDb(),

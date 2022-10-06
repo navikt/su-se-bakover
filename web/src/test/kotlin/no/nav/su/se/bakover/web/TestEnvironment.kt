@@ -12,12 +12,8 @@ import no.finn.unleash.FakeUnleash
 import no.finn.unleash.Unleash
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.common.Brukerrolle
-import no.nav.su.se.bakover.database.DatabaseBuilder
-import no.nav.su.se.bakover.database.DbMetrics
-import no.nav.su.se.bakover.database.migratedDb
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.satser.SatsFactory
-import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.service.AccessCheckProxy
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
@@ -34,22 +30,7 @@ const val DEFAULT_CALL_ID = "her skulle vi sikkert hatt en korrelasjonsid"
 private val applicationConfig = applicationConfig()
 internal val jwtStub = JwtStub(applicationConfig.azure)
 
-internal val dbMetricsStub: DbMetrics = object : DbMetrics {
-    override fun <T> timeQuery(label: String, block: () -> T): T {
-        return block()
-    }
-}
-
-internal fun mockedDb() = TestDatabaseBuilder.build()
-internal fun embeddedPostgres(
-    clock: Clock = fixedClock,
-    satsFactory: SatsFactoryForSupplerendeStønad = satsFactoryTest,
-) = DatabaseBuilder.build(
-    embeddedDatasource = migratedDb(),
-    dbMetrics = dbMetricsStub,
-    clock = clock,
-    satsFactory = satsFactory,
-)
+internal fun mockedDb() = MockDatabaseBuilder.build()
 
 internal fun Application.testSusebakover(
     clock: Clock = fixedClock,
@@ -145,4 +126,4 @@ suspend fun ApplicationTestBuilder.requestSomAttestant(
     }
 }
 
-val navIdentAttestant = "random-attestant-id"
+const val navIdentAttestant = "random-attestant-id"

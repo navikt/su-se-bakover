@@ -2,14 +2,15 @@ package no.nav.su.se.bakover.database.grunnlag
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.periode.år
-import no.nav.su.se.bakover.database.TestDataHelper
-import no.nav.su.se.bakover.database.withMigratedDb
-import no.nav.su.se.bakover.database.withTransaction
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragForPeriode
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
+import no.nav.su.se.bakover.test.persistence.TestDataHelper
+import no.nav.su.se.bakover.test.persistence.dbMetricsStub
+import no.nav.su.se.bakover.test.persistence.withMigratedDb
+import no.nav.su.se.bakover.test.persistence.withTransaction
 import org.junit.jupiter.api.Test
 
 internal class FradragsgrunnlagPostgresRepoTest {
@@ -18,7 +19,7 @@ internal class FradragsgrunnlagPostgresRepoTest {
     fun `lagrer, henter og erstatter fradragsgrunnlag`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val grunnlagRepo = testDataHelper.fradragsgrunnlagPostgresRepo
+            val grunnlagRepo = FradragsgrunnlagPostgresRepo(dbMetricsStub)
             val behandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
 
             val fradragsgrunnlag1 = lagFradragsgrunnlag(
@@ -50,7 +51,7 @@ internal class FradragsgrunnlagPostgresRepoTest {
                     tx,
                 )
 
-                testDataHelper.fradragsgrunnlagPostgresRepo.hentFradragsgrunnlag(behandling.id, tx) shouldBe listOf(
+                grunnlagRepo.hentFradragsgrunnlag(behandling.id, tx) shouldBe listOf(
                     fradragsgrunnlag1.copy(
                         fradrag = FradragForPeriode(
                             fradragstype = Fradragstype.Arbeidsinntekt,
@@ -81,7 +82,7 @@ internal class FradragsgrunnlagPostgresRepoTest {
                     tx = tx,
                 )
 
-                testDataHelper.fradragsgrunnlagPostgresRepo.hentFradragsgrunnlag(behandling.id, tx) shouldBe emptyList()
+                grunnlagRepo.hentFradragsgrunnlag(behandling.id, tx) shouldBe emptyList()
             }
         }
     }
@@ -90,7 +91,7 @@ internal class FradragsgrunnlagPostgresRepoTest {
     fun `lagring og henting av fradrag uten speisfikk type (annet med beskrivelse)`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val grunnlagRepo = testDataHelper.fradragsgrunnlagPostgresRepo
+            val grunnlagRepo = FradragsgrunnlagPostgresRepo(dbMetricsStub)
             val behandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
 
             val grunnlag = lagFradragsgrunnlag(

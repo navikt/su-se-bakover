@@ -101,7 +101,9 @@ fun attesteringIverksatt(clock: Clock = fixedClock) = Attestering.Iverksatt(
     opprettet = Tidspunkt.now(clock),
 )
 
-fun attesteringUnderkjent(clock: Clock) = Attestering.Underkjent(
+fun attesteringUnderkjent(
+    clock: Clock = fixedClock,
+) = Attestering.Underkjent(
     attestant = attestant,
     grunn = Attestering.Underkjent.Grunn.DOKUMENTASJON_MANGLER,
     kommentar = "attesteringUnderkjent",

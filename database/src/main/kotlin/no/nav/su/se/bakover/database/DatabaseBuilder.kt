@@ -1,16 +1,21 @@
 package no.nav.su.se.bakover.database
 
-import FastOppholdINorgeVilkårsvurderingPostgresRepo
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.ApplicationConfig.DatabaseConfig.RotatingCredentials
 import no.nav.su.se.bakover.common.ApplicationConfig.DatabaseConfig.StaticCredentials
+import no.nav.su.se.bakover.common.persistence.DbMetrics
+import no.nav.su.se.bakover.common.persistence.Flyway
+import no.nav.su.se.bakover.common.persistence.PostgresSessionFactory
+import no.nav.su.se.bakover.common.persistence.QueryParameterMapper
+import no.nav.su.se.bakover.common.persistence.SessionCounter
 import no.nav.su.se.bakover.database.avkorting.AvkortingsvarselPostgresRepo
 import no.nav.su.se.bakover.database.avstemming.AvstemmingPostgresRepo
 import no.nav.su.se.bakover.database.dokument.DokumentPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FamiliegjenforeningVilkårsvurderingPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.FastOppholdINorgeVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FlyktningVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FormueVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FormuegrunnlagPostgresRepo
@@ -45,6 +50,7 @@ import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakPostgresRepo
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
+import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
 import org.jetbrains.annotations.TestOnly
 import java.time.Clock
 import javax.sql.DataSource
@@ -55,6 +61,7 @@ object DatabaseBuilder {
         dbMetrics: DbMetrics,
         clock: Clock,
         satsFactory: SatsFactoryForSupplerendeStønad,
+        queryParameterMappers: List<QueryParameterMapper> = emptyList(),
     ): DatabaseRepos {
         val abstractDatasource = Postgres(databaseConfig = databaseConfig).build()
 
@@ -72,7 +79,7 @@ object DatabaseBuilder {
         }.migrate()
 
         val userDatastore = abstractDatasource.getDatasource(Postgres.Role.User)
-        return buildInternal(userDatastore, dbMetrics, clock, satsFactory)
+        return buildInternal(userDatastore, dbMetrics, clock, satsFactory, queryParameterMappers)
     }
 
     @TestOnly
@@ -81,9 +88,10 @@ object DatabaseBuilder {
         dbMetrics: DbMetrics,
         clock: Clock,
         satsFactory: SatsFactoryForSupplerendeStønad,
+        queryParameterMappers: List<QueryParameterMapper> = listOf(DomainToQueryParameterMapper),
     ): DatabaseRepos {
         // I testene ønsker vi ikke noe herjing med rolle; embedded-oppsettet sørger for at vi har riktige tilganger og er ferdigmigrert her.
-        return buildInternal(embeddedDatasource, dbMetrics, clock, satsFactory)
+        return buildInternal(embeddedDatasource, dbMetrics, clock, satsFactory, queryParameterMappers)
     }
 
     @TestOnly
@@ -113,9 +121,15 @@ object DatabaseBuilder {
         dbMetrics: DbMetrics,
         clock: Clock,
         satsFactory: SatsFactoryForSupplerendeStønad,
+        queryParameterMappers: List<QueryParameterMapper> = listOf(DomainToQueryParameterMapper),
     ): DatabaseRepos {
         val sessionCounter = SessionCounter()
-        val sessionFactory = PostgresSessionFactory(dataSource, dbMetrics, sessionCounter)
+        val sessionFactory = PostgresSessionFactory(
+            dataSource = dataSource,
+            dbMetrics = dbMetrics,
+            sessionCounter = sessionCounter,
+            queryParameterMappers = queryParameterMappers,
+        )
 
         val avkortingsvarselRepo = AvkortingsvarselPostgresRepo(sessionFactory, dbMetrics)
 
@@ -246,6 +260,7 @@ object DatabaseBuilder {
             reguleringRepo = reguleringRepo,
             tilbakekrevingRepo = tilbakekrevingRepo,
             jobContextRepo = JobContextPostgresRepo(sessionFactory),
+            hendelseRepo = HendelsePostgresRepo(sessionFactory, dbMetrics),
         )
     }
 }

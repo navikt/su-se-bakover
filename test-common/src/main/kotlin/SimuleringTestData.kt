@@ -246,15 +246,18 @@ fun simuleringOpphørt(
 }
 
 fun simulering(
-    vararg perioder: Periode,
+    fnr: Fnr = no.nav.su.se.bakover.test.fnr,
+    perioder: List<Periode> = år(2021).måneder(),
     simulertePerioder: List<SimulertPeriode> = perioder.map { simulertPeriode(it) },
-): Simulering = Simulering(
-    gjelderId = fnr,
-    gjelderNavn = "navn",
-    datoBeregnet = fixedLocalDate,
-    nettoBeløp = simulertePerioder.sumOf { it.bruttoYtelse() },
-    periodeList = simulertePerioder,
-)
+): Simulering {
+    return Simulering(
+        gjelderId = fnr,
+        gjelderNavn = "navn",
+        datoBeregnet = fixedLocalDate,
+        nettoBeløp = simulertePerioder.sumOf { it.bruttoYtelse() },
+        periodeList = simulertePerioder,
+    )
+}
 
 fun simuleringFeilutbetaling(
     vararg perioder: Periode,
