@@ -14,12 +14,6 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.web.features.authorize
 
 fun Route.utenlandsoppholdRoutes() {
-    get("/saker/{sakId}/utenlandsopphold") {
-        authorize(Brukerrolle.Saksbehandler) {
-            call.svar(Resultat.okJson())
-        }
-    }
-
     post("/saker/{sakId}/utenlandsopphold") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withSakId {

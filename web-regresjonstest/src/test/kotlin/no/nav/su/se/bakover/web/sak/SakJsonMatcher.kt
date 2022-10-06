@@ -21,6 +21,7 @@ fun assertSakJson(
     expectedReguleringer: String = "[]",
     expectedSakstype: String = "uføre",
     expectedVedtakPåTidslinje: String = "[]",
+    expectedUtenlandsopphold: String = """{"utenlandsopphold": [], "antallDager":  0}""",
 ) {
     // language=JSON
     val expectedSakJson = """
@@ -37,7 +38,8 @@ fun assertSakJson(
         "klager": $expectedKlager,
         "reguleringer": $expectedReguleringer,
         "sakstype": $expectedSakstype,
-        "vedtakPåTidslinje": $expectedVedtakPåTidslinje
+        "vedtakPåTidslinje": $expectedVedtakPåTidslinje,
+        "utenlandsopphold": $expectedUtenlandsopphold
     }
     """.trimIndent()
     jsonAssertEquals(
