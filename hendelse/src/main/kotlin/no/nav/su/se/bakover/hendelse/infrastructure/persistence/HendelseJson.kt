@@ -38,17 +38,16 @@ internal data class SakOpprettetHendelseJson(
             versjon: Long,
         ): SakOpprettetHendelse {
             return deserialize<SakOpprettetHendelseJson>(json).let {
-                SakOpprettetHendelse(
+                SakOpprettetHendelse.create(
                     id = it.id,
                     sakId = it.sakId,
                     meta = metadata,
                     fnr = Fnr(it.fnr),
                     opprettetAv = it.identRolle.toDomain(it.ident),
                     hendelsestidspunkt = it.hendelsestidspunkt,
-                ).also {
-                    require(entitetId == it.entitetId)
-                    require(Hendelse.Versjon(versjon) == it.versjon)
-                }
+                    entitetId = entitetId,
+                    versjon = versjon,
+                )
             }
         }
     }
