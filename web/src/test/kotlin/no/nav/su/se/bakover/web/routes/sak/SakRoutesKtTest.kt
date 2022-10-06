@@ -13,26 +13,20 @@ import io.ktor.http.HttpStatusCode.Companion.Forbidden
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.server.testing.testApplication
-import no.finn.unleash.FakeUnleash
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.Fnr
-import no.nav.su.se.bakover.database.DatabaseBuilder
-import no.nav.su.se.bakover.domain.DatabaseRepos
-import no.nav.su.se.bakover.domain.SakFactory
-import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.service.ServiceBuilder
-import no.nav.su.se.bakover.test.applicationConfig
-import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.AlleredeGjeldendeSakForBruker
+import no.nav.su.se.bakover.domain.BegrensetSakinfo
+import no.nav.su.se.bakover.domain.Sakstype
+import no.nav.su.se.bakover.domain.sak.SakInfo
+import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.generer
-import no.nav.su.se.bakover.test.persistence.dbMetricsStub
-import no.nav.su.se.bakover.test.persistence.withMigratedDb
-import no.nav.su.se.bakover.test.satsFactoryTest
-import no.nav.su.se.bakover.test.satsFactoryTestPåDato
+import no.nav.su.se.bakover.test.nySakUføre
+import no.nav.su.se.bakover.test.sakId
+import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.stønadsperiode2021
-import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
-import no.nav.su.se.bakover.test.veileder
-import no.nav.su.se.bakover.web.TestClientsBuilder
+import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Nested
@@ -40,52 +34,35 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.spy
 import java.util.UUID
-import javax.sql.DataSource
 
 internal class SakRoutesKtTest {
     private val sakFnr01 = "12345678911"
-    private fun repos(datasource: DataSource) = DatabaseBuilder.build(
-        embeddedDatasource = datasource,
-        dbMetrics = dbMetricsStub,
-        clock = fixedClock,
-        satsFactory = satsFactoryTest,
-    )
-    private fun services(reps: DatabaseRepos) = ServiceBuilder.build(
-        databaseRepos = reps,
-        clients = TestClientsBuilder(fixedClock, reps).build(applicationConfig()),
-        behandlingMetrics = mock(),
-        søknadMetrics = mock(),
-        clock = fixedClock,
-        unleash = FakeUnleash().apply { enableAll() },
-        satsFactory = satsFactoryTestPåDato(),
-        applicationConfig = applicationConfig(),
-    )
-
-    private val søknadInnhold = SøknadInnholdTestdataBuilder.build()
 
     @Test
     fun `henter sak for fødselsnummer`() {
-        withMigratedDb { dataSource ->
-            val repos = repos(dataSource)
-            testApplication {
-                application { testSusebakover(databaseRepos = repos) }
-
-                repos.sak.opprettSak(
-                    SakFactory(clock = fixedClock).nySakMedNySøknad(
-                        fnr = Fnr(sakFnr01),
-                        søknadInnhold = søknadInnhold,
-                        innsendtAv = veileder,
+        testApplication {
+            application {
+                testSusebakover(
+                    services = TestServicesBuilder.services(
+                        sak = mock {
+                            on { hentSak(any<Fnr>(), any()) } doReturn nySakUføre(
+                                sakInfo = SakInfo(
+                                    sakId = sakId,
+                                    saksnummer = saksnummer,
+                                    fnr = Fnr(sakFnr01),
+                                    type = Sakstype.UFØRE,
+                                ),
+                            ).first.right()
+                        },
                     ),
                 )
-
-                defaultRequest(HttpMethod.Post, "$sakPath/søk", listOf(Brukerrolle.Saksbehandler)) {
-                    setBody("""{"fnr":"$sakFnr01", "type": "uføre"}""")
-                }.apply {
-                    status shouldBe OK
-                    bodyAsText() shouldContain """"fnr":"$sakFnr01""""
-                }
+            }
+            defaultRequest(HttpMethod.Post, "$sakPath/søk", listOf(Brukerrolle.Saksbehandler)) {
+                setBody("""{"fnr":"$sakFnr01", "type": "uføre"}""")
+            }.apply {
+                status shouldBe OK
+                bodyAsText() shouldContain """"fnr":"$sakFnr01""""
             }
         }
     }
@@ -94,55 +71,81 @@ internal class SakRoutesKtTest {
     inner class BegrensetSakinfo {
         @Test
         fun `gir korrekt data når person ikke har søknad`() {
-            withMigratedDb { dataSource ->
-                val repos = repos(dataSource)
-
-                testApplication {
-                    application { testSusebakover(databaseRepos = repos) }
-                    defaultRequest(
-                        Get,
-                        "$sakPath/info/$sakFnr01",
-                        listOf(Brukerrolle.Veileder),
-                    ).apply {
-                        status shouldBe OK
-                        bodyAsText() shouldMatchJson """
-                            {
-                                "uføre": {
-                                    "harÅpenSøknad": false,
-                                    "iverksattInnvilgetStønadsperiode": null
-                                },
-                                "alder": {
-                                    "harÅpenSøknad": false,
-                                    "iverksattInnvilgetStønadsperiode": null
-                                }
+            testApplication {
+                application {
+                    testSusebakover(
+                        services = TestServicesBuilder.services(
+                            sak = mock {
+                                on { hentAlleredeGjeldendeSakForBruker(any()) } doReturn AlleredeGjeldendeSakForBruker(
+                                    uføre = BegrensetSakinfo(
+                                        harÅpenSøknad = false,
+                                        iverksattInnvilgetStønadsperiode = null,
+                                    ),
+                                    alder = BegrensetSakinfo(
+                                        harÅpenSøknad = false,
+                                        iverksattInnvilgetStønadsperiode = null,
+                                    ),
+                                )
+                            },
+                            person = mock {
+                                on { sjekkTilgangTilPerson(any()) } doReturn Unit.right()
+                            },
+                        ),
+                    )
+                }
+                defaultRequest(
+                    Get,
+                    "$sakPath/info/$sakFnr01",
+                    listOf(Brukerrolle.Veileder),
+                ).apply {
+                    status shouldBe OK
+                    bodyAsText() shouldMatchJson """
+                        {
+                            "uføre": {
+                                "harÅpenSøknad": false,
+                                "iverksattInnvilgetStønadsperiode": null
+                            },
+                            "alder": {
+                                "harÅpenSøknad": false,
+                                "iverksattInnvilgetStønadsperiode": null
                             }
-                        """.trimIndent()
-                    }
+                        }
+                    """.trimIndent()
                 }
             }
         }
 
         @Test
         fun `finner ut om bruker har åpen søknad`() {
-            withMigratedDb { dataSource ->
-                val repos = repos(dataSource)
-
-                testApplication {
-                    application { testSusebakover(databaseRepos = repos) }
-                    SakFactory(clock = fixedClock).nySakMedNySøknad(
-                        fnr = Fnr(sakFnr01),
-                        søknadInnhold = søknadInnhold,
-                        innsendtAv = veileder,
-                    ).also {
-                        repos.sak.opprettSak(it)
-
-                        defaultRequest(
-                            Get,
-                            "$sakPath/info/$sakFnr01",
-                            listOf(Brukerrolle.Veileder),
-                        ).apply {
-                            status shouldBe OK
-                            bodyAsText() shouldMatchJson """
+            testApplication {
+                application {
+                    testSusebakover(
+                        services = TestServicesBuilder.services(
+                            sak = mock {
+                                on { hentAlleredeGjeldendeSakForBruker(any()) } doReturn AlleredeGjeldendeSakForBruker(
+                                    uføre = BegrensetSakinfo(
+                                        harÅpenSøknad = true,
+                                        iverksattInnvilgetStønadsperiode = null,
+                                    ),
+                                    alder = BegrensetSakinfo(
+                                        harÅpenSøknad = false,
+                                        iverksattInnvilgetStønadsperiode = null,
+                                    ),
+                                )
+                            },
+                            person = mock {
+                                on { sjekkTilgangTilPerson(any()) } doReturn Unit.right()
+                            },
+                        ),
+                    )
+                }
+                defaultRequest(
+                    Get,
+                    "$sakPath/info/$sakFnr01",
+                    listOf(Brukerrolle.Veileder),
+                ).apply {
+                    status shouldBe OK
+                    bodyAsText() shouldMatchJson """
                             {
                                 "uføre": {
                                     "harÅpenSøknad": true,
@@ -153,50 +156,51 @@ internal class SakRoutesKtTest {
                                     "iverksattInnvilgetStønadsperiode": null
                                 }
                             }
-                            """.trimIndent()
-                        }
-                    }
+                    """.trimIndent()
                 }
             }
         }
 
         @Test
         fun `finner ut om bruker har iverksatt innvilget stønadsperiode`() {
-            withMigratedDb { dataSource ->
-                val stønadsperiode = stønadsperiode2021
-                val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget(
-                    saksnummer = Saksnummer(133333333337),
-                    stønadsperiode = stønadsperiode,
-                )
-
-                val repos = repos(dataSource)
-                val services = services(repos)
-
-                val sakSpy = spy(services.sak)
-                doReturn(listOf(sak).right()).`when`(sakSpy).hentSaker(any())
-
-                testApplication {
-                    application {
-                        testSusebakover(
-                            databaseRepos = repos,
-                            services = services.copy(
-                                sak = sakSpy,
-                            ),
-                        )
-                    }
-                    defaultRequest(
-                        Get,
-                        "$sakPath/info/$sakFnr01",
-                        listOf(Brukerrolle.Veileder),
-                    ).apply {
-                        status shouldBe OK
-                        bodyAsText() shouldMatchJson """
+            testApplication {
+                application {
+                    testSusebakover(
+                        services = TestServicesBuilder.services(
+                            sak = mock {
+                                on { hentAlleredeGjeldendeSakForBruker(any()) } doReturn AlleredeGjeldendeSakForBruker(
+                                    uføre = BegrensetSakinfo(
+                                        harÅpenSøknad = false,
+                                        iverksattInnvilgetStønadsperiode = Periode.create(
+                                            fraOgMed = stønadsperiode2021.periode.fraOgMed,
+                                            tilOgMed = stønadsperiode2021.periode.tilOgMed,
+                                        ),
+                                    ),
+                                    alder = BegrensetSakinfo(
+                                        harÅpenSøknad = false,
+                                        iverksattInnvilgetStønadsperiode = null,
+                                    ),
+                                )
+                            },
+                            person = mock {
+                                on { sjekkTilgangTilPerson(any()) } doReturn Unit.right()
+                            },
+                        ),
+                    )
+                }
+                defaultRequest(
+                    Get,
+                    "$sakPath/info/$sakFnr01",
+                    listOf(Brukerrolle.Veileder),
+                ).apply {
+                    status shouldBe OK
+                    bodyAsText() shouldMatchJson """
                             {
                                 "uføre": {
                                     "harÅpenSøknad": false,
                                     "iverksattInnvilgetStønadsperiode": {
-                                        "fraOgMed": "${stønadsperiode.periode.fraOgMed}",
-                                        "tilOgMed": "${stønadsperiode.periode.tilOgMed}"
+                                        "fraOgMed": "${stønadsperiode2021.periode.fraOgMed}",
+                                        "tilOgMed": "${stønadsperiode2021.periode.tilOgMed}"
                                     }
                                 },
                                 "alder": {
@@ -204,8 +208,7 @@ internal class SakRoutesKtTest {
                                     "iverksattInnvilgetStønadsperiode": null
                                 }
                             }
-                        """.trimIndent()
-                    }
+                    """.trimIndent()
                 }
             }
         }
