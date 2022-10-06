@@ -6,8 +6,8 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.heleBehandlingsperiodenMåHaVurderinger
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.overlappendeVurderingsperioder
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
-import no.nav.su.se.bakover.common.periode.PeriodeJson
-import no.nav.su.se.bakover.common.periode.PeriodeJson.Companion.toJson
+import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson
+import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeInstitusjonsopphold

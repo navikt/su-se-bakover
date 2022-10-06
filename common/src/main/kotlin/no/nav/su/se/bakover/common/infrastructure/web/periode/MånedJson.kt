@@ -1,5 +1,6 @@
-package no.nav.su.se.bakover.common.periode
+package no.nav.su.se.bakover.common.infrastructure.web.periode
 
+import no.nav.su.se.bakover.common.periode.Måned
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 

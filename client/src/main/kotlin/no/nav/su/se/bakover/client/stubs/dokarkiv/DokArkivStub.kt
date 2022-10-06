@@ -5,7 +5,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokarkiv.Journalpost
-import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.common.application.journal.JournalpostId
 
 object DokArkivStub : DokArkiv {
     override fun opprettJournalpost(

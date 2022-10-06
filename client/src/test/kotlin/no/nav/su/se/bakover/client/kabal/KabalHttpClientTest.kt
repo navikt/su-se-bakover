@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.client.argThat
 import no.nav.su.se.bakover.client.azure.AzureAd
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.ApplicationConfig
-import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeTilKlageinstans
 import no.nav.su.se.bakover.test.oversendtKlage
 import org.junit.jupiter.api.BeforeEach

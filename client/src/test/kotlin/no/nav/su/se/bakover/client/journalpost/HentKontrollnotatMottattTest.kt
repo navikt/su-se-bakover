@@ -4,12 +4,12 @@ import arrow.core.right
 import com.github.tomakehurst.wiremock.client.WireMock
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.WiremockBase
+import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.september
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.journalpost.ErKontrollNotatMottatt
 import no.nav.su.se.bakover.domain.journalpost.JournalpostStatus
 import no.nav.su.se.bakover.domain.journalpost.JournalpostTema

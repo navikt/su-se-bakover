@@ -6,10 +6,10 @@ import arrow.core.left
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.common.zoneIdOslo
-import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
 import no.nav.su.se.bakover.domain.klage.KunneIkkeTolkeKlageinstanshendelse
 import no.nav.su.se.bakover.domain.klage.TolketKlageinstanshendelse

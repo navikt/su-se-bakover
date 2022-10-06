@@ -1,6 +1,8 @@
-package no.nav.su.se.bakover.common.periode
+package no.nav.su.se.bakover.common.infrastructure.web.periode
 
 import arrow.core.Either
+import no.nav.su.se.bakover.common.periode.Måned
+import no.nav.su.se.bakover.common.periode.Periode
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 

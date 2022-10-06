@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.database.dokument
 
 import kotliquery.Row
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.DbMetrics
 import no.nav.su.se.bakover.common.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.persistence.PostgresTransactionContext.Companion.withTransaction
@@ -18,7 +19,6 @@ import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
 import no.nav.su.se.bakover.domain.dokument.Dokumentdistribusjon
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
-import no.nav.su.se.bakover.domain.journal.JournalpostId
 import java.time.Clock
 import java.util.UUID
 

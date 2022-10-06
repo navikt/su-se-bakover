@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.database.klage
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
 import no.nav.su.se.bakover.domain.klage.ProsessertKlageinstanshendelse
 import no.nav.su.se.bakover.domain.klage.UprosessertKlageinstanshendelse

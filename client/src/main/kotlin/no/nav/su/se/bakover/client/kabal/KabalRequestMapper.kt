@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.client.kabal
 
 import no.nav.su.se.bakover.client.kabal.KabalRequest.Hjemmel.Companion.toKabalHjemler
-import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
 import java.time.ZoneOffset

@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.client.kabal
 
 import com.fasterxml.jackson.annotation.JsonValue
-import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.Hjemler
 import java.time.LocalDate
 import java.time.LocalDateTime
