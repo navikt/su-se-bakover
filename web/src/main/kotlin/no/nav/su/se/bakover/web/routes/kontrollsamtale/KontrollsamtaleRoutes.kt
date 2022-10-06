@@ -6,16 +6,16 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.Brukerrolle
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
+import no.nav.su.se.bakover.common.infrastructure.web.Resultat
+import no.nav.su.se.bakover.common.infrastructure.web.svar
+import no.nav.su.se.bakover.common.infrastructure.web.withBody
+import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
 import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeHenteKontrollsamtale
 import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeSetteNyDatoForKontrollsamtale
-import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.features.authorize
-import no.nav.su.se.bakover.web.routes.Feilresponser
-import no.nav.su.se.bakover.web.svar
-import no.nav.su.se.bakover.web.withBody
-import no.nav.su.se.bakover.web.withSakId
 import java.time.LocalDate
 import java.util.UUID
 
@@ -42,7 +42,7 @@ internal fun Route.kontrollsamtaleRoutes(
                         )
                     },
                     {
-                        call.svar(Resultat.okJson(HttpStatusCode.OK))
+                        call.svar(Resultat.okJson())
                     },
                 )
             }

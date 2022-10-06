@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web
+package no.nav.su.se.bakover.common.infrastructure.web
 
 import com.fasterxml.jackson.annotation.JsonInclude
 

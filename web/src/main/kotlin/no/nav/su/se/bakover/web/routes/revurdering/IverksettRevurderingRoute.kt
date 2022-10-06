@@ -6,6 +6,19 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.NavIdentBruker
+import no.nav.su.se.bakover.common.infrastructure.audit.AuditLogEvent
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.attestantOgSaksbehandlerKanIkkeVæreSammePerson
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.avkortingErAlleredeAvkortet
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ingenEndringUgyldig
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.lagringFeilet
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.sakAvventerKravgrunnlagForTilbakekreving
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ugyldigTilstand
+import no.nav.su.se.bakover.common.infrastructure.web.Resultat
+import no.nav.su.se.bakover.common.infrastructure.web.audit
+import no.nav.su.se.bakover.common.infrastructure.web.errorJson
+import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
+import no.nav.su.se.bakover.common.infrastructure.web.svar
+import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.metrics.SuMetrics
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.satser.SatsFactory
@@ -14,23 +27,10 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering.A
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering.FantIkkeRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering.UgyldigTilstand
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
-import no.nav.su.se.bakover.web.AuditLogEvent
-import no.nav.su.se.bakover.web.Resultat
-import no.nav.su.se.bakover.web.audit
-import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
-import no.nav.su.se.bakover.web.routes.Feilresponser.attestantOgSaksbehandlerKanIkkeVæreSammePerson
-import no.nav.su.se.bakover.web.routes.Feilresponser.avkortingErAlleredeAvkortet
-import no.nav.su.se.bakover.web.routes.Feilresponser.ingenEndringUgyldig
-import no.nav.su.se.bakover.web.routes.Feilresponser.lagringFeilet
-import no.nav.su.se.bakover.web.routes.Feilresponser.sakAvventerKravgrunnlagForTilbakekreving
-import no.nav.su.se.bakover.web.routes.Feilresponser.tilResultat
-import no.nav.su.se.bakover.web.routes.Feilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
-import no.nav.su.se.bakover.web.sikkerlogg
-import no.nav.su.se.bakover.web.svar
-import no.nav.su.se.bakover.web.withRevurderingId
+import no.nav.su.se.bakover.web.routes.tilResultat
 
 internal fun Route.iverksettRevurderingRoute(
     revurderingService: RevurderingService,

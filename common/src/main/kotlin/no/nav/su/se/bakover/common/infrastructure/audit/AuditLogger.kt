@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web
+package no.nav.su.se.bakover.common.infrastructure.audit
 
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.auditLogg

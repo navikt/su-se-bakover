@@ -7,12 +7,12 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.Brukerrolle
+import no.nav.su.se.bakover.common.infrastructure.web.AzureGroupMapper
+import no.nav.su.se.bakover.common.infrastructure.web.Resultat
+import no.nav.su.se.bakover.common.infrastructure.web.getGroupsFromJWT
+import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.web.AzureGroupMapper
-import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.features.suUserContext
-import no.nav.su.se.bakover.web.getGroupsFromJWT
-import no.nav.su.se.bakover.web.svar
 
 data class UserData(
     val navn: String,

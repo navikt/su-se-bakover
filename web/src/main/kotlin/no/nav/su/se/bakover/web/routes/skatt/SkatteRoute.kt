@@ -10,18 +10,18 @@ import io.ktor.server.routing.get
 import no.nav.su.se.bakover.client.skatteetaten.SkatteoppslagFeil
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.Fnr
+import no.nav.su.se.bakover.common.infrastructure.audit.AuditLogEvent
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
+import no.nav.su.se.bakover.common.infrastructure.web.Resultat
+import no.nav.su.se.bakover.common.infrastructure.web.audit
+import no.nav.su.se.bakover.common.infrastructure.web.errorJson
+import no.nav.su.se.bakover.common.infrastructure.web.parameter
+import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.service.skatt.KunneIkkeHenteSkattemelding
 import no.nav.su.se.bakover.service.skatt.SkatteService
 import no.nav.su.se.bakover.service.toggles.ToggleService
-import no.nav.su.se.bakover.web.AuditLogEvent
-import no.nav.su.se.bakover.web.Resultat
-import no.nav.su.se.bakover.web.audit
-import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
-import no.nav.su.se.bakover.web.parameter
-import no.nav.su.se.bakover.web.routes.Feilresponser
-import no.nav.su.se.bakover.web.svar
 
 internal const val skattPath = "/skatt"
 

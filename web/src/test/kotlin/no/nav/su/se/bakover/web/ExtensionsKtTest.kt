@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.infrastructure.web.toUUID
 import org.junit.jupiter.api.Test
 import java.util.UUID
 

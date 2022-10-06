@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web
+package no.nav.su.se.bakover.common.infrastructure.web
 
 import arrow.core.Either
 import com.auth0.jwt.interfaces.Payload
@@ -16,13 +16,14 @@ import kotlinx.coroutines.withContext
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.infrastructure.audit.AuditLogEvent
+import no.nav.su.se.bakover.common.infrastructure.audit.AuditLogger
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.web.features.suUserContext
-import no.nav.su.se.bakover.web.routes.Feilresponser
 import java.util.UUID
 
-internal fun ApplicationCall.sikkerlogg(msg: String) {
+fun ApplicationCall.sikkerlogg(msg: String) {
     sikkerLogg.info("${suUserContext.navIdent} $msg")
 }
 
@@ -30,7 +31,7 @@ internal fun ApplicationCall.sikkerlogg(msg: String) {
  * Logg til audit.nais (som går videre til ArcSight)
  * @see AuditLogger
  */
-internal fun ApplicationCall.audit(
+fun ApplicationCall.audit(
     berørtBruker: Fnr,
     action: AuditLogEvent.Action,
     behandlingId: UUID?,
@@ -46,10 +47,10 @@ internal fun ApplicationCall.audit(
     )
 }
 
-internal fun getGroupsFromJWT(applicationConfig: ApplicationConfig, principal: Principal?): List<String> =
+fun getGroupsFromJWT(applicationConfig: ApplicationConfig, principal: Principal?): List<String> =
     getGroupsFromJWT(applicationConfig, (principal as JWTPrincipal).payload)
 
-internal fun getGroupsFromJWT(applicationConfig: ApplicationConfig, credential: JWTCredential): List<String> =
+fun getGroupsFromJWT(applicationConfig: ApplicationConfig, credential: JWTCredential): List<String> =
     getGroupsFromJWT(applicationConfig, credential.payload)
 
 private fun getGroupsFromJWT(applicationConfig: ApplicationConfig, payload: Payload): List<String> =
@@ -67,94 +68,94 @@ private fun getGroupsFromJWT(applicationConfig: ApplicationConfig, payload: Payl
         payload.getClaim("groups").asList(String::class.java)
     }
 
-internal fun getNAVidentFromJwt(applicationConfig: ApplicationConfig, principal: Principal?): String =
+fun getNAVidentFromJwt(applicationConfig: ApplicationConfig, principal: Principal?): String =
     if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
         "Z9999999"
     } else {
         (principal as JWTPrincipal).payload.getClaim("NAVident").asString()
     }
 
-internal fun getNavnFromJwt(applicationConfig: ApplicationConfig, principal: Principal?): String =
+fun getNavnFromJwt(applicationConfig: ApplicationConfig, principal: Principal?): String =
     if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
         "Ulrik Utvikler"
     } else {
         (principal as JWTPrincipal).payload.getClaim("name").asString()
     }
 
-internal fun String.toUUID() =
+fun String.toUUID() =
     Either.catch { UUID.fromString(this@toUUID) }
         .mapLeft { "${this@toUUID} er ikke en gyldig UUID" }
 
-internal fun ApplicationCall.lesUUID(param: String) =
+fun ApplicationCall.lesUUID(param: String) =
     this.parameters[param]?.let {
         it.toUUID().mapLeft { "$param er ikke en gyldig UUID" }
     } ?: Either.Left("$param er ikke et parameter")
 
-internal fun ApplicationCall.parameter(parameterName: String) =
+fun ApplicationCall.parameter(parameterName: String) =
     this.parameters[parameterName]?.let { Either.Right(it) }
         ?: Either.Left(HttpStatusCode.BadRequest.errorJson("$parameterName er ikke et parameter", "parameter_mangler"))
 
 fun ApplicationCall.authHeader() = this.request.header(HttpHeaders.Authorization).toString()
 
-internal suspend inline fun <reified T> deserialize(call: ApplicationCall): T =
+suspend inline fun <reified T> deserialize(call: ApplicationCall): T =
     deserialize(call.receiveTextUTF8())
 
-internal suspend inline fun ApplicationCall.receiveTextUTF8(): String {
+suspend inline fun ApplicationCall.receiveTextUTF8(): String {
     return withContext(Dispatchers.IO) {
         String(receiveStream().readBytes())
     }
 }
 
-internal suspend fun ApplicationCall.withStringParam(parameterName: String, ifRight: suspend (String) -> Unit) {
+suspend fun ApplicationCall.withStringParam(parameterName: String, ifRight: suspend (String) -> Unit) {
     this.parameter(parameterName).fold(
         ifLeft = { this.svar(it) },
         ifRight = { ifRight(it) },
     )
 }
 
-internal suspend fun ApplicationCall.withSakId(ifRight: suspend (UUID) -> Unit) {
+suspend fun ApplicationCall.withSakId(ifRight: suspend (UUID) -> Unit) {
     this.lesUUID("sakId").fold(
         ifLeft = { this.svar(HttpStatusCode.BadRequest.errorJson(it, "sakId_mangler_eller_feil_format")) },
         ifRight = { ifRight(it) },
     )
 }
 
-internal suspend fun ApplicationCall.withRevurderingId(ifRight: suspend (UUID) -> Unit) {
+suspend fun ApplicationCall.withRevurderingId(ifRight: suspend (UUID) -> Unit) {
     this.lesUUID("revurderingId").fold(
         ifLeft = { this.svar(HttpStatusCode.BadRequest.errorJson(it, "revurderingId_mangler_eller_feil_format")) },
         ifRight = { ifRight(it) },
     )
 }
 
-internal suspend fun ApplicationCall.withSøknadId(ifRight: suspend (UUID) -> Unit) {
+suspend fun ApplicationCall.withSøknadId(ifRight: suspend (UUID) -> Unit) {
     this.lesUUID("søknadId").fold(
         ifLeft = { this.svar(HttpStatusCode.BadRequest.errorJson(it, "søknadId_mangler_eller_feil_format")) },
         ifRight = { ifRight(it) },
     )
 }
 
-internal suspend fun ApplicationCall.withBehandlingId(ifRight: suspend (UUID) -> Unit) {
+suspend fun ApplicationCall.withBehandlingId(ifRight: suspend (UUID) -> Unit) {
     this.lesUUID("behandlingId").fold(
         ifLeft = { this.svar(HttpStatusCode.BadRequest.errorJson(it, "behandlingId_mangler_eller_feil_format")) },
         ifRight = { ifRight(it) },
     )
 }
 
-internal suspend fun ApplicationCall.withVedtakId(ifRight: suspend (UUID) -> Unit) {
+suspend fun ApplicationCall.withVedtakId(ifRight: suspend (UUID) -> Unit) {
     this.lesUUID("vedtakId").fold(
         ifLeft = { this.svar(HttpStatusCode.BadRequest.errorJson(it, "vedtakId_mangler_eller_feil_format")) },
         ifRight = { ifRight(it) },
     )
 }
 
-internal suspend fun ApplicationCall.withKlageId(ifRight: suspend (UUID) -> Unit) {
+suspend fun ApplicationCall.withKlageId(ifRight: suspend (UUID) -> Unit) {
     this.lesUUID("klageId").fold(
         ifLeft = { this.svar(HttpStatusCode.BadRequest.errorJson(it, "klageId_mangler_eller_feil_format")) },
         ifRight = { ifRight(it) },
     )
 }
 
-internal suspend inline fun <reified T> ApplicationCall.withBody(ifRight: (T) -> Unit) {
+suspend inline fun <reified T> ApplicationCall.withBody(ifRight: (T) -> Unit) {
     Either.catch { this.receiveTextUTF8() }
         .tapLeft {
             log.error("Feil ved transformering av json-body til UTF-8 inn mot web-laget, se sikkerlogg for detaljer.")

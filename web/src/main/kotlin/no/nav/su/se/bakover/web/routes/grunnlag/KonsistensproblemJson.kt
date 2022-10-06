@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.web.routes.grunnlag
 
 import io.ktor.http.HttpStatusCode
+import no.nav.su.se.bakover.common.infrastructure.web.ErrorJson
+import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.domain.grunnlag.Konsistensproblem
-import no.nav.su.se.bakover.web.ErrorJson
-import no.nav.su.se.bakover.web.errorJson
 
 internal fun Konsistensproblem.tilResultat() = when (this) {
     Konsistensproblem.Bosituasjon.Ufullstendig -> ErrorJson(

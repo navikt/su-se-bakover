@@ -9,6 +9,7 @@ import io.ktor.server.auth.jwt.jwt
 import no.nav.su.se.bakover.client.azure.AzureAd
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.ApplicationConfig
+import no.nav.su.se.bakover.common.infrastructure.web.getGroupsFromJWT
 import no.nav.su.se.bakover.web.stubs.JwkProviderStub
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

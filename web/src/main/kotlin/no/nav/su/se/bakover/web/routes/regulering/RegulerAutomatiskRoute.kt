@@ -14,22 +14,22 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.NavIdentBruker
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
+import no.nav.su.se.bakover.common.infrastructure.web.Resultat
+import no.nav.su.se.bakover.common.infrastructure.web.errorJson
+import no.nav.su.se.bakover.common.infrastructure.web.lesUUID
+import no.nav.su.se.bakover.common.infrastructure.web.svar
+import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.service.regulering.KunneIkkeAvslutte
 import no.nav.su.se.bakover.service.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.service.regulering.ReguleringService
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.web.Resultat
-import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
-import no.nav.su.se.bakover.web.lesUUID
-import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.grunnlag.UføregrunnlagJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson
-import no.nav.su.se.bakover.web.svar
-import no.nav.su.se.bakover.web.withBody
 import java.time.LocalDate
 import java.util.UUID
 
@@ -43,7 +43,7 @@ internal fun Route.reguler(
                 CoroutineScope(Dispatchers.IO).launch {
                     reguleringService.startRegulering(it.startDato)
                 }
-                call.svar(Resultat.okJson(HttpStatusCode.OK))
+                call.svar(Resultat.okJson())
             }
         }
     }
@@ -110,7 +110,7 @@ internal fun Route.reguler(
                                 }
                             },
                             ifRight = {
-                                call.svar(Resultat.okJson(HttpStatusCode.OK))
+                                call.svar(Resultat.okJson())
                             },
                         )
                     }
@@ -140,7 +140,7 @@ internal fun Route.reguler(
                             }
                         },
                         ifRight = {
-                            call.svar(Resultat.okJson(HttpStatusCode.OK))
+                            call.svar(Resultat.okJson())
                         },
                     )
                 },
