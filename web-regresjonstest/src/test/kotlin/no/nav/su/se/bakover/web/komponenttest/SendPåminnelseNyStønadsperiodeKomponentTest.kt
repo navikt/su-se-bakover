@@ -8,10 +8,10 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.juni
-import no.nav.su.se.bakover.domain.NameAndYearMonthId
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.SendPåminnelseNyStønadsperiodeContext
 import no.nav.su.se.bakover.domain.brev.BrevTemplate
+import no.nav.su.se.bakover.domain.jobcontext.NameAndYearMonthId
+import no.nav.su.se.bakover.domain.jobcontext.SendPåminnelseNyStønadsperiodeContext
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.sak.hent.hentSak
 import no.nav.su.se.bakover.web.sak.hent.hentSakId
@@ -69,7 +69,7 @@ class SendPåminnelseNyStønadsperiodeKomponentTest {
             ) shouldBe SendPåminnelseNyStønadsperiodeContext(
                 clock = clock,
                 id = NameAndYearMonthId(
-                    jobName = "SendPåminnelseNyStønadsperiode",
+                    name = "SendPåminnelseNyStønadsperiode",
                     yearMonth = YearMonth.of(2022, Month.JULY),
                 ),
                 opprettet = Tidspunkt.now(clock),
@@ -111,7 +111,7 @@ class SendPåminnelseNyStønadsperiodeKomponentTest {
             ) shouldBe SendPåminnelseNyStønadsperiodeContext(
                 clock = clock,
                 id = NameAndYearMonthId(
-                    jobName = "SendPåminnelseNyStønadsperiode",
+                    name = "SendPåminnelseNyStønadsperiode",
                     yearMonth = YearMonth.of(2022, Month.JULY),
                 ),
                 opprettet = Tidspunkt.now(clock),

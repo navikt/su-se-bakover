@@ -56,6 +56,12 @@ internal class SakPostgresRepo(
         }
     }
 
+    override fun hentSak(sakId: UUID, sessionContext: SessionContext): Sak? {
+        return dbMetrics.timeQuery("hentSakForId") {
+            hentSakInternal(sakId, sessionContext)
+        }
+    }
+
     override fun hentSak(fnr: Fnr, type: Sakstype): Sak? {
         return dbMetrics.timeQuery("hentSakForFnr") {
             sessionFactory.withSessionContext {
@@ -116,18 +122,34 @@ internal class SakPostgresRepo(
                 """.trimIndent().hent(
                     mapOf("fnrs" to personidenter),
                     session,
-                ) { row ->
-                    row.uuidOrNull("id")?.let { id ->
-                        SakInfo(
-                            sakId = id,
-                            saksnummer = Saksnummer(row.long("saksnummer")),
-                            fnr = Fnr(row.string("fnr")),
-                            type = Sakstype.from(row.string("type")),
-                        )
-                    }
-                }
+                ) { row -> row.toSakInfo() }
             }
         }
+    }
+
+    override fun hentSakInfo(sakId: UUID): SakInfo? {
+        return dbMetrics.timeQuery("hentSakInfoForSakId") {
+            sessionFactory.withSession { session ->
+                """
+                SELECT
+                    id, saksnummer, fnr, type
+                FROM sak
+                WHERE id = :id
+                """.trimIndent().hent(
+                    mapOf("id" to sakId),
+                    session,
+                ) { row -> row.toSakInfo() }
+            }
+        }
+    }
+
+    private fun Row.toSakInfo(): SakInfo {
+        return SakInfo(
+            sakId = uuid("id"),
+            saksnummer = Saksnummer(long("saksnummer")),
+            fnr = Fnr(string("fnr")),
+            type = Sakstype.from(string("type")),
+        )
     }
 
     override fun opprettSak(sak: NySak) {
@@ -174,12 +196,7 @@ internal class SakPostgresRepo(
             mapOf(),
             session,
         ) {
-            SakInfo(
-                sakId = it.uuid("id"),
-                saksnummer = Saksnummer(it.long("saksnummer")),
-                fnr = Fnr(it.string("fnr")),
-                type = Sakstype.from(it.string("type")),
-            )
+            it.toSakInfo()
         }
     }
 

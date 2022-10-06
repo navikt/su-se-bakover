@@ -14,16 +14,16 @@ import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.persistence.SessionFactory
-import no.nav.su.se.bakover.domain.JobContextRepo
-import no.nav.su.se.bakover.domain.NameAndYearMonthId
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
-import no.nav.su.se.bakover.domain.SendPåminnelseNyStønadsperiodeContext
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.brev.BrevTemplate
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.domain.jobcontext.JobContextRepo
+import no.nav.su.se.bakover.domain.jobcontext.NameAndYearMonthId
+import no.nav.su.se.bakover.domain.jobcontext.SendPåminnelseNyStønadsperiodeContext
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakRepo
@@ -105,7 +105,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             val expectedContext = SendPåminnelseNyStønadsperiodeContext(
                 clock = desemberClock,
                 id = NameAndYearMonthId(
-                    jobName = "SendPåminnelseNyStønadsperiode",
+                    name = "SendPåminnelseNyStønadsperiode",
                     yearMonth = YearMonth.of(2021, Month.DECEMBER),
                 ),
                 opprettet = Tidspunkt.now(desemberClock),
@@ -192,7 +192,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
                     SendPåminnelseNyStønadsperiodeContext(
                         clock = desemberClock,
                         id = NameAndYearMonthId(
-                            jobName = "SendPåminnelseNyStønadsperiode",
+                            name = "SendPåminnelseNyStønadsperiode",
                             yearMonth = YearMonth.of(2021, Month.DECEMBER),
                         ),
                         opprettet = Tidspunkt.now(desemberClock),
@@ -212,7 +212,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             it.service.sendPåminnelser() shouldBe SendPåminnelseNyStønadsperiodeContext(
                 clock = desemberClock,
                 id = NameAndYearMonthId(
-                    jobName = "SendPåminnelseNyStønadsperiode",
+                    name = "SendPåminnelseNyStønadsperiode",
                     yearMonth = YearMonth.of(2021, Month.DECEMBER),
                 ),
                 opprettet = Tidspunkt.now(desemberClock),
@@ -319,7 +319,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             it.service.sendPåminnelser() shouldBe SendPåminnelseNyStønadsperiodeContext(
                 clock = juliClock,
                 id = NameAndYearMonthId(
-                    jobName = "SendPåminnelseNyStønadsperiode",
+                    name = "SendPåminnelseNyStønadsperiode",
                     yearMonth = YearMonth.of(2021, Month.JULY),
                 ),
                 opprettet = Tidspunkt.now(juliClock),
@@ -353,7 +353,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             it.service.sendPåminnelser() shouldBe SendPåminnelseNyStønadsperiodeContext(
                 clock = fixedClock,
                 id = NameAndYearMonthId(
-                    jobName = "SendPåminnelseNyStønadsperiode",
+                    name = "SendPåminnelseNyStønadsperiode",
                     yearMonth = YearMonth.of(2021, Month.JANUARY),
                 ),
                 opprettet = Tidspunkt.now(fixedClock),
@@ -398,7 +398,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             it.service.sendPåminnelser() shouldBe SendPåminnelseNyStønadsperiodeContext(
                 clock = fixedClock,
                 id = NameAndYearMonthId(
-                    jobName = "SendPåminnelseNyStønadsperiode",
+                    name = "SendPåminnelseNyStønadsperiode",
                     yearMonth = YearMonth.of(2021, Month.JANUARY),
                 ),
                 opprettet = Tidspunkt.now(fixedClock),

@@ -7,6 +7,7 @@ import no.finn.unleash.FakeUnleash
 import no.finn.unleash.Unleash
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.domain.DatabaseRepos
+import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.service.AccessCheckProxy
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
@@ -14,7 +15,6 @@ import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.satsFactoryTest
-import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.web.Consumers
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.TestClientsBuilder
@@ -39,26 +39,14 @@ class AppComponents private constructor(
         fun instance(
             clock: Clock,
             dataSource: DataSource,
-            clientBuilder: (databaseRepos: DatabaseRepos) -> Clients,
+            repoBuilder: (dataSource: DataSource, clock: Clock, satsFactory: SatsFactoryForSupplerendeStønad) -> DatabaseRepos,
+            clientBuilder: (databaseRepos: DatabaseRepos, clock: Clock) -> Clients,
+            serviceBuilder: (databaseRepos: DatabaseRepos, clients: Clients, clock: Clock, satsFactory: SatsFactoryForSupplerendeStønad, unleash: Unleash) -> Services,
         ): AppComponents {
-            val satsFactory = satsFactoryTestPåDato(LocalDate.now(clock))
-            val databaseRepos: DatabaseRepos = SharedRegressionTestData.databaseRepos(
-                dataSource = dataSource,
-                clock = clock,
-                satsFactory = satsFactoryTest,
-            )
-            val clients = clientBuilder(databaseRepos)
-            val unleash: Unleash = FakeUnleash().apply { enableAll() }
-            val services: Services = ServiceBuilder.build(
-                databaseRepos = databaseRepos,
-                clients = clients,
-                behandlingMetrics = mock(),
-                søknadMetrics = mock(),
-                clock = clock,
-                unleash = unleash,
-                satsFactory = satsFactory,
-                applicationConfig = applicationConfig(),
-            )
+            val databaseRepos = repoBuilder(dataSource, clock, satsFactoryTest)
+            val clients = clientBuilder(databaseRepos, clock)
+            val unleash = FakeUnleash().apply { enableAll() }
+            val services: Services = serviceBuilder(databaseRepos, clients, clock, satsFactoryTest, unleash)
             val accessCheckProxy = AccessCheckProxy(
                 personRepo = databaseRepos.person,
                 services = services,
@@ -90,18 +78,42 @@ class AppComponents private constructor(
 
 internal fun withKomptestApplication(
     clock: Clock = fixedClock,
-    clients: (databaseRepos: DatabaseRepos) -> Clients = {
+    repoBuilder: (dataSource: DataSource, clock: Clock, satsFactory: SatsFactoryForSupplerendeStønad) -> DatabaseRepos = { dataSource, klokke, satsFactory ->
+        SharedRegressionTestData.databaseRepos(
+            dataSource = dataSource,
+            clock = klokke,
+            satsFactory = satsFactory, // TODO uheldig at vi ikke kan overstyre denne med satsFactory.gjeldende(LocalDate.now(clock))
+        )
+    },
+    clientsBuilder: (databaseRepos: DatabaseRepos, clock: Clock) -> Clients = { databaseRepos, klokke ->
         TestClientsBuilder(
-            clock = clock,
-            databaseRepos = it,
+            clock = klokke,
+            databaseRepos = databaseRepos,
         ).build(applicationConfig())
+    },
+    serviceBuilder: (databaseRepos: DatabaseRepos, clients: Clients, clock: Clock, satsFactory: SatsFactoryForSupplerendeStønad, unleash: Unleash) -> Services = { databaseRepos, clients, klokke, satsFactory, unleash ->
+        ServiceBuilder.build(
+            databaseRepos = databaseRepos,
+            clients = clients,
+            behandlingMetrics = mock(),
+            søknadMetrics = mock(),
+            clock = klokke,
+            unleash = unleash,
+            satsFactory = satsFactory.gjeldende(LocalDate.now(klokke)),
+            applicationConfig = applicationConfig(),
+        )
     },
     test: ApplicationTestBuilder.(appComponents: AppComponents) -> Unit,
 ) {
     withMigratedDb { dataSource ->
-        val appComponents = AppComponents.instance(clock, dataSource, clients)
         testApplication(
-            appComponents = appComponents,
+            appComponents = AppComponents.instance(
+                clock = clock,
+                dataSource = dataSource,
+                repoBuilder = repoBuilder,
+                clientBuilder = clientsBuilder,
+                serviceBuilder = serviceBuilder,
+            ),
             test = test,
         )
     }

@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.revurdering.StansYtelseRequest
 import no.nav.su.se.bakover.service.utbetaling.SimulerStansFeilet
 import no.nav.su.se.bakover.service.utbetaling.UtbetalStansFeil
+import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -40,6 +41,7 @@ internal class StansUtbetalingRouteKtTest {
     fun `svarer med 201 ved påbegynt stans av utbetaling`() {
         val enRevurdering = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak().second
         val revurderingServiceMock = mock<RevurderingService> {
+            on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             on { stansAvYtelse(any()) } doReturn enRevurdering.right()
         }
         testApplication {
@@ -75,9 +77,13 @@ internal class StansUtbetalingRouteKtTest {
     fun `svarer med 400 ved forsøk å iverksetting av ugyldig revurdering`() {
         val enRevurdering = beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
         val revurderingServiceMock = mock<RevurderingService> {
-            on { iverksettStansAvYtelse(any(), any()) } doReturn KunneIkkeIverksetteStansYtelse.UgyldigTilstand(
-                enRevurdering::class,
-            ).left()
+            on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
+            on {
+                iverksettStansAvYtelse(
+                    any(),
+                    any(),
+                )
+            } doReturn KunneIkkeIverksetteStansYtelse.UgyldigTilstand(enRevurdering::class).left()
         }
         testApplication {
             application {
@@ -102,9 +108,13 @@ internal class StansUtbetalingRouteKtTest {
     fun `svarer med 500 hvis utbetaling feiler`() {
         val enRevurdering = beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
         val revurderingServiceMock = mock<RevurderingService> {
-            on { iverksettStansAvYtelse(any(), any()) } doReturn KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale(
-                UtbetalStansFeil.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil),
-            ).left()
+            on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
+            on {
+                iverksettStansAvYtelse(
+                    any(),
+                    any(),
+                )
+            } doReturn KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale(UtbetalStansFeil.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil)).left()
         }
         testApplication {
             application {
@@ -129,6 +139,7 @@ internal class StansUtbetalingRouteKtTest {
     fun `svarer med 200 ved oppdatering av eksisterende revurdering`() {
         val eksisterende = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak().second
         val revurderingServiceMock = mock<RevurderingService> {
+            on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             doAnswer {
                 val args = (it.arguments[0] as StansYtelseRequest.Oppdater)
                 eksisterende.copy(
@@ -172,6 +183,7 @@ internal class StansUtbetalingRouteKtTest {
     fun `svarer med 400 ved ugyldig input`() {
         val enRevurdering = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak().second
         val revurderingServiceMock = mock<RevurderingService> {
+            on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             on { stansAvYtelse(any()) } doReturn enRevurdering.right()
         }
         testApplication {
@@ -207,6 +219,7 @@ internal class StansUtbetalingRouteKtTest {
     @Test
     fun `svarer med 500 hvis simulering ikke går bra`() {
         val revurderingServiceMock = mock<RevurderingService> {
+            on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             on { stansAvYtelse(any()) } doReturn KunneIkkeStanseYtelse.SimuleringAvStansFeilet(
                 SimulerStansFeilet.KunneIkkeSimulere(
                     SimuleringFeilet.OppdragEksistererIkke,

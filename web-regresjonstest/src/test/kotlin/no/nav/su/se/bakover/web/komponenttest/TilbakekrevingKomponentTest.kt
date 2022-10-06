@@ -305,10 +305,10 @@ class TilbakekrevingKomponentTest {
         val clock = TikkendeKlokke(1.oktober(2021).fixedClock())
         withKomptestApplication(
             clock = clock,
-            clients = {
+            clientsBuilder = { databaseRepos, klokke ->
                 TestClientsBuilder(
-                    clock = clock,
-                    databaseRepos = it,
+                    clock = klokke,
+                    databaseRepos = databaseRepos,
                 ).build(applicationConfig()).copy(
                     tilbakekrevingClient = mock {
                         on { sendTilbakekrevingsvedtak(any()) } doReturn TilbakekrevingsvedtakForsendelseFeil.left()

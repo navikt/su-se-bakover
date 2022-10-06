@@ -11,9 +11,11 @@ import no.nav.su.se.bakover.common.deserializeMapNullable
 import no.nav.su.se.bakover.common.deserializeNullable
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.DbMetrics
+import no.nav.su.se.bakover.common.persistence.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.common.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.persistence.PostgresTransactionContext.Companion.withTransaction
 import no.nav.su.se.bakover.common.persistence.Session
+import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.persistence.TransactionalSession
 import no.nav.su.se.bakover.common.persistence.hent
@@ -155,6 +157,14 @@ internal class RevurderingPostgresRepo(
     override fun hent(id: UUID): AbstraktRevurdering? {
         return dbMetrics.timeQuery("hentRevurdering") {
             sessionFactory.withSession { session ->
+                hent(id, session)
+            }
+        }
+    }
+
+    override fun hent(id: UUID, sessionContext: SessionContext): AbstraktRevurdering? {
+        return dbMetrics.timeQuery("hentRevurdering") {
+            sessionContext.withSession { session ->
                 hent(id, session)
             }
         }

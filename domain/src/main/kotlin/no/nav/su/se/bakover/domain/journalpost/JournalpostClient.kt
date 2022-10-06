@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.journalpost
 
 import arrow.core.Either
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.DatoIntervall
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 
@@ -19,7 +19,7 @@ interface JournalpostClient {
      */
     fun kontrollnotatMotatt(
         saksnummer: Saksnummer,
-        periode: Periode,
+        periode: DatoIntervall,
     ): Either<KunneIkkeSjekkKontrollnotatMottatt, ErKontrollNotatMottatt>
 }
 

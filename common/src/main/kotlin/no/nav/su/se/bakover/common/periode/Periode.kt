@@ -21,9 +21,9 @@ import java.time.YearMonth
 import java.util.LinkedList
 
 open class Periode protected constructor(
-    val fraOgMed: LocalDate,
-    val tilOgMed: LocalDate,
-) : Comparable<Periode> {
+    fraOgMed: LocalDate,
+    tilOgMed: LocalDate,
+) : DatoIntervall(fraOgMed, tilOgMed), Comparable<Periode> {
 
     constructor(måned: YearMonth) : this(måned.atDay(1), måned.atEndOfMonth()) {
         validateOrThrow(fraOgMed, tilOgMed)
@@ -41,9 +41,6 @@ open class Periode protected constructor(
 
     infix fun inneholder(other: Periode): Boolean =
         starterSamtidigEllerTidligere(other) && slutterSamtidigEllerSenere(other)
-
-    infix fun inneholder(dato: LocalDate): Boolean =
-        dato in fraOgMed..tilOgMed
 
     infix fun starterEtter(dato: LocalDate): Boolean = tilOgMed.isAfter(dato)
 

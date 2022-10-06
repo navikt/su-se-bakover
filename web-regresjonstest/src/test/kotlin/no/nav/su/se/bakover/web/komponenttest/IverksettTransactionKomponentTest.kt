@@ -54,9 +54,9 @@ internal class IverksettTransactionKomponentTest {
 
         withKomptestApplication(
             clock = klokke,
-            clients = { databaseRepos ->
+            clientsBuilder = { databaseRepos, clock ->
                 TestClientsBuilder(
-                    clock = klokke,
+                    clock = clock,
                     databaseRepos = databaseRepos,
                 ).build(applicationConfig()).let {
                     it.copy(
@@ -106,9 +106,9 @@ internal class IverksettTransactionKomponentTest {
 
         withKomptestApplication(
             clock = klokke,
-            clients = { databaseRepos ->
+            clientsBuilder = { databaseRepos, clock ->
                 TestClientsBuilder(
-                    clock = klokke,
+                    clock = clock,
                     databaseRepos = databaseRepos,
                 ).build(applicationConfig()).let {
                     it.copy(
@@ -169,9 +169,9 @@ internal class IverksettTransactionKomponentTest {
 
         withKomptestApplication(
             clock = klokke,
-            clients = { databaseRepos ->
+            clientsBuilder = { databaseRepos, clock ->
                 TestClientsBuilder(
-                    clock = klokke,
+                    clock = clock,
                     databaseRepos = databaseRepos,
                 ).build(applicationConfig()).let {
                     it.copy(
@@ -242,9 +242,74 @@ internal class IverksettTransactionKomponentTest {
 
         withKomptestApplication(
             clock = klokke,
-            clients = { databaseRepos ->
+            clientsBuilder = { databaseRepos, clock ->
                 TestClientsBuilder(
-                    clock = klokke,
+                    clock = clock,
+                    databaseRepos = databaseRepos,
+                ).build(applicationConfig()).let {
+                    it.copy(
+                        utbetalingPublisher = object : UtbetalingPublisher by it.utbetalingPublisher {
+                            var count = 0
+                            override fun publishRequest(utbetalingsrequest: Utbetalingsrequest): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Utbetalingsrequest> {
+                                count++
+                                return if (count == 2) {
+                                    UtbetalingPublisher.KunneIkkeSendeUtbetaling(Utbetalingsrequest("det gikk dårlig")).left()
+                                } else {
+                                    utbetalingsrequest.right()
+                                }
+                            }
+                        },
+                    )
+                }
+            },
+        ) { appComponents ->
+            opprettInnvilgetSøknadsbehandling(
+                fnr = Fnr.generer().toString(),
+                fraOgMed = start.toString(),
+                tilOgMed = slutt.toString(),
+            ).let { søknadsbehandling ->
+                val sakId = hentSakId(hentSak(BehandlingJson.hentSakId(søknadsbehandling)))
+
+                val stansId = opprettStans(
+                    sakId,
+                    start.toString(),
+                ).let { RevurderingJson.hentRevurderingId(it) }
+                iverksettStans(
+                    sakId = sakId,
+                    behandlingId = stansId,
+                    assertResponse = false,
+                )
+
+                appComponents.services.sak.hentSak(UUID.fromString(sakId)).getOrFail().also { sak ->
+                    sak.søknadsbehandlinger.single().shouldBeType<Søknadsbehandling.Iverksatt.Innvilget>()
+                    sak.vedtakListe.also { vedtakListe ->
+                        vedtakListe.single { it is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling }
+                    }
+                    sak.utbetalinger.also { utbetalinger ->
+                        utbetalinger shouldHaveSize 1
+                        utbetalinger.map { it.id }.shouldContainAll(sak.vedtakListe.map { (it as VedtakSomKanRevurderes.EndringIYtelse).utbetalingId })
+                    }
+                    sak.revurderinger.also { revurderinger ->
+                        revurderinger shouldHaveSize 1
+                        revurderinger.single { it is StansAvYtelseRevurdering.SimulertStansAvYtelse }
+                    }
+                    appComponents.services.kontrollsamtale.hentNestePlanlagteKontrollsamtale(sak.id).getOrFail().shouldBeType<Kontrollsamtale>()
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `ruller tilbake gjenopptak hvis feil ved iverksettelse`() {
+        val klokke = TikkendeKlokke(LocalDate.now().fixedClock())
+        val start = LocalDate.now(klokke).startOfMonth()
+        val slutt = start.plusMonths(11).endOfMonth()
+
+        withKomptestApplication(
+            clock = klokke,
+            clientsBuilder = { databaseRepos, clock ->
+                TestClientsBuilder(
+                    clock = clock,
                     databaseRepos = databaseRepos,
                 ).build(applicationConfig()).let {
                     it.copy(

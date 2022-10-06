@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.erMindreEnnEnMånedSenere
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.common.zoneIdOslo
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import java.time.Clock
 import java.time.LocalDate
@@ -26,6 +27,7 @@ data class Kontrollsamtale(
     val status: Kontrollsamtalestatus,
     val frist: LocalDate = regnUtFristFraInnkallingsdato(innkallingsdato),
     val dokumentId: UUID?,
+    val journalpostIdKontrollnotat: JournalpostId?,
 ) {
 
     fun settInnkalt(dokumentId: UUID): Either<UgyldigStatusovergang, Kontrollsamtale> {
@@ -50,6 +52,25 @@ data class Kontrollsamtale(
         return this.copy(innkallingsdato = innkallingsdato, frist = regnUtFristFraInnkallingsdato(innkallingsdato)).right()
     }
 
+    fun settGjennomført(journalpostId: JournalpostId): Either<UgyldigStatusovergang, Kontrollsamtale> {
+        return if (status == Kontrollsamtalestatus.INNKALT) {
+            copy(
+                status = Kontrollsamtalestatus.GJENNOMFØRT,
+                journalpostIdKontrollnotat = journalpostId,
+            ).right()
+        } else {
+            UgyldigStatusovergang.left()
+        }
+    }
+
+    fun settIkkeMøttInnenFrist(): Either<UgyldigStatusovergang, Kontrollsamtale> {
+        return if (status == Kontrollsamtalestatus.INNKALT) {
+            copy(status = Kontrollsamtalestatus.IKKE_MØTT_INNEN_FRIST).right()
+        } else {
+            UgyldigStatusovergang.left()
+        }
+    }
+
     sealed interface KunneIkkeEndreDato {
         object UgyldigStatusovergang : KunneIkkeEndreDato
         object DatoErIkkeFørsteIMåned : KunneIkkeEndreDato
@@ -69,6 +90,7 @@ data class Kontrollsamtale(
                     status = Kontrollsamtalestatus.PLANLAGT_INNKALLING,
                     dokumentId = null,
                     opprettet = Tidspunkt.now(clock),
+                    journalpostIdKontrollnotat = null,
                 )
             }
 
@@ -82,6 +104,7 @@ data class Kontrollsamtale(
             status = Kontrollsamtalestatus.PLANLAGT_INNKALLING,
             dokumentId = null,
             opprettet = Tidspunkt.now(clock),
+            journalpostIdKontrollnotat = null,
         )
 
         fun opprettNyKontrollsamtale(
@@ -98,6 +121,7 @@ data class Kontrollsamtale(
                     status = Kontrollsamtalestatus.PLANLAGT_INNKALLING,
                     dokumentId = null,
                     opprettet = Tidspunkt.now(clock),
+                    journalpostIdKontrollnotat = null,
                 )
             }
     }
@@ -108,6 +132,7 @@ enum class Kontrollsamtalestatus(val value: String) {
     INNKALT("INNKALT"),
     GJENNOMFØRT("GJENNOMFØRT"),
     ANNULLERT("ANNULLERT"),
+    IKKE_MØTT_INNEN_FRIST("IKKE_MØTT_INNEN_FRIST"),
 }
 
 fun regnUtFristFraInnkallingsdato(innkallingsdato: LocalDate): LocalDate {

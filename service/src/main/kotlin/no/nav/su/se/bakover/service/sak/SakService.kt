@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.sak
 import arrow.core.Either
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.domain.AlleredeGjeldendeSakForBruker
 import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
@@ -15,6 +16,7 @@ import java.util.UUID
 
 interface SakService {
     fun hentSak(sakId: UUID): Either<FantIkkeSak, Sak>
+    fun hentSak(sakId: UUID, sessionContext: SessionContext): Either<FantIkkeSak, Sak>
     fun hentSak(fnr: Fnr, type: Sakstype): Either<FantIkkeSak, Sak>
     fun hentSaker(fnr: Fnr): Either<FantIkkeSak, List<Sak>>
     fun hentSak(saksnummer: Saksnummer): Either<FantIkkeSak, Sak>
@@ -36,6 +38,7 @@ interface SakService {
     fun hentFerdigeBehandlingerForAlleSaker(): List<Behandlingsoversikt>
     fun hentAlleredeGjeldendeSakForBruker(fnr: Fnr): AlleredeGjeldendeSakForBruker
     fun hentSakidOgSaksnummer(fnr: Fnr): Either<FantIkkeSak, SakInfo>
+    fun hentSakInfo(sakId: UUID): Either<FantIkkeSak, SakInfo>
 
     fun hentSakForRevurdering(revurderingId: UUID): Sak
 

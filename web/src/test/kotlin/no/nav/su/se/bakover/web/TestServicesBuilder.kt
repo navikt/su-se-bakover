@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
 import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
+import no.nav.su.se.bakover.service.kontrollsamtale.UtløptFristForKontrollsamtaleService
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.regulering.ReguleringService
@@ -49,6 +50,7 @@ object TestServicesBuilder {
         tilbakekrevingService: TilbakekrevingService = mock(),
         sendPåminnelserOmNyStønadsperiodeService: SendPåminnelserOmNyStønadsperiodeService = mock(),
         skatteService: SkatteService = mock(),
+        utløptFristForKontrollsamtaleService: UtløptFristForKontrollsamtaleService = mock(),
     ): Services = Services(
         avstemming = avstemming,
         utbetaling = utbetaling,
@@ -72,5 +74,6 @@ object TestServicesBuilder {
         tilbakekrevingService = tilbakekrevingService,
         sendPåminnelserOmNyStønadsperiodeService = sendPåminnelserOmNyStønadsperiodeService,
         skatteService = skatteService,
+        utløptFristForKontrollsamtaleService = utløptFristForKontrollsamtaleService,
     )
 }

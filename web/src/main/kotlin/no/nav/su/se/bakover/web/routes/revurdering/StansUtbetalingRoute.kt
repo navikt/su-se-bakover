@@ -25,8 +25,8 @@ import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.routes.Feilresponser.harAlleredeÅpenBehandling
-import no.nav.su.se.bakover.web.routes.Feilresponser.lagringFeilet
 import no.nav.su.se.bakover.web.routes.Feilresponser.tilResultat
+import no.nav.su.se.bakover.web.routes.Feilresponser.ukjentFeil
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeSak
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.tilResultat
 import no.nav.su.se.bakover.web.sikkerlogg
@@ -167,9 +167,15 @@ private fun KunneIkkeStanseYtelse.tilResultat(): Resultat {
                 code = "ugyldig_tilstand_for_oppdatering",
             )
         }
-        KunneIkkeStanseYtelse.FantIkkeSak -> fantIkkeSak
+        KunneIkkeStanseYtelse.FantIkkeSak -> {
+            fantIkkeSak
+        }
         KunneIkkeStanseYtelse.SakHarÅpenBehandling -> {
             harAlleredeÅpenBehandling
+        }
+
+        is KunneIkkeStanseYtelse.UkjentFeil -> {
+            ukjentFeil
         }
     }
 }
@@ -189,17 +195,20 @@ private fun KunneIkkeIverksetteStansYtelse.tilResultat(): Resultat {
                 }
             }
         }
-        is KunneIkkeIverksetteStansYtelse.UgyldigTilstand -> HttpStatusCode.BadRequest.errorJson(
-            "Kan ikke iverksette stans av utbetalinger for revurdering av type: ${this.faktiskTilstand}, eneste gyldige tilstand er ${this.målTilstand}",
-            "kunne_ikke_iverksette_stans_ugyldig_tilstand",
-        )
-        KunneIkkeIverksetteStansYtelse.SimuleringIndikererFeilutbetaling -> HttpStatusCode.BadRequest.errorJson(
-            "Iverksetting av stans vil føre til feilutbetaling",
-            "kunne_ikke_iverksette_stans_fører_til_feilutbetaling",
-        )
-
-        KunneIkkeIverksetteStansYtelse.LagringFeilet -> {
-            lagringFeilet
+        is KunneIkkeIverksetteStansYtelse.UgyldigTilstand -> {
+            HttpStatusCode.BadRequest.errorJson(
+                "Kan ikke iverksette stans av utbetalinger for revurdering av type: ${this.faktiskTilstand}, eneste gyldige tilstand er ${this.målTilstand}",
+                "kunne_ikke_iverksette_stans_ugyldig_tilstand",
+            )
+        }
+        KunneIkkeIverksetteStansYtelse.SimuleringIndikererFeilutbetaling -> {
+            HttpStatusCode.BadRequest.errorJson(
+                "Iverksetting av stans vil føre til feilutbetaling",
+                "kunne_ikke_iverksette_stans_fører_til_feilutbetaling",
+            )
+        }
+        is KunneIkkeIverksetteStansYtelse.UkjentFeil -> {
+            ukjentFeil
         }
     }
 }

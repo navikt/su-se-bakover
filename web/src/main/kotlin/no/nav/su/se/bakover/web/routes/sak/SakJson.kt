@@ -65,7 +65,7 @@ internal data class SakJson(
                 it.toJson(satsFactory)
             },
             sakstype = type.toJson(),
-            vedtakPåTidslinje = this.vedtakstidslinje().toJson(),
+            vedtakPåTidslinje = this.vedtakstidslinje().tidslinje.toJson(),
         )
     }
 }

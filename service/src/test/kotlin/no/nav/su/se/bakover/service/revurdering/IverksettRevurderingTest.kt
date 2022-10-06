@@ -26,9 +26,9 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
 import no.nav.su.se.bakover.test.iverksattRevurdering
-import no.nav.su.se.bakover.test.kontrollsamtale
 import no.nav.su.se.bakover.test.nyUtbetalingOversendUtenKvittering
 import no.nav.su.se.bakover.test.opphørUtbetalingOversendUtenKvittering
+import no.nav.su.se.bakover.test.planlagtKontrollsamtale
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.revurderingTilAttestering
 import no.nav.su.se.bakover.test.sakId
@@ -161,7 +161,7 @@ internal class IverksettRevurderingTest {
                 doNothing().whenever(it).lagre(any(), anyOrNull())
             },
             kontrollsamtaleService = mock {
-                on { annullerKontrollsamtale(any(), anyOrNull()) } doReturn AnnulerKontrollsamtaleResultat.AnnulertKontrollsamtale(kontrollsamtale()).right()
+                on { annullerKontrollsamtale(any(), anyOrNull()) } doReturn AnnulerKontrollsamtaleResultat.AnnulertKontrollsamtale(planlagtKontrollsamtale()).right()
             },
             tilbakekrevingService = mock {
                 on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
@@ -234,7 +234,7 @@ internal class IverksettRevurderingTest {
                         anyOrNull(),
                     )
                 } doReturn AnnulerKontrollsamtaleResultat.AnnulertKontrollsamtale(
-                    kontrollsamtale(),
+                    planlagtKontrollsamtale(),
                 ).right()
             },
             tilbakekrevingService = mock {
@@ -397,7 +397,7 @@ internal class IverksettRevurderingTest {
                         anyOrNull(),
                     )
                 } doReturn AnnulerKontrollsamtaleResultat.AnnulertKontrollsamtale(
-                    kontrollsamtale(),
+                    planlagtKontrollsamtale(),
                 ).right()
             },
             tilbakekrevingService = mock {
@@ -511,7 +511,7 @@ internal class IverksettRevurderingTest {
                         anyOrNull(),
                     )
                 } doReturn AnnulerKontrollsamtaleResultat.AnnulertKontrollsamtale(
-                    kontrollsamtale(),
+                    planlagtKontrollsamtale(),
                 ).right()
             },
             tilbakekrevingService = mock {

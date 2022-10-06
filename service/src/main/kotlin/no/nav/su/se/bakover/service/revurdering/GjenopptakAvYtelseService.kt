@@ -46,6 +46,7 @@ class GjenopptakAvYtelseService(
             .getOrHandle { return KunneIkkeGjenopptaYtelse.FantIkkeSak.left() }
 
         val sisteVedtakPåTidslinje = sak.vedtakstidslinje()
+            .tidslinje
             .lastOrNull() ?: return KunneIkkeGjenopptaYtelse.FantIngenVedtak.left()
 
         if (sisteVedtakPåTidslinje.originaltVedtak !is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse) {

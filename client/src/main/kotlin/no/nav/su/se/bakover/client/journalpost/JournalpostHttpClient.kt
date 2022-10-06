@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.client.isSuccess
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.DatoIntervall
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.token.JwtToken
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -79,7 +79,7 @@ internal class JournalpostHttpClient(
         }
     }
 
-    override fun kontrollnotatMotatt(saksnummer: Saksnummer, periode: Periode): Either<KunneIkkeSjekkKontrollnotatMottatt, ErKontrollNotatMottatt> {
+    override fun kontrollnotatMotatt(saksnummer: Saksnummer, periode: DatoIntervall): Either<KunneIkkeSjekkKontrollnotatMottatt, ErKontrollNotatMottatt> {
         val request = GraphQLQuery<HentDokumentoversiktFagsakHttpResponse>(
             query = lagRequest(
                 query = "/dokumentoversiktFagsakQuery.graphql",

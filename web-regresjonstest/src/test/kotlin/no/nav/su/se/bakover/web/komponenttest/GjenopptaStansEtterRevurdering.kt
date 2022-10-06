@@ -72,7 +72,7 @@ class GjenopptaStansEtterRevurdering {
                 sakId = sakId,
                 behandlingId = gjenopptakId,
             )
-            appComponents.services.sak.hentSak(UUID.fromString(sakId)).getOrFail().vedtakstidslinje()
+            appComponents.services.sak.hentSak(UUID.fromString(sakId)).getOrFail().vedtakstidslinje().tidslinje
                 .map { Pair(it.originaltVedtak::class, it.periode) } shouldBe listOf(
                 Pair(
                     VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse::class,

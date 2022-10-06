@@ -58,6 +58,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
 import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
@@ -299,6 +300,7 @@ data class Sak(
         ),
     ): List<Periode> {
         return vedtakstidslinje(periode = periode)
+            .tidslinje
             .filterNot { it.erOpphør() }
             .map { it.periode }
             .minsteAntallSammenhengendePerioder()
@@ -309,8 +311,8 @@ data class Sak(
             fraOgMed = LocalDate.MIN,
             tilOgMed = LocalDate.MAX,
         ),
-    ): List<VedtakSomKanRevurderes.VedtakPåTidslinje> {
-        return vedtakListe.filterIsInstance<VedtakSomKanRevurderes>().lagTidslinje(periode).tidslinje
+    ): Tidslinje<VedtakSomKanRevurderes.VedtakPåTidslinje> {
+        return vedtakListe.filterIsInstance<VedtakSomKanRevurderes>().lagTidslinje(periode)
     }
 
     /** Skal ikke kunne ha mer enn én åpen klage av gangen. */
@@ -408,6 +410,7 @@ data class Sak(
 
     fun ytelseUtløperVedUtløpAv(periode: Periode): Boolean {
         return vedtakstidslinje()
+            .tidslinje
             .lastOrNull()
             ?.let {
                 !it.erOpphør() && it.periode slutterSamtidig periode
@@ -455,7 +458,7 @@ data class Sak(
                 fraOgMed = _startDato,
                 tilOgMed = LocalDate.MAX,
             ),
-        ).let { tidslinje ->
+        ).tidslinje.let { tidslinje ->
             tidslinje.filterNot { it.erOpphør() }
                 .map { vedtakUtenOpphør -> vedtakUtenOpphør.periode }
                 .minsteAntallSammenhengendePerioder()

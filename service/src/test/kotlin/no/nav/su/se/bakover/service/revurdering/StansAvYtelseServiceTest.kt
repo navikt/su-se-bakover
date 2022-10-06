@@ -25,12 +25,12 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
-import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.utbetaling.SimulerStansFeilet
 import no.nav.su.se.bakover.service.utbetaling.UtbetalStansFeil
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.test.TestSessionFactory
+import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.beregnetRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.fixedClock
@@ -65,7 +65,7 @@ internal class StansAvYtelseServiceTest {
     fun `svarer med feil dersom vi ikke får tak i gjeldende grunnlagdata`() {
         RevurderingServiceMocks(
             sakService = mock {
-                on { hentSak(any<UUID>()) } doReturn søknadsbehandlingIverksattAvslagUtenBeregning().first.right()
+                on { hentSak(any<UUID>(), any()) } doReturn søknadsbehandlingIverksattAvslagUtenBeregning().first.right()
             },
         ).let {
             it.revurderingService.stansAvYtelse(
@@ -80,7 +80,10 @@ internal class StansAvYtelseServiceTest {
                 ),
             ) shouldBe KunneIkkeStanseYtelse.KunneIkkeOppretteRevurdering.left()
 
-            verify(it.sakService).hentSak(sakId)
+            verify(it.sakService).hentSak(
+                sakId = sakId,
+                sessionContext = TestSessionFactory.transactionContext,
+            )
             it.verifyNoMoreInteractions()
         }
     }
@@ -89,7 +92,7 @@ internal class StansAvYtelseServiceTest {
     fun `får ikke opprettet dersom sak har åpen behandling`() {
         RevurderingServiceMocks(
             sakService = mock {
-                on { hentSak(any<UUID>()) } doReturn søknadsbehandlingVilkårsvurdertUavklart().first.right()
+                on { hentSak(any<UUID>(), any()) } doReturn søknadsbehandlingVilkårsvurdertUavklart().first.right()
             },
         ).let {
             it.revurderingService.stansAvYtelse(
@@ -124,8 +127,8 @@ internal class StansAvYtelseServiceTest {
                     )
                 } doReturn SimulerStansFeilet.KunneIkkeSimulere(SimuleringFeilet.TekniskFeil).left()
             },
-            sakService = mock<SakService> {
-                on { hentSak(any<UUID>()) } doReturn sak.right()
+            sakService = mock {
+                on { hentSak(any<UUID>(), any()) } doReturn sak.right()
             },
         ).let {
             it.revurderingService.stansAvYtelse(
@@ -144,7 +147,10 @@ internal class StansAvYtelseServiceTest {
                 ),
             ).left()
 
-            verify(it.sakService).hentSak(sakId)
+            verify(it.sakService).hentSak(
+                sakId = sakId,
+                sessionContext = TestSessionFactory.transactionContext,
+            )
             verify(it.utbetalingService).simulerStans(
                 request = SimulerUtbetalingRequest.Stans(
                     sakId = sakId,
@@ -171,7 +177,7 @@ internal class StansAvYtelseServiceTest {
                 on { simulerStans(any()) } doReturn simulertUtbetaling().right()
             },
             sakService = mock {
-                on { hentSak(any<UUID>()) } doReturn sak.right()
+                on { hentSak(any<UUID>(), any()) } doReturn sak.right()
             },
             revurderingRepo = mock {
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
@@ -189,7 +195,10 @@ internal class StansAvYtelseServiceTest {
                 ),
             ).getOrFail()
 
-            verify(it.sakService).hentSak(sakId)
+            verify(it.sakService).hentSak(
+                sakId = sakId,
+                sessionContext = TestSessionFactory.transactionContext,
+            )
             verify(it.utbetalingService).simulerStans(
                 request = SimulerUtbetalingRequest.Stans(
                     sakId = sakId,
@@ -197,8 +206,10 @@ internal class StansAvYtelseServiceTest {
                     stansdato = 1.mai(2021),
                 ),
             )
-            verify(it.revurderingRepo).defaultTransactionContext()
-            verify(it.revurderingRepo).lagre(argThat { it shouldBe response }, anyOrNull())
+            verify(it.revurderingRepo).lagre(
+                revurdering = argThat { it shouldBe response },
+                transactionContext = argThat { it shouldBe TestSessionFactory.transactionContext },
+            )
             verify(it.observer).handle(
                 argThat { event ->
                     event shouldBe StatistikkEvent.Behandling.Stans.Opprettet(response)
@@ -219,7 +230,7 @@ internal class StansAvYtelseServiceTest {
         ).second
 
         val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(any()) } doReturn simulertStans
+            on { hent(any(), any()) } doReturn simulertStans
         }
 
         val utbetalingServiceMock = mock<UtbetalingService> {
@@ -245,7 +256,10 @@ internal class StansAvYtelseServiceTest {
                 ),
             ).left()
 
-            verify(it.revurderingRepo).hent(simulertStans.id)
+            verify(it.revurderingRepo).hent(
+                id = simulertStans.id,
+                sessionContext = TestSessionFactory.transactionContext,
+            )
             verify(it.utbetalingService).klargjørStans(
                 request = UtbetalRequest.Stans(
                     request = SimulerUtbetalingRequest.Stans(
@@ -276,8 +290,7 @@ internal class StansAvYtelseServiceTest {
 
         val serviceAndMocks = RevurderingServiceMocks(
             revurderingRepo = mock {
-                on { hent(any()) } doReturn simulertStans
-                on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
+                on { hent(any(), any()) } doReturn simulertStans
             },
             utbetalingService = mock {
                 on { klargjørStans(any(), any()) } doReturn UtbetalingKlargjortForOversendelse(
@@ -295,7 +308,10 @@ internal class StansAvYtelseServiceTest {
             attestant = NavIdentBruker.Attestant(simulertStans.saksbehandler.navIdent),
         ).getOrFail("Feil med oppsett av testdata")
 
-        verify(serviceAndMocks.revurderingRepo).hent(simulertStans.id)
+        verify(serviceAndMocks.revurderingRepo).hent(
+            id = simulertStans.id,
+            sessionContext = TestSessionFactory.transactionContext,
+        )
         verify(serviceAndMocks.utbetalingService).klargjørStans(
             request = UtbetalRequest.Stans(
                 request = SimulerUtbetalingRequest.Stans(
@@ -350,13 +366,13 @@ internal class StansAvYtelseServiceTest {
 
         RevurderingServiceMocks(
             sakService = mock {
-                on { hentSak(any<UUID>()) } doReturn sak.right()
+                on { hentSak(any<UUID>(), any()) } doReturn sak.right()
             },
             utbetalingService = mock {
                 on { simulerStans(any()) } doReturn simulertUtbetaling().right()
             },
             revurderingRepo = mock {
-                on { hent(any()) } doReturn enRevurdering
+                on { hent(any(), any()) } doReturn enRevurdering
             },
         ).let {
             val response = it.revurderingService.stansAvYtelse(
@@ -382,7 +398,10 @@ internal class StansAvYtelseServiceTest {
                     stansdato = 1.desember(2021),
                 ),
             )
-            verify(it.revurderingRepo).hent(enRevurdering.id)
+            verify(it.revurderingRepo).hent(
+                id = enRevurdering.id,
+                sessionContext = TestSessionFactory.transactionContext,
+            )
             it.verifyNoMoreInteractions()
         }
     }
@@ -399,13 +418,13 @@ internal class StansAvYtelseServiceTest {
 
         RevurderingServiceMocks(
             sakService = mock {
-                on { hentSak(any<UUID>()) } doReturn sak.right()
+                on { hentSak(any<UUID>(), any()) } doReturn sak.right()
             },
             utbetalingService = mock {
                 on { simulerStans(any()) } doReturn simulertUtbetaling().right()
             },
             revurderingRepo = mock {
-                on { hent(any()) } doReturn eksisterende
+                on { hent(any(), any()) } doReturn eksisterende
             },
         ).let {
             val response = it.revurderingService.stansAvYtelse(
@@ -437,9 +456,14 @@ internal class StansAvYtelseServiceTest {
                     stansdato = mars(2021).fraOgMed,
                 ),
             )
-            verify(it.sakService).hentSak(sak.id)
-            verify(it.revurderingRepo).defaultTransactionContext()
-            verify(it.revurderingRepo).lagre(argThat { it shouldBe response }, anyOrNull())
+            verify(it.sakService).hentSak(
+                sakId = sak.id,
+                sessionContext = TestSessionFactory.transactionContext,
+            )
+            verify(it.revurderingRepo).lagre(
+                revurdering = argThat { it shouldBe response },
+                transactionContext = argThat { it shouldBe TestSessionFactory.transactionContext },
+            )
             it.verifyNoMoreInteractions()
         }
     }
@@ -456,7 +480,7 @@ internal class StansAvYtelseServiceTest {
         ).second
 
         val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(any()) } doReturn eksisterende
+            on { hent(any(), any()) } doReturn eksisterende
         }
 
         RevurderingServiceMocks(
@@ -469,7 +493,10 @@ internal class StansAvYtelseServiceTest {
 
             response shouldBe KunneIkkeIverksetteStansYtelse.SimuleringIndikererFeilutbetaling.left()
 
-            verify(it.revurderingRepo).hent(eksisterende.id)
+            verify(it.revurderingRepo).hent(
+                id = eksisterende.id,
+                sessionContext = TestSessionFactory.transactionContext,
+            )
             it.verifyNoMoreInteractions()
         }
     }
@@ -485,7 +512,7 @@ internal class StansAvYtelseServiceTest {
         )
 
         val sakServiceMock = mock<SakService> {
-            on { hentSak(any<UUID>()) } doReturn eksisterende.first.right()
+            on { hentSak(any<UUID>(), any()) } doReturn eksisterende.first.right()
         }
 
         RevurderingServiceMocks(
@@ -505,7 +532,10 @@ internal class StansAvYtelseServiceTest {
 
             response shouldBe KunneIkkeStanseYtelse.SakHarÅpenBehandling.left()
 
-            verify(sakServiceMock).hentSak(sakId)
+            verify(sakServiceMock).hentSak(
+                sakId = sakId,
+                sessionContext = TestSessionFactory.transactionContext,
+            )
             it.verifyNoMoreInteractions()
         }
     }

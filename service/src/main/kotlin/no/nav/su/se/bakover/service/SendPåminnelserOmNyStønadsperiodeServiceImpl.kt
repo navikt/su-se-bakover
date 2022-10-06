@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.service
 
 import no.nav.su.se.bakover.common.persistence.SessionFactory
-import no.nav.su.se.bakover.domain.JobContextRepo
-import no.nav.su.se.bakover.domain.SendPåminnelseNyStønadsperiodeContext
+import no.nav.su.se.bakover.domain.jobcontext.JobContextRepo
+import no.nav.su.se.bakover.domain.jobcontext.SendPåminnelseNyStønadsperiodeContext
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
@@ -30,7 +30,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImpl(
         return initialContext.uprosesserte { sakRepo.hentSakIdSaksnummerOgFnrForAlleSaker() }
             .ifEmpty {
                 log.info("Fant ingen flere saker for mulig utsending av påminnelse om ny stønadsperiode.")
-                log.info(initialContext.oppsummering(clock))
+                log.info(initialContext.oppsummering())
                 return initialContext
             }
             .also {
@@ -71,7 +71,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImpl(
                     throw ex
                 }
             }.also {
-                log.info(it.oppsummering(clock))
+                log.info(it.oppsummering())
             }
     }
 
@@ -79,9 +79,9 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImpl(
         return jobContextRepo.hent<SendPåminnelseNyStønadsperiodeContext>(
             SendPåminnelseNyStønadsperiodeContext.genererIdForTidspunkt(clock),
         )?.also {
-            log.info("Gjenbruker eksisterende context for jobb: ${it.id().jobName}, måned: ${it.id().yearMonth}")
+            log.info("Gjenbruker eksisterende context for jobb: ${it.id().name}, måned: ${it.id().yearMonth}")
         } ?: SendPåminnelseNyStønadsperiodeContext(clock).also {
-            log.info("Oppretter ny context for jobb: ${it.id().jobName}, måned: ${it.id().yearMonth}")
+            log.info("Oppretter ny context for jobb: ${it.id().name}, måned: ${it.id().yearMonth}")
         }
     }
 }

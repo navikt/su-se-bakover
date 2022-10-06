@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain
+package no.nav.su.se.bakover.domain.jobcontext
 
 import arrow.core.Either
 import arrow.core.flatMap
@@ -6,9 +6,11 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.avrund
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
+import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.sak.SakInfo
@@ -16,15 +18,6 @@ import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import java.time.Clock
 import java.time.LocalDate
 import java.time.YearMonth
-
-sealed class JobContext {
-
-    abstract fun id(): JobContextId
-
-    enum class Typer {
-        SendPåminnelseNyStønadsperiode,
-    }
-}
 
 /**
  * Holder oversikt over tilstanden for en instans av denne jobben, definert av [id].
@@ -41,7 +34,7 @@ data class SendPåminnelseNyStønadsperiodeContext(
     private val endret: Tidspunkt,
     private val prosessert: Set<Saksnummer>,
     private val sendt: Set<Saksnummer>,
-) : JobContext() {
+) : JobContext {
 
     constructor(
         clock: Clock,
@@ -86,11 +79,11 @@ data class SendPåminnelseNyStønadsperiodeContext(
         return prosessert(saksnummer, clock).copy(sendt = sendt + saksnummer, endret = Tidspunkt.now(clock))
     }
 
-    fun oppsummering(clock: Clock): String {
+    fun oppsummering(): String {
         return """
             ${"\n"}
             ***********************************
-            Oppsummering av jobb: ${id.jobName}, tidspunkt:${Tidspunkt.now(clock)},
+            Oppsummering av jobb: ${id.name}, tidspunkt:${Tidspunkt.now()},
             Måned: ${id.yearMonth},
             Opprettet: $opprettet,
             Endret: $endret,
@@ -160,13 +153,9 @@ data class SendPåminnelseNyStønadsperiodeContext(
     companion object {
         fun genererIdForTidspunkt(clock: Clock): NameAndYearMonthId {
             return NameAndYearMonthId(
-                jobName = type().toString(),
+                name = "SendPåminnelseNyStønadsperiode",
                 yearMonth = YearMonth.now(clock),
             )
-        }
-
-        fun type(): Typer {
-            return Typer.SendPåminnelseNyStønadsperiode
         }
     }
 
@@ -174,29 +163,4 @@ data class SendPåminnelseNyStønadsperiodeContext(
         object FantIkkePerson : KunneIkkeSendePåminnelse
         object KunneIkkeLageBrev : KunneIkkeSendePåminnelse
     }
-}
-
-interface JobContextId {
-    fun value(): String
-}
-
-data class NameAndYearMonthId(
-    val jobName: String,
-    val yearMonth: YearMonth,
-) : JobContextId {
-    override fun value(): String {
-        return """$jobName$yearMonth"""
-    }
-
-    fun tilPeriode(): Periode {
-        return Periode.create(
-            fraOgMed = LocalDate.of(yearMonth.year, yearMonth.month, 1),
-            tilOgMed = yearMonth.atEndOfMonth(),
-        )
-    }
-}
-
-interface JobContextRepo {
-    fun <T : JobContext> hent(id: JobContextId): T?
-    fun lagre(jobContext: JobContext, transactionContext: TransactionContext)
 }

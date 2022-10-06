@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain
+package no.nav.su.se.bakover.domain.jobcontext
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -21,7 +21,7 @@ internal class SendPåminnelseNyStønadsperiodeContextTest {
         SendPåminnelseNyStønadsperiodeContext.genererIdForTidspunkt(førsteJanuar) shouldBe SendPåminnelseNyStønadsperiodeContext.genererIdForTidspunkt(
             fjortendeJanuar,
         ).also {
-            it.jobName shouldBe "SendPåminnelseNyStønadsperiode"
+            it.name shouldBe "SendPåminnelseNyStønadsperiode"
             it.yearMonth shouldBe YearMonth.of(2021, Month.JANUARY)
         }
         SendPåminnelseNyStønadsperiodeContext.genererIdForTidspunkt(førsteJanuar) shouldBe SendPåminnelseNyStønadsperiodeContext.genererIdForTidspunkt(
@@ -36,7 +36,7 @@ internal class SendPåminnelseNyStønadsperiodeContextTest {
         SendPåminnelseNyStønadsperiodeContext.genererIdForTidspunkt(førsteJanuar) shouldNotBe SendPåminnelseNyStønadsperiodeContext.genererIdForTidspunkt(
             femteFebruar,
         ).also {
-            it.jobName shouldBe "SendPåminnelseNyStønadsperiode"
+            it.name shouldBe "SendPåminnelseNyStønadsperiode"
             it.yearMonth shouldBe YearMonth.of(2021, Month.FEBRUARY)
         }
     }

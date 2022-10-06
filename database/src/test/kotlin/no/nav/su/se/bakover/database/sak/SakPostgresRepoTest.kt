@@ -3,11 +3,13 @@ package no.nav.su.se.bakover.database.sak
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
 import no.nav.su.se.bakover.domain.sak.SakInfo
+import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.TestDataHelper.Companion.søknadNy
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
@@ -48,6 +50,15 @@ internal class SakPostgresRepoTest {
                 nySak.fnr,
                 nySak.type,
             )
+        }
+    }
+
+    @Test
+    fun `hent sakinfo for bruker uten sak`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.sakRepo
+            repo.hentSakInfoForIdenter(nonEmptyListOf(Fnr.generer().toString())) shouldBe null
         }
     }
 
