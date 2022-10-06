@@ -3,13 +3,13 @@ package no.nav.su.se.bakover.domain.oppgave
 import no.nav.su.se.bakover.common.AktørId
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.common.periode.DatoIntervall
 import no.nav.su.se.bakover.domain.Behandlingstema
 import no.nav.su.se.bakover.domain.Behandlingstype
 import no.nav.su.se.bakover.domain.Oppgavetype
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
-import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
 import java.time.Clock
 import java.time.LocalDate

@@ -6,6 +6,7 @@ import kotliquery.Row
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.persistence.DbMetrics
 import no.nav.su.se.bakover.common.persistence.PostgresSessionContext.Companion.withSession
@@ -32,7 +33,6 @@ import no.nav.su.se.bakover.database.klage.KlagePostgresRepo.VedtaksvurderingJso
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo.VedtaksvurderingJson.Oppretthold.Hjemmel.Companion.toDatabasetype
 import no.nav.su.se.bakover.database.klage.klageinstans.KlageinstanshendelsePostgresRepo
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.Hjemler

@@ -10,13 +10,13 @@ import io.kotest.matchers.shouldNot
 import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.su.se.bakover.client.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.Fnr
+import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.fixedClock
 import no.nav.su.se.bakover.common.førsteINesteMåned
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.jobcontext.NameAndLocalDateId
-import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.journalpost.ErKontrollNotatMottatt
 import no.nav.su.se.bakover.domain.journalpost.JournalpostStatus
 import no.nav.su.se.bakover.domain.journalpost.JournalpostTema

@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.vedtak
 
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.domain.journal.JournalpostId
 import java.time.LocalDate
 import java.util.UUID
 

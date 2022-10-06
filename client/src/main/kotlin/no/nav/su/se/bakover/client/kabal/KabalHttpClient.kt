@@ -8,10 +8,10 @@ import arrow.core.right
 import no.nav.su.se.bakover.client.azure.AzureAd
 import no.nav.su.se.bakover.client.isSuccess
 import no.nav.su.se.bakover.common.ApplicationConfig
+import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.common.getOrCreateCorrelationId
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.sikkerLogg
-import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.KlageClient
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeTilKlageinstans
 import no.nav.su.se.bakover.domain.klage.OversendtKlage

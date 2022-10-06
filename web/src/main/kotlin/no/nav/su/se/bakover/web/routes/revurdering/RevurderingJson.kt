@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
-import no.nav.su.se.bakover.common.periode.PeriodeJson
-import no.nav.su.se.bakover.common.periode.PeriodeJson.Companion.toJson
+import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson
+import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering

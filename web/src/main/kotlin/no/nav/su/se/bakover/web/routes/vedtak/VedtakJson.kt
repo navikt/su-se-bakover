@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.routes.vedtak
 
-import no.nav.su.se.bakover.common.periode.PeriodeJson
-import no.nav.su.se.bakover.common.periode.PeriodeJson.Companion.toJson
+import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson
+import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
 import no.nav.su.se.bakover.domain.vedtak.Vedtak

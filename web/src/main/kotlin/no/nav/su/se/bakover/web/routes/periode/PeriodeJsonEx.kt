@@ -4,8 +4,8 @@ import arrow.core.Either
 import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
+import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.periode.PeriodeJson
 
 internal fun PeriodeJson.toPeriodeOrResultat(): Either<Resultat, Periode> {
     return this.tryToPeriode().mapLeft {

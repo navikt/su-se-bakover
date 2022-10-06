@@ -7,8 +7,8 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.AccessToken
 import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.common.ApplicationConfig
+import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.journalpost.FerdigstiltJournalpost
 import no.nav.su.se.bakover.domain.journalpost.JournalpostStatus
 import no.nav.su.se.bakover.domain.journalpost.JournalpostTema

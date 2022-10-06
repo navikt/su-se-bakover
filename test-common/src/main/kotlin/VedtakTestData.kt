@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.test
 
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.startOfMonth
@@ -15,7 +16,6 @@ import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBre
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
-import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak

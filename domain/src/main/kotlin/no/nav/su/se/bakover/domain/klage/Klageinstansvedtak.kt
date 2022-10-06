@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.klage
 
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import java.util.UUID
 

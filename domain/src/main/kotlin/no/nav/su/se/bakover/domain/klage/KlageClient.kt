@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.klage
 
 import arrow.core.Either
-import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.common.application.journal.JournalpostId
 
 interface KlageClient {
     fun sendTilKlageinstans(

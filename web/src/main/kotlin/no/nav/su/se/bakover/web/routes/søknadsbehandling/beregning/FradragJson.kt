@@ -8,9 +8,9 @@ import arrow.core.sequence
 import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
+import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson
+import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.periode.PeriodeJson
-import no.nav.su.se.bakover.common.periode.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører

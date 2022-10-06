@@ -9,8 +9,8 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteJournalpost

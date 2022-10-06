@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.client.kabal
 
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
 import java.time.LocalDate

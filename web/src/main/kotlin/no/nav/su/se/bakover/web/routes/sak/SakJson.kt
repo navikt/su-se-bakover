@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web.routes.sak
 
-import no.nav.su.se.bakover.common.periode.PeriodeJson
+import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson
 import no.nav.su.se.bakover.domain.KanStansesEllerGjenopptas
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Sakstype

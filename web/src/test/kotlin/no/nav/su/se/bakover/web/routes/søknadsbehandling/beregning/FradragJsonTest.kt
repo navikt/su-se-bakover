@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.deserialize
-import no.nav.su.se.bakover.common.periode.PeriodeJson
+import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory

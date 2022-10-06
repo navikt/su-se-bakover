@@ -5,8 +5,8 @@ import arrow.core.flatMap
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
-import no.nav.su.se.bakover.common.periode.PeriodeJson
-import no.nav.su.se.bakover.common.periode.PeriodeJson.Companion.toJson
+import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson
+import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.web.routes.periode.toPeriodeOrResultat
 

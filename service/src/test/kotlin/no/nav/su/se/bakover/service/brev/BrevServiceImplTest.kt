@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.Ident
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.Person
@@ -32,7 +33,6 @@ import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
 import no.nav.su.se.bakover.domain.dokument.Dokumentdistribusjon
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
-import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.FantIkkeGjeldendeUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.person.IdentClient

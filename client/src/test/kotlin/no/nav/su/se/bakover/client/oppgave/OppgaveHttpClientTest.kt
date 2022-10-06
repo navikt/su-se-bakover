@@ -21,9 +21,9 @@ import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.AktørId
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.NavIdentBruker.Saksbehandler
+import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
-import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.KlageinstansUtfall
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil

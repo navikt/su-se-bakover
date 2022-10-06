@@ -4,8 +4,8 @@ import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.sequence
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
-import no.nav.su.se.bakover.common.periode.PeriodeJson
-import no.nav.su.se.bakover.common.periode.PeriodeJson.Companion.toJson
+import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson
+import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.grunnlag.Pensjonsgrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Pensjonsopplysninger

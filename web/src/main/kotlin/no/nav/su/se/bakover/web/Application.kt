@@ -51,6 +51,7 @@ import no.nav.su.se.bakover.service.AccessCheckProxy
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.Tilgangssjekkfeil
+import no.nav.su.se.bakover.utenlandsopphold.infrastructure.web.utenlandsoppholdRoutes
 import no.nav.su.se.bakover.web.external.frikortVedtakRoutes
 import no.nav.su.se.bakover.web.features.withUser
 import no.nav.su.se.bakover.web.metrics.BehandlingMicrometerMetrics
@@ -272,6 +273,7 @@ fun Application.susebakover(
                         satsFactory = satsFactoryIDag,
                     )
                     skattRoutes(accessProtectedServices.skatteService, accessProtectedServices.toggles)
+                    utenlandsoppholdRoutes()
                 }
             }
         }
