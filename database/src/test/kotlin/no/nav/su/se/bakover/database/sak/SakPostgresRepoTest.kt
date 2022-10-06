@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.database.sak
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
