@@ -8,10 +8,10 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
 import no.nav.su.se.bakover.domain.sak.SakInfo
+import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.TestDataHelper.Companion.søknadNy
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
-import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import org.junit.jupiter.api.Test
 
