@@ -8,11 +8,5 @@ import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson
 data class RegistrerUtenlandsoppholdJson(
     val periode: PeriodeJson,
     val journalpostIder: List<String>,
-    val dokumentasjon: Dokumentasjon,
-) {
-    enum class Dokumentasjon {
-        Udokumentert,
-        Dokumentert,
-        Sannsynliggjort,
-    }
-}
+    val dokumentasjon: UtenlandsoppholdDokumentasjonJson,
+)
