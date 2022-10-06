@@ -5,6 +5,11 @@ import io.ktor.server.application.call
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.Brukerrolle
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
+import no.nav.su.se.bakover.common.infrastructure.web.Resultat
+import no.nav.su.se.bakover.common.infrastructure.web.svar
+import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
+import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.vilkår.UgyldigFamiliegjenforeningVilkår
@@ -12,12 +17,7 @@ import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.vilkår.FamiliegjenforeningVurderinger
 import no.nav.su.se.bakover.service.vilkår.FamiliegjenforeningvilkårStatus
 import no.nav.su.se.bakover.service.vilkår.LeggTilFamiliegjenforeningRequest
-import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.features.authorize
-import no.nav.su.se.bakover.web.routes.Feilresponser
-import no.nav.su.se.bakover.web.svar
-import no.nav.su.se.bakover.web.withBehandlingId
-import no.nav.su.se.bakover.web.withBody
 import java.util.UUID
 
 internal fun Route.leggTilFamiliegjenforeningRoute(

@@ -1,5 +1,3 @@
-val ktorVersion: String by project
-
 plugins {
     id("com.github.davidmc24.gradle.plugin.avro") version "1.5.0"
 }
@@ -18,26 +16,7 @@ dependencies {
     implementation(project(":hendelse"))
     implementation(project(":test-common"))
 
-    implementation("io.ktor:ktor-server-netty:$ktorVersion")
-    implementation("io.ktor:ktor-server-auth-jwt:$ktorVersion") {
-        exclude(group = "junit")
-    }
-    implementation("io.ktor:ktor-server-metrics-micrometer:$ktorVersion")
-    implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
-    implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
-    implementation("io.ktor:ktor-server-call-id:$ktorVersion")
-    implementation("io.ktor:ktor-server-call-logging:$ktorVersion")
-    implementation("io.ktor:ktor-server-forwarded-header:$ktorVersion")
-    implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
-    implementation("com.papertrailapp", "logback-syslog4j", "1.0.0")
-
     testImplementation(project(":test-common"))
-    testImplementation("org.xmlunit:xmlunit-matchers:2.9.0")
-    testImplementation("io.ktor:ktor-server-test-host:$ktorVersion") {
-        exclude(group = "junit")
-        exclude(group = "org.eclipse.jetty") // conflicts with WireMock
-        exclude(group = "org.eclipse.jetty.http2") // conflicts with WireMock
-    }
 }
 
 tasks.named<Jar>("jar") {

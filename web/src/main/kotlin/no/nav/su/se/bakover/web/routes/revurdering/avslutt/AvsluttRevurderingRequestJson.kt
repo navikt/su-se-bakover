@@ -4,9 +4,9 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
+import no.nav.su.se.bakover.common.infrastructure.web.Resultat
+import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.domain.brev.Brevvalg
-import no.nav.su.se.bakover.web.Resultat
-import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.routes.brev.SaksbehandlerBrevvalgJson
 
 /**

@@ -6,11 +6,12 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
+import no.nav.su.se.bakover.common.infrastructure.web.deserialize
+import no.nav.su.se.bakover.common.infrastructure.web.parameter
+import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.service.toggles.ToggleService
-import no.nav.su.se.bakover.web.deserialize
-import no.nav.su.se.bakover.web.parameter
-import no.nav.su.se.bakover.web.svar
 
 private const val TOGGLES_PATH = "/toggles"
 

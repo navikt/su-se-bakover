@@ -1,14 +1,14 @@
-package no.nav.su.se.bakover.web
+package no.nav.su.se.bakover.common.infrastructure.web
 
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.response.respondText
+import no.nav.su.se.bakover.common.infrastructure.web.Resultat.Companion.json
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.web.Resultat.Companion.json
 
 /* forstår seg på hvordan et resultat med en melding blir til en http-response */
-internal data class Resultat private constructor(
+data class Resultat private constructor(
     val httpCode: HttpStatusCode,
     private val json: String,
     private val contentType: ContentType,
@@ -24,16 +24,16 @@ internal data class Resultat private constructor(
         fun json(httpCode: HttpStatusCode, json: String): Resultat =
             Resultat(httpCode, json, contentType = ContentType.Application.Json)
 
-        fun okJson(httpCode: HttpStatusCode) = json(httpCode, """{"status": "OK"}""")
+        fun okJson() = json(HttpStatusCode.OK, """{"status": "OK"}""")
     }
 }
 
-internal fun HttpStatusCode.errorJson(message: String, code: String): Resultat {
+fun HttpStatusCode.errorJson(message: String, code: String): Resultat {
     return json(this, serialize(ErrorJson(message, code)))
 }
 
-internal fun HttpStatusCode.errorJson(errors: List<ErrorJson>): Resultat {
+fun HttpStatusCode.errorJson(errors: List<ErrorJson>): Resultat {
     return json(this, serialize(errors))
 }
 
-internal suspend fun ApplicationCall.svar(resultat: Resultat) = resultat.svar(this)
+suspend fun ApplicationCall.svar(resultat: Resultat) = resultat.svar(this)

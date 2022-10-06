@@ -5,8 +5,8 @@ import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
 import io.ktor.util.pipeline.PipelineContext
 import no.nav.su.se.bakover.common.Brukerrolle
-import no.nav.su.se.bakover.web.errorJson
-import no.nav.su.se.bakover.web.svar
+import no.nav.su.se.bakover.common.infrastructure.web.errorJson
+import no.nav.su.se.bakover.common.infrastructure.web.svar
 
 suspend fun PipelineContext<Unit, ApplicationCall>.authorize(
     vararg autoriserteRoller: Brukerrolle,

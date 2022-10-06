@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.routes.vilkår.alder
 import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.sequence
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.periode.PeriodeJson
 import no.nav.su.se.bakover.common.periode.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.toNonEmptyList
@@ -16,7 +17,6 @@ import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodePensjon
 import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeTilPensjonsVilkår
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.web.routes.Feilresponser
 import java.util.UUID
 
 internal data class PensjonsopplysningerJson(
@@ -212,7 +212,7 @@ internal fun VurderingsperiodePensjon.toJson(): VurderingsperiodePensjonsvilkår
     )
 }
 
-internal fun KunneIkkeLeggeTilPensjonsVilkår.tilResultat(): no.nav.su.se.bakover.web.Resultat {
+internal fun KunneIkkeLeggeTilPensjonsVilkår.tilResultat(): no.nav.su.se.bakover.common.infrastructure.web.Resultat {
     return when (this) {
         is KunneIkkeLeggeTilPensjonsVilkår.FantIkkeBehandling -> {
             Feilresponser.fantIkkeBehandling

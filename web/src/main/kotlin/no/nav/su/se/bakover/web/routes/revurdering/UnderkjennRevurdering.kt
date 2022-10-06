@@ -10,6 +10,18 @@ import io.ktor.server.routing.patch
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.enumContains
+import no.nav.su.se.bakover.common.infrastructure.audit.AuditLogEvent
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.attestantOgSaksbehandlerKanIkkeVæreSammePerson
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeAktørId
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.kunneIkkeOppretteOppgave
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ugyldigBody
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ugyldigTilstand
+import no.nav.su.se.bakover.common.infrastructure.web.Resultat
+import no.nav.su.se.bakover.common.infrastructure.web.audit
+import no.nav.su.se.bakover.common.infrastructure.web.deserialize
+import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
+import no.nav.su.se.bakover.common.infrastructure.web.svar
+import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -17,21 +29,9 @@ import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeUnderkjenneRevurdering
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.web.AuditLogEvent
-import no.nav.su.se.bakover.web.Resultat
-import no.nav.su.se.bakover.web.audit
-import no.nav.su.se.bakover.web.deserialize
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
-import no.nav.su.se.bakover.web.routes.Feilresponser.attestantOgSaksbehandlerKanIkkeVæreSammePerson
-import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeAktørId
-import no.nav.su.se.bakover.web.routes.Feilresponser.kunneIkkeOppretteOppgave
-import no.nav.su.se.bakover.web.routes.Feilresponser.ugyldigBody
-import no.nav.su.se.bakover.web.routes.Feilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
-import no.nav.su.se.bakover.web.sikkerlogg
-import no.nav.su.se.bakover.web.svar
-import no.nav.su.se.bakover.web.withRevurderingId
 
 data class UnderkjennBody(
     val grunn: String,

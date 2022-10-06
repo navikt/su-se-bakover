@@ -6,6 +6,7 @@ plugins {
 }
 
 version = "0.0.1"
+val ktorVersion: String by project
 
 subprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
@@ -48,6 +49,19 @@ subprojects {
         implementation("com.zaxxer:HikariCP:5.0.1")
         implementation("com.github.navikt:vault-jdbc:1.3.10")
 
+        implementation("io.ktor:ktor-server-netty:$ktorVersion")
+        implementation("io.ktor:ktor-server-auth-jwt:$ktorVersion") {
+            exclude(group = "junit")
+        }
+        implementation("io.ktor:ktor-server-metrics-micrometer:$ktorVersion")
+        implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
+        implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
+        implementation("io.ktor:ktor-server-call-id:$ktorVersion")
+        implementation("io.ktor:ktor-server-call-logging:$ktorVersion")
+        implementation("io.ktor:ktor-server-forwarded-header:$ktorVersion")
+        implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
+        implementation("com.papertrailapp", "logback-syslog4j", "1.0.0")
+
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
 
         testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
@@ -67,6 +81,12 @@ subprojects {
         testImplementation("io.zonky.test:embedded-postgres:2.0.1")
         // Legger til manglende binaries for nye Mac's med M1 cpuer.
         testImplementation("io.zonky.test.postgres:embedded-postgres-binaries-darwin-arm64v8")
+        testImplementation("org.xmlunit:xmlunit-matchers:2.9.0")
+        testImplementation("io.ktor:ktor-server-test-host:$ktorVersion") {
+            exclude(group = "junit")
+            exclude(group = "org.eclipse.jetty") // conflicts with WireMock
+            exclude(group = "org.eclipse.jetty.http2") // conflicts with WireMock
+        }
 
         constraints {
             implementation("commons-collections:commons-collections") {
@@ -176,6 +196,7 @@ configure(
         project(":web-regresjonstest"),
         project(":statistikk"),
         project(":hendelse"),
+        project(":utenlandsopphold"),
     ),
 ) {
     tasks.test {

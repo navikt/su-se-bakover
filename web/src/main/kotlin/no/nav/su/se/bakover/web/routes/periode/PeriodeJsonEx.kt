@@ -2,10 +2,10 @@ package no.nav.su.se.bakover.web.routes.periode
 
 import arrow.core.Either
 import io.ktor.http.HttpStatusCode
+import no.nav.su.se.bakover.common.infrastructure.web.Resultat
+import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.PeriodeJson
-import no.nav.su.se.bakover.web.Resultat
-import no.nav.su.se.bakover.web.errorJson
 
 internal fun PeriodeJson.toPeriodeOrResultat(): Either<Resultat, Periode> {
     return this.tryToPeriode().mapLeft {

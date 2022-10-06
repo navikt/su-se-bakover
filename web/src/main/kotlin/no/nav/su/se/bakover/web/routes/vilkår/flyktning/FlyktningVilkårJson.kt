@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.web.routes.vilkår.flyktning
 
 import arrow.core.Either
+import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
+import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.periode.PeriodeJson
 import no.nav.su.se.bakover.common.periode.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.toNonEmptyList
@@ -11,8 +13,6 @@ import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFlyktning
 import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeTilFlyktningVilkår
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.web.Resultat
-import no.nav.su.se.bakover.web.routes.Feilresponser
 import java.util.UUID
 
 internal fun List<LeggTilVurderingsperiodeFlyktningVilkårJson>.toDomain(): Either<KunneIkkeLeggeTilFlyktningVilkår, FlyktningVilkår.Vurdert> {
