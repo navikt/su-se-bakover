@@ -46,7 +46,7 @@ internal class SakRoutesKtTest {
                 testSusebakover(
                     services = TestServicesBuilder.services(
                         sak = mock {
-                            on { hentSak(any(), any()) } doReturn nySakUføre(
+                            on { hentSak(any<Fnr>(), any()) } doReturn nySakUføre(
                                 sakInfo = SakInfo(
                                     sakId = sakId,
                                     saksnummer = saksnummer,
