@@ -4,6 +4,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
 import io.ktor.server.routing.Route
+import io.ktor.server.routing.delete
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import no.nav.su.se.bakover.common.Brukerrolle
@@ -34,6 +35,14 @@ fun Route.utenlandsoppholdRoutes() {
                 call.withBody<RegistrerUtenlandsoppholdJson> { json ->
                     call.svar(Resultat.json(HttpStatusCode.OK, serialize(json)))
                 }
+            }
+        }
+    }
+
+    delete("/saker/{sakId}/utenlandsopphold/{utenlandsoppholdId}") {
+        authorize(Brukerrolle.Saksbehandler) {
+            call.withUtenlandsoppholdId {
+                call.svar(Resultat.json(HttpStatusCode.OK, """{"utenlandsoppholdId":"$it"}"""))
             }
         }
     }
