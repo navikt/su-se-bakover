@@ -5,6 +5,7 @@ import arrow.core.getOrHandle
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.nais.LeaderPodLookup
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
+import no.nav.su.se.bakover.web.services.erLeaderPod
 import org.slf4j.LoggerFactory
 import java.net.InetAddress
 import java.time.Clock
@@ -49,11 +50,10 @@ class TilbakekrevingJob(
 
     private fun shouldRun(): Boolean {
         val now = LocalTime.now(clock.withZone(zoneIdOslo))
-        return isLeaderPod() &&
+        return leaderPodLookup.erLeaderPod(hostName) &&
             now > ordinærÅpningstidOppdrag.first &&
             now < ordinærÅpningstidOppdrag.second
     }
 
     private val hostName = InetAddress.getLocalHost().hostName
-    private fun isLeaderPod() = leaderPodLookup.amITheLeader(hostName).isRight()
 }
