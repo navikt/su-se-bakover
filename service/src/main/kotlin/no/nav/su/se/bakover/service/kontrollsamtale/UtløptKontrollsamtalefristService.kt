@@ -112,7 +112,7 @@ internal class UtløptFristForKontrollsamtaleServiceImpl(
                             }
                     },
                     opprettOppgave = { oppgaveConfig: OppgaveConfig ->
-                        oppgaveService.opprettOppgave(oppgaveConfig)
+                        oppgaveService.opprettOppgaveMedSystembruker(oppgaveConfig)
                             .mapLeft {
                                 UtløptFristForKontrollsamtaleContext.KunneIkkeHåndtereUtløptKontrollsamtale(it::class.java.toString())
                             }

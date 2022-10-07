@@ -177,7 +177,7 @@ internal class KontrollsamtaleKomponentTest {
                         kafkaPublisher = kafkaPublisherMock,
                         oppgaveClient = object : OppgaveClient by it.oppgaveClient {
                             var count = 0
-                            override fun opprettOppgave(config: OppgaveConfig): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveId> {
+                            override fun opprettOppgaveMedSystembruker(config: OppgaveConfig): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveId> {
                                 return if (config is OppgaveConfig.KlarteIkkeÅStanseYtelseVedUtløpAvFristForKontrollsamtale) {
                                     count++
                                     if (count == 2) {
