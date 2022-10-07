@@ -172,6 +172,8 @@ internal fun startJobberOgConsumers(
             leaderPodLookup = clients.leaderPodLookup,
             initialDelay = initialDelay.next(),
             intervall = Duration.of(15, ChronoUnit.MINUTES),
+            ordinærÅpningstidOppdrag = applicationConfig.oppdrag.ordinærÅpningstid,
+            clock = clock,
         ).schedule()
 
         SendPåminnelseNyStønadsperiodeJob(
@@ -267,6 +269,8 @@ internal fun startJobberOgConsumers(
             leaderPodLookup = clients.leaderPodLookup,
             initialDelay = initialDelay.next(),
             intervall = Duration.ofSeconds(10),
+            ordinærÅpningstidOppdrag = applicationConfig.oppdrag.ordinærÅpningstid,
+            clock = clock,
         ).schedule()
 
         SendPåminnelseNyStønadsperiodeJob(
