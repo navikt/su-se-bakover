@@ -45,7 +45,7 @@ subprojects {
         implementation("io.micrometer:micrometer-core:1.9.4")
         implementation("io.micrometer:micrometer-registry-prometheus:1.9.4")
         implementation("com.github.seratch:kotliquery:1.9.0")
-        implementation("org.flywaydb:flyway-core:9.3.1")
+        implementation("org.flywaydb:flyway-core:9.4.0")
         implementation("com.zaxxer:HikariCP:5.0.1")
         implementation("com.github.navikt:vault-jdbc:1.3.10")
 
