@@ -8,7 +8,7 @@ private val logger: Logger = LoggerFactory.getLogger(SessionCounter::class.java)
 
 class SessionCounter(
     private val whenOverThreshold: (numberOfSession: Int) -> Unit = {
-        logger.debug(
+        logger.error(
             "Sessions per thread over threshold: We started a new session while a session for this thread was already open. Total number of session: $it.",
             RuntimeException("Triggering a stacktrace for logs."),
         )
