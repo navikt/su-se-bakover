@@ -207,7 +207,7 @@ data class UtløptFristForKontrollsamtaleContext(
                         this
                     },
                     {
-                        logger.error("Feil: ${error.message!!} ved prosessering av kontrollsamtale: ${kontrollsamtale.id}")
+                        logger.info("Feil: ${error.message!!} ved prosessering av kontrollsamtale: ${kontrollsamtale.id}")
                         it
                     },
                 )
