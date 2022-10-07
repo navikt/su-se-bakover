@@ -23,7 +23,7 @@ fun ApplicationTestBuilder.nyttUtenlandsopphold(
           "fraOgMed": "$fraOgMed",
           "tilOgMed": "$tilOgMed"
         },
-        "journalpostIder": $journalpostIder,
+        "journalposter": $journalpostIder,
         "dokumentasjon": "$dokumentasjon"
       }
     """.trimIndent()

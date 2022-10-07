@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.common.infrastructure.web.periode
 
 import arrow.core.Either
+import no.nav.su.se.bakover.common.periode.DatoIntervall
 import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.Periode
 import java.time.LocalDate
@@ -25,7 +26,15 @@ data class PeriodeJson(
         return Periode.tryCreate(LocalDate.parse(fraOgMed), LocalDate.parse(tilOgMed))
     }
 
+    fun toDatoIntervall(): DatoIntervall {
+        return DatoIntervall(LocalDate.parse(fraOgMed), LocalDate.parse(tilOgMed))
+    }
+
     companion object {
-        fun Periode.toJson() = PeriodeJson(fraOgMed.format(DateTimeFormatter.ISO_DATE), tilOgMed.format(DateTimeFormatter.ISO_DATE))
+        fun Periode.toJson() =
+            PeriodeJson(fraOgMed.format(DateTimeFormatter.ISO_DATE), tilOgMed.format(DateTimeFormatter.ISO_DATE))
+
+        fun DatoIntervall.toJson() =
+            PeriodeJson(fraOgMed.format(DateTimeFormatter.ISO_DATE), tilOgMed.format(DateTimeFormatter.ISO_DATE))
     }
 }

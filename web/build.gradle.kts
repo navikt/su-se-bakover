@@ -14,7 +14,9 @@ dependencies {
     implementation(project(":database"))
     implementation(project(":client"))
     implementation(project(":hendelse"))
-    implementation(project(":utenlandsopphold"))
+    implementation(project(":utenlandsopphold:presentation"))
+    implementation(project(":utenlandsopphold:application"))
+    implementation(project(":utenlandsopphold:domain"))
     implementation(project(":test-common"))
 
     testImplementation(project(":test-common"))

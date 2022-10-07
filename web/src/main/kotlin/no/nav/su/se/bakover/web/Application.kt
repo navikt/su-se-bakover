@@ -51,7 +51,10 @@ import no.nav.su.se.bakover.service.AccessCheckProxy
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.Tilgangssjekkfeil
-import no.nav.su.se.bakover.utenlandsopphold.infrastructure.web.utenlandsoppholdRoutes
+import no.nav.su.se.bakover.utenlandsopphold.application.RegistrerUtenlandsoppholdService
+import no.nav.su.se.bakover.utenlandsopphold.domain.RegistrertUtenlandsopphold
+import no.nav.su.se.bakover.utenlandsopphold.domain.RegistrertUtenlandsoppholdRepo
+import no.nav.su.se.bakover.utenlandsopphold.presentation.web.utenlandsoppholdRoutes
 import no.nav.su.se.bakover.web.external.frikortVedtakRoutes
 import no.nav.su.se.bakover.web.features.withUser
 import no.nav.su.se.bakover.web.metrics.BehandlingMicrometerMetrics
@@ -83,6 +86,7 @@ import org.slf4j.event.Level
 import java.time.Clock
 import java.time.LocalDate
 import java.time.format.DateTimeParseException
+import java.util.UUID
 
 fun main() {
     if (ApplicationConfig.isRunningLocally()) {
@@ -273,7 +277,17 @@ fun Application.susebakover(
                         satsFactory = satsFactoryIDag,
                     )
                     skattRoutes(accessProtectedServices.skatteService, accessProtectedServices.toggles)
-                    utenlandsoppholdRoutes()
+                    utenlandsoppholdRoutes(
+                        RegistrerUtenlandsoppholdService(
+                            sakRepo = databaseRepos.sak,
+                            registertUtenlandsoppholdRepo = object : RegistrertUtenlandsoppholdRepo {
+                                override fun lagre(sakId: UUID, registrertUtenlandsopphold: RegistrertUtenlandsopphold) {
+                                    // TODO jah: lagre
+                                }
+                            },
+                            clock = clock,
+                        ),
+                    )
                 }
             }
         }

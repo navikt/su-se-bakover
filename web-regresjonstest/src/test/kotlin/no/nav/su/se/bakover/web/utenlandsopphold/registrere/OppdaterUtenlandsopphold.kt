@@ -24,7 +24,7 @@ fun ApplicationTestBuilder.oppdaterUtenlandsopphold(
           "fraOgMed": "$fraOgMed",
           "tilOgMed": "$tilOgMed"
         },
-        "journalpostIder": $journalpostIder,
+        "journalposter": $journalpostIder,
         "dokumentasjon": "$dokumentasjon"
       }
     """.trimIndent()
