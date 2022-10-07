@@ -6,10 +6,13 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.AccessToken
 import no.nav.su.se.bakover.client.WiremockBase
+import no.nav.su.se.bakover.client.azure.AzureAd
+import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.journalpost.FerdigstiltJournalpost
+import no.nav.su.se.bakover.domain.journalpost.JournalpostClientMetrics
 import no.nav.su.se.bakover.domain.journalpost.JournalpostStatus
 import no.nav.su.se.bakover.domain.journalpost.JournalpostTema
 import no.nav.su.se.bakover.domain.journalpost.JournalpostType
@@ -19,8 +22,10 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Isolated
 import org.mockito.kotlin.any
+import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import org.slf4j.MDC
 
 // "denne må kjøres isolated siden MDC er static og vil tukle med andre tester som bruker MDC og kjører parallellt" - Quote from John Andre Hestad 2022
@@ -173,17 +178,25 @@ internal class JournalpostHttpClientTest {
     }
 }
 
-internal fun setupClient() = JournalpostHttpClient(
-    safConfig = ApplicationConfig.ClientsConfig.SafConfig(
+internal fun setupClient(
+    safConfig: ApplicationConfig.ClientsConfig.SafConfig = ApplicationConfig.ClientsConfig.SafConfig(
         url = WiremockBase.wireMockServer.baseUrl(),
         clientId = "clientId",
     ),
-    azureAd = mock {
+    azureAd: AzureAd = mock {
         on { onBehalfOfToken(any(), any()) } doReturn "aadToken"
     },
-    sts = mock {
+    sts: TokenOppslag = mock {
         on { token() } doReturn AccessToken("stsToken")
     },
+    metrics: JournalpostClientMetrics = mock {
+        doNothing().whenever(it).inkrementerBenyttetSkjema(any())
+    },
+) = JournalpostHttpClient(
+    safConfig = safConfig,
+    azureAd = azureAd,
+    sts = sts,
+    metrics = metrics,
 )
 internal fun token(authorization: String) = WireMock.post(WireMock.urlPathEqualTo("/graphql"))
     .withHeader("Authorization", WireMock.equalTo(authorization))

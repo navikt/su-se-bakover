@@ -43,6 +43,7 @@ import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.DomainToQueryParameterMapper
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
+import no.nav.su.se.bakover.domain.metrics.ClientMetrics
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
@@ -56,6 +57,7 @@ import no.nav.su.se.bakover.web.external.frikortVedtakRoutes
 import no.nav.su.se.bakover.web.features.withUser
 import no.nav.su.se.bakover.web.metrics.BehandlingMicrometerMetrics
 import no.nav.su.se.bakover.web.metrics.DbMicrometerMetrics
+import no.nav.su.se.bakover.web.metrics.JournalpostClientMicrometerMetrics
 import no.nav.su.se.bakover.web.metrics.SøknadMicrometerMetrics
 import no.nav.su.se.bakover.web.routes.avstemming.avstemmingRoutes
 import no.nav.su.se.bakover.web.routes.dokument.dokumentRoutes
@@ -97,6 +99,9 @@ fun Application.susebakover(
     clock: Clock = Clock.systemUTC(),
     behandlingMetrics: BehandlingMetrics = BehandlingMicrometerMetrics(),
     søknadMetrics: SøknadMetrics = SøknadMicrometerMetrics(),
+    clientMetrics: ClientMetrics = ClientMetrics(
+        journalpostClientMetrics = JournalpostClientMicrometerMetrics(),
+    ),
     applicationConfig: ApplicationConfig = ApplicationConfig.createConfig(),
     unleash: Unleash = UnleashBuilder.build(applicationConfig),
     satsFactory: SatsFactoryForSupplerendeStønad = SatsFactoryForSupplerendeStønad(),
@@ -119,6 +124,7 @@ fun Application.susebakover(
                 jmsConfig,
                 clock = clock,
                 unleash = unleash,
+                metrics = clientMetrics,
             ).build(applicationConfig)
         },
     services: Services = ServiceBuilder.build(

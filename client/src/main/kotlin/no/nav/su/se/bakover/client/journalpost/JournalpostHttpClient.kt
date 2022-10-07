@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.journalpost.ErKontrollNotatMottatt
 import no.nav.su.se.bakover.domain.journalpost.FerdigstiltJournalpost
 import no.nav.su.se.bakover.domain.journalpost.JournalpostClient
+import no.nav.su.se.bakover.domain.journalpost.JournalpostClientMetrics
 import no.nav.su.se.bakover.domain.journalpost.KunneIkkeHenteJournalpost
 import no.nav.su.se.bakover.domain.journalpost.KunneIkkeSjekkKontrollnotatMottatt
 import org.slf4j.Logger
@@ -32,6 +33,7 @@ internal class JournalpostHttpClient(
     private val safConfig: ApplicationConfig.ClientsConfig.SafConfig,
     private val azureAd: AzureAd,
     private val sts: TokenOppslag,
+    private val metrics: JournalpostClientMetrics,
 ) : JournalpostClient {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
     private val graphQLUrl: URI = URI.create("${safConfig.url}/graphql")
@@ -80,6 +82,19 @@ internal class JournalpostHttpClient(
     }
 
     override fun kontrollnotatMotatt(saksnummer: Saksnummer, periode: DatoIntervall): Either<KunneIkkeSjekkKontrollnotatMottatt, ErKontrollNotatMottatt> {
+        val kontrollnotatTittel = "NAV SU Kontrollnotat"
+        val dokumentasjonAvOppfølgingsamtaleTittel = "Dokumentasjon av oppfølgingssamtale"
+
+        fun String.inneholder(string: String): Boolean {
+            return this.contains(string)
+        }
+
+        fun String.toBenyttetSkjemaMetric(): JournalpostClientMetrics.BenyttetSkjema {
+            if (this.inneholder(kontrollnotatTittel)) return JournalpostClientMetrics.BenyttetSkjema.NAV_SU_KONTROLLNOTAT
+            if (this.inneholder(dokumentasjonAvOppfølgingsamtaleTittel)) return JournalpostClientMetrics.BenyttetSkjema.DOKUMENTASJON_AV_OPPFØLGINGSSAMTALE
+            throw IllegalArgumentException("Ukjent og uønsket tittel")
+        }
+
         val request = GraphQLQuery<HentDokumentoversiktFagsakHttpResponse>(
             query = lagRequest(
                 query = "/dokumentoversiktFagsakQuery.graphql",
@@ -104,7 +119,9 @@ internal class JournalpostHttpClient(
             response.data!!.dokumentoversiktFagsak.journalposter
                 .toDomain()
                 .sortedBy { it.datoOpprettet }
-                .lastOrNull { periode.inneholder(it.datoOpprettet) && it.tittel.contains("NAV SU Kontrollnotat") }
+                .lastOrNull {
+                    periode.inneholder(it.datoOpprettet) && (it.tittel.inneholder(kontrollnotatTittel) || it.tittel.inneholder(dokumentasjonAvOppfølgingsamtaleTittel))
+                }?.also { metrics.inkrementerBenyttetSkjema(it.tittel.toBenyttetSkjemaMetric()) }
                 ?.let { ErKontrollNotatMottatt.Ja(it) } ?: ErKontrollNotatMottatt.Nei
         }
     }

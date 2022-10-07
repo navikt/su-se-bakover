@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.journalpost.ErKontrollNotatMottatt
+import no.nav.su.se.bakover.domain.journalpost.JournalpostClientMetrics
 import no.nav.su.se.bakover.domain.journalpost.JournalpostStatus
 import no.nav.su.se.bakover.domain.journalpost.JournalpostTema
 import no.nav.su.se.bakover.domain.journalpost.JournalpostType
@@ -18,6 +19,12 @@ import no.nav.su.se.bakover.domain.journalpost.KontrollnotatMottattJournalpost
 import no.nav.su.se.bakover.test.shouldBeType
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doNothing
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 
 internal class HentKontrollnotatMottattTest : WiremockBase {
 
@@ -28,7 +35,12 @@ internal class HentKontrollnotatMottattTest : WiremockBase {
                 .willReturn(WireMock.ok(happyJson())),
         )
 
-        setupClient().also {
+        val metrics = mock<JournalpostClientMetrics> {
+            doNothing().whenever(it).inkrementerBenyttetSkjema(any())
+        }
+        setupClient(
+            metrics = metrics,
+        ).also {
             it.kontrollnotatMotatt(Saksnummer(10002027), september(2022)) shouldBe ErKontrollNotatMottatt.Ja(
                 kontrollnotat = KontrollnotatMottattJournalpost(
                     tema = JournalpostTema.SUP,
@@ -40,7 +52,10 @@ internal class HentKontrollnotatMottattTest : WiremockBase {
                     journalpostId = JournalpostId(value = "453812131"),
                 ),
             ).right()
+            verify(metrics).inkrementerBenyttetSkjema(JournalpostClientMetrics.BenyttetSkjema.NAV_SU_KONTROLLNOTAT)
+
             it.kontrollnotatMotatt(Saksnummer(10002027), januar(2022)) shouldBe ErKontrollNotatMottatt.Nei.right()
+
             it.kontrollnotatMotatt(Saksnummer(10002027), år(2022)) shouldBe ErKontrollNotatMottatt.Ja(
                 kontrollnotat = KontrollnotatMottattJournalpost(
                     tema = JournalpostTema.SUP,
@@ -52,6 +67,22 @@ internal class HentKontrollnotatMottattTest : WiremockBase {
                     journalpostId = JournalpostId(value = "453812131"),
                 ),
             ).right()
+
+            verify(metrics, times(2)).inkrementerBenyttetSkjema(JournalpostClientMetrics.BenyttetSkjema.NAV_SU_KONTROLLNOTAT)
+
+            it.kontrollnotatMotatt(Saksnummer(10002027), år(2022)) shouldBe ErKontrollNotatMottatt.Ja(
+                kontrollnotat = KontrollnotatMottattJournalpost(
+                    tema = JournalpostTema.SUP,
+                    journalstatus = JournalpostStatus.JOURNALFOERT,
+                    journalposttype = JournalpostType.INNKOMMENDE_DOKUMENT,
+                    saksnummer = Saksnummer(10002027),
+                    tittel = "Dokumentasjon av oppfølgingssamtale",
+                    datoOpprettet = 9.september(2022),
+                    journalpostId = JournalpostId(value = "453812131"),
+                ),
+            ).right()
+
+            verify(metrics).inkrementerBenyttetSkjema(JournalpostClientMetrics.BenyttetSkjema.DOKUMENTASJON_AV_OPPFØLGINGSSAMTALE)
         }
     }
 
