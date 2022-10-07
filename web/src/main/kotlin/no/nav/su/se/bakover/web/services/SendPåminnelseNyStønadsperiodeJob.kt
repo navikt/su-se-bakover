@@ -1,20 +1,19 @@
 package no.nav.su.se.bakover.web.services
 
 import arrow.core.Either
-import no.nav.su.se.bakover.domain.nais.LeaderPodLookup
 import no.nav.su.se.bakover.service.SendPåminnelserOmNyStønadsperiodeService
 import no.nav.su.se.bakover.service.toggles.ToggleService
+import org.jetbrains.kotlin.utils.addToStdlib.ifTrue
 import org.slf4j.LoggerFactory
 import java.net.InetAddress
 import java.time.Duration
 import kotlin.concurrent.fixedRateTimer
 
-class SendPåminnelseNyStønadsperiodeJob(
-    private val leaderPodLookup: LeaderPodLookup,
+internal class SendPåminnelseNyStønadsperiodeJob(
     private val intervall: Duration,
     private val initialDelay: Duration,
-    private val toggleService: ToggleService,
     private val sendPåminnelseService: SendPåminnelserOmNyStønadsperiodeService,
+    private val runCheckFactory: RunCheckFactory,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -30,7 +29,10 @@ class SendPåminnelseNyStønadsperiodeJob(
             initialDelay = initialDelay.toMillis(),
         ) {
             Either.catch {
-                if (leaderPodLookup.erLeaderPod(hostname = hostName) && toggleService.isEnabled(ToggleService.toggleSendAutomatiskPåminnelseOmNyStønadsperiode)) {
+                listOf(
+                    runCheckFactory.leaderPod(),
+                    runCheckFactory.unleashToggle(ToggleService.toggleSendAutomatiskPåminnelseOmNyStønadsperiode),
+                ).shouldRun().ifTrue {
                     sendPåminnelseService.sendPåminnelser()
                 }
             }.mapLeft {

@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
+import no.nav.su.se.bakover.web.services.RunCheckFactory
 import no.nav.su.se.bakover.web.services.SendPåminnelseNyStønadsperiodeJob
 import no.nav.su.se.bakover.web.services.avstemming.GrensesnittsavstemingJob
 import no.nav.su.se.bakover.web.services.avstemming.KonsistensavstemmingJob
@@ -60,6 +61,13 @@ internal fun startJobberOgConsumers(
         personService = services.person,
         clock = clock,
     )
+    val runCheckFactory = RunCheckFactory(
+        leaderPodLookup = clients.leaderPodLookup,
+        applicationConfig = applicationConfig,
+        clock = clock,
+        toggleService = services.toggles,
+
+    )
     if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais) {
         // Prøver å time starten på jobbene slik at de ikke går i beina på hverandre.
         val initialDelay = object {
@@ -88,21 +96,20 @@ internal fun startJobberOgConsumers(
 
         DistribuerDokumentJob(
             brevService = services.brev,
-            leaderPodLookup = clients.leaderPodLookup,
             initialDelay = initialDelay.next(),
             periode = Duration.of(15, ChronoUnit.MINUTES),
+            runCheckFactory = runCheckFactory,
         ).schedule()
 
         GrensesnittsavstemingJob(
             avstemmingService = services.avstemming,
-            leaderPodLookup = clients.leaderPodLookup,
             starttidspunkt = ZonedDateTime.now(zoneIdOslo).next(LocalTime.of(1, 0, 0)),
             periode = Duration.of(1, ChronoUnit.DAYS),
+            runCheckFactory = runCheckFactory,
         ).schedule()
 
         KonsistensavstemmingJob(
             avstemmingService = services.avstemming,
-            leaderPodLookup = clients.leaderPodLookup,
             kjøreplan = if (isProd) {
                 setOf(
                     28.oktober(2022),
@@ -126,28 +133,28 @@ internal fun startJobberOgConsumers(
             initialDelay = initialDelay.next(),
             periode = Duration.of(4, ChronoUnit.HOURS),
             clock = clock,
+            runCheckFactory = runCheckFactory,
         ).schedule()
 
         KlageinstanshendelseJob(
             klageinstanshendelseService = services.klageinstanshendelseService,
-            leaderPodLookup = clients.leaderPodLookup,
             initialDelay = initialDelay.next(),
             periode = Duration.of(15, ChronoUnit.MINUTES),
+            runCheckFactory = runCheckFactory,
         ).schedule()
 
         PersonhendelseOppgaveJob(
             personhendelseService = personhendelseService,
-            leaderPodLookup = clients.leaderPodLookup,
             initialDelay = initialDelay.next(),
             periode = if (isProd) {
                 Duration.of(1, ChronoUnit.DAYS)
             } else {
                 Duration.of(15, ChronoUnit.MINUTES)
             },
+            runCheckFactory = runCheckFactory,
         ).schedule()
 
         KontrollsamtaleinnkallingJob(
-            leaderPodLookup = clients.leaderPodLookup,
             kontrollsamtaleService = services.kontrollsamtale,
             starttidspunkt = if (isProd) {
                 ZonedDateTime.now(zoneIdOslo).next(LocalTime.of(7, 0, 0))
@@ -159,6 +166,7 @@ internal fun startJobberOgConsumers(
             } else {
                 Duration.of(15, ChronoUnit.MINUTES)
             },
+            runCheckFactory = runCheckFactory,
         ).schedule()
 
         TilbakekrevingIbmMqConsumer(
@@ -169,29 +177,24 @@ internal fun startJobberOgConsumers(
 
         TilbakekrevingJob(
             tilbakekrevingService = services.tilbakekrevingService,
-            leaderPodLookup = clients.leaderPodLookup,
             initialDelay = initialDelay.next(),
             intervall = Duration.of(15, ChronoUnit.MINUTES),
-            ordinærÅpningstidOppdrag = applicationConfig.oppdrag.ordinærÅpningstid,
-            clock = clock,
+            runCheckFactory = runCheckFactory,
         ).schedule()
 
         SendPåminnelseNyStønadsperiodeJob(
-            leaderPodLookup = clients.leaderPodLookup,
             intervall = Duration.of(4, ChronoUnit.HOURS),
             initialDelay = initialDelay.next(),
-            toggleService = services.toggles,
             sendPåminnelseService = services.sendPåminnelserOmNyStønadsperiodeService,
+            runCheckFactory = runCheckFactory,
         ).schedule()
 
         StansYtelseVedManglendeOppmøteKontrollsamtaleJob(
-            leaderPodLookup = clients.leaderPodLookup,
             intervall = Duration.of(2, ChronoUnit.HOURS),
             initialDelay = initialDelay.next(),
-            toggleService = services.toggles,
             service = services.utløptFristForKontrollsamtaleService,
-            ordinærÅpningstidOppdrag = applicationConfig.oppdrag.ordinærÅpningstid,
             clock = clock,
+            runCheckFactory = runCheckFactory,
         ).schedule()
     } else if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
         // Prøver å time starten på de lokale jobbene slik at heller ikke de går i beina på hverandre.
@@ -214,46 +217,46 @@ internal fun startJobberOgConsumers(
 
         DistribuerDokumentJob(
             brevService = services.brev,
-            leaderPodLookup = clients.leaderPodLookup,
             initialDelay = initialDelay.next(),
             periode = Duration.ofSeconds(10),
+            runCheckFactory = runCheckFactory,
         ).schedule()
 
         GrensesnittsavstemingJob(
             avstemmingService = services.avstemming,
-            leaderPodLookup = clients.leaderPodLookup,
             starttidspunkt = Date.from(Instant.now(clock).plusSeconds(initialDelay.next().toSeconds())),
             periode = Duration.ofMinutes(5),
+            runCheckFactory = runCheckFactory,
         ).schedule()
 
         KonsistensavstemmingJob(
             avstemmingService = services.avstemming,
-            leaderPodLookup = clients.leaderPodLookup,
             kjøreplan = emptySet(),
             initialDelay = initialDelay.next(),
             periode = Duration.ofMinutes(5),
             clock = clock,
+            runCheckFactory = runCheckFactory,
         ).schedule()
 
         KlageinstanshendelseJob(
             klageinstanshendelseService = services.klageinstanshendelseService,
-            leaderPodLookup = clients.leaderPodLookup,
             initialDelay = initialDelay.next(),
             periode = Duration.ofMinutes(5),
+            runCheckFactory = runCheckFactory,
         ).schedule()
 
         PersonhendelseOppgaveJob(
             personhendelseService = personhendelseService,
-            leaderPodLookup = clients.leaderPodLookup,
-            initialDelay = initialDelay.next(),
             periode = Duration.ofMinutes(5),
+            initialDelay = initialDelay.next(),
+            runCheckFactory = runCheckFactory,
         ).schedule()
 
         KontrollsamtaleinnkallingJob(
-            leaderPodLookup = clients.leaderPodLookup,
             kontrollsamtaleService = services.kontrollsamtale,
             starttidspunkt = Date.from(Instant.now(clock).plusSeconds(initialDelay.next().toSeconds())),
             periode = Duration.ofMinutes(5),
+            runCheckFactory = runCheckFactory,
         ).schedule()
 
         LokalMottaKravgrunnlagJob(
@@ -266,29 +269,24 @@ internal fun startJobberOgConsumers(
 
         TilbakekrevingJob(
             tilbakekrevingService = services.tilbakekrevingService,
-            leaderPodLookup = clients.leaderPodLookup,
             initialDelay = initialDelay.next(),
             intervall = Duration.ofSeconds(10),
-            ordinærÅpningstidOppdrag = applicationConfig.oppdrag.ordinærÅpningstid,
-            clock = clock,
+            runCheckFactory = runCheckFactory,
         ).schedule()
 
         SendPåminnelseNyStønadsperiodeJob(
-            leaderPodLookup = clients.leaderPodLookup,
             intervall = Duration.of(1, ChronoUnit.MINUTES),
             initialDelay = initialDelay.next(),
-            toggleService = services.toggles,
             sendPåminnelseService = services.sendPåminnelserOmNyStønadsperiodeService,
+            runCheckFactory = runCheckFactory,
         ).schedule()
 
         StansYtelseVedManglendeOppmøteKontrollsamtaleJob(
-            leaderPodLookup = clients.leaderPodLookup,
             intervall = Duration.of(1, ChronoUnit.MINUTES),
             initialDelay = initialDelay.next(),
-            toggleService = services.toggles,
             service = services.utløptFristForKontrollsamtaleService,
-            ordinærÅpningstidOppdrag = applicationConfig.oppdrag.ordinærÅpningstid,
             clock = clock,
+            runCheckFactory = runCheckFactory,
         ).schedule()
     }
 }
