@@ -27,7 +27,7 @@ class TilbakekrevingJob(
     private val log = LoggerFactory.getLogger(this::class.java)
     private val jobName = "Prosesseser kravmelding (tilbakekreving)"
     fun schedule() {
-        log.info("Starter skeduleringsjobb '$jobName' med intervall: ${intervall.toMinutes()} min, i tidsrommet:${ordinærÅpningstidOppdrag.first}-${ordinærÅpningstidOppdrag.second}. Mitt hostnavn er $hostName. Jeg er ${if (isLeaderPod()) "" else "ikke "}leder.")
+        log.info("Starter skeduleringsjobb '$jobName' med intervall: ${intervall.toMinutes()} min, i tidsrommet:${ordinærÅpningstidOppdrag.first}-${ordinærÅpningstidOppdrag.second}. Mitt hostnavn er $hostName. Jeg er ${if (leaderPodLookup.erLeaderPod(hostName)) "" else "ikke "}leder.")
         fixedRateTimer(
             name = jobName,
             daemon = true,
