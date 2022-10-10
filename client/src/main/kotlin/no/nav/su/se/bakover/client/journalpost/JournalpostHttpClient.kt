@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.client.journalpost
 
 import arrow.core.Either
-import arrow.core.flatMap
 import arrow.core.left
+import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.su.se.bakover.client.azure.AzureAd
 import no.nav.su.se.bakover.client.isSuccess
@@ -15,11 +15,11 @@ import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.token.JwtToken
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.journalpost.ErKontrollNotatMottatt
-import no.nav.su.se.bakover.domain.journalpost.FerdigstiltJournalpost
+import no.nav.su.se.bakover.domain.journalpost.ErTilknyttetSak
 import no.nav.su.se.bakover.domain.journalpost.JournalpostClient
 import no.nav.su.se.bakover.domain.journalpost.JournalpostClientMetrics
-import no.nav.su.se.bakover.domain.journalpost.KunneIkkeHenteJournalpost
 import no.nav.su.se.bakover.domain.journalpost.KunneIkkeSjekkKontrollnotatMottatt
+import no.nav.su.se.bakover.domain.journalpost.KunneIkkeSjekkeTilknytningTilSak
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.net.URI
@@ -41,14 +41,15 @@ internal class JournalpostHttpClient(
         .connectTimeout(Duration.ofSeconds(20))
         .followRedirects(HttpClient.Redirect.NEVER)
         .build()
-    override fun hentFerdigstiltJournalpost(
-        saksnummer: Saksnummer,
+
+    override fun erTilknyttetSak(
         journalpostId: JournalpostId,
-    ): Either<KunneIkkeHenteJournalpost, FerdigstiltJournalpost> {
+        saksnummer: Saksnummer,
+    ): Either<KunneIkkeSjekkeTilknytningTilSak, ErTilknyttetSak> {
         val request = GraphQLQuery<HentJournalpostHttpResponse>(
             lagRequest(
                 query = "/hentJournalpostQuery.graphql",
-                datafelter = "/hentFerdigstiltJournalpostDatafelter.graphql",
+                datafelter = "/erJournalpostTilknyttetSakDatafelter.graphql",
             ),
             HentJournalpostVariables(journalpostId.toString()),
         )
@@ -58,30 +59,36 @@ internal class JournalpostHttpClient(
                 originalToken = JwtToken.BrukerToken.fraMdc().value,
                 otherAppId = safConfig.clientId,
             ),
-        ).mapLeft {
-            when (it) {
-                is GraphQLApiFeil.HttpFeil.BadRequest -> KunneIkkeHenteJournalpost.UgyldigInput
-                is GraphQLApiFeil.HttpFeil.Forbidden -> KunneIkkeHenteJournalpost.IkkeTilgang
-                is GraphQLApiFeil.HttpFeil.NotFound -> KunneIkkeHenteJournalpost.FantIkkeJournalpost
-                is GraphQLApiFeil.HttpFeil.ServerError -> KunneIkkeHenteJournalpost.TekniskFeil
-                is GraphQLApiFeil.HttpFeil.Ukjent -> KunneIkkeHenteJournalpost.Ukjent
-                is GraphQLApiFeil.TekniskFeil -> KunneIkkeHenteJournalpost.TekniskFeil
-            }
-        }.flatMap { response ->
-            response.data!!.journalpost.toFerdigstiltJournalpost(saksnummer)
-                .mapLeft {
-                    when (it) {
-                        JournalpostErIkkeFerdigstilt.FantIkkeJournalpost -> KunneIkkeHenteJournalpost.FantIkkeJournalpost
-                        JournalpostErIkkeFerdigstilt.JournalpostIkkeKnyttetTilSak -> KunneIkkeHenteJournalpost.JournalpostIkkeKnyttetTilSak
-                        JournalpostErIkkeFerdigstilt.JournalpostTemaErIkkeSUP -> KunneIkkeHenteJournalpost.JournalpostTemaErIkkeSUP
-                        JournalpostErIkkeFerdigstilt.JournalpostenErIkkeEtInnkommendeDokument -> KunneIkkeHenteJournalpost.JournalpostenErIkkeEtInnkommendeDokument
-                        JournalpostErIkkeFerdigstilt.JournalpostenErIkkeFerdigstilt -> KunneIkkeHenteJournalpost.JournalpostenErIkkeFerdigstilt
+        ).fold(
+            {
+                when (it) {
+                    is GraphQLApiFeil.HttpFeil.BadRequest -> KunneIkkeSjekkeTilknytningTilSak.UgyldigInput
+                    is GraphQLApiFeil.HttpFeil.Forbidden -> KunneIkkeSjekkeTilknytningTilSak.IkkeTilgang
+                    is GraphQLApiFeil.HttpFeil.NotFound -> KunneIkkeSjekkeTilknytningTilSak.FantIkkeJournalpost
+                    is GraphQLApiFeil.HttpFeil.ServerError -> KunneIkkeSjekkeTilknytningTilSak.TekniskFeil
+                    is GraphQLApiFeil.HttpFeil.Ukjent -> KunneIkkeSjekkeTilknytningTilSak.Ukjent
+                    is GraphQLApiFeil.TekniskFeil -> KunneIkkeSjekkeTilknytningTilSak.TekniskFeil
+                }.left()
+            },
+            { response ->
+                response.data!!.journalpost?.let {
+                    if (it.sak == null) {
+                        return KunneIkkeSjekkeTilknytningTilSak.JournalpostIkkeKnyttetTilEnSak.left()
                     }
-                }
-        }
+                    if (it.sak.fagsakId == saksnummer.toString()) {
+                        return ErTilknyttetSak.Ja.right()
+                    } else {
+                        return ErTilknyttetSak.Nei.right()
+                    }
+                } ?: return KunneIkkeSjekkeTilknytningTilSak.FantIkkeJournalpost.left()
+            },
+        )
     }
 
-    override fun kontrollnotatMotatt(saksnummer: Saksnummer, periode: DatoIntervall): Either<KunneIkkeSjekkKontrollnotatMottatt, ErKontrollNotatMottatt> {
+    override fun kontrollnotatMotatt(
+        saksnummer: Saksnummer,
+        periode: DatoIntervall,
+    ): Either<KunneIkkeSjekkKontrollnotatMottatt, ErKontrollNotatMottatt> {
         val kontrollnotatTittel = "NAV SU Kontrollnotat"
         val dokumentasjonAvOppfølgingsamtaleTittel = "Dokumentasjon av oppfølgingssamtale"
 
@@ -120,7 +127,11 @@ internal class JournalpostHttpClient(
                 .toDomain()
                 .sortedBy { it.datoOpprettet }
                 .lastOrNull {
-                    periode.inneholder(it.datoOpprettet) && (it.tittel.inneholder(kontrollnotatTittel) || it.tittel.inneholder(dokumentasjonAvOppfølgingsamtaleTittel))
+                    periode.inneholder(it.datoOpprettet) && (
+                        it.tittel.inneholder(kontrollnotatTittel) || it.tittel.inneholder(
+                            dokumentasjonAvOppfølgingsamtaleTittel,
+                        )
+                        )
                 }?.also { metrics.inkrementerBenyttetSkjema(it.tittel.toBenyttetSkjemaMetric()) }
                 ?.let { ErKontrollNotatMottatt.Ja(it) } ?: ErKontrollNotatMottatt.Nei
         }
@@ -130,12 +141,19 @@ internal class JournalpostHttpClient(
         query: String,
         datafelter: String,
     ): String {
-        val gqlQuery = javaClass.getResource(query)?.readText() ?: throw IllegalArgumentException("Fant ikke fil med navn: $query")
-        val data = javaClass.getResource(datafelter)?.readText() ?: throw IllegalArgumentException("Fant ikke fil med navn: $query")
+        val gqlQuery = javaClass.getResource(query)
+            ?.readText()
+            ?: throw IllegalArgumentException("Fant ikke fil med navn: $query")
+        val data = javaClass.getResource(datafelter)
+            ?.readText()
+            ?: throw IllegalArgumentException("Fant ikke fil med navn: $query")
         return gqlQuery.replace("<<DATAFELTER>>", data)
     }
 
-    private inline fun <reified Response : GraphQLHttpResponse> gqlRequest(request: GraphQLQuery<Response>, token: String): Either<GraphQLApiFeil, Response> {
+    private inline fun <reified Response : GraphQLHttpResponse> gqlRequest(
+        request: GraphQLQuery<Response>,
+        token: String,
+    ): Either<GraphQLApiFeil, Response> {
         return Either.catch {
             HttpRequest.newBuilder(graphQLUrl)
                 .header("Authorization", "Bearer $token")
@@ -159,8 +177,10 @@ internal class JournalpostHttpClient(
                                 }
                             } else {
                                 // ting som ikke når helt til GraphQL - typisk 401 uten token eller lignende
-                                return GraphQLApiFeil.HttpFeil.Ukjent(request, """Status: ${httpResponse.statusCode()}, Body:${httpResponse.body()}""")
-                                    .also { log.warn("Feil: $it ved kall mot: $graphQLUrl") }
+                                return GraphQLApiFeil.HttpFeil.Ukjent(
+                                    request,
+                                    """Status: ${httpResponse.statusCode()}, Body:${httpResponse.body()}""",
+                                ).also { log.warn("Feil: $it ved kall mot: $graphQLUrl") }
                                     .left()
                             }
                         }

@@ -11,12 +11,9 @@ import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.journalpost.FerdigstiltJournalpost
+import no.nav.su.se.bakover.domain.journalpost.ErTilknyttetSak
 import no.nav.su.se.bakover.domain.journalpost.JournalpostClientMetrics
-import no.nav.su.se.bakover.domain.journalpost.JournalpostStatus
-import no.nav.su.se.bakover.domain.journalpost.JournalpostTema
-import no.nav.su.se.bakover.domain.journalpost.JournalpostType
-import no.nav.su.se.bakover.domain.journalpost.KunneIkkeHenteJournalpost
+import no.nav.su.se.bakover.domain.journalpost.KunneIkkeSjekkeTilknytningTilSak
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -47,18 +44,15 @@ internal class JournalpostHttpClientTest {
     }
 
     @Test
-    fun `henter journalpost OK`() {
+    fun `sjekker om journalpost er tilknyttet oppgitt saksnummer`() {
         //language=JSON
         val suksessResponseJson =
             """
             {
               "data": {
                 "journalpost": {
-                  "tema": "SUP",
-                  "journalstatus": "JOURNALFOERT",
-                  "journalposttype": "I",
                   "sak": {
-                  "fagsakId": "2021"
+                    "fagsakId": "2021"
                   }
                 }
               }
@@ -70,12 +64,30 @@ internal class JournalpostHttpClientTest {
                 .willReturn(WireMock.ok(suksessResponseJson)),
         )
 
-        setupClient().hentFerdigstiltJournalpost(Saksnummer(2021), JournalpostId("j")) shouldBe FerdigstiltJournalpost(
-            tema = JournalpostTema.SUP,
-            journalstatus = JournalpostStatus.JOURNALFOERT,
-            journalposttype = JournalpostType.INNKOMMENDE_DOKUMENT,
-            saksnummer = Saksnummer(2021),
-        ).right()
+        setupClient().erTilknyttetSak(JournalpostId("j"), Saksnummer(2021)) shouldBe ErTilknyttetSak.Ja.right()
+        setupClient().erTilknyttetSak(JournalpostId("j"), Saksnummer(2023)) shouldBe ErTilknyttetSak.Nei.right()
+    }
+
+    @Test
+    fun `svarer med feil dersom journalpost ikke er tilknyttet en sak i det heletatt`() {
+        //language=JSON
+        val suksessResponseJson =
+            """
+            {
+              "data": {
+                "journalpost": {
+                  "sak": null
+                }
+              }
+            }
+            """.trimIndent()
+
+        WiremockBase.wireMockServer.stubFor(
+            token("Bearer aadToken")
+                .willReturn(WireMock.ok(suksessResponseJson)),
+        )
+
+        setupClient().erTilknyttetSak(JournalpostId("j"), Saksnummer(2021)) shouldBe KunneIkkeSjekkeTilknytningTilSak.JournalpostIkkeKnyttetTilEnSak.left()
     }
 
     @Test
@@ -93,10 +105,10 @@ internal class JournalpostHttpClientTest {
                 .willReturn(WireMock.ok(suksessResponseJson)),
         )
 
-        setupClient().hentFerdigstiltJournalpost(
-            Saksnummer(2021),
+        setupClient().erTilknyttetSak(
             JournalpostId("j"),
-        ) shouldBe KunneIkkeHenteJournalpost.TekniskFeil.left()
+            Saksnummer(2021),
+        ) shouldBe KunneIkkeSjekkeTilknytningTilSak.TekniskFeil.left()
     }
 
     @Test
@@ -106,7 +118,7 @@ internal class JournalpostHttpClientTest {
                 .willReturn(WireMock.serverError()),
         )
 
-        setupClient().hentFerdigstiltJournalpost(Saksnummer(2022), JournalpostId("j")) shouldBe KunneIkkeHenteJournalpost.Ukjent.left()
+        setupClient().erTilknyttetSak(JournalpostId("j"), Saksnummer(2022)) shouldBe KunneIkkeSjekkeTilknytningTilSak.Ukjent.left()
     }
 
     @Test
@@ -144,10 +156,10 @@ internal class JournalpostHttpClientTest {
                 .willReturn(WireMock.ok(errorResponseJson)),
         )
 
-        setupClient().hentFerdigstiltJournalpost(
-            Saksnummer(2022),
+        setupClient().erTilknyttetSak(
             JournalpostId("j"),
-        ) shouldBe KunneIkkeHenteJournalpost.FantIkkeJournalpost.left()
+            Saksnummer(2022),
+        ) shouldBe KunneIkkeSjekkeTilknytningTilSak.FantIkkeJournalpost.left()
     }
 
     @Test

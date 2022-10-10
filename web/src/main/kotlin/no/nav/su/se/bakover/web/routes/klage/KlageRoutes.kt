@@ -37,7 +37,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.withKlageId
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.journalpost.KunneIkkeHenteJournalpost
+import no.nav.su.se.bakover.domain.journalpost.KunneIkkeSjekkeTilknytningTilSak
 import no.nav.su.se.bakover.domain.klage.KunneIkkeAvslutteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
 import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteAvvistKlage
@@ -509,43 +509,31 @@ private fun KunneIkkeLageBrevutkast.toErrorJson(): Resultat {
     }
 }
 
-private fun KunneIkkeHenteJournalpost.toErrorJson(): Resultat {
+private fun KunneIkkeSjekkeTilknytningTilSak.toErrorJson(): Resultat {
     return when (this) {
-        KunneIkkeHenteJournalpost.FantIkkeJournalpost -> BadRequest.errorJson(
+        KunneIkkeSjekkeTilknytningTilSak.FantIkkeJournalpost -> BadRequest.errorJson(
             "Fant ikke journalpost",
             "fant_ikke_journalpost",
         )
-        KunneIkkeHenteJournalpost.IkkeTilgang -> Unauthorized.errorJson(
+        KunneIkkeSjekkeTilknytningTilSak.IkkeTilgang -> Unauthorized.errorJson(
             "Ikke tilgang til Journalpost",
             "ikke_tilgang_til_journalpost",
         )
-        KunneIkkeHenteJournalpost.TekniskFeil -> InternalServerError.errorJson(
+        KunneIkkeSjekkeTilknytningTilSak.TekniskFeil -> InternalServerError.errorJson(
             "Teknisk feil ved henting av journalpost",
             "teknisk_feil_ved_henting_av_journalpost",
         )
-        KunneIkkeHenteJournalpost.Ukjent -> InternalServerError.errorJson(
+        KunneIkkeSjekkeTilknytningTilSak.Ukjent -> InternalServerError.errorJson(
             "Ukjent feil ved henting av journalpost",
             "ukjent_feil_ved_henting_av_journalpost",
         )
-        KunneIkkeHenteJournalpost.UgyldigInput -> BadRequest.errorJson(
+        KunneIkkeSjekkeTilknytningTilSak.UgyldigInput -> BadRequest.errorJson(
             "Ugyldig journalpostId",
             "ugyldig_journalpostId",
         )
-        KunneIkkeHenteJournalpost.JournalpostIkkeKnyttetTilSak -> BadRequest.errorJson(
+        KunneIkkeSjekkeTilknytningTilSak.JournalpostIkkeKnyttetTilEnSak -> BadRequest.errorJson(
             "Journalposten er ikke knyttet til saken",
             "journalpost_ikke_knyttet_til_sak",
-        )
-        KunneIkkeHenteJournalpost.JournalpostTemaErIkkeSUP -> BadRequest.errorJson(
-            "Journalpost temaet er ikke SUP",
-            "journalpost_tema_er_ikke_sup",
-        )
-        KunneIkkeHenteJournalpost.JournalpostenErIkkeFerdigstilt -> BadRequest.errorJson(
-            "Journalposten er ikke ferdigstilt",
-            "journalpost_er_ikke_ferdigstilt",
-        )
-        KunneIkkeHenteJournalpost.JournalpostenErIkkeEtInnkommendeDokument -> BadRequest.errorJson(
-            "Journalposten er ikke et innkommende dokument",
-            "journalpost_er_ikke_et_innkommende_dokument",
         )
     }
 }
