@@ -90,7 +90,10 @@ internal class TilbakekrevingPostgresRepoTest {
 
             val kunneIkkeForstå = ikkeAvgjort.ikkeTilbakekrev()
             testDataHelper.sessionFactory.withTransaction { tx ->
-                tilbakekrevingRepo.lagreTilbakekrevingsbehandling(kunneIkkeForstå, tx)
+                tilbakekrevingRepo.lagreTilbakekrevingsbehandling(
+                    tilbakrekrevingsbehanding = kunneIkkeForstå,
+                    tx = tx,
+                )
             }
             testDataHelper.sessionFactory.withSession { session ->
                 tilbakekrevingRepo.hentTilbakekrevingsbehandling(
@@ -123,17 +126,11 @@ internal class TilbakekrevingPostgresRepoTest {
                 attesteringsoppgaveId = oppgaveIdRevurdering,
                 saksbehandler = saksbehandler,
                 fritekstTilBrev = "nei",
-            ).getOrFail().let {
-                testDataHelper.revurderingRepo.lagre(it)
-                it.tilIverksatt(
-                    attestant = attestant,
-                    hentOpprinneligAvkorting = { null },
-                    clock = fixedClock,
-                ).getOrFail().let {
-                    testDataHelper.revurderingRepo.lagre(it)
-                    it
-                }
-            }
+            ).getOrFail().tilIverksatt(
+                attestant = attestant,
+                hentOpprinneligAvkorting = { null },
+                clock = fixedClock,
+            ).getOrFail()
 
             val mottattKravgrunnlag = avventerKravgrunnlag.mottattKravgrunnlag(
                 kravgrunnlag = RåttKravgrunnlag("xml"),

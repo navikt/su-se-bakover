@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.database.revurdering
 
 import arrow.core.nonEmptyListOf
+import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.Fnr
@@ -35,17 +36,23 @@ import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
+import no.nav.su.se.bakover.test.gjeldendeVedtaksdata
+import no.nav.su.se.bakover.test.nyUtbetalingSimulert
+import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.persistence.withSession
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
+import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.stønadsperiode2022
 import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
@@ -337,19 +344,38 @@ internal class RevurderingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
-            val vedtak =
-                testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second
-            val opprettet = opprettet(vedtak)
+            val (sak, vedtak) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling()
+            val opprettet = opprettetRevurdering(sakOgVedtakSomKanRevurderes = sak to vedtak).second
 
             repo.lagre(opprettet)
 
-            val beregnet = beregnetInnvilget(opprettet, vedtak)
+            val beregnet = opprettet.beregn(
+                eksisterendeUtbetalinger = sak.utbetalinger,
+                clock = fixedClock,
+                gjeldendeVedtaksdata = sak.gjeldendeVedtaksdata(opprettet.periode.fraOgMed),
+                satsFactory = satsFactoryTestPåDato(),
+            ).getOrFail() as BeregnetRevurdering.Innvilget
+
+//            val beregnet = beregnetInnvilget(opprettet, vedtak)
 
             repo.lagre(beregnet)
 
-            val simulert = simulertInnvilget(beregnet)
+            val simulert = beregnet.simuler(
+                saksbehandler = saksbehandler,
+                clock = fixedClock,
+                simulerUtbetaling = {
+                    nyUtbetalingSimulert(
+                        sakOgBehandling = sak to beregnet,
+                        beregning = it.beregning,
+                        clock = fixedClock,
+                    ).right()
+                },
+            ).getOrFail()
+
+//            val simulert = simulertInnvilget(beregnet)
 
             repo.lagre(simulert)
+
             repo.lagre(beregnet)
             repo.hent(opprettet.id) shouldBe beregnet.copy(forhåndsvarsel = simulert.forhåndsvarsel)
         }
@@ -857,20 +883,37 @@ internal class RevurderingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
-            val vedtak =
-                testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second
+            val (sak, vedtak) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling()
 
-            val opprettet = opprettet(vedtak)
-            repo.lagre(opprettet.copy(forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles))
+            val opprettet = opprettetRevurdering(sakOgVedtakSomKanRevurderes = sak to vedtak).second.let {
+                it.copy(forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles)
+            }
+            repo.lagre(opprettet)
 
             (repo.hent(opprettet.id) as Revurdering).forhåndsvarsel shouldBe Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles
 
-            val beregnetRevurdering = beregnetInnvilget(opprettet, vedtak)
+            val beregnetRevurdering = opprettet.beregn(
+                eksisterendeUtbetalinger = sak.utbetalinger,
+                clock = fixedClock,
+                gjeldendeVedtaksdata = sak.gjeldendeVedtaksdata(opprettet.periode.fraOgMed),
+                satsFactory = satsFactoryTestPåDato(),
+            ).getOrFail() as BeregnetRevurdering.Innvilget
 
             repo.lagre(beregnetRevurdering)
             (repo.hent(opprettet.id) as Revurdering).forhåndsvarsel shouldBe Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles
 
-            val simulertRevurdering = simulertInnvilget(beregnetRevurdering)
+            val simulertRevurdering = beregnetRevurdering.simuler(
+                saksbehandler = saksbehandler,
+                clock = fixedClock,
+                simulerUtbetaling = {
+                    nyUtbetalingSimulert(
+                        sakOgBehandling = sak to beregnetRevurdering,
+                        beregning = it.beregning,
+                        clock = fixedClock,
+                    ).right()
+                },
+            ).getOrFail()
+
             repo.lagre(simulertRevurdering)
             (repo.hent(simulertRevurdering.id) as Revurdering).forhåndsvarsel shouldBe Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles
 
