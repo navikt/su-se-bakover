@@ -3,7 +3,7 @@ dependencies {
     implementation(project(":domain"))
     implementation(project(":client"))
     implementation(project(":statistikk"))
-    implementation(project(":hendelse"))
 
+    testImplementation(project(":hendelse:domain"))
     testImplementation(project(":test-common"))
 }

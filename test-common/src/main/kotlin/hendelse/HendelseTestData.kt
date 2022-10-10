@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.test.hendelse
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.hendelse.application.HendelseMetadata
-import no.nav.su.se.bakover.hendelse.application.SakOpprettetHendelse
+import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
+import no.nav.su.se.bakover.hendelse.domain.SakOpprettetHendelse
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import java.util.UUID
 
