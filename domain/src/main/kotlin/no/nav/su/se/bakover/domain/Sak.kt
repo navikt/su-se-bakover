@@ -67,6 +67,7 @@ import no.nav.su.se.bakover.domain.vedtak.beregningKanVæreGjeldende
 import no.nav.su.se.bakover.domain.vedtak.hentBeregningForGjeldendeVedtak
 import no.nav.su.se.bakover.domain.vedtak.lagTidslinje
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
+import no.nav.su.se.bakover.utenlandsopphold.domain.RegistrertUtenlandsopphold
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.time.LocalDate
@@ -112,6 +113,7 @@ data class Sak(
     val reguleringer: List<Regulering> = emptyList(),
     val type: Sakstype,
     val uteståendeAvkorting: Avkortingsvarsel = Avkortingsvarsel.Ingen,
+    val utenlandsopphold: List<RegistrertUtenlandsopphold> = emptyList(),
 ) {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -923,6 +925,12 @@ data class Sak(
                 lagBrevRequest = lagBrevRequest.mapLeft { LukkSøknadOgSøknadsbehandlingResponse.IkkeLagBrevRequest },
             )
         }
+    }
+
+    fun registrerUtenlandsopphold(
+        utenlandsopphold: RegistrertUtenlandsopphold,
+    ): Pair<Sak, RegistrertUtenlandsopphold> {
+        return Pair(this.copy(utenlandsopphold = this.utenlandsopphold + utenlandsopphold), utenlandsopphold)
     }
 
     /**
