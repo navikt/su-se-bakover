@@ -4,10 +4,11 @@ import arrow.core.Either
 import arrow.core.firstOrNone
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.zoneIdOslo
-import no.nav.su.se.bakover.domain.nais.LeaderPodLookup
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Fagområde
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
-import no.nav.su.se.bakover.web.services.erLeaderPod
+import no.nav.su.se.bakover.web.services.RunCheckFactory
+import no.nav.su.se.bakover.web.services.shouldRun
+import org.jetbrains.kotlin.utils.addToStdlib.ifTrue
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 import java.time.Clock
@@ -21,11 +22,11 @@ import kotlin.concurrent.fixedRateTimer
  */
 internal class KonsistensavstemmingJob(
     private val avstemmingService: AvstemmingService,
-    private val leaderPodLookup: LeaderPodLookup,
     private val kjøreplan: Set<LocalDate>,
     private val initialDelay: Duration,
     private val periode: Duration,
     private val clock: Clock,
+    private val runCheckFactory: RunCheckFactory,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -41,20 +42,20 @@ internal class KonsistensavstemmingJob(
         ) {
             Konsistensavstemming(
                 avstemmingService = avstemmingService,
-                leaderPodLookup = leaderPodLookup,
                 jobName = jobName,
                 kjøreplan = kjøreplan,
                 clock = clock,
+                runCheckFactory = runCheckFactory,
             ).run()
         }
     }
 
     class Konsistensavstemming(
         val avstemmingService: AvstemmingService,
-        val leaderPodLookup: LeaderPodLookup,
         val jobName: String,
         val kjøreplan: Set<LocalDate>,
         val clock: Clock,
+        val runCheckFactory: RunCheckFactory,
     ) {
         private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -67,28 +68,30 @@ internal class KonsistensavstemmingJob(
                             log.info("Kjøreplan: $kjøreplan inneholder ikke dato: $idag, hopper over konsistensavstemming.")
                         },
                         {
-                            if (leaderPodLookup.erLeaderPod()) {
-                                Fagområde.values().forEach { fagområde ->
-                                    when (fagområde) {
-                                        Fagområde.SUALDER -> {
-                                            // TODO("simulering_utbetaling_alder legg til ALDER for konsistensavstemming")
-                                        }
-                                        Fagområde.SUUFORE -> {
-                                            if (!avstemmingService.konsistensavstemmingUtførtForOgPåDato(idag, fagområde)) {
-                                                MDC.put("X-Correlation-ID", UUID.randomUUID().toString())
-                                                log.info("Kjøreplan: $kjøreplan inneholder dato: $idag, utfører konsistensavstemming.")
-                                                avstemmingService.konsistensavstemming(idag, fagområde)
-                                                    .fold(
-                                                        { log.error("$jobName feilet: $it") },
-                                                        { log.info("$jobName fullført. Detaljer: id:${it.id}, løpendeFraOgMed:${it.løpendeFraOgMed}, opprettetTilOgMed:${it.opprettetTilOgMed}") },
-                                                    )
-                                            } else {
-                                                log.info("Konsistensavstemming allerede utført for dato: $idag")
+                            listOf(runCheckFactory.leaderPod())
+                                .shouldRun()
+                                .ifTrue {
+                                    Fagområde.values().forEach { fagområde ->
+                                        when (fagområde) {
+                                            Fagområde.SUALDER -> {
+                                                // TODO("simulering_utbetaling_alder legg til ALDER for konsistensavstemming")
+                                            }
+                                            Fagområde.SUUFORE -> {
+                                                if (!avstemmingService.konsistensavstemmingUtførtForOgPåDato(idag, fagområde)) {
+                                                    MDC.put("X-Correlation-ID", UUID.randomUUID().toString())
+                                                    log.info("Kjøreplan: $kjøreplan inneholder dato: $idag, utfører konsistensavstemming.")
+                                                    avstemmingService.konsistensavstemming(idag, fagområde)
+                                                        .fold(
+                                                            { log.error("$jobName feilet: $it") },
+                                                            { log.info("$jobName fullført. Detaljer: id:${it.id}, løpendeFraOgMed:${it.løpendeFraOgMed}, opprettetTilOgMed:${it.opprettetTilOgMed}") },
+                                                        )
+                                                } else {
+                                                    log.info("Konsistensavstemming allerede utført for dato: $idag")
+                                                }
                                             }
                                         }
                                     }
                                 }
-                            }
                         },
                     )
             }.mapLeft {
