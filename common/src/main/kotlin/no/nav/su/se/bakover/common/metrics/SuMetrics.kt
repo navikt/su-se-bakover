@@ -55,6 +55,7 @@ object SuMetrics {
         REVURDERING("revurdering"),
     }
 
+    // TODO metrikkene burde prefikses
     private fun counter(metrikk: Metrikk, type: String): Counter = Metrics.counter(metrikk.navn, Tags.of("type", type))
 
     private val søknadPapirMottattCounter = counter(Metrikk.SØKNAD_MOTTATT, type = Søknadstype.PAPIR.type)
