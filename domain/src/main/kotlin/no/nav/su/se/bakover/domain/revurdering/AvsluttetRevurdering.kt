@@ -1,3 +1,4 @@
+
 package no.nav.su.se.bakover.domain.revurdering
 
 import arrow.core.Either

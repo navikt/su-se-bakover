@@ -1,10 +1,10 @@
-package no.nav.su.se.bakover.utenlandsopphold.application
+package no.nav.su.se.bakover.utenlandsopphold.domain
 
+import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.common.periode.DatoIntervall
-import no.nav.su.se.bakover.utenlandsopphold.domain.RegistrertUtenlandsopphold
-import no.nav.su.se.bakover.utenlandsopphold.domain.UtenlandsoppholdDokumentasjon
+import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
 import java.time.Clock
 import java.util.UUID
 
@@ -14,14 +14,20 @@ data class RegistrerUtenlandsoppholdCommand(
     val dokumentasjon: UtenlandsoppholdDokumentasjon,
     val journalposter: List<JournalpostId>,
     val opprettetAv: NavIdentBruker.Saksbehandler,
+    val correlationId: CorrelationId,
 ) {
-    fun toUtenlandsopphold(clock: Clock): RegistrertUtenlandsopphold {
-        return RegistrertUtenlandsopphold.registrer(
+    fun toUtenlandsopphold(clock: Clock): RegistrerUtenlandsoppholdHendelse {
+        return RegistrerUtenlandsoppholdHendelse.registrer(
+            sakId = sakId,
             periode = periode,
             dokumentasjon = dokumentasjon,
             journalposter = journalposter,
             opprettetAv = opprettetAv,
             clock = clock,
+            hendelseMetadata = HendelseMetadata(
+                correlationId = correlationId,
+                ident = opprettetAv,
+            ),
         )
     }
 }

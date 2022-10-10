@@ -14,9 +14,11 @@ dependencies {
     implementation(project(":database"))
     implementation(project(":client"))
     implementation(project(":hendelse:domain"))
+    implementation(project(":hendelse:infrastructure"))
     implementation(project(":utenlandsopphold:presentation"))
     implementation(project(":utenlandsopphold:application"))
     implementation(project(":utenlandsopphold:domain"))
+    implementation(project(":utenlandsopphold:infrastructure"))
     implementation(project(":test-common"))
 
     testImplementation(project(":test-common"))

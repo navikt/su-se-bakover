@@ -1,8 +1,12 @@
-package no.nav.su.se.bakover.hendelse.infrastructure.persistence
+package no.nav.su.se.bakover.common.infrastructure.ident
 
 import no.nav.su.se.bakover.common.NavIdentBruker
 
-internal enum class IdentRolle {
+/**
+ * Brukes på tvers av funksjonalitet for å serialisere/deserialisere json.
+ * Hvis den gjør ikke-bakoverkompatible endringer må man migrere database og oppdatere su-se-framover og andre klienter.
+ */
+enum class IdentRolleJson {
     VEILEDER, SAKSBEHANDLER, ATTESTANT;
 
     fun toDomain(ident: String): NavIdentBruker {
@@ -14,7 +18,7 @@ internal enum class IdentRolle {
     }
 
     companion object {
-        fun NavIdentBruker.toIdentRolle(): IdentRolle {
+        fun NavIdentBruker.toIdentRolleJson(): IdentRolleJson {
             return when (this) {
                 is NavIdentBruker.Attestant -> ATTESTANT
                 is NavIdentBruker.Saksbehandler -> SAKSBEHANDLER

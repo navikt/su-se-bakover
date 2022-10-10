@@ -81,6 +81,7 @@ import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
 import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.attesteringIverksatt
 import no.nav.su.se.bakover.test.attesteringUnderkjent
@@ -150,7 +151,10 @@ class TestDataHelper(
     val klageinstanshendelsePostgresRepo = databaseRepos.klageinstanshendelseRepo
     val nøkkeltallRepo = databaseRepos.nøkkeltallRepo
     val personRepo = databaseRepos.person
-    val hendelsePostgresRepo = databaseRepos.hendelseRepo
+    val hendelsePostgresRepo = HendelsePostgresRepo(
+        sessionFactory = sessionFactory,
+        dbMetrics = dbMetrics,
+    )
     val personhendelseRepo = databaseRepos.personhendelseRepo
     val reguleringRepo = databaseRepos.reguleringRepo
     val revurderingRepo = databaseRepos.revurderingRepo

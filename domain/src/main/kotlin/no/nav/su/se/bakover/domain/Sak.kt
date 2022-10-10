@@ -67,6 +67,8 @@ import no.nav.su.se.bakover.domain.vedtak.beregningKanVæreGjeldende
 import no.nav.su.se.bakover.domain.vedtak.hentBeregningForGjeldendeVedtak
 import no.nav.su.se.bakover.domain.vedtak.lagTidslinje
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
+import no.nav.su.se.bakover.utenlandsopphold.domain.RegistrerUtenlandsoppholdCommand
+import no.nav.su.se.bakover.utenlandsopphold.domain.RegistrerUtenlandsoppholdHendelse
 import no.nav.su.se.bakover.utenlandsopphold.domain.RegistrertUtenlandsopphold
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -850,7 +852,8 @@ data class Sak(
             .toNonEmptyList()
             .right()
 
-    fun kanOppretteBehandling(): Boolean = !harÅpenSøknadsbehandling() && !harÅpenRevurdering() && !harÅpenRegulering() && !harÅpenRevurderingForStansAvYtelse() && !harÅpenRevurderingForGjenopptakAvYtelse()
+    fun kanOppretteBehandling(): Boolean =
+        !harÅpenSøknadsbehandling() && !harÅpenRevurdering() && !harÅpenRegulering() && !harÅpenRevurderingForStansAvYtelse() && !harÅpenRevurderingForGjenopptakAvYtelse()
 
     /**
      * @return Den oppdaterte saken, søknaden som er lukket og dersom den fantes, den lukkede søknadsbehandlingen.
@@ -894,8 +897,10 @@ data class Sak(
                 }.let { lukketSøknadsbehandling ->
                     Tuple4(
                         this.copy(
-                            søknader = this.søknader.filterNot { it.id == søknadId }.plus(lukketSøknadsbehandling.søknad),
-                            søknadsbehandlinger = this.søknadsbehandlinger.filterNot { it.id == lukketSøknadsbehandling.id }.plus(lukketSøknadsbehandling),
+                            søknader = this.søknader.filterNot { it.id == søknadId }
+                                .plus(lukketSøknadsbehandling.søknad),
+                            søknadsbehandlinger = this.søknadsbehandlinger.filterNot { it.id == lukketSøknadsbehandling.id }
+                                .plus(lukketSøknadsbehandling),
                         ),
                         lukketSøknadsbehandling.søknad,
                         lukketSøknadsbehandling,
@@ -927,10 +932,20 @@ data class Sak(
         }
     }
 
+    object OverlappendePeriode
+
     fun registrerUtenlandsopphold(
-        utenlandsopphold: RegistrertUtenlandsopphold,
-    ): Pair<Sak, RegistrertUtenlandsopphold> {
-        return Pair(this.copy(utenlandsopphold = this.utenlandsopphold + utenlandsopphold), utenlandsopphold)
+        command: RegistrerUtenlandsoppholdCommand,
+        clock: Clock,
+    ): Either<OverlappendePeriode, Pair<Sak, RegistrerUtenlandsoppholdHendelse>> {
+        if (utenlandsopphold.any { it.periode inneholder command.periode }) {
+            return OverlappendePeriode.left()
+        }
+        val hendelse = command.toUtenlandsopphold(clock)
+        return Pair(
+            this.copy(utenlandsopphold = this.utenlandsopphold + hendelse.toRegistrertUtenlandsopphold()),
+            hendelse,
+        ).right()
     }
 
     /**

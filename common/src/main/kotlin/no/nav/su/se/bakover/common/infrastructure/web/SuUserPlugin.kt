@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.features
+package no.nav.su.se.bakover.common.infrastructure.web
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
@@ -17,12 +17,6 @@ import io.ktor.server.routing.RoutingResolveContext
 import io.ktor.util.AttributeKey
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.NavIdentBruker
-import no.nav.su.se.bakover.common.infrastructure.web.AzureGroupMapper
-import no.nav.su.se.bakover.common.infrastructure.web.errorJson
-import no.nav.su.se.bakover.common.infrastructure.web.getGroupsFromJWT
-import no.nav.su.se.bakover.common.infrastructure.web.getNAVidentFromJwt
-import no.nav.su.se.bakover.common.infrastructure.web.getNavnFromJwt
-import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.log
 
 class SuUserContext(val call: ApplicationCall, applicationConfig: ApplicationConfig) {

@@ -4,11 +4,14 @@ import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.common.periode.DatoIntervall
-import java.time.Clock
+import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import java.util.UUID
 
+/**
+ *  @param utenlandsoppholdId Identifiserer et utenlandsopphold (følger registreringen og endringer).
+ */
 data class RegistrertUtenlandsopphold private constructor(
-    val id: UUID,
+    val utenlandsoppholdId: UUID,
     val periode: DatoIntervall,
     val dokumentasjon: UtenlandsoppholdDokumentasjon,
     val journalposter: List<JournalpostId>,
@@ -16,11 +19,10 @@ data class RegistrertUtenlandsopphold private constructor(
     val opprettetTidspunkt: Tidspunkt,
     val endretAv: NavIdentBruker.Saksbehandler,
     val endretTidspunkt: Tidspunkt,
-    // TODO jah: Bytt denne til versjonstypen som ligger i hendelse (krever oppsplitting av den modulen).
-    val versjon: Long,
-    // TODO jah: Tenk litt mer over variabelnavnet. Burde det heller vært en sealed class/interface?
-    val erGyldig: Boolean,
+    val versjon: Hendelsesversjon,
+    val erAnnulert: Boolean,
 ) {
+
     /**
      * Trekker fra utreise- og innreisedag.
      */
@@ -28,26 +30,29 @@ data class RegistrertUtenlandsopphold private constructor(
         get() = (periode.antallDager() - 2).coerceAtLeast(0)
 
     companion object {
-        fun registrer(
-            id: UUID = UUID.randomUUID(),
+        fun fraHendelse(
+            utenlandsoppholdId: UUID,
             periode: DatoIntervall,
             dokumentasjon: UtenlandsoppholdDokumentasjon,
             journalposter: List<JournalpostId>,
             opprettetAv: NavIdentBruker.Saksbehandler,
-            clock: Clock,
+            opprettetTidspunkt: Tidspunkt,
+            endretAv: NavIdentBruker.Saksbehandler,
+            endretTidspunkt: Tidspunkt,
+            erAnnulert: Boolean,
+            versjon: Hendelsesversjon,
         ): RegistrertUtenlandsopphold {
-            val now = Tidspunkt.now(clock)
             return RegistrertUtenlandsopphold(
-                id = id,
+                utenlandsoppholdId = utenlandsoppholdId,
                 periode = periode,
                 dokumentasjon = dokumentasjon,
                 journalposter = journalposter,
                 opprettetAv = opprettetAv,
-                opprettetTidspunkt = now,
-                endretAv = opprettetAv,
-                endretTidspunkt = now,
-                erGyldig = true,
-                versjon = 1,
+                opprettetTidspunkt = opprettetTidspunkt,
+                endretAv = endretAv,
+                endretTidspunkt = endretTidspunkt,
+                erAnnulert = erAnnulert,
+                versjon = versjon,
             )
         }
     }

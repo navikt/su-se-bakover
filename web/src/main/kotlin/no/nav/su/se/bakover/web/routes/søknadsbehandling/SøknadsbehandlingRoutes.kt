@@ -44,6 +44,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.deserialize
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
+import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.toUUID
 import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
@@ -69,7 +70,6 @@ import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.SimulerRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.UnderkjennRequest
 import no.nav.su.se.bakover.web.features.authorize
-import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.routes.søknad.tilResultat
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.StønadsperiodeJson
