@@ -5,6 +5,8 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
+import no.nav.su.se.bakover.common.februar
+import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.september
 import no.nav.su.se.bakover.common.periode.år
@@ -70,14 +72,14 @@ internal class HentKontrollnotatMottattTest : WiremockBase {
 
             verify(metrics, times(2)).inkrementerBenyttetSkjema(JournalpostClientMetrics.BenyttetSkjema.NAV_SU_KONTROLLNOTAT)
 
-            it.kontrollnotatMotatt(Saksnummer(10002027), år(2022)) shouldBe ErKontrollNotatMottatt.Ja(
+            it.kontrollnotatMotatt(Saksnummer(10002027), februar(2022)) shouldBe ErKontrollNotatMottatt.Ja(
                 kontrollnotat = KontrollnotatMottattJournalpost(
                     tema = JournalpostTema.SUP,
                     journalstatus = JournalpostStatus.JOURNALFOERT,
                     journalposttype = JournalpostType.INNKOMMENDE_DOKUMENT,
                     saksnummer = Saksnummer(10002027),
                     tittel = "Dokumentasjon av oppfølgingssamtale",
-                    datoOpprettet = 9.september(2022),
+                    datoOpprettet = 19.februar(2022),
                     journalpostId = JournalpostId(value = "453812131"),
                 ),
             ).right()
@@ -289,6 +291,17 @@ internal class HentKontrollnotatMottattTest : WiremockBase {
                             "journalpostId": "453812131",
                             "tittel": "NAV 00-03.01 NAV SU Kontrollnotat",
                             "datoOpprettet": "2022-09-09T09:30:42"
+                        },
+                        {
+                            "tema": "SUP",
+                            "journalstatus": "JOURNALFOERT",
+                            "journalposttype": "I",
+                            "sak": {
+                                "fagsakId": "10002027"
+                            },
+                            "journalpostId": "453812131",
+                            "tittel": "Dokumentasjon av oppfølgingssamtale",
+                            "datoOpprettet": "2022-02-19T09:30:42"
                         }
                     ]
                 }
