@@ -248,7 +248,7 @@ internal class StansAvYtelseServiceTest {
             utbetalingService = utbetalingServiceMock,
         ).let {
             it.revurderingService.iverksettStansAvYtelse(
-                revurderingId = revurderingId,
+                revurderingId = simulertStans.id,
                 attestant = NavIdentBruker.Attestant(simulertStans.saksbehandler.navIdent),
             ) shouldBe KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale(
                 UtbetalStansFeil.KunneIkkeSimulere(
@@ -304,7 +304,7 @@ internal class StansAvYtelseServiceTest {
         )
 
         val response = serviceAndMocks.revurderingService.iverksettStansAvYtelse(
-            revurderingId = revurderingId,
+            revurderingId = simulertStans.id,
             attestant = NavIdentBruker.Attestant(simulertStans.saksbehandler.navIdent),
         ).getOrFail("Feil med oppsett av testdata")
 

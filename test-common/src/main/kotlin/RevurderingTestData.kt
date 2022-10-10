@@ -1500,7 +1500,7 @@ fun simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
 ): Pair<Sak, StansAvYtelseRevurdering.SimulertStansAvYtelse> {
     return sakOgVedtakSomKanRevurderes.let { (sak, vedtak) ->
         val revurdering = StansAvYtelseRevurdering.SimulertStansAvYtelse(
-            id = revurderingId,
+            id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(clock),
             periode = periode,
             grunnlagsdata = sak.kopierGjeldendeVedtaksdata(periode.fraOgMed, clock).getOrFail().grunnlagsdata,
