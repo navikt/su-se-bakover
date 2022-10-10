@@ -13,7 +13,7 @@ dependencies {
     implementation(project(":service"))
     implementation(project(":database"))
     implementation(project(":client"))
-    implementation(project(":hendelse"))
+    implementation(project(":hendelse:domain"))
     implementation(project(":utenlandsopphold:presentation"))
     implementation(project(":utenlandsopphold:application"))
     implementation(project(":utenlandsopphold:domain"))

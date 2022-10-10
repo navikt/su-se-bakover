@@ -6,7 +6,7 @@ dependencies {
     implementation(project(":common"))
     implementation(project(":client"))
     implementation(project(":database"))
-    implementation(project(":hendelse"))
+    implementation(project(":hendelse:domain"))
 
     compileOnly("io.kotest:kotest-assertions-core:$kotestVersion")
     // TODO jah: Finn en måte å gjenbruke de versjonene her på.

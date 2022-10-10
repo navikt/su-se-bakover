@@ -195,8 +195,13 @@ configure(
         project(":database"),
         project(":web-regresjonstest"),
         project(":statistikk"),
-        project(":hendelse"),
-        project(":utenlandsopphold"),
+        project(":hendelse:application"),
+        project(":hendelse:infrastructure"),
+        project(":hendelse:domain"),
+        project(":utenlandsopphold:presentation"),
+        project(":utenlandsopphold:application"),
+        project(":utenlandsopphold:infrastructure"),
+        project(":utenlandsopphold:domain"),
     ),
 ) {
     tasks.test {
