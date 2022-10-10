@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.TestDataHelper.Companion.søknadNy
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
-import no.nav.su.se.bakover.test.stønadsperiode2021
 import org.junit.jupiter.api.Test
 
 internal class SakPostgresRepoTest {
@@ -142,10 +141,9 @@ internal class SakPostgresRepoTest {
             val (_, opprettetRevurdering) =
                 testDataHelper.persisterRevurderingOpprettet(
                     testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { it.first to it.second },
-                    stønadsperiode2021.periode,
                 )
             val (_, tilAttesteringRevurdering) = testDataHelper.persisterRevurderingTilAttesteringInnvilget()
-            val underkjentRevurdering = testDataHelper.persisterRevurderingUnderkjentInnvilget()
+            val (_, underkjentRevurdering) = testDataHelper.persisterRevurderingUnderkjentInnvilget()
             testDataHelper.persisterRevurderingIverksattInnvilget()
 
             val opprettetKlage = testDataHelper.persisterKlageOpprettet()

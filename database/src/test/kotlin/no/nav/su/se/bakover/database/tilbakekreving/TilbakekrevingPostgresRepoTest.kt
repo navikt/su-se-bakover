@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.test.oppgaveIdRevurdering
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.saksbehandler
-import no.nav.su.se.bakover.test.stønadsperiode2022
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -28,16 +27,8 @@ internal class TilbakekrevingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
 
-            val (sak, vedtak, _) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling() { (sak, søknad) ->
-                iverksattSøknadsbehandlingUføre(
-                    sakOgSøknad = sak to søknad,
-                    sakInfo = sak.info(),
-                    stønadsperiode = stønadsperiode2022,
-                )
-            }
-            val (_, revurdering) = testDataHelper.persisterRevurderingSimulertInnvilget(
-                sakOgVedtak = sak to vedtak,
-            )
+            val (sak, vedtak, _) = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering()
+            val (_, revurdering) = testDataHelper.persisterRevurderingSimulertInnvilget(sakOgVedtak = sak to vedtak)
 
             (testDataHelper.revurderingRepo.hent(revurdering.id) as SimulertRevurdering).tilbakekrevingsbehandling shouldBe IkkeBehovForTilbakekrevingUnderBehandling
         }

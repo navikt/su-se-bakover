@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.test.persistence
 
 import arrow.core.NonEmptyList
-import arrow.core.getOrHandle
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import kotliquery.using
@@ -13,7 +12,6 @@ import no.nav.su.se.bakover.common.UUIDFactory
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.persistence.DbMetrics
 import no.nav.su.se.bakover.common.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.persistence.Session
@@ -23,9 +21,10 @@ import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.DomainToQueryParameterMapper
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
+import no.nav.su.se.bakover.domain.SakFactory
+import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
@@ -46,17 +45,15 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrev
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
-import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
@@ -80,6 +77,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.attesteringIverksatt
 import no.nav.su.se.bakover.test.attesteringUnderkjent
+import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.beregnetSøknadsbehandling
 import no.nav.su.se.bakover.test.epsFnr
 import no.nav.su.se.bakover.test.fixedClock
@@ -90,20 +88,29 @@ import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.gjeldendeVedtaksdata
+import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
 import no.nav.su.se.bakover.test.grunnlagsdataMedEpsMedFradrag
+import no.nav.su.se.bakover.test.iverksattRevurdering
+import no.nav.su.se.bakover.test.iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandling
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.kvittering
 import no.nav.su.se.bakover.test.nySøknadsbehandling
 import no.nav.su.se.bakover.test.oppgaveIdRevurdering
+import no.nav.su.se.bakover.test.oppgaveIdSøknad
+import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.oversendtUtbetalingUtenKvittering
+import no.nav.su.se.bakover.test.revurderingTilAttestering
+import no.nav.su.se.bakover.test.revurderingUnderkjent
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulerOpphør
 import no.nav.su.se.bakover.test.simulerUtbetaling
 import no.nav.su.se.bakover.test.simulering
+import no.nav.su.se.bakover.test.simulertRevurdering
+import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.simulertSøknadsbehandling
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknad.journalpostIdSøknad
@@ -117,6 +124,9 @@ import no.nav.su.se.bakover.test.utbetalingslinje
 import no.nav.su.se.bakover.test.veileder
 import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårAvslag
 import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttUføreOgAndreInnvilget
+import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
+import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkår
+import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt0
 import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandling
 import vilkår.personligOppmøtevilkårAvslag
@@ -392,7 +402,7 @@ class TestDataHelper(
     }
 
     fun persisterVedtakForStans(
-        stans: StansAvYtelseRevurdering.IverksattStansAvYtelse = persisterStansAvYtelseIverksatt(),
+        stans: StansAvYtelseRevurdering.IverksattStansAvYtelse = persisterIverksattStansAvYtelse().second,
         periode: Periode = stønadsperiode2021.periode,
         avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.avstemmingsnøkkel,
         utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(utbetalingslinje(periode = periode)),
@@ -494,317 +504,208 @@ class TestDataHelper(
     }
 
     fun persisterRevurderingOpprettet(
-        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let {
-            Pair(
-                it.first,
-                it.second,
-            )
+        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
+            sak to vedtak
         },
-        periode: Periode = år(2021),
-        epsFnr: Fnr? = null,
-        grunnlagsdata: Grunnlagsdata = if (epsFnr != null) {
-            grunnlagsdataMedEpsMedFradrag(
-                periode,
-                epsFnr,
-            )
-        } else {
-            grunnlagsdataEnsligMedFradrag(periode)
+        sakOgRevurdering: (sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse>) -> Pair<Sak, OpprettetRevurdering> = {
+            opprettetRevurdering(sakOgVedtakSomKanRevurderes = it)
         },
-        vilkårsvurderinger: Vilkårsvurderinger.Revurdering = vilkårsvurderingerSøknadsbehandlingInnvilget(periode = periode).tilVilkårsvurderingerRevurdering(),
     ): Pair<Sak, OpprettetRevurdering> {
-        sakOgVedtak.let { (sak, innvilget) ->
-            return OpprettetRevurdering(
-                id = UUID.randomUUID(),
-                periode = periode,
-                opprettet = fixedTidspunkt,
-                tilRevurdering = innvilget.id,
-                saksbehandler = saksbehandler,
-                oppgaveId = OppgaveId("oppgaveid"),
-                fritekstTilBrev = "",
-                revurderingsårsak = Revurderingsårsak(
-                    Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
-                    Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
-                ),
-                forhåndsvarsel = null,
-                grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger,
-                informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-                attesteringer = Attesteringshistorikk.empty(),
-                avkorting = AvkortingVedRevurdering.Uhåndtert.IngenUtestående,
-                sakinfo = sak.info(),
-            ).let {
-                databaseRepos.revurderingRepo.lagre(it)
-                sak.copy(
-                    revurderinger = sak.revurderinger + listOf(it),
-                ) to it
+        return sakOgRevurdering(sakOgVedtak).let { (sak, revurdering) ->
+            databaseRepos.revurderingRepo.lagre(revurdering)
+            databaseRepos.sak.hentSak(sak.id).let { persistertSak ->
+                persistertSak!! to persistertSak.revurderinger.single { it.id == revurdering.id } as OpprettetRevurdering
             }
         }
     }
 
-    fun persisterRevurderingBeregnetInnvilget(
-        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let {
-            Pair(
-                it.first,
-                it.second,
-            )
+    fun persisterBeregnetRevurdering(
+        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
+            sak to vedtak
         },
-    ): Pair<Sak, BeregnetRevurdering.Innvilget> {
-        val (sak, vedtak) = sakOgVedtak
-        return persisterRevurderingOpprettet(
-            sakOgVedtak = sak to vedtak,
-            periode = stønadsperiode2021.periode,
-            epsFnr = null,
-        ).let { (sak, opprettet) ->
-            opprettet.beregn(
-                eksisterendeUtbetalinger = sak.utbetalinger,
-                clock = clock,
-                gjeldendeVedtaksdata = sak.gjeldendeVedtaksdata(stønadsperiode2021),
-                satsFactory = satsFactoryTestPåDato(),
-            ).getOrFail().let { beregnet ->
-                databaseRepos.revurderingRepo.lagre(beregnet)
-                sak.copy(
-                    revurderinger = sak.revurderinger.filterNot { it.id == opprettet.id } + listOf(beregnet),
-                ) to beregnet as BeregnetRevurdering.Innvilget
+        sakOgRevurdering: (sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse>) -> Pair<Sak, BeregnetRevurdering> = {
+            beregnetRevurdering(sakOgVedtakSomKanRevurderes = it)
+        },
+    ): Pair<Sak, BeregnetRevurdering> {
+        return sakOgRevurdering(sakOgVedtak).let { (sak, revurdering) ->
+            databaseRepos.revurderingRepo.lagre(revurdering)
+            databaseRepos.sak.hentSak(sak.id).let { persistertSak ->
+                persistertSak!! to persistertSak.revurderinger.single { it.id == revurdering.id } as BeregnetRevurdering
+            }
+        }
+    }
+
+    fun persisterSimulertRevurdering(
+        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().let { (sak, vedtak, _) ->
+            sak to vedtak
+        },
+        sakOgRevurdering: (sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse>) -> Pair<Sak, SimulertRevurdering> = {
+            simulertRevurdering(sakOgVedtakSomKanRevurderes = it)
+        },
+    ): Pair<Sak, SimulertRevurdering> {
+        return sakOgRevurdering(sakOgVedtak).let { (sak, revurdering) ->
+            databaseRepos.revurderingRepo.lagre(revurdering)
+            databaseRepos.sak.hentSak(sak.id).let { persistertSak ->
+                persistertSak!! to persistertSak.revurderinger.single { it.id == revurdering.id } as SimulertRevurdering
+            }
+        }
+    }
+
+    fun persisterRevurderingTilAttestering(
+        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().let { (sak, vedtak, _) ->
+            sak to vedtak
+        },
+        sakOgRevurdering: (sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse>) -> Pair<Sak, RevurderingTilAttestering> = {
+            revurderingTilAttestering(sakOgVedtakSomKanRevurderes = it)
+        },
+    ): Pair<Sak, RevurderingTilAttestering> {
+        return sakOgRevurdering(sakOgVedtak).let { (sak, revurdering) ->
+            databaseRepos.revurderingRepo.lagre(revurdering)
+            databaseRepos.sak.hentSak(sak.id).let { persistertSak ->
+                persistertSak!! to persistertSak.revurderinger.single { it.id == revurdering.id } as RevurderingTilAttestering
+            }
+        }
+    }
+
+    fun persisterIverksattRevurdering(
+        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().let { (sak, vedtak, _) ->
+            sak to vedtak
+        },
+        sakOgRevurdering: (sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse>) -> Triple<Sak, IverksattRevurdering, Utbetaling?> = {
+            iverksattRevurdering(sakOgVedtakSomKanRevurderes = it)
+        },
+    ): Triple<Sak, IverksattRevurdering, Utbetaling?> {
+        return sakOgRevurdering(sakOgVedtak).let { (sak, revurdering, utbetaling) ->
+            databaseRepos.revurderingRepo.lagre(revurdering)
+            utbetaling?.also { databaseRepos.utbetaling.opprettUtbetaling(it as Utbetaling.OversendtUtbetaling.UtenKvittering) }
+            databaseRepos.sak.hentSak(sak.id).let { persistertSak ->
+                Triple(persistertSak!!, persistertSak.revurderinger.single { it.id == revurdering.id } as IverksattRevurdering, utbetaling?.let { sak.utbetalinger.single { it.id == utbetaling.id } })
+            }
+        }
+    }
+
+    fun persisterUnderkjentRevurdering(
+        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().let { (sak, vedtak, _) ->
+            sak to vedtak
+        },
+        sakOgRevurdering: (sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse>) -> Pair<Sak, UnderkjentRevurdering> = {
+            revurderingUnderkjent(sakOgVedtakSomKanRevurderes = it)
+        },
+    ): Pair<Sak, UnderkjentRevurdering> {
+        return sakOgRevurdering(sakOgVedtak).let { (sak, revurdering) ->
+            databaseRepos.revurderingRepo.lagre(revurdering)
+            databaseRepos.sak.hentSak(sak.id).let { persistertSak ->
+                persistertSak!! to persistertSak.revurderinger.single { it.id == revurdering.id } as UnderkjentRevurdering
             }
         }
     }
 
     fun persisterRevurderingBeregnetOpphørt(
-        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let {
-            Pair(
-                it.first,
-                it.second,
-            )
+        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
+            sak to vedtak
         },
     ): Pair<Sak, BeregnetRevurdering.Opphørt> {
-        return sakOgVedtak.let { (sak, vedtak) ->
-            persisterRevurderingOpprettet(
-                sakOgVedtak = sak to vedtak as VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling,
-                periode = stønadsperiode2021.periode,
-                epsFnr = null,
-                vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(
-                    periode = stønadsperiode2021.periode,
-                ),
-            ).let { (sak, opprettet) ->
-                opprettet.beregn(
-                    eksisterendeUtbetalinger = sak.utbetalinger,
-                    clock = clock,
-                    gjeldendeVedtaksdata = sak.gjeldendeVedtaksdata(stønadsperiode2021),
-                    satsFactory = satsFactoryTestPåDato(),
-                ).getOrFail().let { opphørt ->
-                    databaseRepos.revurderingRepo.lagre(opphørt)
-                    sak.copy(
-                        revurderinger = sak.revurderinger.filterNot { it.id == opphørt.id } + listOf(opphørt),
-                    ) to opphørt as BeregnetRevurdering.Opphørt
-                }
-            }
+        return persisterBeregnetRevurdering(sakOgVedtak) { (sak, vedtak) ->
+            beregnetRevurdering(
+                sakOgVedtakSomKanRevurderes = sak to vedtak,
+                vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
+            )
+        }.let { (sak, revurdering) ->
+            sak to revurdering as BeregnetRevurdering.Opphørt
         }
     }
 
-    fun persisterRevurderingBeregningIngenEndring(): Pair<Sak, BeregnetRevurdering.IngenEndring> {
-        val (sak, vedtak, _) = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling()
-        val gjeldende = sak.gjeldendeVedtaksdata(stønadsperiode2021)
-        return persisterRevurderingOpprettet(
-            sakOgVedtak = sak to vedtak,
-            periode = stønadsperiode2021.periode,
-            epsFnr = null,
-            grunnlagsdata = gjeldende.grunnlagsdata,
-            vilkårsvurderinger = gjeldende.vilkårsvurderinger,
-        ).let { (sak, opprettet) ->
-            opprettet.beregn(
-                eksisterendeUtbetalinger = sak.utbetalinger,
-                clock = clock,
-                gjeldendeVedtaksdata = sak.gjeldendeVedtaksdata(stønadsperiode2021),
-                satsFactory = satsFactoryTestPåDato(),
-            ).getOrFail().let { beregnet ->
-                databaseRepos.revurderingRepo.lagre(beregnet)
-                sak.copy(
-                    revurderinger = sak.revurderinger.filterNot { it.id == beregnet.id } + listOf(beregnet),
-                ) to beregnet as BeregnetRevurdering.IngenEndring
-            }
+    fun persisterRevurderingBeregningIngenEndring(
+        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().let { (sak, vedtak, _) ->
+            sak to vedtak
+        },
+    ): Pair<Sak, BeregnetRevurdering.IngenEndring> {
+        return persisterBeregnetRevurdering(sakOgVedtak).let { (sak, revurdering) ->
+            sak to revurdering as BeregnetRevurdering.IngenEndring
         }
     }
 
     fun persisterRevurderingSimulertInnvilget(
-        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let {
-            Pair(
-                it.first,
-                it.second,
-            )
+        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
+            sak to vedtak
         },
     ): Pair<Sak, SimulertRevurdering.Innvilget> {
-        return persisterRevurderingBeregnetInnvilget(
-            sakOgVedtak = sakOgVedtak,
-        ).let { (sak, beregnet) ->
-            beregnet.simuler(
-                saksbehandler = saksbehandler,
-                clock = clock,
-                simuler = { _, _ ->
-                    simulerUtbetaling(
-                        sak = sak,
-                        revurdering = beregnet,
-                        strict = false,
-                    ).map {
-                        it.simulering
-                    }
-                },
-            ).getOrFail().let { simulert ->
-                val håndtertForhåndsvarsel = simulert.ikkeSendForhåndsvarsel().getOrFail()
-                val oppdatertTilbakekrevingsbehandling = if (håndtertForhåndsvarsel.harSimuleringFeilutbetaling()) {
-                    håndtertForhåndsvarsel.oppdaterTilbakekrevingsbehandling(
-                        Tilbakekrev(
-                            id = UUID.randomUUID(),
-                            opprettet = fixedTidspunkt,
-                            sakId = simulert.sakId,
-                            revurderingId = simulert.id,
-                            periode = simulert.periode,
-                        ),
-                    )
-                } else {
-                    håndtertForhåndsvarsel
-                }
-                databaseRepos.revurderingRepo.lagre(oppdatertTilbakekrevingsbehandling)
-                sak.copy(
-                    revurderinger = sak.revurderinger.filterNot { it.id == oppdatertTilbakekrevingsbehandling.id } + listOf(
-                        oppdatertTilbakekrevingsbehandling,
-                    ),
-                ) to oppdatertTilbakekrevingsbehandling
-            }
+        return persisterSimulertRevurdering(sakOgVedtak).let { (sak, revurdering) ->
+            sak to revurdering as SimulertRevurdering.Innvilget
         }
     }
 
     fun persisterRevurderingSimulertOpphørt(
-        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let {
-            Pair(
-                it.first,
-                it.second,
-            )
+        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
+            sak to vedtak
         },
     ): Pair<Sak, SimulertRevurdering.Opphørt> {
-        return persisterRevurderingBeregnetOpphørt(sakOgVedtak).let { (sak, beregnet) ->
-            beregnet.simuler(
-                saksbehandler = saksbehandler,
-                clock = clock,
-                simuler = { periode: Periode, _: NavIdentBruker.Saksbehandler ->
-                    simulerOpphør(
-                        sak = sak,
-                        revurdering = beregnet,
-                        simuleringsperiode = periode,
-                    )
-                },
-            ).getOrFail().let { simulert ->
-                val oppdatertTilbakekrevingsbehandling = if (simulert.harSimuleringFeilutbetaling()) {
-                    simulert.oppdaterTilbakekrevingsbehandling(
-                        Tilbakekrev(
-                            id = UUID.randomUUID(),
-                            opprettet = fixedTidspunkt,
-                            sakId = simulert.sakId,
-                            revurderingId = simulert.id,
-                            periode = simulert.periode,
-                        ),
-                    )
-                } else {
-                    simulert
-                }
-                databaseRepos.revurderingRepo.lagre(oppdatertTilbakekrevingsbehandling)
-                sak.copy(
-                    revurderinger = sak.revurderinger.filterNot { it.id == oppdatertTilbakekrevingsbehandling.id } + listOf(
-                        oppdatertTilbakekrevingsbehandling,
-                    ),
-                ) to oppdatertTilbakekrevingsbehandling
-            }
+        return persisterSimulertRevurdering(sakOgVedtak) { (sak, vedtak) ->
+            simulertRevurdering(
+                sakOgVedtakSomKanRevurderes = sak to vedtak,
+                vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
+            )
+        }.let { (sak, revurdering) ->
+            sak to revurdering as SimulertRevurdering.Opphørt
         }
     }
 
-    /**
-     * Setter forhåndsvarsel til SkalIkkeForhåndsvarsel dersom den ikke er satt på dette tidspunktet.
-     */
-    fun persisterRevurderingTilAttesteringInnvilget(): Pair<Sak, RevurderingTilAttestering.Innvilget> {
-        return persisterRevurderingSimulertInnvilget().let { (sak, simulert) ->
-            val håndtertForhåndsvarsel =
-                if (simulert.forhåndsvarsel == null) simulert.ikkeSendForhåndsvarsel().getOrFail() else simulert
-
-            håndtertForhåndsvarsel.tilAttestering(
-                attesteringsoppgaveId = oppgaveIdRevurdering,
-                saksbehandler = saksbehandler,
-                fritekstTilBrev = "",
-            ).getOrFail().let { tilAttestering ->
-                databaseRepos.revurderingRepo.lagre(tilAttestering)
-                sak.copy(
-                    revurderinger = sak.revurderinger.filterNot { it.id == tilAttestering.id } + listOf(tilAttestering),
-                ) to tilAttestering
-            }
+    fun persisterRevurderingTilAttesteringInnvilget(
+        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().let { (sak, vedtak, _) ->
+            sak to vedtak
+        },
+    ): Pair<Sak, RevurderingTilAttestering.Innvilget> {
+        return persisterRevurderingTilAttestering(sakOgVedtak).let { (sak, revurdering) ->
+            sak to revurdering as RevurderingTilAttestering.Innvilget
         }
     }
 
-    /**
-     * Setter forhåndsvarsel til SkalIkkeForhåndsvarsel dersom den ikke er satt på dette tidspunktet.
-     */
-    fun persisterRevurderingTilAttesteringIngenEndring(): RevurderingTilAttestering.IngenEndring {
-        val beregnet: BeregnetRevurdering.IngenEndring = persisterRevurderingBeregningIngenEndring().second
-        return beregnet.tilAttestering(
-            attesteringsoppgaveId = oppgaveIdRevurdering,
-            saksbehandler = saksbehandler,
-            fritekstTilBrev = "",
-            skalFøreTilUtsendingAvVedtaksbrev = false,
-        ).also {
-            databaseRepos.revurderingRepo.lagre(it)
+    fun persisterRevurderingTilAttesteringOpphørt(
+        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().let { (sak, vedtak, _) ->
+            sak to vedtak
+        },
+    ): Pair<Sak, RevurderingTilAttestering.Opphørt> {
+        return persisterRevurderingTilAttestering(sakOgVedtak) { (sak, vedtak) ->
+            revurderingTilAttestering(
+                sakOgVedtakSomKanRevurderes = sak to vedtak,
+                vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
+            )
+        }.let { (sak, revurdering) ->
+            sak to revurdering as RevurderingTilAttestering.Opphørt
         }
     }
 
-    /**
-     * Setter forhåndsvarsel til SkalIkkeForhåndsvarsel.
-     */
-    fun persisterRevurderingTilAttesteringOpphørt(): RevurderingTilAttestering.Opphørt {
-        return persisterRevurderingSimulertOpphørt().second.ikkeSendForhåndsvarsel().getOrFail().tilAttestering(
-            attesteringsoppgaveId = oppgaveIdRevurdering,
-            saksbehandler = saksbehandler,
-            fritekstTilBrev = "",
-        ).getOrFail().also { databaseRepos.revurderingRepo.lagre(it) }
+    fun persisterRevurderingIverksattInnvilget(
+        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().let { (sak, vedtak, _) ->
+            sak to vedtak
+        },
+    ): IverksattRevurdering.Innvilget {
+        return persisterIverksattRevurdering(sakOgVedtak).second as IverksattRevurdering.Innvilget
     }
 
-    fun persisterRevurderingIverksattInnvilget(): IverksattRevurdering.Innvilget {
-        return persisterRevurderingTilAttesteringInnvilget().second.tilIverksatt(
-            attestant = attestant,
-            clock = fixedClock,
-            hentOpprinneligAvkorting = { null },
-        ).getOrHandle {
-            throw IllegalStateException("Her skulle vi ha hatt en iverksatt revurdering")
-        }.also {
-            databaseRepos.revurderingRepo.lagre(it)
+    fun persisterRevurderingIverksattOpphørt(
+        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().let { (sak, vedtak, _) ->
+            sak to vedtak
+        },
+    ): IverksattRevurdering.Opphørt {
+        return persisterIverksattRevurdering(sakOgVedtak) { (sak, vedtak) ->
+            iverksattRevurdering(
+                sakOgVedtakSomKanRevurderes = sak to vedtak,
+                vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
+            )
+        }.let {
+            it.second as IverksattRevurdering.Opphørt
         }
     }
 
-    @Suppress("unused")
-    fun persisterRevurderingIverksattIngenEndring(): IverksattRevurdering.IngenEndring {
-        return persisterRevurderingTilAttesteringIngenEndring().tilIverksatt(
-            attestant = attestant,
-            clock = fixedClock,
-            hentOpprinneligAvkorting = { null },
-        ).getOrHandle {
-            throw IllegalStateException("Her skulle vi ha hatt en iverksatt revurdering")
-        }.also {
-            databaseRepos.revurderingRepo.lagre(it)
+    fun persisterRevurderingUnderkjentInnvilget(
+        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().let { (sak, vedtak, _) ->
+            sak to vedtak
+        },
+    ): Pair<Sak, UnderkjentRevurdering.Innvilget> {
+        return persisterUnderkjentRevurdering(sakOgVedtak).let { (sak, revurdering) ->
+            sak to revurdering as UnderkjentRevurdering.Innvilget
         }
-    }
-
-    fun persisterRevurderingIverksattOpphørt(): IverksattRevurdering.Opphørt {
-        return persisterRevurderingTilAttesteringOpphørt().tilIverksatt(
-            attestant,
-            { null },
-            fixedClock,
-        ).getOrFail().also {
-            databaseRepos.revurderingRepo.lagre(it)
-        }
-    }
-
-    fun persisterRevurderingUnderkjentInnvilget(): UnderkjentRevurdering.Innvilget {
-        return persisterRevurderingTilAttesteringInnvilget().second.underkjenn(
-            attesteringUnderkjent(),
-            OppgaveId("oppgaveid"),
-        ).also {
-            databaseRepos.revurderingRepo.lagre(it)
-        } as UnderkjentRevurdering.Innvilget
     }
 
     /**
@@ -814,7 +715,6 @@ class TestDataHelper(
         val (sak, vedtak, _) = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling()
         return persisterRevurderingOpprettet(
             sakOgVedtak = sak to vedtak,
-            periode = stønadsperiode2021.periode,
         ).let { (_, opprettet) ->
             opprettet.avslutt(
                 begrunnelse = "",
@@ -824,68 +724,35 @@ class TestDataHelper(
         }
     }
 
-    fun persisterStansAvYtelseSimulert(
-        id: UUID = UUID.randomUUID(),
-        opprettet: Tidspunkt = fixedTidspunkt,
-        periode: Periode = Periode.create(
-            stønadsperiode2021.periode.fraOgMed.plusMonths(1),
-            stønadsperiode2021.periode.tilOgMed,
-        ),
-        grunnlagsdata: Grunnlagsdata = grunnlagsdataMedEpsMedFradrag(periode, epsFnr),
-        vilkårsvurderinger: Vilkårsvurderinger.Revurdering.Uføre = vilkårsvurderingerSøknadsbehandlingInnvilget(periode = periode).tilVilkårsvurderingerRevurdering(),
-        tilRevurdering: VedtakSomKanRevurderes = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
-        simulering: Simulering = simulering(fnr = Fnr.generer()),
-        revurderingsårsak: Revurderingsårsak = Revurderingsårsak(
-            Revurderingsårsak.Årsak.DØDSFALL,
-            Revurderingsårsak.Begrunnelse.create("begrunnelse"),
-        ),
-    ): StansAvYtelseRevurdering.SimulertStansAvYtelse {
-        return StansAvYtelseRevurdering.SimulertStansAvYtelse(
-            id = id,
-            opprettet = opprettet,
-            periode = periode,
-            grunnlagsdata = grunnlagsdata,
-            vilkårsvurderinger = vilkårsvurderinger,
-            tilRevurdering = tilRevurdering.id,
-            saksbehandler = saksbehandler,
-            simulering = simulering,
-            revurderingsårsak = revurderingsårsak,
-            sakinfo = tilRevurdering.sakinfo(),
-        ).also {
-            databaseRepos.revurderingRepo.lagre(it)
+    fun persisterSimulertStansAvYtelse(
+        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().let { (sak, vedtak, _) ->
+            sak to vedtak
+        },
+    ): Pair<Sak, StansAvYtelseRevurdering.SimulertStansAvYtelse> {
+        return simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+            sakOgVedtakSomKanRevurderes = sakOgVedtak.first to sakOgVedtak.second,
+        ).let { (sak, revurdering) ->
+            databaseRepos.revurderingRepo.lagre(revurdering)
+            databaseRepos.sak.hentSak(sak.id).let { persistertSak ->
+                persistertSak!! to persistertSak.revurderinger.single { it.id == revurdering.id } as StansAvYtelseRevurdering.SimulertStansAvYtelse
+            }
         }
     }
 
-    fun persisterStansAvYtelseIverksatt(
-        id: UUID = UUID.randomUUID(),
-        opprettet: Tidspunkt = fixedTidspunkt,
-        periode: Periode = Periode.create(
-            stønadsperiode2021.periode.fraOgMed.plusMonths(1),
-            stønadsperiode2021.periode.tilOgMed,
-        ),
-        grunnlagsdata: Grunnlagsdata = grunnlagsdataMedEpsMedFradrag(periode, epsFnr),
-        vilkårsvurderinger: Vilkårsvurderinger.Revurdering.Uføre = vilkårsvurderingerSøknadsbehandlingInnvilget(periode = periode).tilVilkårsvurderingerRevurdering(),
-        tilRevurdering: VedtakSomKanRevurderes = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
-        simulering: Simulering = simulering(fnr = Fnr.generer()),
-        revurderingsårsak: Revurderingsårsak = Revurderingsårsak(
-            Revurderingsårsak.Årsak.DØDSFALL,
-            Revurderingsårsak.Begrunnelse.create("begrunnelse"),
-        ),
-    ): StansAvYtelseRevurdering.IverksattStansAvYtelse {
-        return persisterStansAvYtelseSimulert(
-            id,
-            opprettet,
-            periode,
-            grunnlagsdata,
-            vilkårsvurderinger,
-            tilRevurdering,
-            simulering,
-            revurderingsårsak,
-        ).iverksett(attesteringIverksatt()).getOrFail().also {
-            databaseRepos.revurderingRepo.lagre(it)
+    fun persisterIverksattStansAvYtelse(
+        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().let { (sak, vedtak, _) ->
+            sak to vedtak
+        },
+    ): Pair<Sak, StansAvYtelseRevurdering.IverksattStansAvYtelse> {
+        return iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+            sakOgVedtakSomKanRevurderes = sakOgVedtak.first to sakOgVedtak.second,
+        ).let { (sak, revurdering) ->
+            databaseRepos.revurderingRepo.lagre(revurdering)
+            databaseRepos.sak.hentSak(sak.id).let { persistertSak ->
+                persistertSak!! to persistertSak.revurderinger.single { it.id == revurdering.id } as StansAvYtelseRevurdering.IverksattStansAvYtelse
+            }
         }
     }
-
     fun persisterGjenopptakAvYtelseSimulert(
         id: UUID = UUID.randomUUID(),
         opprettet: Tidspunkt = fixedTidspunkt,
