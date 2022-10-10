@@ -3,9 +3,9 @@ package no.nav.su.se.bakover.database.revurdering
 import arrow.core.getOrHandle
 import io.kotest.assertions.fail
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -28,7 +28,6 @@ internal class LagreOgHentAvsluttetRevurderingTest {
                 sakOgVedtak = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
                     stønadsperiode = stønadsperiode2021,
                 ).let { it.first to it.second },
-                periode = år(2021),
             )
 
             val avsluttetRevurdering = AvsluttetRevurdering.tryCreate(
@@ -55,7 +54,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
 
-            val (_, revurdering) = testDataHelper.persisterRevurderingBeregnetInnvilget()
+            val (_, revurdering) = testDataHelper.persisterBeregnetRevurdering()
 
             val avsluttetRevurdering = AvsluttetRevurdering.tryCreate(
                 underliggendeRevurdering = revurdering,
@@ -66,7 +65,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
 
             repo.lagre(avsluttetRevurdering)
             repo.hent(avsluttetRevurdering.id) shouldBe avsluttetRevurdering.copy(
-                underliggendeRevurdering = revurdering.copy(
+                underliggendeRevurdering = (revurdering as BeregnetRevurdering.Innvilget).copy(
                     avkorting = AvkortingVedRevurdering.DelvisHåndtert.KanIkkeHåndtere(
                         delvisHåndtert = AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående,
                     ),
@@ -82,6 +81,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             val repo = testDataHelper.revurderingRepo
 
             val (_, revurdering) = testDataHelper.persisterRevurderingBeregnetOpphørt()
+            repo.lagre(revurdering)
 
             val avsluttetRevurdering = AvsluttetRevurdering.tryCreate(
                 underliggendeRevurdering = revurdering,
@@ -231,7 +231,7 @@ internal class LagreOgHentAvsluttetRevurderingTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.revurderingRepo
 
-            val revurdering = testDataHelper.persisterRevurderingUnderkjentInnvilget()
+            val (_, revurdering) = testDataHelper.persisterRevurderingUnderkjentInnvilget()
 
             val avsluttetRevurdering = AvsluttetRevurdering.tryCreate(
                 underliggendeRevurdering = revurdering,
