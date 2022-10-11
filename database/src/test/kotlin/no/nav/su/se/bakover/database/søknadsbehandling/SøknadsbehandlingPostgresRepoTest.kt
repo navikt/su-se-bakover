@@ -7,10 +7,8 @@ import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.juni
-import no.nav.su.se.bakover.common.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.persistence.antall
 import no.nav.su.se.bakover.common.persistence.hent
-import no.nav.su.se.bakover.database.DomainToQueryParameterMapper
 import no.nav.su.se.bakover.database.avkorting.AvkortingsvarselPostgresRepo
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
@@ -18,10 +16,10 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
 import no.nav.su.se.bakover.domain.sak.NySak
+import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.attesteringIverksatt
 import no.nav.su.se.bakover.test.enUkeEtterFixedClock
@@ -30,29 +28,19 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
-import no.nav.su.se.bakover.test.persistence.dbMetricsStub
-import no.nav.su.se.bakover.test.persistence.sessionCounterStub
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.persistence.withSession
 import no.nav.su.se.bakover.test.saksbehandler
-import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulerUtbetaling
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.stønadsperiode2021
-import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagMedBeregning
-import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagUtenBeregning
-import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vilkår.innvilgetFormueVilkår
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.mockito.kotlin.anyOrNull
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.verify
-import org.mockito.kotlin.verifyNoInteractions
-import org.mockito.kotlin.verifyNoMoreInteractions
-import java.util.UUID
+import vilkår.personligOppmøtevilkårAvslag
 
 internal class SøknadsbehandlingPostgresRepoTest {
 
@@ -427,88 +415,78 @@ internal class SøknadsbehandlingPostgresRepoTest {
     @Test
     fun `gjør ingenting med avkorting dersom ingenting har blitt avkortet`() {
         withMigratedDb { dataSource ->
-            val iverksattInnvilgetUtenAvkorting = søknadsbehandlingIverksattInnvilget().second
-            val iverksattAvslagMedBeregning = søknadsbehandlingIverksattAvslagMedBeregning().second
-            val iverksattAvslagUtenBeregning = søknadsbehandlingIverksattAvslagUtenBeregning().second
-
-            val avkortingsvarselRepoMock = mock<AvkortingsvarselPostgresRepo>()
-
-            val sessionFactory = PostgresSessionFactory(dataSource, dbMetricsStub, sessionCounterStub, listOf(DomainToQueryParameterMapper))
-
-            val repo = SøknadsbehandlingPostgresRepo(
-                dbMetrics = dbMetricsStub,
-                sessionFactory = PostgresSessionFactory(dataSource, dbMetricsStub, sessionCounterStub, listOf(DomainToQueryParameterMapper)),
-                avkortingsvarselRepo = avkortingsvarselRepoMock,
-                grunnlagsdataOgVilkårsvurderingerPostgresRepo = mock(),
-                satsFactory = satsFactoryTest,
+            val testDataHelper = TestDataHelper(dataSource)
+            val revurdering = testDataHelper.persisterRevurderingIverksattInnvilget() // juker litt for å koble avkortingsvarsel mot en revurdering
+            val avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
+                Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
+                    objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
+                        sakId = revurdering.sakId,
+                        revurderingId = revurdering.id,
+                        simulering = simuleringFeilutbetaling(juni(2021)),
+                        opprettet = Tidspunkt.now(fixedClock),
+                    ),
+                ),
             )
+            testDataHelper.sessionFactory.withTransaction { tx ->
+                (testDataHelper.databaseRepos.avkortingsvarselRepo as AvkortingsvarselPostgresRepo).lagre(avkortingsvarsel = avkorting.avkortingsvarsel, tx)
+            }
 
-            repo.lagre(
-                søknadsbehandling = iverksattInnvilgetUtenAvkorting,
-                sessionContext = sessionFactory.newTransactionContext(),
-            )
-            iverksattInnvilgetUtenAvkorting.avkorting shouldBe AvkortingVedSøknadsbehandling.Iverksatt.IngenUtestående
+            val (_, iverksattAvslagUtenBeregning, _) = testDataHelper.persisterIverksattSøknadsbehandlingAvslag { (sak, søknad) ->
+                iverksattSøknadsbehandlingUføre(
+                    sakInfo = SakInfo(
+                        sakId = sak.id,
+                        saksnummer = sak.saksnummer,
+                        fnr = sak.fnr,
+                        type = sak.type,
+                    ),
+                    sakOgSøknad = sak to søknad,
+                    customVilkår = listOf(personligOppmøtevilkårAvslag()),
+                    avkorting = avkorting,
+                )
+            }
 
-            repo.lagre(
-                søknadsbehandling = iverksattAvslagMedBeregning,
-                sessionContext = sessionFactory.newTransactionContext(),
-            )
-            iverksattAvslagMedBeregning.avkorting shouldBe AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere(
-                håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
-            )
-
-            repo.lagre(
-                søknadsbehandling = iverksattAvslagUtenBeregning,
-                sessionContext = sessionFactory.newTransactionContext(),
-            )
-            iverksattAvslagUtenBeregning.avkorting shouldBe AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere(
-                håndtert = AvkortingVedSøknadsbehandling.Håndtert.IngenUtestående,
-            )
-
-            verifyNoInteractions(avkortingsvarselRepoMock)
+            iverksattAvslagUtenBeregning.avkorting shouldBe avkorting.håndter().kanIkke().iverksett(iverksattAvslagUtenBeregning.id)
+            testDataHelper.databaseRepos.avkortingsvarselRepo.hent(avkorting.avkortingsvarsel.id) shouldBe avkorting.avkortingsvarsel
         }
     }
 
     @Test
     fun `oppdaterer avkorting ved lagring av iverksatt innvilget søknadsbehandling med avkorting`() {
         withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val revurdering = testDataHelper.persisterRevurderingIverksattInnvilget() // juker litt for å koble avkortingsvarsel mot en revurdering
             val avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
-                avkortingsvarsel = Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
+                Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
                     objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                        sakId = UUID.randomUUID(),
-                        revurderingId = UUID.randomUUID(),
+                        sakId = revurdering.sakId,
+                        revurderingId = revurdering.id,
                         simulering = simuleringFeilutbetaling(juni(2021)),
                         opprettet = Tidspunkt.now(fixedClock),
                     ),
                 ),
-            ).håndter().iverksett(UUID.randomUUID())
-
-            val iverksattInnvilgetAvkortet = søknadsbehandlingIverksattInnvilget().let { (_, iverksatt) ->
-                iverksatt.copy(avkorting = avkorting)
+            )
+            testDataHelper.sessionFactory.withTransaction { tx ->
+                (testDataHelper.databaseRepos.avkortingsvarselRepo as AvkortingsvarselPostgresRepo).lagre(avkortingsvarsel = avkorting.avkortingsvarsel, tx)
             }
 
-            val avkortingsvarselRepoMock = mock<AvkortingsvarselPostgresRepo>()
+            val (_, iverksattInnvilgetAvkortet, _) = testDataHelper.persisterIverksattSøknadsbehandlingInnvilget() { (sak, søknad) ->
+                iverksattSøknadsbehandlingUføre(
+                    sakInfo = SakInfo(
+                        sakId = sak.id,
+                        saksnummer = sak.saksnummer,
+                        fnr = sak.fnr,
+                        type = sak.type,
+                    ),
+                    sakOgSøknad = sak to søknad,
+                    avkorting = avkorting,
+                )
+            }
 
-            val sessionFactory = PostgresSessionFactory(dataSource, dbMetricsStub, sessionCounterStub, listOf(DomainToQueryParameterMapper))
-
-            val repo = SøknadsbehandlingPostgresRepo(
-                dbMetrics = dbMetricsStub,
-                sessionFactory = sessionFactory,
-                avkortingsvarselRepo = avkortingsvarselRepoMock,
-                grunnlagsdataOgVilkårsvurderingerPostgresRepo = mock(),
-                satsFactory = satsFactoryTest,
-            )
-
-            repo.lagre(
-                søknadsbehandling = iverksattInnvilgetAvkortet,
-                sessionContext = sessionFactory.newTransactionContext(),
-            )
-
-            verify(avkortingsvarselRepoMock).lagre(
-                avkortingsvarsel = argThat<Avkortingsvarsel.Utenlandsopphold.Avkortet> { it shouldBe avkorting.avkortingsvarsel },
-                tx = anyOrNull(),
-            )
-            verifyNoMoreInteractions(avkortingsvarselRepoMock)
+            testDataHelper.søknadsbehandlingRepo.hent(iverksattInnvilgetAvkortet.id)!!.let {
+                val oppdatertAvkorting = avkorting.håndter().iverksett(iverksattInnvilgetAvkortet.id)
+                it.avkorting shouldBe oppdatertAvkorting
+                testDataHelper.avkortingsvarselRepo.hent(avkorting.avkortingsvarsel.id) shouldBe oppdatertAvkorting.avkortingsvarsel
+            }
         }
     }
 }

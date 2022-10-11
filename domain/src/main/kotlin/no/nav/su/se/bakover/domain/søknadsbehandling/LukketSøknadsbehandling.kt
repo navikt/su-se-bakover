@@ -54,6 +54,44 @@ data class LukketSøknadsbehandling private constructor(
     val lukketAv = søknad.lukketAv
     val lukketBrevvalg = søknad.brevvalg
 
+    val beregning = when (underliggendeSøknadsbehandling) {
+        is Beregnet.Avslag -> underliggendeSøknadsbehandling.beregning
+        is Beregnet.Innvilget -> underliggendeSøknadsbehandling.beregning
+        is Iverksatt.Avslag.MedBeregning -> underliggendeSøknadsbehandling.beregning
+        is Iverksatt.Avslag.UtenBeregning -> null
+        is Iverksatt.Innvilget -> underliggendeSøknadsbehandling.beregning
+        is LukketSøknadsbehandling -> null
+        is Simulert -> underliggendeSøknadsbehandling.beregning
+        is TilAttestering.Avslag.MedBeregning -> underliggendeSøknadsbehandling.beregning
+        is TilAttestering.Avslag.UtenBeregning -> null
+        is TilAttestering.Innvilget -> underliggendeSøknadsbehandling.beregning
+        is Underkjent.Avslag.MedBeregning -> underliggendeSøknadsbehandling.beregning
+        is Underkjent.Avslag.UtenBeregning -> null
+        is Underkjent.Innvilget -> underliggendeSøknadsbehandling.beregning
+        is Vilkårsvurdert.Avslag -> null
+        is Vilkårsvurdert.Innvilget -> null
+        is Vilkårsvurdert.Uavklart -> null
+    }
+
+    val simulering = when (underliggendeSøknadsbehandling) {
+        is Beregnet.Avslag -> null
+        is Beregnet.Innvilget -> null
+        is Iverksatt.Avslag.MedBeregning -> null
+        is Iverksatt.Avslag.UtenBeregning -> null
+        is Iverksatt.Innvilget -> underliggendeSøknadsbehandling.simulering
+        is LukketSøknadsbehandling -> null
+        is Simulert -> underliggendeSøknadsbehandling.simulering
+        is TilAttestering.Avslag.MedBeregning -> null
+        is TilAttestering.Avslag.UtenBeregning -> null
+        is TilAttestering.Innvilget -> underliggendeSøknadsbehandling.simulering
+        is Underkjent.Avslag.MedBeregning -> null
+        is Underkjent.Avslag.UtenBeregning -> null
+        is Underkjent.Innvilget -> underliggendeSøknadsbehandling.simulering
+        is Vilkårsvurdert.Avslag -> null
+        is Vilkårsvurdert.Innvilget -> null
+        is Vilkårsvurdert.Uavklart -> null
+    }
+
     init {
         kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
         validateState(this.underliggendeSøknadsbehandling).tapLeft {

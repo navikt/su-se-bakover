@@ -63,7 +63,7 @@ import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.sak.SakFactory
-import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
+import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadinnhold.SøknadsinnholdUføre
@@ -73,6 +73,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
+import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
@@ -97,6 +98,7 @@ import no.nav.su.se.bakover.test.gjeldendeVedtaksdata
 import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
 import no.nav.su.se.bakover.test.grunnlagsdataMedEpsMedFradrag
+import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.kvittering
 import no.nav.su.se.bakover.test.oppgaveIdRevurdering
 import no.nav.su.se.bakover.test.oversendtUtbetalingUtenKvittering
@@ -120,6 +122,7 @@ import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkår
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt0
 import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttUføreOgAndreInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
+import vilkår.personligOppmøtevilkårAvslag
 import java.time.Clock
 import java.time.LocalDate
 import java.util.LinkedList
@@ -1080,6 +1083,86 @@ class TestDataHelper(
                 databaseRepos.søknadsbehandling.lagre(lukketSøknadsbehandling)
                 databaseRepos.søknad.lukkSøknad(lukketSøknadsbehandling.søknad)
                 Pair(databaseRepos.sak.hentSak(sakId)!!, lukketSøknadsbehandling)
+            }
+        }
+    }
+
+    fun persisterNySøknadsbehandling(
+        sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
+    ): Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Uavklart> {
+        return sakOgSøknad.let { (sak, søknad) ->
+            NySøknadsbehandling(
+                id = UUID.randomUUID(),
+                opprettet = fixedTidspunkt,
+                sakId = sak.id,
+                søknad = søknad,
+                oppgaveId = søknad.oppgaveId,
+                fnr = sak.fnr,
+                avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke(),
+                sakstype = sak.type,
+            ).let { nySøknadsbehandling ->
+                databaseRepos.søknadsbehandling.lagreNySøknadsbehandling(nySøknadsbehandling)
+                databaseRepos.sak.hentSak(sak.id).let { sak ->
+                    sak!! to sak.søknadsbehandlinger.single { it.id == nySøknadsbehandling.id } as Søknadsbehandling.Vilkårsvurdert.Uavklart
+                }
+            }
+        }
+    }
+
+    fun persisterIverksattSøknadsbehandlingAvslag(
+        sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
+        søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Triple<Sak, Søknadsbehandling.Iverksatt, Stønadsvedtak> = { (sak, søknad) ->
+            iverksattSøknadsbehandlingUføre(
+                sakInfo = SakInfo(
+                    sakId = sak.id,
+                    saksnummer = sak.saksnummer,
+                    fnr = sak.fnr,
+                    type = sak.type,
+                ),
+                sakOgSøknad = sak to søknad,
+                customVilkår = listOf(
+                    personligOppmøtevilkårAvslag(),
+                ),
+            )
+        },
+    ): Triple<Sak, Søknadsbehandling.Iverksatt, Avslagsvedtak> {
+        return søknadsbehandling(sakOgSøknad).let { (sak, søknadsbehandling, vedtak) ->
+            databaseRepos.søknadsbehandling.lagre(søknadsbehandling)
+            databaseRepos.vedtakRepo.lagre(vedtak)
+            databaseRepos.sak.hentSak(sak.id).let { persistertSak ->
+                Triple(
+                    persistertSak!!,
+                    persistertSak.søknadsbehandlinger.single { it.id == søknadsbehandling.id } as Søknadsbehandling.Iverksatt.Avslag,
+                    persistertSak.vedtakListe.single { it.id == vedtak.id } as Avslagsvedtak,
+                )
+            }
+        }
+    }
+
+    fun persisterIverksattSøknadsbehandlingInnvilget(
+        sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> = persisterJournalførtSøknadMedOppgave(),
+        søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Triple<Sak, Søknadsbehandling.Iverksatt, Stønadsvedtak> = { (sak, søknad) ->
+            iverksattSøknadsbehandlingUføre(
+                sakInfo = SakInfo(
+                    sakId = sak.id,
+                    saksnummer = sak.saksnummer,
+                    fnr = sak.fnr,
+                    type = sak.type,
+                ),
+                sakOgSøknad = sak to søknad,
+            )
+        },
+    ): Triple<Sak, Søknadsbehandling.Iverksatt.Innvilget, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling> {
+        return søknadsbehandling(sakOgSøknad).let { (sak, søknadsbehandling, vedtak) ->
+            databaseRepos.søknadsbehandling.lagre(søknadsbehandling)
+            databaseRepos.utbetaling.opprettUtbetaling(sak.utbetalinger.single { it.id == (vedtak as VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling).utbetalingId } as Utbetaling.OversendtUtbetaling.UtenKvittering)
+            databaseRepos.vedtakRepo.lagre(vedtak)
+            databaseRepos.sak.hentSak(sak.id).let { persistertSak ->
+                Triple(
+                    persistertSak!!,
+                    persistertSak.søknadsbehandlinger.single { it.id == søknadsbehandling.id } as Søknadsbehandling.Iverksatt.Innvilget,
+                    persistertSak.vedtakListe.single { it.id == vedtak.id } as VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling,
+                )
             }
         }
     }
