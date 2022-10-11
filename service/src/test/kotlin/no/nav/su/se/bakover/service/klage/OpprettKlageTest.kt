@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.common.AktørId
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.domain.journalpost.JournalpostClient
+import no.nav.su.se.bakover.domain.journalpost.ErTilknyttetSak
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -77,7 +77,7 @@ internal class OpprettKlageTest {
                 on { hentAktørId(any()) } doReturn AktørId("aktørId").right()
             },
             journalpostClient = mock {
-                on { erTilknyttetSak(any(), any()) } doReturn JournalpostClient.ErTilknyttetSak.Ja.right()
+                on { erTilknyttetSak(any(), any()) } doReturn ErTilknyttetSak.Ja.right()
             },
             oppgaveService = mock {
                 on { opprettOppgave(any()) } doReturn OppgaveId("nyOppgaveId").right()
@@ -142,7 +142,7 @@ internal class OpprettKlageTest {
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
             journalpostClient = mock {
-                on { erTilknyttetSak(any(), any()) } doReturn JournalpostClient.ErTilknyttetSak.Ja.right()
+                on { erTilknyttetSak(any(), any()) } doReturn ErTilknyttetSak.Ja.right()
             },
             personServiceMock = mock {
                 on { hentAktørId(any()) } doReturn KunneIkkeHentePerson.Ukjent.left()
@@ -187,7 +187,7 @@ internal class OpprettKlageTest {
                 on { hentAktørId(any()) } doReturn AktørId("aktørId").right()
             },
             journalpostClient = mock {
-                on { erTilknyttetSak(any(), any()) } doReturn JournalpostClient.ErTilknyttetSak.Ja.right()
+                on { erTilknyttetSak(any(), any()) } doReturn ErTilknyttetSak.Ja.right()
             },
             oppgaveService = mock {
                 on { opprettOppgave(any()) } doReturn OppgaveFeil.KunneIkkeOppretteOppgave.left()
@@ -253,7 +253,7 @@ internal class OpprettKlageTest {
                 on { hentAktørId(any()) } doReturn AktørId("aktørId").right()
             },
             journalpostClient = mock {
-                on { erTilknyttetSak(any(), any()) } doReturn JournalpostClient.ErTilknyttetSak.Ja.right()
+                on { erTilknyttetSak(any(), any()) } doReturn ErTilknyttetSak.Ja.right()
             },
             oppgaveService = mock {
                 on { opprettOppgave(any()) } doReturn OppgaveId("nyOppgaveId").right()

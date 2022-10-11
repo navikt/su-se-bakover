@@ -39,5 +39,5 @@ sealed interface KunneIkkeSjekkeTilknytningTilSak {
     object IkkeTilgang : KunneIkkeSjekkeTilknytningTilSak
     object TekniskFeil : KunneIkkeSjekkeTilknytningTilSak
     object UgyldigInput : KunneIkkeSjekkeTilknytningTilSak
-    object JournalpostIkkeKnyttetTilEnSak : KunneIkkeSjekkeTilknytningTilSak
+    object JournalpostIkkeKnyttetTilSak : KunneIkkeSjekkeTilknytningTilSak
 }

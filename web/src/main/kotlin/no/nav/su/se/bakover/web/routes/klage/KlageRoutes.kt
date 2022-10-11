@@ -531,7 +531,7 @@ private fun KunneIkkeSjekkeTilknytningTilSak.toErrorJson(): Resultat {
             "Ugyldig journalpostId",
             "ugyldig_journalpostId",
         )
-        KunneIkkeSjekkeTilknytningTilSak.JournalpostIkkeKnyttetTilEnSak -> BadRequest.errorJson(
+        KunneIkkeSjekkeTilknytningTilSak.JournalpostIkkeKnyttetTilSak -> BadRequest.errorJson(
             "Journalposten er ikke knyttet til saken",
             "journalpost_ikke_knyttet_til_sak",
         )

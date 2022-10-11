@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.domain.journalpost.ErTilknyttetSak
 import no.nav.su.se.bakover.domain.journalpost.JournalpostClient
 import no.nav.su.se.bakover.domain.journalpost.KunneIkkeSjekkeTilknytningTilSak
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
@@ -92,11 +93,11 @@ class KlageServiceImpl(
                 },
                 {
                     when (it) {
-                        JournalpostClient.ErTilknyttetSak.Ja -> {
+                        ErTilknyttetSak.Ja -> {
                             /*sjekk ok, trenger ikke gjøre noe mer*/
                         }
-                        JournalpostClient.ErTilknyttetSak.Nei -> {
-                            return KunneIkkeOppretteKlage.FeilVedHentingAvJournalpost(KunneIkkeSjekkeTilknytningTilSak.JournalpostIkkeKnyttetTilEnSak).left()
+                        ErTilknyttetSak.Nei -> {
+                            return KunneIkkeOppretteKlage.FeilVedHentingAvJournalpost(KunneIkkeSjekkeTilknytningTilSak.JournalpostIkkeKnyttetTilSak).left()
                         }
                     }
                 },

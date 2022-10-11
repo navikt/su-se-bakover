@@ -72,13 +72,10 @@ internal class JournalpostHttpClient(
             },
             { response ->
                 response.data!!.journalpost?.let {
-                    if (it.sak == null) {
-                        return KunneIkkeSjekkeTilknytningTilSak.JournalpostIkkeKnyttetTilEnSak.left()
-                    }
-                    if (it.sak.fagsakId == saksnummer.toString()) {
-                        return ErTilknyttetSak.Ja.right()
+                    return if (it.sak?.fagsakId == saksnummer.toString()) {
+                        ErTilknyttetSak.Ja.right()
                     } else {
-                        return ErTilknyttetSak.Nei.right()
+                        ErTilknyttetSak.Nei.right()
                     }
                 } ?: return KunneIkkeSjekkeTilknytningTilSak.FantIkkeJournalpost.left()
             },

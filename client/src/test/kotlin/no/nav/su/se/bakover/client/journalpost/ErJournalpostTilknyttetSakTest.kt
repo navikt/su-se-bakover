@@ -69,7 +69,7 @@ internal class JournalpostHttpClientTest {
     }
 
     @Test
-    fun `svarer med feil dersom journalpost ikke er tilknyttet en sak i det heletatt`() {
+    fun `svarer nei dersom journalpost ikke er tilknyttet noen sak`() {
         //language=JSON
         val suksessResponseJson =
             """
@@ -87,7 +87,7 @@ internal class JournalpostHttpClientTest {
                 .willReturn(WireMock.ok(suksessResponseJson)),
         )
 
-        setupClient().erTilknyttetSak(JournalpostId("j"), Saksnummer(2021)) shouldBe KunneIkkeSjekkeTilknytningTilSak.JournalpostIkkeKnyttetTilEnSak.left()
+        setupClient().erTilknyttetSak(JournalpostId("j"), Saksnummer(2021)) shouldBe ErTilknyttetSak.Nei.right()
     }
 
     @Test
