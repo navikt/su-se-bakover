@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import java.time.LocalDate
 import java.util.UUID
@@ -49,7 +50,7 @@ interface UtbetalingService {
     ): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>
 
     fun simulerStans(
-        request: SimulerUtbetalingRequest.StansRequest,
+        utbetaling: Utbetaling.UtbetalingForSimulering,
     ): Either<SimulerStansFeilet, Utbetaling.SimulertUtbetaling>
 
     /**
@@ -62,7 +63,8 @@ interface UtbetalingService {
      * som det siste steget i [transactionContext], slik at eventuelle feil her kan rulle tilbake hele transaksjonen.
      */
     fun klargjørStans(
-        request: UtbetalRequest.Stans,
+        utbetaling: Utbetaling.UtbetalingForSimulering,
+        saksbehandlersSimulering: Simulering,
         transactionContext: TransactionContext,
     ): Either<UtbetalStansFeil, UtbetalingKlargjortForOversendelse<UtbetalStansFeil.KunneIkkeUtbetale>>
 

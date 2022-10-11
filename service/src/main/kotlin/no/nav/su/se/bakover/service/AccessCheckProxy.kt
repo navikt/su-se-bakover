@@ -58,6 +58,7 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Fagområde
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Kravgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.RåttKravgrunnlag
@@ -167,6 +168,8 @@ import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeUtbetaling
+import no.nav.su.se.bakover.service.utbetaling.SimulerStansFeilet
+import no.nav.su.se.bakover.service.utbetaling.UtbetalStansFeil
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
@@ -254,14 +257,17 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
 
-                override fun simulerStans(
-                    request: SimulerUtbetalingRequest.StansRequest,
-                ) = kastKanKunKallesFraAnnenService()
+                override fun simulerStans(utbetaling: Utbetaling.UtbetalingForSimulering): Either<SimulerStansFeilet, Utbetaling.SimulertUtbetaling> {
+                    kastKanKunKallesFraAnnenService()
+                }
 
                 override fun klargjørStans(
-                    request: UtbetalRequest.Stans,
+                    utbetaling: Utbetaling.UtbetalingForSimulering,
+                    saksbehandlersSimulering: Simulering,
                     transactionContext: TransactionContext,
-                ) = kastKanKunKallesFraAnnenService()
+                ): Either<UtbetalStansFeil, UtbetalingKlargjortForOversendelse<UtbetalStansFeil.KunneIkkeUtbetale>> {
+                    kastKanKunKallesFraAnnenService()
+                }
 
                 override fun simulerGjenopptak(
                     request: SimulerUtbetalingRequest.GjenopptakRequest,
@@ -345,6 +351,10 @@ open class AccessCheckProxy(
                 override fun hentSakForRevurdering(revurderingId: UUID): Sak {
                     assertHarTilgangTilRevurdering(revurderingId)
                     return services.sak.hentSakForRevurdering(revurderingId)
+                }
+
+                override fun hentSakForRevurdering(revurderingId: UUID, sessionContext: SessionContext): Sak {
+                    kastKanKunKallesFraAnnenService()
                 }
 
                 override fun hentSakForSøknad(søknadId: UUID): Either<FantIkkeSak, Sak> {

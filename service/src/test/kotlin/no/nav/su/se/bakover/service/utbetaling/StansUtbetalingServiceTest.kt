@@ -6,17 +6,15 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.toPeriode
 import no.nav.su.se.bakover.domain.oppdrag.FeilVedKryssjekkAvTidslinjerOgSimulering
-import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
+import no.nav.su.se.bakover.domain.sak.lagUtbetalingForStans
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.shouldBeType
@@ -39,21 +37,10 @@ internal class StansUtbetalingServiceTest {
 
     @Test
     fun `stans utbetalinger`() {
-        val (sak, _) = iverksattSøknadsbehandlingUføre()
-        val simulering = simuleringStans(
-            stansDato = 1.februar(2021),
-            eksisterendeUtbetalinger = sak.utbetalinger,
-            fnr = sak.fnr,
-            sakId = sak.id,
-            saksnummer = sak.saksnummer,
-            clock = fixedClock,
-        )
+        val (sak, simulertStans) = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak()
         UtbetalingServiceAndMocks(
-            sakService = mock {
-                on { hentSak(sakId) } doReturn sak.right()
-            },
             simuleringClient = mock {
-                on { simulerUtbetaling(any()) } doReturn simulering.right()
+                on { simulerUtbetaling(any()) } doReturn simulertStans.simulering.right()
             },
             utbetalingRepo = mock {
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
@@ -64,33 +51,26 @@ internal class StansUtbetalingServiceTest {
             },
         ).also { serviceAndMocks ->
             serviceAndMocks.service.klargjørStans(
-                request = UtbetalRequest.Stans(
-                    request = SimulerUtbetalingRequest.Stans(
-                        sakId = sakId,
-                        saksbehandler = saksbehandler,
-                        stansdato = 1.februar(2021),
-                    ),
-                    simulering = simulering,
-                ),
+                utbetaling = sak.lagUtbetalingForStans(
+                    stansdato = 1.februar(2021),
+                    behandler = saksbehandler,
+                    clock = fixedClock,
+                ).getOrFail(),
+                saksbehandlersSimulering = simulertStans.simulering,
                 transactionContext = TestSessionFactory.transactionContext,
             ).getOrFail().shouldBeType<UtbetalingKlargjortForOversendelse<UtbetalStansFeil>>().sendUtbetaling()
 
             inOrder(
-                serviceAndMocks.sakService,
                 serviceAndMocks.simuleringClient,
                 serviceAndMocks.utbetalingPublisher,
                 serviceAndMocks.utbetalingRepo,
             ) {
-                verify(serviceAndMocks.sakService).hentSak(
-                    sakId = argThat { it shouldBe sakId },
-                )
                 verify(serviceAndMocks.simuleringClient).simulerUtbetaling(any())
                 verify(serviceAndMocks.utbetalingPublisher).generateRequest(any())
                 verify(serviceAndMocks.utbetalingRepo).opprettUtbetaling(any(), anyOrNull())
                 verify(serviceAndMocks.utbetalingPublisher).publishRequest(any())
             }
             verifyNoMoreInteractions(
-                serviceAndMocks.sakService,
                 serviceAndMocks.simuleringClient,
                 serviceAndMocks.utbetalingRepo,
                 serviceAndMocks.utbetalingPublisher,
@@ -118,19 +98,16 @@ internal class StansUtbetalingServiceTest {
             },
         ).also {
             it.service.klargjørStans(
-                request = UtbetalRequest.Stans(
-                    request = SimulerUtbetalingRequest.Stans(
-                        sakId = sakId,
-                        saksbehandler = saksbehandler,
-                        stansdato = 1.februar(2021),
-                    ),
-                    simulering = simulering,
-                ),
+                utbetaling = sak.lagUtbetalingForStans(
+                    stansdato = 1.februar(2021),
+                    behandler = saksbehandler,
+                    clock = fixedClock,
+                ).getOrFail(),
+                saksbehandlersSimulering = simulering,
                 transactionContext = TestSessionFactory.transactionContext,
             ) shouldBe UtbetalStansFeil.KunneIkkeSimulere(SimulerStansFeilet.KunneIkkeSimulere(SimuleringFeilet.TekniskFeil)).left()
 
-            inOrder(it.sakService, it.simuleringClient) {
-                verify(it.sakService).hentSak(sakId = argThat { it shouldBe sakId })
+            inOrder(it.simuleringClient) {
                 verify(it.simuleringClient).simulerUtbetaling(any())
             }
             verifyNoMoreInteractions(
@@ -166,14 +143,12 @@ internal class StansUtbetalingServiceTest {
             },
         ).also { serviceAndMocks ->
             serviceAndMocks.service.klargjørStans(
-                request = UtbetalRequest.Stans(
-                    request = SimulerUtbetalingRequest.Stans(
-                        sakId = sakId,
-                        saksbehandler = saksbehandler,
-                        stansdato = 1.februar(2021),
-                    ),
-                    simulering = simulering,
-                ),
+                utbetaling = sak.lagUtbetalingForStans(
+                    stansdato = 1.februar(2021),
+                    behandler = saksbehandler,
+                    clock = fixedClock,
+                ).getOrFail(),
+                saksbehandlersSimulering = simulering,
                 transactionContext = TestSessionFactory.transactionContext,
             ).let {
                 it.getOrFail().shouldBeType<UtbetalingKlargjortForOversendelse<UtbetalStansFeil>>().let {
@@ -188,7 +163,6 @@ internal class StansUtbetalingServiceTest {
                 serviceAndMocks.utbetalingPublisher,
                 serviceAndMocks.utbetalingRepo,
             ) {
-                verify(serviceAndMocks.sakService).hentSak(sakId = argThat { it shouldBe sakId })
                 verify(serviceAndMocks.simuleringClient).simulerUtbetaling(any())
                 verify(serviceAndMocks.utbetalingPublisher).generateRequest(any())
                 verify(serviceAndMocks.utbetalingRepo).opprettUtbetaling(any(), argThat { TestSessionFactory.transactionContext })
@@ -222,14 +196,12 @@ internal class StansUtbetalingServiceTest {
             },
         ).also {
             it.service.klargjørStans(
-                request = UtbetalRequest.Stans(
-                    request = SimulerUtbetalingRequest.Stans(
-                        sakId = sakId,
-                        saksbehandler = saksbehandler,
-                        stansdato = stansdato,
-                    ),
-                    simulering = revurdering.simulering,
-                ),
+                utbetaling = sak.lagUtbetalingForStans(
+                    stansdato = stansdato,
+                    behandler = saksbehandler,
+                    clock = fixedClock,
+                ).getOrFail(),
+                saksbehandlersSimulering = revurdering.simulering,
                 transactionContext = TestSessionFactory.transactionContext,
             ) shouldBe UtbetalStansFeil.KunneIkkeSimulere(SimulerStansFeilet.KontrollFeilet(FeilVedKryssjekkAvTidslinjerOgSimulering.Stans.SimuleringHarFeilutbetaling)).left()
 
