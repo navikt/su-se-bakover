@@ -51,7 +51,7 @@ internal class FrikortRoutesKtTest {
 
         testApplication {
             application {
-                testSusebakover(services = testServices.copy(vedtakService = vedtakServiceMock))
+                testSusebakover(services = TestServicesBuilder.services(vedtakService = vedtakServiceMock))
             }
             client.get(frikortPath) {
                 header(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
@@ -95,7 +95,7 @@ internal class FrikortRoutesKtTest {
         testApplication {
             application {
                 testSusebakover(
-                    services = testServices.copy(vedtakService = vedtakServiceMock),
+                    services = TestServicesBuilder.services(vedtakService = vedtakServiceMock),
                     clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC),
                 )
             }
@@ -121,7 +121,7 @@ internal class FrikortRoutesKtTest {
         testApplication {
             application {
                 testSusebakover(
-                    services = testServices.copy(vedtakService = vedtakServiceMock),
+                    services = TestServicesBuilder.services(vedtakService = vedtakServiceMock),
                     clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC),
                 )
             }
@@ -148,7 +148,7 @@ internal class FrikortRoutesKtTest {
         testApplication {
             application {
                 testSusebakover(
-                    services = testServices.copy(vedtakService = vedtakServiceMock),
+                    services = TestServicesBuilder.services(vedtakService = vedtakServiceMock),
                     clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC),
                 )
             }

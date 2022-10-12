@@ -10,27 +10,15 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.Brukerrolle
-import no.nav.su.se.bakover.common.NavIdentBruker
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
-import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilFradragsgrunnlag
 import no.nav.su.se.bakover.service.revurdering.RevurderingOgFeilmeldingerResponse
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
-import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.sakinfo
-import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
+import no.nav.su.se.bakover.test.opprettetRevurdering
+import no.nav.su.se.bakover.test.sakId
+import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.periode
-import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.requestPath
-import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.testServices
-import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.vedtak
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -41,8 +29,7 @@ import java.util.UUID
 
 internal class LeggTilFradragRevurderingRouteKtTest {
     //language=json
-    private val validBody =
-        """
+    private val validBody = """
         {
             "fradrag":
                 [
@@ -62,47 +49,26 @@ internal class LeggTilFradragRevurderingRouteKtTest {
                     }
                 ]
         }
-        """.trimIndent()
+    """.trimIndent()
 
     private val revurderingId = UUID.randomUUID()
 
     @Test
     fun `happy case`() {
-        val opprettetRevurdering = OpprettetRevurdering(
-            id = UUID.randomUUID(),
-            periode = periode,
-            opprettet = fixedTidspunkt,
-            tilRevurdering = vedtak.id,
-            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
-            oppgaveId = OppgaveId("oppgaveId"),
-            fritekstTilBrev = "",
-            revurderingsårsak = Revurderingsårsak(
-                Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
-                Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
-            ),
-            forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            attesteringer = Attesteringshistorikk.empty(),
-            avkorting = AvkortingVedRevurdering.Uhåndtert.IngenUtestående,
-            sakinfo = sakinfo,
-        )
-
         val revurderingServiceMock = mock<RevurderingService> {
             on { leggTilFradragsgrunnlag(any()) } doReturn RevurderingOgFeilmeldingerResponse(
-                opprettetRevurdering,
+                opprettetRevurdering().second,
                 emptyList(),
             ).right()
         }
 
         testApplication {
             application {
-                testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
+                testSusebakover(services = TestServicesBuilder.services(revurdering = revurderingServiceMock))
             }
             defaultRequest(
                 HttpMethod.Post,
-                "$requestPath/$revurderingId/fradrag",
+                "/saker/$sakId/revurderinger/$revurderingId/fradrag",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(validBody)
@@ -122,11 +88,11 @@ internal class LeggTilFradragRevurderingRouteKtTest {
 
         testApplication {
             application {
-                testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
+                testSusebakover(services = TestServicesBuilder.services(revurdering = revurderingServiceMock))
             }
             defaultRequest(
                 HttpMethod.Post,
-                "$requestPath/$revurderingId/fradrag",
+                "/saker/$sakId/revurderinger/$revurderingId/fradrag",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(validBody)
@@ -148,11 +114,11 @@ internal class LeggTilFradragRevurderingRouteKtTest {
 
         testApplication {
             application {
-                testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
+                testSusebakover(services = TestServicesBuilder.services().copy(revurdering = revurderingServiceMock))
             }
             defaultRequest(
                 HttpMethod.Post,
-                "$requestPath/$revurderingId/fradrag",
+                "/saker/$sakId/revurderinger/$revurderingId/fradrag",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(validBody)
@@ -169,11 +135,11 @@ internal class LeggTilFradragRevurderingRouteKtTest {
 
         testApplication {
             application {
-                testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
+                testSusebakover(services = TestServicesBuilder.services(revurdering = revurderingServiceMock))
             }
             defaultRequest(
                 HttpMethod.Post,
-                "$requestPath/$revurderingId/fradrag",
+                "/saker/$sakId/revurderinger/$revurderingId/fradrag",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(

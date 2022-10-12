@@ -705,6 +705,7 @@ fun lagFradragsgrunnlag(
     ),
 ).getOrFail()
 
+/** revurderingsårsak låses til GRUNNBELØP_REGULERING siden det er den eneste årsaken som kan føre til ingen endring. */
 fun beregnetRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
@@ -718,27 +719,8 @@ fun beregnetRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = sakOgVedtakSomKanRevurderes.first.hentGjeldendeVilkårOgGrunnlag(
         periode = revurderingsperiode,
         clock = clock,
-    ).let {
-        it.copy(
-            grunnlagsdata = it.grunnlagsdata.copy(
-                fradragsgrunnlag = listOf(
-                    lagFradragsgrunnlag(
-                        type = Fradragstype.Arbeidsinntekt,
-                        månedsbeløp = 6000.0,
-                        periode = stønadsperiode.periode,
-                        tilhører = FradragTilhører.BRUKER,
-                    ),
-                ),
-            ),
-        )
-    },
-    revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
-    eksisterendeUtbetalinger: List<Utbetaling> = listOf(
-        oversendtUtbetalingMedKvittering(
-            eksisterendeUtbetalinger = emptyList(),
-            clock = clock,
-        ),
     ),
+    eksisterendeUtbetalinger: List<Utbetaling> = sakOgVedtakSomKanRevurderes.first.utbetalinger,
 ): Pair<Sak, BeregnetRevurdering.IngenEndring> {
     return opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
         saksnummer = saksnummer,
@@ -747,7 +729,7 @@ fun beregnetRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
         informasjonSomRevurderes = informasjonSomRevurderes,
         sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
         grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
-        revurderingsårsak = revurderingsårsak,
+        revurderingsårsak = Revurderingsårsak(Revurderingsårsak.Årsak.REGULER_GRUNNBELØP, Revurderingsårsak.Begrunnelse.create("testdata - ingen endring")),
     ).let { (sak, revurdering) ->
         val innvilgetBeregnetRevurdering = revurdering.beregn(
             eksisterendeUtbetalinger = eksisterendeUtbetalinger,
@@ -1229,6 +1211,7 @@ fun tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
     }
 }
 
+/** revurderingsårsak låses til GRUNNBELØP_REGULERING siden det er den eneste årsaken som kan føre til ingen endring. */
 fun tilAttesteringRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
@@ -1237,7 +1220,6 @@ fun tilAttesteringRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
     attesteringsoppgaveId: OppgaveId = OppgaveId("oppgaveid"),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     fritekstTilBrev: String = "",
-    revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
     skalFøreTilBrevutsending: Boolean = true,
 ): Pair<Sak, RevurderingTilAttestering.IngenEndring> {
     return beregnetRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
@@ -1245,7 +1227,6 @@ fun tilAttesteringRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
         stønadsperiode = stønadsperiode,
         revurderingsperiode = revurderingsperiode,
         informasjonSomRevurderes = informasjonSomRevurderes,
-        revurderingsårsak = revurderingsårsak,
     ).let { (sak, revurdering) ->
         val innvilgetRevurderingTilAttestering = revurdering.tilAttestering(
             attesteringsoppgaveId = attesteringsoppgaveId,
@@ -1371,6 +1352,46 @@ fun underkjentOpphørtRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
     }
 }
 
+/** revurderingsårsak låses til GRUNNBELØP_REGULERING siden det er den eneste årsaken som kan føre til ingen endring. */
+fun underkjentRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    stønadsperiode: Stønadsperiode = stønadsperiode2021,
+    revurderingsperiode: Periode = år(2021),
+    informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+
+    attesteringsoppgaveId: OppgaveId = OppgaveId("oppgaveid"),
+    saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
+    fritekstTilBrev: String = "",
+    attestering: Attestering.Underkjent = Attestering.Underkjent(
+        attestant = attestant,
+        grunn = Attestering.Underkjent.Grunn.INNGANGSVILKÅRENE_ER_FEILVURDERT,
+        kommentar = "feil vilkår man",
+        opprettet = fixedTidspunkt,
+    ),
+): Pair<Sak, UnderkjentRevurdering.IngenEndring> {
+    return tilAttesteringRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
+        saksnummer = saksnummer,
+        stønadsperiode = stønadsperiode,
+        revurderingsperiode = revurderingsperiode,
+        informasjonSomRevurderes = informasjonSomRevurderes,
+        attesteringsoppgaveId = attesteringsoppgaveId,
+        saksbehandler = saksbehandler,
+        fritekstTilBrev = fritekstTilBrev,
+    ).let { (sak, revurdering) ->
+        val underkjentRevurdering = revurdering.underkjenn(
+            attestering = attestering,
+            oppgaveId = OppgaveId(value = "oppgaveId"),
+        )
+        Pair(
+            sak.copy(
+                // Erstatter den gamle versjonen av samme revurderinger.
+                revurderinger = sak.revurderinger.filterNot { it.id == underkjentRevurdering.id } + underkjentRevurdering,
+            ),
+            underkjentRevurdering as UnderkjentRevurdering.IngenEndring,
+        )
+    }
+}
+
 fun iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
@@ -1421,6 +1442,7 @@ fun iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
     }
 }
 
+/** revurderingsårsak låses til GRUNNBELØP_REGULERING siden det er den eneste årsaken som kan føre til ingen endring. */
 fun iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
@@ -1430,7 +1452,6 @@ fun iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     fritekstTilBrev: String = "",
     attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
-    revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
     skalFøreTilBrevutsending: Boolean = true,
     clock: Clock = fixedClock,
 ): Pair<Sak, IverksattRevurdering.IngenEndring> {
@@ -1442,7 +1463,6 @@ fun iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
         attesteringsoppgaveId = attesteringsoppgaveId,
         saksbehandler = saksbehandler,
         fritekstTilBrev = fritekstTilBrev,
-        revurderingsårsak = revurderingsårsak,
         skalFøreTilBrevutsending = skalFøreTilBrevutsending,
     ).let { (sak, revurdering) ->
         val innvilgetIverksattRevurdering = revurdering.tilIverksatt(

@@ -71,7 +71,7 @@ internal class AvstemmingRoutesKtTest {
         }
     }
 
-    private fun services() = TestServicesBuilder.services().copy(
+    private fun services() = TestServicesBuilder.services(
         avstemming = happyAvstemmingService(),
     )
 

@@ -7,11 +7,11 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.test.fnrUnder67
 import no.nav.su.se.bakover.test.nySakMedjournalførtSøknadOgOppgave
+import no.nav.su.se.bakover.test.sakId
+import no.nav.su.se.bakover.test.søknadId
+import no.nav.su.se.bakover.test.søknadinnhold
 import no.nav.su.se.bakover.test.trekkSøknad
 import no.nav.su.se.bakover.test.veileder
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.sakId
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.søknadId
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.søknadInnhold
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import java.time.format.DateTimeFormatter
@@ -22,13 +22,13 @@ internal class UføresøknadJsonTest {
             sakId = sakId,
             opprettet = Tidspunkt.EPOCH,
             id = søknadId,
-            søknadInnhold = søknadInnhold,
+            søknadInnhold = søknadinnhold(),
             innsendtAv = veileder,
         )
         private val opprettetTidspunkt: String = DateTimeFormatter.ISO_INSTANT.format(søknad.opprettet)
 
         //language=JSON
-        val søknadJsonString =
+        val expectedSøknadJsonString =
             """
         {
           "id": "$søknadId",
@@ -40,7 +40,7 @@ internal class UføresøknadJsonTest {
                 "harUførevedtak":true
             },
             "personopplysninger":{
-                "fnr":"12345678910"
+                "fnr":"84640107951"
             },
             "flyktningsstatus":{
                 "registrertFlyktning":false
@@ -165,16 +165,6 @@ internal class UføresøknadJsonTest {
           "lukket": null
         }
             """.trimIndent()
-    }
-
-    @Test
-    fun `should serialize to json string`() {
-        JSONAssert.assertEquals(søknadJsonString, serialize(søknad.toJson()), true)
-    }
-
-    @Test
-    fun `should deserialize json string`() {
-        deserialize<SøknadJson>(søknadJsonString) shouldBe søknad.toJson()
     }
 
     @Test

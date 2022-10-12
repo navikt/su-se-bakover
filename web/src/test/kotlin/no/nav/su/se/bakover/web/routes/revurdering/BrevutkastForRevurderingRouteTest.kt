@@ -16,6 +16,8 @@ import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLageBrevutkastForRevurdering
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
+import no.nav.su.se.bakover.test.sakId
+import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
@@ -36,7 +38,7 @@ internal class BrevutkastForRevurderingRouteTest {
             application { testSusebakover() }
             defaultRequest(
                 HttpMethod.Post,
-                "${RevurderingRoutesTestData.requestPath}/$revurderingId/brevutkast",
+                "/saker/$sakId/revurderinger/$revurderingId/brevutkast",
                 listOf(Brukerrolle.Veileder),
             ) {
                 setBody(validBody)
@@ -68,10 +70,10 @@ internal class BrevutkastForRevurderingRouteTest {
         }
 
         testApplication {
-            application { testSusebakover(services = RevurderingRoutesTestData.testServices.copy(revurdering = revurderingServiceMock)) }
+            application { testSusebakover(services = TestServicesBuilder.services(revurdering = revurderingServiceMock)) }
             defaultRequest(
                 HttpMethod.Post,
-                "${RevurderingRoutesTestData.requestPath}/$revurderingId/brevutkast",
+                "/saker/$sakId/revurderinger/$revurderingId/brevutkast",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(validBody)
@@ -154,10 +156,10 @@ internal class BrevutkastForRevurderingRouteTest {
         }
 
         testApplication {
-            application { testSusebakover(services = RevurderingRoutesTestData.testServices.copy(revurdering = revurderingServiceMock)) }
+            application { testSusebakover(services = TestServicesBuilder.services(revurdering = revurderingServiceMock)) }
             defaultRequest(
                 HttpMethod.Post,
-                "${RevurderingRoutesTestData.requestPath}/$revurderingId/brevutkast",
+                "/saker/$sakId/revurderinger/$revurderingId/brevutkast",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(validBody)
