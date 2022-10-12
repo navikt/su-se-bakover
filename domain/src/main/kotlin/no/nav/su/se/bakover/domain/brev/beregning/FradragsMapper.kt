@@ -82,6 +82,7 @@ fun Fradragstype.toReadableTypeName(utenlandsk: Boolean) =
         Fradragstype.Uføretrygd -> "Uføretrygd"
         Fradragstype.UnderMinstenivå -> "Beløp under minstegrense for utbetaling"
         Fradragstype.Tiltakspenger -> "Tiltakspenger"
+        Fradragstype.Ventestønad -> "Ventestønad"
     }.let { fradragsnavn ->
         if (utenlandsk) {
             "$fradragsnavn — fra utlandet"

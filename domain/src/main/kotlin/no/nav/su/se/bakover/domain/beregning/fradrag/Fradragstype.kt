@@ -38,6 +38,7 @@ sealed class Fradragstype {
         SupplerendeStønad,
         Sykepenger,
         Tiltakspenger,
+        Ventestønad,
         Uføretrygd,
 
         /**
@@ -153,7 +154,12 @@ sealed class Fradragstype {
 
     object Tiltakspenger : Fradragstype() {
         override val kategori: Kategori = Kategori.Tiltakspenger
-        override val måJusteresManueltVedGEndring: Boolean = false
+        override val måJusteresManueltVedGEndring: Boolean = true
+    }
+
+    object Ventestønad : Fradragstype() {
+        override val kategori: Kategori = Kategori.Ventestønad
+        override val måJusteresManueltVedGEndring: Boolean = true
     }
 
     object Uføretrygd : Fradragstype() {
