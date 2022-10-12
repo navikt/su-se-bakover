@@ -57,7 +57,7 @@ internal class LeggTilFamiliegjenforeningRoutesTest {
         testApplication {
             application {
                 testSusebakover(
-                    services = TestServicesBuilder.services().copy(
+                    services = TestServicesBuilder.services(
                         søknadsbehandling = mock {
                             on { leggTilFamiliegjenforeningvilkår(any()) } doReturn vilkårsvurdert.right()
                         },

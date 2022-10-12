@@ -51,7 +51,7 @@ internal class NøkkeltallRoutesKtTest {
 
         testApplication {
             application {
-                testSusebakover(services = TestServicesBuilder.services().copy(nøkkeltallService = nøkkelServiceMock))
+                testSusebakover(services = TestServicesBuilder.services(nøkkeltallService = nøkkelServiceMock))
             }
             defaultRequest(HttpMethod.Get, nøkkeltallPath, listOf(Brukerrolle.Saksbehandler)).apply {
                 val expected = """

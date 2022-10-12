@@ -10,32 +10,16 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.Brukerrolle
-import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
-import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingUnderBehandling
-import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
-import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
-import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeSendeRevurderingTilAttestering
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
-import no.nav.su.se.bakover.test.fixedLocalDate
-import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
+import no.nav.su.se.bakover.test.sakId
+import no.nav.su.se.bakover.test.tilAttesteringRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.periode
-import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.requestPath
-import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.testServices
-import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.vedtak
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.TestBeregning
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -56,7 +40,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             }
             defaultRequest(
                 HttpMethod.Post,
-                "$requestPath/$revurderingId/tilAttestering",
+                "/saker/$sakId/revurderinger/$revurderingId/tilAttestering",
                 listOf(Brukerrolle.Veileder),
             ).apply {
                 status shouldBe HttpStatusCode.Forbidden
@@ -76,35 +60,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
 
     @Test
     fun innvilget() {
-        val revurderingTilAttestering = RevurderingTilAttestering.Innvilget(
-            id = UUID.randomUUID(),
-            periode = periode,
-            opprettet = fixedTidspunkt,
-            tilRevurdering = vedtak.id,
-            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
-            beregning = TestBeregning,
-            simulering = Simulering(
-                gjelderId = vedtak.behandling.fnr,
-                gjelderNavn = "Test",
-                datoBeregnet = fixedLocalDate,
-                nettoBeløp = 0,
-                periodeList = listOf(),
-            ),
-            oppgaveId = OppgaveId("OppgaveId"),
-            fritekstTilBrev = "",
-            revurderingsårsak = Revurderingsårsak(
-                Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
-                Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
-            ),
-            forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
-            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            attesteringer = Attesteringshistorikk.empty(),
-            avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
-            tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling,
-            sakinfo = vedtak.sakinfo(),
-        )
+        val revurderingTilAttestering = tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
 
         val revurderingServiceMock = mock<RevurderingService> {
             on { sendTilAttestering(any()) } doReturn revurderingTilAttestering.right()
@@ -112,11 +68,11 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
 
         testApplication {
             application {
-                testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
+                testSusebakover(services = TestServicesBuilder.services(revurdering = revurderingServiceMock))
             }
             defaultRequest(
                 HttpMethod.Post,
-                "$requestPath/${revurderingTilAttestering.id}/tilAttestering",
+                "/saker/$sakId/revurderinger/${revurderingTilAttestering.id}/tilAttestering",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody("""{ "fritekstTilBrev": "Friteksten" }""")
@@ -131,28 +87,8 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
 
     @Test
     fun `ingen endring uten brev`() {
-        val revurderingTilAttestering = RevurderingTilAttestering.IngenEndring(
-            id = UUID.randomUUID(),
-            periode = periode,
-            opprettet = fixedTidspunkt,
-            tilRevurdering = vedtak.id,
-            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
-            beregning = TestBeregning,
-            oppgaveId = OppgaveId("OppgaveId"),
-            fritekstTilBrev = "",
-            revurderingsårsak = Revurderingsårsak(
-                Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
-                Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
-            ),
-            skalFøreTilUtsendingAvVedtaksbrev = false,
-            forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            attesteringer = Attesteringshistorikk.empty(),
-            avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
-            sakinfo = vedtak.sakinfo(),
-        )
+        val revurderingTilAttestering =
+            tilAttesteringRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak().second
 
         val revurderingServiceMock = mock<RevurderingService> {
             on { sendTilAttestering(any()) } doReturn revurderingTilAttestering.right()
@@ -160,11 +96,11 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
 
         testApplication {
             application {
-                testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
+                testSusebakover(services = TestServicesBuilder.services(revurdering = revurderingServiceMock))
             }
             defaultRequest(
                 HttpMethod.Post,
-                "$requestPath/${revurderingTilAttestering.id}/tilAttestering",
+                "/saker/$sakId/revurderinger/${revurderingTilAttestering.id}/tilAttestering",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody("""{ "fritekstTilBrev": "", "skalFøreTilBrevutsending": "false" }""")
@@ -181,28 +117,11 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
 
     @Test
     fun `ingen endring med brev`() {
-        val revurderingTilAttestering = RevurderingTilAttestering.IngenEndring(
-            id = UUID.randomUUID(),
-            periode = periode,
-            opprettet = fixedTidspunkt,
-            tilRevurdering = vedtak.id,
-            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
-            beregning = TestBeregning,
-            oppgaveId = OppgaveId("OppgaveId"),
-            fritekstTilBrev = "Friteksten",
-            revurderingsårsak = Revurderingsårsak(
-                Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
-                Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
-            ),
-            skalFøreTilUtsendingAvVedtaksbrev = true,
-            forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            attesteringer = Attesteringshistorikk.empty(),
-            avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
-            sakinfo = vedtak.sakinfo(),
-        )
+        // TODO - flytt til regresjonstest dersom vi skal teste logikk, hvis ikke bør denne teste json
+        val revurderingTilAttestering =
+            tilAttesteringRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
+                fritekstTilBrev = "Friteksten",
+            ).second
 
         val revurderingServiceMock = mock<RevurderingService> {
             on { sendTilAttestering(any()) } doReturn revurderingTilAttestering.right()
@@ -210,21 +129,21 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
 
         testApplication {
             application {
-                testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
+                testSusebakover(services = TestServicesBuilder.services(revurdering = revurderingServiceMock))
             }
             defaultRequest(
                 HttpMethod.Post,
-                "$requestPath/${revurderingTilAttestering.id}/tilAttestering",
+                "/saker/$sakId/revurderinger/${revurderingTilAttestering.id}/tilAttestering",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
-                setBody("""{ "fritekstTilBrev": "Friteksten", "skalFøreTilBrevutsending": "true" }""")
+                setBody("""{ "fritekstTilBrev": "Friteksten", "skalFøreTilBrevutsending": "false" }""")
             }.apply {
                 status shouldBe HttpStatusCode.OK
                 val actualResponse = objectMapper.readValue<TilAttesteringJson>(bodyAsText())
                 actualResponse.id shouldBe revurderingTilAttestering.id.toString()
                 actualResponse.status shouldBe RevurderingsStatus.TIL_ATTESTERING_INGEN_ENDRING
                 actualResponse.fritekstTilBrev shouldBe "Friteksten"
-                actualResponse.skalFøreTilBrevutsending shouldBe true
+                actualResponse.skalFøreTilBrevutsending shouldBe false
             }
         }
     }
@@ -313,11 +232,11 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
 
         testApplication {
             application {
-                testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
+                testSusebakover(services = TestServicesBuilder.services(revurdering = revurderingServiceMock))
             }
             defaultRequest(
                 HttpMethod.Post,
-                "$requestPath/$revurderingId/tilAttestering",
+                "/saker/$sakId/revurderinger/$revurderingId/tilAttestering",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody("""{ "fritekstTilBrev": "Dette er friteksten" }""")

@@ -12,6 +12,7 @@ import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
@@ -23,14 +24,13 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.nyUtbetalingSimulert
 import no.nav.su.se.bakover.test.opprettetRevurdering
+import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkår
+import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.periode
-import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.requestPath
-import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.testServices
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -42,6 +42,7 @@ import org.skyscreamer.jsonassert.JSONAssert
 import java.util.UUID
 
 internal class BeregnOgSimulerRevurderingRouteKtTest {
+    val periode = år(2021)
     private val validBody = """
         {
             "periode": { "fraOgMed": "${periode.fraOgMed}", "tilOgMed": "${periode.tilOgMed}"},
@@ -59,7 +60,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
             }
             defaultRequest(
                 HttpMethod.Post,
-                "$requestPath/$revurderingId/beregnOgSimuler",
+                "/saker/$sakId/revurderinger/$revurderingId/beregnOgSimuler",
                 listOf(Brukerrolle.Veileder),
             ) {
                 setBody(validBody)
@@ -127,11 +128,11 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
 
         testApplication {
             application {
-                testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
+                testSusebakover(services = TestServicesBuilder.services(revurdering = revurderingServiceMock))
             }
             defaultRequest(
                 HttpMethod.Post,
-                "$requestPath/${simulertRevurdering.id}/beregnOgSimuler",
+                "/saker/$sakId/revurderinger/${simulertRevurdering.id}/beregnOgSimuler",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(validBody)
@@ -224,11 +225,11 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
 
         testApplication {
             application {
-                testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
+                testSusebakover(services = TestServicesBuilder.services(revurdering = revurderingServiceMock))
             }
             defaultRequest(
                 HttpMethod.Post,
-                "$requestPath/$revurderingId/beregnOgSimuler",
+                "/saker/$sakId/revurderinger/$revurderingId/beregnOgSimuler",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(validBody)

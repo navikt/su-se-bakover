@@ -36,7 +36,7 @@ object MockDatabaseBuilder {
         personhendelseRepo: PersonhendelseRepo = mock(),
         dokumentRepo: DokumentRepo = mock(),
         nøkkeltallRepo: NøkkeltallRepo = mock(),
-        sessionFactory: TestSessionFactory = TestSessionFactory(),
+        sessionFactory: TestSessionFactory = mock(),
         klageRepo: KlageRepo = mock(),
         klageinstanshendelseRepo: KlageinstanshendelseRepo = mock(),
         kontrollsamtaleRepo: KontrollsamtaleRepo = mock(),

@@ -89,7 +89,7 @@ internal class DokumentRoutesKtTest {
 
     @Test
     fun `happy case`() {
-        val services = TestServicesBuilder.services().copy(
+        val services = TestServicesBuilder.services(
             brev = mock {
                 on { hentDokumenterFor(argThat { it is HentDokumenterForIdType.Søknad }) } doReturn listOf(
                     Dokument.UtenMetadata.Informasjon.Annet(
@@ -130,7 +130,7 @@ internal class DokumentRoutesKtTest {
     @Test
     fun `svarer med 404 hvis ingen dokumenter ble funnet`() {
         val sakId = "39f05293-39e0-47be-ba35-a7e0b233b630"
-        val services = TestServicesBuilder.services().copy(
+        val services = TestServicesBuilder.services(
             brev = mock {
                 on { hentDokumenterFor(argThat { it is HentDokumenterForIdType.Sak }) } doReturn emptyList()
             },
