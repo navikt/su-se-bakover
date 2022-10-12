@@ -20,7 +20,7 @@ internal class FradragsgrunnlagPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val grunnlagRepo = FradragsgrunnlagPostgresRepo(dbMetricsStub)
-            val behandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
+            val behandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdert().second
 
             val fradragsgrunnlag1 = lagFradragsgrunnlag(
                 type = Fradragstype.Arbeidsinntekt,
@@ -92,7 +92,7 @@ internal class FradragsgrunnlagPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val grunnlagRepo = FradragsgrunnlagPostgresRepo(dbMetricsStub)
-            val behandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
+            val behandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdert().second
 
             val grunnlag = lagFradragsgrunnlag(
                 type = Fradragstype.Annet("vet ikke hva dette er"),

@@ -24,7 +24,7 @@ internal class OpplysningspliktVilkårsvurderingPostgresRepoTest {
                 opplysningspliktGrunnlagRepo,
                 dbMetricsStub,
             )
-            val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
+            val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdert().second
             val vilkår = tilstrekkeligDokumentert()
 
             testDataHelper.sessionFactory.withTransaction { tx ->
@@ -49,7 +49,7 @@ internal class OpplysningspliktVilkårsvurderingPostgresRepoTest {
                 opplysningspliktGrunnlagRepo,
                 dbMetricsStub,
             )
-            val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
+            val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdert().second
             val vilkår = tilstrekkeligDokumentert(periode = år(2021))
 
             testDataHelper.sessionFactory.withTransaction { tx ->
@@ -95,7 +95,7 @@ internal class OpplysningspliktVilkårsvurderingPostgresRepoTest {
                 opplysningspliktGrunnlagRepo,
                 dbMetricsStub,
             )
-            val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
+            val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdert().second
             val (vilkår, grunnlag) = tilstrekkeligDokumentert(periode = søknadsbehandling.periode).let {
                 it to it.grunnlag
             }

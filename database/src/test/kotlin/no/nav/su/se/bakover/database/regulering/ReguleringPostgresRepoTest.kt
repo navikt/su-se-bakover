@@ -4,7 +4,6 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.desember
-import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.beregning.BeregningMedFradragBeregnetMånedsvis
@@ -99,12 +98,11 @@ internal class ReguleringPostgresRepoTest {
             val repo = testDataHelper.reguleringRepo
 
             // En del caser som ikke skal være åpne
-            testDataHelper.persisterVedtakMedAvslåttSøknadsbehandlingUtenBeregning()
             testDataHelper.persisterVedtakForGjenopptak()
             testDataHelper.persisterVedtakForKlageIverksattAvvist()
             testDataHelper.persisterVedtakMedInnvilgetRevurderingOgOversendtUtbetalingMedKvittering()
-            testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering()
-            testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingUtenKvittering()
+            testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling()
+            testDataHelper.persisterSøknadsbehandlingIverksattInnvilget()
             testDataHelper.persisterSøknadsbehandlingIverksattAvslagMedBeregning()
             testDataHelper.persisterSøknadsbehandlingIverksattAvslagUtenBeregning()
             testDataHelper.persisterSøknadsbehandlingAvsluttet()

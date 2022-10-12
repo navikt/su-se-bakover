@@ -47,14 +47,12 @@ data class LukketSøknadsbehandling private constructor(
 
     // TODO jah: Denne bør overstyres av saksbehandler som avsluttet revurderingen.
     override val saksbehandler: NavIdentBruker.Saksbehandler? = underliggendeSøknadsbehandling.saksbehandler
-    override val beregning: Beregning? = underliggendeSøknadsbehandling.beregning
-    override val simulering: Simulering? = underliggendeSøknadsbehandling.simulering
 
     val lukketTidspunkt = søknad.lukketTidspunkt
     val lukketAv = søknad.lukketAv
     val lukketBrevvalg = søknad.brevvalg
 
-    val beregning = when (underliggendeSøknadsbehandling) {
+    override val beregning = when (underliggendeSøknadsbehandling) {
         is Beregnet.Avslag -> underliggendeSøknadsbehandling.beregning
         is Beregnet.Innvilget -> underliggendeSøknadsbehandling.beregning
         is Iverksatt.Avslag.MedBeregning -> underliggendeSøknadsbehandling.beregning
@@ -73,7 +71,7 @@ data class LukketSøknadsbehandling private constructor(
         is Vilkårsvurdert.Uavklart -> null
     }
 
-    val simulering = when (underliggendeSøknadsbehandling) {
+    override val simulering = when (underliggendeSøknadsbehandling) {
         is Beregnet.Avslag -> null
         is Beregnet.Innvilget -> null
         is Iverksatt.Avslag.MedBeregning -> null

@@ -17,7 +17,7 @@ internal class LovligOppholdgrunnlagPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val lovligOppholdGrunnlagPostgresRepo = LovligOppholdgrunnlagPostgresRepo(dbMetricsStub)
-            val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
+            val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdert().second
             val grunnlag = LovligOppholdGrunnlag(opprettet = fixedTidspunkt, periode = år(2021))
 
             dataSource.withTransaction { session ->
@@ -32,7 +32,7 @@ internal class LovligOppholdgrunnlagPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val lovligOppholdGrunnlagPostgresRepo = LovligOppholdgrunnlagPostgresRepo(dbMetricsStub)
-            val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
+            val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdert().second
             val grunnlag = LovligOppholdGrunnlag(opprettet = fixedTidspunkt, periode = år(2021))
 
             dataSource.withTransaction { session ->

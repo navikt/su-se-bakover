@@ -633,7 +633,7 @@ fun nySøknadsbehandling(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave>,
     avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
-): Pair<Sak, Søknadsbehandling.Vilkårsvurdert> {
+): Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Uavklart> {
     return sakOgSøknad.let { (sak, søknad) ->
         val søknadsbehandling = Søknadsbehandling.Vilkårsvurdert.Uavklart(
             id = UUID.randomUUID(),
@@ -677,7 +677,7 @@ fun nySøknadsbehandling(
         sak.copy(
             søknader = sak.søknader.filterNot { it.id == søknad.id } + søknad, // replace hvis søknaden allerede er lagt til (f.eks hvis man først oppretter bare sak + søknad)
             søknadsbehandlinger = sak.søknadsbehandlinger.filterNot { it.id == etterOppdatertStønadsperiode.id } + etterOppdatertStønadsperiode,
-        ) to etterOppdatertStønadsperiode
+        ) to etterOppdatertStønadsperiode as Søknadsbehandling.Vilkårsvurdert.Uavklart
     }
 }
 
@@ -776,7 +776,8 @@ fun iverksattSøknadsbehandling(
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
     attestering: Attestering.Iverksatt = attesteringIverksatt(clock),
-    avkorting: AvkortingVedSøknadsbehandling.Uhåndtert,
+    avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
+    fritekstTilBrev: String = "",
 ): Triple<Sak, Søknadsbehandling.Iverksatt, Stønadsvedtak> {
     return tilAttesteringSøknadsbehandling(
         clock = clock,
@@ -785,6 +786,7 @@ fun iverksattSøknadsbehandling(
         customGrunnlag = customGrunnlag,
         customVilkår = customVilkår,
         avkorting = avkorting,
+        fritekstTilBrev = fritekstTilBrev,
     ).let { (sak, tilAttestering) ->
         val (iverksatt, vedtak, utbetaling) = when (tilAttestering) {
             is Søknadsbehandling.TilAttestering.Avslag.MedBeregning -> {
@@ -883,6 +885,7 @@ fun tilAttesteringSøknadsbehandling(
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
     avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
+    fritekstTilBrev: String = "",
 ): Pair<Sak, Søknadsbehandling.TilAttestering> {
     return vilkårsvurdertSøknadsbehandling(
         clock = clock,
@@ -897,7 +900,7 @@ fun tilAttesteringSøknadsbehandling(
             is Søknadsbehandling.Vilkårsvurdert.Avslag -> {
                 vilkårsvurdert.tilAttestering(
                     saksbehandler = saksbehandler,
-                    fritekstTilBrev = "",
+                    fritekstTilBrev = fritekstTilBrev,
                 )
             }
 

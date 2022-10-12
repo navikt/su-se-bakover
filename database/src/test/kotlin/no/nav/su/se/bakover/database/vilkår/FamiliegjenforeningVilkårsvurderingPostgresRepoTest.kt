@@ -7,8 +7,9 @@ import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.dbMetricsStub
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.persistence.withTransaction
+import no.nav.su.se.bakover.test.søknad.søknadsinnholdAlder
 import no.nav.su.se.bakover.test.vilkår.familiegjenforeningVilkårInnvilget
-import no.nav.su.se.bakover.test.vilkårsvurderingSøknadsbehandlingVurdertInnvilgetAlder
+import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandling
 import org.junit.jupiter.api.Test
 
 internal class FamiliegjenforeningVilkårsvurderingPostgresRepoTest {
@@ -44,8 +45,15 @@ internal class FamiliegjenforeningVilkårsvurderingPostgresRepoTest {
             val familiegjenforeningVilkårsvurderingPostgresRepo = FamiliegjenforeningVilkårsvurderingPostgresRepo(
                 dbMetrics = dbMetricsStub,
             )
-            val søknadsbehandling =
-                testDataHelper.persisterSøknadsbehandlingVilkårsvurdertInnvilget(vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingVurdertInnvilgetAlder()).second
+
+            val (_, søknadsbehandling) = testDataHelper.persisterSøknadsbehandlingVilkårsvurdert(
+                sakOgSøknad = testDataHelper.persisterJournalførtSøknadMedOppgave(søknadInnhold = søknadsinnholdAlder()),
+            ) { (sak, søknad) ->
+                vilkårsvurdertSøknadsbehandling(
+                    sakOgSøknad = sak to søknad,
+                )
+            }
+
             val familiegjenforeningVilkår = familiegjenforeningVilkårInnvilget()
 
             dataSource.withTransaction { session ->

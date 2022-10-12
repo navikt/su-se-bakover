@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.matchendeKravgrunnlag
 import no.nav.su.se.bakover.test.oppgaveIdRevurdering
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
@@ -27,9 +28,13 @@ internal class TilbakekrevingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
 
-            val (sak, vedtak, _) = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
-                stønadsperiode = stønadsperiode2022,
-            )
+            val (sak, vedtak, _) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling() { (sak, søknad) ->
+                iverksattSøknadsbehandlingUføre(
+                    sakOgSøknad = sak to søknad,
+                    sakInfo = sak.info(),
+                    stønadsperiode = stønadsperiode2022,
+                )
+            }
             val (_, revurdering) = testDataHelper.persisterRevurderingSimulertInnvilget(
                 sakOgVedtak = sak to vedtak,
             )

@@ -23,12 +23,14 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.attesteringIverksatt
 import no.nav.su.se.bakover.test.enUkeEtterFixedClock
-import no.nav.su.se.bakover.test.enUkeEtterFixedTidspunkt
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.iverksattSøknadsbehandling
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
+import no.nav.su.se.bakover.test.nySøknadsbehandling
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.persistence.withSession
@@ -38,6 +40,7 @@ import no.nav.su.se.bakover.test.simulerUtbetaling
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.vilkår.innvilgetFormueVilkår
+import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårAvslag
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import vilkår.personligOppmøtevilkårAvslag
@@ -120,11 +123,12 @@ internal class SøknadsbehandlingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.søknadsbehandlingRepo
-            val vilkårsvurdert = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart(
-                stønadsperiode = Stønadsperiode.create(periode = januar(2021)),
-            ).second
-            repo.hent(vilkårsvurdert.id).also {
-                it?.stønadsperiode shouldBe Stønadsperiode.create(periode = januar(2021))
+
+            val (_, vilkårsvurdert) = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart { (sak, søknad) ->
+                nySøknadsbehandling(
+                    sakOgSøknad = sak to søknad,
+                    stønadsperiode = Stønadsperiode.create(periode = januar(2021)),
+                )
             }
 
             repo.lagre(
@@ -304,8 +308,14 @@ internal class SøknadsbehandlingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.søknadsbehandlingRepo
-            val iverksatt =
-                testDataHelper.persisterSøknadsbehandlingIverksattAvslagUtenBeregning(fritekstTilBrev = "Dette er fritekst").second
+            val (_, iverksatt) = testDataHelper.persisterSøknadsbehandlingIverksatt { (sak, søknad) ->
+                iverksattSøknadsbehandling(
+                    sakOgSøknad = sak to søknad,
+                    fritekstTilBrev = "Dette er fritekst",
+                    customVilkår = listOf(institusjonsoppholdvilkårAvslag()),
+                    attestering = attesteringIverksatt(clock = enUkeEtterFixedClock),
+                )
+            }
             val expected = Søknadsbehandling.Iverksatt.Avslag.UtenBeregning(
                 id = iverksatt.id,
                 opprettet = iverksatt.opprettet,
@@ -396,7 +406,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     attesteringer = listOf(
                         Attestering.Iverksatt(
                             attestant = NavIdentBruker.Attestant(attestant.navIdent),
-                            opprettet = enUkeEtterFixedTidspunkt,
+                            opprettet = fixedTidspunkt,
                         ),
                     ),
                 ),
@@ -469,7 +479,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 (testDataHelper.databaseRepos.avkortingsvarselRepo as AvkortingsvarselPostgresRepo).lagre(avkortingsvarsel = avkorting.avkortingsvarsel, tx)
             }
 
-            val (_, iverksattInnvilgetAvkortet, _) = testDataHelper.persisterIverksattSøknadsbehandlingInnvilget() { (sak, søknad) ->
+            val (_, iverksattInnvilgetAvkortet, _) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilget { (sak, søknad) ->
                 iverksattSøknadsbehandlingUføre(
                     sakInfo = SakInfo(
                         sakId = sak.id,
