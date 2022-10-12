@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
+import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.test.TestSessionFactory
@@ -381,6 +382,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             utbetalinger = emptyList(),
             type = Sakstype.UFØRE,
             uteståendeAvkorting = Avkortingsvarsel.Ingen,
+            versjon = Hendelsesversjon(1),
         )
 
         SendPåminnelseNyStønadsperiodeServiceAndMocks(

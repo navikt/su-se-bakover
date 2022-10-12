@@ -45,6 +45,7 @@ import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -189,6 +190,7 @@ internal class SakTest {
                 vedtakListe = listOf(),
                 type = Sakstype.UFØRE,
                 uteståendeAvkorting = Avkortingsvarsel.Ingen,
+                versjon = Hendelsesversjon(1),
             ).hentPerioderMedLøpendeYtelse() shouldBe emptyList()
         }
 

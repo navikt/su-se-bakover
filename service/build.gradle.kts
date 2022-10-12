@@ -5,5 +5,6 @@ dependencies {
     implementation(project(":statistikk"))
 
     testImplementation(project(":hendelse:domain"))
+    testImplementation(project(":utenlandsopphold:domain"))
     testImplementation(project(":test-common"))
 }

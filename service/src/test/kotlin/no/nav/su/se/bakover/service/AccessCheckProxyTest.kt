@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.PersonRepo
 import no.nav.su.se.bakover.domain.person.PersonService
+import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
@@ -77,6 +78,7 @@ internal class AccessCheckProxyTest {
                                 utbetalinger = emptyList(),
                                 type = Sakstype.UFØRE,
                                 uteståendeAvkorting = Avkortingsvarsel.Ingen,
+                                versjon = Hendelsesversjon(1),
                             ),
                         )
                     },
@@ -220,6 +222,7 @@ internal class AccessCheckProxyTest {
                         utbetalinger = emptyList(),
                         type = Sakstype.UFØRE,
                         uteståendeAvkorting = Avkortingsvarsel.Ingen,
+                        versjon = Hendelsesversjon(1),
                     ),
                 )
             },

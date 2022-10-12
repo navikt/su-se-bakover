@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.common.infrastructure.ident
 
 import no.nav.su.se.bakover.common.NavIdentBruker
-import no.nav.su.se.bakover.common.infrastructure.ident.IdentRolleJson.Companion.toIdentRolleJson
+import no.nav.su.se.bakover.common.infrastructure.ident.BrukerrolleJson.Companion.toBrukerrolleJson
 
 /**
  * Brukes på tvers av funksjonalitet for å serialisere/deserialisere json.
@@ -9,17 +9,17 @@ import no.nav.su.se.bakover.common.infrastructure.ident.IdentRolleJson.Companion
  */
 data class IdentJson(
     val ident: String,
-    val rolle: IdentRolleJson,
+    val rolle: BrukerrolleJson,
 ) {
     fun toDomain(): NavIdentBruker {
-        return rolle.toDomain(this.ident)
+        return rolle.toNavIdentBruker(this.ident)
     }
 
     companion object {
         fun NavIdentBruker.toIdentJson(): IdentJson {
             return IdentJson(
                 ident = this.navIdent,
-                rolle = this.toIdentRolleJson(),
+                rolle = this.toBrukerrolleJson(),
             )
         }
     }

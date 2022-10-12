@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.utenlandsopphold.registrere
+package no.nav.su.se.bakover.web.utenlandsopphold
 
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.setBody
@@ -10,12 +10,14 @@ import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.web.SharedRegressionTestData.defaultRequest
 
-fun ApplicationTestBuilder.nyttUtenlandsopphold(
+fun ApplicationTestBuilder.oppdaterUtenlandsopphold(
     sakId: String,
+    utenlandsoppholdId: String,
     fraOgMed: String = "2021-05-05",
     tilOgMed: String = "2021-10-10",
     journalpostIder: String = "[1234567]",
     dokumentasjon: String = "Sannsynliggjort",
+    versjon: Long = 11,
 ): String {
     val body = """
       {
@@ -24,16 +26,17 @@ fun ApplicationTestBuilder.nyttUtenlandsopphold(
           "tilOgMed": "$tilOgMed"
         },
         "journalposter": $journalpostIder,
-        "dokumentasjon": "$dokumentasjon"
+        "dokumentasjon": "$dokumentasjon",
+        "saksversjon": $versjon
       }
     """.trimIndent()
     return runBlocking {
         defaultRequest(
-            HttpMethod.Post,
-            "/saker/$sakId/utenlandsopphold",
+            HttpMethod.Put,
+            "/saker/$sakId/utenlandsopphold/$utenlandsoppholdId",
             listOf(Brukerrolle.Saksbehandler),
         ) { setBody(body) }.apply {
-            status shouldBe HttpStatusCode.Created
+            status shouldBe HttpStatusCode.OK
         }.bodyAsText()
     }
 }

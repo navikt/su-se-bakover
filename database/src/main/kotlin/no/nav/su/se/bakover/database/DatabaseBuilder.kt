@@ -50,6 +50,8 @@ import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakPostgresRepo
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
+import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
+import no.nav.su.se.bakover.utenlandsopphold.infrastruture.persistence.UtenlandsoppholdPostgresRepo
 import org.jetbrains.annotations.TestOnly
 import java.time.Clock
 import javax.sql.DataSource
@@ -217,10 +219,19 @@ object DatabaseBuilder {
             reguleringRepo = reguleringRepo,
             satsFactory = satsFactory,
         )
-        val hendelseRepo = PersonhendelsePostgresRepo(sessionFactory, dbMetrics, clock)
+        val personhendelseRepo = PersonhendelsePostgresRepo(sessionFactory, dbMetrics, clock)
         val nøkkeltallRepo = NøkkeltallPostgresRepo(sessionFactory, dbMetrics, clock)
         val kontrollsamtaleRepo = KontrollsamtalePostgresRepo(sessionFactory, dbMetrics)
 
+        val hendelseRepo = HendelsePostgresRepo(
+            sessionFactory,
+            dbMetrics = dbMetrics,
+        )
+        val utenlandsoppholdRepo = UtenlandsoppholdPostgresRepo(
+            hendelseRepo = hendelseRepo,
+            sessionFactory = sessionFactory,
+            dbMetrics = dbMetrics,
+        )
         return DatabaseRepos(
             avstemming = AvstemmingPostgresRepo(sessionFactory, dbMetrics),
             utbetaling = UtbetalingPostgresRepo(
@@ -240,6 +251,8 @@ object DatabaseBuilder {
                 klageRepo = klageRepo,
                 reguleringRepo = reguleringRepo,
                 avkortingsvarselRepo = avkortingsvarselRepo,
+                utenlandsoppholdRepo = utenlandsoppholdRepo,
+                hendelseRepo = hendelseRepo,
             ),
             person = PersonPostgresRepo(
                 sessionFactory = sessionFactory,
@@ -248,7 +261,7 @@ object DatabaseBuilder {
             søknadsbehandling = søknadsbehandlingRepo,
             revurderingRepo = revurderingRepo,
             vedtakRepo = vedtakRepo,
-            personhendelseRepo = hendelseRepo,
+            personhendelseRepo = personhendelseRepo,
             dokumentRepo = DokumentPostgresRepo(sessionFactory, dbMetrics, clock),
             nøkkeltallRepo = nøkkeltallRepo,
             sessionFactory = sessionFactory,
@@ -259,6 +272,8 @@ object DatabaseBuilder {
             reguleringRepo = reguleringRepo,
             tilbakekrevingRepo = tilbakekrevingRepo,
             jobContextRepo = JobContextPostgresRepo(sessionFactory),
+            hendelseRepo = hendelseRepo,
+            utenlandsoppholdRepo = utenlandsoppholdRepo,
         )
     }
 }

@@ -67,8 +67,7 @@ import no.nav.su.se.bakover.domain.vedtak.beregningKanVæreGjeldende
 import no.nav.su.se.bakover.domain.vedtak.hentBeregningForGjeldendeVedtak
 import no.nav.su.se.bakover.domain.vedtak.lagTidslinje
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
-import no.nav.su.se.bakover.utenlandsopphold.domain.RegistrerUtenlandsoppholdCommand
-import no.nav.su.se.bakover.utenlandsopphold.domain.RegistrerUtenlandsoppholdHendelse
+import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.utenlandsopphold.domain.RegistrertUtenlandsopphold
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -116,9 +115,21 @@ data class Sak(
     val type: Sakstype,
     val uteståendeAvkorting: Avkortingsvarsel = Avkortingsvarsel.Ingen,
     val utenlandsopphold: List<RegistrertUtenlandsopphold> = emptyList(),
+    val versjon: Hendelsesversjon,
 ) {
 
     private val log = LoggerFactory.getLogger(this::class.java)
+
+    init {
+        require(utenlandsopphold == utenlandsopphold.sortedBy { it.versjon }) {
+            "Utenlandsopphold må være sortert etter versjon, men var: $utenlandsopphold"
+        }
+        utenlandsopphold.map { it.utenlandsoppholdId }.let {
+            require(it == it.distinct()) {
+                "Duplikate utelandsoppholdId oppdaget: $it "
+            }
+        }
+    }
 
     fun info(): SakInfo {
         return SakInfo(
@@ -145,40 +156,34 @@ data class Sak(
         fraOgMed: LocalDate,
         clock: Clock,
     ): Either<KunneIkkeHenteGjeldendeVedtaksdata, GjeldendeVedtaksdata> {
-        return vedtakListe
-            .filterIsInstance<VedtakSomKanRevurderes>()
-            .ifEmpty {
-                return KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes(fraOgMed).left()
-            }
-            .let { vedtakSomKanRevurderes ->
-                val tilOgMed = vedtakSomKanRevurderes.maxOf { it.periode.tilOgMed }
-                Periode.tryCreate(fraOgMed, tilOgMed)
-                    .mapLeft {
-                        when (it) {
-                            FraOgMedDatoMåVæreFørTilOgMedDato -> KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes(
-                                fraOgMed,
-                                tilOgMed,
-                            )
+        return vedtakListe.filterIsInstance<VedtakSomKanRevurderes>().ifEmpty {
+            return KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes(fraOgMed).left()
+        }.let { vedtakSomKanRevurderes ->
+            val tilOgMed = vedtakSomKanRevurderes.maxOf { it.periode.tilOgMed }
+            Periode.tryCreate(fraOgMed, tilOgMed).mapLeft {
+                when (it) {
+                    FraOgMedDatoMåVæreFørTilOgMedDato -> KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes(
+                        fraOgMed,
+                        tilOgMed,
+                    )
 
-                            FraOgMedDatoMåVæreFørsteDagIMåneden, TilOgMedDatoMåVæreSisteDagIMåneden,
-                            -> KunneIkkeHenteGjeldendeVedtaksdata.UgyldigPeriode(it)
-                        }
-                    }
-                    .flatMap {
-                        hentGjeldendeVedtaksdata(
-                            periode = it,
-                            clock = clock,
-                        )
-                    }
+                    FraOgMedDatoMåVæreFørsteDagIMåneden, TilOgMedDatoMåVæreSisteDagIMåneden,
+                    -> KunneIkkeHenteGjeldendeVedtaksdata.UgyldigPeriode(it)
+                }
+            }.flatMap {
+                hentGjeldendeVedtaksdata(
+                    periode = it,
+                    clock = clock,
+                )
             }
+        }
     }
 
     fun hentGjeldendeVedtaksdata(
         periode: Periode,
         clock: Clock,
     ): Either<KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes, GjeldendeVedtaksdata> {
-        return vedtakListe
-            .filterIsInstance<VedtakSomKanRevurderes>()
+        return vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
             .ifEmpty { return KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes(periode).left() }
             .let { vedtakSomKanRevurderes ->
                 GjeldendeVedtaksdata(
@@ -210,18 +215,13 @@ data class Sak(
         vedtakId: UUID,
         clock: Clock,
     ): Either<KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak, GjeldendeVedtaksdata> {
-        val vedtak = vedtakListe
-            .filterIsInstance<VedtakSomKanRevurderes>()
-            .find { it.id == vedtakId }
+        val vedtak = vedtakListe.filterIsInstance<VedtakSomKanRevurderes>().find { it.id == vedtakId }
             ?: return KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak.FantIkkeVedtak.left()
 
-        return vedtakListe
-            .filterIsInstance<VedtakSomKanRevurderes>()
-            .filter { it.opprettet < vedtak.opprettet }
+        return vedtakListe.filterIsInstance<VedtakSomKanRevurderes>().filter { it.opprettet < vedtak.opprettet }
             .ifEmpty {
                 return KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak.IngenTidligereVedtak.left()
-            }
-            .let {
+            }.let {
                 GjeldendeVedtaksdata(
                     periode = vedtak.periode,
                     vedtakListe = it.toNonEmptyList(),
@@ -250,8 +250,7 @@ data class Sak(
         return GjeldendeVedtaksdata(
             periode = måned,
             vedtakListe = vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
-                .filter { it.beregningKanVæreGjeldende().isRight() }
-                .ifEmpty { return null }.toNonEmptyList(),
+                .filter { it.beregningKanVæreGjeldende().isRight() }.ifEmpty { return null }.toNonEmptyList(),
             clock = clock,
         ).gjeldendeVedtakPåDato(måned.fraOgMed)?.hentBeregningForGjeldendeVedtak()
     }
@@ -263,8 +262,7 @@ data class Sak(
         return GjeldendeVedtaksdata(
             periode = periode,
             vedtakListe = vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
-                .filter { it.beregningKanVæreGjeldende().isRight() }
-                .ifEmpty { return emptyList() }.toNonEmptyList(),
+                .filter { it.beregningKanVæreGjeldende().isRight() }.ifEmpty { return emptyList() }.toNonEmptyList(),
             clock = clock,
         ).let { gjeldendeVedtaksdata ->
             periode.måneder().mapNotNull { måned ->
@@ -303,10 +301,7 @@ data class Sak(
             tilOgMed = LocalDate.MAX,
         ),
     ): List<Periode> {
-        return vedtakstidslinje(periode = periode)
-            .tidslinje
-            .filterNot { it.erOpphør() }
-            .map { it.periode }
+        return vedtakstidslinje(periode = periode).tidslinje.filterNot { it.erOpphør() }.map { it.periode }
             .minsteAntallSammenhengendePerioder()
     }
 
@@ -413,12 +408,9 @@ data class Sak(
     }
 
     fun ytelseUtløperVedUtløpAv(periode: Periode): Boolean {
-        return vedtakstidslinje()
-            .tidslinje
-            .lastOrNull()
-            ?.let {
-                !it.erOpphør() && it.periode slutterSamtidig periode
-            } ?: false
+        return vedtakstidslinje().tidslinje.lastOrNull()?.let {
+            !it.erOpphør() && it.periode slutterSamtidig periode
+        } ?: false
     }
 
     sealed interface KunneIkkeOppretteEllerOppdatereRegulering {
@@ -463,10 +455,8 @@ data class Sak(
                 tilOgMed = LocalDate.MAX,
             ),
         ).tidslinje.let { tidslinje ->
-            tidslinje.filterNot { it.erOpphør() }
-                .map { vedtakUtenOpphør -> vedtakUtenOpphør.periode }
-                .minsteAntallSammenhengendePerioder()
-                .ifEmpty {
+            tidslinje.filterNot { it.erOpphør() }.map { vedtakUtenOpphør -> vedtakUtenOpphør.periode }
+                .minsteAntallSammenhengendePerioder().ifEmpty {
                     log.info("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende feil: Har ingen vedtak å regulere fra og med $_startDato")
                     return KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode.left()
                 }
@@ -474,12 +464,10 @@ data class Sak(
             if (it.count() != 1) return KunneIkkeOppretteEllerOppdatereRegulering.StøtterIkkeVedtaktidslinjeSomIkkeErKontinuerlig.left()
         }.single()
 
-        val gjeldendeVedtaksdata =
-            this.hentGjeldendeVedtaksdata(periode = periode, clock = clock)
-                .getOrHandle { feil ->
-                    log.info("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende feil: Har ingen vedtak å regulere for perioden (${feil.fraOgMed}, ${feil.tilOgMed})")
-                    return KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode.left()
-                }
+        val gjeldendeVedtaksdata = this.hentGjeldendeVedtaksdata(periode = periode, clock = clock).getOrHandle { feil ->
+            log.info("Kunne ikke opprette eller oppdatere regulering for saksnummer $saksnummer. Underliggende feil: Har ingen vedtak å regulere for perioden (${feil.fraOgMed}, ${feil.tilOgMed})")
+            return KunneIkkeOppretteEllerOppdatereRegulering.FinnesIngenVedtakSomKanRevurderesForValgtPeriode.left()
+        }
 
         return Regulering.opprettRegulering(
             id = reguleringsId,
@@ -504,19 +492,15 @@ data class Sak(
     }
 
     fun hentÅpneSøknadsbehandlinger(): Either<IngenÅpneSøknadsbehandlinger, NonEmptyList<Søknadsbehandling>> {
-        return søknadsbehandlinger
-            .filter { it.erÅpen() }
-            .ifEmpty { return IngenÅpneSøknadsbehandlinger.left() }
-            .toNonEmptyList()
-            .right()
+        return søknadsbehandlinger.filter { it.erÅpen() }.ifEmpty { return IngenÅpneSøknadsbehandlinger.left() }
+            .toNonEmptyList().right()
     }
 
     fun harÅpenSøknadsbehandling(): Boolean {
-        return hentÅpneSøknadsbehandlinger()
-            .fold(
-                { false },
-                { it.isNotEmpty() },
-            )
+        return hentÅpneSøknadsbehandlinger().fold(
+            { false },
+            { it.isNotEmpty() },
+        )
     }
 
     object IngenÅpneSøknadsbehandlinger
@@ -570,8 +554,8 @@ data class Sak(
     }
 
     fun hentSøknadsbehandlingForSøknad(søknadId: UUID): Either<FantIkkeSøknadsbehandlingForSøknad, Søknadsbehandling> {
-        return søknadsbehandlinger
-            .singleOrNull { it.søknad.id == søknadId }?.right() ?: FantIkkeSøknadsbehandlingForSøknad.left()
+        return søknadsbehandlinger.singleOrNull { it.søknad.id == søknadId }?.right()
+            ?: FantIkkeSøknadsbehandlingForSøknad.left()
     }
 
     sealed interface KunneIkkeOppretteSøknad {
@@ -736,22 +720,21 @@ data class Sak(
         informasjonSomRevurderes.sjekkAtOpphørteVilkårRevurderes(gjeldendeVedtaksdata)
             .getOrHandle { return KunneIkkeOppdatereRevurdering.OpphørteVilkårMåRevurderes(it).left() }
 
-        val avkorting = hentUteståendeAvkortingForRevurdering()
-            .fold(
-                {
-                    it
-                },
-                { uteståendeAvkorting ->
-                    kontrollerAtUteståendeAvkortingRevurderes(
-                        periode = periode,
-                        uteståendeAvkorting = uteståendeAvkorting,
-                    ).getOrHandle {
-                        return KunneIkkeOppdatereRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(
-                            periode = uteståendeAvkorting.avkortingsvarsel.periode(),
-                        ).left()
-                    }
-                },
-            )
+        val avkorting = hentUteståendeAvkortingForRevurdering().fold(
+            {
+                it
+            },
+            { uteståendeAvkorting ->
+                kontrollerAtUteståendeAvkortingRevurderes(
+                    periode = periode,
+                    uteståendeAvkorting = uteståendeAvkorting,
+                ).getOrHandle {
+                    return KunneIkkeOppdatereRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(
+                        periode = uteståendeAvkorting.avkortingsvarsel.periode(),
+                    ).left()
+                }
+            },
+        )
 
         return revurdering.oppdater(
             periode = periode,
@@ -838,19 +821,11 @@ data class Sak(
 
     fun harÅpenRegulering() = hentÅpneReguleringer().isRight()
     fun hentÅpneReguleringer(): Either<IngenÅpneReguleringer, NonEmptyList<Regulering>> =
-        reguleringer
-            .filter { it.erÅpen() }
-            .ifEmpty { return IngenÅpneReguleringer.left() }
-            .toNonEmptyList()
-            .right()
+        reguleringer.filter { it.erÅpen() }.ifEmpty { return IngenÅpneReguleringer.left() }.toNonEmptyList().right()
 
     fun harÅpenRevurdering() = hentÅpneRevurderinger().isRight()
     fun hentÅpneRevurderinger(): Either<IngenÅpneRevurderinger, NonEmptyList<AbstraktRevurdering>> =
-        revurderinger
-            .filter { it.erÅpen() }
-            .ifEmpty { return IngenÅpneRevurderinger.left() }
-            .toNonEmptyList()
-            .right()
+        revurderinger.filter { it.erÅpen() }.ifEmpty { return IngenÅpneRevurderinger.left() }.toNonEmptyList().right()
 
     fun kanOppretteBehandling(): Boolean =
         !harÅpenSøknadsbehandling() && !harÅpenRevurdering() && !harÅpenRegulering() && !harÅpenRevurderingForStansAvYtelse() && !harÅpenRevurderingForGjenopptakAvYtelse()
@@ -932,22 +907,6 @@ data class Sak(
         }
     }
 
-    object OverlappendePeriode
-
-    fun registrerUtenlandsopphold(
-        command: RegistrerUtenlandsoppholdCommand,
-        clock: Clock,
-    ): Either<OverlappendePeriode, Pair<Sak, RegistrerUtenlandsoppholdHendelse>> {
-        if (utenlandsopphold.any { it.periode inneholder command.periode }) {
-            return OverlappendePeriode.left()
-        }
-        val hendelse = command.toUtenlandsopphold(clock)
-        return Pair(
-            this.copy(utenlandsopphold = this.utenlandsopphold + hendelse.toRegistrertUtenlandsopphold()),
-            hendelse,
-        ).right()
-    }
-
     /**
      * @param søknadsbehandling null dersom det ikke eksisterer en søknadsbehandling
      * @param lagBrevRequest null dersom vi ikke skal lage brev
@@ -962,8 +921,7 @@ data class Sak(
         init {
             // Guards spesielt med tanke på testdatasett.
             require(
-                hendelse is StatistikkEvent.Behandling.Søknad.Lukket ||
-                    hendelse is StatistikkEvent.Søknad.Lukket,
+                hendelse is StatistikkEvent.Behandling.Søknad.Lukket || hendelse is StatistikkEvent.Søknad.Lukket,
             )
             lagBrevRequest.tap {
                 require(it.saksnummer == sak.saksnummer)
@@ -1002,7 +960,10 @@ data class NySak(
     val fnr: Fnr,
     val søknad: Søknad.Ny,
 ) {
-    fun toSak(saksnummer: Saksnummer): Sak {
+    fun toSak(
+        saksnummer: Saksnummer,
+        versjon: Hendelsesversjon,
+    ): Sak {
         return Sak(
             id = id,
             saksnummer = saksnummer,
@@ -1016,6 +977,7 @@ data class NySak(
             klager = emptyList(),
             type = søknad.type,
             uteståendeAvkorting = Avkortingsvarsel.Ingen,
+            versjon = versjon,
         )
     }
 }
@@ -1057,8 +1019,6 @@ data class BegrensetSakinfo(
 )
 
 enum class KanStansesEllerGjenopptas {
-    STANS,
-    GJENOPPTA,
-    INGEN,
+    STANS, GJENOPPTA, INGEN,
     ;
 }
