@@ -6,26 +6,21 @@ import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.common.periode.DatoIntervall
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.journalpost.ErKontrollNotatMottatt
-import no.nav.su.se.bakover.domain.journalpost.FerdigstiltJournalpost
+import no.nav.su.se.bakover.domain.journalpost.ErTilknyttetSak
 import no.nav.su.se.bakover.domain.journalpost.JournalpostClient
 import no.nav.su.se.bakover.domain.journalpost.JournalpostStatus
 import no.nav.su.se.bakover.domain.journalpost.JournalpostTema
 import no.nav.su.se.bakover.domain.journalpost.JournalpostType
 import no.nav.su.se.bakover.domain.journalpost.KontrollnotatMottattJournalpost
-import no.nav.su.se.bakover.domain.journalpost.KunneIkkeHenteJournalpost
 import no.nav.su.se.bakover.domain.journalpost.KunneIkkeSjekkKontrollnotatMottatt
+import no.nav.su.se.bakover.domain.journalpost.KunneIkkeSjekkeTilknytningTilSak
 
 object JournalpostClientStub : JournalpostClient {
-    override fun hentFerdigstiltJournalpost(
-        saksnummer: Saksnummer,
+    override fun erTilknyttetSak(
         journalpostId: JournalpostId,
-    ): Either<KunneIkkeHenteJournalpost, FerdigstiltJournalpost> {
-        return FerdigstiltJournalpost(
-            tema = JournalpostTema.SUP,
-            journalstatus = JournalpostStatus.JOURNALFOERT,
-            journalposttype = JournalpostType.INNKOMMENDE_DOKUMENT,
-            saksnummer = saksnummer,
-        ).right()
+        saksnummer: Saksnummer,
+    ): Either<KunneIkkeSjekkeTilknytningTilSak, ErTilknyttetSak> {
+        return ErTilknyttetSak.Ja.right()
     }
 
     override fun kontrollnotatMotatt(saksnummer: Saksnummer, periode: DatoIntervall): Either<KunneIkkeSjekkKontrollnotatMottatt, ErKontrollNotatMottatt> {

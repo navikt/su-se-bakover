@@ -7,12 +7,12 @@ import no.nav.su.se.bakover.domain.Saksnummer
 
 interface JournalpostClient {
     /**
-     * Denne flyten er skreddersydd for å hente innkommende, journalførte dokumenter som tilhører SUP.
+     * Sjekker om aktuell [journalpostId] er knyttet til [saksnummer]
      */
-    fun hentFerdigstiltJournalpost(
-        saksnummer: Saksnummer,
+    fun erTilknyttetSak(
         journalpostId: JournalpostId,
-    ): Either<KunneIkkeHenteJournalpost, FerdigstiltJournalpost>
+        saksnummer: Saksnummer,
+    ): Either<KunneIkkeSjekkeTilknytningTilSak, ErTilknyttetSak>
 
     /**
      * Skreddersydd for å svare på om det er mottatt et kontrollnotat for [saksnummer] i løpet av gitt [periode].
@@ -29,15 +29,15 @@ sealed interface ErKontrollNotatMottatt {
     object Nei : ErKontrollNotatMottatt
     data class Ja(val kontrollnotat: KontrollnotatMottattJournalpost) : ErKontrollNotatMottatt
 }
-
-sealed interface KunneIkkeHenteJournalpost {
-    object Ukjent : KunneIkkeHenteJournalpost
-    object FantIkkeJournalpost : KunneIkkeHenteJournalpost
-    object IkkeTilgang : KunneIkkeHenteJournalpost
-    object TekniskFeil : KunneIkkeHenteJournalpost
-    object UgyldigInput : KunneIkkeHenteJournalpost
-    object JournalpostIkkeKnyttetTilSak : KunneIkkeHenteJournalpost
-    object JournalpostenErIkkeEtInnkommendeDokument : KunneIkkeHenteJournalpost
-    object JournalpostTemaErIkkeSUP : KunneIkkeHenteJournalpost
-    object JournalpostenErIkkeFerdigstilt : KunneIkkeHenteJournalpost
+sealed interface ErTilknyttetSak {
+    object Ja : ErTilknyttetSak
+    object Nei : ErTilknyttetSak
+}
+sealed interface KunneIkkeSjekkeTilknytningTilSak {
+    object Ukjent : KunneIkkeSjekkeTilknytningTilSak
+    object FantIkkeJournalpost : KunneIkkeSjekkeTilknytningTilSak
+    object IkkeTilgang : KunneIkkeSjekkeTilknytningTilSak
+    object TekniskFeil : KunneIkkeSjekkeTilknytningTilSak
+    object UgyldigInput : KunneIkkeSjekkeTilknytningTilSak
+    object JournalpostIkkeKnyttetTilSak : KunneIkkeSjekkeTilknytningTilSak
 }
