@@ -36,9 +36,12 @@ import no.nav.su.se.bakover.common.infrastructure.web.authHeader
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
 import no.nav.su.se.bakover.common.infrastructure.web.svar
+import no.nav.su.se.bakover.common.infrastructure.web.withUser
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.metrics.SuMetrics
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.persistence.DbMetrics
+import no.nav.su.se.bakover.common.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.DomainToQueryParameterMapper
 import no.nav.su.se.bakover.domain.DatabaseRepos
@@ -48,16 +51,15 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
+import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
 import no.nav.su.se.bakover.service.AccessCheckProxy
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.Tilgangssjekkfeil
 import no.nav.su.se.bakover.utenlandsopphold.application.RegistrerUtenlandsoppholdService
-import no.nav.su.se.bakover.utenlandsopphold.domain.RegistrertUtenlandsopphold
-import no.nav.su.se.bakover.utenlandsopphold.domain.RegistrertUtenlandsoppholdRepo
+import no.nav.su.se.bakover.utenlandsopphold.infrastruture.persistence.RegistrerUtenlandsoppholdPostgresRepo
 import no.nav.su.se.bakover.utenlandsopphold.presentation.web.utenlandsoppholdRoutes
 import no.nav.su.se.bakover.web.external.frikortVedtakRoutes
-import no.nav.su.se.bakover.web.features.withUser
 import no.nav.su.se.bakover.web.metrics.BehandlingMicrometerMetrics
 import no.nav.su.se.bakover.web.metrics.DbMicrometerMetrics
 import no.nav.su.se.bakover.web.metrics.JournalpostClientMicrometerMetrics
@@ -88,7 +90,6 @@ import org.slf4j.event.Level
 import java.time.Clock
 import java.time.LocalDate
 import java.time.format.DateTimeParseException
-import java.util.UUID
 
 fun main() {
     if (ApplicationConfig.isRunningLocally()) {
@@ -106,12 +107,13 @@ fun Application.susebakover(
     clientMetrics: ClientMetrics = ClientMetrics(
         journalpostClientMetrics = JournalpostClientMicrometerMetrics(),
     ),
+    dbMetrics: DbMetrics = DbMicrometerMetrics(),
     applicationConfig: ApplicationConfig = ApplicationConfig.createConfig(),
     unleash: Unleash = UnleashBuilder.build(applicationConfig),
     satsFactory: SatsFactoryForSupplerendeStønad = SatsFactoryForSupplerendeStønad(),
     databaseRepos: DatabaseRepos = DatabaseBuilder.build(
         databaseConfig = applicationConfig.database,
-        dbMetrics = DbMicrometerMetrics(),
+        dbMetrics = dbMetrics,
         clock = clock,
         satsFactory = satsFactory,
         queryParameterMappers = listOf(DomainToQueryParameterMapper),
@@ -286,11 +288,13 @@ fun Application.susebakover(
                     utenlandsoppholdRoutes(
                         RegistrerUtenlandsoppholdService(
                             sakRepo = databaseRepos.sak,
-                            registertUtenlandsoppholdRepo = object : RegistrertUtenlandsoppholdRepo {
-                                override fun lagre(sakId: UUID, registrertUtenlandsopphold: RegistrertUtenlandsopphold) {
-                                    // TODO jah: lagre
-                                }
-                            },
+                            registertUtenlandsoppholdRepo = RegistrerUtenlandsoppholdPostgresRepo(
+                                hendelseRepo = HendelsePostgresRepo(
+                                    databaseRepos.sessionFactory as PostgresSessionFactory,
+                                    dbMetrics = dbMetrics,
+                                ),
+
+                            ),
                             clock = clock,
                         ),
                     )

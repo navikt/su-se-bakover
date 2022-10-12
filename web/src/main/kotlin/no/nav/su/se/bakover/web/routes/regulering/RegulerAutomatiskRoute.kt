@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.lesUUID
+import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -27,7 +28,6 @@ import no.nav.su.se.bakover.service.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.service.regulering.ReguleringService
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.web.features.authorize
-import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.routes.grunnlag.UføregrunnlagJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson
 import java.time.LocalDate

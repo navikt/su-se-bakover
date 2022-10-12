@@ -1,51 +1,57 @@
 package no.nav.su.se.bakover.hendelse.infrastructure.persistence
 
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.persistence.DbMetrics
 import no.nav.su.se.bakover.common.persistence.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.common.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.hentListe
 import no.nav.su.se.bakover.common.persistence.insert
+import no.nav.su.se.bakover.common.persistence.tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.Hendelse
-import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
-import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelseType.Companion.toDatabaseType
+import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import no.nav.su.se.bakover.hendelse.domain.SakOpprettetHendelse
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.MetadataJson.Companion.toMeta
 import java.util.UUID
 
+// TODO jah: Flytt til database/sak sitt repo sammen med mapping til/fra.
 class HendelsePostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
     private val dbMetrics: DbMetrics,
-) : HendelseRepo {
+) {
     /**
      * @param sessionContext Støtter både [SessionContext] (dersom hendelsen er master data/eneste data) og [no.nav.su.se.bakover.common.persistence.TransactionContext] (i tilfellene hendelsen ikke er master data/eneste data).
      */
-    override fun persisterHendelse(
+    fun persister(
         hendelse: Hendelse,
-        sessionContext: SessionContext,
+        type: String,
+        data: String,
+        sessionContext: SessionContext = sessionFactory.newSessionContext(),
     ) {
         dbMetrics.timeQuery("persisterHendelse") {
             sessionContext.withSession { session ->
                 """
-                    insert into hendelse (id, sakId, type, data, meta, entityId, version)
+                    insert into hendelse (hendelseId, sakId, type, data, meta, hendelsestidspunkt, entitetId, versjon)
                     values(
-                        :id,
+                        :hendelseId,
                         :sakId,
                         :type,
                         to_jsonb(:data::jsonb),
                         to_jsonb(:meta::jsonb),
-                        :entityId,
-                        :version
-                        
+                        :hendelsestidspunkt,
+                        :entitetId,
+                        :versjon
                     )
                 """.trimIndent().insert(
                     params = mapOf(
-                        "id" to hendelse.id,
+                        "hendelseId" to hendelse.hendelseId,
                         "sakId" to hendelse.sakId,
-                        "type" to hendelse.toDatabaseType(),
-                        "data" to hendelse.toData(),
+                        "type" to type,
+                        "data" to data,
                         "meta" to hendelse.toMeta(),
-                        "entityId" to hendelse.entitetId,
-                        "version" to hendelse.versjon.value,
+                        "hendelsestidspunkt" to hendelse.hendelsestidspunkt,
+                        "entitetId" to hendelse.entitetId,
+                        "versjon" to hendelse.versjon.value,
                     ),
                     session = session,
                 )
@@ -53,7 +59,38 @@ class HendelsePostgresRepo(
         }
     }
 
-    override fun hentHendelserForSak(sakId: UUID): List<Hendelse> {
+    fun hentHendelserForSakIdOgType(
+        sakId: UUID,
+        type: String,
+    ): List<PersistertHendelse> {
+        return dbMetrics.timeQuery("hentHendelserForSakIdOgType") {
+            sessionFactory.withSession { session ->
+                """
+                    select * from hendelse
+                    where sakId = :sakId and type = :type
+                    order by versjon
+                """.trimIndent().hentListe(
+                    params = mapOf(
+                        "sakId" to sakId,
+                        "type" to type,
+                    ),
+                    session = session,
+                ) {
+                    PersistertHendelse(
+                        data = it.string("data"),
+                        hendelsestidspunkt = it.tidspunkt("hendelsestidspunkt"),
+                        versjon = Hendelsesversjon(it.long("versjon")),
+                    )
+                }
+            }
+        }
+    }
+
+    // TODO jah: Flytt til database/sak sitt repo sammen med mapping til/fra.
+    @Suppress("unused")
+    fun hentSakOpprettetHendelse(
+        sakId: UUID,
+    ): SakOpprettetHendelse {
         return dbMetrics.timeQuery("hentHendelserForSak") {
             sessionFactory.withSession { session ->
                 """
@@ -64,14 +101,17 @@ class HendelsePostgresRepo(
                     ),
                     session = session,
                 ) {
-                    toHendelse(
-                        type = it.string("type"),
-                        dataJson = it.string("data"),
-                        metadataJson = it.string("meta"),
-                        entitetId = it.uuid("entityId"),
-                        versjon = it.long("version"),
+                    SakOpprettetHendelseJson.toDomain(
+                        hendelseId = it.uuid("hendelseId"),
+                        sakId = it.uuid("sakId"),
+                        metadata = deserialize<MetadataJson>(it.string("meta")).toDomain(),
+                        json = it.string("data"),
+                        entitetId = it.uuid("entitetId"),
+                        versjon = it.long("versjon"),
+                        hendelsestidspunkt = it.tidspunkt("hendelsestidspunkt"),
+
                     )
-                }
+                }.single()
             }
         }
     }

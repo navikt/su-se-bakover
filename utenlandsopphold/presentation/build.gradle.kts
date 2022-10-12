@@ -1,6 +1,7 @@
 dependencies {
     implementation(project(":utenlandsopphold:application"))
     implementation(project(":utenlandsopphold:domain"))
+    implementation(project(":hendelse:domain"))
     implementation(project(":common"))
 }
 

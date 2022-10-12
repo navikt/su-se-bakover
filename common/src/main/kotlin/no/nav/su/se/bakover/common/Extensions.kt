@@ -30,9 +30,24 @@ fun <A, B> Pair<A, A>.mapBoth(f: (A) -> B): Pair<B, B> =
 fun <FIRST, SECOND, MAP_SECOND_TO> Pair<FIRST, SECOND>.mapSecond(f: (SECOND) -> MAP_SECOND_TO) =
     Pair(first, f(second))
 
+/**
+ * Henter `X-Correlation-ID` fra MDC
+ */
+fun getCorrelationId(): CorrelationId? {
+    return MDC.get("X-Correlation-ID")?.let { CorrelationId(it) } ?: null.also {
+        log.error(
+            "Mangler 'X-Correlation-ID' på MDC. Er dette et asynk-kall? Da må det settes manuelt, så tidlig som mulig.",
+            RuntimeException("Genererer en stacktrace for enklere debugging."),
+        )
+    }
+}
+
+/**
+ * Henter en CorrelationId eller genererer en ny tilfeldig hver gang denne funksjonen kalles.
+ */
 fun getOrCreateCorrelationId(): String {
-    return MDC.get("X-Correlation-ID") ?: UUID.randomUUID().toString()
-        .also { log.warn("Mangler X-Correlation-ID. Bruker random uuid $it") }
+    // TODO jah: Bytt til CorrelationId for de andre som bruker denne typen og.
+    return getCorrelationId()?.toString() ?: UUID.randomUUID().toString()
 }
 
 fun String.trimWhitespace(): String {

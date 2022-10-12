@@ -5,8 +5,14 @@ import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import java.util.UUID
 
-data class SakOpprettetHendelse(
-    override val id: UUID,
+/**
+ * @param hendelseId en unik id som globalt skiller alle hendelser fra hverandre.
+ * @param hendelsestidspunkt tidspunktet hendelsen skjedde sett fra domenet sin side. Settes alltid av domenet.
+ * @property entitetId tilsvarer sakId for hendelser knyttet direkte til en sak. Vil sammen med versjon være unik.
+ * @property versjon Vil alltid være 1 for en sak opprettet hendelse. Vil inkrementeres ved nye hendelser på saken.
+ */
+data class SakOpprettetHendelse private constructor(
+    override val hendelseId: UUID,
     override val sakId: UUID,
     val fnr: Fnr,
     val opprettetAv: NavIdentBruker,
@@ -16,12 +22,12 @@ data class SakOpprettetHendelse(
     override val entitetId = sakId
 
     // Dette vil alltid være første versjon i en hendelsesserie for en sak.
-    override val versjon = Hendelse.Versjon(1L)
+    override val versjon = Hendelsesversjon(1L)
 
     companion object {
-        /** Reservert for persisteringslaget. */
-        fun create(
-            id: UUID,
+        /** Reservert for persisteringslaget/tester. */
+        fun fraPersistert(
+            hendelseId: UUID = UUID.randomUUID(),
             sakId: UUID,
             fnr: Fnr,
             opprettetAv: NavIdentBruker,
@@ -31,7 +37,7 @@ data class SakOpprettetHendelse(
             versjon: Long,
         ): SakOpprettetHendelse {
             return SakOpprettetHendelse(
-                id = id,
+                hendelseId = hendelseId,
                 sakId = sakId,
                 fnr = fnr,
                 opprettetAv = opprettetAv,
@@ -41,7 +47,7 @@ data class SakOpprettetHendelse(
                 require(entitetId == it.entitetId) {
                     "EntitetId til SakOpprettetHendelse må være sakId $sakId, men var $entitetId"
                 }
-                require(Hendelse.Versjon(versjon) == it.versjon) {
+                require(Hendelsesversjon(versjon) == it.versjon) {
                     "Versjonen til en SakOpprettetHendelse må være 1, men var $versjon"
                 }
             }

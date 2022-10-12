@@ -20,7 +20,6 @@ import no.nav.su.se.bakover.common.infrastructure.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.infrastructure.audit.AuditLogger
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.sikkerLogg
-import no.nav.su.se.bakover.web.features.suUserContext
 import java.util.UUID
 
 fun ApplicationCall.sikkerlogg(msg: String) {

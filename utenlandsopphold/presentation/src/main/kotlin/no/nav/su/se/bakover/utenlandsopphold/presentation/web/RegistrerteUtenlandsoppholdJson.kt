@@ -21,14 +21,16 @@ data class RegistrerteUtenlandsoppholdJson(
         val endretTidspunkt: String,
         val versjon: Long,
         val antallDager: Long,
-        val erGyldig: Boolean,
+        val erAnnulert: Boolean,
     )
 
     companion object {
         fun List<RegistrertUtenlandsopphold>.toJson() = RegistrerteUtenlandsoppholdJson(
             utenlandsopphold = this.map {
                 EttUtenlandsoppholdJson(
-                    id = it.id.toString(),
+                    // Frontend forholder seg til kombinasjonen av entitetsid + versjon (unik).
+                    id = it.utenlandsoppholdId.toString(),
+                    versjon = it.versjon.value,
                     periode = it.periode.toJson(),
                     journalposter = it.journalposter.map { it.toString() },
                     dokumentasjon = it.dokumentasjon.toJson(),
@@ -36,9 +38,8 @@ data class RegistrerteUtenlandsoppholdJson(
                     opprettetTidspunkt = it.opprettetTidspunkt.toString(),
                     endretAv = it.endretAv.toString(),
                     endretTidspunkt = it.endretTidspunkt.toString(),
-                    versjon = it.versjon,
                     antallDager = it.antallDager,
-                    erGyldig = it.erGyldig,
+                    erAnnulert = it.erAnnulert,
                 )
             },
             antallDager = this.antallDager,

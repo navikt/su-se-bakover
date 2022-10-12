@@ -1,12 +1,14 @@
 package no.nav.su.se.bakover.hendelse.infrastructure.persistence
 
+import no.nav.su.se.bakover.common.CorrelationId
+import no.nav.su.se.bakover.common.infrastructure.ident.IdentJson
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.hendelse.domain.Hendelse
 import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
 
 internal data class MetadataJson(
     val correlationId: String,
-    val ident: String,
+    val ident: IdentJson,
 ) {
     companion object {
         internal fun Hendelse.toMeta(): String {
@@ -20,7 +22,7 @@ internal data class MetadataJson(
     }
 
     fun toDomain() = HendelseMetadata(
-        correlationId = this.correlationId,
-        ident = this.ident,
+        correlationId = CorrelationId(this.correlationId),
+        ident = this.ident.toDomain(),
     )
 }
