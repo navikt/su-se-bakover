@@ -55,14 +55,10 @@ data class LukketSøknadsbehandling private constructor(
     override val beregning = when (underliggendeSøknadsbehandling) {
         is Beregnet.Avslag -> underliggendeSøknadsbehandling.beregning
         is Beregnet.Innvilget -> underliggendeSøknadsbehandling.beregning
-        is Iverksatt.Avslag.MedBeregning -> underliggendeSøknadsbehandling.beregning
-        is Iverksatt.Avslag.UtenBeregning -> null
-        is Iverksatt.Innvilget -> underliggendeSøknadsbehandling.beregning
-        is LukketSøknadsbehandling -> null
+        is Iverksatt -> throw IllegalArgumentException("Ugyldig tilstand")
+        is LukketSøknadsbehandling -> throw IllegalArgumentException("Ugyldig tilstand")
         is Simulert -> underliggendeSøknadsbehandling.beregning
-        is TilAttestering.Avslag.MedBeregning -> underliggendeSøknadsbehandling.beregning
-        is TilAttestering.Avslag.UtenBeregning -> null
-        is TilAttestering.Innvilget -> underliggendeSøknadsbehandling.beregning
+        is TilAttestering -> throw IllegalArgumentException("Ugyldig tilstand")
         is Underkjent.Avslag.MedBeregning -> underliggendeSøknadsbehandling.beregning
         is Underkjent.Avslag.UtenBeregning -> null
         is Underkjent.Innvilget -> underliggendeSøknadsbehandling.beregning
@@ -74,14 +70,10 @@ data class LukketSøknadsbehandling private constructor(
     override val simulering = when (underliggendeSøknadsbehandling) {
         is Beregnet.Avslag -> null
         is Beregnet.Innvilget -> null
-        is Iverksatt.Avslag.MedBeregning -> null
-        is Iverksatt.Avslag.UtenBeregning -> null
-        is Iverksatt.Innvilget -> underliggendeSøknadsbehandling.simulering
-        is LukketSøknadsbehandling -> null
+        is Iverksatt -> throw IllegalArgumentException("Ugyldig tilstand")
+        is LukketSøknadsbehandling -> throw IllegalArgumentException("Ugyldig tilstand")
         is Simulert -> underliggendeSøknadsbehandling.simulering
-        is TilAttestering.Avslag.MedBeregning -> null
-        is TilAttestering.Avslag.UtenBeregning -> null
-        is TilAttestering.Innvilget -> underliggendeSøknadsbehandling.simulering
+        is TilAttestering -> throw IllegalArgumentException("Ugyldig tilstand")
         is Underkjent.Avslag.MedBeregning -> null
         is Underkjent.Avslag.UtenBeregning -> null
         is Underkjent.Innvilget -> underliggendeSøknadsbehandling.simulering
