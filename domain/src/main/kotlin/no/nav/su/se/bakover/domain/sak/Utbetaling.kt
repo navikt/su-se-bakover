@@ -24,3 +24,18 @@ fun Sak.lagUtbetalingForStans(
         sakstype = type,
     ).generer()
 }
+
+fun Sak.lagUtbetalingForGjenopptak(
+    saksbehandler: NavIdentBruker,
+    clock: Clock,
+): Either<Utbetalingsstrategi.Gjenoppta.Feil, Utbetaling.UtbetalingForSimulering> {
+    return Utbetalingsstrategi.Gjenoppta(
+        sakId = id,
+        saksnummer = saksnummer,
+        fnr = fnr,
+        eksisterendeUtbetalinger = utbetalinger,
+        behandler = saksbehandler,
+        clock = clock,
+        sakstype = type,
+    ).generer()
+}

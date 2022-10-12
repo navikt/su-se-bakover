@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.service.utbetaling
 
 import arrow.core.Either
 import arrow.core.flatMap
-import arrow.core.getOrElse
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
@@ -306,20 +305,7 @@ internal class UtbetalingServiceImpl(
         }
     }
 
-    override fun simulerGjenopptak(
-        request: SimulerUtbetalingRequest.GjenopptakRequest,
-    ): Either<SimulerGjenopptakFeil, Utbetaling.SimulertUtbetaling> {
-        val utbetaling = Utbetalingsstrategi.Gjenoppta(
-            sakId = request.sakId,
-            saksnummer = request.sak.saksnummer,
-            fnr = request.sak.fnr,
-            eksisterendeUtbetalinger = request.sak.utbetalinger,
-            behandler = request.saksbehandler,
-            clock = clock,
-            sakstype = request.sak.type,
-        ).generer()
-            .getOrHandle { return SimulerGjenopptakFeil.KunneIkkeGenerereUtbetaling(it).left() }
-
+    override fun simulerGjenopptak(utbetaling: Utbetaling.UtbetalingForSimulering, eksisterendeUtbetalinger: List<Utbetaling>): Either<SimulerGjenopptakFeil, Utbetaling.SimulertUtbetaling> {
         val simuleringsperiode = Periode.create(
             fraOgMed = utbetaling.tidligsteDato(),
             tilOgMed = utbetaling.senesteDato(),
@@ -333,7 +319,7 @@ internal class UtbetalingServiceImpl(
         ).map { simulertUtbetaling ->
             KryssjekkTidslinjerOgSimulering.sjekkGjenopptak(
                 underArbeid = simulertUtbetaling,
-                eksisterende = request.sak.utbetalinger,
+                eksisterende = eksisterendeUtbetalinger,
                 clock = clock,
             ).getOrHandle {
                 return SimulerGjenopptakFeil.KontrollFeilet(it).left()
@@ -345,23 +331,19 @@ internal class UtbetalingServiceImpl(
     }
 
     override fun klargjørGjenopptak(
-        request: UtbetalRequest.Gjenopptak,
+        utbetaling: Utbetaling.UtbetalingForSimulering,
+        eksisterendeUtbetalinger: List<Utbetaling>,
+        saksbehandlersSimulering: Simulering,
         transactionContext: TransactionContext,
     ): Either<UtbetalGjenopptakFeil, UtbetalingKlargjortForOversendelse<UtbetalGjenopptakFeil.KunneIkkeUtbetale>> {
-        val sak = sakService.hentSak(request.sakId).getOrElse {
-            return UtbetalGjenopptakFeil.KunneIkkeUtbetale(UtbetalingFeilet.FantIkkeSak).left()
-        }
-
         return simulerGjenopptak(
-            request = SimulerUtbetalingRequest.Gjenopptak(
-                saksbehandler = request.saksbehandler,
-                sak = sak,
-            ),
+            utbetaling = utbetaling,
+            eksisterendeUtbetalinger = eksisterendeUtbetalinger,
         ).mapLeft {
             UtbetalGjenopptakFeil.KunneIkkeSimulere(it)
         }.flatMap { simulertGjenopptak ->
             KryssjekkSaksbehandlersOgAttestantsSimulering(
-                saksbehandlersSimulering = request.simulering,
+                saksbehandlersSimulering = saksbehandlersSimulering,
                 attestantsSimulering = simulertGjenopptak,
             ).sjekk().getOrHandle {
                 return UtbetalGjenopptakFeil.KunneIkkeUtbetale(

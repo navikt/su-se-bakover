@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingForPeriode
 import no.nav.su.se.bakover.domain.sak.lagUtbetalingForStans
+import no.nav.su.se.bakover.domain.sak.lagUtbetalingForGjenopptak
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
@@ -256,15 +257,16 @@ internal class UtbetalingServiceImplTest {
                     ).simulering.right()
                 },
                 clock = tikkendeFixedClock,
-            ).let {
-                it.service.simulerGjenopptak(
-                    request = SimulerUtbetalingRequest.Gjenopptak(
+            ).let { serviceAndMocks ->
+                serviceAndMocks.service.simulerGjenopptak(
+                    utbetaling = sak.lagUtbetalingForGjenopptak(
                         saksbehandler = saksbehandler,
-                        sak = sak,
-                    ),
+                        clock = tikkendeFixedClock,
+                    ).getOrFail(),
+                    eksisterendeUtbetalinger = sak.utbetalinger,
                 ).getOrFail() shouldBe beOfType<Utbetaling.SimulertUtbetaling>()
 
-                verify(it.simuleringClient).simulerUtbetaling(
+                verify(serviceAndMocks.simuleringClient).simulerUtbetaling(
                     request = argThat {
                         it shouldBe beOfType<SimulerUtbetalingForPeriode>()
                         it.utbetaling.erReaktivering() shouldBe true
