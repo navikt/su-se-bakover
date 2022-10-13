@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.test.planlagtKontrollsamtale
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.revurderingTilAttestering
 import no.nav.su.se.bakover.test.sakId
+import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.tilAttesteringRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.utbetalingsRequest
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
@@ -81,8 +82,10 @@ internal class IverksettRevurderingTest {
         )
 
         val serviceAndMocks = RevurderingServiceMocks(
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
+            },
             revurderingRepo = mock {
-                on { hent(any()) } doReturn revurderingTilAttestering
                 doNothing().whenever(it).lagre(any(), anyOrNull())
             },
             utbetalingService = mock {
@@ -101,7 +104,7 @@ internal class IverksettRevurderingTest {
 
         respone shouldBe expected
 
-        verify(serviceAndMocks.revurderingRepo).hent(argThat { it shouldBe revurderingTilAttestering.id })
+        verify(serviceAndMocks.sakService).hentSakForRevurdering(argThat { it shouldBe revurderingTilAttestering.id })
         verify(serviceAndMocks.utbetalingService).klargjørNyUtbetaling(
             request = argThat {
                 it shouldBe UtbetalRequest.NyUtbetaling(
@@ -140,9 +143,10 @@ internal class IverksettRevurderingTest {
             opphørsperiode = revurdering.periode,
             clock = fixedClock,
         )
-        val callback = mock<(utbetalingsrequest: Utbetalingsrequest) -> Either<UtbetalingFeilet.Protokollfeil, Utbetalingsrequest>> {
-            on { it.invoke(any()) } doReturn utbetaling.utbetalingsrequest.right()
-        }
+        val callback =
+            mock<(utbetalingsrequest: Utbetalingsrequest) -> Either<UtbetalingFeilet.Protokollfeil, Utbetalingsrequest>> {
+                on { it.invoke(any()) } doReturn utbetaling.utbetalingsrequest.right()
+            }
 
         val utbetalingKlarForOversendelse = UtbetalingKlargjortForOversendelse(
             utbetaling = utbetaling,
@@ -150,18 +154,25 @@ internal class IverksettRevurderingTest {
         )
 
         val serviceAndMocks = RevurderingServiceMocks(
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
+            },
             revurderingRepo = mock {
-                on { hent(any()) } doReturn revurdering
                 doNothing().whenever(it).lagre(any(), anyOrNull())
             },
             utbetalingService = mock {
-                on { klargjørOpphør(any(), any()) } doReturn utbetalingKlarForOversendelse.right()
+                on { klargjørOpphør(any(), any(), any(), any(), any()) } doReturn utbetalingKlarForOversendelse.right()
             },
             vedtakRepo = mock {
                 doNothing().whenever(it).lagre(any(), anyOrNull())
             },
             kontrollsamtaleService = mock {
-                on { annullerKontrollsamtale(any(), anyOrNull()) } doReturn AnnulerKontrollsamtaleResultat.AnnulertKontrollsamtale(planlagtKontrollsamtale()).right()
+                on {
+                    annullerKontrollsamtale(
+                        any(),
+                        anyOrNull(),
+                    )
+                } doReturn AnnulerKontrollsamtaleResultat.AnnulertKontrollsamtale(planlagtKontrollsamtale()).right()
             },
             tilbakekrevingService = mock {
                 on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
@@ -170,18 +181,12 @@ internal class IverksettRevurderingTest {
 
         serviceAndMocks.revurderingService.iverksett(revurdering.id, attestant)
 
-        verify(serviceAndMocks.revurderingRepo).hent(revurdering.id)
+        verify(serviceAndMocks.sakService).hentSakForRevurdering(revurdering.id)
         verify(serviceAndMocks.utbetalingService).klargjørOpphør(
-            request = argThat {
-                it shouldBe UtbetalRequest.Opphør(
-                    request = SimulerUtbetalingRequest.Opphør(
-                        sakId = sakId,
-                        saksbehandler = attestant,
-                        opphørsperiode = revurdering.periode,
-                    ),
-                    simulering = revurdering.simulering,
-                )
-            },
+            utbetaling = any(),
+            eksisterendeUtbetalinger = argThat { it shouldBe sak.utbetalinger },
+            opphørsperiode = argThat { it shouldBe revurdering.periode },
+            saksbehandlersSimulering = argThat { it shouldBe revurdering.simulering },
             transactionContext = argThat { it shouldBe TestSessionFactory.transactionContext },
         )
         verify(serviceAndMocks.vedtakRepo).lagre(
@@ -217,12 +222,22 @@ internal class IverksettRevurderingTest {
         )
 
         val serviceAndMocks = RevurderingServiceMocks(
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
+            },
             revurderingRepo = mock {
-                on { hent(any()) } doReturn revurderingTilAttestering
                 doNothing().whenever(it).lagre(any(), anyOrNull())
             },
             utbetalingService = mock {
-                on { klargjørOpphør(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
+                on {
+                    klargjørOpphør(
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                    )
+                } doReturn utbetalingKlargjortForOversendelse.right()
             },
             vedtakRepo = mock {
                 doNothing().whenever(it).lagre(any(), anyOrNull())
@@ -245,10 +260,25 @@ internal class IverksettRevurderingTest {
         serviceAndMocks.revurderingService.iverksett(revurderingTilAttestering.id, attestant)
 
         inOrder(*serviceAndMocks.all(), utbetalingKlargjortForOversendelse.callback) {
-            verify(serviceAndMocks.utbetalingService).klargjørOpphør(any(), argThat { it shouldBe TestSessionFactory.transactionContext })
-            verify(serviceAndMocks.vedtakRepo).lagre(any(), argThat { it shouldBe TestSessionFactory.transactionContext })
-            verify(serviceAndMocks.kontrollsamtaleService).annullerKontrollsamtale(any(), argThat { it shouldBe TestSessionFactory.transactionContext })
-            verify(serviceAndMocks.revurderingRepo).lagre(any(), argThat { it shouldBe TestSessionFactory.transactionContext })
+            verify(serviceAndMocks.utbetalingService).klargjørOpphør(
+                any(),
+                any(),
+                any(),
+                any(),
+                argThat { it shouldBe TestSessionFactory.transactionContext },
+            )
+            verify(serviceAndMocks.vedtakRepo).lagre(
+                any(),
+                argThat { it shouldBe TestSessionFactory.transactionContext },
+            )
+            verify(serviceAndMocks.kontrollsamtaleService).annullerKontrollsamtale(
+                any(),
+                argThat { it shouldBe TestSessionFactory.transactionContext },
+            )
+            verify(serviceAndMocks.revurderingRepo).lagre(
+                any(),
+                argThat { it shouldBe TestSessionFactory.transactionContext },
+            )
             verify(utbetalingKlargjortForOversendelse.callback).invoke(utbetalingsRequest)
         }
     }
@@ -269,8 +299,10 @@ internal class IverksettRevurderingTest {
         )
 
         val serviceAndMocks = RevurderingServiceMocks(
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
+            },
             revurderingRepo = mock {
-                on { hent(any()) } doReturn revurderingTilAttestering
                 doNothing().whenever(it).lagre(any(), anyOrNull())
             },
             utbetalingService = mock {
@@ -304,14 +336,15 @@ internal class IverksettRevurderingTest {
 
     @Test
     fun `skal returnere left om revurdering ikke er av typen RevurderingTilAttestering`() {
+        val (sak, revurdering) = iverksattRevurdering()
         val serviceAndMocks = RevurderingServiceMocks(
-            revurderingRepo = mock {
-                on { hent(any()) } doReturn iverksattRevurdering().second
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
             },
         )
 
         val response = serviceAndMocks.revurderingService.iverksett(
-            revurderingId = revurderingId,
+            revurderingId = revurdering.id,
             attestant = attestant,
         )
 
@@ -323,9 +356,10 @@ internal class IverksettRevurderingTest {
 
     @Test
     fun `skal returnere left dersom lagring feiler for innvilget`() {
+        val (sak, revurdering) = revurderingTilAttestering()
         val serviceAndMocks = RevurderingServiceMocks(
-            revurderingRepo = mock {
-                on { hent(any()) } doReturn revurderingTilAttestering().second
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
             },
             vedtakRepo = mock {
                 on { lagre(any(), anyOrNull()) } doThrow RuntimeException("Lagring feilet")
@@ -336,7 +370,7 @@ internal class IverksettRevurderingTest {
         )
 
         val response = serviceAndMocks.revurderingService.iverksett(
-            revurderingId = revurderingId,
+            revurderingId = revurdering.id,
             attestant = attestant,
         )
 
@@ -346,8 +380,8 @@ internal class IverksettRevurderingTest {
     @Test
     fun `skal returnere left dersom lagring feiler for opphørt`() {
         val serviceAndMocks = RevurderingServiceMocks(
-            revurderingRepo = mock {
-                on { hent(any()) } doReturn tilAttesteringRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak().second
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn tilAttesteringRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak().first
             },
             vedtakRepo = mock {
                 on { lagre(any(), anyOrNull()) } doThrow RuntimeException("Lagring feilet")
@@ -380,12 +414,22 @@ internal class IverksettRevurderingTest {
         )
 
         val serviceAndMocks = RevurderingServiceMocks(
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
+            },
             revurderingRepo = mock {
-                on { hent(any()) } doReturn revurderingTilAttestering
                 doNothing().whenever(it).lagre(any(), anyOrNull())
             },
             utbetalingService = mock {
-                on { klargjørOpphør(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
+                on {
+                    klargjørOpphør(
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                    )
+                } doReturn utbetalingKlargjortForOversendelse.right()
             },
             vedtakRepo = mock {
                 doNothing().whenever(it).lagre(any(), anyOrNull())
@@ -415,9 +459,10 @@ internal class IverksettRevurderingTest {
 
     @Test
     fun `skal returnere left dersom lagring feiler for iverksett`() {
+        val (sak, revurdering) = revurderingTilAttestering()
         val serviceAndMocks = RevurderingServiceMocks(
-            revurderingRepo = mock {
-                on { hent(any()) } doReturn revurderingTilAttestering().second
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
             },
             vedtakRepo = mock {
                 on { lagre(any(), anyOrNull()) } doThrow RuntimeException("Lagring feilet")
@@ -428,7 +473,7 @@ internal class IverksettRevurderingTest {
         )
 
         val response = serviceAndMocks.revurderingService.iverksett(
-            revurderingId = revurderingId,
+            revurderingId = revurdering.id,
             attestant = attestant,
         )
 
@@ -450,11 +495,19 @@ internal class IverksettRevurderingTest {
             },
         )
         val serviceAndMocks = RevurderingServiceMocks(
-            revurderingRepo = mock {
-                on { hent(any()) } doReturn revurderingTilAttestering
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
             },
             utbetalingService = mock {
-                on { klargjørOpphør(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
+                on {
+                    klargjørOpphør(
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                    )
+                } doReturn utbetalingKlargjortForOversendelse.right()
             },
             vedtakRepo = mock {
                 doNothing().whenever(it).lagre(any(), anyOrNull())
@@ -495,8 +548,11 @@ internal class IverksettRevurderingTest {
         )
 
         val serviceAndMocks = RevurderingServiceMocks(
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
+            },
             revurderingRepo = mock {
-                on { hent(any()) } doReturn revurderingTilAttestering
+                doNothing().whenever(it).lagre(any(), any())
             },
             utbetalingService = mock {
                 on { klargjørNyUtbetaling(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
@@ -520,7 +576,7 @@ internal class IverksettRevurderingTest {
         )
 
         val response = serviceAndMocks.revurderingService.iverksett(
-            revurderingId = revurderingId,
+            revurderingId = revurderingTilAttestering.id,
             attestant = attestant,
         )
         response shouldBe KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil).left()
@@ -528,11 +584,11 @@ internal class IverksettRevurderingTest {
 
     @Test
     fun `feil ved åpent kravgrunnlag`() {
-        val (_, revurderingTilAttestering) = revurderingTilAttestering()
+        val (sak, revurderingTilAttestering) = revurderingTilAttestering()
 
         RevurderingServiceMocks(
-            revurderingRepo = mock {
-                on { hent(any()) } doReturn revurderingTilAttestering
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
             },
             tilbakekrevingService = mock {
                 on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn listOf(
@@ -546,7 +602,10 @@ internal class IverksettRevurderingTest {
                 )
             },
         ).also {
-            it.revurderingService.iverksett(revurderingTilAttestering.id, attestant) shouldBe KunneIkkeIverksetteRevurdering.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving.left()
+            it.revurderingService.iverksett(
+                revurderingTilAttestering.id,
+                attestant,
+            ) shouldBe KunneIkkeIverksetteRevurdering.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving.left()
         }
     }
 }

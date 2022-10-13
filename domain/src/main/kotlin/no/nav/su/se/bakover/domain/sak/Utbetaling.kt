@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.sak
 
 import arrow.core.Either
 import no.nav.su.se.bakover.common.NavIdentBruker
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
@@ -38,4 +39,21 @@ fun Sak.lagUtbetalingForGjenopptak(
         clock = clock,
         sakstype = type,
     ).generer()
+}
+
+fun Sak.lagUtbetalingForOpphør(
+    opphørsperiode: Periode,
+    behandler: NavIdentBruker,
+    clock: Clock,
+): Utbetaling.UtbetalingForSimulering {
+    return Utbetalingsstrategi.Opphør(
+        sakId = id,
+        saksnummer = saksnummer,
+        fnr = fnr,
+        eksisterendeUtbetalinger = utbetalinger,
+        behandler = behandler,
+        periode = opphørsperiode,
+        clock = clock,
+        sakstype = type,
+    ).generate()
 }

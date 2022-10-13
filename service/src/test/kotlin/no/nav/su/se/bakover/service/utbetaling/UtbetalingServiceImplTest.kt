@@ -14,12 +14,12 @@ import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.common.toPeriode
-import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingForPeriode
 import no.nav.su.se.bakover.domain.sak.lagUtbetalingForGjenopptak
+import no.nav.su.se.bakover.domain.sak.lagUtbetalingForOpphør
 import no.nav.su.se.bakover.domain.sak.lagUtbetalingForStans
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.fixedClock
@@ -221,11 +221,13 @@ internal class UtbetalingServiceImplTest {
                 clock = tikkendeFixedClock,
             ).let {
                 it.service.simulerOpphør(
-                    request = SimulerUtbetalingRequest.Opphør(
-                        sakId = sak.id,
-                        saksbehandler = saksbehandler,
+                    utbetaling = sak.lagUtbetalingForOpphør(
                         opphørsperiode = 1.februar(2021).rangeTo(vedtak.periode.tilOgMed).toPeriode(),
+                        behandler = saksbehandler,
+                        clock = tikkendeFixedClock,
                     ),
+                    eksisterendeUtbetalinger = sak.utbetalinger,
+                    opphørsperiode = 1.februar(2021).rangeTo(vedtak.periode.tilOgMed).toPeriode(),
                 ).getOrFail() shouldBe beOfType<Utbetaling.SimulertUtbetaling>()
 
                 verify(it.simuleringClient, times(2)).simulerUtbetaling(

@@ -3,42 +3,30 @@ package no.nav.su.se.bakover.service.revurdering
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
-import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
-import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.test.beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
-import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
-import no.nav.su.se.bakover.test.opphørUtbetalingSimulert
 import no.nav.su.se.bakover.test.opprettetRevurdering
-import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.revurderingId
-import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vilkår.formuevilkårIkkeVurdert
 import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
-import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttUføreOgAndreInnvilget
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
-import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.inOrder
@@ -218,55 +206,6 @@ internal class LagBrevutkastForRevurderingTest {
                 revurderingId = revurderingId,
                 fritekst = "",
             )
-        }
-    }
-
-    @Test
-    fun `hvis vilkår ikke er oppfylt, fører revurderingen til et opphør`() {
-        val (sak, revurdering) = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
-            grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
-                grunnlagsdata = grunnlagsdataEnsligMedFradrag(),
-                vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(),
-            ),
-        )
-
-        RevurderingServiceMocks(
-            revurderingRepo = mock(),
-            utbetalingService = mock {
-                on { simulerOpphør(any()) } doReturn opphørUtbetalingSimulert(
-                    sakOgBehandling = sak to revurdering,
-                    opphørsperiode = revurdering.periode,
-                    clock = fixedClock,
-                ).right()
-            },
-            sakService = mock {
-                on { hentSakForRevurdering(any()) } doReturn sak
-            },
-        ).also {
-            val actual = it.revurderingService.beregnOgSimuler(
-                revurderingId = revurdering.id,
-                saksbehandler = NavIdentBruker.Saksbehandler("s1"),
-            ).getOrFail().revurdering
-
-            actual shouldBe beOfType<SimulertRevurdering.Opphørt>()
-
-            inOrder(
-                it.revurderingRepo,
-                it.utbetalingService,
-            ) {
-                verify(it.utbetalingService).simulerOpphør(
-                    argThat {
-                        it shouldBe SimulerUtbetalingRequest.Opphør(
-                            sakId = sakId,
-                            saksbehandler = NavIdentBruker.Saksbehandler("s1"),
-                            opphørsperiode = revurdering.periode,
-                        )
-                    },
-                )
-                verify(it.revurderingRepo).defaultTransactionContext()
-                verify(it.revurderingRepo).lagre(argThat { it shouldBe actual }, anyOrNull())
-            }
-            verifyNoMoreInteractions(it.revurderingRepo, it.utbetalingService)
         }
     }
 

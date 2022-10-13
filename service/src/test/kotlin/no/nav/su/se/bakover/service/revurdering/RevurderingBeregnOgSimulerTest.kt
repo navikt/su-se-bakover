@@ -72,7 +72,7 @@ internal class RevurderingBeregnOgSimulerTest {
         val serviceAndMocks = RevurderingServiceMocks(
             revurderingRepo = mock(),
             utbetalingService = mock {
-                on { simulerOpphør(any()) } doReturn opphørUtbetalingSimulert(
+                on { simulerOpphør(any(), any(), any()) } doReturn opphørUtbetalingSimulert(
                     sakOgBehandling = sak to opprettet,
                     opphørsperiode = opprettet.periode,
                     clock = fixedClock,
@@ -142,7 +142,7 @@ internal class RevurderingBeregnOgSimulerTest {
         RevurderingServiceMocks(
             revurderingRepo = mock(),
             utbetalingService = mock {
-                on { simulerOpphør(any()) } doReturn opphørUtbetalingSimulert(
+                on { simulerOpphør(any(), any(), any()) } doReturn opphørUtbetalingSimulert(
                     sakOgBehandling = sak to revurdering,
                     opphørsperiode = revurdering.periode,
                     clock = fixedClock,
@@ -393,7 +393,7 @@ internal class RevurderingBeregnOgSimulerTest {
         val serviceAndMocks = RevurderingServiceMocks(
             revurderingRepo = mock(),
             utbetalingService = mock {
-                on { simulerOpphør(any()) } doReturn opphørUtbetalingSimulert(
+                on { simulerOpphør(any(), any(), any()) } doReturn opphørUtbetalingSimulert(
                     sakOgBehandling = sak to opprettet,
                     opphørsperiode = opprettet.periode,
                     clock = fixedClock,
@@ -416,11 +416,15 @@ internal class RevurderingBeregnOgSimulerTest {
             verify(serviceAndMocks.sakService).hentSakForRevurdering(opprettet.id)
             verify(serviceAndMocks.utbetalingService).simulerOpphør(
                 argThat {
-                    it shouldBe SimulerUtbetalingRequest.Opphør(
-                        sakId = sakId,
-                        saksbehandler = NavIdentBruker.Saksbehandler("s1"),
-                        opphørsperiode = opprettet.periode,
-                    )
+                    it.tidligsteDato() shouldBe opprettet.periode.fraOgMed
+                    it.senesteDato() shouldBe opprettet.periode.tilOgMed
+                    it.behandler shouldBe NavIdentBruker.Saksbehandler("s1")
+                },
+                argThat {
+                    it shouldBe sak.utbetalinger
+                },
+                argThat {
+                    it shouldBe opprettet.periode
                 },
             )
             verify(serviceAndMocks.revurderingRepo).defaultTransactionContext()

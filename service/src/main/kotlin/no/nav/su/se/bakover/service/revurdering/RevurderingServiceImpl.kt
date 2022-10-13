@@ -51,6 +51,7 @@ import no.nav.su.se.bakover.domain.revurdering.VurderOmBeløpsendringErStørreEn
 import no.nav.su.se.bakover.domain.revurdering.erKlarForAttestering
 import no.nav.su.se.bakover.domain.revurdering.harSendtForhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.medFritekst
+import no.nav.su.se.bakover.domain.sak.lagUtbetalingForOpphør
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
@@ -154,6 +155,7 @@ internal class RevurderingServiceImpl(
                 is StansAvYtelseTransactionException -> {
                     it.feil
                 }
+
                 else -> {
                     KunneIkkeStanseYtelse.UkjentFeil(it.message.toString())
                 }
@@ -163,7 +165,10 @@ internal class RevurderingServiceImpl(
         }
     }
 
-    override fun stansAvYtelseITransaksjon(request: StansYtelseRequest, transactionContext: TransactionContext): StansAvYtelseITransaksjonResponse {
+    override fun stansAvYtelseITransaksjon(
+        request: StansYtelseRequest,
+        transactionContext: TransactionContext,
+    ): StansAvYtelseITransaksjonResponse {
         return stansAvYtelseService.stansAvYtelse(
             request = request,
             transactionContext = transactionContext,
@@ -193,6 +198,7 @@ internal class RevurderingServiceImpl(
                 is IverksettStansAvYtelseTransactionException -> {
                     it.feil
                 }
+
                 else -> {
                     KunneIkkeIverksetteStansYtelse.UkjentFeil(it.message.toString())
                 }
@@ -653,8 +659,14 @@ internal class RevurderingServiceImpl(
                         beregnetRevurdering.simuler(
                             saksbehandler = saksbehandler,
                             clock = clock,
-                        ) { request ->
-                            utbetalingService.simulerOpphør(request)
+                            lagUtbetaling = sak::lagUtbetalingForOpphør,
+                            eksisterendeUtbetalinger = sak::utbetalinger,
+                        ) { utbetaling, eksisterende, opphørsperiode ->
+                            utbetalingService.simulerOpphør(
+                                utbetaling = utbetaling,
+                                eksisterendeUtbetalinger = eksisterende,
+                                opphørsperiode = opphørsperiode,
+                            )
                         }.mapLeft { KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(it) }.map { simulert ->
                             revurderingRepo.lagre(simulert)
                             identifiserFeilOgLagResponse(simulert).leggTil(potensielleVarsel)
@@ -1123,7 +1135,10 @@ internal class RevurderingServiceImpl(
         revurderingId: UUID,
         attestant: NavIdentBruker.Attestant,
     ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering> {
-        val revurdering = revurderingRepo.hent(revurderingId) ?: return KunneIkkeIverksetteRevurdering.FantIkkeRevurdering.left()
+        val sak = sakService.hentSakForRevurdering(revurderingId)
+
+        val revurdering = sak.hentRevurdering(revurderingId)
+            .getOrHandle { return KunneIkkeIverksetteRevurdering.FantIkkeRevurdering.left() }
 
         if (revurdering !is RevurderingTilAttestering) {
             return KunneIkkeIverksetteRevurdering.UgyldigTilstand(
@@ -1248,14 +1263,14 @@ internal class RevurderingServiceImpl(
                      */
                     sessionFactory.withTransactionContext { tx ->
                         val opphørUtbetaling = utbetalingService.klargjørOpphør(
-                            request = UtbetalRequest.Opphør(
-                                request = SimulerUtbetalingRequest.Opphør(
-                                    sakId = iverksattRevurdering.sakId,
-                                    saksbehandler = attestant,
-                                    opphørsperiode = revurdering.opphørsperiodeForUtbetalinger,
-                                ),
-                                simulering = iverksattRevurdering.simulering,
+                            utbetaling = sak.lagUtbetalingForOpphør(
+                                opphørsperiode = revurdering.opphørsperiodeForUtbetalinger,
+                                behandler = attestant,
+                                clock = clock,
                             ),
+                            eksisterendeUtbetalinger = sak.utbetalinger,
+                            opphørsperiode = revurdering.opphørsperiodeForUtbetalinger,
+                            saksbehandlersSimulering = revurdering.simulering,
                             transactionContext = tx,
                         ).getOrHandle {
                             throw IverksettTransactionException(
@@ -1366,8 +1381,17 @@ internal class RevurderingServiceImpl(
 
         when (underkjent) {
             is UnderkjentRevurdering.IngenEndring -> Unit // Ønsker ikke sende en statistikkhendelse ved ingen endring (den statusen er uansett på vei ut)
-            is UnderkjentRevurdering.Innvilget -> observers.notify(StatistikkEvent.Behandling.Revurdering.Underkjent.Innvilget(underkjent))
-            is UnderkjentRevurdering.Opphørt -> observers.notify(StatistikkEvent.Behandling.Revurdering.Underkjent.Opphør(underkjent))
+            is UnderkjentRevurdering.Innvilget -> observers.notify(
+                StatistikkEvent.Behandling.Revurdering.Underkjent.Innvilget(
+                    underkjent,
+                ),
+            )
+
+            is UnderkjentRevurdering.Opphørt -> observers.notify(
+                StatistikkEvent.Behandling.Revurdering.Underkjent.Opphør(
+                    underkjent,
+                ),
+            )
         }
 
         return underkjent.right()

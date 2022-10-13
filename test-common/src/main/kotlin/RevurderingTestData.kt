@@ -42,6 +42,7 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
+import no.nav.su.se.bakover.domain.sak.lagUtbetalingForOpphør
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
@@ -313,11 +314,18 @@ fun simulertRevurdering(
                 val simulert = beregnet.simuler(
                     saksbehandler = saksbehandler,
                     clock = clock,
-                ) {
-                    opphørUtbetalingSimulert(
-                        sakOgBehandling = sak to beregnet,
-                        opphørsperiode = it.opphørsperiode,
-                        clock = clock,
+                    lagUtbetaling = sak::lagUtbetalingForOpphør,
+                    eksisterendeUtbetalinger = sak::utbetalinger,
+                ) { utbetaling, eksisterende, opphørsperiode ->
+                    utbetaling.toSimulertUtbetaling(
+                        simuleringOpphørt(
+                            opphørsperiode = opphørsperiode,
+                            eksisterendeUtbetalinger = eksisterende,
+                            fnr = beregnet.fnr,
+                            sakId = beregnet.sakId,
+                            saksnummer = beregnet.saksnummer,
+                            clock = clock,
+                        ),
                     ).right()
                 }.getOrFail()
 
@@ -517,6 +525,7 @@ fun iverksattRevurdering(
             is RevurderingTilAttestering.IngenEndring -> {
                 null
             }
+
             is RevurderingTilAttestering.Innvilget -> {
                 nyUtbetalingOversendUtenKvittering(
                     sakOgBehandling = sak to tilAttestering,
@@ -524,6 +533,7 @@ fun iverksattRevurdering(
                     clock = clock,
                 )
             }
+
             is RevurderingTilAttestering.Opphørt -> {
                 opphørUtbetalingOversendUtenKvittering(
                     sakOgBehandling = sak to tilAttestering,
@@ -729,7 +739,10 @@ fun beregnetRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
         informasjonSomRevurderes = informasjonSomRevurderes,
         sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
         grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
-        revurderingsårsak = Revurderingsårsak(Revurderingsårsak.Årsak.REGULER_GRUNNBELØP, Revurderingsårsak.Begrunnelse.create("testdata - ingen endring")),
+        revurderingsårsak = Revurderingsårsak(
+            Revurderingsårsak.Årsak.REGULER_GRUNNBELØP,
+            Revurderingsårsak.Begrunnelse.create("testdata - ingen endring"),
+        ),
     ).let { (sak, revurdering) ->
         val innvilgetBeregnetRevurdering = revurdering.beregn(
             eksisterendeUtbetalinger = eksisterendeUtbetalinger,
@@ -975,18 +988,24 @@ fun simulertRevurderingOpphørtPgaVilkårFraInnvilgetSøknadsbehandlingsVedtak(
         val opphørtSimulertRevurdering = revurdering.simuler(
             saksbehandler = saksbehandler,
             clock = clock,
-        ) {
-            opphørUtbetalingSimulert(
-                sakOgBehandling = sak to revurdering,
-                opphørsperiode = it.opphørsperiode,
-                clock = clock,
+            lagUtbetaling = sak::lagUtbetalingForOpphør,
+            eksisterendeUtbetalinger = sak::utbetalinger,
+        ) { utbetaling, eksisterende, opphørsperiode ->
+            utbetaling.toSimulertUtbetaling(
+                simuleringOpphørt(
+                    opphørsperiode = opphørsperiode,
+                    eksisterendeUtbetalinger = eksisterende,
+                    fnr = revurdering.fnr,
+                    sakId = revurdering.sakId,
+                    saksnummer = revurdering.saksnummer,
+                    clock = clock,
+                ),
             ).right()
-        }.getOrFail()
-            .prøvÅLeggTilForhåndsvarselPåSimulertRevurdering(
-                forhåndsvarsel = forhåndsvarsel,
-            ).oppdaterTilbakekrevingsbehandling(
-                tilbakekrevingsbehandling = tilbakekrevingsbehandling,
-            )
+        }.getOrFail().prøvÅLeggTilForhåndsvarselPåSimulertRevurdering(
+            forhåndsvarsel = forhåndsvarsel,
+        ).oppdaterTilbakekrevingsbehandling(
+            tilbakekrevingsbehandling = tilbakekrevingsbehandling,
+        )
         Pair(
             sak.copy(
                 // Erstatter den gamle versjonen av samme revurderinger.
