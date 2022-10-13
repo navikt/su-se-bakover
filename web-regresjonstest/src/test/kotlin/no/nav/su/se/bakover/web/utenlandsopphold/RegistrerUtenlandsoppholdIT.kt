@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.utenlandsopphold.registrere
+package no.nav.su.se.bakover.web.utenlandsopphold
 
 import no.nav.su.se.bakover.web.SharedRegressionTestData
 import no.nav.su.se.bakover.web.søknad.ny.NySøknadJson
@@ -39,7 +39,7 @@ internal class RegistrerUtenlandsoppholdIT {
                   "opprettetTidspunkt":"2021-01-01T01:02:03.456789Z",
                   "endretAv":"Z990Lokal",
                   "endretTidspunkt":"2021-01-01T01:02:03.456789Z",
-                  "versjon":1,
+                  "versjon":11,
                   "antallDager":157,
                   "erAnnulert":false
                 }
@@ -52,16 +52,38 @@ internal class RegistrerUtenlandsoppholdIT {
 
             JSONAssert.assertEquals(
                 """
-                {
-                "periode":{
-                  "fraOgMed": "2021-05-05",
-                  "tilOgMed": "2021-10-10"
-                },
-                "journalposter": ["1234567"],
-                "dokumentasjon": "Sannsynliggjort"
-              }
+                    {
+                     "utenlandsopphold":[
+                        {
+                          "id":"$utenlandsoppholdId",
+                          "periode":{
+                            "fraOgMed":"2021-05-04",
+                            "tilOgMed":"2021-10-11"
+                          },
+                          "journalposter":[
+                            "12121212"
+                          ],
+                          "dokumentasjon":"Udokumentert",
+                          "opprettetAv":"Z990Lokal",
+                          "opprettetTidspunkt":"2021-01-01T01:02:03.456789Z",
+                          "endretAv":"Z990Lokal",
+                          "endretTidspunkt":"2021-01-01T01:02:03.456789Z",
+                          "versjon":12,
+                          "antallDager":159,
+                          "erAnnulert":false
+                        }
+                      ],
+                      "antallDager":159
+                    }
                 """.trimIndent(),
-                this.oppdaterUtenlandsopphold(sakId, utenlandsoppholdId),
+                this.oppdaterUtenlandsopphold(
+                    sakId = sakId,
+                    utenlandsoppholdId = utenlandsoppholdId,
+                    fraOgMed = "2021-05-04",
+                    tilOgMed = "2021-10-11",
+                    journalpostIder = "[\"12121212\"]",
+                    dokumentasjon = "Udokumentert",
+                ),
                 true,
             )
             JSONAssert.assertEquals(

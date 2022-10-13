@@ -39,6 +39,18 @@ sealed class NavIdentBruker {
     }
 
     data class Veileder(override val navIdent: String) : NavIdentBruker() {
+        init {
+            validate()
+        }
+
+        override fun toString(): String = navIdent
+    }
+
+    data class Drift(override val navIdent: String) : NavIdentBruker() {
+        init {
+            validate()
+        }
+
         override fun toString(): String = navIdent
     }
 }

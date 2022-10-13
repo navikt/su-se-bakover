@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.domain.søknadinnhold.SøknadsinnholdUføre
+import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.veileder
@@ -51,6 +52,7 @@ class HentSøknadPdfTest {
         utbetalinger = emptyList(),
         type = Sakstype.UFØRE,
         uteståendeAvkorting = Avkortingsvarsel.Ingen,
+        versjon = Hendelsesversjon(1),
     )
     private val person = Person(
         ident = Ident(

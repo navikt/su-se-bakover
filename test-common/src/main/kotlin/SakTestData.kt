@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.søknadinnhold.SøknadsinnholdAlder
 import no.nav.su.se.bakover.domain.søknadinnhold.SøknadsinnholdUføre
 import no.nav.su.se.bakover.domain.søknadsinnholdAlder
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import java.time.Clock
 import java.util.LinkedList
 import java.util.UUID
@@ -103,7 +104,7 @@ fun nySak(
             innsendtAv = søknadInnsendtAv,
         ).let {
             val søknad = it.søknad.journalfør(journalpostIdSøknad).medOppgave(oppgaveIdSøknad)
-            val sak = it.toSak(sakInfo.saksnummer)
+            val sak = it.toSak(sakInfo.saksnummer, Hendelsesversjon(1))
             sak.copy(søknader = listOf(søknad)) to søknad
         }
     }

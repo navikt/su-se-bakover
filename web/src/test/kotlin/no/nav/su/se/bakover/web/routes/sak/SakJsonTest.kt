@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
@@ -46,6 +47,7 @@ internal class SakJsonTest {
         klager = emptyList(),
         type = Sakstype.UFØRE,
         uteståendeAvkorting = Avkortingsvarsel.Ingen,
+        versjon = Hendelsesversjon(1),
     )
 
     //language=JSON

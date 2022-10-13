@@ -1698,6 +1698,7 @@ internal class LagBrevRequestVisitorTest {
             is NavIdentBruker.Attestant -> attestantNavn.right()
             is NavIdentBruker.Saksbehandler -> saksbehandlerNavn.right()
             is NavIdentBruker.Veileder -> fail("skal ikke hente navn for en veileder")
+            is NavIdentBruker.Drift -> fail("skal ikke hente navn for en drift")
         }
 
     private fun expectedInnvilgetBeregning(id: UUID): Beregning {

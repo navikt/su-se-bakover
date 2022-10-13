@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadinnhold.ForNav
 import no.nav.su.se.bakover.domain.søknadinnhold.Personopplysninger
 import no.nav.su.se.bakover.domain.søknadinnhold.SøknadInnhold
+import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import java.time.Clock
 import java.time.temporal.ChronoUnit
 import java.util.LinkedList
@@ -59,7 +60,7 @@ fun nySakMedNySøknad(
 ).let {
     assert(it.id == sakId)
     assert(it.søknad.id == søknadId)
-    Pair(it.toSak(saksnummer), it.søknad)
+    Pair(it.toSak(saksnummer, Hendelsesversjon(1)), it.søknad)
 }
 
 fun trukketSøknad(): Pair<Sak, Søknad.Journalført.MedOppgave.Lukket.TrukketAvSøker> {

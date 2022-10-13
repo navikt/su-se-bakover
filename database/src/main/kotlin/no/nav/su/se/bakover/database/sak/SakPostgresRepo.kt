@@ -27,6 +27,10 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
+import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon.Companion.max
+import no.nav.su.se.bakover.utenlandsopphold.domain.UtenlandsoppholdRepo
 import java.util.UUID
 
 internal class SakPostgresRepo(
@@ -38,6 +42,8 @@ internal class SakPostgresRepo(
     private val klageRepo: KlageRepo,
     private val reguleringRepo: ReguleringRepo,
     private val avkortingsvarselRepo: AvkortingsvarselPostgresRepo,
+    private val utenlandsoppholdRepo: UtenlandsoppholdRepo,
+    private val hendelseRepo: HendelseRepo,
 ) : SakRepo {
 
     private val åpneBehandlingerRepo = ÅpneBehandlingerRepo(
@@ -90,8 +96,10 @@ internal class SakPostgresRepo(
         return dbMetrics.timeQuery("hentSakForRevurdering") {
             sessionFactory.withSessionContext { sessionContext ->
                 sessionContext.withSession { session ->
-                    "select s.* from sak s join revurdering r on r.sakid = s.id where r.id =:revurderingid"
-                        .hent(mapOf("revurderingid" to revurderingId), session) { it.toSak(sessionContext) }
+                    "select s.* from sak s join revurdering r on r.sakid = s.id where r.id =:revurderingid".hent(
+                        mapOf("revurderingid" to revurderingId),
+                        session,
+                    ) { it.toSak(sessionContext) }
                 }
             }!!
         }
@@ -101,8 +109,10 @@ internal class SakPostgresRepo(
         return dbMetrics.timeQuery("hentSakForSøknad") {
             sessionFactory.withSessionContext { sessionContext ->
                 sessionContext.withSession { session ->
-                    "select s.* from sak s join søknad ss on ss.sakid = s.id where ss.id =:soknadId"
-                        .hent(mapOf("soknadId" to søknadId), session) { it.toSak(sessionContext) }
+                    "select s.* from sak s join søknad ss on ss.sakid = s.id where ss.id =:soknadId".hent(
+                        mapOf("soknadId" to søknadId),
+                        session,
+                    ) { it.toSak(sessionContext) }
                 }
             }
         }
@@ -215,8 +225,13 @@ internal class SakPostgresRepo(
     private fun hentSakInternal(fnr: Fnr, type: Sakstype, sessionContext: SessionContext): Sak? {
         return dbMetrics.timeQuery("hentSakInternalForFnr") {
             sessionContext.withSession { session ->
-                "select * from sak where fnr=:fnr and type=:type"
-                    .hent(mapOf("fnr" to fnr.toString(), "type" to type.value), session) { it.toSak(sessionContext) }
+                "select * from sak where fnr=:fnr and type=:type".hent(
+                    mapOf(
+                        "fnr" to fnr.toString(),
+                        "type" to type.value,
+                    ),
+                    session,
+                ) { it.toSak(sessionContext) }
             }
         }
     }
@@ -224,8 +239,7 @@ internal class SakPostgresRepo(
     private fun hentSakInternal(sakId: UUID, sessionContext: SessionContext): Sak? {
         return dbMetrics.timeQuery("hentSakInternalForSakId") {
             sessionContext.withSession { session ->
-                "select * from sak where id=:sakId"
-                    .hent(mapOf("sakId" to sakId), session) { it.toSak(sessionContext) }
+                "select * from sak where id=:sakId".hent(mapOf("sakId" to sakId), session) { it.toSak(sessionContext) }
             }
         }
     }
@@ -233,8 +247,10 @@ internal class SakPostgresRepo(
     private fun hentSakInternal(saksnummer: Saksnummer, sessionContext: SessionContext): Sak? {
         return dbMetrics.timeQuery("hentSakInternalForSaksnummer") {
             sessionContext.withSession { session ->
-                "select * from sak where saksnummer=:saksnummer"
-                    .hent(mapOf("saksnummer" to saksnummer.nummer), session) { it.toSak(sessionContext) }
+                "select * from sak where saksnummer=:saksnummer".hent(
+                    mapOf("saksnummer" to saksnummer.nummer),
+                    session,
+                ) { it.toSak(sessionContext) }
             }
         }
     }
@@ -242,8 +258,11 @@ internal class SakPostgresRepo(
     private fun hentSakerInternal(fnr: Fnr, sessionContext: SessionContext): List<Sak> {
         return dbMetrics.timeQuery("hentSakerInternalForFnr") {
             sessionContext.withSession { session ->
-                "select * from sak where fnr=:fnr"
-                    .hentListe(mapOf("fnr" to fnr.toString()), session) { it.toSak(sessionContext) }
+                "select * from sak where fnr=:fnr".hentListe(mapOf("fnr" to fnr.toString()), session) {
+                    it.toSak(
+                        sessionContext,
+                    )
+                }
             }
         }
     }
@@ -265,6 +284,9 @@ internal class SakPostgresRepo(
                 reguleringer = reguleringRepo.hentForSakId(sakId, sessionContext),
                 type = Sakstype.from(string("type")),
                 uteståendeAvkorting = avkortingsvarselRepo.hentUteståendeAvkorting(sakId, session),
+                utenlandsopphold = utenlandsoppholdRepo.hentForSakId(sakId, sessionContext),
+                // TODO jah: Bytt til '!!' etter migrering av OPPRETT_SAK
+                versjon = max(hendelseRepo.hentSisteVersjonFraEntitetId(sakId, sessionContext), Hendelsesversjon(10)),
             )
         }
     }

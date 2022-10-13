@@ -41,7 +41,6 @@ import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.metrics.SuMetrics
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.persistence.DbMetrics
-import no.nav.su.se.bakover.common.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.DomainToQueryParameterMapper
 import no.nav.su.se.bakover.domain.DatabaseRepos
@@ -51,13 +50,12 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
-import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
 import no.nav.su.se.bakover.service.AccessCheckProxy
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.Tilgangssjekkfeil
-import no.nav.su.se.bakover.utenlandsopphold.application.RegistrerUtenlandsoppholdService
-import no.nav.su.se.bakover.utenlandsopphold.infrastruture.persistence.RegistrerUtenlandsoppholdPostgresRepo
+import no.nav.su.se.bakover.utenlandsopphold.application.oppdater.OppdaterUtenlandsoppholdService
+import no.nav.su.se.bakover.utenlandsopphold.application.registrer.RegistrerUtenlandsoppholdService
 import no.nav.su.se.bakover.utenlandsopphold.presentation.web.utenlandsoppholdRoutes
 import no.nav.su.se.bakover.web.external.frikortVedtakRoutes
 import no.nav.su.se.bakover.web.metrics.BehandlingMicrometerMetrics
@@ -119,20 +117,19 @@ fun Application.susebakover(
         queryParameterMappers = listOf(DomainToQueryParameterMapper),
     ),
     jmsConfig: JmsConfig = JmsConfig(applicationConfig),
-    clients: Clients =
-        if (applicationConfig.runtimeEnvironment != ApplicationConfig.RuntimeEnvironment.Nais) {
-            StubClientsBuilder(
-                clock = clock,
-                databaseRepos = databaseRepos,
-            ).build(applicationConfig)
-        } else {
-            ProdClientsBuilder(
-                jmsConfig,
-                clock = clock,
-                unleash = unleash,
-                metrics = clientMetrics,
-            ).build(applicationConfig)
-        },
+    clients: Clients = if (applicationConfig.runtimeEnvironment != ApplicationConfig.RuntimeEnvironment.Nais) {
+        StubClientsBuilder(
+            clock = clock,
+            databaseRepos = databaseRepos,
+        ).build(applicationConfig)
+    } else {
+        ProdClientsBuilder(
+            jmsConfig,
+            clock = clock,
+            unleash = unleash,
+            metrics = clientMetrics,
+        ).build(applicationConfig)
+    },
     services: Services = ServiceBuilder.build(
         databaseRepos = databaseRepos,
         clients = clients,
@@ -166,10 +163,12 @@ fun Application.susebakover(
                     log.warn("[Tilgangssjekk] Ikke tilgang til person.", cause)
                     call.svar(Feilresponser.ikkeTilgangTilPerson)
                 }
+
                 is KunneIkkeHentePerson.FantIkkePerson -> {
                     log.warn("[Tilgangssjekk] Fant ikke person", cause)
                     call.svar(Feilresponser.fantIkkePerson)
                 }
+
                 is KunneIkkeHentePerson.Ukjent -> {
                     log.warn("[Tilgangssjekk] Feil ved oppslag på person", cause)
                     call.svar(Feilresponser.feilVedOppslagPåPerson)
@@ -286,15 +285,14 @@ fun Application.susebakover(
                     )
                     skattRoutes(accessProtectedServices.skatteService, accessProtectedServices.toggles)
                     utenlandsoppholdRoutes(
-                        RegistrerUtenlandsoppholdService(
+                        registerService = RegistrerUtenlandsoppholdService(
                             sakRepo = databaseRepos.sak,
-                            registertUtenlandsoppholdRepo = RegistrerUtenlandsoppholdPostgresRepo(
-                                hendelseRepo = HendelsePostgresRepo(
-                                    databaseRepos.sessionFactory as PostgresSessionFactory,
-                                    dbMetrics = dbMetrics,
-                                ),
-
-                            ),
+                            utenlandsoppholdRepo = databaseRepos.utenlandsoppholdRepo,
+                            clock = clock,
+                        ),
+                        oppdaterService = OppdaterUtenlandsoppholdService(
+                            sakRepo = databaseRepos.sak,
+                            utenlandsoppholdRepo = databaseRepos.utenlandsoppholdRepo,
                             clock = clock,
                         ),
                     )

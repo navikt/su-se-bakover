@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.domain.søknadinnhold.Personopplysninger
 import no.nav.su.se.bakover.domain.søknadinnhold.SøknadsinnholdUføre
+import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.test.fixedClock
@@ -56,6 +57,7 @@ class SøknadTest {
         utbetalinger = emptyList(),
         type = Sakstype.UFØRE,
         uteståendeAvkorting = Avkortingsvarsel.Ingen,
+        versjon = Hendelsesversjon(1),
     )
     private val pdf = "pdf-data".toByteArray()
     private val journalpostId = JournalpostId("1")

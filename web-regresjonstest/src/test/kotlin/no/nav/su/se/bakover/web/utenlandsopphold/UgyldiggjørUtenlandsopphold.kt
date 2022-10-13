@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.utenlandsopphold.registrere
+package no.nav.su.se.bakover.web.utenlandsopphold
 
 import io.kotest.matchers.shouldBe
 import io.ktor.client.statement.bodyAsText
