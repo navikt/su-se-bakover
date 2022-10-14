@@ -70,7 +70,6 @@ import no.nav.su.se.bakover.test.vedtakIverksattGjenopptakAvYtelseFraIverksattSt
 import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakRevurderingIverksattInnvilget
-import no.nav.su.se.bakover.test.vedtakRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vilkår.tilstrekkeligDokumentert
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
@@ -205,7 +204,8 @@ internal class SakTest {
 
         @Test
         fun `henter stønadsperioder og justerer varigheten dersom de er delvis opphørt`() {
-            val (sak, _) = vedtakRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
+            val (sak, _) = vedtakRevurdering(
+                vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag(periode = Periode.create(1.mai(2021), 31.desember(2021)))),
                 sakOgVedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(),
                 revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
             )
@@ -221,7 +221,8 @@ internal class SakTest {
                 clock = fixedClock,
             )
 
-            val (sakEtterOpphør, opphør) = vedtakRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
+            val (sakEtterOpphør, opphør) = vedtakRevurdering(
+                vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag(periode = Periode.create(1.mai(2021), 31.desember(2021)))),
                 revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
                 sakOgVedtakSomKanRevurderes = sak to vedtak,
                 clock = fixedClock.plus(1, ChronoUnit.SECONDS),

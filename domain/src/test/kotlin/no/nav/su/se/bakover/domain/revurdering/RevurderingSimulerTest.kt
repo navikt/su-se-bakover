@@ -24,7 +24,6 @@ import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.junit.jupiter.api.fail
 
 class RevurderingSimulerTest {
     @Test
@@ -32,8 +31,9 @@ class RevurderingSimulerTest {
         simulertRevurdering(
             vilkårOverrides = listOf(utenlandsoppholdAvslag()),
         ).let { (_, revurdering) ->
+            revurdering.simulering.harFeilutbetalinger() shouldBe false
             revurdering.avkorting.let {
-                (it as AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel).let { avkorting ->
+                it.shouldBeType<AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel>().let { avkorting ->
                     avkorting.avkortingsvarsel shouldBe Avkortingsvarsel.Utenlandsopphold.Opprettet(
                         id = avkorting.avkortingsvarsel.id,
                         sakId = revurdering.sakId,
@@ -41,6 +41,7 @@ class RevurderingSimulerTest {
                         opprettet = avkorting.avkortingsvarsel.opprettet,
                         simulering = avkorting.avkortingsvarsel.simulering,
                     ).skalAvkortes()
+                    avkorting.avkortingsvarsel.simulering.harFeilutbetalinger() shouldBe true
                 }
             }
         }
@@ -68,10 +69,14 @@ class RevurderingSimulerTest {
                                 saksnummer = beregnet.saksnummer,
                                 clock = fixedClock,
                             ),
-                        ).right()
+                        ).right().tap {
+                            it.simulering.harFeilutbetalinger() shouldBe true
+                        }
                     }.getOrFail()
                 }
             }
+        }.also {
+            it.message shouldBe "Simulering med justert opphørsdato for utbetalinger pga avkorting utenlandsopphold inneholder feilutbetaling, se sikkerlogg for detaljer"
         }
     }
 
@@ -81,7 +86,9 @@ class RevurderingSimulerTest {
             vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
         ).let { (_, revurdering) ->
             revurdering.simulering.harFeilutbetalinger() shouldBe true
-            revurdering.avkorting shouldBe AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
+            revurdering.shouldBeType<SimulertRevurdering.Opphørt>().also {
+                it.avkorting shouldBe AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
+            }
         }
     }
 
@@ -91,9 +98,18 @@ class RevurderingSimulerTest {
         simulertRevurdering(
             revurderingsperiode = revurderingsperiode,
             vilkårOverrides = listOf(utenlandsoppholdAvslag(periode = revurderingsperiode)),
+            grunnlagsdataOverrides = listOf(
+                fradragsgrunnlagArbeidsinntekt(
+                    periode = revurderingsperiode,
+                    arbeidsinntekt = 35000.0,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            ),
         ).let { (_, revurdering) ->
             revurdering.simulering.harFeilutbetalinger() shouldBe false
-            revurdering.avkorting shouldBe AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
+            revurdering.shouldBeType<SimulertRevurdering.Opphørt>().also {
+                it.avkorting shouldBe AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
+            }
         }
     }
 
@@ -108,22 +124,17 @@ class RevurderingSimulerTest {
                 ),
             ),
         ).let { (sak, beregnet) ->
-            (beregnet as BeregnetRevurdering.Innvilget).let {
-                when (
-                    it.simuler(
-                        saksbehandler = saksbehandler,
-                        clock = fixedClock,
-                    ) {
-                        nyUtbetalingSimulert(
-                            sakOgBehandling = sak to beregnet,
-                            beregning = it.beregning,
-                            clock = fixedClock,
-                        ).right()
-                    }.getOrFail().tilbakekrevingsbehandling
+            beregnet.shouldBeType<BeregnetRevurdering.Innvilget>().also {
+                it.simuler(
+                    saksbehandler = saksbehandler,
+                    clock = fixedClock,
                 ) {
-                    is IkkeAvgjort -> {}
-                    else -> fail("Skulle opprettet tilbakekrevingsbehandling")
-                }
+                    nyUtbetalingSimulert(
+                        sakOgBehandling = sak to beregnet,
+                        beregning = it.beregning,
+                        clock = fixedClock,
+                    ).right()
+                }.getOrFail().tilbakekrevingsbehandling.shouldBeType<IkkeAvgjort>()
             }
         }
     }

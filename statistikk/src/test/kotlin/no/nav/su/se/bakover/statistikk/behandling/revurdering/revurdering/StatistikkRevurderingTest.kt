@@ -5,19 +5,23 @@ import no.nav.su.se.bakover.client.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.GitCommit
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.domain.person.PersonService
+import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
+import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.statistikk.StatistikkEventObserverBuilder
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.avsluttetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.revurderingTilAttestering
+import no.nav.su.se.bakover.test.revurderingUnderkjent
 import no.nav.su.se.bakover.test.tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
-import no.nav.su.se.bakover.test.tilAttesteringRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
-import no.nav.su.se.bakover.test.underkjentOpphørtRevurderingFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakRevurderingIverksattInnvilget
-import no.nav.su.se.bakover.test.vedtakRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
@@ -53,7 +57,7 @@ internal class StatistikkRevurderingTest {
 
     @Test
     fun `publiserer opphørt revurdering til attestering`() {
-        val revurdering = tilAttesteringRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak().second
+        val revurdering = revurderingTilAttestering(vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag())).second as RevurderingTilAttestering.Opphørt
         assert(
             statistikkEvent = StatistikkEvent.Behandling.Revurdering.TilAttestering.Opphør(
                 revurdering = revurdering,
@@ -84,7 +88,7 @@ internal class StatistikkRevurderingTest {
     fun `publiserer opphørt underkjent revurdering`() {
         assert(
             statistikkEvent = StatistikkEvent.Behandling.Revurdering.Underkjent.Opphør(
-                revurdering = underkjentOpphørtRevurderingFraInnvilgetSøknadsbehandlingsVedtak().second,
+                revurdering = revurderingUnderkjent(vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag())).second as UnderkjentRevurdering.Opphørt,
             ),
             behandlingStatus = "UNDERKJENT",
             behandlingStatusBeskrivelse = "beslutter/attestant/saksbehandler2 har sendt saken tilbake til saksbehandler.",
@@ -113,7 +117,9 @@ internal class StatistikkRevurderingTest {
 
     @Test
     fun `publiserer iverksatt opphørt revurdering`() {
-        val (_, vedtak) = vedtakRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak()
+        val (_, vedtak) = vedtakRevurdering(
+            vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
+        ).let { (sak, vedtak) -> sak to vedtak as VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering }
         assert(
             statistikkEvent = StatistikkEvent.Behandling.Revurdering.Iverksatt.Opphørt(
                 vedtak = vedtak,

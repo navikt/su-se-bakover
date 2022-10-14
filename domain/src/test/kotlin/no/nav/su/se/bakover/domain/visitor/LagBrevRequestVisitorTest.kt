@@ -70,7 +70,7 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.iverksattRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.simulerNyUtbetaling
@@ -1310,9 +1310,10 @@ internal class LagBrevRequestVisitorTest {
     fun `lager opphørsvedtak med opphørsgrunn for uførhet`() {
         val utbetalingId = UUID30.randomUUID()
 
-        val (_, revurdering) = iverksattRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
+        val (_, revurdering) = iverksattRevurdering(
+            vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
             fritekstTilBrev = "FRITEKST REVURDERING",
-        )
+        ).let { it.first to it.second as IverksattRevurdering.Opphørt }
         val opphørsvedtak = VedtakSomKanRevurderes.from(revurdering, utbetalingId, fixedClock)
         val brevRevurdering = LagBrevRequestVisitor(
             hentPerson = { person.right() },
