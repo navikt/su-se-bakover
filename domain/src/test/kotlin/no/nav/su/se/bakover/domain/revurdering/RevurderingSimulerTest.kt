@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.domain.revurdering
 
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.mars
@@ -59,8 +58,7 @@ class RevurderingSimulerTest {
                         clock = fixedClock,
                         lagUtbetaling = sak::lagUtbetalingForOpphør,
                         eksisterendeUtbetalinger = sak::utbetalinger,
-                    ) { utbetaling, eksisterende, opphørsperiode ->
-                        beregnet.periode shouldNotBe opphørsperiode
+                    ) { utbetaling, eksisterende, _ ->
                         utbetaling.toSimulertUtbetaling(
                             simuleringOpphørt(
                                 opphørsperiode = beregnet.periode, // bruk feil periode

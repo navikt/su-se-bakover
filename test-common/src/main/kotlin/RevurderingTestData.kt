@@ -387,8 +387,8 @@ fun revurderingTilAttestering(
 
                 oppdatertTilbakekreving.tilAttestering(
                     attesteringsoppgaveId = attesteringsoppgaveId,
-                    saksbehandler = simulert.saksbehandler,
-                    fritekstTilBrev = simulert.fritekstTilBrev,
+                    saksbehandler = saksbehandler,
+                    fritekstTilBrev = fritekstTilBrev,
                 ).getOrFail()
             }
         }

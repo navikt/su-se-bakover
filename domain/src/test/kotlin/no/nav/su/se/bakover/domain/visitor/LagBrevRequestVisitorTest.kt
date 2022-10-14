@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.august
 import no.nav.su.se.bakover.common.periode.desember
 import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.common.periode.mai
@@ -1350,15 +1351,17 @@ internal class LagBrevRequestVisitorTest {
 
     @Test
     fun `lager opphørsvedtak med opphørsgrunn for høy inntekt`() {
-        val opphørsperiode = år(2021)
+        val opphørsperiode = august(2021)..desember(2021)
 
         val (_, revurdering, opphørsvedtak) = vedtakRevurdering(
+            revurderingsperiode = opphørsperiode,
             grunnlagsdataOverrides = listOf(
                 fradragsgrunnlagArbeidsinntekt(
                     arbeidsinntekt = 150000.0,
                     periode = opphørsperiode,
                 ),
             ),
+            fritekstTilBrev = "FRITEKST REVURDERING",
         ).let {
             Triple(sak, it.second.behandling as IverksattRevurdering, it.second)
         }
@@ -1393,7 +1396,17 @@ internal class LagBrevRequestVisitorTest {
             saksnummer = revurdering.saksnummer,
             opphørsperiode = revurdering.periode,
             avkortingsBeløp = null,
-            satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
+            satsoversikt = Satsoversikt(
+                perioder = listOf(
+                    Satsoversikt.Satsperiode(
+                        fraOgMed = "01.08.2021",
+                        tilOgMed = "31.12.2021",
+                        sats = "høy",
+                        satsBeløp = 20946,
+                        satsGrunn = "ENSLIG",
+                    ),
+                ),
+            ),
             halvtGrunnbeløp = 50676, // halvparten av grunnbeløp for 2020-05-01 som er 101351 avrundet
         ).right()
     }
