@@ -119,6 +119,7 @@ internal class StatistikkRevurderingTest {
     fun `publiserer iverksatt opphørt revurdering`() {
         val (_, vedtak) = vedtakRevurdering(
             vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
+            clock = fixedClock,
         ).let { (sak, vedtak) -> sak to vedtak as VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering }
         assert(
             statistikkEvent = StatistikkEvent.Behandling.Revurdering.Iverksatt.Opphørt(

@@ -319,7 +319,7 @@ internal class StønadsstatistikkTest {
                 periode = januar(2021),
             ),
             revurderingsperiode = januar(2021),
-            vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
+            vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag(periode = januar(2021))),
         ).let { (sak, vedtak) -> sak to vedtak as VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering }
         assert(
             sak = sak,

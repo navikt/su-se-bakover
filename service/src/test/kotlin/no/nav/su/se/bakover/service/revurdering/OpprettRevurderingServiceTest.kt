@@ -51,6 +51,7 @@ import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.søknadinnhold
+import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
 import org.junit.jupiter.api.Test
@@ -415,7 +416,9 @@ internal class OpprettRevurderingServiceTest {
 
     @Test
     fun `kan revurdere en periode med eksisterende revurdering`() {
-        val (sak, revurderingVedtak) = vedtakRevurdering()
+        val (sak, revurderingVedtak) = vedtakRevurdering(
+            clock = tikkendeFixedClock,
+        )
 
         RevurderingServiceMocks(
             sakService = mock {

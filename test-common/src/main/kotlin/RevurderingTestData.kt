@@ -47,7 +47,6 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import java.time.Clock
 import java.time.LocalDate
-import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 val revurderingId: UUID = UUID.randomUUID()
@@ -576,10 +575,8 @@ fun vedtakRevurdering(
     attestering: Attestering = attesteringIverksatt(clock),
     fritekstTilBrev: String = "fritekstTilBrev",
 ): Pair<Sak, VedtakSomKanRevurderes> {
-    // Kan ikke lage tidslinje for vedtak dersom de er opprettet samtidig.
-    val clockPlusOneTick = clock.plus(1, ChronoUnit.SECONDS)
     return iverksattRevurdering(
-        clock = clockPlusOneTick,
+        clock = clock,
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
         revurderingsperiode = revurderingsperiode,
@@ -594,15 +591,15 @@ fun vedtakRevurdering(
     ).let { (sak, iverksatt, utbetaling) ->
         val vedtak = when (iverksatt) {
             is IverksattRevurdering.IngenEndring -> {
-                VedtakSomKanRevurderes.from(iverksatt, clockPlusOneTick)
+                VedtakSomKanRevurderes.from(iverksatt, clock)
             }
 
             is IverksattRevurdering.Innvilget -> {
-                VedtakSomKanRevurderes.from(iverksatt, utbetaling!!.id, clockPlusOneTick)
+                VedtakSomKanRevurderes.from(iverksatt, utbetaling!!.id, clock)
             }
 
             is IverksattRevurdering.Opphørt -> {
-                VedtakSomKanRevurderes.from(iverksatt, utbetaling!!.id, clockPlusOneTick)
+                VedtakSomKanRevurderes.from(iverksatt, utbetaling!!.id, clock)
             }
         }
 
