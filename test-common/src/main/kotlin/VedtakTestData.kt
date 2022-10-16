@@ -165,6 +165,7 @@ fun vedtakRevurderingIverksattInnvilget(
         grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
         sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
         revurderingsårsak = revurderingsårsak,
+        clock = clock,
     ).let { (sak, revurdering) ->
         val utbetaling = oversendtUtbetalingMedKvittering(
             id = utbetalingId,

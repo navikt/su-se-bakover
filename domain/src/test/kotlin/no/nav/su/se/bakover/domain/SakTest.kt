@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.common.periode.november
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.september
+import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
@@ -55,6 +56,7 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.innvilgetSøknadsbehandlingMedIverksattRegulering
 import no.nav.su.se.bakover.test.innvilgetSøknadsbehandlingMedÅpenRegulering
 import no.nav.su.se.bakover.test.iverksattRevurdering
+import no.nav.su.se.bakover.test.iverksattSøknadsbehandling
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.nySakUføre
 import no.nav.su.se.bakover.test.nySøknadJournalførtMedOppgave
@@ -217,37 +219,36 @@ internal class SakTest {
 
         @Test
         fun `henter stønadsperioder for tidligere opphørt periode som er innvilget og revurdert igjen`() {
+            val tikkendeKlokke = TikkendeKlokke(fixedClock)
             val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget(
-                clock = fixedClock,
+                clock = tikkendeKlokke,
             )
 
             val (sakEtterOpphør, opphør) = vedtakRevurdering(
                 vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag(periode = Periode.create(1.mai(2021), 31.desember(2021)))),
                 revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
                 sakOgVedtakSomKanRevurderes = sak to vedtak,
-                clock = fixedClock.plus(1, ChronoUnit.SECONDS),
+                clock = tikkendeKlokke,
             )
 
             sakEtterOpphør.hentPerioderMedLøpendeYtelse() shouldBe listOf(
                 Periode.create(1.januar(2021), 30.april(2021)),
             )
 
-            val (sakEtterNyPeriode, nyPeriode) = vedtakSøknadsbehandlingIverksattInnvilget(
+            val (sakEtterNyPeriode, _, nyPeriode) = iverksattSøknadsbehandling(
+                sakOgSøknad = sakEtterOpphør to nySøknadJournalførtMedOppgave(
+                    sakId = sakEtterOpphør.id,
+                    søknadInnhold = søknadinnhold(fnr = sakEtterOpphør.fnr),
+                ),
                 stønadsperiode = Stønadsperiode.create(periode = Periode.create(1.juni(2021), 31.desember(2021))),
-                clock = fixedClock.plus(2, ChronoUnit.SECONDS),
-            )
-
-            val sakEtterOpphørOgNyPeriode = sakEtterOpphør.copy(
-                revurderinger = sakEtterOpphør.revurderinger + sakEtterNyPeriode.revurderinger,
-                søknadsbehandlinger = sakEtterOpphør.søknadsbehandlinger + sakEtterNyPeriode.søknadsbehandlinger,
-                vedtakListe = sakEtterOpphør.vedtakListe + sakEtterNyPeriode.vedtakListe,
-                utbetalinger = sakEtterOpphør.utbetalinger + sakEtterNyPeriode.utbetalinger,
+                clock = tikkendeKlokke,
+                avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
             )
 
             val (sakEtterRevurdering, revurdering) = vedtakRevurderingIverksattInnvilget(
                 revurderingsperiode = Periode.create(1.november(2021), 31.desember(2021)),
-                sakOgVedtakSomKanRevurderes = sakEtterOpphørOgNyPeriode to nyPeriode,
-                clock = fixedClock.plus(3, ChronoUnit.SECONDS),
+                sakOgVedtakSomKanRevurderes = sakEtterNyPeriode to nyPeriode as VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling,
+                clock = tikkendeKlokke,
             )
 
             sakEtterRevurdering.let {

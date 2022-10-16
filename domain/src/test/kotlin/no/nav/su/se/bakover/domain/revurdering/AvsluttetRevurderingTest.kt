@@ -99,7 +99,10 @@ internal class AvsluttetRevurderingTest {
     @Test
     fun `får feil dersom underliggende revurdering ikke er forhåndsvarslet (null), men fritekst er fylt ut`() {
         AvsluttetRevurdering.tryCreate(
-            underliggendeRevurdering = simulertRevurdering(vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag())).second.also {
+            underliggendeRevurdering = simulertRevurdering(
+                vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
+                forhåndsvarsel = null,
+            ).second.also {
                 assert(it.forhåndsvarsel == null)
             },
             begrunnelse = "Begrunnelse for hvorfor denne har blitt avsluttet",

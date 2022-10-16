@@ -274,7 +274,7 @@ fun simulertRevurdering(
     clock: Clock = fixedClock,
     vilkårOverrides: List<Vilkår> = emptyList(),
     grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
-    forhåndsvarsel: Forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
+    forhåndsvarsel: Forhåndsvarsel? = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
 ): Pair<Sak, SimulertRevurdering> {
     return beregnetRevurdering(
@@ -640,6 +640,7 @@ fun beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
         grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
         revurderingsårsak = revurderingsårsak,
+        clock = clock,
     ).let { (sak, revurdering) ->
         val innvilgetBeregnetRevurdering = revurdering.beregn(
             eksisterendeUtbetalinger = sak.utbetalinger,
@@ -781,6 +782,7 @@ fun simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
         grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
         revurderingsårsak = revurderingsårsak,
+        clock = clock,
     ).let { (sak, revurdering) ->
         val innvilgetSimulertRevurdering = revurdering.simuler(
             saksbehandler = saksbehandler,
@@ -872,6 +874,7 @@ fun tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
         revurderingsårsak = revurderingsårsak,
         forhåndsvarsel = forhåndsvarsel,
+        clock = clock,
     ).let { (sak, revurdering) ->
         val innvilgetRevurderingTilAttestering = revurdering.tilAttestering(
             attesteringsoppgaveId = attesteringsoppgaveId,
@@ -1009,10 +1012,11 @@ fun iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         fritekstTilBrev = fritekstTilBrev,
         forhåndsvarsel = forhåndsvarsel,
         revurderingsårsak = revurderingsårsak,
+        clock = clock,
     ).let { (sak, revurdering) ->
         val innvilgetIverksattRevurdering = revurdering.tilIverksatt(
             attestant = attestant,
-            clock = fixedClock,
+            clock = clock,
             hentOpprinneligAvkorting = { null },
         ).getOrHandle { throw RuntimeException("Feilet med generering av test data for Iverksatt-revurdering") }
         Pair(

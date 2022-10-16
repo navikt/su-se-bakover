@@ -1309,9 +1309,10 @@ internal class LagBrevRequestVisitorTest {
     @Test
     fun `lager opphørsvedtak med opphørsgrunn for uførhet`() {
         val utbetalingId = UUID30.randomUUID()
-
+        val revurderingsperiode = august(2021)..desember(2021)
         val (_, revurdering) = iverksattRevurdering(
-            vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
+            revurderingsperiode = revurderingsperiode,
+            vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag(periode = revurderingsperiode)),
             fritekstTilBrev = "FRITEKST REVURDERING",
         ).let { it.first to it.second as IverksattRevurdering.Opphørt }
         val opphørsvedtak = VedtakSomKanRevurderes.from(revurdering, utbetalingId, fixedClock)
@@ -1345,7 +1346,17 @@ internal class LagBrevRequestVisitorTest {
             saksnummer = revurdering.saksnummer,
             opphørsperiode = revurdering.periode,
             avkortingsBeløp = null,
-            satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
+            satsoversikt = Satsoversikt(
+                perioder = listOf(
+                    Satsoversikt.Satsperiode(
+                        fraOgMed = "01.08.2021",
+                        tilOgMed = "31.12.2021",
+                        sats = "høy",
+                        satsBeløp = 20946,
+                        satsGrunn = "ENSLIG",
+                    ),
+                ),
+            ),
             halvtGrunnbeløp = 50676, // halvparten av grunnbeløp for 2020-05-01 som er 101351 avrundet
         ).right()
     }
