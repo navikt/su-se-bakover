@@ -15,7 +15,6 @@ dependencies {
     implementation(project(":client"))
     implementation(project(":hendelse:domain"))
     implementation(project(":hendelse:infrastructure"))
-    implementation(project(":utenlandsopphold:presentation"))
     implementation(project(":utenlandsopphold:application"))
     implementation(project(":utenlandsopphold:domain"))
     implementation(project(":utenlandsopphold:infrastructure"))

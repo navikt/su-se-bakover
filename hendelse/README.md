@@ -9,4 +9,4 @@ Generelle regler:
 - `Presentation` har i hovedsak avhengigheter til `Application` og `Infrastructure`. Tidvis avhengighet til `Domain`, men ideélt sett ikke.
 - `Application` har avhengigheter til `Domain` og andre `Application`.
 - `Domain` har kun avhengigheter til andre `Domain` (f.eks. common domain og ting som inngår i dette aggregatet).
-- `Infrastructure` har avhengigheter til `Application` og `.Domain`
+- `Infrastructure` har avhengigheter til `Application` og `Domain`

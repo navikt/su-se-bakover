@@ -38,7 +38,9 @@ fun Sak.oppdaterUtenlandsopphold(
     forrigeHendelse: UtenlandsoppholdHendelse,
     clock: Clock,
 ): Either<KunneIkkeOppdatereUtenlandsopphold, Pair<Sak, OppdaterUtenlandsoppholdHendelse>> {
-    if (utenlandsopphold.any { it.periode inneholder command.periode }) {
+    if (utenlandsopphold.filterNot { it.utenlandsoppholdId == command.utenlandsoppholdId }
+        .any { it.periode inneholder command.periode }
+    ) {
         return KunneIkkeOppdatereUtenlandsopphold.OverlappendePeriode.left()
     }
     if (versjon != command.klientensSisteSaksversjon) {

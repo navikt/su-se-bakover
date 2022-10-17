@@ -11,6 +11,7 @@ import java.util.UUID
  * @property entitetId tilsvarer sakId for hendelser knyttet direkte til en sak. Vil sammen med versjon være unik.
  * @property versjon Vil alltid være 1 for en sak opprettet hendelse. Vil inkrementeres ved nye hendelser på saken.
  */
+// TODO jah: FLytt nærmere sak/sakRepo
 data class SakOpprettetHendelse private constructor(
     override val hendelseId: UUID,
     override val sakId: UUID,

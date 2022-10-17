@@ -42,7 +42,7 @@ data class OppdaterUtenlandsoppholdHendelse private constructor(
         get() = forrigeHendelse.utenlandsoppholdId
 
     override val entitetId: UUID
-        get() = sakId
+        get() = forrigeHendelse.entitetId
 
     fun toRegistrertUtenlandsopphold(): RegistrertUtenlandsopphold {
         return RegistrertUtenlandsopphold.fraHendelse(

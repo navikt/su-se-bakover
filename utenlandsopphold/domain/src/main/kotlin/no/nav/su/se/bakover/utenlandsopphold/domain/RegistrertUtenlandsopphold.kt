@@ -10,6 +10,7 @@ import java.util.UUID
 /**
  *  @param utenlandsoppholdId Identifiserer et utenlandsopphold (følger registreringen og endringer).
  */
+// TODO: Mulig å lage en DatoIntervallisert interface for å få tilgang på DatoIntervall sine funksjoner
 data class RegistrertUtenlandsopphold private constructor(
     val utenlandsoppholdId: UUID,
     val periode: DatoIntervall,

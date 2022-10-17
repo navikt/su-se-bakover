@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.utenlandsopphold.presentation.web.oppdater
+package no.nav.su.se.bakover.utenlandsopphold.infrastruture.web.oppdater
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
@@ -14,10 +14,10 @@ import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.utenlandsopphold.application.oppdater.OppdaterUtenlandsoppholdService
 import no.nav.su.se.bakover.utenlandsopphold.domain.oppdater.KunneIkkeOppdatereUtenlandsopphold
-import no.nav.su.se.bakover.utenlandsopphold.presentation.web.RegistrerteUtenlandsoppholdJson.Companion.toJson
-import no.nav.su.se.bakover.utenlandsopphold.presentation.web.overlappendePerioder
-import no.nav.su.se.bakover.utenlandsopphold.presentation.web.utdatertSaksversjon
-import no.nav.su.se.bakover.utenlandsopphold.presentation.web.withUtenlandsoppholdId
+import no.nav.su.se.bakover.utenlandsopphold.infrastruture.web.RegistrerteUtenlandsoppholdJson.Companion.toJson
+import no.nav.su.se.bakover.utenlandsopphold.infrastruture.web.overlappendePerioder
+import no.nav.su.se.bakover.utenlandsopphold.infrastruture.web.utdatertSaksversjon
+import no.nav.su.se.bakover.utenlandsopphold.infrastruture.web.withUtenlandsoppholdId
 import no.nav.su.se.bakover.web.features.authorize
 
 fun Route.oppdaterUtenlandsoppholdRoute(

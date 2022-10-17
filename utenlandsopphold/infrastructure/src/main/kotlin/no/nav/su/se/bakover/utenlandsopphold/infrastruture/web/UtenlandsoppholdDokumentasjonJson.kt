@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.utenlandsopphold.presentation.web
+package no.nav.su.se.bakover.utenlandsopphold.infrastruture.web
 
 import no.nav.su.se.bakover.utenlandsopphold.domain.UtenlandsoppholdDokumentasjon
 

@@ -1,10 +1,10 @@
-package no.nav.su.se.bakover.utenlandsopphold.presentation.web
+package no.nav.su.se.bakover.utenlandsopphold.infrastruture.web
 
 import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.utenlandsopphold.domain.RegistrertUtenlandsopphold
 import no.nav.su.se.bakover.utenlandsopphold.domain.antallDager
-import no.nav.su.se.bakover.utenlandsopphold.presentation.web.UtenlandsoppholdDokumentasjonJson.Companion.toJson
+import no.nav.su.se.bakover.utenlandsopphold.infrastruture.web.UtenlandsoppholdDokumentasjonJson.Companion.toJson
 
 data class RegistrerteUtenlandsoppholdJson(
     val utenlandsopphold: List<EttUtenlandsoppholdJson>,

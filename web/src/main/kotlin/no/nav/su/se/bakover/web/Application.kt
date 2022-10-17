@@ -56,7 +56,7 @@ import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.Tilgangssjekkfeil
 import no.nav.su.se.bakover.utenlandsopphold.application.oppdater.OppdaterUtenlandsoppholdService
 import no.nav.su.se.bakover.utenlandsopphold.application.registrer.RegistrerUtenlandsoppholdService
-import no.nav.su.se.bakover.utenlandsopphold.presentation.web.utenlandsoppholdRoutes
+import no.nav.su.se.bakover.utenlandsopphold.infrastruture.web.utenlandsoppholdRoutes
 import no.nav.su.se.bakover.web.external.frikortVedtakRoutes
 import no.nav.su.se.bakover.web.metrics.BehandlingMicrometerMetrics
 import no.nav.su.se.bakover.web.metrics.DbMicrometerMetrics

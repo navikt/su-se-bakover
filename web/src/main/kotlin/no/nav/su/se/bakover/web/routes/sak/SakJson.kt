@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.satser.SatsFactory
-import no.nav.su.se.bakover.utenlandsopphold.presentation.web.RegistrerteUtenlandsoppholdJson
+import no.nav.su.se.bakover.utenlandsopphold.infrastruture.web.RegistrerteUtenlandsoppholdJson
 import no.nav.su.se.bakover.web.routes.klage.KlageJson
 import no.nav.su.se.bakover.web.routes.klage.toJson
 import no.nav.su.se.bakover.web.routes.regulering.ReguleringJson

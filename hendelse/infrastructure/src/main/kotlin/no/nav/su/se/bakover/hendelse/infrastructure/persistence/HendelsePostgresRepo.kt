@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.hendelse.domain.SakOpprettetHendelse
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.MetadataJson.Companion.toMeta
 import java.util.UUID
 
-// TODO jah: Flytt til database/sak sitt repo sammen med mapping til/fra.
 class HendelsePostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
     private val dbMetrics: DbMetrics,

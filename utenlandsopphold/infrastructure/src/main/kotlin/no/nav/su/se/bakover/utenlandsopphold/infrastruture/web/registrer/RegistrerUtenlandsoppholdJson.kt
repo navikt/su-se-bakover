@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.utenlandsopphold.presentation.web.registrer
+package no.nav.su.se.bakover.utenlandsopphold.infrastruture.web.registrer
 
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.CorrelationId
@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.utenlandsopphold.domain.registrer.RegistrerUtenlandsoppholdCommand
-import no.nav.su.se.bakover.utenlandsopphold.presentation.web.UtenlandsoppholdDokumentasjonJson
+import no.nav.su.se.bakover.utenlandsopphold.infrastruture.web.UtenlandsoppholdDokumentasjonJson
 import java.util.UUID
 
 /**
