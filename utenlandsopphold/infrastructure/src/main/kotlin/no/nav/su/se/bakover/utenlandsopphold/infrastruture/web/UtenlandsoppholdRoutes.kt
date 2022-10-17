@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.lesUUID
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.utenlandsopphold.application.oppdater.OppdaterUtenlandsoppholdService
 import no.nav.su.se.bakover.utenlandsopphold.application.registrer.RegistrerUtenlandsoppholdService
-import no.nav.su.se.bakover.utenlandsopphold.infrastruture.web.annuller.annulerUtenlandsoppholdRoute
+import no.nav.su.se.bakover.utenlandsopphold.infrastruture.web.annuller.annullerUtenlandsoppholdRoute
 import no.nav.su.se.bakover.utenlandsopphold.infrastruture.web.oppdater.oppdaterUtenlandsoppholdRoute
 import no.nav.su.se.bakover.utenlandsopphold.infrastruture.web.registrer.registerUtenlandsoppholdRoute
 import java.util.UUID
@@ -19,7 +19,7 @@ fun Route.utenlandsoppholdRoutes(
 ) {
     oppdaterUtenlandsoppholdRoute(oppdaterService)
     registerUtenlandsoppholdRoute(registerService)
-    annulerUtenlandsoppholdRoute()
+    annullerUtenlandsoppholdRoute()
 }
 
 internal suspend fun ApplicationCall.withUtenlandsoppholdId(ifRight: suspend (UUID) -> Unit) {

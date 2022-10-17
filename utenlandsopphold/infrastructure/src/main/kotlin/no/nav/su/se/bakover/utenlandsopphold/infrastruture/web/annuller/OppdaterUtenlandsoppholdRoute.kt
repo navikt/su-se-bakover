@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.utenlandsopphold.infrastruture.web.withUtenlandsoppholdId
 import no.nav.su.se.bakover.web.features.authorize
 
-fun Route.annulerUtenlandsoppholdRoute() {
+fun Route.annullerUtenlandsoppholdRoute() {
     delete("/saker/{sakId}/utenlandsopphold/{utenlandsoppholdId}") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withUtenlandsoppholdId {

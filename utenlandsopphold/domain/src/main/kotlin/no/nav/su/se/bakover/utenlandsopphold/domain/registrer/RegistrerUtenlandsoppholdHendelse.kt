@@ -32,7 +32,7 @@ data class RegistrerUtenlandsoppholdHendelse private constructor(
     override val meta: HendelseMetadata,
 ) : UtenlandsoppholdHendelse {
 
-    override val erAnnulert: Boolean = false
+    override val erAnnullert: Boolean = false
     override val entitetId: UUID
         get() = sakId
 
@@ -47,7 +47,7 @@ data class RegistrerUtenlandsoppholdHendelse private constructor(
             endretAv = utførtAv,
             endretTidspunkt = hendelsestidspunkt,
             versjon = versjon,
-            erAnnulert = erAnnulert,
+            erAnnullert = erAnnullert,
         )
     }
 

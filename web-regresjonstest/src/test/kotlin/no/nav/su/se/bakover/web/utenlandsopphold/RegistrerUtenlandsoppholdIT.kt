@@ -41,7 +41,7 @@ internal class RegistrerUtenlandsoppholdIT {
                   "endretTidspunkt":"2021-01-01T01:02:03.456789Z",
                   "versjon":11,
                   "antallDager":157,
-                  "erAnnulert":false
+                  "erAnnullert":false
                 }
               ],
               "antallDager":157
@@ -70,7 +70,7 @@ internal class RegistrerUtenlandsoppholdIT {
                           "endretTidspunkt":"2021-01-01T01:02:03.456789Z",
                           "versjon":12,
                           "antallDager":159,
-                          "erAnnulert":false
+                          "erAnnullert":false
                         }
                       ],
                       "antallDager":159

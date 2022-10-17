@@ -11,7 +11,7 @@ interface UtenlandsoppholdRepo {
     fun hentForSakId(
         sakId: UUID,
         sessionContext: SessionContext = defaultSessionContext(),
-    ): List<RegistrertUtenlandsopphold>
+    ): List<UtenlandsoppholdHendelse>
 
     fun hentSisteHendelse(sakId: UUID, utenlandsoppholdId: UUID): UtenlandsoppholdHendelse?
     fun defaultSessionContext(): SessionContext

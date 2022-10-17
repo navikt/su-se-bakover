@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.hent
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo.Companion.toPersistertHendelse
-import no.nav.su.se.bakover.utenlandsopphold.domain.RegistrertUtenlandsopphold
+import no.nav.su.se.bakover.hendelse.infrastructure.persistence.PersistertHendelse
 import no.nav.su.se.bakover.utenlandsopphold.domain.UtenlandsoppholdHendelse
 import no.nav.su.se.bakover.utenlandsopphold.domain.UtenlandsoppholdRepo
 import no.nav.su.se.bakover.utenlandsopphold.domain.oppdater.OppdaterUtenlandsoppholdHendelse
@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.utenlandsopphold.domain.registrer.RegistrerUtenlands
 import no.nav.su.se.bakover.utenlandsopphold.infrastruture.persistence.RegistrertUtenlandsoppholdJson.Companion.toJson
 import no.nav.su.se.bakover.utenlandsopphold.infrastruture.persistence.RegistrertUtenlandsoppholdJson.Companion.toOppdaterUtenlandsoppholdHendelse
 import no.nav.su.se.bakover.utenlandsopphold.infrastruture.persistence.RegistrertUtenlandsoppholdJson.Companion.toRegistrerUtenlandsoppholdHendelse
-import no.nav.su.se.bakover.utenlandsopphold.infrastruture.persistence.RegistrertUtenlandsoppholdJson.Companion.toRegistrertUtenlandsOpphold
 import java.util.UUID
 
 private const val RegistrerUtenlandsoppholdHendelsestype = "REGISTRER_UTENLANDSOPPHOLD"
@@ -65,12 +64,7 @@ class UtenlandsoppholdPostgresRepo(
                     ),
                     session = session,
                 ) {
-                    val hendelse = toPersistertHendelse(it)
-                    when (hendelse.type) {
-                        RegistrerUtenlandsoppholdHendelsestype -> hendelse.toRegistrerUtenlandsoppholdHendelse()
-                        OppdaterUtenlandsoppholdHendelsestype -> hendelse.toOppdaterUtenlandsoppholdHendelse()
-                        else -> throw IllegalStateException("Ukjent utenlandsoppholdhendelsestype")
-                    }
+                    toPersistertHendelse(it).toUtenlandsoppholdHendelse()
                 }
             }
         }
@@ -80,7 +74,15 @@ class UtenlandsoppholdPostgresRepo(
         return sessionFactory.newSessionContext()
     }
 
-    override fun hentForSakId(sakId: UUID, sessionContext: SessionContext): List<RegistrertUtenlandsopphold> {
-        return hendelseRepo.hentHendelserForSakIdOgTyper(sakId, alleTyper, sessionContext).toRegistrertUtenlandsOpphold()
+    override fun hentForSakId(sakId: UUID, sessionContext: SessionContext): List<UtenlandsoppholdHendelse> {
+        return hendelseRepo.hentHendelserForSakIdOgTyper(sakId, alleTyper, sessionContext).map {
+            it.toUtenlandsoppholdHendelse()
+        }
     }
+}
+
+private fun PersistertHendelse.toUtenlandsoppholdHendelse(): UtenlandsoppholdHendelse = when (this.type) {
+    RegistrerUtenlandsoppholdHendelsestype -> this.toRegistrerUtenlandsoppholdHendelse()
+    OppdaterUtenlandsoppholdHendelsestype -> this.toOppdaterUtenlandsoppholdHendelse()
+    else -> throw IllegalStateException("Ukjent utenlandsoppholdhendelsestype")
 }

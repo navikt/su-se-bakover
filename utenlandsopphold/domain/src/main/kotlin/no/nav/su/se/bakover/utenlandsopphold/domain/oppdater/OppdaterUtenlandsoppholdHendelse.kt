@@ -32,8 +32,8 @@ data class OppdaterUtenlandsoppholdHendelse private constructor(
     override val meta: HendelseMetadata,
 ) : UtenlandsoppholdHendelse {
 
-    override val erAnnulert: Boolean
-        get() = forrigeHendelse.erAnnulert
+    override val erAnnullert: Boolean
+        get() = forrigeHendelse.erAnnullert
 
     override val sakId: UUID
         get() = forrigeHendelse.sakId
@@ -55,7 +55,7 @@ data class OppdaterUtenlandsoppholdHendelse private constructor(
             endretAv = utførtAv,
             endretTidspunkt = hendelsestidspunkt,
             versjon = versjon,
-            erAnnulert = erAnnulert,
+            erAnnullert = erAnnullert,
         )
     }
 
@@ -72,7 +72,7 @@ data class OppdaterUtenlandsoppholdHendelse private constructor(
             hendelseMetadata: HendelseMetadata,
             forrigeSakVersjon: Hendelsesversjon,
         ): OppdaterUtenlandsoppholdHendelse {
-            // TODO jah: Bør nok legge inn sperre for å oppdatere en annulert hendelse.
+            // TODO jah: Bør nok legge inn sperre for å oppdatere en annullert hendelse.
             return OppdaterUtenlandsoppholdHendelse(
                 forrigeHendelse = forrigeHendelse,
                 hendelseId = hendelseId,

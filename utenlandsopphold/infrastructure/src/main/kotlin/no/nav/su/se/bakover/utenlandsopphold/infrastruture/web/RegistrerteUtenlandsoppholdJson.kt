@@ -21,7 +21,7 @@ data class RegistrerteUtenlandsoppholdJson(
         val endretTidspunkt: String,
         val versjon: Long,
         val antallDager: Long,
-        val erAnnulert: Boolean,
+        val erAnnullert: Boolean,
     )
 
     companion object {
@@ -39,7 +39,7 @@ data class RegistrerteUtenlandsoppholdJson(
                     endretAv = it.endretAv.toString(),
                     endretTidspunkt = it.endretTidspunkt.toString(),
                     antallDager = it.antallDager,
-                    erAnnulert = it.erAnnulert,
+                    erAnnullert = it.erAnnullert,
                 )
             },
             antallDager = this.antallDager,

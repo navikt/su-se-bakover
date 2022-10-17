@@ -21,7 +21,7 @@ data class RegistrertUtenlandsopphold private constructor(
     val endretAv: NavIdentBruker.Saksbehandler,
     val endretTidspunkt: Tidspunkt,
     val versjon: Hendelsesversjon,
-    val erAnnulert: Boolean,
+    val erAnnullert: Boolean,
 ) {
 
     /**
@@ -40,7 +40,7 @@ data class RegistrertUtenlandsopphold private constructor(
             opprettetTidspunkt: Tidspunkt,
             endretAv: NavIdentBruker.Saksbehandler,
             endretTidspunkt: Tidspunkt,
-            erAnnulert: Boolean,
+            erAnnullert: Boolean,
             versjon: Hendelsesversjon,
         ): RegistrertUtenlandsopphold {
             return RegistrertUtenlandsopphold(
@@ -52,7 +52,7 @@ data class RegistrertUtenlandsopphold private constructor(
                 opprettetTidspunkt = opprettetTidspunkt,
                 endretAv = endretAv,
                 endretTidspunkt = endretTidspunkt,
-                erAnnulert = erAnnulert,
+                erAnnullert = erAnnullert,
                 versjon = versjon,
             )
         }
