@@ -11,10 +11,41 @@ open class DatoIntervall(
     val fraOgMed: LocalDate,
     val tilOgMed: LocalDate,
 ) {
+
+    init {
+        require(fraOgMed <= tilOgMed) {
+            "fraOgMed må være før eller samme dag som tilOgMed"
+        }
+    }
     infix fun inneholder(dato: LocalDate): Boolean = dato in fraOgMed..tilOgMed
 
     infix fun inneholder(other: DatoIntervall): Boolean =
         starterSamtidigEllerTidligere(other) && slutterSamtidigEllerSenere(other)
+
+    /**
+     * true: Det finnes minst en dag som overlapper
+     * true: Fullstendig overlapp
+     * true: equals
+     * false: Det finnes ingen dager som overlapper
+     */
+    infix fun overlapper(other: List<DatoIntervall>): Boolean =
+        other.any { this.overlapper(it) }
+
+    /**
+     * true: Det finnes minst en dag som overlapper
+     * true: Fullstendig overlapp
+     * true: equals
+     * false: Det finnes ingen dager som overlapper
+     */
+    infix fun overlapper(other: DatoIntervall): Boolean =
+        starterSamtidigEllerTidligere(other) && slutterInni(other) ||
+            other.starterSamtidigEllerTidligere(this) && other.slutterInni(this) ||
+            starterSamtidigEllerTidligere(other) && slutterEtter(other) ||
+            other.starterSamtidigEllerTidligere(this) && other.slutterEtter(this)
+
+    infix fun overlapperExcludingEndDate(other: DatoIntervall): Boolean {
+        return this.fraOgMed < other.tilOgMed && this.tilOgMed > other.fraOgMed
+    }
 
     infix fun starterEtter(dato: LocalDate): Boolean = tilOgMed.isAfter(dato)
 

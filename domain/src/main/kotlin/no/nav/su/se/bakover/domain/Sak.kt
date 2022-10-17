@@ -68,7 +68,7 @@ import no.nav.su.se.bakover.domain.vedtak.hentBeregningForGjeldendeVedtak
 import no.nav.su.se.bakover.domain.vedtak.lagTidslinje
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
-import no.nav.su.se.bakover.utenlandsopphold.domain.RegistrertUtenlandsopphold
+import no.nav.su.se.bakover.utenlandsopphold.domain.RegistrerteUtenlandsopphold
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.time.LocalDate
@@ -114,22 +114,10 @@ data class Sak(
     val reguleringer: List<Regulering> = emptyList(),
     val type: Sakstype,
     val uteståendeAvkorting: Avkortingsvarsel = Avkortingsvarsel.Ingen,
-    val utenlandsopphold: List<RegistrertUtenlandsopphold> = emptyList(),
+    val utenlandsopphold: RegistrerteUtenlandsopphold = RegistrerteUtenlandsopphold.empty(id),
     val versjon: Hendelsesversjon,
 ) {
-
     private val log = LoggerFactory.getLogger(this::class.java)
-
-    init {
-        require(utenlandsopphold == utenlandsopphold.sortedBy { it.versjon }) {
-            "Utenlandsopphold må være sortert etter versjon, men var: $utenlandsopphold"
-        }
-        utenlandsopphold.map { it.utenlandsoppholdId }.let {
-            require(it == it.distinct()) {
-                "Duplikate utelandsoppholdId oppdaget: $it "
-            }
-        }
-    }
 
     fun info(): SakInfo {
         return SakInfo(

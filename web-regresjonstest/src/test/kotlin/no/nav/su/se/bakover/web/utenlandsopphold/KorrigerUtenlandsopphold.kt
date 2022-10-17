@@ -10,14 +10,14 @@ import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.web.SharedRegressionTestData.defaultRequest
 
-fun ApplicationTestBuilder.oppdaterUtenlandsopphold(
+fun ApplicationTestBuilder.korrigerUtenlandsopphold(
     sakId: String,
-    utenlandsoppholdId: String,
+    korrigererVersjon: Long,
     fraOgMed: String = "2021-05-05",
     tilOgMed: String = "2021-10-10",
     journalpostIder: String = "[1234567]",
     dokumentasjon: String = "Sannsynliggjort",
-    versjon: Long = 11,
+    saksversjon: Long = 11,
 ): String {
     val body = """
       {
@@ -27,13 +27,13 @@ fun ApplicationTestBuilder.oppdaterUtenlandsopphold(
         },
         "journalposter": $journalpostIder,
         "dokumentasjon": "$dokumentasjon",
-        "saksversjon": $versjon
+        "saksversjon": $saksversjon
       }
     """.trimIndent()
     return runBlocking {
         defaultRequest(
             HttpMethod.Put,
-            "/saker/$sakId/utenlandsopphold/$utenlandsoppholdId",
+            "/saker/$sakId/utenlandsopphold/$korrigererVersjon",
             listOf(Brukerrolle.Saksbehandler),
         ) { setBody(body) }.apply {
             status shouldBe HttpStatusCode.OK

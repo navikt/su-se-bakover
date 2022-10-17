@@ -10,8 +10,9 @@ import java.util.UUID
  * @property hendelsestidspunkt Tidspunktet hendelsen skjedde fra domenet sin side.
  * @property meta metadata knyttet til hendelsen for auditing/tracing/debug-formål.
  */
-interface Hendelse {
-    val hendelseId: UUID
+interface Hendelse : Comparable<Hendelse> {
+    val hendelseId: HendelseId
+    val tidligereHendelseId: HendelseId?
     val sakId: UUID
     val entitetId: UUID
     val versjon: Hendelsesversjon

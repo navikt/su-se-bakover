@@ -58,27 +58,6 @@ open class Periode protected constructor(
         this.måneder().toSet() == other.flatMap { it.måneder() }.toSet()
 
     /**
-     * true: Det finnes minst en måned som overlapper
-     * true: Fullstendig overlapp
-     * true: equals
-     * false: Det finnes ingen måneder som overlapper
-     */
-    infix fun overlapper(other: List<Periode>): Boolean =
-        other.any { this.overlapper(it) }
-
-    /**
-     * true: Det finnes minst en måned som overlapper
-     * true: Fullstendig overlapp
-     * true: equals
-     * false: Det finnes ingen måneder som overlapper
-     */
-    infix fun overlapper(other: Periode): Boolean =
-        starterSamtidigEllerTidligere(other) && slutterInni(other) ||
-            other.starterSamtidigEllerTidligere(this) && other.slutterInni(this) ||
-            starterSamtidigEllerTidligere(other) && slutterEtter(other) ||
-            other.starterSamtidigEllerTidligere(this) && other.slutterEtter(this)
-
-    /**
      * Perioden som overlapper begge perioder eller ingenting hvis periodene ikke overlapper i det heletatt. (se mengdelære).
      */
     infix fun snitt(other: Periode): Periode? {

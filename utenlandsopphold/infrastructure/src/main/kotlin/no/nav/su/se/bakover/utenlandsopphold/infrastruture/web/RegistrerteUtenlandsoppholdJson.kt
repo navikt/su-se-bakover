@@ -2,8 +2,7 @@ package no.nav.su.se.bakover.utenlandsopphold.infrastruture.web
 
 import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson.Companion.toJson
-import no.nav.su.se.bakover.utenlandsopphold.domain.RegistrertUtenlandsopphold
-import no.nav.su.se.bakover.utenlandsopphold.domain.antallDager
+import no.nav.su.se.bakover.utenlandsopphold.domain.RegistrerteUtenlandsopphold
 import no.nav.su.se.bakover.utenlandsopphold.infrastruture.web.UtenlandsoppholdDokumentasjonJson.Companion.toJson
 
 data class RegistrerteUtenlandsoppholdJson(
@@ -11,7 +10,6 @@ data class RegistrerteUtenlandsoppholdJson(
     val antallDager: Long,
 ) {
     data class EttUtenlandsoppholdJson(
-        val id: String,
         val periode: PeriodeJson,
         val journalposter: List<String>,
         val dokumentasjon: UtenlandsoppholdDokumentasjonJson,
@@ -25,11 +23,9 @@ data class RegistrerteUtenlandsoppholdJson(
     )
 
     companion object {
-        fun List<RegistrertUtenlandsopphold>.toJson() = RegistrerteUtenlandsoppholdJson(
+        fun RegistrerteUtenlandsopphold.toJson() = RegistrerteUtenlandsoppholdJson(
             utenlandsopphold = this.map {
                 EttUtenlandsoppholdJson(
-                    // Frontend forholder seg til kombinasjonen av entitetsid + versjon (unik).
-                    id = it.utenlandsoppholdId.toString(),
                     versjon = it.versjon.value,
                     periode = it.periode.toJson(),
                     journalposter = it.journalposter.map { it.toString() },
@@ -40,6 +36,7 @@ data class RegistrerteUtenlandsoppholdJson(
                     endretTidspunkt = it.endretTidspunkt.toString(),
                     antallDager = it.antallDager,
                     erAnnullert = it.erAnnullert,
+
                 )
             },
             antallDager = this.antallDager,

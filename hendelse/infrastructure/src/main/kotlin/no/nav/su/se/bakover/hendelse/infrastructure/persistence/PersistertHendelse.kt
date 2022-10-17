@@ -12,5 +12,7 @@ data class PersistertHendelse(
     val type: String,
     val sakId: UUID?,
     val hendelseId: UUID,
+    val tidligereHendelseId: UUID?,
     val hendelseMetadata: HendelseMetadata,
+    val enitetId: UUID,
 )

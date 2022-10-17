@@ -90,6 +90,11 @@ fun ApplicationCall.lesUUID(param: String) =
         it.toUUID().mapLeft { "$param er ikke en gyldig UUID" }
     } ?: Either.Left("$param er ikke et parameter")
 
+fun ApplicationCall.lesLong(param: String) =
+    this.parameters[param]?.let {
+        Either.catch { it.toLong() }.mapLeft { "$param er ikke en gyldig long" }
+    } ?: Either.Left("$param er ikke et parameter")
+
 fun ApplicationCall.parameter(parameterName: String) =
     this.parameters[parameterName]?.let { Either.Right(it) }
         ?: Either.Left(HttpStatusCode.BadRequest.errorJson("$parameterName er ikke et parameter", "parameter_mangler"))

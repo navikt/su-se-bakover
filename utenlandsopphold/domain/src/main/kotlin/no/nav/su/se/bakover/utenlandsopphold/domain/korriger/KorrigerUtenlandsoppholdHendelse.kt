@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.utenlandsopphold.domain.registrer
+package no.nav.su.se.bakover.utenlandsopphold.domain.korriger
 
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -10,18 +10,17 @@ import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.utenlandsopphold.domain.RegistrertUtenlandsopphold
 import no.nav.su.se.bakover.utenlandsopphold.domain.UtenlandsoppholdDokumentasjon
 import no.nav.su.se.bakover.utenlandsopphold.domain.UtenlandsoppholdHendelse
-import no.nav.su.se.bakover.utenlandsopphold.domain.annuller.AnnullerUtenlandsoppholdHendelse
+import no.nav.su.se.bakover.utenlandsopphold.domain.registrer.RegistrerUtenlandsoppholdHendelse
 import java.time.Clock
 import java.util.UUID
 
 /**
- * En ny registert utenlandsopphold-hendelse er registrert på en sak.
- *
  * @param hendelseId unik id som identifiserer denne hendelsen på tvers av hendelser globalt
  * @property entitetId samme som [sakId] - et utenlandsopphold er knyttet til en sak og andre utenlandsopphold på den saken.
  */
-data class RegistrerUtenlandsoppholdHendelse private constructor(
+data class KorrigerUtenlandsoppholdHendelse private constructor(
     override val hendelseId: HendelseId,
+    override val tidligereHendelseId: HendelseId,
     override val sakId: UUID,
     val periode: DatoIntervall,
     val dokumentasjon: UtenlandsoppholdDokumentasjon,
@@ -32,72 +31,31 @@ data class RegistrerUtenlandsoppholdHendelse private constructor(
     override val meta: HendelseMetadata,
 ) : UtenlandsoppholdHendelse {
 
-    override val tidligereHendelseId: HendelseId? = null
-
-    override val entitetId: UUID
-        get() = sakId
-
-    fun toRegistrertUtenlandsopphold(): RegistrertUtenlandsopphold {
-        return RegistrertUtenlandsopphold.create(
-            periode = periode,
-            dokumentasjon = dokumentasjon,
-            journalposter = journalposter,
-            opprettetAv = utførtAv,
-            opprettetTidspunkt = hendelsestidspunkt,
-            endretAv = utførtAv,
-            endretTidspunkt = hendelsestidspunkt,
-            versjon = versjon,
-            erAnnullert = false,
-        )
-    }
-
     companion object {
-        fun registrer(
-            hendelseId: HendelseId = HendelseId.generer(),
-            sakId: UUID,
-            periode: DatoIntervall,
-            dokumentasjon: UtenlandsoppholdDokumentasjon,
-            journalposter: List<JournalpostId>,
-            opprettetAv: NavIdentBruker.Saksbehandler,
-            clock: Clock,
-            hendelsestidspunkt: Tidspunkt = Tidspunkt.now(clock),
-            hendelseMetadata: HendelseMetadata,
-            nesteVersjon: Hendelsesversjon,
-        ): RegistrerUtenlandsoppholdHendelse {
-            return RegistrerUtenlandsoppholdHendelse(
-                hendelseId = hendelseId,
-                sakId = sakId,
-                periode = periode,
-                dokumentasjon = dokumentasjon,
-                journalposter = journalposter,
-                utførtAv = opprettetAv,
-                hendelsestidspunkt = hendelsestidspunkt,
-                versjon = nesteVersjon,
-                meta = hendelseMetadata,
-            )
-        }
 
         fun fraPersistert(
             hendelseId: HendelseId,
+            tidligereHendelseId: HendelseId,
             sakId: UUID,
             periode: DatoIntervall,
             dokumentasjon: UtenlandsoppholdDokumentasjon,
             journalposter: List<JournalpostId>,
-            opprettetAv: NavIdentBruker.Saksbehandler,
+            utførtAv: NavIdentBruker.Saksbehandler,
             hendelsestidspunkt: Tidspunkt,
+            versjon: Hendelsesversjon,
             hendelseMetadata: HendelseMetadata,
-            forrigeVersjon: Hendelsesversjon,
             entitetId: UUID,
-        ): RegistrerUtenlandsoppholdHendelse {
-            return RegistrerUtenlandsoppholdHendelse(
+        ): KorrigerUtenlandsoppholdHendelse {
+            return KorrigerUtenlandsoppholdHendelse(
                 hendelseId = hendelseId,
+                tidligereHendelseId = tidligereHendelseId,
                 sakId = sakId,
                 periode = periode,
                 dokumentasjon = dokumentasjon,
                 journalposter = journalposter,
-                utførtAv = opprettetAv,
+                utførtAv = utførtAv,
                 hendelsestidspunkt = hendelsestidspunkt,
-                versjon = forrigeVersjon,
+                versjon = versjon,
                 meta = hendelseMetadata,
             ).also {
                 require(it.entitetId == entitetId) {
@@ -105,17 +63,45 @@ data class RegistrerUtenlandsoppholdHendelse private constructor(
                 }
             }
         }
+        fun create(
+            korrigererHendelse: UtenlandsoppholdHendelse,
+            hendelseId: HendelseId = HendelseId.generer(),
+            periode: DatoIntervall,
+            dokumentasjon: UtenlandsoppholdDokumentasjon,
+            journalposter: List<JournalpostId>,
+            utførtAv: NavIdentBruker.Saksbehandler,
+            clock: Clock,
+            hendelsestidspunkt: Tidspunkt = Tidspunkt.now(clock),
+            hendelseMetadata: HendelseMetadata,
+            nesteVersjon: Hendelsesversjon,
+        ): KorrigerUtenlandsoppholdHendelse {
+            require(korrigererHendelse is RegistrerUtenlandsoppholdHendelse || korrigererHendelse is KorrigerUtenlandsoppholdHendelse) {
+                "Kan kun annullere en registrer/korrigere-hendelse, men forrige hendelse var: ${korrigererHendelse.javaClass.simpleName}"
+            }
+            return KorrigerUtenlandsoppholdHendelse(
+                hendelseId = hendelseId,
+                tidligereHendelseId = korrigererHendelse.hendelseId,
+                sakId = korrigererHendelse.sakId,
+                periode = periode,
+                dokumentasjon = dokumentasjon,
+                journalposter = journalposter,
+                utførtAv = utførtAv,
+                hendelsestidspunkt = hendelsestidspunkt,
+                versjon = nesteVersjon,
+                meta = hendelseMetadata,
+            )
+        }
     }
 }
 
-fun RegistrertUtenlandsopphold.leggTil(hendelse: AnnullerUtenlandsoppholdHendelse): RegistrertUtenlandsopphold = RegistrertUtenlandsopphold.create(
-    periode = this.periode,
-    dokumentasjon = this.dokumentasjon,
-    journalposter = this.journalposter,
+fun RegistrertUtenlandsopphold.apply(hendelse: KorrigerUtenlandsoppholdHendelse): RegistrertUtenlandsopphold = RegistrertUtenlandsopphold.create(
+    periode = hendelse.periode,
+    dokumentasjon = hendelse.dokumentasjon,
+    journalposter = hendelse.journalposter,
     opprettetAv = this.opprettetAv,
     opprettetTidspunkt = this.opprettetTidspunkt,
     endretAv = hendelse.utførtAv,
     endretTidspunkt = hendelse.hendelsestidspunkt,
     versjon = hendelse.versjon,
-    erAnnullert = true,
+    erAnnullert = false,
 )
