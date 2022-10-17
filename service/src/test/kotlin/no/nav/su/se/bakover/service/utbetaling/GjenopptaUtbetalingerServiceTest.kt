@@ -11,14 +11,13 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.oppdrag.KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingForPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
+import no.nav.su.se.bakover.domain.sak.lagUtbetalingForGjenopptak
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.attestant
@@ -27,7 +26,6 @@ import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.gjenopptakUtbetalingForSimulering
 import no.nav.su.se.bakover.test.nåtidForSimuleringStub
-import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simuleringGjenopptak
 import no.nav.su.se.bakover.test.simulertGjenopptakUtbetaling
@@ -84,19 +82,17 @@ internal class GjenopptaUtbetalingerServiceTest {
             clock = tikkendeKlokke,
         ).also { serviceAndMocks ->
             serviceAndMocks.service.klargjørGjenopptak(
-                request = UtbetalRequest.Gjenopptak(
-                    sakId = sak.id,
+                utbetaling = sak.lagUtbetalingForGjenopptak(
                     saksbehandler = saksbehandler,
-                    simulering = simulering,
-                ),
+                    clock = tikkendeKlokke,
+                ).getOrFail(),
+                eksisterendeUtbetalinger = sak.utbetalinger,
+                saksbehandlersSimulering = simulering,
                 transactionContext = TestSessionFactory.transactionContext,
             ).getOrFail().let {
                 it.sendUtbetaling()
             }
 
-            verify(serviceAndMocks.sakService).hentSak(
-                sakId = argThat { it shouldBe sak.id },
-            )
             verify(serviceAndMocks.simuleringClient).simulerUtbetaling(
                 argThat {
                     it.utbetaling.utbetalingslinjer shouldHaveSize 1
@@ -126,52 +122,29 @@ internal class GjenopptaUtbetalingerServiceTest {
     }
 
     @Test
-    fun `Fant ikke sak`() {
-        UtbetalingServiceAndMocks(
-            sakService = mock {
-                on { hentSak(any<UUID>()) } doReturn FantIkkeSak.left()
-            },
-        ).also {
-            it.service.klargjørGjenopptak(
-                request = UtbetalRequest.Gjenopptak(
-                    sakId = sakId,
-                    saksbehandler = saksbehandler,
-                    simulering = mock(),
-                ),
-                transactionContext = TestSessionFactory.transactionContext,
-            ) shouldBe UtbetalGjenopptakFeil.KunneIkkeUtbetale(UtbetalingFeilet.FantIkkeSak).left()
-        }
-    }
-
-    @Test
     fun `Simulering feiler`() {
-        val (sak, _) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak()
+        val tikkendeKlokke = TikkendeKlokke(fixedClock)
+        val (sak, simulertGjenopptak) = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
+            clock = tikkendeKlokke,
+        )
 
         UtbetalingServiceAndMocks(
-            sakService = mock {
-                on { hentSak(any<UUID>()) } doReturn sak.right()
-            },
             simuleringClient = mock {
                 on { simulerUtbetaling(any()) } doReturn SimuleringFeilet.TekniskFeil.left()
             },
+            clock = tikkendeKlokke,
         ).also {
             it.service.klargjørGjenopptak(
-                request = UtbetalRequest.Gjenopptak(
-                    sakId = sak.id,
+                utbetaling = sak.lagUtbetalingForGjenopptak(
                     saksbehandler = saksbehandler,
-                    simulering = simuleringGjenopptak(
-                        eksisterendeUtbetalinger = sak.utbetalinger,
-                        fnr = sak.fnr,
-                        sakId = sak.id,
-                        saksnummer = sak.saksnummer,
-                        clock = fixedClock,
-                    ),
-                ),
+                    clock = tikkendeKlokke,
+                ).getOrFail(),
+                eksisterendeUtbetalinger = sak.utbetalinger,
+                saksbehandlersSimulering = simulertGjenopptak.simulering,
                 transactionContext = TestSessionFactory.transactionContext,
             ) shouldBe UtbetalGjenopptakFeil.KunneIkkeSimulere(SimulerGjenopptakFeil.KunneIkkeSimulere(SimuleringFeilet.TekniskFeil)).left()
 
             inOrder(it.sakService, it.simuleringClient) {
-                verify(it.sakService).hentSak(sak.id)
                 verify(it.simuleringClient).simulerUtbetaling(
                     argThat { it shouldBe beOfType<SimulerUtbetalingForPeriode>() },
                 )
@@ -187,15 +160,10 @@ internal class GjenopptaUtbetalingerServiceTest {
 
     @Test
     fun `Utbetaling feilet`() {
-        val klokke = TikkendeKlokke(nåtidForSimuleringStub)
+        val tikkendeKlokke = TikkendeKlokke(nåtidForSimuleringStub)
 
-        val (sak, _) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
-            clock = klokke,
-        )
-
-        val simulering = simuleringGjenopptak(
-            eksisterendeUtbetalinger = sak.utbetalinger,
-            clock = klokke,
+        val (sak, simulertGjenopptak) = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
+            clock = tikkendeKlokke,
         )
 
         UtbetalingServiceAndMocks(
@@ -203,32 +171,31 @@ internal class GjenopptaUtbetalingerServiceTest {
                 on { hentSak(any<UUID>()) } doReturn sak.right()
             },
             simuleringClient = mock {
-                on { simulerUtbetaling(any()) } doReturn simulering.right()
+                on { simulerUtbetaling(any()) } doReturn simulertGjenopptak.simulering.right()
             },
             utbetalingPublisher = mock {
                 on { generateRequest(any()) } doReturn utbetalingsRequest
                 on { publishRequest(any()) } doReturn UtbetalingPublisher.KunneIkkeSendeUtbetaling(utbetalingsRequest).left()
             },
-            clock = klokke,
+            clock = tikkendeKlokke,
         ).also { serviceAndMocks ->
             serviceAndMocks.service.klargjørGjenopptak(
-                request = UtbetalRequest.Gjenopptak(
-                    sakId = sak.id,
+                utbetaling = sak.lagUtbetalingForGjenopptak(
                     saksbehandler = saksbehandler,
-                    simulering = simulering,
-                ),
+                    clock = tikkendeKlokke,
+                ).getOrFail(),
+                eksisterendeUtbetalinger = sak.utbetalinger,
+                saksbehandlersSimulering = simulertGjenopptak.simulering,
                 transactionContext = TestSessionFactory.transactionContext,
             ).getOrFail().let {
                 it.sendUtbetaling() shouldBe UtbetalGjenopptakFeil.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil).left()
             }
 
             inOrder(
-                serviceAndMocks.sakService,
                 serviceAndMocks.simuleringClient,
                 serviceAndMocks.utbetalingPublisher,
                 serviceAndMocks.utbetalingRepo,
             ) {
-                verify(serviceAndMocks.sakService).hentSak(sakId = argThat { sak.id })
                 verify(serviceAndMocks.simuleringClient).simulerUtbetaling(argThat { gjenopptakUtbetalingForSimulering() })
                 verify(serviceAndMocks.utbetalingPublisher).generateRequest(argThat { simulertGjenopptakUtbetaling() })
                 verify(serviceAndMocks.utbetalingRepo).opprettUtbetaling(any(), any())
@@ -268,11 +235,12 @@ internal class GjenopptaUtbetalingerServiceTest {
             clock = tikkendeKlokke,
         ).also {
             it.service.klargjørGjenopptak(
-                request = UtbetalRequest.Gjenopptak(
-                    sakId = sak.id,
+                utbetaling = sak.lagUtbetalingForGjenopptak(
                     saksbehandler = attestant,
-                    simulering = revurdering.simulering,
-                ),
+                    clock = tikkendeKlokke,
+                ).getOrFail(),
+                eksisterendeUtbetalinger = sak.utbetalinger,
+                saksbehandlersSimulering = revurdering.simulering,
                 transactionContext = TestSessionFactory.transactionContext,
             ) shouldBe UtbetalGjenopptakFeil.KunneIkkeUtbetale(UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UlikGjelderId)).left()
             verifyNoMoreInteractions(it.utbetalingRepo, it.utbetalingPublisher)

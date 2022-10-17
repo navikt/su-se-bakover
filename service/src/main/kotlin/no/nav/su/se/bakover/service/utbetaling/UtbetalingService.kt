@@ -69,7 +69,8 @@ interface UtbetalingService {
     ): Either<UtbetalStansFeil, UtbetalingKlargjortForOversendelse<UtbetalStansFeil.KunneIkkeUtbetale>>
 
     fun simulerGjenopptak(
-        request: SimulerUtbetalingRequest.GjenopptakRequest,
+        utbetaling: Utbetaling.UtbetalingForSimulering,
+        eksisterendeUtbetalinger: List<Utbetaling>,
     ): Either<SimulerGjenopptakFeil, Utbetaling.SimulertUtbetaling>
 
     /**
@@ -82,7 +83,9 @@ interface UtbetalingService {
      * som det siste steget i [transactionContext], slik at eventuelle feil her kan rulle tilbake hele transaksjonen.
      */
     fun klargjørGjenopptak(
-        request: UtbetalRequest.Gjenopptak,
+        utbetaling: Utbetaling.UtbetalingForSimulering,
+        eksisterendeUtbetalinger: List<Utbetaling>,
+        saksbehandlersSimulering: Simulering,
         transactionContext: TransactionContext,
     ): Either<UtbetalGjenopptakFeil, UtbetalingKlargjortForOversendelse<UtbetalGjenopptakFeil.KunneIkkeUtbetale>>
 
