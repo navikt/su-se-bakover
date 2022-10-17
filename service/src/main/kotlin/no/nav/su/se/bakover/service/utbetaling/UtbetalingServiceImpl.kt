@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.hentGjeldendeUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingForPeriode
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
@@ -244,25 +245,7 @@ internal class UtbetalingServiceImpl(
             .map { request.utbetaling.toSimulertUtbetaling(it) }
     }
 
-    override fun simulerStans(
-        request: SimulerUtbetalingRequest.StansRequest,
-    ): Either<SimulerStansFeilet, Utbetaling.SimulertUtbetaling> {
-        val sak: Sak = sakService.hentSak(request.sakId).orNull()!!
-
-        val utbetaling = Utbetalingsstrategi.Stans(
-            sakId = sak.id,
-            saksnummer = sak.saksnummer,
-            fnr = sak.fnr,
-            eksisterendeUtbetalinger = sak.utbetalinger,
-            behandler = request.saksbehandler,
-            stansDato = request.stansdato,
-            clock = clock,
-            sakstype = sak.type,
-        ).generer()
-            .getOrHandle {
-                return SimulerStansFeilet.KunneIkkeGenerereUtbetaling(it).left()
-            }
-
+    override fun simulerStans(utbetaling: Utbetaling.UtbetalingForSimulering): Either<SimulerStansFeilet, Utbetaling.SimulertUtbetaling> {
         val simuleringsperiode = Periode.create(
             fraOgMed = utbetaling.tidligsteDato(),
             tilOgMed = utbetaling.senesteDato(),
@@ -282,15 +265,16 @@ internal class UtbetalingServiceImpl(
     }
 
     override fun klargjørStans(
-        request: UtbetalRequest.Stans,
+        utbetaling: Utbetaling.UtbetalingForSimulering,
+        saksbehandlersSimulering: Simulering,
         transactionContext: TransactionContext,
     ): Either<UtbetalStansFeil, UtbetalingKlargjortForOversendelse<UtbetalStansFeil.KunneIkkeUtbetale>> {
-        return simulerStans(request = request)
+        return simulerStans(utbetaling = utbetaling)
             .mapLeft {
                 UtbetalStansFeil.KunneIkkeSimulere(it)
             }.flatMap { simulertStans ->
                 KryssjekkSaksbehandlersOgAttestantsSimulering(
-                    saksbehandlersSimulering = request.simulering,
+                    saksbehandlersSimulering = saksbehandlersSimulering,
                     attestantsSimulering = simulertStans,
                 ).sjekk().getOrHandle {
                     return UtbetalStansFeil.KunneIkkeUtbetale(UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(it)).left()

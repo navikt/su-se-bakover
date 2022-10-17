@@ -19,7 +19,9 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingForPeriode
+import no.nav.su.se.bakover.domain.sak.lagUtbetalingForStans
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
@@ -180,11 +182,12 @@ internal class UtbetalingServiceImplTest {
                 clock = tikkendeFixedClock,
             ).let {
                 it.service.simulerStans(
-                    request = SimulerUtbetalingRequest.Stans(
-                        sakId = sak.id,
-                        saksbehandler = saksbehandler,
+                    utbetaling = sak.lagUtbetalingForStans(
                         stansdato = 1.februar(2021),
-                    ),
+                        behandler = saksbehandler,
+                        clock = fixedClock,
+                    ).getOrFail(),
+
                 ).getOrFail() shouldBe beOfType<Utbetaling.SimulertUtbetaling>()
 
                 verify(it.simuleringClient).simulerUtbetaling(

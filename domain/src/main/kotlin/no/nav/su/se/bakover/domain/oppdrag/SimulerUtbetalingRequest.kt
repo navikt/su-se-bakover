@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import java.time.LocalDate
 import java.util.UUID
 
 sealed interface SimulerUtbetalingRequest {
@@ -20,10 +19,6 @@ sealed interface SimulerUtbetalingRequest {
 
     interface OpphørRequest : SimulerUtbetalingRequest {
         val opphørsperiode: Periode
-    }
-
-    interface StansRequest : SimulerUtbetalingRequest {
-        val stansdato: LocalDate
     }
 
     interface GjenopptakRequest : SimulerUtbetalingRequest {
@@ -53,12 +48,6 @@ sealed interface SimulerUtbetalingRequest {
         override val opphørsperiode: Periode,
     ) : OpphørRequest
 
-    data class Stans(
-        override val sakId: UUID,
-        override val saksbehandler: NavIdentBruker,
-        override val stansdato: LocalDate,
-    ) : StansRequest
-
     data class Gjenopptak(
         override val saksbehandler: NavIdentBruker,
         override val sak: Sak,
@@ -81,12 +70,6 @@ sealed interface UtbetalRequest : SimulerUtbetalingRequest {
         override val simulering: Simulering,
     ) : UtbetalRequest,
         SimulerUtbetalingRequest.OpphørRequest by request
-
-    data class Stans(
-        private val request: SimulerUtbetalingRequest.StansRequest,
-        override val simulering: Simulering,
-    ) : UtbetalRequest,
-        SimulerUtbetalingRequest.StansRequest by request
 
     data class Gjenopptak(
         override val sakId: UUID,
