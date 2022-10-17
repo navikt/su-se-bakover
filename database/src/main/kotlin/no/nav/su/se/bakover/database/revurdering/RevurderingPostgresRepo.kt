@@ -166,7 +166,7 @@ private fun Revurdering.toDb(): RevurderingDb {
                 base = base,
                 beregning = this.beregning,
                 simulering = this.simulering,
-                skalFøreTilBrevutsending = false,
+                skalFøreTilBrevutsending = true,
                 avsluttet = AvsluttetRevurderingDatabaseJson(
                     begrunnelse = this.begrunnelse,
                     brevvalg = this.brevvalg.toJson(),
@@ -180,7 +180,7 @@ private fun Revurdering.toDb(): RevurderingDb {
                 base = base,
                 beregning = this.beregning,
                 simulering = null,
-                skalFøreTilBrevutsending = false,
+                skalFøreTilBrevutsending = true,
                 avsluttet = null,
                 tilbakekrevingsbehandling = null,
             )
@@ -190,7 +190,7 @@ private fun Revurdering.toDb(): RevurderingDb {
                 base = base,
                 beregning = this.beregning,
                 simulering = null,
-                skalFøreTilBrevutsending = false,
+                skalFøreTilBrevutsending = true,
                 avsluttet = null,
                 tilbakekrevingsbehandling = null,
             )
@@ -200,7 +200,7 @@ private fun Revurdering.toDb(): RevurderingDb {
                 base = base,
                 beregning = this.beregning,
                 simulering = null,
-                skalFøreTilBrevutsending = false,
+                skalFøreTilBrevutsending = true,
                 avsluttet = null,
                 tilbakekrevingsbehandling = null,
             )
@@ -240,7 +240,7 @@ private fun Revurdering.toDb(): RevurderingDb {
                 base = base,
                 beregning = null,
                 simulering = null,
-                skalFøreTilBrevutsending = false,
+                skalFøreTilBrevutsending = true,
                 avsluttet = null,
                 tilbakekrevingsbehandling = null,
             )
@@ -280,7 +280,7 @@ private fun Revurdering.toDb(): RevurderingDb {
                 base = base,
                 beregning = this.beregning,
                 simulering = this.simulering,
-                skalFøreTilBrevutsending = false,
+                skalFøreTilBrevutsending = true,
                 avsluttet = null,
                 tilbakekrevingsbehandling = this.tilbakekrevingsbehandling,
             )
@@ -290,7 +290,7 @@ private fun Revurdering.toDb(): RevurderingDb {
                 base = base,
                 beregning = this.beregning,
                 simulering = this.simulering,
-                skalFøreTilBrevutsending = false,
+                skalFøreTilBrevutsending = true,
                 avsluttet = null,
                 tilbakekrevingsbehandling = this.tilbakekrevingsbehandling,
             )
@@ -310,7 +310,7 @@ private fun Revurdering.toDb(): RevurderingDb {
                 base = base,
                 beregning = this.beregning,
                 simulering = this.simulering,
-                skalFøreTilBrevutsending = false,
+                skalFøreTilBrevutsending = true,
                 avsluttet = null,
                 tilbakekrevingsbehandling = this.tilbakekrevingsbehandling,
             )
@@ -320,7 +320,7 @@ private fun Revurdering.toDb(): RevurderingDb {
                 base = base,
                 beregning = this.beregning,
                 simulering = this.simulering,
-                skalFøreTilBrevutsending = false,
+                skalFøreTilBrevutsending = true,
                 avsluttet = null,
                 tilbakekrevingsbehandling = this.tilbakekrevingsbehandling,
             )
@@ -351,13 +351,6 @@ enum class RevurderingsType {
     ;
 
     companion object {
-        internal fun AbstraktRevurdering.toRevurderingsType(): String {
-            return when (this) {
-                is GjenopptaYtelseRevurdering -> this.toRevurderingsType()
-                is Revurdering -> this.toRevurderingsType()
-                is StansAvYtelseRevurdering -> this.toRevurderingsType()
-            }
-        }
         internal fun Revurdering.toRevurderingsType(): String {
             return when (this) {
                 is OpprettetRevurdering -> OPPRETTET
@@ -714,7 +707,6 @@ internal class RevurderingPostgresRepo(
                         årsak,
                         begrunnelse,
                         skalFøreTilBrevutsending,
-                        behandlingsinformasjon,
                         forhåndsvarsel,
                         informasjonSomRevurderes,
                         avsluttet,
@@ -735,7 +727,6 @@ internal class RevurderingPostgresRepo(
                         :arsak,
                         :begrunnelse,
                         :skalFoereTilBrevutsending,
-                        :behandlingsinformasjon,
                         to_json(:forhandsvarsel::json),
                         to_json(:informasjonSomRevurderes::json),
                         to_jsonb(:avsluttet::jsonb),
@@ -755,7 +746,6 @@ internal class RevurderingPostgresRepo(
                         årsak = :arsak,
                         begrunnelse = :begrunnelse,
                         skalFøreTilBrevutsending = :skalFoereTilBrevutsending,
-                        behandlingsinformasjon = :behandlingsinformasjon,
                         forhåndsvarsel = to_json(:forhandsvarsel::json),
                         informasjonSomRevurderes = to_json(:informasjonSomRevurderes::json),
                         avsluttet = to_jsonb(:avsluttet::jsonb),
@@ -777,7 +767,6 @@ internal class RevurderingPostgresRepo(
                     "arsak" to revurdering.base.revurderingsårsak.årsak.toString(),
                     "begrunnelse" to revurdering.base.revurderingsårsak.begrunnelse.toString(),
                     "skalFoereTilBrevutsending" to revurdering.skalFøreTilBrevutsending,
-                    "behandlingsinformasjon" to null,
                     "forhandsvarsel" to serializeNullable(
                         revurdering.base.forhåndsvarsel?.let {
                             ForhåndsvarselDatabaseJson.from(
