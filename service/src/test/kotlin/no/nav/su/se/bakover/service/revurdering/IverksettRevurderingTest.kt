@@ -380,9 +380,10 @@ internal class IverksettRevurderingTest {
 
     @Test
     fun `skal returnere left dersom lagring feiler for opphørt`() {
+        val (sak, revurdering) = revurderingTilAttestering(vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()))
         val serviceAndMocks = RevurderingServiceMocks(
-            revurderingRepo = mock {
-                on { hent(any()) } doReturn revurderingTilAttestering(vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag())).second as RevurderingTilAttestering.Opphørt
+            sakService = mock {
+                on { hentSakForRevurdering(any()) } doReturn sak
             },
             vedtakRepo = mock {
                 on { lagre(any(), anyOrNull()) } doThrow RuntimeException("Lagring feilet")
@@ -393,7 +394,7 @@ internal class IverksettRevurderingTest {
         )
 
         val response = serviceAndMocks.revurderingService.iverksett(
-            revurderingId = revurderingId,
+            revurderingId = revurdering.id,
             attestant = attestant,
         )
 
@@ -452,7 +453,7 @@ internal class IverksettRevurderingTest {
         )
 
         val response = serviceAndMocks.revurderingService.iverksett(
-            revurderingId = revurderingId,
+            revurderingId = revurderingTilAttestering.id,
             attestant = attestant,
         )
 
@@ -530,7 +531,7 @@ internal class IverksettRevurderingTest {
         )
 
         serviceAndMocks.revurderingService.iverksett(
-            revurderingId = revurderingId,
+            revurderingId = revurderingTilAttestering.id,
             attestant = attestant,
         ) shouldBe KunneIkkeIverksetteRevurdering.KunneIkkeAnnulereKontrollsamtale.left()
     }
