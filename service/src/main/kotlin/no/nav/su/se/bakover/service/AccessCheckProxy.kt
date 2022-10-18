@@ -248,11 +248,11 @@ open class AccessCheckProxy(
                 }
 
                 override fun simulerOpphør(
-                    request: SimulerUtbetalingRequest.OpphørRequest,
+                    utbetaling: Utbetaling.UtbetalingForSimulering,
+                    eksisterendeUtbetalinger: List<Utbetaling>,
+                    opphørsperiode: Periode,
                 ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
-                    assertHarTilgangTilSak(request.sakId)
-
-                    return services.utbetaling.simulerOpphør(request)
+                    kastKanKunKallesFraAnnenService()
                 }
 
                 override fun klargjørNyUtbetaling(request: UtbetalRequest.NyUtbetaling, transactionContext: TransactionContext): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>> {
@@ -280,7 +280,10 @@ open class AccessCheckProxy(
                 }
 
                 override fun klargjørOpphør(
-                    request: UtbetalRequest.Opphør,
+                    utbetaling: Utbetaling.UtbetalingForSimulering,
+                    eksisterendeUtbetalinger: List<Utbetaling>,
+                    opphørsperiode: Periode,
+                    saksbehandlersSimulering: Simulering,
                     transactionContext: TransactionContext,
                 ): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>> {
                     kastKanKunKallesFraAnnenService()

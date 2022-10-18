@@ -107,14 +107,21 @@ internal class UtbetalingServiceImpl(
     }
 
     override fun klargjørOpphør(
-        request: UtbetalRequest.Opphør,
+        utbetaling: Utbetaling.UtbetalingForSimulering,
+        eksisterendeUtbetalinger: List<Utbetaling>,
+        opphørsperiode: Periode,
+        saksbehandlersSimulering: Simulering,
         transactionContext: TransactionContext,
     ): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>> {
-        return simulerOpphør(request).mapLeft {
+        return simulerOpphør(
+            utbetaling = utbetaling,
+            eksisterendeUtbetalinger = eksisterendeUtbetalinger,
+            opphørsperiode = opphørsperiode,
+        ).mapLeft {
             UtbetalingFeilet.KunneIkkeSimulere(it)
         }.flatMap { simulertOpphør ->
             KryssjekkSaksbehandlersOgAttestantsSimulering(
-                saksbehandlersSimulering = request.simulering,
+                saksbehandlersSimulering = saksbehandlersSimulering,
                 attestantsSimulering = simulertOpphør,
             ).sjekk().getOrHandle {
                 return UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(it).left()
@@ -131,27 +138,16 @@ internal class UtbetalingServiceImpl(
     }
 
     override fun simulerOpphør(
-        request: SimulerUtbetalingRequest.OpphørRequest,
+        utbetaling: Utbetaling.UtbetalingForSimulering,
+        eksisterendeUtbetalinger: List<Utbetaling>,
+        opphørsperiode: Periode,
     ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
-        val sak: Sak = sakService.hentSak(request.sakId).orNull()!!
-
-        val utbetaling = Utbetalingsstrategi.Opphør(
-            sakId = sak.id,
-            saksnummer = sak.saksnummer,
-            fnr = sak.fnr,
-            eksisterendeUtbetalinger = sak.utbetalinger,
-            behandler = request.saksbehandler,
-            periode = request.opphørsperiode,
-            clock = clock,
-            sakstype = sak.type,
-        ).generate()
-
-        val simuleringsperiode = request.opphørsperiode
+        val simuleringsperiode = opphørsperiode
 
         KryssjekkTidslinjerOgSimulering.sjekkNyEllerOpphør(
             underArbeidEndringsperiode = simuleringsperiode,
             underArbeid = utbetaling,
-            eksisterende = sak.utbetalinger,
+            eksisterende = eksisterendeUtbetalinger,
             simuler = this::simulerUtbetaling,
             clock = clock,
         ).getOrHandle {

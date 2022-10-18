@@ -10,16 +10,16 @@ import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
+import no.nav.su.se.bakover.domain.sak.lagUtbetalingForOpphør
 import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.nyUtbetalingSimulert
-import no.nav.su.se.bakover.test.opphørUtbetalingSimulert
-import no.nav.su.se.bakover.test.opprettetRevurderingAvslagSpesifiktVilkår
-import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.saksbehandler
-import no.nav.su.se.bakover.test.satsFactoryTestPåDato
+import no.nav.su.se.bakover.test.shouldBeType
+import no.nav.su.se.bakover.test.simuleringOpphørt
+import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import org.junit.jupiter.api.Test
@@ -29,42 +29,19 @@ import org.junit.jupiter.api.fail
 class RevurderingSimulerTest {
     @Test
     fun `avkortingsvarsel dersom opphør skyldes utenlandsopphold og simulering inneholder feilutbetaling`() {
-        opprettetRevurderingAvslagSpesifiktVilkår(
-            avslåttVilkår = utenlandsoppholdAvslag(),
-        ).let { (sak, revurdering) ->
-            revurdering.beregn(
-                eksisterendeUtbetalinger = sak.utbetalinger,
-                clock = fixedClock,
-                gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
-                    fraOgMed = revurdering.periode.fraOgMed,
-                    clock = fixedClock,
-                ).getOrFail(),
-                satsFactory = satsFactoryTestPåDato(),
-            ).getOrFail().let { beregnet ->
-                (beregnet as BeregnetRevurdering.Opphørt)
-                    .simuler(
-                        saksbehandler = saksbehandler,
-                        clock = fixedClock,
-                    ) {
-                        opphørUtbetalingSimulert(
-                            sakOgBehandling = sak to beregnet,
-                            opphørsperiode = it.opphørsperiode,
-                            clock = fixedClock,
-                        ).right()
-                    }.getOrFail()
-                    .let { simulert ->
-                        simulert.avkorting.let {
-                            (it as AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel).let { avkorting ->
-                                avkorting.avkortingsvarsel shouldBe Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                                    id = avkorting.avkortingsvarsel.id,
-                                    sakId = revurdering.sakId,
-                                    revurderingId = revurdering.id,
-                                    opprettet = avkorting.avkortingsvarsel.opprettet,
-                                    simulering = avkorting.avkortingsvarsel.simulering,
-                                ).skalAvkortes()
-                            }
-                        }
-                    }
+        simulertRevurdering(
+            vilkårOverrides = listOf(utenlandsoppholdAvslag()),
+        ).let { (_, revurdering) ->
+            revurdering.avkorting.let {
+                (it as AvkortingVedRevurdering.Håndtert.OpprettNyttAvkortingsvarsel).let { avkorting ->
+                    avkorting.avkortingsvarsel shouldBe Avkortingsvarsel.Utenlandsopphold.Opprettet(
+                        id = avkorting.avkortingsvarsel.id,
+                        sakId = revurdering.sakId,
+                        revurderingId = revurdering.id,
+                        opprettet = avkorting.avkortingsvarsel.opprettet,
+                        simulering = avkorting.avkortingsvarsel.simulering,
+                    ).skalAvkortes()
+                }
             }
         }
     }
@@ -72,29 +49,27 @@ class RevurderingSimulerTest {
     @Test
     fun `kaster exception dersom simulering med justert opphørsdato for utbetaling inneholder feilutbetalinger`() {
         assertThrows<IllegalStateException> {
-            opprettetRevurderingAvslagSpesifiktVilkår(
-                avslåttVilkår = utenlandsoppholdAvslag(),
+            beregnetRevurdering(
+                vilkårOverrides = listOf(utenlandsoppholdAvslag()),
             ).let { (sak, revurdering) ->
-                revurdering.beregn(
-                    eksisterendeUtbetalinger = sak.utbetalinger,
-                    clock = fixedClock,
-                    gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
-                        fraOgMed = revurdering.periode.fraOgMed,
+                revurdering.shouldBeType<BeregnetRevurdering.Opphørt>().let { beregnet ->
+                    beregnet.simuler(
+                        saksbehandler = saksbehandler,
                         clock = fixedClock,
-                    ).getOrFail(),
-                    satsFactory = satsFactoryTestPåDato(),
-                ).getOrFail().let { beregnet ->
-                    (beregnet as BeregnetRevurdering.Opphørt)
-                        .simuler(
-                            saksbehandler = saksbehandler,
-                            clock = fixedClock,
-                        ) {
-                            opphørUtbetalingSimulert(
-                                sakOgBehandling = sak to beregnet,
-                                opphørsperiode = beregnet.periode,
+                        lagUtbetaling = sak::lagUtbetalingForOpphør,
+                        eksisterendeUtbetalinger = sak::utbetalinger,
+                    ) { utbetaling, eksisterende, _ ->
+                        utbetaling.toSimulertUtbetaling(
+                            simuleringOpphørt(
+                                opphørsperiode = beregnet.periode, // bruk feil periode
+                                eksisterendeUtbetalinger = eksisterende,
+                                fnr = beregnet.fnr,
+                                sakId = beregnet.sakId,
+                                saksnummer = beregnet.saksnummer,
                                 clock = fixedClock,
-                            ).right()
-                        }.getOrFail()
+                            ),
+                        ).right()
+                    }.getOrFail()
                 }
             }
         }
@@ -102,75 +77,23 @@ class RevurderingSimulerTest {
 
     @Test
     fun `ingen avkortingsvarsel dersom opphør ikke skyldes utenlandsopphold og simulering inneholder feilutbetaling`() {
-        opprettetRevurderingAvslagSpesifiktVilkår(
-            avslåttVilkår = avslåttUførevilkårUtenGrunnlag(),
-        ).let { (sak, revurdering) ->
-            revurdering.beregn(
-                eksisterendeUtbetalinger = sak.utbetalinger,
-                clock = fixedClock,
-                gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
-                    fraOgMed = revurdering.periode.fraOgMed,
-                    clock = fixedClock,
-                ).getOrFail(),
-                satsFactory = satsFactoryTestPåDato(),
-            ).getOrFail().let { beregnet ->
-                (beregnet as BeregnetRevurdering.Opphørt)
-                    .simuler(
-                        saksbehandler = saksbehandler,
-                        clock = fixedClock,
-                    ) {
-                        opphørUtbetalingSimulert(
-                            sakOgBehandling = sak to beregnet,
-                            opphørsperiode = it.opphørsperiode,
-                            clock = fixedClock,
-                        ).right()
-                    }.getOrFail()
-                    .let {
-                        it.avkorting shouldBe AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
-                    }
-            }
+        simulertRevurdering(
+            vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
+        ).let { (_, revurdering) ->
+            revurdering.simulering.harFeilutbetalinger() shouldBe true
+            revurdering.avkorting shouldBe AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
         }
     }
 
     @Test
     fun `ingen avkortingsvarsel dersom opphør ikke fører til feilutbetaling`() {
-        opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
-            revurderingsperiode = Periode.create(1.september(2021), 31.desember(2021)),
-        ).let { (sak, revurdering) ->
-            revurdering.oppdaterFradragOgMarkerSomVurdert(
-                fradragsgrunnlag = listOf(
-                    fradragsgrunnlagArbeidsinntekt(
-                        periode = Periode.create(1.september(2021), 31.desember(2021)),
-                        arbeidsinntekt = 35000.0,
-                        tilhører = FradragTilhører.BRUKER,
-                    ),
-                ),
-            ).getOrFail().let {
-                it.beregn(
-                    eksisterendeUtbetalinger = sak.utbetalinger,
-                    clock = fixedClock,
-                    gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
-                        fraOgMed = revurdering.periode.fraOgMed,
-                        clock = fixedClock,
-                    ).getOrFail(),
-                    satsFactory = satsFactoryTestPåDato(),
-                ).getOrFail().let { beregnet ->
-                    (beregnet as BeregnetRevurdering.Opphørt)
-                        .simuler(
-                            saksbehandler = saksbehandler,
-                            clock = fixedClock,
-                        ) {
-                            opphørUtbetalingSimulert(
-                                sakOgBehandling = sak to beregnet,
-                                opphørsperiode = it.opphørsperiode,
-                                clock = fixedClock,
-                            ).right()
-                        }.getOrFail()
-                        .let {
-                            it.avkorting shouldBe AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
-                        }
-                }
-            }
+        val revurderingsperiode = Periode.create(1.september(2021), 31.desember(2021))
+        simulertRevurdering(
+            revurderingsperiode = revurderingsperiode,
+            vilkårOverrides = listOf(utenlandsoppholdAvslag(periode = revurderingsperiode)),
+        ).let { (_, revurdering) ->
+            revurdering.simulering.harFeilutbetalinger() shouldBe false
+            revurdering.avkorting shouldBe AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående
         }
     }
 

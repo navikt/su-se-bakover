@@ -225,7 +225,6 @@ fun simuleringOpphørt(
         eksisterendeUtbetalinger = eksisterendeUtbetalinger,
         behandler = saksbehandler,
         clock = clock,
-        // TODO send med periode
         periode = opphørsperiode,
         sakstype = Sakstype.UFØRE, // TODO("simulering_utbetaling_alder utled fra sak/behandling")
     ).generate().let {
