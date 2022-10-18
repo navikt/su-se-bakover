@@ -51,8 +51,6 @@ import no.nav.su.se.bakover.domain.kontrollsamtale.Kontrollsamtale
 import no.nav.su.se.bakover.domain.kontrollsamtale.UtløptFristForKontrollsamtaleContext
 import no.nav.su.se.bakover.domain.nøkkeltall.Nøkkeltall
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
-import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
@@ -239,12 +237,8 @@ open class AccessCheckProxy(
                     kvittering: Kvittering,
                 ) = kastKanKunKallesFraAnnenService()
 
-                override fun simulerUtbetaling(
-                    request: SimulerUtbetalingRequest.NyUtbetalingRequest,
-                ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
-                    assertHarTilgangTilSak(request.sakId)
-
-                    return services.utbetaling.simulerUtbetaling(request)
+                override fun simulerUtbetaling(utbetaling: Utbetaling.UtbetalingForSimulering, eksisterendeUtbetalinger: List<Utbetaling>, beregningsperiode: Periode): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
+                    kastKanKunKallesFraAnnenService()
                 }
 
                 override fun simulerOpphør(
@@ -255,7 +249,7 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
 
-                override fun klargjørNyUtbetaling(request: UtbetalRequest.NyUtbetaling, transactionContext: TransactionContext): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>> {
+                override fun klargjørNyUtbetaling(utbetaling: Utbetaling.UtbetalingForSimulering, eksisterendeUtbetalinger: List<Utbetaling>, beregningsperiode: Periode, saksbehandlersSimulering: Simulering, transactionContext: TransactionContext): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>> {
                     kastKanKunKallesFraAnnenService()
                 }
 
@@ -358,6 +352,10 @@ open class AccessCheckProxy(
                 }
 
                 override fun hentSakForRevurdering(revurderingId: UUID, sessionContext: SessionContext): Sak {
+                    kastKanKunKallesFraAnnenService()
+                }
+
+                override fun hentSakForSøknadsbehandling(søknadsbehandlingId: UUID): Sak {
                     kastKanKunKallesFraAnnenService()
                 }
 

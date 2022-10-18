@@ -500,8 +500,8 @@ internal class ReguleringServiceImplTest {
                 on { hentSak(any<UUID>()) } doReturn _sak
             },
             utbetalingService = mock {
-                on { simulerUtbetaling(any()) } doReturn simulerUtbetaling
-                on { klargjørNyUtbetaling(any(), any()) } doReturn nyUtbetaling.right()
+                on { simulerUtbetaling(any(), any(), any()) } doReturn simulerUtbetaling
+                on { klargjørNyUtbetaling(any(), any(), any(), any(), any()) } doReturn nyUtbetaling.right()
             },
             vedtakService = mock(),
             sessionFactory = TestSessionFactory(),

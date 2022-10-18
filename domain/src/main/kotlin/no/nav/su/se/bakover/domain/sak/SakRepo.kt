@@ -26,5 +26,7 @@ interface SakRepo {
     fun hentSakForRevurdering(revurderingId: UUID): Sak
 
     fun hentSakForRevurdering(revurderingId: UUID, sessionContext: SessionContext): Sak
+
+    fun hentSakforSøknadsbehandling(søknadsbehandlingId: UUID): Sak
     fun hentSakForSøknad(søknadId: UUID): Sak?
 }

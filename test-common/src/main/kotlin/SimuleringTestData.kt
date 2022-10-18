@@ -88,6 +88,7 @@ fun simulerNyUtbetaling(
 fun simulerNyUtbetaling(
     sak: Sak,
     utbetaling: Utbetaling.UtbetalingForSimulering,
+    beregningsperiode: Periode = Periode.create(utbetaling.tidligsteDato(), utbetaling.senesteDato()),
 ): Either<SimuleringFeilet, Simulering> {
     return SimuleringStub(
         clock = nåtidForSimuleringStub,
@@ -95,7 +96,7 @@ fun simulerNyUtbetaling(
     ).simulerUtbetaling(
         SimulerUtbetalingForPeriode(
             utbetaling = utbetaling,
-            simuleringsperiode = Periode.create(utbetaling.tidligsteDato(), utbetaling.senesteDato()),
+            simuleringsperiode = beregningsperiode,
         ),
     )
 }

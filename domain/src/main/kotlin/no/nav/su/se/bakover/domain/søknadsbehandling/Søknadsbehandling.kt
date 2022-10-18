@@ -33,7 +33,7 @@ import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
 import no.nav.su.se.bakover.domain.grunnlag.Opplysningspliktgrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.krevAlleVilkårInnvilget
 import no.nav.su.se.bakover.domain.grunnlag.krevMinstEttAvslag
-import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -594,35 +594,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
     open fun simuler(
         saksbehandler: NavIdentBruker,
-        simuler: (request: SimulerUtbetalingRequest.NyUtbetaling) -> Either<SimuleringFeilet, Simulering>,
+        lagUtbetaling: (saksbehandler: NavIdentBruker, beregning: Beregning, uføregrunnlag: List<Grunnlag.Uføregrunnlag>) -> Utbetaling.UtbetalingForSimulering,
+        simuler: (utbetaling: Utbetaling.UtbetalingForSimulering, beregningsperiode: Periode) -> Either<SimuleringFeilet, Simulering>,
     ): Either<KunneIkkeSimulereBehandling, Simulert> {
         return KunneIkkeSimulereBehandling.UgyldigTilstand(this::class).left()
-    }
-
-    fun lagSimulerUtbetalingRequest(
-        saksbehandler: NavIdentBruker,
-        beregning: Beregning,
-    ): SimulerUtbetalingRequest.NyUtbetaling {
-        return when (sakstype) {
-            Sakstype.ALDER -> {
-                SimulerUtbetalingRequest.NyUtbetaling.Alder(
-                    sakId = sakId,
-                    saksbehandler = saksbehandler,
-                    beregning = beregning,
-                )
-            }
-
-            Sakstype.UFØRE -> {
-                SimulerUtbetalingRequest.NyUtbetaling.Uføre(
-                    sakId = sakId,
-                    saksbehandler = saksbehandler,
-                    beregning = beregning,
-                    uføregrunnlag = vilkårsvurderinger.uføreVilkår()
-                        .getOrHandle { throw IllegalStateException("Søknadsbehandling uføre: $id mangler uføregrunnlag") }
-                        .grunnlag,
-                )
-            }
-        }
     }
 
     private fun beregnInternal(
@@ -1042,36 +1017,48 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
         override fun simuler(
             saksbehandler: NavIdentBruker,
-            simuler: (request: SimulerUtbetalingRequest.NyUtbetaling) -> Either<SimuleringFeilet, Simulering>,
+            lagUtbetaling: (saksbehandler: NavIdentBruker, beregning: Beregning, uføregrunnlag: List<Grunnlag.Uføregrunnlag>) -> Utbetaling.UtbetalingForSimulering,
+            simuler: (utbetaling: Utbetaling.UtbetalingForSimulering, beregningsperiode: Periode) -> Either<SimuleringFeilet, Simulering>,
         ): Either<KunneIkkeSimulereBehandling, Simulert> {
-            return lagSimulerUtbetalingRequest(
-                saksbehandler = saksbehandler,
-                beregning = beregning,
-            ).let { simulerUtbetalingRequest ->
-                simuler(simulerUtbetalingRequest)
-                    .mapLeft {
-                        KunneIkkeSimulereBehandling.KunneIkkeSimulere(it)
+            return lagUtbetaling(
+                saksbehandler,
+                beregning,
+                when (sakstype) {
+                    Sakstype.ALDER -> {
+                        emptyList()
                     }
-                    .map { simulering ->
-                        Simulert(
-                            id = id,
-                            opprettet = opprettet,
-                            sakId = sakId,
-                            saksnummer = saksnummer,
-                            søknad = søknad,
-                            oppgaveId = oppgaveId,
-                            fnr = fnr,
-                            beregning = beregning,
-                            simulering = simulering,
-                            fritekstTilBrev = fritekstTilBrev,
-                            stønadsperiode = stønadsperiode,
-                            grunnlagsdata = grunnlagsdata,
-                            vilkårsvurderinger = vilkårsvurderinger,
-                            attesteringer = attesteringer,
-                            avkorting = avkorting,
-                            sakstype = sakstype,
-                        )
+                    Sakstype.UFØRE -> {
+                        vilkårsvurderinger.uføreVilkår()
+                            .getOrHandle { throw IllegalStateException("Søknadsbehandling uføre: $id mangler uføregrunnlag") }
+                            .grunnlag
                     }
+                },
+            ).let { utbetaling ->
+                simuler(
+                    utbetaling,
+                    periode,
+                ).mapLeft {
+                    KunneIkkeSimulereBehandling.KunneIkkeSimulere(it)
+                }.map { simulering ->
+                    Simulert(
+                        id = id,
+                        opprettet = opprettet,
+                        sakId = sakId,
+                        saksnummer = saksnummer,
+                        søknad = søknad,
+                        oppgaveId = oppgaveId,
+                        fnr = fnr,
+                        beregning = beregning,
+                        simulering = simulering,
+                        fritekstTilBrev = fritekstTilBrev,
+                        stønadsperiode = stønadsperiode,
+                        grunnlagsdata = grunnlagsdata,
+                        vilkårsvurderinger = vilkårsvurderinger,
+                        attesteringer = attesteringer,
+                        avkorting = avkorting,
+                        sakstype = sakstype,
+                    )
+                }
             }
         }
 
@@ -1237,36 +1224,48 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
         override fun simuler(
             saksbehandler: NavIdentBruker,
-            simuler: (request: SimulerUtbetalingRequest.NyUtbetaling) -> Either<SimuleringFeilet, Simulering>,
+            lagUtbetaling: (saksbehandler: NavIdentBruker, beregning: Beregning, uføregrunnlag: List<Grunnlag.Uføregrunnlag>) -> Utbetaling.UtbetalingForSimulering,
+            simuler: (utbetaling: Utbetaling.UtbetalingForSimulering, beregningsperiode: Periode) -> Either<SimuleringFeilet, Simulering>,
         ): Either<KunneIkkeSimulereBehandling, Simulert> {
-            return lagSimulerUtbetalingRequest(
-                saksbehandler = saksbehandler,
-                beregning = beregning,
-            ).let { simulerUtbetalingRequest ->
-                simuler(simulerUtbetalingRequest)
-                    .mapLeft {
-                        KunneIkkeSimulereBehandling.KunneIkkeSimulere(it)
+            return lagUtbetaling(
+                saksbehandler,
+                beregning,
+                when (sakstype) {
+                    Sakstype.ALDER -> {
+                        emptyList()
                     }
-                    .map { simulering ->
-                        Simulert(
-                            id = id,
-                            opprettet = opprettet,
-                            sakId = sakId,
-                            saksnummer = saksnummer,
-                            søknad = søknad,
-                            oppgaveId = oppgaveId,
-                            fnr = fnr,
-                            beregning = beregning,
-                            simulering = simulering,
-                            fritekstTilBrev = fritekstTilBrev,
-                            stønadsperiode = stønadsperiode,
-                            grunnlagsdata = grunnlagsdata,
-                            vilkårsvurderinger = vilkårsvurderinger,
-                            attesteringer = attesteringer,
-                            avkorting = avkorting,
-                            sakstype = sakstype,
-                        )
+                    Sakstype.UFØRE -> {
+                        vilkårsvurderinger.uføreVilkår()
+                            .getOrHandle { throw IllegalStateException("Søknadsbehandling uføre: $id mangler uføregrunnlag") }
+                            .grunnlag
                     }
+                },
+            ).let { utbetaling ->
+                simuler(
+                    utbetaling,
+                    periode,
+                ).mapLeft {
+                    KunneIkkeSimulereBehandling.KunneIkkeSimulere(it)
+                }.map { simulering ->
+                    Simulert(
+                        id = id,
+                        opprettet = opprettet,
+                        sakId = sakId,
+                        saksnummer = saksnummer,
+                        søknad = søknad,
+                        oppgaveId = oppgaveId,
+                        fnr = fnr,
+                        beregning = beregning,
+                        simulering = simulering,
+                        fritekstTilBrev = fritekstTilBrev,
+                        stønadsperiode = stønadsperiode,
+                        grunnlagsdata = grunnlagsdata,
+                        vilkårsvurderinger = vilkårsvurderinger,
+                        attesteringer = attesteringer,
+                        avkorting = avkorting,
+                        sakstype = sakstype,
+                    )
+                }
             }
         }
 
@@ -1667,36 +1666,48 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
             override fun simuler(
                 saksbehandler: NavIdentBruker,
-                simuler: (request: SimulerUtbetalingRequest.NyUtbetaling) -> Either<SimuleringFeilet, Simulering>,
+                lagUtbetaling: (saksbehandler: NavIdentBruker, beregning: Beregning, uføregrunnlag: List<Grunnlag.Uføregrunnlag>) -> Utbetaling.UtbetalingForSimulering,
+                simuler: (utbetaling: Utbetaling.UtbetalingForSimulering, beregningsperiode: Periode) -> Either<SimuleringFeilet, Simulering>,
             ): Either<KunneIkkeSimulereBehandling, Simulert> {
-                return lagSimulerUtbetalingRequest(
-                    saksbehandler = saksbehandler,
-                    beregning = beregning,
-                ).let { simulerUtbetalingRequest ->
-                    simuler(simulerUtbetalingRequest)
-                        .mapLeft {
-                            KunneIkkeSimulereBehandling.KunneIkkeSimulere(it)
+                return lagUtbetaling(
+                    saksbehandler,
+                    beregning,
+                    when (sakstype) {
+                        Sakstype.ALDER -> {
+                            emptyList()
                         }
-                        .map { simulering ->
-                            Simulert(
-                                id = id,
-                                opprettet = opprettet,
-                                sakId = sakId,
-                                saksnummer = saksnummer,
-                                søknad = søknad,
-                                oppgaveId = oppgaveId,
-                                fnr = fnr,
-                                beregning = beregning,
-                                simulering = simulering,
-                                fritekstTilBrev = fritekstTilBrev,
-                                stønadsperiode = stønadsperiode,
-                                grunnlagsdata = grunnlagsdata,
-                                vilkårsvurderinger = vilkårsvurderinger,
-                                attesteringer = attesteringer,
-                                avkorting = avkorting,
-                                sakstype = sakstype,
-                            )
+                        Sakstype.UFØRE -> {
+                            vilkårsvurderinger.uføreVilkår()
+                                .getOrHandle { throw IllegalStateException("Søknadsbehandling uføre: $id mangler uføregrunnlag") }
+                                .grunnlag
                         }
+                    },
+                ).let { utbetaling ->
+                    simuler(
+                        utbetaling,
+                        periode,
+                    ).mapLeft {
+                        KunneIkkeSimulereBehandling.KunneIkkeSimulere(it)
+                    }.map { simulering ->
+                        Simulert(
+                            id = id,
+                            opprettet = opprettet,
+                            sakId = sakId,
+                            saksnummer = saksnummer,
+                            søknad = søknad,
+                            oppgaveId = oppgaveId,
+                            fnr = fnr,
+                            beregning = beregning,
+                            simulering = simulering,
+                            fritekstTilBrev = fritekstTilBrev,
+                            stønadsperiode = stønadsperiode,
+                            grunnlagsdata = grunnlagsdata,
+                            vilkårsvurderinger = vilkårsvurderinger,
+                            attesteringer = attesteringer,
+                            avkorting = avkorting,
+                            sakstype = sakstype,
+                        )
+                    }
                 }
             }
 

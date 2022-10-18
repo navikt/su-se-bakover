@@ -280,6 +280,10 @@ data class Sak(
         return revurderinger.singleOrNull { it.id == id }?.right() ?: Unit.left()
     }
 
+    fun hentSøknadsbehandling(id: UUID): Either<Unit, Søknadsbehandling> {
+        return søknadsbehandlinger.singleOrNull { it.id == id }?.right() ?: Unit.left()
+    }
+
     /**
      * Identifiser alle perioder hvor ytelsen har vært eller vil være løpende.
      */

@@ -48,6 +48,8 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.harEPS
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.firstOrThrowIfMultipleOrEmpty
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingFerdigbehandlet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -56,6 +58,7 @@ import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
+import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
@@ -120,15 +123,26 @@ internal class LagBrevRequestVisitorTest {
             clock = fixedClock,
             satsFactory = satsFactoryTestPåDato(),
         ).getOrFail()
+            // TODO refaktorer vekk, unødvendig repetisjon
             .simuler(
                 saksbehandler = saksbehandler,
-            ) {
-                simulerNyUtbetaling(
-                    sak = sak,
-                    request = it,
-                    clock = fixedClock,
-                )
-            }.getOrFail()
+                lagUtbetaling = { navIdentBruker, beregning, uføregrunnlag ->
+                    sak.lagNyUtbetaling(
+                        saksbehandler = navIdentBruker,
+                        beregning = beregning,
+                        clock = fixedClock,
+                        uføregrunnlag = uføregrunnlag,
+                        utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                    )
+                },
+                simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
+                    simulerNyUtbetaling(
+                        sak = sak,
+                        utbetaling = utbetalingForSimulering,
+                        beregningsperiode = periode,
+                    )
+                },
+            ).getOrFail()
             .tilAttestering(saksbehandler, "Fritekst!")
             .tilIverksatt(Attestering.Iverksatt(attestant, fixedTidspunkt))
             .let { søknadsbehandling ->
@@ -365,15 +379,26 @@ internal class LagBrevRequestVisitorTest {
             clock = fixedClock,
             satsFactory = satsFactoryTestPåDato(),
         ).getOrFail()
+            // TODO refaktorer vekk, unødvendig repetisjon
             .simuler(
                 saksbehandler = saksbehandler,
-            ) {
-                simulerNyUtbetaling(
-                    sak = sak,
-                    request = it,
-                    clock = fixedClock,
-                )
-            }.getOrFail().let { søknadsbehandling ->
+                lagUtbetaling = { navIdentBruker, beregning, uføregrunnlag ->
+                    sak.lagNyUtbetaling(
+                        saksbehandler = navIdentBruker,
+                        beregning = beregning,
+                        clock = fixedClock,
+                        uføregrunnlag = uføregrunnlag,
+                        utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                    )
+                },
+                simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
+                    simulerNyUtbetaling(
+                        sak = sak,
+                        utbetaling = utbetalingForSimulering,
+                        beregningsperiode = periode,
+                    )
+                },
+            ).getOrFail().let { søknadsbehandling ->
                 LagBrevRequestVisitor(
                     hentPerson = { person.right() },
                     hentNavn = { hentNavn(it) },
@@ -505,15 +530,26 @@ internal class LagBrevRequestVisitorTest {
             clock = fixedClock,
             satsFactory = satsFactoryTestPåDato(),
         ).getOrFail()
+            // TODO refaktorer vekk, unødvendig repetisjon
             .simuler(
                 saksbehandler = saksbehandler,
-            ) {
-                simulerNyUtbetaling(
-                    sak = sak,
-                    request = it,
-                    clock = fixedClock,
-                )
-            }.getOrFail()
+                lagUtbetaling = { navIdentBruker, beregning, uføregrunnlag ->
+                    sak.lagNyUtbetaling(
+                        saksbehandler = navIdentBruker,
+                        beregning = beregning,
+                        clock = fixedClock,
+                        uføregrunnlag = uføregrunnlag,
+                        utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                    )
+                },
+                simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
+                    simulerNyUtbetaling(
+                        sak = sak,
+                        utbetaling = utbetalingForSimulering,
+                        beregningsperiode = periode,
+                    )
+                },
+            ).getOrFail()
             .tilAttestering(saksbehandler, "Fritekst!")
             .let { søknadsbehandling ->
                 LagBrevRequestVisitor(
@@ -656,15 +692,26 @@ internal class LagBrevRequestVisitorTest {
             clock = fixedClock,
             satsFactory = satsFactoryTestPåDato(),
         ).getOrFail()
+            // TODO refaktorer vekk, unødvendig repetisjon
             .simuler(
                 saksbehandler = saksbehandler,
-            ) {
-                simulerNyUtbetaling(
-                    sak = sak,
-                    request = it,
-                    clock = fixedClock,
-                )
-            }.getOrFail()
+                lagUtbetaling = { navIdentBruker, beregning, uføregrunnlag ->
+                    sak.lagNyUtbetaling(
+                        saksbehandler = navIdentBruker,
+                        beregning = beregning,
+                        clock = fixedClock,
+                        uføregrunnlag = uføregrunnlag,
+                        utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                    )
+                },
+                simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
+                    simulerNyUtbetaling(
+                        sak = sak,
+                        utbetaling = utbetalingForSimulering,
+                        beregningsperiode = periode,
+                    )
+                },
+            ).getOrFail()
             .tilAttestering(saksbehandler, "Fritekst!")
             .tilUnderkjent(
                 Attestering.Underkjent(
@@ -805,15 +852,26 @@ internal class LagBrevRequestVisitorTest {
             clock = fixedClock,
             satsFactory = satsFactoryTestPåDato(),
         ).getOrFail()
+            // TODO refaktorer vekk, unødvendig repetisjon
             .simuler(
                 saksbehandler = saksbehandler,
-            ) {
-                simulerNyUtbetaling(
-                    sak = sak,
-                    request = it,
-                    clock = fixedClock,
-                )
-            }.getOrFail()
+                lagUtbetaling = { navIdentBruker, beregning, uføregrunnlag ->
+                    sak.lagNyUtbetaling(
+                        saksbehandler = navIdentBruker,
+                        beregning = beregning,
+                        clock = fixedClock,
+                        uføregrunnlag = uføregrunnlag,
+                        utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                    )
+                },
+                simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
+                    simulerNyUtbetaling(
+                        sak = sak,
+                        utbetaling = utbetalingForSimulering,
+                        beregningsperiode = periode,
+                    )
+                },
+            ).getOrFail()
             .tilAttestering(saksbehandler, "Fritekst!")
             .tilIverksatt(Attestering.Iverksatt(attestant, fixedTidspunkt))
             .let { søknadsbehandling ->
@@ -850,15 +908,26 @@ internal class LagBrevRequestVisitorTest {
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(),
             ).getOrFail()
+            // TODO refaktorer vekk, unødvendig repetisjon
             .simuler(
                 saksbehandler = saksbehandler,
-            ) {
-                simulerNyUtbetaling(
-                    sak = sak,
-                    request = it,
-                    clock = fixedClock,
-                )
-            }.getOrFail()
+                lagUtbetaling = { navIdentBruker, beregning, uføregrunnlag ->
+                    sak.lagNyUtbetaling(
+                        saksbehandler = navIdentBruker,
+                        beregning = beregning,
+                        clock = fixedClock,
+                        uføregrunnlag = uføregrunnlag,
+                        utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                    )
+                },
+                simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
+                    simulerNyUtbetaling(
+                        sak = sak,
+                        utbetaling = utbetalingForSimulering,
+                        beregningsperiode = periode,
+                    )
+                },
+            ).getOrFail()
             .tilAttestering(saksbehandler, "Fritekst!")
             .tilIverksatt(Attestering.Iverksatt(attestant, fixedTidspunkt))
 
@@ -1093,15 +1162,26 @@ internal class LagBrevRequestVisitorTest {
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(),
             ).getOrFail()
+                // TODO refaktorer vekk, unødvendig repetisjon
                 .simuler(
                     saksbehandler = saksbehandler,
-                ) {
-                    simulerNyUtbetaling(
-                        sak = sak,
-                        request = it,
-                        clock = fixedClock,
-                    )
-                }.getOrFail()
+                    lagUtbetaling = { navIdentBruker, beregning, uføregrunnlag ->
+                        sak.lagNyUtbetaling(
+                            saksbehandler = navIdentBruker,
+                            beregning = beregning,
+                            clock = fixedClock,
+                            uføregrunnlag = uføregrunnlag,
+                            utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                        )
+                    },
+                    simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
+                        simulerNyUtbetaling(
+                            sak = sak,
+                            utbetaling = utbetalingForSimulering,
+                            beregningsperiode = periode,
+                        )
+                    },
+                ).getOrFail()
                 .tilAttestering(saksbehandler, "Fritekst!")
                 .tilIverksatt(Attestering.Iverksatt(attestant, fixedTidspunkt))
 
@@ -1193,15 +1273,26 @@ internal class LagBrevRequestVisitorTest {
                     clock = fixedClock,
                     satsFactory = satsFactoryTestPåDato(),
                 ).getOrFail()
+                // TODO refaktorer vekk, unødvendig repetisjon
                 .simuler(
                     saksbehandler = saksbehandler,
-                ) {
-                    simulerNyUtbetaling(
-                        sak = sak,
-                        request = it,
-                        clock = fixedClock,
-                    )
-                }.getOrFail()
+                    lagUtbetaling = { navIdentBruker, beregning, uføregrunnlag ->
+                        sak.lagNyUtbetaling(
+                            saksbehandler = navIdentBruker,
+                            beregning = beregning,
+                            clock = fixedClock,
+                            uføregrunnlag = uføregrunnlag,
+                            utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                        )
+                    },
+                    simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
+                        simulerNyUtbetaling(
+                            sak = sak,
+                            utbetaling = utbetalingForSimulering,
+                            beregningsperiode = periode,
+                        )
+                    },
+                ).getOrFail()
                 .tilAttestering(saksbehandler, "Fritekst!")
                 .tilIverksatt(Attestering.Iverksatt(attestant, fixedTidspunkt))
 
@@ -1432,15 +1523,26 @@ internal class LagBrevRequestVisitorTest {
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(),
             ).getOrFail()
+                // TODO refaktorer vekk, unødvendig repetisjon
                 .simuler(
                     saksbehandler = saksbehandler,
-                ) {
-                    simulerNyUtbetaling(
-                        sak = sak,
-                        request = it,
-                        clock = fixedClock,
-                    )
-                }.getOrFail()
+                    lagUtbetaling = { navIdentBruker, beregning, uføregrunnlag ->
+                        sak.lagNyUtbetaling(
+                            saksbehandler = navIdentBruker,
+                            beregning = beregning,
+                            clock = fixedClock,
+                            uføregrunnlag = uføregrunnlag,
+                            utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                        )
+                    },
+                    simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
+                        simulerNyUtbetaling(
+                            sak = sak,
+                            utbetaling = utbetalingForSimulering,
+                            beregningsperiode = periode,
+                        )
+                    },
+                ).getOrFail()
                 .tilAttestering(saksbehandler, "Fritekst!")
                 .tilIverksatt(Attestering.Iverksatt(attestant, fixedTidspunkt))
 

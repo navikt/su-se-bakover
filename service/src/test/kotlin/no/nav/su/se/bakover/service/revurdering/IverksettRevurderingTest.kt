@@ -8,11 +8,8 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.kontrollsamtale.UgyldigStatusovergang
-import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeTilbakekrev
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
@@ -29,9 +26,7 @@ import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.nyUtbetalingOversendUtenKvittering
 import no.nav.su.se.bakover.test.opphørUtbetalingOversendUtenKvittering
 import no.nav.su.se.bakover.test.planlagtKontrollsamtale
-import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.revurderingTilAttestering
-import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.utbetalingsRequest
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
@@ -88,7 +83,7 @@ internal class IverksettRevurderingTest {
                 doNothing().whenever(it).lagre(any(), anyOrNull())
             },
             utbetalingService = mock {
-                on { klargjørNyUtbetaling(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
+                on { klargjørNyUtbetaling(any(), any(), any(), any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
             },
             vedtakRepo = mock {
                 doNothing().whenever(it).lagre(any(), anyOrNull())
@@ -105,18 +100,10 @@ internal class IverksettRevurderingTest {
 
         verify(serviceAndMocks.sakService).hentSakForRevurdering(argThat { it shouldBe revurderingTilAttestering.id })
         verify(serviceAndMocks.utbetalingService).klargjørNyUtbetaling(
-            request = argThat {
-                it shouldBe UtbetalRequest.NyUtbetaling(
-                    request = SimulerUtbetalingRequest.NyUtbetaling.Uføre(
-                        sakId = sakId,
-                        saksbehandler = attestant,
-                        beregning = revurderingTilAttestering.beregning,
-                        uføregrunnlag = revurderingTilAttestering.vilkårsvurderinger.uføreVilkår().getOrFail().grunnlag,
-                        utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
-                    ),
-                    simulering = revurderingTilAttestering.simulering,
-                )
-            },
+            utbetaling = any(),
+            eksisterendeUtbetalinger = argThat { it shouldBe sak.utbetalinger },
+            beregningsperiode = argThat { it shouldBe revurderingTilAttestering.periode },
+            saksbehandlersSimulering = argThat { it shouldBe revurderingTilAttestering.simulering },
             transactionContext = argThat { it shouldBe TestSessionFactory.transactionContext },
         )
         verify(serviceAndMocks.vedtakRepo).lagre(
@@ -307,7 +294,7 @@ internal class IverksettRevurderingTest {
                 doNothing().whenever(it).lagre(any(), anyOrNull())
             },
             utbetalingService = mock {
-                on { klargjørNyUtbetaling(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
+                on { klargjørNyUtbetaling(any(), any(), any(), any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
             },
             vedtakRepo = mock {
                 doNothing().whenever(it).lagre(any(), anyOrNull())
@@ -337,7 +324,7 @@ internal class IverksettRevurderingTest {
 
     @Test
     fun `skal returnere left om revurdering ikke er av typen RevurderingTilAttestering`() {
-        val (sak, revurdering) = iverksattRevurdering()
+        val (sak, iverksatt) = iverksattRevurdering()
         val serviceAndMocks = RevurderingServiceMocks(
             sakService = mock {
                 on { hentSakForRevurdering(any()) } doReturn sak
@@ -345,7 +332,7 @@ internal class IverksettRevurderingTest {
         )
 
         val response = serviceAndMocks.revurderingService.iverksett(
-            revurderingId = revurdering.id,
+            revurderingId = iverksatt.id,
             attestant = attestant,
         )
 
@@ -556,10 +543,10 @@ internal class IverksettRevurderingTest {
                 on { hentSakForRevurdering(any()) } doReturn sak
             },
             revurderingRepo = mock {
-                doNothing().whenever(it).lagre(any(), any())
+                doNothing().whenever(it).lagre(any(), anyOrNull())
             },
             utbetalingService = mock {
-                on { klargjørNyUtbetaling(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
+                on { klargjørNyUtbetaling(any(), any(), any(), any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
             },
             vedtakRepo = mock {
                 doNothing().whenever(it).lagre(any(), anyOrNull())

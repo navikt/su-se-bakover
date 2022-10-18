@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -22,8 +23,6 @@ import no.nav.su.se.bakover.domain.brev.Brevvalg
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -51,6 +50,7 @@ import no.nav.su.se.bakover.domain.revurdering.VurderOmBeløpsendringErStørreEn
 import no.nav.su.se.bakover.domain.revurdering.erKlarForAttestering
 import no.nav.su.se.bakover.domain.revurdering.harSendtForhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.medFritekst
+import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.sak.lagUtbetalingForOpphør
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
@@ -643,10 +643,26 @@ internal class RevurderingServiceImpl(
                     is BeregnetRevurdering.Innvilget -> {
                         beregnetRevurdering.simuler(
                             saksbehandler = saksbehandler,
+                            lagUtbetaling = { behandler, beregning, uføregrunnlag ->
+                                sak.lagNyUtbetaling(
+                                    saksbehandler = behandler,
+                                    beregning = beregning,
+                                    clock = clock,
+                                    uføregrunnlag = uføregrunnlag,
+                                    utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                                )
+                            },
+                            simuler = { utbetaling, beregningsperiode ->
+                                utbetalingService.simulerUtbetaling(
+                                    utbetaling = utbetaling,
+                                    eksisterendeUtbetalinger = sak.utbetalinger,
+                                    beregningsperiode = beregningsperiode,
+                                ).map {
+                                    it.simulering
+                                }
+                            },
                             clock = clock,
-                        ) { request ->
-                            utbetalingService.simulerUtbetaling(request)
-                        }.mapLeft {
+                        ).mapLeft {
                             KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(it)
                         }.map { simulert ->
                             revurderingRepo.lagre(simulert)
@@ -1181,23 +1197,25 @@ internal class RevurderingServiceImpl(
                          * Alt som ikke skal påvirke utfallet av iverksettingen skal flyttes ut av blokka. E.g. statistikk.
                          */
                         val nyUtbetaling = utbetalingService.klargjørNyUtbetaling(
-                            request = UtbetalRequest.NyUtbetaling(
-                                request = SimulerUtbetalingRequest.NyUtbetaling.Uføre(
-                                    sakId = revurdering.sakId,
-                                    saksbehandler = attestant,
-                                    beregning = revurdering.beregning,
-                                    uføregrunnlag = revurdering.vilkårsvurderinger.uføreVilkår().fold(
-                                        {
-                                            TODO("vilkårsvurdering_alder utbetaling av alder ikke implementert")
-                                        },
-                                        {
-                                            it.grunnlag
-                                        },
-                                    ),
-                                    utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
-                                ),
-                                simulering = revurdering.simulering,
+                            utbetaling = sak.lagNyUtbetaling(
+                                saksbehandler = iverksattRevurdering.attesteringer.hentSisteAttestering().attestant,
+                                beregning = iverksattRevurdering.beregning,
+                                clock = clock,
+                                uføregrunnlag = when (iverksattRevurdering.sakstype) {
+                                    Sakstype.ALDER -> {
+                                        emptyList()
+                                    }
+                                    Sakstype.UFØRE -> {
+                                        iverksattRevurdering.vilkårsvurderinger.uføreVilkår()
+                                            .getOrHandle { throw IllegalStateException("Revurdering uføre: ${iverksattRevurdering.id} mangler uføregrunnlag") }
+                                            .grunnlag
+                                    }
+                                },
+                                utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
                             ),
+                            eksisterendeUtbetalinger = sak.utbetalinger,
+                            beregningsperiode = revurdering.periode,
+                            saksbehandlersSimulering = revurdering.simulering,
                             transactionContext = tx,
                         ).getOrHandle {
                             throw IverksettTransactionException(

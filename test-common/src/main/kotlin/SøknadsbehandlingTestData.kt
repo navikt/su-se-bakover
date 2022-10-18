@@ -6,6 +6,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -16,7 +17,10 @@ import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.sak.SakInfo
+import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
@@ -241,13 +245,23 @@ fun søknadsbehandlingSimulert(
     ).let { (sak, søknadsbehandling) ->
         søknadsbehandling.simuler(
             saksbehandler = saksbehandler,
-        ) {
-            simulerNyUtbetaling(
-                sak = sak,
-                request = it,
-                clock = fixedClock,
-            )
-        }.getOrFail()
+            lagUtbetaling = { navIdentBruker, beregning, uføregrunnlag ->
+                sak.lagNyUtbetaling(
+                    saksbehandler = navIdentBruker,
+                    beregning = beregning,
+                    clock = fixedClock,
+                    uføregrunnlag = uføregrunnlag,
+                    utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                )
+            },
+            simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
+                simulerNyUtbetaling(
+                    sak = sak,
+                    utbetaling = utbetalingForSimulering,
+                    beregningsperiode = periode,
+                )
+            },
+        ).getOrFail()
             .let { simulert ->
                 Pair(
                     sak.copy(søknadsbehandlinger = sak.søknadsbehandlinger + simulert),
@@ -949,16 +963,26 @@ fun simulertSøknadsbehandling(
     ).let { (sak, beregnet) ->
         beregnet.simuler(
             saksbehandler = saksbehandler,
-            simuler = {
-                simulerNyUtbetaling(
-                    sak = sak,
-                    request = it,
+            lagUtbetaling = { navIdentBruker, beregning, uføregrunnlag ->
+                sak.lagNyUtbetaling(
+                    saksbehandler = navIdentBruker,
+                    beregning = beregning,
                     clock = clock,
+                    uføregrunnlag = uføregrunnlag,
+                    utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
                 )
             },
-        ).getOrFail().let { simulert ->
-            sak.copy(søknadsbehandlinger = sak.søknadsbehandlinger.filterNot { it.id == beregnet.id } + simulert) to simulert
-        }
+            simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
+                simulerNyUtbetaling(
+                    sak = sak,
+                    utbetaling = utbetalingForSimulering,
+                    beregningsperiode = periode,
+                )
+            },
+        ).getOrFail()
+            .let { simulert ->
+                sak.copy(søknadsbehandlinger = sak.søknadsbehandlinger.filterNot { it.id == beregnet.id } + simulert) to simulert
+            }
     }
 }
 

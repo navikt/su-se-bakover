@@ -5,6 +5,7 @@ import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.common.persistence.PostgresSessionFactory
@@ -18,6 +19,9 @@ import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
+import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -191,13 +195,23 @@ internal class SøknadsbehandlingPostgresRepoTest {
 
             val simulert = beregnet.simuler(
                 saksbehandler = saksbehandler,
-            ) {
-                simulerNyUtbetaling(
-                    sak = sak,
-                    request = it,
-                    clock = fixedClock,
-                )
-            }.getOrFail().also { simulert ->
+                lagUtbetaling = { navIdentBruker, beregning, uføregrunnlag ->
+                    sak.lagNyUtbetaling(
+                        saksbehandler = navIdentBruker,
+                        beregning = beregning,
+                        clock = fixedClock,
+                        uføregrunnlag = uføregrunnlag,
+                        utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                    )
+                },
+                simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
+                    simulerNyUtbetaling(
+                        sak = sak,
+                        utbetaling = utbetalingForSimulering,
+                        beregningsperiode = periode,
+                    )
+                },
+            ).getOrFail().also { simulert ->
                 repo.lagre(simulert)
                 repo.hent(simulert.id) shouldBe simulert
                 dataSource.withSession {

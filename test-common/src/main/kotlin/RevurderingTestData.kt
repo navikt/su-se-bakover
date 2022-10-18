@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.brev.Brevvalg
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingUnderBehandling
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrev
@@ -41,6 +42,7 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
+import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.sak.lagUtbetalingForOpphør
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
@@ -296,13 +298,23 @@ fun simulertRevurdering(
                 val simulert = beregnet.simuler(
                     saksbehandler = saksbehandler,
                     clock = clock,
-                ) {
-                    nyUtbetalingSimulert(
-                        sakOgBehandling = sak to beregnet,
-                        beregning = it.beregning,
-                        clock = clock,
-                    ).right()
-                }.getOrFail()
+                    lagUtbetaling = { navIdentBruker, beregning, uføregrunnlag ->
+                        sak.lagNyUtbetaling(
+                            saksbehandler = navIdentBruker,
+                            beregning = beregning,
+                            clock = clock,
+                            uføregrunnlag = uføregrunnlag,
+                            utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                        )
+                    },
+                    simuler = { utbetalingForSimulering, periode ->
+                        simulerNyUtbetaling(
+                            sak = sak,
+                            utbetaling = utbetalingForSimulering,
+                            beregningsperiode = periode,
+                        )
+                    },
+                ).getOrFail()
 
                 oppdaterTilbakekrevingsbehandling(simulert)
             }
@@ -784,18 +796,27 @@ fun simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         val innvilgetSimulertRevurdering = revurdering.simuler(
             saksbehandler = saksbehandler,
             clock = clock,
-        ) {
-            nyUtbetalingSimulert(
-                sakOgBehandling = sak to revurdering,
-                beregning = it.beregning,
-                clock = clock,
-            ).right()
-        }.getOrFail()
-            .prøvÅLeggTilForhåndsvarselPåSimulertRevurdering(
-                forhåndsvarsel = forhåndsvarsel,
-            ).oppdaterTilbakekrevingsbehandling(
-                tilbakekrevingsbehandling = tilbakekrevingsbehandling,
-            )
+            lagUtbetaling = { navIdentBruker, beregning, uføregrunnlag ->
+                sak.lagNyUtbetaling(
+                    saksbehandler = navIdentBruker,
+                    beregning = beregning,
+                    clock = clock,
+                    uføregrunnlag = uføregrunnlag,
+                    utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                )
+            },
+            simuler = { utbetalingForSimulering, periode ->
+                simulerNyUtbetaling(
+                    sak = sak,
+                    utbetaling = utbetalingForSimulering,
+                    beregningsperiode = periode,
+                )
+            },
+        ).getOrFail().prøvÅLeggTilForhåndsvarselPåSimulertRevurdering(
+            forhåndsvarsel = forhåndsvarsel,
+        ).oppdaterTilbakekrevingsbehandling(
+            tilbakekrevingsbehandling = tilbakekrevingsbehandling,
+        )
         Pair(
             sak.copy(
                 // Erstatter den gamle versjonen av samme revurderinger.
