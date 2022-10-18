@@ -61,8 +61,8 @@ import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.utbetalingsRequest
 import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.vedtakRevurdering
-import no.nav.su.se.bakover.test.vedtakRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
+import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkår
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -146,7 +146,8 @@ internal class ReguleringServiceImplTest {
         @Test
         fun `En periode med hele perioden som opphør må behandles manuelt`() {
             val sakOgVedtak = vedtakSøknadsbehandlingIverksattInnvilget(clock = fixedClock)
-            val revurdertSak = vedtakRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
+            val revurdertSak = vedtakRevurdering(
+                vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
                 sakOgVedtakSomKanRevurderes = sakOgVedtak,
                 clock = fixedClock.plus(1, ChronoUnit.DAYS),
             ).first
@@ -160,13 +161,10 @@ internal class ReguleringServiceImplTest {
 
         @Test
         fun `en behandling med delvis opphør i slutten av perioden skal reguleres automatisk`() {
-            val revurdertSak =
-                vedtakRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
-                    revurderingsperiode = Periode.create(
-                        1.september(2021),
-                        31.desember(2021),
-                    ),
-                ).first
+            val revurdertSak = vedtakRevurdering(
+                vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag(periode = Periode.create(1.september(2021), 31.desember(2021)))),
+                revurderingsperiode = Periode.create(1.september(2021), 31.desember(2021)),
+            ).first
 
             val reguleringService = lagReguleringServiceImpl(revurdertSak)
 
@@ -178,14 +176,11 @@ internal class ReguleringServiceImplTest {
         @Test
         fun `en behandling med delvis opphør i starten av perioden skal reguleres automatisk`() {
             val clock = TikkendeKlokke()
-            val (sakEtterFørsteRevudering, vedtak) =
-                vedtakRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
-                    revurderingsperiode = Periode.create(
-                        1.mai(2021),
-                        31.desember(2021),
-                    ),
-                    clock = clock,
-                )
+            val (sakEtterFørsteRevudering, vedtak) = vedtakRevurdering(
+                vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag(periode = Periode.create(1.mai(2021), 31.desember(2021)))),
+                revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
+                clock = clock,
+            )
 
             val sak = vedtakRevurdering(
                 revurderingsperiode = Periode.create(1.juni(2021), tilOgMed = 31.desember(2021)),
@@ -210,14 +205,11 @@ internal class ReguleringServiceImplTest {
         @Test
         fun `en behandling med delvis opphør i midten av perioden skal ikke støttes`() {
             val clock = TikkendeKlokke()
-            val (sakEtterFørsteRevudering, vedtak) =
-                vedtakRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
-                    revurderingsperiode = Periode.create(
-                        1.juni(2021),
-                        31.desember(2021),
-                    ),
-                    clock = clock,
-                )
+            val (sakEtterFørsteRevudering, vedtak) = vedtakRevurdering(
+                vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag(periode = Periode.create(1.juni(2021), 31.desember(2021)))),
+                revurderingsperiode = Periode.create(1.juni(2021), 31.desember(2021)),
+                clock = clock,
+            )
 
             val sak = vedtakRevurdering(
                 revurderingsperiode = Periode.create(1.august(2021), tilOgMed = 31.desember(2021)),

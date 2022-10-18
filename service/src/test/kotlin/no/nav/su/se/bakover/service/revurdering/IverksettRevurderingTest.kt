@@ -32,10 +32,9 @@ import no.nav.su.se.bakover.test.planlagtKontrollsamtale
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.revurderingTilAttestering
 import no.nav.su.se.bakover.test.sakId
-import no.nav.su.se.bakover.test.saksbehandler
-import no.nav.su.se.bakover.test.tilAttesteringRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.utbetalingsRequest
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
+import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
@@ -136,7 +135,8 @@ internal class IverksettRevurderingTest {
 
     @Test
     fun `iverksett - iverksetter opphør av ytelse`() {
-        val (sak, revurdering) = tilAttesteringRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak()
+        val (sak, revurdering) = revurderingTilAttestering(vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()))
+            .let { (sak, revurdering) -> sak to revurdering as RevurderingTilAttestering.Opphørt }
 
         val utbetaling = opphørUtbetalingOversendUtenKvittering(
             sakOgBehandling = sak to revurdering,
@@ -208,7 +208,8 @@ internal class IverksettRevurderingTest {
 
     @Test
     fun `iverksett opphør - opphøret skal publiseres etter alle databasekallene`() {
-        val (sak, revurderingTilAttestering) = tilAttesteringRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak()
+        val (sak, revurderingTilAttestering) = revurderingTilAttestering(vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()))
+            .let { (sak, revurdering) -> sak to revurdering as RevurderingTilAttestering.Opphørt }
 
         val utbetalingKlargjortForOversendelse = UtbetalingKlargjortForOversendelse(
             utbetaling = opphørUtbetalingOversendUtenKvittering(
@@ -379,9 +380,10 @@ internal class IverksettRevurderingTest {
 
     @Test
     fun `skal returnere left dersom lagring feiler for opphørt`() {
+        val (sak, revurdering) = revurderingTilAttestering(vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()))
         val serviceAndMocks = RevurderingServiceMocks(
             sakService = mock {
-                on { hentSakForRevurdering(any()) } doReturn tilAttesteringRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak().first
+                on { hentSakForRevurdering(any()) } doReturn sak
             },
             vedtakRepo = mock {
                 on { lagre(any(), anyOrNull()) } doThrow RuntimeException("Lagring feilet")
@@ -392,7 +394,7 @@ internal class IverksettRevurderingTest {
         )
 
         val response = serviceAndMocks.revurderingService.iverksett(
-            revurderingId = revurderingId,
+            revurderingId = revurdering.id,
             attestant = attestant,
         )
 
@@ -401,7 +403,8 @@ internal class IverksettRevurderingTest {
 
     @Test
     fun `skal returnere left dersom utbetaling feiler for opphørt`() {
-        val (sak, revurderingTilAttestering) = tilAttesteringRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak()
+        val (sak, revurderingTilAttestering) = revurderingTilAttestering(vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()))
+            .let { (sak, revurdering) -> sak to revurdering as RevurderingTilAttestering.Opphørt }
         val utbetalingKlargjortForOversendelse = UtbetalingKlargjortForOversendelse(
             utbetaling = opphørUtbetalingOversendUtenKvittering(
                 sakOgBehandling = sak to revurderingTilAttestering,
@@ -450,7 +453,7 @@ internal class IverksettRevurderingTest {
         )
 
         val response = serviceAndMocks.revurderingService.iverksett(
-            revurderingId = revurderingId,
+            revurderingId = revurderingTilAttestering.id,
             attestant = attestant,
         )
 
@@ -482,7 +485,8 @@ internal class IverksettRevurderingTest {
 
     @Test
     fun `skal ikke opphøre dersom annullering av kontrollsamtale feiler`() {
-        val (sak, revurderingTilAttestering) = tilAttesteringRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak()
+        val (sak, revurderingTilAttestering) = revurderingTilAttestering(vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()))
+            .let { (sak, revurdering) -> sak to revurdering as RevurderingTilAttestering.Opphørt }
 
         val utbetalingKlargjortForOversendelse = UtbetalingKlargjortForOversendelse(
             utbetaling = opphørUtbetalingOversendUtenKvittering(
@@ -527,7 +531,7 @@ internal class IverksettRevurderingTest {
         )
 
         serviceAndMocks.revurderingService.iverksett(
-            revurderingId = revurderingId,
+            revurderingId = revurderingTilAttestering.id,
             attestant = attestant,
         ) shouldBe KunneIkkeIverksetteRevurdering.KunneIkkeAnnulereKontrollsamtale.left()
     }

@@ -23,9 +23,10 @@ import no.nav.su.se.bakover.test.plus
 import no.nav.su.se.bakover.test.vedtakIverksattAutomatiskRegulering
 import no.nav.su.se.bakover.test.vedtakIverksattGjenopptakAvYtelseFraIverksattStans
 import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
+import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakRevurderingIverksattInnvilget
-import no.nav.su.se.bakover.test.vedtakRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
+import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkår
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -313,15 +314,16 @@ internal class StønadsstatistikkTest {
 
     @Test
     fun `stønadsstatistikk for opphørt revurdering`() {
-        val (sak, regulering) = vedtakRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
+        val (sak, revurdering) = vedtakRevurdering(
             stønadsperiode = Stønadsperiode.create(
                 periode = januar(2021),
             ),
             revurderingsperiode = januar(2021),
-        )
+            vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag(periode = januar(2021))),
+        ).let { (sak, vedtak) -> sak to vedtak as VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering }
         assert(
             sak = sak,
-            event = StatistikkEvent.Stønadsvedtak(regulering),
+            event = StatistikkEvent.Stønadsvedtak(revurdering),
             vedtakstype = "REVURDERING",
             vedtaksresultat = "OPPHØRT",
             sakstype = "REVURDERING",

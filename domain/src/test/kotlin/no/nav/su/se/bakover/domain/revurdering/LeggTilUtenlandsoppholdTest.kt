@@ -13,19 +13,20 @@ import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUtenlandsopphold
 import no.nav.su.se.bakover.test.avsluttetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
-import no.nav.su.se.bakover.test.beregnetRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
-import no.nav.su.se.bakover.test.iverksattRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.revurderingTilAttestering
+import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
-import no.nav.su.se.bakover.test.simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
-import no.nav.su.se.bakover.test.tilAttesteringRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdInnvilget
+import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import org.junit.jupiter.api.Test
 
 class LeggTilUtenlandsoppholdTest {
@@ -73,9 +74,9 @@ class LeggTilUtenlandsoppholdTest {
             // @Disabled("https://trello.com/c/5iblmYP9/1090-endre-sperre-for-10-endring-til-%C3%A5-v%C3%A6re-en-advarsel")
             // beregnetRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(),
             beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(),
-            beregnetRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(),
+            beregnetRevurdering(vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag())),
             simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(),
-            simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(),
+            simulertRevurdering(vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag())),
             underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(),
         ).map {
             it.second
@@ -90,11 +91,11 @@ class LeggTilUtenlandsoppholdTest {
             // @Disabled("https://trello.com/c/5iblmYP9/1090-endre-sperre-for-10-endring-til-%C3%A5-v%C3%A6re-en-advarsel")
             // tilAttesteringRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(),
             tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(),
-            tilAttesteringRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(),
+            revurderingTilAttestering(vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag())),
             // @Disabled("https://trello.com/c/5iblmYP9/1090-endre-sperre-for-10-endring-til-%C3%A5-v%C3%A6re-en-advarsel")
             // iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(),
             iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(),
-            iverksattRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(),
+            iverksattRevurdering(vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag())).let { (it.first to it.second) },
             avsluttetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(),
         ).map {
             it.second

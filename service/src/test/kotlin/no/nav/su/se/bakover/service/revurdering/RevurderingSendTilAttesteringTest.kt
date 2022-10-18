@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.AvventerKravgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
@@ -48,10 +47,8 @@ import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
-import no.nav.su.se.bakover.test.simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.stønadsperiode2021
-import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttUføreOgAndreInnvilget
-import no.nav.su.se.bakover.test.vilkårsvurderingerRevurderingInnvilget
+import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
@@ -386,34 +383,28 @@ internal class RevurderingSendTilAttesteringTest {
             tilOgMed = revurderingsperiode.tilOgMed,
         )
 
-        val vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget(
-            periode = revurderingsperiode,
-            formue = FormueVilkår.Vurdert.createFromGrunnlag(
-                grunnlag = nonEmptyListOf(
-                    formueGrunnlagUtenEps0Innvilget(
-                        periode = førsteUførevurderingsperiode,
-                        bosituasjon = grunnlagsdataEnsligUtenFradrag(
+        val (sak, simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak) = simulertRevurdering(
+            stønadsperiode = stønadsperiode,
+            revurderingsperiode = revurderingsperiode,
+            vilkårOverrides = listOf(
+                FormueVilkår.Vurdert.createFromGrunnlag(
+                    grunnlag = nonEmptyListOf(
+                        formueGrunnlagUtenEps0Innvilget(
                             periode = førsteUførevurderingsperiode,
-                        ).bosituasjon.map { it as Grunnlag.Bosituasjon.Fullstendig }.toNonEmptyList(),
-                    ),
-                    formueGrunnlagUtenEpsAvslått(
-                        periode = andreUførevurderingsperiode,
-                        bosituasjon = grunnlagsdataEnsligUtenFradrag(
+                            bosituasjon = grunnlagsdataEnsligUtenFradrag(
+                                periode = førsteUførevurderingsperiode,
+                            ).bosituasjon.map { it as Grunnlag.Bosituasjon.Fullstendig }.toNonEmptyList(),
+                        ),
+                        formueGrunnlagUtenEpsAvslått(
                             periode = andreUførevurderingsperiode,
-                        ).bosituasjon.singleFullstendigOrThrow(),
+                            bosituasjon = grunnlagsdataEnsligUtenFradrag(
+                                periode = andreUførevurderingsperiode,
+                            ).bosituasjon.singleFullstendigOrThrow(),
+                        ),
                     ),
                 ),
             ),
         )
-        val (sak, simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak) =
-            simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
-                stønadsperiode = stønadsperiode,
-                revurderingsperiode = revurderingsperiode,
-                grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Revurdering(
-                    grunnlagsdataEnsligUtenFradrag(periode = revurderingsperiode),
-                    vilkårsvurderinger,
-                ),
-            )
         RevurderingServiceMocks(
             revurderingRepo = mock {
                 on { hent(any()) } doReturn simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
@@ -447,19 +438,11 @@ internal class RevurderingSendTilAttesteringTest {
     fun `uføreopphør kan ikke gjøres i kombinasjon med fradragsendringer`() {
         val stønadsperiode = RevurderingTestUtils.stønadsperiodeNesteMånedOgTreMånederFram
         val revurderingsperiode = stønadsperiode.periode
-        val (sak, simulert) = simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
+        val (sak, simulert) = simulertRevurdering(
+            vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag(periode = revurderingsperiode)),
+            grunnlagsdataOverrides = grunnlagsdataEnsligMedFradrag(periode = revurderingsperiode).let { it.fradragsgrunnlag + it.bosituasjon },
             stønadsperiode = stønadsperiode,
             revurderingsperiode = revurderingsperiode,
-            grunnlagsdataOgVilkårsvurderinger = grunnlagsdataEnsligMedFradrag(periode = revurderingsperiode).let {
-                GrunnlagsdataOgVilkårsvurderinger.Revurdering(
-                    it,
-                    vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(
-                        periode = stønadsperiode.periode,
-                        bosituasjon = it.bosituasjon.map { it as Grunnlag.Bosituasjon.Fullstendig }
-                            .toNonEmptyList(),
-                    ),
-                )
-            },
         )
 
         RevurderingServiceMocks(
