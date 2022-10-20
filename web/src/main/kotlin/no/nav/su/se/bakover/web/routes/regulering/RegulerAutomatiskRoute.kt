@@ -29,7 +29,7 @@ import no.nav.su.se.bakover.service.regulering.ReguleringService
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.grunnlag.UføregrunnlagJson
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragRequestJson
 import java.time.LocalDate
 import java.util.UUID
 
@@ -50,7 +50,7 @@ internal fun Route.reguler(
 
     post("$reguleringPath/manuell/{reguleringId}") {
         authorize(Brukerrolle.Saksbehandler) {
-            data class Body(val fradrag: List<FradragJson>, val uføre: List<UføregrunnlagJson>)
+            data class Body(val fradrag: List<FradragRequestJson>, val uføre: List<UføregrunnlagJson>)
 
             call.lesUUID("reguleringId").fold(
                 ifLeft = {
@@ -149,7 +149,7 @@ internal fun Route.reguler(
     }
 }
 
-private fun List<FradragJson>.toDomain(): Either<Resultat, List<Grunnlag.Fradragsgrunnlag>> {
+private fun List<FradragRequestJson>.toDomain(): Either<Resultat, List<Grunnlag.Fradragsgrunnlag>> {
     val (resultat, f) = this
         .map { it.toFradrag() }
         .separateEither()

@@ -42,7 +42,7 @@ internal fun Fradragstype.Companion.UgyldigFradragstype.tilResultat(): Resultat 
     }
 }
 
-internal data class FradragJson(
+internal data class FradragRequestJson(
     val periode: PeriodeJson?,
     val type: String,
     val beskrivelse: String?,
@@ -78,17 +78,28 @@ internal data class FradragJson(
     }
 
     companion object {
-        fun List<FradragJson>.toFradrag(): Either<Resultat, List<Fradrag>> {
+        fun List<FradragRequestJson>.toFradrag(): Either<Resultat, List<Fradrag>> {
             return this.map {
                 it.toFradrag()
             }.sequence()
         }
+    }
+}
 
+internal data class FradragResponseJson(
+    val periode: PeriodeJson,
+    val type: String,
+    val beskrivelse: String?,
+    val beløp: Double,
+    val utenlandskInntekt: UtenlandskInntektJson?,
+    val tilhører: String,
+) {
+    companion object {
         fun List<Fradrag>.toJson() =
             this.map { it.toJson() }
 
         fun Fradrag.toJson() =
-            FradragJson(
+            FradragResponseJson(
                 type = fradragstype.kategori.toString(),
                 beskrivelse = when (val f = fradragstype) {
                     is Fradragstype.Annet -> f.beskrivelse

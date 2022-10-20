@@ -27,8 +27,8 @@ import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilFradragsgrunnlag
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.features.authorize
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson.Companion.toFradrag
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragRequestJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragRequestJson.Companion.toFradrag
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.tilResultat
 import java.time.Clock
 
@@ -38,7 +38,7 @@ internal fun Route.leggTilFradragRevurdering(
     satsFactory: SatsFactory,
 ) {
     data class BeregningForRevurderingBody(
-        val fradrag: List<FradragJson>,
+        val fradrag: List<FradragRequestJson>,
     ) {
         fun toDomain(clock: Clock): Either<Resultat, List<Grunnlag.Fradragsgrunnlag>> =
             fradrag.toFradrag().map {
