@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import org.mockito.kotlin.mock
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -78,9 +77,6 @@ fun iverksattAutomatiskRegulering(
 )
     .beregn(satsFactoryTestPåDato(), null, clock).getOrFail()
     .simuler(
-        lagUtbetaling = { _, _, _ ->
-            mock() // TODO bare tull, refaktorer vekk hele funksjonen og gjør koblinger mot sak/revurdering
-        },
         simuler = { _, _ ->
             simulering().right() // TODO bare tull, refaktorer vekk hele funksjonen og gjør koblinger mot sak/revurdering
         },

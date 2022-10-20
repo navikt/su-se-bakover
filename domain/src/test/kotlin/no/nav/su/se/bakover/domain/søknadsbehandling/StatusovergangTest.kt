@@ -5,13 +5,10 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.NavIdentBruker
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
-import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
+import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
@@ -26,7 +23,7 @@ import no.nav.su.se.bakover.test.nySøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.shouldBeType
-import no.nav.su.se.bakover.test.simulerNyUtbetaling
+import no.nav.su.se.bakover.test.simulerUtbetaling
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.simulertSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.stønadsperiode2021
@@ -101,21 +98,13 @@ internal class StatusovergangTest {
     private val simulert: Søknadsbehandling.Simulert =
         beregnetInnvilget.simuler(
             saksbehandler = saksbehandler,
-            lagUtbetaling = { navIdentBruker, beregning, uføregrunnlag ->
-                sakOgUavklart.first.lagNyUtbetaling(
-                    saksbehandler = navIdentBruker,
-                    beregning = beregning,
-                    clock = fixedClock,
-                    uføregrunnlag = uføregrunnlag,
-                    utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
-                )
-            },
-            simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
-                simulerNyUtbetaling(
+            simuler = { _, _ ->
+                simulerUtbetaling(
                     sak = sakOgUavklart.first,
-                    utbetaling = utbetalingForSimulering,
-                    beregningsperiode = periode,
-                )
+                    søknadsbehandling = beregnetInnvilget,
+                ).map {
+                    it.simulering
+                }
             },
         ).getOrFail()
 

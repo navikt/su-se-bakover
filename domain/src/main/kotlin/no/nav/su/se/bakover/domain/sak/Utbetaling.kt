@@ -1,15 +1,21 @@
 package no.nav.su.se.bakover.domain.sak
 
 import arrow.core.Either
+import arrow.core.getOrHandle
+import arrow.core.left
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.oppdrag.KryssjekkSaksbehandlersOgAttestantsSimulering
+import no.nav.su.se.bakover.domain.oppdrag.KryssjekkTidslinjerOgSimulering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import java.time.Clock
 import java.time.LocalDate
 
@@ -98,4 +104,34 @@ fun Sak.lagNyUtbetaling(
             ).generate()
         }
     }
+}
+
+fun Sak.simulerUtbetaling(
+    utbetalingForSimulering: Utbetaling.UtbetalingForSimulering,
+    periode: Periode,
+    simuler: (utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
+    kontrollerMotTidligereSimulering: Simulering?,
+    clock: Clock,
+): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
+    return simuler(utbetalingForSimulering, periode)
+        .map { simulertUtbetaling ->
+            KryssjekkTidslinjerOgSimulering.sjekkNyEllerOpphør(
+                underArbeidEndringsperiode = periode,
+                underArbeid = utbetalingForSimulering,
+                eksisterende = utbetalinger,
+                simuler = { u: Utbetaling.UtbetalingForSimulering, p: Periode -> simuler(u, p) },
+                clock = clock,
+            ).getOrHandle {
+                return SimuleringFeilet.KontrollAvSimuleringFeilet(it).left()
+            }
+            if (kontrollerMotTidligereSimulering != null) {
+                KryssjekkSaksbehandlersOgAttestantsSimulering(
+                    saksbehandlersSimulering = kontrollerMotTidligereSimulering,
+                    attestantsSimulering = simulertUtbetaling,
+                ).sjekk().getOrHandle {
+                    return SimuleringFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(it).left()
+                }
+            }
+            simulertUtbetaling
+        }
 }

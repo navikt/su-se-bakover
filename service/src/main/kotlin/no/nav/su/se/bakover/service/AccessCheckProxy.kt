@@ -237,7 +237,7 @@ open class AccessCheckProxy(
                     kvittering: Kvittering,
                 ) = kastKanKunKallesFraAnnenService()
 
-                override fun simulerUtbetaling(utbetaling: Utbetaling.UtbetalingForSimulering, eksisterendeUtbetalinger: List<Utbetaling>, beregningsperiode: Periode): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
+                override fun simulerUtbetaling(utbetaling: Utbetaling.UtbetalingForSimulering, beregningsperiode: Periode): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
                     kastKanKunKallesFraAnnenService()
                 }
 
@@ -249,7 +249,7 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
 
-                override fun klargjørNyUtbetaling(utbetaling: Utbetaling.UtbetalingForSimulering, eksisterendeUtbetalinger: List<Utbetaling>, beregningsperiode: Periode, saksbehandlersSimulering: Simulering, transactionContext: TransactionContext): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>> {
+                override fun klargjørNyUtbetaling(utbetaling: Utbetaling.SimulertUtbetaling, transactionContext: TransactionContext): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>> {
                     kastKanKunKallesFraAnnenService()
                 }
 

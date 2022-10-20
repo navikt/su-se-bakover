@@ -72,6 +72,15 @@ internal class UtbetalingServiceImpl(
             .also { log.warn("Fant ikke utbetaling med id: $utbetalingId") }
     }
 
+    override fun simulerUtbetaling(utbetaling: Utbetaling.UtbetalingForSimulering, beregningsperiode: Periode): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
+        return simulerUtbetaling(
+            SimulerUtbetalingForPeriode(
+                utbetaling = utbetaling,
+                simuleringsperiode = beregningsperiode,
+            ),
+        )
+    }
+
     override fun hentGjeldendeUtbetaling(
         sakId: UUID,
         forDato: LocalDate,
@@ -82,35 +91,14 @@ internal class UtbetalingServiceImpl(
         )
     }
 
-    override fun klargjørNyUtbetaling(
-        utbetaling: Utbetaling.UtbetalingForSimulering,
-        eksisterendeUtbetalinger: List<Utbetaling>,
-        beregningsperiode: Periode,
-        saksbehandlersSimulering: Simulering,
-        transactionContext: TransactionContext,
-    ): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>> {
-        return simulerUtbetaling(
-            utbetaling = utbetaling,
-            eksisterendeUtbetalinger = eksisterendeUtbetalinger,
-            beregningsperiode = beregningsperiode,
-        ).mapLeft {
-            UtbetalingFeilet.KunneIkkeSimulere(it)
-        }.flatMap { simulertUtbetaling ->
-            KryssjekkSaksbehandlersOgAttestantsSimulering(
-                saksbehandlersSimulering = saksbehandlersSimulering,
-                attestantsSimulering = simulertUtbetaling,
-            ).sjekk().getOrHandle {
-                return UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(it).left()
-            }
-
-            UtbetalingKlargjortForOversendelse(
-                utbetaling = simulertUtbetaling.forberedOversendelse(transactionContext),
-                callback = { utbetalingsrequest ->
-                    sendUtbetalingTilOS(utbetalingsrequest)
-                        .mapLeft { UtbetalingFeilet.Protokollfeil }
-                },
-            ).right()
-        }
+    override fun klargjørNyUtbetaling(utbetaling: Utbetaling.SimulertUtbetaling, transactionContext: TransactionContext): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>> {
+        return UtbetalingKlargjortForOversendelse(
+            utbetaling = utbetaling.forberedOversendelse(transactionContext),
+            callback = { utbetalingsrequest ->
+                sendUtbetalingTilOS(utbetalingsrequest)
+                    .mapLeft { UtbetalingFeilet.Protokollfeil }
+            },
+        ).right()
     }
 
     override fun klargjørOpphør(
@@ -150,31 +138,6 @@ internal class UtbetalingServiceImpl(
         opphørsperiode: Periode,
     ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
         val simuleringsperiode = opphørsperiode
-
-        KryssjekkTidslinjerOgSimulering.sjekkNyEllerOpphør(
-            underArbeidEndringsperiode = simuleringsperiode,
-            underArbeid = utbetaling,
-            eksisterende = eksisterendeUtbetalinger,
-            simuler = this::simulerUtbetaling,
-            clock = clock,
-        ).getOrHandle {
-            return SimuleringFeilet.KontrollAvSimuleringFeilet(it).left()
-        }
-
-        return simulerUtbetaling(
-            request = SimulerUtbetalingForPeriode(
-                utbetaling = utbetaling,
-                simuleringsperiode = simuleringsperiode,
-            ),
-        )
-    }
-
-    override fun simulerUtbetaling(
-        utbetaling: Utbetaling.UtbetalingForSimulering,
-        eksisterendeUtbetalinger: List<Utbetaling>,
-        beregningsperiode: Periode,
-    ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
-        val simuleringsperiode = beregningsperiode
 
         KryssjekkTidslinjerOgSimulering.sjekkNyEllerOpphør(
             underArbeidEndringsperiode = simuleringsperiode,

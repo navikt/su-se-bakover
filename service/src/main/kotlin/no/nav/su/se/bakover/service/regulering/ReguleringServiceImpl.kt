@@ -6,12 +6,14 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.NavIdentBruker
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.hentGjeldendeUtbetaling
@@ -23,6 +25,7 @@ import no.nav.su.se.bakover.domain.regulering.inneholderAvslag
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
+import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
@@ -230,26 +233,30 @@ class ReguleringServiceImpl(
             KunneIkkeFerdigstilleOgIverksette.KunneIkkeBeregne
         }
             .flatMap { beregnetRegulering ->
-                beregnetRegulering.simuler(
-                    lagUtbetaling = { navIdentBruker, beregning, uføregrunnlag ->
-                        sak.lagNyUtbetaling(
-                            saksbehandler = navIdentBruker,
-                            beregning = beregning,
+                beregnetRegulering.simuler { beregning, uføregrunnlag ->
+                    sak.lagNyUtbetaling(
+                        saksbehandler = beregnetRegulering.saksbehandler,
+                        beregning = beregning,
+                        clock = clock,
+                        utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SammenMedNestePlanlagteUtbetaling,
+                        uføregrunnlag = uføregrunnlag,
+                    ).let {
+                        sak.simulerUtbetaling(
+                            utbetalingForSimulering = it,
+                            periode = regulering.periode,
+                            simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
+                                utbetalingService.simulerUtbetaling(
+                                    utbetalingForSimulering,
+                                    periode,
+                                )
+                            },
+                            kontrollerMotTidligereSimulering = regulering.simulering,
                             clock = clock,
-                            uføregrunnlag = uføregrunnlag,
-                            utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SammenMedNestePlanlagteUtbetaling,
                         )
-                    },
-                    simuler = { utbetaling, periode ->
-                        utbetalingService.simulerUtbetaling(
-                            utbetaling = utbetaling,
-                            eksisterendeUtbetalinger = sak.utbetalinger,
-                            beregningsperiode = periode,
-                        ).map {
-                            it.simulering
-                        }
-                    },
-                ).mapLeft {
+                    }.map { simulertUtbetaling ->
+                        simulertUtbetaling.simulering
+                    }
+                }.mapLeft {
                     log.error("Regulering for saksnummer ${regulering.saksnummer}. Simulering feilet.")
                     KunneIkkeFerdigstilleOgIverksette.KunneIkkeSimulere
                 }.flatMap {
@@ -324,30 +331,42 @@ class ReguleringServiceImpl(
 
     private fun lagVedtakOgUtbetal(regulering: Regulering.IverksattRegulering, sak: Sak): Either<KunneIkkeFerdigstilleOgIverksette.KunneIkkeUtbetale, Pair<Regulering.IverksattRegulering, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering>> {
         return Either.catch {
+            val utbetaling = sak.lagNyUtbetaling(
+                saksbehandler = regulering.saksbehandler,
+                beregning = regulering.beregning,
+                clock = clock,
+                utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                uføregrunnlag = when (regulering.sakstype) {
+                    Sakstype.ALDER -> {
+                        emptyList()
+                    }
+                    Sakstype.UFØRE -> {
+                        regulering.vilkårsvurderinger.uføreVilkår()
+                            .getOrHandle { throw IllegalStateException("Regulering uføre: ${regulering.id} mangler uføregrunnlag") }
+                            .grunnlag
+                    }
+                },
+            ).let {
+                sak.simulerUtbetaling(
+                    utbetalingForSimulering = it,
+                    periode = regulering.periode,
+                    simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
+                        utbetalingService.simulerUtbetaling(
+                            utbetalingForSimulering,
+                            periode,
+                        )
+                    },
+                    kontrollerMotTidligereSimulering = regulering.simulering,
+                    clock = clock,
+                )
+            }.getOrHandle { feil ->
+                throw KunneIkkeSendeTilUtbetalingException(UtbetalingFeilet.KunneIkkeSimulere(feil))
+            }
             sessionFactory.withTransactionContext { tx ->
                 val nyUtbetaling = utbetalingService.klargjørNyUtbetaling(
-                    utbetaling = sak.lagNyUtbetaling(
-                        saksbehandler = regulering.saksbehandler,
-                        beregning = regulering.beregning,
-                        clock = clock,
-                        uføregrunnlag = when (regulering.sakstype) {
-                            Sakstype.ALDER -> {
-                                emptyList()
-                            }
-                            Sakstype.UFØRE -> {
-                                regulering.vilkårsvurderinger.uføreVilkår()
-                                    .getOrHandle { throw IllegalStateException("Regulering uføre: ${regulering.id} mangler uføregrunnlag") }
-                                    .grunnlag
-                            }
-                        },
-                        utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SammenMedNestePlanlagteUtbetaling,
-                    ),
-                    eksisterendeUtbetalinger = sak.utbetalinger,
-                    beregningsperiode = regulering.periode,
-                    saksbehandlersSimulering = regulering.simulering,
+                    utbetaling = utbetaling,
                     transactionContext = tx,
                 ).getOrHandle {
-                    log.error("Regulering for saksnummer ${regulering.saksnummer}: Kunne ikke verifisere og simulere utbetaling for regulering med underliggende grunn: $it")
                     throw KunneIkkeSendeTilUtbetalingException(it)
                 }
 

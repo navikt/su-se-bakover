@@ -40,7 +40,7 @@ fun vedtakSøknadsbehandlingIverksattInnvilget(
         periode = stønadsperiode.periode,
         bosituasjon = grunnlagsdata.bosituasjon.map { it as Grunnlag.Bosituasjon.Fullstendig }.toNonEmptyList(),
     ),
-    clock: Clock = fixedClock,
+    clock: Clock = tikkendeFixedClock,
     avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
 ): Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling> {
     require(
@@ -150,7 +150,7 @@ fun vedtakRevurderingIverksattInnvilget(
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
         stønadsperiode = stønadsperiode,
     ),
-    clock: Clock = fixedClock,
+    clock: Clock = tikkendeFixedClock,
     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = innvilgetGrunnlagsdataOgVilkårsvurderinger(
         sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
         revurderingsperiode = revurderingsperiode,

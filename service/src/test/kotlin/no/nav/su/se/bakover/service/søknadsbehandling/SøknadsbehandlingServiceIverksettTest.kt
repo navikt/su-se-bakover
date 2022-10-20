@@ -9,6 +9,7 @@ import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
@@ -16,11 +17,9 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.oppdrag.KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeTilbakekrev
-import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
 import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
@@ -45,7 +44,7 @@ import no.nav.su.se.bakover.test.nyUtbetalingOversendUtenKvittering
 import no.nav.su.se.bakover.test.planlagtKontrollsamtale
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
-import no.nav.su.se.bakover.test.simulerNyUtbetaling
+import no.nav.su.se.bakover.test.simulerUtbetaling
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringAvslagMedBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
@@ -124,21 +123,13 @@ internal class SøknadsbehandlingServiceIverksettTest {
             ).getOrFail().let { beregnet ->
                 beregnet.simuler(
                     saksbehandler = saksbehandler,
-                    lagUtbetaling = { navIdentBruker, beregning, uføregrunnlag ->
-                        sak.lagNyUtbetaling(
-                            saksbehandler = navIdentBruker,
-                            beregning = beregning,
-                            clock = fixedClock,
-                            uføregrunnlag = uføregrunnlag,
-                            utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
-                        )
-                    },
-                    simuler = { utbetalingForSimulering, periode ->
-                        simulerNyUtbetaling(
+                    simuler = { _, _ ->
+                        simulerUtbetaling(
                             sak = sak,
-                            utbetaling = utbetalingForSimulering,
-                            beregningsperiode = periode,
-                        )
+                            søknadsbehandling = beregnet,
+                        ).map {
+                            it.simulering
+                        }
                     },
                 )
             }.getOrFail().tilAttestering(
@@ -182,7 +173,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     on { hentSakForSøknadsbehandling(any()) } doReturn sak
                 },
                 utbetalingService = mock {
-                    on { klargjørNyUtbetaling(any(), any(), any(), any(), any()) } doReturn UtbetalingFeilet.KunneIkkeSimulere(SimuleringFeilet.TekniskFeil).left()
+                    on { simulerUtbetaling(any(), any()) } doReturn SimuleringFeilet.TekniskFeil.left()
                 },
                 tilbakekrevingService = mock {
                     on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
@@ -207,9 +198,11 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     on { hentSakForSøknadsbehandling(any()) } doReturn sak
                 },
                 utbetalingService = mock {
-                    on { klargjørNyUtbetaling(any(), any(), any(), any(), any()) } doReturn UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(
-                        KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UliktBeløp,
-                    ).left()
+                    on { simulerUtbetaling(any(), any()) } doReturn simulerUtbetaling(
+                        sak = sak,
+                        søknadsbehandling = innvilgetTilAttestering,
+                        simuleringsperiode = januar(2021),
+                    )
                 },
                 tilbakekrevingService = mock {
                     on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
@@ -224,8 +217,10 @@ internal class SøknadsbehandlingServiceIverksettTest {
             )
 
             response shouldBe KunneIkkeIverksette.KunneIkkeUtbetale(
-                UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(
-                    KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UliktBeløp,
+                UtbetalingFeilet.KunneIkkeSimulere(
+                    SimuleringFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(
+                        KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UlikPeriode,
+                    ),
                 ),
             ).left()
         }
@@ -352,7 +347,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     doThrow(RuntimeException()).whenever(it).lagre(any(), anyOrNull())
                 },
                 utbetalingService = mock {
-                    on { klargjørNyUtbetaling(any(), any(), any(), any(), any()) } doReturn utbetalingMedCallback.right()
+                    on { klargjørNyUtbetaling(any(), any()) } doReturn utbetalingMedCallback.right()
                 },
                 kontrollsamtaleService = mock {
                     on {
@@ -393,7 +388,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     doNothing().whenever(it).lagre(any(), anyOrNull())
                 },
                 utbetalingService = mock {
-                    on { klargjørNyUtbetaling(any(), any(), any(), any(), any()) } doReturn utbetalingMedCallback.right()
+                    on { klargjørNyUtbetaling(any(), any()) } doReturn utbetalingMedCallback.right()
                 },
                 kontrollsamtaleService = mock {
                     on {
@@ -433,7 +428,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     doNothing().whenever(it).lagre(any(), anyOrNull())
                 },
                 utbetalingService = mock {
-                    on { klargjørNyUtbetaling(any(), any(), any(), any(), any()) } doReturn utbetalingMedCallback.right()
+                    on { klargjørNyUtbetaling(any(), any()) } doReturn utbetalingMedCallback.right()
                 },
                 kontrollsamtaleService = mock {
                     on {
@@ -489,7 +484,11 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     on { hent(any()) } doReturn innvilgetTilAttestering
                 },
                 utbetalingService = mock {
-                    on { klargjørNyUtbetaling(any(), any(), any(), any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
+                    on { simulerUtbetaling(any(), any()) } doReturn simulerUtbetaling(
+                        sak = sak,
+                        søknadsbehandling = innvilgetTilAttestering,
+                    )
+                    on { klargjørNyUtbetaling(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
                 },
                 vedtakRepo = mock {
                     doNothing().whenever(it).lagre(any(), anyOrNull())
@@ -537,7 +536,11 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     doNothing().whenever(it).lagre(any(), anyOrNull())
                 },
                 utbetalingService = mock {
-                    on { klargjørNyUtbetaling(any(), any(), any(), any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
+                    on { simulerUtbetaling(any(), any()) } doReturn simulerUtbetaling(
+                        sak = sak,
+                        søknadsbehandling = innvilgetTilAttestering,
+                    )
+                    on { klargjørNyUtbetaling(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
                 },
                 kontrollsamtaleService = mock {
                     on {
@@ -586,11 +589,12 @@ internal class SøknadsbehandlingServiceIverksettTest {
             actual shouldBe expected
 
             verify(serviceAndMocks.sakService).hentSakForSøknadsbehandling(innvilgetTilAttestering.id)
+            verify(serviceAndMocks.utbetalingService, times(2)).simulerUtbetaling(
+                any(),
+                any(),
+            )
             verify(serviceAndMocks.utbetalingService).klargjørNyUtbetaling(
                 utbetaling = any(),
-                eksisterendeUtbetalinger = argThat { it shouldBe sak.utbetalinger },
-                beregningsperiode = argThat { it shouldBe innvilgetTilAttestering.periode },
-                saksbehandlersSimulering = argThat { it shouldBe innvilgetTilAttestering.simulering },
                 transactionContext = argThat { it shouldBe TestSessionFactory.transactionContext },
             )
             verify(serviceAndMocks.søknadsbehandlingRepo).lagre(
@@ -601,6 +605,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 vedtak = argThat {
                     it shouldBe vedtakSøknadsbehandlingIverksattInnvilget().second.copy(
                         id = it.id,
+                        opprettet = it.opprettet,
                         behandling = expected,
                         utbetalingId = utbetalingKlargjortForOversendelse.utbetaling.id,
                     )
@@ -611,6 +616,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 vedtak = argThat {
                     it shouldBe vedtakSøknadsbehandlingIverksattInnvilget().second.copy(
                         id = it.id,
+                        opprettet = it.opprettet,
                         behandling = expected,
                         utbetalingId = utbetalingKlargjortForOversendelse.utbetaling.id,
                     )
@@ -647,7 +653,11 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     doNothing().whenever(it).lagre(any(), anyOrNull())
                 },
                 utbetalingService = mock {
-                    on { klargjørNyUtbetaling(any(), any(), any(), any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
+                    on { simulerUtbetaling(any(), any()) } doReturn simulerUtbetaling(
+                        sak = sak,
+                        søknadsbehandling = innvilgetTilAttestering,
+                    )
+                    on { klargjørNyUtbetaling(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
                 },
                 kontrollsamtaleService = mock {
                     on {
@@ -712,7 +722,11 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     doNothing().whenever(it).lagre(any(), anyOrNull())
                 },
                 utbetalingService = mock {
-                    on { klargjørNyUtbetaling(any(), any(), any(), any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
+                    on { simulerUtbetaling(any(), any()) } doReturn simulerUtbetaling(
+                        sak = sak,
+                        søknadsbehandling = innvilgetTilAttestering,
+                    )
+                    on { klargjørNyUtbetaling(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
                 },
                 kontrollsamtaleService = mock {
                     on {
@@ -765,7 +779,11 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     doNothing().whenever(it).lagre(any(), anyOrNull())
                 },
                 utbetalingService = mock {
-                    on { klargjørNyUtbetaling(any(), any(), any(), any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
+                    on { simulerUtbetaling(any(), any()) } doReturn simulerUtbetaling(
+                        sak = sak,
+                        søknadsbehandling = innvilgetTilAttestering,
+                    )
+                    on { klargjørNyUtbetaling(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
                 },
                 kontrollsamtaleService = mock {
                     on {
@@ -805,7 +823,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     doThrow(RuntimeException()).whenever(it).lagre(any(), anyOrNull())
                 },
                 utbetalingService = mock {
-                    on { klargjørNyUtbetaling(any(), any(), any(), any(), any()) } doReturn utbetalingMedCallback.right()
+                    on { klargjørNyUtbetaling(any(), any()) } doReturn utbetalingMedCallback.right()
                 },
                 kontrollsamtaleService = mock {
                     on {
@@ -845,7 +863,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     doNothing().whenever(it).lagre(any(), anyOrNull())
                 },
                 utbetalingService = mock {
-                    on { klargjørNyUtbetaling(any(), any(), any(), any(), any()) } doThrow RuntimeException()
+                    on { klargjørNyUtbetaling(any(), any()) } doThrow RuntimeException()
                 },
                 kontrollsamtaleService = mock {
                     on {
@@ -883,7 +901,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     doNothing().whenever(it).lagre(any(), anyOrNull())
                 },
                 utbetalingService = mock {
-                    on { klargjørNyUtbetaling(any(), any(), any(), any(), any()) } doReturn utbetalingMedCallback.right()
+                    on { klargjørNyUtbetaling(any(), any()) } doReturn utbetalingMedCallback.right()
                 },
                 kontrollsamtaleService = mock {
                     on {

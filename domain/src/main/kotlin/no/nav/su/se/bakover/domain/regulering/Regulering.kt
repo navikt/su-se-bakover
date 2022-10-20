@@ -20,7 +20,6 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.SjekkOmGrunnlagErKonsistent
 import no.nav.su.se.bakover.domain.grunnlag.erGyldigTilstand
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.satser.SatsFactory
@@ -190,17 +189,21 @@ sealed interface Regulering : Reguleringsfelter {
         }
 
         fun simuler(
-            lagUtbetaling: (saksbehandler: NavIdentBruker, beregning: Beregning, uføregrunnlag: List<Grunnlag.Uføregrunnlag>) -> Utbetaling.UtbetalingForSimulering,
-            simuler: (utbetaling: Utbetaling.UtbetalingForSimulering, beregningsperiode: Periode) -> Either<SimuleringFeilet, Simulering>,
+            simuler: (beregning: Beregning, uføregrunnlag: List<Grunnlag.Uføregrunnlag>) -> Either<SimuleringFeilet, Simulering>,
         ): Either<KunneIkkeSimulere, OpprettetRegulering> {
-            return lagUtbetaling(
-                saksbehandler,
+            return simuler(
                 beregning ?: return KunneIkkeSimulere.FantIngenBeregning.left(),
-                vilkårsvurderinger.uføreVilkår()
-                    .getOrHandle { throw IllegalStateException("Regulering for uføre mangler uføregrunnlag") }.grunnlag,
-            ).let {
-                simuler(it, periode)
-            }.mapLeft { KunneIkkeSimulere.SimuleringFeilet }
+                when (sakstype) {
+                    Sakstype.ALDER -> {
+                        emptyList()
+                    }
+                    Sakstype.UFØRE -> {
+                        vilkårsvurderinger.uføreVilkår()
+                            .getOrHandle { throw IllegalStateException("Regulering uføre: $id mangler uføregrunnlag") }
+                            .grunnlag
+                    }
+                },
+            ).mapLeft { KunneIkkeSimulere.SimuleringFeilet }
                 .map { copy(simulering = it) }
         }
 

@@ -33,7 +33,6 @@ import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
 import no.nav.su.se.bakover.domain.grunnlag.Opplysningspliktgrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.krevAlleVilkårInnvilget
 import no.nav.su.se.bakover.domain.grunnlag.krevMinstEttAvslag
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -80,6 +79,8 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     val erLukket: Boolean by lazy { this is LukketSøknadsbehandling }
 
     abstract val saksbehandler: NavIdentBruker.Saksbehandler?
+    abstract val beregning: Beregning?
+    abstract val simulering: Simulering?
 
     fun erÅpen(): Boolean {
         return !(erIverksatt || erLukket)
@@ -594,8 +595,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
     open fun simuler(
         saksbehandler: NavIdentBruker,
-        lagUtbetaling: (saksbehandler: NavIdentBruker, beregning: Beregning, uføregrunnlag: List<Grunnlag.Uføregrunnlag>) -> Utbetaling.UtbetalingForSimulering,
-        simuler: (utbetaling: Utbetaling.UtbetalingForSimulering, beregningsperiode: Periode) -> Either<SimuleringFeilet, Simulering>,
+        simuler: (beregning: Beregning, uføregrunnlag: List<Grunnlag.Uføregrunnlag>) -> Either<SimuleringFeilet, Simulering>,
     ): Either<KunneIkkeSimulereBehandling, Simulert> {
         return KunneIkkeSimulereBehandling.UgyldigTilstand(this::class).left()
     }
@@ -869,6 +869,9 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
             override val saksbehandler: NavIdentBruker.Saksbehandler? = null
 
+            override val beregning = null
+            override val simulering: Simulering? = null
+
             init {
                 kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
             }
@@ -909,6 +912,9 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val status: BehandlingsStatus = BehandlingsStatus.VILKÅRSVURDERT_AVSLAG
 
             override val saksbehandler: NavIdentBruker.Saksbehandler? = null
+
+            override val beregning = null
+            override val simulering: Simulering? = null
 
             override fun copyInternal(
                 stønadsperiode: Stønadsperiode,
@@ -982,6 +988,9 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
             override val saksbehandler: NavIdentBruker.Saksbehandler? = null
 
+            override val beregning = null
+            override val simulering: Simulering? = null
+
             override fun copyInternal(
                 stønadsperiode: Stønadsperiode,
                 grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
@@ -1011,17 +1020,15 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     }
 
     sealed class Beregnet : Søknadsbehandling(), KanOppdaterePeriodeGrunnlagVilkår {
-        abstract val beregning: Beregning
+        abstract override val beregning: Beregning
         abstract override val stønadsperiode: Stønadsperiode
         abstract override val avkorting: AvkortingVedSøknadsbehandling.Håndtert
 
         override fun simuler(
             saksbehandler: NavIdentBruker,
-            lagUtbetaling: (saksbehandler: NavIdentBruker, beregning: Beregning, uføregrunnlag: List<Grunnlag.Uføregrunnlag>) -> Utbetaling.UtbetalingForSimulering,
-            simuler: (utbetaling: Utbetaling.UtbetalingForSimulering, beregningsperiode: Periode) -> Either<SimuleringFeilet, Simulering>,
+            simuler: (beregning: Beregning, uføregrunnlag: List<Grunnlag.Uføregrunnlag>) -> Either<SimuleringFeilet, Simulering>,
         ): Either<KunneIkkeSimulereBehandling, Simulert> {
-            return lagUtbetaling(
-                saksbehandler,
+            return simuler(
                 beregning,
                 when (sakstype) {
                     Sakstype.ALDER -> {
@@ -1033,32 +1040,27 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                             .grunnlag
                     }
                 },
-            ).let { utbetaling ->
-                simuler(
-                    utbetaling,
-                    periode,
-                ).mapLeft {
-                    KunneIkkeSimulereBehandling.KunneIkkeSimulere(it)
-                }.map { simulering ->
-                    Simulert(
-                        id = id,
-                        opprettet = opprettet,
-                        sakId = sakId,
-                        saksnummer = saksnummer,
-                        søknad = søknad,
-                        oppgaveId = oppgaveId,
-                        fnr = fnr,
-                        beregning = beregning,
-                        simulering = simulering,
-                        fritekstTilBrev = fritekstTilBrev,
-                        stønadsperiode = stønadsperiode,
-                        grunnlagsdata = grunnlagsdata,
-                        vilkårsvurderinger = vilkårsvurderinger,
-                        attesteringer = attesteringer,
-                        avkorting = avkorting,
-                        sakstype = sakstype,
-                    )
-                }
+            ).mapLeft {
+                KunneIkkeSimulereBehandling.KunneIkkeSimulere(it)
+            }.map { simulering ->
+                Simulert(
+                    id = id,
+                    opprettet = opprettet,
+                    sakId = sakId,
+                    saksnummer = saksnummer,
+                    søknad = søknad,
+                    oppgaveId = oppgaveId,
+                    fnr = fnr,
+                    beregning = beregning,
+                    simulering = simulering,
+                    fritekstTilBrev = fritekstTilBrev,
+                    stønadsperiode = stønadsperiode,
+                    grunnlagsdata = grunnlagsdata,
+                    vilkårsvurderinger = vilkårsvurderinger,
+                    attesteringer = attesteringer,
+                    avkorting = avkorting,
+                    sakstype = sakstype,
+                )
             }
         }
 
@@ -1082,6 +1084,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET_INNVILGET
             override val periode: Periode = stønadsperiode.periode
             override val saksbehandler: NavIdentBruker.Saksbehandler? = null
+            override val simulering: Simulering? = null
 
             init {
                 kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
@@ -1123,6 +1126,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET_AVSLAG
             override val periode: Periode = stønadsperiode.periode
             override val saksbehandler: NavIdentBruker.Saksbehandler? = null
+            override val simulering: Simulering? = null
 
             private val avslagsgrunnForBeregning: List<Avslagsgrunn> =
                 when (val vurdering = VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {
@@ -1189,8 +1193,8 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         override val søknad: Søknad.Journalført.MedOppgave,
         override val oppgaveId: OppgaveId,
         override val fnr: Fnr,
-        val beregning: Beregning,
-        val simulering: Simulering,
+        override val beregning: Beregning,
+        override val simulering: Simulering,
         override val fritekstTilBrev: String,
         override val stønadsperiode: Stønadsperiode,
         override val grunnlagsdata: Grunnlagsdata,
@@ -1224,11 +1228,9 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
         override fun simuler(
             saksbehandler: NavIdentBruker,
-            lagUtbetaling: (saksbehandler: NavIdentBruker, beregning: Beregning, uføregrunnlag: List<Grunnlag.Uføregrunnlag>) -> Utbetaling.UtbetalingForSimulering,
-            simuler: (utbetaling: Utbetaling.UtbetalingForSimulering, beregningsperiode: Periode) -> Either<SimuleringFeilet, Simulering>,
+            simuler: (beregning: Beregning, uføregrunnlag: List<Grunnlag.Uføregrunnlag>) -> Either<SimuleringFeilet, Simulering>,
         ): Either<KunneIkkeSimulereBehandling, Simulert> {
-            return lagUtbetaling(
-                saksbehandler,
+            return simuler(
                 beregning,
                 when (sakstype) {
                     Sakstype.ALDER -> {
@@ -1240,32 +1242,27 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                             .grunnlag
                     }
                 },
-            ).let { utbetaling ->
-                simuler(
-                    utbetaling,
-                    periode,
-                ).mapLeft {
-                    KunneIkkeSimulereBehandling.KunneIkkeSimulere(it)
-                }.map { simulering ->
-                    Simulert(
-                        id = id,
-                        opprettet = opprettet,
-                        sakId = sakId,
-                        saksnummer = saksnummer,
-                        søknad = søknad,
-                        oppgaveId = oppgaveId,
-                        fnr = fnr,
-                        beregning = beregning,
-                        simulering = simulering,
-                        fritekstTilBrev = fritekstTilBrev,
-                        stønadsperiode = stønadsperiode,
-                        grunnlagsdata = grunnlagsdata,
-                        vilkårsvurderinger = vilkårsvurderinger,
-                        attesteringer = attesteringer,
-                        avkorting = avkorting,
-                        sakstype = sakstype,
-                    )
-                }
+            ).mapLeft {
+                KunneIkkeSimulereBehandling.KunneIkkeSimulere(it)
+            }.map { simulering ->
+                Simulert(
+                    id = id,
+                    opprettet = opprettet,
+                    sakId = sakId,
+                    saksnummer = saksnummer,
+                    søknad = søknad,
+                    oppgaveId = oppgaveId,
+                    fnr = fnr,
+                    beregning = beregning,
+                    simulering = simulering,
+                    fritekstTilBrev = fritekstTilBrev,
+                    stønadsperiode = stønadsperiode,
+                    grunnlagsdata = grunnlagsdata,
+                    vilkårsvurderinger = vilkårsvurderinger,
+                    attesteringer = attesteringer,
+                    avkorting = avkorting,
+                    sakstype = sakstype,
+                )
             }
         }
 
@@ -1317,8 +1314,8 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val søknad: Søknad.Journalført.MedOppgave,
             override val oppgaveId: OppgaveId,
             override val fnr: Fnr,
-            val beregning: Beregning,
-            val simulering: Simulering,
+            override val beregning: Beregning,
+            override val simulering: Simulering,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
             override val fritekstTilBrev: String,
             override val stønadsperiode: Stønadsperiode,
@@ -1431,6 +1428,9 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
                 override val periode: Periode = stønadsperiode.periode
 
+                override val beregning = null
+                override val simulering: Simulering? = null
+
                 init {
                     kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
                 }
@@ -1505,7 +1505,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val søknad: Søknad.Journalført.MedOppgave,
                 override val oppgaveId: OppgaveId,
                 override val fnr: Fnr,
-                val beregning: Beregning,
+                override val beregning: Beregning,
                 override val saksbehandler: NavIdentBruker.Saksbehandler,
                 override val fritekstTilBrev: String,
                 override val stønadsperiode: Stønadsperiode,
@@ -1530,6 +1530,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 } + avslagsgrunnForBeregning
 
                 override val periode: Periode = stønadsperiode.periode
+                override val simulering: Simulering? = null
 
                 init {
                     kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
@@ -1626,8 +1627,8 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val søknad: Søknad.Journalført.MedOppgave,
             override val oppgaveId: OppgaveId,
             override val fnr: Fnr,
-            val beregning: Beregning,
-            val simulering: Simulering,
+            override val beregning: Beregning,
+            override val simulering: Simulering,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
             override val attesteringer: Attesteringshistorikk,
             override val fritekstTilBrev: String,
@@ -1666,11 +1667,9 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
             override fun simuler(
                 saksbehandler: NavIdentBruker,
-                lagUtbetaling: (saksbehandler: NavIdentBruker, beregning: Beregning, uføregrunnlag: List<Grunnlag.Uføregrunnlag>) -> Utbetaling.UtbetalingForSimulering,
-                simuler: (utbetaling: Utbetaling.UtbetalingForSimulering, beregningsperiode: Periode) -> Either<SimuleringFeilet, Simulering>,
+                simuler: (beregning: Beregning, uføregrunnlag: List<Grunnlag.Uføregrunnlag>) -> Either<SimuleringFeilet, Simulering>,
             ): Either<KunneIkkeSimulereBehandling, Simulert> {
-                return lagUtbetaling(
-                    saksbehandler,
+                return simuler(
                     beregning,
                     when (sakstype) {
                         Sakstype.ALDER -> {
@@ -1682,32 +1681,27 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                                 .grunnlag
                         }
                     },
-                ).let { utbetaling ->
-                    simuler(
-                        utbetaling,
-                        periode,
-                    ).mapLeft {
-                        KunneIkkeSimulereBehandling.KunneIkkeSimulere(it)
-                    }.map { simulering ->
-                        Simulert(
-                            id = id,
-                            opprettet = opprettet,
-                            sakId = sakId,
-                            saksnummer = saksnummer,
-                            søknad = søknad,
-                            oppgaveId = oppgaveId,
-                            fnr = fnr,
-                            beregning = beregning,
-                            simulering = simulering,
-                            fritekstTilBrev = fritekstTilBrev,
-                            stønadsperiode = stønadsperiode,
-                            grunnlagsdata = grunnlagsdata,
-                            vilkårsvurderinger = vilkårsvurderinger,
-                            attesteringer = attesteringer,
-                            avkorting = avkorting,
-                            sakstype = sakstype,
-                        )
-                    }
+                ).mapLeft {
+                    KunneIkkeSimulereBehandling.KunneIkkeSimulere(it)
+                }.map { simulering ->
+                    Simulert(
+                        id = id,
+                        opprettet = opprettet,
+                        sakId = sakId,
+                        saksnummer = saksnummer,
+                        søknad = søknad,
+                        oppgaveId = oppgaveId,
+                        fnr = fnr,
+                        beregning = beregning,
+                        simulering = simulering,
+                        fritekstTilBrev = fritekstTilBrev,
+                        stønadsperiode = stønadsperiode,
+                        grunnlagsdata = grunnlagsdata,
+                        vilkårsvurderinger = vilkårsvurderinger,
+                        attesteringer = attesteringer,
+                        avkorting = avkorting,
+                        sakstype = sakstype,
+                    )
                 }
             }
 
@@ -1749,7 +1743,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val søknad: Søknad.Journalført.MedOppgave,
                 override val oppgaveId: OppgaveId,
                 override val fnr: Fnr,
-                val beregning: Beregning,
+                override val beregning: Beregning,
                 override val saksbehandler: NavIdentBruker.Saksbehandler,
                 override val attesteringer: Attesteringshistorikk,
                 override val fritekstTilBrev: String,
@@ -1761,6 +1755,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             ) : Avslag() {
                 override val status: BehandlingsStatus = BehandlingsStatus.UNDERKJENT_AVSLAG
                 override val periode: Periode = stønadsperiode.periode
+                override val simulering: Simulering? = null
 
                 private val avslagsgrunnForBeregning: List<Avslagsgrunn> =
                     when (val vurdering = VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {
@@ -1838,6 +1833,9 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             ) : Avslag() {
                 override val status: BehandlingsStatus = BehandlingsStatus.UNDERKJENT_AVSLAG
 
+                override val beregning = null
+                override val simulering: Simulering? = null
+
                 override fun copyInternal(
                     stønadsperiode: Stønadsperiode,
                     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling,
@@ -1913,8 +1911,8 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val søknad: Søknad.Journalført.MedOppgave,
             override val oppgaveId: OppgaveId,
             override val fnr: Fnr,
-            val beregning: Beregning,
-            val simulering: Simulering,
+            override val beregning: Beregning,
+            override val simulering: Simulering,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
             override val attesteringer: Attesteringshistorikk,
             override val fritekstTilBrev: String,
@@ -1946,7 +1944,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val søknad: Søknad.Journalført.MedOppgave,
                 override val oppgaveId: OppgaveId,
                 override val fnr: Fnr,
-                val beregning: Beregning,
+                override val beregning: Beregning,
                 override val saksbehandler: NavIdentBruker.Saksbehandler,
                 override val attesteringer: Attesteringshistorikk,
                 override val fritekstTilBrev: String,
@@ -1958,6 +1956,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             ) : Avslag() {
                 override val status: BehandlingsStatus = BehandlingsStatus.IVERKSATT_AVSLAG
                 override val periode: Periode = stønadsperiode.periode
+                override val simulering: Simulering? = null
 
                 init {
                     grunnlagsdataOgVilkårsvurderinger.krevAlleVilkårInnvilget()
@@ -2001,6 +2000,9 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             ) : Avslag() {
                 override val status: BehandlingsStatus = BehandlingsStatus.IVERKSATT_AVSLAG
                 override val periode: Periode = stønadsperiode.periode
+
+                override val beregning = null
+                override val simulering: Simulering? = null
 
                 init {
                     grunnlagsdataOgVilkårsvurderinger.krevMinstEttAvslag()

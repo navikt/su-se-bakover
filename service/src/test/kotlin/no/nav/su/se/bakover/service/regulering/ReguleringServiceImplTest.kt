@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -26,17 +25,14 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
-import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
-import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argThat
@@ -44,6 +40,7 @@ import no.nav.su.se.bakover.test.beregning
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt0
@@ -54,10 +51,10 @@ import no.nav.su.se.bakover.test.oversendtUtbetalingUtenKvittering
 import no.nav.su.se.bakover.test.plus
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
-import no.nav.su.se.bakover.test.simulertFeilutbetaling
-import no.nav.su.se.bakover.test.simulertUtbetaling
+import no.nav.su.se.bakover.test.simulerUtbetaling
 import no.nav.su.se.bakover.test.stansetSøknadsbehandlingMedÅpenRegulering
 import no.nav.su.se.bakover.test.stønadsperiode2021
+import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.utbetalingsRequest
 import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.vedtakRevurdering
@@ -67,21 +64,29 @@ import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkår
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
-import java.time.LocalDate
+import org.mockito.kotlin.whenever
+import java.time.Clock
 import java.time.temporal.ChronoUnit
 import java.util.UUID
-
+// TODO refaktorer disse testene til å unngå "scrambling" og hacking, og i større grad bruke satsfactory til å trigge endringer.
 internal class ReguleringServiceImplTest {
 
     val periodeMaiDes = Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.desember(2021))
 
     @Test
     fun `regulerer alle saker`() {
-        val sak = vedtakSøknadsbehandlingIverksattInnvilget().first
-        val reguleringService = lagReguleringServiceImpl(sak)
+        val clock = tikkendeFixedClock
+        val sak = vedtakSøknadsbehandlingIverksattInnvilget(
+            clock = clock,
+        ).first
+        val reguleringService = lagReguleringServiceImpl(
+            sak = sak,
+            clock = clock,
+        )
 
         reguleringService.startRegulering(1.mai(2021)).size shouldBe 1
     }
@@ -263,14 +268,14 @@ internal class ReguleringServiceImplTest {
             val iverksattRegulering = reguleringService.regulerManuelt(
                 reguleringId = regulering.id,
                 uføregrunnlag = listOf(uføregrunnlagForventetInntekt0(periode = periodeMaiDes)),
-                fradrag = listOf(offentligPensjonGrunnlag(8100.0, periodeMaiDes)),
+                fradrag = listOf(offentligPensjonGrunnlag(5000.0, periodeMaiDes)),
                 saksbehandler = saksbehandler,
             ).getOrFail()
 
             iverksattRegulering.beregning.getFradrag() shouldBe listOf(
                 FradragFactory.nyFradragsperiode(
                     fradragstype = Fradragstype.OffentligPensjon,
-                    månedsbeløp = 8100.0,
+                    månedsbeløp = 5000.0,
                     periode = periodeMaiDes,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
@@ -305,10 +310,11 @@ internal class ReguleringServiceImplTest {
 
         @Test
         fun `en simulering med feilutbetalinger skal føre til manuell`() {
-            val revurdertSak =
-                vedtakSøknadsbehandlingIverksattInnvilget(stønadsperiode = Stønadsperiode.create(år(2021))).first
+            val revurdertSak = vedtakSøknadsbehandlingIverksattInnvilget(
+                stønadsperiode = Stønadsperiode.create(år(2021)),
+            ).first
 
-            val reguleringService = lagReguleringServiceImpl(revurdertSak, simulertFeilutbetaling().right())
+            val reguleringService = lagReguleringServiceImpl(revurdertSak, lagFeilutbetaling = true)
 
             reguleringService.startRegulering(1.mai(2021)) shouldBe listOf(
                 KunneIkkeOppretteRegulering.KunneIkkeRegulereAutomatisk(
@@ -322,8 +328,7 @@ internal class ReguleringServiceImplTest {
     inner class PeriodeTester {
         @Test
         fun `reguleringen kan ikke starte tidligere enn reguleringsdatoen`() {
-            val sak =
-                vedtakSøknadsbehandlingIverksattInnvilget(stønadsperiode = Stønadsperiode.create(år(2021))).first
+            val sak = vedtakSøknadsbehandlingIverksattInnvilget(stønadsperiode = Stønadsperiode.create(år(2021))).first
             val reguleringService = lagReguleringServiceImpl(sak)
 
             val regulering = reguleringService.startRegulering(1.mai(2021)).first().getOrFail()
@@ -452,8 +457,9 @@ internal class ReguleringServiceImplTest {
      */
     private fun lagReguleringServiceImpl(
         sak: Sak,
-        simulerUtbetaling: Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> = simulertUtbetaling().right(),
+        lagFeilutbetaling: Boolean = false,
         scrambleUtbetaling: Boolean = true,
+        clock: Clock = tikkendeFixedClock,
     ): ReguleringServiceImpl {
         val _sak = if (scrambleUtbetaling) {
             sak.copy(
@@ -463,19 +469,36 @@ internal class ReguleringServiceImplTest {
                         beregning = beregning(
                             fradragsgrunnlag = listOf(fradragsgrunnlagArbeidsinntekt1000()),
                         ),
+                        clock = clock,
                     ),
                 ),
+                // hack det til og snik inn masse fradrag i grunnlaget til saken slik at vi  får fremprovisert en feilutbetaling ved simulering
+                vedtakListe = if (lagFeilutbetaling) {
+                    listOf(
+                        (sak.vedtakListe.first() as VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling).let { vedtak ->
+                            vedtak.copy(
+                                behandling = vedtak.behandling.let {
+                                    it.copy(grunnlagsdata = it.grunnlagsdata.copy(fradragsgrunnlag = listOf(fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 10000.0))))
+                                },
+                            )
+                        },
+                    )
+                } else {
+                    sak.vedtakListe
+                },
             )
         } else {
             sak
         }
 
-        val testData = lagTestdata(_sak)
+        print(lagFeilutbetaling)
+
         val nyUtbetaling = UtbetalingKlargjortForOversendelse(
             utbetaling = oversendtUtbetalingUtenKvittering(
                 beregning = beregning(
                     fradragsgrunnlag = listOf(fradragsgrunnlagArbeidsinntekt1000()),
                 ),
+                clock = clock,
             ),
             callback = mock<(utbetalingsrequest: Utbetalingsrequest) -> Either<UtbetalingFeilet.Protokollfeil, Utbetalingsrequest>> {
                 on { it.invoke(any()) } doReturn utbetalingsRequest.right()
@@ -489,49 +512,25 @@ internal class ReguleringServiceImplTest {
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
             sakRepo = mock {
-                on { hentSakIdSaksnummerOgFnrForAlleSaker() } doReturn listOf(
-                    SakInfo(
-                        sakId = testData.first.sakId,
-                        saksnummer = testData.first.saksnummer,
-                        fnr = testData.first.fnr,
-                        type = Sakstype.UFØRE,
-                    ),
-                )
+                on { hentSakIdSaksnummerOgFnrForAlleSaker() } doReturn listOf(_sak.info())
                 on { hentSak(any<UUID>()) } doReturn _sak
             },
-            utbetalingService = mock {
-                on { simulerUtbetaling(any(), any(), any()) } doReturn simulerUtbetaling
-                on { klargjørNyUtbetaling(any(), any(), any(), any(), any()) } doReturn nyUtbetaling.right()
+            utbetalingService = mock { service ->
+                doAnswer { invocation ->
+                    simulerUtbetaling(
+                        sak = _sak,
+                        utbetaling = (invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering),
+                    )
+                }.whenever(service).simulerUtbetaling(any(), any())
+                on { klargjørNyUtbetaling(any(), any()) } doReturn nyUtbetaling.right()
             },
             vedtakService = mock(),
             sessionFactory = TestSessionFactory(),
-            clock = fixedClock,
+            clock = clock,
             tilbakekrevingService = mock {
                 on { hentAvventerKravgrunnlag(any<UUID>()) } doReturn emptyList()
             },
             satsFactory = satsFactoryTestPåDato(),
-        )
-    }
-
-    private fun lagTestdata(
-        sak: Sak,
-        reguleringsdato: LocalDate = 1.mai(2021),
-    ): Triple<SakInfo, GjeldendeVedtaksdata, UtbetalingslinjePåTidslinje?> {
-        val søknadsbehandling = sak.søknadsbehandlinger.single()
-
-        return Triple(
-            SakInfo(
-                sakId = søknadsbehandling.sakId,
-                saksnummer = søknadsbehandling.saksnummer,
-                fnr = søknadsbehandling.fnr,
-                type = Sakstype.UFØRE,
-            ),
-
-            sak.kopierGjeldendeVedtaksdata(
-                fraOgMed = reguleringsdato,
-                clock = fixedClock,
-            ).getOrFail(),
-            sak.utbetalingstidslinje().gjeldendeForDato(reguleringsdato),
         )
     }
 }

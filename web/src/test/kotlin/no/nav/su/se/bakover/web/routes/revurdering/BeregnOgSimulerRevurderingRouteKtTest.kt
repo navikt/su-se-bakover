@@ -12,15 +12,12 @@ import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.år
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
-import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
+import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering
 import no.nav.su.se.bakover.service.revurdering.RevurderingOgFeilmeldingerResponse
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
@@ -30,7 +27,7 @@ import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
-import no.nav.su.se.bakover.test.simulerNyUtbetaling
+import no.nav.su.se.bakover.test.simulerUtbetaling
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkår
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.argThat
@@ -108,23 +105,15 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
             is BeregnetRevurdering.Innvilget -> {
                 beregnetRevurdering.simuler(
                     saksbehandler = saksbehandler,
-                    lagUtbetaling = { navIdentBruker, beregning, uføregrunnlag ->
-                        sak.lagNyUtbetaling(
-                            saksbehandler = navIdentBruker,
-                            beregning = beregning,
-                            clock = fixedClock,
-                            uføregrunnlag = uføregrunnlag,
-                            utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
-                        )
-                    },
-                    simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
-                        simulerNyUtbetaling(
-                            sak = sak,
-                            utbetaling = utbetalingForSimulering,
-                            beregningsperiode = periode,
-                        )
-                    },
                     clock = fixedClock,
+                    simuler = { _, _ ->
+                        simulerUtbetaling(
+                            sak = sak,
+                            revurdering = beregnetRevurdering,
+                        ).map {
+                            it.simulering
+                        }
+                    },
                 ).getOrFail()
             }
             is BeregnetRevurdering.IngenEndring -> throw RuntimeException("Revurderingen må ha en endring på minst 10 prosent")

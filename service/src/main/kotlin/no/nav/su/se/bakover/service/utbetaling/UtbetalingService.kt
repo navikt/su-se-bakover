@@ -28,9 +28,9 @@ interface UtbetalingService {
 
     fun simulerUtbetaling(
         utbetaling: Utbetaling.UtbetalingForSimulering,
-        eksisterendeUtbetalinger: List<Utbetaling>,
         beregningsperiode: Periode,
     ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>
+
     fun simulerOpphør(
         utbetaling: Utbetaling.UtbetalingForSimulering,
         eksisterendeUtbetalinger: List<Utbetaling>,
@@ -48,10 +48,7 @@ interface UtbetalingService {
      */
 
     fun klargjørNyUtbetaling(
-        utbetaling: Utbetaling.UtbetalingForSimulering,
-        eksisterendeUtbetalinger: List<Utbetaling>,
-        beregningsperiode: Periode,
-        saksbehandlersSimulering: Simulering,
+        utbetaling: Utbetaling.SimulertUtbetaling,
         transactionContext: TransactionContext,
     ): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>
 

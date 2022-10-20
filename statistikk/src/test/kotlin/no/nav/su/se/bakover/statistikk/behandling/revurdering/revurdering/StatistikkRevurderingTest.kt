@@ -112,6 +112,7 @@ internal class StatistikkRevurderingTest {
             resultatBeskrivelse = "Behandlingen har blitt innvilget. Dette gjelder søknadsbehandling, revurdering og regulering.",
             beslutter = "attestant",
             avsluttet = true,
+            funksjonellTid = vedtak.opprettet.toString(),
         )
     }
 
@@ -168,6 +169,7 @@ internal class StatistikkRevurderingTest {
                            "satsgrunn":"BOR_ALENE"
                          }
                        ]""",
+        funksjonellTid: String = "2021-01-01T01:02:03.456789Z",
     ) {
         val kafkaPublisherMock: KafkaPublisher = mock()
         val personServiceMock: PersonService = mock()
@@ -190,7 +192,7 @@ internal class StatistikkRevurderingTest {
                 JSONAssert.assertEquals(
                     """
                     {
-                       "funksjonellTid":"2021-01-01T01:02:03.456789Z",
+                       "funksjonellTid": "$funksjonellTid",
                        "tekniskTid":"2021-01-01T01:02:03.456789Z",
                        "mottattDato":"2021-01-01",
                        "registrertDato":"2021-01-01",

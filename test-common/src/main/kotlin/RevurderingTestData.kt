@@ -44,6 +44,7 @@ import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.sak.lagUtbetalingForOpphør
+import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
@@ -80,7 +81,7 @@ fun opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
     ),
-    clock: Clock = fixedClock,
+    clock: Clock = tikkendeFixedClock,
     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = sakOgVedtakSomKanRevurderes.first.hentGjeldendeVilkårOgGrunnlag(
         periode = revurderingsperiode,
         clock = clock,
@@ -129,7 +130,7 @@ fun opprettRevurderingFraSaksopplysninger(
     revurderingsperiode: Periode = år(2021),
     informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes>,
-    clock: Clock = fixedClock,
+    clock: Clock = tikkendeFixedClock,
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
     avkorting: AvkortingVedRevurdering.Uhåndtert = AvkortingVedRevurdering.Uhåndtert.IngenUtestående,
     vilkårOverrides: List<Vilkår> = emptyList(),
@@ -204,7 +205,7 @@ fun opprettetRevurdering(
         stønadsperiode = stønadsperiode,
     ),
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
-    clock: Clock = fixedClock,
+    clock: Clock = tikkendeFixedClock,
     vilkårOverrides: List<Vilkår> = emptyList(),
     grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
     avkorting: AvkortingVedRevurdering.Uhåndtert = AvkortingVedRevurdering.Uhåndtert.IngenUtestående,
@@ -231,7 +232,7 @@ fun beregnetRevurdering(
         stønadsperiode = stønadsperiode,
     ),
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
-    clock: Clock = fixedClock,
+    clock: Clock = tikkendeFixedClock,
     vilkårOverrides: List<Vilkår> = emptyList(),
     grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
 ): Pair<Sak, BeregnetRevurdering> {
@@ -272,7 +273,7 @@ fun simulertRevurdering(
         stønadsperiode = stønadsperiode,
     ),
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
-    clock: Clock = fixedClock,
+    clock: Clock = tikkendeFixedClock,
     vilkårOverrides: List<Vilkår> = emptyList(),
     grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
     forhåndsvarsel: Forhåndsvarsel? = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
@@ -298,21 +299,30 @@ fun simulertRevurdering(
                 val simulert = beregnet.simuler(
                     saksbehandler = saksbehandler,
                     clock = clock,
-                    lagUtbetaling = { navIdentBruker, beregning, uføregrunnlag ->
+                    simuler = { beregning, uføregrunnlag ->
                         sak.lagNyUtbetaling(
-                            saksbehandler = navIdentBruker,
+                            saksbehandler = saksbehandler,
                             beregning = beregning,
                             clock = clock,
-                            uføregrunnlag = uføregrunnlag,
                             utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
-                        )
-                    },
-                    simuler = { utbetalingForSimulering, periode ->
-                        simulerNyUtbetaling(
-                            sak = sak,
-                            utbetaling = utbetalingForSimulering,
-                            beregningsperiode = periode,
-                        )
+                            uføregrunnlag = uføregrunnlag,
+                        ).let {
+                            sak.simulerUtbetaling(
+                                utbetalingForSimulering = it,
+                                periode = beregnet.periode,
+                                simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
+                                    simulerUtbetaling(
+                                        sak = sak,
+                                        utbetaling = utbetalingForSimulering,
+                                        simuleringsperiode = periode,
+                                    )
+                                },
+                                kontrollerMotTidligereSimulering = null,
+                                clock = clock,
+                            ).map { simulertUtbetaling ->
+                                simulertUtbetaling.simulering
+                            }
+                        }
                     },
                 ).getOrFail()
 
@@ -358,7 +368,7 @@ fun revurderingTilAttestering(
         stønadsperiode = stønadsperiode,
     ),
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
-    clock: Clock = fixedClock,
+    clock: Clock = tikkendeFixedClock,
     vilkårOverrides: List<Vilkår> = emptyList(),
     grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
     forhåndsvarsel: Forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
@@ -470,7 +480,7 @@ private fun oppdaterTilbakekrevingsbehandling(revurdering: SimulertRevurdering):
 }
 
 fun iverksattRevurdering(
-    clock: Clock = fixedClock,
+    clock: Clock = tikkendeFixedClock,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     revurderingsperiode: Periode = år(2021),
@@ -570,7 +580,7 @@ fun iverksattRevurdering(
 }
 
 fun vedtakRevurdering(
-    clock: Clock = fixedClock,
+    clock: Clock = tikkendeFixedClock,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     revurderingsperiode: Periode = år(2021),
@@ -773,7 +783,7 @@ fun simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
     ),
-    clock: Clock = fixedClock,
+    clock: Clock = tikkendeFixedClock,
     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = innvilgetGrunnlagsdataOgVilkårsvurderinger(
         sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
         revurderingsperiode = revurderingsperiode,
@@ -796,21 +806,30 @@ fun simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         val innvilgetSimulertRevurdering = revurdering.simuler(
             saksbehandler = saksbehandler,
             clock = clock,
-            lagUtbetaling = { navIdentBruker, beregning, uføregrunnlag ->
+            simuler = { beregning, uføregrunnlag ->
                 sak.lagNyUtbetaling(
-                    saksbehandler = navIdentBruker,
+                    saksbehandler = saksbehandler,
                     beregning = beregning,
                     clock = clock,
-                    uføregrunnlag = uføregrunnlag,
                     utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
-                )
-            },
-            simuler = { utbetalingForSimulering, periode ->
-                simulerNyUtbetaling(
-                    sak = sak,
-                    utbetaling = utbetalingForSimulering,
-                    beregningsperiode = periode,
-                )
+                    uføregrunnlag = uføregrunnlag,
+                ).let {
+                    sak.simulerUtbetaling(
+                        utbetalingForSimulering = it,
+                        periode = revurdering.periode,
+                        simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
+                            simulerUtbetaling(
+                                sak = sak,
+                                utbetaling = utbetalingForSimulering,
+                                simuleringsperiode = periode,
+                            )
+                        },
+                        kontrollerMotTidligereSimulering = null,
+                        clock = clock,
+                    ).map { simulertUtbetaling ->
+                        simulertUtbetaling.simulering
+                    }
+                }
             },
         ).getOrFail().prøvÅLeggTilForhåndsvarselPåSimulertRevurdering(
             forhåndsvarsel = forhåndsvarsel,
@@ -871,7 +890,7 @@ fun tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
     ),
-    clock: Clock = fixedClock,
+    clock: Clock = tikkendeFixedClock,
     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = innvilgetGrunnlagsdataOgVilkårsvurderinger(
         sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
         revurderingsperiode = revurderingsperiode,
@@ -951,7 +970,7 @@ fun underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
     ),
-    clock: Clock = fixedClock,
+    clock: Clock = tikkendeFixedClock,
     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = innvilgetGrunnlagsdataOgVilkårsvurderinger(
         sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
         revurderingsperiode = revurderingsperiode,
@@ -1005,7 +1024,7 @@ fun iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
     ),
-    clock: Clock = fixedClock,
+    clock: Clock = tikkendeFixedClock,
     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = innvilgetGrunnlagsdataOgVilkårsvurderinger(
         sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
         revurderingsperiode = revurderingsperiode,

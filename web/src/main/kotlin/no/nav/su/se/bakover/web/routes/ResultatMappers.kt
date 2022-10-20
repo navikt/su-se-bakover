@@ -101,6 +101,7 @@ internal fun SimuleringFeilet.tilResultat(): Resultat {
         )
 
         is SimuleringFeilet.KontrollAvSimuleringFeilet -> this.feil.tilResultat()
+        is SimuleringFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> TODO()
     }
 }
 
@@ -130,5 +131,8 @@ internal fun FeilVedKryssjekkAvTidslinjerOgSimulering.tilResultat(): Resultat {
                 "stans_inneholder_måneder_til_utbetaling",
             )
         }
+
+        FeilVedKryssjekkAvTidslinjerOgSimulering.NyEllerOpphør.KunneIkkeGenerereTidslinje -> TODO()
+        is FeilVedKryssjekkAvTidslinjerOgSimulering.NyEllerOpphør.KunneIkkeSimulere -> TODO()
     }
 }

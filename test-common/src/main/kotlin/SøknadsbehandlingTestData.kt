@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
+import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
@@ -228,6 +229,7 @@ fun søknadsbehandlingBeregnetAvslag(
 }
 
 fun søknadsbehandlingSimulert(
+    clock: Clock = tikkendeFixedClock,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
@@ -242,24 +244,34 @@ fun søknadsbehandlingSimulert(
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
         avkorting = avkorting,
+        clock = clock,
     ).let { (sak, søknadsbehandling) ->
         søknadsbehandling.simuler(
             saksbehandler = saksbehandler,
-            lagUtbetaling = { navIdentBruker, beregning, uføregrunnlag ->
+            simuler = { beregning, uføregrunnlag ->
                 sak.lagNyUtbetaling(
-                    saksbehandler = navIdentBruker,
+                    saksbehandler = saksbehandler,
                     beregning = beregning,
-                    clock = fixedClock,
-                    uføregrunnlag = uføregrunnlag,
+                    clock = clock,
                     utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
-                )
-            },
-            simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
-                simulerNyUtbetaling(
-                    sak = sak,
-                    utbetaling = utbetalingForSimulering,
-                    beregningsperiode = periode,
-                )
+                    uføregrunnlag = uføregrunnlag,
+                ).let {
+                    sak.simulerUtbetaling(
+                        utbetalingForSimulering = it,
+                        periode = søknadsbehandling.periode,
+                        simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
+                            simulerUtbetaling(
+                                sak = sak,
+                                utbetaling = utbetalingForSimulering,
+                                simuleringsperiode = periode,
+                            )
+                        },
+                        kontrollerMotTidligereSimulering = null,
+                        clock = clock,
+                    ).map { simulertUtbetaling ->
+                        simulertUtbetaling.simulering
+                    }
+                }
             },
         ).getOrFail()
             .let { simulert ->
@@ -946,7 +958,7 @@ fun simulertSøknadsbehandlingUføre(
 }
 
 fun simulertSøknadsbehandling(
-    clock: Clock = fixedClock,
+    clock: Clock = tikkendeFixedClock,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave>,
     customGrunnlag: List<Grunnlag> = emptyList(),
@@ -963,21 +975,30 @@ fun simulertSøknadsbehandling(
     ).let { (sak, beregnet) ->
         beregnet.simuler(
             saksbehandler = saksbehandler,
-            lagUtbetaling = { navIdentBruker, beregning, uføregrunnlag ->
+            simuler = { beregning, uføregrunnlag ->
                 sak.lagNyUtbetaling(
-                    saksbehandler = navIdentBruker,
+                    saksbehandler = saksbehandler,
                     beregning = beregning,
                     clock = clock,
-                    uføregrunnlag = uføregrunnlag,
                     utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
-                )
-            },
-            simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
-                simulerNyUtbetaling(
-                    sak = sak,
-                    utbetaling = utbetalingForSimulering,
-                    beregningsperiode = periode,
-                )
+                    uføregrunnlag = uføregrunnlag,
+                ).let {
+                    sak.simulerUtbetaling(
+                        utbetalingForSimulering = it,
+                        periode = beregnet.periode,
+                        simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
+                            simulerUtbetaling(
+                                sak = sak,
+                                utbetaling = utbetalingForSimulering,
+                                simuleringsperiode = periode,
+                            )
+                        },
+                        kontrollerMotTidligereSimulering = null,
+                        clock = clock,
+                    ).map { simulertUtbetaling ->
+                        simulertUtbetaling.simulering
+                    }
+                }
             },
         ).getOrFail()
             .let { simulert ->
@@ -987,7 +1008,7 @@ fun simulertSøknadsbehandling(
 }
 
 fun beregnetSøknadsbehandlingUføre(
-    clock: Clock = fixedClock,
+    clock: Clock = tikkendeFixedClock,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(clock = clock),
     customGrunnlag: List<Grunnlag> = emptyList(),

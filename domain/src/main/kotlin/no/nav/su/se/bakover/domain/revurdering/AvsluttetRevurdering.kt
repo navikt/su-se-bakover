@@ -68,7 +68,7 @@ data class AvsluttetRevurdering private constructor(
         }
     }
 
-    val beregning = when (underliggendeRevurdering) {
+    override val beregning = when (underliggendeRevurdering) {
         is BeregnetRevurdering -> underliggendeRevurdering.beregning
         is SimulertRevurdering -> underliggendeRevurdering.beregning
         is UnderkjentRevurdering.Opphørt -> underliggendeRevurdering.beregning
@@ -83,7 +83,7 @@ data class AvsluttetRevurdering private constructor(
         -> throw IllegalStateException("Skal ikke kunne instansiere en AvsluttetRevurdering med ${underliggendeRevurdering::class}. Sjekk tryCreate om du får denne feilen. id: $id")
     }
 
-    val simulering = when (underliggendeRevurdering) {
+    override val simulering = when (underliggendeRevurdering) {
         is SimulertRevurdering -> underliggendeRevurdering.simulering
         is UnderkjentRevurdering.Opphørt -> underliggendeRevurdering.simulering
         is UnderkjentRevurdering.Innvilget -> underliggendeRevurdering.simulering

@@ -8,6 +8,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Sakstype
@@ -19,12 +20,15 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
+import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
@@ -215,25 +219,30 @@ internal class SøknadsbehandlingServiceImpl(
 
         return søknadsbehandling.simuler(
             saksbehandler = request.saksbehandler,
-            lagUtbetaling = { saksbehandler, beregning, uføregrunnlag ->
-                sak.lagNyUtbetaling(
-                    saksbehandler = saksbehandler,
-                    beregning = beregning,
+        ) { beregning, uføregrunnlag ->
+            sak.lagNyUtbetaling(
+                saksbehandler = request.saksbehandler,
+                beregning = beregning,
+                clock = clock,
+                utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                uføregrunnlag = uføregrunnlag,
+            ).let {
+                sak.simulerUtbetaling(
+                    utbetalingForSimulering = it,
+                    periode = beregning.periode,
+                    simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
+                        utbetalingService.simulerUtbetaling(
+                            utbetalingForSimulering,
+                            periode,
+                        )
+                    },
+                    kontrollerMotTidligereSimulering = null,
                     clock = clock,
-                    uføregrunnlag = uføregrunnlag,
-                    utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
                 )
-            },
-            simuler = { utbetaling, beregningsperiode ->
-                utbetalingService.simulerUtbetaling(
-                    utbetaling = utbetaling,
-                    eksisterendeUtbetalinger = sak.utbetalinger,
-                    beregningsperiode = beregningsperiode,
-                ).map {
-                    it.simulering
-                }
-            },
-        ).mapLeft {
+            }.map { simulertUtbetaling ->
+                simulertUtbetaling.simulering
+            }
+        }.mapLeft {
             KunneIkkeSimulereBehandling.KunneIkkeSimulere(it)
         }.map {
             søknadsbehandlingRepo.lagre(it)
@@ -393,6 +402,40 @@ internal class SøknadsbehandlingServiceImpl(
                         }
 
                     Either.catch {
+                        val simulertUtbetaling = sak.lagNyUtbetaling(
+                            saksbehandler = request.attestering.attestant,
+                            beregning = iverksattBehandling.beregning,
+                            clock = clock,
+                            utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                            uføregrunnlag = when (iverksattBehandling.sakstype) {
+                                Sakstype.ALDER -> {
+                                    emptyList()
+                                }
+                                Sakstype.UFØRE -> {
+                                    iverksattBehandling.vilkårsvurderinger.uføreVilkår()
+                                        .getOrHandle { throw IllegalStateException("Søknadsbehandling uføre: ${iverksattBehandling.id} mangler uføregrunnlag") }
+                                        .grunnlag
+                                }
+                            },
+                        ).let {
+                            sak.simulerUtbetaling(
+                                utbetalingForSimulering = it,
+                                periode = iverksattBehandling.periode,
+                                simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
+                                    utbetalingService.simulerUtbetaling(
+                                        utbetalingForSimulering,
+                                        periode,
+                                    )
+                                },
+                                kontrollerMotTidligereSimulering = iverksattBehandling.simulering,
+                                clock = clock,
+                            )
+                        }.getOrHandle { feil ->
+                            throw IverksettTransactionException(
+                                "Kunne ikke opprette utbetaling. Underliggende feil:$feil.",
+                                KunneIkkeIverksette.KunneIkkeUtbetale(UtbetalingFeilet.KunneIkkeSimulere(feil)),
+                            )
+                        }
                         sessionFactory.withTransactionContext { tx ->
                             /**
                              * OBS: Det er kun exceptions som vil føre til at transaksjonen ruller tilbake.
@@ -401,25 +444,7 @@ internal class SøknadsbehandlingServiceImpl(
                              * Alt som ikke skal påvirke utfallet av iverksettingen skal flyttes ut av blokka. E.g. statistikk.
                              */
                             val nyUtbetaling = utbetalingService.klargjørNyUtbetaling(
-                                utbetaling = sak.lagNyUtbetaling(
-                                    saksbehandler = iverksattBehandling.attesteringer.hentSisteAttestering().attestant,
-                                    beregning = iverksattBehandling.beregning,
-                                    clock = clock,
-                                    uføregrunnlag = when (iverksattBehandling.sakstype) {
-                                        Sakstype.ALDER -> {
-                                            emptyList()
-                                        }
-                                        Sakstype.UFØRE -> {
-                                            iverksattBehandling.vilkårsvurderinger.uføreVilkår()
-                                                .getOrHandle { throw IllegalStateException("Søknadsbehandling uføre: ${iverksattBehandling.id} mangler uføregrunnlag") }
-                                                .grunnlag
-                                        }
-                                    },
-                                    utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
-                                ),
-                                eksisterendeUtbetalinger = sak.utbetalinger,
-                                beregningsperiode = iverksattBehandling.periode,
-                                saksbehandlersSimulering = iverksattBehandling.simulering,
+                                utbetaling = simulertUtbetaling,
                                 transactionContext = tx,
                             ).getOrHandle { feil ->
                                 log.error("Kunne ikke innvilge behandling ${søknadsbehandling.id} siden utbetaling feilet. Feiltype: $feil")

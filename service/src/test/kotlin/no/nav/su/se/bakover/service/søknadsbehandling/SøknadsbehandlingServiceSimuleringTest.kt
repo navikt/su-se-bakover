@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeSimulereBehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.beregnetSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.fixedClock
@@ -20,6 +19,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import java.util.UUID
@@ -35,7 +35,7 @@ internal class SøknadsbehandlingServiceSimuleringTest {
                 on { hentSakForSøknadsbehandling(any()) } doReturn sak
             },
             utbetalingService = mock {
-                on { simulerUtbetaling(any(), any(), any()) } doReturn nyUtbetalingSimulert(
+                on { simulerUtbetaling(any(), any()) } doReturn nyUtbetalingSimulert(
                     sakOgBehandling = sak to beregnet,
                     beregning = beregnet.beregning,
                     clock = fixedClock,
@@ -55,9 +55,8 @@ internal class SøknadsbehandlingServiceSimuleringTest {
             response.shouldBeType<Søknadsbehandling.Simulert>()
 
             verify(it.sakService).hentSakForSøknadsbehandling(beregnet.id)
-            verify(it.utbetalingService).simulerUtbetaling(
+            verify(it.utbetalingService, times(2)).simulerUtbetaling(
                 utbetaling = any(),
-                eksisterendeUtbetalinger = argThat { it shouldBe sak.utbetalinger },
                 beregningsperiode = argThat { it shouldBe beregnet.periode },
             )
             verify(it.søknadsbehandlingRepo).lagre(response)
@@ -89,8 +88,8 @@ internal class SøknadsbehandlingServiceSimuleringTest {
             sakService = mock {
                 on { hentSakForSøknadsbehandling(any()) } doReturn sak
             },
-            utbetalingService = mock<UtbetalingService> {
-                on { simulerUtbetaling(any(), any(), any()) } doReturn SimuleringFeilet.TekniskFeil.left()
+            utbetalingService = mock {
+                on { simulerUtbetaling(any(), any()) } doReturn SimuleringFeilet.TekniskFeil.left()
             },
         ).also {
             val response = it.søknadsbehandlingService.simuler(
@@ -105,7 +104,6 @@ internal class SøknadsbehandlingServiceSimuleringTest {
 
             verify(it.utbetalingService).simulerUtbetaling(
                 utbetaling = any(),
-                eksisterendeUtbetalinger = argThat { it shouldBe sak.utbetalinger },
                 beregningsperiode = argThat { it shouldBe beregnet.periode },
             )
             it.verifyNoMoreInteractions()

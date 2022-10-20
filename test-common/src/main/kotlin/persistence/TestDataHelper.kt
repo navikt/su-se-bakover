@@ -46,7 +46,6 @@ import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -65,7 +64,6 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
-import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.sak.lagUtbetalingForOpphør
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.domain.søknad.Søknad
@@ -109,7 +107,7 @@ import no.nav.su.se.bakover.test.oversendtUtbetalingUtenKvittering
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
-import no.nav.su.se.bakover.test.simulerNyUtbetaling
+import no.nav.su.se.bakover.test.simulerUtbetaling
 import no.nav.su.se.bakover.test.simulering
 import no.nav.su.se.bakover.test.simuleringOpphørt
 import no.nav.su.se.bakover.test.simulertUtbetaling
@@ -123,7 +121,6 @@ import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkår
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt0
 import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttUføreOgAndreInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
-import org.mockito.kotlin.mock
 import java.time.Clock
 import java.time.LocalDate
 import java.util.LinkedList
@@ -573,9 +570,6 @@ class TestDataHelper(
             begrunnelse = "Begrunnelse",
             clock = clock,
         ).getOrFail().simuler(
-            lagUtbetaling = { _, _, _ ->
-                mock() // TODO bare tull, refaktorer vekk hele funksjonen og gjør koblinger mot sak/revurdering
-            },
             simuler = { _, _ ->
                 simulertUtbetaling().simulering.right() // TODO bare tull, refaktorer vekk hele funksjonen og gjør koblinger mot sak/revurdering
             },
@@ -732,21 +726,14 @@ class TestDataHelper(
             beregnet.simuler(
                 saksbehandler = saksbehandler,
                 clock = clock,
-                lagUtbetaling = { navIdentBruker, beregning, uføregrunnlag ->
-                    sak.lagNyUtbetaling(
-                        saksbehandler = navIdentBruker,
-                        beregning = beregning,
-                        clock = clock,
-                        uføregrunnlag = uføregrunnlag,
-                        utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
-                    )
-                },
-                simuler = { utbetalingForSimulering, periode ->
-                    simulerNyUtbetaling(
+                simuler = { _, _ ->
+                    simulerUtbetaling(
                         sak = sak,
-                        utbetaling = utbetalingForSimulering,
-                        beregningsperiode = periode,
-                    )
+                        revurdering = beregnet,
+                        strict = false,
+                    ).map {
+                        it.simulering
+                    }
                 },
             ).getOrFail().let { simulert ->
                 val håndtertForhåndsvarsel = simulert.ikkeSendForhåndsvarsel().getOrFail()
@@ -1257,21 +1244,14 @@ class TestDataHelper(
         ).let { (sak, beregnet) ->
             beregnet.simuler(
                 saksbehandler = saksbehandler,
-                lagUtbetaling = { navIdentBruker, beregning, uføregrunnlag ->
-                    sak.lagNyUtbetaling(
-                        saksbehandler = navIdentBruker,
-                        beregning = beregning,
-                        clock = clock,
-                        uføregrunnlag = uføregrunnlag,
-                        utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
-                    )
-                },
-                simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
-                    simulerNyUtbetaling(
+                simuler = { _, _ ->
+                    simulerUtbetaling(
                         sak = sak,
-                        utbetaling = utbetalingForSimulering,
-                        beregningsperiode = periode,
-                    )
+                        søknadsbehandling = beregnet,
+                        strict = false,
+                    ).map {
+                        it.simulering
+                    }
                 },
             ).getOrFail()
                 .let {
