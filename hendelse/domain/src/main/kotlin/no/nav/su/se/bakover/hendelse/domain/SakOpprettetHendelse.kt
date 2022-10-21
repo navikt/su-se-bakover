@@ -13,22 +13,27 @@ import java.util.UUID
  */
 // TODO jah: FLytt nærmere sak/sakRepo
 data class SakOpprettetHendelse private constructor(
-    override val hendelseId: UUID,
+    override val hendelseId: HendelseId,
     override val sakId: UUID,
     val fnr: Fnr,
     val opprettetAv: NavIdentBruker,
     override val hendelsestidspunkt: Tidspunkt,
     override val meta: HendelseMetadata,
 ) : Hendelse {
+    override val tidligereHendelseId: HendelseId? = null
     override val entitetId = sakId
 
     // Dette vil alltid være første versjon i en hendelsesserie for en sak.
     override val versjon = Hendelsesversjon(1L)
+    override fun compareTo(other: Hendelse): Int {
+        require(this.entitetId == other.entitetId && this.sakId == other.sakId)
+        return this.versjon.compareTo(other.versjon)
+    }
 
     companion object {
         /** Reservert for persisteringslaget/tester. */
         fun fraPersistert(
-            hendelseId: UUID = UUID.randomUUID(),
+            hendelseId: HendelseId = HendelseId.generer(),
             sakId: UUID,
             fnr: Fnr,
             opprettetAv: NavIdentBruker,

@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.persistence.hentListe
 import no.nav.su.se.bakover.common.persistence.insert
 import no.nav.su.se.bakover.common.persistence.tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.Hendelse
+import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.hendelse.domain.SakOpprettetHendelse
@@ -33,9 +34,10 @@ class HendelsePostgresRepo(
         dbMetrics.timeQuery("persisterHendelse") {
             sessionContext.withSession { session ->
                 """
-                    insert into hendelse (hendelseId, sakId, type, data, meta, hendelsestidspunkt, entitetId, versjon)
+                    insert into hendelse (hendelseId, tidligereHendelseId, sakId, type, data, meta, hendelsestidspunkt, entitetId, versjon)
                     values(
                         :hendelseId,
+                        :tidligereHendelseId,
                         :sakId,
                         :type,
                         to_jsonb(:data::jsonb),
@@ -46,7 +48,8 @@ class HendelsePostgresRepo(
                     )
                 """.trimIndent().insert(
                     params = mapOf(
-                        "hendelseId" to hendelse.hendelseId,
+                        "hendelseId" to hendelse.hendelseId.value,
+                        "tidligereHendelseId" to hendelse.tidligereHendelseId?.value,
                         "sakId" to hendelse.sakId,
                         "type" to type,
                         "data" to data,
@@ -90,16 +93,15 @@ class HendelsePostgresRepo(
         typer: NonEmptyList<String>,
         sessionContext: SessionContext = sessionFactory.newSessionContext(),
     ): List<PersistertHendelse> {
-        return dbMetrics.timeQuery("hentHendelserForSakIdOgType") {
+        return dbMetrics.timeQuery("hentHendelserForSakIdOgTyper") {
             sessionContext.withSession { session ->
                 """
                     select * from hendelse
-                    where sakId = :sakId and type IN (:type)
+                    where sakId = :sakId and type IN (${typer.joinToString { "'$it'" }})
                     order by versjon
                 """.trimIndent().hentListe(
                     params = mapOf(
                         "sakId" to sakId,
-                        "type" to typer.joinToString { "," },
                     ),
                     session = session,
                 ) { toPersistertHendelse(it) }
@@ -123,7 +125,7 @@ class HendelsePostgresRepo(
                     session = session,
                 ) {
                     SakOpprettetHendelseJson.toDomain(
-                        hendelseId = it.uuid("hendelseId"),
+                        hendelseId = HendelseId.fromUUID(it.uuid("hendelseId")),
                         sakId = it.uuid("sakId"),
                         metadata = MetadataJson.toDomain(it.string("meta")),
                         json = it.string("data"),
@@ -166,7 +168,9 @@ class HendelsePostgresRepo(
             type = it.string("type"),
             sakId = it.uuidOrNull("sakId"),
             hendelseId = it.uuid("hendelseId"),
+            tidligereHendelseId = it.uuidOrNull("tidligereHendelseId"),
             hendelseMetadata = MetadataJson.toDomain(it.string("meta")),
+            enitetId = it.uuid("entitetId"),
         )
     }
 }

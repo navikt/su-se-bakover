@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.utenlandsopphold
 
 import io.kotest.matchers.shouldBe
+import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -9,17 +10,24 @@ import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.web.SharedRegressionTestData.defaultRequest
 
-fun ApplicationTestBuilder.ugyldiggjørUtenlandsopphold(
+fun ApplicationTestBuilder.annullerUtenlandsopphold(
     sakId: String,
-    utenlandsoppholdId: String,
+    saksversjon: Long,
+    annullererVersjon: Long,
+    expectedHttpStatusCode: HttpStatusCode = HttpStatusCode.OK,
 ): String {
     return runBlocking {
+        val body = """
+          {
+            "saksversjon": $saksversjon
+          }
+        """.trimIndent()
         defaultRequest(
-            HttpMethod.Delete,
-            "/saker/$sakId/utenlandsopphold/$utenlandsoppholdId",
+            HttpMethod.Patch,
+            "/saker/$sakId/utenlandsopphold/$annullererVersjon",
             listOf(Brukerrolle.Saksbehandler),
-        ).apply {
-            status shouldBe HttpStatusCode.OK
+        ) { setBody(body) }.apply {
+            status shouldBe expectedHttpStatusCode
         }.bodyAsText()
     }
 }

@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.utenlandsopphold.infrastruture.web.RegistrerteUtenlandsoppholdJson
+import no.nav.su.se.bakover.utenlandsopphold.infrastruture.web.RegistrerteUtenlandsoppholdJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.klage.KlageJson
 import no.nav.su.se.bakover.web.routes.klage.toJson
 import no.nav.su.se.bakover.web.routes.regulering.ReguleringJson
@@ -38,6 +39,7 @@ internal data class SakJson(
     val sakstype: String,
     val vedtakPåTidslinje: List<VedtakPåTidslinjeJson>,
     val utenlandsopphold: RegistrerteUtenlandsoppholdJson,
+    val versjon: Long,
 ) {
     companion object {
         internal fun Sak.toJson(clock: Clock, satsFactory: SatsFactory) = SakJson(
@@ -68,8 +70,8 @@ internal data class SakJson(
             },
             sakstype = type.toJson(),
             vedtakPåTidslinje = this.vedtakstidslinje().tidslinje.toJson(),
-            // TODO jah: Innhold kommer i senere PRs.
-            utenlandsopphold = RegistrerteUtenlandsoppholdJson(emptyList(), 0),
+            utenlandsopphold = this.utenlandsopphold.toJson(),
+            versjon = this.versjon.value,
         )
     }
 }

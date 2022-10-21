@@ -31,7 +31,6 @@ import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon.Companion.max
 import no.nav.su.se.bakover.utenlandsopphold.domain.UtenlandsoppholdRepo
-import no.nav.su.se.bakover.utenlandsopphold.domain.toRegistrertUtenlandsOpphold
 import java.util.UUID
 
 internal class SakPostgresRepo(
@@ -294,7 +293,7 @@ internal class SakPostgresRepo(
                 reguleringer = reguleringRepo.hentForSakId(sakId, sessionContext),
                 type = Sakstype.from(string("type")),
                 uteståendeAvkorting = avkortingsvarselRepo.hentUteståendeAvkorting(sakId, session),
-                utenlandsopphold = utenlandsoppholdRepo.hentForSakId(sakId, sessionContext).toRegistrertUtenlandsOpphold(),
+                utenlandsopphold = utenlandsoppholdRepo.hentForSakId(sakId, sessionContext).currentState,
                 // TODO jah: Bytt til '!!' etter migrering av OPPRETT_SAK
                 versjon = max(hendelseRepo.hentSisteVersjonFraEntitetId(sakId, sessionContext), Hendelsesversjon(10)),
             )

@@ -231,6 +231,7 @@ object DatabaseBuilder {
             hendelseRepo = hendelseRepo,
             sessionFactory = sessionFactory,
             dbMetrics = dbMetrics,
+            clock = clock,
         )
         return DatabaseRepos(
             avstemming = AvstemmingPostgresRepo(sessionFactory, dbMetrics),

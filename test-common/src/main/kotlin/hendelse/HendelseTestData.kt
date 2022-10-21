@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.SakOpprettetHendelse
 import no.nav.su.se.bakover.test.correlationId
@@ -12,7 +13,7 @@ import no.nav.su.se.bakover.test.saksbehandler
 import java.util.UUID
 
 fun sakOpprettetHendelse(
-    hendelseId: UUID = UUID.randomUUID(),
+    hendelseId: HendelseId = HendelseId.generer(),
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     opprettetAv: NavIdentBruker = saksbehandler,

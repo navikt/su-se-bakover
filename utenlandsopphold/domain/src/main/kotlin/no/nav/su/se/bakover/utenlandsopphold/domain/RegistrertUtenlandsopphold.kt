@@ -5,14 +5,9 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.common.periode.DatoIntervall
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
-import java.util.UUID
 
-/**
- *  @param utenlandsoppholdId Identifiserer et utenlandsopphold (følger registreringen og endringer).
- */
 // TODO: Mulig å lage en DatoIntervallisert interface for å få tilgang på DatoIntervall sine funksjoner
 data class RegistrertUtenlandsopphold private constructor(
-    val utenlandsoppholdId: UUID,
     val periode: DatoIntervall,
     val dokumentasjon: UtenlandsoppholdDokumentasjon,
     val journalposter: List<JournalpostId>,
@@ -31,8 +26,7 @@ data class RegistrertUtenlandsopphold private constructor(
         get() = (periode.antallDager() - 2).coerceAtLeast(0)
 
     companion object {
-        fun fraHendelse(
-            utenlandsoppholdId: UUID,
+        fun create(
             periode: DatoIntervall,
             dokumentasjon: UtenlandsoppholdDokumentasjon,
             journalposter: List<JournalpostId>,
@@ -44,7 +38,6 @@ data class RegistrertUtenlandsopphold private constructor(
             versjon: Hendelsesversjon,
         ): RegistrertUtenlandsopphold {
             return RegistrertUtenlandsopphold(
-                utenlandsoppholdId = utenlandsoppholdId,
                 periode = periode,
                 dokumentasjon = dokumentasjon,
                 journalposter = journalposter,
@@ -58,6 +51,3 @@ data class RegistrertUtenlandsopphold private constructor(
         }
     }
 }
-
-val List<RegistrertUtenlandsopphold>.antallDager
-    get() = this.sumOf { it.antallDager }

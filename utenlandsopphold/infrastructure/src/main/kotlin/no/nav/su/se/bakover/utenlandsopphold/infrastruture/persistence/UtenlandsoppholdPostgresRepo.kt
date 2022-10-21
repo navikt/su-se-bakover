@@ -4,69 +4,55 @@ import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.persistence.DbMetrics
 import no.nav.su.se.bakover.common.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.persistence.SessionContext
-import no.nav.su.se.bakover.common.persistence.hent
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
-import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo.Companion.toPersistertHendelse
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.PersistertHendelse
 import no.nav.su.se.bakover.utenlandsopphold.domain.UtenlandsoppholdHendelse
+import no.nav.su.se.bakover.utenlandsopphold.domain.UtenlandsoppholdHendelser
 import no.nav.su.se.bakover.utenlandsopphold.domain.UtenlandsoppholdRepo
-import no.nav.su.se.bakover.utenlandsopphold.domain.oppdater.OppdaterUtenlandsoppholdHendelse
+import no.nav.su.se.bakover.utenlandsopphold.domain.annuller.AnnullerUtenlandsoppholdHendelse
+import no.nav.su.se.bakover.utenlandsopphold.domain.korriger.KorrigerUtenlandsoppholdHendelse
 import no.nav.su.se.bakover.utenlandsopphold.domain.registrer.RegistrerUtenlandsoppholdHendelse
+import no.nav.su.se.bakover.utenlandsopphold.infrastruture.persistence.AnnullerUtenlandsoppholdJson.Companion.toAnnullertUtenlandsoppholdHendelse
+import no.nav.su.se.bakover.utenlandsopphold.infrastruture.persistence.AnnullerUtenlandsoppholdJson.Companion.toJson
+import no.nav.su.se.bakover.utenlandsopphold.infrastruture.persistence.KorrigerUtenlandsoppholdJson.Companion.toJson
+import no.nav.su.se.bakover.utenlandsopphold.infrastruture.persistence.KorrigerUtenlandsoppholdJson.Companion.toKorrigerUtenlandsoppholdHendelse
 import no.nav.su.se.bakover.utenlandsopphold.infrastruture.persistence.RegistrertUtenlandsoppholdJson.Companion.toJson
-import no.nav.su.se.bakover.utenlandsopphold.infrastruture.persistence.RegistrertUtenlandsoppholdJson.Companion.toOppdaterUtenlandsoppholdHendelse
 import no.nav.su.se.bakover.utenlandsopphold.infrastruture.persistence.RegistrertUtenlandsoppholdJson.Companion.toRegistrerUtenlandsoppholdHendelse
+import java.time.Clock
 import java.util.UUID
 
 private const val RegistrerUtenlandsoppholdHendelsestype = "REGISTRER_UTENLANDSOPPHOLD"
-private const val OppdaterUtenlandsoppholdHendelsestype = "OPPDATER_UTENLANDSOPPHOLD"
+private const val KorrigerUtenlandsoppholdHendelsestype = "KORRIGER_UTENLANDSOPPHOLD"
+private const val AnnullerUtenlandsoppholdHendelsestype = "ANNULLER_UTENLANDSOPPHOLD"
 
-private val alleTyper = nonEmptyListOf(RegistrerUtenlandsoppholdHendelsestype, OppdaterUtenlandsoppholdHendelsestype)
+private val alleTyper = nonEmptyListOf(
+    RegistrerUtenlandsoppholdHendelsestype,
+    KorrigerUtenlandsoppholdHendelsestype,
+    AnnullerUtenlandsoppholdHendelsestype,
+)
 
 class UtenlandsoppholdPostgresRepo(
     private val hendelseRepo: HendelsePostgresRepo,
     private val sessionFactory: PostgresSessionFactory,
     private val dbMetrics: DbMetrics,
+    private val clock: Clock,
 ) : UtenlandsoppholdRepo {
 
     override fun lagre(hendelse: RegistrerUtenlandsoppholdHendelse) {
-        lagre(hendelse, RegistrerUtenlandsoppholdHendelsestype)
+        dbMetrics.timeQuery("persisterRegistrerUtenlandsoppholdHendelse") {
+            hendelseRepo.persister(hendelse, RegistrerUtenlandsoppholdHendelsestype, hendelse.toJson())
+        }
     }
 
-    override fun lagre(hendelse: OppdaterUtenlandsoppholdHendelse) {
-        lagre(hendelse, OppdaterUtenlandsoppholdHendelsestype)
+    override fun lagre(hendelse: KorrigerUtenlandsoppholdHendelse) {
+        dbMetrics.timeQuery("persisterKorrigerUtenlandsoppholdHendelse") {
+            hendelseRepo.persister(hendelse, KorrigerUtenlandsoppholdHendelsestype, hendelse.toJson())
+        }
     }
 
-    private fun lagre(
-        hendelse: UtenlandsoppholdHendelse,
-        type: String,
-    ) {
-        hendelseRepo.persister(
-            hendelse = hendelse,
-            type = type,
-            data = hendelse.toJson(),
-        )
-    }
-
-    override fun hentSisteHendelse(sakId: UUID, utenlandsoppholdId: UUID): UtenlandsoppholdHendelse? {
-        return dbMetrics.timeQuery("hentSisteHendelseforUtenlandsoppholdId") {
-            sessionFactory.withSession { session ->
-                """
-                    select * from hendelse
-                    where sakId = :sakId
-                        and type IN (${alleTyper.joinToString { "'$it'" }})
-                        and (data->>'utenlandsoppholdId')::uuid = :utenlandsoppholdId
-                    order by versjon desc
-                    limit 1
-                """.trimIndent().hent(
-                    params = mapOf(
-                        "sakId" to sakId,
-                        "utenlandsoppholdId" to utenlandsoppholdId,
-                    ),
-                    session = session,
-                ) {
-                    toPersistertHendelse(it).toUtenlandsoppholdHendelse()
-                }
-            }
+    override fun lagre(hendelse: AnnullerUtenlandsoppholdHendelse) {
+        dbMetrics.timeQuery("persisterAnnullerUtenlandsoppholdHendelse") {
+            hendelseRepo.persister(hendelse, AnnullerUtenlandsoppholdHendelsestype, hendelse.toJson())
         }
     }
 
@@ -74,15 +60,24 @@ class UtenlandsoppholdPostgresRepo(
         return sessionFactory.newSessionContext()
     }
 
-    override fun hentForSakId(sakId: UUID, sessionContext: SessionContext): List<UtenlandsoppholdHendelse> {
-        return hendelseRepo.hentHendelserForSakIdOgTyper(sakId, alleTyper, sessionContext).map {
-            it.toUtenlandsoppholdHendelse()
+    override fun hentForSakId(sakId: UUID, sessionContext: SessionContext): UtenlandsoppholdHendelser {
+        return dbMetrics.timeQuery("hentUtenlandsoppholdHendelserForSakId") {
+            hendelseRepo.hentHendelserForSakIdOgTyper(sakId, alleTyper, sessionContext).map {
+                it.toUtenlandsoppholdHendelse()
+            }.let {
+                UtenlandsoppholdHendelser.create(
+                    sakId = sakId,
+                    clock = clock,
+                    hendelser = it,
+                )
+            }
         }
     }
 }
 
 private fun PersistertHendelse.toUtenlandsoppholdHendelse(): UtenlandsoppholdHendelse = when (this.type) {
     RegistrerUtenlandsoppholdHendelsestype -> this.toRegistrerUtenlandsoppholdHendelse()
-    OppdaterUtenlandsoppholdHendelsestype -> this.toOppdaterUtenlandsoppholdHendelse()
+    KorrigerUtenlandsoppholdHendelsestype -> this.toKorrigerUtenlandsoppholdHendelse()
+    AnnullerUtenlandsoppholdHendelsestype -> this.toAnnullertUtenlandsoppholdHendelse()
     else -> throw IllegalStateException("Ukjent utenlandsoppholdhendelsestype")
 }

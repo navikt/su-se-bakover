@@ -10,18 +10,19 @@ import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson.Compan
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.PersistertHendelse
-import no.nav.su.se.bakover.utenlandsopphold.domain.registrer.RegistrerUtenlandsoppholdHendelse
+import no.nav.su.se.bakover.utenlandsopphold.domain.korriger.KorrigerUtenlandsoppholdHendelse
 import no.nav.su.se.bakover.utenlandsopphold.infrastruture.persistence.UtenlandsoppholdDokumentasjonDatabaseJson.Companion.toJson
 
-internal data class RegistrertUtenlandsoppholdJson(
+internal data class KorrigerUtenlandsoppholdJson(
     val periode: PeriodeJson,
     val dokumentasjon: UtenlandsoppholdDokumentasjonDatabaseJson,
     val journalposter: List<String>,
     val ident: IdentJson,
 ) {
     companion object {
-        fun RegistrerUtenlandsoppholdHendelse.toJson(): String {
-            return RegistrertUtenlandsoppholdJson(
+
+        fun KorrigerUtenlandsoppholdHendelse.toJson(): String {
+            return KorrigerUtenlandsoppholdJson(
                 periode = periode.toJson(),
                 dokumentasjon = this.dokumentasjon.toJson(),
                 ident = this.utførtAv.toIdentJson(),
@@ -31,18 +32,19 @@ internal data class RegistrertUtenlandsoppholdJson(
             }
         }
 
-        fun PersistertHendelse.toRegistrerUtenlandsoppholdHendelse(): RegistrerUtenlandsoppholdHendelse {
-            return deserialize<RegistrertUtenlandsoppholdJson>(this.data).let { json ->
-                RegistrerUtenlandsoppholdHendelse.fraPersistert(
+        fun PersistertHendelse.toKorrigerUtenlandsoppholdHendelse(): KorrigerUtenlandsoppholdHendelse {
+            return deserialize<KorrigerUtenlandsoppholdJson>(this.data).let { json ->
+                KorrigerUtenlandsoppholdHendelse.fraPersistert(
                     hendelseId = HendelseId.fromUUID(this.hendelseId),
+                    tidligereHendelseId = HendelseId.fromUUID(this.tidligereHendelseId!!),
                     sakId = this.sakId!!,
                     periode = json.periode.toDatoIntervall(),
                     dokumentasjon = json.dokumentasjon.toDomain(),
                     journalposter = json.journalposter.map { JournalpostId(it) },
-                    opprettetAv = json.ident.toDomain() as NavIdentBruker.Saksbehandler,
+                    utførtAv = json.ident.toDomain() as NavIdentBruker.Saksbehandler,
                     hendelsestidspunkt = this.hendelsestidspunkt,
+                    versjon = this.versjon,
                     hendelseMetadata = this.hendelseMetadata,
-                    forrigeVersjon = this.versjon,
                     entitetId = this.enitetId,
                 )
             }

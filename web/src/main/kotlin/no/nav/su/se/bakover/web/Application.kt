@@ -54,7 +54,8 @@ import no.nav.su.se.bakover.service.AccessCheckProxy
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.Tilgangssjekkfeil
-import no.nav.su.se.bakover.utenlandsopphold.application.oppdater.OppdaterUtenlandsoppholdService
+import no.nav.su.se.bakover.utenlandsopphold.application.annuller.AnnullerUtenlandsoppholdService
+import no.nav.su.se.bakover.utenlandsopphold.application.korriger.KorrigerUtenlandsoppholdService
 import no.nav.su.se.bakover.utenlandsopphold.application.registrer.RegistrerUtenlandsoppholdService
 import no.nav.su.se.bakover.utenlandsopphold.infrastruture.web.utenlandsoppholdRoutes
 import no.nav.su.se.bakover.web.external.frikortVedtakRoutes
@@ -288,12 +289,14 @@ fun Application.susebakover(
                         registerService = RegistrerUtenlandsoppholdService(
                             sakRepo = databaseRepos.sak,
                             utenlandsoppholdRepo = databaseRepos.utenlandsoppholdRepo,
-                            clock = clock,
                         ),
-                        oppdaterService = OppdaterUtenlandsoppholdService(
+                        korrigerService = KorrigerUtenlandsoppholdService(
                             sakRepo = databaseRepos.sak,
                             utenlandsoppholdRepo = databaseRepos.utenlandsoppholdRepo,
-                            clock = clock,
+                        ),
+                        annullerService = AnnullerUtenlandsoppholdService(
+                            sakRepo = databaseRepos.sak,
+                            utenlandsoppholdRepo = databaseRepos.utenlandsoppholdRepo,
                         ),
                     )
                 }

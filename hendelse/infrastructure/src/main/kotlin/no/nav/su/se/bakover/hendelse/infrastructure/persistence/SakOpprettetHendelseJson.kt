@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.infrastructure.ident.IdentJson
 import no.nav.su.se.bakover.common.infrastructure.ident.IdentJson.Companion.toIdentJson
+import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.SakOpprettetHendelse
 import java.util.UUID
@@ -27,7 +28,7 @@ internal data class SakOpprettetHendelseJson(
         }
 
         internal fun toDomain(
-            hendelseId: UUID,
+            hendelseId: HendelseId,
             sakId: UUID,
             metadata: HendelseMetadata,
             json: String,

@@ -16,7 +16,8 @@ fun ApplicationTestBuilder.nyttUtenlandsopphold(
     tilOgMed: String = "2021-10-10",
     journalpostIder: String = "[1234567]",
     dokumentasjon: String = "Sannsynliggjort",
-    versjon: Long = 10,
+    saksversjon: Long = 10,
+    expectedHttpStatusCode: HttpStatusCode = HttpStatusCode.Created,
 ): String {
     val body = """
       {
@@ -26,7 +27,7 @@ fun ApplicationTestBuilder.nyttUtenlandsopphold(
         },
         "journalposter": $journalpostIder,
         "dokumentasjon": "$dokumentasjon",
-        "saksversjon": $versjon
+        "saksversjon": $saksversjon
       }
     """.trimIndent()
     return runBlocking {
@@ -35,7 +36,7 @@ fun ApplicationTestBuilder.nyttUtenlandsopphold(
             "/saker/$sakId/utenlandsopphold",
             listOf(Brukerrolle.Saksbehandler),
         ) { setBody(body) }.apply {
-            status shouldBe HttpStatusCode.Created
+            status shouldBe expectedHttpStatusCode
         }.bodyAsText()
     }
 }
