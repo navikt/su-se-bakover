@@ -4,8 +4,8 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragResponseJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragResponseJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.vilkår.FamiliegjenforeningVilkårJson
 import no.nav.su.se.bakover.web.routes.vilkår.FamiliegjenforeningVilkårJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.vilkår.PersonligOppmøteVilkårJson
@@ -26,7 +26,7 @@ import no.nav.su.se.bakover.web.routes.vilkår.toJson
 internal data class GrunnlagsdataOgVilkårsvurderingerJson(
     val uføre: UføreVilkårJson?,
     val lovligOpphold: LovligOppholdVilkårJson?,
-    val fradrag: List<FradragJson>,
+    val fradrag: List<FradragResponseJson>,
     val bosituasjon: List<BosituasjonJson>,
     val formue: FormuevilkårJson?,
     val utenlandsopphold: UtenlandsoppholdVilkårJson?,

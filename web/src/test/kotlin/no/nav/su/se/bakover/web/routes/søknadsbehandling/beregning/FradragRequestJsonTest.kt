@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import org.junit.jupiter.api.Test
 
-internal class FradragJsonTest {
+internal class FradragRequestJsonTest {
 
     @Test
     fun `støtter fradrag input med periode`() {
@@ -29,7 +29,7 @@ internal class FradragJsonTest {
         }
         """.trimIndent()
 
-        deserialize<FradragJson>(fradragJson) shouldBe FradragJson(
+        deserialize<FradragRequestJson>(fradragJson) shouldBe FradragRequestJson(
             periode = PeriodeJson("2020-01-01", "2020-01-31"),
             type = Fradragstype.Kategori.Arbeidsinntekt.toString(),
             beskrivelse = null,
@@ -51,7 +51,7 @@ internal class FradragJsonTest {
         }
         """.trimIndent()
 
-        deserialize<FradragJson>(fradragJson) shouldBe FradragJson(
+        deserialize<FradragRequestJson>(fradragJson) shouldBe FradragRequestJson(
             periode = null,
             type = Fradragstype.Kategori.Arbeidsinntekt.toString(),
             beskrivelse = null,
@@ -63,7 +63,7 @@ internal class FradragJsonTest {
 
     @Test
     fun `fradrag som ikke har egen periode bruker den som sendes inn i mappingfunksjonen`() {
-        val jsonUtenPeriode = FradragJson(
+        val jsonUtenPeriode = FradragRequestJson(
             periode = null,
             type = Fradragstype.Kategori.Arbeidsinntekt.toString(),
             beskrivelse = null,
@@ -86,7 +86,7 @@ internal class FradragJsonTest {
 
     @Test
     fun `fradrag som har egen periode bruker benytter denne`() {
-        val jsonUtenPeriode = FradragJson(
+        val jsonUtenPeriode = FradragRequestJson(
             periode = PeriodeJson("2021-01-01", "2021-01-31"),
             type = Fradragstype.Kategori.Arbeidsinntekt.toString(),
             beskrivelse = null,
