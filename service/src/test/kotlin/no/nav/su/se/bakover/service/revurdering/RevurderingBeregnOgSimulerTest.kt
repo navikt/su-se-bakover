@@ -32,11 +32,11 @@ import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.nyUtbetalingSimulert
-import no.nav.su.se.bakover.test.opphørUtbetalingSimulert
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.revurderingTilAttestering
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
+import no.nav.su.se.bakover.test.simulerOpphør
 import no.nav.su.se.bakover.test.simulerUtbetaling
 import no.nav.su.se.bakover.test.simulertUtbetaling
 import no.nav.su.se.bakover.test.stønadsperiode2021
@@ -70,20 +70,27 @@ internal class RevurderingBeregnOgSimulerTest {
             vilkårOverrides = listOf(
                 avslåttUførevilkårUtenGrunnlag(),
             ),
+            clock = tikkendeFixedClock,
         )
 
         val serviceAndMocks = RevurderingServiceMocks(
             revurderingRepo = mock(),
             utbetalingService = mock {
-                on { simulerOpphør(any(), any(), any()) } doReturn opphørUtbetalingSimulert(
-                    sakOgBehandling = sak to opprettet,
-                    opphørsperiode = opprettet.periode,
-                    clock = fixedClock,
-                ).right()
+                on {
+                    simulerUtbetaling(
+                        any(),
+                        any(),
+                    )
+                } doReturn simulerOpphør(
+                    sak = sak,
+                    revurdering = opprettet,
+                    clock = tikkendeFixedClock,
+                )
             },
             sakService = mock {
                 on { hentSakForRevurdering(any()) } doReturn sak
             },
+            clock = tikkendeFixedClock,
         )
 
         val response = serviceAndMocks.revurderingService.beregnOgSimuler(
@@ -144,21 +151,27 @@ internal class RevurderingBeregnOgSimulerTest {
                     periode = år(2021),
                 ),
             ),
+            clock = tikkendeFixedClock,
         )
 
         RevurderingServiceMocks(
             revurderingRepo = mock(),
             utbetalingService = mock {
-                on { simulerOpphør(any(), any(), any()) } doReturn opphørUtbetalingSimulert(
-                    sakOgBehandling = sak to revurdering,
-                    opphørsperiode = revurdering.periode,
-                    clock = fixedClock,
-
-                ).right()
+                on {
+                    simulerUtbetaling(
+                        any(),
+                        any(),
+                    )
+                } doReturn simulerOpphør(
+                    sak = sak,
+                    revurdering = revurdering,
+                    clock = tikkendeFixedClock,
+                )
             },
             sakService = mock {
                 on { hentSakForRevurdering(any()) } doReturn sak
             },
+            clock = tikkendeFixedClock,
         ).let {
             val response = it.revurderingService.beregnOgSimuler(
                 revurderingId = revurdering.id,
@@ -381,20 +394,27 @@ internal class RevurderingBeregnOgSimulerTest {
             vilkårOverrides = listOf(
                 avslåttUførevilkårUtenGrunnlag(),
             ),
+            clock = tikkendeFixedClock,
         )
 
         val serviceAndMocks = RevurderingServiceMocks(
             revurderingRepo = mock(),
             utbetalingService = mock {
-                on { simulerOpphør(any(), any(), any()) } doReturn opphørUtbetalingSimulert(
-                    sakOgBehandling = sak to opprettet,
-                    opphørsperiode = opprettet.periode,
-                    clock = fixedClock,
-                ).right()
+                on {
+                    simulerUtbetaling(
+                        any(),
+                        any(),
+                    )
+                } doReturn simulerOpphør(
+                    sak = sak,
+                    revurdering = opprettet,
+                    clock = tikkendeFixedClock,
+                )
             },
             sakService = mock {
                 on { hentSakForRevurdering(any()) } doReturn sak
             },
+            clock = tikkendeFixedClock,
         )
         val actual = serviceAndMocks.revurderingService.beregnOgSimuler(
             revurderingId = opprettet.id,
@@ -407,14 +427,11 @@ internal class RevurderingBeregnOgSimulerTest {
             *serviceAndMocks.all(),
         ) {
             verify(serviceAndMocks.sakService).hentSakForRevurdering(opprettet.id)
-            verify(serviceAndMocks.utbetalingService).simulerOpphør(
+            verify(serviceAndMocks.utbetalingService, times(2)).simulerUtbetaling(
                 argThat {
                     it.tidligsteDato() shouldBe opprettet.periode.fraOgMed
                     it.senesteDato() shouldBe opprettet.periode.tilOgMed
                     it.behandler shouldBe NavIdentBruker.Saksbehandler("s1")
-                },
-                argThat {
-                    it shouldBe sak.utbetalinger
                 },
                 argThat {
                     it shouldBe opprettet.periode

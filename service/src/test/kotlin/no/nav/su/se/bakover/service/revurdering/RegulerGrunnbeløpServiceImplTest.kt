@@ -33,6 +33,7 @@ import no.nav.su.se.bakover.test.revurderingUnderkjent
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.simulertRevurdering
+import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.vilkår.flyktningVilkårAvslått
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkår
@@ -206,6 +207,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
                 vilkårOverrides = listOf(
                     flyktningVilkårAvslått(),
                 ),
+                clock = tikkendeFixedClock,
             )
         }.also {
             it.message shouldContain "KanIkkeSendeEnOpphørtGReguleringTilAttestering"

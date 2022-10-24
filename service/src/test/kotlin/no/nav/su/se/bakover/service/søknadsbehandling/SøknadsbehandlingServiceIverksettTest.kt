@@ -347,7 +347,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     doThrow(RuntimeException()).whenever(it).lagre(any(), anyOrNull())
                 },
                 utbetalingService = mock {
-                    on { klargjørNyUtbetaling(any(), any()) } doReturn utbetalingMedCallback.right()
+                    on { klargjørUtbetaling(any(), any()) } doReturn utbetalingMedCallback.right()
                 },
                 kontrollsamtaleService = mock {
                     on {
@@ -388,7 +388,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     doNothing().whenever(it).lagre(any(), anyOrNull())
                 },
                 utbetalingService = mock {
-                    on { klargjørNyUtbetaling(any(), any()) } doReturn utbetalingMedCallback.right()
+                    on { klargjørUtbetaling(any(), any()) } doReturn utbetalingMedCallback.right()
                 },
                 kontrollsamtaleService = mock {
                     on {
@@ -428,7 +428,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     doNothing().whenever(it).lagre(any(), anyOrNull())
                 },
                 utbetalingService = mock {
-                    on { klargjørNyUtbetaling(any(), any()) } doReturn utbetalingMedCallback.right()
+                    on { klargjørUtbetaling(any(), any()) } doReturn utbetalingMedCallback.right()
                 },
                 kontrollsamtaleService = mock {
                     on {
@@ -488,7 +488,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                         sak = sak,
                         søknadsbehandling = innvilgetTilAttestering,
                     )
-                    on { klargjørNyUtbetaling(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
+                    on { klargjørUtbetaling(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
                 },
                 vedtakRepo = mock {
                     doNothing().whenever(it).lagre(any(), anyOrNull())
@@ -540,7 +540,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                         sak = sak,
                         søknadsbehandling = innvilgetTilAttestering,
                     )
-                    on { klargjørNyUtbetaling(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
+                    on { klargjørUtbetaling(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
                 },
                 kontrollsamtaleService = mock {
                     on {
@@ -593,7 +593,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 any(),
                 any(),
             )
-            verify(serviceAndMocks.utbetalingService).klargjørNyUtbetaling(
+            verify(serviceAndMocks.utbetalingService).klargjørUtbetaling(
                 utbetaling = any(),
                 transactionContext = argThat { it shouldBe TestSessionFactory.transactionContext },
             )
@@ -657,7 +657,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                         sak = sak,
                         søknadsbehandling = innvilgetTilAttestering,
                     )
-                    on { klargjørNyUtbetaling(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
+                    on { klargjørUtbetaling(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
                 },
                 kontrollsamtaleService = mock {
                     on {
@@ -726,7 +726,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                         sak = sak,
                         søknadsbehandling = innvilgetTilAttestering,
                     )
-                    on { klargjørNyUtbetaling(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
+                    on { klargjørUtbetaling(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
                 },
                 kontrollsamtaleService = mock {
                     on {
@@ -783,7 +783,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                         sak = sak,
                         søknadsbehandling = innvilgetTilAttestering,
                     )
-                    on { klargjørNyUtbetaling(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
+                    on { klargjørUtbetaling(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
                 },
                 kontrollsamtaleService = mock {
                     on {
@@ -823,7 +823,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     doThrow(RuntimeException()).whenever(it).lagre(any(), anyOrNull())
                 },
                 utbetalingService = mock {
-                    on { klargjørNyUtbetaling(any(), any()) } doReturn utbetalingMedCallback.right()
+                    on { klargjørUtbetaling(any(), any()) } doReturn utbetalingMedCallback.right()
                 },
                 kontrollsamtaleService = mock {
                     on {
@@ -863,7 +863,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     doNothing().whenever(it).lagre(any(), anyOrNull())
                 },
                 utbetalingService = mock {
-                    on { klargjørNyUtbetaling(any(), any()) } doThrow RuntimeException()
+                    on { klargjørUtbetaling(any(), any()) } doThrow RuntimeException()
                 },
                 kontrollsamtaleService = mock {
                     on {
@@ -901,7 +901,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     doNothing().whenever(it).lagre(any(), anyOrNull())
                 },
                 utbetalingService = mock {
-                    on { klargjørNyUtbetaling(any(), any()) } doReturn utbetalingMedCallback.right()
+                    on { klargjørUtbetaling(any(), any()) } doReturn utbetalingMedCallback.right()
                 },
                 kontrollsamtaleService = mock {
                     on {

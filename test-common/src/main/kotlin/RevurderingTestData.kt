@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.test
 
 import arrow.core.getOrHandle
 import arrow.core.nonEmptyListOf
-import arrow.core.right
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
@@ -43,7 +42,6 @@ import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
-import no.nav.su.se.bakover.domain.sak.lagUtbetalingForOpphør
 import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
@@ -299,33 +297,17 @@ fun simulertRevurdering(
                 val simulert = beregnet.simuler(
                     saksbehandler = saksbehandler,
                     clock = clock,
-                    simuler = { beregning, uføregrunnlag ->
-                        sak.lagNyUtbetaling(
-                            saksbehandler = saksbehandler,
-                            beregning = beregning,
+                    simuler = { _, _ ->
+                        simulerUtbetaling(
+                            sak = sak,
+                            revurdering = beregnet,
+                            simuleringsperiode = beregnet.periode,
                             clock = clock,
-                            utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
-                            uføregrunnlag = uføregrunnlag,
-                        ).let {
-                            sak.simulerUtbetaling(
-                                utbetalingForSimulering = it,
-                                periode = beregnet.periode,
-                                simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
-                                    simulerUtbetaling(
-                                        sak = sak,
-                                        utbetaling = utbetalingForSimulering,
-                                        simuleringsperiode = periode,
-                                    )
-                                },
-                                kontrollerMotTidligereSimulering = null,
-                                clock = clock,
-                            ).map { simulertUtbetaling ->
-                                simulertUtbetaling.simulering
-                            }
+                        ).map {
+                            it.simulering
                         }
                     },
                 ).getOrFail()
-
                 oppdaterTilbakekrevingsbehandling(simulert)
             }
 
@@ -333,21 +315,16 @@ fun simulertRevurdering(
                 val simulert = beregnet.simuler(
                     saksbehandler = saksbehandler,
                     clock = clock,
-                    lagUtbetaling = sak::lagUtbetalingForOpphør,
-                    eksisterendeUtbetalinger = sak::utbetalinger,
-                ) { utbetaling, eksisterende, opphørsperiode ->
-                    utbetaling.toSimulertUtbetaling(
-                        simuleringOpphørt(
-                            opphørsperiode = opphørsperiode,
-                            eksisterendeUtbetalinger = eksisterende,
-                            fnr = beregnet.fnr,
-                            sakId = beregnet.sakId,
-                            saksnummer = beregnet.saksnummer,
+                    simuler = { periode, saksbehandler ->
+                        simulerOpphør(
+                            sak = sak,
+                            revurdering = beregnet,
+                            simuleringsperiode = periode,
+                            behandler = saksbehandler,
                             clock = clock,
-                        ),
-                    ).right()
-                }.getOrFail()
-
+                        )
+                    },
+                ).getOrFail()
                 oppdaterTilbakekrevingsbehandling(simulert)
             }
         }.prøvÅLeggTilForhåndsvarselPåSimulertRevurdering(forhåndsvarsel)

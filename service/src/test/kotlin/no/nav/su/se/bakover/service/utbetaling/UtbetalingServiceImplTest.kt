@@ -220,17 +220,16 @@ internal class UtbetalingServiceImplTest {
                 },
                 clock = tikkendeFixedClock,
             ).let {
-                it.service.simulerOpphør(
+                it.service.simulerUtbetaling(
                     utbetaling = sak.lagUtbetalingForOpphør(
                         opphørsperiode = 1.februar(2021).rangeTo(vedtak.periode.tilOgMed).toPeriode(),
                         behandler = saksbehandler,
                         clock = tikkendeFixedClock,
                     ),
-                    eksisterendeUtbetalinger = sak.utbetalinger,
-                    opphørsperiode = 1.februar(2021).rangeTo(vedtak.periode.tilOgMed).toPeriode(),
+                    simuleringsperiode = 1.februar(2021).rangeTo(vedtak.periode.tilOgMed).toPeriode(),
                 ).getOrFail() shouldBe beOfType<Utbetaling.SimulertUtbetaling>()
 
-                verify(it.simuleringClient, times(2)).simulerUtbetaling(
+                verify(it.simuleringClient).simulerUtbetaling(
                     request = argThat {
                         it shouldBe beOfType<SimulerUtbetalingForPeriode>()
                         it.simuleringsperiode shouldBe Periode.create(1.februar(2021), 31.desember(2021))

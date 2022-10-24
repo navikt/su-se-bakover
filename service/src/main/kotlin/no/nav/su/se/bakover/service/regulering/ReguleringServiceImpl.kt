@@ -365,7 +365,7 @@ class ReguleringServiceImpl(
                 throw KunneIkkeSendeTilUtbetalingException(UtbetalingFeilet.KunneIkkeSimulere(feil))
             }
             sessionFactory.withTransactionContext { tx ->
-                val nyUtbetaling = utbetalingService.klargjørNyUtbetaling(
+                val nyUtbetaling = utbetalingService.klargjørUtbetaling(
                     utbetaling = utbetaling,
                     transactionContext = tx,
                 ).getOrHandle {

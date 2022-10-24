@@ -1177,15 +1177,10 @@ sealed class BeregnetRevurdering : Revurdering() {
         fun simuler(
             saksbehandler: Saksbehandler,
             clock: Clock,
-            lagUtbetaling: (opphørsperiode: Periode, behandler: NavIdentBruker, clock: Clock) -> Utbetaling.UtbetalingForSimulering,
-            eksisterendeUtbetalinger: () -> List<Utbetaling>,
-            simulerOpphør: (utbetaling: Utbetaling.UtbetalingForSimulering, eksisterendeUtbetalinger: List<Utbetaling>, opphørsperiode: Periode) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
+            simuler: (opphørsperiode: Periode, saksbehandler: Saksbehandler) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
         ): Either<SimuleringFeilet, SimulertRevurdering.Opphørt> {
-            val (simulertUtbetaling, håndtertAvkorting) = simulerOpphør(
-                lagUtbetaling(periode, saksbehandler, clock),
-                eksisterendeUtbetalinger(),
-                periode,
-            ).getOrHandle { return it.left() }
+            val (simulertUtbetaling, håndtertAvkorting) = simuler(periode, saksbehandler)
+                .getOrHandle { return it.left() }
                 .let { simulering ->
                     when (val avkortingsvarsel = lagAvkortingsvarsel(simulering, clock)) {
                         is Avkortingsvarsel.Ingen -> {
@@ -1205,15 +1200,12 @@ sealed class BeregnetRevurdering : Revurdering() {
                         }
 
                         is Avkortingsvarsel.Utenlandsopphold -> {
-                            val nyOpphørsdato = OpphørsperiodeForUtbetalinger(
+                            val nyOpphørsperiode = OpphørsperiodeForUtbetalinger(
                                 revurdering = this,
                                 avkortingsvarsel = avkortingsvarsel,
                             ).value
-                            val simuleringMedNyOpphørsdato = simulerOpphør(
-                                lagUtbetaling(nyOpphørsdato, saksbehandler, clock),
-                                eksisterendeUtbetalinger(),
-                                nyOpphørsdato,
-                            ).getOrHandle { return it.left() }
+                            val simuleringMedNyOpphørsdato = simuler(nyOpphørsperiode, saksbehandler)
+                                .getOrHandle { return it.left() }
 
                             if (simuleringMedNyOpphørsdato.simulering.harFeilutbetalinger()) {
                                 sikkerLogg.error(

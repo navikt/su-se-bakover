@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.test.nåtidForSimuleringStub
 import no.nav.su.se.bakover.test.simulertRevurdering
+import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import org.junit.jupiter.api.Test
@@ -52,6 +53,7 @@ internal class OpphørsperiodeForUtbetalingerTest {
             simulertRevurdering(
                 revurderingsperiode = revurderingsperiode,
                 vilkårOverrides = listOf(utenlandsoppholdAvslag(periode = revurderingsperiode)),
+                clock = tikkendeFixedClock,
             ).second as SimulertRevurdering.Opphørt
         }.also {
             it.message shouldContain "Opphørsdato er utenfor revurderingsperioden"

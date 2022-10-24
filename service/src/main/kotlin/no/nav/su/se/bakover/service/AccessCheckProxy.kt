@@ -241,15 +241,7 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
 
-                override fun simulerOpphør(
-                    utbetaling: Utbetaling.UtbetalingForSimulering,
-                    eksisterendeUtbetalinger: List<Utbetaling>,
-                    opphørsperiode: Periode,
-                ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
-                    kastKanKunKallesFraAnnenService()
-                }
-
-                override fun klargjørNyUtbetaling(utbetaling: Utbetaling.SimulertUtbetaling, transactionContext: TransactionContext): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>> {
+                override fun klargjørUtbetaling(utbetaling: Utbetaling.SimulertUtbetaling, transactionContext: TransactionContext): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>> {
                     kastKanKunKallesFraAnnenService()
                 }
 
@@ -270,16 +262,6 @@ open class AccessCheckProxy(
                 }
 
                 override fun klargjørGjenopptak(utbetaling: Utbetaling.UtbetalingForSimulering, eksisterendeUtbetalinger: List<Utbetaling>, saksbehandlersSimulering: Simulering, transactionContext: TransactionContext): Either<UtbetalGjenopptakFeil, UtbetalingKlargjortForOversendelse<UtbetalGjenopptakFeil.KunneIkkeUtbetale>> {
-                    kastKanKunKallesFraAnnenService()
-                }
-
-                override fun klargjørOpphør(
-                    utbetaling: Utbetaling.UtbetalingForSimulering,
-                    eksisterendeUtbetalinger: List<Utbetaling>,
-                    opphørsperiode: Periode,
-                    saksbehandlersSimulering: Simulering,
-                    transactionContext: TransactionContext,
-                ): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>> {
                     kastKanKunKallesFraAnnenService()
                 }
 

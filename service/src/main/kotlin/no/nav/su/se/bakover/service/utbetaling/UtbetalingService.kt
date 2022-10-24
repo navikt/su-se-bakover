@@ -31,14 +31,8 @@ interface UtbetalingService {
         simuleringsperiode: Periode,
     ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>
 
-    fun simulerOpphør(
-        utbetaling: Utbetaling.UtbetalingForSimulering,
-        eksisterendeUtbetalinger: List<Utbetaling>,
-        opphørsperiode: Periode,
-    ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>
-
     /**
-     * Oppretter nye utbetalinger, lagrer i databasen og klargjør utbetalingene for oversendelse til OS (lager XML-request)
+     * Lagrer i databasen og klargjør utbetalingene for oversendelse til OS (lager XML-request)
      * Konsumenten av denne funksjonen er ansvarlig for håndtering av [transactionContext] i tillegg til å kalle [UtbetalingKlargjortForOversendelse.callback]
      * på et hensiktsmessig tidspunkt.
      *
@@ -47,7 +41,7 @@ interface UtbetalingService {
      * som det siste steget i [transactionContext], slik at eventuelle feil her kan rulle tilbake hele transaksjonen.
      */
 
-    fun klargjørNyUtbetaling(
+    fun klargjørUtbetaling(
         utbetaling: Utbetaling.SimulertUtbetaling,
         transactionContext: TransactionContext,
     ): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>
@@ -91,24 +85,6 @@ interface UtbetalingService {
         saksbehandlersSimulering: Simulering,
         transactionContext: TransactionContext,
     ): Either<UtbetalGjenopptakFeil, UtbetalingKlargjortForOversendelse<UtbetalGjenopptakFeil.KunneIkkeUtbetale>>
-
-    /**
-     * Oppretter utbetalinger for opphør, lagrer i databasen og klargjør utbetalingene for oversendelse til OS (lager XML-request)
-     * Konsumenten av denne funksjonen er ansvarlig for håndtering av [transactionContext] i tillegg til å kalle [UtbetalingKlargjortForOversendelse.callback]
-     * på et hensiktsmessig tidspunkt.
-     *
-     * @return [UtbetalingKlargjortForOversendelse] inneholder [UtbetalingKlargjortForOversendelse.utbetaling] med generert XML for publisering på kø,
-     * i tillegg til [UtbetalingKlargjortForOversendelse.callback] for å publisere utbetalingen på kø mot OS. Kall til denne funksjonen bør gjennomføres
-     * som det siste steget i [transactionContext], slik at eventuelle feil her kan rulle tilbake hele transaksjonen.
-     */
-
-    fun klargjørOpphør(
-        utbetaling: Utbetaling.UtbetalingForSimulering,
-        eksisterendeUtbetalinger: List<Utbetaling>,
-        opphørsperiode: Periode,
-        saksbehandlersSimulering: Simulering,
-        transactionContext: TransactionContext,
-    ): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>
 
     fun hentGjeldendeUtbetaling(
         sakId: UUID,

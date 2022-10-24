@@ -6,7 +6,6 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -74,7 +73,7 @@ fun Sak.lagNyUtbetaling(
     beregning: Beregning,
     clock: Clock,
     utbetalingsinstruksjonForEtterbetaling: UtbetalingsinstruksjonForEtterbetalinger,
-    uføregrunnlag: NonEmptyList<Grunnlag.Uføregrunnlag>?, // TODO ikke relevant for alder, men lar videre refaktorering ligge siden alder uansett ikke er aktuelt pt.
+    uføregrunnlag: NonEmptyList<Grunnlag.Uføregrunnlag>?,
 ): Utbetaling.UtbetalingForSimulering {
     return when (type) {
         Sakstype.ALDER -> {
@@ -91,7 +90,7 @@ fun Sak.lagNyUtbetaling(
                 beregning = beregning,
                 clock = clock,
                 utbetalingsinstruksjonForEtterbetaling = utbetalingsinstruksjonForEtterbetaling,
-                uføregrunnlag = uføregrunnlag!!.toNonEmptyList(),
+                uføregrunnlag = uføregrunnlag!!,
             )
         }
     }
@@ -117,7 +116,7 @@ fun Sak.lagNyUtbetalingAlder(
                 sakstype = type,
             ).generate()
         }
-        else -> throw IllegalArgumentException("Ugyldig type:$type for uføreutbetaling")
+        else -> throw IllegalArgumentException("Ugyldig type:$type for aldersutbetaling")
     }
 }
 

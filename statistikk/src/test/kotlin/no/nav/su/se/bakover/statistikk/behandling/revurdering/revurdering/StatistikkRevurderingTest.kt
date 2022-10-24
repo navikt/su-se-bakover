@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.revurderingTilAttestering
 import no.nav.su.se.bakover.test.revurderingUnderkjent
+import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.vedtakRevurdering
@@ -86,16 +87,19 @@ internal class StatistikkRevurderingTest {
 
     @Test
     fun `publiserer opphørt underkjent revurdering`() {
+        val revurdering = revurderingUnderkjent(
+            vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
+            clock = tikkendeFixedClock,
+        ).second as UnderkjentRevurdering.Opphørt
         assert(
-            statistikkEvent = StatistikkEvent.Behandling.Revurdering.Underkjent.Opphør(
-                revurdering = revurderingUnderkjent(vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag())).second as UnderkjentRevurdering.Opphørt,
-            ),
+            statistikkEvent = StatistikkEvent.Behandling.Revurdering.Underkjent.Opphør(revurdering = revurdering),
             behandlingStatus = "UNDERKJENT",
             behandlingStatusBeskrivelse = "beslutter/attestant/saksbehandler2 har sendt saken tilbake til saksbehandler.",
             resultat = "OPPHØRT",
             resultatBeskrivelse = "En revurdering blir opphørt, mens en søknadsbehandling blir avslått.",
             resultatBegrunnelse = "UFØRHET",
             beslutter = "attestant",
+            funksjonellTid = revurdering.prøvHentSisteAttestering()!!.opprettet.toString(),
         )
     }
 
@@ -120,7 +124,7 @@ internal class StatistikkRevurderingTest {
     fun `publiserer iverksatt opphørt revurdering`() {
         val (_, vedtak) = vedtakRevurdering(
             vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
-            clock = fixedClock,
+            clock = tikkendeFixedClock,
         ).let { (sak, vedtak) -> sak to vedtak as VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering }
         assert(
             statistikkEvent = StatistikkEvent.Behandling.Revurdering.Iverksatt.Opphørt(
@@ -133,6 +137,7 @@ internal class StatistikkRevurderingTest {
             resultatBegrunnelse = "UFØRHET",
             beslutter = "attestant",
             avsluttet = true,
+            funksjonellTid = vedtak.opprettet.toString(),
         )
     }
 

@@ -685,15 +685,29 @@ internal class RevurderingServiceImpl(
                         beregnetRevurdering.simuler(
                             saksbehandler = saksbehandler,
                             clock = clock,
-                            lagUtbetaling = sak::lagUtbetalingForOpphør,
-                            eksisterendeUtbetalinger = sak::utbetalinger,
-                        ) { utbetaling, eksisterende, opphørsperiode ->
-                            utbetalingService.simulerOpphør(
-                                utbetaling = utbetaling,
-                                eksisterendeUtbetalinger = eksisterende,
-                                opphørsperiode = opphørsperiode,
-                            )
-                        }.mapLeft { KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(it) }.map { simulert ->
+                            simuler = { opphørsperiode: Periode, behandler: NavIdentBruker.Saksbehandler ->
+                                sak.lagUtbetalingForOpphør(
+                                    opphørsperiode = opphørsperiode,
+                                    behandler = behandler,
+                                    clock = clock,
+                                ).let {
+                                    sak.simulerUtbetaling(
+                                        utbetalingForSimulering = it,
+                                        periode = opphørsperiode,
+                                        simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
+                                            utbetalingService.simulerUtbetaling(
+                                                utbetaling = utbetalingForSimulering,
+                                                simuleringsperiode = periode,
+                                            )
+                                        },
+                                        kontrollerMotTidligereSimulering = beregnetRevurdering.simulering,
+                                        clock = clock,
+                                    )
+                                }
+                            },
+                        ).mapLeft {
+                            KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(it)
+                        }.map { simulert ->
                             revurderingRepo.lagre(simulert)
                             identifiserFeilOgLagResponse(simulert).leggTil(potensielleVarsel)
                         }
@@ -1241,7 +1255,7 @@ internal class RevurderingServiceImpl(
                          * Det er også viktig at publiseringen av utbetalingen er det siste som skjer i blokka.
                          * Alt som ikke skal påvirke utfallet av iverksettingen skal flyttes ut av blokka. E.g. statistikk.
                          */
-                        val nyUtbetaling = utbetalingService.klargjørNyUtbetaling(
+                        val nyUtbetaling = utbetalingService.klargjørUtbetaling(
                             utbetaling = simulertUtbetaling,
                             transactionContext = tx,
                         ).getOrHandle {
@@ -1303,6 +1317,30 @@ internal class RevurderingServiceImpl(
                 }
             }.flatMap { iverksattRevurdering ->
                 Either.catch {
+                    val simulertUtbetaling = sak.lagUtbetalingForOpphør(
+                        opphørsperiode = revurdering.opphørsperiodeForUtbetalinger,
+                        behandler = attestant,
+                        clock = clock,
+                    ).let {
+                        sak.simulerUtbetaling(
+                            utbetalingForSimulering = it,
+                            periode = revurdering.opphørsperiodeForUtbetalinger,
+                            simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
+                                utbetalingService.simulerUtbetaling(
+                                    utbetalingForSimulering,
+                                    periode,
+                                )
+                            },
+                            kontrollerMotTidligereSimulering = revurdering.simulering,
+                            clock = clock,
+                        )
+                    }.getOrHandle {
+                        throw IverksettTransactionException(
+                            "Kunne ikke opphøre utbetalinger. Underliggende feil: $it.",
+                            KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(UtbetalingFeilet.KunneIkkeSimulere(it)),
+                        )
+                    }
+
                     /**
                      * OBS: Det er kun exceptions som vil føre til at transaksjonen ruller tilbake.
                      * Hvis funksjonene returnerer Left/null o.l. vil transaksjonen gå igjennom. De tilfellene må håndteres eksplisitt per funksjon.
@@ -1310,15 +1348,8 @@ internal class RevurderingServiceImpl(
                      * Alt som ikke skal påvirke utfallet av iverksettingen skal flyttes ut av blokka. E.g. statistikk.
                      */
                     sessionFactory.withTransactionContext { tx ->
-                        val opphørUtbetaling = utbetalingService.klargjørOpphør(
-                            utbetaling = sak.lagUtbetalingForOpphør(
-                                opphørsperiode = revurdering.opphørsperiodeForUtbetalinger,
-                                behandler = attestant,
-                                clock = clock,
-                            ),
-                            eksisterendeUtbetalinger = sak.utbetalinger,
-                            opphørsperiode = revurdering.opphørsperiodeForUtbetalinger,
-                            saksbehandlersSimulering = revurdering.simulering,
+                        val opphørUtbetaling = utbetalingService.klargjørUtbetaling(
+                            utbetaling = simulertUtbetaling,
                             transactionContext = tx,
                         ).getOrHandle {
                             throw IverksettTransactionException(

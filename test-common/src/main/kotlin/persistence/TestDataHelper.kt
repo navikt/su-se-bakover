@@ -63,7 +63,7 @@ import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.sak.SakFactory
-import no.nav.su.se.bakover.domain.sak.lagUtbetalingForOpphør
+import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadinnhold.SøknadsinnholdUføre
@@ -103,9 +103,9 @@ import no.nav.su.se.bakover.test.oversendtUtbetalingUtenKvittering
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
+import no.nav.su.se.bakover.test.simulerOpphør
 import no.nav.su.se.bakover.test.simulerUtbetaling
 import no.nav.su.se.bakover.test.simulering
-import no.nav.su.se.bakover.test.simuleringOpphørt
 import no.nav.su.se.bakover.test.simulertUtbetaling
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknad.journalpostIdSøknad
@@ -767,20 +767,14 @@ class TestDataHelper(
             beregnet.simuler(
                 saksbehandler = saksbehandler,
                 clock = clock,
-                lagUtbetaling = sak::lagUtbetalingForOpphør,
-                eksisterendeUtbetalinger = sak::utbetalinger,
-            ) { utbetaling, eksisterende, opphørsperiode ->
-                utbetaling.toSimulertUtbetaling(
-                    simuleringOpphørt(
-                        opphørsperiode = opphørsperiode,
-                        eksisterendeUtbetalinger = eksisterende,
-                        fnr = beregnet.fnr,
-                        sakId = beregnet.sakId,
-                        saksnummer = beregnet.saksnummer,
-                        clock = clock,
-                    ),
-                ).right()
-            }.getOrFail().let { simulert ->
+                simuler = { periode: Periode, _: NavIdentBruker.Saksbehandler ->
+                    simulerOpphør(
+                        sak = sak,
+                        revurdering = beregnet,
+                        simuleringsperiode = periode,
+                    )
+                },
+            ).getOrFail().let { simulert ->
                 val oppdatertTilbakekrevingsbehandling = if (simulert.harSimuleringFeilutbetaling()) {
                     simulert.oppdaterTilbakekrevingsbehandling(
                         Tilbakekrev(

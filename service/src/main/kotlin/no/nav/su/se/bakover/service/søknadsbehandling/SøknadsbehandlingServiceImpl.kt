@@ -445,7 +445,7 @@ internal class SøknadsbehandlingServiceImpl(
                              * Det er også viktig at publiseringen av utbetalingen er det siste som skjer i blokka.
                              * Alt som ikke skal påvirke utfallet av iverksettingen skal flyttes ut av blokka. E.g. statistikk.
                              */
-                            val nyUtbetaling = utbetalingService.klargjørNyUtbetaling(
+                            val nyUtbetaling = utbetalingService.klargjørUtbetaling(
                                 utbetaling = simulertUtbetaling,
                                 transactionContext = tx,
                             ).getOrHandle { feil ->
