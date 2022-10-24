@@ -21,7 +21,6 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
-import org.mockito.kotlin.verifyNoMoreInteractions
 import java.util.UUID
 
 internal class SøknadsbehandlingServiceSimuleringTest {
@@ -57,7 +56,7 @@ internal class SøknadsbehandlingServiceSimuleringTest {
             verify(it.sakService).hentSakForSøknadsbehandling(beregnet.id)
             verify(it.utbetalingService, times(2)).simulerUtbetaling(
                 utbetaling = any(),
-                beregningsperiode = argThat { it shouldBe beregnet.periode },
+                simuleringsperiode = argThat { it shouldBe beregnet.periode },
             )
             verify(it.søknadsbehandlingRepo).lagre(response)
         }
@@ -104,7 +103,7 @@ internal class SøknadsbehandlingServiceSimuleringTest {
 
             verify(it.utbetalingService).simulerUtbetaling(
                 utbetaling = any(),
-                beregningsperiode = argThat { it shouldBe beregnet.periode },
+                simuleringsperiode = argThat { it shouldBe beregnet.periode },
             )
             it.verifyNoMoreInteractions()
         }

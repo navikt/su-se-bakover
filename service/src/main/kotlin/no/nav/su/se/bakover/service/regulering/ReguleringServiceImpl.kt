@@ -8,6 +8,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
@@ -338,12 +339,13 @@ class ReguleringServiceImpl(
                 utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
                 uføregrunnlag = when (regulering.sakstype) {
                     Sakstype.ALDER -> {
-                        emptyList()
+                        null
                     }
                     Sakstype.UFØRE -> {
                         regulering.vilkårsvurderinger.uføreVilkår()
                             .getOrHandle { throw IllegalStateException("Regulering uføre: ${regulering.id} mangler uføregrunnlag") }
                             .grunnlag
+                            .toNonEmptyList()
                     }
                 },
             ).let {

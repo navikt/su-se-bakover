@@ -101,7 +101,7 @@ internal fun SimuleringFeilet.tilResultat(): Resultat {
         )
 
         is SimuleringFeilet.KontrollAvSimuleringFeilet -> this.feil.tilResultat()
-        is SimuleringFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> TODO()
+        is SimuleringFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> this.feil.tilResultat()
     }
 }
 
@@ -132,7 +132,14 @@ internal fun FeilVedKryssjekkAvTidslinjerOgSimulering.tilResultat(): Resultat {
             )
         }
 
-        FeilVedKryssjekkAvTidslinjerOgSimulering.NyEllerOpphør.KunneIkkeGenerereTidslinje -> TODO()
-        is FeilVedKryssjekkAvTidslinjerOgSimulering.NyEllerOpphør.KunneIkkeSimulere -> TODO()
+        FeilVedKryssjekkAvTidslinjerOgSimulering.NyEllerOpphør.KunneIkkeGenerereTidslinje -> {
+            HttpStatusCode.InternalServerError.errorJson(
+                "Kunne ikke generere tidslinje",
+                "kunne_ikke_generere_tidslinje",
+            )
+        }
+        is FeilVedKryssjekkAvTidslinjerOgSimulering.NyEllerOpphør.KunneIkkeSimulere -> {
+            this.feil.tilResultat()
+        }
     }
 }

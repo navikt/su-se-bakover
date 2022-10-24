@@ -28,7 +28,7 @@ interface UtbetalingService {
 
     fun simulerUtbetaling(
         utbetaling: Utbetaling.UtbetalingForSimulering,
-        beregningsperiode: Periode,
+        simuleringsperiode: Periode,
     ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>
 
     fun simulerOpphør(

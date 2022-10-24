@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.domain.oppdrag.FantIkkeGjeldendeUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.KryssjekkSaksbehandlersOgAttestantsSimulering
 import no.nav.su.se.bakover.domain.oppdrag.KryssjekkTidslinjerOgSimulering
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
-import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
@@ -72,11 +71,11 @@ internal class UtbetalingServiceImpl(
             .also { log.warn("Fant ikke utbetaling med id: $utbetalingId") }
     }
 
-    override fun simulerUtbetaling(utbetaling: Utbetaling.UtbetalingForSimulering, beregningsperiode: Periode): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
+    override fun simulerUtbetaling(utbetaling: Utbetaling.UtbetalingForSimulering, simuleringsperiode: Periode): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
         return simulerUtbetaling(
             SimulerUtbetalingForPeriode(
                 utbetaling = utbetaling,
-                simuleringsperiode = beregningsperiode,
+                simuleringsperiode = simuleringsperiode,
             ),
         )
     }

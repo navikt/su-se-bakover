@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.persistence.TransactionContext
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
@@ -121,7 +122,7 @@ fun simulerUtbetaling(
         beregning = søknadsbehandling.beregning ?: throw IllegalArgumentException("Kan ikke simulere, søknadsbehandling har ingen beregning"),
         clock = clock,
         utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
-        uføregrunnlag = søknadsbehandling.vilkårsvurderinger.uføreVilkår().getOrFail().grunnlag,
+        uføregrunnlag = søknadsbehandling.vilkårsvurderinger.uføreVilkår().getOrFail().grunnlag.toNonEmptyList(),
     ).let { utbetaling ->
         if (strict) {
             sak.simulerUtbetaling(
@@ -168,7 +169,7 @@ fun simulerUtbetaling(
         beregning = revurdering.beregning ?: throw IllegalArgumentException("Kan ikke simulere, revurdering har ingen beregning"),
         clock = clock,
         utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
-        uføregrunnlag = revurdering.vilkårsvurderinger.uføreVilkår().getOrFail().grunnlag,
+        uføregrunnlag = revurdering.vilkårsvurderinger.uføreVilkår().getOrFail().grunnlag.toNonEmptyList(),
     ).let { utbetaling ->
         if (strict) {
             sak.simulerUtbetaling(
@@ -215,7 +216,7 @@ fun simulerUtbetaling(
         beregning = regulering.beregning ?: throw IllegalArgumentException("Kan ikke simulere, regulering har ingen beregning"),
         clock = clock,
         utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
-        uføregrunnlag = regulering.vilkårsvurderinger.uføreVilkår().getOrFail().grunnlag,
+        uføregrunnlag = regulering.vilkårsvurderinger.uføreVilkår().getOrFail().grunnlag.toNonEmptyList(),
     ).let { utbetaling ->
         if (strict) {
             sak.simulerUtbetaling(

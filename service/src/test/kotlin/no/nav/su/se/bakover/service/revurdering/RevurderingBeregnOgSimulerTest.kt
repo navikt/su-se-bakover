@@ -35,7 +35,6 @@ import no.nav.su.se.bakover.test.nyUtbetalingSimulert
 import no.nav.su.se.bakover.test.opphørUtbetalingSimulert
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.revurderingTilAttestering
-import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulerUtbetaling
@@ -223,7 +222,7 @@ internal class RevurderingBeregnOgSimulerTest {
             verify(serviceAndMocks.sakService).hentSakForRevurdering(any())
             verify(serviceAndMocks.utbetalingService, times(2)).simulerUtbetaling(
                 utbetaling = any(),
-                beregningsperiode = argThat { it shouldBe actual.revurdering.periode },
+                simuleringsperiode = argThat { it shouldBe actual.revurdering.periode },
             )
             verify(serviceAndMocks.revurderingRepo).defaultTransactionContext()
             verify(serviceAndMocks.revurderingRepo).lagre(argThat { it shouldBe actual.revurdering }, anyOrNull())
@@ -295,7 +294,7 @@ internal class RevurderingBeregnOgSimulerTest {
 
             verify(it.utbetalingService).simulerUtbetaling(
                 utbetaling = any(),
-                beregningsperiode = argThat { it shouldBe beregnet.periode },
+                simuleringsperiode = argThat { it shouldBe beregnet.periode },
             )
         }
     }
@@ -340,7 +339,7 @@ internal class RevurderingBeregnOgSimulerTest {
             verify(serviceAndMocks.sakService).hentSakForRevurdering(argThat { it shouldBe underkjent.id })
             verify(serviceAndMocks.utbetalingService, times(2)).simulerUtbetaling(
                 utbetaling = any(),
-                beregningsperiode = argThat { it shouldBe underkjent.periode },
+                simuleringsperiode = argThat { it shouldBe underkjent.periode },
             )
             verify(serviceAndMocks.revurderingRepo).defaultTransactionContext()
             verify(serviceAndMocks.revurderingRepo).lagre(argThat { it shouldBe actual.revurdering }, anyOrNull())

@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
@@ -1205,12 +1206,13 @@ internal class RevurderingServiceImpl(
                         utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
                         uføregrunnlag = when (iverksattRevurdering.sakstype) {
                             Sakstype.ALDER -> {
-                                emptyList()
+                                null
                             }
                             Sakstype.UFØRE -> {
                                 iverksattRevurdering.vilkårsvurderinger.uføreVilkår()
                                     .getOrHandle { throw IllegalStateException("Revurdering uføre: ${iverksattRevurdering.id} mangler uføregrunnlag") }
                                     .grunnlag
+                                    .toNonEmptyList()
                             }
                         },
                     ).let {

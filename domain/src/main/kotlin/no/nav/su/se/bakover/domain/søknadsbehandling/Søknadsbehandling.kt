@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling
 
 import arrow.core.Either
+import arrow.core.NonEmptyList
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.nonEmptyListOf
@@ -10,6 +11,7 @@ import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.inneholderAlle
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
@@ -595,7 +597,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
     open fun simuler(
         saksbehandler: NavIdentBruker,
-        simuler: (beregning: Beregning, uføregrunnlag: List<Grunnlag.Uføregrunnlag>) -> Either<SimuleringFeilet, Simulering>,
+        simuler: (beregning: Beregning, uføregrunnlag: NonEmptyList<Grunnlag.Uføregrunnlag>?) -> Either<SimuleringFeilet, Simulering>,
     ): Either<KunneIkkeSimulereBehandling, Simulert> {
         return KunneIkkeSimulereBehandling.UgyldigTilstand(this::class).left()
     }
@@ -1026,18 +1028,19 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
         override fun simuler(
             saksbehandler: NavIdentBruker,
-            simuler: (beregning: Beregning, uføregrunnlag: List<Grunnlag.Uføregrunnlag>) -> Either<SimuleringFeilet, Simulering>,
+            simuler: (beregning: Beregning, uføregrunnlag: NonEmptyList<Grunnlag.Uføregrunnlag>?) -> Either<SimuleringFeilet, Simulering>,
         ): Either<KunneIkkeSimulereBehandling, Simulert> {
             return simuler(
                 beregning,
                 when (sakstype) {
                     Sakstype.ALDER -> {
-                        emptyList()
+                        null
                     }
                     Sakstype.UFØRE -> {
                         vilkårsvurderinger.uføreVilkår()
                             .getOrHandle { throw IllegalStateException("Søknadsbehandling uføre: $id mangler uføregrunnlag") }
                             .grunnlag
+                            .toNonEmptyList()
                     }
                 },
             ).mapLeft {
@@ -1228,18 +1231,19 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
         override fun simuler(
             saksbehandler: NavIdentBruker,
-            simuler: (beregning: Beregning, uføregrunnlag: List<Grunnlag.Uføregrunnlag>) -> Either<SimuleringFeilet, Simulering>,
+            simuler: (beregning: Beregning, uføregrunnlag: NonEmptyList<Grunnlag.Uføregrunnlag>?) -> Either<SimuleringFeilet, Simulering>,
         ): Either<KunneIkkeSimulereBehandling, Simulert> {
             return simuler(
                 beregning,
                 when (sakstype) {
                     Sakstype.ALDER -> {
-                        emptyList()
+                        null
                     }
                     Sakstype.UFØRE -> {
                         vilkårsvurderinger.uføreVilkår()
                             .getOrHandle { throw IllegalStateException("Søknadsbehandling uføre: $id mangler uføregrunnlag") }
                             .grunnlag
+                            .toNonEmptyList()
                     }
                 },
             ).mapLeft {
@@ -1667,18 +1671,19 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
             override fun simuler(
                 saksbehandler: NavIdentBruker,
-                simuler: (beregning: Beregning, uføregrunnlag: List<Grunnlag.Uføregrunnlag>) -> Either<SimuleringFeilet, Simulering>,
+                simuler: (beregning: Beregning, uføregrunnlag: NonEmptyList<Grunnlag.Uføregrunnlag>?) -> Either<SimuleringFeilet, Simulering>,
             ): Either<KunneIkkeSimulereBehandling, Simulert> {
                 return simuler(
                     beregning,
                     when (sakstype) {
                         Sakstype.ALDER -> {
-                            emptyList()
+                            null
                         }
                         Sakstype.UFØRE -> {
                             vilkårsvurderinger.uføreVilkår()
                                 .getOrHandle { throw IllegalStateException("Søknadsbehandling uføre: $id mangler uføregrunnlag") }
                                 .grunnlag
+                                .toNonEmptyList()
                         }
                     },
                 ).mapLeft {

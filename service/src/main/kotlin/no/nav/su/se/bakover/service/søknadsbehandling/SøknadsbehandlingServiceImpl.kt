@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
@@ -409,12 +410,13 @@ internal class SøknadsbehandlingServiceImpl(
                             utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
                             uføregrunnlag = when (iverksattBehandling.sakstype) {
                                 Sakstype.ALDER -> {
-                                    emptyList()
+                                    null
                                 }
                                 Sakstype.UFØRE -> {
                                     iverksattBehandling.vilkårsvurderinger.uføreVilkår()
                                         .getOrHandle { throw IllegalStateException("Søknadsbehandling uføre: ${iverksattBehandling.id} mangler uføregrunnlag") }
                                         .grunnlag
+                                        .toNonEmptyList()
                                 }
                             },
                         ).let {

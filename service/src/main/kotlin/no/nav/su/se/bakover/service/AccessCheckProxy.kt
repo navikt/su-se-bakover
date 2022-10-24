@@ -237,7 +237,7 @@ open class AccessCheckProxy(
                     kvittering: Kvittering,
                 ) = kastKanKunKallesFraAnnenService()
 
-                override fun simulerUtbetaling(utbetaling: Utbetaling.UtbetalingForSimulering, beregningsperiode: Periode): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
+                override fun simulerUtbetaling(utbetaling: Utbetaling.UtbetalingForSimulering, simuleringsperiode: Periode): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
                     kastKanKunKallesFraAnnenService()
                 }
 
