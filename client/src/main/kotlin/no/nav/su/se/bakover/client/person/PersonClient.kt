@@ -3,14 +3,13 @@ package no.nav.su.se.bakover.client.person
 import arrow.core.Either
 import arrow.core.right
 import com.github.benmanes.caffeine.cache.Cache
-import com.github.benmanes.caffeine.cache.Caffeine
+import no.nav.su.se.bakover.client.cache.newCache
 import no.nav.su.se.bakover.client.kodeverk.Kodeverk
 import no.nav.su.se.bakover.client.krr.KontaktOgReservasjonsregister
 import no.nav.su.se.bakover.client.skjerming.Skjerming
 import no.nav.su.se.bakover.common.AktørId
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.Ident
-import no.nav.su.se.bakover.common.metrics.SuMetrics
 import no.nav.su.se.bakover.common.token.JwtToken
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
@@ -25,7 +24,7 @@ internal data class PersonClientConfig(
 )
 
 /**
- * [CacheKey] sørger for at rettighetene til brukerne blir ivaretatt, mens systembrukeren har tilgang til alt.
+ * [FnrCacheKey] sørger for at rettighetene til brukerne blir ivaretatt, mens systembrukeren har tilgang til alt.
  *
  * @param personCache Brukes av både brukere og systembrukeren.
  * @param aktørIdCache Brukes av både brukere og systembrukeren.
@@ -36,19 +35,19 @@ internal class PersonClient(
     private val hentBrukerToken: () -> JwtToken.BrukerToken = {
         JwtToken.BrukerToken.fraMdc()
     },
-    private val personCache: Cache<CacheKey, Person> = newCache(cacheName = "person"),
-    private val aktørIdCache: Cache<CacheKey, AktørId> = newCache(cacheName = "aktoerId"),
+    private val personCache: Cache<FnrCacheKey, Person> = newCache(cacheName = "person", expireAfterWrite = Duration.ofMinutes(30)),
+    private val aktørIdCache: Cache<FnrCacheKey, AktørId> = newCache(cacheName = "aktoerId", expireAfterWrite = Duration.ofMinutes(30)),
 ) : PersonOppslag {
 
-    private fun <Value, Error> Cache<CacheKey, Value>.getOrAdd(
-        key: CacheKey,
+    private fun <Value, Error> Cache<FnrCacheKey, Value>.getOrAdd(
+        key: FnrCacheKey,
         mappingFunction: () -> Either<Error, Value>,
     ): Either<Error, Value> {
         return this.getIfPresent(key)?.right() ?: mappingFunction().tap {
             this.put(key, it)
             if (key.second is JwtToken.BrukerToken) {
                 // Dersom dette ble trigget av et brukertoken, ønsker vi å cache det for SystemToken også; men ikke andre veien.
-                this.put(CacheKey(key.first, JwtToken.SystemToken), it)
+                this.put(FnrCacheKey(key.first, JwtToken.SystemToken), it)
             }
         }
     }
@@ -158,25 +157,6 @@ internal class PersonClient(
             },
         )
     }
-
-    companion object {
-        internal fun <K, V> newCache(
-            maximumSize: Long = 500,
-            expireAfterWrite: Duration = Duration.ofMinutes(1),
-            cacheName: String,
-        ): Cache<K, V> {
-            return Caffeine.newBuilder()
-                .maximumSize(maximumSize)
-                // Merk at det ikke er noen garanti for at Caffeine rydder opp selvom en verdi er expired, slik at cachen potensielt kan ta stor plass.
-                // Les mer: https://github.com/ben-manes/caffeine/wiki/Cleanup
-                .expireAfterWrite(expireAfterWrite)
-                .recordStats()
-                .build<K, V>()
-                .also {
-                    SuMetrics.monitorCache(it, cacheName)
-                }
-        }
-    }
 }
 
-internal typealias CacheKey = Pair<Fnr, JwtToken>
+internal typealias FnrCacheKey = Pair<Fnr, JwtToken>

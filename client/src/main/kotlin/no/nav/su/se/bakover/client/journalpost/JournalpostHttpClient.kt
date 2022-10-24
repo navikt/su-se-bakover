@@ -4,7 +4,11 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.github.benmanes.caffeine.cache.Cache
+import kotlinx.coroutines.future.await
+import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.client.azure.AzureAd
+import no.nav.su.se.bakover.client.cache.newCache
 import no.nav.su.se.bakover.client.isSuccess
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.ApplicationConfig
@@ -29,23 +33,26 @@ import java.net.http.HttpResponse
 import java.time.Duration
 
 // docs: https://confluence.adeo.no/display/BOA/saf+-+Utviklerveiledning#
+// https://confluence.adeo.no/display/BOA/Query%3A+journalpost
 internal class JournalpostHttpClient(
     private val safConfig: ApplicationConfig.ClientsConfig.SafConfig,
     private val azureAd: AzureAd,
     private val sts: TokenOppslag,
     private val metrics: JournalpostClientMetrics,
+    private val erTilknyttetSakCache: Cache<JournalpostId, ErTilknyttetSak> = newCache(cacheName = "erTilknyttetSak", expireAfterWrite = Duration.ofHours(1)),
 ) : JournalpostClient {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
     private val graphQLUrl: URI = URI.create("${safConfig.url}/graphql")
     private val client: HttpClient = HttpClient.newBuilder()
-        .connectTimeout(Duration.ofSeconds(20))
+        .connectTimeout(Duration.ofSeconds(5))
         .followRedirects(HttpClient.Redirect.NEVER)
         .build()
 
-    override fun erTilknyttetSak(
+    override suspend fun erTilknyttetSak(
         journalpostId: JournalpostId,
         saksnummer: Saksnummer,
     ): Either<KunneIkkeSjekkeTilknytningTilSak, ErTilknyttetSak> {
+        erTilknyttetSakCache.getIfPresent(journalpostId)?.let { return it.right() }
         val request = GraphQLQuery<HentJournalpostHttpResponse>(
             lagRequest(
                 query = "/hentJournalpostQuery.graphql",
@@ -53,10 +60,12 @@ internal class JournalpostHttpClient(
             ),
             HentJournalpostVariables(journalpostId.toString()),
         )
+        val brukerToken = JwtToken.BrukerToken.fraMdc()
+
         return gqlRequest(
             request = request,
             token = azureAd.onBehalfOfToken(
-                originalToken = JwtToken.BrukerToken.fraMdc().value,
+                originalToken = brukerToken.value,
                 otherAppId = safConfig.clientId,
             ),
         ).fold(
@@ -72,11 +81,15 @@ internal class JournalpostHttpClient(
             },
             { response ->
                 response.data!!.journalpost?.let {
-                    return if (it.sak?.fagsakId == saksnummer.toString()) {
-                        ErTilknyttetSak.Ja.right()
-                    } else {
-                        ErTilknyttetSak.Nei.right()
-                    }
+                    return (
+                        if (it.sak?.fagsakId == saksnummer.toString()) {
+                            ErTilknyttetSak.Ja
+                        } else {
+                            ErTilknyttetSak.Nei
+                        }
+                        ).also {
+                        erTilknyttetSakCache.put(journalpostId, it)
+                    }.right()
                 } ?: return KunneIkkeSjekkeTilknytningTilSak.FantIkkeJournalpost.left()
             },
         )
@@ -114,23 +127,25 @@ internal class JournalpostHttpClient(
                 foerste = 100,
             ),
         )
-        return gqlRequest(
-            request = request,
-            token = sts.token().value,
-        ).mapLeft { error ->
-            KunneIkkeSjekkKontrollnotatMottatt(error).also { log.error("Feil: $it ved henting av journalposter for saksnummer:$saksnummer") }
-        }.map { response ->
-            response.data!!.dokumentoversiktFagsak.journalposter
-                .toDomain()
-                .sortedBy { it.datoOpprettet }
-                .lastOrNull {
-                    periode.inneholder(it.datoOpprettet) && (
-                        it.tittel.inneholder(kontrollnotatTittel) || it.tittel.inneholder(
-                            dokumentasjonAvOppfølgingsamtaleTittel,
-                        )
-                        )
-                }?.also { metrics.inkrementerBenyttetSkjema(it.tittel.toBenyttetSkjemaMetric()) }
-                ?.let { ErKontrollNotatMottatt.Ja(it) } ?: ErKontrollNotatMottatt.Nei
+        return runBlocking {
+            gqlRequest(
+                request = request,
+                token = sts.token().value,
+            ).mapLeft { error ->
+                KunneIkkeSjekkKontrollnotatMottatt(error).also { log.error("Feil: $it ved henting av journalposter for saksnummer:$saksnummer") }
+            }.map { response ->
+                response.data!!.dokumentoversiktFagsak.journalposter
+                    .toDomain()
+                    .sortedBy { it.datoOpprettet }
+                    .lastOrNull {
+                        periode.inneholder(it.datoOpprettet) && (
+                            it.tittel.inneholder(kontrollnotatTittel) || it.tittel.inneholder(
+                                dokumentasjonAvOppfølgingsamtaleTittel,
+                            )
+                            )
+                    }?.also { metrics.inkrementerBenyttetSkjema(it.tittel.toBenyttetSkjemaMetric()) }
+                    ?.let { ErKontrollNotatMottatt.Ja(it) } ?: ErKontrollNotatMottatt.Nei
+            }
         }
     }
 
@@ -147,7 +162,7 @@ internal class JournalpostHttpClient(
         return gqlQuery.replace("<<DATAFELTER>>", data)
     }
 
-    private inline fun <reified Response : GraphQLHttpResponse> gqlRequest(
+    private suspend inline fun <reified Response : GraphQLHttpResponse> gqlRequest(
         request: GraphQLQuery<Response>,
         token: String,
     ): Either<GraphQLApiFeil, Response> {
@@ -159,7 +174,7 @@ internal class JournalpostHttpClient(
                 .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(request)))
                 .build()
                 .let { httpRequest ->
-                    client.send(httpRequest, HttpResponse.BodyHandlers.ofString())
+                    client.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofString()).await()
                         .let { httpResponse ->
                             if (httpResponse.isSuccess()) {
                                 // GraphQL returnerer 200 for det meste

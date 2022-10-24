@@ -8,10 +8,10 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeSameInstanceAs
 import io.kotest.matchers.types.shouldNotBeSameInstanceAs
 import no.nav.su.se.bakover.client.azure.AzureAd
+import no.nav.su.se.bakover.client.cache.newCache
 import no.nav.su.se.bakover.client.kodeverk.Kodeverk
 import no.nav.su.se.bakover.client.krr.KontaktOgReservasjonsregister
 import no.nav.su.se.bakover.client.krr.Kontaktinformasjon
-import no.nav.su.se.bakover.client.person.PersonClient.Companion.newCache
 import no.nav.su.se.bakover.client.skjerming.Skjerming
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.AktørId
@@ -181,8 +181,8 @@ internal class PersonClientTest {
     private class PersonClientConfigTestMocks(
         val brukerTokenGenerator: BrukertokenGenerator = BrukertokenGenerator(),
         val fnr: Fnr = Fnr.generer(),
-        personCacheSpy: Cache<CacheKey, Person> = newCache(cacheName = "person"),
-        aktørIdCacheSpy: Cache<CacheKey, AktørId> = newCache(cacheName = "aktoerId"),
+        personCacheSpy: Cache<FnrCacheKey, Person> = newCache(cacheName = "person"),
+        aktørIdCacheSpy: Cache<FnrCacheKey, AktørId> = newCache(cacheName = "aktoerId"),
     ) {
         val kontaktinformasjon = Kontaktinformasjon(
             epostadresse = "post@e.com",

@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.utenlandsopphold.infrastruture.web
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.routing.Route
+import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.lesLong
 import no.nav.su.se.bakover.common.infrastructure.web.svar
@@ -38,4 +39,9 @@ val overlappendePerioder = HttpStatusCode.BadRequest.errorJson(
 val utdatertSaksversjon = HttpStatusCode.BadRequest.errorJson(
     message = "Utdatert sak. Vennligst hent sak på nytt / refresh siden.",
     code = "utdatert_saksversjon",
+)
+
+fun kunneIkkeBekrefteJournalposter(journalposter: List<JournalpostId>) = HttpStatusCode.InternalServerError.errorJson(
+    message = "Kunne ikke bekrefte journalposter: ${journalposter.joinToString()}",
+    code = "kunne_ikke_bekrefte_journalposter",
 )

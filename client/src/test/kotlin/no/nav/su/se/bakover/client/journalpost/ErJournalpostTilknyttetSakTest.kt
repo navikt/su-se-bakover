@@ -4,6 +4,7 @@ import arrow.core.left
 import arrow.core.right
 import com.github.tomakehurst.wiremock.client.WireMock
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.client.AccessToken
 import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.azure.AzureAd
@@ -64,8 +65,10 @@ internal class JournalpostHttpClientTest {
                 .willReturn(WireMock.ok(suksessResponseJson)),
         )
 
-        setupClient().erTilknyttetSak(JournalpostId("j"), Saksnummer(2021)) shouldBe ErTilknyttetSak.Ja.right()
-        setupClient().erTilknyttetSak(JournalpostId("j"), Saksnummer(2023)) shouldBe ErTilknyttetSak.Nei.right()
+        runBlocking {
+            setupClient().erTilknyttetSak(JournalpostId("j"), Saksnummer(2021)) shouldBe ErTilknyttetSak.Ja.right()
+            setupClient().erTilknyttetSak(JournalpostId("j"), Saksnummer(2023)) shouldBe ErTilknyttetSak.Nei.right()
+        }
     }
 
     @Test
@@ -86,8 +89,9 @@ internal class JournalpostHttpClientTest {
             token("Bearer aadToken")
                 .willReturn(WireMock.ok(suksessResponseJson)),
         )
-
-        setupClient().erTilknyttetSak(JournalpostId("j"), Saksnummer(2021)) shouldBe ErTilknyttetSak.Nei.right()
+        runBlocking {
+            setupClient().erTilknyttetSak(JournalpostId("j"), Saksnummer(2021)) shouldBe ErTilknyttetSak.Nei.right()
+        }
     }
 
     @Test
@@ -104,11 +108,12 @@ internal class JournalpostHttpClientTest {
             token("Bearer aadToken")
                 .willReturn(WireMock.ok(suksessResponseJson)),
         )
-
-        setupClient().erTilknyttetSak(
-            JournalpostId("j"),
-            Saksnummer(2021),
-        ) shouldBe KunneIkkeSjekkeTilknytningTilSak.TekniskFeil.left()
+        runBlocking {
+            setupClient().erTilknyttetSak(
+                JournalpostId("j"),
+                Saksnummer(2021),
+            ) shouldBe KunneIkkeSjekkeTilknytningTilSak.TekniskFeil.left()
+        }
     }
 
     @Test
@@ -118,7 +123,12 @@ internal class JournalpostHttpClientTest {
                 .willReturn(WireMock.serverError()),
         )
 
-        setupClient().erTilknyttetSak(JournalpostId("j"), Saksnummer(2022)) shouldBe KunneIkkeSjekkeTilknytningTilSak.Ukjent.left()
+        runBlocking {
+            setupClient().erTilknyttetSak(
+                JournalpostId("j"),
+                Saksnummer(2022),
+            ) shouldBe KunneIkkeSjekkeTilknytningTilSak.Ukjent.left()
+        }
     }
 
     @Test
@@ -156,19 +166,36 @@ internal class JournalpostHttpClientTest {
                 .willReturn(WireMock.ok(errorResponseJson)),
         )
 
-        setupClient().erTilknyttetSak(
-            JournalpostId("j"),
-            Saksnummer(2022),
-        ) shouldBe KunneIkkeSjekkeTilknytningTilSak.FantIkkeJournalpost.left()
+        runBlocking {
+            setupClient().erTilknyttetSak(
+                JournalpostId("j"),
+                Saksnummer(2022),
+            ) shouldBe KunneIkkeSjekkeTilknytningTilSak.FantIkkeJournalpost.left()
+        }
     }
 
     @Test
     fun `mapper fra graphql feil`() {
-        skalMappeKodeTilRiktigErrorType("forbidden", JournalpostHttpClient.GraphQLApiFeil.HttpFeil.Forbidden("j", "du har feil"))
-        skalMappeKodeTilRiktigErrorType("not_found", JournalpostHttpClient.GraphQLApiFeil.HttpFeil.NotFound("j", "du har feil"))
-        skalMappeKodeTilRiktigErrorType("bad_request", JournalpostHttpClient.GraphQLApiFeil.HttpFeil.BadRequest("j", "du har feil"))
-        skalMappeKodeTilRiktigErrorType("server_error", JournalpostHttpClient.GraphQLApiFeil.HttpFeil.ServerError("j", "du har feil"))
-        skalMappeKodeTilRiktigErrorType("top_secret", JournalpostHttpClient.GraphQLApiFeil.HttpFeil.Ukjent("j", "du har feil"))
+        skalMappeKodeTilRiktigErrorType(
+            "forbidden",
+            JournalpostHttpClient.GraphQLApiFeil.HttpFeil.Forbidden("j", "du har feil"),
+        )
+        skalMappeKodeTilRiktigErrorType(
+            "not_found",
+            JournalpostHttpClient.GraphQLApiFeil.HttpFeil.NotFound("j", "du har feil"),
+        )
+        skalMappeKodeTilRiktigErrorType(
+            "bad_request",
+            JournalpostHttpClient.GraphQLApiFeil.HttpFeil.BadRequest("j", "du har feil"),
+        )
+        skalMappeKodeTilRiktigErrorType(
+            "server_error",
+            JournalpostHttpClient.GraphQLApiFeil.HttpFeil.ServerError("j", "du har feil"),
+        )
+        skalMappeKodeTilRiktigErrorType(
+            "top_secret",
+            JournalpostHttpClient.GraphQLApiFeil.HttpFeil.Ukjent("j", "du har feil"),
+        )
     }
 
     private fun skalMappeKodeTilRiktigErrorType(code: String, expected: JournalpostHttpClient.GraphQLApiFeil.HttpFeil) {
@@ -210,6 +237,7 @@ internal fun setupClient(
     sts = sts,
     metrics = metrics,
 )
+
 internal fun token(authorization: String) = WireMock.post(WireMock.urlPathEqualTo("/graphql"))
     .withHeader("Authorization", WireMock.equalTo(authorization))
     .withHeader("Content-Type", WireMock.equalTo("application/json"))

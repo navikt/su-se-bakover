@@ -13,8 +13,11 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.utenlandsopphold.application.registrer.RegistrerUtenlandsoppholdService
-import no.nav.su.se.bakover.utenlandsopphold.domain.registrer.KunneIkkeRegistereUtenlandsopphold
+import no.nav.su.se.bakover.utenlandsopphold.domain.registrer.KunneIkkeRegistereUtenlandsopphold.KunneIkkeValidereJournalposter
+import no.nav.su.se.bakover.utenlandsopphold.domain.registrer.KunneIkkeRegistereUtenlandsopphold.OverlappendePeriode
+import no.nav.su.se.bakover.utenlandsopphold.domain.registrer.KunneIkkeRegistereUtenlandsopphold.UtdatertSaksversjon
 import no.nav.su.se.bakover.utenlandsopphold.infrastruture.web.RegistrerteUtenlandsoppholdJson.Companion.toJson
+import no.nav.su.se.bakover.utenlandsopphold.infrastruture.web.kunneIkkeBekrefteJournalposter
 import no.nav.su.se.bakover.utenlandsopphold.infrastruture.web.overlappendePerioder
 import no.nav.su.se.bakover.utenlandsopphold.infrastruture.web.utdatertSaksversjon
 import no.nav.su.se.bakover.web.features.authorize
@@ -38,8 +41,11 @@ fun Route.registerUtenlandsoppholdRoute(
                     }.tapLeft {
                         call.svar(
                             when (it) {
-                                KunneIkkeRegistereUtenlandsopphold.OverlappendePeriode -> overlappendePerioder
-                                KunneIkkeRegistereUtenlandsopphold.UtdatertSaksversjon -> utdatertSaksversjon
+                                OverlappendePeriode -> overlappendePerioder
+                                UtdatertSaksversjon -> utdatertSaksversjon
+                                is KunneIkkeValidereJournalposter -> kunneIkkeBekrefteJournalposter(
+                                    it.journalposter,
+                                )
                             },
                         )
                     }
