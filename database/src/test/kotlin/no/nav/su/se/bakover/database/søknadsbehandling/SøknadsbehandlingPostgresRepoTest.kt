@@ -38,7 +38,7 @@ import no.nav.su.se.bakover.test.persistence.withSession
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
-import no.nav.su.se.bakover.test.simulerNyUtbetaling
+import no.nav.su.se.bakover.test.simulerUtbetaling
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagMedBeregning
@@ -191,13 +191,16 @@ internal class SøknadsbehandlingPostgresRepoTest {
 
             val simulert = beregnet.simuler(
                 saksbehandler = saksbehandler,
-            ) {
-                simulerNyUtbetaling(
-                    sak = sak,
-                    request = it,
-                    clock = fixedClock,
-                )
-            }.getOrFail().also { simulert ->
+                simuler = { _, _ ->
+                    simulerUtbetaling(
+                        sak = sak,
+                        søknadsbehandling = beregnet,
+                        strict = false,
+                    ).map {
+                        it.simulering
+                    }
+                },
+            ).getOrFail().also { simulert ->
                 repo.lagre(simulert)
                 repo.hent(simulert.id) shouldBe simulert
                 dataSource.withSession {

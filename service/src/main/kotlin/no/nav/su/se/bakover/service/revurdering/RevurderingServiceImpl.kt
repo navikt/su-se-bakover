@@ -13,7 +13,9 @@ import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -22,8 +24,8 @@ import no.nav.su.se.bakover.domain.brev.Brevvalg
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -51,7 +53,9 @@ import no.nav.su.se.bakover.domain.revurdering.VurderOmBeløpsendringErStørreEn
 import no.nav.su.se.bakover.domain.revurdering.erKlarForAttestering
 import no.nav.su.se.bakover.domain.revurdering.harSendtForhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.medFritekst
+import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.sak.lagUtbetalingForOpphør
+import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
@@ -644,9 +648,31 @@ internal class RevurderingServiceImpl(
                         beregnetRevurdering.simuler(
                             saksbehandler = saksbehandler,
                             clock = clock,
-                        ) { request ->
-                            utbetalingService.simulerUtbetaling(request)
-                        }.mapLeft {
+                            simuler = { beregning, uføregrunnlag ->
+                                sak.lagNyUtbetaling(
+                                    saksbehandler = saksbehandler,
+                                    beregning = beregning,
+                                    clock = clock,
+                                    utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                                    uføregrunnlag = uføregrunnlag,
+                                ).let {
+                                    sak.simulerUtbetaling(
+                                        utbetalingForSimulering = it,
+                                        periode = beregnetRevurdering.periode,
+                                        simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
+                                            utbetalingService.simulerUtbetaling(
+                                                utbetalingForSimulering,
+                                                periode,
+                                            )
+                                        },
+                                        kontrollerMotTidligereSimulering = null,
+                                        clock = clock,
+                                    ).map { simulertUtbetaling ->
+                                        simulertUtbetaling.simulering
+                                    }
+                                }
+                            },
+                        ).mapLeft {
                             KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(it)
                         }.map { simulert ->
                             revurderingRepo.lagre(simulert)
@@ -1173,6 +1199,41 @@ internal class RevurderingServiceImpl(
                 }
             }.flatMap { iverksattRevurdering ->
                 Either.catch {
+                    val simulertUtbetaling = sak.lagNyUtbetaling(
+                        saksbehandler = attestant,
+                        beregning = iverksattRevurdering.beregning,
+                        clock = clock,
+                        utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                        uføregrunnlag = when (iverksattRevurdering.sakstype) {
+                            Sakstype.ALDER -> {
+                                null
+                            }
+                            Sakstype.UFØRE -> {
+                                iverksattRevurdering.vilkårsvurderinger.uføreVilkår()
+                                    .getOrHandle { throw IllegalStateException("Revurdering uføre: ${iverksattRevurdering.id} mangler uføregrunnlag") }
+                                    .grunnlag
+                                    .toNonEmptyList()
+                            }
+                        },
+                    ).let {
+                        sak.simulerUtbetaling(
+                            utbetalingForSimulering = it,
+                            periode = iverksattRevurdering.periode,
+                            simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
+                                utbetalingService.simulerUtbetaling(
+                                    utbetalingForSimulering,
+                                    periode,
+                                )
+                            },
+                            kontrollerMotTidligereSimulering = iverksattRevurdering.simulering,
+                            clock = clock,
+                        )
+                    }.getOrHandle { feil ->
+                        throw IverksettTransactionException(
+                            "Kunne ikke opprette utbetaling. Underliggende feil:$feil.",
+                            KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(UtbetalingFeilet.KunneIkkeSimulere(feil)),
+                        )
+                    }
                     sessionFactory.withTransactionContext { tx ->
                         /**
                          * OBS: Det er kun exceptions som vil føre til at transaksjonen ruller tilbake.
@@ -1181,27 +1242,11 @@ internal class RevurderingServiceImpl(
                          * Alt som ikke skal påvirke utfallet av iverksettingen skal flyttes ut av blokka. E.g. statistikk.
                          */
                         val nyUtbetaling = utbetalingService.klargjørNyUtbetaling(
-                            request = UtbetalRequest.NyUtbetaling(
-                                request = SimulerUtbetalingRequest.NyUtbetaling.Uføre(
-                                    sakId = revurdering.sakId,
-                                    saksbehandler = attestant,
-                                    beregning = revurdering.beregning,
-                                    uføregrunnlag = revurdering.vilkårsvurderinger.uføreVilkår().fold(
-                                        {
-                                            TODO("vilkårsvurdering_alder utbetaling av alder ikke implementert")
-                                        },
-                                        {
-                                            it.grunnlag
-                                        },
-                                    ),
-                                    utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
-                                ),
-                                simulering = revurdering.simulering,
-                            ),
+                            utbetaling = simulertUtbetaling,
                             transactionContext = tx,
                         ).getOrHandle {
                             throw IverksettTransactionException(
-                                "Kunne ikke opprette ubetaling. Underliggende feil:$it",
+                                "Kunne ikke opprette utbetaling. Underliggende feil:$it.",
                                 KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it),
                             )
                         }
@@ -1231,7 +1276,10 @@ internal class RevurderingServiceImpl(
                 }.mapLeft {
                     when (it) {
                         is IverksettTransactionException -> it.feil
-                        else -> KunneIkkeIverksetteRevurdering.LagringFeilet
+                        else -> {
+                            log.error("Ukjent feil:${it.message} ved iverksetting av revurdering ${revurdering.id}")
+                            KunneIkkeIverksetteRevurdering.LagringFeilet
+                        }
                     }
                 }.map { vedtak ->
                     observers.notify(StatistikkEvent.Stønadsvedtak(vedtak))

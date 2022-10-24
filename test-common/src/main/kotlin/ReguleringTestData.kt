@@ -76,7 +76,11 @@ fun iverksattAutomatiskRegulering(
     sakstype = sakstype,
 )
     .beregn(satsFactoryTestPåDato(), null, clock).getOrFail()
-    .simuler { simulertUtbetaling().right() }.getOrFail()
+    .simuler(
+        simuler = { _, _ ->
+            simulering().right() // TODO bare tull, refaktorer vekk hele funksjonen og gjør koblinger mot sak/revurdering
+        },
+    ).getOrFail()
     .tilIverksatt()
 
 fun innvilgetSøknadsbehandlingMedÅpenRegulering(

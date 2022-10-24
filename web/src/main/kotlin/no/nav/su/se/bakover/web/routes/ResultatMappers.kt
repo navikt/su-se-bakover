@@ -101,6 +101,7 @@ internal fun SimuleringFeilet.tilResultat(): Resultat {
         )
 
         is SimuleringFeilet.KontrollAvSimuleringFeilet -> this.feil.tilResultat()
+        is SimuleringFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> this.feil.tilResultat()
     }
 }
 
@@ -129,6 +130,16 @@ internal fun FeilVedKryssjekkAvTidslinjerOgSimulering.tilResultat(): Resultat {
                 "Stans inneholder måneder med utbetaling",
                 "stans_inneholder_måneder_til_utbetaling",
             )
+        }
+
+        FeilVedKryssjekkAvTidslinjerOgSimulering.NyEllerOpphør.KunneIkkeGenerereTidslinje -> {
+            HttpStatusCode.InternalServerError.errorJson(
+                "Kunne ikke generere tidslinje",
+                "kunne_ikke_generere_tidslinje",
+            )
+        }
+        is FeilVedKryssjekkAvTidslinjerOgSimulering.NyEllerOpphør.KunneIkkeSimulere -> {
+            this.feil.tilResultat()
         }
     }
 }

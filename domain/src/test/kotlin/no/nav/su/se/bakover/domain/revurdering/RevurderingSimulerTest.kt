@@ -11,13 +11,14 @@ import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
 import no.nav.su.se.bakover.domain.sak.lagUtbetalingForOpphør
+import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.nyUtbetalingSimulert
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.shouldBeType
+import no.nav.su.se.bakover.test.simulerUtbetaling
 import no.nav.su.se.bakover.test.simuleringOpphørt
 import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
@@ -128,13 +129,15 @@ class RevurderingSimulerTest {
                 it.simuler(
                     saksbehandler = saksbehandler,
                     clock = fixedClock,
-                ) {
-                    nyUtbetalingSimulert(
-                        sakOgBehandling = sak to beregnet,
-                        beregning = it.beregning,
-                        clock = fixedClock,
-                    ).right()
-                }.getOrFail().tilbakekrevingsbehandling.shouldBeType<IkkeAvgjort>()
+                    simuler = { _, _ ->
+                        simulerUtbetaling(
+                            sak = sak,
+                            revurdering = beregnet,
+                        ).map {
+                            it.simulering
+                        }
+                    },
+                ).getOrFail().tilbakekrevingsbehandling.shouldBeType<IkkeAvgjort>()
             }
         }
     }

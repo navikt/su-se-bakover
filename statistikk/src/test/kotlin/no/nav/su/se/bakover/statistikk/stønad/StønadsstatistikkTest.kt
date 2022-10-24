@@ -309,6 +309,7 @@ internal class StønadsstatistikkTest {
             ]
             """.trimIndent(),
             ytelseVirkningstidspunkt = januar(2021).fraOgMed,
+            funksjonellTid = regulering.opprettet.toString(),
         )
     }
 
@@ -330,19 +331,20 @@ internal class StønadsstatistikkTest {
             ytelseVirkningstidspunkt = januar(2021).fraOgMed,
             opphørsgrunn = "UFØRHET",
             opphørsdato = januar(2021).fraOgMed,
+            funksjonellTid = revurdering.opprettet.toString(),
         )
     }
 
     @Test
     fun `stønadsstatistikk for innvilget søknadsbehandling`() {
-        val (sak, regulering) = vedtakSøknadsbehandlingIverksattInnvilget(
+        val (sak, søknadsbehandling) = vedtakSøknadsbehandlingIverksattInnvilget(
             stønadsperiode = Stønadsperiode.create(
                 periode = januar(2021),
             ),
         )
         assert(
             sak = sak,
-            event = StatistikkEvent.Stønadsvedtak(regulering),
+            event = StatistikkEvent.Stønadsvedtak(søknadsbehandling),
             vedtakstype = "SØKNAD",
             vedtaksresultat = "INNVILGET",
             sakstype = "SØKNAD",
@@ -366,6 +368,7 @@ internal class StønadsstatistikkTest {
             ]
             """.trimIndent(),
             ytelseVirkningstidspunkt = januar(2021).fraOgMed,
+            funksjonellTid = søknadsbehandling.opprettet.toString(),
         )
     }
 

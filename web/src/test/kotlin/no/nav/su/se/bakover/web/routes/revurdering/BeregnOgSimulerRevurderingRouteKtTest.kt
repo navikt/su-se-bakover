@@ -17,16 +17,17 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
+import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering
 import no.nav.su.se.bakover.service.revurdering.RevurderingOgFeilmeldingerResponse
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.nyUtbetalingSimulert
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
+import no.nav.su.se.bakover.test.simulerUtbetaling
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkår
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.argThat
@@ -105,13 +106,15 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                 beregnetRevurdering.simuler(
                     saksbehandler = saksbehandler,
                     clock = fixedClock,
-                ) {
-                    nyUtbetalingSimulert(
-                        sakOgBehandling = sak to beregnetRevurdering,
-                        beregning = it.beregning,
-                        clock = fixedClock,
-                    ).right()
-                }.getOrFail()
+                    simuler = { _, _ ->
+                        simulerUtbetaling(
+                            sak = sak,
+                            revurdering = beregnetRevurdering,
+                        ).map {
+                            it.simulering
+                        }
+                    },
+                ).getOrFail()
             }
             is BeregnetRevurdering.IngenEndring -> throw RuntimeException("Revurderingen må ha en endring på minst 10 prosent")
             is BeregnetRevurdering.Opphørt -> throw RuntimeException("Beregningen har 0 kroners utbetalinger")

@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
+import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
@@ -22,7 +23,7 @@ import no.nav.su.se.bakover.test.nySøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.shouldBeType
-import no.nav.su.se.bakover.test.simulerNyUtbetaling
+import no.nav.su.se.bakover.test.simulerUtbetaling
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.simulertSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.stønadsperiode2021
@@ -97,12 +98,13 @@ internal class StatusovergangTest {
     private val simulert: Søknadsbehandling.Simulert =
         beregnetInnvilget.simuler(
             saksbehandler = saksbehandler,
-            simuler = {
-                simulerNyUtbetaling(
+            simuler = { _, _ ->
+                simulerUtbetaling(
                     sak = sakOgUavklart.first,
-                    request = it,
-                    clock = fixedClock,
-                )
+                    søknadsbehandling = beregnetInnvilget,
+                ).map {
+                    it.simulering
+                }
             },
         ).getOrFail()
 

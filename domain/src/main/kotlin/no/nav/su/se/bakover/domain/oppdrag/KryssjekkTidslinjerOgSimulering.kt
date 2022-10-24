@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.komplement
 import no.nav.su.se.bakover.common.sikkerLogg
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingForPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.TolketUtbetaling
@@ -21,23 +20,25 @@ object KryssjekkTidslinjerOgSimulering {
         underArbeidEndringsperiode: Periode,
         underArbeid: Utbetaling.UtbetalingForSimulering,
         eksisterende: List<Utbetaling>,
-        simuler: (request: SimulerUtbetalingForPeriode) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
+        simuler: (utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
         clock: Clock,
     ): Either<FeilVedKryssjekkAvTidslinjerOgSimulering.NyEllerOpphør, Unit> {
         val periode = Periode.create(
             fraOgMed = underArbeid.tidligsteDato(),
             tilOgMed = underArbeid.senesteDato(),
         )
-        val simulertUtbetaling = simuler(
-            SimulerUtbetalingForPeriode(
-                utbetaling = underArbeid,
-                simuleringsperiode = periode,
-            ),
-        ).getOrHandle { throw RuntimeException("Kunne ikke simulere utbetaling: $it") }
+        val simulertUtbetaling = simuler(underArbeid, periode)
+            .getOrHandle {
+                log.error("Feil ved kryssjekk av tidslinje og simulering, kunne ikke simulere: $it")
+                return FeilVedKryssjekkAvTidslinjerOgSimulering.NyEllerOpphør.KunneIkkeSimulere(it).left()
+            }
 
         val tidslinjeEksisterendeOgUnderArbeid = (eksisterende + underArbeid)
             .tidslinje(periode = periode, clock = clock)
-            .getOrHandle { throw IllegalStateException("Kunne ikke generere tidslinje, feil: $it") }
+            .getOrHandle {
+                log.error("Feil ved kryssjekk av tidslinje og simulering, kunne ikke generere tidslinjer: $it")
+                return FeilVedKryssjekkAvTidslinjerOgSimulering.NyEllerOpphør.KunneIkkeGenerereTidslinje.left()
+            }
 
         sjekkTidslinjeMotSimulering(
             tidslinje = tidslinjeEksisterendeOgUnderArbeid,
@@ -56,13 +57,18 @@ object KryssjekkTidslinjerOgSimulering {
             val tidslinjeUnderArbeid = listOf(underArbeid).tidslinje(
                 periode = rekonstruertPeriode,
                 clock = clock,
-            ).getOrHandle { throw IllegalStateException("Kunne ikke generere tidslinje, feil: $it") }
+            ).getOrHandle {
+                log.error("Feil ved kryssjekk av tidslinje og simulering, kunne ikke generere tidslinjer: $it")
+                return FeilVedKryssjekkAvTidslinjerOgSimulering.NyEllerOpphør.KunneIkkeGenerereTidslinje.left()
+            }
 
             val tidslinjeEksisterende = eksisterende.tidslinje(
                 periode = rekonstruertPeriode,
                 clock = clock,
-            ).getOrHandle { throw IllegalStateException("Kunne ikke generere tidslinje, feil: $it") }
-
+            ).getOrHandle {
+                log.error("Feil ved kryssjekk av tidslinje og simulering, kunne ikke generere tidslinjer: $it")
+                return FeilVedKryssjekkAvTidslinjerOgSimulering.NyEllerOpphør.KunneIkkeGenerereTidslinje.left()
+            }
             if (!tidslinjeUnderArbeid.ekvivalentMed(tidslinje = tidslinjeEksisterende, periode = rekonstruertPeriode)) {
                 log.error("Feil ved kryssjekk av tidslinje og simulering. Se sikkerlogg for detaljer")
                 sikkerLogg.error("Feil ved kryssjekk av tidslinje: Tidslinje for ny utbetaling:$tidslinjeUnderArbeid er ulik eksisterende:$tidslinjeEksisterende for rekonstruert periode:$rekonstruertPeriode")
@@ -119,6 +125,10 @@ sealed interface FeilVedKryssjekkAvTidslinjerOgSimulering {
     sealed interface NyEllerOpphør : FeilVedKryssjekkAvTidslinjerOgSimulering {
         object FeilVedSjekkAvTidslinjeMotSimulering : NyEllerOpphør
         object RekonstruertUtbetalingsperiodeErUlikOpprinnelig : NyEllerOpphør
+
+        data class KunneIkkeSimulere(val feil: SimuleringFeilet) : NyEllerOpphør
+
+        object KunneIkkeGenerereTidslinje : NyEllerOpphør
     }
 
     sealed interface Gjenopptak : FeilVedKryssjekkAvTidslinjerOgSimulering {

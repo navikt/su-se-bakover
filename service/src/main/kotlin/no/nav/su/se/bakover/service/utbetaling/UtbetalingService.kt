@@ -7,8 +7,6 @@ import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.oppdrag.FantIkkeGjeldendeUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.FeilVedKryssjekkAvTidslinjerOgSimulering
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
-import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
@@ -29,8 +27,10 @@ interface UtbetalingService {
     ): Either<FantIkkeUtbetaling, Utbetaling.OversendtUtbetaling.MedKvittering>
 
     fun simulerUtbetaling(
-        request: SimulerUtbetalingRequest.NyUtbetalingRequest,
+        utbetaling: Utbetaling.UtbetalingForSimulering,
+        simuleringsperiode: Periode,
     ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>
+
     fun simulerOpphør(
         utbetaling: Utbetaling.UtbetalingForSimulering,
         eksisterendeUtbetalinger: List<Utbetaling>,
@@ -46,8 +46,9 @@ interface UtbetalingService {
      * i tillegg til [UtbetalingKlargjortForOversendelse.callback] for å publisere utbetalingen på kø mot OS. Kall til denne funksjonen bør gjennomføres
      * som det siste steget i [transactionContext], slik at eventuelle feil her kan rulle tilbake hele transaksjonen.
      */
+
     fun klargjørNyUtbetaling(
-        request: UtbetalRequest.NyUtbetaling,
+        utbetaling: Utbetaling.SimulertUtbetaling,
         transactionContext: TransactionContext,
     ): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>
 

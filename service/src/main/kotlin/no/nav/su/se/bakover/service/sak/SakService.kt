@@ -44,6 +44,8 @@ interface SakService {
 
     fun hentSakForRevurdering(revurderingId: UUID, sessionContext: SessionContext): Sak
 
+    fun hentSakForSøknadsbehandling(søknadsbehandlingId: UUID): Sak
+
     fun hentSakForSøknad(søknadId: UUID): Either<FantIkkeSak, Sak>
 }
 

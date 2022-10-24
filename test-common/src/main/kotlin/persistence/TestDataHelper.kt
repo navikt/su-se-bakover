@@ -101,14 +101,13 @@ import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
 import no.nav.su.se.bakover.test.grunnlagsdataMedEpsMedFradrag
 import no.nav.su.se.bakover.test.journalpostIdSøknad
 import no.nav.su.se.bakover.test.kvittering
-import no.nav.su.se.bakover.test.nyUtbetalingSimulert
 import no.nav.su.se.bakover.test.oppgaveIdRevurdering
 import no.nav.su.se.bakover.test.oppgaveIdSøknad
 import no.nav.su.se.bakover.test.oversendtUtbetalingUtenKvittering
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
-import no.nav.su.se.bakover.test.simulerNyUtbetaling
+import no.nav.su.se.bakover.test.simulerUtbetaling
 import no.nav.su.se.bakover.test.simulering
 import no.nav.su.se.bakover.test.simuleringOpphørt
 import no.nav.su.se.bakover.test.simulertUtbetaling
@@ -570,7 +569,11 @@ class TestDataHelper(
             satsFactory = satsFactoryTestPåDato(),
             begrunnelse = "Begrunnelse",
             clock = clock,
-        ).getOrFail().simuler { simulertUtbetaling().right() }.getOrFail().tilIverksatt().also { iverksattAttestering ->
+        ).getOrFail().simuler(
+            simuler = { _, _ ->
+                simulertUtbetaling().simulering.right() // TODO bare tull, refaktorer vekk hele funksjonen og gjør koblinger mot sak/revurdering
+            },
+        ).getOrFail().tilIverksatt().also { iverksattAttestering ->
             databaseRepos.reguleringRepo.lagre(iverksattAttestering)
         }
     }
@@ -723,13 +726,16 @@ class TestDataHelper(
             beregnet.simuler(
                 saksbehandler = saksbehandler,
                 clock = clock,
-            ) {
-                nyUtbetalingSimulert(
-                    sakOgBehandling = sak to beregnet,
-                    beregning = beregnet.beregning,
-                    clock = clock,
-                ).right()
-            }.getOrFail().let { simulert ->
+                simuler = { _, _ ->
+                    simulerUtbetaling(
+                        sak = sak,
+                        revurdering = beregnet,
+                        strict = false,
+                    ).map {
+                        it.simulering
+                    }
+                },
+            ).getOrFail().let { simulert ->
                 val håndtertForhåndsvarsel = simulert.ikkeSendForhåndsvarsel().getOrFail()
                 val oppdatertTilbakekrevingsbehandling = if (håndtertForhåndsvarsel.harSimuleringFeilutbetaling()) {
                     håndtertForhåndsvarsel.oppdaterTilbakekrevingsbehandling(
@@ -1238,16 +1244,20 @@ class TestDataHelper(
         ).let { (sak, beregnet) ->
             beregnet.simuler(
                 saksbehandler = saksbehandler,
-            ) {
-                simulerNyUtbetaling(
-                    sak = sak,
-                    request = it,
-                    clock = fixedClock,
-                )
-            }
-        }.getOrFail().let {
-            databaseRepos.søknadsbehandling.lagre(it)
-            Pair(databaseRepos.sak.hentSak(sakId)!!, it)
+                simuler = { _, _ ->
+                    simulerUtbetaling(
+                        sak = sak,
+                        søknadsbehandling = beregnet,
+                        strict = false,
+                    ).map {
+                        it.simulering
+                    }
+                },
+            ).getOrFail()
+                .let {
+                    databaseRepos.søknadsbehandling.lagre(it)
+                    Pair(databaseRepos.sak.hentSak(sakId)!!, it)
+                }
         }
     }
 

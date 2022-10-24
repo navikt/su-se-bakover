@@ -8,19 +8,15 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.FantIkkeGjeldendeUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.KryssjekkSaksbehandlersOgAttestantsSimulering
 import no.nav.su.se.bakover.domain.oppdrag.KryssjekkTidslinjerOgSimulering
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
-import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.hentGjeldendeUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingForPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -75,6 +71,15 @@ internal class UtbetalingServiceImpl(
             .also { log.warn("Fant ikke utbetaling med id: $utbetalingId") }
     }
 
+    override fun simulerUtbetaling(utbetaling: Utbetaling.UtbetalingForSimulering, simuleringsperiode: Periode): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
+        return simulerUtbetaling(
+            SimulerUtbetalingForPeriode(
+                utbetaling = utbetaling,
+                simuleringsperiode = simuleringsperiode,
+            ),
+        )
+    }
+
     override fun hentGjeldendeUtbetaling(
         sakId: UUID,
         forDato: LocalDate,
@@ -85,25 +90,14 @@ internal class UtbetalingServiceImpl(
         )
     }
 
-    override fun klargjørNyUtbetaling(request: UtbetalRequest.NyUtbetaling, transactionContext: TransactionContext): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>> {
-        return simulerUtbetaling(request).mapLeft {
-            UtbetalingFeilet.KunneIkkeSimulere(it)
-        }.flatMap { simulertUtbetaling ->
-            KryssjekkSaksbehandlersOgAttestantsSimulering(
-                saksbehandlersSimulering = request.simulering,
-                attestantsSimulering = simulertUtbetaling,
-            ).sjekk().getOrHandle {
-                return UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(it).left()
-            }
-
-            UtbetalingKlargjortForOversendelse(
-                utbetaling = simulertUtbetaling.forberedOversendelse(transactionContext),
-                callback = { utbetalingsrequest ->
-                    sendUtbetalingTilOS(utbetalingsrequest)
-                        .mapLeft { UtbetalingFeilet.Protokollfeil }
-                },
-            ).right()
-        }
+    override fun klargjørNyUtbetaling(utbetaling: Utbetaling.SimulertUtbetaling, transactionContext: TransactionContext): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>> {
+        return UtbetalingKlargjortForOversendelse(
+            utbetaling = utbetaling.forberedOversendelse(transactionContext),
+            callback = { utbetalingsrequest ->
+                sendUtbetalingTilOS(utbetalingsrequest)
+                    .mapLeft { UtbetalingFeilet.Protokollfeil }
+            },
+        ).right()
     }
 
     override fun klargjørOpphør(
@@ -148,77 +142,6 @@ internal class UtbetalingServiceImpl(
             underArbeidEndringsperiode = simuleringsperiode,
             underArbeid = utbetaling,
             eksisterende = eksisterendeUtbetalinger,
-            simuler = this::simulerUtbetaling,
-            clock = clock,
-        ).getOrHandle {
-            return SimuleringFeilet.KontrollAvSimuleringFeilet(it).left()
-        }
-
-        return simulerUtbetaling(
-            request = SimulerUtbetalingForPeriode(
-                utbetaling = utbetaling,
-                simuleringsperiode = simuleringsperiode,
-            ),
-        )
-    }
-
-    override fun simulerUtbetaling(
-        request: SimulerUtbetalingRequest.NyUtbetalingRequest,
-    ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
-        val sak: Sak = sakService.hentSak(request.sakId).orNull()!!
-
-        fun lagUtbetalingAlder(request: SimulerUtbetalingRequest.NyUtbetaling.Alder): Utbetaling.UtbetalingForSimulering {
-            return Utbetalingsstrategi.NyAldersUtbetaling(
-                sakId = sak.id,
-                saksnummer = sak.saksnummer,
-                fnr = sak.fnr,
-                eksisterendeUtbetalinger = sak.utbetalinger,
-                behandler = request.saksbehandler,
-                beregning = request.beregning,
-                clock = clock,
-                kjøreplan = request.utbetalingsinstruksjonForEtterbetaling,
-                sakstype = sak.type,
-            ).generate()
-        }
-
-        fun lagUtbetalingUføre(request: SimulerUtbetalingRequest.NyUtbetaling.Uføre): Utbetaling.UtbetalingForSimulering {
-            return Utbetalingsstrategi.NyUføreUtbetaling(
-                sakId = sak.id,
-                saksnummer = sak.saksnummer,
-                fnr = sak.fnr,
-                eksisterendeUtbetalinger = sak.utbetalinger,
-                behandler = request.saksbehandler,
-                beregning = request.beregning,
-                uføregrunnlag = request.uføregrunnlag,
-                clock = clock,
-                kjøreplan = request.utbetalingsinstruksjonForEtterbetaling,
-                sakstype = sak.type,
-            ).generate()
-        }
-
-        val utbetaling = when (request) {
-            is SimulerUtbetalingRequest.NyUtbetaling.Alder -> {
-                lagUtbetalingAlder(request)
-            }
-
-            is SimulerUtbetalingRequest.NyUtbetaling.Uføre -> {
-                lagUtbetalingUføre(request)
-            }
-
-            is UtbetalRequest.NyUtbetaling -> {
-                when (val inner = request.request) {
-                    is SimulerUtbetalingRequest.NyUtbetaling.Alder -> lagUtbetalingAlder(inner)
-                    is SimulerUtbetalingRequest.NyUtbetaling.Uføre -> lagUtbetalingUføre(inner)
-                }
-            }
-        }
-
-        val simuleringsperiode = request.beregning.periode
-
-        KryssjekkTidslinjerOgSimulering.sjekkNyEllerOpphør(
-            underArbeidEndringsperiode = simuleringsperiode,
-            underArbeid = utbetaling,
-            eksisterende = sak.utbetalinger,
             simuler = this::simulerUtbetaling,
             clock = clock,
         ).getOrHandle {
