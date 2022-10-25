@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.plus
+import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.vedtakIverksattAutomatiskRegulering
 import no.nav.su.se.bakover.test.vedtakIverksattGjenopptakAvYtelseFraIverksattStans
 import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
@@ -69,8 +70,11 @@ internal class StønadsstatistikkTest {
                             periode = periode,
                         ),
                     ),
+                    clock = tikkendeFixedClock,
                 ).let { Pair(it.first, it.third as VedtakSomKanRevurderes) },
+                clock = tikkendeFixedClock,
             ),
+            clock = tikkendeFixedClock,
         )
         assert(
             sak = sak,
@@ -97,7 +101,7 @@ internal class StønadsstatistikkTest {
                 }
             ]
             """.trimIndent(),
-            funksjonellTid = "2021-01-01T01:02:12.456789Z",
+            funksjonellTid = vedtak.opprettet.toString(),
         )
     }
 

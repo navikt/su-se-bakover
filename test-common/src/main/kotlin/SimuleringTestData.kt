@@ -30,10 +30,12 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.regulering.Regulering
+import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
+import no.nav.su.se.bakover.domain.sak.lagUtbetalingForGjenopptak
 import no.nav.su.se.bakover.domain.sak.lagUtbetalingForOpphør
 import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -177,6 +179,42 @@ fun simulerUtbetaling(
         clock = clock,
         strict = strict,
     )
+}
+
+fun simulerGjenopptak(
+    sak: Sak,
+    gjenopptak: GjenopptaYtelseRevurdering?,
+    behandler: NavIdentBruker = saksbehandler,
+    clock: Clock = tikkendeFixedClock,
+    strict: Boolean = true,
+): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
+    return sak.lagUtbetalingForGjenopptak(
+        saksbehandler = behandler,
+        clock = clock,
+    ).getOrFail().let { utbetaling ->
+        val simuleringsperiode = Periode.create(utbetaling.tidligsteDato(), utbetaling.senesteDato())
+        if (strict) {
+            sak.simulerUtbetaling(
+                utbetalingForSimulering = utbetaling,
+                periode = simuleringsperiode,
+                simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
+                    simulerUtbetaling(
+                        sak = sak,
+                        utbetaling = utbetalingForSimulering,
+                        simuleringsperiode = periode,
+                    )
+                },
+                kontrollerMotTidligereSimulering = gjenopptak?.simulering,
+                clock = clock,
+            )
+        } else {
+            simulerUtbetaling(
+                sak = sak,
+                utbetaling = utbetaling,
+                simuleringsperiode = simuleringsperiode,
+            )
+        }
+    }
 }
 
 fun simulerNyUtbetaling(

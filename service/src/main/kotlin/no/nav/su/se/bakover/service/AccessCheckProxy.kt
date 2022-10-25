@@ -166,9 +166,7 @@ import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeUtbetaling
-import no.nav.su.se.bakover.service.utbetaling.SimulerGjenopptakFeil
 import no.nav.su.se.bakover.service.utbetaling.SimulerStansFeilet
-import no.nav.su.se.bakover.service.utbetaling.UtbetalGjenopptakFeil
 import no.nav.su.se.bakover.service.utbetaling.UtbetalStansFeil
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
@@ -254,14 +252,6 @@ open class AccessCheckProxy(
                     saksbehandlersSimulering: Simulering,
                     transactionContext: TransactionContext,
                 ): Either<UtbetalStansFeil, UtbetalingKlargjortForOversendelse<UtbetalStansFeil.KunneIkkeUtbetale>> {
-                    kastKanKunKallesFraAnnenService()
-                }
-
-                override fun simulerGjenopptak(utbetaling: Utbetaling.UtbetalingForSimulering, eksisterendeUtbetalinger: List<Utbetaling>): Either<SimulerGjenopptakFeil, Utbetaling.SimulertUtbetaling> {
-                    kastKanKunKallesFraAnnenService()
-                }
-
-                override fun klargjørGjenopptak(utbetaling: Utbetaling.UtbetalingForSimulering, eksisterendeUtbetalinger: List<Utbetaling>, saksbehandlersSimulering: Simulering, transactionContext: TransactionContext): Either<UtbetalGjenopptakFeil, UtbetalingKlargjortForOversendelse<UtbetalGjenopptakFeil.KunneIkkeUtbetale>> {
                     kastKanKunKallesFraAnnenService()
                 }
 

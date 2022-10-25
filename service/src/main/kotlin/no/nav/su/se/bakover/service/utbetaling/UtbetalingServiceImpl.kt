@@ -24,7 +24,6 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
-import no.nav.su.se.bakover.service.sak.SakService
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.time.LocalDate
@@ -32,7 +31,6 @@ import java.util.UUID
 
 internal class UtbetalingServiceImpl(
     private val utbetalingRepo: UtbetalingRepo,
-    private val sakService: SakService,
     private val simuleringClient: SimuleringClient,
     private val utbetalingPublisher: UtbetalingPublisher,
     private val clock: Clock,
@@ -90,7 +88,10 @@ internal class UtbetalingServiceImpl(
         )
     }
 
-    override fun klargjørUtbetaling(utbetaling: Utbetaling.SimulertUtbetaling, transactionContext: TransactionContext): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>> {
+    override fun klargjørUtbetaling(
+        utbetaling: Utbetaling.SimulertUtbetaling,
+        transactionContext: TransactionContext,
+    ): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>> {
         return UtbetalingKlargjortForOversendelse(
             utbetaling = utbetaling.forberedOversendelse(transactionContext),
             callback = { utbetalingsrequest ->
@@ -165,64 +166,6 @@ internal class UtbetalingServiceImpl(
                 utbetaling = it,
                 transactionContext = transactionContext,
             )
-        }
-    }
-
-    override fun simulerGjenopptak(utbetaling: Utbetaling.UtbetalingForSimulering, eksisterendeUtbetalinger: List<Utbetaling>): Either<SimulerGjenopptakFeil, Utbetaling.SimulertUtbetaling> {
-        val simuleringsperiode = Periode.create(
-            fraOgMed = utbetaling.tidligsteDato(),
-            tilOgMed = utbetaling.senesteDato(),
-        )
-
-        return simulerUtbetaling(
-            request = SimulerUtbetalingForPeriode(
-                utbetaling = utbetaling,
-                simuleringsperiode = simuleringsperiode,
-            ),
-        ).map { simulertUtbetaling ->
-            KryssjekkTidslinjerOgSimulering.sjekkGjenopptak(
-                underArbeid = simulertUtbetaling,
-                eksisterende = eksisterendeUtbetalinger,
-                clock = clock,
-            ).getOrHandle {
-                return SimulerGjenopptakFeil.KontrollFeilet(it).left()
-            }
-            simulertUtbetaling
-        }.mapLeft {
-            SimulerGjenopptakFeil.KunneIkkeSimulere(it)
-        }
-    }
-
-    override fun klargjørGjenopptak(
-        utbetaling: Utbetaling.UtbetalingForSimulering,
-        eksisterendeUtbetalinger: List<Utbetaling>,
-        saksbehandlersSimulering: Simulering,
-        transactionContext: TransactionContext,
-    ): Either<UtbetalGjenopptakFeil, UtbetalingKlargjortForOversendelse<UtbetalGjenopptakFeil.KunneIkkeUtbetale>> {
-        return simulerGjenopptak(
-            utbetaling = utbetaling,
-            eksisterendeUtbetalinger = eksisterendeUtbetalinger,
-        ).mapLeft {
-            UtbetalGjenopptakFeil.KunneIkkeSimulere(it)
-        }.flatMap { simulertGjenopptak ->
-            KryssjekkSaksbehandlersOgAttestantsSimulering(
-                saksbehandlersSimulering = saksbehandlersSimulering,
-                attestantsSimulering = simulertGjenopptak,
-            ).sjekk().getOrHandle {
-                return UtbetalGjenopptakFeil.KunneIkkeUtbetale(
-                    UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(
-                        it,
-                    ),
-                ).left()
-            }
-
-            UtbetalingKlargjortForOversendelse(
-                utbetaling = simulertGjenopptak.forberedOversendelse(transactionContext),
-                callback = { utbetalingsrequest ->
-                    sendUtbetalingTilOS(utbetalingsrequest)
-                        .mapLeft { UtbetalGjenopptakFeil.KunneIkkeUtbetale(it) }
-                },
-            ).right()
         }
     }
 }

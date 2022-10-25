@@ -62,7 +62,6 @@ object ServiceBuilder {
         ).apply { addObserver(statistikkEventObserver) }
         val utbetalingService = UtbetalingServiceImpl(
             utbetalingRepo = databaseRepos.utbetaling,
-            sakService = sakService,
             simuleringClient = clients.simuleringClient,
             utbetalingPublisher = clients.utbetalingPublisher,
             clock = clock,

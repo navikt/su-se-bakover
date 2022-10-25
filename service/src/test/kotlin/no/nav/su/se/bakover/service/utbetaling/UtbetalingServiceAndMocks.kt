@@ -17,7 +17,6 @@ internal class UtbetalingServiceAndMocks(
 ) {
     val service: UtbetalingService = UtbetalingServiceImpl(
         utbetalingRepo = utbetalingRepo,
-        sakService = sakService,
         simuleringClient = simuleringClient,
         utbetalingPublisher = utbetalingPublisher,
         clock = clock,

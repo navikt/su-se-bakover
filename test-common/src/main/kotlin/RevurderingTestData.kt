@@ -1196,13 +1196,11 @@ fun simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
         periode = periodeForStans,
         clock = clock,
     ),
-    simulering: Simulering = simuleringGjenopptak(
-        eksisterendeUtbetalinger = sakOgVedtakSomKanRevurderes.first.utbetalinger,
-        fnr = sakOgVedtakSomKanRevurderes.first.fnr,
-        sakId = sakOgVedtakSomKanRevurderes.first.id,
-        saksnummer = sakOgVedtakSomKanRevurderes.first.saksnummer,
+    simulering: Simulering = simulerGjenopptak(
+        sak = sakOgVedtakSomKanRevurderes.first,
+        gjenopptak = null,
         clock = clock,
-    ),
+    ).getOrFail().simulering,
 ): Pair<Sak, GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse> {
     require(sakOgVedtakSomKanRevurderes.first.vedtakListe.last() is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse)
 

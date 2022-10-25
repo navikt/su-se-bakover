@@ -65,27 +65,6 @@ interface UtbetalingService {
         transactionContext: TransactionContext,
     ): Either<UtbetalStansFeil, UtbetalingKlargjortForOversendelse<UtbetalStansFeil.KunneIkkeUtbetale>>
 
-    fun simulerGjenopptak(
-        utbetaling: Utbetaling.UtbetalingForSimulering,
-        eksisterendeUtbetalinger: List<Utbetaling>,
-    ): Either<SimulerGjenopptakFeil, Utbetaling.SimulertUtbetaling>
-
-    /**
-     * Oppretter utbetalinger for gjenopptak, lagrer i databasen og klargjør utbetalingene for oversendelse til OS (lager XML-request)
-     * Konsumenten av denne funksjonen er ansvarlig for håndtering av [transactionContext] i tillegg til å kalle [UtbetalingKlargjortForOversendelse.callback]
-     * på et hensiktsmessig tidspunkt.
-     *
-     * @return [UtbetalingKlargjortForOversendelse] inneholder [UtbetalingKlargjortForOversendelse.utbetaling] med generert XML for publisering på kø,
-     * i tillegg til [UtbetalingKlargjortForOversendelse.callback] for å publisere utbetalingen på kø mot OS. Kall til denne funksjonen bør gjennomføres
-     * som det siste steget i [transactionContext], slik at eventuelle feil her kan rulle tilbake hele transaksjonen.
-     */
-    fun klargjørGjenopptak(
-        utbetaling: Utbetaling.UtbetalingForSimulering,
-        eksisterendeUtbetalinger: List<Utbetaling>,
-        saksbehandlersSimulering: Simulering,
-        transactionContext: TransactionContext,
-    ): Either<UtbetalGjenopptakFeil, UtbetalingKlargjortForOversendelse<UtbetalGjenopptakFeil.KunneIkkeUtbetale>>
-
     fun hentGjeldendeUtbetaling(
         sakId: UUID,
         forDato: LocalDate,

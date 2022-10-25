@@ -62,7 +62,6 @@ import no.nav.su.se.bakover.test.iverksattSøknadsbehandling
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.nySakUføre
 import no.nav.su.se.bakover.test.opprettetRevurdering
-import no.nav.su.se.bakover.test.plus
 import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.stønadsperiode2021
@@ -70,6 +69,7 @@ import no.nav.su.se.bakover.test.søknad.nySøknadJournalførtMedOppgave
 import no.nav.su.se.bakover.test.søknad.søknadinnhold
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
+import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.vedtakIverksattGjenopptakAvYtelseFraIverksattStans
 import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.vedtakRevurdering
@@ -82,7 +82,6 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.time.ZoneOffset
-import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 internal class SakTest {
@@ -335,7 +334,7 @@ internal class SakTest {
         @Test
         fun `henter stønadsperioder som har blitt revurdert`() {
             val (sakFørRevurdering, søknadsvedtak) = vedtakSøknadsbehandlingIverksattInnvilget(
-                clock = fixedClock,
+                clock = tikkendeFixedClock,
             )
 
             sakFørRevurdering.hentPerioderMedLøpendeYtelse() shouldBe listOf(
@@ -345,7 +344,7 @@ internal class SakTest {
             val (sakEtterStans, stans) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
                 periode = Periode.create(1.februar(2021), 31.desember(2021)),
                 sakOgVedtakSomKanRevurderes = sakFørRevurdering to søknadsvedtak,
-                clock = fixedClock.plus(1, ChronoUnit.SECONDS),
+                clock = tikkendeFixedClock,
             )
 
             sakEtterStans.hentPerioderMedLøpendeYtelse() shouldBe listOf(
@@ -355,8 +354,7 @@ internal class SakTest {
             val (sakEtterGjenopptak, gjenopptak) = vedtakIverksattGjenopptakAvYtelseFraIverksattStans(
                 periode = Periode.create(1.februar(2021), 31.desember(2021)),
                 sakOgVedtakSomKanRevurderes = sakEtterStans to stans,
-                // Funksjonen vil plusse på 2 selv, slik at vi ikke trenger
-                clock = fixedClock,
+                clock = tikkendeFixedClock,
             )
 
             sakEtterGjenopptak.hentPerioderMedLøpendeYtelse() shouldBe listOf(
@@ -366,7 +364,7 @@ internal class SakTest {
             val (sakEtterRevurdering, revurdering) = vedtakRevurderingIverksattInnvilget(
                 revurderingsperiode = Periode.create(1.juli(2021), 31.desember(2021)),
                 sakOgVedtakSomKanRevurderes = sakEtterGjenopptak to gjenopptak,
-                clock = fixedClock.plus(3, ChronoUnit.SECONDS),
+                clock = tikkendeFixedClock,
             )
 
             sakEtterRevurdering.hentPerioderMedLøpendeYtelse() shouldBe listOf(
