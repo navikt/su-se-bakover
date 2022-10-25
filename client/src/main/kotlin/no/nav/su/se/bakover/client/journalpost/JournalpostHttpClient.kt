@@ -71,7 +71,10 @@ internal class JournalpostHttpClient(
         ).fold(
             {
                 when (it) {
-                    is GraphQLApiFeil.HttpFeil.BadRequest -> KunneIkkeSjekkeTilknytningTilSak.UgyldigInput
+                    is GraphQLApiFeil.HttpFeil.BadRequest -> when (it.msg) {
+                        "journalpostId er en ikke-numerisk verdi." -> KunneIkkeSjekkeTilknytningTilSak.FantIkkeJournalpost
+                        else -> KunneIkkeSjekkeTilknytningTilSak.UgyldigInput
+                    }
                     is GraphQLApiFeil.HttpFeil.Forbidden -> KunneIkkeSjekkeTilknytningTilSak.IkkeTilgang
                     is GraphQLApiFeil.HttpFeil.NotFound -> KunneIkkeSjekkeTilknytningTilSak.FantIkkeJournalpost
                     is GraphQLApiFeil.HttpFeil.ServerError -> KunneIkkeSjekkeTilknytningTilSak.TekniskFeil

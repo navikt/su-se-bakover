@@ -132,7 +132,9 @@ private fun Sak.validerJournalposter(
         }.awaitAll().mapNotNull {
             when (val r = it.second) {
                 is Either.Left -> it.first.also {
-                    log.error("Kunne ikke validere journalpost til utenlandsopphold for sakId $id og journalpostId $it. Underliggende feil: ${r.value}")
+                    if (r.swap().orNull()!! !is KunneIkkeSjekkeTilknytningTilSak.FantIkkeJournalpost) {
+                        log.error("Kunne ikke validere journalpost til utenlandsopphold for sakId $id og journalpostId $it. Underliggende feil: ${r.value}")
+                    }
                 }
                 is Either.Right -> when (r.value) {
                     ErTilknyttetSak.Ja -> null
