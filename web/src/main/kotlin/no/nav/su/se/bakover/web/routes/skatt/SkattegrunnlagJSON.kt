@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web.routes.skatt
 
-import no.nav.su.se.bakover.domain.Skattegrunnlag
+import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 
 internal data class SkattegrunnlagJSON(
     val fnr: String,

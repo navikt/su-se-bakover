@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain
+package no.nav.su.se.bakover.common.application
 
 import no.nav.su.se.bakover.common.Tidspunkt
 

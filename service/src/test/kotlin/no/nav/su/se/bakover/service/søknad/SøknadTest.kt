@@ -10,14 +10,13 @@ import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
-import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.Saksnummer
@@ -33,6 +32,7 @@ import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.søknad.søknadinnhold
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -44,7 +44,7 @@ import java.util.UUID
 
 class SøknadTest {
 
-    private val søknadInnhold: SøknadsinnholdUføre = SøknadInnholdTestdataBuilder.build()
+    private val søknadInnhold: SøknadsinnholdUføre = søknadinnhold()
     private val fnr = søknadInnhold.personopplysninger.fnr
     private val person: Person = PersonOppslagStub.person(fnr).getOrFail()
     private val sakId = UUID.randomUUID()
@@ -250,7 +250,7 @@ class SøknadTest {
             søknadMetrics = mock(),
             toggleService = mock(),
         ).also {
-            val søknadInnhold = SøknadInnholdTestdataBuilder.build(personopplysninger = Personopplysninger(sak.fnr))
+            val søknadInnhold = søknadinnhold(personopplysninger = Personopplysninger(sak.fnr))
             val actual = it.service.nySøknad(søknadInnhold, innsender)
             inOrder(*it.allMocks()) {
                 verify(it.personService).hentPerson(argThat { it shouldBe sak.fnr })

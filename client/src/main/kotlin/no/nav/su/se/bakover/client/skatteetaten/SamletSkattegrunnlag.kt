@@ -4,7 +4,7 @@ import arrow.core.Either
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.log
-import no.nav.su.se.bakover.domain.Skattegrunnlag.Kategori
+import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag.Kategori
 import java.time.Clock
 import java.time.LocalDate
 
@@ -28,13 +28,13 @@ internal data class Skattegrunnlag(
     val kategori: List<String>,
 )
 
-internal fun SamletSkattegrunnlag.toDomain(clock: Clock): Either<Throwable, no.nav.su.se.bakover.domain.Skattegrunnlag> {
+internal fun SamletSkattegrunnlag.toDomain(clock: Clock): Either<Throwable, no.nav.su.se.bakover.domain.skatt.Skattegrunnlag> {
     return Either.catch {
-        no.nav.su.se.bakover.domain.Skattegrunnlag(
+        no.nav.su.se.bakover.domain.skatt.Skattegrunnlag(
             fnr = Fnr(personidentifikator),
             inntektsår = inntektsaar.toInt(),
             grunnlag = grunnlag.map {
-                no.nav.su.se.bakover.domain.Skattegrunnlag.Grunnlag(
+                no.nav.su.se.bakover.domain.skatt.Skattegrunnlag.Grunnlag(
                     navn = it.tekniskNavn,
                     beløp = it.beloep,
                     kategori = it.kategori.mapNotNull { kategoriNavn ->

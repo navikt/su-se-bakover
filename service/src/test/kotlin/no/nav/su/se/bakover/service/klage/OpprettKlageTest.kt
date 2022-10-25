@@ -24,8 +24,8 @@ import no.nav.su.se.bakover.test.avsluttetKlage
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.opprettetKlage
+import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.any

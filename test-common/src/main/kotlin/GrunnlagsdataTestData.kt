@@ -84,7 +84,7 @@ fun bosituasjonEpsUnder67(
         id = id,
         opprettet = opprettet,
         periode = periode,
-        fnr = fnrUnder67(),
+        fnr = fnrUnder67,
     )
 }
 

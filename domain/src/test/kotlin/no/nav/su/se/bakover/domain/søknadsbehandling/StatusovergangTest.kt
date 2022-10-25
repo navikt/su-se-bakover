@@ -27,7 +27,7 @@ import no.nav.su.se.bakover.test.simulerUtbetaling
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.simulertSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.stønadsperiode2021
-import no.nav.su.se.bakover.test.søknadId
+import no.nav.su.se.bakover.test.søknad.søknadId
 import no.nav.su.se.bakover.test.søknadsbehandlingSimulert
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingUnderkjentInnvilget

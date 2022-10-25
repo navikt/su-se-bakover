@@ -31,7 +31,7 @@ val alderssøknadsinnholdJson =
     "delerBoligMed": "EKTEMAKE_SAMBOER",
     "ektefellePartnerSamboer":{
       "erUførFlyktning": false,
-      "fnr": "${fnrUnder67()}"
+      "fnr": "$fnrUnder67"
     },
     "innlagtPåInstitusjon": {
       "datoForInnleggelse": "2020-01-01",

@@ -22,7 +22,6 @@ import no.nav.su.se.bakover.common.persistence.sessionOf
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.DomainToQueryParameterMapper
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -82,7 +81,6 @@ import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import no.nav.su.se.bakover.hendelse.infrastructure.persistence.HendelsePostgresRepo
 import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.attesteringIverksatt
 import no.nav.su.se.bakover.test.attesteringUnderkjent
@@ -99,10 +97,8 @@ import no.nav.su.se.bakover.test.gjeldendeVedtaksdata
 import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
 import no.nav.su.se.bakover.test.grunnlagsdataMedEpsMedFradrag
-import no.nav.su.se.bakover.test.journalpostIdSøknad
 import no.nav.su.se.bakover.test.kvittering
 import no.nav.su.se.bakover.test.oppgaveIdRevurdering
-import no.nav.su.se.bakover.test.oppgaveIdSøknad
 import no.nav.su.se.bakover.test.oversendtUtbetalingUtenKvittering
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTest
@@ -112,6 +108,9 @@ import no.nav.su.se.bakover.test.simulering
 import no.nav.su.se.bakover.test.simuleringOpphørt
 import no.nav.su.se.bakover.test.simulertUtbetaling
 import no.nav.su.se.bakover.test.stønadsperiode2021
+import no.nav.su.se.bakover.test.søknad.journalpostIdSøknad
+import no.nav.su.se.bakover.test.søknad.oppgaveIdSøknad
+import no.nav.su.se.bakover.test.søknad.søknadinnhold
 import no.nav.su.se.bakover.test.trekkSøknad
 import no.nav.su.se.bakover.test.utbetalingslinje
 import no.nav.su.se.bakover.test.veileder
@@ -151,10 +150,6 @@ class TestDataHelper(
     val klageinstanshendelsePostgresRepo = databaseRepos.klageinstanshendelseRepo
     val nøkkeltallRepo = databaseRepos.nøkkeltallRepo
     val personRepo = databaseRepos.person
-    val hendelsePostgresRepo = HendelsePostgresRepo(
-        sessionFactory = sessionFactory,
-        dbMetrics = dbMetrics,
-    )
     val personhendelseRepo = databaseRepos.personhendelseRepo
     val reguleringRepo = databaseRepos.reguleringRepo
     val revurderingRepo = databaseRepos.revurderingRepo
@@ -171,7 +166,7 @@ class TestDataHelper(
         sakId: UUID = UUID.randomUUID(),
         søknadId: UUID = UUID.randomUUID(),
         fnr: Fnr = Fnr.generer(),
-        søknadInnhold: SøknadsinnholdUføre = SøknadInnholdTestdataBuilder.build(),
+        søknadInnhold: SøknadsinnholdUføre = søknadinnhold(),
         søknadInnsendtAv: NavIdentBruker = veileder,
     ): NySak {
         return SakFactory(
@@ -198,7 +193,7 @@ class TestDataHelper(
     fun persisterSøknadUtenJournalføringOgOppgavePåEksisterendeSak(
         sakId: UUID,
         søknadId: UUID = UUID.randomUUID(),
-        søknadInnhold: SøknadsinnholdUføre = SøknadInnholdTestdataBuilder.build(),
+        søknadInnhold: SøknadsinnholdUføre = søknadinnhold(),
         identBruker: NavIdentBruker = veileder,
     ): Søknad.Ny {
         return Søknad.Ny(
@@ -219,7 +214,7 @@ class TestDataHelper(
         søknadId: UUID = UUID.randomUUID(),
         fnr: Fnr = Fnr.generer(),
         journalpostId: JournalpostId = journalpostIdSøknad,
-        søknadInnhold: SøknadsinnholdUføre = SøknadInnholdTestdataBuilder.build(),
+        søknadInnhold: SøknadsinnholdUføre = søknadinnhold(),
     ): Søknad.Journalført.MedOppgave.Lukket {
         return persisterJournalførtSøknadMedOppgave(
             sakId = sakId,
@@ -241,7 +236,7 @@ class TestDataHelper(
         søknadId: UUID = UUID.randomUUID(),
         fnr: Fnr = Fnr.generer(),
         journalpostId: JournalpostId = journalpostIdSøknad,
-        søknadInnhold: SøknadsinnholdUføre = SøknadInnholdTestdataBuilder.build(),
+        søknadInnhold: SøknadsinnholdUføre = søknadinnhold(),
     ): Pair<Sak, Søknad.Journalført.UtenOppgave> {
         val nySak: NySak = persisterSakMedSøknadUtenJournalføringOgOppgave(
             fnr = fnr,
@@ -263,7 +258,7 @@ class TestDataHelper(
         sakId: UUID,
         søknadId: UUID = UUID.randomUUID(),
         journalpostId: JournalpostId = journalpostIdSøknad,
-        søknadInnhold: SøknadsinnholdUføre = SøknadInnholdTestdataBuilder.build(),
+        søknadInnhold: SøknadsinnholdUføre = søknadinnhold(),
     ): Søknad.Journalført.UtenOppgave {
         return persisterSøknadUtenJournalføringOgOppgavePåEksisterendeSak(
             sakId = sakId,
@@ -283,7 +278,7 @@ class TestDataHelper(
         fnr: Fnr = Fnr.generer(),
         oppgaveId: OppgaveId = oppgaveIdSøknad,
         journalpostId: JournalpostId = journalpostIdSøknad,
-        søknadInnhold: SøknadsinnholdUføre = SøknadInnholdTestdataBuilder.build(),
+        søknadInnhold: SøknadsinnholdUføre = søknadinnhold(),
     ): Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> {
         return databaseRepos.sak.hentSak(sakId).let {
             if (it == null) {
@@ -833,7 +828,6 @@ class TestDataHelper(
     /**
      * Setter forhåndsvarsel til SkalIkkeForhåndsvarsel dersom den ikke er satt på dette tidspunktet.
      */
-    @Suppress("unused")
     fun persisterRevurderingTilAttesteringIngenEndring(): RevurderingTilAttestering.IngenEndring {
         val beregnet: BeregnetRevurdering.IngenEndring = persisterRevurderingBeregningIngenEndring().second
         return beregnet.tilAttestering(

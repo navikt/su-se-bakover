@@ -10,12 +10,17 @@ import no.nav.su.se.bakover.domain.sak.SakFactory
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.søknad.Søknad
+import no.nav.su.se.bakover.domain.søknadinnhold.Personopplysninger
 import no.nav.su.se.bakover.domain.søknadinnhold.SøknadInnhold
 import no.nav.su.se.bakover.domain.søknadinnhold.SøknadsinnholdAlder
 import no.nav.su.se.bakover.domain.søknadinnhold.SøknadsinnholdUføre
-import no.nav.su.se.bakover.domain.søknadsinnholdAlder
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import no.nav.su.se.bakover.test.søknad.journalpostIdSøknad
+import no.nav.su.se.bakover.test.søknad.oppgaveIdSøknad
+import no.nav.su.se.bakover.test.søknad.søknadId
+import no.nav.su.se.bakover.test.søknad.søknadinnhold
+import no.nav.su.se.bakover.test.søknad.søknadsinnholdAlder
 import java.time.Clock
 import java.util.LinkedList
 import java.util.UUID
@@ -53,7 +58,7 @@ fun nySakUføre(
         fnr = fnr,
         type = Sakstype.UFØRE,
     ),
-    søknadsInnhold: SøknadsinnholdUføre = søknadinnhold(sakInfo.fnr),
+    søknadsInnhold: SøknadsinnholdUføre = søknadinnhold(personopplysninger = Personopplysninger(sakInfo.fnr)),
     søknadInnsendtAv: NavIdentBruker = veileder,
 ): Pair<Sak, Søknad.Journalført.MedOppgave> {
     return nySak(

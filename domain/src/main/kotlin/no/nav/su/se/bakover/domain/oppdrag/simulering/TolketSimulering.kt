@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.domain.oppdrag.simulering
 
+import no.nav.su.se.bakover.common.application.Beløp
+import no.nav.su.se.bakover.common.application.MånedBeløp
+import no.nav.su.se.bakover.common.application.Månedsbeløp
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfMonth
-import no.nav.su.se.bakover.domain.Beløp
-import no.nav.su.se.bakover.domain.MånedBeløp
-import no.nav.su.se.bakover.domain.Månedsbeløp
 import java.time.LocalDate
 
 data class TolketSimulering(

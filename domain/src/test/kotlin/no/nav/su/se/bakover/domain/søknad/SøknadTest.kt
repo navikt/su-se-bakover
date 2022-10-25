@@ -4,7 +4,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.søknadinnhold.ForNav
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.søknadinnhold
+import no.nav.su.se.bakover.test.søknad.søknadinnhold
 import no.nav.su.se.bakover.test.veileder
 import org.junit.jupiter.api.Test
 import java.util.UUID

@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.test.fnr
-import no.nav.su.se.bakover.test.nySakMedLukketSøknad
+import no.nav.su.se.bakover.test.søknad.nySakMedLukketSøknad
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagUtenBeregning
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest

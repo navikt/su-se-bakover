@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
+import no.nav.su.se.bakover.domain.søknadinnhold.Personopplysninger
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.erLik
@@ -46,11 +47,11 @@ import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.nySakUføre
-import no.nav.su.se.bakover.test.nySøknadJournalførtMedOppgave
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
-import no.nav.su.se.bakover.test.søknadinnhold
+import no.nav.su.se.bakover.test.søknad.nySøknadJournalførtMedOppgave
+import no.nav.su.se.bakover.test.søknad.søknadinnhold
 import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
@@ -575,7 +576,7 @@ internal class OpprettRevurderingServiceTest {
             sakOgSøknad = sakMedFørstegangsbehandling.first to nySøknadJournalførtMedOppgave(
                 sakId = sakMedFørstegangsbehandling.first.id,
                 søknadInnhold = søknadinnhold(
-                    fnr = sakMedFørstegangsbehandling.first.fnr,
+                    personopplysninger = Personopplysninger(sakMedFørstegangsbehandling.first.fnr),
                 ),
             ),
         )

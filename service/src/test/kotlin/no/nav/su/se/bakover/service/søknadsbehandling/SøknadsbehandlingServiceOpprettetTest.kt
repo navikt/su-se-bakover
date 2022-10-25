@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
+import no.nav.su.se.bakover.domain.søknadinnhold.Personopplysninger
 import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
@@ -16,15 +17,15 @@ import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.nySakMedLukketSøknad
-import no.nav.su.se.bakover.test.nySakMedNySøknad
-import no.nav.su.se.bakover.test.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.nySakUføre
-import no.nav.su.se.bakover.test.nySøknadJournalførtMedOppgave
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
-import no.nav.su.se.bakover.test.søknadinnhold
+import no.nav.su.se.bakover.test.søknad.nySakMedLukketSøknad
+import no.nav.su.se.bakover.test.søknad.nySakMedNySøknad
+import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
+import no.nav.su.se.bakover.test.søknad.nySøknadJournalførtMedOppgave
+import no.nav.su.se.bakover.test.søknad.søknadinnhold
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagMedBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagUtenBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
@@ -129,7 +130,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
             clock = fixedClock,
             sakId = sak.id,
             søknadInnhold = søknadinnhold(
-                fnr = sak.fnr,
+                personopplysninger = Personopplysninger(sak.fnr),
             ),
         )
 

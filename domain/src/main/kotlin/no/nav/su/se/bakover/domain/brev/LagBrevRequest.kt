@@ -5,11 +5,10 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.application.Månedsbeløp
 import no.nav.su.se.bakover.common.ddMMyyyy
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.toBrevformat
-import no.nav.su.se.bakover.domain.Månedsbeløp
-import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn.Companion.getDistinkteParagrafer
@@ -18,6 +17,7 @@ import no.nav.su.se.bakover.domain.brev.beregning.LagBrevinnholdForBeregning
 import no.nav.su.se.bakover.domain.brev.beregning.Tilbakekreving
 import no.nav.su.se.bakover.domain.brev.beregning.tilBrevperiode
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import java.text.NumberFormat

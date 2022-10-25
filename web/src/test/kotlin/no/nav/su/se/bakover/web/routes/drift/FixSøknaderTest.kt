@@ -10,13 +10,13 @@ import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
-import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteJournalpost
 import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.service.søknad.OpprettManglendeJournalpostOgOppgaveResultat
 import no.nav.su.se.bakover.service.søknad.SøknadService
+import no.nav.su.se.bakover.test.søknad.søknadinnhold
 import no.nav.su.se.bakover.test.veileder
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
@@ -96,7 +96,7 @@ internal class FixSøknaderTest {
             sakId = sakId,
             journalpostId = JournalpostId("1"),
             opprettet = Tidspunkt.EPOCH,
-            søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+            søknadInnhold = søknadinnhold(),
             innsendtAv = veileder,
         )
         val journalførtSøknadMedOppgave = Søknad.Journalført.MedOppgave.IkkeLukket(
@@ -104,7 +104,7 @@ internal class FixSøknaderTest {
             sakId = sakId,
             journalpostId = JournalpostId("2"),
             opprettet = Tidspunkt.EPOCH,
-            søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+            søknadInnhold = søknadinnhold(),
             innsendtAv = veileder,
             oppgaveId = OppgaveId("2"),
         )

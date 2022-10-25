@@ -35,6 +35,7 @@ import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.sak.Sakstype
+import no.nav.su.se.bakover.domain.søknadinnhold.Personopplysninger
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
@@ -60,13 +61,13 @@ import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandling
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.nySakUføre
-import no.nav.su.se.bakover.test.nySøknadJournalførtMedOppgave
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.plus
 import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.stønadsperiode2021
-import no.nav.su.se.bakover.test.søknadinnhold
+import no.nav.su.se.bakover.test.søknad.nySøknadJournalførtMedOppgave
+import no.nav.su.se.bakover.test.søknad.søknadinnhold
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.vedtakIverksattGjenopptakAvYtelseFraIverksattStans
@@ -239,7 +240,7 @@ internal class SakTest {
             val (sakEtterNyPeriode, _, nyPeriode) = iverksattSøknadsbehandling(
                 sakOgSøknad = sakEtterOpphør to nySøknadJournalførtMedOppgave(
                     sakId = sakEtterOpphør.id,
-                    søknadInnhold = søknadinnhold(fnr = sakEtterOpphør.fnr),
+                    søknadInnhold = søknadinnhold(personopplysninger = Personopplysninger(sakEtterOpphør.fnr)),
                 ),
                 stønadsperiode = Stønadsperiode.create(periode = Periode.create(1.juni(2021), 31.desember(2021))),
                 clock = tikkendeKlokke,
@@ -433,7 +434,7 @@ internal class SakTest {
                     clock = fixedClock,
                     sakId = førHull.id,
                     søknadInnhold = søknadinnhold(
-                        fnr = førHull.fnr,
+                        personopplysninger = Personopplysninger(førHull.fnr),
                     ),
                 ),
             )
@@ -458,7 +459,7 @@ internal class SakTest {
                     clock = fixedClock,
                     sakId = førHull.id,
                     søknadInnhold = søknadinnhold(
-                        fnr = førHull.fnr,
+                        personopplysninger = Personopplysninger(førHull.fnr),
                     ),
                 ),
             )
@@ -722,7 +723,7 @@ internal class SakTest {
                         clock = tikkendeKlokke,
                         sakId = sak1.id,
                         søknadInnhold = søknadinnhold(
-                            fnr = sak1.fnr,
+                            personopplysninger = Personopplysninger(sak1.fnr),
                         ),
                     ),
                     clock = tikkendeKlokke,

@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.routes.søknad
 
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.søknadsinnholdAlder
+import no.nav.su.se.bakover.test.søknad.søknadsinnholdAlder
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdAlderJson.Companion.toSøknadsinnholdAlderJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.alderssøknadsinnholdJson
 import org.junit.jupiter.api.Test

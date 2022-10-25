@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.statistikk.KafkaStatistikkEventObserver
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.nySakMedNySøknad
+import no.nav.su.se.bakover.test.søknad.nySakMedNySøknad
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn

@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.application.CopyArgs
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juli

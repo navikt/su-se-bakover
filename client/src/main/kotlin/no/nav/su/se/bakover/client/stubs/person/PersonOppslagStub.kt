@@ -8,10 +8,10 @@ import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.Ident
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.Telefonnummer
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.person.PersonOppslag
+import no.nav.su.se.bakover.domain.person.Telefonnummer
 
 object PersonOppslagStub :
     PersonOppslag {

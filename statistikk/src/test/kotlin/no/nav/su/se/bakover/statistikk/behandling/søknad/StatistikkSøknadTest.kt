@@ -7,11 +7,11 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.statistikk.StatistikkEventObserverBuilder
 import no.nav.su.se.bakover.test.argThat
-import no.nav.su.se.bakover.test.avvistSøknadUtenBrev
-import no.nav.su.se.bakover.test.bortfaltSøknad
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.nySakMedNySøknad
-import no.nav.su.se.bakover.test.trukketSøknad
+import no.nav.su.se.bakover.test.søknad.avvistSøknadUtenBrev
+import no.nav.su.se.bakover.test.søknad.bortfaltSøknad
+import no.nav.su.se.bakover.test.søknad.nySakMedNySøknad
+import no.nav.su.se.bakover.test.søknad.trukketSøknad
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify

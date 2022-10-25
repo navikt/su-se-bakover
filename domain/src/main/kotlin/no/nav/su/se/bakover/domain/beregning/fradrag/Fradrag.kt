@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.beregning.fradrag
 
+import no.nav.su.se.bakover.common.application.KopierbarForSnitt
 import no.nav.su.se.bakover.common.periode.PeriodisertInformasjon
-import no.nav.su.se.bakover.domain.KopierbarForSnitt
 
 interface Fradrag : PeriodisertInformasjon, KopierbarForSnitt<Fradrag?> {
     val fradragstype: Fradragstype

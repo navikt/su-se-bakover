@@ -2,13 +2,13 @@ package no.nav.su.se.bakover.database.søknad
 
 import no.nav.su.se.bakover.database.søknad.LukketJson.Companion.toLukketJson
 import no.nav.su.se.bakover.domain.brev.Brevvalg
-import no.nav.su.se.bakover.test.avvistSøknadMedInformasjonsbrev
-import no.nav.su.se.bakover.test.avvistSøknadMedVedtaksbrev
-import no.nav.su.se.bakover.test.avvistSøknadUtenBrev
-import no.nav.su.se.bakover.test.bortfaltSøknad
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.saksbehandler
-import no.nav.su.se.bakover.test.trukketSøknad
+import no.nav.su.se.bakover.test.søknad.avvistSøknadMedInformasjonsbrev
+import no.nav.su.se.bakover.test.søknad.avvistSøknadMedVedtaksbrev
+import no.nav.su.se.bakover.test.søknad.avvistSøknadUtenBrev
+import no.nav.su.se.bakover.test.søknad.bortfaltSøknad
+import no.nav.su.se.bakover.test.søknad.trukketSøknad
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 
