@@ -4,7 +4,7 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.jobcontext.JobContextRepo
 import no.nav.su.se.bakover.domain.jobcontext.SendPåminnelseNyStønadsperiodeContext
 import no.nav.su.se.bakover.domain.person.PersonService
-import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.domain.sak.HentSakRepo
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import no.nav.su.se.bakover.service.brev.BrevService
 import org.slf4j.LoggerFactory
@@ -16,7 +16,7 @@ interface SendPåminnelserOmNyStønadsperiodeService {
 
 internal class SendPåminnelserOmNyStønadsperiodeServiceImpl(
     private val clock: Clock,
-    private val sakRepo: SakRepo,
+    private val sakRepo: HentSakRepo,
     private val sessionFactory: SessionFactory,
     private val brevService: BrevService,
     private val personService: PersonService,

@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.utenlandsopphold.application.registrer
 import arrow.core.Either
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.domain.journalpost.JournalpostClient
-import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.domain.sak.HentSakRepo
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.registrerUtenlandsopphold
 import no.nav.su.se.bakover.utenlandsopphold.domain.RegistrerteUtenlandsopphold
@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.utenlandsopphold.domain.registrer.KunneIkkeRegistere
 import no.nav.su.se.bakover.utenlandsopphold.domain.registrer.RegistrerUtenlandsoppholdCommand
 
 class RegistrerUtenlandsoppholdService(
-    private val sakRepo: SakRepo,
+    private val sakRepo: HentSakRepo,
     private val utenlandsoppholdRepo: UtenlandsoppholdRepo,
     private val journalpostClient: JournalpostClient,
 ) {

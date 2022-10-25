@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
-import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.domain.sak.HentSakRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.statistikk.StatistikkEventObserverBuilder
@@ -173,7 +173,7 @@ internal class StatistikkRevurderingTest {
     ) {
         val kafkaPublisherMock: KafkaPublisher = mock()
         val personServiceMock: PersonService = mock()
-        val sakRepoMock: SakRepo = mock()
+        val sakRepoMock: HentSakRepo = mock()
 
         StatistikkEventObserverBuilder(
             kafkaPublisher = kafkaPublisherMock,

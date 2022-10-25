@@ -50,7 +50,7 @@ fun nySakMedNySøknad(
         }
     },
     clock = clock,
-).nySakMedNySøknad(
+).nySøknad(
     fnr = fnr,
     søknadInnhold = søknadInnhold,
     innsendtAv = søknadInnsendtAv,

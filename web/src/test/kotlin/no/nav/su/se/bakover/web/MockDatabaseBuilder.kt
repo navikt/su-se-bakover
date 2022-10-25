@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.domain.person.PersonRepo
 import no.nav.su.se.bakover.domain.personhendelse.PersonhendelseRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
-import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.domain.sak.HentSakRepo
 import no.nav.su.se.bakover.domain.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
@@ -29,7 +29,7 @@ object MockDatabaseBuilder {
         avstemming: AvstemmingRepo = mock(),
         utbetaling: UtbetalingRepo = mock(),
         søknad: SøknadRepo = mock(),
-        sak: SakRepo = mock(),
+        sak: HentSakRepo = mock(),
         person: PersonRepo = mock(),
         søknadsbehandling: SøknadsbehandlingRepo = mock(),
         revurderingRepo: RevurderingRepo = mock(),

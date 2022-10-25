@@ -5,7 +5,7 @@ import com.networknt.schema.ValidationMessage
 import no.nav.su.se.bakover.client.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.GitCommit
 import no.nav.su.se.bakover.domain.person.PersonService
-import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.domain.sak.HentSakRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
@@ -20,7 +20,7 @@ import java.time.Clock
 internal class KafkaStatistikkEventObserver(
     private val publisher: KafkaPublisher,
     private val personService: PersonService,
-    private val sakRepo: SakRepo,
+    private val sakRepo: HentSakRepo,
     private val clock: Clock,
     private val log: Logger = LoggerFactory.getLogger(KafkaStatistikkEventObserver::class.java),
     private val gitCommit: GitCommit?,

@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
-import no.nav.su.se.bakover.domain.sak.NySak
+import no.nav.su.se.bakover.domain.sak.RegistrerSøknadCommand
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -369,7 +369,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val søknadsbehandlingRepo = testDataHelper.søknadsbehandlingRepo
-            val nySak: NySak = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
+            val nySak: RegistrerSøknadCommand = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
             søknadsbehandlingRepo.hentForSøknad(nySak.søknad.id) shouldBe null
         }
     }

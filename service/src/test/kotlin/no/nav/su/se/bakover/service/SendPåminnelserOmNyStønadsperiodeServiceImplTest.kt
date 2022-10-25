@@ -24,7 +24,7 @@ import no.nav.su.se.bakover.domain.jobcontext.NameAndYearMonthId
 import no.nav.su.se.bakover.domain.jobcontext.SendPåminnelseNyStønadsperiodeContext
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.SakInfo
-import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.domain.sak.HentSakRepo
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
@@ -415,7 +415,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
 
     data class SendPåminnelseNyStønadsperiodeServiceAndMocks(
         val clock: Clock = mock(),
-        val sakRepo: SakRepo = mock(),
+        val sakRepo: HentSakRepo = mock(),
         val sessionFactory: SessionFactory = TestSessionFactory(),
         val brevService: BrevService = mock(),
         val personService: PersonService = mock(),

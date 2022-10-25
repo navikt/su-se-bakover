@@ -61,7 +61,7 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
-import no.nav.su.se.bakover.domain.sak.NySak
+import no.nav.su.se.bakover.domain.sak.RegistrerSøknadCommand
 import no.nav.su.se.bakover.domain.sak.SakFactory
 import no.nav.su.se.bakover.domain.sak.lagUtbetalingForOpphør
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
@@ -168,7 +168,7 @@ class TestDataHelper(
         fnr: Fnr = Fnr.generer(),
         søknadInnhold: SøknadsinnholdUføre = søknadinnhold(),
         søknadInnsendtAv: NavIdentBruker = veileder,
-    ): NySak {
+    ): RegistrerSøknadCommand {
         return SakFactory(
             clock = clock,
             uuidFactory = object : UUIDFactory() {
@@ -177,12 +177,12 @@ class TestDataHelper(
                     return ids.pop()
                 }
             },
-        ).nySakMedNySøknad(
+        ).nySøknad(
             fnr = fnr,
             søknadInnhold = søknadInnhold,
             innsendtAv = søknadInnsendtAv,
         ).also {
-            databaseRepos.sak.opprettSak(it)
+            databaseRepos.sak.opprettSak(it,)
         }
     }
 
@@ -238,7 +238,7 @@ class TestDataHelper(
         journalpostId: JournalpostId = journalpostIdSøknad,
         søknadInnhold: SøknadsinnholdUføre = søknadinnhold(),
     ): Pair<Sak, Søknad.Journalført.UtenOppgave> {
-        val nySak: NySak = persisterSakMedSøknadUtenJournalføringOgOppgave(
+        val nySak: RegistrerSøknadCommand = persisterSakMedSøknadUtenJournalføringOgOppgave(
             fnr = fnr,
             sakId = sakId,
             søknadId = søknadId,

@@ -5,14 +5,14 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import no.nav.su.se.bakover.domain.personhendelse.PersonhendelseRepo
-import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.domain.sak.HentSakRepo
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.util.UUID
 
 class PersonhendelseService(
-    private val sakRepo: SakRepo,
+    private val sakRepo: HentSakRepo,
     private val personhendelseRepo: PersonhendelseRepo,
     private val oppgaveServiceImpl: OppgaveService,
     private val personService: PersonService,

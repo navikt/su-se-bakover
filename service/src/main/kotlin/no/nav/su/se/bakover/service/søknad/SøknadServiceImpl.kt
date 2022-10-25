@@ -77,7 +77,7 @@ internal class SøknadServiceImpl(
         val (saksnummer: Saksnummer, søknad: Søknad.Ny) = sakService.hentSakidOgSaksnummer(fnr).fold(
             {
                 log.info("Ny søknad: Fant ikke sak for fødselsnummmer. Oppretter ny søknad og ny sak.")
-                val nySak = sakFactory.nySakMedNySøknad(
+                val nySak = sakFactory.registrerSøknad(
                     fnr = fnr,
                     søknadInnhold = søknadsinnholdMedNyesteFødselsnummer,
                     innsendtAv = identBruker,

@@ -1,8 +1,8 @@
-package no.nav.su.se.bakover.hendelse.infrastructure.persistence
+package no.nav.su.se.bakover.database.sak
 
 import org.junit.jupiter.api.Test
 
-internal class HendelsePostgresRepoTest {
+internal class SakOpprettetHendelsePostgresRepoTest {
 
     // TODO jah: Flytt inn i generell SakRepo
     @Test

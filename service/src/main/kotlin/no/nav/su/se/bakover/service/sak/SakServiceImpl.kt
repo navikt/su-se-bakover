@@ -12,12 +12,10 @@ import no.nav.su.se.bakover.domain.AlleredeGjeldendeSakForBruker
 import no.nav.su.se.bakover.domain.BegrensetSakinfo
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
-import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.sak.SakInfo
-import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.domain.sak.HentSakRepo
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
-import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
@@ -26,7 +24,7 @@ import java.time.Clock
 import java.util.UUID
 
 internal class SakServiceImpl(
-    private val sakRepo: SakRepo,
+    private val sakRepo: HentSakRepo,
     private val clock: Clock,
 ) : SakService {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -109,17 +107,6 @@ internal class SakServiceImpl(
 
     override fun hentSakForSøknad(søknadId: UUID): Either<FantIkkeSak, Sak> {
         return sakRepo.hentSakForSøknad(søknadId)?.right() ?: FantIkkeSak.left()
-    }
-
-    override fun opprettSak(sak: NySak) {
-        sakRepo.opprettSak(sak).also {
-            hentSak(sak.id).fold(
-                ifLeft = { log.error("Opprettet sak men feilet ved henting av den.") },
-                ifRight = {
-                    observers.forEach { observer -> observer.handle(StatistikkEvent.SakOpprettet(it)) }
-                },
-            )
-        }
     }
 
     override fun hentÅpneBehandlingerForAlleSaker(): List<Behandlingsoversikt> {

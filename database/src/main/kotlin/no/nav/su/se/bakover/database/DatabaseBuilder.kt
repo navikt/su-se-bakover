@@ -42,7 +42,7 @@ import no.nav.su.se.bakover.database.person.PersonPostgresRepo
 import no.nav.su.se.bakover.database.personhendelse.PersonhendelsePostgresRepo
 import no.nav.su.se.bakover.database.regulering.ReguleringPostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
-import no.nav.su.se.bakover.database.sak.SakPostgresRepo
+import no.nav.su.se.bakover.database.sak.HentSakPostgresRepo
 import no.nav.su.se.bakover.database.søknad.SøknadPostgresRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
 import no.nav.su.se.bakover.database.tilbakekreving.TilbakekrevingPostgresRepo
@@ -243,7 +243,7 @@ object DatabaseBuilder {
                 sessionFactory = sessionFactory,
                 dbMetrics = dbMetrics,
             ),
-            sak = SakPostgresRepo(
+            sak = HentSakPostgresRepo(
                 sessionFactory = sessionFactory,
                 dbMetrics = dbMetrics,
                 søknadsbehandlingRepo = søknadsbehandlingRepo,

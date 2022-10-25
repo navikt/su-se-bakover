@@ -11,10 +11,8 @@ import no.nav.su.se.bakover.common.persistence.hentListe
 import no.nav.su.se.bakover.common.persistence.insert
 import no.nav.su.se.bakover.common.persistence.tidspunkt
 import no.nav.su.se.bakover.hendelse.domain.Hendelse
-import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
-import no.nav.su.se.bakover.hendelse.domain.SakOpprettetHendelse
 import no.nav.su.se.bakover.hendelse.infrastructure.persistence.MetadataJson.Companion.toMeta
 import java.util.UUID
 
@@ -105,36 +103,6 @@ class HendelsePostgresRepo(
                     ),
                     session = session,
                 ) { toPersistertHendelse(it) }
-            }
-        }
-    }
-
-    // TODO jah: Flytt til database/sak sitt repo sammen med mapping til/fra.
-    @Suppress("unused")
-    fun hentSakOpprettetHendelse(
-        sakId: UUID,
-    ): SakOpprettetHendelse {
-        return dbMetrics.timeQuery("hentHendelserForSak") {
-            sessionFactory.withSession { session ->
-                """
-                    select * from hendelse where sakId = :sakId
-                """.trimIndent().hentListe(
-                    params = mapOf(
-                        "sakId" to sakId,
-                    ),
-                    session = session,
-                ) {
-                    SakOpprettetHendelseJson.toDomain(
-                        hendelseId = HendelseId.fromUUID(it.uuid("hendelseId")),
-                        sakId = it.uuid("sakId"),
-                        metadata = MetadataJson.toDomain(it.string("meta")),
-                        json = it.string("data"),
-                        entitetId = it.uuid("entitetId"),
-                        versjon = it.long("versjon"),
-                        hendelsestidspunkt = it.tidspunkt("hendelsestidspunkt"),
-
-                    )
-                }.single()
             }
         }
     }

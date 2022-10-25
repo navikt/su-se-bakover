@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.Person
-import no.nav.su.se.bakover.domain.sak.NySak
+import no.nav.su.se.bakover.domain.sak.RegistrerSøknadCommand
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
@@ -100,10 +100,10 @@ class SøknadTest {
                 verify(it.sakService).hentSakidOgSaksnummer(argThat { it shouldBe fnr })
                 verify(it.sakService).opprettSak(
                     argThat {
-                        it shouldBe NySak(
+                        it shouldBe RegistrerSøknadCommand(
                             id = it.id,
                             opprettet = it.opprettet,
-                            fnr = fnr,
+                            innsendtFnr = fnr,
                             søknad = Søknad.Ny(
                                 id = it.søknad.id,
                                 opprettet = it.søknad.opprettet,

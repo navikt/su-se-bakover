@@ -45,7 +45,7 @@ import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.domain.person.PersonService
-import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.domain.sak.HentSakRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
@@ -58,7 +58,7 @@ import java.time.Clock
 import java.util.UUID
 
 class KlageServiceImpl(
-    private val sakRepo: SakRepo,
+    private val sakRepo: HentSakRepo,
     private val klageRepo: KlageRepo,
     private val vedtakService: VedtakService,
     private val brevService: BrevService,

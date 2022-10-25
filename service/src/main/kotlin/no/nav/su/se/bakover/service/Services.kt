@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.regulering.ReguleringService
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
+import no.nav.su.se.bakover.service.sak.RegistrerSakService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.skatt.SkatteService
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
@@ -27,6 +28,7 @@ data class Services(
     val avstemming: AvstemmingService,
     val utbetaling: UtbetalingService,
     val sak: SakService,
+    val registrerSakService: RegistrerSakService,
     val søknad: SøknadService,
     val brev: BrevService,
     val lukkSøknad: LukkSøknadService,

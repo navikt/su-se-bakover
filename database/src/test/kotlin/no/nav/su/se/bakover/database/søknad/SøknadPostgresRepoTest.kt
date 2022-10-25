@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.hentListe
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.domain.sak.NySak
+import no.nav.su.se.bakover.domain.sak.RegistrerSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.TestDataHelper.Companion.journalførtSøknad
@@ -27,7 +27,7 @@ internal class SøknadPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val søknadRepo = testDataHelper.søknadRepo
             dataSource.withSession {
-                val sak: NySak = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
+                val sak: RegistrerSøknadCommand = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
                 val nySøknad: Søknad = testDataHelper.persisterSøknadUtenJournalføringOgOppgavePåEksisterendeSak(sak.id)
                 søknadRepo.hentSøknad(nySøknad.id) shouldBe nySøknad
             }
@@ -39,7 +39,7 @@ internal class SøknadPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val søknadRepo = testDataHelper.søknadRepo
-            val sak: NySak = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
+            val sak: RegistrerSøknadCommand = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
             val nySøknad: Søknad = testDataHelper.persisterSøknadUtenJournalføringOgOppgavePåEksisterendeSak(sak.id)
             søknadRepo.hentSøknad(nySøknad.id)!!.shouldNotBeTypeOf<Søknad.Journalført.MedOppgave.Lukket>()
         }
@@ -76,7 +76,7 @@ internal class SøknadPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val søknadRepo = testDataHelper.søknadRepo
-            fun hentJournalpostId(nySak: NySak): List<String?> {
+            fun hentJournalpostId(nySak: RegistrerSøknadCommand): List<String?> {
                 return dataSource.withSession { session ->
                     "select journalpostId from søknad where id='${nySak.søknad.id}'".hentListe(
                         session = session,
@@ -85,7 +85,7 @@ internal class SøknadPostgresRepoTest {
             }
 
             val journalpostId = JournalpostId("oppdatertJournalpostId")
-            val nySak: NySak = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
+            val nySak: RegistrerSøknadCommand = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
             hentJournalpostId(nySak) shouldBe emptyList()
             val søknad = nySak.søknad.journalfør(journalpostId)
             søknadRepo.oppdaterjournalpostId(søknad)

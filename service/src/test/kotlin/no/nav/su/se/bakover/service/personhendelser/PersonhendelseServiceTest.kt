@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import no.nav.su.se.bakover.domain.personhendelse.PersonhendelseRepo
 import no.nav.su.se.bakover.domain.sak.SakInfo
-import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.domain.sak.HentSakRepo
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.service.argThat
@@ -36,7 +36,7 @@ internal class PersonhendelseServiceTest {
     internal fun `kan lagre personhendelser`() {
         val sakId = UUID.randomUUID()
         val fnr = Fnr.generer()
-        val sakRepoMock = mock<SakRepo> {
+        val sakRepoMock = mock<HentSakRepo> {
             on { hentSakInfoForIdenter(any()) } doReturn SakInfo(sakId, Saksnummer(2021), fnr, Sakstype.UFØRE)
         }
         val personhendelseRepoMock = mock<PersonhendelseRepo>()
@@ -70,7 +70,7 @@ internal class PersonhendelseServiceTest {
 
     @Test
     internal fun `ignorerer hendelser for personer som ikke har en sak`() {
-        val sakRepoMock = mock<SakRepo> {
+        val sakRepoMock = mock<HentSakRepo> {
             on { hentSakInfoForIdenter(any()) } doReturn null
         }
         val personhendelseRepoMock = mock<PersonhendelseRepo>()
@@ -95,7 +95,7 @@ internal class PersonhendelseServiceTest {
         val sak = nySakMedjournalførtSøknadOgOppgave().first
         val personhendelse = lagPersonhendelseTilknyttetSak(sakId = sak.id)
 
-        val sakRepoMock = mock<SakRepo> {
+        val sakRepoMock = mock<HentSakRepo> {
             on { hentSak(any<UUID>()) } doReturn sak
         }
         val personhendelseRepoMock = mock<PersonhendelseRepo> {
@@ -144,7 +144,7 @@ internal class PersonhendelseServiceTest {
         val sak = nySakMedjournalførtSøknadOgOppgave().first
         val personhendelse = lagPersonhendelseTilknyttetSak(sakId = sak.id)
 
-        val sakRepoMock = mock<SakRepo> {
+        val sakRepoMock = mock<HentSakRepo> {
             on { hentSak(any<UUID>()) } doReturn sak
         }
         val personhendelseRepoMock = mock<PersonhendelseRepo> {

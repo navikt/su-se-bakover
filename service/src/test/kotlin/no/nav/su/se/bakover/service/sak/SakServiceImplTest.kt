@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.service.sak
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
-import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.domain.sak.HentSakRepo
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
@@ -36,7 +36,7 @@ internal class SakServiceImplTest {
         val sak: Sak = mock {
             on { id } doReturn sakId
         }
-        val sakRepo: SakRepo = mock {
+        val sakRepo: HentSakRepo = mock {
             on { hentSak(any<UUID>()) } doReturn sak
         }
 
@@ -46,15 +46,15 @@ internal class SakServiceImplTest {
         sakService.addObserver(observer)
         sakService.opprettSak(mock { on { id } doReturn sakId })
 
-        verify(sakRepo).opprettSak(any())
+        verify(sakRepo).opprettSak(any(),)
         verify(sakRepo).hentSak(sak.id)
         verify(observer).handle(argThat { it shouldBe StatistikkEvent.SakOpprettet(sak) })
     }
 
     @Test
     fun `Publiserer ikke event ved feil av opprettelse av sak`() {
-        val sakRepo: SakRepo = mock {
-            on { opprettSak(any()) } doThrow RuntimeException("hehe exception")
+        val sakRepo: HentSakRepo = mock {
+            on { opprettSak(any(),) } doThrow RuntimeException("hehe exception")
         }
 
         val observer: StatistikkEventObserver = mock()
@@ -63,7 +63,7 @@ internal class SakServiceImplTest {
         sakService.addObserver(observer)
         assertThrows<RuntimeException> {
             sakService.opprettSak(mock())
-            verify(sakRepo).opprettSak(any())
+            verify(sakRepo).opprettSak(any(),)
             verifyNoMoreInteractions(sakRepo)
             verifyNoInteractions(observer)
         }
@@ -72,7 +72,7 @@ internal class SakServiceImplTest {
     @Test
     fun `henter bare åpen søknad på en sak`() {
         val nySakMedjournalførtSøknadOgOppgave = nySakMedjournalførtSøknadOgOppgave().second
-        val sakRepo: SakRepo = mock {
+        val sakRepo: HentSakRepo = mock {
             on { hentÅpneBehandlinger() } doReturn listOf(
                 Behandlingsoversikt(
                     saksnummer = Saksnummer(nummer = 2021),
@@ -107,7 +107,7 @@ internal class SakServiceImplTest {
         val underkjentSøknadsbehandling = søknadsbehandlingUnderkjentInnvilget(saksnr1).second
         val tilAttesteringSøknadsbehandling = søknadsbehandlingTilAttesteringInnvilget(saksnr2).second
 
-        val sakRepo: SakRepo = mock {
+        val sakRepo: HentSakRepo = mock {
             on { hentÅpneBehandlinger() } doReturn listOf(
                 Behandlingsoversikt(
                     saksnummer = saksnr1,
@@ -174,7 +174,7 @@ internal class SakServiceImplTest {
         val tilAttesteringRevurdering =
             tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(saknr2).second
 
-        val sakRepo: SakRepo = mock {
+        val sakRepo: HentSakRepo = mock {
             on { hentÅpneBehandlinger() } doReturn listOf(
                 Behandlingsoversikt(
                     saksnummer = saknr1,

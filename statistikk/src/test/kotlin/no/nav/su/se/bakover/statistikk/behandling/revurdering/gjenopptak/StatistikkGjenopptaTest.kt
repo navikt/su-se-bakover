@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.client.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.GitCommit
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.person.PersonService
-import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.domain.sak.HentSakRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.statistikk.StatistikkEventObserverBuilder
 import no.nav.su.se.bakover.test.argThat
@@ -82,7 +82,7 @@ internal class StatistikkGjenopptaTest {
     ) {
         val kafkaPublisherMock: KafkaPublisher = mock()
         val personServiceMock: PersonService = mock()
-        val sakRepoMock: SakRepo = mock()
+        val sakRepoMock: HentSakRepo = mock()
 
         StatistikkEventObserverBuilder(
             kafkaPublisher = kafkaPublisherMock,

@@ -9,9 +9,7 @@ import no.nav.su.se.bakover.common.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.hent
 import no.nav.su.se.bakover.common.persistence.hentListe
-import no.nav.su.se.bakover.common.persistence.insert
 import no.nav.su.se.bakover.common.persistence.tidspunkt
-import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.avkorting.AvkortingsvarselPostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal
@@ -22,9 +20,8 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
-import no.nav.su.se.bakover.domain.sak.NySak
+import no.nav.su.se.bakover.domain.sak.HentSakRepo
 import no.nav.su.se.bakover.domain.sak.SakInfo
-import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.hendelse.domain.HendelseRepo
@@ -33,7 +30,7 @@ import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon.Companion.max
 import no.nav.su.se.bakover.utenlandsopphold.domain.UtenlandsoppholdRepo
 import java.util.UUID
 
-internal class SakPostgresRepo(
+internal class HentSakPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
     private val dbMetrics: DbMetrics,
     private val søknadsbehandlingRepo: SøknadsbehandlingPostgresRepo,
@@ -44,7 +41,7 @@ internal class SakPostgresRepo(
     private val avkortingsvarselRepo: AvkortingsvarselPostgresRepo,
     private val utenlandsoppholdRepo: UtenlandsoppholdRepo,
     private val hendelseRepo: HendelseRepo,
-) : SakRepo {
+) : HentSakRepo {
 
     private val åpneBehandlingerRepo = ÅpneBehandlingerRepo(
         dbMetrics = dbMetrics,
@@ -182,28 +179,6 @@ internal class SakPostgresRepo(
             fnr = Fnr(string("fnr")),
             type = Sakstype.from(string("type")),
         )
-    }
-
-    override fun opprettSak(sak: NySak) {
-        return dbMetrics.timeQuery("opprettSak") {
-            sessionFactory.withSession { session ->
-                """
-                with inserted_sak as (insert into sak (id, fnr, opprettet, type) values (:sakId, :fnr, :opprettet, :type))
-                insert into søknad (id, sakId, søknadInnhold, opprettet, ident) values (:soknadId, :sakId, to_json(:soknad::json), :opprettet, :ident)
-                """.insert(
-                    mapOf(
-                        "sakId" to sak.id,
-                        "fnr" to sak.fnr,
-                        "opprettet" to sak.opprettet,
-                        "soknadId" to sak.søknad.id,
-                        "soknad" to serialize(sak.søknad.søknadInnhold),
-                        "type" to sak.søknad.type.value,
-                        "ident" to sak.søknad.innsendtAv.navIdent,
-                    ),
-                    session,
-                )
-            }
-        }
     }
 
     override fun hentÅpneBehandlinger(): List<Behandlingsoversikt> {

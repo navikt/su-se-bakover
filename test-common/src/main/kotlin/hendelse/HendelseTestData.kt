@@ -4,9 +4,12 @@ import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.domain.sak.SakRegistrertHendelse
+import no.nav.su.se.bakover.domain.sak.Saksnummer
+import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
-import no.nav.su.se.bakover.hendelse.domain.SakOpprettetHendelse
+import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.test.correlationId
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.saksbehandler
@@ -23,7 +26,10 @@ fun sakOpprettetHendelse(
         ident = saksbehandler,
         brukerroller = listOf(Brukerrolle.Saksbehandler, Brukerrolle.Attestant),
     ),
-) = SakOpprettetHendelse.fraPersistert(
+    versjon: Hendelsesversjon,
+    type: Sakstype = Sakstype.UFØRE,
+    saksnummer: Saksnummer = Saksnummer(1),
+) = SakRegistrertHendelse.fraPersistert(
     hendelseId = hendelseId,
     sakId = sakId,
     fnr = fnr,
@@ -31,5 +37,7 @@ fun sakOpprettetHendelse(
     hendelsestidspunkt = hendelsestidspunkt,
     meta = meta,
     entitetId = sakId,
-    versjon = 1,
+    versjon = versjon,
+    type = type,
+    saksnummer = saksnummer,
 )

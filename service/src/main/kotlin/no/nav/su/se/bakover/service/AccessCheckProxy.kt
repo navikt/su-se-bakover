@@ -74,7 +74,7 @@ import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
-import no.nav.su.se.bakover.domain.sak.NySak
+import no.nav.su.se.bakover.domain.sak.RegistrerSøknadCommand
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
@@ -151,6 +151,7 @@ import no.nav.su.se.bakover.service.revurdering.StansYtelseRequest
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak
 import no.nav.su.se.bakover.service.sak.KunneIkkeHenteGjeldendeVedtaksdata
+import no.nav.su.se.bakover.service.sak.RegistrerSakService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.skatt.KunneIkkeHenteSkattemelding
 import no.nav.su.se.bakover.service.skatt.SkatteService
@@ -364,8 +365,8 @@ open class AccessCheckProxy(
                     return services.sak.hentSakForSøknad(søknadId)
                 }
 
-                override fun opprettSak(sak: NySak) {
-                    assertHarTilgangTilPerson(sak.fnr)
+                override fun opprettSak(sak: RegistrerSøknadCommand) {
+                    assertHarTilgangTilPerson(sak.innsendtFnr)
 
                     return services.sak.opprettSak(sak)
                 }
@@ -1083,6 +1084,9 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
             },
+            registrerSakService = object : RegistrerSakService {
+
+            }
         )
     }
 

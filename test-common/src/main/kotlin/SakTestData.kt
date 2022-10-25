@@ -103,7 +103,7 @@ fun nySak(
             }
         },
     ).let { sakFactory ->
-        sakFactory.nySakMedNySøknad(
+        sakFactory.nySøknad(
             fnr = sakInfo.fnr,
             søknadInnhold = søknadsinnhold,
             innsendtAv = søknadInnsendtAv,

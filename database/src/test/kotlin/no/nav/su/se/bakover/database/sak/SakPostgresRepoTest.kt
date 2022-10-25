@@ -24,14 +24,14 @@ internal class SakPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.sakRepo
             val nySak = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
-            val opprettet: Sak = repo.hentSak(nySak.fnr, Sakstype.UFØRE)!!
+            val opprettet: Sak = repo.hentSak(nySak.innsendtFnr, Sakstype.UFØRE)!!
             val hentetId = repo.hentSak(opprettet.id)!!
             val hentetFnr = repo.hentSak(opprettet.fnr, Sakstype.UFØRE)!!
 
             opprettet shouldBe hentetId
             hentetId shouldBe hentetFnr
 
-            opprettet.fnr shouldBe nySak.fnr
+            opprettet.fnr shouldBe nySak.innsendtFnr
             opprettet.id shouldBe nySak.id
             opprettet.opprettet shouldBe nySak.opprettet
             opprettet.søknadNy() shouldBe nySak.søknad
