@@ -10,13 +10,13 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.domain.AlleredeGjeldendeSakForBruker
 import no.nav.su.se.bakover.domain.BegrensetSakinfo
-import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
+import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.domain.sak.Saksnummer
+import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknad.Søknad

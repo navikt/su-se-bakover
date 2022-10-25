@@ -6,7 +6,7 @@ import arrow.core.right
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.su.se.bakover.common.Fnr
-import no.nav.su.se.bakover.domain.Sakstype
+import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.søknadinnhold.SøknadInnhold.Companion.validerBoforholdOgEktefelle
 
 @JsonTypeInfo(

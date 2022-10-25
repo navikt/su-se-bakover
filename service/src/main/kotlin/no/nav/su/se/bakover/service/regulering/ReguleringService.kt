@@ -3,10 +3,10 @@ package no.nav.su.se.bakover.service.regulering
 import arrow.core.Either
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringMerknad
+import no.nav.su.se.bakover.domain.sak.Saksnummer
 import java.time.LocalDate
 import java.util.UUID
 

@@ -17,13 +17,13 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.DatoIntervall
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.token.JwtToken
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.journalpost.ErKontrollNotatMottatt
 import no.nav.su.se.bakover.domain.journalpost.ErTilknyttetSak
 import no.nav.su.se.bakover.domain.journalpost.JournalpostClient
 import no.nav.su.se.bakover.domain.journalpost.JournalpostClientMetrics
 import no.nav.su.se.bakover.domain.journalpost.KunneIkkeSjekkKontrollnotatMottatt
 import no.nav.su.se.bakover.domain.journalpost.KunneIkkeSjekkeTilknytningTilSak
+import no.nav.su.se.bakover.domain.sak.Saksnummer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.net.URI

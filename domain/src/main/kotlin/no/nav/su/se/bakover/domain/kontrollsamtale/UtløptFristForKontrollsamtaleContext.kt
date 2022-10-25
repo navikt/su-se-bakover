@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.førsteINesteMåned
 import no.nav.su.se.bakover.common.periode.DatoIntervall
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.jobcontext.JobContext
 import no.nav.su.se.bakover.domain.jobcontext.NameAndLocalDateId
 import no.nav.su.se.bakover.domain.journalpost.ErKontrollNotatMottatt
@@ -17,6 +16,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.sak.SakInfo
+import no.nav.su.se.bakover.domain.sak.Saksnummer
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.time.LocalDate

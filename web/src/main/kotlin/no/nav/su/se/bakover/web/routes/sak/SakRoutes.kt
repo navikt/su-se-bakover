@@ -26,8 +26,8 @@ import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.Sakstype
+import no.nav.su.se.bakover.domain.sak.Saksnummer
+import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.service.sak.KunneIkkeHenteGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.sak.SakService

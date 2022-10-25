@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.desember
 import no.nav.su.se.bakover.common.periode.oktober
 import no.nav.su.se.bakover.common.periode.år
-import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -23,6 +22,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingForPeriod
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
+import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt

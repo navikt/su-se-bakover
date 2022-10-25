@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -53,6 +52,7 @@ import no.nav.su.se.bakover.domain.revurdering.VurderOmBeløpsendringErStørreEn
 import no.nav.su.se.bakover.domain.revurdering.erKlarForAttestering
 import no.nav.su.se.bakover.domain.revurdering.harSendtForhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.medFritekst
+import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.sak.lagUtbetalingForOpphør
 import no.nav.su.se.bakover.domain.sak.simulerUtbetaling

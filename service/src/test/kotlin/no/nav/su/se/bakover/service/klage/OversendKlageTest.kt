@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
@@ -22,6 +21,7 @@ import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeTilKlageinstans
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
+import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.service.argThat

@@ -19,12 +19,12 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingInternalRepo
 import no.nav.su.se.bakover.database.utbetaling.toUtbetaling
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingRepo
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Fagområde
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.toSakstype
+import no.nav.su.se.bakover.domain.sak.Saksnummer
 import java.time.LocalDate
 
 internal class AvstemmingPostgresRepo(

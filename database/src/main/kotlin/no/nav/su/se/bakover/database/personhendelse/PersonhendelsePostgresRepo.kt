@@ -14,11 +14,11 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.database.personhendelse.PersonhendelsePostgresRepo.HendelseJson.Companion.toJson
 import no.nav.su.se.bakover.database.personhendelse.PersonhendelsePostgresRepo.MetadataJson.Companion.toJson
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.SivilstandTyper
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import no.nav.su.se.bakover.domain.personhendelse.PersonhendelseRepo
+import no.nav.su.se.bakover.domain.sak.Saksnummer
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID

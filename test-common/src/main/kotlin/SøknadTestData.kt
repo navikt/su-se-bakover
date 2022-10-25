@@ -7,12 +7,12 @@ import no.nav.su.se.bakover.common.UUIDFactory
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.common.mapSecond
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.SakFactory
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.brev.Brevvalg
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.sak.SakFactory
+import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadinnhold.ForNav

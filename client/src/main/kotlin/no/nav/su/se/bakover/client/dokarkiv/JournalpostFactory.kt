@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.client.dokarkiv
 
 import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.domain.sak.Saksnummer
+import no.nav.su.se.bakover.domain.sak.Sakstype
 
 object JournalpostFactory {
     fun lagJournalpost(

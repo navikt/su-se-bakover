@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonIgnore
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.domain.Månedsbeløp
-import no.nav.su.se.bakover.domain.Sakstype
+import no.nav.su.se.bakover.domain.sak.Sakstype
 import java.time.LocalDate
 
 data class Simulering(

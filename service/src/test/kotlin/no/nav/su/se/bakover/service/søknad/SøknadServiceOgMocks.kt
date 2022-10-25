@@ -2,8 +2,8 @@ package no.nav.su.se.bakover.service.søknad
 
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
-import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.person.PersonService
+import no.nav.su.se.bakover.domain.sak.SakFactory
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.domain.søknad.SøknadRepo
 import no.nav.su.se.bakover.service.oppgave.OppgaveService

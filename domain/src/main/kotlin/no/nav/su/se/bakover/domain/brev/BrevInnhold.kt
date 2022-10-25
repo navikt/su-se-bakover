@@ -5,13 +5,13 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn.Companion.getDistinkteParagrafer
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.brev.beregning.BrevPeriode
 import no.nav.su.se.bakover.domain.brev.beregning.BrevTilbakekrevingInfo
+import no.nav.su.se.bakover.domain.sak.Sakstype
 
 abstract class BrevInnhold {
     fun toJson(): String = objectMapper.writeValueAsString(this)

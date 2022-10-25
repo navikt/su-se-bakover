@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.domain.brev.Satsoversikt
 import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.brev.beregning.BrevPeriode
 import no.nav.su.se.bakover.domain.brev.beregning.Fradrag
+import no.nav.su.se.bakover.domain.sak.Sakstype
 
 /**
  * TODO John Andre Hestad: Flytt til test-common modulen

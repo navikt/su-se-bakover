@@ -8,12 +8,10 @@ import arrow.core.getOrElse
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
-import com.fasterxml.jackson.annotation.JsonValue
 import no.nav.su.se.bakover.common.AktørId
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.UUIDFactory
 import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørTilOgMedDato
@@ -50,10 +48,11 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.VurderOmVilkårGirOpphørVedRevurdering
 import no.nav.su.se.bakover.domain.sak.SakInfo
+import no.nav.su.se.bakover.domain.sak.Saksnummer
+import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
-import no.nav.su.se.bakover.domain.søknadinnhold.SøknadInnhold
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
@@ -73,32 +72,6 @@ import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
-
-data class Saksnummer(@JsonValue val nummer: Long) {
-    override fun toString() = nummer.toString()
-
-    init {
-        // Since we have a public ctor and json-deserialization directly into the domain object
-        if (isInvalid(nummer)) throw IllegalArgumentException(UgyldigSaksnummer.toString())
-    }
-
-    companion object {
-        fun tryParse(saksnummer: String): Either<UgyldigSaksnummer, Saksnummer> {
-            return saksnummer.toLongOrNull()?.let {
-                tryParse(it)
-            } ?: UgyldigSaksnummer.left()
-        }
-
-        private fun tryParse(saksnummer: Long): Either<UgyldigSaksnummer, Saksnummer> {
-            if (isInvalid(saksnummer)) return UgyldigSaksnummer.left()
-            return Saksnummer(saksnummer).right()
-        }
-
-        private fun isInvalid(saksnummer: Long) = saksnummer < 2021
-    }
-
-    object UgyldigSaksnummer
-}
 
 data class Sak(
     val id: UUID = UUID.randomUUID(),
@@ -946,59 +919,6 @@ data class Sak(
 }
 
 object IngenÅpneReguleringer
-data class NySak(
-    val id: UUID = UUID.randomUUID(),
-    val opprettet: Tidspunkt,
-    val fnr: Fnr,
-    val søknad: Søknad.Ny,
-) {
-    fun toSak(
-        saksnummer: Saksnummer,
-        versjon: Hendelsesversjon,
-    ): Sak {
-        return Sak(
-            id = id,
-            saksnummer = saksnummer,
-            opprettet = opprettet,
-            fnr = fnr,
-            søknader = listOf(søknad),
-            søknadsbehandlinger = emptyList(),
-            utbetalinger = emptyList(),
-            revurderinger = emptyList(),
-            vedtakListe = emptyList(),
-            klager = emptyList(),
-            type = søknad.type,
-            uteståendeAvkorting = Avkortingsvarsel.Ingen,
-            versjon = versjon,
-        )
-    }
-}
-
-class SakFactory(
-    private val uuidFactory: UUIDFactory = UUIDFactory(),
-    private val clock: Clock,
-) {
-    fun nySakMedNySøknad(
-        fnr: Fnr,
-        søknadInnhold: SøknadInnhold,
-        innsendtAv: NavIdentBruker,
-    ): NySak {
-        val opprettet = Tidspunkt.now(clock)
-        val sakId = uuidFactory.newUUID()
-        return NySak(
-            id = sakId,
-            fnr = fnr,
-            opprettet = opprettet,
-            søknad = Søknad.Ny(
-                id = uuidFactory.newUUID(),
-                opprettet = opprettet,
-                sakId = sakId,
-                søknadInnhold = søknadInnhold,
-                innsendtAv = innsendtAv,
-            ),
-        )
-    }
-}
 
 data class AlleredeGjeldendeSakForBruker(
     val uføre: BegrensetSakinfo,

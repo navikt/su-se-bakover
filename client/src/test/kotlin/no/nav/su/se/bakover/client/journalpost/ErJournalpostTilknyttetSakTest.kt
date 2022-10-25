@@ -11,10 +11,10 @@ import no.nav.su.se.bakover.client.azure.AzureAd
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.journalpost.ErTilknyttetSak
 import no.nav.su.se.bakover.domain.journalpost.JournalpostClientMetrics
 import no.nav.su.se.bakover.domain.journalpost.KunneIkkeSjekkeTilknytningTilSak
+import no.nav.su.se.bakover.domain.sak.Saksnummer
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test

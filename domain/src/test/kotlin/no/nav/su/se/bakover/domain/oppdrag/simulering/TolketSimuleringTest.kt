@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.Beløp
 import no.nav.su.se.bakover.domain.MånedBeløp
 import no.nav.su.se.bakover.domain.Månedsbeløp
-import no.nav.su.se.bakover.domain.Sakstype
+import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.test.fixedLocalDate
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
