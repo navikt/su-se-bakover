@@ -3,6 +3,9 @@ package no.nav.su.se.bakover.domain.avkorting
 import arrow.core.left
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.application.Beløp
+import no.nav.su.se.bakover.common.application.MånedBeløp
+import no.nav.su.se.bakover.common.application.Månedsbeløp
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
@@ -19,9 +22,6 @@ import no.nav.su.se.bakover.common.periode.november
 import no.nav.su.se.bakover.common.periode.oktober
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.september
-import no.nav.su.se.bakover.domain.Beløp
-import no.nav.su.se.bakover.domain.MånedBeløp
-import no.nav.su.se.bakover.domain.Månedsbeløp
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype

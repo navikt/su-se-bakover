@@ -14,9 +14,3 @@ fun Fnr.Companion.generer(): Fnr {
             .joinToString(""),
     )
 }
-
-fun fnrUnder67(): Fnr {
-    return Fnr("01017001337")
-}
-
-val fnrOver67 = Fnr("05064535694")

@@ -6,10 +6,10 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.test.fnrUnder67
-import no.nav.su.se.bakover.test.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.sakId
-import no.nav.su.se.bakover.test.søknadId
-import no.nav.su.se.bakover.test.søknadinnhold
+import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
+import no.nav.su.se.bakover.test.søknad.søknadId
+import no.nav.su.se.bakover.test.søknad.søknadinnhold
 import no.nav.su.se.bakover.test.trekkSøknad
 import no.nav.su.se.bakover.test.veileder
 import org.junit.jupiter.api.Test
@@ -51,7 +51,7 @@ internal class UføresøknadJsonTest {
                 "delerBoligMed":"EKTEMAKE_SAMBOER",
                 "ektefellePartnerSamboer":{
                     "erUførFlyktning": false,
-                    "fnr": "${fnrUnder67()}"
+                    "fnr": "$fnrUnder67"
                 },
                 "innlagtPåInstitusjon": {
                     "datoForInnleggelse": "2020-01-01",

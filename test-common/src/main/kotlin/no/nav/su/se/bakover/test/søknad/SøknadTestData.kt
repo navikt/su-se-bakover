@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.test
+package no.nav.su.se.bakover.test.søknad
 
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.common.UUIDFactory
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.common.mapSecond
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.brev.Brevvalg
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -15,10 +14,16 @@ import no.nav.su.se.bakover.domain.sak.SakFactory
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
-import no.nav.su.se.bakover.domain.søknadinnhold.ForNav
-import no.nav.su.se.bakover.domain.søknadinnhold.Personopplysninger
 import no.nav.su.se.bakover.domain.søknadinnhold.SøknadInnhold
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import no.nav.su.se.bakover.test.avvisSøknadMedBrev
+import no.nav.su.se.bakover.test.avvisSøknadUtenBrev
+import no.nav.su.se.bakover.test.bortfallSøknad
+import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.trekkSøknad
+import no.nav.su.se.bakover.test.veileder
 import java.time.Clock
 import java.time.temporal.ChronoUnit
 import java.util.LinkedList
@@ -28,22 +33,14 @@ val søknadId: UUID = UUID.randomUUID()
 val journalpostIdSøknad = JournalpostId("journalpostIdSøknad")
 val oppgaveIdSøknad = OppgaveId("oppgaveIdSøknad")
 
-fun søknadinnhold(
-    fnr: Fnr = no.nav.su.se.bakover.test.fnr,
-    forNav: ForNav = SøknadInnholdTestdataBuilder.build().forNav,
-) = SøknadInnholdTestdataBuilder.build(
-    personopplysninger = Personopplysninger(fnr),
-    forNav = forNav,
-)
-
 /** NySak med Søknad.Ny som ikke er journalført eller laget oppgave for enda*/
 fun nySakMedNySøknad(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
-    søknadId: UUID = no.nav.su.se.bakover.test.søknadId,
+    søknadId: UUID = no.nav.su.se.bakover.test.søknad.søknadId,
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     søknadInnsendtAv: NavIdentBruker = veileder,
-    søknadInnhold: SøknadInnhold = søknadinnhold(fnr),
+    søknadInnhold: SøknadInnhold = søknadinnhold(personopplysninger = personopplysninger(fnr)),
     clock: Clock = fixedClock,
 ): Pair<Sak, Søknad.Ny> = SakFactory(
     uuidFactory = object : UUIDFactory() {
@@ -139,7 +136,7 @@ fun avvistSøknadMedVedtaksbrev(
 fun nySakMedJournalførtSøknadUtenOppgave(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
-    søknadId: UUID = no.nav.su.se.bakover.test.søknadId,
+    søknadId: UUID = no.nav.su.se.bakover.test.søknad.søknadId,
     journalpostId: JournalpostId = journalpostIdSøknad,
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     clock: Clock = fixedClock,
@@ -164,7 +161,7 @@ fun nySakMedJournalførtSøknadUtenOppgave(
 fun nySakMedjournalførtSøknadOgOppgave(
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
-    søknadId: UUID = no.nav.su.se.bakover.test.søknadId,
+    søknadId: UUID = no.nav.su.se.bakover.test.søknad.søknadId,
     journalpostId: JournalpostId = journalpostIdSøknad,
     oppgaveId: OppgaveId = oppgaveIdSøknad,
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,

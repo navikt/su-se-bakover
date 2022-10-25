@@ -8,10 +8,9 @@ import no.nav.su.se.bakover.common.AktørId
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.Ident
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
+import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.søknad.Søknad
@@ -20,6 +19,7 @@ import no.nav.su.se.bakover.domain.søknadinnhold.SøknadsinnholdUføre
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.søknad.søknadinnhold
 import no.nav.su.se.bakover.test.veileder
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -34,7 +34,7 @@ class HentSøknadPdfTest {
 
     private val sakId = UUID.randomUUID()
     private val søknadId = UUID.randomUUID()
-    private val søknadInnhold: SøknadsinnholdUføre = SøknadInnholdTestdataBuilder.build()
+    private val søknadInnhold: SøknadsinnholdUføre = søknadinnhold()
     private val søknad = Søknad.Ny(
         id = søknadId,
         opprettet = Tidspunkt.EPOCH,

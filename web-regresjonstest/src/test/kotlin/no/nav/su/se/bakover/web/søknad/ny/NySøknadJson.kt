@@ -15,7 +15,7 @@ import org.json.JSONObject
 object NySøknadJson {
     /**
      * Henger tett sammen med [no.nav.su.se.bakover.web.søknad.ny.NySøknadJson.Response].
-     * En forskjell er at requesten tar inn et rent [no.nav.su.se.bakover.web.routes.søknad.SøknadsinnholdUføreJson] objekt,
+     * En forskjell er at requesten tar inn et rent [no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdUføreJson] objekt,
      * mens responsen wrapper dette i [no.nav.su.se.bakover.web.routes.søknad.SøknadJson]
      */
     object Request {
@@ -56,7 +56,7 @@ object NySøknadJson {
 
     /**
      * Henger tett sammen med [no.nav.su.se.bakover.web.søknad.ny.NySøknadJson.Request].
-     * En forskjell er at requesten mapper til et [no.nav.su.se.bakover.web.routes.søknad.SøknadsinnholdUføreJson] objekt,
+     * En forskjell er at requesten mapper til et [no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.SøknadsinnholdUføreJson] objekt,
      * mens responsen wrapper en [no.nav.su.se.bakover.web.routes.søknad.SøknadJson] og et saksnummer
      */
     object Response {

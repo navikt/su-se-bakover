@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.beregning.fradrag
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.application.CopyArgs
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
@@ -10,7 +11,6 @@ import no.nav.su.se.bakover.common.november
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.år
-import no.nav.su.se.bakover.domain.CopyArgs
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 

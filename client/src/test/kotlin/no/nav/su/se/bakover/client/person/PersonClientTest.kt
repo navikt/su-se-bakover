@@ -21,7 +21,7 @@ import no.nav.su.se.bakover.common.Ident
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.common.token.JwtToken
-import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import org.junit.jupiter.api.Nested

@@ -1,12 +1,12 @@
 package no.nav.su.se.bakover.database.nøkkeltall
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.nøkkeltall.Nøkkeltall
 import no.nav.su.se.bakover.domain.søknadinnhold.ForNav
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
+import no.nav.su.se.bakover.test.søknad.søknadinnhold
 import org.junit.jupiter.api.Test
 
 internal class NøkkeltallPostgresRepoTest {
@@ -114,7 +114,7 @@ internal class NøkkeltallPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val nøkkeltallRepo = testDataHelper.nøkkeltallRepo
             testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave(
-                søknadInnhold = SøknadInnholdTestdataBuilder.build(
+                søknadInnhold = søknadinnhold(
                     forNav = ForNav.Papirsøknad(
                         mottaksdatoForSøknad = fixedLocalDate,
                         grunnForPapirinnsending = ForNav.Papirsøknad.GrunnForPapirinnsending.MidlertidigUnntakFraOppmøteplikt,

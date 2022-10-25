@@ -3,15 +3,15 @@ package no.nav.su.se.bakover.domain.søknadinnhold
 import arrow.core.left
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Fnr
-import no.nav.su.se.bakover.domain.boforhold
-import no.nav.su.se.bakover.domain.ektefelle
-import no.nav.su.se.bakover.domain.forNavDigitalSøknad
-import no.nav.su.se.bakover.domain.formue
-import no.nav.su.se.bakover.domain.inntektOgPensjon
-import no.nav.su.se.bakover.domain.oppholdstillatelse
-import no.nav.su.se.bakover.domain.personopplysninger
-import no.nav.su.se.bakover.domain.utenlandsopphold
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.søknad.boforhold
+import no.nav.su.se.bakover.test.søknad.ektefelle
+import no.nav.su.se.bakover.test.søknad.forNavDigitalSøknad
+import no.nav.su.se.bakover.test.søknad.formue
+import no.nav.su.se.bakover.test.søknad.inntektOgPensjon
+import no.nav.su.se.bakover.test.søknad.oppholdstillatelse
+import no.nav.su.se.bakover.test.søknad.personopplysninger
+import no.nav.su.se.bakover.test.søknad.utenlandsopphold
 import org.junit.jupiter.api.Test
 
 internal class SøknadinnholdTest {

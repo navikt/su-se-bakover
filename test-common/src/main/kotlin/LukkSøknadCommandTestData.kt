@@ -8,7 +8,7 @@ import java.time.LocalDate
 import java.util.UUID
 
 fun trekkSøknad(
-    søknadId: UUID = no.nav.su.se.bakover.test.søknadId,
+    søknadId: UUID = no.nav.su.se.bakover.test.søknad.søknadId,
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     lukketTidspunkt: Tidspunkt = fixedTidspunkt,
     trukketDato: LocalDate = fixedLocalDate,
@@ -20,7 +20,7 @@ fun trekkSøknad(
 )
 
 fun avvisSøknadMedBrev(
-    søknadId: UUID = no.nav.su.se.bakover.test.søknadId,
+    søknadId: UUID = no.nav.su.se.bakover.test.søknad.søknadId,
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     lukketTidspunkt: Tidspunkt = fixedTidspunkt,
     brevvalg: Brevvalg.SaksbehandlersValg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.VedtaksbrevUtenFritekst(),
@@ -32,7 +32,7 @@ fun avvisSøknadMedBrev(
 )
 
 fun avvisSøknadUtenBrev(
-    søknadId: UUID = no.nav.su.se.bakover.test.søknadId,
+    søknadId: UUID = no.nav.su.se.bakover.test.søknad.søknadId,
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     lukketTidspunkt: Tidspunkt = fixedTidspunkt,
 ) = LukkSøknadCommand.UtenBrev.AvvistSøknad(
@@ -42,7 +42,7 @@ fun avvisSøknadUtenBrev(
 )
 
 fun bortfallSøknad(
-    søknadId: UUID = no.nav.su.se.bakover.test.søknadId,
+    søknadId: UUID = no.nav.su.se.bakover.test.søknad.søknadId,
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     lukketTidspunkt: Tidspunkt = fixedTidspunkt,
 ) = LukkSøknadCommand.UtenBrev.BortfaltSøknad(

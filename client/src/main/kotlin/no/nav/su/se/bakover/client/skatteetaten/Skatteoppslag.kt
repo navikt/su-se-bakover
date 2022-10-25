@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.client.skatteetaten
 import arrow.core.Either
 import no.nav.su.se.bakover.client.AccessToken
 import no.nav.su.se.bakover.common.Fnr
-import no.nav.su.se.bakover.domain.Skattegrunnlag
+import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 
 interface Skatteoppslag {
     fun hentSamletSkattegrunnlag(accessToken: AccessToken, fnr: Fnr): Either<SkatteoppslagFeil, Skattegrunnlag>

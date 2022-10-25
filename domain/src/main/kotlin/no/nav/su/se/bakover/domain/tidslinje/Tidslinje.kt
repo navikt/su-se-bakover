@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.tidslinje
 
+import no.nav.su.se.bakover.common.application.CopyArgs
 import no.nav.su.se.bakover.common.between
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje.Companion.Validator.valider
 import java.time.LocalDate
 import java.util.LinkedList

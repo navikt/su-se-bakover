@@ -1,5 +1,4 @@
-// TODO jah: Flytt til common-test
-package no.nav.su.se.bakover.domain
+package no.nav.su.se.bakover.test.søknad
 
 import arrow.core.getOrHandle
 import no.nav.su.se.bakover.common.Fnr
@@ -27,28 +26,26 @@ import no.nav.su.se.bakover.domain.søknadinnhold.TrygdeytelseIUtlandet
 import no.nav.su.se.bakover.domain.søknadinnhold.Uførevedtak
 import no.nav.su.se.bakover.domain.søknadinnhold.Utenlandsopphold
 import no.nav.su.se.bakover.domain.søknadinnhold.UtenlandsoppholdPeriode
+import no.nav.su.se.bakover.test.epsFnr
+import no.nav.su.se.bakover.test.fixedLocalDate
+import no.nav.su.se.bakover.test.fnr
+import no.nav.su.se.bakover.test.fnrOver67
+import no.nav.su.se.bakover.test.fnrUnder67
 import java.time.LocalDate
 import java.time.Month.JANUARY
 
-private fun fnrUnder67(): Fnr {
-    return Fnr("01017001337")
-}
-
-private val fnrOver67 = Fnr("05064535694")
-
 fun personopplysninger(
-    fnr: String = "12345678910",
-) = Personopplysninger(
-    Fnr(fnr),
-)
+    fnr: Fnr = no.nav.su.se.bakover.test.fnr,
+) = Personopplysninger(fnr)
 
 fun boforhold(
     borOgOppholderSegINorge: Boolean = true,
     delerBolig: Boolean = true,
     delerBoligMed: Boforhold.DelerBoligMed? = Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER,
+    epsFnr: Fnr = no.nav.su.se.bakover.test.epsFnr,
     ektefellePartnerSamboer: EktefellePartnerSamboer? = EktefellePartnerSamboer(
         erUførFlyktning = false,
-        fnr = fnrUnder67(),
+        fnr = epsFnr,
     ),
     innlagtPåInstitusjon: InnlagtPåInstitusjon? = InnlagtPåInstitusjon(
         datoForInnleggelse = LocalDate.of(2020, JANUARY, 1),
@@ -166,8 +163,7 @@ fun forNavDigitalSøknad() = ForNav.DigitalSøknad(
 )
 
 fun forNavPapirsøknad(
-    // TODO jah: Siden denne ligger prod-koden, kan vi ikke refererere til fixedLocalDate
-    mottaksdatoForSøknad: LocalDate,
+    mottaksdatoForSøknad: LocalDate = fixedLocalDate,
     grunnForPapirinnsending: ForNav.Papirsøknad.GrunnForPapirinnsending = ForNav.Papirsøknad.GrunnForPapirinnsending.MidlertidigUnntakFraOppmøteplikt,
     annenGrunn: String = "covid19",
 ) = ForNav.Papirsøknad(
@@ -184,7 +180,7 @@ fun søknadsinnholdAlder(
     ),
     oppholdstillatelse: Oppholdstillatelse = oppholdstillatelse(),
     personopplysninger: Personopplysninger = Personopplysninger(fnrOver67),
-    boforhold: Boforhold = boforhold(),
+    boforhold: Boforhold = boforhold(epsFnr = fnrUnder67),
     utenlandsopphold: Utenlandsopphold = utenlandsopphold(),
     inntektOgPensjon: InntektOgPensjon = inntektOgPensjon(),
     formue: Formue = formue(),
@@ -203,36 +199,28 @@ fun søknadsinnholdAlder(
     ektefelle = ektefelle,
 ).getOrHandle { throw IllegalArgumentException("Feil ved oppsett av test data - $it") }
 
-object SøknadInnholdTestdataBuilder {
-    fun personopplysninger(
-        fnr: String = "12345678910",
-    ) = Personopplysninger(
-        Fnr(fnr),
-    )
-
-    fun build(
-        uførevedtak: Uførevedtak = Uførevedtak(true),
-        personopplysninger: Personopplysninger = personopplysninger(),
-        flyktningsstatus: Flyktningsstatus = Flyktningsstatus(
-            registrertFlyktning = false,
-        ),
-        boforhold: Boforhold = boforhold(),
-        utenlandsopphold: Utenlandsopphold = utenlandsopphold(),
-        oppholdstillatelse: Oppholdstillatelse = oppholdstillatelse(),
-        inntektOgPensjon: InntektOgPensjon = inntektOgPensjon(),
-        formue: Formue = formue(),
-        forNav: ForNav = forNavDigitalSøknad(),
-        ektefelle: Ektefelle = ektefelle(),
-    ) = SøknadsinnholdUføre.tryCreate(
-        uførevedtak = uførevedtak,
-        flyktningsstatus = flyktningsstatus,
-        personopplysninger = personopplysninger,
-        boforhold = boforhold,
-        utenlandsopphold = utenlandsopphold,
-        oppholdstillatelse = oppholdstillatelse,
-        inntektOgPensjon = inntektOgPensjon,
-        formue = formue,
-        forNav = forNav,
-        ektefelle = ektefelle,
-    ).getOrHandle { throw IllegalArgumentException("Feil ved oppsett av test data - $it") }
-}
+fun søknadinnhold(
+    uførevedtak: Uførevedtak = Uførevedtak(true),
+    personopplysninger: Personopplysninger = Personopplysninger(fnr),
+    flyktningsstatus: Flyktningsstatus = Flyktningsstatus(
+        registrertFlyktning = false,
+    ),
+    boforhold: Boforhold = boforhold(),
+    utenlandsopphold: Utenlandsopphold = utenlandsopphold(),
+    oppholdstillatelse: Oppholdstillatelse = oppholdstillatelse(),
+    inntektOgPensjon: InntektOgPensjon = inntektOgPensjon(),
+    formue: Formue = formue(),
+    forNav: ForNav = forNavDigitalSøknad(),
+    ektefelle: Ektefelle = ektefelle(),
+) = SøknadsinnholdUføre.tryCreate(
+    uførevedtak = uførevedtak,
+    flyktningsstatus = flyktningsstatus,
+    personopplysninger = personopplysninger,
+    boforhold = boforhold,
+    utenlandsopphold = utenlandsopphold,
+    oppholdstillatelse = oppholdstillatelse,
+    inntektOgPensjon = inntektOgPensjon,
+    formue = formue,
+    forNav = forNav,
+    ektefelle = ektefelle,
+).getOrHandle { throw IllegalArgumentException("Feil ved oppsett av test data - $it") }

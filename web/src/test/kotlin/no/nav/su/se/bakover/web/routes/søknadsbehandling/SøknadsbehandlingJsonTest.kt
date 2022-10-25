@@ -47,7 +47,7 @@ internal class SøknadsbehandlingJsonTest {
                     "delerBoligMed": "EKTEMAKE_SAMBOER",
                     "ektefellePartnerSamboer": {
                       "erUførFlyktning": false,
-                      "fnr": "01017001337"
+                      "fnr": "${søknadsbehandling.søknad.søknadInnhold.boforhold.ektefellePartnerSamboer!!.fnr}"
                     },
                     "innlagtPåInstitusjon": {
                       "datoForInnleggelse": "2020-01-01",
@@ -452,7 +452,7 @@ internal class SøknadsbehandlingJsonTest {
                     "delerBoligMed": "EKTEMAKE_SAMBOER",
                     "ektefellePartnerSamboer": {
                       "erUførFlyktning": false,
-                      "fnr": "01017001337"
+                      "fnr": "${søknadsbehandling.søknad.søknadInnhold.boforhold.ektefellePartnerSamboer!!.fnr}"
                     },
                     "innlagtPåInstitusjon": {
                       "datoForInnleggelse": "2020-01-01",

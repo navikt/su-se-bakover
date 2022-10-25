@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.domain.oppdrag.simulering
 import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonIgnore
 import no.nav.su.se.bakover.common.Fnr
-import no.nav.su.se.bakover.domain.Månedsbeløp
+import no.nav.su.se.bakover.common.application.Månedsbeløp
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import java.time.LocalDate
 

@@ -24,12 +24,12 @@ import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.token.JwtToken
-import no.nav.su.se.bakover.domain.Telefonnummer
 import no.nav.su.se.bakover.domain.Tema
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson.FantIkkePerson
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson.IkkeTilgangTilPerson
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson.Ukjent
+import no.nav.su.se.bakover.domain.person.Telefonnummer
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 

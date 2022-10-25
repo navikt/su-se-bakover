@@ -3,9 +3,9 @@ package no.nav.su.se.bakover.service.søknad
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.nySøknad
+import no.nav.su.se.bakover.test.søknad.nySøknad
+import no.nav.su.se.bakover.test.søknad.søknadinnhold
 import no.nav.su.se.bakover.test.veileder
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -30,7 +30,7 @@ class HentSøknadTest {
         val søknad = nySøknad(
             clock = fixedClock,
             sakId = UUID.randomUUID(),
-            søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+            søknadInnhold = søknadinnhold(),
             søknadInnsendtAv = veileder,
         )
 
