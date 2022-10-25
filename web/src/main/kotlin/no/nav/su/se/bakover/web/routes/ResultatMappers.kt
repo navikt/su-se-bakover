@@ -4,9 +4,9 @@ import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
-import no.nav.su.se.bakover.domain.oppdrag.FeilVedKryssjekkAvTidslinjerOgSimulering
-import no.nav.su.se.bakover.domain.oppdrag.FeilVedSjekkAvTidslinjeMotSimulering
 import no.nav.su.se.bakover.domain.oppdrag.KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
+import no.nav.su.se.bakover.domain.oppdrag.KryssjekkAvTidslinjeOgSimuleringFeilet
+import no.nav.su.se.bakover.domain.oppdrag.KryssjekkFeil
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
@@ -124,17 +124,17 @@ internal fun SimuleringFeilet.tilResultat(): Resultat {
     }
 }
 
-internal fun FeilVedKryssjekkAvTidslinjerOgSimulering.tilResultat(): Resultat {
+internal fun KryssjekkAvTidslinjeOgSimuleringFeilet.tilResultat(): Resultat {
     return when (this) {
-        is FeilVedKryssjekkAvTidslinjerOgSimulering.FeilVedSjekkAvTidslinjeMotSimulering -> {
+        is KryssjekkAvTidslinjeOgSimuleringFeilet.KryssjekkFeilet -> {
             when (this.feil) {
-                is FeilVedSjekkAvTidslinjeMotSimulering.KombinasjonAvSimulertTypeOgTidslinjeTypeErUgyldig -> {
+                is KryssjekkFeil.KombinasjonAvSimulertTypeOgTidslinjeTypeErUgyldig -> {
                     Feilresponser.kryssjekkTidslinjeSimuleringFeilet
                 }
-                is FeilVedSjekkAvTidslinjeMotSimulering.SimulertBeløpOgTidslinjeBeløpErForskjellig -> {
+                is KryssjekkFeil.SimulertBeløpOgTidslinjeBeløpErForskjellig -> {
                     Feilresponser.kryssjekkTidslinjeSimuleringFeilet
                 }
-                FeilVedSjekkAvTidslinjeMotSimulering.StansMedFeilutbetaling -> {
+                KryssjekkFeil.StansMedFeilutbetaling -> {
                     HttpStatusCode.BadRequest.errorJson(
                         "Stans vil føre til feilutbetalinger",
                         "stans_fører_til_feilutbetaling",
@@ -142,19 +142,19 @@ internal fun FeilVedKryssjekkAvTidslinjerOgSimulering.tilResultat(): Resultat {
                 }
             }
         }
-        FeilVedKryssjekkAvTidslinjerOgSimulering.RekonstruertUtbetalingsperiodeErUlikOpprinnelig -> {
+        KryssjekkAvTidslinjeOgSimuleringFeilet.RekonstruertUtbetalingsperiodeErUlikOpprinnelig -> {
             HttpStatusCode.InternalServerError.errorJson(
                 "Rekonstruert utbetalingshistorikk er ikke lik opprinnelig.",
                 "rekonstruert_utbetalingshistorikk_ulik_original",
             )
         }
-        FeilVedKryssjekkAvTidslinjerOgSimulering.KunneIkkeGenerereTidslinje -> {
+        KryssjekkAvTidslinjeOgSimuleringFeilet.KunneIkkeGenerereTidslinje -> {
             HttpStatusCode.InternalServerError.errorJson(
                 "Kunne ikke generere tidslinje",
                 "kunne_ikke_generere_tidslinje",
             )
         }
-        is FeilVedKryssjekkAvTidslinjerOgSimulering.KunneIkkeSimulere -> {
+        is KryssjekkAvTidslinjeOgSimuleringFeilet.KunneIkkeSimulere -> {
             this.feil.tilResultat()
         }
     }

@@ -22,7 +22,6 @@ import no.nav.su.se.bakover.domain.brev.Brevvalg
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
@@ -658,12 +657,7 @@ internal class RevurderingServiceImpl(
                                     sak.simulerUtbetaling(
                                         utbetalingForSimulering = it,
                                         periode = beregnetRevurdering.periode,
-                                        simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
-                                            utbetalingService.simulerUtbetaling(
-                                                utbetalingForSimulering,
-                                                periode,
-                                            )
-                                        },
+                                        simuler = utbetalingService::simulerUtbetaling,
                                         kontrollerMotTidligereSimulering = null,
                                         clock = clock,
                                     ).map { simulertUtbetaling ->
@@ -693,12 +687,7 @@ internal class RevurderingServiceImpl(
                                     sak.simulerUtbetaling(
                                         utbetalingForSimulering = it,
                                         periode = opphørsperiode,
-                                        simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
-                                            utbetalingService.simulerUtbetaling(
-                                                utbetaling = utbetalingForSimulering,
-                                                simuleringsperiode = periode,
-                                            )
-                                        },
+                                        simuler = utbetalingService::simulerUtbetaling,
                                         kontrollerMotTidligereSimulering = beregnetRevurdering.simulering,
                                         clock = clock,
                                     )
@@ -1232,12 +1221,7 @@ internal class RevurderingServiceImpl(
                         sak.simulerUtbetaling(
                             utbetalingForSimulering = it,
                             periode = iverksattRevurdering.periode,
-                            simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
-                                utbetalingService.simulerUtbetaling(
-                                    utbetalingForSimulering,
-                                    periode,
-                                )
-                            },
+                            simuler = utbetalingService::simulerUtbetaling,
                             kontrollerMotTidligereSimulering = iverksattRevurdering.simulering,
                             clock = clock,
                         )
@@ -1324,12 +1308,7 @@ internal class RevurderingServiceImpl(
                         sak.simulerUtbetaling(
                             utbetalingForSimulering = it,
                             periode = revurdering.opphørsperiodeForUtbetalinger,
-                            simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
-                                utbetalingService.simulerUtbetaling(
-                                    utbetalingForSimulering,
-                                    periode,
-                                )
-                            },
+                            simuler = utbetalingService::simulerUtbetaling,
                             kontrollerMotTidligereSimulering = revurdering.simulering,
                             clock = clock,
                         )

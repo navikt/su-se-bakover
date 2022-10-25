@@ -5,7 +5,6 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.oppdrag.FantIkkeGjeldendeUtbetaling
-import no.nav.su.se.bakover.domain.oppdrag.FeilVedKryssjekkAvTidslinjerOgSimulering
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
@@ -57,8 +56,6 @@ object FantIkkeUtbetaling
 sealed class SimulerGjenopptakFeil {
     data class KunneIkkeSimulere(val feil: SimulerUtbetalingFeilet) : SimulerGjenopptakFeil()
     data class KunneIkkeGenerereUtbetaling(val feil: Utbetalingsstrategi.Gjenoppta.Feil) : SimulerGjenopptakFeil()
-
-    data class KontrollFeilet(val feil: FeilVedKryssjekkAvTidslinjerOgSimulering) : SimulerGjenopptakFeil()
 }
 
 sealed class UtbetalGjenopptakFeil {
@@ -69,8 +66,6 @@ sealed class UtbetalGjenopptakFeil {
 sealed class SimulerStansFeilet {
     data class KunneIkkeSimulere(val feil: SimulerUtbetalingFeilet) : SimulerStansFeilet()
     data class KunneIkkeGenerereUtbetaling(val feil: Utbetalingsstrategi.Stans.Feil) : SimulerStansFeilet()
-
-    data class KontrollFeilet(val feil: FeilVedKryssjekkAvTidslinjerOgSimulering) : SimulerStansFeilet()
 }
 
 sealed class UtbetalStansFeil {

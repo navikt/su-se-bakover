@@ -147,12 +147,7 @@ class GjenopptakAvYtelseService(
                     utbetaling.tidligsteDato(),
                     utbetaling.senesteDato(),
                 ),
-                simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
-                    utbetalingService.simulerUtbetaling(
-                        utbetalingForSimulering,
-                        periode,
-                    )
-                },
+                simuler = utbetalingService::simulerUtbetaling,
                 kontrollerMotTidligereSimulering = gjenopptak?.simulering,
                 clock = clock,
             ).mapLeft {

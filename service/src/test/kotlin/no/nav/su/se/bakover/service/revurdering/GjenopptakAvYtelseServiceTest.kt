@@ -14,6 +14,8 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.startOfMonth
+import no.nav.su.se.bakover.domain.oppdrag.KryssjekkAvTidslinjeOgSimuleringFeilet
+import no.nav.su.se.bakover.domain.oppdrag.KryssjekkFeil
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
@@ -43,6 +45,7 @@ import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.simulerGjenopptak
 import no.nav.su.se.bakover.test.simulerUtbetaling
+import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse
 import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
@@ -73,16 +76,7 @@ internal class GjenopptakAvYtelseServiceTest {
                 on { hentSak(any<UUID>()) } doReturn søknadsbehandlingVilkårsvurdertUavklart().first.right()
             },
         ).let {
-            it.revurderingService.gjenopptaYtelse(
-                GjenopptaYtelseRequest.Opprett(
-                    sakId = sakId,
-                    saksbehandler = saksbehandler,
-                    revurderingsårsak = Revurderingsårsak.create(
-                        årsak = Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING.toString(),
-                        begrunnelse = "begrunnelse",
-                    ),
-                ),
-            ) shouldBe KunneIkkeGjenopptaYtelse.FantIngenVedtak.left()
+            it.revurderingService.gjenopptaYtelse(defaultOpprettRequest()) shouldBe KunneIkkeGjenopptaYtelse.FantIngenVedtak.left()
         }
     }
 
@@ -103,16 +97,7 @@ internal class GjenopptakAvYtelseServiceTest {
             },
             clock = tikkendeKlokke,
         ).let {
-            it.revurderingService.gjenopptaYtelse(
-                GjenopptaYtelseRequest.Opprett(
-                    sakId = sakId,
-                    saksbehandler = saksbehandler,
-                    revurderingsårsak = Revurderingsårsak.create(
-                        årsak = Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING.toString(),
-                        begrunnelse = "begrunnelse",
-                    ),
-                ),
-            ) shouldBe KunneIkkeGjenopptaYtelse.SakHarÅpenBehandling.left()
+            it.revurderingService.gjenopptaYtelse(defaultOpprettRequest()) shouldBe KunneIkkeGjenopptaYtelse.SakHarÅpenBehandling.left()
         }
     }
 
@@ -123,16 +108,7 @@ internal class GjenopptakAvYtelseServiceTest {
                 on { hentSak(any<UUID>()) } doReturn iverksattSøknadsbehandlingUføre().first.right()
             },
         ).let {
-            it.revurderingService.gjenopptaYtelse(
-                GjenopptaYtelseRequest.Opprett(
-                    sakId = sakId,
-                    saksbehandler = saksbehandler,
-                    revurderingsårsak = Revurderingsårsak.create(
-                        årsak = Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING.toString(),
-                        begrunnelse = "begrunnelse",
-                    ),
-                ),
-            ) shouldBe KunneIkkeGjenopptaYtelse.SisteVedtakErIkkeStans.left()
+            it.revurderingService.gjenopptaYtelse(defaultOpprettRequest()) shouldBe KunneIkkeGjenopptaYtelse.SisteVedtakErIkkeStans.left()
         }
     }
 
@@ -160,16 +136,7 @@ internal class GjenopptakAvYtelseServiceTest {
             },
             clock = tikkendeKlokke,
         ).let {
-            it.revurderingService.gjenopptaYtelse(
-                GjenopptaYtelseRequest.Opprett(
-                    sakId = sak.id,
-                    saksbehandler = saksbehandler,
-                    revurderingsårsak = Revurderingsårsak.create(
-                        årsak = Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING.toString(),
-                        begrunnelse = "begrunnelse",
-                    ),
-                ),
-            ) shouldBe KunneIkkeGjenopptaYtelse.KunneIkkeSimulere(SimulerGjenopptakFeil.KunneIkkeSimulere(SimulerUtbetalingFeilet.FeilVedSimulering(SimuleringFeilet.TekniskFeil))).left()
+            it.revurderingService.gjenopptaYtelse(defaultOpprettRequest()) shouldBe KunneIkkeGjenopptaYtelse.KunneIkkeSimulere(SimulerGjenopptakFeil.KunneIkkeSimulere(SimulerUtbetalingFeilet.FeilVedSimulering(SimuleringFeilet.TekniskFeil))).left()
 
             verify(it.sakService).hentSak(sak.id)
             verify(it.utbetalingService).simulerUtbetaling(any(), any())
@@ -208,16 +175,7 @@ internal class GjenopptakAvYtelseServiceTest {
             clock = tikkendeKlokke,
         )
 
-        val response = serviceAndMocks.revurderingService.gjenopptaYtelse(
-            GjenopptaYtelseRequest.Opprett(
-                sakId = sak.id,
-                saksbehandler = saksbehandler,
-                revurderingsårsak = Revurderingsårsak.create(
-                    årsak = Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING.toString(),
-                    begrunnelse = "begrunnelse",
-                ),
-            ),
-        ).getOrFail()
+        val response = serviceAndMocks.revurderingService.gjenopptaYtelse(defaultOpprettRequest()).getOrFail()
 
         response.saksbehandler shouldBe saksbehandler
         response.periode shouldBe vedtak.periode
@@ -308,18 +266,10 @@ internal class GjenopptakAvYtelseServiceTest {
                 on { hentSakForRevurdering(any()) } doReturn sak
             },
         ).let {
-            val response = it.revurderingService.iverksettGjenopptakAvYtelse(
+            it.revurderingService.iverksettGjenopptakAvYtelse(
                 revurderingId = enRevurdering.id,
                 attestant = attestant,
-            )
-
-            response shouldBe KunneIkkeIverksetteGjenopptakAvYtelse.UgyldigTilstand(
-                faktiskTilstand = enRevurdering::class,
-            ).left()
-
-            verify(it.sakService).hentSakForRevurdering(enRevurdering.id)
-
-            it.verifyNoMoreInteractions()
+            ) shouldBe KunneIkkeIverksetteGjenopptakAvYtelse.UgyldigTilstand(faktiskTilstand = enRevurdering::class).left()
         }
     }
 
@@ -395,23 +345,39 @@ internal class GjenopptakAvYtelseServiceTest {
 
     @Test
     fun `får ikke iverksatt dersom simulering indikerer feilutbetaling`() {
-        val (sak, eksisterende) = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
-//            simulering = simuleringFeilutbetaling(*periode.måneder().toTypedArray()),
-        )
+        val (sak, eksisterende) = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse()
+
+        val mockSimulering = mock<Utbetaling.SimulertUtbetaling> {
+            on { simulering } doReturn simuleringFeilutbetaling(*eksisterende.periode.måneder().toTypedArray())
+        }
 
         RevurderingServiceMocks(
             sakService = mock {
                 on { hentSakForRevurdering(any()) } doReturn sak
+            },
+            utbetalingService = mock {
+                on { simulerUtbetaling(any(), any()) } doReturn mockSimulering.right()
             },
         ).let {
             val response = it.revurderingService.iverksettGjenopptakAvYtelse(
                 revurderingId = eksisterende.id,
                 attestant = attestant,
             )
-
-            response shouldBe KunneIkkeIverksetteGjenopptakAvYtelse.SimuleringIndikererFeilutbetaling.left()
+            response shouldBe KunneIkkeIverksetteGjenopptakAvYtelse.KunneIkkeUtbetale(
+                UtbetalGjenopptakFeil.KunneIkkeSimulere(
+                    SimulerGjenopptakFeil.KunneIkkeSimulere(
+                        SimulerUtbetalingFeilet.FeilVedKryssjekkAvTidslinjeOgSimulering(
+                            KryssjekkAvTidslinjeOgSimuleringFeilet.KryssjekkFeilet(KryssjekkFeil.StansMedFeilutbetaling),
+                        ),
+                    ),
+                ),
+            ).left()
 
             verify(it.sakService).hentSakForRevurdering(eksisterende.id)
+            verify(it.utbetalingService, times(2)).simulerUtbetaling(
+                utbetaling = any(),
+                simuleringsperiode = any(),
+            )
             it.verifyNoMoreInteractions()
         }
     }
@@ -428,21 +394,7 @@ internal class GjenopptakAvYtelseServiceTest {
                 on { hentForSakId(any()) } doReturn sak.vedtakListe
             },
         ).let {
-            val response = it.revurderingService.gjenopptaYtelse(
-                GjenopptaYtelseRequest.Opprett(
-                    sakId = sakId,
-                    saksbehandler = NavIdentBruker.Saksbehandler("sverre"),
-                    revurderingsårsak = Revurderingsårsak.create(
-                        årsak = Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING.toString(),
-                        begrunnelse = "oppdatert",
-                    ),
-                ),
-            )
-
-            response shouldBe KunneIkkeGjenopptaYtelse.SakHarÅpenBehandling.left()
-
-            verify(it.sakService).hentSak(sakId)
-            it.verifyNoMoreInteractions()
+            it.revurderingService.gjenopptaYtelse(defaultOpprettRequest()) shouldBe KunneIkkeGjenopptaYtelse.SakHarÅpenBehandling.left()
         }
     }
 
@@ -550,4 +502,13 @@ internal class GjenopptakAvYtelseServiceTest {
             serviceAndMocks.verifyNoMoreInteractions()
         }
     }
+
+    fun defaultOpprettRequest() = GjenopptaYtelseRequest.Opprett(
+        sakId = sakId,
+        saksbehandler = saksbehandler,
+        revurderingsårsak = Revurderingsårsak.create(
+            årsak = Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING.toString(),
+            begrunnelse = "begrunnelse",
+        ),
+    )
 }

@@ -278,6 +278,7 @@ fun simulertRevurdering(
     grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
     forhåndsvarsel: Forhåndsvarsel? = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
+    utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
 ): Pair<Sak, SimulertRevurdering> {
     return beregnetRevurdering(
         saksnummer = saksnummer,
@@ -305,6 +306,7 @@ fun simulertRevurdering(
                             revurdering = beregnet,
                             simuleringsperiode = beregnet.periode,
                             clock = clock,
+                            utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
                         ).map {
                             it.simulering
                         }
@@ -324,6 +326,7 @@ fun simulertRevurdering(
                             simuleringsperiode = periode,
                             behandler = saksbehandler,
                             clock = clock,
+                            utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
                         )
                     },
                 ).getOrFail()
@@ -354,6 +357,7 @@ fun revurderingTilAttestering(
     fritekstTilBrev: String = "fritekstTilBrev",
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     attesteringsoppgaveId: OppgaveId = OppgaveId("oppgaveid"),
+    utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
 ): Pair<Sak, RevurderingTilAttestering> {
     return simulertRevurdering(
         saksnummer = saksnummer,
@@ -366,6 +370,7 @@ fun revurderingTilAttestering(
         vilkårOverrides = vilkårOverrides,
         grunnlagsdataOverrides = grunnlagsdataOverrides,
         forhåndsvarsel = forhåndsvarsel,
+        utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
     ).let { (sak, simulert) ->
         val tilAttestering = when (simulert) {
             is SimulertRevurdering.Innvilget -> {
@@ -412,6 +417,7 @@ fun revurderingUnderkjent(
     forhåndsvarsel: Forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
     attestering: Attestering.Underkjent = attesteringUnderkjent(clock),
     fritekstTilBrev: String = "fritekstTilBrev",
+    utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
 ): Pair<Sak, UnderkjentRevurdering> {
     return revurderingTilAttestering(
         saksnummer = saksnummer,
@@ -425,6 +431,7 @@ fun revurderingUnderkjent(
         grunnlagsdataOverrides = grunnlagsdataOverrides,
         forhåndsvarsel = forhåndsvarsel,
         fritekstTilBrev = fritekstTilBrev,
+        utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
     ).let { (sak, tilAttestering) ->
         val underkjent = tilAttestering.underkjenn(
             attestering = attestering,
@@ -477,6 +484,7 @@ fun iverksattRevurdering(
     fritekstTilBrev: String = "fritekstTilBrev",
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     attesteringsoppgaveId: OppgaveId = OppgaveId("oppgaveid"),
+    utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
 ): Triple<Sak, IverksattRevurdering, Utbetaling?> {
     return revurderingTilAttestering(
         saksnummer = saksnummer,
@@ -492,6 +500,7 @@ fun iverksattRevurdering(
         fritekstTilBrev = fritekstTilBrev,
         saksbehandler = saksbehandler,
         attesteringsoppgaveId = attesteringsoppgaveId,
+        utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
     ).let { (sak, tilAttestering) ->
         val (iverksatt, utbetaling) = tilAttestering.tilIverksatt(
             attestant = attestering.attestant,
@@ -575,6 +584,7 @@ fun vedtakRevurdering(
     forhåndsvarsel: Forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
     attestering: Attestering = attesteringIverksatt(clock),
     fritekstTilBrev: String = "fritekstTilBrev",
+    utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
 ): Pair<Sak, VedtakSomKanRevurderes> {
     return iverksattRevurdering(
         clock = clock,
@@ -589,6 +599,7 @@ fun vedtakRevurdering(
         forhåndsvarsel = forhåndsvarsel,
         attestering = attestering,
         fritekstTilBrev = fritekstTilBrev,
+        utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
     ).let { (sak, iverksatt, utbetaling) ->
         val vedtak = when (iverksatt) {
             is IverksattRevurdering.IngenEndring -> {

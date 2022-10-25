@@ -210,7 +210,12 @@ internal class StansAvYtelseService(
         }
     }
 
-    private fun simulerStans(sak: Sak, stans: StansAvYtelseRevurdering?, stansdato: LocalDate, behandler: NavIdentBruker): Either<SimulerStansFeilet, Utbetaling.SimulertUtbetaling> {
+    private fun simulerStans(
+        sak: Sak,
+        stans: StansAvYtelseRevurdering?,
+        stansdato: LocalDate,
+        behandler: NavIdentBruker,
+    ): Either<SimulerStansFeilet, Utbetaling.SimulertUtbetaling> {
         return sak.lagUtbetalingForStans(
             stansdato = stansdato,
             behandler = behandler,
@@ -224,12 +229,7 @@ internal class StansAvYtelseService(
                     utbetaling.tidligsteDato(),
                     utbetaling.senesteDato(),
                 ),
-                simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
-                    utbetalingService.simulerUtbetaling(
-                        utbetalingForSimulering,
-                        periode,
-                    )
-                },
+                simuler = utbetalingService::simulerUtbetaling,
                 kontrollerMotTidligereSimulering = stans?.simulering,
                 clock = clock,
             ).mapLeft {

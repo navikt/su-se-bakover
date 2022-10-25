@@ -9,8 +9,8 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.oppdrag.FeilVedKryssjekkAvTidslinjerOgSimulering
 import no.nav.su.se.bakover.domain.oppdrag.KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
+import no.nav.su.se.bakover.domain.oppdrag.KryssjekkAvTidslinjeOgSimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.KryssjekkSaksbehandlersOgAttestantsSimulering
 import no.nav.su.se.bakover.domain.oppdrag.KryssjekkTidslinjerOgSimulering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -165,7 +165,7 @@ fun Sak.simulerUtbetaling(
                 underArbeidEndringsperiode = periode,
                 underArbeid = utbetalingForSimulering,
                 eksisterende = utbetalinger,
-                simuler = { u: Utbetaling.UtbetalingForSimulering, p: Periode -> simuler(u, p) },
+                simuler = simuler,
                 clock = clock,
             ).getOrHandle {
                 return SimulerUtbetalingFeilet.FeilVedKryssjekkAvTidslinjeOgSimulering(it).left()
@@ -184,6 +184,6 @@ fun Sak.simulerUtbetaling(
 
 sealed interface SimulerUtbetalingFeilet {
     data class FeilVedSimulering(val feil: SimuleringFeilet) : SimulerUtbetalingFeilet
-    data class FeilVedKryssjekkAvTidslinjeOgSimulering(val feil: FeilVedKryssjekkAvTidslinjerOgSimulering) : SimulerUtbetalingFeilet
+    data class FeilVedKryssjekkAvTidslinjeOgSimulering(val feil: KryssjekkAvTidslinjeOgSimuleringFeilet) : SimulerUtbetalingFeilet
     data class FeilVedKryssjekkAvSaksbehandlerOgAttestantsSimulering(val feil: KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet) : SimulerUtbetalingFeilet
 }

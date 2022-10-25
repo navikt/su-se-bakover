@@ -22,7 +22,7 @@ object KryssjekkTidslinjerOgSimulering {
         eksisterende: List<Utbetaling>,
         simuler: (utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
         clock: Clock,
-    ): Either<FeilVedKryssjekkAvTidslinjerOgSimulering, Unit> {
+    ): Either<KryssjekkAvTidslinjeOgSimuleringFeilet, Unit> {
         val periode = Periode.create(
             fraOgMed = underArbeid.tidligsteDato(),
             tilOgMed = underArbeid.senesteDato(),
@@ -30,14 +30,14 @@ object KryssjekkTidslinjerOgSimulering {
         val simulertUtbetaling = simuler(underArbeid, periode)
             .getOrHandle {
                 log.error("Feil ved kryssjekk av tidslinje og simulering, kunne ikke simulere: $it")
-                return FeilVedKryssjekkAvTidslinjerOgSimulering.KunneIkkeSimulere(it).left()
+                return KryssjekkAvTidslinjeOgSimuleringFeilet.KunneIkkeSimulere(it).left()
             }
 
         val tidslinjeEksisterendeOgUnderArbeid = (eksisterende + underArbeid)
             .tidslinje(periode = periode, clock = clock)
             .getOrHandle {
                 log.error("Feil ved kryssjekk av tidslinje og simulering, kunne ikke generere tidslinjer: $it")
-                return FeilVedKryssjekkAvTidslinjerOgSimulering.KunneIkkeGenerereTidslinje.left()
+                return KryssjekkAvTidslinjeOgSimuleringFeilet.KunneIkkeGenerereTidslinje.left()
             }
 
         sjekkTidslinjeMotSimulering(
@@ -46,7 +46,7 @@ object KryssjekkTidslinjerOgSimulering {
         ).getOrHandle {
             log.error("Feil ved kryssjekk av tidslinje og simulering. Se sikkerlogg for detaljer")
             sikkerLogg.error("Feil: $it ved kryssjekk av tidslinje: $tidslinjeEksisterendeOgUnderArbeid og simulering: ${simulertUtbetaling.simulering}")
-            return FeilVedKryssjekkAvTidslinjerOgSimulering.FeilVedSjekkAvTidslinjeMotSimulering(it.first()).left()
+            return KryssjekkAvTidslinjeOgSimuleringFeilet.KryssjekkFeilet(it.first()).left()
         }
 
         if (eksisterende.harUtbetalingerEtter(underArbeidEndringsperiode.tilOgMed)) {
@@ -59,7 +59,7 @@ object KryssjekkTidslinjerOgSimulering {
                 clock = clock,
             ).getOrHandle {
                 log.error("Feil ved kryssjekk av tidslinje og simulering, kunne ikke generere tidslinjer: $it")
-                return FeilVedKryssjekkAvTidslinjerOgSimulering.KunneIkkeGenerereTidslinje.left()
+                return KryssjekkAvTidslinjeOgSimuleringFeilet.KunneIkkeGenerereTidslinje.left()
             }
 
             val tidslinjeEksisterende = eksisterende.tidslinje(
@@ -67,41 +67,41 @@ object KryssjekkTidslinjerOgSimulering {
                 clock = clock,
             ).getOrHandle {
                 log.error("Feil ved kryssjekk av tidslinje og simulering, kunne ikke generere tidslinjer: $it")
-                return FeilVedKryssjekkAvTidslinjerOgSimulering.KunneIkkeGenerereTidslinje.left()
+                return KryssjekkAvTidslinjeOgSimuleringFeilet.KunneIkkeGenerereTidslinje.left()
             }
             if (!tidslinjeUnderArbeid.ekvivalentMed(tidslinje = tidslinjeEksisterende, periode = rekonstruertPeriode)) {
                 log.error("Feil ved kryssjekk av tidslinje og simulering. Se sikkerlogg for detaljer")
                 sikkerLogg.error("Feil ved kryssjekk av tidslinje: Tidslinje for ny utbetaling:$tidslinjeUnderArbeid er ulik eksisterende:$tidslinjeEksisterende for rekonstruert periode:$rekonstruertPeriode")
-                return FeilVedKryssjekkAvTidslinjerOgSimulering.RekonstruertUtbetalingsperiodeErUlikOpprinnelig.left()
+                return KryssjekkAvTidslinjeOgSimuleringFeilet.RekonstruertUtbetalingsperiodeErUlikOpprinnelig.left()
             }
         }
         return Unit.right()
     }
 }
 
-sealed interface FeilVedKryssjekkAvTidslinjerOgSimulering {
-    data class FeilVedSjekkAvTidslinjeMotSimulering(val feil: no.nav.su.se.bakover.domain.oppdrag.FeilVedSjekkAvTidslinjeMotSimulering) : FeilVedKryssjekkAvTidslinjerOgSimulering
-    object RekonstruertUtbetalingsperiodeErUlikOpprinnelig : FeilVedKryssjekkAvTidslinjerOgSimulering
+sealed interface KryssjekkAvTidslinjeOgSimuleringFeilet {
+    data class KryssjekkFeilet(val feil: KryssjekkFeil) : KryssjekkAvTidslinjeOgSimuleringFeilet
+    object RekonstruertUtbetalingsperiodeErUlikOpprinnelig : KryssjekkAvTidslinjeOgSimuleringFeilet
 
-    data class KunneIkkeSimulere(val feil: SimuleringFeilet) : FeilVedKryssjekkAvTidslinjerOgSimulering
+    data class KunneIkkeSimulere(val feil: SimuleringFeilet) : KryssjekkAvTidslinjeOgSimuleringFeilet
 
-    object KunneIkkeGenerereTidslinje : FeilVedKryssjekkAvTidslinjerOgSimulering
+    object KunneIkkeGenerereTidslinje : KryssjekkAvTidslinjeOgSimuleringFeilet
 }
 
-sealed class FeilVedSjekkAvTidslinjeMotSimulering(val prioritet: Int) : Comparable<FeilVedSjekkAvTidslinjeMotSimulering> {
-    object StansMedFeilutbetaling : FeilVedSjekkAvTidslinjeMotSimulering(prioritet = 1)
+sealed class KryssjekkFeil(val prioritet: Int) : Comparable<KryssjekkFeil> {
+    object StansMedFeilutbetaling : KryssjekkFeil(prioritet = 1)
     data class KombinasjonAvSimulertTypeOgTidslinjeTypeErUgyldig(
         val periode: Periode,
         val simulertType: String,
         val tidslinjeType: String,
-    ) : FeilVedSjekkAvTidslinjeMotSimulering(prioritet = 2)
+    ) : KryssjekkFeil(prioritet = 2)
     data class SimulertBeløpOgTidslinjeBeløpErForskjellig(
         val periode: Periode,
         val simulertBeløp: Int,
         val tidslinjeBeløp: Int,
-    ) : FeilVedSjekkAvTidslinjeMotSimulering(prioritet = 2)
+    ) : KryssjekkFeil(prioritet = 2)
 
-    override fun compareTo(other: FeilVedSjekkAvTidslinjeMotSimulering): Int {
+    override fun compareTo(other: KryssjekkFeil): Int {
         return this.prioritet.compareTo(other.prioritet)
     }
 }
@@ -109,9 +109,9 @@ sealed class FeilVedSjekkAvTidslinjeMotSimulering(val prioritet: Int) : Comparab
 private fun sjekkTidslinjeMotSimulering(
     tidslinje: TidslinjeForUtbetalinger,
     simulering: Simulering,
-): Either<List<FeilVedSjekkAvTidslinjeMotSimulering>, Unit> {
+): Either<List<KryssjekkFeil>, Unit> {
     val tolketSimulering = simulering.tolk()
-    val feil = mutableListOf<FeilVedSjekkAvTidslinjeMotSimulering>()
+    val feil = mutableListOf<KryssjekkFeil>()
 
     if (tolketSimulering.erTomSimulering()) {
         tidslinje.tidslinje.forEach { utbetaling ->
@@ -178,7 +178,7 @@ private fun kryssjekkType(
     tolketPeriode: Periode,
     tolket: TolketUtbetaling,
     utbetaling: UtbetalingslinjePåTidslinje,
-): Either<FeilVedSjekkAvTidslinjeMotSimulering, Unit> {
+): Either<KryssjekkFeil, Unit> {
     return when (tolket) {
         is TolketUtbetaling.IngenUtbetaling -> {
             if (!(
@@ -188,7 +188,7 @@ private fun kryssjekkType(
                     utbetaling is UtbetalingslinjePåTidslinje.Reaktivering && utbetaling.beløp == 0
                 )
             ) {
-                FeilVedSjekkAvTidslinjeMotSimulering.KombinasjonAvSimulertTypeOgTidslinjeTypeErUgyldig(
+                KryssjekkFeil.KombinasjonAvSimulertTypeOgTidslinjeTypeErUgyldig(
                     periode = tolketPeriode,
                     simulertType = tolket::class.toString(),
                     tidslinjeType = utbetaling::class.toString(),
@@ -199,7 +199,7 @@ private fun kryssjekkType(
         }
         is TolketUtbetaling.Etterbetaling -> {
             if (!(utbetaling is UtbetalingslinjePåTidslinje.Ny || utbetaling is UtbetalingslinjePåTidslinje.Reaktivering)) {
-                FeilVedSjekkAvTidslinjeMotSimulering.KombinasjonAvSimulertTypeOgTidslinjeTypeErUgyldig(
+                KryssjekkFeil.KombinasjonAvSimulertTypeOgTidslinjeTypeErUgyldig(
                     periode = tolketPeriode,
                     simulertType = tolket::class.toString(),
                     tidslinjeType = utbetaling::class.toString(),
@@ -210,10 +210,10 @@ private fun kryssjekkType(
         }
         is TolketUtbetaling.Feilutbetaling -> {
             if (utbetaling is UtbetalingslinjePåTidslinje.Stans) {
-                return FeilVedSjekkAvTidslinjeMotSimulering.StansMedFeilutbetaling.left()
+                return KryssjekkFeil.StansMedFeilutbetaling.left()
             }
             if (!(utbetaling is UtbetalingslinjePåTidslinje.Ny || utbetaling is UtbetalingslinjePåTidslinje.Opphør)) {
-                FeilVedSjekkAvTidslinjeMotSimulering.KombinasjonAvSimulertTypeOgTidslinjeTypeErUgyldig(
+                KryssjekkFeil.KombinasjonAvSimulertTypeOgTidslinjeTypeErUgyldig(
                     periode = tolketPeriode,
                     simulertType = tolket::class.toString(),
                     tidslinjeType = utbetaling::class.toString(),
@@ -224,7 +224,7 @@ private fun kryssjekkType(
         }
         is TolketUtbetaling.Ordinær -> {
             if (!(utbetaling is UtbetalingslinjePåTidslinje.Ny || utbetaling is UtbetalingslinjePåTidslinje.Reaktivering)) {
-                FeilVedSjekkAvTidslinjeMotSimulering.KombinasjonAvSimulertTypeOgTidslinjeTypeErUgyldig(
+                KryssjekkFeil.KombinasjonAvSimulertTypeOgTidslinjeTypeErUgyldig(
                     periode = tolketPeriode,
                     simulertType = tolket::class.toString(),
                     tidslinjeType = utbetaling::class.toString(),
@@ -235,7 +235,7 @@ private fun kryssjekkType(
         }
         is TolketUtbetaling.UendretUtbetaling -> {
             if (!(utbetaling is UtbetalingslinjePåTidslinje.Ny || utbetaling is UtbetalingslinjePåTidslinje.Reaktivering)) {
-                FeilVedSjekkAvTidslinjeMotSimulering.KombinasjonAvSimulertTypeOgTidslinjeTypeErUgyldig(
+                KryssjekkFeil.KombinasjonAvSimulertTypeOgTidslinjeTypeErUgyldig(
                     periode = tolketPeriode,
                     simulertType = tolket::class.toString(),
                     tidslinjeType = utbetaling::class.toString(),
@@ -251,9 +251,9 @@ private fun kryssjekkBeløp(
     tolketPeriode: Periode,
     tolket: TolketUtbetaling,
     utbetaling: UtbetalingslinjePåTidslinje,
-): Either<FeilVedSjekkAvTidslinjeMotSimulering.SimulertBeløpOgTidslinjeBeløpErForskjellig, Unit> {
+): Either<KryssjekkFeil.SimulertBeløpOgTidslinjeBeløpErForskjellig, Unit> {
     return if (tolket.hentØnsketUtbetaling().sum() != utbetaling.beløp) {
-        FeilVedSjekkAvTidslinjeMotSimulering.SimulertBeløpOgTidslinjeBeløpErForskjellig(
+        KryssjekkFeil.SimulertBeløpOgTidslinjeBeløpErForskjellig(
             periode = tolketPeriode,
             simulertBeløp = tolket.hentØnsketUtbetaling().sum(),
             tidslinjeBeløp = utbetaling.beløp,

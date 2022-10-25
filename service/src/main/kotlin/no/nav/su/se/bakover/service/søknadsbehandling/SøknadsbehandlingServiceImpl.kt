@@ -8,7 +8,6 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.toNonEmptyList
@@ -20,7 +19,6 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -231,12 +229,7 @@ internal class SøknadsbehandlingServiceImpl(
                 sak.simulerUtbetaling(
                     utbetalingForSimulering = it,
                     periode = beregning.periode,
-                    simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
-                        utbetalingService.simulerUtbetaling(
-                            utbetalingForSimulering,
-                            periode,
-                        )
-                    },
+                    simuler = utbetalingService::simulerUtbetaling,
                     kontrollerMotTidligereSimulering = null,
                     clock = clock,
                 )
@@ -423,12 +416,7 @@ internal class SøknadsbehandlingServiceImpl(
                             sak.simulerUtbetaling(
                                 utbetalingForSimulering = it,
                                 periode = iverksattBehandling.periode,
-                                simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
-                                    utbetalingService.simulerUtbetaling(
-                                        utbetalingForSimulering,
-                                        periode,
-                                    )
-                                },
+                                simuler = utbetalingService::simulerUtbetaling,
                                 kontrollerMotTidligereSimulering = iverksattBehandling.simulering,
                                 clock = clock,
                             )

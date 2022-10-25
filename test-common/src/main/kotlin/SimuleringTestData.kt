@@ -149,6 +149,7 @@ fun simulerUtbetaling(
     simuleringsperiode: Periode = revurdering.periode,
     behandler: NavIdentBruker = saksbehandler,
     clock: Clock = tikkendeFixedClock,
+    utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
     strict: Boolean = true,
 ): Either<SimulerUtbetalingFeilet, Utbetaling.SimulertUtbetaling> {
     return simulerNyUtbetaling(
@@ -159,6 +160,7 @@ fun simulerUtbetaling(
         simuleringsperiode = simuleringsperiode,
         behandler = behandler,
         clock = clock,
+        utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
         strict = strict,
     )
 }
@@ -172,6 +174,7 @@ fun simulerUtbetaling(
     simuleringsperiode: Periode = regulering.periode,
     behandler: NavIdentBruker = saksbehandler,
     clock: Clock = tikkendeFixedClock,
+    utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
     strict: Boolean = true,
 ): Either<SimulerUtbetalingFeilet, Utbetaling.SimulertUtbetaling> {
     return simulerNyUtbetaling(
@@ -182,6 +185,7 @@ fun simulerUtbetaling(
         simuleringsperiode = simuleringsperiode,
         behandler = behandler,
         clock = clock,
+        utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
         strict = strict,
     )
 }

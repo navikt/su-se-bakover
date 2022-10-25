@@ -619,6 +619,7 @@ internal class OpprettRevurderingServiceTest {
                     periode = Periode.create(1.juni(2021), 31.desember(2021)),
                 ),
             ),
+            utbetalingerKjørtTilOgMed = 1.juli(2021),
         )
         val nyRevurderingsperiode = Periode.create(1.juli(2021), 31.desember(2021))
 
