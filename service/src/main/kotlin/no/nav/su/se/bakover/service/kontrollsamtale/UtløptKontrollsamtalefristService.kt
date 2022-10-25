@@ -4,7 +4,6 @@ import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.periode.DatoIntervall
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.jobcontext.JobContextRepo
 import no.nav.su.se.bakover.domain.journalpost.JournalpostClient
 import no.nav.su.se.bakover.domain.kontrollsamtale.Kontrollsamtale
@@ -13,6 +12,7 @@ import no.nav.su.se.bakover.domain.kontrollsamtale.UtløptFristForKontrollsamtal
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
+import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.revurdering.StansYtelseRequest

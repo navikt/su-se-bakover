@@ -1,8 +1,6 @@
 package no.nav.su.se.bakover.domain.sak
 
 import no.nav.su.se.bakover.common.Fnr
-import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.Sakstype
 import java.util.UUID
 
 data class SakInfo(

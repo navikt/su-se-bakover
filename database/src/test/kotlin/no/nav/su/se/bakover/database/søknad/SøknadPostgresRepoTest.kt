@@ -6,9 +6,9 @@ import io.kotest.matchers.types.shouldNotBeTypeOf
 import no.nav.su.se.bakover.common.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.hentListe
-import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.TestDataHelper.Companion.journalførtSøknad

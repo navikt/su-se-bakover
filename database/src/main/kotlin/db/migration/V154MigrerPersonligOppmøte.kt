@@ -11,8 +11,8 @@ import no.nav.su.se.bakover.database.grunnlag.PersonligOppmøteGrunnlagPostgresR
 import no.nav.su.se.bakover.database.grunnlag.PersonligOppmøteVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.PersonligOppmøteÅrsakDb
 import no.nav.su.se.bakover.database.grunnlag.toDomain
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.grunnlag.PersonligOppmøteGrunnlag
+import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
 import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår

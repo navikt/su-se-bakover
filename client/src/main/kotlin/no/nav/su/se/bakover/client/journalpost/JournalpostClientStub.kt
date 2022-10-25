@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.right
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.common.periode.DatoIntervall
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.journalpost.ErKontrollNotatMottatt
 import no.nav.su.se.bakover.domain.journalpost.ErTilknyttetSak
 import no.nav.su.se.bakover.domain.journalpost.JournalpostClient
@@ -14,6 +13,7 @@ import no.nav.su.se.bakover.domain.journalpost.JournalpostType
 import no.nav.su.se.bakover.domain.journalpost.KontrollnotatMottattJournalpost
 import no.nav.su.se.bakover.domain.journalpost.KunneIkkeSjekkKontrollnotatMottatt
 import no.nav.su.se.bakover.domain.journalpost.KunneIkkeSjekkeTilknytningTilSak
+import no.nav.su.se.bakover.domain.sak.Saksnummer
 
 object JournalpostClientStub : JournalpostClient {
     override fun erTilknyttetSak(

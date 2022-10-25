@@ -32,7 +32,6 @@ import no.nav.su.se.bakover.database.klage.KlagePostgresRepo.VedtaksvurderingJso
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo.VedtaksvurderingJson.Omgjør.Omgjøringsårsak.Companion.toDatabasetype
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo.VedtaksvurderingJson.Oppretthold.Hjemmel.Companion.toDatabasetype
 import no.nav.su.se.bakover.database.klage.klageinstans.KlageinstanshendelsePostgresRepo
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.Hjemler
@@ -48,6 +47,7 @@ import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.sak.Saksnummer
 import java.time.LocalDate
 import java.util.UUID
 

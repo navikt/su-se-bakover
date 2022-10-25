@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.periode.Måned
 import no.nav.su.se.bakover.common.zoneIdOslo
-import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingRequest
@@ -20,6 +19,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.toFeilkode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.toYtelsekode
 import no.nav.su.se.bakover.domain.oppdrag.tidslinje
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
+import no.nav.su.se.bakover.domain.sak.Sakstype
 import java.time.Clock
 import java.time.LocalDate
 
