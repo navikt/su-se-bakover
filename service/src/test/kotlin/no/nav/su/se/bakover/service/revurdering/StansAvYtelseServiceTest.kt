@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.service.revurdering
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.common.NavIdentBruker
@@ -11,46 +10,53 @@ import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.fixedClock
+import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.desember
+import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.startOfMonth
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
-import no.nav.su.se.bakover.domain.sak.lagUtbetalingForStans
+import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
-import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.utbetaling.SimulerStansFeilet
 import no.nav.su.se.bakover.service.utbetaling.UtbetalStansFeil
 import no.nav.su.se.bakover.test.TestSessionFactory
+import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.attestant
-import no.nav.su.se.bakover.test.beregnetRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.oversendtStansUtbetalingUtenKvittering
+import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.shouldBeType
+import no.nav.su.se.bakover.test.simulerUtbetaling
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
-import no.nav.su.se.bakover.test.simulertUtbetaling
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagUtenBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
+import no.nav.su.se.bakover.test.tikkendeFixedClock
+import no.nav.su.se.bakover.test.utbetalingsRequest
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
@@ -129,11 +135,7 @@ internal class StansAvYtelseServiceTest {
 
         RevurderingServiceMocks(
             utbetalingService = mock {
-                on {
-                    simulerStans(
-                        any(),
-                    )
-                } doReturn SimulerStansFeilet.KunneIkkeSimulere(SimuleringFeilet.TekniskFeil).left()
+                on { simulerUtbetaling(any(), any()) } doReturn SimuleringFeilet.TekniskFeil.left()
             },
             sakService = mock {
                 on { hentSak(any<UUID>(), any()) } doReturn sak.right()
@@ -151,35 +153,43 @@ internal class StansAvYtelseServiceTest {
                     ),
                 ),
             ) shouldBe KunneIkkeStanseYtelse.SimuleringAvStansFeilet(
-                SimulerStansFeilet.KunneIkkeSimulere(
-                    SimuleringFeilet.TekniskFeil,
-                ),
+                SimulerStansFeilet.KunneIkkeSimulere(SimulerUtbetalingFeilet.FeilVedSimulering(SimuleringFeilet.TekniskFeil)),
             ).left()
 
             verify(it.sakService).hentSak(
                 sakId = sakId,
                 sessionContext = TestSessionFactory.transactionContext,
             )
-            verify(it.utbetalingService).simulerStans(any())
+            verify(it.utbetalingService).simulerUtbetaling(
+                any(),
+                argThat { it shouldBe mai(2021)..desember(2021) },
+            )
             it.verifyNoMoreInteractions()
         }
     }
 
     @Test
     fun `happy path for opprettelse`() {
-        val clock = 1.april(2021).fixedClock()
+        val clock = TikkendeKlokke(1.april(2021).fixedClock())
         val periode = Periode.create(
             fraOgMed = LocalDate.now(clock).plusMonths(1).startOfMonth(),
             tilOgMed = år(2021).tilOgMed,
         )
-        val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget(
+        val (sak, _) = iverksattSøknadsbehandlingUføre(
             stønadsperiode = Stønadsperiode.create(periode),
             clock = clock,
         )
 
         RevurderingServiceMocks(
             utbetalingService = mock {
-                on { simulerStans(any()) } doReturn simulertUtbetaling().right()
+                doAnswer { invocation ->
+                    simulerUtbetaling(
+                        sak,
+                        invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering,
+                        invocation.getArgument(1) as Periode,
+                        clock,
+                    )
+                }.whenever(it).simulerUtbetaling(any(), any())
             },
             sakService = mock {
                 on { hentSak(any<UUID>(), any()) } doReturn sak.right()
@@ -205,13 +215,14 @@ internal class StansAvYtelseServiceTest {
                 sakId = sakId,
                 sessionContext = TestSessionFactory.transactionContext,
             )
-            verify(serviceAndMocks.utbetalingService).simulerStans(
+            verify(serviceAndMocks.utbetalingService, times(2)).simulerUtbetaling(
                 utbetaling = argThat {
                     it.erStans() shouldBe true
                     it.tidligsteDato() shouldBe periode.fraOgMed
                     it.senesteDato() shouldBe periode.tilOgMed
                     it.behandler shouldBe saksbehandler
                 },
+                simuleringsperiode = argThat { it shouldBe periode },
             )
             verify(serviceAndMocks.revurderingRepo).lagre(
                 revurdering = argThat { it shouldBe response },
@@ -228,12 +239,8 @@ internal class StansAvYtelseServiceTest {
 
     @Test
     fun `svarer med feil dersom oversendelse av stans til oppdrag feiler`() {
-        val periode = Periode.create(
-            fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
-            tilOgMed = år(2021).tilOgMed,
-        )
         val (sak, simulertStans) = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
-            periode = periode,
+            clock = tikkendeFixedClock,
         )
 
         RevurderingServiceMocks(
@@ -241,37 +248,40 @@ internal class StansAvYtelseServiceTest {
                 on { hentSakForRevurdering(any(), any()) } doReturn sak
             },
             utbetalingService = mock {
-                on {
-                    klargjørStans(
-                        any(),
-                        any(),
-                        any(),
+                doAnswer { invocation ->
+                    simulerUtbetaling(
+                        sak = sak,
+                        utbetaling = invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering,
+                        simuleringsperiode = invocation.getArgument(1) as Periode,
+                        clock = tikkendeFixedClock,
                     )
-                } doReturn UtbetalStansFeil.KunneIkkeSimulere(SimulerStansFeilet.KunneIkkeSimulere(SimuleringFeilet.TekniskFeil))
-                    .left()
+                }.whenever(it).simulerUtbetaling(any(), any())
+                on { klargjørUtbetaling(any(), any()) } doReturn UtbetalingFeilet.Protokollfeil.left()
             },
+            clock = tikkendeFixedClock,
         ).let { serviceAndMocks ->
             serviceAndMocks.revurderingService.iverksettStansAvYtelse(
-                revurderingId = revurderingId,
+                revurderingId = simulertStans.id,
                 attestant = NavIdentBruker.Attestant(simulertStans.saksbehandler.navIdent),
             ) shouldBe KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale(
-                UtbetalStansFeil.KunneIkkeSimulere(
-                    SimulerStansFeilet.KunneIkkeSimulere(SimuleringFeilet.TekniskFeil),
-                ),
+                UtbetalStansFeil.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil),
             ).left()
 
             verify(serviceAndMocks.sakService).hentSakForRevurdering(
                 revurderingId = simulertStans.id,
                 sessionContext = TestSessionFactory.transactionContext,
             )
-            verify(serviceAndMocks.utbetalingService).klargjørStans(
+            verify(serviceAndMocks.utbetalingService, times(2)).simulerUtbetaling(
+                any(),
+                any(),
+            )
+            verify(serviceAndMocks.utbetalingService).klargjørUtbetaling(
                 utbetaling = argThat {
                     it.erStans() shouldBe true
                     it.tidligsteDato() shouldBe simulertStans.periode.fraOgMed
                     it.senesteDato() shouldBe simulertStans.periode.tilOgMed
                     it.behandler.navIdent shouldBe simulertStans.saksbehandler.navIdent
                 },
-                saksbehandlersSimulering = argThat { simulertStans.simulering },
                 transactionContext = argThat { TestSessionFactory.transactionContext },
             )
             serviceAndMocks.verifyNoMoreInteractions()
@@ -280,17 +290,14 @@ internal class StansAvYtelseServiceTest {
 
     @Test
     fun `happy path for iverksettelse`() {
-        val periode = Periode.create(
-            fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
-            tilOgMed = år(2021).tilOgMed,
+        val tikkendeKlokke = TikkendeKlokke(1.januar(2022).fixedClock())
+        val (sak, simulertStans) = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+            clock = tikkendeKlokke,
         )
-        val (sak, simulertStans) = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(periode = periode)
-        val utbetaling = oversendtStansUtbetalingUtenKvittering(stansDato = periode.fraOgMed)
 
-        val callback =
-            mock<(utbetalingsrequest: Utbetalingsrequest) -> Either<UtbetalStansFeil.KunneIkkeUtbetale, Utbetalingsrequest>> {
-                on { it.invoke(any()) } doReturn utbetaling.utbetalingsrequest.right()
-            }
+        val callback = mock<(utbetalingsrequest: Utbetalingsrequest) -> Either<UtbetalingFeilet.Protokollfeil, Utbetalingsrequest>> {
+            on { it.invoke(any()) } doReturn utbetalingsRequest.right()
+        }
 
         val serviceAndMocks = RevurderingServiceMocks(
             sakService = mock {
@@ -300,14 +307,24 @@ internal class StansAvYtelseServiceTest {
                 on { hent(any(), any()) } doReturn simulertStans
             },
             utbetalingService = mock {
-                on { klargjørStans(any(), any(), any()) } doReturn UtbetalingKlargjortForOversendelse(
-                    utbetaling = utbetaling,
-                    callback = callback,
-                ).right()
+                doAnswer { invocation ->
+                    simulerUtbetaling(
+                        sak,
+                        invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering,
+                        invocation.getArgument(1) as Periode,
+                    )
+                }.whenever(it).simulerUtbetaling(any(), any())
+                doAnswer { invocation ->
+                    UtbetalingKlargjortForOversendelse(
+                        utbetaling = (invocation.getArgument(0) as Utbetaling.SimulertUtbetaling).toOversendtUtbetaling(utbetalingsRequest),
+                        callback = callback,
+                    ).right()
+                }.whenever(it).klargjørUtbetaling(any(), any())
             },
             vedtakService = mock {
                 doNothing().whenever(it).lagre(any(), anyOrNull())
             },
+            clock = tikkendeKlokke,
         )
 
         val response = serviceAndMocks.revurderingService.iverksettStansAvYtelse(
@@ -319,71 +336,53 @@ internal class StansAvYtelseServiceTest {
             revurderingId = simulertStans.id,
             sessionContext = TestSessionFactory.transactionContext,
         )
-        verify(serviceAndMocks.utbetalingService).klargjørStans(
+        verify(serviceAndMocks.utbetalingService, times(2)).simulerUtbetaling(
+            any(),
+            any(),
+        )
+        verify(serviceAndMocks.utbetalingService).klargjørUtbetaling(
             utbetaling = argThat {
                 it.erStans() shouldBe true
                 it.tidligsteDato() shouldBe simulertStans.periode.fraOgMed
                 it.senesteDato() shouldBe simulertStans.periode.tilOgMed
                 it.behandler.navIdent shouldBe simulertStans.saksbehandler.navIdent
             },
-            saksbehandlersSimulering = argThat { simulertStans.simulering },
             transactionContext = argThat { TestSessionFactory.transactionContext },
         )
         verify(serviceAndMocks.revurderingRepo).lagre(
             revurdering = argThat { it shouldBe response },
             transactionContext = argThat { TestSessionFactory.transactionContext },
         )
-        val expectedVedtak = VedtakSomKanRevurderes.from(
-            revurdering = response,
-            utbetalingId = utbetaling.id,
-            clock = fixedClock,
-        )
         verify(serviceAndMocks.vedtakService).lagre(
-            vedtak = argThat { vedtak ->
-                vedtak.shouldBeEqualToIgnoringFields(
-                    expectedVedtak,
-                    VedtakSomKanRevurderes::id,
-                )
-            },
+            vedtak = argThat { it.shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse>() },
             sessionContext = argThat { TestSessionFactory.transactionContext },
         )
 
-        verify(callback).invoke(utbetaling.utbetalingsrequest)
+        verify(callback).invoke(any())
         val eventCaptor = argumentCaptor<StatistikkEvent.Behandling.Stans.Iverksatt>()
         verify(serviceAndMocks.observer, times(2)).handle(eventCaptor.capture())
         val iverksatt = eventCaptor.allValues[0]
-        iverksatt shouldBe StatistikkEvent.Behandling.Stans.Iverksatt(
-            vedtak = VedtakSomKanRevurderes.from(
-                revurdering = response,
-                utbetalingId = utbetaling.id,
-                clock = fixedClock,
-            ).copy(id = iverksatt.vedtak.id),
-        )
+        iverksatt.shouldBeType<StatistikkEvent.Behandling.Stans.Iverksatt>().also {
+            it.vedtak.shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse>()
+            it.revurdering shouldBe response
+        }
         eventCaptor.allValues[1].shouldBeTypeOf<StatistikkEvent.Stønadsvedtak>()
         serviceAndMocks.verifyNoMoreInteractions()
     }
 
     @Test
-    @Disabled("https://trello.com/c/5iblmYP9/1090-endre-sperre-for-10-endring-til-%C3%A5-v%C3%A6re-en-advarsel")
     fun `svarer med feil ved forsøk på å oppdatere revurderinger som ikke er av korrekt type`() {
-        val (sak, enRevurdering) = beregnetRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
+        val (sak, enRevurdering) = beregnetRevurdering(
             stønadsperiode = Stønadsperiode.create(år(2021)),
         )
-
         RevurderingServiceMocks(
             sakService = mock {
                 on { hentSak(any<UUID>(), any()) } doReturn sak.right()
             },
-            utbetalingService = mock {
-                on { simulerStans(any()) } doReturn simulertUtbetaling().right()
-            },
-            revurderingRepo = mock {
-                on { hent(any(), any()) } doReturn enRevurdering
-            },
         ).let {
-            val response = it.revurderingService.stansAvYtelse(
+            it.revurderingService.stansAvYtelse(
                 StansYtelseRequest.Oppdater(
-                    sakId = sakId,
+                    sakId = sak.id,
                     saksbehandler = NavIdentBruker.Saksbehandler("sverre"),
                     fraOgMed = 1.desember(2021),
                     revurderingsårsak = Revurderingsårsak.create(
@@ -392,21 +391,11 @@ internal class StansAvYtelseServiceTest {
                     ),
                     revurderingId = enRevurdering.id,
                 ),
-            )
+            ) shouldBe KunneIkkeStanseYtelse.UgyldigTypeForOppdatering(BeregnetRevurdering.Innvilget::class).left()
 
-            response shouldBe KunneIkkeStanseYtelse.UgyldigTypeForOppdatering(BeregnetRevurdering.IngenEndring::class)
-                .left()
-
-            verify(it.utbetalingService).simulerStans(
-                utbetaling = sak.lagUtbetalingForStans(
-                    stansdato = 1.desember(2021),
-                    behandler = NavIdentBruker.Saksbehandler("sverre"),
-                    clock = fixedClock,
-                ).getOrFail(),
-            )
-            verify(it.revurderingRepo).hent(
-                id = enRevurdering.id,
-                sessionContext = TestSessionFactory.transactionContext,
+            verify(it.sakService).hentSak(
+                argThat<UUID> { it shouldBe sak.id },
+                argThat { it shouldBe TestSessionFactory.transactionContext },
             )
             it.verifyNoMoreInteractions()
         }
@@ -414,7 +403,7 @@ internal class StansAvYtelseServiceTest {
 
     @Test
     fun `happy path for oppdatering`() {
-        val clock = 1.februar(2021).fixedClock()
+        val clock = TikkendeKlokke(1.februar(2021).fixedClock())
         val periode = Periode.create(
             fraOgMed = LocalDate.now(clock).plusMonths(1).startOfMonth(),
             tilOgMed = år(2021).tilOgMed,
@@ -429,10 +418,17 @@ internal class StansAvYtelseServiceTest {
                 on { hentSak(any<UUID>(), any()) } doReturn sak.right()
             },
             utbetalingService = mock {
-                on { simulerStans(any()) } doReturn simulertUtbetaling().right()
+                doAnswer { invocation ->
+                    simulerUtbetaling(
+                        sak,
+                        invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering,
+                        invocation.getArgument(1) as Periode,
+                        clock,
+                    )
+                }.whenever(it).simulerUtbetaling(any(), any())
             },
             revurderingRepo = mock {
-                on { hent(any(), any()) } doReturn eksisterende
+                doNothing().whenever(it).lagre(any(), any())
             },
             clock = clock,
         ).let { serviceAndMocks ->
@@ -450,7 +446,7 @@ internal class StansAvYtelseServiceTest {
             ).getOrFail()
 
             response.let { oppdatert ->
-                oppdatert.periode shouldBe mars(2021).rangeTo(desember(2021))
+                oppdatert.periode shouldBe mars(2021)..(desember(2021))
                 oppdatert.saksbehandler shouldBe NavIdentBruker.Saksbehandler("kjeks")
                 oppdatert.revurderingsårsak shouldBe Revurderingsårsak.create(
                     årsak = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING.toString(),
@@ -458,13 +454,14 @@ internal class StansAvYtelseServiceTest {
                 )
             }
 
-            verify(serviceAndMocks.utbetalingService).simulerStans(
+            verify(serviceAndMocks.utbetalingService, times(2)).simulerUtbetaling(
                 utbetaling = argThat {
                     it.erStans() shouldBe true
                     it.tidligsteDato() shouldBe periode.fraOgMed
                     it.senesteDato() shouldBe periode.tilOgMed
                     it.behandler shouldBe NavIdentBruker.Saksbehandler("kjeks")
                 },
+                simuleringsperiode = argThat { it shouldBe periode },
             )
             verify(serviceAndMocks.sakService).hentSak(
                 sakId = sak.id,
@@ -480,19 +477,24 @@ internal class StansAvYtelseServiceTest {
 
     @Test
     fun `får ikke iverksatt dersom simulering indikerer feilutbetaling`() {
-        val periode = Periode.create(
-            fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
-            tilOgMed = år(2021).tilOgMed,
-        )
+        val tikkendeKlokke = TikkendeKlokke(1.januar(2022).fixedClock())
+        val periode = år(2022)
         val (sak, eksisterende) = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
             periode = periode,
-            simulering = simuleringFeilutbetaling(*periode.måneder().toTypedArray()),
+            clock = tikkendeKlokke,
         )
+        val mockSimulering = mock<Utbetaling.SimulertUtbetaling> {
+            on { simulering } doReturn simuleringFeilutbetaling(*periode.måneder().toTypedArray())
+        }
 
         RevurderingServiceMocks(
             sakService = mock {
                 on { hentSakForRevurdering(any(), any()) } doReturn sak
             },
+            utbetalingService = mock {
+                on { simulerUtbetaling(any(), any()) } doReturn mockSimulering.right()
+            },
+            clock = tikkendeKlokke,
         ).let {
             val response = it.revurderingService.iverksettStansAvYtelse(
                 revurderingId = eksisterende.id,
@@ -511,20 +513,12 @@ internal class StansAvYtelseServiceTest {
 
     @Test
     fun `får ikke opprettet ny hvis det allerede eksisterer åpen revurdering for stans`() {
-        val periode = Periode.create(
-            fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
-            tilOgMed = år(2021).tilOgMed,
-        )
-        val eksisterende = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
-            periode = periode,
-        )
-
-        val sakServiceMock = mock<SakService> {
-            on { hentSak(any<UUID>(), any()) } doReturn eksisterende.first.right()
-        }
-
         RevurderingServiceMocks(
-            sakService = sakServiceMock,
+            sakService = mock {
+                on { hentSak(any<UUID>(), any()) } doReturn simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+                    periode = år(2022),
+                ).first.right()
+            },
         ).let {
             val response = it.revurderingService.stansAvYtelse(
                 StansYtelseRequest.Opprett(
@@ -540,9 +534,9 @@ internal class StansAvYtelseServiceTest {
 
             response shouldBe KunneIkkeStanseYtelse.SakHarÅpenBehandling.left()
 
-            verify(sakServiceMock).hentSak(
-                sakId = sakId,
-                sessionContext = TestSessionFactory.transactionContext,
+            verify(it.sakService).hentSak(
+                sakId = any(),
+                sessionContext = argThat { TestSessionFactory.transactionContext },
             )
             it.verifyNoMoreInteractions()
         }

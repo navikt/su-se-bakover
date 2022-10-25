@@ -25,7 +25,6 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import java.time.LocalDate
-import java.util.UUID
 
 internal class GjenopptaUtbetalingerServiceTest {
 
@@ -56,9 +55,6 @@ internal class GjenopptaUtbetalingerServiceTest {
                 on { generateRequest(any()) } doReturn utbetalingsRequest
                 on { publishRequest(any()) } doReturn utbetalingsRequest.right()
             },
-            sakService = mock {
-                on { hentSak(any<UUID>()) } doReturn sak.right()
-            },
             clock = tikkendeKlokke,
         ).also { serviceAndMocks ->
             serviceAndMocks.service.klargjørUtbetaling(
@@ -69,13 +65,7 @@ internal class GjenopptaUtbetalingerServiceTest {
             verify(serviceAndMocks.utbetalingPublisher).generateRequest(any())
             verify(serviceAndMocks.utbetalingRepo).opprettUtbetaling(any(), argThat { it shouldBe TestSessionFactory.transactionContext })
             verify(serviceAndMocks.utbetalingPublisher).publishRequest(argThat { it shouldBe utbetalingsRequest })
-
-            verifyNoMoreInteractions(
-                serviceAndMocks.sakService,
-                serviceAndMocks.simuleringClient,
-                serviceAndMocks.utbetalingRepo,
-                serviceAndMocks.utbetalingPublisher,
-            )
+            serviceAndMocks.verifyNoMoreInteractions()
         }
     }
 
@@ -94,9 +84,6 @@ internal class GjenopptaUtbetalingerServiceTest {
         ).getOrFail()
 
         UtbetalingServiceAndMocks(
-            sakService = mock {
-                on { hentSak(any<UUID>()) } doReturn sak.right()
-            },
             utbetalingPublisher = mock {
                 on { generateRequest(any()) } doReturn utbetalingsRequest
                 on { publishRequest(any()) } doReturn UtbetalingPublisher.KunneIkkeSendeUtbetaling(utbetalingsRequest).left()
@@ -111,20 +98,13 @@ internal class GjenopptaUtbetalingerServiceTest {
             }
 
             inOrder(
-                serviceAndMocks.simuleringClient,
-                serviceAndMocks.utbetalingPublisher,
-                serviceAndMocks.utbetalingRepo,
+                *serviceAndMocks.allMocks(),
             ) {
                 verify(serviceAndMocks.utbetalingPublisher).generateRequest(argThat { it shouldBe simulertUtbetaling })
                 verify(serviceAndMocks.utbetalingRepo).opprettUtbetaling(any(), any())
                 verify(serviceAndMocks.utbetalingPublisher).publishRequest(utbetalingsRequest)
+                serviceAndMocks.verifyNoMoreInteractions()
             }
-            verifyNoMoreInteractions(
-                serviceAndMocks.sakService,
-                serviceAndMocks.simuleringClient,
-                serviceAndMocks.utbetalingRepo,
-                serviceAndMocks.utbetalingPublisher,
-            )
         }
     }
 }

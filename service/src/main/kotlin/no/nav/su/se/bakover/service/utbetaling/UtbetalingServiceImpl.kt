@@ -1,16 +1,12 @@
 package no.nav.su.se.bakover.service.utbetaling
 
 import arrow.core.Either
-import arrow.core.flatMap
-import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.oppdrag.FantIkkeGjeldendeUtbetaling
-import no.nav.su.se.bakover.domain.oppdrag.KryssjekkSaksbehandlersOgAttestantsSimulering
-import no.nav.su.se.bakover.domain.oppdrag.KryssjekkTidslinjerOgSimulering
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
@@ -19,7 +15,6 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.hentGjeldendeUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingForPeriode
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
@@ -106,51 +101,6 @@ internal class UtbetalingServiceImpl(
     ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
         return simuleringClient.simulerUtbetaling(request = request)
             .map { request.utbetaling.toSimulertUtbetaling(it) }
-    }
-
-    override fun simulerStans(utbetaling: Utbetaling.UtbetalingForSimulering): Either<SimulerStansFeilet, Utbetaling.SimulertUtbetaling> {
-        val simuleringsperiode = Periode.create(
-            fraOgMed = utbetaling.tidligsteDato(),
-            tilOgMed = utbetaling.senesteDato(),
-        )
-
-        return simulerUtbetaling(
-            request = SimulerUtbetalingForPeriode(
-                utbetaling = utbetaling,
-                simuleringsperiode = simuleringsperiode,
-            ),
-        ).mapLeft {
-            SimulerStansFeilet.KunneIkkeSimulere(it)
-        }.map { simulertUtbetaling ->
-            KryssjekkTidslinjerOgSimulering.sjekkStans(underArbeid = simulertUtbetaling)
-                .getOrHandle { return SimulerStansFeilet.KontrollFeilet(it).left() }
-        }
-    }
-
-    override fun klargjørStans(
-        utbetaling: Utbetaling.UtbetalingForSimulering,
-        saksbehandlersSimulering: Simulering,
-        transactionContext: TransactionContext,
-    ): Either<UtbetalStansFeil, UtbetalingKlargjortForOversendelse<UtbetalStansFeil.KunneIkkeUtbetale>> {
-        return simulerStans(utbetaling = utbetaling)
-            .mapLeft {
-                UtbetalStansFeil.KunneIkkeSimulere(it)
-            }.flatMap { simulertStans ->
-                KryssjekkSaksbehandlersOgAttestantsSimulering(
-                    saksbehandlersSimulering = saksbehandlersSimulering,
-                    attestantsSimulering = simulertStans,
-                ).sjekk().getOrHandle {
-                    return UtbetalStansFeil.KunneIkkeUtbetale(UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(it)).left()
-                }
-
-                UtbetalingKlargjortForOversendelse(
-                    utbetaling = simulertStans.forberedOversendelse(transactionContext),
-                    callback = { utbetalingsrequest ->
-                        sendUtbetalingTilOS(utbetalingsrequest)
-                            .mapLeft { UtbetalStansFeil.KunneIkkeUtbetale(it) }
-                    },
-                ).right()
-            }
     }
 
     private fun sendUtbetalingTilOS(utbetalingsRequest: Utbetalingsrequest): Either<UtbetalingFeilet.Protokollfeil, Utbetalingsrequest> {

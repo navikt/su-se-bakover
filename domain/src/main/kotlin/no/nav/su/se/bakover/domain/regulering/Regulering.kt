@@ -190,7 +190,7 @@ sealed interface Regulering : Reguleringsfelter {
         }
 
         fun simuler(
-            simuler: (beregning: Beregning, uføregrunnlag: NonEmptyList<Grunnlag.Uføregrunnlag>?) -> Either<SimuleringFeilet, Simulering>,
+            simuler: (beregning: Beregning, uføregrunnlag: NonEmptyList<Grunnlag.Uføregrunnlag>?) -> Either<SimulerUtbetalingFeilet, Simulering>,
         ): Either<KunneIkkeSimulere, OpprettetRegulering> {
             return simuler(
                 beregning ?: return KunneIkkeSimulere.FantIngenBeregning.left(),

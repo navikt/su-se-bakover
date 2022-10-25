@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteStansYtelse
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeStanseYtelse
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
@@ -220,11 +221,7 @@ internal class StansUtbetalingRouteKtTest {
     fun `svarer med 500 hvis simulering ikke går bra`() {
         val revurderingServiceMock = mock<RevurderingService> {
             on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
-            on { stansAvYtelse(any()) } doReturn KunneIkkeStanseYtelse.SimuleringAvStansFeilet(
-                SimulerStansFeilet.KunneIkkeSimulere(
-                    SimuleringFeilet.OppdragEksistererIkke,
-                ),
-            ).left()
+            on { stansAvYtelse(any()) } doReturn KunneIkkeStanseYtelse.SimuleringAvStansFeilet(SimulerStansFeilet.KunneIkkeSimulere(SimulerUtbetalingFeilet.FeilVedSimulering(SimuleringFeilet.OppdragEksistererIkke))).left()
         }
         testApplication {
             application {

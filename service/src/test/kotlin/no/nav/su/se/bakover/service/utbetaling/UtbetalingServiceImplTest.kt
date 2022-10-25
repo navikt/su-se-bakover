@@ -20,7 +20,6 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingForPeriode
 import no.nav.su.se.bakover.domain.sak.lagUtbetalingForOpphør
 import no.nav.su.se.bakover.domain.sak.lagUtbetalingForStans
-import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
@@ -41,7 +40,6 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
-import java.util.UUID
 
 internal class UtbetalingServiceImplTest {
     @Test
@@ -162,11 +160,7 @@ internal class UtbetalingServiceImplTest {
             val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget(
                 clock = tikkendeFixedClock,
             )
-
             UtbetalingServiceAndMocks(
-                sakService = mock {
-                    on { hentSak(any<UUID>()) } doReturn sak.right()
-                },
                 simuleringClient = mock {
                     on { simulerUtbetaling(any()) } doReturn simuleringStans(
                         stansDato = 1.februar(2021),
@@ -179,13 +173,13 @@ internal class UtbetalingServiceImplTest {
                 },
                 clock = tikkendeFixedClock,
             ).let {
-                it.service.simulerStans(
+                it.service.simulerUtbetaling(
                     utbetaling = sak.lagUtbetalingForStans(
                         stansdato = 1.februar(2021),
                         behandler = saksbehandler,
                         clock = fixedClock,
                     ).getOrFail(),
-
+                    simuleringsperiode = mock(),
                 ).getOrFail() shouldBe beOfType<Utbetaling.SimulertUtbetaling>()
 
                 verify(it.simuleringClient).simulerUtbetaling(
@@ -195,6 +189,7 @@ internal class UtbetalingServiceImplTest {
                         it.simuleringsperiode shouldBe Periode.create(1.februar(2021), 31.desember(2021))
                     },
                 )
+                TODO("FLYTT DISSE TIL ET ANNET STED")
             }
         }
 
@@ -205,9 +200,6 @@ internal class UtbetalingServiceImplTest {
             )
 
             UtbetalingServiceAndMocks(
-                sakService = mock {
-                    on { hentSak(any<UUID>()) } doReturn sak.right()
-                },
                 simuleringClient = mock {
                     on { simulerUtbetaling(any()) } doReturn opphørUtbetalingSimulert(
                         sakOgBehandling = sak to vedtak.behandling,

@@ -97,15 +97,14 @@ internal class StatusovergangTest {
     private val simulert: Søknadsbehandling.Simulert =
         beregnetInnvilget.simuler(
             saksbehandler = saksbehandler,
-            simuler = { _, _ ->
-                simulerUtbetaling(
-                    sak = sakOgUavklart.first,
-                    søknadsbehandling = beregnetInnvilget,
-                ).map {
-                    it.simulering
-                }
-            },
-        ).getOrFail()
+        ) { _, _ ->
+            simulerUtbetaling(
+                sak = sakOgUavklart.first,
+                søknadsbehandling = beregnetInnvilget,
+            ).map {
+                it.simulering
+            }
+        }.getOrFail()
 
     private val tilAttesteringInnvilget: Søknadsbehandling.TilAttestering.Innvilget =
         simulert.tilAttestering(saksbehandler, fritekstTilBrev)

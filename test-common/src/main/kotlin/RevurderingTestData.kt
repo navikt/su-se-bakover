@@ -4,6 +4,9 @@ import arrow.core.getOrHandle
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.endOfMonth
+import no.nav.su.se.bakover.common.fixedClock
+import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.startOfMonth
@@ -21,7 +24,6 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingUnderBehandling
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrev
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
@@ -799,6 +801,7 @@ fun simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
                                 sak = sak,
                                 utbetaling = utbetalingForSimulering,
                                 simuleringsperiode = periode,
+                                clock = clock,
                             )
                         },
                         kontrollerMotTidligereSimulering = null,
@@ -1104,20 +1107,16 @@ fun avsluttetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
 }
 
 fun simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
-    clock: Clock = fixedClock,
+    clock: Clock = TikkendeKlokke(1.januar(2022).fixedClock()),
     periode: Periode = Periode.create(
         fraOgMed = LocalDate.now(clock).plusMonths(1).startOfMonth(),
-        tilOgMed = år(2021).tilOgMed,
+        tilOgMed = LocalDate.now(clock).plusMonths(11).endOfMonth(),
     ),
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
         stønadsperiode = Stønadsperiode.create(periode),
         clock = clock,
     ),
-    simulering: Simulering = simuleringStans(
-        stansDato = periode.fraOgMed,
-        eksisterendeUtbetalinger = sakOgVedtakSomKanRevurderes.first.utbetalinger,
-        clock = clock,
-    ),
+    utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
 ): Pair<Sak, StansAvYtelseRevurdering.SimulertStansAvYtelse> {
     return sakOgVedtakSomKanRevurderes.let { (sak, vedtak) ->
         val revurdering = StansAvYtelseRevurdering.SimulertStansAvYtelse(
@@ -1128,7 +1127,14 @@ fun simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
             vilkårsvurderinger = sak.kopierGjeldendeVedtaksdata(periode.fraOgMed, clock).getOrFail().vilkårsvurderinger,
             tilRevurdering = vedtak.id,
             saksbehandler = saksbehandler,
-            simulering = simulering,
+            simulering = simulerStans(
+                sak = sakOgVedtakSomKanRevurderes.first,
+                stans = null,
+                stansDato = periode.fraOgMed,
+                behandler = saksbehandler,
+                clock = clock,
+                utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
+            ).getOrFail().simulering,
             revurderingsårsak = Revurderingsårsak.create(
                 årsak = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING.toString(),
                 begrunnelse = "valid",
@@ -1144,20 +1150,22 @@ fun simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
 }
 
 fun iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
-    clock: Clock = fixedClock,
+    clock: Clock = TikkendeKlokke(1.januar(2022).fixedClock()),
     periode: Periode = Periode.create(
         fraOgMed = LocalDate.now(clock).plusMonths(1).startOfMonth(),
-        tilOgMed = år(2021).tilOgMed,
+        tilOgMed = LocalDate.now(clock).plusMonths(11).endOfMonth(),
     ),
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
         stønadsperiode = Stønadsperiode.create(periode),
     ),
     attestering: Attestering = attesteringIverksatt(clock),
+    utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
 ): Pair<Sak, StansAvYtelseRevurdering.IverksattStansAvYtelse> {
     return simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         periode = periode,
         sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
         clock = clock,
+        utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
     ).let { (sak, simulert) ->
         val iverksatt = simulert.iverksett(attestering).getOrFail()
 
@@ -1173,7 +1181,6 @@ fun avsluttetStansAvYtelseFraIverksattSøknadsbehandlignsvedtak(
     tidspunktAvsluttet: Tidspunkt = Tidspunkt.now(fixedClock),
 ): Pair<Sak, StansAvYtelseRevurdering.AvsluttetStansAvYtelse> {
     return simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak().let { (sak, simulert) ->
-
         val avsluttet = simulert.avslutt(
             begrunnelse = begrunnelse,
             tidspunktAvsluttet = tidspunktAvsluttet,
@@ -1187,20 +1194,15 @@ fun avsluttetStansAvYtelseFraIverksattSøknadsbehandlignsvedtak(
 }
 
 fun simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
-    clock: Clock = TikkendeKlokke(fixedClock),
+    clock: Clock = TikkendeKlokke(1.januar(2022).fixedClock()),
     periodeForStans: Periode = Periode.create(
         fraOgMed = LocalDate.now(clock).plusMonths(1).startOfMonth(),
-        tilOgMed = år(2021).tilOgMed,
+        tilOgMed = LocalDate.now(clock).plusMonths(11).endOfMonth(),
     ),
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         periode = periodeForStans,
         clock = clock,
     ),
-    simulering: Simulering = simulerGjenopptak(
-        sak = sakOgVedtakSomKanRevurderes.first,
-        gjenopptak = null,
-        clock = clock,
-    ).getOrFail().simulering,
 ): Pair<Sak, GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse> {
     require(sakOgVedtakSomKanRevurderes.first.vedtakListe.last() is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse)
 
@@ -1213,7 +1215,12 @@ fun simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
             vilkårsvurderinger = vedtak.behandling.vilkårsvurderinger.tilVilkårsvurderingerRevurdering(),
             tilRevurdering = vedtak.id,
             saksbehandler = saksbehandler,
-            simulering = simulering,
+            simulering = simulerGjenopptak(
+                sak = sak,
+                gjenopptak = null,
+                behandler = saksbehandler,
+                clock = clock,
+            ).getOrFail().simulering,
             revurderingsårsak = Revurderingsårsak.create(
                 årsak = Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING.toString(),
                 begrunnelse = "valid",
@@ -1234,10 +1241,10 @@ fun simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
  * [GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse] vil få clock+2
  */
 fun iverksattGjenopptakelseAvYtelseFraVedtakStansAvYtelse(
-    clock: Clock = TikkendeKlokke(fixedClock),
+    clock: Clock = TikkendeKlokke(1.januar(2022).fixedClock()),
     periode: Periode = Periode.create(
         fraOgMed = LocalDate.now(clock).plusMonths(1).startOfMonth(),
-        tilOgMed = år(2021).tilOgMed,
+        tilOgMed = LocalDate.now(clock).plusMonths(11).endOfMonth(),
     ),
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         periode = periode,
@@ -1263,7 +1270,6 @@ fun avsluttetGjenopptakelseAvYtelseeFraIverksattSøknadsbehandlignsvedtak(
     tidspunktAvsluttet: Tidspunkt = Tidspunkt.now(fixedClock),
 ): Pair<Sak, GjenopptaYtelseRevurdering.AvsluttetGjenoppta> {
     return simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse().let { (sak, simulert) ->
-
         val avsluttet = simulert.avslutt(
             begrunnelse = begrunnelse,
             tidspunktAvsluttet = tidspunktAvsluttet,

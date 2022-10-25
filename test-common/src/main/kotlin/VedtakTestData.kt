@@ -3,6 +3,9 @@ package no.nav.su.se.bakover.test
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
+import no.nav.su.se.bakover.common.endOfMonth
+import no.nav.su.se.bakover.common.fixedClock
+import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.startOfMonth
@@ -18,6 +21,7 @@ import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -52,6 +56,7 @@ fun vedtakSøknadsbehandlingIverksattInnvilget(
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
         avkorting = avkorting,
+        clock = clock,
     ).let { (sak, søknadsbehandling) ->
         val utbetaling = nyUtbetalingOversendtMedKvittering(
             sakOgBehandling = sak to søknadsbehandling,
@@ -235,10 +240,10 @@ fun vedtakIverksattAutomatiskRegulering(
 }
 
 fun vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
-    clock: Clock = TikkendeKlokke(fixedClock),
+    clock: Clock = TikkendeKlokke(1.januar(2022).fixedClock()),
     periode: Periode = Periode.create(
         fraOgMed = LocalDate.now(clock).plusMonths(1).startOfMonth(),
-        tilOgMed = år(2021).tilOgMed,
+        tilOgMed = LocalDate.now(clock).plusMonths(11).endOfMonth(),
     ),
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
         stønadsperiode = Stønadsperiode.create(periode),

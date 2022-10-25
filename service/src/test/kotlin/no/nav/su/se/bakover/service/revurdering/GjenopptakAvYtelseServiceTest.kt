@@ -8,15 +8,20 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.endOfMonth
+import no.nav.su.se.bakover.common.fixedClock
+import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.startOfMonth
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
+import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
+import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
@@ -37,7 +42,7 @@ import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.simulerGjenopptak
-import no.nav.su.se.bakover.test.simuleringFeilutbetaling
+import no.nav.su.se.bakover.test.simulerUtbetaling
 import no.nav.su.se.bakover.test.simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse
 import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
@@ -48,6 +53,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
@@ -82,14 +88,20 @@ internal class GjenopptakAvYtelseServiceTest {
 
     @Test
     fun `svarer med feil dersom sak har åpen behandling`() {
-        val (sak, stans) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak()
+        val tikkendeKlokke = TikkendeKlokke(1.januar(2022).fixedClock())
+        val (sak, stans) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+            clock = tikkendeKlokke,
+        )
+
         RevurderingServiceMocks(
             sakService = mock {
                 on { hentSak(any<UUID>()) } doReturn opprettetRevurdering(
-                    revurderingsperiode = mai(2021),
+                    revurderingsperiode = mai(2022),
                     sakOgVedtakSomKanRevurderes = sak to stans,
+                    clock = tikkendeKlokke,
                 ).first.right()
             },
+            clock = tikkendeKlokke,
         ).let {
             it.revurderingService.gjenopptaYtelse(
                 GjenopptaYtelseRequest.Opprett(
@@ -126,11 +138,10 @@ internal class GjenopptakAvYtelseServiceTest {
 
     @Test
     fun `svarer med feil dersom simulering feiler`() {
-        val periode = Periode.create(
-            fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
-            tilOgMed = år(2021).tilOgMed,
+        val tikkendeKlokke = TikkendeKlokke(1.januar(2022).fixedClock())
+        val (sak, vedtak) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+            clock = tikkendeKlokke,
         )
-        val (sak, vedtak) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(periode = periode)
 
         RevurderingServiceMocks(
             vedtakRepo = mock {
@@ -147,6 +158,7 @@ internal class GjenopptakAvYtelseServiceTest {
             sakService = mock {
                 on { hentSak(any<UUID>()) } doReturn sak.right()
             },
+            clock = tikkendeKlokke,
         ).let {
             it.revurderingService.gjenopptaYtelse(
                 GjenopptaYtelseRequest.Opprett(
@@ -157,7 +169,7 @@ internal class GjenopptakAvYtelseServiceTest {
                         begrunnelse = "begrunnelse",
                     ),
                 ),
-            ) shouldBe KunneIkkeGjenopptaYtelse.KunneIkkeSimulere(SimulerGjenopptakFeil.KunneIkkeSimulere(SimuleringFeilet.TekniskFeil)).left()
+            ) shouldBe KunneIkkeGjenopptaYtelse.KunneIkkeSimulere(SimulerGjenopptakFeil.KunneIkkeSimulere(SimulerUtbetalingFeilet.FeilVedSimulering(SimuleringFeilet.TekniskFeil))).left()
 
             verify(it.sakService).hentSak(sak.id)
             verify(it.utbetalingService).simulerUtbetaling(any(), any())
@@ -167,13 +179,9 @@ internal class GjenopptakAvYtelseServiceTest {
 
     @Test
     fun `happy path for opprettelse`() {
-        val periode = Periode.create(
-            fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
-            tilOgMed = år(2021).tilOgMed,
-        )
+        val tikkendeKlokke = TikkendeKlokke(1.januar(2022).fixedClock())
         val (sak, vedtak) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
-            periode = periode,
-            clock = tikkendeFixedClock,
+            clock = tikkendeKlokke,
         )
 
         val serviceAndMocks = RevurderingServiceMocks(
@@ -181,11 +189,14 @@ internal class GjenopptakAvYtelseServiceTest {
                 on { hentForSakId(any()) } doReturn sak.vedtakListe
             },
             utbetalingService = mock {
-                on { simulerUtbetaling(any(), any()) } doReturn simulerGjenopptak(
-                    sak = sak,
-                    gjenopptak = null,
-                    clock = tikkendeFixedClock,
-                )
+                doAnswer { invocation ->
+                    simulerUtbetaling(
+                        sak,
+                        invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering,
+                        invocation.getArgument(1) as Periode,
+                        tikkendeKlokke,
+                    )
+                }.whenever(it).simulerUtbetaling(any(), any())
             },
             sakService = mock {
                 on { hentSak(any<UUID>()) } doReturn sak.right()
@@ -194,7 +205,7 @@ internal class GjenopptakAvYtelseServiceTest {
                 doNothing().whenever(it).lagre(any(), anyOrNull())
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
-            clock = tikkendeFixedClock,
+            clock = tikkendeKlokke,
         )
 
         val response = serviceAndMocks.revurderingService.gjenopptaYtelse(
@@ -209,7 +220,7 @@ internal class GjenopptakAvYtelseServiceTest {
         ).getOrFail()
 
         response.saksbehandler shouldBe saksbehandler
-        response.periode shouldBe periode
+        response.periode shouldBe vedtak.periode
         response.tilRevurdering shouldBe vedtak.id
         response.revurderingsårsak shouldBe Revurderingsårsak.create(
             årsak = Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING.toString(),
@@ -247,20 +258,21 @@ internal class GjenopptakAvYtelseServiceTest {
             clock = tikkendeFixedClock,
         )
 
-        val utbetalingServiceMock = mock<UtbetalingService> {
-            on { simulerUtbetaling(any(), any()) } doReturn simulerGjenopptak(
-                sak = sak,
-                gjenopptak = revurderingGjenopptak,
-                clock = tikkendeFixedClock,
-            )
-            on { klargjørUtbetaling(any(), any()) } doReturn UtbetalingFeilet.Protokollfeil.left()
-        }
-
         RevurderingServiceMocks(
             sakService = mock {
                 on { hentSakForRevurdering(any()) } doReturn sak
             },
-            utbetalingService = utbetalingServiceMock,
+            utbetalingService = mock<UtbetalingService> {
+                doAnswer { invocation ->
+                    simulerUtbetaling(
+                        sak,
+                        invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering,
+                        invocation.getArgument(1) as Periode,
+                        tikkendeFixedClock,
+                    )
+                }.whenever(it).simulerUtbetaling(any(), any())
+                on { klargjørUtbetaling(any(), any()) } doReturn UtbetalingFeilet.Protokollfeil.left()
+            },
             clock = tikkendeFixedClock,
         ).let { serviceAndMocks ->
             val response = serviceAndMocks.revurderingService.iverksettGjenopptakAvYtelse(
@@ -383,12 +395,8 @@ internal class GjenopptakAvYtelseServiceTest {
 
     @Test
     fun `får ikke iverksatt dersom simulering indikerer feilutbetaling`() {
-        val periode = Periode.create(
-            fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
-            tilOgMed = år(2021).tilOgMed,
-        )
         val (sak, eksisterende) = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
-            simulering = simuleringFeilutbetaling(*periode.måneder().toTypedArray()),
+//            simulering = simuleringFeilutbetaling(*periode.måneder().toTypedArray()),
         )
 
         RevurderingServiceMocks(
@@ -410,11 +418,7 @@ internal class GjenopptakAvYtelseServiceTest {
 
     @Test
     fun `får ikke opprettet ny hvis det allerede eksisterer åpen revurdering for gjenopptak`() {
-        val periode = Periode.create(
-            fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
-            tilOgMed = LocalDate.now(fixedClock).plusMonths(2).endOfMonth(),
-        )
-        val (sak, _) = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(periodeForStans = periode)
+        val (sak, _) = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse()
 
         RevurderingServiceMocks(
             sakService = mock {

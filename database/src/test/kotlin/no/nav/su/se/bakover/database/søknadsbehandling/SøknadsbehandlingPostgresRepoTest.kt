@@ -191,16 +191,15 @@ internal class SøknadsbehandlingPostgresRepoTest {
 
             val simulert = beregnet.simuler(
                 saksbehandler = saksbehandler,
-                simuler = { _, _ ->
-                    simulerUtbetaling(
-                        sak = sak,
-                        søknadsbehandling = beregnet,
-                        strict = false,
-                    ).map {
-                        it.simulering
-                    }
-                },
-            ).getOrFail().also { simulert ->
+            ) { _, _ ->
+                simulerUtbetaling(
+                    sak = sak,
+                    søknadsbehandling = beregnet,
+                    strict = false,
+                ).map {
+                    it.simulering
+                }
+            }.getOrFail().also { simulert ->
                 repo.lagre(simulert)
                 repo.hent(simulert.id) shouldBe simulert
                 dataSource.withSession {

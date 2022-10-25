@@ -7,7 +7,9 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.kontrollsamtale.UgyldigStatusovergang
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
@@ -34,6 +36,7 @@ import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGr
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.doThrow
@@ -79,11 +82,14 @@ internal class IverksettRevurderingTest {
                 doNothing().whenever(it).lagre(any(), anyOrNull())
             },
             utbetalingService = mock {
-                on { simulerUtbetaling(any(), any()) } doReturn simulerUtbetaling(
-                    sak = sak,
-                    revurdering = revurderingTilAttestering,
-                    clock = clock,
-                )
+                doAnswer { invocation ->
+                    simulerUtbetaling(
+                        sak,
+                        invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering,
+                        invocation.getArgument(1) as Periode,
+                        clock,
+                    )
+                }.whenever(it).simulerUtbetaling(any(), any())
                 on { klargjørUtbetaling(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
             },
             vedtakRepo = mock {
@@ -299,11 +305,13 @@ internal class IverksettRevurderingTest {
                 doNothing().whenever(it).lagre(any(), anyOrNull())
             },
             utbetalingService = mock {
-                on { simulerUtbetaling(any(), any()) } doReturn simulerUtbetaling(
-                    sak = sak,
-                    revurdering = revurderingTilAttestering,
-                    clock = clock,
-                )
+                doAnswer { invocation ->
+                    simulerUtbetaling(
+                        sak,
+                        invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering,
+                        invocation.getArgument(1) as Periode,
+                    )
+                }.whenever(it).simulerUtbetaling(any(), any())
                 on { klargjørUtbetaling(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
             },
             vedtakRepo = mock {
@@ -557,11 +565,13 @@ internal class IverksettRevurderingTest {
                 doNothing().whenever(it).lagre(any(), anyOrNull())
             },
             utbetalingService = mock {
-                on { simulerUtbetaling(any(), any()) } doReturn simulerUtbetaling(
-                    sak = sak,
-                    revurdering = revurderingTilAttestering,
-                    clock = clock,
-                )
+                doAnswer { invocation ->
+                    simulerUtbetaling(
+                        sak,
+                        invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering,
+                        invocation.getArgument(1) as Periode,
+                    )
+                }.whenever(it).simulerUtbetaling(any(), any())
                 on { klargjørUtbetaling(any(), any()) } doReturn utbetalingKlargjortForOversendelse.right()
             },
             vedtakRepo = mock {

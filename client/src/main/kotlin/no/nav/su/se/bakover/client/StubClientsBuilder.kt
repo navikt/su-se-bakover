@@ -42,6 +42,7 @@ import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.domain.person.PersonOppslag
 import org.slf4j.LoggerFactory
 import java.time.Clock
+import java.time.LocalDate
 
 class StubClientsBuilder(
     val clock: Clock,
@@ -78,6 +79,7 @@ class StubClientsBuilder(
             kodeverk = KodeverkHttpClient(applicationConfig.clientsConfig.kodeverkUrl, "srvsupstonad"),
             simuleringClient = SimuleringStub(
                 clock = clock,
+                utbetalingerKjørtTilOgMed = LocalDate.now(clock),
                 utbetalingRepo = databaseRepos.utbetaling,
             ).also { log.warn("********** Using stub for ${SimuleringClient::class.java} **********") },
             utbetalingPublisher = UtbetalingStub.also { log.warn("********** Using stub for ${UtbetalingPublisher::class.java} **********") },

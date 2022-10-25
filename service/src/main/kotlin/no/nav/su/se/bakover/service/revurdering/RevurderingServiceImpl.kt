@@ -72,6 +72,7 @@ import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.revurdering.IverksettStansAvYtelseTransactionException.Companion.exception
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
+import no.nav.su.se.bakover.service.utbetaling.UtbetalStansFeil
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeFastOppholdINorgeVilkår
@@ -159,7 +160,6 @@ internal class RevurderingServiceImpl(
                 is StansAvYtelseTransactionException -> {
                     it.feil
                 }
-
                 else -> {
                     KunneIkkeStanseYtelse.UkjentFeil(it.message.toString())
                 }
@@ -192,7 +192,7 @@ internal class RevurderingServiceImpl(
                 ).also { response ->
                     response.sendUtbetalingCallback()
                         .getOrHandle {
-                            throw KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale(it).exception()
+                            throw KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale(UtbetalStansFeil.KunneIkkeUtbetale(it)).exception()
                         }
                     response.sendStatistikkCallback()
                 }
@@ -202,7 +202,6 @@ internal class RevurderingServiceImpl(
                 is IverksettStansAvYtelseTransactionException -> {
                     it.feil
                 }
-
                 else -> {
                     KunneIkkeIverksetteStansYtelse.UkjentFeil(it.message.toString())
                 }

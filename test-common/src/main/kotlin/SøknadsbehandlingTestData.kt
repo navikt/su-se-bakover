@@ -250,32 +250,31 @@ fun søknadsbehandlingSimulert(
     ).let { (sak, søknadsbehandling) ->
         søknadsbehandling.simuler(
             saksbehandler = saksbehandler,
-            simuler = { beregning, uføregrunnlag ->
-                sak.lagNyUtbetaling(
-                    saksbehandler = saksbehandler,
-                    beregning = beregning,
+        ) { beregning, uføregrunnlag ->
+            sak.lagNyUtbetaling(
+                saksbehandler = saksbehandler,
+                beregning = beregning,
+                clock = clock,
+                utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                uføregrunnlag = uføregrunnlag,
+            ).let {
+                sak.simulerUtbetaling(
+                    utbetalingForSimulering = it,
+                    periode = søknadsbehandling.periode,
+                    simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
+                        simulerUtbetaling(
+                            sak = sak,
+                            utbetaling = utbetalingForSimulering,
+                            simuleringsperiode = periode,
+                        )
+                    },
+                    kontrollerMotTidligereSimulering = null,
                     clock = clock,
-                    utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
-                    uføregrunnlag = uføregrunnlag,
-                ).let {
-                    sak.simulerUtbetaling(
-                        utbetalingForSimulering = it,
-                        periode = søknadsbehandling.periode,
-                        simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
-                            simulerUtbetaling(
-                                sak = sak,
-                                utbetaling = utbetalingForSimulering,
-                                simuleringsperiode = periode,
-                            )
-                        },
-                        kontrollerMotTidligereSimulering = null,
-                        clock = clock,
-                    ).map { simulertUtbetaling ->
-                        simulertUtbetaling.simulering
-                    }
+                ).map { simulertUtbetaling ->
+                    simulertUtbetaling.simulering
                 }
-            },
-        ).getOrFail()
+            }
+        }.getOrFail()
             .let { simulert ->
                 Pair(
                     sak.copy(søknadsbehandlinger = sak.søknadsbehandlinger + simulert),
@@ -293,6 +292,7 @@ fun søknadsbehandlingTilAttesteringInnvilget(
         stønadsperiode.periode,
     ),
     avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
+    clock: Clock = fixedClock,
 ): Pair<Sak, Søknadsbehandling.TilAttestering.Innvilget> {
     return søknadsbehandlingSimulert(
         saksnummer = saksnummer,
@@ -300,6 +300,7 @@ fun søknadsbehandlingTilAttesteringInnvilget(
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
         avkorting = avkorting,
+        clock = clock,
     ).let { (sak, søknadsbehandling) ->
         val oppdatertSøknadsbehandling = søknadsbehandling.tilAttestering(
             saksbehandler = saksbehandler,
@@ -480,6 +481,7 @@ fun søknadsbehandlingIverksattInnvilget(
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
         avkorting = avkorting,
+        clock = clock,
     ).let { (sak, søknadsbehandling) ->
         val oppdatertSøknadsbehandling = søknadsbehandling.tilIverksatt(
             attestering = attesteringIverksatt(clock),
@@ -966,6 +968,7 @@ fun simulertSøknadsbehandling(
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
     avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
+    utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
 ): Pair<Sak, Søknadsbehandling.Simulert> {
     return beregnetSøknadsbehandling(
         clock = clock,
@@ -977,32 +980,33 @@ fun simulertSøknadsbehandling(
     ).let { (sak, beregnet) ->
         beregnet.simuler(
             saksbehandler = saksbehandler,
-            simuler = { beregning, uføregrunnlag ->
-                sak.lagNyUtbetaling(
-                    saksbehandler = saksbehandler,
-                    beregning = beregning,
+        ) { beregning, uføregrunnlag ->
+            sak.lagNyUtbetaling(
+                saksbehandler = saksbehandler,
+                beregning = beregning,
+                clock = clock,
+                utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                uføregrunnlag = uføregrunnlag,
+            ).let {
+                sak.simulerUtbetaling(
+                    utbetalingForSimulering = it,
+                    periode = beregnet.periode,
+                    simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
+                        simulerUtbetaling(
+                            sak = sak,
+                            utbetaling = utbetalingForSimulering,
+                            simuleringsperiode = periode,
+                            clock = clock,
+                            utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
+                        )
+                    },
+                    kontrollerMotTidligereSimulering = null,
                     clock = clock,
-                    utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
-                    uføregrunnlag = uføregrunnlag,
-                ).let {
-                    sak.simulerUtbetaling(
-                        utbetalingForSimulering = it,
-                        periode = beregnet.periode,
-                        simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
-                            simulerUtbetaling(
-                                sak = sak,
-                                utbetaling = utbetalingForSimulering,
-                                simuleringsperiode = periode,
-                            )
-                        },
-                        kontrollerMotTidligereSimulering = null,
-                        clock = clock,
-                    ).map { simulertUtbetaling ->
-                        simulertUtbetaling.simulering
-                    }
+                ).map { simulertUtbetaling ->
+                    simulertUtbetaling.simulering
                 }
-            },
-        ).getOrFail()
+            }
+        }.getOrFail()
             .let { simulert ->
                 sak.copy(søknadsbehandlinger = sak.søknadsbehandlinger.filterNot { it.id == beregnet.id } + simulert) to simulert
             }

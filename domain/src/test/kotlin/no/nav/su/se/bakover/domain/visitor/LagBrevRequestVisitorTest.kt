@@ -1226,15 +1226,14 @@ internal class LagBrevRequestVisitorTest {
             ).getOrFail().let { beregnet ->
                 beregnet.simuler(
                     saksbehandler = saksbehandler,
-                    simuler = { _, _ ->
-                        simulerUtbetaling(
-                            sak = sak,
-                            søknadsbehandling = beregnet,
-                        ).map {
-                            it.simulering
-                        }
-                    },
-                ).getOrFail()
+                ) { _, _ ->
+                    simulerUtbetaling(
+                        sak = sak,
+                        søknadsbehandling = beregnet,
+                    ).map {
+                        it.simulering
+                    }
+                }.getOrFail()
                     .tilAttestering(saksbehandler, "Fritekst!")
                     .tilIverksatt(Attestering.Iverksatt(attestant, fixedTidspunkt))
             }
