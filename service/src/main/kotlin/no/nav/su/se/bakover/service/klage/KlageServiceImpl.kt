@@ -7,6 +7,7 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import arrow.core.rightIfNotNull
+import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.persistence.SessionFactory
@@ -86,22 +87,23 @@ class KlageServiceImpl(
         if (!sak.kanOppretteKlage()) {
             return KunneIkkeOppretteKlage.FinnesAlleredeEnÅpenKlage.left()
         }
-        journalpostClient.erTilknyttetSak(request.journalpostId, sak.saksnummer)
-            .fold(
-                {
-                    return KunneIkkeOppretteKlage.FeilVedHentingAvJournalpost(it).left()
-                },
-                {
-                    when (it) {
-                        ErTilknyttetSak.Ja -> {
-                            /*sjekk ok, trenger ikke gjøre noe mer*/
-                        }
-                        ErTilknyttetSak.Nei -> {
-                            return KunneIkkeOppretteKlage.FeilVedHentingAvJournalpost(KunneIkkeSjekkeTilknytningTilSak.JournalpostIkkeKnyttetTilSak).left()
-                        }
+        runBlocking {
+            journalpostClient.erTilknyttetSak(request.journalpostId, sak.saksnummer)
+        }.fold(
+            {
+                return KunneIkkeOppretteKlage.FeilVedHentingAvJournalpost(it).left()
+            },
+            {
+                when (it) {
+                    ErTilknyttetSak.Ja -> {
+                        /*sjekk ok, trenger ikke gjøre noe mer*/
                     }
-                },
-            )
+                    ErTilknyttetSak.Nei -> {
+                        return KunneIkkeOppretteKlage.FeilVedHentingAvJournalpost(KunneIkkeSjekkeTilknytningTilSak.JournalpostIkkeKnyttetTilSak).left()
+                    }
+                }
+            },
+        )
 
         val aktørId = personService.hentAktørId(sak.fnr).getOrElse {
             return KunneIkkeOppretteKlage.KunneIkkeOppretteOppgave.left()

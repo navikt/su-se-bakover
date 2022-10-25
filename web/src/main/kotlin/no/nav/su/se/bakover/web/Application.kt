@@ -289,10 +289,12 @@ fun Application.susebakover(
                         registerService = RegistrerUtenlandsoppholdService(
                             sakRepo = databaseRepos.sak,
                             utenlandsoppholdRepo = databaseRepos.utenlandsoppholdRepo,
+                            journalpostClient = clients.journalpostClient,
                         ),
                         korrigerService = KorrigerUtenlandsoppholdService(
                             sakRepo = databaseRepos.sak,
                             utenlandsoppholdRepo = databaseRepos.utenlandsoppholdRepo,
+                            journalpostClient = clients.journalpostClient,
                         ),
                         annullerService = AnnullerUtenlandsoppholdService(
                             sakRepo = databaseRepos.sak,

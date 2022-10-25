@@ -4,6 +4,7 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeTypeOf
+import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.AktørId
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
@@ -77,7 +78,7 @@ internal class OpprettKlageTest {
                 on { hentAktørId(any()) } doReturn AktørId("aktørId").right()
             },
             journalpostClient = mock {
-                on { erTilknyttetSak(any(), any()) } doReturn ErTilknyttetSak.Ja.right()
+                on { runBlocking { erTilknyttetSak(any(), any()) } } doReturn ErTilknyttetSak.Ja.right()
             },
             oppgaveService = mock {
                 on { opprettOppgave(any()) } doReturn OppgaveId("nyOppgaveId").right()
@@ -142,7 +143,7 @@ internal class OpprettKlageTest {
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
             journalpostClient = mock {
-                on { erTilknyttetSak(any(), any()) } doReturn ErTilknyttetSak.Ja.right()
+                on { runBlocking { erTilknyttetSak(any(), any()) } } doReturn ErTilknyttetSak.Ja.right()
             },
             personServiceMock = mock {
                 on { hentAktørId(any()) } doReturn KunneIkkeHentePerson.Ukjent.left()
@@ -158,7 +159,9 @@ internal class OpprettKlageTest {
         mocks.service.opprett(request) shouldBe KunneIkkeOppretteKlage.KunneIkkeOppretteOppgave.left()
 
         verify(mocks.sakRepoMock).hentSak(sakId)
-        verify(mocks.journalpostClient).erTilknyttetSak(JournalpostId("j2"), sak.saksnummer)
+        runBlocking {
+            verify(mocks.journalpostClient).erTilknyttetSak(JournalpostId("j2"), sak.saksnummer)
+        }
         verify(mocks.personServiceMock).hentAktørId(argThat { it shouldBe sak.fnr })
         mocks.verifyNoMoreInteractions()
     }
@@ -187,7 +190,7 @@ internal class OpprettKlageTest {
                 on { hentAktørId(any()) } doReturn AktørId("aktørId").right()
             },
             journalpostClient = mock {
-                on { erTilknyttetSak(any(), any()) } doReturn ErTilknyttetSak.Ja.right()
+                on { runBlocking { erTilknyttetSak(any(), any()) } } doReturn ErTilknyttetSak.Ja.right()
             },
             oppgaveService = mock {
                 on { opprettOppgave(any()) } doReturn OppgaveFeil.KunneIkkeOppretteOppgave.left()
@@ -203,7 +206,9 @@ internal class OpprettKlageTest {
         mocks.service.opprett(request) shouldBe KunneIkkeOppretteKlage.KunneIkkeOppretteOppgave.left()
 
         verify(mocks.sakRepoMock).hentSak(sakId)
-        verify(mocks.journalpostClient).erTilknyttetSak(JournalpostId("j2"), sak.saksnummer)
+        runBlocking {
+            verify(mocks.journalpostClient).erTilknyttetSak(JournalpostId("j2"), sak.saksnummer)
+        }
         verify(mocks.personServiceMock).hentAktørId(argThat { it shouldBe sak.fnr })
         verify(mocks.oppgaveService).opprettOppgave(
             argThat {
@@ -253,7 +258,7 @@ internal class OpprettKlageTest {
                 on { hentAktørId(any()) } doReturn AktørId("aktørId").right()
             },
             journalpostClient = mock {
-                on { erTilknyttetSak(any(), any()) } doReturn ErTilknyttetSak.Ja.right()
+                on { runBlocking { erTilknyttetSak(any(), any()) } } doReturn ErTilknyttetSak.Ja.right()
             },
             oppgaveService = mock {
                 on { opprettOppgave(any()) } doReturn OppgaveId("nyOppgaveId").right()
@@ -288,7 +293,9 @@ internal class OpprettKlageTest {
         }
 
         verify(mocks.sakRepoMock).hentSak(sak.id)
-        verify(mocks.journalpostClient).erTilknyttetSak(JournalpostId("1"), sak.saksnummer)
+        runBlocking {
+            verify(mocks.journalpostClient).erTilknyttetSak(JournalpostId("1"), sak.saksnummer)
+        }
         verify(mocks.klageRepoMock).defaultTransactionContext()
         verify(mocks.klageRepoMock).lagre(
             argThat {

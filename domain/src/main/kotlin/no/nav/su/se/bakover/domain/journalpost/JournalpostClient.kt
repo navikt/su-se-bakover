@@ -9,7 +9,7 @@ interface JournalpostClient {
     /**
      * Sjekker om aktuell [journalpostId] er knyttet til [saksnummer]
      */
-    fun erTilknyttetSak(
+    suspend fun erTilknyttetSak(
         journalpostId: JournalpostId,
         saksnummer: Saksnummer,
     ): Either<KunneIkkeSjekkeTilknytningTilSak, ErTilknyttetSak>
