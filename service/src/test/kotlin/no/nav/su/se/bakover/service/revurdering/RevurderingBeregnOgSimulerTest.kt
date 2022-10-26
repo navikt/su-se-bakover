@@ -23,8 +23,8 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingsutfallSomIkkeStøttes
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
-import no.nav.su.se.bakover.domain.søknadinnhold.Personopplysninger
 import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
+import no.nav.su.se.bakover.domain.søknadinnhold.Personopplysninger
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår

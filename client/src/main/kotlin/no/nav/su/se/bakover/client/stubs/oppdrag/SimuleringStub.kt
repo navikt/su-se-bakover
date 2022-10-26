@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.right
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.periode.Måned
-import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingRequest
