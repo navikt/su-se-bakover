@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.domain.grunnlag.Konsistensproblem
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
@@ -32,6 +31,7 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
+import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.utbetaling.SimulerGjenopptakFeil
@@ -289,7 +289,7 @@ sealed class KunneIkkeBeregneOgSimulereRevurdering {
 
     object KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps : KunneIkkeBeregneOgSimulereRevurdering()
 
-    data class KunneIkkeSimulere(val simuleringFeilet: SimuleringFeilet) : KunneIkkeBeregneOgSimulereRevurdering()
+    data class KunneIkkeSimulere(val simuleringFeilet: SimulerUtbetalingFeilet) : KunneIkkeBeregneOgSimulereRevurdering()
     object AvkortingErUfullstendig : KunneIkkeBeregneOgSimulereRevurdering()
     object OpphørAvYtelseSomSkalAvkortes : KunneIkkeBeregneOgSimulereRevurdering()
 }
@@ -524,7 +524,7 @@ sealed class KunneIkkeIverksetteStansYtelse {
 data class IverksettStansAvYtelseITransaksjonResponse(
     val revurdering: StansAvYtelseRevurdering.IverksattStansAvYtelse,
     val vedtak: VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse,
-    val sendUtbetalingCallback: () -> Either<UtbetalStansFeil.KunneIkkeUtbetale, Utbetalingsrequest>,
+    val sendUtbetalingCallback: () -> Either<UtbetalingFeilet.Protokollfeil, Utbetalingsrequest>,
     val sendStatistikkCallback: () -> Unit,
 )
 

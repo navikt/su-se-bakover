@@ -5,6 +5,7 @@ import arrow.core.right
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
+import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.periode.Periode
@@ -237,6 +238,7 @@ internal class LagreOgSendForhåndsvarselTest {
                     periode = mai(2021)..(desember(2021)),
                 ),
             ),
+            utbetalingerKjørtTilOgMed = 1.august(2021),
         ).also {
             it.second.shouldBeType<SimulertRevurdering.Innvilget>().also {
                 it.harSimuleringFeilutbetaling() shouldBe true
@@ -449,6 +451,7 @@ internal class LagreOgSendForhåndsvarselTest {
                     periode = år(2021),
                 ),
             ),
+            utbetalingerKjørtTilOgMed = 1.juli(2021),
         ).second
 
         val simulertUtenTilbakekreving = simulertRevurdering().second

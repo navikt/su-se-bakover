@@ -1,8 +1,10 @@
 package no.nav.su.se.bakover.domain.revurdering
 
-import arrow.core.right
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.fixedClock
+import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.common.september
@@ -10,16 +12,15 @@ import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
-import no.nav.su.se.bakover.domain.sak.lagUtbetalingForOpphør
-import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
+import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.shouldBeType
+import no.nav.su.se.bakover.test.simulerOpphør
 import no.nav.su.se.bakover.test.simulerUtbetaling
-import no.nav.su.se.bakover.test.simuleringOpphørt
 import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
@@ -31,6 +32,8 @@ class RevurderingSimulerTest {
     fun `avkortingsvarsel dersom opphør skyldes utenlandsopphold og simulering inneholder feilutbetaling`() {
         simulertRevurdering(
             vilkårOverrides = listOf(utenlandsoppholdAvslag()),
+            clock = TikkendeKlokke(1.august(2021).fixedClock()),
+            utbetalingerKjørtTilOgMed = 1.juli(2021),
         ).let { (_, revurdering) ->
             revurdering.simulering.harFeilutbetalinger() shouldBe false
             revurdering.avkorting.let {
@@ -51,30 +54,27 @@ class RevurderingSimulerTest {
     @Test
     fun `kaster exception dersom simulering med justert opphørsdato for utbetaling inneholder feilutbetalinger`() {
         assertThrows<IllegalStateException> {
+            val clock = TikkendeKlokke(1.august(2021).fixedClock())
             beregnetRevurdering(
                 vilkårOverrides = listOf(utenlandsoppholdAvslag()),
+                clock = clock,
             ).let { (sak, revurdering) ->
                 revurdering.shouldBeType<BeregnetRevurdering.Opphørt>().let { beregnet ->
                     beregnet.simuler(
                         saksbehandler = saksbehandler,
-                        clock = fixedClock,
-                        lagUtbetaling = sak::lagUtbetalingForOpphør,
-                        eksisterendeUtbetalinger = sak::utbetalinger,
-                    ) { utbetaling, eksisterende, _ ->
-                        utbetaling.toSimulertUtbetaling(
-                            simuleringOpphørt(
-                                opphørsperiode = beregnet.periode, // bruk feil periode
-                                eksisterendeUtbetalinger = eksisterende,
-                                fnr = beregnet.fnr,
-                                sakId = beregnet.sakId,
-                                saksnummer = beregnet.saksnummer,
-                                clock = fixedClock,
-                            ),
-                        ).right().tap {
-                            it.simulering.harFeilutbetalinger() shouldBe true
-                        }
-                    }.getOrFail()
-                }
+                        clock = clock,
+                        simuler = { _, _ ->
+                            simulerOpphør(
+                                sak = sak,
+                                revurdering = beregnet,
+                                simuleringsperiode = beregnet.periode, // bruk feil periode
+                                clock = clock,
+                            )
+                        },
+                    ).tap {
+                        it.simulering.harFeilutbetalinger() shouldBe true
+                    }
+                }.getOrFail()
             }
         }.also {
             it.message shouldBe "Simulering med justert opphørsdato for utbetalinger pga avkorting utenlandsopphold inneholder feilutbetaling, se sikkerlogg for detaljer"
@@ -85,6 +85,8 @@ class RevurderingSimulerTest {
     fun `ingen avkortingsvarsel dersom opphør ikke skyldes utenlandsopphold og simulering inneholder feilutbetaling`() {
         simulertRevurdering(
             vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
+            clock = TikkendeKlokke(1.august(2021).fixedClock()),
+            utbetalingerKjørtTilOgMed = 1.juli(2021),
         ).let { (_, revurdering) ->
             revurdering.simulering.harFeilutbetalinger() shouldBe true
             revurdering.shouldBeType<SimulertRevurdering.Opphørt>().also {
@@ -106,6 +108,8 @@ class RevurderingSimulerTest {
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
+            clock = TikkendeKlokke(1.august(2021).fixedClock()),
+            utbetalingerKjørtTilOgMed = 1.juli(2021),
         ).let { (_, revurdering) ->
             revurdering.simulering.harFeilutbetalinger() shouldBe false
             revurdering.shouldBeType<SimulertRevurdering.Opphørt>().also {
@@ -116,6 +120,7 @@ class RevurderingSimulerTest {
 
     @Test
     fun `oppretter tilbakekrevingsbehandling dersom simulering inneholder feilutbetaling som ikke skyldes utlandsopphold`() {
+        val clock = TikkendeKlokke(1.august(2021).fixedClock())
         beregnetRevurdering(
             grunnlagsdataOverrides = listOf(
                 fradragsgrunnlagArbeidsinntekt(
@@ -124,6 +129,7 @@ class RevurderingSimulerTest {
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
+            clock = TikkendeKlokke(1.august(2021).fixedClock()),
         ).let { (sak, beregnet) ->
             beregnet.shouldBeType<BeregnetRevurdering.Innvilget>().also {
                 it.simuler(
@@ -133,6 +139,7 @@ class RevurderingSimulerTest {
                         simulerUtbetaling(
                             sak = sak,
                             revurdering = beregnet,
+                            clock = clock,
                         ).map {
                             it.simulering
                         }

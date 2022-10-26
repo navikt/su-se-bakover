@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
@@ -98,15 +97,14 @@ internal class StatusovergangTest {
     private val simulert: Søknadsbehandling.Simulert =
         beregnetInnvilget.simuler(
             saksbehandler = saksbehandler,
-            simuler = { _, _ ->
-                simulerUtbetaling(
-                    sak = sakOgUavklart.first,
-                    søknadsbehandling = beregnetInnvilget,
-                ).map {
-                    it.simulering
-                }
-            },
-        ).getOrFail()
+        ) { _, _ ->
+            simulerUtbetaling(
+                sak = sakOgUavklart.first,
+                søknadsbehandling = beregnetInnvilget,
+            ).map {
+                it.simulering
+            }
+        }.getOrFail()
 
     private val tilAttesteringInnvilget: Søknadsbehandling.TilAttestering.Innvilget =
         simulert.tilAttestering(saksbehandler, fritekstTilBrev)

@@ -13,6 +13,9 @@ import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.application.Beløp
 import no.nav.su.se.bakover.common.application.MånedBeløp
+import no.nav.su.se.bakover.common.august
+import no.nav.su.se.bakover.common.fixedClock
+import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.august
@@ -54,6 +57,7 @@ import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.beregnetSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
@@ -1226,15 +1230,14 @@ internal class LagBrevRequestVisitorTest {
             ).getOrFail().let { beregnet ->
                 beregnet.simuler(
                     saksbehandler = saksbehandler,
-                    simuler = { _, _ ->
-                        simulerUtbetaling(
-                            sak = sak,
-                            søknadsbehandling = beregnet,
-                        ).map {
-                            it.simulering
-                        }
-                    },
-                ).getOrFail()
+                ) { _, _ ->
+                    simulerUtbetaling(
+                        sak = sak,
+                        søknadsbehandling = beregnet,
+                    ).map {
+                        it.simulering
+                    }
+                }.getOrFail()
                     .tilAttestering(saksbehandler, "Fritekst!")
                     .tilIverksatt(Attestering.Iverksatt(attestant, fixedTidspunkt))
             }
@@ -1323,6 +1326,8 @@ internal class LagBrevRequestVisitorTest {
                     arbeidsinntekt = 5000.0,
                 ),
             ),
+            clock = TikkendeKlokke(1.august(2021).fixedClock()),
+            utbetalingerKjørtTilOgMed = 1.juli(2021),
         ).second.shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering>()
 
         val brevRevurdering = LagBrevRequestVisitor(
@@ -1373,6 +1378,8 @@ internal class LagBrevRequestVisitorTest {
                     periode = juni(2021)..(desember(2021)),
                 ),
             ),
+            clock = TikkendeKlokke(1.august(2021).fixedClock()),
+            utbetalingerKjørtTilOgMed = 1.juli(2021),
         ).second.shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering>()
 
         val brevRevurdering = LagBrevRequestVisitor(

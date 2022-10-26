@@ -63,7 +63,7 @@ import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.sak.SakFactory
-import no.nav.su.se.bakover.domain.sak.lagUtbetalingForOpphør
+import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadinnhold.SøknadsinnholdUføre
@@ -103,14 +103,14 @@ import no.nav.su.se.bakover.test.oversendtUtbetalingUtenKvittering
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
+import no.nav.su.se.bakover.test.simulerOpphør
 import no.nav.su.se.bakover.test.simulerUtbetaling
 import no.nav.su.se.bakover.test.simulering
-import no.nav.su.se.bakover.test.simuleringOpphørt
-import no.nav.su.se.bakover.test.simulertUtbetaling
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknad.journalpostIdSøknad
 import no.nav.su.se.bakover.test.søknad.oppgaveIdSøknad
 import no.nav.su.se.bakover.test.søknad.søknadinnhold
+import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.trekkSøknad
 import no.nav.su.se.bakover.test.utbetalingslinje
 import no.nav.su.se.bakover.test.veileder
@@ -542,34 +542,50 @@ class TestDataHelper(
 
     fun persisterReguleringOpprettet(
         startDato: LocalDate = 1.mai(2021),
-        clock: Clock = fixedClock,
-    ): Regulering.OpprettetRegulering =
-        persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().first.let { sak ->
+        clock: Clock = tikkendeFixedClock,
+    ): Pair<Sak, Regulering.OpprettetRegulering> {
+        return persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().first.let { sak ->
             sak.opprettEllerOppdaterRegulering(
                 startDato = startDato,
                 clock = clock,
-            ).getOrFail().also {
+            ).getOrFail().let {
                 databaseRepos.reguleringRepo.lagre(it)
+                sak.copy(
+                    reguleringer = sak.reguleringer + it,
+                ) to it
             }
         }
+    }
 
     fun persisterReguleringIverksatt(
         startDato: LocalDate = 1.mai(2021),
-        clock: Clock = fixedClock,
-    ) = persisterReguleringOpprettet(
-        startDato = startDato,
-        clock = clock,
-    ).let {
-        it.beregn(
-            satsFactory = satsFactoryTestPåDato(),
-            begrunnelse = "Begrunnelse",
+        clock: Clock = tikkendeFixedClock,
+    ): Pair<Sak, Regulering.IverksattRegulering> {
+        return persisterReguleringOpprettet(
+            startDato = startDato,
             clock = clock,
-        ).getOrFail().simuler(
-            simuler = { _, _ ->
-                simulertUtbetaling().simulering.right() // TODO bare tull, refaktorer vekk hele funksjonen og gjør koblinger mot sak/revurdering
-            },
-        ).getOrFail().tilIverksatt().also { iverksattAttestering ->
-            databaseRepos.reguleringRepo.lagre(iverksattAttestering)
+        ).let { (sak, regulering) ->
+            regulering.beregn(
+                satsFactory = satsFactoryTestPåDato(),
+                begrunnelse = "Begrunnelse",
+                clock = clock,
+            ).getOrFail().let { beregnet ->
+                beregnet.simuler(
+                    simuler = { _, _ ->
+                        simulerUtbetaling(
+                            sak = sak,
+                            regulering = beregnet,
+                            behandler = beregnet.saksbehandler,
+                            clock = clock,
+                        ).getOrFail().simulering.right()
+                    },
+                ).getOrFail().tilIverksatt().let { iverksattAttestering ->
+                    databaseRepos.reguleringRepo.lagre(iverksattAttestering)
+                    sak.copy(
+                        reguleringer = sak.reguleringer.filterNot { it.id == iverksattAttestering.id } + iverksattAttestering,
+                    ) to iverksattAttestering
+                }
+            }
         }
     }
 
@@ -767,20 +783,14 @@ class TestDataHelper(
             beregnet.simuler(
                 saksbehandler = saksbehandler,
                 clock = clock,
-                lagUtbetaling = sak::lagUtbetalingForOpphør,
-                eksisterendeUtbetalinger = sak::utbetalinger,
-            ) { utbetaling, eksisterende, opphørsperiode ->
-                utbetaling.toSimulertUtbetaling(
-                    simuleringOpphørt(
-                        opphørsperiode = opphørsperiode,
-                        eksisterendeUtbetalinger = eksisterende,
-                        fnr = beregnet.fnr,
-                        sakId = beregnet.sakId,
-                        saksnummer = beregnet.saksnummer,
-                        clock = clock,
-                    ),
-                ).right()
-            }.getOrFail().let { simulert ->
+                simuler = { periode: Periode, _: NavIdentBruker.Saksbehandler ->
+                    simulerOpphør(
+                        sak = sak,
+                        revurdering = beregnet,
+                        simuleringsperiode = periode,
+                    )
+                },
+            ).getOrFail().let { simulert ->
                 val oppdatertTilbakekrevingsbehandling = if (simulert.harSimuleringFeilutbetaling()) {
                     simulert.oppdaterTilbakekrevingsbehandling(
                         Tilbakekrev(
@@ -1238,16 +1248,15 @@ class TestDataHelper(
         ).let { (sak, beregnet) ->
             beregnet.simuler(
                 saksbehandler = saksbehandler,
-                simuler = { _, _ ->
-                    simulerUtbetaling(
-                        sak = sak,
-                        søknadsbehandling = beregnet,
-                        strict = false,
-                    ).map {
-                        it.simulering
-                    }
-                },
-            ).getOrFail()
+            ) { _, _ ->
+                simulerUtbetaling(
+                    sak = sak,
+                    søknadsbehandling = beregnet,
+                    strict = false,
+                ).map {
+                    it.simulering
+                }
+            }.getOrFail()
                 .let {
                     databaseRepos.søknadsbehandling.lagre(it)
                     Pair(databaseRepos.sak.hentSak(sakId)!!, it)

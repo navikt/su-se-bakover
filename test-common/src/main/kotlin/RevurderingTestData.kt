@@ -3,8 +3,12 @@ package no.nav.su.se.bakover.test
 import arrow.core.getOrHandle
 import arrow.core.nonEmptyListOf
 import arrow.core.right
+import no.nav.su.se.bakover.client.stubs.oppdrag.UtbetalingStub
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.endOfMonth
+import no.nav.su.se.bakover.common.fixedClock
+import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.startOfMonth
@@ -21,8 +25,6 @@ import no.nav.su.se.bakover.domain.brev.Brevvalg
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingUnderBehandling
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrev
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
@@ -33,7 +35,6 @@ import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
-import no.nav.su.se.bakover.domain.revurdering.OpphørsperiodeForUtbetalinger
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
@@ -42,9 +43,6 @@ import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.sak.Saksnummer
-import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
-import no.nav.su.se.bakover.domain.sak.lagUtbetalingForOpphør
-import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
@@ -278,6 +276,7 @@ fun simulertRevurdering(
     grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
     forhåndsvarsel: Forhåndsvarsel? = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
+    utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
 ): Pair<Sak, SimulertRevurdering> {
     return beregnetRevurdering(
         saksnummer = saksnummer,
@@ -299,33 +298,18 @@ fun simulertRevurdering(
                 val simulert = beregnet.simuler(
                     saksbehandler = saksbehandler,
                     clock = clock,
-                    simuler = { beregning, uføregrunnlag ->
-                        sak.lagNyUtbetaling(
-                            saksbehandler = saksbehandler,
-                            beregning = beregning,
+                    simuler = { _, _ ->
+                        simulerUtbetaling(
+                            sak = sak,
+                            revurdering = beregnet,
+                            simuleringsperiode = beregnet.periode,
                             clock = clock,
-                            utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
-                            uføregrunnlag = uføregrunnlag,
-                        ).let {
-                            sak.simulerUtbetaling(
-                                utbetalingForSimulering = it,
-                                periode = beregnet.periode,
-                                simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
-                                    simulerUtbetaling(
-                                        sak = sak,
-                                        utbetaling = utbetalingForSimulering,
-                                        simuleringsperiode = periode,
-                                    )
-                                },
-                                kontrollerMotTidligereSimulering = null,
-                                clock = clock,
-                            ).map { simulertUtbetaling ->
-                                simulertUtbetaling.simulering
-                            }
+                            utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
+                        ).map {
+                            it.simulering
                         }
                     },
                 ).getOrFail()
-
                 oppdaterTilbakekrevingsbehandling(simulert)
             }
 
@@ -333,21 +317,17 @@ fun simulertRevurdering(
                 val simulert = beregnet.simuler(
                     saksbehandler = saksbehandler,
                     clock = clock,
-                    lagUtbetaling = sak::lagUtbetalingForOpphør,
-                    eksisterendeUtbetalinger = sak::utbetalinger,
-                ) { utbetaling, eksisterende, opphørsperiode ->
-                    utbetaling.toSimulertUtbetaling(
-                        simuleringOpphørt(
-                            opphørsperiode = opphørsperiode,
-                            eksisterendeUtbetalinger = eksisterende,
-                            fnr = beregnet.fnr,
-                            sakId = beregnet.sakId,
-                            saksnummer = beregnet.saksnummer,
+                    simuler = { periode, saksbehandler ->
+                        simulerOpphør(
+                            sak = sak,
+                            revurdering = beregnet,
+                            simuleringsperiode = periode,
+                            behandler = saksbehandler,
                             clock = clock,
-                        ),
-                    ).right()
-                }.getOrFail()
-
+                            utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
+                        )
+                    },
+                ).getOrFail()
                 oppdaterTilbakekrevingsbehandling(simulert)
             }
         }.prøvÅLeggTilForhåndsvarselPåSimulertRevurdering(forhåndsvarsel)
@@ -375,6 +355,7 @@ fun revurderingTilAttestering(
     fritekstTilBrev: String = "fritekstTilBrev",
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     attesteringsoppgaveId: OppgaveId = OppgaveId("oppgaveid"),
+    utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
 ): Pair<Sak, RevurderingTilAttestering> {
     return simulertRevurdering(
         saksnummer = saksnummer,
@@ -387,6 +368,7 @@ fun revurderingTilAttestering(
         vilkårOverrides = vilkårOverrides,
         grunnlagsdataOverrides = grunnlagsdataOverrides,
         forhåndsvarsel = forhåndsvarsel,
+        utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
     ).let { (sak, simulert) ->
         val tilAttestering = when (simulert) {
             is SimulertRevurdering.Innvilget -> {
@@ -433,6 +415,7 @@ fun revurderingUnderkjent(
     forhåndsvarsel: Forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
     attestering: Attestering.Underkjent = attesteringUnderkjent(clock),
     fritekstTilBrev: String = "fritekstTilBrev",
+    utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
 ): Pair<Sak, UnderkjentRevurdering> {
     return revurderingTilAttestering(
         saksnummer = saksnummer,
@@ -446,6 +429,7 @@ fun revurderingUnderkjent(
         grunnlagsdataOverrides = grunnlagsdataOverrides,
         forhåndsvarsel = forhåndsvarsel,
         fritekstTilBrev = fritekstTilBrev,
+        utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
     ).let { (sak, tilAttestering) ->
         val underkjent = tilAttestering.underkjenn(
             attestering = attestering,
@@ -498,6 +482,7 @@ fun iverksattRevurdering(
     fritekstTilBrev: String = "fritekstTilBrev",
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     attesteringsoppgaveId: OppgaveId = OppgaveId("oppgaveid"),
+    utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
 ): Triple<Sak, IverksattRevurdering, Utbetaling?> {
     return revurderingTilAttestering(
         saksnummer = saksnummer,
@@ -513,6 +498,7 @@ fun iverksattRevurdering(
         fritekstTilBrev = fritekstTilBrev,
         saksbehandler = saksbehandler,
         attesteringsoppgaveId = attesteringsoppgaveId,
+        utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
     ).let { (sak, tilAttestering) ->
         val (iverksatt, utbetaling) = tilAttestering.tilIverksatt(
             attestant = attestering.attestant,
@@ -546,19 +532,29 @@ fun iverksattRevurdering(
             }
 
             is RevurderingTilAttestering.Innvilget -> {
-                nyUtbetalingOversendUtenKvittering(
-                    sakOgBehandling = sak to tilAttestering,
-                    beregning = tilAttestering.beregning,
+                simulerUtbetaling(
+                    sak = sak,
+                    revurdering = tilAttestering,
+                    simuleringsperiode = tilAttestering.periode,
+                    behandler = attestering.attestant,
                     clock = clock,
-                )
+                    utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
+                ).getOrFail().let {
+                    it.toOversendtUtbetaling(UtbetalingStub.generateRequest(it))
+                }
             }
 
             is RevurderingTilAttestering.Opphørt -> {
-                opphørUtbetalingOversendUtenKvittering(
-                    sakOgBehandling = sak to tilAttestering,
-                    opphørsperiode = OpphørsperiodeForUtbetalinger(tilAttestering).value,
+                simulerOpphør(
+                    sak = sak,
+                    revurdering = tilAttestering,
+                    simuleringsperiode = tilAttestering.opphørsperiodeForUtbetalinger,
+                    behandler = attestering.attestant,
                     clock = clock,
-                )
+                    utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
+                ).getOrFail().let {
+                    it.toOversendtUtbetaling(UtbetalingStub.generateRequest(it))
+                }
             }
         }
         Triple(
@@ -596,6 +592,7 @@ fun vedtakRevurdering(
     forhåndsvarsel: Forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
     attestering: Attestering = attesteringIverksatt(clock),
     fritekstTilBrev: String = "fritekstTilBrev",
+    utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
 ): Pair<Sak, VedtakSomKanRevurderes> {
     return iverksattRevurdering(
         clock = clock,
@@ -610,6 +607,7 @@ fun vedtakRevurdering(
         forhåndsvarsel = forhåndsvarsel,
         attestering = attestering,
         fritekstTilBrev = fritekstTilBrev,
+        utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
     ).let { (sak, iverksatt, utbetaling) ->
         val vedtak = when (iverksatt) {
             is IverksattRevurdering.IngenEndring -> {
@@ -792,6 +790,7 @@ fun simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
     forhåndsvarsel: Forhåndsvarsel? = null,
     tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling = IkkeBehovForTilbakekrevingUnderBehandling,
+    utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
 ): Pair<Sak, SimulertRevurdering.Innvilget> {
     return beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         saksnummer = saksnummer,
@@ -806,30 +805,15 @@ fun simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         val innvilgetSimulertRevurdering = revurdering.simuler(
             saksbehandler = saksbehandler,
             clock = clock,
-            simuler = { beregning, uføregrunnlag ->
-                sak.lagNyUtbetaling(
-                    saksbehandler = saksbehandler,
-                    beregning = beregning,
+            simuler = { _, _ ->
+                simulerUtbetaling(
+                    sak = sak,
+                    revurdering = revurdering,
+                    simuleringsperiode = revurdering.periode,
+                    behandler = revurdering.saksbehandler,
                     clock = clock,
-                    utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
-                    uføregrunnlag = uføregrunnlag,
-                ).let {
-                    sak.simulerUtbetaling(
-                        utbetalingForSimulering = it,
-                        periode = revurdering.periode,
-                        simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
-                            simulerUtbetaling(
-                                sak = sak,
-                                utbetaling = utbetalingForSimulering,
-                                simuleringsperiode = periode,
-                            )
-                        },
-                        kontrollerMotTidligereSimulering = null,
-                        clock = clock,
-                    ).map { simulertUtbetaling ->
-                        simulertUtbetaling.simulering
-                    }
-                }
+                    utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
+                ).getOrFail().simulering.right()
             },
         ).getOrFail().prøvÅLeggTilForhåndsvarselPåSimulertRevurdering(
             forhåndsvarsel = forhåndsvarsel,
@@ -1127,20 +1111,16 @@ fun avsluttetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
 }
 
 fun simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
-    clock: Clock = fixedClock,
+    clock: Clock = TikkendeKlokke(1.januar(2021).fixedClock()),
     periode: Periode = Periode.create(
         fraOgMed = LocalDate.now(clock).plusMonths(1).startOfMonth(),
-        tilOgMed = år(2021).tilOgMed,
+        tilOgMed = LocalDate.now(clock).plusMonths(11).endOfMonth(),
     ),
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
         stønadsperiode = Stønadsperiode.create(periode),
         clock = clock,
     ),
-    simulering: Simulering = simuleringStans(
-        stansDato = periode.fraOgMed,
-        eksisterendeUtbetalinger = sakOgVedtakSomKanRevurderes.first.utbetalinger,
-        clock = clock,
-    ),
+    utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
 ): Pair<Sak, StansAvYtelseRevurdering.SimulertStansAvYtelse> {
     return sakOgVedtakSomKanRevurderes.let { (sak, vedtak) ->
         val revurdering = StansAvYtelseRevurdering.SimulertStansAvYtelse(
@@ -1151,7 +1131,14 @@ fun simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
             vilkårsvurderinger = sak.kopierGjeldendeVedtaksdata(periode.fraOgMed, clock).getOrFail().vilkårsvurderinger,
             tilRevurdering = vedtak.id,
             saksbehandler = saksbehandler,
-            simulering = simulering,
+            simulering = simulerStans(
+                sak = sakOgVedtakSomKanRevurderes.first,
+                stans = null,
+                stansDato = periode.fraOgMed,
+                behandler = saksbehandler,
+                clock = clock,
+                utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
+            ).getOrFail().simulering,
             revurderingsårsak = Revurderingsårsak.create(
                 årsak = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING.toString(),
                 begrunnelse = "valid",
@@ -1167,20 +1154,23 @@ fun simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
 }
 
 fun iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
-    clock: Clock = fixedClock,
+    clock: Clock = TikkendeKlokke(1.januar(2021).fixedClock()),
     periode: Periode = Periode.create(
         fraOgMed = LocalDate.now(clock).plusMonths(1).startOfMonth(),
-        tilOgMed = år(2021).tilOgMed,
+        tilOgMed = LocalDate.now(clock).plusMonths(11).endOfMonth(),
     ),
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
         stønadsperiode = Stønadsperiode.create(periode),
+        clock = clock,
     ),
     attestering: Attestering = attesteringIverksatt(clock),
+    utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
 ): Pair<Sak, StansAvYtelseRevurdering.IverksattStansAvYtelse> {
     return simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         periode = periode,
         sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
         clock = clock,
+        utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
     ).let { (sak, simulert) ->
         val iverksatt = simulert.iverksett(attestering).getOrFail()
 
@@ -1192,11 +1182,11 @@ fun iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
 }
 
 fun avsluttetStansAvYtelseFraIverksattSøknadsbehandlignsvedtak(
+    clock: Clock = TikkendeKlokke(1.januar(2021).fixedClock()),
     begrunnelse: String = "begrunnelse for å avslutte stans av ytelse",
-    tidspunktAvsluttet: Tidspunkt = Tidspunkt.now(fixedClock),
+    tidspunktAvsluttet: Tidspunkt = Tidspunkt.now(clock),
 ): Pair<Sak, StansAvYtelseRevurdering.AvsluttetStansAvYtelse> {
-    return simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak().let { (sak, simulert) ->
-
+    return simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(clock).let { (sak, simulert) ->
         val avsluttet = simulert.avslutt(
             begrunnelse = begrunnelse,
             tidspunktAvsluttet = tidspunktAvsluttet,
@@ -1210,21 +1200,16 @@ fun avsluttetStansAvYtelseFraIverksattSøknadsbehandlignsvedtak(
 }
 
 fun simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
-    clock: Clock = TikkendeKlokke(fixedClock),
+    clock: Clock = TikkendeKlokke(1.januar(2021).fixedClock()),
     periodeForStans: Periode = Periode.create(
         fraOgMed = LocalDate.now(clock).plusMonths(1).startOfMonth(),
-        tilOgMed = år(2021).tilOgMed,
+        tilOgMed = LocalDate.now(clock).plusMonths(11).endOfMonth(),
     ),
+    utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         periode = periodeForStans,
         clock = clock,
-    ),
-    simulering: Simulering = simuleringGjenopptak(
-        eksisterendeUtbetalinger = sakOgVedtakSomKanRevurderes.first.utbetalinger,
-        fnr = sakOgVedtakSomKanRevurderes.first.fnr,
-        sakId = sakOgVedtakSomKanRevurderes.first.id,
-        saksnummer = sakOgVedtakSomKanRevurderes.first.saksnummer,
-        clock = clock,
+        utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
     ),
 ): Pair<Sak, GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse> {
     require(sakOgVedtakSomKanRevurderes.first.vedtakListe.last() is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse)
@@ -1232,13 +1217,18 @@ fun simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
     return sakOgVedtakSomKanRevurderes.let { (sak, vedtak) ->
         val revurdering = GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse(
             id = revurderingId,
-            opprettet = fixedTidspunkt,
+            opprettet = Tidspunkt.now(clock),
             periode = vedtak.periode,
             grunnlagsdata = vedtak.behandling.grunnlagsdata,
             vilkårsvurderinger = vedtak.behandling.vilkårsvurderinger.tilVilkårsvurderingerRevurdering(),
             tilRevurdering = vedtak.id,
             saksbehandler = saksbehandler,
-            simulering = simulering,
+            simulering = simulerGjenopptak(
+                sak = sak,
+                gjenopptak = null,
+                behandler = saksbehandler,
+                clock = clock,
+            ).getOrFail().simulering,
             revurderingsårsak = Revurderingsårsak.create(
                 årsak = Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING.toString(),
                 begrunnelse = "valid",
@@ -1259,10 +1249,10 @@ fun simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
  * [GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse] vil få clock+2
  */
 fun iverksattGjenopptakelseAvYtelseFraVedtakStansAvYtelse(
-    clock: Clock = TikkendeKlokke(fixedClock),
+    clock: Clock = TikkendeKlokke(1.januar(2021).fixedClock()),
     periode: Periode = Periode.create(
         fraOgMed = LocalDate.now(clock).plusMonths(1).startOfMonth(),
-        tilOgMed = år(2021).tilOgMed,
+        tilOgMed = LocalDate.now(clock).plusMonths(11).endOfMonth(),
     ),
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         periode = periode,
@@ -1288,7 +1278,6 @@ fun avsluttetGjenopptakelseAvYtelseeFraIverksattSøknadsbehandlignsvedtak(
     tidspunktAvsluttet: Tidspunkt = Tidspunkt.now(fixedClock),
 ): Pair<Sak, GjenopptaYtelseRevurdering.AvsluttetGjenoppta> {
     return simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse().let { (sak, simulert) ->
-
         val avsluttet = simulert.avslutt(
             begrunnelse = begrunnelse,
             tidspunktAvsluttet = tidspunktAvsluttet,

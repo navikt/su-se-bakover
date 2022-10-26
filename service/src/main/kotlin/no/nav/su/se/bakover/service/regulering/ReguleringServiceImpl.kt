@@ -6,13 +6,11 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.NavIdentBruker
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.hentGjeldendeUtbetaling
@@ -245,12 +243,7 @@ class ReguleringServiceImpl(
                         sak.simulerUtbetaling(
                             utbetalingForSimulering = it,
                             periode = regulering.periode,
-                            simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
-                                utbetalingService.simulerUtbetaling(
-                                    utbetalingForSimulering,
-                                    periode,
-                                )
-                            },
+                            simuler = utbetalingService::simulerUtbetaling,
                             kontrollerMotTidligereSimulering = regulering.simulering,
                             clock = clock,
                         )
@@ -352,12 +345,7 @@ class ReguleringServiceImpl(
                 sak.simulerUtbetaling(
                     utbetalingForSimulering = it,
                     periode = regulering.periode,
-                    simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
-                        utbetalingService.simulerUtbetaling(
-                            utbetalingForSimulering,
-                            periode,
-                        )
-                    },
+                    simuler = utbetalingService::simulerUtbetaling,
                     kontrollerMotTidligereSimulering = regulering.simulering,
                     clock = clock,
                 )
@@ -365,7 +353,7 @@ class ReguleringServiceImpl(
                 throw KunneIkkeSendeTilUtbetalingException(UtbetalingFeilet.KunneIkkeSimulere(feil))
             }
             sessionFactory.withTransactionContext { tx ->
-                val nyUtbetaling = utbetalingService.klargjørNyUtbetaling(
+                val nyUtbetaling = utbetalingService.klargjørUtbetaling(
                     utbetaling = utbetaling,
                     transactionContext = tx,
                 ).getOrHandle {

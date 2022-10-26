@@ -284,13 +284,13 @@ internal class KontrollsamtaleKomponentTest {
                         UtløptFristForKontrollsamtaleContext.Feilet(
                             id = kontrollsamtaler[3].id,
                             retries = 0,
-                            feil = """class no.nav.su.se.bakover.service.utbetaling.UtbetalStansFeil${"\$"}KunneIkkeUtbetale""",
+                            feil = """class no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet${"\$"}Protokollfeil""",
                             oppgaveId = null,
                         ),
                         UtløptFristForKontrollsamtaleContext.Feilet(
                             id = kontrollsamtaler[4].id,
                             retries = 0,
-                            feil = """class no.nav.su.se.bakover.service.utbetaling.UtbetalStansFeil${"\$"}KunneIkkeUtbetale""",
+                            feil = """class no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet${"\$"}Protokollfeil""",
                             oppgaveId = null,
                         ),
                         UtløptFristForKontrollsamtaleContext.Feilet(
@@ -339,7 +339,7 @@ internal class KontrollsamtaleKomponentTest {
                         UtløptFristForKontrollsamtaleContext.Feilet(
                             id = kontrollsamtaler[3].id,
                             retries = 1,
-                            feil = """class no.nav.su.se.bakover.service.utbetaling.UtbetalStansFeil${"\$"}KunneIkkeUtbetale""",
+                            feil = """class no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet${"\$"}Protokollfeil""",
                             oppgaveId = null,
                         ),
                         UtløptFristForKontrollsamtaleContext.Feilet(

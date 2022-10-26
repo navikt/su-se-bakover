@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import org.mockito.kotlin.mock
 import java.time.Clock
+import java.time.LocalDate
 
 data class TestClientsBuilder(
     val clock: Clock,
@@ -39,7 +40,11 @@ data class TestClientsBuilder(
         dokArkiv = DokArkivStub,
         oppgaveClient = OppgaveClientStub,
         kodeverk = mock(),
-        simuleringClient = SimuleringStub(clock, databaseRepos.utbetaling),
+        simuleringClient = SimuleringStub(
+            clock = clock,
+            utbetalingerKjørtTilOgMed = LocalDate.now(clock),
+            utbetalingRepo = databaseRepos.utbetaling,
+        ),
         utbetalingPublisher = UtbetalingStub,
         dokDistFordeling = DokDistFordelingStub,
         avstemmingPublisher = AvstemmingStub,

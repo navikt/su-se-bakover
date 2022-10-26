@@ -10,6 +10,8 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.Brukerrolle
+import no.nav.su.se.bakover.common.fixedClock
+import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.oppdrag.KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
@@ -21,6 +23,7 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteGjenopptakAvY
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.utbetaling.SimulerGjenopptakFeil
 import no.nav.su.se.bakover.service.utbetaling.UtbetalGjenopptakFeil
+import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -138,7 +141,9 @@ internal class GjenopptaUtbetalingRouteKtTest {
 
     @Test
     fun `svarer med 200 ved oppdatering av eksisterende revurdering`() {
-        val eksisterende = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse()
+        val eksisterende = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
+            clock = TikkendeKlokke(1.juli(2021).fixedClock()),
+        )
         val simulertRevurdering = eksisterende.second
         val sisteVedtak = eksisterende.first.vedtakListe.last() as VedtakSomKanRevurderes
 

@@ -51,7 +51,6 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Fagområde
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Kravgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.RåttKravgrunnlag
@@ -166,10 +165,6 @@ import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeUtbetaling
-import no.nav.su.se.bakover.service.utbetaling.SimulerGjenopptakFeil
-import no.nav.su.se.bakover.service.utbetaling.SimulerStansFeilet
-import no.nav.su.se.bakover.service.utbetaling.UtbetalGjenopptakFeil
-import no.nav.su.se.bakover.service.utbetaling.UtbetalStansFeil
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
@@ -241,45 +236,7 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
 
-                override fun simulerOpphør(
-                    utbetaling: Utbetaling.UtbetalingForSimulering,
-                    eksisterendeUtbetalinger: List<Utbetaling>,
-                    opphørsperiode: Periode,
-                ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
-                    kastKanKunKallesFraAnnenService()
-                }
-
-                override fun klargjørNyUtbetaling(utbetaling: Utbetaling.SimulertUtbetaling, transactionContext: TransactionContext): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>> {
-                    kastKanKunKallesFraAnnenService()
-                }
-
-                override fun simulerStans(utbetaling: Utbetaling.UtbetalingForSimulering): Either<SimulerStansFeilet, Utbetaling.SimulertUtbetaling> {
-                    kastKanKunKallesFraAnnenService()
-                }
-
-                override fun klargjørStans(
-                    utbetaling: Utbetaling.UtbetalingForSimulering,
-                    saksbehandlersSimulering: Simulering,
-                    transactionContext: TransactionContext,
-                ): Either<UtbetalStansFeil, UtbetalingKlargjortForOversendelse<UtbetalStansFeil.KunneIkkeUtbetale>> {
-                    kastKanKunKallesFraAnnenService()
-                }
-
-                override fun simulerGjenopptak(utbetaling: Utbetaling.UtbetalingForSimulering, eksisterendeUtbetalinger: List<Utbetaling>): Either<SimulerGjenopptakFeil, Utbetaling.SimulertUtbetaling> {
-                    kastKanKunKallesFraAnnenService()
-                }
-
-                override fun klargjørGjenopptak(utbetaling: Utbetaling.UtbetalingForSimulering, eksisterendeUtbetalinger: List<Utbetaling>, saksbehandlersSimulering: Simulering, transactionContext: TransactionContext): Either<UtbetalGjenopptakFeil, UtbetalingKlargjortForOversendelse<UtbetalGjenopptakFeil.KunneIkkeUtbetale>> {
-                    kastKanKunKallesFraAnnenService()
-                }
-
-                override fun klargjørOpphør(
-                    utbetaling: Utbetaling.UtbetalingForSimulering,
-                    eksisterendeUtbetalinger: List<Utbetaling>,
-                    opphørsperiode: Periode,
-                    saksbehandlersSimulering: Simulering,
-                    transactionContext: TransactionContext,
-                ): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>> {
+                override fun klargjørUtbetaling(utbetaling: Utbetaling.SimulertUtbetaling, transactionContext: TransactionContext): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>> {
                     kastKanKunKallesFraAnnenService()
                 }
 

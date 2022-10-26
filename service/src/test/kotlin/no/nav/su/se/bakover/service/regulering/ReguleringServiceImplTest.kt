@@ -522,7 +522,7 @@ internal class ReguleringServiceImplTest {
                         utbetaling = (invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering),
                     )
                 }.whenever(service).simulerUtbetaling(any(), any())
-                on { klargjørNyUtbetaling(any(), any()) } doReturn nyUtbetaling.right()
+                on { klargjørUtbetaling(any(), any()) } doReturn nyUtbetaling.right()
             },
             vedtakService = mock(),
             sessionFactory = TestSessionFactory(),

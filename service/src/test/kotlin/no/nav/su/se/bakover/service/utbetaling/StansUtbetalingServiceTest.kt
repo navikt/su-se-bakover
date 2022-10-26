@@ -3,9 +3,9 @@ package no.nav.su.se.bakover.service.utbetaling
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.februar
-import no.nav.su.se.bakover.common.toPeriode
-import no.nav.su.se.bakover.domain.oppdrag.FeilVedKryssjekkAvTidslinjerOgSimulering
+import no.nav.su.se.bakover.common.fixedClock
+import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
@@ -13,14 +13,14 @@ import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.sak.lagUtbetalingForStans
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.TestSessionFactory
-import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.shouldBeType
-import no.nav.su.se.bakover.test.simuleringFeilutbetaling
-import no.nav.su.se.bakover.test.simuleringStans
+import no.nav.su.se.bakover.test.simulerStans
 import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
+import no.nav.su.se.bakover.test.stønadsperiode2022
+import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.utbetalingsRequest
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
@@ -29,19 +29,18 @@ import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
-import org.mockito.kotlin.verifyNoMoreInteractions
 
 internal class StansUtbetalingServiceTest {
 
     @Test
     fun `stans utbetalinger`() {
-        val (sak, simulertStans) = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak()
+        val tikkendeKlokke = TikkendeKlokke(1.januar(2022).fixedClock())
+        val (sak, simulertStans) = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+            periode = år(2022),
+            clock = tikkendeKlokke,
+        )
         UtbetalingServiceAndMocks(
-            simuleringClient = mock {
-                on { simulerUtbetaling(any()) } doReturn simulertStans.simulering.right()
-            },
             utbetalingRepo = mock {
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
@@ -49,164 +48,99 @@ internal class StansUtbetalingServiceTest {
                 on { generateRequest(any()) } doReturn utbetalingsRequest
                 on { publishRequest(any()) } doReturn utbetalingsRequest.right()
             },
+            clock = tikkendeKlokke,
         ).also { serviceAndMocks ->
-            serviceAndMocks.service.klargjørStans(
-                utbetaling = sak.lagUtbetalingForStans(
-                    stansdato = 1.februar(2021),
+            serviceAndMocks.service.klargjørUtbetaling(
+                utbetaling = simulerStans(
+                    sak = sak,
+                    stans = simulertStans,
+                    stansDato = simulertStans.periode.fraOgMed,
                     behandler = saksbehandler,
-                    clock = fixedClock,
+                    clock = tikkendeKlokke,
                 ).getOrFail(),
-                saksbehandlersSimulering = simulertStans.simulering,
                 transactionContext = TestSessionFactory.transactionContext,
-            ).getOrFail().shouldBeType<UtbetalingKlargjortForOversendelse<UtbetalStansFeil>>().sendUtbetaling()
+            ).getOrFail().shouldBeType<UtbetalingKlargjortForOversendelse<UtbetalStansFeil>>().sendUtbetaling() shouldBe utbetalingsRequest.right()
 
             inOrder(
-                serviceAndMocks.simuleringClient,
-                serviceAndMocks.utbetalingPublisher,
-                serviceAndMocks.utbetalingRepo,
+                *serviceAndMocks.allMocks(),
             ) {
-                verify(serviceAndMocks.simuleringClient).simulerUtbetaling(any())
                 verify(serviceAndMocks.utbetalingPublisher).generateRequest(any())
                 verify(serviceAndMocks.utbetalingRepo).opprettUtbetaling(any(), anyOrNull())
                 verify(serviceAndMocks.utbetalingPublisher).publishRequest(any())
+                serviceAndMocks.verifyNoMoreInteractions()
             }
-            verifyNoMoreInteractions(
-                serviceAndMocks.simuleringClient,
-                serviceAndMocks.utbetalingRepo,
-                serviceAndMocks.utbetalingPublisher,
-            )
         }
     }
 
     @Test
     fun `Sjekk at vi svarer furnuftig når simulering feiler`() {
-        val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget()
-        val simulering = simuleringStans(
-            stansDato = 1.februar(2021),
-            eksisterendeUtbetalinger = sak.utbetalinger,
-            fnr = sak.fnr,
-            sakId = sak.id,
-            saksnummer = sak.saksnummer,
-            clock = fixedClock,
+        val tikkendeKlokke = TikkendeKlokke(1.januar(2022).fixedClock())
+        val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget(
+            stønadsperiode = stønadsperiode2022,
+            clock = tikkendeFixedClock,
         )
+
         UtbetalingServiceAndMocks(
-            sakService = mock {
-                on { hentSak(sakId) } doReturn sak.right()
-            },
             simuleringClient = mock {
                 on { simulerUtbetaling(any()) } doReturn SimuleringFeilet.TekniskFeil.left()
             },
+            clock = tikkendeKlokke,
         ).also {
-            it.service.klargjørStans(
+            it.service.simulerUtbetaling(
                 utbetaling = sak.lagUtbetalingForStans(
-                    stansdato = 1.februar(2021),
+                    stansdato = 1.januar(2022),
                     behandler = saksbehandler,
-                    clock = fixedClock,
+                    clock = tikkendeKlokke,
                 ).getOrFail(),
-                saksbehandlersSimulering = simulering,
-                transactionContext = TestSessionFactory.transactionContext,
-            ) shouldBe UtbetalStansFeil.KunneIkkeSimulere(SimulerStansFeilet.KunneIkkeSimulere(SimuleringFeilet.TekniskFeil)).left()
+                simuleringsperiode = år(2022),
+            ) shouldBe SimuleringFeilet.TekniskFeil.left()
 
-            inOrder(it.simuleringClient) {
+            inOrder(
+                *it.allMocks(),
+            ) {
                 verify(it.simuleringClient).simulerUtbetaling(any())
+                it.verifyNoMoreInteractions()
             }
-            verifyNoMoreInteractions(
-                it.sakService,
-                it.simuleringClient,
-                it.utbetalingRepo,
-                it.utbetalingPublisher,
-            )
         }
     }
 
     @Test
     fun `Sjekk at vi svarer furnuftig når utbetaling feiler`() {
-        val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget()
-        val simulering = simuleringStans(
-            stansDato = 1.februar(2021),
-            eksisterendeUtbetalinger = sak.utbetalinger,
-            fnr = sak.fnr,
-            sakId = sak.id,
-            saksnummer = sak.saksnummer,
-            clock = fixedClock,
+        val tikkendeKlokke = TikkendeKlokke(1.januar(2022).fixedClock())
+        val (sak, stans) = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+            periode = år(2022),
+            clock = tikkendeKlokke,
         )
         UtbetalingServiceAndMocks(
-            sakService = mock {
-                on { hentSak(sakId) } doReturn sak.right()
-            },
-            simuleringClient = mock {
-                on { simulerUtbetaling(any()) } doReturn simulering.right()
-            },
             utbetalingPublisher = mock {
                 on { generateRequest(any()) } doReturn utbetalingsRequest
                 on { publishRequest(any()) } doReturn UtbetalingPublisher.KunneIkkeSendeUtbetaling(utbetalingsRequest).left()
             },
+            clock = tikkendeKlokke,
         ).also { serviceAndMocks ->
-            serviceAndMocks.service.klargjørStans(
-                utbetaling = sak.lagUtbetalingForStans(
-                    stansdato = 1.februar(2021),
-                    behandler = saksbehandler,
-                    clock = fixedClock,
+            serviceAndMocks.service.klargjørUtbetaling(
+                utbetaling = simulerStans(
+                    sak = sak,
+                    stans = stans,
+                    stansDato = stans.periode.fraOgMed,
+                    behandler = stans.saksbehandler,
+                    clock = tikkendeKlokke,
                 ).getOrFail(),
-                saksbehandlersSimulering = simulering,
                 transactionContext = TestSessionFactory.transactionContext,
             ).let {
-                it.getOrFail().shouldBeType<UtbetalingKlargjortForOversendelse<UtbetalStansFeil>>().let {
-                    it.sendUtbetaling() shouldBe UtbetalStansFeil.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil).left()
+                it.getOrFail().shouldBeType<UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>().let {
+                    it.sendUtbetaling() shouldBe UtbetalingFeilet.Protokollfeil.left()
                 }
             }
 
             inOrder(
-                serviceAndMocks.sakService,
-                serviceAndMocks.simuleringClient,
-                serviceAndMocks.utbetalingRepo,
-                serviceAndMocks.utbetalingPublisher,
-                serviceAndMocks.utbetalingRepo,
+                *serviceAndMocks.allMocks(),
             ) {
-                verify(serviceAndMocks.simuleringClient).simulerUtbetaling(any())
                 verify(serviceAndMocks.utbetalingPublisher).generateRequest(any())
                 verify(serviceAndMocks.utbetalingRepo).opprettUtbetaling(any(), argThat { TestSessionFactory.transactionContext })
                 verify(serviceAndMocks.utbetalingPublisher).publishRequest(any())
+                serviceAndMocks.verifyNoMoreInteractions()
             }
-            verifyNoMoreInteractions(
-                serviceAndMocks.sakService,
-                serviceAndMocks.simuleringClient,
-                serviceAndMocks.utbetalingRepo,
-                serviceAndMocks.utbetalingPublisher,
-            )
-        }
-    }
-
-    @Test
-    fun `feiler dersom stans fører til feilutbetaling`() {
-        val (sak, revurdering) = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak()
-        val stansdato = 1.februar(2021)
-
-        // attestants simulering svarer med feilutbetalinger
-        val simuleringMedProblemer = simuleringFeilutbetaling(
-            perioder = stansdato.rangeTo(revurdering.periode.tilOgMed).toPeriode().måneder().toTypedArray(),
-        )
-
-        UtbetalingServiceAndMocks(
-            sakService = mock {
-                on { hentSak(sakId) } doReturn sak.right()
-            },
-            simuleringClient = mock {
-                on { simulerUtbetaling(any()) } doReturn simuleringMedProblemer.right()
-            },
-        ).also {
-            it.service.klargjørStans(
-                utbetaling = sak.lagUtbetalingForStans(
-                    stansdato = stansdato,
-                    behandler = saksbehandler,
-                    clock = fixedClock,
-                ).getOrFail(),
-                saksbehandlersSimulering = revurdering.simulering,
-                transactionContext = TestSessionFactory.transactionContext,
-            ) shouldBe UtbetalStansFeil.KunneIkkeSimulere(SimulerStansFeilet.KontrollFeilet(FeilVedKryssjekkAvTidslinjerOgSimulering.Stans.SimuleringHarFeilutbetaling)).left()
-
-            verify(it.utbetalingPublisher, never()).publishRequest(any())
-            verify(it.utbetalingRepo, never()).opprettUtbetaling(any(), anyOrNull())
         }
     }
 }

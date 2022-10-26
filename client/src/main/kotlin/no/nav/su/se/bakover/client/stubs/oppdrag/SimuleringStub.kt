@@ -2,10 +2,8 @@ package no.nav.su.se.bakover.client.stubs.oppdrag
 
 import arrow.core.Either
 import arrow.core.right
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.periode.Måned
-import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerUtbetalingRequest
@@ -25,6 +23,7 @@ import java.time.LocalDate
 
 class SimuleringStub(
     val clock: Clock,
+    val utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
     val utbetalingRepo: UtbetalingRepo,
 ) : SimuleringClient {
 
@@ -332,8 +331,7 @@ class SimuleringStub(
             }
     }
 
-    private fun erIFortiden(måned: Måned) =
-        måned.tilOgMed < Tidspunkt.now(clock).toLocalDate(zoneIdOslo)
+    private fun erIFortiden(måned: Måned) = måned.tilOgMed < utbetalingerKjørtTilOgMed
 }
 
 private fun createOrdinær(fraOgMed: LocalDate, tilOgMed: LocalDate, beløp: Int, sakstype: Sakstype) = SimulertDetaljer(

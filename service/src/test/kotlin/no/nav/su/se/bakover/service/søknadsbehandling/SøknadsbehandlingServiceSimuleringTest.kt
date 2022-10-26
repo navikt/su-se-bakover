@@ -4,6 +4,7 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeSimulereBehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.argThat
@@ -96,7 +97,7 @@ internal class SøknadsbehandlingServiceSimuleringTest {
             )
 
             response shouldBe SøknadsbehandlingService.KunneIkkeSimulereBehandling.KunneIkkeSimulere(
-                KunneIkkeSimulereBehandling.KunneIkkeSimulere(SimuleringFeilet.TekniskFeil),
+                KunneIkkeSimulereBehandling.KunneIkkeSimulere(SimulerUtbetalingFeilet.FeilVedSimulering(SimuleringFeilet.TekniskFeil)),
             ).left()
 
             verify(it.sakService).hentSakForSøknadsbehandling(argThat { it shouldBe beregnet.id })
