@@ -31,6 +31,8 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
+import no.nav.su.se.bakover.domain.revurdering.opprett.KunneIkkeOppretteRevurdering
+import no.nav.su.se.bakover.domain.revurdering.opprett.OpprettRevurderingCommand
 import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
@@ -112,7 +114,7 @@ interface RevurderingService {
     ): Either<KunneIkkeIverksetteGjenopptakAvYtelse, GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse>
 
     fun opprettRevurdering(
-        opprettRevurderingRequest: OpprettRevurderingRequest,
+        command: OpprettRevurderingCommand,
     ): Either<KunneIkkeOppretteRevurdering, OpprettetRevurdering>
 
     fun oppdaterRevurdering(
@@ -231,7 +233,7 @@ data class RevurderingOgFeilmeldingerResponse(
     val feilmeldinger: List<RevurderingsutfallSomIkkeStøttes> = emptyList(),
     val varselmeldinger: List<Varselmelding> = emptyList(),
 ) {
-    fun leggTil(varselmelding: Varselmelding): RevurderingOgFeilmeldingerResponse {
+    private fun leggTil(varselmelding: Varselmelding): RevurderingOgFeilmeldingerResponse {
         return copy(varselmeldinger = (varselmeldinger + varselmelding).distinct())
     }
 
@@ -260,14 +262,6 @@ enum class Forhåndsvarselhandling {
     INGEN_FORHÅNDSVARSEL,
     FORHÅNDSVARSLE,
     ;
-}
-
-sealed class KunneIkkeOppretteRevurdering {
-    object FantIkkeSak : KunneIkkeOppretteRevurdering()
-    object MåVelgeInformasjonSomSkalRevurderes : KunneIkkeOppretteRevurdering()
-    object UgyldigÅrsak : KunneIkkeOppretteRevurdering()
-    object UgyldigBegrunnelse : KunneIkkeOppretteRevurdering()
-    data class FeilVedOpprettelseAvRevurdering(val feil: Sak.KunneIkkeOppretteRevurdering) : KunneIkkeOppretteRevurdering()
 }
 
 sealed class KunneIkkeOppdatereRevurdering {
@@ -431,9 +425,6 @@ sealed class KunneIkkeLeggeTilFormuegrunnlag {
 sealed class KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger {
     object FantIkkeBehandling : KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger()
     object FantIkkeSak : KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger()
-    object FantIngentingSomKanRevurderes : KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger()
-    data class UgyldigPeriode(val subError: Periode.UgyldigPeriode) :
-        KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger()
 }
 
 sealed class StansYtelseRequest {

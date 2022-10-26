@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.revurdering
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
@@ -23,12 +24,13 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
-import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
+import no.nav.su.se.bakover.domain.revurdering.opprett.KunneIkkeOppretteRevurdering
+import no.nav.su.se.bakover.domain.revurdering.opprett.OpprettRevurderingCommand
 import no.nav.su.se.bakover.domain.søknadinnhold.Personopplysninger
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
@@ -82,7 +84,7 @@ internal class OpprettRevurderingServiceTest {
             revurderingRepo = mock(),
         ).also {
             val actual = it.revurderingService.opprettRevurdering(
-                OpprettRevurderingRequest(
+                OpprettRevurderingCommand(
                     sakId = sakId,
                     periode = periodeNesteMånedOgTreMånederFram.fraOgMed.rangeTo(søknadsvedtak.periode.tilOgMed).toPeriode(),
                     årsak = "MELDING_FRA_BRUKER",
@@ -163,7 +165,7 @@ internal class OpprettRevurderingServiceTest {
             revurderingRepo = mock(),
         ).also {
             val actual = it.revurderingService.opprettRevurdering(
-                OpprettRevurderingRequest(
+                OpprettRevurderingCommand(
                     sakId = sakId,
                     periode = periodeNesteMånedOgTreMånederFram.fraOgMed.rangeTo(søknadsvedtak.periode.tilOgMed).toPeriode(),
                     årsak = "REGULER_GRUNNBELØP",
@@ -239,13 +241,13 @@ internal class OpprettRevurderingServiceTest {
             oppgaveService = mock {
                 on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
             },
-            personService = mock<PersonService> {
+            personService = mock {
                 on { hentAktørId(any()) } doReturn aktørId.right()
             },
             revurderingRepo = mock(),
         ).also {
             val actual = it.revurderingService.opprettRevurdering(
-                OpprettRevurderingRequest(
+                OpprettRevurderingCommand(
                     sakId = sakId,
                     periode = periode.tilOgMed.minusMonths(1).startOfMonth().rangeTo(søknadsvedtak.periode.tilOgMed).toPeriode(),
                     årsak = "REGULER_GRUNNBELØP",
@@ -307,16 +309,18 @@ internal class OpprettRevurderingServiceTest {
                 on { hentSak(any<UUID>()) } doReturn FantIkkeSak.left()
             },
         ).also {
-            it.revurderingService.opprettRevurdering(
-                OpprettRevurderingRequest(
-                    sakId = sakId,
-                    periode = år(2021),
-                    årsak = "MELDING_FRA_BRUKER",
-                    begrunnelse = "Ny informasjon",
-                    saksbehandler = saksbehandler,
-                    informasjonSomRevurderes = listOf(Revurderingsteg.Inntekt),
-                ),
-            ) shouldBe KunneIkkeOppretteRevurdering.FantIkkeSak.left()
+            shouldThrow<NullPointerException> {
+                it.revurderingService.opprettRevurdering(
+                    OpprettRevurderingCommand(
+                        sakId = sakId,
+                        periode = år(2021),
+                        årsak = "MELDING_FRA_BRUKER",
+                        begrunnelse = "Ny informasjon",
+                        saksbehandler = saksbehandler,
+                        informasjonSomRevurderes = listOf(Revurderingsteg.Inntekt),
+                    ),
+                )
+            }.message shouldBe null
         }
     }
 
@@ -328,7 +332,7 @@ internal class OpprettRevurderingServiceTest {
             },
         ).also {
             it.revurderingService.opprettRevurdering(
-                OpprettRevurderingRequest(
+                OpprettRevurderingCommand(
                     sakId = sakId,
                     periode = år(2021),
                     årsak = "MELDING_FRA_BRUKER",
@@ -336,10 +340,8 @@ internal class OpprettRevurderingServiceTest {
                     saksbehandler = saksbehandler,
                     informasjonSomRevurderes = listOf(Revurderingsteg.Uførhet),
                 ),
-            ) shouldBe KunneIkkeOppretteRevurdering.FeilVedOpprettelseAvRevurdering(
-                Sak.KunneIkkeOppretteRevurdering.GjeldendeVedtaksdataKanIkkeRevurderes(
-                    Sak.GjeldendeVedtaksdataErUgyldigForRevurdering.FantIngenVedtakSomKanRevurderes,
-                ),
+            ) shouldBe KunneIkkeOppretteRevurdering.VedtakInnenforValgtPeriodeKanIkkeRevurderes(
+                Sak.GjeldendeVedtaksdataErUgyldigForRevurdering.FantIngenVedtakSomKanRevurderes,
             ).left()
         }
     }
@@ -386,7 +388,7 @@ internal class OpprettRevurderingServiceTest {
             },
         ).also {
             val revurderingForFebruar = it.revurderingService.opprettRevurdering(
-                OpprettRevurderingRequest(
+                OpprettRevurderingCommand(
                     sakId = sakId,
                     periode = fraOgMedDatoFebruar.rangeTo(vedtaksperiode.tilOgMed).toPeriode(),
                     årsak = "MELDING_FRA_BRUKER",
@@ -399,7 +401,7 @@ internal class OpprettRevurderingServiceTest {
             revurderingForFebruar.getOrFail().tilRevurdering shouldBe vedtakForFørsteJanuarLagetNå.id
 
             val revurderingForApril = it.revurderingService.opprettRevurdering(
-                OpprettRevurderingRequest(
+                OpprettRevurderingCommand(
                     sakId = sakId,
                     periode = fraOgMedDatoApril.rangeTo(vedtaksperiode.tilOgMed).toPeriode(),
                     årsak = "MELDING_FRA_BRUKER",
@@ -434,9 +436,10 @@ internal class OpprettRevurderingServiceTest {
             revurderingRepo = mock(),
         ).also {
             val actual = it.revurderingService.opprettRevurdering(
-                OpprettRevurderingRequest(
+                OpprettRevurderingCommand(
                     sakId = sakId,
-                    periode = periodeNesteMånedOgTreMånederFram.fraOgMed.rangeTo(revurderingVedtak.periode.tilOgMed).toPeriode(),
+                    periode = periodeNesteMånedOgTreMånederFram.fraOgMed.rangeTo(revurderingVedtak.periode.tilOgMed)
+                        .toPeriode(),
                     årsak = "MELDING_FRA_BRUKER",
                     begrunnelse = "Ny informasjon",
                     saksbehandler = saksbehandler,
@@ -481,16 +484,16 @@ internal class OpprettRevurderingServiceTest {
             },
         ).also {
             it.revurderingService.opprettRevurdering(
-                OpprettRevurderingRequest(
+                OpprettRevurderingCommand(
                     sakId = sakId,
-                    periode = periodeNesteMånedOgTreMånederFram.fraOgMed.rangeTo(iverksatt.periode.tilOgMed).toPeriode(),
+                    periode = periodeNesteMånedOgTreMånederFram.fraOgMed.rangeTo(iverksatt.periode.tilOgMed)
+                        .toPeriode(),
                     årsak = "MELDING_FRA_BRUKER",
                     begrunnelse = "Ny informasjon",
                     saksbehandler = saksbehandler,
                     informasjonSomRevurderes = listOf(Revurderingsteg.Inntekt),
                 ),
-            ) shouldBe KunneIkkeOppretteRevurdering.FeilVedOpprettelseAvRevurdering(Sak.KunneIkkeOppretteRevurdering.FantIkkeAktørId)
-                .left()
+            ) shouldBe KunneIkkeOppretteRevurdering.FantIkkeAktørId(KunneIkkeHentePerson.FantIkkePerson).left()
 
             verify(it.sakService).hentSak(sakId)
             verify(it.personService).hentAktørId(argThat { it shouldBe fnr })
@@ -513,9 +516,10 @@ internal class OpprettRevurderingServiceTest {
             },
         ).also {
             val actual = it.revurderingService.opprettRevurdering(
-                OpprettRevurderingRequest(
+                OpprettRevurderingCommand(
                     sakId = sakId,
-                    periode = periodeNesteMånedOgTreMånederFram.fraOgMed.rangeTo(iverksatt.periode.tilOgMed).toPeriode(),
+                    periode = periodeNesteMånedOgTreMånederFram.fraOgMed.rangeTo(iverksatt.periode.tilOgMed)
+                        .toPeriode(),
                     årsak = "MELDING_FRA_BRUKER",
                     begrunnelse = "Ny informasjon",
                     saksbehandler = saksbehandler,
@@ -524,8 +528,7 @@ internal class OpprettRevurderingServiceTest {
                     ),
                 ),
             )
-            actual shouldBe KunneIkkeOppretteRevurdering.FeilVedOpprettelseAvRevurdering(Sak.KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave)
-                .left()
+            actual shouldBe KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave(KunneIkkeOppretteOppgave).left()
             verify(it.sakService).hentSak(sakId)
             verify(it.personService).hentAktørId(argThat { it shouldBe fnr })
             verify(it.oppgaveService).opprettOppgave(
@@ -553,7 +556,7 @@ internal class OpprettRevurderingServiceTest {
             },
         ).also {
             it.revurderingService.opprettRevurdering(
-                OpprettRevurderingRequest(
+                OpprettRevurderingCommand(
                     sakId = sakId,
                     periode = år(2021),
                     årsak = "MELDING_FRA_BRUKER",
@@ -587,7 +590,7 @@ internal class OpprettRevurderingServiceTest {
             },
         ).also {
             val actual = it.revurderingService.opprettRevurdering(
-                OpprettRevurderingRequest(
+                OpprettRevurderingCommand(
                     sakId = sakId,
                     periode = 1.januar(2021).rangeTo(sakMedNyStønadsperiode.third.periode.tilOgMed).toPeriode(),
                     årsak = "MELDING_FRA_BRUKER",
@@ -598,10 +601,8 @@ internal class OpprettRevurderingServiceTest {
                     ),
                 ),
             )
-            actual shouldBe KunneIkkeOppretteRevurdering.FeilVedOpprettelseAvRevurdering(
-                Sak.KunneIkkeOppretteRevurdering.GjeldendeVedtaksdataKanIkkeRevurderes(
-                    Sak.GjeldendeVedtaksdataErUgyldigForRevurdering.HeleRevurderingsperiodenInneholderIkkeVedtak,
-                ),
+            actual shouldBe KunneIkkeOppretteRevurdering.VedtakInnenforValgtPeriodeKanIkkeRevurderes(
+                Sak.GjeldendeVedtaksdataErUgyldigForRevurdering.HeleRevurderingsperiodenInneholderIkkeVedtak,
             ).left()
         }
     }
@@ -632,7 +633,7 @@ internal class OpprettRevurderingServiceTest {
             },
         ).let {
             it.revurderingService.opprettRevurdering(
-                OpprettRevurderingRequest(
+                OpprettRevurderingCommand(
                     sakId = sakId,
                     periode = nyRevurderingsperiode,
                     årsak = "MELDING_FRA_BRUKER",
@@ -640,12 +641,9 @@ internal class OpprettRevurderingServiceTest {
                     saksbehandler = saksbehandler,
                     informasjonSomRevurderes = listOf(Revurderingsteg.Utenlandsopphold),
                 ),
-            ) shouldBe KunneIkkeOppretteRevurdering.FeilVedOpprettelseAvRevurdering(
-                Sak.KunneIkkeOppretteRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(
-                    juni(2021),
-                ),
-            )
-                .left()
+            ) shouldBe KunneIkkeOppretteRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(
+                juni(2021),
+            ).left()
         }
     }
 }

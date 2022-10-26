@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.Periode.UgyldigPeriode
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeForhåndsvarsle
@@ -146,6 +147,37 @@ internal object Revurderingsfeilresponser {
                 message = "Ugyldig årsak for revurdering",
                 code = "revurderingsårsak_ugyldig_årsak",
             )
+        }
+    }
+
+    internal fun Sak.OpphørtVilkårMåRevurderes.tilResultat(): Resultat {
+        return when (this) {
+            Sak.OpphørtVilkårMåRevurderes.FormueSomFørerTilOpphørMåRevurderes -> {
+                OpprettelseOgOppdateringAvRevurdering.formueSomFørerTilOpphørMåRevurderes
+            }
+            Sak.OpphørtVilkårMåRevurderes.UtenlandsoppholdSomFørerTilOpphørMåRevurderes -> {
+                OpprettelseOgOppdateringAvRevurdering.utenlandsoppholdSomFørerTilOpphørMåRevurderes
+            }
+        }
+    }
+
+    internal fun Sak.GjeldendeVedtaksdataErUgyldigForRevurdering.tilResultat(): Resultat {
+        return when (this) {
+            Sak.GjeldendeVedtaksdataErUgyldigForRevurdering.FantIngenVedtakSomKanRevurderes -> {
+                fantIngenVedtakSomKanRevurderes
+            }
+            Sak.GjeldendeVedtaksdataErUgyldigForRevurdering.HeleRevurderingsperiodenInneholderIkkeVedtak -> {
+                OpprettelseOgOppdateringAvRevurdering.heleRevurderingsperiodenInneholderIkkeVedtak
+            }
+        }
+    }
+
+    internal fun Sak.KunneIkkeHenteGjeldendeVedtaksdata.tilResultat() = when (this) {
+        is Sak.KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes -> {
+            fantIngenVedtakSomKanRevurderes
+        }
+        is Sak.KunneIkkeHenteGjeldendeVedtaksdata.UgyldigPeriode -> {
+            ugyldigPeriode(this.feil)
         }
     }
 }

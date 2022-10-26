@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.service.revurdering
+package no.nav.su.se.bakover.domain.revurdering.opprett
 
 import arrow.core.Either
 import arrow.core.flatMap
@@ -10,15 +10,15 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import java.util.UUID
 
-data class OpprettRevurderingRequest(
+data class OpprettRevurderingCommand(
     val sakId: UUID,
     val periode: Periode,
-    val årsak: String,
-    val begrunnelse: String,
+    private val årsak: String,
+    private val begrunnelse: String,
     val saksbehandler: NavIdentBruker.Saksbehandler,
     val informasjonSomRevurderes: List<Revurderingsteg>,
 ) {
-    val revurderingsårsak: Either<Revurderingsårsak.UgyldigRevurderingsårsak, Revurderingsårsak> =
+    val revurderingsårsak: Either<Revurderingsårsak.UgyldigRevurderingsårsak, Revurderingsårsak> by lazy {
         Revurderingsårsak.tryCreate(
             årsak = årsak,
             begrunnelse = begrunnelse,
@@ -29,4 +29,5 @@ data class OpprettRevurderingRequest(
                 it.right()
             }
         }
+    }
 }

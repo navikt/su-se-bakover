@@ -51,6 +51,9 @@ import no.nav.su.se.bakover.domain.revurdering.VurderOmBeløpsendringErStørreEn
 import no.nav.su.se.bakover.domain.revurdering.erKlarForAttestering
 import no.nav.su.se.bakover.domain.revurdering.harSendtForhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.medFritekst
+import no.nav.su.se.bakover.domain.revurdering.opprett.KunneIkkeOppretteRevurdering
+import no.nav.su.se.bakover.domain.revurdering.opprett.OpprettRevurderingCommand
+import no.nav.su.se.bakover.domain.revurdering.opprett.opprettRevurdering
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.sak.lagUtbetalingForOpphør
@@ -234,38 +237,27 @@ internal class RevurderingServiceImpl(
     }
 
     override fun opprettRevurdering(
-        opprettRevurderingRequest: OpprettRevurderingRequest,
+        command: OpprettRevurderingCommand,
     ): Either<KunneIkkeOppretteRevurdering, OpprettetRevurdering> {
-        return sakService.hentSak(opprettRevurderingRequest.sakId)
-            .getOrHandle { return KunneIkkeOppretteRevurdering.FantIkkeSak.left() }
-            .opprettNyRevurdering(
-                periode = opprettRevurderingRequest.periode,
-                saksbehandler = opprettRevurderingRequest.saksbehandler,
-                revurderingsårsak = opprettRevurderingRequest.revurderingsårsak.getOrHandle {
-                    return when (it) {
-                        Revurderingsårsak.UgyldigRevurderingsårsak.UgyldigBegrunnelse -> {
-                            KunneIkkeOppretteRevurdering.UgyldigBegrunnelse
-                        }
-
-                        Revurderingsårsak.UgyldigRevurderingsårsak.UgyldigÅrsak -> {
-                            KunneIkkeOppretteRevurdering.UgyldigÅrsak
-                        }
-                    }.left()
-                },
-                informasjonSomRevurderes = InformasjonSomRevurderes.tryCreate(opprettRevurderingRequest.informasjonSomRevurderes)
-                    .getOrHandle { return KunneIkkeOppretteRevurdering.MåVelgeInformasjonSomSkalRevurderes.left() },
-                hentAktørId = personService::hentAktørId,
-                opprettOppgave = oppgaveService::opprettOppgave,
+        return sakService.hentSak(command.sakId).orNull()!!
+            .opprettRevurdering(
+                command = command,
                 clock = clock,
-            ).mapLeft {
-                KunneIkkeOppretteRevurdering.FeilVedOpprettelseAvRevurdering(it)
-            }.map { opprettetRevurdering ->
-                revurderingRepo.lagre(opprettetRevurdering)
-
-                observers.forEach { observer ->
-                    observer.handle(StatistikkEvent.Behandling.Revurdering.Opprettet(opprettetRevurdering))
+            ).map {
+                val oppgaveId = personService.hentAktørId(it.fnr).getOrHandle {
+                    return KunneIkkeOppretteRevurdering.FantIkkeAktørId(it).left()
+                }.let { aktørId ->
+                    oppgaveService.opprettOppgave(
+                        it.oppgaveConfig(aktørId),
+                    ).getOrHandle {
+                        return KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave(it).left()
+                    }
                 }
-                opprettetRevurdering
+                it.leggTilOppgaveId(oppgaveId)
+            }.map {
+                revurderingRepo.lagre(it.opprettetRevurdering)
+                observers.notify(it.statistikkHendelse)
+                it.opprettetRevurdering
             }
     }
 
@@ -1433,23 +1425,19 @@ internal class RevurderingServiceImpl(
         val eksisterendeOppgaveId = revurdering.oppgaveId
 
         oppgaveService.lukkOppgave(eksisterendeOppgaveId).mapLeft {
-            log.error("Kunne ikke lukke attesteringsoppgave $eksisterendeOppgaveId ved underkjenning av revurdering. Dette må gjøres manuelt.")
+            log.error("Kunne ikke lukke attesteringsoppgave $eksisterendeOppgaveId ved underkjenning av revurdering $revurderingId. Dette må gjøres manuelt.")
         }.map {
-            log.info("Lukket attesteringsoppgave $eksisterendeOppgaveId ved underkjenning av revurdering")
+            log.info("Lukket attesteringsoppgave $eksisterendeOppgaveId ved underkjenning av revurdering $revurderingId")
         }
 
         when (underkjent) {
             is UnderkjentRevurdering.IngenEndring -> Unit // Ønsker ikke sende en statistikkhendelse ved ingen endring (den statusen er uansett på vei ut)
             is UnderkjentRevurdering.Innvilget -> observers.notify(
-                StatistikkEvent.Behandling.Revurdering.Underkjent.Innvilget(
-                    underkjent,
-                ),
+                StatistikkEvent.Behandling.Revurdering.Underkjent.Innvilget(underkjent),
             )
 
             is UnderkjentRevurdering.Opphørt -> observers.notify(
-                StatistikkEvent.Behandling.Revurdering.Underkjent.Opphør(
-                    underkjent,
-                ),
+                StatistikkEvent.Behandling.Revurdering.Underkjent.Opphør(underkjent),
             )
         }
 
@@ -1543,9 +1531,9 @@ internal class RevurderingServiceImpl(
 
         if (avsluttetRevurdering is Revurdering) {
             oppgaveService.lukkOppgave(avsluttetRevurdering.oppgaveId).mapLeft {
-                log.error("Kunne ikke lukke oppgave ${avsluttetRevurdering.oppgaveId} ved avslutting av revurdering. Dette må gjøres manuelt.")
+                log.error("Kunne ikke lukke oppgave ${avsluttetRevurdering.oppgaveId} ved avslutting av revurdering ${revurdering.id}. Dette må gjøres manuelt.")
             }.map {
-                log.info("Lukket oppgave ${avsluttetRevurdering.oppgaveId} ved avslutting av revurdering.")
+                log.info("Lukket oppgave ${avsluttetRevurdering.oppgaveId} ved avslutting av revurdering ${revurdering.id}..")
             }
         }
 

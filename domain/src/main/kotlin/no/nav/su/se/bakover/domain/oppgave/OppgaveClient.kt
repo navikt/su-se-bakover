@@ -10,6 +10,7 @@ interface OppgaveClient {
     fun oppdaterOppgave(oppgaveId: OppgaveId, beskrivelse: String): Either<OppgaveFeil.KunneIkkeOppdatereOppgave, Unit>
 }
 
+// TODO jah: Høres usannsynlig ut at alt dette kan skje i hver av funksjonene.
 sealed interface OppgaveFeil {
     object KunneIkkeOppretteOppgave : OppgaveFeil
     object KunneIkkeLukkeOppgave : OppgaveFeil

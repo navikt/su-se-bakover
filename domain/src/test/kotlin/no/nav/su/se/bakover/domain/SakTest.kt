@@ -9,7 +9,6 @@ import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.beOfType
-import no.nav.su.se.bakover.common.AktørId
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.august
@@ -33,7 +32,6 @@ import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
-import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.søknadinnhold.Personopplysninger
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
@@ -128,40 +126,6 @@ internal class SakTest {
 
         val sakMedÅpenRegulering = innvilgetSøknadsbehandlingMedÅpenRegulering(1.mai(2021)).first
         sakMedÅpenRegulering.opprettNySøknadsbehandling(søknad.id, fixedClock)
-    }
-
-    @Test
-    fun `oppretter revurdering dersom det ikke finnes eksisterende åpne behandlinger`() {
-        val sakUtenÅpenBehandling = (iverksattSøknadsbehandlingUføre(stønadsperiode = stønadsperiode2021)).first
-        val (sakMedÅpenRevurdering, revurdering) = opprettetRevurdering()
-
-        sakUtenÅpenBehandling.opprettNyRevurdering(
-            saksbehandler = revurdering.saksbehandler,
-            revurderingsårsak = revurdering.revurderingsårsak,
-            informasjonSomRevurderes = revurdering.informasjonSomRevurderes,
-            clock = fixedClock,
-            periode = stønadsperiode2021.periode,
-            hentAktørId = { AktørId("aktørId").right() },
-        ) { OppgaveId("oppgaveId").right() }.shouldBeRight()
-
-        sakMedÅpenRevurdering.opprettNyRevurdering(
-            saksbehandler = revurdering.saksbehandler,
-            revurderingsårsak = revurdering.revurderingsårsak,
-            informasjonSomRevurderes = revurdering.informasjonSomRevurderes,
-            clock = fixedClock,
-            periode = stønadsperiode2021.periode,
-            hentAktørId = { AktørId("aktørId").right() },
-        ) { OppgaveId("oppgaveId").right() }.shouldBeLeft()
-
-        val sakMedÅpenRegulering = innvilgetSøknadsbehandlingMedÅpenRegulering(1.mai(2021)).first
-        sakMedÅpenRegulering.opprettNyRevurdering(
-            saksbehandler = revurdering.saksbehandler,
-            revurderingsårsak = revurdering.revurderingsårsak,
-            informasjonSomRevurderes = revurdering.informasjonSomRevurderes,
-            clock = fixedClock,
-            periode = stønadsperiode2021.periode,
-            hentAktørId = { AktørId("aktørId").right() },
-        ) { OppgaveId("oppgaveId").right() }.shouldBeLeft()
     }
 
     @Test
