@@ -307,8 +307,9 @@ internal class SakPostgresRepo(
                 type = Sakstype.from(string("type")),
                 uteståendeAvkorting = avkortingsvarselRepo.hentUteståendeAvkorting(sakId, session),
                 utenlandsopphold = utenlandsoppholdRepo.hentForSakId(sakId, sessionContext).currentState,
-                // TODO jah: Bytt til '!!' etter migrering av OPPRETT_SAK
-                versjon = max(hendelseRepo.hentSisteVersjonFraEntitetId(sakId, sessionContext), Hendelsesversjon(10)),
+                // Siden vi ikke har migrert SAK_OPPRETTET-hendelser, vil vi ikke alltid ha en hendelse knyttet til denne saken. Vi reserverer da den aller første hendelsesversjonen til SAK_OPPRETTET.
+                // Det betyr at etter hvert som vi migrerer sak/søknad osv. til hendelser vil versjonene kunne være out of order. En mulighet er da og bumpe alle versjoner tilsvarende med antall hendelser vi migrerer. Dette fungerer bare så lenge ingen andre tabeller/systemer har lagret hendelsesversjonene våre.
+                versjon = max(hendelseRepo.hentSisteVersjonFraEntitetId(sakId, sessionContext), Hendelsesversjon(1)),
             )
         }
     }
