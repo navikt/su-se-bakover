@@ -2,6 +2,8 @@ package no.nav.su.se.bakover.test
 
 import arrow.core.getOrHandle
 import arrow.core.nonEmptyListOf
+import arrow.core.right
+import no.nav.su.se.bakover.client.stubs.oppdrag.UtbetalingStub
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.endOfMonth
@@ -23,7 +25,6 @@ import no.nav.su.se.bakover.domain.brev.Brevvalg
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingUnderBehandling
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrev
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
@@ -34,7 +35,6 @@ import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
-import no.nav.su.se.bakover.domain.revurdering.OpphørsperiodeForUtbetalinger
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
@@ -43,8 +43,6 @@ import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.sak.Saksnummer
-import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
-import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
@@ -534,19 +532,29 @@ fun iverksattRevurdering(
             }
 
             is RevurderingTilAttestering.Innvilget -> {
-                nyUtbetalingOversendUtenKvittering(
-                    sakOgBehandling = sak to tilAttestering,
-                    beregning = tilAttestering.beregning,
+                simulerUtbetaling(
+                    sak = sak,
+                    revurdering = tilAttestering,
+                    simuleringsperiode = tilAttestering.periode,
+                    behandler = attestering.attestant,
                     clock = clock,
-                )
+                    utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
+                ).getOrFail().let {
+                    it.toOversendtUtbetaling(UtbetalingStub.generateRequest(it))
+                }
             }
 
             is RevurderingTilAttestering.Opphørt -> {
-                opphørUtbetalingOversendUtenKvittering(
-                    sakOgBehandling = sak to tilAttestering,
-                    opphørsperiode = OpphørsperiodeForUtbetalinger(tilAttestering).value,
+                simulerOpphør(
+                    sak = sak,
+                    revurdering = tilAttestering,
+                    simuleringsperiode = tilAttestering.opphørsperiodeForUtbetalinger,
+                    behandler = attestering.attestant,
                     clock = clock,
-                )
+                    utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
+                ).getOrFail().let {
+                    it.toOversendtUtbetaling(UtbetalingStub.generateRequest(it))
+                }
             }
         }
         Triple(
@@ -782,6 +790,7 @@ fun simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
     forhåndsvarsel: Forhåndsvarsel? = null,
     tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling = IkkeBehovForTilbakekrevingUnderBehandling,
+    utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
 ): Pair<Sak, SimulertRevurdering.Innvilget> {
     return beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         saksnummer = saksnummer,
@@ -796,31 +805,15 @@ fun simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         val innvilgetSimulertRevurdering = revurdering.simuler(
             saksbehandler = saksbehandler,
             clock = clock,
-            simuler = { beregning, uføregrunnlag ->
-                sak.lagNyUtbetaling(
-                    saksbehandler = saksbehandler,
-                    beregning = beregning,
+            simuler = { _, _ ->
+                simulerUtbetaling(
+                    sak = sak,
+                    revurdering = revurdering,
+                    simuleringsperiode = revurdering.periode,
+                    behandler = revurdering.saksbehandler,
                     clock = clock,
-                    utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
-                    uføregrunnlag = uføregrunnlag,
-                ).let {
-                    sak.simulerUtbetaling(
-                        utbetalingForSimulering = it,
-                        periode = revurdering.periode,
-                        simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
-                            simulerUtbetaling(
-                                sak = sak,
-                                utbetaling = utbetalingForSimulering,
-                                simuleringsperiode = periode,
-                                clock = clock,
-                            )
-                        },
-                        kontrollerMotTidligereSimulering = null,
-                        clock = clock,
-                    ).map { simulertUtbetaling ->
-                        simulertUtbetaling.simulering
-                    }
-                }
+                    utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
+                ).getOrFail().simulering.right()
             },
         ).getOrFail().prøvÅLeggTilForhåndsvarselPåSimulertRevurdering(
             forhåndsvarsel = forhåndsvarsel,

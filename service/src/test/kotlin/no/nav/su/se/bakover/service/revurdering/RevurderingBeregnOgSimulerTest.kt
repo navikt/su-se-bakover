@@ -7,12 +7,9 @@ import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.fixedClock
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.periode.desember
-import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
@@ -42,7 +39,6 @@ import no.nav.su.se.bakover.test.revurderingTilAttestering
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulerUtbetaling
-import no.nav.su.se.bakover.test.simulertUtbetaling
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknad.nySøknadJournalførtMedOppgave
 import no.nav.su.se.bakover.test.søknad.søknadinnhold
@@ -375,9 +371,6 @@ internal class RevurderingBeregnOgSimulerTest {
         assertThrows<IllegalStateException> {
             RevurderingServiceMocks(
                 revurderingRepo = mock(),
-                utbetalingService = mock {
-                    on { simulerUtbetaling(any(), any()) } doReturn simulertUtbetaling().right()
-                },
                 sakService = mock {
                     on { hentSakForRevurdering(any()) } doReturn sak
                 },

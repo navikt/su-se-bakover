@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.test
 import arrow.core.flatten
 import arrow.core.nonEmptyListOf
 import arrow.core.right
+import no.nav.su.se.bakover.client.stubs.oppdrag.UtbetalingStub
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -813,11 +814,16 @@ fun iverksattSøknadsbehandling(
             }
 
             is Søknadsbehandling.TilAttestering.Innvilget -> {
-                val utbetaling = nyUtbetalingOversendtMedKvittering(
-                    sakOgBehandling = sak to tilAttestering,
-                    beregning = tilAttestering.beregning,
+                val utbetaling = simulerUtbetaling(
+                    sak = sak,
+                    søknadsbehandling = tilAttestering,
+                    simuleringsperiode = tilAttestering.periode,
+                    behandler = attestering.attestant,
                     clock = clock,
-                )
+                ).getOrFail().let {
+                    it.toOversendtUtbetaling(UtbetalingStub.generateRequest(it))
+                        .toKvittertUtbetaling(kvittering())
+                }
                 tilAttestering.tilIverksatt(attestering).let {
                     Triple(
                         it,

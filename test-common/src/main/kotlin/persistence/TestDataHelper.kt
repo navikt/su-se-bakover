@@ -106,11 +106,11 @@ import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simulerOpphør
 import no.nav.su.se.bakover.test.simulerUtbetaling
 import no.nav.su.se.bakover.test.simulering
-import no.nav.su.se.bakover.test.simulertUtbetaling
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknad.journalpostIdSøknad
 import no.nav.su.se.bakover.test.søknad.oppgaveIdSøknad
 import no.nav.su.se.bakover.test.søknad.søknadinnhold
+import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.trekkSøknad
 import no.nav.su.se.bakover.test.utbetalingslinje
 import no.nav.su.se.bakover.test.veileder
@@ -542,34 +542,50 @@ class TestDataHelper(
 
     fun persisterReguleringOpprettet(
         startDato: LocalDate = 1.mai(2021),
-        clock: Clock = fixedClock,
-    ): Regulering.OpprettetRegulering =
-        persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().first.let { sak ->
+        clock: Clock = tikkendeFixedClock,
+    ): Pair<Sak, Regulering.OpprettetRegulering> {
+        return persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().first.let { sak ->
             sak.opprettEllerOppdaterRegulering(
                 startDato = startDato,
                 clock = clock,
-            ).getOrFail().also {
+            ).getOrFail().let {
                 databaseRepos.reguleringRepo.lagre(it)
+                sak.copy(
+                    reguleringer = sak.reguleringer + it,
+                ) to it
             }
         }
+    }
 
     fun persisterReguleringIverksatt(
         startDato: LocalDate = 1.mai(2021),
-        clock: Clock = fixedClock,
-    ) = persisterReguleringOpprettet(
-        startDato = startDato,
-        clock = clock,
-    ).let {
-        it.beregn(
-            satsFactory = satsFactoryTestPåDato(),
-            begrunnelse = "Begrunnelse",
+        clock: Clock = tikkendeFixedClock,
+    ): Pair<Sak, Regulering.IverksattRegulering> {
+        return persisterReguleringOpprettet(
+            startDato = startDato,
             clock = clock,
-        ).getOrFail().simuler(
-            simuler = { _, _ ->
-                simulertUtbetaling().simulering.right() // TODO bare tull, refaktorer vekk hele funksjonen og gjør koblinger mot sak/revurdering
-            },
-        ).getOrFail().tilIverksatt().also { iverksattAttestering ->
-            databaseRepos.reguleringRepo.lagre(iverksattAttestering)
+        ).let { (sak, regulering) ->
+            regulering.beregn(
+                satsFactory = satsFactoryTestPåDato(),
+                begrunnelse = "Begrunnelse",
+                clock = clock,
+            ).getOrFail().let { beregnet ->
+                beregnet.simuler(
+                    simuler = { _, _ ->
+                        simulerUtbetaling(
+                            sak = sak,
+                            regulering = beregnet,
+                            behandler = beregnet.saksbehandler,
+                            clock = clock,
+                        ).getOrFail().simulering.right()
+                    },
+                ).getOrFail().tilIverksatt().let { iverksattAttestering ->
+                    databaseRepos.reguleringRepo.lagre(iverksattAttestering)
+                    sak.copy(
+                        reguleringer = sak.reguleringer.filterNot { it.id == iverksattAttestering.id } + iverksattAttestering,
+                    ) to iverksattAttestering
+                }
+            }
         }
     }
 

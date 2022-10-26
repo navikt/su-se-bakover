@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.test
 
 import arrow.core.nonEmptyListOf
+import no.nav.su.se.bakover.client.stubs.oppdrag.UtbetalingStub
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.common.endOfMonth
@@ -21,7 +22,6 @@ import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -58,11 +58,17 @@ fun vedtakSøknadsbehandlingIverksattInnvilget(
         avkorting = avkorting,
         clock = clock,
     ).let { (sak, søknadsbehandling) ->
-        val utbetaling = nyUtbetalingOversendtMedKvittering(
-            sakOgBehandling = sak to søknadsbehandling,
-            beregning = søknadsbehandling.beregning,
+        val utbetaling = simulerUtbetaling(
+            sak = sak,
+            søknadsbehandling = søknadsbehandling,
+            simuleringsperiode = søknadsbehandling.periode,
+            behandler = søknadsbehandling.attesteringer.hentSisteAttestering().attestant,
             clock = clock,
-        )
+        ).getOrFail().let {
+            it.toOversendtUtbetaling(UtbetalingStub.generateRequest(it))
+                .toKvittertUtbetaling(kvittering())
+        }
+
         val vedtak = VedtakSomKanRevurderes.fromSøknadsbehandling(
             søknadsbehandling = søknadsbehandling,
             utbetalingId = utbetaling.id,
@@ -259,14 +265,16 @@ fun vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         clock = clock,
         utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
     ).let { (sak, revurdering) ->
-        val utbetaling = oversendtStansUtbetalingUtenKvittering(
+        val utbetaling = simulerStans(
+            sak = sak,
+            stans = revurdering,
             stansDato = revurdering.periode.fraOgMed,
-            fnr = sak.fnr,
-            sakId = sak.id,
-            saksnummer = sak.saksnummer,
-            eksisterendeUtbetalinger = sak.utbetalinger,
+            behandler = revurdering.attesteringer.hentSisteAttestering().attestant,
             clock = clock,
-        )
+            utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
+        ).getOrFail().let {
+            it.toOversendtUtbetaling(UtbetalingStub.generateRequest(it))
+        }
 
         val vedtak = VedtakSomKanRevurderes.from(
             revurdering = revurdering,
@@ -299,13 +307,14 @@ fun vedtakIverksattGjenopptakAvYtelseFraIverksattStans(
         attestering = attestering,
         clock = clock,
     ).let { (sak, revurdering) ->
-        val utbetaling = oversendtGjenopptakUtbetalingUtenKvittering(
-            fnr = sak.fnr,
-            sakId = sak.id,
-            saksnummer = sak.saksnummer,
-            eksisterendeUtbetalinger = sak.utbetalinger,
+        val utbetaling = simulerGjenopptak(
+            sak = sak,
+            gjenopptak = revurdering,
+            behandler = revurdering.attesteringer.hentSisteAttestering().attestant,
             clock = clock,
-        )
+        ).getOrFail().let {
+            it.toOversendtUtbetaling(UtbetalingStub.generateRequest(it))
+        }
 
         val vedtak = VedtakSomKanRevurderes.from(
             revurdering = revurdering,
