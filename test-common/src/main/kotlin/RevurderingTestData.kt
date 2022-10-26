@@ -1118,7 +1118,7 @@ fun avsluttetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
 }
 
 fun simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
-    clock: Clock = TikkendeKlokke(1.januar(2022).fixedClock()),
+    clock: Clock = TikkendeKlokke(1.januar(2021).fixedClock()),
     periode: Periode = Periode.create(
         fraOgMed = LocalDate.now(clock).plusMonths(1).startOfMonth(),
         tilOgMed = LocalDate.now(clock).plusMonths(11).endOfMonth(),
@@ -1161,13 +1161,14 @@ fun simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
 }
 
 fun iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
-    clock: Clock = TikkendeKlokke(1.januar(2022).fixedClock()),
+    clock: Clock = TikkendeKlokke(1.januar(2021).fixedClock()),
     periode: Periode = Periode.create(
         fraOgMed = LocalDate.now(clock).plusMonths(1).startOfMonth(),
         tilOgMed = LocalDate.now(clock).plusMonths(11).endOfMonth(),
     ),
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
         stønadsperiode = Stønadsperiode.create(periode),
+        clock = clock,
     ),
     attestering: Attestering = attesteringIverksatt(clock),
     utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
@@ -1188,10 +1189,11 @@ fun iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
 }
 
 fun avsluttetStansAvYtelseFraIverksattSøknadsbehandlignsvedtak(
+    clock: Clock = TikkendeKlokke(1.januar(2021).fixedClock()),
     begrunnelse: String = "begrunnelse for å avslutte stans av ytelse",
-    tidspunktAvsluttet: Tidspunkt = Tidspunkt.now(fixedClock),
+    tidspunktAvsluttet: Tidspunkt = Tidspunkt.now(clock),
 ): Pair<Sak, StansAvYtelseRevurdering.AvsluttetStansAvYtelse> {
-    return simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak().let { (sak, simulert) ->
+    return simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(clock).let { (sak, simulert) ->
         val avsluttet = simulert.avslutt(
             begrunnelse = begrunnelse,
             tidspunktAvsluttet = tidspunktAvsluttet,
@@ -1205,14 +1207,16 @@ fun avsluttetStansAvYtelseFraIverksattSøknadsbehandlignsvedtak(
 }
 
 fun simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
-    clock: Clock = TikkendeKlokke(1.januar(2022).fixedClock()),
+    clock: Clock = TikkendeKlokke(1.januar(2021).fixedClock()),
     periodeForStans: Periode = Periode.create(
         fraOgMed = LocalDate.now(clock).plusMonths(1).startOfMonth(),
         tilOgMed = LocalDate.now(clock).plusMonths(11).endOfMonth(),
     ),
+    utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         periode = periodeForStans,
         clock = clock,
+        utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
     ),
 ): Pair<Sak, GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse> {
     require(sakOgVedtakSomKanRevurderes.first.vedtakListe.last() is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse)
@@ -1220,7 +1224,7 @@ fun simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
     return sakOgVedtakSomKanRevurderes.let { (sak, vedtak) ->
         val revurdering = GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse(
             id = revurderingId,
-            opprettet = fixedTidspunkt,
+            opprettet = Tidspunkt.now(clock),
             periode = vedtak.periode,
             grunnlagsdata = vedtak.behandling.grunnlagsdata,
             vilkårsvurderinger = vedtak.behandling.vilkårsvurderinger.tilVilkårsvurderingerRevurdering(),
@@ -1252,7 +1256,7 @@ fun simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
  * [GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse] vil få clock+2
  */
 fun iverksattGjenopptakelseAvYtelseFraVedtakStansAvYtelse(
-    clock: Clock = TikkendeKlokke(1.januar(2022).fixedClock()),
+    clock: Clock = TikkendeKlokke(1.januar(2021).fixedClock()),
     periode: Periode = Periode.create(
         fraOgMed = LocalDate.now(clock).plusMonths(1).startOfMonth(),
         tilOgMed = LocalDate.now(clock).plusMonths(11).endOfMonth(),

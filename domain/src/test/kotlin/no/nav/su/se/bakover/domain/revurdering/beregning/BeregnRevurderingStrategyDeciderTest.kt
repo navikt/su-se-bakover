@@ -120,6 +120,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                     ),
                 ),
                 sakOgVedtakSomKanRevurderes = sak to førsteStønadsperiode,
+                utbetalingerKjørtTilOgMed = 1.juli(2021),
             ).let {
                 sak = it.first
                 it.second
@@ -189,6 +190,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                 ),
             ),
             sakOgVedtakSomKanRevurderes = sak to førsteStønadsperiode,
+            utbetalingerKjørtTilOgMed = 1.juli(2021),
         ).let {
             sak = it.first
             it.second
@@ -317,6 +319,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                         periode = Periode.create(1.mai(2021), 31.desember(2021)),
                     ),
                 ),
+                utbetalingerKjørtTilOgMed = 1.juli(2021),
             )
 
             assertThrows<IllegalStateException> {
@@ -356,6 +359,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                         periode = Periode.create(1.mai(2021), 31.desember(2021)),
                     ),
                 ),
+                utbetalingerKjørtTilOgMed = 1.juli(2021),
             )
 
             assertThrows<IllegalStateException> {
@@ -429,6 +433,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                         periode = Periode.create(1.mai(2021), 31.desember(2021)),
                     ),
                 ),
+                utbetalingerKjørtTilOgMed = 1.juli(2021),
             )
 
             assertThrows<IllegalStateException> {
@@ -524,6 +529,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                     ),
                 ),
                 sakOgVedtakSomKanRevurderes = sak to førsteStønadsperiode,
+                utbetalingerKjørtTilOgMed = 1.juli(2021),
             ).let {
                 sak = it.first
                 it.second
@@ -602,6 +608,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                     ),
                 ),
                 sakOgVedtakSomKanRevurderes = sak to førsteStønadsperiode,
+                utbetalingerKjørtTilOgMed = 1.juli(2021),
             ).let {
                 sak = it.first
                 it.second
@@ -688,6 +695,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                     ),
                 ),
                 sakOgVedtakSomKanRevurderes = sak to førsteStønadsperiode,
+                utbetalingerKjørtTilOgMed = 1.juli(2021),
             ).let {
                 sak = it.first
                 it.second
@@ -729,6 +737,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                         periode = Periode.create(1.mai(2021), 31.desember(2021)),
                     ),
                 ),
+                utbetalingerKjørtTilOgMed = 1.juli(2021),
             )
             val (sak2, revurdering) = opprettetRevurdering(
                 clock = tikkendeKlokke,

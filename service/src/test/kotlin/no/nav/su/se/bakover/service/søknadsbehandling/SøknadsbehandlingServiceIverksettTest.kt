@@ -7,6 +7,7 @@ import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.beOfType
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
@@ -39,7 +40,9 @@ import no.nav.su.se.bakover.test.avkortingsvarselUtenlandsopphold
 import no.nav.su.se.bakover.test.dokumentUtenMetadataVedtak
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
+import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.nySakUføre
 import no.nav.su.se.bakover.test.nyUtbetalingOversendUtenKvittering
@@ -194,7 +197,9 @@ internal class SøknadsbehandlingServiceIverksettTest {
 
         @Test
         fun `svarer med feil dersom kontrollsimulering var for ulik`() {
-            val (sak, innvilgetTilAttestering) = søknadsbehandlingTilAttesteringInnvilget()
+            val (sak, innvilgetTilAttestering) = søknadsbehandlingTilAttesteringInnvilget(
+                clock = tikkendeFixedClock,
+            )
             val serviceAndMocks = SøknadsbehandlingServiceAndMocks(
                 sakService = mock {
                     on { hentSakForSøknadsbehandling(any()) } doReturn sak
@@ -203,8 +208,9 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     doAnswer { invocation ->
                         simulerUtbetaling(
                             sak,
-                            invocation.getArgument(1) as Utbetaling.UtbetalingForSimulering,
-                            invocation.getArgument(2) as Periode,
+                            (invocation.getArgument(0) as Utbetaling.UtbetalingForSimulering).copy(fnr = Fnr.generer()),
+                            invocation.getArgument(1) as Periode,
+                            tikkendeFixedClock,
                         )
                     }.whenever(it).simulerUtbetaling(any(), any())
                 },
@@ -221,7 +227,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             )
 
             response shouldBe KunneIkkeIverksette.KunneIkkeUtbetale(
-                UtbetalingFeilet.KunneIkkeSimulere(SimulerUtbetalingFeilet.FeilVedKryssjekkAvSaksbehandlerOgAttestantsSimulering(KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UlikPeriode)),
+                UtbetalingFeilet.KunneIkkeSimulere(SimulerUtbetalingFeilet.FeilVedKryssjekkAvSaksbehandlerOgAttestantsSimulering(KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UlikGjelderId)),
             ).left()
         }
 

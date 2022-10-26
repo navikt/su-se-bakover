@@ -7,9 +7,11 @@ import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.common.NavIdentBruker
+import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.fixedClock
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.år
@@ -345,7 +347,12 @@ internal class GjenopptakAvYtelseServiceTest {
 
     @Test
     fun `får ikke iverksatt dersom simulering indikerer feilutbetaling`() {
-        val (sak, eksisterende) = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse()
+        val clock = TikkendeKlokke(1.april(2021).fixedClock())
+        val (sak, eksisterende) = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
+            clock = clock,
+            periodeForStans = mai(2021),
+            utbetalingerKjørtTilOgMed = 1.april(2021),
+        )
 
         val mockSimulering = mock<Utbetaling.SimulertUtbetaling> {
             on { simulering } doReturn simuleringFeilutbetaling(*eksisterende.periode.måneder().toTypedArray())
@@ -358,6 +365,7 @@ internal class GjenopptakAvYtelseServiceTest {
             utbetalingService = mock {
                 on { simulerUtbetaling(any(), any()) } doReturn mockSimulering.right()
             },
+            clock = clock,
         ).let {
             val response = it.revurderingService.iverksettGjenopptakAvYtelse(
                 revurderingId = eksisterende.id,
@@ -367,7 +375,13 @@ internal class GjenopptakAvYtelseServiceTest {
                 UtbetalGjenopptakFeil.KunneIkkeSimulere(
                     SimulerGjenopptakFeil.KunneIkkeSimulere(
                         SimulerUtbetalingFeilet.FeilVedKryssjekkAvTidslinjeOgSimulering(
-                            KryssjekkAvTidslinjeOgSimuleringFeilet.KryssjekkFeilet(KryssjekkFeil.StansMedFeilutbetaling),
+                            KryssjekkAvTidslinjeOgSimuleringFeilet.KryssjekkFeilet(
+                                KryssjekkFeil.KombinasjonAvSimulertTypeOgTidslinjeTypeErUgyldig(
+                                    periode = Periode.create(1.mai(2021), 31.mai(2021)),
+                                    simulertType = "class no.nav.su.se.bakover.domain.oppdrag.simulering.TolketUtbetaling${"\$"}Feilutbetaling",
+                                    tidslinjeType = "class no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje${"\$"}Reaktivering",
+                                ),
+                            ),
                         ),
                     ),
                 ),

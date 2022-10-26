@@ -3,12 +3,16 @@ package no.nav.su.se.bakover.domain.revurdering
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.beOfType
+import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.fixedClock
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
+import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.nåtidForSimuleringStub
 import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.tikkendeFixedClock
@@ -38,6 +42,8 @@ internal class OpphørsperiodeForUtbetalingerTest {
         val tidligsteFraOgMedSomIkkeErUtbetalt = LocalDate.now(nåtidForSimuleringStub).startOfMonth()
         val simulert = simulertRevurdering(
             vilkårOverrides = listOf(utenlandsoppholdAvslag()),
+            clock = TikkendeKlokke(1.august(2021).fixedClock()),
+            utbetalingerKjørtTilOgMed = tidligsteFraOgMedSomIkkeErUtbetalt,
         ).second as SimulertRevurdering.Opphørt
         OpphørsperiodeForUtbetalinger(simulert).value shouldBe Periode.create(
             tidligsteFraOgMedSomIkkeErUtbetalt,
@@ -54,6 +60,7 @@ internal class OpphørsperiodeForUtbetalingerTest {
                 revurderingsperiode = revurderingsperiode,
                 vilkårOverrides = listOf(utenlandsoppholdAvslag(periode = revurderingsperiode)),
                 clock = tikkendeFixedClock,
+                utbetalingerKjørtTilOgMed = 1.juli(2021),
             ).second as SimulertRevurdering.Opphørt
         }.also {
             it.message shouldContain "Opphørsdato er utenfor revurderingsperioden"

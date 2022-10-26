@@ -8,6 +8,9 @@ import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.application.Beløp
 import no.nav.su.se.bakover.common.application.MånedBeløp
 import no.nav.su.se.bakover.common.application.Månedsbeløp
+import no.nav.su.se.bakover.common.august
+import no.nav.su.se.bakover.common.fixedClock
+import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.common.periode.år
@@ -21,6 +24,7 @@ import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
+import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.attesteringUnderkjent
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
@@ -49,6 +53,8 @@ class BrevForTilbakekrevingTest {
         grunnlagsdataOverrides = listOf(
             fradragsgrunnlagArbeidsinntekt(periode = år(2021), arbeidsinntekt = 5000.0),
         ),
+        clock = TikkendeKlokke(1.august(2021).fixedClock()),
+        utbetalingerKjørtTilOgMed = 1.juli(2021),
     ).let {
         requireType(it)
     }
@@ -62,6 +68,8 @@ class BrevForTilbakekrevingTest {
                 ),
             ),
         ),
+        clock = TikkendeKlokke(1.august(2021).fixedClock()),
+        utbetalingerKjørtTilOgMed = 1.juli(2021),
     ).let {
         requireType(it)
     }
@@ -265,6 +273,8 @@ class BrevForTilbakekrevingTest {
                 grunnlagsdataOverrides = listOf(
                     fradragsgrunnlagArbeidsinntekt(periode = år(2021), arbeidsinntekt = 5000.0),
                 ),
+                clock = TikkendeKlokke(1.august(2021).fixedClock()),
+                utbetalingerKjørtTilOgMed = 1.juli(2021),
             ).also { (sak, vedtak) ->
                 requireType<Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering>>(sak to vedtak)
                 val bruttobrev = requireType<LagBrevRequest.TilbakekrevingAvPenger>(

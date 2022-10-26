@@ -3,8 +3,11 @@ package no.nav.su.se.bakover.domain.vedtak
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.april
+import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.fixedClock
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
@@ -142,13 +145,14 @@ internal class GjeldendeVedtaksdataTest {
     @Test
     fun `gjeldende vedtaksdata inneholder utbetalinger som skal avkortes`() {
         val (sak, _) = vedtakRevurdering(
-            clock = TikkendeKlokke(),
             revurderingsperiode = år(2021),
             vilkårOverrides = listOf(
                 utenlandsoppholdAvslag(
                     periode = år(2021),
                 ),
             ),
+            clock = TikkendeKlokke(1.august(2021).fixedClock()),
+            utbetalingerKjørtTilOgMed = 1.juli(2021),
         )
 
         GjeldendeVedtaksdata(

@@ -153,12 +153,12 @@ private fun sjekkTidslinjeMotSimulering(
                 is TolketUtbetaling.Ordinær,
                 is TolketUtbetaling.UendretUtbetaling,
                 -> {
-                    kryssjekkBeløp(
+                    kryssjekkType(
                         tolketPeriode = tolketPeriode.periode,
                         tolket = tolket,
                         utbetaling = utbetaling,
                     ).getOrHandle { feil.add(it) }
-                    kryssjekkType(
+                    kryssjekkBeløp(
                         tolketPeriode = tolketPeriode.periode,
                         tolket = tolket,
                         utbetaling = utbetaling,

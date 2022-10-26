@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.client.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.AktørId
 import no.nav.su.se.bakover.common.GitCommit
 import no.nav.su.se.bakover.common.februar
+import no.nav.su.se.bakover.common.fixedClock
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.januar
@@ -16,6 +17,7 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.statistikk.StatistikkEventObserverBuilder
+import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
@@ -43,14 +45,17 @@ internal class StønadsstatistikkTest {
 
     @Test
     fun `Stans gir nullutbetaling`() {
-        val (sak, vedtak) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(periode = år(2021))
+        val (sak, vedtak) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+            clock = TikkendeKlokke(1.januar(2021).fixedClock()),
+            periode = år(2021),
+        )
         assert(
             sak = sak,
             event = StatistikkEvent.Stønadsvedtak(vedtak),
             vedtakstype = "STANS",
             vedtaksresultat = "STANSET",
             sakstype = "STANS",
-            funksjonellTid = "2021-01-01T01:02:40.456789Z",
+            funksjonellTid = "${vedtak.opprettet}",
         )
     }
 

@@ -472,9 +472,7 @@ internal class StansAvYtelseServiceTest {
     fun `får ikke opprettet ny hvis det allerede eksisterer åpen revurdering for stans`() {
         RevurderingServiceMocks(
             sakService = mock {
-                on { hentSak(any<UUID>(), any()) } doReturn simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
-                    periode = år(2022),
-                ).first.right()
+                on { hentSak(any<UUID>(), any()) } doReturn simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(periode = år(2021)).first.right()
             },
         ).let {
             it.revurderingService.stansAvYtelse(defaultOpprettRequest()) shouldBe KunneIkkeStanseYtelse.SakHarÅpenBehandling.left()

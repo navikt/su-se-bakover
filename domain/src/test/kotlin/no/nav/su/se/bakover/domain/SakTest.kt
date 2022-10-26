@@ -580,6 +580,7 @@ internal class SakTest {
                         periode = revurderingsperiode,
                     ),
                 ),
+                utbetalingerKjørtTilOgMed = 1.juli(2021),
             )
 
             val periode = år(2022)
@@ -743,9 +744,12 @@ internal class SakTest {
 
         @Test
         fun `henter gjeldende månedsberegninger fra tidligere vedtak hvis ytelse er stanset`() {
-            iverksattSøknadsbehandlingUføre().also { (sak, _, vedtakSøknadsbehandling) ->
+            iverksattSøknadsbehandlingUføre(
+                clock = tikkendeFixedClock,
+            ).also { (sak, _, vedtakSøknadsbehandling) ->
                 vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
                     sakOgVedtakSomKanRevurderes = sak to vedtakSøknadsbehandling as VedtakSomKanRevurderes,
+                    clock = tikkendeFixedClock,
                 ).also { (sak2, vedtakStans) ->
                     sak2.hentGjeldendeMånedsberegninger(
                         periode = mai(2021)..juli(2021),

@@ -240,7 +240,7 @@ fun vedtakIverksattAutomatiskRegulering(
 }
 
 fun vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
-    clock: Clock = TikkendeKlokke(1.januar(2022).fixedClock()),
+    clock: Clock = TikkendeKlokke(1.januar(2021).fixedClock()),
     periode: Periode = Periode.create(
         fraOgMed = LocalDate.now(clock).plusMonths(1).startOfMonth(),
         tilOgMed = LocalDate.now(clock).plusMonths(11).endOfMonth(),
@@ -250,12 +250,14 @@ fun vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         clock = clock,
     ),
     attestering: Attestering = attesteringIverksatt(clock = clock),
+    utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
 ): Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse> {
     return iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         periode = periode,
         sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
         attestering = attestering,
         clock = clock,
+        utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
     ).let { (sak, revurdering) ->
         val utbetaling = oversendtStansUtbetalingUtenKvittering(
             stansDato = revurdering.periode.fraOgMed,
