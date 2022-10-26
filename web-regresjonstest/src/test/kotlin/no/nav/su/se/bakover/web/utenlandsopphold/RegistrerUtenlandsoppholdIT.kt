@@ -28,8 +28,8 @@ internal class RegistrerUtenlandsoppholdIT {
             korriger(sakId)
             registrer(
                 sakId = sakId,
-                versjon = 12,
-                nesteVersjon = 12,
+                versjon = 3,
+                nesteVersjon = 3,
                 expectedHttpStatusCode = HttpStatusCode.BadRequest,
                 expectedRegistrertResponse = """
                 {
@@ -41,7 +41,7 @@ internal class RegistrerUtenlandsoppholdIT {
                     antallDagerTotal = 159,
                     elements = listOf(
                         UtenlandsResponseJsonData(
-                            versjon = 12,
+                            versjon = 3,
                             antallDagerForPeriode = 159,
                             dokumentasjon = "Udokumentert",
                             fraOgMed = "2021-05-04",
@@ -53,8 +53,8 @@ internal class RegistrerUtenlandsoppholdIT {
             )
             annuller(sakId)
             annuller(
-                versjon = 13,
-                nesteVersjon = 13,
+                versjon = 4,
+                nesteVersjon = 4,
                 sakId = sakId,
                 expectedHttpStatusCode = HttpStatusCode.InternalServerError,
                 expectedAnnullerResponse = """
@@ -67,7 +67,7 @@ internal class RegistrerUtenlandsoppholdIT {
                     antallDagerTotal = 0,
                     elements = listOf(
                         UtenlandsResponseJsonData(
-                            versjon = 13,
+                            versjon = 4,
                             antallDagerForPeriode = 159,
                             dokumentasjon = "Udokumentert",
                             fraOgMed = "2021-05-04",
@@ -80,11 +80,11 @@ internal class RegistrerUtenlandsoppholdIT {
             )
             registrer(
                 sakId = sakId,
-                versjon = 13,
+                versjon = 4,
                 expectedRegistrertResponse = utenlandsoppholdResponseJson(
                     elements = listOf(
                         UtenlandsResponseJsonData(
-                            versjon = 13,
+                            versjon = 4,
                             antallDagerForPeriode = 159,
                             dokumentasjon = "Udokumentert",
                             fraOgMed = "2021-05-04",
@@ -92,7 +92,7 @@ internal class RegistrerUtenlandsoppholdIT {
                             journalpostIder = "[\"12121212\"]",
                             erAnnullert = true,
                         ),
-                        UtenlandsResponseJsonData(versjon = 14),
+                        UtenlandsResponseJsonData(versjon = 5),
                     ),
                 ),
             )
@@ -101,7 +101,7 @@ internal class RegistrerUtenlandsoppholdIT {
 
     private fun ApplicationTestBuilder.annuller(
         sakId: String,
-        versjon: Long = 12,
+        versjon: Long = 3,
         nesteVersjon: Long = versjon + 1,
         expectedHttpStatusCode: HttpStatusCode = HttpStatusCode.OK,
         expectedAnnullerResponse: String = utenlandsoppholdResponseJson(
@@ -145,7 +145,7 @@ internal class RegistrerUtenlandsoppholdIT {
             antallDagerTotal = 159,
             elements = listOf(
                 UtenlandsResponseJsonData(
-                    versjon = 12,
+                    versjon = 3,
                     antallDagerForPeriode = 159,
                     dokumentasjon = "Udokumentert",
                     fraOgMed = "2021-05-04",
@@ -162,8 +162,8 @@ internal class RegistrerUtenlandsoppholdIT {
                 tilOgMed = "2021-10-11",
                 journalpostIder = "[\"12121212\"]",
                 dokumentasjon = "Udokumentert",
-                saksversjon = 11,
-                korrigererVersjon = 11,
+                saksversjon = 2,
+                korrigererVersjon = 2,
             ),
             true,
         )
@@ -173,13 +173,13 @@ internal class RegistrerUtenlandsoppholdIT {
                 JSONObject(sakJson).getJSONObject("utenlandsopphold"),
                 true,
             )
-            JSONObject(sakJson).getLong("versjon") shouldBe 12L
+            JSONObject(sakJson).getLong("versjon") shouldBe 3L
         }
     }
 
     private fun ApplicationTestBuilder.registrer(
         sakId: String,
-        versjon: Long = 10,
+        versjon: Long = 1,
         nesteVersjon: Long = versjon + 1,
         expectedRegistrertResponse: String = utenlandsoppholdResponseJson(
             elements = listOf(UtenlandsResponseJsonData(versjon = nesteVersjon)),

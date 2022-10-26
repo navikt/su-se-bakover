@@ -17,7 +17,7 @@ fun ApplicationTestBuilder.korrigerUtenlandsopphold(
     tilOgMed: String = "2021-10-10",
     journalpostIder: String = "[1234567]",
     dokumentasjon: String = "Sannsynliggjort",
-    saksversjon: Long = 11,
+    saksversjon: Long = 2,
 ): String {
     val body = """
       {

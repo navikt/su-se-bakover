@@ -16,7 +16,7 @@ fun ApplicationTestBuilder.nyttUtenlandsopphold(
     tilOgMed: String = "2021-10-10",
     journalpostIder: String = "[1234567]",
     dokumentasjon: String = "Sannsynliggjort",
-    saksversjon: Long = 10,
+    saksversjon: Long = 1,
     expectedHttpStatusCode: HttpStatusCode = HttpStatusCode.Created,
 ): String {
     val body = """

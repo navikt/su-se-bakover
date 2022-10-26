@@ -22,7 +22,7 @@ fun assertSakJson(
     expectedSakstype: String = "uføre",
     expectedVedtakPåTidslinje: String = "[]",
     expectedUtenlandsopphold: String = """{"utenlandsopphold": [], "antallDager":  0}""",
-    expectedVersjon: Long = 10,
+    expectedVersjon: Long = 1,
 ) {
     // language=JSON
     val expectedSakJson = """

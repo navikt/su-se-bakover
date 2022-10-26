@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.utenlandsopphold
 
 data class UtenlandsResponseJsonData(
-    val versjon: Long = 11,
+    val versjon: Long = 2,
     val fraOgMed: String = "2021-05-05",
     val tilOgMed: String = "2021-10-10",
     val journalpostIder: String = "[\"1234567\"]",
