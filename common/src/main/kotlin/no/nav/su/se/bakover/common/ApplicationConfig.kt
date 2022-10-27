@@ -542,7 +542,10 @@ data class ApplicationConfig(
                 ),
                 consumerCfg = ConsumerCfg(
                     CommonAivenKafkaConfig().configure() +
-                        commonConsumerConfig(deserializer = KafkaAvroDeserializer::class.java) +
+                        commonConsumerConfig(
+                            deserializer = KafkaAvroDeserializer::class.java,
+                            clientIdConfig = getEnvironmentVariableOrDefault("HOSTNAME", "su-se-bakover-hostname"),
+                        ) +
                         mapOf(
                             KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG to true,
                             KafkaAvroDeserializerConfig.BASIC_AUTH_CREDENTIALS_SOURCE to "USER_INFO",
@@ -686,8 +689,10 @@ data class ApplicationConfig(
         companion object {
             fun createFromEnvironmentVariables() = KabalKafkaConfig(
                 kafkaConfig = KafkaConfig.CommonAivenKafkaConfig().configure() +
-                    commonConsumerConfig(deserializer = StringDeserializer::class.java) +
-                    mapOf(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to "earliest"),
+                    commonConsumerConfig(
+                        deserializer = StringDeserializer::class.java,
+                        clientIdConfig = getEnvironmentVariableOrThrow("HOSTNAME"),
+                    ),
             )
 
             fun createLocalConfig() = KabalKafkaConfig(
@@ -701,14 +706,16 @@ fun <T> commonConsumerConfig(
     groupIdConfig: String = "su-se-bakover",
     maxPollRecordsConfig: Int = 100,
     enableAutoCommitConfig: Boolean = false,
-    clientIdConfig: String = "HOSTNAME",
+    clientIdConfig: String,
+    autoOffsetResetConfig: String = "earliest",
     deserializer: Class<T>,
 ): Map<String, Any> {
     return mapOf(
         ConsumerConfig.GROUP_ID_CONFIG to groupIdConfig,
         ConsumerConfig.MAX_POLL_RECORDS_CONFIG to maxPollRecordsConfig,
         ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG to enableAutoCommitConfig.toString(),
-        ConsumerConfig.CLIENT_ID_CONFIG to getEnvironmentVariableOrDefault(clientIdConfig, "su-se-bakover-hostname"),
+        ConsumerConfig.CLIENT_ID_CONFIG to clientIdConfig,
+        ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to autoOffsetResetConfig,
         ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to deserializer,
         ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to deserializer,
     )

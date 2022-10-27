@@ -132,7 +132,7 @@ class ApplicationConfigTest {
                     "ssl.keystore.location" to "keystorePath",
                     "ssl.keystore.password" to "credstorePwd",
                     "ssl.key.password" to "credstorePwd",
-
+                    "auto.offset.reset" to "earliest",
                     "specific.avro.reader" to true,
                     "key.deserializer" to KafkaAvroDeserializer::class.java,
                     "value.deserializer" to KafkaAvroDeserializer::class.java,
