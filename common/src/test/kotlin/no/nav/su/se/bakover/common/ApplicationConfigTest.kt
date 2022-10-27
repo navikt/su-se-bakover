@@ -122,15 +122,18 @@ class ApplicationConfigTest {
             ),
             consumerCfg = ApplicationConfig.KafkaConfig.ConsumerCfg(
                 mapOf(
-                    "bootstrap.servers" to "kafka_onprem_brokers",
-                    "security.protocol" to "SASL_SSL",
-                    "sasl.mechanism" to "PLAIN",
-                    "sasl.jaas.config" to "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"username\" password=\"password\";",
+                    "bootstrap.servers" to "brokers",
+                    "security.protocol" to "SSL",
+                    "ssl.endpoint.identification.algorithm" to "",
+                    "ssl.truststore.type" to "jks",
+                    "ssl.keystore.type" to "PKCS12",
                     "ssl.truststore.location" to "truststorePath",
                     "ssl.truststore.password" to "credstorePwd",
+                    "ssl.keystore.location" to "keystorePath",
+                    "ssl.keystore.password" to "credstorePwd",
                     "ssl.key.password" to "credstorePwd",
+
                     "specific.avro.reader" to true,
-                    "schema.registry.url" to "schema_onprem_registry",
                     "key.deserializer" to KafkaAvroDeserializer::class.java,
                     "value.deserializer" to KafkaAvroDeserializer::class.java,
                     "basic.auth.credentials.source" to "USER_INFO",
