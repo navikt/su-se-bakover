@@ -30,8 +30,6 @@
     "PDL_CLIENT_ID": "api://dev-fss.pdl.pdl-api",
     "KABAL_URL": "https://kabal-api.dev.intern.nav.no",
     "KABAL_CLIENT_ID": "api://dev-gcp.klage.kabal-api",
-    "KAFKA_ONPREM_BROKERS": "b27apvl00045.preprod.local:8443,b27apvl00046.preprod.local:8443,b27apvl00047.preprod.local:8443",
-    "KAFKA_ONPREM_SCHEMA_REGISTRY": "https://kafka-schema-registry.nais.preprod.local",
     "SAF_URL": "https://saf.dev.intern.nav.no",
     "SAF_CLIENT_ID": "api://dev-fss.teamdokumenthandtering.saf",
     "MQ_TILBAKEKREVING_MOTTAK":"QA.Q1_SU_SE_BAKOVER.OPPDRAG_KRAVGRUNNLAG",

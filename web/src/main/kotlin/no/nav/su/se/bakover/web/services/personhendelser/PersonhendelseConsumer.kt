@@ -22,7 +22,7 @@ import no.nav.person.pdl.leesah.Personhendelse as EksternPersonhendelse
 class PersonhendelseConsumer(
     private val consumer: Consumer<String, EksternPersonhendelse>,
     private val personhendelseService: PersonhendelseService,
-    topicName: String = "aapen-person-pdl-leesah-v1",
+    topicName: String = "pdl.leesah-v1",
     // Vi ønsker ikke holde tråden i live for lenge ved en avslutting av applikasjonen.
     private val pollTimeoutDuration: Duration = Duration.ofMillis(500),
     private val log: Logger = LoggerFactory.getLogger(PersonhendelseConsumer::class.java),
