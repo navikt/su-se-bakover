@@ -48,6 +48,7 @@ internal fun Route.forhåndsvarslingRoute(
                         body.forhåndsvarselhandling,
                         fritekst = body.fritekst,
                     ).map {
+                        call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                         call.sikkerlogg("Forhåndsvarslet bruker med revurderingId $revurderingId")
                         call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(satsFactory))))
                     }.mapLeft {
@@ -128,14 +129,7 @@ internal fun Route.forhåndsvarslingRoute(
                             }
                     }.fold(
                         { call.svar(it) },
-                        {
-                            call.svar(
-                                Resultat.json(
-                                    HttpStatusCode.OK,
-                                    serialize(it.toJson(satsFactory)),
-                                ),
-                            )
-                        },
+                        { call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(satsFactory)))) },
                     )
                 }
             }

@@ -14,8 +14,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.NavIdentBruker
+import no.nav.su.se.bakover.common.infrastructure.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
+import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.lesUUID
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
@@ -110,6 +112,7 @@ internal fun Route.reguler(
                                 }
                             },
                             ifRight = {
+                                call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                                 call.svar(Resultat.okJson())
                             },
                         )

@@ -9,9 +9,11 @@ import io.ktor.server.application.call
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.Brukerrolle
+import no.nav.su.se.bakover.common.infrastructure.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.depositumErHøyereEnnInnskudd
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
+import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
@@ -100,19 +102,14 @@ internal fun Route.leggTilFormueForSøknadsbehandlingRoute(
                         body.toServiceRequest(behandlingId).mapLeft {
                             call.svar(it)
                         }.map { request ->
-                            søknadsbehandlingService.leggTilFormuevilkår(
-                                request,
-                            ).map {
-                                call.sikkerlogg("Lagret formue for revudering $behandlingId på $sakId")
-                                call.svar(
-                                    Resultat.json(
-                                        HttpStatusCode.OK,
-                                        serialize(it.toJson(satsFactory)),
-                                    ),
-                                )
-                            }.mapLeft { kunneIkkeLeggeTilFormuegrunnlag ->
-                                call.svar(kunneIkkeLeggeTilFormuegrunnlag.tilResultat())
-                            }
+                            søknadsbehandlingService.leggTilFormuevilkår(request)
+                                .map {
+                                    call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
+                                    call.sikkerlogg("Lagret formue for revudering $behandlingId på $sakId")
+                                    call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(satsFactory))))
+                                }.mapLeft { kunneIkkeLeggeTilFormuegrunnlag ->
+                                    call.svar(kunneIkkeLeggeTilFormuegrunnlag.tilResultat())
+                                }
                         }
                     }
                 }
@@ -137,5 +134,6 @@ private fun KunneIkkeLeggeTilFormuegrunnlag.tilResultat() = when (this) {
             til = f.til,
         )
     }
+
     is KunneIkkeLeggeTilFormuegrunnlag.KunneIkkeMappeTilDomenet -> this.feil.tilResultat()
 }

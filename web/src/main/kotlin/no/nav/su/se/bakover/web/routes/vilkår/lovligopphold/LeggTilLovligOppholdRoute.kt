@@ -5,8 +5,10 @@ import io.ktor.server.application.call
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.Brukerrolle
+import no.nav.su.se.bakover.common.infrastructure.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
+import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
@@ -42,6 +44,7 @@ internal fun Route.leggTilLovligOppholdRoute(
                             call.svar(it.tilResultat())
                         },
                         ifRight = {
+                            call.audit(it.fnr, AuditLogEvent.Action.CREATE, it.id)
                             call.svar(Resultat.json(HttpStatusCode.Created, serialize(it.toJson(satsFactory))))
                         },
                     )

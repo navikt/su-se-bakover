@@ -63,12 +63,7 @@ internal fun Route.stansUtbetaling(
                         ifRight = {
                             call.sikkerlogg("Opprettet revurdering for stans av ytelse for $sakId")
                             call.audit(it.fnr, AuditLogEvent.Action.CREATE, it.id)
-                            call.svar(
-                                Resultat.json(
-                                    HttpStatusCode.Created,
-                                    serialize(it.toJson(satsFactory)),
-                                ),
-                            )
+                            call.svar(Resultat.json(HttpStatusCode.Created, serialize(it.toJson(satsFactory))))
                         },
                     )
                 }
@@ -81,8 +76,6 @@ internal fun Route.stansUtbetaling(
             call.withSakId { sakId ->
                 call.withRevurderingId { revurderingId ->
                     call.withBody<StansUtbetalingBody> { body ->
-                        val navIdent = call.suUserContext.navIdent
-
                         val revurderingsårsak = Revurderingsårsak.tryCreate(
                             årsak = body.årsak,
                             begrunnelse = body.begrunnelse,
@@ -91,7 +84,7 @@ internal fun Route.stansUtbetaling(
                         val request = StansYtelseRequest.Oppdater(
                             sakId = sakId,
                             fraOgMed = body.fraOgMed,
-                            saksbehandler = NavIdentBruker.Saksbehandler(navIdent),
+                            saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                             revurderingsårsak = revurderingsårsak,
                             revurderingId = revurderingId,
                         )
@@ -101,12 +94,7 @@ internal fun Route.stansUtbetaling(
                             ifRight = {
                                 call.sikkerlogg("Oppdaterer revurdering for stans av ytelse for sak:$sakId")
                                 call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
-                                call.svar(
-                                    Resultat.json(
-                                        HttpStatusCode.OK,
-                                        serialize(it.toJson(satsFactory)),
-                                    ),
-                                )
+                                call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(satsFactory))))
                             },
                         )
                     }
@@ -127,12 +115,7 @@ internal fun Route.stansUtbetaling(
                         ifRight = {
                             call.sikkerlogg("Iverksatt stans av utbetalinger for sak:$sakId")
                             call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
-                            call.svar(
-                                Resultat.json(
-                                    HttpStatusCode.OK,
-                                    serialize(it.toJson(satsFactory)),
-                                ),
-                            )
+                            call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(satsFactory))))
                         },
                     )
                 }
@@ -152,24 +135,29 @@ private fun KunneIkkeStanseYtelse.tilResultat(): Resultat {
         KunneIkkeStanseYtelse.FantIkkeRevurdering -> {
             Revurderingsfeilresponser.fantIkkeRevurdering
         }
+
         KunneIkkeStanseYtelse.KunneIkkeOppretteRevurdering -> {
             HttpStatusCode.InternalServerError.errorJson(
                 message = "Kunne ikke opprette revurdering for stans",
                 code = "kunne_ikke_opprette_revurdering_for_stans",
             )
         }
+
         is KunneIkkeStanseYtelse.SimuleringAvStansFeilet -> {
             this.feil.tilResultat()
         }
+
         is KunneIkkeStanseYtelse.UgyldigTypeForOppdatering -> {
             HttpStatusCode.BadRequest.errorJson(
                 message = "Ugyldig tilstand for oppdatering: ${this.type}",
                 code = "ugyldig_tilstand_for_oppdatering",
             )
         }
+
         KunneIkkeStanseYtelse.FantIkkeSak -> {
             fantIkkeSak
         }
+
         KunneIkkeStanseYtelse.SakHarÅpenBehandling -> {
             harAlleredeÅpenBehandling
         }
@@ -185,28 +173,33 @@ private fun KunneIkkeIverksetteStansYtelse.tilResultat(): Resultat {
         KunneIkkeIverksetteStansYtelse.FantIkkeRevurdering -> {
             Revurderingsfeilresponser.fantIkkeRevurdering
         }
+
         is KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale -> {
             when (val kunneIkkeUtbetale = this.feil) {
                 is UtbetalStansFeil.KunneIkkeSimulere -> {
                     kunneIkkeUtbetale.feil.tilResultat()
                 }
+
                 is UtbetalStansFeil.KunneIkkeUtbetale -> {
                     kunneIkkeUtbetale.feil.tilResultat()
                 }
             }
         }
+
         is KunneIkkeIverksetteStansYtelse.UgyldigTilstand -> {
             HttpStatusCode.BadRequest.errorJson(
                 "Kan ikke iverksette stans av utbetalinger for revurdering av type: ${this.faktiskTilstand}, eneste gyldige tilstand er ${this.målTilstand}",
                 "kunne_ikke_iverksette_stans_ugyldig_tilstand",
             )
         }
+
         KunneIkkeIverksetteStansYtelse.SimuleringIndikererFeilutbetaling -> {
             HttpStatusCode.BadRequest.errorJson(
                 "Iverksetting av stans vil føre til feilutbetaling",
                 "kunne_ikke_iverksette_stans_fører_til_feilutbetaling",
             )
         }
+
         is KunneIkkeIverksetteStansYtelse.UkjentFeil -> {
             ukjentFeil
         }
@@ -218,6 +211,7 @@ private fun SimulerStansFeilet.tilResultat(): Resultat {
         is SimulerStansFeilet.KunneIkkeGenerereUtbetaling -> {
             this.feil.tilResultat()
         }
+
         is SimulerStansFeilet.KunneIkkeSimulere -> {
             this.feil.tilResultat()
         }
@@ -232,30 +226,35 @@ private fun Utbetalingsstrategi.Stans.Feil.tilResultat(): Resultat {
                 code = "fant_ingen_utbetalinger",
             )
         }
+
         Utbetalingsstrategi.Stans.Feil.IngenUtbetalingerEtterStansDato -> {
             HttpStatusCode.InternalServerError.errorJson(
                 message = "Utbetalingsstrategi (stans): Fant ingen utbetalinger etter stansdato",
                 code = "fant_ingen_utbetalinger_etter_stansdato",
             )
         }
+
         Utbetalingsstrategi.Stans.Feil.KanIkkeStanseOpphørtePerioder -> {
             HttpStatusCode.InternalServerError.errorJson(
                 message = "Utbetalingsstrategi (stans): Kan ikke stanse opphørte utbetalinger",
                 code = "kan_ikke_stanse_opphørte_utbetalinger",
             )
         }
+
         Utbetalingsstrategi.Stans.Feil.SisteUtbetalingErEnStans -> {
             HttpStatusCode.InternalServerError.errorJson(
                 message = "Utbetalingsstrategi (stans): Kan ikke stanse utbetalinger som allerede er stanset",
                 code = "utbetaling_allerede_stanset",
             )
         }
+
         Utbetalingsstrategi.Stans.Feil.SisteUtbetalingErOpphør -> {
             HttpStatusCode.InternalServerError.errorJson(
                 message = "Utbetalingsstrategi (stans): Kan ikke stanse utbetalinger som allerede er opphørt",
                 code = "utbetaling_allerede_opphørt",
             )
         }
+
         Utbetalingsstrategi.Stans.Feil.StansDatoErIkkeFørsteDatoIInneværendeEllerNesteMåned -> {
             HttpStatusCode.InternalServerError.errorJson(
                 message = "Utbetalingsstrategi (stans): Stansdato er ikke første dato i inneværende eller neste måned",

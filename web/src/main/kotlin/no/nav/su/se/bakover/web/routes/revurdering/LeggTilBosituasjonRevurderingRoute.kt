@@ -11,9 +11,11 @@ import io.ktor.server.application.call
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.Brukerrolle
+import no.nav.su.se.bakover.common.infrastructure.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ugyldigBody
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
+import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
@@ -84,11 +86,13 @@ internal fun Route.LeggTilBosituasjonRevurderingRoute(
                                     revurderingService.leggTilBosituasjongrunnlag(it)
                                         .mapLeft { feil -> feil.tilResultat() }
                                         .map { respons ->
-                                            call.sikkerlogg("Lagret bosituasjon for revudering $revurderingId på $sakId")
-                                            Resultat.json(
-                                                HttpStatusCode.OK,
-                                                serialize(respons.toJson(satsFactory)),
+                                            call.audit(
+                                                respons.revurdering.fnr,
+                                                AuditLogEvent.Action.UPDATE,
+                                                respons.revurdering.id,
                                             )
+                                            call.sikkerlogg("Lagret bosituasjon for revudering $revurderingId på $sakId")
+                                            Resultat.json(HttpStatusCode.OK, serialize(respons.toJson(satsFactory)))
                                         }
                                 }.getOrHandle { it },
                         )
@@ -103,50 +107,60 @@ private fun KunneIkkeLeggeTilBosituasjongrunnlag.tilResultat() = when (this) {
     KunneIkkeLeggeTilBosituasjongrunnlag.FantIkkeBehandling -> {
         Revurderingsfeilresponser.fantIkkeRevurdering
     }
+
     KunneIkkeLeggeTilBosituasjongrunnlag.EpsAlderErNull -> {
         HttpStatusCode.InternalServerError.errorJson(
             "eps alder er null",
             "eps_alder_er_null",
         )
     }
+
     KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeSlåOppEPS -> {
         HttpStatusCode.InternalServerError.errorJson(
             "kunne ikke slå opp EPS",
             "kunne_ikke_slå_opp_eps",
         )
     }
+
     KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigData -> {
         ugyldigBody
     }
+
     is KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeLeggeTilBosituasjon -> {
         when (val inner = this.feil) {
             is Revurdering.KunneIkkeLeggeTilBosituasjon.Konsistenssjekk -> {
                 inner.feil.tilResultat()
             }
+
             is Revurdering.KunneIkkeLeggeTilBosituasjon.KunneIkkeOppdatereFormue -> {
                 when (val innerInner = inner.feil) {
                     is Revurdering.KunneIkkeLeggeTilFormue.Konsistenssjekk -> {
                         innerInner.feil.tilResultat()
                     }
+
                     is Revurdering.KunneIkkeLeggeTilFormue.UgyldigTilstand -> {
                         Feilresponser.ugyldigTilstand(innerInner.fra, innerInner.til)
                     }
                 }
             }
+
             Revurdering.KunneIkkeLeggeTilBosituasjon.PerioderMangler -> {
                 HttpStatusCode.BadRequest.errorJson(
                     message = "Bosituasjon mangler for hele eller deler av behandlingsperioden",
                     code = "bosituasjon_mangler_for_perioder",
                 )
             }
+
             is Revurdering.KunneIkkeLeggeTilBosituasjon.UgyldigTilstand -> {
                 Feilresponser.ugyldigTilstand(inner.fra, inner.til)
             }
+
             is Revurdering.KunneIkkeLeggeTilBosituasjon.Valideringsfeil -> {
                 inner.feil.tilResultat()
             }
         }
     }
+
     is KunneIkkeLeggeTilBosituasjongrunnlag.Konsistenssjekk -> {
         this.feil.tilResultat()
     }
