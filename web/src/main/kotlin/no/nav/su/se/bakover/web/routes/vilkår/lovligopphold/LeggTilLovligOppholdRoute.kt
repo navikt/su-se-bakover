@@ -40,11 +40,9 @@ internal fun Route.leggTilLovligOppholdRoute(
             call.withBehandlingId { behandlingId ->
                 call.withBody<LovligOppholdBody> { body ->
                     søknadsbehandlingService.leggTilLovligOpphold(body.toLovligOppholdRequest(behandlingId)).fold(
-                        ifLeft = {
-                            call.svar(it.tilResultat())
-                        },
+                        ifLeft = { call.svar(it.tilResultat()) },
                         ifRight = {
-                            call.audit(it.fnr, AuditLogEvent.Action.CREATE, it.id)
+                            call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                             call.svar(Resultat.json(HttpStatusCode.Created, serialize(it.toJson(satsFactory))))
                         },
                     )
@@ -63,10 +61,9 @@ internal fun Route.leggTilLovligOppholdRoute(
             call.withRevurderingId { revurderingId ->
                 call.withBody<LovligOppholdBody> { body ->
                     revurderingService.leggTilLovligOppholdVilkår(body.toLovligOppholdRequest(revurderingId)).fold(
-                        ifLeft = {
-                            call.svar(it.tilResultat())
-                        },
+                        ifLeft = { call.svar(it.tilResultat()) },
                         ifRight = {
+                            call.audit(it.revurdering.fnr, AuditLogEvent.Action.UPDATE, it.revurdering.id)
                             call.svar(Resultat.json(HttpStatusCode.Created, serialize(it.toJson(satsFactory))))
                         },
                     )
@@ -102,11 +99,13 @@ internal fun KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilLovligOpphold.tilResultat
             this.fra,
             this.til,
         )
+
         is KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilLovligOpphold.UgyldigTilstand.Søknadsbehandling -> Feilresponser.ugyldigTilstand(
             this.fra,
             this.til,
         )
     }
+
     KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilLovligOpphold.HeleBehandlingsperiodenErIkkeVurdert -> Feilresponser.heleBehandlingsperiodenMåHaVurderinger
 }
 
