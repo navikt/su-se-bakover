@@ -544,12 +544,15 @@ data class ApplicationConfig(
                     CommonAivenKafkaConfig().configure() +
                         commonConsumerConfig(
                             deserializer = KafkaAvroDeserializer::class.java,
-                            clientIdConfig = getEnvironmentVariableOrDefault("HOSTNAME", "su-se-bakover-hostname"),
+                            clientIdConfig = getEnvironmentVariableOrThrow("HOSTNAME"),
                         ) +
                         mapOf(
                             KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG to true,
                             KafkaAvroDeserializerConfig.BASIC_AUTH_CREDENTIALS_SOURCE to "USER_INFO",
                             KafkaAvroDeserializerConfig.USER_INFO_CONFIG to ConsumerCfg.getUserInfoConfig(),
+                            KafkaAvroDeserializerConfig.SCHEMA_REGISTRY_URL_CONFIG to getEnvironmentVariableOrThrow(
+                                "KAFKA_ONPREM_SCHEMA_REGISTRY",
+                            ),
                         ),
                 ),
             )
