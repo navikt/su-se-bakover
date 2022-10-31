@@ -20,8 +20,8 @@ import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.common.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.audit.application.AuditLogEvent
 import no.nav.su.se.bakover.common.enumContains
-import no.nav.su.se.bakover.common.infrastructure.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.Brev.kanIkkeSendeBrevIDenneTilstanden
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.Brev.kunneIkkeGenerereBrev

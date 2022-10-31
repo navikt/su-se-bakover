@@ -8,6 +8,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
+import no.nav.su.se.bakover.common.audit.application.AuditLogEvent
 import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.journalpost.ErTilknyttetSak
@@ -34,7 +35,7 @@ fun Sak.registrerUtenlandsopphold(
     command: RegistrerUtenlandsoppholdCommand,
     utenlandsoppholdHendelser: UtenlandsoppholdHendelser,
     validerJournalpost: suspend (JournalpostId, Saksnummer) -> Either<KunneIkkeSjekkeTilknytningTilSak, ErTilknyttetSak>,
-): Either<KunneIkkeRegistereUtenlandsopphold, Pair<Sak, RegistrerUtenlandsoppholdHendelse>> {
+): Either<KunneIkkeRegistereUtenlandsopphold, Triple<Sak, RegistrerUtenlandsoppholdHendelse, AuditLogEvent>> {
     if (versjon != command.klientensSisteSaksversjon) {
         return KunneIkkeRegistereUtenlandsopphold.UtdatertSaksversjon.left()
     }
@@ -49,12 +50,14 @@ fun Sak.registrerUtenlandsopphold(
         command = command,
         nesteVersjon = nesteVersjon,
     ).map {
-        Pair(
+        val hendelse = it.last() as RegistrerUtenlandsoppholdHendelse
+        Triple(
             this.copy(
                 utenlandsopphold = it.currentState,
                 versjon = nesteVersjon,
             ),
-            it.last() as RegistrerUtenlandsoppholdHendelse,
+            hendelse,
+            hendelse.toAuditEvent(fnr),
         )
     }
 }
@@ -69,7 +72,7 @@ fun Sak.korrigerUtenlandsopphold(
     command: KorrigerUtenlandsoppholdCommand,
     utenlandsoppholdHendelser: UtenlandsoppholdHendelser,
     validerJournalpost: suspend (JournalpostId, Saksnummer) -> Either<KunneIkkeSjekkeTilknytningTilSak, ErTilknyttetSak>,
-): Either<KunneIkkeKorrigereUtenlandsopphold, Pair<Sak, KorrigerUtenlandsoppholdHendelse>> {
+): Either<KunneIkkeKorrigereUtenlandsopphold, Triple<Sak, KorrigerUtenlandsoppholdHendelse, AuditLogEvent>> {
     if (versjon != command.klientensSisteSaksversjon) {
         return KunneIkkeKorrigereUtenlandsopphold.UtdatertSaksversjon.left()
     }
@@ -82,12 +85,14 @@ fun Sak.korrigerUtenlandsopphold(
         command = command,
         nesteVersjon = nesteVersjon,
     ).map {
-        Pair(
+        val hendelse = it.last() as KorrigerUtenlandsoppholdHendelse
+        Triple(
             this.copy(
                 utenlandsopphold = it.currentState,
                 versjon = nesteVersjon,
             ),
-            it.last() as KorrigerUtenlandsoppholdHendelse,
+            hendelse,
+            hendelse.toAuditEvent(fnr),
         )
     }
 }
@@ -101,7 +106,7 @@ fun Sak.korrigerUtenlandsopphold(
 fun Sak.annullerUtenlandsopphold(
     command: AnnullerUtenlandsoppholdCommand,
     utenlandsoppholdHendelser: UtenlandsoppholdHendelser,
-): Either<KunneIkkeAnnullereUtenlandsopphold, Pair<Sak, AnnullerUtenlandsoppholdHendelse>> {
+): Either<KunneIkkeAnnullereUtenlandsopphold, Triple<Sak, AnnullerUtenlandsoppholdHendelse, AuditLogEvent>> {
     if (versjon != command.klientensSisteSaksversjon) {
         return KunneIkkeAnnullereUtenlandsopphold.UtdatertSaksversjon.left()
     }
@@ -110,12 +115,14 @@ fun Sak.annullerUtenlandsopphold(
         command = command,
         nesteVersjon = nesteVersjon,
     ).map {
-        Pair(
+        val hendelse = it.last() as AnnullerUtenlandsoppholdHendelse
+        Triple(
             this.copy(
                 utenlandsopphold = it.currentState,
                 versjon = nesteVersjon,
             ),
-            it.last() as AnnullerUtenlandsoppholdHendelse,
+            hendelse,
+            hendelse.toAuditEvent(fnr),
         )
     }
 }

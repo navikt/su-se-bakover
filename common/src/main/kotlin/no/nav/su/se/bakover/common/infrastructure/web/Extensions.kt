@@ -15,9 +15,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.Fnr
+import no.nav.su.se.bakover.common.audit.application.AuditLogEvent
+import no.nav.su.se.bakover.common.audit.infrastructure.CefAuditLogger
 import no.nav.su.se.bakover.common.deserialize
-import no.nav.su.se.bakover.common.infrastructure.audit.AuditLogEvent
-import no.nav.su.se.bakover.common.infrastructure.audit.AuditLogger
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.sikkerLogg
 import java.util.UUID
@@ -28,14 +28,14 @@ fun ApplicationCall.sikkerlogg(msg: String) {
 
 /**
  * Logg til audit.nais (som går videre til ArcSight)
- * @see AuditLogger
+ * @see CefAuditLogger
  */
 fun ApplicationCall.audit(
     berørtBruker: Fnr,
     action: AuditLogEvent.Action,
     behandlingId: UUID?,
 ) {
-    AuditLogger.log(
+    CefAuditLogger.log(
         AuditLogEvent(
             navIdent = suUserContext.navIdent,
             berørtBrukerId = berørtBruker,
