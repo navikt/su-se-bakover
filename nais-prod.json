@@ -36,7 +36,6 @@
     "TILBAKEKREVING_URL": "https://cics.adeo.no/oppdrag/K231CW80",
     "SKATTEETATEN_URL": "https://api.skatteetaten.no",
     "KRR_URL": "https://digdir-krr-proxy.intern.nav.no",
-    "KRR_APP_ID": "api://prod-gcp.team-rocket.digdir-krr-proxy",
-    "KAFKA_ONPREM_SCHEMA_REGISTRY": "https://kafka-schema-registry.nais.adeo.no"
+    "KRR_APP_ID": "api://prod-gcp.team-rocket.digdir-krr-proxy"
   }
 }

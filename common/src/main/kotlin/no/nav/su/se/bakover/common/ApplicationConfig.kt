@@ -550,9 +550,7 @@ data class ApplicationConfig(
                             KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG to true,
                             KafkaAvroDeserializerConfig.BASIC_AUTH_CREDENTIALS_SOURCE to "USER_INFO",
                             KafkaAvroDeserializerConfig.USER_INFO_CONFIG to ConsumerCfg.getUserInfoConfig(),
-                            KafkaAvroDeserializerConfig.SCHEMA_REGISTRY_URL_CONFIG to getEnvironmentVariableOrThrow(
-                                "KAFKA_ONPREM_SCHEMA_REGISTRY",
-                            ),
+                            KafkaAvroDeserializerConfig.SCHEMA_REGISTRY_URL_CONFIG to getEnvironmentVariableOrThrow("KAFKA_SCHEMA_REGISTRY"),
                         ),
                 ),
             )

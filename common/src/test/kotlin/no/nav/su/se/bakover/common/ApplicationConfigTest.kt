@@ -142,7 +142,7 @@ class ApplicationConfigTest {
                     "client.id" to "hostname",
                     "enable.auto.commit" to "false",
                     "max.poll.records" to 100,
-                    "schema.registry.url" to "some-schema",
+                    "schema.registry.url" to "some-schema-url",
                 ),
             ),
         ),
@@ -222,7 +222,7 @@ class ApplicationConfigTest {
                 "KRR_URL" to "krrUrl",
                 "KRR_APP_ID" to "krrId",
                 "NAIS_APP_IMAGE" to "ghcr.io/navikt/su-se-bakover/su-se-bakover:87a3a5155bf00b4d6854efcc24e8b929549c9302",
-                "KAFKA_ONPREM_SCHEMA_REGISTRY" to "some-schema",
+                "KAFKA_SCHEMA_REGISTRY" to "some-schema-url",
             ),
         ) {
             ApplicationConfig.createFromEnvironmentVariables() shouldBe expectedApplicationConfig
