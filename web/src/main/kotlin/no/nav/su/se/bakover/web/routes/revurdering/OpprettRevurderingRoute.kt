@@ -74,12 +74,7 @@ internal fun Route.opprettRevurderingRoute(
                             call.sikkerlogg("Opprettet en ny revurdering på sak med id $sakId")
                             call.audit(it.fnr, AuditLogEvent.Action.CREATE, it.id)
                             SuMetrics.behandlingStartet(SuMetrics.Behandlingstype.REVURDERING)
-                            call.svar(
-                                Resultat.json(
-                                    HttpStatusCode.Created,
-                                    serialize(it.toJson(satsFactory)),
-                                ),
-                            )
+                            call.svar(Resultat.json(HttpStatusCode.Created, serialize(it.toJson(satsFactory))))
                         },
                     )
                 }
@@ -102,18 +97,23 @@ internal fun Sak.KunneIkkeOppretteRevurdering.tilResultat() = when (this) {
     Sak.KunneIkkeOppretteRevurdering.FantIkkeAktørId -> {
         fantIkkeAktørId
     }
+
     Sak.KunneIkkeOppretteRevurdering.HarÅpenBehandling -> {
         harAlleredeÅpenBehandling
     }
+
     Sak.KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave -> {
         kunneIkkeOppretteOppgave
     }
+
     is Sak.KunneIkkeOppretteRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode -> {
         uteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(this.periode)
     }
+
     is Sak.KunneIkkeOppretteRevurdering.GjeldendeVedtaksdataKanIkkeRevurderes -> {
         this.feil.tilResultat()
     }
+
     is Sak.KunneIkkeOppretteRevurdering.OpphørteVilkårMåRevurderes -> {
         this.feil.tilResultat()
     }
@@ -123,6 +123,7 @@ internal fun Sak.KunneIkkeHenteGjeldendeVedtaksdata.tilResultat() = when (this) 
     is Sak.KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes -> {
         fantIngenVedtakSomKanRevurderes
     }
+
     is Sak.KunneIkkeHenteGjeldendeVedtaksdata.UgyldigPeriode -> {
         ugyldigPeriode(this.feil)
     }

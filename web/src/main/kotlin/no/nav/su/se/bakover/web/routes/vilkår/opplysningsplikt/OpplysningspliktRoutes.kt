@@ -7,8 +7,10 @@ import io.ktor.server.application.call
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.Brukerrolle
+import no.nav.su.se.bakover.common.infrastructure.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
+import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.serialize
@@ -41,28 +43,21 @@ internal fun Route.opplysningspliktRoutes(
                         is LeggTilOpplysningspliktRequest.Revurdering -> {
                             revurderingService.leggTilOpplysningspliktVilkår(request)
                                 .fold(
+                                    { it.tilResultat() },
                                     {
-                                        it.tilResultat()
-                                    },
-                                    {
-                                        Resultat.json(
-                                            HttpStatusCode.Created,
-                                            serialize(it.toJson(satsFactory)),
-                                        )
+                                        call.audit(it.revurdering.fnr, AuditLogEvent.Action.UPDATE, it.revurdering.id)
+                                        Resultat.json(HttpStatusCode.Created, serialize(it.toJson(satsFactory)))
                                     },
                                 )
                         }
+
                         is LeggTilOpplysningspliktRequest.Søknadsbehandling -> {
                             søknadsbehandlingService.leggTilOpplysningspliktVilkår(request)
                                 .fold(
+                                    { it.tilResultat() },
                                     {
-                                        it.tilResultat()
-                                    },
-                                    {
-                                        Resultat.json(
-                                            HttpStatusCode.Created,
-                                            serialize(it.toJson(satsFactory)),
-                                        )
+                                        call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
+                                        Resultat.json(HttpStatusCode.Created, serialize(it.toJson(satsFactory)))
                                     },
                                 )
                         }
@@ -78,31 +73,37 @@ internal fun KunneIkkeLeggeTilOpplysningsplikt.tilResultat(): Resultat {
         is KunneIkkeLeggeTilOpplysningsplikt.FantIkkeBehandling -> {
             Feilresponser.fantIkkeBehandling
         }
+
         is KunneIkkeLeggeTilOpplysningsplikt.UgyldigOpplysningspliktVilkår -> {
             when (this.feil) {
                 KunneIkkeLageOpplysningspliktVilkår.OverlappendeVurderingsperioder -> {
                     Feilresponser.overlappendeVurderingsperioder
                 }
+
                 KunneIkkeLageOpplysningspliktVilkår.Vurderingsperiode.PeriodeForGrunnlagOgVurderingErForskjellig -> {
                     Feilresponser.periodeForGrunnlagOgVurderingErForskjellig
                 }
             }
         }
+
         is KunneIkkeLeggeTilOpplysningsplikt.Revurdering -> {
             when (val feil = this.feil) {
                 Revurdering.KunneIkkeLeggeTilOpplysningsplikt.HeleBehandlingsperiodenErIkkeVurdert -> {
                     Feilresponser.vilkårMåVurderesForHeleBehandlingsperioden
                 }
+
                 is Revurdering.KunneIkkeLeggeTilOpplysningsplikt.UgyldigTilstand -> {
                     Feilresponser.ugyldigTilstand(feil.fra, feil.til)
                 }
             }
         }
+
         is KunneIkkeLeggeTilOpplysningsplikt.Søknadsbehandling -> {
             when (val feil = this.feil) {
                 KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt.HeleBehandlingsperiodenErIkkeVurdert -> {
                     Feilresponser.vilkårMåVurderesForHeleBehandlingsperioden
                 }
+
                 is KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt.UgyldigTilstand -> {
                     Feilresponser.ugyldigTilstand(feil.fra, feil.til)
                 }
@@ -123,6 +124,7 @@ private class LeggTilOpplysningspliktVilkårBody private constructor(
                     Behandlingstype.SØKNADSBEHANDLING -> {
                         LeggTilOpplysningspliktRequest.Søknadsbehandling(id, it)
                     }
+
                     Behandlingstype.REVURDERING -> {
                         LeggTilOpplysningspliktRequest.Revurdering(id, it)
                     }

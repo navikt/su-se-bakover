@@ -196,6 +196,7 @@ internal fun Route.søknadsbehandlingRoutes(
                                     },
                                 )
                             }.map {
+                                call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                                 call.svar(Created.jsonBody(it, satsFactory))
                             }
                         }

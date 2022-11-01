@@ -78,11 +78,7 @@ internal fun Route.søknadRoutes(
                                 .fold(
                                     { call.svar(it.tilResultat(type)) },
                                     { (saksnummer, søknad) ->
-                                        call.audit(
-                                            søknad.fnr,
-                                            AuditLogEvent.Action.CREATE,
-                                            null,
-                                        )
+                                        call.audit(søknad.fnr, AuditLogEvent.Action.CREATE, null)
                                         call.sikkerlogg("Lagrer søknad ${søknad.id} på sak ${søknad.sakId}")
                                         SuMetrics.søknadMottatt(
                                             if (søknad.søknadInnhold.forNav is ForNav.Papirsøknad) {
@@ -212,6 +208,7 @@ internal fun Route.søknadRoutes(
                             },
                         )
                     }.map {
+                        call.audit(it.fnr, AuditLogEvent.Action.UPDATE, søknadId)
                         call.svar(Resultat.json(OK, serialize(it.toJson(clock, satsFactory))))
                     }
                 }

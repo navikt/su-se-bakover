@@ -49,19 +49,13 @@ internal fun Route.avsluttRevurderingRoute(
                             begrunnelse = body.begrunnelse,
                             brevvalg = brevvalg,
                             saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
-                        ).mapLeft {
-                            it.tilResultat()
-                        }
+                        ).mapLeft { it.tilResultat() }
                     }.fold(
                         ifLeft = { call.svar(it) },
                         ifRight = {
+                            call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                             call.sikkerlogg("Avsluttet behandling av revurdering med revurderingId $revurderingId")
-                            call.svar(
-                                Resultat.json(
-                                    HttpStatusCode.OK,
-                                    serialize(it.toJson(satsFactory)),
-                                ),
-                            )
+                            call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(satsFactory))))
                         },
                     )
                 }
@@ -110,6 +104,7 @@ private fun KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.tilResultat(): Res
             "Revurderingen er ikke forhåndsvarslet for å vise brev",
             "revurdering_er_ikke_forhåndsvarslet_for_å_vise_brev",
         )
+
         KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.FantIkkePerson -> Feilresponser.fantIkkePerson
         KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeFinneGjeldendeUtbetaling -> Feilresponser.fantIkkeGjeldendeUtbetaling
         KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeGenererePDF -> Feilresponser.Brev.kunneIkkeGenerereBrev
@@ -136,6 +131,7 @@ internal fun KunneIkkeLageAvsluttetRevurdering.tilResultat(): Resultat {
             "Revurderingen er til attestering",
             "revurdering_er_til_attestering",
         )
+
         KunneIkkeLageAvsluttetRevurdering.BrevvalgUtenForhåndsvarsel -> brevvalgIkkeTillatt // TODO jah: endre i frontend og
         KunneIkkeLageAvsluttetRevurdering.ManglerBrevvalgVedForhåndsvarsling -> manglerBrevvalg // TODO jah: endre i frontend og
     }

@@ -54,8 +54,6 @@ internal fun Route.oppdaterRevurderingRoute(
         authorize(Brukerrolle.Saksbehandler) {
             call.withRevurderingId { revurderingId ->
                 call.withBody<Body> { body ->
-                    val navIdent = call.suUserContext.navIdent
-
                     revurderingService.oppdaterRevurdering(
                         OppdaterRevurderingRequest(
                             revurderingId = revurderingId,
@@ -65,7 +63,7 @@ internal fun Route.oppdaterRevurderingRoute(
                             ),
                             årsak = body.årsak,
                             begrunnelse = body.begrunnelse,
-                            saksbehandler = NavIdentBruker.Saksbehandler(navIdent),
+                            saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                             informasjonSomRevurderes = body.informasjonSomRevurderes,
                         ),
                     ).fold(
@@ -73,12 +71,7 @@ internal fun Route.oppdaterRevurderingRoute(
                         ifRight = {
                             call.sikkerlogg("Oppdaterte perioden på revurdering med id: $revurderingId")
                             call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
-                            call.svar(
-                                Resultat.json(
-                                    HttpStatusCode.OK,
-                                    serialize(it.toJson(satsFactory)),
-                                ),
-                            )
+                            call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(satsFactory))))
                         },
                     )
                 }
@@ -92,23 +85,29 @@ private fun KunneIkkeOppdatereRevurdering.tilResultat(): Resultat {
         KunneIkkeOppdatereRevurdering.UgyldigBegrunnelse -> {
             begrunnelseKanIkkeVæreTom
         }
+
         KunneIkkeOppdatereRevurdering.UgyldigÅrsak -> {
             ugyldigÅrsak
         }
+
         KunneIkkeOppdatereRevurdering.MåVelgeInformasjonSomSkalRevurderes -> {
             måVelgeInformasjonSomRevurderes
         }
+
         is KunneIkkeOppdatereRevurdering.FeilVedOppdateringAvRevurdering -> {
             when (val inner = this.feil) {
                 Sak.KunneIkkeOppdatereRevurdering.FantIkkeRevurdering -> {
                     fantIkkeRevurdering
                 }
+
                 Sak.KunneIkkeOppdatereRevurdering.FantIkkeSak -> {
                     fantIkkeSak
                 }
+
                 is Sak.KunneIkkeOppdatereRevurdering.GjeldendeVedtaksdataKanIkkeRevurderes -> {
                     inner.feil.tilResultat()
                 }
+
                 is Sak.KunneIkkeOppdatereRevurdering.KunneIkkeOppdatere -> {
                     when (val nested = inner.feil) {
                         Revurdering.KunneIkkeOppdatereRevurdering.KanIkkeEndreÅrsakTilReguleringVedForhåndsvarsletRevurdering -> {
@@ -117,11 +116,13 @@ private fun KunneIkkeOppdatereRevurdering.tilResultat(): Resultat {
                                 "kan_ikke_oppdatere_revurdering_med_årsak_reguler_grunnbeløp_som_er_forhåndsvarslet",
                             )
                         }
+
                         is Revurdering.KunneIkkeOppdatereRevurdering.UgyldigTilstand -> {
                             Feilresponser.ugyldigTilstand(nested.fra, nested.til)
                         }
                     }
                 }
+
                 is Sak.KunneIkkeOppdatereRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode -> {
                     uteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(inner.periode)
                 }
@@ -139,6 +140,7 @@ internal fun Sak.OpphørtVilkårMåRevurderes.tilResultat(): Resultat {
         Sak.OpphørtVilkårMåRevurderes.FormueSomFørerTilOpphørMåRevurderes -> {
             formueSomFørerTilOpphørMåRevurderes
         }
+
         Sak.OpphørtVilkårMåRevurderes.UtenlandsoppholdSomFørerTilOpphørMåRevurderes -> {
             utenlandsoppholdSomFørerTilOpphørMåRevurderes
         }
@@ -150,6 +152,7 @@ internal fun Sak.GjeldendeVedtaksdataErUgyldigForRevurdering.tilResultat(): Resu
         Sak.GjeldendeVedtaksdataErUgyldigForRevurdering.FantIngenVedtakSomKanRevurderes -> {
             fantIngenVedtakSomKanRevurderes
         }
+
         Sak.GjeldendeVedtaksdataErUgyldigForRevurdering.HeleRevurderingsperiodenInneholderIkkeVedtak -> {
             heleRevurderingsperiodenInneholderIkkeVedtak
         }

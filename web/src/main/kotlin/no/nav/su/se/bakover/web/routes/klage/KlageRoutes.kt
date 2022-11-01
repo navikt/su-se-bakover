@@ -18,6 +18,7 @@ import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
+import no.nav.su.se.bakover.common.infrastructure.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.Brev.kunneIkkeGenerereBrev
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.attestantOgSaksbehandlerKanIkkeVæreSammePerson
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeKlage
@@ -30,6 +31,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.feilVedHenti
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.kunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
+import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
@@ -99,6 +101,7 @@ internal fun Route.klageRoutes(
                             clock = clock,
                         ),
                     ).map {
+                        call.audit(it.fnr, AuditLogEvent.Action.CREATE, it.id)
                         Resultat.json(HttpStatusCode.Created, serialize(it.toJson()))
                     }.getOrHandle {
                         when (it) {
@@ -157,6 +160,7 @@ internal fun Route.klageRoutes(
                             begrunnelse = "",
                         ),
                     ).map {
+                        call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                         Resultat.json(OK, serialize(it.toJson()))
                     }.getOrHandle {
                         when (it) {
@@ -182,6 +186,7 @@ internal fun Route.klageRoutes(
                     klageId = klageId,
                     saksbehandler = call.suUserContext.saksbehandler,
                 ).map {
+                    call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                     Resultat.json(OK, serialize(it.toJson()))
                 }.getOrHandle {
                     return@getOrHandle when (it) {
@@ -204,6 +209,7 @@ internal fun Route.klageRoutes(
                         saksbehandler = call.suUserContext.saksbehandler,
                         fritekst = body.fritekst,
                     ).map {
+                        call.audit(it.fnr, AuditLogEvent.Action.ACCESS, it.id)
                         call.svar(Resultat.json(OK, serialize(it.toJson())))
                     }.mapLeft {
                         val error = when (it) {
@@ -287,6 +293,7 @@ internal fun Route.klageRoutes(
                             saksbehandler = call.suUserContext.saksbehandler,
                         ),
                     ).map { vurdertKlage ->
+                        call.audit(vurdertKlage.fnr, AuditLogEvent.Action.UPDATE, vurdertKlage.id)
                         Resultat.json(OK, serialize(vurdertKlage.toJson()))
                     }.getOrHandle { error ->
                         error.tilResultat()
@@ -304,6 +311,7 @@ internal fun Route.klageRoutes(
                     klageId = klageId,
                     saksbehandler = call.suUserContext.saksbehandler,
                 ).map {
+                    call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                     call.svar(Resultat.json(OK, serialize(it.toJson())))
                 }.mapLeft {
                     call.svar(
@@ -321,6 +329,7 @@ internal fun Route.klageRoutes(
         authorize(Brukerrolle.Saksbehandler) {
             call.withKlageId { klageId ->
                 klageService.sendTilAttestering(klageId, call.suUserContext.saksbehandler).map {
+                    call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                     call.svar(Resultat.json(OK, serialize(it.toJson())))
                 }.mapLeft {
                     call.svar(
@@ -367,6 +376,7 @@ internal fun Route.klageRoutes(
                 call.withBody<Body> { body ->
                     body.toRequest(klageId, call.suUserContext.attestant).map {
                         klageService.underkjenn(it).map { vurdertKlage ->
+                            call.audit(vurdertKlage.fnr, AuditLogEvent.Action.UPDATE, vurdertKlage.id)
                             call.svar(Resultat.json(OK, serialize(vurdertKlage.toJson())))
                         }.mapLeft { error ->
                             call.svar(
@@ -395,6 +405,7 @@ internal fun Route.klageRoutes(
                         call.suUserContext.navIdent,
                     ),
                 ).map {
+                    call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                     call.svar(Resultat.json(OK, serialize(it.toJson())))
                 }.mapLeft {
                     call.svar(
@@ -428,6 +439,7 @@ internal fun Route.klageRoutes(
                         call.suUserContext.navIdent,
                     ),
                 ).map {
+                    call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                     call.svar(Resultat.json(OK, serialize(it.toJson())))
                 }.mapLeft {
                     when (it) {
@@ -456,6 +468,7 @@ internal fun Route.klageRoutes(
                         saksbehandler = call.suUserContext.saksbehandler,
                         begrunnelse = body.begrunnelse,
                     ).map {
+                        call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                         call.svar(Resultat.json(OK, serialize(it.toJson())))
                     }.mapLeft {
                         call.svar(

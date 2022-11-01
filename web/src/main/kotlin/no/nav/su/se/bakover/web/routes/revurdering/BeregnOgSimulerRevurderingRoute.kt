@@ -50,12 +50,7 @@ internal fun Route.beregnOgSimulerRevurdering(
                     }.map { response ->
                         call.sikkerlogg("Beregnet og simulert revurdering ${response.revurdering.id} på sak med id $sakId")
                         call.audit(response.revurdering.fnr, AuditLogEvent.Action.UPDATE, response.revurdering.id)
-                        call.svar(
-                            Resultat.json(
-                                HttpStatusCode.Created,
-                                serialize(response.toJson(satsFactory)),
-                            ),
-                        )
+                        call.svar(Resultat.json(HttpStatusCode.Created, serialize(response.toJson(satsFactory))))
                     }
                 }
             }

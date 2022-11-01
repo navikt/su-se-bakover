@@ -44,12 +44,7 @@ internal fun Route.oppdaterTilbakekrevingsbehandlingRoute(
                         ifRight = {
                             call.sikkerlogg("Oppdatert tilbakekrevingsbehandling for $revurderingId")
                             call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
-                            call.svar(
-                                Resultat.json(
-                                    HttpStatusCode.OK,
-                                    serialize(it.toJson(satsFactory)),
-                                ),
-                            )
+                            call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(satsFactory))))
                         },
                     )
                 }
@@ -63,6 +58,7 @@ internal fun KunneIkkeOppdatereTilbakekrevingsbehandling.tilResultat(): Resultat
         is KunneIkkeOppdatereTilbakekrevingsbehandling.FantIkkeRevurdering -> {
             Revurderingsfeilresponser.fantIkkeRevurdering
         }
+
         is KunneIkkeOppdatereTilbakekrevingsbehandling.UgyldigTilstand -> {
             HttpStatusCode.BadRequest.errorJson(
                 "Ugyldig tilstand for oppdatering av tilbakekrevingsbehandling",

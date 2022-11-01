@@ -12,8 +12,10 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.infrastructure.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
+import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
 import no.nav.su.se.bakover.common.infrastructure.web.svar
@@ -64,28 +66,25 @@ internal fun Route.leggTilFradragRevurdering(
                         call.svar(
                             body.toDomain(clock).flatMap { fradrag ->
                                 revurderingService.leggTilFradragsgrunnlag(
-                                    LeggTilFradragsgrunnlagRequest(
-                                        revurderingId,
-                                        fradrag,
-                                    ),
+                                    LeggTilFradragsgrunnlagRequest(revurderingId, fradrag),
                                 ).mapLeft {
                                     when (it) {
                                         KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling -> {
                                             Revurderingsfeilresponser.fantIkkeRevurdering
                                         }
+
                                         is KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand -> {
                                             Feilresponser.ugyldigTilstand(fra = it.fra, til = it.til)
                                         }
+
                                         is KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag -> {
                                             it.feil.tilResultat()
                                         }
                                     }
                                 }.map {
+                                    call.audit(it.revurdering.fnr, AuditLogEvent.Action.UPDATE, it.revurdering.id)
                                     call.sikkerlogg("Lagret fradrag for revudering $revurderingId på $sakId")
-                                    Resultat.json(
-                                        HttpStatusCode.OK,
-                                        serialize(it.toJson(satsFactory)),
-                                    )
+                                    Resultat.json(HttpStatusCode.OK, serialize(it.toJson(satsFactory)))
                                 }
                             }.getOrHandle { it },
                         )

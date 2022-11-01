@@ -11,10 +11,12 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.infrastructure.audit.AuditLogEvent
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeBehandling
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.utenforBehandlingsperioden
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
+import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
@@ -86,15 +88,11 @@ internal fun Route.leggTilGrunnlagFradrag(
                         call.svar(
                             body.toCommand(behandlingId, clock).flatMap { command ->
                                 behandlingService.leggTilFradragsgrunnlag(command)
-                                    .mapLeft {
-                                        it.tilResultat()
-                                    }
+                                    .mapLeft { it.tilResultat() }
                                     .map {
+                                        call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                                         call.sikkerlogg("Lagret fradrag for behandling $behandlingId på $sakId")
-                                        Resultat.json(
-                                            HttpStatusCode.Created,
-                                            serialize(it.toJson(satsFactory)),
-                                        )
+                                        Resultat.json(HttpStatusCode.Created, serialize(it.toJson(satsFactory)))
                                     }
                             }.getOrHandle { it },
                         )
@@ -110,12 +108,15 @@ internal fun KunneIkkeLeggeTilFradragsgrunnlag.tilResultat(): Resultat {
         KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling -> {
             fantIkkeBehandling
         }
+
         KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInnenforBehandlingsperioden -> {
             utenforBehandlingsperioden
         }
+
         is KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand -> {
             Behandlingsfeilresponser.ugyldigTilstand(fra = this.fra)
         }
+
         is KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag -> {
             Feilresponser.kunneIkkeLeggeTilFradragsgrunnlag
         }
