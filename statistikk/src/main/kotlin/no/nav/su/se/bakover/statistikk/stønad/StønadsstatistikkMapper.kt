@@ -25,7 +25,6 @@ import no.nav.su.se.bakover.statistikk.StønadsklassifiseringDto.Companion.støn
 import no.nav.su.se.bakover.statistikk.ValidertStatistikkJsonMelding
 import org.slf4j.LoggerFactory
 import java.time.Clock
-import java.time.LocalDate
 import kotlin.math.roundToInt
 
 private val log = LoggerFactory.getLogger("StønadsstatistikkMapper.kt")
@@ -34,16 +33,14 @@ private val stønadSchema: JsonSchema = SchemaValidator.createSchema("/statistik
 
 internal fun StatistikkEvent.Stønadsvedtak.toStønadstatistikkDto(
     aktørId: AktørId,
-    ytelseVirkningstidspunkt: LocalDate,
-    sak: Sak,
+    hentSak: () -> Sak,
     clock: Clock,
     gitCommit: GitCommit?,
 ): Either<Set<ValidationMessage>, ValidertStatistikkJsonMelding> {
     return toDto(
         vedtak = this.vedtak,
         aktørId = aktørId,
-        ytelseVirkningstidspunkt = ytelseVirkningstidspunkt,
-        sak = sak,
+        hentSak = hentSak,
         clock = clock,
         gitCommit = gitCommit,
         funksjonellTid = this.vedtak.opprettet,
@@ -62,12 +59,12 @@ internal fun StatistikkEvent.Stønadsvedtak.toStønadstatistikkDto(
 private fun toDto(
     vedtak: VedtakSomKanRevurderes.EndringIYtelse,
     aktørId: AktørId,
-    ytelseVirkningstidspunkt: LocalDate,
-    sak: Sak,
+    hentSak: () -> Sak,
     clock: Clock,
     gitCommit: GitCommit?,
     funksjonellTid: Tidspunkt,
 ): StønadstatistikkDto {
+    val sak = hentSak()
     return StønadstatistikkDto(
         funksjonellTid = funksjonellTid,
         tekniskTid = Tidspunkt.now(clock),
@@ -86,7 +83,8 @@ private fun toDto(
             is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering -> StønadstatistikkDto.Vedtaksresultat.REGULERT
         },
         behandlendeEnhetKode = "4815",
-        ytelseVirkningstidspunkt = ytelseVirkningstidspunkt,
+        ytelseVirkningstidspunkt = sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse>()
+            .minOf { it.periode.fraOgMed },
         gjeldendeStonadVirkningstidspunkt = vedtak.behandling.periode.fraOgMed,
         gjeldendeStonadStopptidspunkt = vedtak.behandling.periode.tilOgMed,
         gjeldendeStonadUtbetalingsstart = vedtak.behandling.periode.fraOgMed,
@@ -104,7 +102,7 @@ private fun toDto(
             is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse -> emptyList()
             is VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse -> mapBeregning(
                 vedtak = vedtak,
-                sak = sak,
+                hentSak = { sak },
                 clock = clock,
             )
 
@@ -174,13 +172,13 @@ private fun Beregning?.tilFradragPerMåned(): Map<Måned, List<FradragForMåned>
 
 private fun mapBeregning(
     vedtak: VedtakSomKanRevurderes.EndringIYtelse.GjenopptakAvYtelse,
-    sak: Sak,
+    hentSak: () -> Sak,
     clock: Clock,
 ): List<StønadstatistikkDto.Månedsbeløp> {
     val beregningForMåned = vedtak.periode.måneder()
         .toList()
         .flatMap {
-            val beregning = sak.hentGjeldendeBeregningForEndringIYtelsePåDato(it, clock)!!
+            val beregning = hentSak().hentGjeldendeBeregningForEndringIYtelsePåDato(it, clock)!!
             mapBeregning(vedtak, beregning)
         }
     val gjeldendeBeregningForMåned = beregningForMåned.associateBy { it.måned }

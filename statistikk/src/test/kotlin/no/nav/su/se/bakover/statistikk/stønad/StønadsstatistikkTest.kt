@@ -39,7 +39,6 @@ import org.mockito.kotlin.verify
 import org.skyscreamer.jsonassert.JSONAssert
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
-import java.util.UUID
 
 internal class StønadsstatistikkTest {
 
@@ -50,8 +49,7 @@ internal class StønadsstatistikkTest {
             periode = år(2021),
         )
         assert(
-            sak = sak,
-            event = StatistikkEvent.Stønadsvedtak(vedtak),
+            event = StatistikkEvent.Stønadsvedtak(vedtak) { sak },
             vedtakstype = "STANS",
             vedtaksresultat = "STANSET",
             sakstype = "STANS",
@@ -82,8 +80,7 @@ internal class StønadsstatistikkTest {
             clock = tikkendeFixedClock,
         )
         assert(
-            sak = sak,
-            event = StatistikkEvent.Stønadsvedtak(vedtak),
+            event = StatistikkEvent.Stønadsvedtak(vedtak) { sak },
             vedtakstype = "GJENOPPTAK",
             vedtaksresultat = "GJENOPPTATT",
             sakstype = "GJENOPPTAK",
@@ -138,8 +135,7 @@ internal class StønadsstatistikkTest {
             gjenopptakVedtak = it.second
         }
         assert(
-            sak = sak,
-            event = StatistikkEvent.Stønadsvedtak(gjenopptakVedtak),
+            event = StatistikkEvent.Stønadsvedtak(gjenopptakVedtak) { sak },
             vedtakstype = "GJENOPPTAK",
             vedtaksresultat = "GJENOPPTATT",
             sakstype = "GJENOPPTAK",
@@ -204,8 +200,7 @@ internal class StønadsstatistikkTest {
             gjenopptakVedtak = it.second
         }
         assert(
-            sak = sakOgVedtak.first,
-            event = StatistikkEvent.Stønadsvedtak(gjenopptakVedtak),
+            event = StatistikkEvent.Stønadsvedtak(gjenopptakVedtak) { sakOgVedtak.first },
             vedtakstype = "GJENOPPTAK",
             vedtaksresultat = "GJENOPPTATT",
             sakstype = "GJENOPPTAK",
@@ -241,8 +236,7 @@ internal class StønadsstatistikkTest {
             ),
         )
         assert(
-            sak = sak,
-            event = StatistikkEvent.Stønadsvedtak(regulering),
+            event = StatistikkEvent.Stønadsvedtak(regulering) { sak },
             vedtakstype = "REGULERING",
             vedtaksresultat = "REGULERT",
             sakstype = "REGULERING",
@@ -293,8 +287,7 @@ internal class StønadsstatistikkTest {
             revurderingsperiode = januar(2021),
         )
         assert(
-            sak = sak,
-            event = StatistikkEvent.Stønadsvedtak(regulering),
+            event = StatistikkEvent.Stønadsvedtak(regulering) { sak },
             vedtakstype = "REVURDERING",
             vedtaksresultat = "INNVILGET",
             sakstype = "REVURDERING",
@@ -332,8 +325,7 @@ internal class StønadsstatistikkTest {
             vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag(periode = januar(2021))),
         ).let { (sak, vedtak) -> sak to vedtak as VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering }
         assert(
-            sak = sak,
-            event = StatistikkEvent.Stønadsvedtak(revurdering),
+            event = StatistikkEvent.Stønadsvedtak(revurdering) { sak },
             vedtakstype = "REVURDERING",
             vedtaksresultat = "OPPHØRT",
             sakstype = "REVURDERING",
@@ -352,8 +344,7 @@ internal class StønadsstatistikkTest {
             ),
         )
         assert(
-            sak = sak,
-            event = StatistikkEvent.Stønadsvedtak(søknadsbehandling),
+            event = StatistikkEvent.Stønadsvedtak(søknadsbehandling) { sak },
             vedtakstype = "SØKNAD",
             vedtaksresultat = "INNVILGET",
             sakstype = "SØKNAD",
@@ -382,7 +373,6 @@ internal class StønadsstatistikkTest {
     }
 
     private fun assert(
-        sak: Sak,
         event: StatistikkEvent.Stønadsvedtak,
         vedtakstype: String,
         vedtaksresultat: String,
@@ -399,9 +389,6 @@ internal class StønadsstatistikkTest {
             kafkaPublisher = kafkaPublisherMock,
             personService = mock {
                 on { hentAktørIdMedSystembruker(any()) } doReturn AktørId("55").right()
-            },
-            sakRepo = mock {
-                on { hentSak(any<UUID>()) } doReturn sak
             },
             clock = fixedClock,
             gitCommit = GitCommit("87a3a5155bf00b4d6854efcc24e8b929549c9302"),
