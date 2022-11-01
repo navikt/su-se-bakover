@@ -3,13 +3,11 @@ package no.nav.su.se.bakover.common
 import arrow.core.NonEmptyList
 import arrow.core.toNonEmptyListOrNull
 import no.nav.su.se.bakover.common.periode.Periode
-import org.slf4j.MDC
 import java.lang.Double.max
 import java.lang.Double.min
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
-import java.util.UUID
 
 fun Double.positiveOrZero(): Double = max(0.0, this)
 fun Double.limitedUpwardsTo(limit: Double): Double = min(limit, this)
@@ -29,26 +27,6 @@ fun <A, B> Pair<A, A>.mapBoth(f: (A) -> B): Pair<B, B> =
 
 fun <FIRST, SECOND, MAP_SECOND_TO> Pair<FIRST, SECOND>.mapSecond(f: (SECOND) -> MAP_SECOND_TO) =
     Pair(first, f(second))
-
-/**
- * Henter `X-Correlation-ID` fra MDC
- */
-fun getCorrelationId(): CorrelationId? {
-    return MDC.get("X-Correlation-ID")?.let { CorrelationId(it) } ?: null.also {
-        log.error(
-            "Mangler 'X-Correlation-ID' på MDC. Er dette et asynk-kall? Da må det settes manuelt, så tidlig som mulig.",
-            RuntimeException("Genererer en stacktrace for enklere debugging."),
-        )
-    }
-}
-
-/**
- * Henter en CorrelationId eller genererer en ny tilfeldig hver gang denne funksjonen kalles.
- */
-fun getOrCreateCorrelationId(): String {
-    // TODO jah: Bytt til CorrelationId for de andre som bruker denne typen og.
-    return getCorrelationId()?.toString() ?: UUID.randomUUID().toString()
-}
 
 fun String.trimWhitespace(): String {
     return this.filterNot { it.isWhitespace() }

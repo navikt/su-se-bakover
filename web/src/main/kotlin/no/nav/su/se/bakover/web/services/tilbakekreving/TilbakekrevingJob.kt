@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.services.tilbakekreving
 
 import arrow.core.Either
 import arrow.core.getOrHandle
+import no.nav.su.se.bakover.common.CorrelationId.Companion.withCorrelationId
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.web.services.RunCheckFactory
 import no.nav.su.se.bakover.web.services.shouldRun
@@ -34,9 +35,11 @@ internal class TilbakekrevingJob(
                 runCheckFactory.leaderPod(),
             ).shouldRun().ifTrue {
                 Either.catch {
-                    tilbakekrevingService.sendTilbakekrevingsvedtak() { råttKravgrunnlag ->
-                        TilbakekrevingsmeldingMapper.toKravgrunnlg(råttKravgrunnlag)
-                            .getOrHandle { throw it }
+                    withCorrelationId {
+                        tilbakekrevingService.sendTilbakekrevingsvedtak() { råttKravgrunnlag ->
+                            TilbakekrevingsmeldingMapper.toKravgrunnlg(råttKravgrunnlag)
+                                .getOrHandle { throw it }
+                        }
                     }
                 }.mapLeft {
                     log.error("Skeduleringsjobb '$jobName' feilet med stacktrace:", it)

@@ -8,8 +8,8 @@ import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpGet
 import no.nav.su.se.bakover.client.azure.AzureAd
 import no.nav.su.se.bakover.common.ApplicationConfig
+import no.nav.su.se.bakover.common.CorrelationId.Companion.getOrCreateCorrelationIdFromThreadLocal
 import no.nav.su.se.bakover.common.Fnr
-import no.nav.su.se.bakover.common.getOrCreateCorrelationId
 import no.nav.su.se.bakover.common.objectMapper
 import org.slf4j.LoggerFactory
 
@@ -28,7 +28,7 @@ class KontaktOgReservasjonsregisterClient(
         val (_, response, result) = "${config.url}$personPath".httpGet()
             .authentication().bearer(azure.getSystemToken(config.appId))
             .header("Accept", "application/json")
-            .header("Nav-Call-Id", getOrCreateCorrelationId())
+            .header("Nav-Call-Id", getOrCreateCorrelationIdFromThreadLocal())
             .header("Nav-Personident", fnr.toString())
             .responseString()
 

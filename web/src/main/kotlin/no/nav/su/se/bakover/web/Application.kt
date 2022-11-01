@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.client.ProdClientsBuilder
 import no.nav.su.se.bakover.client.StubClientsBuilder
 import no.nav.su.se.bakover.client.UnleashBuilder
 import no.nav.su.se.bakover.common.ApplicationConfig
+import no.nav.su.se.bakover.common.CorrelationIdHeader
 import no.nav.su.se.bakover.common.JmsConfig
 import no.nav.su.se.bakover.common.UgyldigFnrException
 import no.nav.su.se.bakover.common.audit.infrastructure.CefAuditLogger
@@ -235,7 +236,7 @@ fun Application.susebakover(
 
             return@filter true
         }
-        callIdMdc("X-Correlation-ID")
+        callIdMdc(CorrelationIdHeader)
 
         mdc("Authorization") { it.authHeader() }
         disableDefaultColors()

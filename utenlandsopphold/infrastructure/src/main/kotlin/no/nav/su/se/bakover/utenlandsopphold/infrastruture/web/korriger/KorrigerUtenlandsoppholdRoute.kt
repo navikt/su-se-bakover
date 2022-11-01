@@ -5,7 +5,7 @@ import io.ktor.server.application.call
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.put
 import no.nav.su.se.bakover.common.Brukerrolle
-import no.nav.su.se.bakover.common.getCorrelationId
+import no.nav.su.se.bakover.common.CorrelationId.Companion.getOrCreateCorrelationIdFromThreadLocal
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
@@ -35,7 +35,7 @@ fun Route.korrigerUtenlandsoppholdRoute(
                             json.toCommand(
                                 sakId = sakId,
                                 opprettetAv = call.suUserContext.saksbehandler,
-                                correlationId = getCorrelationId()!!,
+                                correlationId = getOrCreateCorrelationIdFromThreadLocal(),
                                 brukerroller = call.suUserContext.roller,
                                 korrigererVersjon = versjon,
                             ),

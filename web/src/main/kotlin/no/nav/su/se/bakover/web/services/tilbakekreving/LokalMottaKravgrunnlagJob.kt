@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.services.tilbakekreving
 import arrow.core.Either
 import arrow.core.getOrHandle
 import no.nav.su.se.bakover.client.oppdrag.toOppdragTimestamp
+import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
@@ -41,22 +42,26 @@ internal class LokalMottaKravgrunnlagJob(
             period = intervall.toMillis(),
         ) {
             Either.catch {
-                tilbakekrevingService.hentAvventerKravgrunnlag()
-                    .map {
-                        vedtakService.hentForRevurderingId(it.avgjort.revurderingId)!!.let { vedtak ->
-                            when (vedtak) {
-                                is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering -> {
-                                    kravgrunnlag(vedtak)
+                CorrelationId.withCorrelationId {
+                    tilbakekrevingService.hentAvventerKravgrunnlag()
+                        .map {
+                            vedtakService.hentForRevurderingId(it.avgjort.revurderingId)!!.let { vedtak ->
+                                when (vedtak) {
+                                    is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering -> {
+                                        kravgrunnlag(vedtak)
+                                    }
+
+                                    is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering -> {
+                                        kravgrunnlag(vedtak)
+                                    }
+
+                                    else -> throw IllegalStateException("Tilbakekrevingsbehandling er kun relevant for innvilget og opphørt revurdering")
                                 }
-                                is VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering -> {
-                                    kravgrunnlag(vedtak)
-                                }
-                                else -> throw IllegalStateException("Tilbakekrevingsbehandling er kun relevant for innvilget og opphørt revurdering")
                             }
+                        }.forEach {
+                            tilbakekrevingConsumer.onMessage(it)
                         }
-                    }.forEach {
-                        tilbakekrevingConsumer.onMessage(it)
-                    }
+                }
             }.mapLeft {
                 log.error("Skeduleringsjobb '$jobName' feilet med stacktrace:", it)
             }
