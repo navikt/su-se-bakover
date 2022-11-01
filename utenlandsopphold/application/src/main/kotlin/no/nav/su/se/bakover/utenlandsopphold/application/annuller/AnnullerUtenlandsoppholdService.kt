@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.utenlandsopphold.application.annuller
 
 import arrow.core.Either
+import no.nav.su.se.bakover.common.audit.application.AuditLogger
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.sak.annullerUtenlandsopphold
 import no.nav.su.se.bakover.utenlandsopphold.domain.RegistrerteUtenlandsopphold
@@ -11,6 +12,7 @@ import no.nav.su.se.bakover.utenlandsopphold.domain.annuller.KunneIkkeAnnullereU
 class AnnullerUtenlandsoppholdService(
     private val sakRepo: SakRepo,
     private val utenlandsoppholdRepo: UtenlandsoppholdRepo,
+    private val auditLogger: AuditLogger,
 ) {
     fun annuller(
         command: AnnullerUtenlandsoppholdCommand,
@@ -18,8 +20,9 @@ class AnnullerUtenlandsoppholdService(
         return sakRepo.hentSak(command.sakId)!!.annullerUtenlandsopphold(
             command = command,
             utenlandsoppholdHendelser = utenlandsoppholdRepo.hentForSakId(command.sakId),
-        ).map { (sak, hendelse) ->
+        ).map { (sak, hendelse, auditHendelse) ->
             utenlandsoppholdRepo.lagre(hendelse)
+            auditLogger.log(auditHendelse)
             sak.utenlandsopphold
         }
     }

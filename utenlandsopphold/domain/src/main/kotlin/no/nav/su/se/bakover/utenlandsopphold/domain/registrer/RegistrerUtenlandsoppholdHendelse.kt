@@ -1,8 +1,10 @@
 package no.nav.su.se.bakover.utenlandsopphold.domain.registrer
 
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
+import no.nav.su.se.bakover.common.audit.application.AuditLogEvent
 import no.nav.su.se.bakover.common.periode.DatoIntervall
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
@@ -48,6 +50,17 @@ data class RegistrerUtenlandsoppholdHendelse private constructor(
             endretTidspunkt = hendelsestidspunkt,
             versjon = versjon,
             erAnnullert = false,
+        )
+    }
+
+    fun toAuditEvent(berørtBrukerId: Fnr): AuditLogEvent {
+        return AuditLogEvent(
+            navIdent = this.meta.ident.toString(),
+            berørtBrukerId = berørtBrukerId,
+            action = AuditLogEvent.Action.CREATE,
+            // Et utenlandsopphold er ikke knyttet til en behandling, men en sak.
+            behandlingId = null,
+            callId = this.meta.correlationId?.toString(),
         )
     }
 
@@ -108,14 +121,15 @@ data class RegistrerUtenlandsoppholdHendelse private constructor(
     }
 }
 
-fun RegistrertUtenlandsopphold.leggTil(hendelse: AnnullerUtenlandsoppholdHendelse): RegistrertUtenlandsopphold = RegistrertUtenlandsopphold.create(
-    periode = this.periode,
-    dokumentasjon = this.dokumentasjon,
-    journalposter = this.journalposter,
-    opprettetAv = this.opprettetAv,
-    opprettetTidspunkt = this.opprettetTidspunkt,
-    endretAv = hendelse.utførtAv,
-    endretTidspunkt = hendelse.hendelsestidspunkt,
-    versjon = hendelse.versjon,
-    erAnnullert = true,
-)
+fun RegistrertUtenlandsopphold.leggTil(hendelse: AnnullerUtenlandsoppholdHendelse): RegistrertUtenlandsopphold =
+    RegistrertUtenlandsopphold.create(
+        periode = this.periode,
+        dokumentasjon = this.dokumentasjon,
+        journalposter = this.journalposter,
+        opprettetAv = this.opprettetAv,
+        opprettetTidspunkt = this.opprettetTidspunkt,
+        endretAv = hendelse.utførtAv,
+        endretTidspunkt = hendelse.hendelsestidspunkt,
+        versjon = hendelse.versjon,
+        erAnnullert = true,
+    )

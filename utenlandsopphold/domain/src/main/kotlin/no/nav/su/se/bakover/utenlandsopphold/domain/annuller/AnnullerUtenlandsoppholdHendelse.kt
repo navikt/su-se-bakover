@@ -1,7 +1,9 @@
 package no.nav.su.se.bakover.utenlandsopphold.domain.annuller
 
+import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.audit.application.AuditLogEvent
 import no.nav.su.se.bakover.hendelse.domain.HendelseId
 import no.nav.su.se.bakover.hendelse.domain.HendelseMetadata
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
@@ -77,6 +79,17 @@ data class AnnullerUtenlandsoppholdHendelse private constructor(
                 meta = hendelseMetadata,
             )
         }
+    }
+
+    fun toAuditEvent(berørtBrukerId: Fnr): AuditLogEvent {
+        return AuditLogEvent(
+            navIdent = this.meta.ident.toString(),
+            berørtBrukerId = berørtBrukerId,
+            action = AuditLogEvent.Action.UPDATE,
+            // Et utenlandsopphold er ikke knyttet til en behandling, men en sak.
+            behandlingId = null,
+            callId = this.meta.correlationId?.toString(),
+        )
     }
 }
 

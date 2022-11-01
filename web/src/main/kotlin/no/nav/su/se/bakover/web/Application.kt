@@ -30,6 +30,7 @@ import no.nav.su.se.bakover.client.UnleashBuilder
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.JmsConfig
 import no.nav.su.se.bakover.common.UgyldigFnrException
+import no.nav.su.se.bakover.common.audit.infrastructure.CefAuditLogger
 import no.nav.su.se.bakover.common.infrastructure.web.AzureGroupMapper
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.authHeader
@@ -290,15 +291,18 @@ fun Application.susebakover(
                             sakRepo = databaseRepos.sak,
                             utenlandsoppholdRepo = databaseRepos.utenlandsoppholdRepo,
                             journalpostClient = clients.journalpostClient,
+                            auditLogger = CefAuditLogger,
                         ),
                         korrigerService = KorrigerUtenlandsoppholdService(
                             sakRepo = databaseRepos.sak,
                             utenlandsoppholdRepo = databaseRepos.utenlandsoppholdRepo,
                             journalpostClient = clients.journalpostClient,
+                            auditLogger = CefAuditLogger,
                         ),
                         annullerService = AnnullerUtenlandsoppholdService(
                             sakRepo = databaseRepos.sak,
                             utenlandsoppholdRepo = databaseRepos.utenlandsoppholdRepo,
+                            auditLogger = CefAuditLogger,
                         ),
                     )
                 }

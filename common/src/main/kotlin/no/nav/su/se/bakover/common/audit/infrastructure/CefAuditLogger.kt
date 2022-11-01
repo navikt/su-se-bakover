@@ -1,34 +1,9 @@
-package no.nav.su.se.bakover.common.infrastructure.audit
+package no.nav.su.se.bakover.common.audit.infrastructure
 
-import no.nav.su.se.bakover.common.Fnr
+import no.nav.su.se.bakover.common.audit.application.AuditLogEvent
+import no.nav.su.se.bakover.common.audit.application.AuditLogger
 import no.nav.su.se.bakover.common.auditLogg
 import java.lang.String.join
-import java.util.UUID
-
-data class AuditLogEvent(
-    val navIdent: String,
-    val berørtBrukerId: Fnr,
-    val action: Action,
-    val behandlingId: UUID?,
-    val callId: String?,
-) {
-    /**
-     * Hva slags CRUD-operasjon blir gjort
-     */
-    enum class Action(val value: String) {
-        /** Bruker har sett data. */
-        ACCESS("audit:access"),
-
-        /** Bruker har endret data */
-        UPDATE("audit:update"),
-
-        /** Bruker har lagt inn nye data */
-        CREATE("audit:create"),
-
-        /** Minimalt innsyn, f.eks. ved visning i liste. */
-        SEARCH("audit:search"),
-    }
-}
 
 enum class CefFieldName(val kode: String) {
     /**
@@ -82,10 +57,10 @@ data class CefField(val cefFieldName: CefFieldName, val value: String)
  * flexString2Label=behandlingId flexString2=2dc4c100-395a-4e25-b1e9-6ea52f49b9e1
  * sproc=40e4608e-7157-415d-86c2-697f4c3c7358
  */
-object AuditLogger {
+object CefAuditLogger : AuditLogger {
     private const val applicationName = "su-se-bakover"
 
-    fun log(logEvent: AuditLogEvent) {
+    override fun log(logEvent: AuditLogEvent) {
         auditLogg.info(compileLogMessage(logEvent))
     }
 

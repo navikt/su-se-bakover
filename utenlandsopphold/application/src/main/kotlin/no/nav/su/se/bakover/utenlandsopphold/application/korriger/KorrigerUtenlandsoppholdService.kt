@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.utenlandsopphold.application.korriger
 
 import arrow.core.Either
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
+import no.nav.su.se.bakover.common.audit.application.AuditLogger
 import no.nav.su.se.bakover.domain.journalpost.JournalpostClient
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.sak.Saksnummer
@@ -15,6 +16,7 @@ class KorrigerUtenlandsoppholdService(
     private val sakRepo: SakRepo,
     private val utenlandsoppholdRepo: UtenlandsoppholdRepo,
     private val journalpostClient: JournalpostClient,
+    private val auditLogger: AuditLogger,
 ) {
     fun korriger(
         command: KorrigerUtenlandsoppholdCommand,
@@ -24,8 +26,9 @@ class KorrigerUtenlandsoppholdService(
             utenlandsoppholdHendelser = utenlandsoppholdRepo.hentForSakId(command.sakId),
         ) { j: JournalpostId, s: Saksnummer ->
             journalpostClient.erTilknyttetSak(j, s)
-        }.map { (sak, hendelse) ->
+        }.map { (sak, hendelse, auditHendelse) ->
             utenlandsoppholdRepo.lagre(hendelse)
+            auditLogger.log(auditHendelse)
             sak.utenlandsopphold
         }
     }
