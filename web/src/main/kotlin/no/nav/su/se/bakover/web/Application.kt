@@ -292,17 +292,20 @@ fun Application.susebakover(
                             utenlandsoppholdRepo = databaseRepos.utenlandsoppholdRepo,
                             journalpostClient = clients.journalpostClient,
                             auditLogger = CefAuditLogger,
+                            personService = services.person,
                         ),
                         korrigerService = KorrigerUtenlandsoppholdService(
                             sakRepo = databaseRepos.sak,
                             utenlandsoppholdRepo = databaseRepos.utenlandsoppholdRepo,
                             journalpostClient = clients.journalpostClient,
                             auditLogger = CefAuditLogger,
+                            personService = services.person,
                         ),
                         annullerService = AnnullerUtenlandsoppholdService(
                             sakRepo = databaseRepos.sak,
                             utenlandsoppholdRepo = databaseRepos.utenlandsoppholdRepo,
                             auditLogger = CefAuditLogger,
+                            personService = services.person,
                         ),
                     )
                 }

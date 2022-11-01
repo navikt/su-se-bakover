@@ -4,6 +4,7 @@ import arrow.core.Either
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.common.audit.application.AuditLogger
 import no.nav.su.se.bakover.domain.journalpost.JournalpostClient
+import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.korrigerUtenlandsopphold
@@ -17,11 +18,16 @@ class KorrigerUtenlandsoppholdService(
     private val utenlandsoppholdRepo: UtenlandsoppholdRepo,
     private val journalpostClient: JournalpostClient,
     private val auditLogger: AuditLogger,
+    private val personService: PersonService,
 ) {
     fun korriger(
         command: KorrigerUtenlandsoppholdCommand,
     ): Either<KunneIkkeKorrigereUtenlandsopphold, RegistrerteUtenlandsopphold> {
-        return sakRepo.hentSak(command.sakId)!!.korrigerUtenlandsopphold(
+        return sakRepo.hentSak(command.sakId)!!.also {
+            personService.sjekkTilgangTilPerson(it.fnr).tapLeft {
+                throw IllegalArgumentException("Tilgangssjekk feilet ved korringering av utenlandsopphold. Underliggende feil: $it")
+            }
+        }.korrigerUtenlandsopphold(
             command = command,
             utenlandsoppholdHendelser = utenlandsoppholdRepo.hentForSakId(command.sakId),
         ) { j: JournalpostId, s: Saksnummer ->
