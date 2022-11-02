@@ -136,6 +136,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     oppdatertStønadsperiode = stønadsperiode2021,
                     formuegrenserFactory = formuegrenserFactoryTestPåDato(fixedLocalDate),
                     clock = fixedClock,
+                    saksbehandler = saksbehandler,
                 ).getOrFail(),
             )
 
@@ -166,6 +167,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     begrunnelse = null,
                     clock = fixedClock,
                     satsFactory = satsFactoryTestPåDato(),
+                    nySaksbehandler = saksbehandler,
                 ).getOrFail()
                 .also {
                     repo.lagre(it)
@@ -207,6 +209,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
 
             // Tilbake til vilkårsvurdert
             simulert.leggTilFormuevilkår(
+                saksbehandler = saksbehandler,
                 vilkår = innvilgetFormueVilkår(),
             ).getOrFail().also { vilkårsvurdert ->
                 repo.lagre(vilkårsvurdert)

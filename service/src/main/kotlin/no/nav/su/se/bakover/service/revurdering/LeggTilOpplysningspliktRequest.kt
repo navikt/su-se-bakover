@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.service.revurdering
 
+import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vilkår.KunneIkkeLageOpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
@@ -12,6 +13,7 @@ sealed class LeggTilOpplysningspliktRequest {
     data class Søknadsbehandling(
         override val behandlingId: UUID,
         override val vilkår: OpplysningspliktVilkår.Vurdert,
+        val saksbehandler: NavIdentBruker.Saksbehandler,
     ) : LeggTilOpplysningspliktRequest()
 
     data class Revurdering(

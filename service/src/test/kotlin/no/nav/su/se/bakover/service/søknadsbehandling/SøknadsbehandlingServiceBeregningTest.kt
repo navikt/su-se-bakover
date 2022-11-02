@@ -39,6 +39,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import org.junit.jupiter.api.Test
@@ -69,6 +70,7 @@ class SøknadsbehandlingServiceBeregningTest {
                         ),
                     ),
                 ),
+                saksbehandler = saksbehandler,
             ).getOrFail()
         }
 
@@ -84,6 +86,7 @@ class SøknadsbehandlingServiceBeregningTest {
                 SøknadsbehandlingService.BeregnRequest(
                     behandlingId = vilkårsvurdert.id,
                     begrunnelse = "koko",
+                    saksbehandler = saksbehandler,
                 ),
             ).getOrFail()
 
@@ -125,6 +128,7 @@ class SøknadsbehandlingServiceBeregningTest {
                 SøknadsbehandlingService.BeregnRequest(
                     behandlingId = UUID.randomUUID(),
                     begrunnelse = null,
+                    saksbehandler = saksbehandler,
                 ),
             ) shouldBe SøknadsbehandlingService.KunneIkkeBeregne.FantIkkeBehandling.left()
 
@@ -163,6 +167,7 @@ class SøknadsbehandlingServiceBeregningTest {
                 request = SøknadsbehandlingService.BeregnRequest(
                     behandlingId = vilkårsvurdert.id,
                     begrunnelse = "du skal avkortes",
+                    saksbehandler = saksbehandler,
                 ),
             ).getOrFail()
 
@@ -209,6 +214,7 @@ class SøknadsbehandlingServiceBeregningTest {
                         tilhører = FradragTilhører.BRUKER,
                     ),
                 ),
+                saksbehandler = saksbehandler,
             ).getOrFail()
         }
 
@@ -223,6 +229,7 @@ class SøknadsbehandlingServiceBeregningTest {
                 request = SøknadsbehandlingService.BeregnRequest(
                     behandlingId = vilkårsvurdert.id,
                     begrunnelse = "du skal avkortes",
+                    saksbehandler = saksbehandler,
                 ),
             ).getOrFail()
 
@@ -284,6 +291,7 @@ class SøknadsbehandlingServiceBeregningTest {
                                 ),
                             ),
                         ),
+                        saksbehandler = saksbehandler,
                     ).getOrFail()
                 }
             },
@@ -292,6 +300,7 @@ class SøknadsbehandlingServiceBeregningTest {
                 request = SøknadsbehandlingService.BeregnRequest(
                     behandlingId = UUID.randomUUID(),
                     begrunnelse = "god",
+                    saksbehandler = saksbehandler,
                 ),
             ).getOrFail().let {
                 it.beregning.getMånedsberegninger()

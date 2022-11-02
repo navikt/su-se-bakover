@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
+import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import org.junit.jupiter.api.Test
@@ -54,7 +55,7 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
             fradragsgrunnlag = fradragsgrunnlag,
         )
 
-        val actual = søknadsbehandlingService.leggTilFradragsgrunnlag(request).getOrHandle { fail { "uventet respons" } }
+        val actual = søknadsbehandlingService.leggTilFradragsgrunnlag(request, saksbehandler = saksbehandler).getOrHandle { fail { "uventet respons" } }
 
         actual shouldBe Søknadsbehandling.Vilkårsvurdert.Innvilget(
             id = behandling.id,
@@ -74,6 +75,7 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
             attesteringer = behandling.attesteringer,
             avkorting = behandling.avkorting,
             sakstype = behandling.sakstype,
+            saksbehandler = behandling.saksbehandler,
         )
 
         verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandling.id })
@@ -112,6 +114,7 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
 
         søknadsbehandlingService.leggTilFradragsgrunnlag(
             request,
+            saksbehandler = saksbehandler,
         ) shouldBe SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling.left()
 
         inOrder(
@@ -149,6 +152,7 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
 
         søknadsbehandlingService.leggTilFradragsgrunnlag(
             request,
+            saksbehandler = saksbehandler,
         ) shouldBe SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand(
             fra = uavklart::class,
             til = Søknadsbehandling.Vilkårsvurdert.Innvilget::class,
@@ -189,6 +193,7 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
 
         søknadsbehandlingService.leggTilFradragsgrunnlag(
             request,
+            saksbehandler = saksbehandler,
         ) shouldBe SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInnenforBehandlingsperioden.left()
 
         verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandling.id })

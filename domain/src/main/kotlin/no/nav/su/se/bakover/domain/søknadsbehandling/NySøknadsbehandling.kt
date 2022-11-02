@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling
 
 import no.nav.su.se.bakover.common.Fnr
+import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -17,4 +18,5 @@ data class NySøknadsbehandling(
     val fnr: Fnr,
     val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere,
     val sakstype: Sakstype,
+    val saksbehandler: NavIdentBruker.Saksbehandler,
 )

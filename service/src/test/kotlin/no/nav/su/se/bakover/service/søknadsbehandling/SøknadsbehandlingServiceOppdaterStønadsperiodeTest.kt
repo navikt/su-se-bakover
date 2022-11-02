@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
@@ -39,6 +40,7 @@ internal class SøknadsbehandlingServiceOppdaterStønadsperiodeTest {
                     behandlingId = behandling.id,
                     stønadsperiode = stønadsperiode2021,
                     sakId = sak.id,
+                    saksbehandler = saksbehandler,
                 ),
             ) shouldBe SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeSak.left()
 
@@ -66,6 +68,7 @@ internal class SøknadsbehandlingServiceOppdaterStønadsperiodeTest {
                     behandlingId = vilkårsvurdert.id,
                     stønadsperiode = nyStønadsperiode,
                     sakId = sak.id,
+                    saksbehandler = saksbehandler,
                 ),
             ).getOrFail()
 

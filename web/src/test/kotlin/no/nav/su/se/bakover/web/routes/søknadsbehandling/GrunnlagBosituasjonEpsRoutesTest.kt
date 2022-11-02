@@ -11,6 +11,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.Fnr
+import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.test.generer
@@ -54,7 +55,7 @@ class GrunnlagBosituasjonEpsRoutesTest {
     @Test
     fun `happy case`() {
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
-            on { leggTilBosituasjonEpsgrunnlag(any()) } doReturn søknadsbehandling.right()
+            on { leggTilBosituasjonEpsgrunnlag(any(), any()) } doReturn søknadsbehandling.right()
         }
 
         testApplication {
@@ -74,6 +75,7 @@ class GrunnlagBosituasjonEpsRoutesTest {
                             epsFnr = null,
                         )
                     },
+                    argThat { it shouldBe NavIdentBruker.Saksbehandler("Z990Lokal") },
                 )
                 verifyNoMoreInteractions(søknadsbehandlingServiceMock)
             }
@@ -83,7 +85,7 @@ class GrunnlagBosituasjonEpsRoutesTest {
     @Test
     fun `happy case med eps`() {
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
-            on { leggTilBosituasjonEpsgrunnlag(any()) } doReturn søknadsbehandling.right()
+            on { leggTilBosituasjonEpsgrunnlag(any(), any()) } doReturn søknadsbehandling.right()
         }
 
         testApplication {
@@ -103,6 +105,7 @@ class GrunnlagBosituasjonEpsRoutesTest {
                             epsFnr = fnr,
                         )
                     },
+                    argThat { it shouldBe NavIdentBruker.Saksbehandler("Z990Lokal") },
                 )
                 verifyNoMoreInteractions(søknadsbehandlingServiceMock)
             }
@@ -112,7 +115,7 @@ class GrunnlagBosituasjonEpsRoutesTest {
     @Test
     fun `service finner ikke behandling`() {
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
-            on { leggTilBosituasjonEpsgrunnlag(any()) } doReturn SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.FantIkkeBehandling.left()
+            on { leggTilBosituasjonEpsgrunnlag(any(), any()) } doReturn SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.FantIkkeBehandling.left()
         }
 
         testApplication {
@@ -133,7 +136,7 @@ class GrunnlagBosituasjonEpsRoutesTest {
     @Test
     fun `service klarer ikke hente person i pdl`() {
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
-            on { leggTilBosituasjonEpsgrunnlag(any()) } doReturn SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KlarteIkkeHentePersonIPdl.left()
+            on { leggTilBosituasjonEpsgrunnlag(any(), any()) } doReturn SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KlarteIkkeHentePersonIPdl.left()
         }
 
         testApplication {

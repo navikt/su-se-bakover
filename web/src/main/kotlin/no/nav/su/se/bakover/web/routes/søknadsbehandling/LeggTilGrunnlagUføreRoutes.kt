@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.audit.application.AuditLogEvent
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
+import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
@@ -34,6 +35,7 @@ internal fun Route.leggTilUføregrunnlagRoutes(
                             .flatMap { leggTilUføregrunnlagRequest ->
                                 søknadsbehandlingService.leggTilUførevilkår(
                                     leggTilUføregrunnlagRequest,
+                                    saksbehandler = call.suUserContext.saksbehandler,
                                 ).mapLeft {
                                     it.mapFeil()
                                 }.map {

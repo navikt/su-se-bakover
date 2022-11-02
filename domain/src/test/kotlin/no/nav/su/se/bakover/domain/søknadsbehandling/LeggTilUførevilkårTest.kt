@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.søknadsbehandlingBeregnetAvslag
 import no.nav.su.se.bakover.test.søknadsbehandlingBeregnetInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagMedBeregning
@@ -34,18 +35,21 @@ internal class LeggTilUførevilkårTest {
             uførhet = innvilgetUførevilkår(
                 periode = januar(2020),
             ),
+            saksbehandler = saksbehandler,
         ) shouldBe KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår.VurderingsperiodeUtenforBehandlingsperiode.left()
 
         uavklart.leggTilUførevilkår(
             uførhet = innvilgetUførevilkår(
                 periode = Periode.create(1.januar(2020), 31.januar(2025)),
             ),
+            saksbehandler = saksbehandler,
         ) shouldBe KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår.VurderingsperiodeUtenforBehandlingsperiode.left()
 
         uavklart.leggTilUførevilkår(
             uførhet = innvilgetUførevilkår(
                 periode = uavklart.periode,
             ),
+            saksbehandler = saksbehandler,
         ).isRight() shouldBe true
     }
 
@@ -66,6 +70,7 @@ internal class LeggTilUførevilkårTest {
         }.forEach {
             it.leggTilUførevilkår(
                 uførhet = innvilgetUførevilkår(),
+                saksbehandler = saksbehandler,
             ).let { oppdatert ->
                 oppdatert.isRight() shouldBe true
                 oppdatert.getOrFail() shouldBe beInstanceOf<Søknadsbehandling.Vilkårsvurdert>()
@@ -84,6 +89,7 @@ internal class LeggTilUførevilkårTest {
         }.forEach {
             it.leggTilUførevilkår(
                 uførhet = innvilgetUførevilkår(),
+                saksbehandler = saksbehandler,
             ) shouldBe KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår.UgyldigTilstand(
                 fra = it::class,
                 til = Søknadsbehandling.Vilkårsvurdert::class,

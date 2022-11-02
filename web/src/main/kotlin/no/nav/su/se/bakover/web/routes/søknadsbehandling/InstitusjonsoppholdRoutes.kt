@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.audit.application.AuditLogEvent
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
+import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
@@ -36,6 +37,7 @@ internal fun Route.institusjonsoppholdRoutes(
                                     behandlingId = behandlingId,
                                     vilkår = vilkår,
                                 ),
+                                saksbehandler = call.suUserContext.saksbehandler,
                             ).fold(
                                 { it.tilResultat() },
                                 {

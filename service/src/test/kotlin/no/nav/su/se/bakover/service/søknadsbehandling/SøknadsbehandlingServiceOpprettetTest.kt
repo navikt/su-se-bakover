@@ -204,6 +204,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                 attesteringer = Attesteringshistorikk.empty(),
                 avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke(),
                 sakstype = sak.type,
+                saksbehandler = saksbehandler,
             ),
             // periode er null for Søknadsbehandling.Vilkårsvurdert.Uavklart og vil gi exception dersom man kaller get() på den.
             Søknadsbehandling.Vilkårsvurdert.Uavklart::periode,
@@ -220,6 +221,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                     fnr = søknad.fnr,
                     avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke(),
                     sakstype = sak.type,
+                    saksbehandler = saksbehandler,
                 )
             },
         )
@@ -246,6 +248,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                         attesteringer = Attesteringshistorikk.empty(),
                         avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke(),
                         sakstype = sak.type,
+                        saksbehandler = saksbehandler,
                     ),
                     saksbehandler = saksbehandler,
                 )

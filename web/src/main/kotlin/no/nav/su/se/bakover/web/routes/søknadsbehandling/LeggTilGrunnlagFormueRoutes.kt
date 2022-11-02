@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
+import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
@@ -102,7 +103,7 @@ internal fun Route.leggTilFormueForSøknadsbehandlingRoute(
                         body.toServiceRequest(behandlingId).mapLeft {
                             call.svar(it)
                         }.map { request ->
-                            søknadsbehandlingService.leggTilFormuevilkår(request)
+                            søknadsbehandlingService.leggTilFormuevilkår(request, saksbehandler = call.suUserContext.saksbehandler)
                                 .map {
                                     call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                                     call.sikkerlogg("Lagret formue for revudering $behandlingId på $sakId")

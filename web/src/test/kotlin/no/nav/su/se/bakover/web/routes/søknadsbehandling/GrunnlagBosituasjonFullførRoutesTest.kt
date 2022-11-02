@@ -10,6 +10,7 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.Brukerrolle
+import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.vilkår.BosituasjonValg
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
@@ -54,7 +55,7 @@ class GrunnlagBosituasjonFullførRoutesTest {
     @Test
     fun `happy case deler bolig med voksne`() {
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
-            on { fullførBosituasjongrunnlag(any()) } doReturn søknadsbehandling.right()
+            on { fullførBosituasjongrunnlag(any(), any()) } doReturn søknadsbehandling.right()
         }
 
         testApplication {
@@ -76,6 +77,7 @@ class GrunnlagBosituasjonFullførRoutesTest {
                             bosituasjon = BosituasjonValg.DELER_BOLIG_MED_VOKSNE,
                         )
                     },
+                    argThat { it shouldBe NavIdentBruker.Saksbehandler("Z990Lokal") },
                 )
                 verifyNoMoreInteractions(søknadsbehandlingServiceMock)
             }
@@ -85,7 +87,7 @@ class GrunnlagBosituasjonFullførRoutesTest {
     @Test
     fun `happy case bor alene`() {
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
-            on { fullførBosituasjongrunnlag(any()) } doReturn søknadsbehandling.right()
+            on { fullførBosituasjongrunnlag(any(), any()) } doReturn søknadsbehandling.right()
         }
 
         testApplication {
@@ -107,6 +109,7 @@ class GrunnlagBosituasjonFullførRoutesTest {
                             bosituasjon = BosituasjonValg.BOR_ALENE,
                         )
                     },
+                    argThat { it shouldBe NavIdentBruker.Saksbehandler("Z990Lokal") },
                 )
                 verifyNoMoreInteractions(søknadsbehandlingServiceMock)
             }
@@ -116,7 +119,7 @@ class GrunnlagBosituasjonFullførRoutesTest {
     @Test
     fun `happy case eps ufør flykning`() {
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
-            on { fullførBosituasjongrunnlag(any()) } doReturn søknadsbehandling.right()
+            on { fullførBosituasjongrunnlag(any(), any()) } doReturn søknadsbehandling.right()
         }
 
         testApplication {
@@ -138,6 +141,7 @@ class GrunnlagBosituasjonFullførRoutesTest {
                             bosituasjon = BosituasjonValg.EPS_UFØR_FLYKTNING,
                         )
                     },
+                    argThat { it shouldBe NavIdentBruker.Saksbehandler("Z990Lokal") },
                 )
                 verifyNoMoreInteractions(søknadsbehandlingServiceMock)
             }
@@ -147,7 +151,7 @@ class GrunnlagBosituasjonFullførRoutesTest {
     @Test
     fun `happy case eps ikke ufør flykning`() {
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
-            on { fullførBosituasjongrunnlag(any()) } doReturn søknadsbehandling.right()
+            on { fullførBosituasjongrunnlag(any(), any()) } doReturn søknadsbehandling.right()
         }
 
         testApplication {
@@ -169,6 +173,7 @@ class GrunnlagBosituasjonFullførRoutesTest {
                             bosituasjon = BosituasjonValg.EPS_IKKE_UFØR_FLYKTNING,
                         )
                     },
+                    argThat { it shouldBe NavIdentBruker.Saksbehandler("Z990Lokal") },
                 )
                 verifyNoMoreInteractions(søknadsbehandlingServiceMock)
             }
@@ -178,7 +183,7 @@ class GrunnlagBosituasjonFullførRoutesTest {
     @Test
     fun `happy case eps 67 eller over`() {
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
-            on { fullførBosituasjongrunnlag(any()) } doReturn søknadsbehandling.right()
+            on { fullførBosituasjongrunnlag(any(), any()) } doReturn søknadsbehandling.right()
         }
 
         testApplication {
@@ -200,6 +205,7 @@ class GrunnlagBosituasjonFullførRoutesTest {
                             bosituasjon = BosituasjonValg.EPS_67_ELLER_OVER,
                         )
                     },
+                    argThat { it shouldBe NavIdentBruker.Saksbehandler("Z990Lokal") },
                 )
                 verifyNoMoreInteractions(søknadsbehandlingServiceMock)
             }
@@ -209,7 +215,7 @@ class GrunnlagBosituasjonFullførRoutesTest {
     @Test
     fun `happy case begrunnelse`() {
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
-            on { fullførBosituasjongrunnlag(any()) } doReturn søknadsbehandling.right()
+            on { fullførBosituasjongrunnlag(any(), any()) } doReturn søknadsbehandling.right()
         }
 
         testApplication {
@@ -231,6 +237,7 @@ class GrunnlagBosituasjonFullførRoutesTest {
                             bosituasjon = BosituasjonValg.EPS_67_ELLER_OVER,
                         )
                     },
+                    argThat { it shouldBe NavIdentBruker.Saksbehandler("Z990Lokal") },
                 )
                 verifyNoMoreInteractions(søknadsbehandlingServiceMock)
             }
@@ -240,7 +247,7 @@ class GrunnlagBosituasjonFullførRoutesTest {
     @Test
     fun `service finner ikke behandling`() {
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
-            on { fullførBosituasjongrunnlag(any()) } doReturn SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag.FantIkkeBehandling.left()
+            on { fullførBosituasjongrunnlag(any(), any()) } doReturn SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag.FantIkkeBehandling.left()
         }
 
         testApplication {
@@ -263,7 +270,7 @@ class GrunnlagBosituasjonFullførRoutesTest {
     @Test
     fun `service klarer ikke å lagre bosituasjon`() {
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
-            on { fullførBosituasjongrunnlag(any()) } doReturn SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag.KlarteIkkeLagreBosituasjon.left()
+            on { fullførBosituasjongrunnlag(any(), any()) } doReturn SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag.KlarteIkkeLagreBosituasjon.left()
         }
 
         testApplication {

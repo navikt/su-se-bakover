@@ -59,7 +59,7 @@ internal class LeggTilFamiliegjenforeningRoutesTest {
                 testSusebakover(
                     services = TestServicesBuilder.services(
                         søknadsbehandling = mock {
-                            on { leggTilFamiliegjenforeningvilkår(any()) } doReturn vilkårsvurdert.right()
+                            on { leggTilFamiliegjenforeningvilkår(any(), any()) } doReturn vilkårsvurdert.right()
                         },
                     ),
                 )

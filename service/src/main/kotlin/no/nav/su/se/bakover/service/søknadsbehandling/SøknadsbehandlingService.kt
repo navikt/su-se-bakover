@@ -49,24 +49,75 @@ interface SøknadsbehandlingService {
     fun brev(request: BrevRequest): Either<KunneIkkeLageDokument, ByteArray>
     fun hent(request: HentRequest): Either<FantIkkeBehandling, Søknadsbehandling>
     fun oppdaterStønadsperiode(request: OppdaterStønadsperiodeRequest): Either<KunneIkkeOppdatereStønadsperiode, Søknadsbehandling>
-    fun leggTilUførevilkår(request: LeggTilUførevurderingerRequest): Either<KunneIkkeLeggeTilUføreVilkår, Søknadsbehandling>
-    fun leggTilLovligOpphold(request: LeggTilLovligOppholdRequest): Either<KunneIkkeLeggetilLovligOppholdVilkår, Søknadsbehandling>
-    fun leggTilFamiliegjenforeningvilkår(request: LeggTilFamiliegjenforeningRequest): Either<KunneIkkeLeggeTilFamiliegjenforeningVilkårService, Søknadsbehandling>
-    fun leggTilBosituasjonEpsgrunnlag(request: LeggTilBosituasjonEpsRequest): Either<KunneIkkeLeggeTilBosituasjonEpsGrunnlag, Søknadsbehandling>
-    fun fullførBosituasjongrunnlag(request: FullførBosituasjonRequest): Either<KunneIkkeFullføreBosituasjonGrunnlag, Søknadsbehandling>
-    fun leggTilFradragsgrunnlag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradragsgrunnlag, Søknadsbehandling>
+    fun leggTilUførevilkår(
+        request: LeggTilUførevurderingerRequest,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+    ): Either<KunneIkkeLeggeTilUføreVilkår, Søknadsbehandling>
 
-    fun leggTilFormuevilkår(request: LeggTilFormuevilkårRequest): Either<KunneIkkeLeggeTilFormuegrunnlag, Søknadsbehandling>
+    fun leggTilLovligOpphold(
+        request: LeggTilLovligOppholdRequest,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+    ): Either<KunneIkkeLeggetilLovligOppholdVilkår, Søknadsbehandling>
+
+    fun leggTilFamiliegjenforeningvilkår(
+        request: LeggTilFamiliegjenforeningRequest,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+    ): Either<KunneIkkeLeggeTilFamiliegjenforeningVilkårService, Søknadsbehandling>
+
+    fun leggTilBosituasjonEpsgrunnlag(
+        request: LeggTilBosituasjonEpsRequest,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+    ): Either<KunneIkkeLeggeTilBosituasjonEpsGrunnlag, Søknadsbehandling>
+
+    fun fullførBosituasjongrunnlag(
+        request: FullførBosituasjonRequest,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+    ): Either<KunneIkkeFullføreBosituasjonGrunnlag, Søknadsbehandling>
+
+    fun leggTilFradragsgrunnlag(
+        request: LeggTilFradragsgrunnlagRequest,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+    ): Either<KunneIkkeLeggeTilFradragsgrunnlag, Søknadsbehandling>
+
+    fun leggTilFormuevilkår(
+        request: LeggTilFormuevilkårRequest,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+    ): Either<KunneIkkeLeggeTilFormuegrunnlag, Søknadsbehandling>
+
     fun hentForSøknad(søknadId: UUID): Søknadsbehandling?
     fun persisterSøknadsbehandling(lukketSøknadbehandling: LukketSøknadsbehandling, tx: TransactionContext)
     fun lagre(avslag: AvslagManglendeDokumentasjon, tx: TransactionContext)
-    fun leggTilUtenlandsopphold(request: LeggTilFlereUtenlandsoppholdRequest): Either<KunneIkkeLeggeTilUtenlandsopphold, Søknadsbehandling.Vilkårsvurdert>
+    fun leggTilUtenlandsopphold(
+        request: LeggTilFlereUtenlandsoppholdRequest,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+    ): Either<KunneIkkeLeggeTilUtenlandsopphold, Søknadsbehandling.Vilkårsvurdert>
+
     fun leggTilOpplysningspliktVilkår(request: LeggTilOpplysningspliktRequest.Søknadsbehandling): Either<KunneIkkeLeggeTilOpplysningsplikt, Søknadsbehandling.Vilkårsvurdert>
-    fun leggTilPensjonsVilkår(request: LeggTilPensjonsVilkårRequest): Either<KunneIkkeLeggeTilPensjonsVilkår, Søknadsbehandling.Vilkårsvurdert>
-    fun leggTilFlyktningVilkår(request: LeggTilFlyktningVilkårRequest): Either<KunneIkkeLeggeTilFlyktningVilkår, Søknadsbehandling.Vilkårsvurdert>
-    fun leggTilFastOppholdINorgeVilkår(request: LeggTilFastOppholdINorgeRequest): Either<KunneIkkeLeggeFastOppholdINorgeVilkår, Søknadsbehandling.Vilkårsvurdert>
-    fun leggTilPersonligOppmøteVilkår(request: LeggTilPersonligOppmøteVilkårRequest): Either<KunneIkkeLeggeTilPersonligOppmøteVilkår, Søknadsbehandling.Vilkårsvurdert>
-    fun leggTilInstitusjonsoppholdVilkår(request: LeggTilInstitusjonsoppholdVilkårRequest): Either<KunneIkkeLeggeTilInstitusjonsoppholdVilkår, Søknadsbehandling.Vilkårsvurdert>
+
+    fun leggTilPensjonsVilkår(
+        request: LeggTilPensjonsVilkårRequest,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+    ): Either<KunneIkkeLeggeTilPensjonsVilkår, Søknadsbehandling.Vilkårsvurdert>
+
+    fun leggTilFlyktningVilkår(
+        request: LeggTilFlyktningVilkårRequest,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+    ): Either<KunneIkkeLeggeTilFlyktningVilkår, Søknadsbehandling.Vilkårsvurdert>
+
+    fun leggTilFastOppholdINorgeVilkår(
+        request: LeggTilFastOppholdINorgeRequest,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+    ): Either<KunneIkkeLeggeFastOppholdINorgeVilkår, Søknadsbehandling.Vilkårsvurdert>
+
+    fun leggTilPersonligOppmøteVilkår(
+        request: LeggTilPersonligOppmøteVilkårRequest,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+    ): Either<KunneIkkeLeggeTilPersonligOppmøteVilkår, Søknadsbehandling.Vilkårsvurdert>
+
+    fun leggTilInstitusjonsoppholdVilkår(
+        request: LeggTilInstitusjonsoppholdVilkårRequest,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+    ): Either<KunneIkkeLeggeTilInstitusjonsoppholdVilkår, Søknadsbehandling.Vilkårsvurdert>
 
     data class OpprettRequest(
         val søknadId: UUID,
@@ -86,6 +137,7 @@ interface SøknadsbehandlingService {
     data class BeregnRequest(
         val behandlingId: UUID,
         val begrunnelse: String?,
+        val saksbehandler: NavIdentBruker.Saksbehandler,
     )
 
     sealed class KunneIkkeBeregne {
@@ -179,6 +231,7 @@ interface SøknadsbehandlingService {
         val behandlingId: UUID,
         val stønadsperiode: Stønadsperiode,
         val sakId: UUID,
+        val saksbehandler: NavIdentBruker.Saksbehandler,
     )
 
     sealed class KunneIkkeLeggeTilUføreVilkår {

@@ -91,7 +91,10 @@ internal class LagBrevRequestVisitorTest {
 
     @Test
     fun `responderer med feil dersom vi ikke får til å hente person`() {
-        vilkårsvurdertInnvilget.leggTilInstitusjonsoppholdVilkår(institusjonsoppholdvilkårAvslag()).getOrFail()
+        vilkårsvurdertInnvilget.leggTilInstitusjonsoppholdVilkår(
+            saksbehandler = saksbehandler,
+            institusjonsoppholdvilkårAvslag(),
+        ).getOrFail()
             .let { søknadsbehandling ->
                 LagBrevRequestVisitor(
                     hentPerson = { LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson.left() },
@@ -135,7 +138,10 @@ internal class LagBrevRequestVisitorTest {
         }
 
         assertThrows<LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans> {
-            vilkårsvurdertInnvilget.leggTilInstitusjonsoppholdVilkår(institusjonsoppholdvilkårInnvilget()).getOrFail()
+            vilkårsvurdertInnvilget.leggTilInstitusjonsoppholdVilkår(
+                saksbehandler = saksbehandler,
+                institusjonsoppholdvilkårInnvilget(),
+            ).getOrFail()
                 .let {
                     LagBrevRequestVisitor(
                         hentPerson = { person.right() },
@@ -152,6 +158,7 @@ internal class LagBrevRequestVisitorTest {
     fun `lager request for vilkårsvurdert avslag`() {
         vilkårsvurdertInnvilget.leggTilUførevilkår(
             uførhet = avslåttUførevilkårUtenGrunnlag(),
+            saksbehandler = saksbehandler,
         ).getOrFail().let { søknadsbehandling ->
             LagBrevRequestVisitor(
                 hentPerson = { person.right() },
@@ -196,6 +203,7 @@ internal class LagBrevRequestVisitorTest {
             søknadsbehandlingVilkårsvurdertInnvilget().second
                 .leggTilFormuevilkår(
                     vilkår = formuevilkårAvslåttPgrBrukersformue(),
+                    saksbehandler = saksbehandler,
                 ).getOrFail() as Søknadsbehandling.Vilkårsvurdert.Avslag
         vilkårsvurdertAvslagPgaFormue.let { søknadsbehandling ->
             LagBrevRequestVisitor(
@@ -258,6 +266,7 @@ internal class LagBrevRequestVisitorTest {
             begrunnelse = null,
             clock = fixedClock,
             satsFactory = satsFactoryTestPåDato(),
+            nySaksbehandler = saksbehandler,
         ).getOrFail()
             .let { søknadsbehandling ->
                 LagBrevRequestVisitor(
@@ -299,10 +308,12 @@ internal class LagBrevRequestVisitorTest {
                     ),
                 ),
             ),
+            saksbehandler = saksbehandler,
         ).getOrFail().beregn(
             begrunnelse = null,
             clock = fixedClock,
             satsFactory = satsFactoryTestPåDato(),
+            nySaksbehandler = saksbehandler,
         ).getOrFail().let { søknadsbehandling ->
             LagBrevRequestVisitor(
                 hentPerson = { person.right() },
@@ -372,6 +383,7 @@ internal class LagBrevRequestVisitorTest {
     fun `lager request for avslag til attestering uten beregning`() {
         (
             vilkårsvurdertInnvilget.leggTilInstitusjonsoppholdVilkår(
+                saksbehandler = saksbehandler,
                 institusjonsoppholdvilkårAvslag(),
             ).getOrFail() as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
@@ -423,10 +435,12 @@ internal class LagBrevRequestVisitorTest {
                         ),
                     ),
                 ),
+                saksbehandler = saksbehandler,
             ).getOrFail().beregn(
                 begrunnelse = null,
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(),
+                nySaksbehandler = saksbehandler,
             ).getOrFail() as Søknadsbehandling.Beregnet.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
@@ -492,7 +506,7 @@ internal class LagBrevRequestVisitorTest {
     @Test
     fun `lager request for underkjent avslag uten beregning`() {
         (
-            vilkårsvurdertInnvilget.leggTilInstitusjonsoppholdVilkår(institusjonsoppholdvilkårAvslag())
+            vilkårsvurdertInnvilget.leggTilInstitusjonsoppholdVilkår(saksbehandler = saksbehandler, institusjonsoppholdvilkårAvslag())
                 .getOrFail() as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
@@ -551,10 +565,12 @@ internal class LagBrevRequestVisitorTest {
                         ),
                     ),
                 ),
+                saksbehandler = saksbehandler,
             ).getOrFail().beregn(
                 begrunnelse = null,
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(),
+                nySaksbehandler = saksbehandler,
             ).getOrFail() as Søknadsbehandling.Beregnet.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
@@ -637,7 +653,7 @@ internal class LagBrevRequestVisitorTest {
     @Test
     fun `lager request for iverksatt avslag uten beregning`() {
         (
-            vilkårsvurdertInnvilget.leggTilInstitusjonsoppholdVilkår(institusjonsoppholdvilkårAvslag())
+            vilkårsvurdertInnvilget.leggTilInstitusjonsoppholdVilkår(saksbehandler = saksbehandler, institusjonsoppholdvilkårAvslag())
                 .getOrFail() as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
@@ -691,11 +707,13 @@ internal class LagBrevRequestVisitorTest {
                         ),
                     ),
                 ),
+                saksbehandler = saksbehandler,
             ).getOrFail()
                 .beregn(
                     begrunnelse = null,
                     clock = fixedClock,
                     satsFactory = satsFactoryTestPåDato(),
+                    nySaksbehandler = saksbehandler,
                 ).getOrFail() as Søknadsbehandling.Beregnet.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
@@ -866,7 +884,7 @@ internal class LagBrevRequestVisitorTest {
     @Test
     fun `lager request for vedtak om avslått stønad uten beregning`() {
         val søknadsbehandling = (
-            vilkårsvurdertInnvilget.leggTilInstitusjonsoppholdVilkår(institusjonsoppholdvilkårAvslag())
+            vilkårsvurdertInnvilget.leggTilInstitusjonsoppholdVilkår(saksbehandler = saksbehandler, institusjonsoppholdvilkårAvslag())
                 .getOrFail() as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
@@ -920,6 +938,7 @@ internal class LagBrevRequestVisitorTest {
         val søknadsbehandling = (
             søknadsbehandlingVilkårsvurdertInnvilget().second
                 .leggTilFormuevilkår(
+                    saksbehandler = saksbehandler,
                     vilkår = formuevilkårAvslåttPgrBrukersformue(),
                 ).getOrFail() as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
@@ -1227,6 +1246,7 @@ internal class LagBrevRequestVisitorTest {
                 begrunnelse = null,
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(),
+                nySaksbehandler = saksbehandler,
             ).getOrFail().let { beregnet ->
                 beregnet.simuler(
                     saksbehandler = saksbehandler,

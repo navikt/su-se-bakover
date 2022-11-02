@@ -138,6 +138,7 @@ internal fun Route.søknadsbehandlingRoutes(
                                     behandlingId = behandlingId,
                                     stønadsperiode = stønadsperiode,
                                     sakId = sakId,
+                                    saksbehandler = call.suUserContext.saksbehandler,
                                 ),
                             ).mapLeft { error ->
                                 call.svar(
@@ -191,6 +192,8 @@ internal fun Route.søknadsbehandlingRoutes(
                                                         "stønadsperiode_inneholder_avkorting_utenlandsopphold",
                                                     )
                                                 }
+
+                                                else -> throw IllegalStateException("Husk å fjerne denne ved commit")
                                             }
                                         }
                                     },
@@ -230,17 +233,18 @@ internal fun Route.søknadsbehandlingRoutes(
             data class Body(
                 val begrunnelse: String?,
             ) {
-                fun toDomain(behandlingId: UUID): Either<Resultat, BeregnRequest> {
+                fun toDomain(behandlingId: UUID, saksbehandler: Saksbehandler): Either<Resultat, BeregnRequest> {
                     return BeregnRequest(
                         behandlingId = behandlingId,
                         begrunnelse = begrunnelse,
+                        saksbehandler = saksbehandler,
                     ).right()
                 }
             }
 
             call.withBehandlingId { behandlingId ->
                 call.withBody<Body> { body ->
-                    body.toDomain(behandlingId)
+                    body.toDomain(behandlingId, call.suUserContext.saksbehandler)
                         .mapLeft { call.svar(it) }
                         .map { serviceCommand ->
                             søknadsbehandlingService.beregn(serviceCommand)

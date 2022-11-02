@@ -326,6 +326,7 @@ data class Sak(
         stønadsperiode: Stønadsperiode,
         clock: Clock,
         formuegrenserFactory: FormuegrenserFactory,
+        saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeOppdatereStønadsperiode, Søknadsbehandling.Vilkårsvurdert> {
         val søknadsbehandling = søknadsbehandlinger.singleOrNull {
             it.id == søknadsbehandlingId
@@ -360,6 +361,7 @@ data class Sak(
             oppdatertStønadsperiode = stønadsperiode,
             formuegrenserFactory = formuegrenserFactory,
             clock = clock,
+            saksbehandler = saksbehandler,
         ).mapLeft {
             when (it) {
                 is no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata -> {
@@ -535,6 +537,7 @@ data class Sak(
     fun opprettNySøknadsbehandling(
         søknadId: UUID,
         clock: Clock,
+        saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeOppretteSøknad, NySøknadsbehandling> = if (!kanOppretteBehandling()) {
         KunneIkkeOppretteSøknad.HarÅpenBehandling.left()
     } else {
@@ -564,6 +567,7 @@ data class Sak(
             fnr = søknad.fnr,
             avkorting = this.hentUteståendeAvkortingForSøknadsbehandling().fold({ it }, { it }).kanIkke(),
             sakstype = søknad.type,
+            saksbehandler = saksbehandler,
         ).right()
     }
 

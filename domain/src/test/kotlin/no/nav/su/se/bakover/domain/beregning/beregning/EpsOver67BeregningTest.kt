@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
+import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.vilkår.formuevilkårMedEps0Innvilget
@@ -149,6 +150,7 @@ internal class EpsOver67BeregningTest {
                 begrunnelse = null,
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(LocalDate.now(1.juni(2021).fixedClock())),
+                nySaksbehandler = saksbehandler,
             ).getOrFail().also { beregnet ->
                 beregnet.beregning.getSumYtelse() shouldBe 116144
                 beregnet.beregning.getSumFradrag() shouldBe 67927.95999999999

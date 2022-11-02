@@ -62,6 +62,7 @@ import no.nav.su.se.bakover.test.iverksattSøknadsbehandling
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.nySakUføre
 import no.nav.su.se.bakover.test.opprettetRevurdering
+import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.stønadsperiode2021
@@ -118,16 +119,16 @@ internal class SakTest {
     @Test
     fun `oppretter søknadsbehandling dersom det ikke finnes eksisterende åpne behandlinger`() {
         val (sakUtenÅpenBehandling, søknad) = nySakUføre()
-        sakUtenÅpenBehandling.opprettNySøknadsbehandling(søknad.id, fixedClock).shouldBeRight()
+        sakUtenÅpenBehandling.opprettNySøknadsbehandling(søknad.id, fixedClock, saksbehandler).shouldBeRight()
 
         val sakMedÅpenSøknadsbehandling = søknadsbehandlingVilkårsvurdertUavklart().first
-        sakMedÅpenSøknadsbehandling.opprettNySøknadsbehandling(søknad.id, fixedClock).shouldBeLeft()
+        sakMedÅpenSøknadsbehandling.opprettNySøknadsbehandling(søknad.id, fixedClock, saksbehandler).shouldBeLeft()
 
         val sakMedÅpenRevurdering = opprettetRevurdering().first
-        sakMedÅpenRevurdering.opprettNySøknadsbehandling(søknad.id, fixedClock).shouldBeLeft()
+        sakMedÅpenRevurdering.opprettNySøknadsbehandling(søknad.id, fixedClock, saksbehandler).shouldBeLeft()
 
         val sakMedÅpenRegulering = innvilgetSøknadsbehandlingMedÅpenRegulering(1.mai(2021)).first
-        sakMedÅpenRegulering.opprettNySøknadsbehandling(søknad.id, fixedClock)
+        sakMedÅpenRegulering.opprettNySøknadsbehandling(søknad.id, fixedClock, saksbehandler)
     }
 
     @Test
@@ -509,6 +510,7 @@ internal class SakTest {
                 oppdatertStønadsperiode = Stønadsperiode.create(nyPeriode),
                 formuegrenserFactory = formuegrenserFactoryTestPåDato(),
                 clock = fixedClock,
+                saksbehandler = saksbehandler,
             ).getOrFail()
 
             vilkårsvurdert.periode shouldNotBe nyPeriode
@@ -536,6 +538,7 @@ internal class SakTest {
                     stønadsperiode = Stønadsperiode.create(nyPeriode),
                     clock = fixedClock,
                     formuegrenserFactory = formuegrenserFactoryTestPåDato(),
+                    saksbehandler = saksbehandler,
                 ) shouldBe Sak.KunneIkkeOppdatereStønadsperiode.StønadsperiodeOverlapperMedLøpendeStønadsperiode.left()
             }
         }
@@ -559,6 +562,7 @@ internal class SakTest {
                     stønadsperiode = nyPeriode,
                     clock = fixedClock,
                     formuegrenserFactory = formuegrenserFactoryTestPåDato(),
+                    saksbehandler = saksbehandler,
                 ) shouldBe Sak.KunneIkkeOppdatereStønadsperiode.StønadsperiodeForSenerePeriodeEksisterer.left()
             }
         }
@@ -603,6 +607,7 @@ internal class SakTest {
                     stønadsperiode = nyStønadsperiode,
                     clock = tikkendeKlokke,
                     formuegrenserFactory = formuegrenserFactoryTestPåDato(),
+                    saksbehandler = saksbehandler,
                 ).getOrFail() shouldBe nySøknadsbehandlingMedOpplysningsplikt
 
                 listOf(
@@ -616,6 +621,7 @@ internal class SakTest {
                         stønadsperiode = stønadsperiode,
                         clock = tikkendeKlokke,
                         formuegrenserFactory = formuegrenserFactoryTestPåDato(),
+                        saksbehandler = saksbehandler,
                     ) shouldBe Sak.KunneIkkeOppdatereStønadsperiode.StønadsperiodeInneholderAvkortingPgaUtenlandsopphold.left()
                 }
 
@@ -634,6 +640,7 @@ internal class SakTest {
                         stønadsperiode = stønadsperiode,
                         clock = tikkendeKlokke,
                         formuegrenserFactory = formuegrenserFactoryTestPåDato(),
+                        saksbehandler = saksbehandler,
                     ).getOrFail() shouldBe nySøknadsbehandlingMedOpplysningsplikt.copy(
                         stønadsperiode = stønadsperiode,
                         vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre(

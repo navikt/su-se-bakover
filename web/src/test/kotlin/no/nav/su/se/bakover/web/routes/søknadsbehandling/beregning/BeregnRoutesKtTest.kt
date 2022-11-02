@@ -70,14 +70,7 @@ internal class BeregnRoutesKtTest {
                     testSusebakover(
                         services = TestServicesBuilder.services(
                             søknadsbehandling = mock {
-                                on {
-                                    beregn(
-                                        SøknadsbehandlingService.BeregnRequest(
-                                            behandlingId = behandlingEksisterIkke,
-                                            begrunnelse = null,
-                                        ),
-                                    )
-                                } doReturn SøknadsbehandlingService.KunneIkkeBeregne.FantIkkeBehandling.left()
+                                on { beregn(any()) } doReturn SøknadsbehandlingService.KunneIkkeBeregne.FantIkkeBehandling.left()
                             },
                         ),
                     )

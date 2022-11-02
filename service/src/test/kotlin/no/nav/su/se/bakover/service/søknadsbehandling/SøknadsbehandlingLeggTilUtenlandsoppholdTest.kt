@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.service.vilkår.LeggTilFlereUtenlandsoppholdRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
 import no.nav.su.se.bakover.service.vilkår.UtenlandsoppholdStatus
 import no.nav.su.se.bakover.test.TestSessionFactory
+import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
@@ -41,6 +42,7 @@ class SøknadsbehandlingLeggTilUtenlandsoppholdTest {
                         ),
                     ),
                 ),
+                saksbehandler = saksbehandler,
             ) shouldBe SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.FantIkkeBehandling.left()
 
             verify(it.søknadsbehandlingRepo).hent(any())
@@ -60,6 +62,7 @@ class SøknadsbehandlingLeggTilUtenlandsoppholdTest {
                         on { behandlingId } doReturn UUID.randomUUID()
                         on { it.tilVilkår(any()) } doReturn LeggTilFlereUtenlandsoppholdRequest.UgyldigUtenlandsopphold.PeriodeForGrunnlagOgVurderingErForskjellig.left()
                     },
+                    saksbehandler = saksbehandler,
                 )
 
                 verify(it.søknadsbehandlingRepo).hent(any())
@@ -85,6 +88,7 @@ class SøknadsbehandlingLeggTilUtenlandsoppholdTest {
                         ),
                     ),
                 ),
+                saksbehandler = saksbehandler,
             ) shouldBe SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.UgyldigTilstand(
                 fra = iverksatt::class,
                 til = Søknadsbehandling.Vilkårsvurdert::class,
@@ -115,6 +119,7 @@ class SøknadsbehandlingLeggTilUtenlandsoppholdTest {
                         ),
                     ),
                 ),
+                saksbehandler = saksbehandler,
             ) shouldBe innvilget.right()
 
             verify(serviceAndMocks.søknadsbehandlingRepo).hent(any())
@@ -147,6 +152,7 @@ class SøknadsbehandlingLeggTilUtenlandsoppholdTest {
                         ),
                     ),
                 ),
+                saksbehandler = saksbehandler,
             )
 
             verify(serviceAndMocks.søknadsbehandlingRepo).hent(any())
