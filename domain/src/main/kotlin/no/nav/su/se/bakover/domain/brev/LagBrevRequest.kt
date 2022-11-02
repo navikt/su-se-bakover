@@ -471,7 +471,7 @@ interface LagBrevRequest {
             val saksbehandlerNavn: String,
             val fritekst: String,
             val klageDato: LocalDate,
-            val vedtakDato: LocalDate,
+            val vedtaksbrevDato: LocalDate,
             override val saksnummer: Saksnummer,
         ) : Klage() {
             override val brevInnhold: BrevInnhold = BrevInnhold.Klage.Oppretthold(
@@ -479,7 +479,7 @@ interface LagBrevRequest {
                 saksbehandlerNavn = saksbehandlerNavn,
                 fritekst = fritekst,
                 klageDato = klageDato.ddMMyyyy(),
-                vedtakDato = vedtakDato.ddMMyyyy(),
+                vedtakDato = vedtaksbrevDato.ddMMyyyy(),
                 saksnummer = saksnummer.nummer,
             )
 

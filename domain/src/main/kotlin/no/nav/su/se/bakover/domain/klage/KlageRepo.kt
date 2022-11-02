@@ -9,7 +9,7 @@ interface KlageRepo {
     fun lagre(klage: Klage, transactionContext: TransactionContext = defaultTransactionContext())
     fun hentKlage(klageId: UUID): Klage?
     fun hentKlager(sakid: UUID, sessionContext: SessionContext = defaultSessionContext()): List<Klage>
-    fun hentKnyttetVedtaksdato(klageId: UUID): LocalDate?
+    fun hentVedtaksbrevDatoSomDetKlagesPå(klageId: UUID): LocalDate?
     fun defaultSessionContext(): SessionContext
     fun defaultTransactionContext(): TransactionContext
 }

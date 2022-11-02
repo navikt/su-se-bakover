@@ -84,7 +84,7 @@ internal class OversendKlageTest {
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
-                on { hentKnyttetVedtaksdato(any()) } doReturn 1.januar(2021)
+                on { hentVedtaksbrevDatoSomDetKlagesPå(any()) } doReturn 1.januar(2021)
             },
         )
         val attestant = NavIdentBruker.Attestant(klage.saksbehandler.navIdent)
@@ -137,7 +137,7 @@ internal class OversendKlageTest {
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
-                on { hentKnyttetVedtaksdato(any()) } doReturn 1.januar(2021)
+                on { hentVedtaksbrevDatoSomDetKlagesPå(any()) } doReturn 1.januar(2021)
             },
             identClient = mock {
                 on { hentNavnForNavIdent(any()) } doReturn "Some name".right()
@@ -155,7 +155,7 @@ internal class OversendKlageTest {
             attestant = attestant,
         ) shouldBe KunneIkkeOversendeKlage.KunneIkkeLageBrev(KunneIkkeLageBrevForKlage.KunneIkkeGenererePDF).left()
 
-        verify(mocks.klageRepoMock).hentKnyttetVedtaksdato(argThat { it shouldBe klage.id })
+        verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         verify(mocks.identClient).hentNavnForNavIdent(argThat { it shouldBe klage.saksbehandler })
         verify(mocks.personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
@@ -167,7 +167,7 @@ internal class OversendKlageTest {
                     saksbehandlerNavn = "Some name",
                     fritekst = klage.vurderinger.fritekstTilOversendelsesbrev,
                     klageDato = 1.desember(2021),
-                    vedtakDato = 1.januar(2021),
+                    vedtaksbrevDato = 1.januar(2021),
                     saksnummer = Saksnummer(12345676),
                 )
             },
@@ -182,7 +182,7 @@ internal class OversendKlageTest {
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
-                on { hentKnyttetVedtaksdato(any()) } doReturn 1.januar(2021)
+                on { hentVedtaksbrevDatoSomDetKlagesPå(any()) } doReturn 1.januar(2021)
             },
             identClient = mock {
                 on { hentNavnForNavIdent(any()) } doReturn "Some name".right()
@@ -203,7 +203,7 @@ internal class OversendKlageTest {
             attestant = attestant,
         ) shouldBe KunneIkkeOversendeKlage.FantIkkeJournalpostIdKnyttetTilVedtaket.left()
 
-        verify(mocks.klageRepoMock).hentKnyttetVedtaksdato(argThat { it shouldBe klage.id })
+        verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         verify(mocks.identClient).hentNavnForNavIdent(argThat { it shouldBe klage.saksbehandler })
         verify(mocks.personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
@@ -215,7 +215,7 @@ internal class OversendKlageTest {
                     saksbehandlerNavn = "Some name",
                     fritekst = klage.vurderinger.fritekstTilOversendelsesbrev,
                     klageDato = 1.desember(2021),
-                    vedtakDato = 1.januar(2021),
+                    vedtaksbrevDato = 1.januar(2021),
                     saksnummer = Saksnummer(12345676),
                 )
             },
@@ -233,7 +233,7 @@ internal class OversendKlageTest {
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
-                on { hentKnyttetVedtaksdato(any()) } doReturn 1.januar(2021)
+                on { hentVedtaksbrevDatoSomDetKlagesPå(any()) } doReturn 1.januar(2021)
             },
             identClient = mock {
                 on { hentNavnForNavIdent(any()) } doReturn "Some name".right()
@@ -257,7 +257,7 @@ internal class OversendKlageTest {
             attestant = attestant,
         ) shouldBe KunneIkkeOversendeKlage.KunneIkkeOversendeTilKlageinstans.left()
 
-        verify(mocks.klageRepoMock).hentKnyttetVedtaksdato(argThat { it shouldBe klage.id })
+        verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         verify(mocks.identClient).hentNavnForNavIdent(argThat { it shouldBe klage.saksbehandler })
         verify(mocks.personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
@@ -269,7 +269,7 @@ internal class OversendKlageTest {
                     saksbehandlerNavn = "Some name",
                     fritekst = klage.vurderinger.fritekstTilOversendelsesbrev,
                     klageDato = 1.desember(2021),
-                    vedtakDato = 1.januar(2021),
+                    vedtaksbrevDato = 1.januar(2021),
                     saksnummer = sak.saksnummer,
                 )
             },
@@ -461,7 +461,7 @@ internal class OversendKlageTest {
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
-                on { hentKnyttetVedtaksdato(any()) } doReturn 1.januar(2021)
+                on { hentVedtaksbrevDatoSomDetKlagesPå(any()) } doReturn 1.januar(2021)
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
             vedtakServiceMock = mock {
@@ -507,7 +507,7 @@ internal class OversendKlageTest {
             verify(observerMock).handle(argThat { actual -> StatistikkEvent.Behandling.Klage.Oversendt(it) shouldBe actual })
         }
 
-        verify(mocks.klageRepoMock).hentKnyttetVedtaksdato(argThat { it shouldBe klage.id })
+        verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         verify(mocks.identClient).hentNavnForNavIdent(argThat { it shouldBe klage.saksbehandler })
         verify(mocks.personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
@@ -519,7 +519,7 @@ internal class OversendKlageTest {
                     saksbehandlerNavn = "Some name",
                     fritekst = klage.vurderinger.fritekstTilOversendelsesbrev,
                     klageDato = 1.desember(2021),
-                    vedtakDato = 1.januar(2021),
+                    vedtaksbrevDato = 1.januar(2021),
                     saksnummer = klage.saksnummer,
                 )
             },
