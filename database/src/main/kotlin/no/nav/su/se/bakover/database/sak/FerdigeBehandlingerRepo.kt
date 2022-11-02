@@ -7,9 +7,9 @@ import no.nav.su.se.bakover.common.persistence.hentListe
 import no.nav.su.se.bakover.common.persistence.tidspunkt
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingsType
+import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingStatusDB
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
 import no.nav.su.se.bakover.domain.sak.Saksnummer
-import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import java.util.UUID
 
 internal class FerdigeBehandlingerRepo(
@@ -95,7 +95,7 @@ internal class FerdigeBehandlingerRepo(
         behandlingsTypeDB: BehandlingsTypeDB,
     ): Behandlingsoversikt.Behandlingsstatus {
         return when (behandlingsTypeDB) {
-            BehandlingsTypeDB.SØKNADSBEHANDLING -> BehandlingsStatus.valueOf(string("status"))
+            BehandlingsTypeDB.SØKNADSBEHANDLING -> SøknadsbehandlingStatusDB.valueOf(string("status"))
                 .tilBehandlingsoversiktStatus()
             BehandlingsTypeDB.REVURDERING -> RevurderingsType.valueOf(string("status"))
                 .tilBehandlingsoversiktStatus()
@@ -104,23 +104,23 @@ internal class FerdigeBehandlingerRepo(
         }
     }
 
-    private fun BehandlingsStatus.tilBehandlingsoversiktStatus(): Behandlingsoversikt.Behandlingsstatus {
+    private fun SøknadsbehandlingStatusDB.tilBehandlingsoversiktStatus(): Behandlingsoversikt.Behandlingsstatus {
         return when (this) {
-            BehandlingsStatus.OPPRETTET,
-            BehandlingsStatus.VILKÅRSVURDERT_INNVILGET,
-            BehandlingsStatus.VILKÅRSVURDERT_AVSLAG,
-            BehandlingsStatus.BEREGNET_INNVILGET,
-            BehandlingsStatus.BEREGNET_AVSLAG,
-            BehandlingsStatus.SIMULERT,
-            BehandlingsStatus.TIL_ATTESTERING_INNVILGET,
-            BehandlingsStatus.TIL_ATTESTERING_AVSLAG,
-            BehandlingsStatus.UNDERKJENT_INNVILGET,
-            BehandlingsStatus.UNDERKJENT_AVSLAG,
+            SøknadsbehandlingStatusDB.OPPRETTET,
+            SøknadsbehandlingStatusDB.VILKÅRSVURDERT_INNVILGET,
+            SøknadsbehandlingStatusDB.VILKÅRSVURDERT_AVSLAG,
+            SøknadsbehandlingStatusDB.BEREGNET_INNVILGET,
+            SøknadsbehandlingStatusDB.BEREGNET_AVSLAG,
+            SøknadsbehandlingStatusDB.SIMULERT,
+            SøknadsbehandlingStatusDB.TIL_ATTESTERING_INNVILGET,
+            SøknadsbehandlingStatusDB.TIL_ATTESTERING_AVSLAG,
+            SøknadsbehandlingStatusDB.UNDERKJENT_INNVILGET,
+            SøknadsbehandlingStatusDB.UNDERKJENT_AVSLAG,
             -> throw IllegalStateException("Behandlinger som ikke er iverksatt, avslått, eller avsluttet er ikke en ferdig behandling")
 
-            BehandlingsStatus.IVERKSATT_INNVILGET -> Behandlingsoversikt.Behandlingsstatus.INNVILGET
+            SøknadsbehandlingStatusDB.IVERKSATT_INNVILGET -> Behandlingsoversikt.Behandlingsstatus.INNVILGET
 
-            BehandlingsStatus.IVERKSATT_AVSLAG -> Behandlingsoversikt.Behandlingsstatus.AVSLAG
+            SøknadsbehandlingStatusDB.IVERKSATT_AVSLAG -> Behandlingsoversikt.Behandlingsstatus.AVSLAG
         }
     }
 

@@ -13,7 +13,6 @@ data class LukketSøknadsbehandling private constructor(
     val underliggendeSøknadsbehandling: Søknadsbehandling,
     override val søknad: Søknad.Journalført.MedOppgave.Lukket,
 ) : Søknadsbehandling() {
-    override val status = underliggendeSøknadsbehandling.status
     override val stønadsperiode = underliggendeSøknadsbehandling.stønadsperiode
     override val grunnlagsdata = underliggendeSøknadsbehandling.grunnlagsdata
     override val vilkårsvurderinger = underliggendeSøknadsbehandling.vilkårsvurderinger

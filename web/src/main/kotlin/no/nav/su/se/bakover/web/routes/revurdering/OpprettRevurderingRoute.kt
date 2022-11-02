@@ -117,7 +117,6 @@ internal fun Sak.KunneIkkeOppretteRevurdering.tilResultat() = when (this) {
     is Sak.KunneIkkeOppretteRevurdering.OpphørteVilkårMåRevurderes -> {
         this.feil.tilResultat()
     }
-    else -> throw IllegalStateException("Husk å fjerne denne ved commit")
 }
 
 internal fun Sak.KunneIkkeHenteGjeldendeVedtaksdata.tilResultat() = when (this) {
@@ -128,6 +127,4 @@ internal fun Sak.KunneIkkeHenteGjeldendeVedtaksdata.tilResultat() = when (this) 
     is Sak.KunneIkkeHenteGjeldendeVedtaksdata.UgyldigPeriode -> {
         ugyldigPeriode(this.feil)
     }
-
-    else -> throw IllegalStateException("Husk å fjerne denne ved commit")
 }

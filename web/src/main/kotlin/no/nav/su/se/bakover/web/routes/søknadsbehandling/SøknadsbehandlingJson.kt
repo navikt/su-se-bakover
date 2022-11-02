@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.web.routes.sak.toJson
 import no.nav.su.se.bakover.web.routes.søknad.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.AttesteringJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.SøkandsbehandlingStatusJson.Companion.status
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.StønadsperiodeJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.toJson
 import java.time.format.DateTimeFormatter
@@ -27,7 +28,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
             opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
             sakId = sakId,
             søknad = søknad.toJson(),
-            status = status.toString(),
+            status = status().toString(),
             attesteringer = attesteringer.toJson(),
             saksbehandler = null,
             beregning = null,
@@ -45,7 +46,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 sakId = sakId,
                 søknad = søknad.toJson(),
-                status = status.toString(),
+                status = status().toString(),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = null,
                 beregning = beregning.toJson(),
@@ -64,7 +65,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 sakId = sakId,
                 søknad = søknad.toJson(),
-                status = status.toString(),
+                status = status().toString(),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = null,
                 beregning = beregning.toJson(),
@@ -83,7 +84,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 sakId = sakId,
                 søknad = søknad.toJson(),
-                status = status.toString(),
+                status = status().toString(),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = saksbehandler.toString(),
                 beregning = beregning.toJson(),
@@ -102,7 +103,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 sakId = sakId,
                 søknad = søknad.toJson(),
-                status = status.toString(),
+                status = status().toString(),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = saksbehandler.toString(),
                 beregning = beregning.toJson(),
@@ -121,7 +122,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 sakId = sakId,
                 søknad = søknad.toJson(),
-                status = status.toString(),
+                status = status().toString(),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = saksbehandler.toString(),
                 beregning = null,
@@ -140,7 +141,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 sakId = sakId,
                 søknad = søknad.toJson(),
-                status = status.toString(),
+                status = status().toString(),
                 attesteringer = attesteringer.map {
                     when (it) {
                         is Attestering.Iverksatt -> AttesteringJson(
@@ -175,7 +176,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 sakId = sakId,
                 søknad = søknad.toJson(),
-                status = status.toString(),
+                status = status().toString(),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = saksbehandler.toString(),
                 beregning = null,
@@ -194,7 +195,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 sakId = sakId,
                 søknad = søknad.toJson(),
-                status = status.toString(),
+                status = status().toString(),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = saksbehandler.toString(),
                 beregning = beregning.toJson(),
@@ -213,7 +214,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 sakId = sakId,
                 søknad = søknad.toJson(),
-                status = status.toString(),
+                status = status().toString(),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = saksbehandler.toString(),
                 beregning = beregning.toJson(),
@@ -232,7 +233,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 sakId = sakId,
                 søknad = søknad.toJson(),
-                status = status.toString(),
+                status = status().toString(),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = saksbehandler.toString(),
                 beregning = null,
@@ -251,7 +252,7 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 sakId = sakId,
                 søknad = søknad.toJson(),
-                status = status.toString(),
+                status = status().toString(),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = saksbehandler.toString(),
                 beregning = beregning.toJson(),
@@ -272,4 +273,42 @@ internal fun Søknadsbehandling.toJson(satsFactory: SatsFactory): BehandlingJson
 
 internal fun HttpStatusCode.jsonBody(søknadsbehandling: Søknadsbehandling, satsFactory: SatsFactory): Resultat {
     return Resultat.json(this, serialize(søknadsbehandling.toJson(satsFactory)))
+}
+
+internal enum class SøkandsbehandlingStatusJson {
+    OPPRETTET,
+    VILKÅRSVURDERT_INNVILGET,
+    VILKÅRSVURDERT_AVSLAG,
+    BEREGNET_INNVILGET,
+    BEREGNET_AVSLAG,
+    SIMULERT,
+    TIL_ATTESTERING_INNVILGET,
+    TIL_ATTESTERING_AVSLAG,
+    UNDERKJENT_INNVILGET,
+    UNDERKJENT_AVSLAG,
+    IVERKSATT_INNVILGET,
+    IVERKSATT_AVSLAG,
+    ;
+    companion object {
+        fun Søknadsbehandling.status(): SøkandsbehandlingStatusJson {
+            return when (this) {
+                is Søknadsbehandling.Beregnet.Avslag -> BEREGNET_AVSLAG
+                is Søknadsbehandling.Beregnet.Innvilget -> BEREGNET_INNVILGET
+                is Søknadsbehandling.Iverksatt.Avslag.MedBeregning -> IVERKSATT_AVSLAG
+                is Søknadsbehandling.Iverksatt.Avslag.UtenBeregning -> IVERKSATT_AVSLAG
+                is Søknadsbehandling.Iverksatt.Innvilget -> IVERKSATT_INNVILGET
+                is LukketSøknadsbehandling -> underliggendeSøknadsbehandling.status()
+                is Søknadsbehandling.Simulert -> SIMULERT
+                is Søknadsbehandling.TilAttestering.Avslag.MedBeregning -> TIL_ATTESTERING_AVSLAG
+                is Søknadsbehandling.TilAttestering.Avslag.UtenBeregning -> TIL_ATTESTERING_AVSLAG
+                is Søknadsbehandling.TilAttestering.Innvilget -> TIL_ATTESTERING_INNVILGET
+                is Søknadsbehandling.Underkjent.Avslag.MedBeregning -> UNDERKJENT_AVSLAG
+                is Søknadsbehandling.Underkjent.Avslag.UtenBeregning -> UNDERKJENT_AVSLAG
+                is Søknadsbehandling.Underkjent.Innvilget -> UNDERKJENT_INNVILGET
+                is Søknadsbehandling.Vilkårsvurdert.Avslag -> VILKÅRSVURDERT_AVSLAG
+                is Søknadsbehandling.Vilkårsvurdert.Innvilget -> VILKÅRSVURDERT_INNVILGET
+                is Søknadsbehandling.Vilkårsvurdert.Uavklart -> OPPRETTET
+            }
+        }
+    }
 }

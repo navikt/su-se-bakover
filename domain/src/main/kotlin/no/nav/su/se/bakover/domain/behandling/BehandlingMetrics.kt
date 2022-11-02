@@ -1,9 +1,6 @@
 package no.nav.su.se.bakover.domain.behandling
 
-import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
-
 interface BehandlingMetrics {
-    fun behandlingsstatusChanged(old: BehandlingsStatus, new: BehandlingsStatus)
     fun incrementUnderkjentCounter(handling: UnderkjentHandlinger)
     fun incrementInnvilgetCounter(handling: InnvilgetHandlinger)
     fun incrementAvslåttCounter(handling: AvslåttHandlinger)

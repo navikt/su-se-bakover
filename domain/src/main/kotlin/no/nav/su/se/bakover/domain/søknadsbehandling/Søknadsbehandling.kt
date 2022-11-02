@@ -66,8 +66,6 @@ import java.util.UUID
 sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering, Visitable<SøknadsbehandlingVisitor> {
     abstract val søknad: Søknad.Journalført.MedOppgave
 
-    // TODO jah: Denne kan fjernes fra domenet og heller la mappingen ligge i infrastruktur-laget
-    abstract val status: BehandlingsStatus
     abstract val stønadsperiode: Stønadsperiode?
     abstract override val grunnlagsdata: Grunnlagsdata
     abstract override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling
@@ -879,9 +877,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val sakstype: Sakstype,
             override val saksbehandler: NavIdentBruker.Saksbehandler?,
         ) : Vilkårsvurdert(), KanBeregnes {
-
-            override val status: BehandlingsStatus = BehandlingsStatus.VILKÅRSVURDERT_INNVILGET
-
             override val periode: Periode = stønadsperiode.periode
 
             override val beregning = null
@@ -924,8 +919,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val sakstype: Sakstype,
             override val saksbehandler: NavIdentBruker.Saksbehandler?,
         ) : Vilkårsvurdert(), ErAvslag {
-
-            override val status: BehandlingsStatus = BehandlingsStatus.VILKÅRSVURDERT_AVSLAG
 
             override val beregning = null
             override val simulering: Simulering? = null
@@ -998,7 +991,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val sakstype: Sakstype,
             override val saksbehandler: NavIdentBruker.Saksbehandler?,
         ) : Vilkårsvurdert() {
-            override val status: BehandlingsStatus = BehandlingsStatus.OPPRETTET
 
             override val beregning = null
             override val simulering: Simulering? = null
@@ -1097,7 +1089,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val sakstype: Sakstype,
             override val saksbehandler: NavIdentBruker.Saksbehandler?,
         ) : Beregnet() {
-            override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET_INNVILGET
             override val periode: Periode = stønadsperiode.periode
             override val simulering: Simulering? = null
 
@@ -1139,7 +1130,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val sakstype: Sakstype,
             override val saksbehandler: NavIdentBruker.Saksbehandler?,
         ) : Beregnet(), ErAvslag {
-            override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET_AVSLAG
             override val periode: Periode = stønadsperiode.periode
             override val simulering: Simulering? = null
 
@@ -1219,7 +1209,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         override val sakstype: Sakstype,
         override val saksbehandler: NavIdentBruker.Saksbehandler?,
     ) : Søknadsbehandling(), KanOppdaterePeriodeGrunnlagVilkår {
-        override val status: BehandlingsStatus = BehandlingsStatus.SIMULERT
         override val periode: Periode = stønadsperiode.periode
 
         init {
@@ -1343,7 +1332,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val avkorting: AvkortingVedSøknadsbehandling.Håndtert,
             override val sakstype: Sakstype,
         ) : TilAttestering() {
-            override val status: BehandlingsStatus = BehandlingsStatus.TIL_ATTESTERING_INNVILGET
 
             override fun copyInternal(
                 stønadsperiode: Stønadsperiode,
@@ -1416,7 +1404,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         }
 
         sealed class Avslag : TilAttestering(), ErAvslag {
-            final override val status: BehandlingsStatus = BehandlingsStatus.TIL_ATTESTERING_AVSLAG
             abstract override val stønadsperiode: Stønadsperiode
 
             data class UtenBeregning(
@@ -1657,7 +1644,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val sakstype: Sakstype,
         ) : Underkjent() {
 
-            override val status: BehandlingsStatus = BehandlingsStatus.UNDERKJENT_INNVILGET
             override val periode: Periode = stønadsperiode.periode
 
             init {
@@ -1774,7 +1760,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val avkorting: AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
                 override val sakstype: Sakstype,
             ) : Avslag() {
-                override val status: BehandlingsStatus = BehandlingsStatus.UNDERKJENT_AVSLAG
                 override val periode: Periode = stønadsperiode.periode
                 override val simulering: Simulering? = null
 
@@ -1852,7 +1837,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val avkorting: AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
                 override val sakstype: Sakstype,
             ) : Avslag() {
-                override val status: BehandlingsStatus = BehandlingsStatus.UNDERKJENT_AVSLAG
 
                 override val beregning = null
                 override val simulering: Simulering? = null
@@ -1943,7 +1927,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val avkorting: AvkortingVedSøknadsbehandling.Iverksatt,
             override val sakstype: Sakstype,
         ) : Iverksatt() {
-            override val status: BehandlingsStatus = BehandlingsStatus.IVERKSATT_INNVILGET
             override val periode: Periode = stønadsperiode.periode
 
             init {
@@ -1975,7 +1958,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val avkorting: AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere,
                 override val sakstype: Sakstype,
             ) : Avslag() {
-                override val status: BehandlingsStatus = BehandlingsStatus.IVERKSATT_AVSLAG
                 override val periode: Periode = stønadsperiode.periode
                 override val simulering: Simulering? = null
 
@@ -2019,7 +2001,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val avkorting: AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere,
                 override val sakstype: Sakstype,
             ) : Avslag() {
-                override val status: BehandlingsStatus = BehandlingsStatus.IVERKSATT_AVSLAG
                 override val periode: Periode = stønadsperiode.periode
 
                 override val beregning = null
@@ -2042,38 +2023,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 }
             }
         }
-    }
-}
-
-enum class BehandlingsStatus {
-    OPPRETTET,
-    VILKÅRSVURDERT_INNVILGET,
-    VILKÅRSVURDERT_AVSLAG,
-    BEREGNET_INNVILGET,
-    BEREGNET_AVSLAG,
-    SIMULERT,
-    TIL_ATTESTERING_INNVILGET,
-    TIL_ATTESTERING_AVSLAG,
-    UNDERKJENT_INNVILGET,
-    UNDERKJENT_AVSLAG,
-    IVERKSATT_INNVILGET,
-    IVERKSATT_AVSLAG,
-    ;
-
-    companion object {
-        @Suppress("MemberVisibilityCanBePrivate")
-        fun åpneBeregnetSøknadsbehandlinger() = listOf(
-            BEREGNET_INNVILGET,
-            BEREGNET_AVSLAG,
-            SIMULERT,
-            TIL_ATTESTERING_INNVILGET,
-            TIL_ATTESTERING_AVSLAG,
-            UNDERKJENT_INNVILGET,
-            UNDERKJENT_AVSLAG,
-        )
-
-        fun åpneBeregnetSøknadsbehandlingerKommaseparert(): String =
-            åpneBeregnetSøknadsbehandlinger().joinToString(",") { "'$it'" }
     }
 }
 

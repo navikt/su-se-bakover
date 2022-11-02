@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.database.avkorting.toDomain
 import no.nav.su.se.bakover.database.beregning.deserialiserBeregning
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagsdataOgVilkårsvurderingerPostgresRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal
+import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingStatusDB.Companion.status
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
@@ -40,7 +41,6 @@ import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.domain.søknad.Søknad
-import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
@@ -49,7 +49,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.util.UUID
 
-data class BaseSøknadsbehandlingDb(
+internal data class BaseSøknadsbehandlingDb(
     val id: UUID,
     val opprettet: Tidspunkt,
     val sakId: UUID,
@@ -62,10 +62,10 @@ data class BaseSøknadsbehandlingDb(
     val attesteringer: Attesteringshistorikk,
     val avkorting: AvkortingVedSøknadsbehandling,
     val sakstype: Sakstype,
-    val status: BehandlingsStatus,
+    val status: SøknadsbehandlingStatusDB,
     val saksbehandler: String?,
 )
-data class SøknadsbehandlingDb(
+internal data class SøknadsbehandlingDb(
     val base: BaseSøknadsbehandlingDb,
     val beregning: Beregning?,
     val simulering: Simulering?,
@@ -116,7 +116,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 attesteringer = Attesteringshistorikk.empty(),
                 avkorting = this.avkorting,
                 sakstype = this.sakstype,
-                status = BehandlingsStatus.OPPRETTET,
+                status = SøknadsbehandlingStatusDB.OPPRETTET,
                 saksbehandler = null,
             ),
             beregning = null,
@@ -273,7 +273,7 @@ internal class SøknadsbehandlingPostgresRepo(
             attesteringer = this.attesteringer,
             avkorting = this.avkorting,
             sakstype = this.sakstype,
-            status = this.status,
+            status = this.status(),
             saksbehandler = this.saksbehandler?.toString(),
         )
     }
@@ -386,7 +386,7 @@ internal class SøknadsbehandlingPostgresRepo(
                             "attestering" to it.attesteringer.serialize(),
                             "fritekstTilBrev" to it.fritekstTilBrev,
                             "stonadsperiode" to serialize(it.stønadsperiode),
-                            "status" to it.status.toString(),
+                            "status" to it.status().toString(),
                             "id" to it.id,
                             "beregning" to null,
                             "simulering" to null,
@@ -461,7 +461,7 @@ internal class SøknadsbehandlingPostgresRepo(
         }
         val sakId = uuid("sakId")
         val opprettet = tidspunkt("opprettet")
-        val status = BehandlingsStatus.valueOf(string("status"))
+        val status = SøknadsbehandlingStatusDB.valueOf(string("status"))
         val oppgaveId = OppgaveId(string("oppgaveId"))
         val sakstype = Sakstype.from(string("type"))
         val beregning: BeregningMedFradragBeregnetMånedsvis? = stringOrNull("beregning")?.deserialiserBeregning(
@@ -485,7 +485,7 @@ internal class SøknadsbehandlingPostgresRepo(
         val avkorting = deserializeNullable<AvkortingVedSøknadsbehandlingDb>(stringOrNull("avkorting"))?.toDomain()
 
         val søknadsbehandling = when (status) {
-            BehandlingsStatus.OPPRETTET -> Søknadsbehandling.Vilkårsvurdert.Uavklart(
+            SøknadsbehandlingStatusDB.OPPRETTET -> Søknadsbehandling.Vilkårsvurdert.Uavklart(
                 id = behandlingId,
                 opprettet = opprettet,
                 sakId = sakId,
@@ -502,7 +502,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 sakstype = sakstype,
                 saksbehandler = saksbehandler,
             )
-            BehandlingsStatus.VILKÅRSVURDERT_INNVILGET -> Søknadsbehandling.Vilkårsvurdert.Innvilget(
+            SøknadsbehandlingStatusDB.VILKÅRSVURDERT_INNVILGET -> Søknadsbehandling.Vilkårsvurdert.Innvilget(
                 id = behandlingId,
                 opprettet = opprettet,
                 sakId = sakId,
@@ -519,7 +519,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 sakstype = sakstype,
                 saksbehandler = saksbehandler,
             )
-            BehandlingsStatus.VILKÅRSVURDERT_AVSLAG -> Søknadsbehandling.Vilkårsvurdert.Avslag(
+            SøknadsbehandlingStatusDB.VILKÅRSVURDERT_AVSLAG -> Søknadsbehandling.Vilkårsvurdert.Avslag(
                 id = behandlingId,
                 opprettet = opprettet,
                 sakId = sakId,
@@ -536,7 +536,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 sakstype = sakstype,
                 saksbehandler = saksbehandler,
             )
-            BehandlingsStatus.BEREGNET_INNVILGET -> Søknadsbehandling.Beregnet.Innvilget(
+            SøknadsbehandlingStatusDB.BEREGNET_INNVILGET -> Søknadsbehandling.Beregnet.Innvilget(
                 id = behandlingId,
                 opprettet = opprettet,
                 sakId = sakId,
@@ -554,7 +554,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 sakstype = sakstype,
                 saksbehandler = saksbehandler,
             )
-            BehandlingsStatus.BEREGNET_AVSLAG -> Søknadsbehandling.Beregnet.Avslag(
+            SøknadsbehandlingStatusDB.BEREGNET_AVSLAG -> Søknadsbehandling.Beregnet.Avslag(
                 id = behandlingId,
                 opprettet = opprettet,
                 sakId = sakId,
@@ -572,7 +572,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 sakstype = sakstype,
                 saksbehandler = saksbehandler,
             )
-            BehandlingsStatus.SIMULERT -> Søknadsbehandling.Simulert(
+            SøknadsbehandlingStatusDB.SIMULERT -> Søknadsbehandling.Simulert(
                 id = behandlingId,
                 opprettet = opprettet,
                 sakId = sakId,
@@ -591,7 +591,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 sakstype = sakstype,
                 saksbehandler = saksbehandler,
             )
-            BehandlingsStatus.TIL_ATTESTERING_INNVILGET -> Søknadsbehandling.TilAttestering.Innvilget(
+            SøknadsbehandlingStatusDB.TIL_ATTESTERING_INNVILGET -> Søknadsbehandling.TilAttestering.Innvilget(
                 id = behandlingId,
                 opprettet = opprettet,
                 sakId = sakId,
@@ -610,7 +610,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 avkorting = avkorting as AvkortingVedSøknadsbehandling.Håndtert,
                 sakstype = sakstype,
             )
-            BehandlingsStatus.TIL_ATTESTERING_AVSLAG -> when (beregning) {
+            SøknadsbehandlingStatusDB.TIL_ATTESTERING_AVSLAG -> when (beregning) {
                 null -> Søknadsbehandling.TilAttestering.Avslag.UtenBeregning(
                     id = behandlingId,
                     opprettet = opprettet,
@@ -647,7 +647,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     sakstype = sakstype,
                 )
             }
-            BehandlingsStatus.UNDERKJENT_INNVILGET -> Søknadsbehandling.Underkjent.Innvilget(
+            SøknadsbehandlingStatusDB.UNDERKJENT_INNVILGET -> Søknadsbehandling.Underkjent.Innvilget(
                 id = behandlingId,
                 opprettet = opprettet,
                 sakId = sakId,
@@ -666,7 +666,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 avkorting = avkorting as AvkortingVedSøknadsbehandling.Håndtert,
                 sakstype = sakstype,
             )
-            BehandlingsStatus.UNDERKJENT_AVSLAG -> when (beregning) {
+            SøknadsbehandlingStatusDB.UNDERKJENT_AVSLAG -> when (beregning) {
                 null -> Søknadsbehandling.Underkjent.Avslag.UtenBeregning(
                     id = behandlingId,
                     opprettet = opprettet,
@@ -703,7 +703,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     sakstype = sakstype,
                 )
             }
-            BehandlingsStatus.IVERKSATT_INNVILGET -> {
+            SøknadsbehandlingStatusDB.IVERKSATT_INNVILGET -> {
                 Søknadsbehandling.Iverksatt.Innvilget(
                     id = behandlingId,
                     opprettet = opprettet,
@@ -724,7 +724,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     sakstype = sakstype,
                 )
             }
-            BehandlingsStatus.IVERKSATT_AVSLAG -> {
+            SøknadsbehandlingStatusDB.IVERKSATT_AVSLAG -> {
                 when (beregning) {
                     null -> Søknadsbehandling.Iverksatt.Avslag.UtenBeregning(
                         id = behandlingId,
@@ -771,5 +771,58 @@ internal class SøknadsbehandlingPostgresRepo(
             )
         }
         return søknadsbehandling
+    }
+}
+
+internal enum class SøknadsbehandlingStatusDB {
+    OPPRETTET,
+    VILKÅRSVURDERT_INNVILGET,
+    VILKÅRSVURDERT_AVSLAG,
+    BEREGNET_INNVILGET,
+    BEREGNET_AVSLAG,
+    SIMULERT,
+    TIL_ATTESTERING_INNVILGET,
+    TIL_ATTESTERING_AVSLAG,
+    UNDERKJENT_INNVILGET,
+    UNDERKJENT_AVSLAG,
+    IVERKSATT_INNVILGET,
+    IVERKSATT_AVSLAG,
+    ;
+
+    companion object {
+        @Suppress("MemberVisibilityCanBePrivate")
+        fun åpneBeregnetSøknadsbehandlinger() = listOf(
+            BEREGNET_INNVILGET,
+            BEREGNET_AVSLAG,
+            SIMULERT,
+            TIL_ATTESTERING_INNVILGET,
+            TIL_ATTESTERING_AVSLAG,
+            UNDERKJENT_INNVILGET,
+            UNDERKJENT_AVSLAG,
+        )
+
+        fun åpneBeregnetSøknadsbehandlingerKommaseparert(): String =
+            åpneBeregnetSøknadsbehandlinger().joinToString(",") { "'$it'" }
+
+        fun Søknadsbehandling.status(): SøknadsbehandlingStatusDB {
+            return when (this) {
+                is Søknadsbehandling.Beregnet.Avslag -> BEREGNET_AVSLAG
+                is Søknadsbehandling.Beregnet.Innvilget -> BEREGNET_INNVILGET
+                is Søknadsbehandling.Iverksatt.Avslag.MedBeregning -> IVERKSATT_AVSLAG
+                is Søknadsbehandling.Iverksatt.Avslag.UtenBeregning -> IVERKSATT_AVSLAG
+                is Søknadsbehandling.Iverksatt.Innvilget -> IVERKSATT_INNVILGET
+                is LukketSøknadsbehandling -> underliggendeSøknadsbehandling.status()
+                is Søknadsbehandling.Simulert -> SIMULERT
+                is Søknadsbehandling.TilAttestering.Avslag.MedBeregning -> TIL_ATTESTERING_AVSLAG
+                is Søknadsbehandling.TilAttestering.Avslag.UtenBeregning -> TIL_ATTESTERING_AVSLAG
+                is Søknadsbehandling.TilAttestering.Innvilget -> TIL_ATTESTERING_INNVILGET
+                is Søknadsbehandling.Underkjent.Avslag.MedBeregning -> UNDERKJENT_AVSLAG
+                is Søknadsbehandling.Underkjent.Avslag.UtenBeregning -> UNDERKJENT_AVSLAG
+                is Søknadsbehandling.Underkjent.Innvilget -> UNDERKJENT_INNVILGET
+                is Søknadsbehandling.Vilkårsvurdert.Avslag -> VILKÅRSVURDERT_AVSLAG
+                is Søknadsbehandling.Vilkårsvurdert.Innvilget -> VILKÅRSVURDERT_INNVILGET
+                is Søknadsbehandling.Vilkårsvurdert.Uavklart -> OPPRETTET
+            }
+        }
     }
 }

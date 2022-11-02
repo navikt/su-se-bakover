@@ -698,7 +698,7 @@ internal class StatusovergangTest {
                 iverksattInnvilget,
                 lukketSøknadsbehandling,
             ).forEach {
-                assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it.status}") {
+                assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it::class.simpleName}") {
                     statusovergang(
                         it,
                         Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev),
@@ -796,7 +796,7 @@ internal class StatusovergangTest {
                 iverksattInnvilget,
                 lukketSøknadsbehandling,
             ).forEach {
-                assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it.status}") {
+                assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it::class.simpleName}") {
                     forsøkStatusovergang(
                         it,
                         Statusovergang.TilUnderkjent(attesteringUnderkjent(clock = fixedClock)),
@@ -913,7 +913,7 @@ internal class StatusovergangTest {
                 iverksattInnvilget,
                 lukketSøknadsbehandling,
             ).forEach {
-                assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it.status}") {
+                assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it::class.simpleName}") {
                     forsøkStatusovergang(
                         it,
                         Statusovergang.TilUnderkjent(attesteringUnderkjent(clock = fixedClock)),

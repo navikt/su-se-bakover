@@ -192,8 +192,6 @@ internal fun Route.søknadsbehandlingRoutes(
                                                         "stønadsperiode_inneholder_avkorting_utenlandsopphold",
                                                     )
                                                 }
-
-                                                else -> throw IllegalStateException("Husk å fjerne denne ved commit")
                                             }
                                         }
                                     },
