@@ -1,9 +1,8 @@
 package no.nav.su.se.bakover.web.services.tilbakekreving
 
+import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.common.sikkerLogg
 import org.slf4j.LoggerFactory
-import org.slf4j.MDC
-import java.util.UUID
 import javax.jms.JMSContext
 import javax.jms.Session
 
@@ -28,12 +27,12 @@ internal class TilbakekrevingIbmMqConsumer(
     init {
         consumer.setMessageListener { message ->
             try {
-                // Ktor legger på X-Correlation-ID for web-requests, men vi har ikke noe tilsvarende automagi for meldingskøen.
-                MDC.put("X-Correlation-ID", UUID.randomUUID().toString())
-                log.info("Mottok kravgrunnlag fra køen: $queueName. Se sikkerlogg for meldingsinnhold.")
-                message.getBody(String::class.java).let {
-                    sikkerLogg.info("Kravgrunnlag lest fra $queueName, innhold: $it")
-                    tilbakekrevingConsumer.onMessage(it)
+                CorrelationId.withCorrelationId {
+                    log.info("Mottok kravgrunnlag fra køen: $queueName. Se sikkerlogg for meldingsinnhold.")
+                    message.getBody(String::class.java).let {
+                        sikkerLogg.info("Kravgrunnlag lest fra $queueName, innhold: $it")
+                        tilbakekrevingConsumer.onMessage(it)
+                    }
                 }
             } catch (ex: Exception) {
                 log.error("Feil ved prossessering av melding fra: $queueName", ex)

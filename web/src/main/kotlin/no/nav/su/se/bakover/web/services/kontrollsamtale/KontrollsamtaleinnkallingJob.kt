@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.services.kontrollsamtale
 
 import arrow.core.Either
+import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
 import no.nav.su.se.bakover.web.services.RunCheckFactory
 import no.nav.su.se.bakover.web.services.shouldRun
@@ -36,9 +37,11 @@ internal class KontrollsamtaleinnkallingJob(
                 listOf(runCheckFactory.leaderPod())
                     .shouldRun()
                     .ifTrue {
-                        kontrollsamtaleService.hentPlanlagteKontrollsamtaler().map { kontrollsamtaler ->
-                            kontrollsamtaler.forEach {
-                                kontrollsamtaleService.kallInn(it.sakId, it)
+                        CorrelationId.withCorrelationId {
+                            kontrollsamtaleService.hentPlanlagteKontrollsamtaler().map { kontrollsamtaler ->
+                                kontrollsamtaler.forEach {
+                                    kontrollsamtaleService.kallInn(it.sakId, it)
+                                }
                             }
                         }
                     }

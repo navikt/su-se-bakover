@@ -9,6 +9,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
@@ -33,39 +34,41 @@ class UtbetalingKvitteringConsumer(
     }
 
     fun onMessage(xmlMessage: String) {
-        val kvitteringResponse: UtbetalingKvitteringResponse = xmlMessage.toKvitteringResponse(xmlMapper)
+        CorrelationId.withCorrelationId {
+            val kvitteringResponse: UtbetalingKvitteringResponse = xmlMessage.toKvitteringResponse(xmlMapper)
 
-        val kvittering: Kvittering = kvitteringResponse.toKvittering(xmlMessage, clock)
-        if (!kvittering.erKvittertOk()) {
-            log.error("Mottok en kvittering fra oppdragssystemet som ikke var OK: $kvittering, dette bør muligens følges opp!")
-        }
-
-        log.info("Oppdaterer utbetaling og ferdigstiller innvilgelse med kvittering fra Oppdrag")
-        utbetalingService.oppdaterMedKvittering(
-            utbetalingId = kvitteringResponse.utbetalingsId(),
-            kvittering = kvittering,
-        )
-            .flatMap { ferdigstillInnvilgelse(it) }
-            .mapLeft {
-                /**
-                 * //TODO finn en bedre løsning på dette?
-                 * Prøver på nytt etter litt delay dersom utbetalingen/vedtaket ikke finnes.
-                 * Vi har en race condition (spesielt på vedtak), hvor kvitteringen fra Oppdrag av og til kommer før vi har persistert vedtaket.
-                 */
-                val delayMs = 1000L
-                log.info("Noe gikk galt i prosessering av kvittering fra Oppdrag, venter ${delayMs}ms før retry")
-                runBlocking {
-                    delay(delayMs)
-                }
-                utbetalingService.oppdaterMedKvittering(
-                    utbetalingId = kvitteringResponse.utbetalingsId(),
-                    kvittering = kvittering,
-                )
-                    .flatMap { ferdigstillInnvilgelse(it) }
-                    .mapLeft {
-                        throw RuntimeException("Kunne ikke oppdatere kvittering eller vedtak ved prossessering av kvittering: $it")
-                    }
+            val kvittering: Kvittering = kvitteringResponse.toKvittering(xmlMessage, clock)
+            if (!kvittering.erKvittertOk()) {
+                log.error("Mottok en kvittering fra oppdragssystemet som ikke var OK: $kvittering, dette bør muligens følges opp!")
             }
+
+            log.info("Oppdaterer utbetaling og ferdigstiller innvilgelse med kvittering fra Oppdrag")
+            utbetalingService.oppdaterMedKvittering(
+                utbetalingId = kvitteringResponse.utbetalingsId(),
+                kvittering = kvittering,
+            )
+                .flatMap { ferdigstillInnvilgelse(it) }
+                .mapLeft {
+                    /**
+                     * //TODO finn en bedre løsning på dette?
+                     * Prøver på nytt etter litt delay dersom utbetalingen/vedtaket ikke finnes.
+                     * Vi har en race condition (spesielt på vedtak), hvor kvitteringen fra Oppdrag av og til kommer før vi har persistert vedtaket.
+                     */
+                    val delayMs = 1000L
+                    log.info("Noe gikk galt i prosessering av kvittering fra Oppdrag, venter ${delayMs}ms før retry")
+                    runBlocking {
+                        delay(delayMs)
+                    }
+                    utbetalingService.oppdaterMedKvittering(
+                        utbetalingId = kvitteringResponse.utbetalingsId(),
+                        kvittering = kvittering,
+                    )
+                        .flatMap { ferdigstillInnvilgelse(it) }
+                        .mapLeft {
+                            throw RuntimeException("Kunne ikke oppdatere kvittering eller vedtak ved prossessering av kvittering: $it")
+                        }
+                }
+        }
     }
 
     private fun ferdigstillInnvilgelse(utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering): Either<FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak, Unit> {

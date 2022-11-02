@@ -6,6 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import no.nav.su.se.bakover.common.CorrelationId
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
 import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.consumer.ConsumerRecords
@@ -31,11 +32,14 @@ class KlageinstanshendelseConsumer(
         consumer.subscribe(listOf(topicName))
 
         CoroutineScope(Dispatchers.IO).launch {
+
             while (this.isActive) {
                 Either.catch {
-                    val messages = consumer.poll(pollTimeoutDuration)
-                    if (!messages.isEmpty) {
-                        consume(messages)
+                    CorrelationId.withCorrelationId {
+                        val messages = consumer.poll(pollTimeoutDuration)
+                        if (!messages.isEmpty) {
+                            consume(messages)
+                        }
                     }
                 }.mapLeft {
                     // Dette vil føre til en timeout, siden vi ikke gjør noen commit. Da vil vi ikke få noen meldinger i mellomtiden.
@@ -73,6 +77,7 @@ class KlageinstanshendelseConsumer(
                             consumer.enforceRebalance()
                             return@breakable
                         }
+
                         is KunneIkkeMappeKlageinstanshendelse.IkkeAktuellOpplysningstype -> {
                             log.debug("$topicName: Forkastet hendelse med uaktuell kilde: ${it.kilde}, key: ${message.key()}, partition: ${message.partition()}, offset: ${message.offset()}\"")
                             sikkerLogg.debug("$topicName: Forkastet hendelse med uaktuell kilde: ${it.kilde}, key: ${message.key()}, value: ${message.value()} partition: ${message.partition()}, offset: ${message.offset()}\"")
