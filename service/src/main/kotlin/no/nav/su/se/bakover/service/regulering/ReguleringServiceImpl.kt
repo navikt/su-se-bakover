@@ -279,7 +279,14 @@ class ReguleringServiceImpl(
                 val (iverksattRegulering, vedtak) = it
 
                 Either.catch {
-                    observers.forEach { observer -> observer.handle(StatistikkEvent.Stønadsvedtak(vedtak)) }
+                    // TODO jah: Vi har gjort endringer på saken underveis - endret regulering, ny utbetaling og nytt vedtak - uten at selve saken blir oppdatert underveis. Når saken returnerer en oppdatert versjon av seg selv for disse tilfellene kan vi fjerne det ekstra kallet til hentSak.
+                    observers.forEach { observer ->
+                        observer.handle(
+                            StatistikkEvent.Stønadsvedtak(
+                                vedtak,
+                            ) { sakRepo.hentSak(sak.id)!! },
+                        )
+                    }
                 }.tapLeft {
                     log.error(
                         "Regulering for saksnummer ${iverksattRegulering.saksnummer}: Utsending av stønadsstatistikk feilet under automatisk regulering.",

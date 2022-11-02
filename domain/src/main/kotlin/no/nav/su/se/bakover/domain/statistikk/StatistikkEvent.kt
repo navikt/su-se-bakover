@@ -203,5 +203,5 @@ sealed interface StatistikkEvent {
     /**
      * Brukes til stønadsstatistikk
      */
-    data class Stønadsvedtak(val vedtak: VedtakSomKanRevurderes.EndringIYtelse) : StatistikkEvent
+    data class Stønadsvedtak(val vedtak: VedtakSomKanRevurderes.EndringIYtelse, val hentSak: () -> Sak) : StatistikkEvent
 }

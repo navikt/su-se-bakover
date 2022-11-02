@@ -1279,7 +1279,8 @@ internal class RevurderingServiceImpl(
                         }
                     }
                 }.map { vedtak ->
-                    observers.notify(StatistikkEvent.Stønadsvedtak(vedtak))
+                    // TODO jah: Vi har gjort endringer på saken underveis - endret regulering, ny utbetaling og nytt vedtak - uten at selve saken blir oppdatert underveis. Når saken returnerer en oppdatert versjon av seg selv for disse tilfellene kan vi fjerne det ekstra kallet til hentSak.
+                    observers.notify(StatistikkEvent.Stønadsvedtak(vedtak) { sakService.hentSak(sak.id).orNull()!! })
                     observers.notify(StatistikkEvent.Behandling.Revurdering.Iverksatt.Innvilget(vedtak))
                     iverksattRevurdering
                 }
@@ -1376,7 +1377,8 @@ internal class RevurderingServiceImpl(
                         else -> KunneIkkeIverksetteRevurdering.LagringFeilet
                     }
                 }.map { vedtak ->
-                    observers.notify(StatistikkEvent.Stønadsvedtak(vedtak))
+                    // TODO jah: Vi har gjort endringer på saken underveis - endret regulering, ny utbetaling og nytt vedtak - uten at selve saken blir oppdatert underveis. Når saken returnerer en oppdatert versjon av seg selv for disse tilfellene kan vi fjerne det ekstra kallet til hentSak.
+                    observers.notify(StatistikkEvent.Stønadsvedtak(vedtak) { sakService.hentSak(sak.id).orNull()!! })
                     observers.notify(StatistikkEvent.Behandling.Revurdering.Iverksatt.Opphørt(vedtak))
                     iverksattRevurdering
                 }
