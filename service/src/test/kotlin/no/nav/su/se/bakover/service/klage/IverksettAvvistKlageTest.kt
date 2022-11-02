@@ -73,7 +73,7 @@ internal class IverksettAvvistKlageTest {
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
-                on { hentKnyttetVedtaksdato(any()) } doReturn 1.januar(2021)
+                on { hentVedtaksbrevDatoSomDetKlagesPå(any()) } doReturn 1.januar(2021)
             },
         )
         val attestant = NavIdentBruker.Attestant(klage.saksbehandler.navIdent)
@@ -234,7 +234,7 @@ internal class IverksettAvvistKlageTest {
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
-                on { hentKnyttetVedtaksdato(any()) } doReturn 1.januar(2022)
+                on { hentVedtaksbrevDatoSomDetKlagesPå(any()) } doReturn 1.januar(2022)
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
             brevServiceMock = mock {

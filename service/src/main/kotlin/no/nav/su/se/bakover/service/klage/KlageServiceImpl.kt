@@ -302,7 +302,7 @@ class KlageServiceImpl(
 
         val dokument = klage.lagBrevRequest(
             hentNavnForNavIdent = { identClient.hentNavnForNavIdent(klage.saksbehandler) },
-            hentVedtakDato = { klageRepo.hentKnyttetVedtaksdato(klage.id) },
+            hentVedtaksbrevDato = { klageRepo.hentVedtaksbrevDatoSomDetKlagesPå(klage.id) },
             hentPerson = { personService.hentPerson(klage.fnr) },
             clock = clock,
         ).mapLeft {
@@ -375,7 +375,7 @@ class KlageServiceImpl(
         val vedtak = Klagevedtak.Avvist.fromIverksattAvvistKlage(avvistKlage, clock)
         val dokument = klage.lagBrevRequest(
             hentNavnForNavIdent = { identClient.hentNavnForNavIdent(klage.saksbehandler) },
-            hentVedtakDato = { klageRepo.hentKnyttetVedtaksdato(klage.id) },
+            hentVedtaksbrevDato = { klageRepo.hentVedtaksbrevDatoSomDetKlagesPå(klage.id) },
             hentPerson = { personService.hentPerson(klage.fnr) },
             clock = clock,
         ).mapLeft {
@@ -424,7 +424,7 @@ class KlageServiceImpl(
 
         return klage.lagBrevRequest(
             hentNavnForNavIdent = { identClient.hentNavnForNavIdent(saksbehandler) },
-            hentVedtakDato = { klageRepo.hentKnyttetVedtaksdato(klage.id) },
+            hentVedtaksbrevDato = { klageRepo.hentVedtaksbrevDatoSomDetKlagesPå(klage.id) },
             hentPerson = { personService.hentPerson(klage.fnr) },
             clock = clock,
         ).mapLeft {

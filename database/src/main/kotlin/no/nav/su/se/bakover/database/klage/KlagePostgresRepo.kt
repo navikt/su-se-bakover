@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
+import no.nav.su.se.bakover.common.ddMMyyyyFormatter
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.persistence.DbMetrics
 import no.nav.su.se.bakover.common.persistence.PostgresSessionContext.Companion.withSession
@@ -303,15 +304,20 @@ internal class KlagePostgresRepo(
         }
     }
 
-    override fun hentKnyttetVedtaksdato(klageId: UUID): LocalDate? {
-        return dbMetrics.timeQuery("hentVedtaksdatoKnyttetTilKlage") {
+    override fun hentVedtaksbrevDatoSomDetKlagesPå(klageId: UUID): LocalDate? {
+        return dbMetrics.timeQuery("hentVedtaksbrevDatoSomDetKlagesPå") {
             sessionFactory.withSession {
                 """
-                select v.opprettet from klage k left join vedtak v on k.vedtakid = v.id
-                    where k.id = :id
+                select d.generertdokumentjson->'personalia'->>'dato' as vedtaksbrevdato
+                  from klage k
+                  join vedtak v on k.vedtakid = v.id
+                  join dokument d on d.vedtakid = v.id
+                  where k.id = :id
                 """.trimIndent()
                     .hent(mapOf("id" to klageId), it) { row ->
-                        row.localDate("opprettet")
+                        row.string("vedtaksbrevdato").let {
+                            LocalDate.parse(it, ddMMyyyyFormatter) // Eksempel: 17.10.2022
+                        }
                     }
             }
         }

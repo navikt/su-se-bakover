@@ -505,7 +505,7 @@ private fun KunneIkkeLageBrevRequest.toErrorJson(): Resultat {
     return when (this) {
         is KunneIkkeLageBrevRequest.FeilVedHentingAvPerson -> this.personFeil.tilResultat()
         is KunneIkkeLageBrevRequest.FeilVedHentingAvSaksbehandlernavn -> feilVedHentingAvSaksbehandlerNavn
-        KunneIkkeLageBrevRequest.FeilVedHentingAvVedtakDato,
+        KunneIkkeLageBrevRequest.FeilVedHentingAvVedtaksbrevDato,
         -> feilVedHentingAvVedtakDato
         is KunneIkkeLageBrevRequest.UgyldigTilstand -> BadRequest.errorJson(
             "Kan ikke gå fra tilstanden ${fra.simpleName}",
