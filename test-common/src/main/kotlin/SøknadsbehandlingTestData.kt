@@ -824,7 +824,6 @@ fun iverksattSøknadsbehandling(
                     clock = clock,
                 ).getOrFail().let {
                     it.toOversendtUtbetaling(UtbetalingStub.generateRequest(it))
-                        .toKvittertUtbetaling(kvittering())
                 }
                 tilAttestering.tilIverksatt(attestering).let {
                     Triple(
