@@ -33,7 +33,7 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepoTest {
                 ),
                 dbMetrics = dbMetricsStub,
             )
-            val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
+            val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdert().second
             val vilkår = UtenlandsoppholdVilkår.Vurdert.tryCreate(
                 vurderingsperioder = nonEmptyListOf(
                     VurderingsperiodeUtenlandsopphold.create(
@@ -66,7 +66,7 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepoTest {
                 ),
                 dbMetrics = dbMetricsStub,
             )
-            val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
+            val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdert().second
             val vilkår = UtenlandsoppholdVilkår.Vurdert.tryCreate(
                 vurderingsperioder = nonEmptyListOf(
                     VurderingsperiodeUtenlandsopphold.create(
@@ -114,7 +114,7 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepoTest {
                 ),
                 dbMetrics = dbMetricsStub,
             )
-            val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
+            val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdert().second
             val gammel = UtenlandsoppholdVilkår.Vurdert.tryCreate(
                 vurderingsperioder = nonEmptyListOf(
                     VurderingsperiodeUtenlandsopphold.create(
@@ -176,7 +176,7 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepoTest {
                 utenlandsoppholdgrunnlagRepo = utenlandsoppholdgrunnlagRepo,
                 dbMetrics = dbMetricsStub,
             )
-            val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
+            val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdert().second
             val (vilkår, grunnlag) = utenlandsoppholdInnvilget(
                 grunnlag = Utenlandsoppholdgrunnlag(
                     id = UUID.randomUUID(),

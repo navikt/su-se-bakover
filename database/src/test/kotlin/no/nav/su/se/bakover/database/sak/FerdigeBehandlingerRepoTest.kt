@@ -157,19 +157,19 @@ internal class FerdigeBehandlingerRepoTest {
             val repo = testDataHelper.sakRepo
 
             val vedtakSak1 =
-                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().second
+                testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second
             val oversendtKlage = testDataHelper.persisterKlageOversendt(vedtakSak1)
 
             val vedtakSak2 =
-                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().second
+                testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second
             val iverksattAvvistKlage = testDataHelper.persisterKlageIverksattAvvist(vedtakSak2)
 
             val vedtakSak3 =
-                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().second
+                testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second
             testDataHelper.persisterKlageOpprettet(vedtakSak3)
 
             val vedtakSak4 =
-                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().second
+                testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second
             testDataHelper.persisterKlageVurdertBekreftet(vedtakSak4)
 
             val ferdigeBehandlinger = repo.hentFerdigeBehandlinger()

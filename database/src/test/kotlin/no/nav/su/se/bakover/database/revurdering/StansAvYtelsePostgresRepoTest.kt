@@ -25,7 +25,7 @@ internal class StansAvYtelsePostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val vedtak =
-                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().second
+                testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second
 
             val simulertRevurdering = StansAvYtelseRevurdering.SimulertStansAvYtelse(
                 id = UUID.randomUUID(),
@@ -61,7 +61,7 @@ internal class StansAvYtelsePostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val vedtak =
-                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().second
+                testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second
 
             val simulertRevurdering = StansAvYtelseRevurdering.SimulertStansAvYtelse(
                 id = UUID.randomUUID(),
@@ -115,7 +115,7 @@ internal class StansAvYtelsePostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val vedtak =
-                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().second
+                testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second
 
             val simulertRevurdering = StansAvYtelseRevurdering.SimulertStansAvYtelse(
                 id = UUID.randomUUID(),

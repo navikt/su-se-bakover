@@ -61,8 +61,8 @@ internal class NøkkeltallPostgresRepoTest {
     fun `en avslått og en innvilget søknad i to forskjellige saker`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            testDataHelper.persisterVedtakMedAvslåttSøknadsbehandlingUtenBeregning()
-            testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering()
+            testDataHelper.persisterSøknadsbehandlingIverksattAvslagUtenBeregning()
+            testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling()
             val nøkkeltallRepo = testDataHelper.nøkkeltallRepo
             nøkkeltallRepo.hentNøkkeltall() shouldBe Nøkkeltall(
                 søknader = Nøkkeltall.Søknader(

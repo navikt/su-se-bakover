@@ -5,8 +5,6 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
-import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
@@ -47,12 +45,40 @@ data class LukketSøknadsbehandling private constructor(
 
     // TODO jah: Denne bør overstyres av saksbehandler som avsluttet revurderingen.
     override val saksbehandler: NavIdentBruker.Saksbehandler? = underliggendeSøknadsbehandling.saksbehandler
-    override val beregning: Beregning? = underliggendeSøknadsbehandling.beregning
-    override val simulering: Simulering? = underliggendeSøknadsbehandling.simulering
 
     val lukketTidspunkt = søknad.lukketTidspunkt
     val lukketAv = søknad.lukketAv
     val lukketBrevvalg = søknad.brevvalg
+
+    override val beregning = when (underliggendeSøknadsbehandling) {
+        is Beregnet.Avslag -> underliggendeSøknadsbehandling.beregning
+        is Beregnet.Innvilget -> underliggendeSøknadsbehandling.beregning
+        is Iverksatt -> throw IllegalArgumentException("Ugyldig tilstand")
+        is LukketSøknadsbehandling -> throw IllegalArgumentException("Ugyldig tilstand")
+        is Simulert -> underliggendeSøknadsbehandling.beregning
+        is TilAttestering -> throw IllegalArgumentException("Ugyldig tilstand")
+        is Underkjent.Avslag.MedBeregning -> underliggendeSøknadsbehandling.beregning
+        is Underkjent.Avslag.UtenBeregning -> null
+        is Underkjent.Innvilget -> underliggendeSøknadsbehandling.beregning
+        is Vilkårsvurdert.Avslag -> null
+        is Vilkårsvurdert.Innvilget -> null
+        is Vilkårsvurdert.Uavklart -> null
+    }
+
+    override val simulering = when (underliggendeSøknadsbehandling) {
+        is Beregnet.Avslag -> null
+        is Beregnet.Innvilget -> null
+        is Iverksatt -> throw IllegalArgumentException("Ugyldig tilstand")
+        is LukketSøknadsbehandling -> throw IllegalArgumentException("Ugyldig tilstand")
+        is Simulert -> underliggendeSøknadsbehandling.simulering
+        is TilAttestering -> throw IllegalArgumentException("Ugyldig tilstand")
+        is Underkjent.Avslag.MedBeregning -> null
+        is Underkjent.Avslag.UtenBeregning -> null
+        is Underkjent.Innvilget -> underliggendeSøknadsbehandling.simulering
+        is Vilkårsvurdert.Avslag -> null
+        is Vilkårsvurdert.Innvilget -> null
+        is Vilkårsvurdert.Uavklart -> null
+    }
 
     init {
         kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
