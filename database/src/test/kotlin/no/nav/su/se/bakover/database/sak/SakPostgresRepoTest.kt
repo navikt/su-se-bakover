@@ -5,10 +5,10 @@ import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
 import no.nav.su.se.bakover.domain.sak.SakInfo
+import no.nav.su.se.bakover.domain.sak.Saksnummer
+import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.TestDataHelper.Companion.søknadNy
@@ -133,14 +133,14 @@ internal class SakPostgresRepoTest {
             val sak = testDataHelper.persisterSakMedSøknadUtenJournalføringOgOppgave()
             testDataHelper.persisterLukketJournalførtSøknadMedOppgave(sakId = sak.id)
             testDataHelper.persisterSøknadsbehandlingAvsluttet(sakId = sak.id)
-            val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
+            val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdert().second
             val underkjent = testDataHelper.persisterSøknadsbehandlingUnderkjentAvslagMedBeregning().second
             val tilAttestering = testDataHelper.persisterSøknadsbehandlingTilAttesteringAvslagUtenBeregning().second
             testDataHelper.persisterSøknadsbehandlingIverksattInnvilget()
 
             val (_, opprettetRevurdering) =
                 testDataHelper.persisterRevurderingOpprettet(
-                    testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().let { it.first to it.second },
+                    testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { it.first to it.second },
                 )
             val (_, tilAttesteringRevurdering) = testDataHelper.persisterRevurderingTilAttesteringInnvilget()
             val (_, underkjentRevurdering) = testDataHelper.persisterRevurderingUnderkjentInnvilget()

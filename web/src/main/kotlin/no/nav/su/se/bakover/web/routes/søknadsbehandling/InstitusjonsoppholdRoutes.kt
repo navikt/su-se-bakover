@@ -6,7 +6,9 @@ import io.ktor.server.application.call
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.Brukerrolle
+import no.nav.su.se.bakover.common.audit.application.AuditLogEvent
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
+import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
@@ -35,14 +37,10 @@ internal fun Route.institusjonsoppholdRoutes(
                                     vilkår = vilkår,
                                 ),
                             ).fold(
+                                { it.tilResultat() },
                                 {
-                                    it.tilResultat()
-                                },
-                                {
-                                    Resultat.json(
-                                        HttpStatusCode.Created,
-                                        it.json(satsFactory),
-                                    )
+                                    call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
+                                    Resultat.json(HttpStatusCode.Created, it.json(satsFactory))
                                 },
                             )
                         }.getOrHandle { it },

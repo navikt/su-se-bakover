@@ -6,8 +6,6 @@ import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
-import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
@@ -15,6 +13,8 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.person.Person
+import no.nav.su.se.bakover.domain.sak.Saksnummer
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -70,7 +70,7 @@ sealed interface Klage : Klagefelter {
 
     fun lagBrevRequest(
         hentNavnForNavIdent: (saksbehandler: NavIdentBruker.Saksbehandler) -> Either<KunneIkkeHenteNavnForNavIdent, String>,
-        hentVedtakDato: (klageId: UUID) -> LocalDate?,
+        hentVedtaksbrevDato: (klageId: UUID) -> LocalDate?,
         hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
         clock: Clock,
     ): Either<KunneIkkeLageBrevRequest, LagBrevRequest.Klage> {
@@ -188,7 +188,7 @@ interface Klagefelter {
 }
 
 sealed interface KunneIkkeLageBrevRequest {
-    object FeilVedHentingAvVedtakDato : KunneIkkeLageBrevRequest
+    object FeilVedHentingAvVedtaksbrevDato : KunneIkkeLageBrevRequest
     data class UgyldigTilstand(val fra: KClass<out Klage>) : KunneIkkeLageBrevRequest
     data class FeilVedHentingAvPerson(val personFeil: KunneIkkeHentePerson) : KunneIkkeLageBrevRequest
     data class FeilVedHentingAvSaksbehandlernavn(val feil: KunneIkkeHenteNavnForNavIdent) : KunneIkkeLageBrevRequest

@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.services.avstemming
 
 import arrow.core.Either
 import arrow.core.firstOrNone
+import no.nav.su.se.bakover.common.CorrelationId.Companion.withCorrelationId
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Fagområde
@@ -10,11 +11,9 @@ import no.nav.su.se.bakover.web.services.RunCheckFactory
 import no.nav.su.se.bakover.web.services.shouldRun
 import org.jetbrains.kotlin.utils.addToStdlib.ifTrue
 import org.slf4j.LoggerFactory
-import org.slf4j.MDC
 import java.time.Clock
 import java.time.Duration
 import java.time.LocalDate
-import java.util.UUID
 import kotlin.concurrent.fixedRateTimer
 
 /**
@@ -71,22 +70,28 @@ internal class KonsistensavstemmingJob(
                             listOf(runCheckFactory.leaderPod())
                                 .shouldRun()
                                 .ifTrue {
-                                    Fagområde.values().forEach { fagområde ->
-                                        when (fagområde) {
-                                            Fagområde.SUALDER -> {
-                                                // TODO("simulering_utbetaling_alder legg til ALDER for konsistensavstemming")
-                                            }
-                                            Fagområde.SUUFORE -> {
-                                                if (!avstemmingService.konsistensavstemmingUtførtForOgPåDato(idag, fagområde)) {
-                                                    MDC.put("X-Correlation-ID", UUID.randomUUID().toString())
-                                                    log.info("Kjøreplan: $kjøreplan inneholder dato: $idag, utfører konsistensavstemming.")
-                                                    avstemmingService.konsistensavstemming(idag, fagområde)
-                                                        .fold(
-                                                            { log.error("$jobName feilet: $it") },
-                                                            { log.info("$jobName fullført. Detaljer: id:${it.id}, løpendeFraOgMed:${it.løpendeFraOgMed}, opprettetTilOgMed:${it.opprettetTilOgMed}") },
+                                    withCorrelationId {
+                                        Fagområde.values().forEach { fagområde ->
+                                            when (fagområde) {
+                                                Fagområde.SUALDER -> {
+                                                    // TODO("simulering_utbetaling_alder legg til ALDER for konsistensavstemming")
+                                                }
+
+                                                Fagområde.SUUFORE -> {
+                                                    if (!avstemmingService.konsistensavstemmingUtførtForOgPåDato(
+                                                            idag,
+                                                            fagområde,
                                                         )
-                                                } else {
-                                                    log.info("Konsistensavstemming allerede utført for dato: $idag")
+                                                    ) {
+                                                        log.info("Kjøreplan: $kjøreplan inneholder dato: $idag, utfører konsistensavstemming.")
+                                                        avstemmingService.konsistensavstemming(idag, fagområde)
+                                                            .fold(
+                                                                { log.error("$jobName feilet: $it") },
+                                                                { log.info("$jobName fullført. Detaljer: id:${it.id}, løpendeFraOgMed:${it.løpendeFraOgMed}, opprettetTilOgMed:${it.opprettetTilOgMed}") },
+                                                            )
+                                                    } else {
+                                                        log.info("Konsistensavstemming allerede utført for dato: $idag")
+                                                    }
                                                 }
                                             }
                                         }

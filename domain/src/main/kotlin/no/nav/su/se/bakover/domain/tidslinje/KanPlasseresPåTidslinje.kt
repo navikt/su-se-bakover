@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.domain.tidslinje
 
+import no.nav.su.se.bakover.common.application.CopyArgs
+import no.nav.su.se.bakover.common.application.KopierbarForTidslinje
+import no.nav.su.se.bakover.common.application.OriginaltTidsstempel
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.PeriodisertInformasjon
-import no.nav.su.se.bakover.domain.CopyArgs
-import no.nav.su.se.bakover.domain.KopierbarForTidslinje
-import no.nav.su.se.bakover.domain.OriginaltTidsstempel
 
 /**
  * Egenskaper som kreves for at et element skal kunne periodiseres av [Tidslinje].

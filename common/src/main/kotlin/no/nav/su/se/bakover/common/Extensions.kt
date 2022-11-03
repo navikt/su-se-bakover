@@ -3,13 +3,11 @@ package no.nav.su.se.bakover.common
 import arrow.core.NonEmptyList
 import arrow.core.toNonEmptyListOrNull
 import no.nav.su.se.bakover.common.periode.Periode
-import org.slf4j.MDC
 import java.lang.Double.max
 import java.lang.Double.min
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
-import java.util.UUID
 
 fun Double.positiveOrZero(): Double = max(0.0, this)
 fun Double.limitedUpwardsTo(limit: Double): Double = min(limit, this)
@@ -29,11 +27,6 @@ fun <A, B> Pair<A, A>.mapBoth(f: (A) -> B): Pair<B, B> =
 
 fun <FIRST, SECOND, MAP_SECOND_TO> Pair<FIRST, SECOND>.mapSecond(f: (SECOND) -> MAP_SECOND_TO) =
     Pair(first, f(second))
-
-fun getOrCreateCorrelationId(): String {
-    return MDC.get("X-Correlation-ID") ?: UUID.randomUUID().toString()
-        .also { log.warn("Mangler X-Correlation-ID. Bruker random uuid $it") }
-}
 
 fun String.trimWhitespace(): String {
     return this.filterNot { it.isWhitespace() }

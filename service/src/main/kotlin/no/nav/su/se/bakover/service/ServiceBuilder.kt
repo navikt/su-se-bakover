@@ -4,8 +4,8 @@ import no.finn.unleash.Unleash
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.domain.DatabaseRepos
-import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
+import no.nav.su.se.bakover.domain.sak.SakFactory
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.service.avstemming.AvstemmingServiceImpl
@@ -51,7 +51,6 @@ object ServiceBuilder {
         val statistikkEventObserver = StatistikkEventObserverBuilder(
             kafkaPublisher = clients.kafkaPublisher,
             personService = personService,
-            sakRepo = databaseRepos.sak,
             clock = clock,
             gitCommit = applicationConfig.gitCommit,
         ).statistikkService
@@ -62,7 +61,6 @@ object ServiceBuilder {
         ).apply { addObserver(statistikkEventObserver) }
         val utbetalingService = UtbetalingServiceImpl(
             utbetalingRepo = databaseRepos.utbetaling,
-            sakService = sakService,
             simuleringClient = clients.simuleringClient,
             utbetalingPublisher = clients.utbetalingPublisher,
             clock = clock,

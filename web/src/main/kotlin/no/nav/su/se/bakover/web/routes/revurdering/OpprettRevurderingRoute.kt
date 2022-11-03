@@ -6,13 +6,14 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.NavIdentBruker
-import no.nav.su.se.bakover.common.infrastructure.audit.AuditLogEvent
+import no.nav.su.se.bakover.common.audit.application.AuditLogEvent
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeAktørId
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.harAlleredeÅpenBehandling
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.kunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
+import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
@@ -29,7 +30,6 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering.Ugy
 import no.nav.su.se.bakover.service.revurdering.OpprettRevurderingRequest
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.features.authorize
-import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.begrunnelseKanIkkeVæreTom
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.måVelgeInformasjonSomRevurderes
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.ugyldigÅrsak
@@ -74,12 +74,7 @@ internal fun Route.opprettRevurderingRoute(
                             call.sikkerlogg("Opprettet en ny revurdering på sak med id $sakId")
                             call.audit(it.fnr, AuditLogEvent.Action.CREATE, it.id)
                             SuMetrics.behandlingStartet(SuMetrics.Behandlingstype.REVURDERING)
-                            call.svar(
-                                Resultat.json(
-                                    HttpStatusCode.Created,
-                                    serialize(it.toJson(satsFactory)),
-                                ),
-                            )
+                            call.svar(Resultat.json(HttpStatusCode.Created, serialize(it.toJson(satsFactory))))
                         },
                     )
                 }
@@ -102,18 +97,23 @@ internal fun Sak.KunneIkkeOppretteRevurdering.tilResultat() = when (this) {
     Sak.KunneIkkeOppretteRevurdering.FantIkkeAktørId -> {
         fantIkkeAktørId
     }
+
     Sak.KunneIkkeOppretteRevurdering.HarÅpenBehandling -> {
         harAlleredeÅpenBehandling
     }
+
     Sak.KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave -> {
         kunneIkkeOppretteOppgave
     }
+
     is Sak.KunneIkkeOppretteRevurdering.UteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode -> {
         uteståendeAvkortingMåRevurderesEllerAvkortesINyPeriode(this.periode)
     }
+
     is Sak.KunneIkkeOppretteRevurdering.GjeldendeVedtaksdataKanIkkeRevurderes -> {
         this.feil.tilResultat()
     }
+
     is Sak.KunneIkkeOppretteRevurdering.OpphørteVilkårMåRevurderes -> {
         this.feil.tilResultat()
     }
@@ -123,6 +123,7 @@ internal fun Sak.KunneIkkeHenteGjeldendeVedtaksdata.tilResultat() = when (this) 
     is Sak.KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes -> {
         fantIngenVedtakSomKanRevurderes
     }
+
     is Sak.KunneIkkeHenteGjeldendeVedtaksdata.UgyldigPeriode -> {
         ugyldigPeriode(this.feil)
     }

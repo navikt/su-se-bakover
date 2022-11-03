@@ -9,9 +9,11 @@ import io.ktor.server.application.call
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.Brukerrolle
+import no.nav.su.se.bakover.common.audit.application.AuditLogEvent
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.depositumErHøyereEnnInnskudd
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
+import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
@@ -93,23 +95,17 @@ internal fun Route.leggTilFormueRevurderingRoute(
             call.withSakId { sakId ->
                 call.withRevurderingId { revurderingId ->
                     call.withBody<List<FormueBody>> { body ->
-                        body.toServiceRequest(revurderingId).mapLeft {
-                            call.svar(it)
-                        }.map { request ->
-                            revurderingService.leggTilFormuegrunnlag(
-                                request,
-                            ).map {
-                                call.sikkerlogg("Lagret formue for revudering $revurderingId på $sakId")
-                                call.svar(
-                                    Resultat.json(
-                                        HttpStatusCode.OK,
-                                        serialize(it.toJson(satsFactory)),
-                                    ),
-                                )
-                            }.mapLeft { kunneIkkeLeggeTilFormuegrunnlag ->
-                                call.svar(kunneIkkeLeggeTilFormuegrunnlag.tilResultat())
+                        body.toServiceRequest(revurderingId).mapLeft { call.svar(it) }
+                            .map { request ->
+                                revurderingService.leggTilFormuegrunnlag(request)
+                                    .map {
+                                        call.audit(it.revurdering.fnr, AuditLogEvent.Action.UPDATE, it.revurdering.id)
+                                        call.sikkerlogg("Lagret formue for revudering $revurderingId på $sakId")
+                                        call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(satsFactory))))
+                                    }.mapLeft { kunneIkkeLeggeTilFormuegrunnlag ->
+                                        call.svar(kunneIkkeLeggeTilFormuegrunnlag.tilResultat())
+                                    }
                             }
-                        }
                     }
                 }
             }

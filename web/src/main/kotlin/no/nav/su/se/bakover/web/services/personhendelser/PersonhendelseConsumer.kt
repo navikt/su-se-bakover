@@ -7,6 +7,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import no.nav.su.se.bakover.common.ApplicationConfig
+import no.nav.su.se.bakover.common.CorrelationId.Companion.withCorrelationId
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
 import org.apache.kafka.clients.consumer.Consumer
@@ -22,7 +23,7 @@ import no.nav.person.pdl.leesah.Personhendelse as EksternPersonhendelse
 class PersonhendelseConsumer(
     private val consumer: Consumer<String, EksternPersonhendelse>,
     private val personhendelseService: PersonhendelseService,
-    topicName: String = "aapen-person-pdl-leesah-v1",
+    topicName: String = "pdl.leesah-v1",
     // Vi ønsker ikke holde tråden i live for lenge ved en avslutting av applikasjonen.
     private val pollTimeoutDuration: Duration = Duration.ofMillis(500),
     private val log: Logger = LoggerFactory.getLogger(PersonhendelseConsumer::class.java),
@@ -36,9 +37,11 @@ class PersonhendelseConsumer(
         CoroutineScope(Dispatchers.IO).launch {
             while (this.isActive) {
                 Either.catch {
-                    val messages = consumer.poll(pollTimeoutDuration)
-                    if (!messages.isEmpty) {
-                        consume(messages)
+                    withCorrelationId {
+                        val messages = consumer.poll(pollTimeoutDuration)
+                        if (!messages.isEmpty) {
+                            consume(messages)
+                        }
                     }
                 }.mapLeft {
                     // Dette vil føre til en timeout, siden vi ikke gjør noen commit. Da vil vi ikke få noen meldinger i mellomtiden.

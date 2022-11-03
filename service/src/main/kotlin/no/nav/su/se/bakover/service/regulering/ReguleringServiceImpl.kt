@@ -7,11 +7,12 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.hentGjeldendeUtbetaling
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringMerknad
@@ -20,6 +21,10 @@ import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.inneholderAvslag
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
 import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.domain.sak.Saksnummer
+import no.nav.su.se.bakover.domain.sak.Sakstype
+import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
+import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
@@ -140,7 +145,7 @@ class ReguleringServiceImpl(
             reguleringRepo.lagre(regulering)
 
             if (regulering.reguleringstype is Reguleringstype.AUTOMATISK) {
-                ferdigstillOgIverksettRegulering(regulering)
+                ferdigstillOgIverksettRegulering(regulering, sak)
                     .tap { log.info("Regulering for saksnummer $saksnummer: Ferdig. Reguleringen ble ferdigstilt automatisk") }
                     .mapLeft { feil -> KunneIkkeOppretteRegulering.KunneIkkeRegulereAutomatisk(feil = feil) }
             } else {
@@ -193,20 +198,20 @@ class ReguleringServiceImpl(
                 Sak.KunneIkkeOppretteEllerOppdatereRegulering.HarÅpenBehandling -> KunneIkkeRegulereManuelt.HarÅpenBehandling.left()
                 else -> throw RuntimeException("Feil skjedde under manuell regulering for saksnummer ${sak.saksnummer}. $it")
             }
-        }.map {
-            return it
-                .copy(reguleringstype = regulering.reguleringstype)
+        }.map { opprettetRegulering ->
+            return opprettetRegulering
+                .copy(reguleringstype = opprettetRegulering.reguleringstype)
                 .leggTilFradrag(fradrag)
                 .leggTilUføre(uføregrunnlag, clock)
                 .leggTilSaksbehandler(saksbehandler)
                 .let {
-                    ferdigstillOgIverksettRegulering(it)
+                    ferdigstillOgIverksettRegulering(it, sak)
                         .mapLeft { feil -> KunneIkkeRegulereManuelt.KunneIkkeFerdigstille(feil = feil) }
                 }
         }
     }
 
-    private fun ferdigstillOgIverksettRegulering(regulering: Regulering.OpprettetRegulering): Either<KunneIkkeFerdigstilleOgIverksette, Regulering.IverksattRegulering> {
+    private fun ferdigstillOgIverksettRegulering(regulering: Regulering.OpprettetRegulering, sak: Sak): Either<KunneIkkeFerdigstilleOgIverksette, Regulering.IverksattRegulering> {
         return regulering.beregn(
             satsFactory = satsFactory,
             begrunnelse = null,
@@ -227,21 +232,38 @@ class ReguleringServiceImpl(
             KunneIkkeFerdigstilleOgIverksette.KunneIkkeBeregne
         }
             .flatMap { beregnetRegulering ->
-                beregnetRegulering.simuler(utbetalingService::simulerUtbetaling)
-                    .mapLeft {
-                        log.error("Regulering for saksnummer ${regulering.saksnummer}. Simulering feilet.")
-                        KunneIkkeFerdigstilleOgIverksette.KunneIkkeSimulere
-                    }.flatMap {
-                        if (it.simulering!!.harFeilutbetalinger()) {
-                            log.error("Regulering for saksnummer ${regulering.saksnummer}: Simuleringen inneholdt feilutbetalinger.")
-                            KunneIkkeFerdigstilleOgIverksette.KanIkkeAutomatiskRegulereSomFørerTilFeilutbetaling.left()
-                        } else {
-                            it.right()
-                        }
+                beregnetRegulering.simuler { beregning, uføregrunnlag ->
+                    sak.lagNyUtbetaling(
+                        saksbehandler = beregnetRegulering.saksbehandler,
+                        beregning = beregning,
+                        clock = clock,
+                        utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SammenMedNestePlanlagteUtbetaling,
+                        uføregrunnlag = uføregrunnlag,
+                    ).let {
+                        sak.simulerUtbetaling(
+                            utbetalingForSimulering = it,
+                            periode = regulering.periode,
+                            simuler = utbetalingService::simulerUtbetaling,
+                            kontrollerMotTidligereSimulering = regulering.simulering,
+                            clock = clock,
+                        )
+                    }.map { simulertUtbetaling ->
+                        simulertUtbetaling.simulering
                     }
+                }.mapLeft {
+                    log.error("Regulering for saksnummer ${regulering.saksnummer}. Simulering feilet.")
+                    KunneIkkeFerdigstilleOgIverksette.KunneIkkeSimulere
+                }.flatMap {
+                    if (it.simulering!!.harFeilutbetalinger()) {
+                        log.error("Regulering for saksnummer ${regulering.saksnummer}: Simuleringen inneholdt feilutbetalinger.")
+                        KunneIkkeFerdigstilleOgIverksette.KanIkkeAutomatiskRegulereSomFørerTilFeilutbetaling.left()
+                    } else {
+                        it.right()
+                    }
+                }
             }
             .map { simulertRegulering -> simulertRegulering.tilIverksatt() }
-            .flatMap { lagVedtakOgUtbetal(it) }
+            .flatMap { lagVedtakOgUtbetal(it, sak) }
             .tapLeft {
                 reguleringRepo.lagre(
                     regulering.copy(
@@ -257,7 +279,14 @@ class ReguleringServiceImpl(
                 val (iverksattRegulering, vedtak) = it
 
                 Either.catch {
-                    observers.forEach { observer -> observer.handle(StatistikkEvent.Stønadsvedtak(vedtak)) }
+                    // TODO jah: Vi har gjort endringer på saken underveis - endret regulering, ny utbetaling og nytt vedtak - uten at selve saken blir oppdatert underveis. Når saken returnerer en oppdatert versjon av seg selv for disse tilfellene kan vi fjerne det ekstra kallet til hentSak.
+                    observers.forEach { observer ->
+                        observer.handle(
+                            StatistikkEvent.Stønadsvedtak(
+                                vedtak,
+                            ) { sakRepo.hentSak(sak.id)!! },
+                        )
+                    }
                 }.tapLeft {
                     log.error(
                         "Regulering for saksnummer ${iverksattRegulering.saksnummer}: Utsending av stønadsstatistikk feilet under automatisk regulering.",
@@ -301,14 +330,40 @@ class ReguleringServiceImpl(
         return reguleringRepo.hentSakerMedÅpenBehandlingEllerStans()
     }
 
-    private fun lagVedtakOgUtbetal(regulering: Regulering.IverksattRegulering): Either<KunneIkkeFerdigstilleOgIverksette.KunneIkkeUtbetale, Pair<Regulering.IverksattRegulering, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering>> {
+    private fun lagVedtakOgUtbetal(regulering: Regulering.IverksattRegulering, sak: Sak): Either<KunneIkkeFerdigstilleOgIverksette.KunneIkkeUtbetale, Pair<Regulering.IverksattRegulering, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRegulering>> {
         return Either.catch {
+            val utbetaling = sak.lagNyUtbetaling(
+                saksbehandler = regulering.saksbehandler,
+                beregning = regulering.beregning,
+                clock = clock,
+                utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                uføregrunnlag = when (regulering.sakstype) {
+                    Sakstype.ALDER -> {
+                        null
+                    }
+                    Sakstype.UFØRE -> {
+                        regulering.vilkårsvurderinger.uføreVilkår()
+                            .getOrHandle { throw IllegalStateException("Regulering uføre: ${regulering.id} mangler uføregrunnlag") }
+                            .grunnlag
+                            .toNonEmptyList()
+                    }
+                },
+            ).let {
+                sak.simulerUtbetaling(
+                    utbetalingForSimulering = it,
+                    periode = regulering.periode,
+                    simuler = utbetalingService::simulerUtbetaling,
+                    kontrollerMotTidligereSimulering = regulering.simulering,
+                    clock = clock,
+                )
+            }.getOrHandle { feil ->
+                throw KunneIkkeSendeTilUtbetalingException(UtbetalingFeilet.KunneIkkeSimulere(feil))
+            }
             sessionFactory.withTransactionContext { tx ->
-                val nyUtbetaling = utbetalingService.klargjørNyUtbetaling(
-                    request = regulering.utbetalRequest(),
+                val nyUtbetaling = utbetalingService.klargjørUtbetaling(
+                    utbetaling = utbetaling,
                     transactionContext = tx,
                 ).getOrHandle {
-                    log.error("Regulering for saksnummer ${regulering.saksnummer}: Kunne ikke verifisere og simulere utbetaling for regulering med underliggende grunn: $it")
                     throw KunneIkkeSendeTilUtbetalingException(it)
                 }
 

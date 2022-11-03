@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.sikkerLogg
+import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
@@ -29,7 +30,7 @@ class SkatteClient(private val skatteetatenConfig: SkatteetatenConfig, private v
     override fun hentSamletSkattegrunnlag(
         accessToken: AccessToken,
         fnr: Fnr,
-    ): Either<SkatteoppslagFeil, no.nav.su.se.bakover.domain.Skattegrunnlag> {
+    ): Either<SkatteoppslagFeil, Skattegrunnlag> {
         val getRequest = HttpRequest.newBuilder()
             // TODO: Ikke hardkode år
             .uri(URI.create("${skatteetatenConfig.apiUri}/api/formueinntekt/summertskattegrunnlag/nav/2021/$fnr"))

@@ -15,8 +15,6 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.brev.BrevTemplate
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
@@ -27,8 +25,11 @@ import no.nav.su.se.bakover.domain.jobcontext.SendPåminnelseNyStønadsperiodeCo
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.domain.sak.Saksnummer
+import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
+import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.test.TestSessionFactory
@@ -381,6 +382,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             utbetalinger = emptyList(),
             type = Sakstype.UFØRE,
             uteståendeAvkorting = Avkortingsvarsel.Ingen,
+            versjon = Hendelsesversjon(1),
         )
 
         SendPåminnelseNyStønadsperiodeServiceAndMocks(

@@ -4,10 +4,12 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeTypeOf
+import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.AktørId
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.domain.journalpost.ErTilknyttetSak
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -21,10 +23,9 @@ import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.avsluttetKlage
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.getHentetJournalpost
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.opprettetKlage
+import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
@@ -77,7 +78,7 @@ internal class OpprettKlageTest {
                 on { hentAktørId(any()) } doReturn AktørId("aktørId").right()
             },
             journalpostClient = mock {
-                on { hentFerdigstiltJournalpost(any(), any()) } doReturn getHentetJournalpost().right()
+                on { runBlocking { erTilknyttetSak(any(), any()) } } doReturn ErTilknyttetSak.Ja.right()
             },
             oppgaveService = mock {
                 on { opprettOppgave(any()) } doReturn OppgaveId("nyOppgaveId").right()
@@ -142,7 +143,7 @@ internal class OpprettKlageTest {
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
             journalpostClient = mock {
-                on { hentFerdigstiltJournalpost(any(), any()) } doReturn getHentetJournalpost().right()
+                on { runBlocking { erTilknyttetSak(any(), any()) } } doReturn ErTilknyttetSak.Ja.right()
             },
             personServiceMock = mock {
                 on { hentAktørId(any()) } doReturn KunneIkkeHentePerson.Ukjent.left()
@@ -158,7 +159,9 @@ internal class OpprettKlageTest {
         mocks.service.opprett(request) shouldBe KunneIkkeOppretteKlage.KunneIkkeOppretteOppgave.left()
 
         verify(mocks.sakRepoMock).hentSak(sakId)
-        verify(mocks.journalpostClient).hentFerdigstiltJournalpost(sak.saksnummer, JournalpostId("j2"))
+        runBlocking {
+            verify(mocks.journalpostClient).erTilknyttetSak(JournalpostId("j2"), sak.saksnummer)
+        }
         verify(mocks.personServiceMock).hentAktørId(argThat { it shouldBe sak.fnr })
         mocks.verifyNoMoreInteractions()
     }
@@ -187,7 +190,7 @@ internal class OpprettKlageTest {
                 on { hentAktørId(any()) } doReturn AktørId("aktørId").right()
             },
             journalpostClient = mock {
-                on { hentFerdigstiltJournalpost(any(), any()) } doReturn getHentetJournalpost().right()
+                on { runBlocking { erTilknyttetSak(any(), any()) } } doReturn ErTilknyttetSak.Ja.right()
             },
             oppgaveService = mock {
                 on { opprettOppgave(any()) } doReturn OppgaveFeil.KunneIkkeOppretteOppgave.left()
@@ -203,7 +206,9 @@ internal class OpprettKlageTest {
         mocks.service.opprett(request) shouldBe KunneIkkeOppretteKlage.KunneIkkeOppretteOppgave.left()
 
         verify(mocks.sakRepoMock).hentSak(sakId)
-        verify(mocks.journalpostClient).hentFerdigstiltJournalpost(sak.saksnummer, JournalpostId("j2"))
+        runBlocking {
+            verify(mocks.journalpostClient).erTilknyttetSak(JournalpostId("j2"), sak.saksnummer)
+        }
         verify(mocks.personServiceMock).hentAktørId(argThat { it shouldBe sak.fnr })
         verify(mocks.oppgaveService).opprettOppgave(
             argThat {
@@ -253,7 +258,7 @@ internal class OpprettKlageTest {
                 on { hentAktørId(any()) } doReturn AktørId("aktørId").right()
             },
             journalpostClient = mock {
-                on { hentFerdigstiltJournalpost(any(), any()) } doReturn getHentetJournalpost().right()
+                on { runBlocking { erTilknyttetSak(any(), any()) } } doReturn ErTilknyttetSak.Ja.right()
             },
             oppgaveService = mock {
                 on { opprettOppgave(any()) } doReturn OppgaveId("nyOppgaveId").right()
@@ -288,7 +293,9 @@ internal class OpprettKlageTest {
         }
 
         verify(mocks.sakRepoMock).hentSak(sak.id)
-        verify(mocks.journalpostClient).hentFerdigstiltJournalpost(sak.saksnummer, JournalpostId("1"))
+        runBlocking {
+            verify(mocks.journalpostClient).erTilknyttetSak(JournalpostId("1"), sak.saksnummer)
+        }
         verify(mocks.klageRepoMock).defaultTransactionContext()
         verify(mocks.klageRepoMock).lagre(
             argThat {

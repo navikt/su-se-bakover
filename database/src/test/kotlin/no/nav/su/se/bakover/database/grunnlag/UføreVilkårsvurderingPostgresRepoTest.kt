@@ -26,7 +26,7 @@ internal class UføreVilkårsvurderingPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val uføregrunnlagPostgresRepo = UføregrunnlagPostgresRepo(dbMetricsStub)
             val uføreVilkårsvurderingRepo = UføreVilkårsvurderingPostgresRepo(uføregrunnlagPostgresRepo, dbMetricsStub)
-            val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
+            val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdert().second
             val vurderingUførhet = UføreVilkår.Vurdert.create(
                 vurderingsperioder = nonEmptyListOf(
                     VurderingsperiodeUføre.create(
@@ -52,7 +52,7 @@ internal class UføreVilkårsvurderingPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val uføregrunnlagPostgresRepo = UføregrunnlagPostgresRepo(dbMetricsStub)
             val uføreVilkårsvurderingRepo = UføreVilkårsvurderingPostgresRepo(uføregrunnlagPostgresRepo, dbMetricsStub)
-            val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
+            val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdert().second
             val uføregrunnlag = Grunnlag.Uføregrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
@@ -86,7 +86,7 @@ internal class UføreVilkårsvurderingPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val uføregrunnlagPostgresRepo = UføregrunnlagPostgresRepo(dbMetricsStub)
             val uføreVilkårsvurderingRepo = UføreVilkårsvurderingPostgresRepo(uføregrunnlagPostgresRepo, dbMetricsStub)
-            val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
+            val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdert().second
             val uføregrunnlag = Grunnlag.Uføregrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
@@ -122,7 +122,7 @@ internal class UføreVilkårsvurderingPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val uføregrunnlagPostgresRepo = UføregrunnlagPostgresRepo(dbMetricsStub)
             val uføreVilkårsvurderingRepo = UføreVilkårsvurderingPostgresRepo(uføregrunnlagPostgresRepo, dbMetricsStub)
-            val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
+            val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdert().second
             val (vilkår, grunnlag) = innvilgetUførevilkår().let { it to it.grunnlag }
 
             dataSource.withTransaction { session ->

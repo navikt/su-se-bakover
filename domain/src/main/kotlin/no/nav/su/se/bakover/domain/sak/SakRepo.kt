@@ -3,10 +3,7 @@ package no.nav.su.se.bakover.domain.sak
 import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.persistence.SessionContext
-import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.Sakstype
 import java.util.UUID
 
 interface SakRepo {
@@ -24,5 +21,9 @@ interface SakRepo {
     fun hentSaker(fnr: Fnr): List<Sak>
 
     fun hentSakForRevurdering(revurderingId: UUID): Sak
+
+    fun hentSakForRevurdering(revurderingId: UUID, sessionContext: SessionContext): Sak
+
+    fun hentSakforSøknadsbehandling(søknadsbehandlingId: UUID): Sak
     fun hentSakForSøknad(søknadId: UUID): Sak?
 }

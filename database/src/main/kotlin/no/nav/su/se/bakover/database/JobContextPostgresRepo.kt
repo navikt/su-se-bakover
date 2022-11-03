@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.JobContextPostgresRepo.FeiletDb.Companion.toDb
 import no.nav.su.se.bakover.database.JobContextPostgresRepo.FeiletDb.Companion.toDomain
 import no.nav.su.se.bakover.database.JobContextPostgresRepo.SendPåminnelseNyStønadsperiodeContextDb.Companion.toDb
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.jobcontext.JobContext
 import no.nav.su.se.bakover.domain.jobcontext.JobContextId
 import no.nav.su.se.bakover.domain.jobcontext.JobContextRepo
@@ -21,6 +20,7 @@ import no.nav.su.se.bakover.domain.jobcontext.NameAndLocalDateId
 import no.nav.su.se.bakover.domain.jobcontext.NameAndYearMonthId
 import no.nav.su.se.bakover.domain.jobcontext.SendPåminnelseNyStønadsperiodeContext
 import no.nav.su.se.bakover.domain.kontrollsamtale.UtløptFristForKontrollsamtaleContext
+import no.nav.su.se.bakover.domain.sak.Saksnummer
 import java.lang.IllegalArgumentException
 import java.time.LocalDate
 import java.time.YearMonth

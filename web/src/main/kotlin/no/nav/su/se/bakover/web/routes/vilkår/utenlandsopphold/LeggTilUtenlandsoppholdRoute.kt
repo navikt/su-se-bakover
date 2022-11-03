@@ -10,8 +10,10 @@ import io.ktor.server.application.call
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.Brukerrolle
+import no.nav.su.se.bakover.common.audit.application.AuditLogEvent
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
+import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.web.svar
@@ -56,10 +58,9 @@ internal fun Route.leggTilUtenlandsopphold(
                         call.svar(it)
                     }.map { request ->
                         søknadsbehandlingService.leggTilUtenlandsopphold(request).fold(
-                            ifLeft = {
-                                call.svar(it.tilResultat())
-                            },
+                            ifLeft = { call.svar(it.tilResultat()) },
                             ifRight = {
+                                call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                                 call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(satsFactory))))
                             },
                         )
@@ -83,10 +84,9 @@ internal fun Route.leggTilUtlandsoppholdRoute(
                     }.map {
                         revurderingService.leggTilUtenlandsopphold(it)
                             .fold(
-                                ifLeft = {
-                                    call.svar(it.tilResultat())
-                                },
+                                ifLeft = { call.svar(it.tilResultat()) },
                                 ifRight = {
+                                    call.audit(it.revurdering.fnr, AuditLogEvent.Action.UPDATE, it.revurdering.id)
                                     call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(satsFactory))))
                                 },
                             )

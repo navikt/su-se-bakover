@@ -10,12 +10,13 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.NavIdentBruker
-import no.nav.su.se.bakover.common.infrastructure.audit.AuditLogEvent
+import no.nav.su.se.bakover.common.audit.application.AuditLogEvent
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
+import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
@@ -26,7 +27,6 @@ import no.nav.su.se.bakover.service.revurdering.FortsettEtterForhåndsvarselFeil
 import no.nav.su.se.bakover.service.revurdering.FortsettEtterForhåndsvarslingRequest
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.features.authorize
-import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.tilResultat
 import no.nav.su.se.bakover.web.routes.revurdering.revurderingPath
@@ -48,6 +48,7 @@ internal fun Route.forhåndsvarslingRoute(
                         body.forhåndsvarselhandling,
                         fritekst = body.fritekst,
                     ).map {
+                        call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                         call.sikkerlogg("Forhåndsvarslet bruker med revurderingId $revurderingId")
                         call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(satsFactory))))
                     }.mapLeft {
@@ -128,14 +129,7 @@ internal fun Route.forhåndsvarslingRoute(
                             }
                     }.fold(
                         { call.svar(it) },
-                        {
-                            call.svar(
-                                Resultat.json(
-                                    HttpStatusCode.OK,
-                                    serialize(it.toJson(satsFactory)),
-                                ),
-                            )
-                        },
+                        { call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(satsFactory)))) },
                     )
                 }
             }

@@ -15,8 +15,10 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilFormuegrunnlag
 import no.nav.su.se.bakover.service.revurdering.RevurderingOgFeilmeldingerResponse
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
+import no.nav.su.se.bakover.test.opprettetRevurdering
+import no.nav.su.se.bakover.test.sakId
+import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.opprettetRevurdering
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -55,7 +57,7 @@ internal class LeggTilFormueRevurderingRouteKtTest {
 
                 defaultRequest(
                     HttpMethod.Post,
-                    "${RevurderingRoutesTestData.requestPath}/$revurderingId/formuegrunnlag",
+                    "/saker/$sakId/revurderinger/$revurderingId/formuegrunnlag",
                     listOf(rolle),
                 ) {
                     setBody(validBody)
@@ -152,11 +154,11 @@ internal class LeggTilFormueRevurderingRouteKtTest {
 
         testApplication {
             application {
-                testSusebakover(services = RevurderingRoutesTestData.testServices.copy(revurdering = revurderingServiceMock))
+                testSusebakover(services = TestServicesBuilder.services(revurdering = revurderingServiceMock))
             }
             defaultRequest(
                 HttpMethod.Post,
-                "${RevurderingRoutesTestData.requestPath}/$revurderingId/formuegrunnlag",
+                "/saker/$sakId/revurderinger/$revurderingId/formuegrunnlag",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(validBody)
@@ -173,6 +175,7 @@ internal class LeggTilFormueRevurderingRouteKtTest {
 
     @Test
     fun `happy case`() {
+        val opprettetRevurdering = opprettetRevurdering().second
         val revurderingServiceMock = mock<RevurderingService> {
             on { leggTilFormuegrunnlag(any()) } doReturn RevurderingOgFeilmeldingerResponse(
                 opprettetRevurdering,
@@ -182,11 +185,11 @@ internal class LeggTilFormueRevurderingRouteKtTest {
 
         testApplication {
             application {
-                testSusebakover(services = RevurderingRoutesTestData.testServices.copy(revurdering = revurderingServiceMock))
+                testSusebakover(services = TestServicesBuilder.services(revurdering = revurderingServiceMock))
             }
             defaultRequest(
                 HttpMethod.Post,
-                "${RevurderingRoutesTestData.requestPath}/$revurderingId/formuegrunnlag",
+                "/saker/$sakId/revurderinger/$revurderingId/formuegrunnlag",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(validBody)

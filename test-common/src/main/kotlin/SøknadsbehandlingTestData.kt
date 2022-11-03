@@ -3,25 +3,30 @@ package no.nav.su.se.bakover.test
 import arrow.core.flatten
 import arrow.core.nonEmptyListOf
 import arrow.core.right
+import no.nav.su.se.bakover.client.stubs.oppdrag.UtbetalingStub
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.sak.SakInfo
+import no.nav.su.se.bakover.domain.sak.Saksnummer
+import no.nav.su.se.bakover.domain.sak.Sakstype
+import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
+import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsinnholdAlder
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
@@ -39,6 +44,9 @@ import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt
+import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
+import no.nav.su.se.bakover.test.søknad.oppgaveIdSøknad
+import no.nav.su.se.bakover.test.søknad.søknadsinnholdAlder
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt0
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import java.time.Clock
@@ -224,6 +232,7 @@ fun søknadsbehandlingBeregnetAvslag(
 }
 
 fun søknadsbehandlingSimulert(
+    clock: Clock = tikkendeFixedClock,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
@@ -238,15 +247,34 @@ fun søknadsbehandlingSimulert(
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
         avkorting = avkorting,
+        clock = clock,
     ).let { (sak, søknadsbehandling) ->
         søknadsbehandling.simuler(
             saksbehandler = saksbehandler,
-        ) {
-            simulerNyUtbetaling(
-                sak = sak,
-                request = it,
-                clock = fixedClock,
-            )
+        ) { beregning, uføregrunnlag ->
+            sak.lagNyUtbetaling(
+                saksbehandler = saksbehandler,
+                beregning = beregning,
+                clock = clock,
+                utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                uføregrunnlag = uføregrunnlag,
+            ).let {
+                sak.simulerUtbetaling(
+                    utbetalingForSimulering = it,
+                    periode = søknadsbehandling.periode,
+                    simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
+                        simulerUtbetaling(
+                            sak = sak,
+                            utbetaling = utbetalingForSimulering,
+                            simuleringsperiode = periode,
+                        )
+                    },
+                    kontrollerMotTidligereSimulering = null,
+                    clock = clock,
+                ).map { simulertUtbetaling ->
+                    simulertUtbetaling.simulering
+                }
+            }
         }.getOrFail()
             .let { simulert ->
                 Pair(
@@ -265,6 +293,7 @@ fun søknadsbehandlingTilAttesteringInnvilget(
         stønadsperiode.periode,
     ),
     avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
+    clock: Clock = fixedClock,
 ): Pair<Sak, Søknadsbehandling.TilAttestering.Innvilget> {
     return søknadsbehandlingSimulert(
         saksnummer = saksnummer,
@@ -272,6 +301,7 @@ fun søknadsbehandlingTilAttesteringInnvilget(
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
         avkorting = avkorting,
+        clock = clock,
     ).let { (sak, søknadsbehandling) ->
         val oppdatertSøknadsbehandling = søknadsbehandling.tilAttestering(
             saksbehandler = saksbehandler,
@@ -452,6 +482,7 @@ fun søknadsbehandlingIverksattInnvilget(
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
         avkorting = avkorting,
+        clock = clock,
     ).let { (sak, søknadsbehandling) ->
         val oppdatertSøknadsbehandling = søknadsbehandling.tilIverksatt(
             attestering = attesteringIverksatt(clock),
@@ -541,7 +572,7 @@ fun søknadsbehandlingIverksattAvslagUtenBeregning(
 fun søknadsbehandlingTrukket(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
-    saksbehandlerSomLukket: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
+    saksbehandlerSomLukket: NavIdentBruker.Saksbehandler = saksbehandler,
     clock: Clock = fixedClock,
 ): Pair<Sak, LukketSøknadsbehandling> {
     return søknadsbehandlingVilkårsvurdertUavklart(
@@ -602,7 +633,7 @@ fun nySøknadsbehandling(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave>,
     avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
-): Pair<Sak, Søknadsbehandling.Vilkårsvurdert> {
+): Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Uavklart> {
     return sakOgSøknad.let { (sak, søknad) ->
         val søknadsbehandling = Søknadsbehandling.Vilkårsvurdert.Uavklart(
             id = UUID.randomUUID(),
@@ -646,7 +677,7 @@ fun nySøknadsbehandling(
         sak.copy(
             søknader = sak.søknader.filterNot { it.id == søknad.id } + søknad, // replace hvis søknaden allerede er lagt til (f.eks hvis man først oppretter bare sak + søknad)
             søknadsbehandlinger = sak.søknadsbehandlinger.filterNot { it.id == etterOppdatertStønadsperiode.id } + etterOppdatertStønadsperiode,
-        ) to etterOppdatertStønadsperiode
+        ) to etterOppdatertStønadsperiode as Søknadsbehandling.Vilkårsvurdert.Uavklart
     }
 }
 
@@ -745,7 +776,8 @@ fun iverksattSøknadsbehandling(
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
     attestering: Attestering.Iverksatt = attesteringIverksatt(clock),
-    avkorting: AvkortingVedSøknadsbehandling.Uhåndtert,
+    avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
+    fritekstTilBrev: String = "",
 ): Triple<Sak, Søknadsbehandling.Iverksatt, Stønadsvedtak> {
     return tilAttesteringSøknadsbehandling(
         clock = clock,
@@ -754,6 +786,7 @@ fun iverksattSøknadsbehandling(
         customGrunnlag = customGrunnlag,
         customVilkår = customVilkår,
         avkorting = avkorting,
+        fritekstTilBrev = fritekstTilBrev,
     ).let { (sak, tilAttestering) ->
         val (iverksatt, vedtak, utbetaling) = when (tilAttestering) {
             is Søknadsbehandling.TilAttestering.Avslag.MedBeregning -> {
@@ -783,11 +816,15 @@ fun iverksattSøknadsbehandling(
             }
 
             is Søknadsbehandling.TilAttestering.Innvilget -> {
-                val utbetaling = nyUtbetalingOversendtMedKvittering(
-                    sakOgBehandling = sak to tilAttestering,
-                    beregning = tilAttestering.beregning,
+                val utbetaling = simulerUtbetaling(
+                    sak = sak,
+                    søknadsbehandling = tilAttestering,
+                    simuleringsperiode = tilAttestering.periode,
+                    behandler = attestering.attestant,
                     clock = clock,
-                )
+                ).getOrFail().let {
+                    it.toOversendtUtbetaling(UtbetalingStub.generateRequest(it))
+                }
                 tilAttestering.tilIverksatt(attestering).let {
                     Triple(
                         it,
@@ -847,6 +884,7 @@ fun tilAttesteringSøknadsbehandling(
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
     avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
+    fritekstTilBrev: String = "",
 ): Pair<Sak, Søknadsbehandling.TilAttestering> {
     return vilkårsvurdertSøknadsbehandling(
         clock = clock,
@@ -861,7 +899,7 @@ fun tilAttesteringSøknadsbehandling(
             is Søknadsbehandling.Vilkårsvurdert.Avslag -> {
                 vilkårsvurdert.tilAttestering(
                     saksbehandler = saksbehandler,
-                    fritekstTilBrev = "",
+                    fritekstTilBrev = fritekstTilBrev,
                 )
             }
 
@@ -932,12 +970,13 @@ fun simulertSøknadsbehandlingUføre(
 }
 
 fun simulertSøknadsbehandling(
-    clock: Clock = fixedClock,
+    clock: Clock = tikkendeFixedClock,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave>,
     customGrunnlag: List<Grunnlag> = emptyList(),
     customVilkår: List<Vilkår> = emptyList(),
     avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
+    utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
 ): Pair<Sak, Søknadsbehandling.Simulert> {
     return beregnetSøknadsbehandling(
         clock = clock,
@@ -949,21 +988,41 @@ fun simulertSøknadsbehandling(
     ).let { (sak, beregnet) ->
         beregnet.simuler(
             saksbehandler = saksbehandler,
-            simuler = {
-                simulerNyUtbetaling(
-                    sak = sak,
-                    request = it,
+        ) { beregning, uføregrunnlag ->
+            sak.lagNyUtbetaling(
+                saksbehandler = saksbehandler,
+                beregning = beregning,
+                clock = clock,
+                utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                uføregrunnlag = uføregrunnlag,
+            ).let {
+                sak.simulerUtbetaling(
+                    utbetalingForSimulering = it,
+                    periode = beregnet.periode,
+                    simuler = { utbetalingForSimulering: Utbetaling.UtbetalingForSimulering, periode: Periode ->
+                        simulerUtbetaling(
+                            sak = sak,
+                            utbetaling = utbetalingForSimulering,
+                            simuleringsperiode = periode,
+                            clock = clock,
+                            utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
+                        )
+                    },
+                    kontrollerMotTidligereSimulering = null,
                     clock = clock,
-                )
-            },
-        ).getOrFail().let { simulert ->
-            sak.copy(søknadsbehandlinger = sak.søknadsbehandlinger.filterNot { it.id == beregnet.id } + simulert) to simulert
-        }
+                ).map { simulertUtbetaling ->
+                    simulertUtbetaling.simulering
+                }
+            }
+        }.getOrFail()
+            .let { simulert ->
+                sak.copy(søknadsbehandlinger = sak.søknadsbehandlinger.filterNot { it.id == beregnet.id } + simulert) to simulert
+            }
     }
 }
 
 fun beregnetSøknadsbehandlingUføre(
-    clock: Clock = fixedClock,
+    clock: Clock = tikkendeFixedClock,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave> = nySakUføre(clock = clock),
     customGrunnlag: List<Grunnlag> = emptyList(),

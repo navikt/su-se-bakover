@@ -3,8 +3,11 @@ package no.nav.su.se.bakover.domain.vedtak
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.april
+import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.fixedClock
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
@@ -12,14 +15,15 @@ import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.søknadinnhold.Personopplysninger
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
-import no.nav.su.se.bakover.test.nySøknadJournalførtMedOppgave
-import no.nav.su.se.bakover.test.søknadinnhold
+import no.nav.su.se.bakover.test.søknad.nySøknadJournalførtMedOppgave
+import no.nav.su.se.bakover.test.søknad.søknadinnhold
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
@@ -77,7 +81,7 @@ internal class GjeldendeVedtaksdataTest {
                 clock = tikkendeKlokke,
                 sakId = sak.id,
                 søknadInnhold = søknadinnhold(
-                    fnr = sak.fnr,
+                    personopplysninger = Personopplysninger(sak.fnr),
                 ),
             ),
             stønadsperiode = Stønadsperiode.create(Periode.create(1.mai(2021), 31.desember(2021))),
@@ -141,13 +145,14 @@ internal class GjeldendeVedtaksdataTest {
     @Test
     fun `gjeldende vedtaksdata inneholder utbetalinger som skal avkortes`() {
         val (sak, _) = vedtakRevurdering(
-            clock = TikkendeKlokke(),
             revurderingsperiode = år(2021),
             vilkårOverrides = listOf(
                 utenlandsoppholdAvslag(
                     periode = år(2021),
                 ),
             ),
+            clock = TikkendeKlokke(1.august(2021).fixedClock()),
+            utbetalingerKjørtTilOgMed = 1.juli(2021),
         )
 
         GjeldendeVedtaksdata(

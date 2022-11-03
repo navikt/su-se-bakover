@@ -1,13 +1,16 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.fixedClock
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
+import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.nySøknadsbehandlingUføre
@@ -20,6 +23,7 @@ internal class SøknadsbehandlingJsonTest {
     @Test
     fun `should serialize to json string`() {
         val søknadsbehandling = iverksattSøknadsbehandlingUføre(
+            clock = TikkendeKlokke(1.april(2021).fixedClock()),
             stønadsperiode = Stønadsperiode.create(januar(2021)),
         ).second as Søknadsbehandling.Iverksatt.Innvilget
 
@@ -47,7 +51,7 @@ internal class SøknadsbehandlingJsonTest {
                     "delerBoligMed": "EKTEMAKE_SAMBOER",
                     "ektefellePartnerSamboer": {
                       "erUførFlyktning": false,
-                      "fnr": "01017001337"
+                      "fnr": "${søknadsbehandling.søknad.søknadInnhold.boforhold.ektefellePartnerSamboer!!.fnr}"
                     },
                     "innlagtPåInstitusjon": {
                       "datoForInnleggelse": "2020-01-01",
@@ -158,7 +162,7 @@ internal class SøknadsbehandlingJsonTest {
                     }
                   }
                 },
-                "opprettet": "2021-01-01T01:02:03.456789Z",
+                "opprettet": "${søknadsbehandling.søknad.opprettet}",
                 "lukket": null
               },
               "beregning": {
@@ -452,7 +456,7 @@ internal class SøknadsbehandlingJsonTest {
                     "delerBoligMed": "EKTEMAKE_SAMBOER",
                     "ektefellePartnerSamboer": {
                       "erUførFlyktning": false,
-                      "fnr": "01017001337"
+                      "fnr": "${søknadsbehandling.søknad.søknadInnhold.boforhold.ektefellePartnerSamboer!!.fnr}"
                     },
                     "innlagtPåInstitusjon": {
                       "datoForInnleggelse": "2020-01-01",

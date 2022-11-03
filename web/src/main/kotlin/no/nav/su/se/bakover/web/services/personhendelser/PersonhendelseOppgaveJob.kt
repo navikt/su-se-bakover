@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.services.personhendelser
 
 import arrow.core.Either
+import no.nav.su.se.bakover.common.CorrelationId.Companion.withCorrelationId
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
 import no.nav.su.se.bakover.web.services.RunCheckFactory
 import no.nav.su.se.bakover.web.services.shouldRun
@@ -31,7 +32,9 @@ internal class PersonhendelseOppgaveJob(
                 listOf(runCheckFactory.leaderPod())
                     .shouldRun()
                     .ifTrue {
-                        personhendelseService.opprettOppgaverForPersonhendelser()
+                        withCorrelationId {
+                            personhendelseService.opprettOppgaverForPersonhendelser()
+                        }
                     }
             }.mapLeft {
                 log.error(

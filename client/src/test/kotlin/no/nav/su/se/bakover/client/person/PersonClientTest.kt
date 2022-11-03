@@ -8,10 +8,10 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeSameInstanceAs
 import io.kotest.matchers.types.shouldNotBeSameInstanceAs
 import no.nav.su.se.bakover.client.azure.AzureAd
+import no.nav.su.se.bakover.client.cache.newCache
 import no.nav.su.se.bakover.client.kodeverk.Kodeverk
 import no.nav.su.se.bakover.client.krr.KontaktOgReservasjonsregister
 import no.nav.su.se.bakover.client.krr.Kontaktinformasjon
-import no.nav.su.se.bakover.client.person.PersonClient.Companion.newCache
 import no.nav.su.se.bakover.client.skjerming.Skjerming
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.AktørId
@@ -21,7 +21,7 @@ import no.nav.su.se.bakover.common.Ident
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.common.token.JwtToken
-import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import org.junit.jupiter.api.Nested
@@ -181,8 +181,8 @@ internal class PersonClientTest {
     private class PersonClientConfigTestMocks(
         val brukerTokenGenerator: BrukertokenGenerator = BrukertokenGenerator(),
         val fnr: Fnr = Fnr.generer(),
-        personCacheSpy: Cache<CacheKey, Person> = newCache(cacheName = "person"),
-        aktørIdCacheSpy: Cache<CacheKey, AktørId> = newCache(cacheName = "aktoerId"),
+        personCacheSpy: Cache<FnrCacheKey, Person> = newCache(cacheName = "person"),
+        aktørIdCacheSpy: Cache<FnrCacheKey, AktørId> = newCache(cacheName = "aktoerId"),
     ) {
         val kontaktinformasjon = Kontaktinformasjon(
             epostadresse = "post@e.com",

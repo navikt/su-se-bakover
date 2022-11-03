@@ -14,14 +14,14 @@ import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.Sakstype
-import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.VedtakInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.person.Person
+import no.nav.su.se.bakover.domain.sak.Saksnummer
+import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
+import no.nav.su.se.bakover.test.brev.brevInnholdInnvilgetVedtak
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.søknad.søknadinnhold
 import org.junit.jupiter.api.Test
 import java.util.Base64
 import java.util.UUID
@@ -31,7 +31,7 @@ internal class DokArkivClientTest : WiremockBase {
 
     private val saksnummer: Long = 2021
     private val navn = "Strømøy, Tore Johnas"
-    private val søknadInnhold = SøknadInnholdTestdataBuilder.build()
+    private val søknadInnhold = søknadinnhold()
     private val søknadPdfInnhold = SøknadPdfInnhold.create(
         saksnummer = Saksnummer(Random.nextLong(2021, Long.MAX_VALUE)),
         søknadsId = UUID.randomUUID(),
@@ -40,7 +40,7 @@ internal class DokArkivClientTest : WiremockBase {
         søknadInnhold = søknadInnhold,
         clock = fixedClock,
     )
-    private val vedtakInnhold = VedtakInnholdTestdataBuilder.build()
+    private val vedtakInnhold = brevInnholdInnvilgetVedtak()
 
     private val pdf = PdfGeneratorStub.genererPdf(søknadPdfInnhold).getOrFail()
     private val fnr = søknadInnhold.personopplysninger.fnr
@@ -228,7 +228,7 @@ internal class DokArkivClientTest : WiremockBase {
             Journalpost.Vedtakspost.from(
                 person = person,
                 saksnummer = Saksnummer(saksnummer),
-                brevInnhold = VedtakInnholdTestdataBuilder.build(),
+                brevInnhold = brevInnholdInnvilgetVedtak(),
                 pdf = pdf,
                 sakstype = Sakstype.UFØRE,
             ),

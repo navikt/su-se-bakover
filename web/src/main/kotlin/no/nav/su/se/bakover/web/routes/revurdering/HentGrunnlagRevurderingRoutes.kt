@@ -50,6 +50,7 @@ internal fun Route.hentGrunnlagRevurderingRoutes(
                                                     "fant_ikke_vedtak",
                                                 )
                                             }
+
                                             Sak.KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak.IngenTidligereVedtak -> {
                                                 HttpStatusCode.NotFound.errorJson(
                                                     "Fant ikke grunnlagsdata for tidligere vedtak",

@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.revurdering
 
 import arrow.core.Either
+import arrow.core.NonEmptyList
 import arrow.core.flatMap
 import arrow.core.getOrHandle
 import arrow.core.left
@@ -11,8 +12,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.sikkerLogg
-import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.Sakstype
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -34,12 +34,9 @@ import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.Konsistensproblem
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.SjekkOmGrunnlagErKonsistent
-import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingUnderBehandling
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeTilbakekrev
@@ -47,8 +44,11 @@ import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrev
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.tilbakekrevingErVurdert
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.revurdering.beregning.BeregnRevurderingStrategyDecider
 import no.nav.su.se.bakover.domain.sak.SakInfo
+import no.nav.su.se.bakover.domain.sak.Sakstype
+import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
@@ -125,6 +125,8 @@ sealed class Revurdering :
     abstract val forhåndsvarsel: Forhåndsvarsel?
     abstract val avkorting: AvkortingVedRevurdering
     abstract val erOpphørt: Boolean
+    abstract val beregning: Beregning?
+    abstract val simulering: Simulering?
 
     fun vilkårsvurderingsResultat(): Vilkårsvurderingsresultat {
         return vilkårsvurderinger.vurdering
@@ -854,6 +856,8 @@ data class OpprettetRevurdering(
     override val sakinfo: SakInfo,
 ) : Revurdering() {
     override val erOpphørt = false
+    override val beregning: Beregning? = null
+    override val simulering: Simulering? = null
 
     override fun accept(visitor: RevurderingVisitor) {
         visitor.visit(this)
@@ -936,7 +940,7 @@ data class OpprettetRevurdering(
 }
 
 sealed class BeregnetRevurdering : Revurdering() {
-    abstract val beregning: Beregning
+    abstract override val beregning: Beregning
     abstract override val avkorting: AvkortingVedRevurdering.DelvisHåndtert
 
     override fun oppdaterUføreOgMarkerSomVurdert(
@@ -1029,6 +1033,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val sakinfo: SakInfo,
     ) : BeregnetRevurdering() {
         override val erOpphørt = false
+        override val simulering: Simulering? = null
 
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
@@ -1037,21 +1042,25 @@ sealed class BeregnetRevurdering : Revurdering() {
         fun simuler(
             saksbehandler: Saksbehandler,
             clock: Clock,
-            simulerUtbetaling: (request: SimulerUtbetalingRequest.NyUtbetaling) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
-        ): Either<SimuleringFeilet, SimulertRevurdering.Innvilget> {
-            return simulerUtbetaling(
-                SimulerUtbetalingRequest.NyUtbetaling.Uføre(
-                    sakId = sakId,
-                    saksbehandler = saksbehandler,
-                    beregning = beregning,
-                    utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
-                    uføregrunnlag = vilkårsvurderinger.uføreVilkår()
-                        .getOrHandle { throw IllegalStateException("Uførevilkår mangler") }.grunnlag,
-                ),
+            simuler: (beregning: Beregning, uføregrunnlag: NonEmptyList<Grunnlag.Uføregrunnlag>?) -> Either<SimulerUtbetalingFeilet, Simulering>,
+        ): Either<SimulerUtbetalingFeilet, SimulertRevurdering.Innvilget> {
+            return simuler(
+                beregning,
+                when (sakstype) {
+                    Sakstype.ALDER -> {
+                        null
+                    }
+                    Sakstype.UFØRE -> {
+                        vilkårsvurderinger.uføreVilkår()
+                            .getOrHandle { throw IllegalStateException("Revurdering uføre: $id mangler uføregrunnlag") }
+                            .grunnlag
+                            .toNonEmptyList()
+                    }
+                },
             ).mapLeft {
                 it
             }.map {
-                val tilbakekrevingsbehandling = when (it.simulering.harFeilutbetalinger()) {
+                val tilbakekrevingsbehandling = when (it.harFeilutbetalinger()) {
                     true -> {
                         IkkeAvgjort(
                             id = UUID.randomUUID(),
@@ -1073,7 +1082,7 @@ sealed class BeregnetRevurdering : Revurdering() {
                     opprettet = opprettet,
                     tilRevurdering = tilRevurdering,
                     beregning = beregning,
-                    simulering = it.simulering,
+                    simulering = it,
                     saksbehandler = saksbehandler,
                     oppgaveId = oppgaveId,
                     fritekstTilBrev = fritekstTilBrev,
@@ -1110,6 +1119,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val sakinfo: SakInfo,
     ) : BeregnetRevurdering() {
         override val erOpphørt = false
+        override val simulering: Simulering? = null
 
         fun tilAttestering(
             attesteringsoppgaveId: OppgaveId,
@@ -1162,19 +1172,15 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val sakinfo: SakInfo,
     ) : BeregnetRevurdering() {
         override val erOpphørt = true
+        override val simulering: Simulering? = null
 
         fun simuler(
             saksbehandler: Saksbehandler,
             clock: Clock,
-            simulerOpphør: (request: SimulerUtbetalingRequest.Opphør) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
-        ): Either<SimuleringFeilet, SimulertRevurdering.Opphørt> {
-            val (simulertUtbetaling, håndtertAvkorting) = simulerOpphør(
-                SimulerUtbetalingRequest.Opphør(
-                    sakId = sakId,
-                    saksbehandler = saksbehandler,
-                    opphørsperiode = periode,
-                ),
-            ).getOrHandle { return it.left() }
+            simuler: (opphørsperiode: Periode, saksbehandler: Saksbehandler) -> Either<SimulerUtbetalingFeilet, Utbetaling.SimulertUtbetaling>,
+        ): Either<SimulerUtbetalingFeilet, SimulertRevurdering.Opphørt> {
+            val (simulertUtbetaling, håndtertAvkorting) = simuler(periode, saksbehandler)
+                .getOrHandle { return it.left() }
                 .let { simulering ->
                     when (val avkortingsvarsel = lagAvkortingsvarsel(simulering, clock)) {
                         is Avkortingsvarsel.Ingen -> {
@@ -1194,16 +1200,12 @@ sealed class BeregnetRevurdering : Revurdering() {
                         }
 
                         is Avkortingsvarsel.Utenlandsopphold -> {
-                            val simuleringMedNyOpphørsdato = simulerOpphør(
-                                SimulerUtbetalingRequest.Opphør(
-                                    sakId = sakId,
-                                    saksbehandler = saksbehandler,
-                                    opphørsperiode = OpphørsperiodeForUtbetalinger(
-                                        revurdering = this,
-                                        avkortingsvarsel = avkortingsvarsel,
-                                    ).value,
-                                ),
-                            ).getOrHandle { return it.left() }
+                            val nyOpphørsperiode = OpphørsperiodeForUtbetalinger(
+                                revurdering = this,
+                                avkortingsvarsel = avkortingsvarsel,
+                            ).value
+                            val simuleringMedNyOpphørsdato = simuler(nyOpphørsperiode, saksbehandler)
+                                .getOrHandle { return it.left() }
 
                             if (simuleringMedNyOpphørsdato.simulering.harFeilutbetalinger()) {
                                 sikkerLogg.error(
@@ -1370,8 +1372,8 @@ sealed class BeregnetRevurdering : Revurdering() {
 
 sealed class SimulertRevurdering : Revurdering() {
 
-    abstract val beregning: Beregning
-    abstract val simulering: Simulering
+    abstract override val beregning: Beregning
+    abstract override val simulering: Simulering
     abstract override val forhåndsvarsel: Forhåndsvarsel?
     abstract override val grunnlagsdata: Grunnlagsdata
     abstract val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling
@@ -1742,7 +1744,7 @@ sealed class SimulertRevurdering : Revurdering() {
 }
 
 sealed class RevurderingTilAttestering : Revurdering() {
-    abstract val beregning: Beregning
+    abstract override val beregning: Beregning
     abstract override val grunnlagsdata: Grunnlagsdata
 
     abstract override fun accept(visitor: RevurderingVisitor)
@@ -1767,7 +1769,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val fritekstTilBrev: String,
         override val revurderingsårsak: Revurderingsårsak,
         override val beregning: Beregning,
-        val simulering: Simulering,
+        override val simulering: Simulering,
         override val forhåndsvarsel: Forhåndsvarsel.Ferdigbehandlet,
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
@@ -1834,7 +1836,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val fritekstTilBrev: String,
         override val revurderingsårsak: Revurderingsårsak,
         override val beregning: Beregning,
-        val simulering: Simulering,
+        override val simulering: Simulering,
         override val forhåndsvarsel: Forhåndsvarsel.Ferdigbehandlet,
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
@@ -1927,6 +1929,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
     ) : RevurderingTilAttestering() {
 
         override val erOpphørt = false
+        override val simulering: Simulering? = null
 
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
@@ -2064,7 +2067,7 @@ sealed class IverksattRevurdering : Revurdering() {
     abstract override val oppgaveId: OppgaveId
     abstract override val fritekstTilBrev: String
     abstract override val revurderingsårsak: Revurderingsårsak
-    abstract val beregning: Beregning
+    abstract override val beregning: Beregning
     val attestering: Attestering
         get() = attesteringer.hentSisteAttestering()
     abstract override val avkorting: AvkortingVedRevurdering.Iverksatt
@@ -2082,7 +2085,7 @@ sealed class IverksattRevurdering : Revurdering() {
         override val revurderingsårsak: Revurderingsårsak,
         override val beregning: Beregning,
         override val forhåndsvarsel: Forhåndsvarsel.Ferdigbehandlet,
-        val simulering: Simulering,
+        override val simulering: Simulering,
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
@@ -2113,7 +2116,7 @@ sealed class IverksattRevurdering : Revurdering() {
         override val fritekstTilBrev: String,
         override val revurderingsårsak: Revurderingsårsak,
         override val beregning: Beregning,
-        val simulering: Simulering,
+        override val simulering: Simulering,
         override val forhåndsvarsel: Forhåndsvarsel.Ferdigbehandlet,
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
@@ -2178,6 +2181,7 @@ sealed class IverksattRevurdering : Revurdering() {
         override val sakinfo: SakInfo,
     ) : IverksattRevurdering() {
         override val erOpphørt = false
+        override val simulering: Simulering? = null
 
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
@@ -2193,7 +2197,7 @@ sealed class IverksattRevurdering : Revurdering() {
 }
 
 sealed class UnderkjentRevurdering : Revurdering() {
-    abstract val beregning: Beregning
+    abstract override val beregning: Beregning
     abstract override val attesteringer: Attesteringshistorikk
     abstract override val grunnlagsdata: Grunnlagsdata
     abstract override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering
@@ -2285,7 +2289,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override val beregning: Beregning,
         override val attesteringer: Attesteringshistorikk,
         override val forhåndsvarsel: Forhåndsvarsel.Ferdigbehandlet,
-        val simulering: Simulering,
+        override val simulering: Simulering,
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
@@ -2336,7 +2340,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override val revurderingsårsak: Revurderingsårsak,
         override val beregning: Beregning,
         override val forhåndsvarsel: Forhåndsvarsel.Ferdigbehandlet,
-        val simulering: Simulering,
+        override val simulering: Simulering,
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
@@ -2418,6 +2422,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override val sakinfo: SakInfo,
     ) : UnderkjentRevurdering() {
         override val erOpphørt = false
+        override val simulering: Simulering? = null
 
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)

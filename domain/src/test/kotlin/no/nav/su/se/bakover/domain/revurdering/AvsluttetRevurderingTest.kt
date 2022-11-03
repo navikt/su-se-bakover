@@ -9,9 +9,10 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
-import no.nav.su.se.bakover.test.simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
@@ -40,7 +41,7 @@ internal class AvsluttetRevurderingTest {
     @Test
     fun `lager en avsluttet revurdering med simulert som underliggende`() {
         AvsluttetRevurdering.tryCreate(
-            underliggendeRevurdering = simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak().second,
+            underliggendeRevurdering = simulertRevurdering(vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag())).second,
             begrunnelse = "Begrunnelse for hvorfor denne har blitt avsluttet",
             brevvalg = null,
             tidspunktAvsluttet = fixedTidspunkt,
@@ -50,9 +51,10 @@ internal class AvsluttetRevurderingTest {
     @Test
     fun `kan legge til fritekst dersom underliggende revurdering er forhåndsvarslet`() {
         AvsluttetRevurdering.tryCreate(
-            underliggendeRevurdering = simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak().second.copy(
+            underliggendeRevurdering = simulertRevurdering(
+                vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
                 forhåndsvarsel = Forhåndsvarsel.UnderBehandling.Sendt,
-            ),
+            ).second,
             begrunnelse = "Begrunnelse for hvorfor denne har blitt avsluttet",
             brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst("en god, og fri tekst"),
             tidspunktAvsluttet = fixedTidspunkt,
@@ -83,7 +85,7 @@ internal class AvsluttetRevurderingTest {
     @Test
     fun `får feil dersom man prøver å lage en avsluttet revurdering med avsluttet som underliggende`() {
         AvsluttetRevurdering.tryCreate(
-            underliggendeRevurdering = simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak().second.avslutt(
+            underliggendeRevurdering = simulertRevurdering(vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag())).second.avslutt(
                 begrunnelse = "begrunnelse",
                 brevvalg = null,
                 tidspunktAvsluttet = fixedTidspunkt,
@@ -97,7 +99,10 @@ internal class AvsluttetRevurderingTest {
     @Test
     fun `får feil dersom underliggende revurdering ikke er forhåndsvarslet (null), men fritekst er fylt ut`() {
         AvsluttetRevurdering.tryCreate(
-            underliggendeRevurdering = simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak().second.also {
+            underliggendeRevurdering = simulertRevurdering(
+                vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
+                forhåndsvarsel = null,
+            ).second.also {
                 assert(it.forhåndsvarsel == null)
             },
             begrunnelse = "Begrunnelse for hvorfor denne har blitt avsluttet",

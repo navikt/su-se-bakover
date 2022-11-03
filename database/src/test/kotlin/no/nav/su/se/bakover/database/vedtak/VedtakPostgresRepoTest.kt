@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.persistence.withSession
@@ -42,7 +43,7 @@ internal class VedtakPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val vedtakRepo = testDataHelper.vedtakRepo as VedtakPostgresRepo
             val vedtak =
-                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().second
+                testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second
 
             dataSource.withSession {
                 vedtakRepo.hent(vedtak.id, it) shouldBe vedtak
@@ -71,7 +72,7 @@ internal class VedtakPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val vedtak =
-                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().second
+                testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second
 
             dataSource.withSession { session ->
                 """
@@ -90,7 +91,7 @@ internal class VedtakPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val vedtakRepo = testDataHelper.vedtakRepo
-            val (sak, søknadsbehandlingVedtak) = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().let { it.first to it.second }
+            val (sak, søknadsbehandlingVedtak) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { it.first to it.second }
 
             val nyRevurdering = testDataHelper.persisterRevurderingOpprettet(sak to søknadsbehandlingVedtak).second
             val iverksattRevurdering = IverksattRevurdering.Innvilget(
@@ -145,13 +146,19 @@ internal class VedtakPostgresRepoTest {
             )
             val vedtakRepo = testDataHelper.vedtakRepo
             // Persisterer et ikke-aktivt vedtak
-            testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
-                stønadsperiode = Stønadsperiode.create(januar(2021)),
-            )
-            val vedtakSomErAktivt =
-                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
+            testDataHelper.persisterSøknadsbehandlingIverksatt { (sak, søknad) ->
+                iverksattSøknadsbehandlingUføre(
+                    sakOgSøknad = sak to søknad,
+                    stønadsperiode = Stønadsperiode.create(januar(2021)),
+                )
+            }
+            val (_, _, vedtakSomErAktivt) = testDataHelper.persisterSøknadsbehandlingIverksatt { (sak, søknad) ->
+                iverksattSøknadsbehandlingUføre(
+                    sakOgSøknad = sak to søknad,
                     stønadsperiode = Stønadsperiode.create(Periode.create(1.februar(2021), 31.mars(2021))),
-                ).second
+                )
+            }
+
             vedtakRepo.hentAktive(1.februar(2021)).also {
                 it.size shouldBe 1
                 it.first() shouldBe vedtakSomErAktivt
@@ -186,7 +193,7 @@ internal class VedtakPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val vedtakRepo = testDataHelper.vedtakRepo as VedtakPostgresRepo
-            val (sak, søknadsbehandlingVedtak) = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering()
+            val (sak, søknadsbehandlingVedtak) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling()
 
             val (_, nyRevurdering) = testDataHelper.persisterRevurderingOpprettet(sak to søknadsbehandlingVedtak)
 

@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simulering
 import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
+import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.vilkårsvurderingerRevurderingInnvilget
 import org.junit.jupiter.api.Test
 
@@ -22,10 +23,11 @@ internal class StansAvYtelsePostgresRepoTest {
     fun `lagrer og henter revurdering for stans av ytelse`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val (sak, vedtak) = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering()
+            val (sak, vedtak) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling()
 
             val simulertRevurdering = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
                 sakOgVedtakSomKanRevurderes = sak to vedtak,
+                clock = tikkendeFixedClock,
             ).second
 
             testDataHelper.revurderingRepo.lagre(simulertRevurdering)
@@ -46,10 +48,11 @@ internal class StansAvYtelsePostgresRepoTest {
     fun `kan oppdatere revurdering for stans av ytelse`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val (sak, vedtak) = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering()
+            val (sak, vedtak) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling()
 
             val simulertRevurdering = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
                 sakOgVedtakSomKanRevurderes = sak to vedtak,
+                clock = tikkendeFixedClock,
             ).second
 
             testDataHelper.revurderingRepo.lagre(simulertRevurdering)
@@ -82,10 +85,11 @@ internal class StansAvYtelsePostgresRepoTest {
     fun `lagrer og henter en avsluttet stansAvYtelse revurdering`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val (sak, vedtak) = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering()
+            val (sak, vedtak) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling()
 
             val simulertRevurdering = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
                 sakOgVedtakSomKanRevurderes = sak to vedtak,
+                clock = tikkendeFixedClock,
             ).second
 
             testDataHelper.revurderingRepo.lagre(simulertRevurdering)

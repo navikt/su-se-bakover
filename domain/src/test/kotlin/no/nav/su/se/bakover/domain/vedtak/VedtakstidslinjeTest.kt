@@ -6,6 +6,8 @@ import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.Fnr
+import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.application.CopyArgs
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
@@ -21,7 +23,6 @@ import no.nav.su.se.bakover.common.periode.juli
 import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.år
-import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
@@ -35,12 +36,14 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUføre
+import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.bosituasjonEpsOver67
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.createFromGrunnlag
 import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.test.epsFnr
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.generer
@@ -217,10 +220,11 @@ internal class VedtakstidslinjeTest {
 
     @Test
     fun `bevarer korrekte verdier ved kopiering for plassering på tidslinje - ny periode`() {
+        val tikkendeKlokke = TikkendeKlokke(fixedClock)
         val periode = år(2021)
         val uføregrunnlag = Grunnlag.Uføregrunnlag(
             id = UUID.randomUUID(),
-            opprettet = fixedTidspunkt,
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = periode,
             uføregrad = Uføregrad.parse(25),
             forventetInntekt = 100,
@@ -228,26 +232,27 @@ internal class VedtakstidslinjeTest {
 
         val b1 = Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen(
             id = UUID.randomUUID(),
-            opprettet = fixedTidspunkt,
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.juni(2021)),
         )
 
         val b2 = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre(
             id = UUID.randomUUID(),
-            opprettet = fixedTidspunkt,
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             periode = Periode.create(fraOgMed = 1.juli(2021), tilOgMed = 31.desember(2021)),
             fnr = epsFnr,
         )
 
         val uføreVurderingsperiode = VurderingsperiodeUføre.create(
             id = UUID.randomUUID(),
-            opprettet = fixedTidspunkt,
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             vurdering = Vurdering.Innvilget,
             grunnlag = uføregrunnlag,
             periode = periode,
         )
 
         val f1 = lagFradragsgrunnlag(
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             type = Fradragstype.Kontantstøtte,
             månedsbeløp = 5000.0,
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 28.februar(2021)),
@@ -256,6 +261,7 @@ internal class VedtakstidslinjeTest {
         )
 
         val f2 = lagFradragsgrunnlag(
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             type = Fradragstype.Arbeidsinntekt,
             månedsbeløp = 1000.0,
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.oktober(2021)),
@@ -264,6 +270,7 @@ internal class VedtakstidslinjeTest {
         )
 
         val f3 = lagFradragsgrunnlag(
+            opprettet = Tidspunkt.now(tikkendeKlokke),
             type = Fradragstype.Arbeidsinntekt,
             månedsbeløp = 2000.0,
             periode = Periode.create(fraOgMed = 1.juli(2021), tilOgMed = 31.desember(2021)),
@@ -275,7 +282,7 @@ internal class VedtakstidslinjeTest {
             nonEmptyListOf(
                 Formuegrunnlag.create(
                     id = UUID.randomUUID(),
-                    opprettet = fixedTidspunkt,
+                    opprettet = Tidspunkt.now(tikkendeKlokke),
                     periode = januar(2021)..juni(2021),
                     epsFormue = null,
                     søkersFormue = Formuegrunnlag.Verdier.empty().copy(verdiEiendommer = 1000),
@@ -284,7 +291,7 @@ internal class VedtakstidslinjeTest {
                 ),
                 Formuegrunnlag.create(
                     id = UUID.randomUUID(),
-                    opprettet = fixedTidspunkt,
+                    opprettet = Tidspunkt.now(tikkendeKlokke),
                     periode = juli(2021)..desember(2021),
                     epsFormue = Formuegrunnlag.Verdier.empty().copy(verdiEiendommer = 15000),
                     søkersFormue = Formuegrunnlag.Verdier.empty().copy(verdiEiendommer = 1000),
@@ -315,6 +322,7 @@ internal class VedtakstidslinjeTest {
                 f2,
                 f3,
             ),
+            clock = tikkendeKlokke,
         )
 
         sak.vedtakstidslinje(mai(2021)..juli(2021)).tidslinje.also { tidslinje ->
@@ -511,13 +519,16 @@ internal class VedtakstidslinjeTest {
 
     @Test
     fun `vedtak som overskrives av nye er ikke synlige på tidslinjen`() {
+        val tikkendeKlokke = TikkendeKlokke(fixedClock)
         val (sak, _, første) = iverksattSøknadsbehandlingUføre(
             stønadsperiode = Stønadsperiode.create(år(2021)),
+            clock = tikkendeKlokke,
         )
 
         val (sakMedToVedtak, andre) = vedtakRevurdering(
             revurderingsperiode = år(2021),
             sakOgVedtakSomKanRevurderes = sak to første as VedtakSomKanRevurderes,
+            clock = tikkendeKlokke,
         )
 
         sakMedToVedtak.vedtakstidslinje(år(2021)).tidslinje.also { tidslinje ->

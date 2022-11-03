@@ -11,14 +11,14 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.test.opprettetRevurdering
+import no.nav.su.se.bakover.test.sakId
+import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.periode
-import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.requestPath
-import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.testServices
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -27,6 +27,8 @@ import org.mockito.kotlin.mock
 import org.skyscreamer.jsonassert.JSONAssert
 
 internal class OpprettRevurderingRouteKtTest {
+    val periode = år(2021)
+
     //language=JSON
     private val validBody = """
         {
@@ -46,7 +48,7 @@ internal class OpprettRevurderingRouteKtTest {
             }
             defaultRequest(
                 HttpMethod.Post,
-                requestPath,
+                "/saker/$sakId/revurderinger",
                 listOf(Brukerrolle.Veileder),
             ) {
                 setBody(validBody)
@@ -77,11 +79,11 @@ internal class OpprettRevurderingRouteKtTest {
 
         testApplication {
             application {
-                testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
+                testSusebakover(services = TestServicesBuilder.services(revurdering = revurderingServiceMock))
             }
             defaultRequest(
                 HttpMethod.Post,
-                requestPath,
+                "/saker/$sakId/revurderinger",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
@@ -171,7 +173,6 @@ internal class OpprettRevurderingRouteKtTest {
                     "code":"må_velge_informasjon_som_revurderes"
                 }
             """.trimIndent(),
-
         )
     }
 
@@ -186,11 +187,11 @@ internal class OpprettRevurderingRouteKtTest {
 
         testApplication {
             application {
-                testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
+                testSusebakover(services = TestServicesBuilder.services(revurdering = revurderingServiceMock))
             }
             defaultRequest(
                 HttpMethod.Post,
-                requestPath,
+                "/saker/$sakId/revurderinger",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(validBody)

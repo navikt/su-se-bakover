@@ -541,24 +541,17 @@ data class ApplicationConfig(
                     ),
                 ),
                 consumerCfg = ConsumerCfg(
-                    CommonOnpremKafkaConfig().configure() + mapOf(
-                        KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG to true,
-                        KafkaAvroDeserializerConfig.SCHEMA_REGISTRY_URL_CONFIG to getEnvironmentVariableOrDefault(
-                            "KAFKA_ONPREM_SCHEMA_REGISTRY",
-                            "schema_onprem_registry",
+                    CommonAivenKafkaConfig().configure() +
+                        commonConsumerConfig(
+                            deserializer = KafkaAvroDeserializer::class.java,
+                            clientIdConfig = getEnvironmentVariableOrThrow("HOSTNAME"),
+                        ) +
+                        mapOf(
+                            KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG to true,
+                            KafkaAvroDeserializerConfig.BASIC_AUTH_CREDENTIALS_SOURCE to "USER_INFO",
+                            KafkaAvroDeserializerConfig.USER_INFO_CONFIG to ConsumerCfg.getUserInfoConfig(),
+                            KafkaAvroDeserializerConfig.SCHEMA_REGISTRY_URL_CONFIG to getEnvironmentVariableOrThrow("KAFKA_SCHEMA_REGISTRY"),
                         ),
-                        KafkaAvroDeserializerConfig.BASIC_AUTH_CREDENTIALS_SOURCE to "USER_INFO",
-                        KafkaAvroDeserializerConfig.USER_INFO_CONFIG to ConsumerCfg.getUserInfoConfig(),
-                        ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to KafkaAvroDeserializer::class.java,
-                        ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to KafkaAvroDeserializer::class.java,
-                        ConsumerConfig.CLIENT_ID_CONFIG to getEnvironmentVariableOrDefault(
-                            "HOSTNAME",
-                            "su-se-bakover-hostname",
-                        ),
-                        ConsumerConfig.GROUP_ID_CONFIG to "su-se-bakover",
-                        ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG to "false",
-                        ConsumerConfig.MAX_POLL_RECORDS_CONFIG to 100,
-                    ),
                 ),
             )
 
@@ -610,14 +603,6 @@ data class ApplicationConfig(
                 SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG to credstorePwd,
                 SslConfigs.SSL_KEY_PASSWORD_CONFIG to credstorePwd,
             )
-        }
-
-        private data class CommonOnpremKafkaConfig(
-            val brokers: String = getEnvironmentVariableOrDefault("KAFKA_ONPREM_BROKERS", "kafka_onprem_brokers"),
-            val saslConfigs: Map<String, String> = SaslConfig().configure(),
-        ) {
-            fun configure(): Map<String, String> =
-                mapOf(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG to brokers) + saslConfigs
         }
 
         private data class SaslConfig(
@@ -704,16 +689,11 @@ data class ApplicationConfig(
     ) {
         companion object {
             fun createFromEnvironmentVariables() = KabalKafkaConfig(
-                kafkaConfig = KafkaConfig.CommonAivenKafkaConfig().configure() + mapOf(
-                    ConsumerConfig.GROUP_ID_CONFIG to "su-se-bakover",
-                    ConsumerConfig.CLIENT_ID_CONFIG to getEnvironmentVariableOrThrow("HOSTNAME"),
-                    ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG to "false",
-                    ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to "earliest",
-                    ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
-                    ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
-                    ConsumerConfig.MAX_POLL_RECORDS_CONFIG to 100,
-
-                ),
+                kafkaConfig = KafkaConfig.CommonAivenKafkaConfig().configure() +
+                    commonConsumerConfig(
+                        deserializer = StringDeserializer::class.java,
+                        clientIdConfig = getEnvironmentVariableOrThrow("HOSTNAME"),
+                    ),
             )
 
             fun createLocalConfig() = KabalKafkaConfig(
@@ -721,4 +701,23 @@ data class ApplicationConfig(
             )
         }
     }
+}
+
+fun <T> commonConsumerConfig(
+    groupIdConfig: String = "su-se-bakover",
+    maxPollRecordsConfig: Int = 100,
+    enableAutoCommitConfig: Boolean = false,
+    clientIdConfig: String,
+    autoOffsetResetConfig: String = "earliest",
+    deserializer: Class<T>,
+): Map<String, Any> {
+    return mapOf(
+        ConsumerConfig.GROUP_ID_CONFIG to groupIdConfig,
+        ConsumerConfig.MAX_POLL_RECORDS_CONFIG to maxPollRecordsConfig,
+        ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG to enableAutoCommitConfig.toString(),
+        ConsumerConfig.CLIENT_ID_CONFIG to clientIdConfig,
+        ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to autoOffsetResetConfig,
+        ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to deserializer,
+        ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to deserializer,
+    )
 }

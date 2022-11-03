@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.client.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.AktørId
 import no.nav.su.se.bakover.common.GitCommit
 import no.nav.su.se.bakover.common.februar
+import no.nav.su.se.bakover.common.fixedClock
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.januar
@@ -16,16 +17,19 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.statistikk.StatistikkEventObserverBuilder
+import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.plus
+import no.nav.su.se.bakover.test.tikkendeFixedClock
 import no.nav.su.se.bakover.test.vedtakIverksattAutomatiskRegulering
 import no.nav.su.se.bakover.test.vedtakIverksattGjenopptakAvYtelseFraIverksattStans
 import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
+import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakRevurderingIverksattInnvilget
-import no.nav.su.se.bakover.test.vedtakRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
+import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkår
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -35,20 +39,21 @@ import org.mockito.kotlin.verify
 import org.skyscreamer.jsonassert.JSONAssert
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
-import java.util.UUID
 
 internal class StønadsstatistikkTest {
 
     @Test
     fun `Stans gir nullutbetaling`() {
-        val (sak, vedtak) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(periode = år(2021))
+        val (sak, vedtak) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+            clock = TikkendeKlokke(1.januar(2021).fixedClock()),
+            periode = år(2021),
+        )
         assert(
-            sak = sak,
-            event = StatistikkEvent.Stønadsvedtak(vedtak),
+            event = StatistikkEvent.Stønadsvedtak(vedtak) { sak },
             vedtakstype = "STANS",
             vedtaksresultat = "STANSET",
             sakstype = "STANS",
-            funksjonellTid = "2021-01-01T01:02:40.456789Z",
+            funksjonellTid = "${vedtak.opprettet}",
         )
     }
 
@@ -68,12 +73,14 @@ internal class StønadsstatistikkTest {
                             periode = periode,
                         ),
                     ),
+                    clock = tikkendeFixedClock,
                 ).let { Pair(it.first, it.third as VedtakSomKanRevurderes) },
+                clock = tikkendeFixedClock,
             ),
+            clock = tikkendeFixedClock,
         )
         assert(
-            sak = sak,
-            event = StatistikkEvent.Stønadsvedtak(vedtak),
+            event = StatistikkEvent.Stønadsvedtak(vedtak) { sak },
             vedtakstype = "GJENOPPTAK",
             vedtaksresultat = "GJENOPPTATT",
             sakstype = "GJENOPPTAK",
@@ -96,7 +103,7 @@ internal class StønadsstatistikkTest {
                 }
             ]
             """.trimIndent(),
-            funksjonellTid = "2021-01-01T01:02:12.456789Z",
+            funksjonellTid = vedtak.opprettet.toString(),
         )
     }
 
@@ -128,8 +135,7 @@ internal class StønadsstatistikkTest {
             gjenopptakVedtak = it.second
         }
         assert(
-            sak = sak,
-            event = StatistikkEvent.Stønadsvedtak(gjenopptakVedtak),
+            event = StatistikkEvent.Stønadsvedtak(gjenopptakVedtak) { sak },
             vedtakstype = "GJENOPPTAK",
             vedtaksresultat = "GJENOPPTATT",
             sakstype = "GJENOPPTAK",
@@ -194,8 +200,7 @@ internal class StønadsstatistikkTest {
             gjenopptakVedtak = it.second
         }
         assert(
-            sak = sakOgVedtak.first,
-            event = StatistikkEvent.Stønadsvedtak(gjenopptakVedtak),
+            event = StatistikkEvent.Stønadsvedtak(gjenopptakVedtak) { sakOgVedtak.first },
             vedtakstype = "GJENOPPTAK",
             vedtaksresultat = "GJENOPPTATT",
             sakstype = "GJENOPPTAK",
@@ -231,8 +236,7 @@ internal class StønadsstatistikkTest {
             ),
         )
         assert(
-            sak = sak,
-            event = StatistikkEvent.Stønadsvedtak(regulering),
+            event = StatistikkEvent.Stønadsvedtak(regulering) { sak },
             vedtakstype = "REGULERING",
             vedtaksresultat = "REGULERT",
             sakstype = "REGULERING",
@@ -283,8 +287,7 @@ internal class StønadsstatistikkTest {
             revurderingsperiode = januar(2021),
         )
         assert(
-            sak = sak,
-            event = StatistikkEvent.Stønadsvedtak(regulering),
+            event = StatistikkEvent.Stønadsvedtak(regulering) { sak },
             vedtakstype = "REVURDERING",
             vedtaksresultat = "INNVILGET",
             sakstype = "REVURDERING",
@@ -308,39 +311,40 @@ internal class StønadsstatistikkTest {
             ]
             """.trimIndent(),
             ytelseVirkningstidspunkt = januar(2021).fraOgMed,
+            funksjonellTid = regulering.opprettet.toString(),
         )
     }
 
     @Test
     fun `stønadsstatistikk for opphørt revurdering`() {
-        val (sak, regulering) = vedtakRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
+        val (sak, revurdering) = vedtakRevurdering(
             stønadsperiode = Stønadsperiode.create(
                 periode = januar(2021),
             ),
             revurderingsperiode = januar(2021),
-        )
+            vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag(periode = januar(2021))),
+        ).let { (sak, vedtak) -> sak to vedtak as VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering }
         assert(
-            sak = sak,
-            event = StatistikkEvent.Stønadsvedtak(regulering),
+            event = StatistikkEvent.Stønadsvedtak(revurdering) { sak },
             vedtakstype = "REVURDERING",
             vedtaksresultat = "OPPHØRT",
             sakstype = "REVURDERING",
             ytelseVirkningstidspunkt = januar(2021).fraOgMed,
             opphørsgrunn = "UFØRHET",
             opphørsdato = januar(2021).fraOgMed,
+            funksjonellTid = revurdering.opprettet.toString(),
         )
     }
 
     @Test
     fun `stønadsstatistikk for innvilget søknadsbehandling`() {
-        val (sak, regulering) = vedtakSøknadsbehandlingIverksattInnvilget(
+        val (sak, søknadsbehandling) = vedtakSøknadsbehandlingIverksattInnvilget(
             stønadsperiode = Stønadsperiode.create(
                 periode = januar(2021),
             ),
         )
         assert(
-            sak = sak,
-            event = StatistikkEvent.Stønadsvedtak(regulering),
+            event = StatistikkEvent.Stønadsvedtak(søknadsbehandling) { sak },
             vedtakstype = "SØKNAD",
             vedtaksresultat = "INNVILGET",
             sakstype = "SØKNAD",
@@ -364,11 +368,11 @@ internal class StønadsstatistikkTest {
             ]
             """.trimIndent(),
             ytelseVirkningstidspunkt = januar(2021).fraOgMed,
+            funksjonellTid = søknadsbehandling.opprettet.toString(),
         )
     }
 
     private fun assert(
-        sak: Sak,
         event: StatistikkEvent.Stønadsvedtak,
         vedtakstype: String,
         vedtaksresultat: String,
@@ -385,9 +389,6 @@ internal class StønadsstatistikkTest {
             kafkaPublisher = kafkaPublisherMock,
             personService = mock {
                 on { hentAktørIdMedSystembruker(any()) } doReturn AktørId("55").right()
-            },
-            sakRepo = mock {
-                on { hentSak(any<UUID>()) } doReturn sak
             },
             clock = fixedClock,
             gitCommit = GitCommit("87a3a5155bf00b4d6854efcc24e8b929549c9302"),

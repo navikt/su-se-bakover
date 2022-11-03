@@ -7,7 +7,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.NavIdentBruker
-import no.nav.su.se.bakover.common.infrastructure.audit.AuditLogEvent
+import no.nav.su.se.bakover.common.audit.application.AuditLogEvent
 import no.nav.su.se.bakover.common.infrastructure.web.ErrorJson
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.avkortingErUfullstendig
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.opphørAvYtelseSomSkalAvkortes
@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
+import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
@@ -30,7 +31,6 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingOgFeilmeldingerRespon
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.revurdering.Varselmelding
 import no.nav.su.se.bakover.web.features.authorize
-import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
 import no.nav.su.se.bakover.web.routes.tilResultat
 
@@ -50,12 +50,7 @@ internal fun Route.beregnOgSimulerRevurdering(
                     }.map { response ->
                         call.sikkerlogg("Beregnet og simulert revurdering ${response.revurdering.id} på sak med id $sakId")
                         call.audit(response.revurdering.fnr, AuditLogEvent.Action.UPDATE, response.revurdering.id)
-                        call.svar(
-                            Resultat.json(
-                                HttpStatusCode.Created,
-                                serialize(response.toJson(satsFactory)),
-                            ),
-                        )
+                        call.svar(Resultat.json(HttpStatusCode.Created, serialize(response.toJson(satsFactory))))
                     }
                 }
             }

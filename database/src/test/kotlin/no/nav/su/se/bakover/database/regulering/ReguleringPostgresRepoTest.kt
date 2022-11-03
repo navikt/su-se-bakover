@@ -4,7 +4,6 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.desember
-import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.beregning.BeregningMedFradragBeregnetMånedsvis
@@ -28,7 +27,7 @@ internal class ReguleringPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.reguleringRepo
 
-            val regulering = testDataHelper.persisterReguleringOpprettet()
+            val (_, regulering) = testDataHelper.persisterReguleringOpprettet()
             testDataHelper.persisterReguleringIverksatt()
 
             val hentRegulering = repo.hentReguleringerSomIkkeErIverksatt()
@@ -44,7 +43,7 @@ internal class ReguleringPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.reguleringRepo
 
-            val regulering = testDataHelper.persisterReguleringOpprettet()
+            val (_, regulering) = testDataHelper.persisterReguleringOpprettet()
             val hentRegulering = repo.hentForSakId(regulering.sakId)
 
             hentRegulering.size shouldBe 1
@@ -58,7 +57,7 @@ internal class ReguleringPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.reguleringRepo
 
-            val regulering = testDataHelper.persisterReguleringOpprettet()
+            val (_, regulering) = testDataHelper.persisterReguleringOpprettet()
             val hentRegulering = repo.hent(regulering.id)
 
             hentRegulering shouldBe regulering
@@ -71,7 +70,7 @@ internal class ReguleringPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.reguleringRepo
 
-            val regulering = testDataHelper.persisterReguleringIverksatt()
+            val (_, regulering) = testDataHelper.persisterReguleringIverksatt()
             val hentRegulering = repo.hent(regulering.id)
 
             hentRegulering shouldBe regulering
@@ -84,8 +83,8 @@ internal class ReguleringPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.reguleringRepo
 
-            val opprettetRegulering = testDataHelper.persisterReguleringOpprettet()
-            val avsluttetRegulering = Regulering.AvsluttetRegulering(opprettetRegulering, fixedTidspunkt)
+            val (_, regulering) = testDataHelper.persisterReguleringOpprettet()
+            val avsluttetRegulering = Regulering.AvsluttetRegulering(regulering, fixedTidspunkt)
 
             repo.lagre(avsluttetRegulering)
             repo.hent(avsluttetRegulering.id) shouldBe avsluttetRegulering
@@ -99,12 +98,11 @@ internal class ReguleringPostgresRepoTest {
             val repo = testDataHelper.reguleringRepo
 
             // En del caser som ikke skal være åpne
-            testDataHelper.persisterVedtakMedAvslåttSøknadsbehandlingUtenBeregning()
             testDataHelper.persisterVedtakForGjenopptak()
             testDataHelper.persisterVedtakForKlageIverksattAvvist()
             testDataHelper.persisterVedtakMedInnvilgetRevurderingOgOversendtUtbetalingMedKvittering()
-            testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering()
-            testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingUtenKvittering()
+            testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling()
+            testDataHelper.persisterSøknadsbehandlingIverksattInnvilget()
             testDataHelper.persisterSøknadsbehandlingIverksattAvslagMedBeregning()
             testDataHelper.persisterSøknadsbehandlingIverksattAvslagUtenBeregning()
             testDataHelper.persisterSøknadsbehandlingAvsluttet()
@@ -141,7 +139,7 @@ internal class ReguleringPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource = dataSource, clock = fixedClock)
             val repo = testDataHelper.reguleringRepo
-            val regulering = testDataHelper.persisterReguleringIverksatt()
+            val (_, regulering) = testDataHelper.persisterReguleringIverksatt()
             val hentRegulering = repo.hent(regulering.id)
 
             hentRegulering shouldBe regulering

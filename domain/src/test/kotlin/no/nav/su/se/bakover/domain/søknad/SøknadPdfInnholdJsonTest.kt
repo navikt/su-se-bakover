@@ -1,32 +1,55 @@
 package no.nav.su.se.bakover.domain.søknad
 
+import no.nav.su.se.bakover.common.Fnr
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.startOfDay
-import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.person.Person
+import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.søknadinnhold.Boforhold
 import no.nav.su.se.bakover.domain.søknadinnhold.EktefellePartnerSamboer
 import no.nav.su.se.bakover.domain.søknadinnhold.InnlagtPåInstitusjon
 import no.nav.su.se.bakover.domain.søknadinnhold.OppgittAdresse
+import no.nav.su.se.bakover.domain.søknadinnhold.Personopplysninger
+import no.nav.su.se.bakover.domain.søknadinnhold.SøknadInnhold
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fnr
+import no.nav.su.se.bakover.test.fnrOver67
 import no.nav.su.se.bakover.test.fnrUnder67
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.søknad.boforhold
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
+import java.time.Clock
 import java.util.UUID
 
 class SøknadPdfInnholdJsonTest {
 
     private val søknadsId = UUID.randomUUID()
-    private val søknadPdfInnhold = SøknadPdfInnhold.create(
-        saksnummer = Saksnummer(2021),
+    private fun søknadPdfInnhold(
+        saksnummer: Saksnummer = Saksnummer(2021),
+        navn: Person.Navn = Person.Navn(fornavn = "Tore", mellomnavn = "Johnas", etternavn = "Strømøy"),
+        søknadOpprettet: Tidspunkt = 1.januar(2021).startOfDay(),
+        fnr: Fnr = fnrUnder67,
+        epsFnr: Fnr = fnrOver67,
+        søknadInnhold: SøknadInnhold = no.nav.su.se.bakover.test.søknad.søknadinnhold(
+            personopplysninger = Personopplysninger(fnr),
+            boforhold = boforhold(
+                ektefellePartnerSamboer = EktefellePartnerSamboer(
+                    erUførFlyktning = false,
+                    fnr = epsFnr,
+                ),
+            ),
+        ),
+        clock: Clock = fixedClock,
+    ) = SøknadPdfInnhold.create(
+        saksnummer = saksnummer,
         søknadsId = søknadsId,
-        navn = Person.Navn(fornavn = "Tore", mellomnavn = "Johnas", etternavn = "Strømøy"),
-        søknadOpprettet = 1.januar(2021).startOfDay(),
-        søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-        clock = fixedClock,
+        navn = navn,
+        søknadOpprettet = søknadOpprettet,
+        søknadInnhold = søknadInnhold,
+        clock = clock,
     )
 
     @Test
@@ -50,7 +73,7 @@ class SøknadPdfInnholdJsonTest {
                           "harUførevedtak":true
                       },
                       "personopplysninger":{
-                          "fnr":"12345678910"
+                          "fnr":"$fnrUnder67"
                       },
                       "flyktningsstatus":{
                           "registrertFlyktning":false
@@ -61,7 +84,7 @@ class SøknadPdfInnholdJsonTest {
                           "delerBoligMed": "EKTEMAKE_SAMBOER",
                           "ektefellePartnerSamboer": {
                               "erUførFlyktning": false,
-                              "fnr": "${fnrUnder67()}"
+                              "fnr": "$fnrOver67"
                           },
                           "innlagtPåInstitusjon": {
                               "datoForInnleggelse": "2020-01-01",
@@ -177,20 +200,21 @@ class SøknadPdfInnholdJsonTest {
                 }
             """.trimIndent()
 
-        JSONAssert.assertEquals(forventetJson, serialize(søknadPdfInnhold), true)
+        JSONAssert.assertEquals(forventetJson, serialize(søknadPdfInnhold()), true)
     }
 
     @Test
     fun `søker bor på annen adresse matcher json`() {
-        val søknadPdfInnhold = søknadPdfInnhold.copy(
-            søknadInnhold = SøknadInnholdTestdataBuilder.build().copy(
+        val søknadPdfInnhold = søknadPdfInnhold(
+            søknadInnhold = no.nav.su.se.bakover.test.søknad.søknadinnhold(
+                personopplysninger = Personopplysninger(fnrUnder67),
                 boforhold = Boforhold.tryCreate(
                     borOgOppholderSegINorge = true,
                     delerBolig = true,
                     delerBoligMed = Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER,
                     ektefellePartnerSamboer = EktefellePartnerSamboer(
                         erUførFlyktning = false,
-                        fnr = fnrUnder67(),
+                        fnr = fnrOver67,
                     ),
                     innlagtPåInstitusjon = InnlagtPåInstitusjon(
                         datoForInnleggelse = 1.januar(2020),
@@ -221,7 +245,7 @@ class SøknadPdfInnholdJsonTest {
                           "harUførevedtak":true
                       },
                       "personopplysninger":{
-                          "fnr":"12345678910"
+                          "fnr":"$fnrUnder67"
                       },
                       "flyktningsstatus":{
                           "registrertFlyktning":false
@@ -232,7 +256,7 @@ class SøknadPdfInnholdJsonTest {
                           "delerBoligMed": "EKTEMAKE_SAMBOER",
                           "ektefellePartnerSamboer": {
                               "erUførFlyktning": false,
-                              "fnr": "${fnrUnder67()}"
+                              "fnr": "$fnrOver67"
                           },
                           "innlagtPåInstitusjon": {
                               "datoForInnleggelse": "2020-01-01",
@@ -353,15 +377,16 @@ class SøknadPdfInnholdJsonTest {
 
     @Test
     fun `søker oppgir adresse matcher json`() {
-        val søknadPdfInnhold = søknadPdfInnhold.copy(
-            søknadInnhold = SøknadInnholdTestdataBuilder.build().copy(
+        val søknadPdfInnhold = søknadPdfInnhold(
+            søknadInnhold = no.nav.su.se.bakover.test.søknad.søknadinnhold(
+                personopplysninger = Personopplysninger(fnrUnder67),
                 boforhold = Boforhold.tryCreate(
                     borOgOppholderSegINorge = true,
                     delerBolig = true,
                     delerBoligMed = Boforhold.DelerBoligMed.EKTEMAKE_SAMBOER,
                     ektefellePartnerSamboer = EktefellePartnerSamboer(
                         erUførFlyktning = false,
-                        fnr = fnrUnder67(),
+                        fnr = fnrOver67,
                     ),
                     innlagtPåInstitusjon = InnlagtPåInstitusjon(
                         datoForInnleggelse = 1.januar(2020),
@@ -397,7 +422,7 @@ class SøknadPdfInnholdJsonTest {
                           "harUførevedtak":true
                       },
                       "personopplysninger":{
-                          "fnr":"12345678910"
+                          "fnr":"$fnrUnder67"
                       },
                       "flyktningsstatus":{
                           "registrertFlyktning":false
@@ -408,7 +433,7 @@ class SøknadPdfInnholdJsonTest {
                           "delerBoligMed": "EKTEMAKE_SAMBOER",
                           "ektefellePartnerSamboer": {
                               "erUførFlyktning": false,
-                              "fnr": "${fnrUnder67()}"
+                              "fnr": "$fnrOver67"
                           },
                           "innlagtPåInstitusjon": {
                               "datoForInnleggelse": "2020-01-01",

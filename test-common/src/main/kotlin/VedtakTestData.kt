@@ -1,14 +1,17 @@
 package no.nav.su.se.bakover.test
 
 import arrow.core.nonEmptyListOf
+import no.nav.su.se.bakover.client.stubs.oppdrag.UtbetalingStub
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
+import no.nav.su.se.bakover.common.endOfMonth
+import no.nav.su.se.bakover.common.fixedClock
+import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
@@ -16,9 +19,8 @@ import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBre
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
-import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
+import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
@@ -42,7 +44,7 @@ fun vedtakSøknadsbehandlingIverksattInnvilget(
         periode = stønadsperiode.periode,
         bosituasjon = grunnlagsdata.bosituasjon.map { it as Grunnlag.Bosituasjon.Fullstendig }.toNonEmptyList(),
     ),
-    clock: Clock = fixedClock,
+    clock: Clock = tikkendeFixedClock,
     avkorting: AvkortingVedSøknadsbehandling.Uhåndtert = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående,
 ): Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling> {
     require(
@@ -54,12 +56,19 @@ fun vedtakSøknadsbehandlingIverksattInnvilget(
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
         avkorting = avkorting,
+        clock = clock,
     ).let { (sak, søknadsbehandling) ->
-        val utbetaling = nyUtbetalingOversendtMedKvittering(
-            sakOgBehandling = sak to søknadsbehandling,
-            beregning = søknadsbehandling.beregning,
+        val utbetaling = simulerUtbetaling(
+            sak = sak,
+            søknadsbehandling = søknadsbehandling,
+            simuleringsperiode = søknadsbehandling.periode,
+            behandler = søknadsbehandling.attesteringer.hentSisteAttestering().attestant,
             clock = clock,
-        )
+        ).getOrFail().let {
+            it.toOversendtUtbetaling(UtbetalingStub.generateRequest(it))
+                .toKvittertUtbetaling(kvittering())
+        }
+
         val vedtak = VedtakSomKanRevurderes.fromSøknadsbehandling(
             søknadsbehandling = søknadsbehandling,
             utbetalingId = utbetaling.id,
@@ -152,7 +161,7 @@ fun vedtakRevurderingIverksattInnvilget(
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
         stønadsperiode = stønadsperiode,
     ),
-    clock: Clock = fixedClock,
+    clock: Clock = tikkendeFixedClock,
     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = innvilgetGrunnlagsdataOgVilkårsvurderinger(
         sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
         revurderingsperiode = revurderingsperiode,
@@ -167,6 +176,7 @@ fun vedtakRevurderingIverksattInnvilget(
         grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
         sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
         revurderingsårsak = revurderingsårsak,
+        clock = clock,
     ).let { (sak, revurdering) ->
         val utbetaling = oversendtUtbetalingMedKvittering(
             id = utbetalingId,
@@ -236,31 +246,35 @@ fun vedtakIverksattAutomatiskRegulering(
 }
 
 fun vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
-    clock: Clock = TikkendeKlokke(fixedClock),
+    clock: Clock = TikkendeKlokke(1.januar(2021).fixedClock()),
     periode: Periode = Periode.create(
         fraOgMed = LocalDate.now(clock).plusMonths(1).startOfMonth(),
-        tilOgMed = år(2021).tilOgMed,
+        tilOgMed = LocalDate.now(clock).plusMonths(11).endOfMonth(),
     ),
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
         stønadsperiode = Stønadsperiode.create(periode),
         clock = clock,
     ),
     attestering: Attestering = attesteringIverksatt(clock = clock),
+    utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
 ): Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse> {
     return iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         periode = periode,
         sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
         attestering = attestering,
         clock = clock,
+        utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
     ).let { (sak, revurdering) ->
-        val utbetaling = oversendtStansUtbetalingUtenKvittering(
+        val utbetaling = simulerStans(
+            sak = sak,
+            stans = revurdering,
             stansDato = revurdering.periode.fraOgMed,
-            fnr = sak.fnr,
-            sakId = sak.id,
-            saksnummer = sak.saksnummer,
-            eksisterendeUtbetalinger = sak.utbetalinger,
+            behandler = revurdering.attesteringer.hentSisteAttestering().attestant,
             clock = clock,
-        )
+            utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
+        ).getOrFail().let {
+            it.toOversendtUtbetaling(UtbetalingStub.generateRequest(it))
+        }
 
         val vedtak = VedtakSomKanRevurderes.from(
             revurdering = revurdering,
@@ -293,73 +307,14 @@ fun vedtakIverksattGjenopptakAvYtelseFraIverksattStans(
         attestering = attestering,
         clock = clock,
     ).let { (sak, revurdering) ->
-        val utbetaling = oversendtGjenopptakUtbetalingUtenKvittering(
-            fnr = sak.fnr,
-            sakId = sak.id,
-            saksnummer = sak.saksnummer,
-            eksisterendeUtbetalinger = sak.utbetalinger,
+        val utbetaling = simulerGjenopptak(
+            sak = sak,
+            gjenopptak = revurdering,
+            behandler = revurdering.attesteringer.hentSisteAttestering().attestant,
             clock = clock,
-        )
-
-        val vedtak = VedtakSomKanRevurderes.from(
-            revurdering = revurdering,
-            utbetalingId = utbetaling.id,
-            clock = clock,
-        )
-
-        sak.copy(
-            vedtakListe = sak.vedtakListe + vedtak,
-            utbetalinger = sak.utbetalinger + utbetaling,
-        ) to vedtak
-    }
-}
-
-fun vedtakRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
-    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
-    stønadsperiode: Stønadsperiode = stønadsperiode2021,
-    revurderingsperiode: Periode = år(2021),
-    informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-    clock: Clock = fixedClock,
-    sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
-        saksnummer = saksnummer,
-        stønadsperiode = stønadsperiode,
-        clock = clock,
-    ),
-    grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = sakOgVedtakSomKanRevurderes.first.hentGjeldendeVilkårOgGrunnlag(
-        periode = revurderingsperiode,
-        clock = clock,
-    ).let {
-        it.copy(
-            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(
-                periode = revurderingsperiode,
-                bosituasjon = it.grunnlagsdata.bosituasjon.map { it as Grunnlag.Bosituasjon.Fullstendig }
-                    .toNonEmptyList(),
-            ),
-        )
-    },
-    revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
-    attestering: Attestering.Iverksatt = attesteringIverksatt(clock = clock),
-): Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering> {
-    return iverksattRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
-        saksnummer = saksnummer,
-        stønadsperiode = stønadsperiode,
-        revurderingsperiode = revurderingsperiode,
-        informasjonSomRevurderes = informasjonSomRevurderes,
-        sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
-        grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
-        revurderingsårsak = revurderingsårsak,
-        attestering = attestering,
-        clock = clock,
-    ).let { (sak, revurdering) ->
-
-        val utbetaling = oversendtUtbetalingMedKvittering(
-            periode = stønadsperiode.periode,
-            fnr = sak.fnr,
-            sakId = sak.id,
-            saksnummer = sak.saksnummer,
-            eksisterendeUtbetalinger = sak.utbetalinger,
-            clock = clock,
-        )
+        ).getOrFail().let {
+            it.toOversendtUtbetaling(UtbetalingStub.generateRequest(it))
+        }
 
         val vedtak = VedtakSomKanRevurderes.from(
             revurdering = revurdering,

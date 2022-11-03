@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.avkorting
 
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.application.Månedsbeløp
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.Månedsbeløp
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel.Utenlandsopphold.Annullert
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel.Utenlandsopphold.Avkortet
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel.Utenlandsopphold.Opprettet

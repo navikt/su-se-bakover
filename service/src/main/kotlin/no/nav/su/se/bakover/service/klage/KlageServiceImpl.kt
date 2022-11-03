@@ -7,13 +7,16 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import arrow.core.rightIfNotNull
+import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.domain.journalpost.ErTilknyttetSak
 import no.nav.su.se.bakover.domain.journalpost.JournalpostClient
+import no.nav.su.se.bakover.domain.journalpost.KunneIkkeSjekkeTilknytningTilSak
 import no.nav.su.se.bakover.domain.klage.AvsluttetKlage
 import no.nav.su.se.bakover.domain.klage.AvvistKlage
 import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
@@ -84,9 +87,23 @@ class KlageServiceImpl(
         if (!sak.kanOppretteKlage()) {
             return KunneIkkeOppretteKlage.FinnesAlleredeEnÅpenKlage.left()
         }
-        journalpostClient.hentFerdigstiltJournalpost(sak.saksnummer, request.journalpostId).mapLeft {
-            return KunneIkkeOppretteKlage.FeilVedHentingAvJournalpost(it).left()
-        }
+        runBlocking {
+            journalpostClient.erTilknyttetSak(request.journalpostId, sak.saksnummer)
+        }.fold(
+            {
+                return KunneIkkeOppretteKlage.FeilVedHentingAvJournalpost(it).left()
+            },
+            {
+                when (it) {
+                    ErTilknyttetSak.Ja -> {
+                        /*sjekk ok, trenger ikke gjøre noe mer*/
+                    }
+                    ErTilknyttetSak.Nei -> {
+                        return KunneIkkeOppretteKlage.FeilVedHentingAvJournalpost(KunneIkkeSjekkeTilknytningTilSak.JournalpostIkkeKnyttetTilSak).left()
+                    }
+                }
+            },
+        )
 
         val aktørId = personService.hentAktørId(sak.fnr).getOrElse {
             return KunneIkkeOppretteKlage.KunneIkkeOppretteOppgave.left()
@@ -219,8 +236,10 @@ class KlageServiceImpl(
                         tilordnetRessurs = when (klage) {
                             is VurdertKlage -> klage.attesteringer.map { it.attestant }
                                 .lastOrNull()
+
                             is AvvistKlage -> klage.attesteringer.map { it.attestant }
                                 .lastOrNull()
+
                             else -> null
                         },
                         clock = clock,
@@ -283,7 +302,7 @@ class KlageServiceImpl(
 
         val dokument = klage.lagBrevRequest(
             hentNavnForNavIdent = { identClient.hentNavnForNavIdent(klage.saksbehandler) },
-            hentVedtakDato = { klageRepo.hentKnyttetVedtaksdato(klage.id) },
+            hentVedtaksbrevDato = { klageRepo.hentVedtaksbrevDatoSomDetKlagesPå(klage.id) },
             hentPerson = { personService.hentPerson(klage.fnr) },
             clock = clock,
         ).mapLeft {
@@ -356,7 +375,7 @@ class KlageServiceImpl(
         val vedtak = Klagevedtak.Avvist.fromIverksattAvvistKlage(avvistKlage, clock)
         val dokument = klage.lagBrevRequest(
             hentNavnForNavIdent = { identClient.hentNavnForNavIdent(klage.saksbehandler) },
-            hentVedtakDato = { klageRepo.hentKnyttetVedtaksdato(klage.id) },
+            hentVedtaksbrevDato = { klageRepo.hentVedtaksbrevDatoSomDetKlagesPå(klage.id) },
             hentPerson = { personService.hentPerson(klage.fnr) },
             clock = clock,
         ).mapLeft {
@@ -405,7 +424,7 @@ class KlageServiceImpl(
 
         return klage.lagBrevRequest(
             hentNavnForNavIdent = { identClient.hentNavnForNavIdent(saksbehandler) },
-            hentVedtakDato = { klageRepo.hentKnyttetVedtaksdato(klage.id) },
+            hentVedtaksbrevDato = { klageRepo.hentVedtaksbrevDatoSomDetKlagesPå(klage.id) },
             hentPerson = { personService.hentPerson(klage.fnr) },
             clock = clock,
         ).mapLeft {
@@ -416,6 +435,7 @@ class KlageServiceImpl(
                     no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev.FantIkkePerson -> KunneIkkeLageBrevutkast.GenereringAvBrevFeilet(
                         KunneIkkeLageBrevForKlage.FantIkkePerson,
                     )
+
                     no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev.KunneIkkeGenererePDF -> KunneIkkeLageBrevutkast.GenereringAvBrevFeilet(
                         KunneIkkeLageBrevForKlage.KunneIkkeGenererePDF,
                     )

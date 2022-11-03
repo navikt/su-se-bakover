@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.services.klage.klageinstans
 
 import arrow.core.Either
+import no.nav.su.se.bakover.common.CorrelationId.Companion.withCorrelationId
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
 import no.nav.su.se.bakover.web.services.RunCheckFactory
 import no.nav.su.se.bakover.web.services.shouldRun
@@ -35,9 +36,11 @@ internal class KlageinstanshendelseJob(
                 listOf(runCheckFactory.leaderPod())
                     .shouldRun()
                     .ifTrue {
-                        log.debug("Kjører skeduleringsjobb '$jobName'")
-                        klageinstanshendelseService.håndterUtfallFraKlageinstans(KlageinstanshendelseDto::toDomain)
-                        log.debug("Fullførte skeduleringsjobb '$jobName'")
+                        withCorrelationId {
+                            log.debug("Kjører skeduleringsjobb '$jobName'")
+                            klageinstanshendelseService.håndterUtfallFraKlageinstans(KlageinstanshendelseDto::toDomain)
+                            log.debug("Fullførte skeduleringsjobb '$jobName'")
+                        }
                     }
             }.mapLeft {
                 log.error("Skeduleringsjobb '$jobName' feilet med stacktrace:", it)

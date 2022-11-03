@@ -1,6 +1,6 @@
 val fuelVersion = "2.3.1"
-val tjenestespesifikasjonVersion = "2600.3800cc4"
-val cxfVersion = "3.5.3"
+val tjenestespesifikasjonVersion = "2606.1f6354e"
+val cxfVersion = "3.5.4"
 
 dependencies {
     implementation(project(":common"))
@@ -23,7 +23,7 @@ dependencies {
     implementation("javax.jws:javax.jws-api:1.1")
     // Fails to find SAAJMetaFactoryImpl when either missing or if you upgrade to 2.0.0
     implementation("com.sun.xml.messaging.saaj:saaj-impl:1.5.2")
-    implementation("com.nimbusds:nimbus-jose-jwt:9.25.4")
+    implementation("com.nimbusds:nimbus-jose-jwt:9.25.6")
 
     testImplementation(project(":test-common"))
     testImplementation("com.github.tomakehurst:wiremock-jre8:2.34.0") {

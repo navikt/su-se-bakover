@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.desember
 import no.nav.su.se.bakover.common.periode.mai
+import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
@@ -20,10 +21,9 @@ import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.test.opprettetRevurdering
+import no.nav.su.se.bakover.test.sakId
+import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.periode
-import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.requestPath
-import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.testServices
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -33,6 +33,7 @@ import org.skyscreamer.jsonassert.JSONAssert
 import java.util.UUID
 
 internal class OppdaterRevurderingsperiodeRouteKtTest {
+    val periode = år(2021)
     private val validBody = """
         {
          "fraOgMed": "${periode.fraOgMed}",
@@ -53,7 +54,7 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
             }
             defaultRequest(
                 HttpMethod.Put,
-                "$requestPath/$revurderingId",
+                "/saker/$sakId/revurderinger/$revurderingId",
                 listOf(Brukerrolle.Veileder),
             ) {
                 setBody(validBody)
@@ -84,11 +85,11 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
 
         testApplication {
             application {
-                testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
+                testSusebakover(services = TestServicesBuilder.services(revurdering = revurderingServiceMock))
             }
             defaultRequest(
                 HttpMethod.Put,
-                "$requestPath/$revurderingId",
+                "/saker/$sakId/revurderinger/$revurderingId",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
@@ -174,11 +175,11 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
 
         testApplication {
             application {
-                testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
+                testSusebakover(services = TestServicesBuilder.services(revurdering = revurderingServiceMock))
             }
             defaultRequest(
                 HttpMethod.Put,
-                "$requestPath/$revurderingId",
+                "/saker/$sakId/revurderinger/$revurderingId",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(validBody)

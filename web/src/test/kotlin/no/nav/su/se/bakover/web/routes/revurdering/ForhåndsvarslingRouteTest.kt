@@ -9,31 +9,17 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.Brukerrolle
-import no.nav.su.se.bakover.common.Fnr
-import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
-import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingUnderBehandling
-import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
-import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
-import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.service.revurdering.Forhåndsvarselhandling
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
-import no.nav.su.se.bakover.test.fixedLocalDate
-import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
-import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
+import no.nav.su.se.bakover.test.tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.vedtak
 import no.nav.su.se.bakover.web.routes.revurdering.forhåndsvarsel.BeslutningEtterForhåndsvarsling
 import no.nav.su.se.bakover.web.routes.revurdering.forhåndsvarsel.ForhåndsvarselJson
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.TestBeregning
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -57,7 +43,7 @@ internal class ForhåndsvarslingRouteTest {
                 }
                 defaultRequest(
                     HttpMethod.Post,
-                    "${RevurderingRoutesTestData.requestPath}/$revurderingId/forhandsvarsel",
+                    "/saker/$sakId/revurderinger/$revurderingId/forhandsvarsel",
                     listOf(Brukerrolle.Veileder),
                 ).apply {
                     status shouldBe HttpStatusCode.Forbidden
@@ -96,12 +82,12 @@ internal class ForhåndsvarslingRouteTest {
             testApplication {
                 application {
                     testSusebakover(
-                        services = RevurderingRoutesTestData.testServices.copy(revurdering = revurderingServiceMock),
+                        services = TestServicesBuilder.services(revurdering = revurderingServiceMock),
                     )
                 }
                 defaultRequest(
                     HttpMethod.Post,
-                    "${RevurderingRoutesTestData.requestPath}/${simulertRevurdering.id}/forhandsvarsel",
+                    "/saker/$sakId/revurderinger/${simulertRevurdering.id}/forhandsvarsel",
                     listOf(Brukerrolle.Saksbehandler),
                 ) {
                     setBody(
@@ -135,7 +121,7 @@ internal class ForhåndsvarslingRouteTest {
                 }
                 defaultRequest(
                     HttpMethod.Post,
-                    "${RevurderingRoutesTestData.requestPath}/$revurderingId/fortsettEtterForhåndsvarsel",
+                    "/saker/$sakId/revurderinger/$revurderingId/fortsettEtterForhåndsvarsel",
                     listOf(Brukerrolle.Veileder),
                 ).apply {
                     status shouldBe HttpStatusCode.Forbidden
@@ -165,11 +151,11 @@ internal class ForhåndsvarslingRouteTest {
 
             testApplication {
                 application {
-                    testSusebakover(services = RevurderingRoutesTestData.testServices.copy(revurdering = revurderingServiceMock))
+                    testSusebakover(services = TestServicesBuilder.services(revurdering = revurderingServiceMock))
                 }
                 defaultRequest(
                     HttpMethod.Post,
-                    "${RevurderingRoutesTestData.requestPath}/${simulertRevurdering.id}/fortsettEtterForhåndsvarsel",
+                    "/saker/$sakId/revurderinger/${simulertRevurdering.id}/fortsettEtterForhåndsvarsel",
                     listOf(Brukerrolle.Saksbehandler),
                 ) {
                     // fritekstTilBrev skal bli ignorert i dette tilfellet
@@ -199,35 +185,11 @@ internal class ForhåndsvarslingRouteTest {
 
         @Test
         fun `fortsetter med samme opplysninger`() {
-            val simulertRevurdering = SimulertRevurdering.Innvilget(
-                id = UUID.randomUUID(),
-                periode = RevurderingRoutesTestData.periode,
-                opprettet = fixedTidspunkt,
-                tilRevurdering = vedtak.id,
-                saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
-                beregning = TestBeregning,
-                simulering = Simulering(
-                    gjelderId = Fnr(fnr = "12345678901"),
-                    gjelderNavn = "navn",
-                    datoBeregnet = fixedLocalDate,
-                    nettoBeløp = 0,
-                    periodeList = listOf(),
-                ),
-                oppgaveId = OppgaveId("OppgaveId"),
+            // TODO jah: Denne testen bør flyttes til regresjonstest så den kan teste mot implementasjonen og ikke en mock.
+            val simulertRevurdering = tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
                 fritekstTilBrev = "Friteksten",
-                revurderingsårsak = Revurderingsårsak(
-                    Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
-                    Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
-                ),
                 forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.FortsettMedSammeGrunnlag("begrunnelse"),
-                grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-                vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
-                informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-                attesteringer = Attesteringshistorikk.empty(),
-                avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
-                tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling,
-                sakinfo = vedtak.sakinfo(),
-            )
+            ).second
 
             val revurderingServiceMock = mock<RevurderingService> {
                 on { fortsettEtterForhåndsvarsling(any()) } doReturn simulertRevurdering.right()
@@ -235,11 +197,11 @@ internal class ForhåndsvarslingRouteTest {
 
             testApplication {
                 application {
-                    testSusebakover(services = RevurderingRoutesTestData.testServices.copy(revurdering = revurderingServiceMock))
+                    testSusebakover(services = TestServicesBuilder.services(revurdering = revurderingServiceMock))
                 }
                 defaultRequest(
                     HttpMethod.Post,
-                    "${RevurderingRoutesTestData.requestPath}/${simulertRevurdering.id}/fortsettEtterForhåndsvarsel",
+                    "/saker/$sakId/revurderinger/${simulertRevurdering.id}/fortsettEtterForhåndsvarsel",
                     listOf(Brukerrolle.Saksbehandler),
                 ) {
                     setBody(
@@ -256,7 +218,6 @@ internal class ForhåndsvarslingRouteTest {
                     status shouldBe HttpStatusCode.OK
                     val actualResponse = objectMapper.readValue<SimulertRevurderingJson>(bodyAsText())
                     actualResponse.id shouldBe simulertRevurdering.id.toString()
-                    actualResponse.status shouldBe RevurderingsStatus.SIMULERT_INNVILGET
                     actualResponse.fritekstTilBrev shouldBe "Friteksten"
                     actualResponse.forhåndsvarsel shouldBe ForhåndsvarselJson.SkalVarslesBesluttet(
                         begrunnelse = "begrunnelse",

@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database.person
 
+import arrow.core.nonEmptyListOf
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
@@ -10,17 +11,23 @@ import no.nav.su.se.bakover.domain.person.PersonRepo
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
+import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.test.beregning
 import no.nav.su.se.bakover.test.bosituasjonEpsUnder67
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
+import no.nav.su.se.bakover.test.bosituasjongrunnlagEpsUførFlyktning
+import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.iverksattRevurdering
+import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.simulering
+import no.nav.su.se.bakover.test.vilkår.formuevilkårMedEps0Innvilget
+import no.nav.su.se.bakover.test.vilkår.formuevilkårUtenEps0Innvilget
 import org.junit.jupiter.api.Test
 import javax.sql.DataSource
 
@@ -170,9 +177,24 @@ internal class PersonPostgresRepoTest {
     ) {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val (sak, vedtak, utbetaling) = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
-                epsFnr = epsFnr,
-            )
+            val bosituasjon = if (epsFnr == null) bosituasjongrunnlagEnslig() else bosituasjongrunnlagEpsUførFlyktning(epsFnr = epsFnr)
+            val formueVilkår = if (epsFnr == null) formuevilkårUtenEps0Innvilget() else formuevilkårMedEps0Innvilget(bosituasjon = nonEmptyListOf(bosituasjongrunnlagEpsUførFlyktning(epsFnr = epsFnr)))
+
+            val (sak, vedtak, utbetaling) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling { (sak, søknad) ->
+                iverksattSøknadsbehandlingUføre(
+                    sakInfo = SakInfo(
+                        sakId = sak.id,
+                        saksnummer = sak.saksnummer,
+                        fnr = sak.fnr,
+                        type = sak.type,
+                    ),
+                    sakOgSøknad = sak to søknad,
+                    customGrunnlag = listOf(
+                        bosituasjon,
+                    ),
+                    customVilkår = listOf(formueVilkår),
+                )
+            }
             val revurdering = testDataHelper.persisterRevurderingOpprettet((sak to vedtak)).second
 
             Ctx(
@@ -192,9 +214,25 @@ internal class PersonPostgresRepoTest {
     ) {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val (sak, vedtak, utbetaling) = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
-                epsFnr = epsFnrBehandling,
-            )
+            val bosituasjon = if (epsFnrBehandling == null) bosituasjongrunnlagEnslig() else bosituasjongrunnlagEpsUførFlyktning(epsFnr = epsFnrBehandling)
+            val formueVilkår = if (epsFnrBehandling == null) formuevilkårUtenEps0Innvilget() else formuevilkårMedEps0Innvilget(bosituasjon = nonEmptyListOf(bosituasjongrunnlagEpsUførFlyktning(epsFnr = epsFnrBehandling)))
+
+            val (sak, vedtak, utbetaling) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling { (sak, søknad) ->
+                iverksattSøknadsbehandlingUføre(
+                    sakInfo = SakInfo(
+                        sakId = sak.id,
+                        saksnummer = sak.saksnummer,
+                        fnr = sak.fnr,
+                        type = sak.type,
+                    ),
+                    sakOgSøknad = sak to søknad,
+                    customGrunnlag = listOf(
+                        bosituasjon,
+                    ),
+                    customVilkår = listOf(formueVilkår),
+                )
+            }
+
             val revurdering = testDataHelper.persisterRevurderingOpprettet((sak to vedtak)) { (s, v) ->
                 opprettetRevurdering(
                     sakOgVedtakSomKanRevurderes = s to v,
@@ -219,16 +257,31 @@ internal class PersonPostgresRepoTest {
     ) {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val (sak, vedtak, _) = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
-                epsFnr = epsFnrBehandling,
-            )
+            val bosituasjon = if (epsFnrBehandling == null) bosituasjongrunnlagEnslig() else bosituasjongrunnlagEpsUførFlyktning(epsFnr = epsFnrBehandling)
+            val formueVilkår = if (epsFnrBehandling == null) formuevilkårUtenEps0Innvilget() else formuevilkårMedEps0Innvilget(bosituasjon = nonEmptyListOf(bosituasjongrunnlagEpsUførFlyktning(epsFnr = epsFnrBehandling)))
+
+            val (sak, vedtak, _) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling { (sak, søknad) ->
+                iverksattSøknadsbehandlingUføre(
+                    sakInfo = SakInfo(
+                        sakId = sak.id,
+                        saksnummer = sak.saksnummer,
+                        fnr = sak.fnr,
+                        type = sak.type,
+                    ),
+                    sakOgSøknad = sak to søknad,
+                    customGrunnlag = listOf(
+                        bosituasjon,
+                    ),
+                    customVilkår = listOf(formueVilkår),
+                )
+            }
+
             val revurdering = testDataHelper.persisterIverksattRevurdering((sak to vedtak)) { (s, v) ->
                 iverksattRevurdering(
                     sakOgVedtakSomKanRevurderes = s to v,
                     grunnlagsdataOverrides = if (epsFnrRevurdering == null) listOf(bosituasjongrunnlagEnslig()) else listOf(bosituasjonEpsUnder67(fnr = epsFnrRevurdering)),
                 )
             }.second
-
             val revurderingVedtak =
                 testDataHelper.persisterVedtakMedInnvilgetRevurderingOgOversendtUtbetalingMedKvittering(
                     RevurderingTilAttestering.Innvilget(
@@ -270,9 +323,25 @@ internal class PersonPostgresRepoTest {
     ) {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val (sak, vedtak, utbetaling) = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
-                epsFnr = epsFnrBehandling,
-            )
+            val bosituasjon = if (epsFnrBehandling == null) bosituasjongrunnlagEnslig() else bosituasjongrunnlagEpsUførFlyktning(epsFnr = epsFnrBehandling)
+            val formueVilkår = if (epsFnrBehandling == null) formuevilkårUtenEps0Innvilget() else formuevilkårMedEps0Innvilget(bosituasjon = nonEmptyListOf(bosituasjongrunnlagEpsUførFlyktning(epsFnr = epsFnrBehandling)))
+
+            val (sak, vedtak, utbetaling) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling { (sak, søknad) ->
+                iverksattSøknadsbehandlingUføre(
+                    sakInfo = SakInfo(
+                        sakId = sak.id,
+                        saksnummer = sak.saksnummer,
+                        fnr = sak.fnr,
+                        type = sak.type,
+                    ),
+                    sakOgSøknad = sak to søknad,
+                    customGrunnlag = listOf(
+                        bosituasjon,
+                    ),
+                    customVilkår = listOf(formueVilkår),
+                )
+            }
+
             val (sak2, revurdering) = testDataHelper.persisterIverksattRevurdering((sak to vedtak)) { (s, v) ->
                 iverksattRevurdering(
                     sakOgVedtakSomKanRevurderes = s to v,

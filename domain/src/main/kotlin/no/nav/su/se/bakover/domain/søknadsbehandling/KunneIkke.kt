@@ -2,8 +2,8 @@ package no.nav.su.se.bakover.domain.søknadsbehandling
 
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
+import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
 import kotlin.reflect.KClass
 
 sealed class KunneIkkeLeggeTilVilkår {
@@ -178,7 +178,7 @@ sealed class KunneIkkeLukkeSøknadsbehandling {
 }
 
 sealed class KunneIkkeSimulereBehandling {
-    data class KunneIkkeSimulere(val feil: SimuleringFeilet) : KunneIkkeSimulereBehandling()
+    data class KunneIkkeSimulere(val feil: SimulerUtbetalingFeilet) : KunneIkkeSimulereBehandling()
     data class UgyldigTilstand(
         val fra: KClass<out Søknadsbehandling>,
         val til: KClass<out Søknadsbehandling.Simulert> = Søknadsbehandling.Simulert::class,

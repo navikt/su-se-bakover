@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
@@ -18,11 +19,15 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.PersonService
+import no.nav.su.se.bakover.domain.sak.Sakstype
+import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
+import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
@@ -206,14 +211,31 @@ internal class SøknadsbehandlingServiceImpl(
     }
 
     override fun simuler(request: SimulerRequest): Either<KunneIkkeSimulereBehandling, Søknadsbehandling.Simulert> {
-        val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
-            ?: return KunneIkkeSimulereBehandling.FantIkkeBehandling.left()
+        val sak = sakService.hentSakForSøknadsbehandling(request.behandlingId)
+
+        val søknadsbehandling = sak.hentSøknadsbehandling(request.behandlingId)
+            .getOrHandle { return KunneIkkeSimulereBehandling.FantIkkeBehandling.left() }
 
         return søknadsbehandling.simuler(
             saksbehandler = request.saksbehandler,
-        ) {
-            utbetalingService.simulerUtbetaling(it)
-                .map { simulertUtbetaling -> simulertUtbetaling.simulering }
+        ) { beregning, uføregrunnlag ->
+            sak.lagNyUtbetaling(
+                saksbehandler = request.saksbehandler,
+                beregning = beregning,
+                clock = clock,
+                utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                uføregrunnlag = uføregrunnlag,
+            ).let {
+                sak.simulerUtbetaling(
+                    utbetalingForSimulering = it,
+                    periode = beregning.periode,
+                    simuler = utbetalingService::simulerUtbetaling,
+                    kontrollerMotTidligereSimulering = null,
+                    clock = clock,
+                )
+            }.map { simulertUtbetaling ->
+                simulertUtbetaling.simulering
+            }
         }.mapLeft {
             KunneIkkeSimulereBehandling.KunneIkkeSimulere(it)
         }.map {
@@ -352,8 +374,10 @@ internal class SøknadsbehandlingServiceImpl(
     override fun iverksett(
         request: IverksettRequest,
     ): Either<KunneIkkeIverksette, Søknadsbehandling.Iverksatt> {
-        val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
-            ?: return KunneIkkeIverksette.FantIkkeBehandling.left()
+        val sak = sakService.hentSakForSøknadsbehandling(request.behandlingId)
+
+        val søknadsbehandling = sak.hentSøknadsbehandling(request.behandlingId)
+            .getOrHandle { return KunneIkkeIverksette.FantIkkeBehandling.left() }
 
         return forsøkStatusovergang(
             søknadsbehandling = søknadsbehandling,
@@ -372,6 +396,36 @@ internal class SøknadsbehandlingServiceImpl(
                         }
 
                     Either.catch {
+                        val simulertUtbetaling = sak.lagNyUtbetaling(
+                            saksbehandler = request.attestering.attestant,
+                            beregning = iverksattBehandling.beregning,
+                            clock = clock,
+                            utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
+                            uføregrunnlag = when (iverksattBehandling.sakstype) {
+                                Sakstype.ALDER -> {
+                                    null
+                                }
+                                Sakstype.UFØRE -> {
+                                    iverksattBehandling.vilkårsvurderinger.uføreVilkår()
+                                        .getOrHandle { throw IllegalStateException("Søknadsbehandling uføre: ${iverksattBehandling.id} mangler uføregrunnlag") }
+                                        .grunnlag
+                                        .toNonEmptyList()
+                                }
+                            },
+                        ).let {
+                            sak.simulerUtbetaling(
+                                utbetalingForSimulering = it,
+                                periode = iverksattBehandling.periode,
+                                simuler = utbetalingService::simulerUtbetaling,
+                                kontrollerMotTidligereSimulering = iverksattBehandling.simulering,
+                                clock = clock,
+                            )
+                        }.getOrHandle { feil ->
+                            throw IverksettTransactionException(
+                                "Kunne ikke opprette utbetaling. Underliggende feil:$feil.",
+                                KunneIkkeIverksette.KunneIkkeUtbetale(UtbetalingFeilet.KunneIkkeSimulere(feil)),
+                            )
+                        }
                         sessionFactory.withTransactionContext { tx ->
                             /**
                              * OBS: Det er kun exceptions som vil føre til at transaksjonen ruller tilbake.
@@ -379,14 +433,8 @@ internal class SøknadsbehandlingServiceImpl(
                              * Det er også viktig at publiseringen av utbetalingen er det siste som skjer i blokka.
                              * Alt som ikke skal påvirke utfallet av iverksettingen skal flyttes ut av blokka. E.g. statistikk.
                              */
-                            val nyUtbetaling = utbetalingService.klargjørNyUtbetaling(
-                                request = UtbetalRequest.NyUtbetaling(
-                                    request = iverksattBehandling.lagSimulerUtbetalingRequest(
-                                        saksbehandler = request.attestering.attestant,
-                                        beregning = iverksattBehandling.beregning,
-                                    ),
-                                    simulering = iverksattBehandling.simulering,
-                                ),
+                            val nyUtbetaling = utbetalingService.klargjørUtbetaling(
+                                utbetaling = simulertUtbetaling,
                                 transactionContext = tx,
                             ).getOrHandle { feil ->
                                 log.error("Kunne ikke innvilge behandling ${søknadsbehandling.id} siden utbetaling feilet. Feiltype: $feil")
@@ -438,7 +486,12 @@ internal class SøknadsbehandlingServiceImpl(
                         behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.PERSISTERT)
 
                         observers.notify(StatistikkEvent.Behandling.Søknad.Iverksatt.Innvilget(vedtak))
-                        observers.notify(StatistikkEvent.Stønadsvedtak(vedtak))
+                        // TODO jah: Vi har gjort endringer på saken underveis - endret regulering, ny utbetaling og nytt vedtak - uten at selve saken blir oppdatert underveis. Når saken returnerer en oppdatert versjon av seg selv for disse tilfellene kan vi fjerne det ekstra kallet til hentSak.
+                        observers.notify(
+                            StatistikkEvent.Stønadsvedtak(vedtak) {
+                                sakService.hentSak(sak.id).orNull()!!
+                            },
+                        )
 
                         iverksattBehandling
                     }

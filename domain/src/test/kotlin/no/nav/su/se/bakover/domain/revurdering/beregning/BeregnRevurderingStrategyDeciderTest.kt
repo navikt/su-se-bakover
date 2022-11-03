@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
 import no.nav.su.se.bakover.domain.grunnlag.Opplysningspliktgrunnlag
+import no.nav.su.se.bakover.domain.søknadinnhold.Personopplysninger
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
@@ -32,12 +33,12 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
-import no.nav.su.se.bakover.test.nySøknadJournalførtMedOppgave
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.stønadsperiode2021
-import no.nav.su.se.bakover.test.søknadinnhold
+import no.nav.su.se.bakover.test.søknad.nySøknadJournalførtMedOppgave
+import no.nav.su.se.bakover.test.søknad.søknadinnhold
 import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdAvslag
@@ -119,6 +120,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                     ),
                 ),
                 sakOgVedtakSomKanRevurderes = sak to førsteStønadsperiode,
+                utbetalingerKjørtTilOgMed = 1.juli(2021),
             ).let {
                 sak = it.first
                 it.second
@@ -134,7 +136,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                     clock = tikkendeKlokke,
                     sakId = sak.id,
                     søknadInnhold = søknadinnhold(
-                        fnr = sak.fnr,
+                        personopplysninger = Personopplysninger(sak.fnr),
                     ),
                 ),
             ).let {
@@ -188,6 +190,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                 ),
             ),
             sakOgVedtakSomKanRevurderes = sak to førsteStønadsperiode,
+            utbetalingerKjørtTilOgMed = 1.juli(2021),
         ).let {
             sak = it.first
             it.second
@@ -203,7 +206,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                 clock = tikkendeKlokke,
                 sakId = sak.id,
                 søknadInnhold = søknadinnhold(
-                    fnr = sak.fnr,
+                    personopplysninger = Personopplysninger(sak.fnr),
                 ),
             ),
         ).let {
@@ -316,6 +319,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                         periode = Periode.create(1.mai(2021), 31.desember(2021)),
                     ),
                 ),
+                utbetalingerKjørtTilOgMed = 1.juli(2021),
             )
 
             assertThrows<IllegalStateException> {
@@ -355,6 +359,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                         periode = Periode.create(1.mai(2021), 31.desember(2021)),
                     ),
                 ),
+                utbetalingerKjørtTilOgMed = 1.juli(2021),
             )
 
             assertThrows<IllegalStateException> {
@@ -428,6 +433,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                         periode = Periode.create(1.mai(2021), 31.desember(2021)),
                     ),
                 ),
+                utbetalingerKjørtTilOgMed = 1.juli(2021),
             )
 
             assertThrows<IllegalStateException> {
@@ -523,6 +529,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                     ),
                 ),
                 sakOgVedtakSomKanRevurderes = sak to førsteStønadsperiode,
+                utbetalingerKjørtTilOgMed = 1.juli(2021),
             ).let {
                 sak = it.first
                 it.second
@@ -537,7 +544,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                     clock = tikkendeKlokke,
                     sakId = sak.id,
                     søknadInnhold = søknadinnhold(
-                        fnr = sak.fnr,
+                        personopplysninger = Personopplysninger(sak.fnr),
                     ),
                 ),
             ).let {
@@ -601,6 +608,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                     ),
                 ),
                 sakOgVedtakSomKanRevurderes = sak to førsteStønadsperiode,
+                utbetalingerKjørtTilOgMed = 1.juli(2021),
             ).let {
                 sak = it.first
                 it.second
@@ -616,7 +624,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                     clock = tikkendeKlokke,
                     sakId = sak.id,
                     søknadInnhold = søknadinnhold(
-                        fnr = sak.fnr,
+                        personopplysninger = Personopplysninger(sak.fnr),
                     ),
                 ),
             ).let {
@@ -687,6 +695,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                     ),
                 ),
                 sakOgVedtakSomKanRevurderes = sak to førsteStønadsperiode,
+                utbetalingerKjørtTilOgMed = 1.juli(2021),
             ).let {
                 sak = it.first
                 it.second
@@ -728,6 +737,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                         periode = Periode.create(1.mai(2021), 31.desember(2021)),
                     ),
                 ),
+                utbetalingerKjørtTilOgMed = 1.juli(2021),
             )
             val (sak2, revurdering) = opprettetRevurdering(
                 clock = tikkendeKlokke,

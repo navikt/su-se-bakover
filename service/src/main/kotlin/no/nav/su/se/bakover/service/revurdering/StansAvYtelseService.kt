@@ -1,20 +1,22 @@
 package no.nav.su.se.bakover.service.revurdering
 
 import arrow.core.Either
+import arrow.core.flatMap
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.log
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
+import no.nav.su.se.bakover.domain.sak.lagUtbetalingForStans
+import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
@@ -23,6 +25,8 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.revurdering.IverksettStansAvYtelseTransactionException.Companion.exception
 import no.nav.su.se.bakover.service.revurdering.StansAvYtelseTransactionException.Companion.exception
 import no.nav.su.se.bakover.service.sak.SakService
+import no.nav.su.se.bakover.service.utbetaling.SimulerStansFeilet
+import no.nav.su.se.bakover.service.utbetaling.UtbetalStansFeil
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import java.time.Clock
@@ -56,22 +60,29 @@ internal class StansAvYtelseService(
                 val eksisterende = sak.hentRevurdering(request.revurderingId)
                     .getOrHandle { throw KunneIkkeStanseYtelse.FantIkkeRevurdering.exception() }
 
-                val gjeldendeVedtaksdata = kopierGjeldendeVedtaksdata(
-                    sak = sak,
-                    fraOgMed = request.fraOgMed,
-                ).getOrHandle { throw it.exception() }
-
-                val simulering = simuler(request).getOrHandle { throw it.exception() }
-
                 when (eksisterende) {
                     is StansAvYtelseRevurdering.SimulertStansAvYtelse -> {
+                        val gjeldendeVedtaksdata = kopierGjeldendeVedtaksdata(
+                            sak = sak,
+                            fraOgMed = request.fraOgMed,
+                        ).getOrHandle { throw it.exception() }
+
+                        val simulertUtbetaling = simulerStans(
+                            sak = sak,
+                            stans = null,
+                            stansdato = request.fraOgMed,
+                            behandler = request.saksbehandler,
+                        ).getOrHandle {
+                            throw KunneIkkeStanseYtelse.SimuleringAvStansFeilet(it).exception()
+                        }
+
                         eksisterende.copy(
                             periode = gjeldendeVedtaksdata.garantertSammenhengendePeriode(),
                             grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
                             vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
                             tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(request.fraOgMed)!!.id,
                             saksbehandler = request.saksbehandler,
-                            simulering = simulering.simulering,
+                            simulering = simulertUtbetaling.simulering,
                             revurderingsårsak = request.revurderingsårsak,
                         )
                     }
@@ -95,8 +106,14 @@ internal class StansAvYtelseService(
                     fraOgMed = request.fraOgMed,
                 ).getOrHandle { throw it.exception() }
 
-                // TODO send sak
-                val simulering = simuler(request).getOrHandle { throw it.exception() }
+                val simulertUtbetaling = simulerStans(
+                    sak = sak,
+                    stans = null,
+                    stansdato = request.fraOgMed,
+                    behandler = request.saksbehandler,
+                ).getOrHandle {
+                    throw KunneIkkeStanseYtelse.SimuleringAvStansFeilet(it).exception()
+                }
 
                 StansAvYtelseRevurdering.SimulertStansAvYtelse(
                     id = UUID.randomUUID(),
@@ -106,7 +123,7 @@ internal class StansAvYtelseService(
                     vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
                     tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(request.fraOgMed)!!.id,
                     saksbehandler = request.saksbehandler,
-                    simulering = simulering.simulering,
+                    simulering = simulertUtbetaling.simulering,
                     revurderingsårsak = request.revurderingsårsak,
                     sakinfo = sak.info(),
                 )
@@ -131,10 +148,12 @@ internal class StansAvYtelseService(
         attestant: NavIdentBruker.Attestant,
         sessionContext: TransactionContext,
     ): IverksettStansAvYtelseITransaksjonResponse {
-        val revurdering = revurderingRepo.hent(
-            id = revurderingId,
+        val sak = sakService.hentSakForRevurdering(
+            revurderingId = revurderingId,
             sessionContext = sessionContext,
-        ) ?: throw KunneIkkeIverksetteStansYtelse.FantIkkeRevurdering.exception()
+        )
+
+        val revurdering = sak.hentRevurdering(revurderingId).getOrHandle { throw KunneIkkeIverksetteStansYtelse.FantIkkeRevurdering.exception() }
 
         return when (revurdering) {
             is StansAvYtelseRevurdering.SimulertStansAvYtelse -> {
@@ -147,18 +166,20 @@ internal class StansAvYtelseService(
                     throw KunneIkkeIverksetteStansYtelse.SimuleringIndikererFeilutbetaling.exception()
                 }
 
-                val stansUtbetaling = utbetalingService.klargjørStans(
-                    request = UtbetalRequest.Stans(
-                        request = SimulerUtbetalingRequest.Stans(
-                            sakId = iverksattRevurdering.sakId,
-                            saksbehandler = iverksattRevurdering.attesteringer.hentSisteAttestering().attestant,
-                            stansdato = iverksattRevurdering.periode.fraOgMed,
-                        ),
-                        simulering = iverksattRevurdering.simulering,
-                    ),
+                val simulertUtbetaling = simulerStans(
+                    sak = sak,
+                    stans = iverksattRevurdering,
+                    stansdato = iverksattRevurdering.periode.fraOgMed,
+                    behandler = iverksattRevurdering.attesteringer.hentSisteAttestering().attestant,
+                ).getOrHandle {
+                    throw KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale(UtbetalStansFeil.KunneIkkeSimulere(it)).exception()
+                }
+
+                val stansUtbetaling = utbetalingService.klargjørUtbetaling(
+                    utbetaling = simulertUtbetaling,
                     transactionContext = sessionContext,
                 ).getOrHandle {
-                    throw KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale(it).exception()
+                    throw KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale(UtbetalStansFeil.KunneIkkeUtbetale(it)).exception()
                 }
 
                 val vedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, stansUtbetaling.utbetaling.id, clock)
@@ -178,12 +199,46 @@ internal class StansAvYtelseService(
                     sendUtbetalingCallback = stansUtbetaling::sendUtbetaling,
                     sendStatistikkCallback = {
                         observers.notify(StatistikkEvent.Behandling.Stans.Iverksatt(vedtak))
-                        observers.notify(StatistikkEvent.Stønadsvedtak(vedtak))
+                        // TODO jah: Vi har gjort endringer på saken underveis - endret regulering, ny utbetaling og nytt vedtak - uten at selve saken blir oppdatert underveis. Når saken returnerer en oppdatert versjon av seg selv for disse tilfellene kan vi fjerne det ekstra kallet til hentSak.
+                        observers.notify(
+                            StatistikkEvent.Stønadsvedtak(
+                                vedtak,
+                            ) { sakService.hentSak(sak.id, sessionContext).orNull()!! },
+                        )
                     },
                 )
             }
+
             else -> {
                 throw KunneIkkeIverksetteStansYtelse.UgyldigTilstand(faktiskTilstand = revurdering::class).exception()
+            }
+        }
+    }
+
+    private fun simulerStans(
+        sak: Sak,
+        stans: StansAvYtelseRevurdering?,
+        stansdato: LocalDate,
+        behandler: NavIdentBruker,
+    ): Either<SimulerStansFeilet, Utbetaling.SimulertUtbetaling> {
+        return sak.lagUtbetalingForStans(
+            stansdato = stansdato,
+            behandler = behandler,
+            clock = clock,
+        ).mapLeft {
+            SimulerStansFeilet.KunneIkkeGenerereUtbetaling(it)
+        }.flatMap { utbetaling ->
+            sak.simulerUtbetaling(
+                utbetalingForSimulering = utbetaling,
+                periode = Periode.create(
+                    utbetaling.tidligsteDato(),
+                    utbetaling.senesteDato(),
+                ),
+                simuler = utbetalingService::simulerUtbetaling,
+                kontrollerMotTidligereSimulering = stans?.simulering,
+                clock = clock,
+            ).mapLeft {
+                SimulerStansFeilet.KunneIkkeSimulere(it)
             }
         }
     }
@@ -203,19 +258,6 @@ internal class StansAvYtelseService(
                 log.error("Kunne ikke opprette revurdering for stans av ytelse, årsak: tidslinje er ikke sammenhengende.")
                 return KunneIkkeStanseYtelse.KunneIkkeOppretteRevurdering.left()
             }
-        }.right()
-    }
-
-    private fun simuler(request: StansYtelseRequest): Either<KunneIkkeStanseYtelse, Utbetaling.SimulertUtbetaling> {
-        return utbetalingService.simulerStans(
-            request = SimulerUtbetalingRequest.Stans(
-                sakId = request.sakId,
-                saksbehandler = request.saksbehandler,
-                stansdato = request.fraOgMed,
-            ),
-        ).getOrHandle {
-            log.warn("Kunne ikke opprette revurdering for stans av ytelse, årsak: $it")
-            return KunneIkkeStanseYtelse.SimuleringAvStansFeilet(it).left()
         }.right()
     }
 }

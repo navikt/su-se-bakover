@@ -2,11 +2,15 @@ package no.nav.su.se.bakover.domain.visitor
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.august
+import no.nav.su.se.bakover.common.fixedClock
+import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.periode.desember
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak
@@ -139,6 +143,8 @@ internal class SkalSendeBrevVisitorTest {
             grunnlagsdataOverrides = listOf(
                 fradragsgrunnlagArbeidsinntekt(periode = mai(2021)..desember(2021), arbeidsinntekt = 5000.0),
             ),
+            clock = TikkendeKlokke(1.august(2021).fixedClock()),
+            utbetalingerKjørtTilOgMed = 1.juli(2021),
         ).second.shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering>().also {
             it.behandling.tilbakekrevingsbehandling.skalTilbakekreve().isRight() shouldBe true
         }

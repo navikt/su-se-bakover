@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrev
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.revurderingId
+import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
@@ -46,7 +47,7 @@ internal class OppdaterTilbakekrevingsbehandlingRouteKtTest {
             }
             defaultRequest(
                 HttpMethod.Post,
-                "${RevurderingRoutesTestData.requestPath}/$revurderingId/tilbakekreving",
+                "/saker/$sakId/revurderinger/$revurderingId/tilbakekreving",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
@@ -71,7 +72,7 @@ internal class OppdaterTilbakekrevingsbehandlingRouteKtTest {
                 }
                 defaultRequest(
                     HttpMethod.Post,
-                    "${RevurderingRoutesTestData.requestPath}/$revurderingId/tilbakekreving",
+                    "/saker/$sakId/revurderinger/$revurderingId/tilbakekreving",
                     listOf(it),
                 ) {
                     setBody(
@@ -96,7 +97,7 @@ internal class OppdaterTilbakekrevingsbehandlingRouteKtTest {
             }
             defaultRequest(
                 HttpMethod.Post,
-                "${RevurderingRoutesTestData.requestPath}/$revurderingId/tilbakekreving",
+                "/saker/$sakId/revurderinger/$revurderingId/tilbakekreving",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(

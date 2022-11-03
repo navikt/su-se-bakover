@@ -7,12 +7,12 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.person.Person
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -38,7 +38,7 @@ sealed interface KlageTilAttestering : Klage, KlageTilAttesteringFelter {
 
         override fun lagBrevRequest(
             hentNavnForNavIdent: (saksbehandler: NavIdentBruker.Saksbehandler) -> Either<KunneIkkeHenteNavnForNavIdent, String>,
-            hentVedtakDato: (klageId: UUID) -> LocalDate?,
+            hentVedtaksbrevDato: (klageId: UUID) -> LocalDate?,
             hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
             clock: Clock,
         ): Either<KunneIkkeLageBrevRequest, LagBrevRequest.Klage> {
@@ -104,7 +104,7 @@ sealed interface KlageTilAttestering : Klage, KlageTilAttesteringFelter {
 
         override fun lagBrevRequest(
             hentNavnForNavIdent: (saksbehandler: NavIdentBruker.Saksbehandler) -> Either<KunneIkkeHenteNavnForNavIdent, String>,
-            hentVedtakDato: (klageId: UUID) -> LocalDate?,
+            hentVedtaksbrevDato: (klageId: UUID) -> LocalDate?,
             hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
             clock: Clock,
         ): Either<KunneIkkeLageBrevRequest, LagBrevRequest.Klage> {
@@ -119,8 +119,8 @@ sealed interface KlageTilAttestering : Klage, KlageTilAttesteringFelter {
                 fritekst = this.vurderinger.fritekstTilOversendelsesbrev,
                 saksnummer = this.saksnummer,
                 klageDato = this.datoKlageMottatt,
-                vedtakDato = hentVedtakDato(this.id)
-                    ?: return KunneIkkeLageBrevRequest.FeilVedHentingAvVedtakDato.left(),
+                vedtaksbrevDato = hentVedtaksbrevDato(this.id)
+                    ?: return KunneIkkeLageBrevRequest.FeilVedHentingAvVedtaksbrevDato.left(),
             ).right()
         }
 

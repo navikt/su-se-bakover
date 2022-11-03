@@ -45,6 +45,7 @@ internal class ServiceBuilderTest {
                 tilbakekrevingRepo = mock(),
                 jobContextRepo = mock(),
                 hendelseRepo = mock(),
+                utenlandsoppholdRepo = mock(),
             ),
             clients = Clients(
                 oauth = mock(),

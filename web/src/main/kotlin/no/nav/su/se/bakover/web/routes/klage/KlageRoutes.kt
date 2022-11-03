@@ -18,6 +18,7 @@ import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
+import no.nav.su.se.bakover.common.audit.application.AuditLogEvent
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.Brev.kunneIkkeGenerereBrev
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.attestantOgSaksbehandlerKanIkkeVæreSammePerson
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeKlage
@@ -30,14 +31,16 @@ import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.feilVedHenti
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.kunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
+import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
+import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withKlageId
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.journalpost.KunneIkkeHenteJournalpost
+import no.nav.su.se.bakover.domain.journalpost.KunneIkkeSjekkeTilknytningTilSak
 import no.nav.su.se.bakover.domain.klage.KunneIkkeAvslutteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
 import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteAvvistKlage
@@ -58,7 +61,6 @@ import no.nav.su.se.bakover.service.klage.NyKlageRequest
 import no.nav.su.se.bakover.service.klage.UnderkjennKlageRequest
 import no.nav.su.se.bakover.service.klage.VurderKlagevilkårRequest
 import no.nav.su.se.bakover.web.features.authorize
-import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.tilResultat
 import java.time.Clock
@@ -99,6 +101,7 @@ internal fun Route.klageRoutes(
                             clock = clock,
                         ),
                     ).map {
+                        call.audit(it.fnr, AuditLogEvent.Action.CREATE, it.id)
                         Resultat.json(HttpStatusCode.Created, serialize(it.toJson()))
                     }.getOrHandle {
                         when (it) {
@@ -157,6 +160,7 @@ internal fun Route.klageRoutes(
                             begrunnelse = "",
                         ),
                     ).map {
+                        call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                         Resultat.json(OK, serialize(it.toJson()))
                     }.getOrHandle {
                         when (it) {
@@ -182,6 +186,7 @@ internal fun Route.klageRoutes(
                     klageId = klageId,
                     saksbehandler = call.suUserContext.saksbehandler,
                 ).map {
+                    call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                     Resultat.json(OK, serialize(it.toJson()))
                 }.getOrHandle {
                     return@getOrHandle when (it) {
@@ -204,6 +209,7 @@ internal fun Route.klageRoutes(
                         saksbehandler = call.suUserContext.saksbehandler,
                         fritekst = body.fritekst,
                     ).map {
+                        call.audit(it.fnr, AuditLogEvent.Action.ACCESS, it.id)
                         call.svar(Resultat.json(OK, serialize(it.toJson())))
                     }.mapLeft {
                         val error = when (it) {
@@ -287,6 +293,7 @@ internal fun Route.klageRoutes(
                             saksbehandler = call.suUserContext.saksbehandler,
                         ),
                     ).map { vurdertKlage ->
+                        call.audit(vurdertKlage.fnr, AuditLogEvent.Action.UPDATE, vurdertKlage.id)
                         Resultat.json(OK, serialize(vurdertKlage.toJson()))
                     }.getOrHandle { error ->
                         error.tilResultat()
@@ -304,6 +311,7 @@ internal fun Route.klageRoutes(
                     klageId = klageId,
                     saksbehandler = call.suUserContext.saksbehandler,
                 ).map {
+                    call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                     call.svar(Resultat.json(OK, serialize(it.toJson())))
                 }.mapLeft {
                     call.svar(
@@ -321,6 +329,7 @@ internal fun Route.klageRoutes(
         authorize(Brukerrolle.Saksbehandler) {
             call.withKlageId { klageId ->
                 klageService.sendTilAttestering(klageId, call.suUserContext.saksbehandler).map {
+                    call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                     call.svar(Resultat.json(OK, serialize(it.toJson())))
                 }.mapLeft {
                     call.svar(
@@ -367,6 +376,7 @@ internal fun Route.klageRoutes(
                 call.withBody<Body> { body ->
                     body.toRequest(klageId, call.suUserContext.attestant).map {
                         klageService.underkjenn(it).map { vurdertKlage ->
+                            call.audit(vurdertKlage.fnr, AuditLogEvent.Action.UPDATE, vurdertKlage.id)
                             call.svar(Resultat.json(OK, serialize(vurdertKlage.toJson())))
                         }.mapLeft { error ->
                             call.svar(
@@ -395,6 +405,7 @@ internal fun Route.klageRoutes(
                         call.suUserContext.navIdent,
                     ),
                 ).map {
+                    call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                     call.svar(Resultat.json(OK, serialize(it.toJson())))
                 }.mapLeft {
                     call.svar(
@@ -428,6 +439,7 @@ internal fun Route.klageRoutes(
                         call.suUserContext.navIdent,
                     ),
                 ).map {
+                    call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                     call.svar(Resultat.json(OK, serialize(it.toJson())))
                 }.mapLeft {
                     when (it) {
@@ -456,6 +468,7 @@ internal fun Route.klageRoutes(
                         saksbehandler = call.suUserContext.saksbehandler,
                         begrunnelse = body.begrunnelse,
                     ).map {
+                        call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                         call.svar(Resultat.json(OK, serialize(it.toJson())))
                     }.mapLeft {
                         call.svar(
@@ -492,7 +505,7 @@ private fun KunneIkkeLageBrevRequest.toErrorJson(): Resultat {
     return when (this) {
         is KunneIkkeLageBrevRequest.FeilVedHentingAvPerson -> this.personFeil.tilResultat()
         is KunneIkkeLageBrevRequest.FeilVedHentingAvSaksbehandlernavn -> feilVedHentingAvSaksbehandlerNavn
-        KunneIkkeLageBrevRequest.FeilVedHentingAvVedtakDato,
+        KunneIkkeLageBrevRequest.FeilVedHentingAvVedtaksbrevDato,
         -> feilVedHentingAvVedtakDato
         is KunneIkkeLageBrevRequest.UgyldigTilstand -> BadRequest.errorJson(
             "Kan ikke gå fra tilstanden ${fra.simpleName}",
@@ -509,43 +522,31 @@ private fun KunneIkkeLageBrevutkast.toErrorJson(): Resultat {
     }
 }
 
-private fun KunneIkkeHenteJournalpost.toErrorJson(): Resultat {
+private fun KunneIkkeSjekkeTilknytningTilSak.toErrorJson(): Resultat {
     return when (this) {
-        KunneIkkeHenteJournalpost.FantIkkeJournalpost -> BadRequest.errorJson(
+        KunneIkkeSjekkeTilknytningTilSak.FantIkkeJournalpost -> BadRequest.errorJson(
             "Fant ikke journalpost",
             "fant_ikke_journalpost",
         )
-        KunneIkkeHenteJournalpost.IkkeTilgang -> Unauthorized.errorJson(
+        KunneIkkeSjekkeTilknytningTilSak.IkkeTilgang -> Unauthorized.errorJson(
             "Ikke tilgang til Journalpost",
             "ikke_tilgang_til_journalpost",
         )
-        KunneIkkeHenteJournalpost.TekniskFeil -> InternalServerError.errorJson(
+        KunneIkkeSjekkeTilknytningTilSak.TekniskFeil -> InternalServerError.errorJson(
             "Teknisk feil ved henting av journalpost",
             "teknisk_feil_ved_henting_av_journalpost",
         )
-        KunneIkkeHenteJournalpost.Ukjent -> InternalServerError.errorJson(
+        KunneIkkeSjekkeTilknytningTilSak.Ukjent -> InternalServerError.errorJson(
             "Ukjent feil ved henting av journalpost",
             "ukjent_feil_ved_henting_av_journalpost",
         )
-        KunneIkkeHenteJournalpost.UgyldigInput -> BadRequest.errorJson(
+        KunneIkkeSjekkeTilknytningTilSak.UgyldigInput -> BadRequest.errorJson(
             "Ugyldig journalpostId",
             "ugyldig_journalpostId",
         )
-        KunneIkkeHenteJournalpost.JournalpostIkkeKnyttetTilSak -> BadRequest.errorJson(
+        KunneIkkeSjekkeTilknytningTilSak.JournalpostIkkeKnyttetTilSak -> BadRequest.errorJson(
             "Journalposten er ikke knyttet til saken",
             "journalpost_ikke_knyttet_til_sak",
-        )
-        KunneIkkeHenteJournalpost.JournalpostTemaErIkkeSUP -> BadRequest.errorJson(
-            "Journalpost temaet er ikke SUP",
-            "journalpost_tema_er_ikke_sup",
-        )
-        KunneIkkeHenteJournalpost.JournalpostenErIkkeFerdigstilt -> BadRequest.errorJson(
-            "Journalposten er ikke ferdigstilt",
-            "journalpost_er_ikke_ferdigstilt",
-        )
-        KunneIkkeHenteJournalpost.JournalpostenErIkkeEtInnkommendeDokument -> BadRequest.errorJson(
-            "Journalposten er ikke et innkommende dokument",
-            "journalpost_er_ikke_et_innkommende_dokument",
         )
     }
 }

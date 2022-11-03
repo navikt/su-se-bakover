@@ -14,13 +14,14 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.NavIdentBruker
-import no.nav.su.se.bakover.common.infrastructure.audit.AuditLogEvent
+import no.nav.su.se.bakover.common.audit.application.AuditLogEvent
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.receiveTextUTF8
 import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
+import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withStringParam
@@ -46,7 +47,6 @@ import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.web.features.authorize
-import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknad.lukk.LukkSøknadInputHandler
 import no.nav.su.se.bakover.web.routes.søknad.søknadinnholdJson.FeilVedOpprettelseAvEktefelleJson
@@ -78,11 +78,7 @@ internal fun Route.søknadRoutes(
                                 .fold(
                                     { call.svar(it.tilResultat(type)) },
                                     { (saksnummer, søknad) ->
-                                        call.audit(
-                                            søknad.fnr,
-                                            AuditLogEvent.Action.CREATE,
-                                            null,
-                                        )
+                                        call.audit(søknad.fnr, AuditLogEvent.Action.CREATE, null)
                                         call.sikkerlogg("Lagrer søknad ${søknad.id} på sak ${søknad.sakId}")
                                         SuMetrics.søknadMottatt(
                                             if (søknad.søknadInnhold.forNav is ForNav.Papirsøknad) {
@@ -212,6 +208,7 @@ internal fun Route.søknadRoutes(
                             },
                         )
                     }.map {
+                        call.audit(it.fnr, AuditLogEvent.Action.UPDATE, søknadId)
                         call.svar(Resultat.json(OK, serialize(it.toJson(clock, satsFactory))))
                     }
                 }

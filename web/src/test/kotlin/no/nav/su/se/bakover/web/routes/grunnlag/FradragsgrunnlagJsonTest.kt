@@ -8,8 +8,8 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragResponseJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragResponseJson.Companion.toJson
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 
@@ -22,7 +22,7 @@ class FradragsgrunnlagJsonTest {
             serialize(fradragsgrunnlag.toJson()),
             true,
         )
-        deserialize<FradragJson>(expectedFradragsgrunnlagJson) shouldBe fradragsgrunnlag.toJson()
+        deserialize<FradragResponseJson>(expectedFradragsgrunnlagJson) shouldBe fradragsgrunnlag.toJson()
     }
 
     @Test
@@ -48,7 +48,7 @@ class FradragsgrunnlagJsonTest {
             }
         """
         JSONAssert.assertEquals(exp, serialize(fradrag.toJson()), true)
-        deserialize<FradragJson>(exp) shouldBe fradrag.toJson()
+        deserialize<FradragResponseJson>(exp) shouldBe fradrag.toJson()
     }
 
     companion object {

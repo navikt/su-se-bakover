@@ -5,10 +5,8 @@ import com.networknt.schema.ValidationMessage
 import no.nav.su.se.bakover.client.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.GitCommit
 import no.nav.su.se.bakover.domain.person.PersonService
-import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.statistikk.behandling.toBehandlingsstatistikk
 import no.nav.su.se.bakover.statistikk.behandling.toBehandlingsstatistikkDto
 import no.nav.su.se.bakover.statistikk.sak.toBehandlingsstatistikk
@@ -20,7 +18,6 @@ import java.time.Clock
 internal class KafkaStatistikkEventObserver(
     private val publisher: KafkaPublisher,
     private val personService: PersonService,
-    private val sakRepo: SakRepo,
     private val clock: Clock,
     private val log: Logger = LoggerFactory.getLogger(KafkaStatistikkEventObserver::class.java),
     private val gitCommit: GitCommit?,
@@ -39,28 +36,20 @@ internal class KafkaStatistikkEventObserver(
 
                 is StatistikkEvent.Stønadsvedtak -> {
                     val sakinfo = event.vedtak.sakinfo()
-                    // TODO jah: Føles som noe en burde få mulighet til å kunne sende med saken og heller slå opp dersom en må
-                    sakRepo.hentSak(sakinfo.sakId)!!.let { sak ->
-                        personService.hentAktørIdMedSystembruker(sakinfo.fnr).fold(
-                            ifLeft = { log.error("Finner ikke aktørId for person med sakId: ${sakinfo.sakId}") },
-                            ifRight = { aktørId ->
-                                val ytelseVirkningstidspunkt =
-                                    sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes.EndringIYtelse>()
-                                        .minOf { it.periode.fraOgMed }
-
-                                publiserEllerLoggFeil(
-                                    event.toStønadstatistikkDto(
-                                        aktørId = aktørId,
-                                        ytelseVirkningstidspunkt = ytelseVirkningstidspunkt,
-                                        // TODO jah: Føles rart å sende med hele saken her dersom man kun ønsker å kalle `hentGjeldendeBeregningForEndringIYtelsePåDato(...)` lenger inn.
-                                        sak = sak,
-                                        clock = clock,
-                                        gitCommit = gitCommit,
-                                    ),
-                                )
-                            },
-                        )
-                    }
+                    personService.hentAktørIdMedSystembruker(sakinfo.fnr).fold(
+                        ifLeft = { log.error("Finner ikke aktørId for person med sakId: ${sakinfo.sakId}") },
+                        ifRight = { aktørId ->
+                            publiserEllerLoggFeil(
+                                event.toStønadstatistikkDto(
+                                    aktørId = aktørId,
+                                    // TODO jah: Føles rart å sende med hele saken her dersom man kun ønsker å kalle `hentGjeldendeBeregningForEndringIYtelsePåDato(...)` lenger inn?
+                                    hentSak = event.hentSak,
+                                    clock = clock,
+                                    gitCommit = gitCommit,
+                                ),
+                            )
+                        },
+                    )
                 }
 
                 is StatistikkEvent.Behandling -> publiserEllerLoggFeil(

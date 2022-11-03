@@ -6,15 +6,15 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevForKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevRequest
 import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.person.Person
+import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.test.avvistKlage
@@ -65,7 +65,7 @@ internal class HentBrevutkastTest {
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
-                on { hentKnyttetVedtaksdato(any()) } doReturn null
+                on { hentVedtaksbrevDatoSomDetKlagesPå(any()) } doReturn null
             },
             personServiceMock = mock {
                 on { hentPerson(any()) } doReturn person.right()
@@ -79,12 +79,12 @@ internal class HentBrevutkastTest {
         mocks.service.brevutkast(
             klageId = klage.id,
             saksbehandler = saksbehandler,
-        ) shouldBe KunneIkkeLageBrevutkast.FeilVedBrevRequest(KunneIkkeLageBrevRequest.FeilVedHentingAvVedtakDato)
+        ) shouldBe KunneIkkeLageBrevutkast.FeilVedBrevRequest(KunneIkkeLageBrevRequest.FeilVedHentingAvVedtaksbrevDato)
             .left()
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         verify(mocks.personServiceMock).hentPerson(argThat { it shouldBe klage.fnr })
-        verify(mocks.klageRepoMock).hentKnyttetVedtaksdato(argThat { it shouldBe klage.id })
+        verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
         verify(mocks.identClient).hentNavnForNavIdent(argThat { it shouldBe saksbehandler })
         mocks.verifyNoMoreInteractions()
     }
@@ -96,7 +96,7 @@ internal class HentBrevutkastTest {
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
-                on { hentKnyttetVedtaksdato(any()) } doReturn 1.januar(2021)
+                on { hentVedtaksbrevDatoSomDetKlagesPå(any()) } doReturn 1.januar(2021)
             },
             personServiceMock = mock {
                 on { hentPerson(any()) } doReturn person.right()
@@ -131,7 +131,7 @@ internal class HentBrevutkastTest {
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
-                on { hentKnyttetVedtaksdato(any()) } doReturn vedtak.opprettet.toLocalDate(ZoneOffset.UTC)
+                on { hentVedtaksbrevDatoSomDetKlagesPå(any()) } doReturn vedtak.opprettet.toLocalDate(ZoneOffset.UTC)
             },
             identClient = mock {
                 on { hentNavnForNavIdent(any()) } doReturn "Ole Nordmann".right()
@@ -161,7 +161,7 @@ internal class HentBrevutkastTest {
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
-                on { hentKnyttetVedtaksdato(any()) } doReturn vedtak.opprettet.toLocalDate(ZoneOffset.UTC)
+                on { hentVedtaksbrevDatoSomDetKlagesPå(any()) } doReturn vedtak.opprettet.toLocalDate(ZoneOffset.UTC)
             },
             identClient = mock {
                 on { hentNavnForNavIdent(any()) } doReturn "Ola Nordmann".right()
@@ -182,7 +182,7 @@ internal class HentBrevutkastTest {
         ) shouldBe KunneIkkeLageBrevutkast.GenereringAvBrevFeilet(KunneIkkeLageBrevForKlage.KunneIkkeGenererePDF).left()
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
-        verify(mocks.klageRepoMock).hentKnyttetVedtaksdato(argThat { it shouldBe klage.id })
+        verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
         verify(mocks.identClient).hentNavnForNavIdent(argThat { it shouldBe saksbehandler })
         verify(mocks.personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
         verify(mocks.brevServiceMock).lagBrev(
@@ -193,7 +193,7 @@ internal class HentBrevutkastTest {
                     saksbehandlerNavn = "Ola Nordmann",
                     fritekst = "",
                     klageDato = 1.desember(2021),
-                    vedtakDato = 1.januar(2021),
+                    vedtaksbrevDato = 1.januar(2021),
                     saksnummer = Saksnummer(12345676),
                 )
             },
@@ -211,7 +211,7 @@ internal class HentBrevutkastTest {
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
-                on { hentKnyttetVedtaksdato(any()) } doReturn vedtak.opprettet.toLocalDate(ZoneOffset.UTC)
+                on { hentVedtaksbrevDatoSomDetKlagesPå(any()) } doReturn vedtak.opprettet.toLocalDate(ZoneOffset.UTC)
             },
             identClient = mock {
                 on { hentNavnForNavIdent(any()) } doReturn "Ola Nordmann".right()
@@ -231,7 +231,7 @@ internal class HentBrevutkastTest {
         ) shouldBe pdfAsBytes.right()
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
-        verify(mocks.klageRepoMock).hentKnyttetVedtaksdato(argThat { it shouldBe klage.id })
+        verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
         verify(mocks.identClient).hentNavnForNavIdent(argThat { it shouldBe saksbehandler })
         verify(mocks.personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
         verify(mocks.brevServiceMock).lagBrev(
@@ -242,7 +242,7 @@ internal class HentBrevutkastTest {
                     saksbehandlerNavn = "Ola Nordmann",
                     fritekst = "",
                     klageDato = 1.desember(2021),
-                    vedtakDato = 1.januar(2021),
+                    vedtaksbrevDato = 1.januar(2021),
                     saksnummer = Saksnummer(12345676),
                 )
             },
@@ -260,7 +260,7 @@ internal class HentBrevutkastTest {
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
-                on { hentKnyttetVedtaksdato(any()) } doReturn vedtak.opprettet.toLocalDate(ZoneOffset.UTC)
+                on { hentVedtaksbrevDatoSomDetKlagesPå(any()) } doReturn vedtak.opprettet.toLocalDate(ZoneOffset.UTC)
             },
             identClient = mock {
                 on { hentNavnForNavIdent(any()) } doReturn "Ola Nordmann".right()
@@ -280,7 +280,7 @@ internal class HentBrevutkastTest {
         ) shouldBe pdfAsBytes.right()
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
-        verify(mocks.klageRepoMock).hentKnyttetVedtaksdato(argThat { it shouldBe klage.id })
+        verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
         verify(mocks.identClient).hentNavnForNavIdent(argThat { it shouldBe saksbehandler })
         verify(mocks.personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
         verify(mocks.brevServiceMock).lagBrev(
@@ -291,7 +291,7 @@ internal class HentBrevutkastTest {
                     saksbehandlerNavn = "Ola Nordmann",
                     fritekst = "jeg er fritekst for et brev",
                     klageDato = 1.desember(2021),
-                    vedtakDato = 1.januar(2021),
+                    vedtaksbrevDato = 1.januar(2021),
                     saksnummer = Saksnummer(12345676),
                 )
             },
@@ -337,7 +337,7 @@ internal class HentBrevutkastTest {
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
-                on { hentKnyttetVedtaksdato(any()) } doReturn vedtak.opprettet.toLocalDate(ZoneOffset.UTC)
+                on { hentVedtaksbrevDatoSomDetKlagesPå(any()) } doReturn vedtak.opprettet.toLocalDate(ZoneOffset.UTC)
             },
             identClient = mock {
                 on { hentNavnForNavIdent(any()) } doReturn "Ola Nordmann".right()
@@ -371,7 +371,7 @@ internal class HentBrevutkastTest {
                 saksbehandlerNavn = "Ola Nordmann",
                 fritekst = "",
                 klageDato = 1.desember(2021),
-                vedtakDato = 1.januar(2021),
+                vedtaksbrevDato = 1.januar(2021),
                 saksnummer = Saksnummer(12345676),
             ),
         )
@@ -411,7 +411,7 @@ internal class HentBrevutkastTest {
                 saksbehandlerNavn = "Ola Nordmann",
                 fritekst = "fritekstTilBrev",
                 klageDato = 1.desember(2021),
-                vedtakDato = 1.januar(2021),
+                vedtaksbrevDato = 1.januar(2021),
                 saksnummer = Saksnummer(12345676),
             ),
         )
@@ -451,7 +451,7 @@ internal class HentBrevutkastTest {
                 saksbehandlerNavn = "Ola Nordmann",
                 fritekst = "fritekstTilBrev",
                 klageDato = 1.desember(2021),
-                vedtakDato = 1.januar(2021),
+                vedtaksbrevDato = 1.januar(2021),
                 saksnummer = Saksnummer(12345676),
             ),
         )
@@ -488,7 +488,7 @@ internal class HentBrevutkastTest {
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
-                on { hentKnyttetVedtaksdato(any()) } doReturn vedtak.opprettet.toLocalDate(ZoneOffset.UTC)
+                on { hentVedtaksbrevDatoSomDetKlagesPå(any()) } doReturn vedtak.opprettet.toLocalDate(ZoneOffset.UTC)
             },
             identClient = mock {
                 on { hentNavnForNavIdent(any()) } doReturn "Ola Nordmann".right()
@@ -509,7 +509,7 @@ internal class HentBrevutkastTest {
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         if (brevrequestType is LagBrevRequest.Klage.Oppretthold) {
-            verify(mocks.klageRepoMock).hentKnyttetVedtaksdato(argThat { it shouldBe klage.id })
+            verify(mocks.klageRepoMock).hentVedtaksbrevDatoSomDetKlagesPå(argThat { it shouldBe klage.id })
         }
         verify(mocks.identClient).hentNavnForNavIdent(argThat { it shouldBe saksbehandler })
         verify(mocks.personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
@@ -529,7 +529,7 @@ internal class HentBrevutkastTest {
                         saksbehandlerNavn = "Ola Nordmann",
                         fritekst = brevrequestType.fritekst,
                         klageDato = 1.desember(2021),
-                        vedtakDato = 1.januar(2021),
+                        vedtaksbrevDato = 1.januar(2021),
                         saksnummer = Saksnummer(12345676),
                     )
                 }

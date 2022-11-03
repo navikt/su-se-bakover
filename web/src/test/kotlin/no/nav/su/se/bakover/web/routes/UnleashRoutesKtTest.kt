@@ -24,7 +24,7 @@ internal class UnleashRoutesKtTest {
         testApplication {
             application {
                 testSusebakover(
-                    services = TestServicesBuilder.services().copy(toggles = toggleMock),
+                    services = TestServicesBuilder.services(toggles = toggleMock),
                 )
             }
             val res = client.get("/toggles/supstonad.enToggle")

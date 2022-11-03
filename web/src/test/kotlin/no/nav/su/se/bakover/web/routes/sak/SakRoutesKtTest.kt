@@ -18,9 +18,8 @@ import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.AlleredeGjeldendeSakForBruker
 import no.nav.su.se.bakover.domain.BegrensetSakinfo
-import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.sak.SakInfo
-import no.nav.su.se.bakover.test.fnr
+import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.nySakUføre
 import no.nav.su.se.bakover.test.sakId

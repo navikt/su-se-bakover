@@ -42,12 +42,12 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedClockAt
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.nySakMedJournalførtSøknadUtenOppgave
-import no.nav.su.se.bakover.test.nySakMedLukketSøknad
-import no.nav.su.se.bakover.test.nySakMedNySøknad
-import no.nav.su.se.bakover.test.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.søknad.nySakMedJournalførtSøknadUtenOppgave
+import no.nav.su.se.bakover.test.søknad.nySakMedLukketSøknad
+import no.nav.su.se.bakover.test.søknad.nySakMedNySøknad
+import no.nav.su.se.bakover.test.søknad.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingTrukket

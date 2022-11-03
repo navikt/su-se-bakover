@@ -39,11 +39,6 @@ open class Periode protected constructor(
         }.toNonEmptyList()
     }
 
-    infix fun inneholder(other: Periode): Boolean =
-        starterSamtidigEllerTidligere(other) && slutterSamtidigEllerSenere(other)
-
-    infix fun starterEtter(dato: LocalDate): Boolean = tilOgMed.isAfter(dato)
-
     infix fun tilstøter(other: Periode): Boolean {
         val sluttStart = Period.between(tilOgMed, other.fraOgMed)
         val startSlutt = Period.between(fraOgMed, other.tilOgMed)
@@ -61,27 +56,6 @@ open class Periode protected constructor(
      */
     infix fun fullstendigOverlapp(other: List<Periode>): Boolean =
         this.måneder().toSet() == other.flatMap { it.måneder() }.toSet()
-
-    /**
-     * true: Det finnes minst en måned som overlapper
-     * true: Fullstendig overlapp
-     * true: equals
-     * false: Det finnes ingen måneder som overlapper
-     */
-    infix fun overlapper(other: List<Periode>): Boolean =
-        other.any { this.overlapper(it) }
-
-    /**
-     * true: Det finnes minst en måned som overlapper
-     * true: Fullstendig overlapp
-     * true: equals
-     * false: Det finnes ingen måneder som overlapper
-     */
-    infix fun overlapper(other: Periode): Boolean =
-        starterSamtidigEllerTidligere(other) && slutterInni(other) ||
-            other.starterSamtidigEllerTidligere(this) && other.slutterInni(this) ||
-            starterSamtidigEllerTidligere(other) && slutterEtter(other) ||
-            other.starterSamtidigEllerTidligere(this) && other.slutterEtter(this)
 
     /**
      * Perioden som overlapper begge perioder eller ingenting hvis periodene ikke overlapper i det heletatt. (se mengdelære).
@@ -113,22 +87,6 @@ open class Periode protected constructor(
 
     object PerioderKanIkkeSlåsSammen
 
-    infix fun starterSamtidigEllerTidligere(other: Periode) = starterSamtidig(other) || starterTidligere(other)
-    infix fun starterSamtidigEllerSenere(other: Periode) = starterSamtidig(other) || starterEtter(other)
-    infix fun starterSamtidig(other: Periode) = fraOgMed.isEqual(other.fraOgMed)
-    infix fun starterTidligere(other: Periode) = fraOgMed.isBefore(other.fraOgMed)
-    infix fun starterEtter(other: Periode) = fraOgMed.isAfter(other.fraOgMed)
-
-    infix fun slutterSamtidigEllerTidligere(other: Periode) = slutterSamtidig(other) || slutterTidligere(other)
-    infix fun slutterSamtidigEllerSenere(other: Periode) = slutterSamtidig(other) || slutterEtter(other)
-    infix fun slutterSamtidig(other: Periode) = tilOgMed.isEqual(other.tilOgMed)
-    infix fun slutterTidligere(other: Periode) = tilOgMed.isBefore(other.tilOgMed)
-    infix fun slutterEtter(other: Periode) = tilOgMed.isAfter(other.tilOgMed)
-    infix fun slutterInni(other: Periode) = (starterSamtidigEllerTidligere(other) || starterEtter(other)) &&
-        !før(other) && slutterSamtidigEllerTidligere(other)
-
-    infix fun før(other: Periode) = tilOgMed.isBefore(other.fraOgMed)
-    infix fun etter(other: Periode) = fraOgMed.isAfter(other.tilOgMed)
     infix fun minus(other: Periode): List<Periode> {
         return (måneder() - other.måneder().toSet()).minsteAntallSammenhengendePerioder()
     }

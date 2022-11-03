@@ -14,10 +14,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.NavIdentBruker
+import no.nav.su.se.bakover.common.audit.application.AuditLogEvent
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
+import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.lesUUID
+import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -27,9 +30,8 @@ import no.nav.su.se.bakover.service.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.service.regulering.ReguleringService
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.web.features.authorize
-import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.routes.grunnlag.UføregrunnlagJson
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragRequestJson
 import java.time.LocalDate
 import java.util.UUID
 
@@ -50,7 +52,7 @@ internal fun Route.reguler(
 
     post("$reguleringPath/manuell/{reguleringId}") {
         authorize(Brukerrolle.Saksbehandler) {
-            data class Body(val fradrag: List<FradragJson>, val uføre: List<UføregrunnlagJson>)
+            data class Body(val fradrag: List<FradragRequestJson>, val uføre: List<UføregrunnlagJson>)
 
             call.lesUUID("reguleringId").fold(
                 ifLeft = {
@@ -110,6 +112,7 @@ internal fun Route.reguler(
                                 }
                             },
                             ifRight = {
+                                call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                                 call.svar(Resultat.okJson())
                             },
                         )
@@ -149,7 +152,7 @@ internal fun Route.reguler(
     }
 }
 
-private fun List<FradragJson>.toDomain(): Either<Resultat, List<Grunnlag.Fradragsgrunnlag>> {
+private fun List<FradragRequestJson>.toDomain(): Either<Resultat, List<Grunnlag.Fradragsgrunnlag>> {
     val (resultat, f) = this
         .map { it.toFradrag() }
         .separateEither()

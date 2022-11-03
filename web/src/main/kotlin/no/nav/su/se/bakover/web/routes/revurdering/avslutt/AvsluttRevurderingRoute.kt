@@ -9,12 +9,13 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.NavIdentBruker
-import no.nav.su.se.bakover.common.infrastructure.audit.AuditLogEvent
+import no.nav.su.se.bakover.common.audit.application.AuditLogEvent
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
+import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withRevurderingId
@@ -27,7 +28,6 @@ import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLageBrevutkastForAvsluttingAvRevurdering
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.features.authorize
-import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.Brev.brevvalgIkkeTillatt
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.Brev.manglerBrevvalg
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkePersonEllerSaksbehandlerNavn
@@ -49,19 +49,13 @@ internal fun Route.avsluttRevurderingRoute(
                             begrunnelse = body.begrunnelse,
                             brevvalg = brevvalg,
                             saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
-                        ).mapLeft {
-                            it.tilResultat()
-                        }
+                        ).mapLeft { it.tilResultat() }
                     }.fold(
                         ifLeft = { call.svar(it) },
                         ifRight = {
+                            call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                             call.sikkerlogg("Avsluttet behandling av revurdering med revurderingId $revurderingId")
-                            call.svar(
-                                Resultat.json(
-                                    HttpStatusCode.OK,
-                                    serialize(it.toJson(satsFactory)),
-                                ),
-                            )
+                            call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(satsFactory))))
                         },
                     )
                 }
@@ -110,6 +104,7 @@ private fun KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.tilResultat(): Res
             "Revurderingen er ikke forhåndsvarslet for å vise brev",
             "revurdering_er_ikke_forhåndsvarslet_for_å_vise_brev",
         )
+
         KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.FantIkkePerson -> Feilresponser.fantIkkePerson
         KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeFinneGjeldendeUtbetaling -> Feilresponser.fantIkkeGjeldendeUtbetaling
         KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeGenererePDF -> Feilresponser.Brev.kunneIkkeGenerereBrev
@@ -136,6 +131,7 @@ internal fun KunneIkkeLageAvsluttetRevurdering.tilResultat(): Resultat {
             "Revurderingen er til attestering",
             "revurdering_er_til_attestering",
         )
+
         KunneIkkeLageAvsluttetRevurdering.BrevvalgUtenForhåndsvarsel -> brevvalgIkkeTillatt // TODO jah: endre i frontend og
         KunneIkkeLageAvsluttetRevurdering.ManglerBrevvalgVedForhåndsvarsling -> manglerBrevvalg // TODO jah: endre i frontend og
     }

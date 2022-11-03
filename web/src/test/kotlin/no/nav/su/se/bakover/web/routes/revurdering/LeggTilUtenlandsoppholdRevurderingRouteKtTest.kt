@@ -16,9 +16,9 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilUtenlandsopphol
 import no.nav.su.se.bakover.service.revurdering.RevurderingOgFeilmeldingerResponse
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.requestPath
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -71,7 +71,7 @@ internal class LeggTilUtenlandsoppholdRevurderingRouteKtTest {
             }
             defaultRequest(
                 HttpMethod.Post,
-                "$requestPath/${revurderingId()}/utenlandsopphold",
+                "/saker/$sakId/revurderinger/${revurderingId()}/utenlandsopphold",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(validBody())
@@ -95,7 +95,7 @@ internal class LeggTilUtenlandsoppholdRevurderingRouteKtTest {
             }
             defaultRequest(
                 HttpMethod.Post,
-                "$requestPath/${revurderingId()}/utenlandsopphold",
+                "/saker/$sakId/revurderinger/${revurderingId()}/utenlandsopphold",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(validBody())
@@ -121,7 +121,7 @@ internal class LeggTilUtenlandsoppholdRevurderingRouteKtTest {
             }
             defaultRequest(
                 HttpMethod.Post,
-                "$requestPath/${revurderingId()}/utenlandsopphold",
+                "/saker/$sakId/revurderinger/${revurderingId()}/utenlandsopphold",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(validBody())
@@ -142,7 +142,7 @@ internal class LeggTilUtenlandsoppholdRevurderingRouteKtTest {
             }
             defaultRequest(
                 HttpMethod.Post,
-                "$requestPath/${revurderingId()}/utenlandsopphold",
+                "/saker/$sakId/revurderinger/${revurderingId()}/utenlandsopphold",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(invalidBody())
@@ -161,7 +161,7 @@ internal class LeggTilUtenlandsoppholdRevurderingRouteKtTest {
             }
             defaultRequest(
                 HttpMethod.Post,
-                "$requestPath/${revurderingId()}/utenlandsopphold",
+                "/saker/$sakId/revurderinger/${revurderingId()}/utenlandsopphold",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(

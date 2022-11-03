@@ -21,7 +21,7 @@ internal class LovligOppholdVilkårsvurderingPostgresRepoTest {
         )
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdertUavklart().second
+            val søknadsbehandling = testDataHelper.persisterSøknadsbehandlingVilkårsvurdert().second
             val lovligOppholdVilkår = lovligOppholdVilkårInnvilget()
 
             dataSource.withTransaction { session ->

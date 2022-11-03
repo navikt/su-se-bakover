@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragResponseJson.Companion.toJson
 import java.time.format.DateTimeFormatter
 
 internal data class BeregningJson(
@@ -12,7 +12,7 @@ internal data class BeregningJson(
     val fraOgMed: String,
     val tilOgMed: String,
     val månedsberegninger: List<MånedsberegningJson> = emptyList(),
-    val fradrag: List<FradragJson> = emptyList(),
+    val fradrag: List<FradragResponseJson> = emptyList(),
     val begrunnelse: String?,
 )
 

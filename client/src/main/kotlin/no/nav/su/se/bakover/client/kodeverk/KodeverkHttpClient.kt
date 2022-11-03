@@ -6,7 +6,7 @@ import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.github.kittinunf.fuel.httpGet
 import no.nav.su.se.bakover.client.kodeverk.Kodeverk.CouldNotGetKode
-import no.nav.su.se.bakover.common.getOrCreateCorrelationId
+import no.nav.su.se.bakover.common.CorrelationId.Companion.getOrCreateCorrelationIdFromThreadLocal
 import no.nav.su.se.bakover.common.objectMapper
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -29,7 +29,7 @@ class KodeverkHttpClient(val baseUrl: String, private val consumerId: String) : 
     private fun hentKodebetydning(path: String, value: String): Either<CouldNotGetKode, String?> {
         val (_, response, result) = "$baseUrl$path".httpGet()
             .header("Content-Type", "application/json")
-            .header("Nav-Call-Id", getOrCreateCorrelationId())
+            .header("Nav-Call-Id", getOrCreateCorrelationIdFromThreadLocal())
             .header("Nav-Consumer-Id", consumerId)
             .apply {
                 parameters = listOf("ekskluderUgyldige" to "true", "spraak" to "nb")

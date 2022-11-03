@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.database.søknadsbehandling
 import kotliquery.Row
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.deserializeList
 import no.nav.su.se.bakover.common.deserializeNullable
 import no.nav.su.se.bakover.common.persistence.DbMetrics
@@ -16,7 +17,6 @@ import no.nav.su.se.bakover.common.persistence.TransactionalSession
 import no.nav.su.se.bakover.common.persistence.hent
 import no.nav.su.se.bakover.common.persistence.hentListe
 import no.nav.su.se.bakover.common.persistence.insert
-import no.nav.su.se.bakover.common.persistence.oppdatering
 import no.nav.su.se.bakover.common.persistence.tidspunkt
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.serializeNullable
@@ -27,14 +27,17 @@ import no.nav.su.se.bakover.database.avkorting.toDomain
 import no.nav.su.se.bakover.database.beregning.deserialiserBeregning
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagsdataOgVilkårsvurderingerPostgresRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal
-import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
+import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningMedFradragBeregnetMånedsvis
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.sak.Saksnummer
+import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
@@ -43,7 +46,36 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.util.UUID
+
+data class BaseSøknadsbehandlingDb(
+    val id: UUID,
+    val opprettet: Tidspunkt,
+    val sakId: UUID,
+    val søknad: Søknad.Journalført.MedOppgave,
+    val oppgaveId: OppgaveId,
+    val fritekstTilBrev: String?,
+    val stønadsperiode: Stønadsperiode?,
+    val grunnlagsdata: Grunnlagsdata,
+    val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
+    val attesteringer: Attesteringshistorikk,
+    val avkorting: AvkortingVedSøknadsbehandling,
+    val sakstype: Sakstype,
+    val status: BehandlingsStatus,
+    val saksbehandler: String?,
+)
+data class SøknadsbehandlingDb(
+    val base: BaseSøknadsbehandlingDb,
+    val beregning: Beregning?,
+    val simulering: Simulering?,
+    val lukket: Boolean,
+) {
+    val grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling(
+        grunnlagsdata = base.grunnlagsdata,
+        vilkårsvurderinger = base.vilkårsvurderinger,
+    )
+}
 
 internal class SøknadsbehandlingPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
@@ -56,63 +88,275 @@ internal class SøknadsbehandlingPostgresRepo(
     override fun lagre(søknadsbehandling: Søknadsbehandling, sessionContext: TransactionContext) {
         dbMetrics.timeQuery("lagreSøknadsbehandling") {
             sessionContext.withTransaction { tx ->
-                return@withTransaction when (søknadsbehandling) {
-                    is Søknadsbehandling.Vilkårsvurdert -> lagre(søknadsbehandling, tx)
-                    is Søknadsbehandling.Beregnet -> lagre(søknadsbehandling, tx)
-                    is Søknadsbehandling.Simulert -> lagre(søknadsbehandling, tx)
-                    is Søknadsbehandling.TilAttestering -> lagre(søknadsbehandling, tx)
-                    is Søknadsbehandling.Underkjent -> lagre(søknadsbehandling, tx)
-                    is Søknadsbehandling.Iverksatt -> lagre(søknadsbehandling, tx)
-                    is LukketSøknadsbehandling -> lagre(søknadsbehandling, tx)
-                }.also {
-                    grunnlagsdataOgVilkårsvurderingerPostgresRepo.lagre(
-                        behandlingId = søknadsbehandling.id,
-                        grunnlagsdataOgVilkårsvurderinger = søknadsbehandling.grunnlagsdataOgVilkårsvurderinger,
-                        tx = tx,
-                    )
-                }
+                lagre(søknadsbehandling.toDb(), tx)
             }
         }
     }
 
     override fun lagreNySøknadsbehandling(søknadsbehandling: NySøknadsbehandling) {
         dbMetrics.timeQuery("lagreNySøknadsbehandling") {
-            sessionFactory.withSession { session ->
-                (
-                    """
+            sessionFactory.withTransaction { tx ->
+                lagre(søknadsbehandling.toDb(), tx)
+            }
+        }
+    }
+
+    fun NySøknadsbehandling.toDb(): SøknadsbehandlingDb {
+        return SøknadsbehandlingDb(
+            base = BaseSøknadsbehandlingDb(
+                id = this.id,
+                opprettet = this.opprettet,
+                sakId = this.sakId,
+                søknad = this.søknad,
+                oppgaveId = this.oppgaveId,
+                fritekstTilBrev = null,
+                stønadsperiode = null,
+                grunnlagsdata = Grunnlagsdata.IkkeVurdert,
+                vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.Uføre.ikkeVurdert(),
+                attesteringer = Attesteringshistorikk.empty(),
+                avkorting = this.avkorting,
+                sakstype = this.sakstype,
+                status = BehandlingsStatus.OPPRETTET,
+                saksbehandler = null,
+            ),
+            beregning = null,
+            simulering = null,
+            lukket = false,
+        )
+    }
+
+    fun Søknadsbehandling.toDb(): SøknadsbehandlingDb {
+        val base = this.toBase()
+        return when (this) {
+            is Søknadsbehandling.Beregnet.Avslag -> {
+                SøknadsbehandlingDb(
+                    base = base,
+                    beregning = this.beregning,
+                    simulering = null,
+                    lukket = this.erLukket,
+                )
+            }
+            is Søknadsbehandling.Beregnet.Innvilget -> {
+                SøknadsbehandlingDb(
+                    base = base,
+                    beregning = this.beregning,
+                    simulering = null,
+                    lukket = this.erLukket,
+                )
+            }
+            is Søknadsbehandling.Iverksatt.Avslag.MedBeregning -> {
+                SøknadsbehandlingDb(
+                    base = base,
+                    beregning = this.beregning,
+                    simulering = null,
+                    lukket = this.erLukket,
+                )
+            }
+            is Søknadsbehandling.Iverksatt.Avslag.UtenBeregning -> {
+                SøknadsbehandlingDb(
+                    base = base,
+                    beregning = null,
+                    simulering = null,
+                    lukket = this.erLukket,
+                )
+            }
+            is Søknadsbehandling.Iverksatt.Innvilget -> {
+                SøknadsbehandlingDb(
+                    base = base,
+                    beregning = this.beregning,
+                    simulering = this.simulering,
+                    lukket = this.erLukket,
+                )
+            }
+            is LukketSøknadsbehandling -> {
+                SøknadsbehandlingDb(
+                    base = base,
+                    beregning = this.beregning,
+                    simulering = this.simulering,
+                    lukket = this.erLukket,
+                )
+            }
+            is Søknadsbehandling.Simulert -> {
+                SøknadsbehandlingDb(
+                    base = base,
+                    beregning = this.beregning,
+                    simulering = this.simulering,
+                    lukket = this.erLukket,
+                )
+            }
+            is Søknadsbehandling.TilAttestering.Avslag.MedBeregning -> {
+                SøknadsbehandlingDb(
+                    base = base,
+                    beregning = this.beregning,
+                    simulering = null,
+                    lukket = this.erLukket,
+                )
+            }
+            is Søknadsbehandling.TilAttestering.Avslag.UtenBeregning -> {
+                SøknadsbehandlingDb(
+                    base = base,
+                    beregning = null,
+                    simulering = null,
+                    lukket = this.erLukket,
+                )
+            }
+            is Søknadsbehandling.TilAttestering.Innvilget -> {
+                SøknadsbehandlingDb(
+                    base = base,
+                    beregning = this.beregning,
+                    simulering = this.simulering,
+                    lukket = this.erLukket,
+                )
+            }
+            is Søknadsbehandling.Underkjent.Avslag.MedBeregning -> {
+                SøknadsbehandlingDb(
+                    base = base,
+                    beregning = this.beregning,
+                    simulering = null,
+                    lukket = this.erLukket,
+                )
+            }
+            is Søknadsbehandling.Underkjent.Avslag.UtenBeregning -> {
+                SøknadsbehandlingDb(
+                    base = base,
+                    beregning = null,
+                    simulering = null,
+                    lukket = this.erLukket,
+                )
+            }
+            is Søknadsbehandling.Underkjent.Innvilget -> {
+                SøknadsbehandlingDb(
+                    base = base,
+                    beregning = this.beregning,
+                    simulering = this.simulering,
+                    lukket = this.erLukket,
+                )
+            }
+            is Søknadsbehandling.Vilkårsvurdert.Avslag -> {
+                SøknadsbehandlingDb(
+                    base = base,
+                    beregning = null,
+                    simulering = null,
+                    lukket = this.erLukket,
+                )
+            }
+            is Søknadsbehandling.Vilkårsvurdert.Innvilget -> {
+                SøknadsbehandlingDb(
+                    base = base,
+                    beregning = null,
+                    simulering = null,
+                    lukket = this.erLukket,
+                )
+            }
+            is Søknadsbehandling.Vilkårsvurdert.Uavklart -> {
+                SøknadsbehandlingDb(
+                    base = base,
+                    beregning = null,
+                    simulering = null,
+                    lukket = this.erLukket,
+                )
+            }
+        }
+    }
+
+    fun Søknadsbehandling.toBase(): BaseSøknadsbehandlingDb {
+        return BaseSøknadsbehandlingDb(
+            id = this.id,
+            opprettet = this.opprettet,
+            sakId = this.sakId,
+            søknad = this.søknad,
+            oppgaveId = this.oppgaveId,
+            fritekstTilBrev = this.fritekstTilBrev,
+            stønadsperiode = this.stønadsperiode,
+            grunnlagsdata = this.grunnlagsdata,
+            vilkårsvurderinger = this.vilkårsvurderinger,
+            attesteringer = this.attesteringer,
+            avkorting = this.avkorting,
+            sakstype = this.sakstype,
+            status = this.status,
+            saksbehandler = this.saksbehandler?.toString(),
+        )
+    }
+
+    private fun lagre(søknadsbehandling: SøknadsbehandlingDb, tx: TransactionalSession) {
+        (
+            """
                     insert into behandling (
                         id,
                         sakId,
                         søknadId,
                         opprettet,
                         status,
+                        stønadsperiode,
                         oppgaveId,
                         attestering,
-                        avkorting
+                        avkorting,
+                        fritekstTilBrev,
+                        saksbehandler,
+                        beregning,
+                        simulering,
+                        lukket
                     ) values (
                         :id,
                         :sakId,
                         :soknadId,
                         :opprettet,
                         :status,
+                        to_json(:stonadsperiode::json),
                         :oppgaveId,
-                        jsonb_build_array(),
-                        to_json(:avkorting::json)
-                    )
-                    """.trimIndent()
-                    ).insert(
-                    params = mapOf(
-                        "id" to søknadsbehandling.id,
-                        "sakId" to søknadsbehandling.sakId,
-                        "soknadId" to søknadsbehandling.søknad.id,
-                        "opprettet" to søknadsbehandling.opprettet,
-                        "status" to BehandlingsStatus.OPPRETTET.toString(),
-                        "oppgaveId" to søknadsbehandling.oppgaveId.toString(),
-                        "avkorting" to serialize(søknadsbehandling.avkorting.toDb()),
-                    ),
-                    session = session,
+                        to_json(:attestering::json),
+                        to_json(:avkorting::json),
+                        :fritekstTilBrev,
+                        :saksbehandler,
+                        to_json(:beregning::json),
+                        to_json(:simulering::json),
+                        :lukket
+                    ) on conflict(id) do update set
+                        status = :status,
+                        stønadsperiode = to_json(:stonadsperiode::json),
+                        oppgaveId = :oppgaveId,
+                        attestering = to_json(:attestering::json),
+                        avkorting = to_json(:avkorting::json),
+                        fritekstTilBrev = :fritekstTilBrev,
+                        saksbehandler = :saksbehandler,
+                        beregning = to_json(:beregning::json),
+                        simulering =  to_json(:simulering::json),
+                        lukket = :lukket                    
+            """.trimIndent()
+            ).insert(
+            params = mapOf(
+                "id" to søknadsbehandling.base.id,
+                "sakId" to søknadsbehandling.base.sakId,
+                "soknadId" to søknadsbehandling.base.søknad.id,
+                "opprettet" to søknadsbehandling.base.opprettet,
+                "status" to søknadsbehandling.base.status.toString(),
+                "stonadsperiode" to serializeNullable(søknadsbehandling.base.stønadsperiode),
+                "oppgaveId" to søknadsbehandling.base.oppgaveId.toString(),
+                "attestering" to søknadsbehandling.base.attesteringer.serialize(),
+                "avkorting" to serialize(søknadsbehandling.base.avkorting.toDb()),
+                "fritekstTilBrev" to søknadsbehandling.base.fritekstTilBrev,
+                "saksbehandler" to søknadsbehandling.base.saksbehandler,
+                "beregning" to søknadsbehandling.beregning,
+                "simulering" to serializeNullable(søknadsbehandling.simulering),
+                "lukket" to søknadsbehandling.lukket,
+            ),
+            session = tx,
+        )
+
+        grunnlagsdataOgVilkårsvurderingerPostgresRepo.lagre(
+            behandlingId = søknadsbehandling.base.id,
+            grunnlagsdataOgVilkårsvurderinger = søknadsbehandling.grunnlagsdataOgVilkårsvurderinger,
+            tx = tx,
+        )
+
+        when (val avkort = søknadsbehandling.base.avkorting) {
+            is AvkortingVedSøknadsbehandling.Iverksatt.AvkortUtestående -> {
+                avkortingsvarselRepo.lagre(
+                    avkortingsvarsel = avkort.avkortingsvarsel,
+                    tx = tx,
                 )
             }
+            else -> { /*noop*/ }
         }
     }
 
@@ -521,176 +765,5 @@ internal class SøknadsbehandlingPostgresRepo(
             )
         }
         return søknadsbehandling
-    }
-
-    private fun lagre(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert, tx: TransactionalSession) {
-        """
-                    update behandling set
-                        status = :status,
-                        beregning = null,
-                        simulering = null,
-                        stønadsperiode = to_json(:stonadsperiode::json),
-                        avkorting = to_json(:avkorting::json)
-                    where id = :id
-        """.trimIndent()
-            .oppdatering(defaultParams(søknadsbehandling), tx)
-    }
-
-    private fun lagre(søknadsbehandling: Søknadsbehandling.Beregnet, tx: TransactionalSession) {
-        """
-                   update behandling set
-                       status = :status,
-                       beregning = to_json(:beregning::json),
-                       simulering = null,
-                       avkorting = to_json(:avkorting::json)
-                   where id = :id
-        """.trimIndent()
-            .oppdatering(
-                params = defaultParams(søknadsbehandling).plus(
-                    "beregning" to søknadsbehandling.beregning,
-                ),
-                session = tx,
-            )
-    }
-
-    private fun lagre(søknadsbehandling: Søknadsbehandling.Simulert, tx: TransactionalSession) {
-        """
-                   update behandling set
-                       status = :status,
-                       beregning = to_json(:beregning::json),
-                       simulering = to_json(:simulering::json),
-                       avkorting = to_json(:avkorting::json)
-                   where id = :id
-        """.trimIndent()
-            .oppdatering(
-                defaultParams(søknadsbehandling).plus(
-                    listOf(
-                        "beregning" to søknadsbehandling.beregning,
-                        "simulering" to serialize(søknadsbehandling.simulering),
-                    ),
-                ),
-                tx,
-            )
-    }
-
-    private fun lagre(søknadsbehandling: Søknadsbehandling.TilAttestering, tx: TransactionalSession) {
-        """
-                    update behandling set
-                        status = :status,
-                        saksbehandler = :saksbehandler,
-                        oppgaveId = :oppgaveId,
-                        fritekstTilBrev = :fritekstTilBrev,
-                        avkorting = to_json(:avkorting::json)
-                    where id = :id
-        """.trimIndent()
-            .oppdatering(
-                defaultParams(søknadsbehandling).plus(
-                    listOf(
-                        "saksbehandler" to søknadsbehandling.saksbehandler.navIdent,
-                        "fritekstTilBrev" to søknadsbehandling.fritekstTilBrev,
-                    ),
-                ),
-                tx,
-            )
-    }
-
-    private fun lagre(søknadsbehandling: Søknadsbehandling.Underkjent, tx: TransactionalSession) {
-        """
-                    update behandling set
-                        status = :status,
-                        attestering = to_json(:attestering::json),
-                        oppgaveId = :oppgaveId,
-                        avkorting = to_json(:avkorting::json)
-                    where id = :id
-        """.trimIndent()
-            .oppdatering(
-                params = defaultParams(søknadsbehandling).plus(
-                    "attestering" to søknadsbehandling.attesteringer.serialize(),
-                ),
-                session = tx,
-            )
-    }
-
-    private fun lagre(søknadsbehandling: Søknadsbehandling.Iverksatt, tx: TransactionalSession) {
-        when (søknadsbehandling) {
-            is Søknadsbehandling.Iverksatt.Innvilget -> {
-                """
-                       update behandling set
-                           status = :status,
-                           attestering = to_json(:attestering::json),
-                           avkorting = to_json(:avkorting::json)
-                       where id = :id
-                """.trimIndent()
-                    .oppdatering(
-                        params = defaultParams(søknadsbehandling).plus(
-                            listOf(
-                                "attestering" to søknadsbehandling.attesteringer.serialize(),
-                            ),
-                        ),
-                        session = tx,
-                    )
-
-                when (val avkort = søknadsbehandling.avkorting) {
-                    is AvkortingVedSøknadsbehandling.Iverksatt.AvkortUtestående -> {
-                        avkortingsvarselRepo.lagre(
-                            avkortingsvarsel = avkort.avkortingsvarsel,
-                            tx = tx,
-                        )
-                    }
-                    is AvkortingVedSøknadsbehandling.Iverksatt.IngenUtestående -> {
-                        // noop
-                    }
-                    is AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere -> {
-                        throw IllegalStateException("Innvilget søknadsbehandling:${søknadsbehandling.id} bør håndtere avkorting")
-                    }
-                }
-            }
-            is Søknadsbehandling.Iverksatt.Avslag -> {
-                """
-                       update behandling set
-                           status = :status,
-                           attestering = to_json(:attestering::json),
-                           avkorting = to_json(:avkorting::json)
-                       where id = :id
-                """.trimIndent()
-                    .oppdatering(
-                        params = defaultParams(søknadsbehandling).plus(
-                            listOf(
-                                "attestering" to søknadsbehandling.attesteringer.serialize(),
-                            ),
-                        ),
-                        session = tx,
-                    )
-            }
-        }
-    }
-
-    private fun lagre(søknadsbehandling: LukketSøknadsbehandling, tx: TransactionalSession) {
-        """
-            update behandling set
-                lukket = true,
-                avkorting = to_json(:avkorting::json)
-            where id = :id
-        """.trimIndent()
-            .oppdatering(
-                params = mapOf(
-                    "id" to søknadsbehandling.underliggendeSøknadsbehandling.id,
-                    "avkorting" to serialize(søknadsbehandling.avkorting.toDb()),
-                ),
-                session = tx,
-            )
-    }
-
-    private fun defaultParams(søknadsbehandling: Søknadsbehandling): Map<String, Any?> {
-        return mapOf(
-            "id" to søknadsbehandling.id,
-            "sakId" to søknadsbehandling.sakId,
-            "soknadId" to søknadsbehandling.søknad.id,
-            "opprettet" to søknadsbehandling.opprettet,
-            "status" to søknadsbehandling.status.name,
-            "oppgaveId" to søknadsbehandling.oppgaveId.toString(),
-            "stonadsperiode" to serializeNullable(søknadsbehandling.stønadsperiode),
-            "avkorting" to serialize(søknadsbehandling.avkorting.toDb()),
-        )
     }
 }

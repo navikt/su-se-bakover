@@ -11,11 +11,11 @@ import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.sak.SakInfo
+import no.nav.su.se.bakover.domain.sak.Saksnummer
+import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import java.time.Clock
 import java.time.LocalDate
@@ -70,6 +70,8 @@ val saksnummer = Saksnummer(nummer = 12345676)
 
 val fnr = Fnr.generer()
 val epsFnr = Fnr.generer()
+val fnrUnder67 = Fnr("01017001337")
+val fnrOver67 = Fnr("05064535694")
 
 val aktørId = AktørId("aktørId")
 

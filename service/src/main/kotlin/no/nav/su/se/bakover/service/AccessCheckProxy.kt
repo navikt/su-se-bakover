@@ -11,12 +11,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.AlleredeGjeldendeSakForBruker
-import no.nav.su.se.bakover.domain.NySak
-import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.Sakstype
-import no.nav.su.se.bakover.domain.Skattegrunnlag
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
@@ -51,8 +46,6 @@ import no.nav.su.se.bakover.domain.kontrollsamtale.Kontrollsamtale
 import no.nav.su.se.bakover.domain.kontrollsamtale.UtløptFristForKontrollsamtaleContext
 import no.nav.su.se.bakover.domain.nøkkeltall.Nøkkeltall
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
-import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
@@ -65,6 +58,7 @@ import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandl
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.person.PersonRepo
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.regulering.Regulering
@@ -79,7 +73,11 @@ import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
+import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.sak.SakInfo
+import no.nav.su.se.bakover.domain.sak.Saksnummer
+import no.nav.su.se.bakover.domain.sak.Sakstype
+import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadinnhold.SøknadInnhold
@@ -234,48 +232,11 @@ open class AccessCheckProxy(
                     kvittering: Kvittering,
                 ) = kastKanKunKallesFraAnnenService()
 
-                override fun simulerUtbetaling(
-                    request: SimulerUtbetalingRequest.NyUtbetalingRequest,
-                ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
-                    assertHarTilgangTilSak(request.sakId)
-
-                    return services.utbetaling.simulerUtbetaling(request)
-                }
-
-                override fun simulerOpphør(
-                    request: SimulerUtbetalingRequest.OpphørRequest,
-                ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
-                    assertHarTilgangTilSak(request.sakId)
-
-                    return services.utbetaling.simulerOpphør(request)
-                }
-
-                override fun klargjørNyUtbetaling(request: UtbetalRequest.NyUtbetaling, transactionContext: TransactionContext): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>> {
+                override fun simulerUtbetaling(utbetaling: Utbetaling.UtbetalingForSimulering, simuleringsperiode: Periode): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
                     kastKanKunKallesFraAnnenService()
                 }
 
-                override fun simulerStans(
-                    request: SimulerUtbetalingRequest.StansRequest,
-                ) = kastKanKunKallesFraAnnenService()
-
-                override fun klargjørStans(
-                    request: UtbetalRequest.Stans,
-                    transactionContext: TransactionContext,
-                ) = kastKanKunKallesFraAnnenService()
-
-                override fun simulerGjenopptak(
-                    request: SimulerUtbetalingRequest.GjenopptakRequest,
-                ) = kastKanKunKallesFraAnnenService()
-
-                override fun klargjørGjenopptak(
-                    request: UtbetalRequest.Gjenopptak,
-                    transactionContext: TransactionContext,
-                ) = kastKanKunKallesFraAnnenService()
-
-                override fun klargjørOpphør(
-                    request: UtbetalRequest.Opphør,
-                    transactionContext: TransactionContext,
-                ): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>> {
+                override fun klargjørUtbetaling(utbetaling: Utbetaling.SimulertUtbetaling, transactionContext: TransactionContext): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>> {
                     kastKanKunKallesFraAnnenService()
                 }
 
@@ -345,6 +306,14 @@ open class AccessCheckProxy(
                 override fun hentSakForRevurdering(revurderingId: UUID): Sak {
                     assertHarTilgangTilRevurdering(revurderingId)
                     return services.sak.hentSakForRevurdering(revurderingId)
+                }
+
+                override fun hentSakForRevurdering(revurderingId: UUID, sessionContext: SessionContext): Sak {
+                    kastKanKunKallesFraAnnenService()
+                }
+
+                override fun hentSakForSøknadsbehandling(søknadsbehandlingId: UUID): Sak {
+                    kastKanKunKallesFraAnnenService()
                 }
 
                 override fun hentSakForSøknad(søknadId: UUID): Either<FantIkkeSak, Sak> {

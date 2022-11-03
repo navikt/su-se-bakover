@@ -22,11 +22,11 @@ import no.nav.su.se.bakover.test.nySøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.shouldBeType
-import no.nav.su.se.bakover.test.simulerNyUtbetaling
+import no.nav.su.se.bakover.test.simulerUtbetaling
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.simulertSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.stønadsperiode2021
-import no.nav.su.se.bakover.test.søknadId
+import no.nav.su.se.bakover.test.søknad.søknadId
 import no.nav.su.se.bakover.test.søknadsbehandlingSimulert
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingUnderkjentInnvilget
@@ -97,14 +97,14 @@ internal class StatusovergangTest {
     private val simulert: Søknadsbehandling.Simulert =
         beregnetInnvilget.simuler(
             saksbehandler = saksbehandler,
-            simuler = {
-                simulerNyUtbetaling(
-                    sak = sakOgUavklart.first,
-                    request = it,
-                    clock = fixedClock,
-                )
-            },
-        ).getOrFail()
+        ) { _, _ ->
+            simulerUtbetaling(
+                sak = sakOgUavklart.first,
+                søknadsbehandling = beregnetInnvilget,
+            ).map {
+                it.simulering
+            }
+        }.getOrFail()
 
     private val tilAttesteringInnvilget: Søknadsbehandling.TilAttestering.Innvilget =
         simulert.tilAttestering(saksbehandler, fritekstTilBrev)

@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.endOfDay
 import no.nav.su.se.bakover.common.februar
+import no.nav.su.se.bakover.common.fixedClock
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
@@ -22,17 +23,27 @@ import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.persistence.antall
 import no.nav.su.se.bakover.common.persistence.insert
 import no.nav.su.se.bakover.common.startOfDay
+import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.common.zoneIdOslo
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Fagområde
+import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
+import no.nav.su.se.bakover.domain.vilkår.Vurdering
+import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUføre
+import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
+import no.nav.su.se.bakover.test.grunnlag.uføregrunnlag
+import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.persistence.withSession
 import org.junit.jupiter.api.Test
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
+import java.util.UUID
 
 internal class AvstemmingPostgresRepoTest {
 
@@ -45,7 +56,7 @@ internal class AvstemmingPostgresRepoTest {
             val zero = repo.hentSisteGrensesnittsavstemming(fagområde = Fagområde.SUUFORE)
             zero shouldBe null
             val utbetaling1 =
-                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().third
+                testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().third
 
             repo.opprettGrensesnittsavstemming(
                 Avstemming.Grensesnittavstemming(
@@ -57,7 +68,7 @@ internal class AvstemmingPostgresRepoTest {
                 ),
             )
             val utbetaling2 =
-                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().third
+                testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().third
             val second = Avstemming.Grensesnittavstemming(
                 opprettet = fixedTidspunkt,
                 fraOgMed = 3.januar(2020).startOfDay(),
@@ -76,16 +87,19 @@ internal class AvstemmingPostgresRepoTest {
     @Test
     fun `hent utbetalinger for grensesnittsavstemming`() {
         withMigratedDb { dataSource ->
+            val ellevteOktoberStart = 11.oktober(2021).startOfDay().fixedClock()
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.avstemmingRepo
-            val (_, vedtak, utbetaling) =
-                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
-                    avstemmingsnøkkel = Avstemmingsnøkkel(
-                        11.oktober(
-                            2020,
-                        ).startOfDay(),
-                    ),
+            val (_, vedtak, utbetaling) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling { (sak, søknad) ->
+                iverksattSøknadsbehandlingUføre(
+                    sakOgSøknad = sak to søknad,
+                    clock = ellevteOktoberStart,
                 )
+            }.also { (_, _, utbetaling) ->
+                utbetaling.avstemmingsnøkkel shouldBe Avstemmingsnøkkel(
+                    11.oktober(2021).startOfDay(),
+                )
+            }
 
             dataSource.withSession { session ->
                 """
@@ -100,7 +114,7 @@ internal class AvstemmingPostgresRepoTest {
                         "behandler" to "Z123",
                         "avstemmingsnokkel" to objectMapper.writeValueAsString(
                             Avstemmingsnøkkel(
-                                9.oktober(2020).startOfDay(),
+                                9.oktober(2021).startOfDay(),
                             ),
                         ),
                         "simulering" to "{}",
@@ -111,20 +125,20 @@ internal class AvstemmingPostgresRepoTest {
             }
 
             repo.hentUtbetalingerForGrensesnittsavstemming(
-                fraOgMed = 10.oktober(2020).startOfDay(),
-                tilOgMed = 10.oktober(2020).endOfDay(),
+                fraOgMed = 10.oktober(2021).startOfDay(),
+                tilOgMed = 10.oktober(2021).endOfDay(),
                 fagområde = Fagområde.SUUFORE,
             ) shouldBe emptyList()
 
             repo.hentUtbetalingerForGrensesnittsavstemming(
-                fraOgMed = 11.oktober(2020).startOfDay(),
-                tilOgMed = 11.oktober(2020).endOfDay(),
+                fraOgMed = 11.oktober(2021).startOfDay(),
+                tilOgMed = 11.oktober(2021).endOfDay(),
                 fagområde = Fagområde.SUUFORE,
             ) shouldBe listOf(utbetaling)
 
             repo.hentUtbetalingerForGrensesnittsavstemming(
-                fraOgMed = 12.oktober(2020).startOfDay(),
-                tilOgMed = 12.oktober(2020).endOfDay(),
+                fraOgMed = 12.oktober(2021).startOfDay(),
+                tilOgMed = 12.oktober(2021).endOfDay(),
                 fagområde = Fagområde.SUUFORE,
             ) shouldBe emptyList()
         }
@@ -133,21 +147,35 @@ internal class AvstemmingPostgresRepoTest {
     @Test
     fun `hent utbetalinger for grensesnittsavstemming tidspunkt test`() {
         withMigratedDb { dataSource ->
+            val ellevteOktoberStart = 11.oktober(2021).startOfDay().fixedClock()
+            val ellevteOktoberSlutt = 11.oktober(2021).endOfDay().fixedClock()
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.avstemmingRepo
-            val (_, _, utbetaling1) = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
-                avstemmingsnøkkel = Avstemmingsnøkkel(
-                    11.oktober(2020).startOfDay(),
-                ),
-            )
-            val (_, _, utbetaling2) = testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
-                avstemmingsnøkkel = Avstemmingsnøkkel(
-                    11.oktober(2020).endOfDay(),
-                ),
-            )
+            val (_, _, utbetaling1) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling { (sak, søknad) ->
+                iverksattSøknadsbehandlingUføre(
+                    sakOgSøknad = sak to søknad,
+                    clock = ellevteOktoberStart,
+                )
+            }.also { (_, _, utbetaling) ->
+                utbetaling.avstemmingsnøkkel shouldBe Avstemmingsnøkkel(
+                    11.oktober(2021).startOfDay(),
+                )
+            }
+
+            val (_, _, utbetaling2) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling { (sak, søknad) ->
+                iverksattSøknadsbehandlingUføre(
+                    sakOgSøknad = sak to søknad,
+                    clock = ellevteOktoberSlutt,
+                )
+            }.also { (_, _, utbetaling) ->
+                utbetaling.avstemmingsnøkkel shouldBe Avstemmingsnøkkel(
+                    11.oktober(2021).endOfDay(),
+                )
+            }
+
             val utbetalinger = repo.hentUtbetalingerForGrensesnittsavstemming(
-                fraOgMed = 11.oktober(2020).startOfDay(),
-                tilOgMed = 11.oktober(2020).endOfDay(),
+                fraOgMed = 11.oktober(2021).startOfDay(),
+                tilOgMed = 11.oktober(2021).endOfDay(),
                 fagområde = Fagområde.SUUFORE,
             )
             utbetalinger shouldHaveSize 2
@@ -161,7 +189,7 @@ internal class AvstemmingPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.avstemmingRepo
             val oversendtUtbetalingMedKvittering =
-                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().third
+                testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().third
 
             val avstemming = Avstemming.Grensesnittavstemming(
                 id = UUID30.randomUUID(),
@@ -188,7 +216,7 @@ internal class AvstemmingPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.avstemmingRepo
             val oversendtUtbetalingMedKvittering =
-                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().third
+                testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().third
 
             val avstemming = Avstemming.Konsistensavstemming.Ny(
                 id = UUID30.randomUUID(),
@@ -222,7 +250,7 @@ internal class AvstemmingPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.avstemmingRepo
             val oversendtUtbetalingMedKvittering =
-                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().third
+                testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().third
 
             val avstemming1 = Avstemming.Konsistensavstemming.Ny(
                 id = UUID30.randomUUID(),
@@ -301,7 +329,7 @@ internal class AvstemmingPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.avstemmingRepo
             val oversendtUtbetalingMedKvittering =
-                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().third
+                testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().third
 
             repo.hentUtbetalingerForKonsistensavstemming(
                 løpendeFraOgMed = oversendtUtbetalingMedKvittering.tidligsteDato().startOfDay(),
@@ -337,7 +365,7 @@ internal class AvstemmingPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.avstemmingRepo
             val oversendtUtbetalingMedKvittering =
-                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().third
+                testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().third
 
             repo.hentUtbetalingerForKonsistensavstemming(
                 løpendeFraOgMed = oversendtUtbetalingMedKvittering.tidligsteDato().startOfDay(),
@@ -393,41 +421,60 @@ internal class AvstemmingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.avstemmingRepo
-            val første = no.nav.su.se.bakover.test.utbetalingslinje(
-                periode = januar(2020)..april(2020),
-                beløp = 15000,
-            )
-            val andre = no.nav.su.se.bakover.test.utbetalingslinje(
-                periode = mai(2020)..desember(2020),
-                forrigeUtbetalingslinjeId = første.id,
-                beløp = 17000,
-                uføregrad = 40,
-            )
-            val oversendtUtbetalingMedKvittering =
-                testDataHelper.persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering(
-                    utbetalingslinjer = nonEmptyListOf(første, andre),
-                ).second
 
-            repo.hentUtbetalingerForKonsistensavstemming(
-                løpendeFraOgMed = 1.januar(2020).startOfDay(),
-                opprettetTilOgMed = oversendtUtbetalingMedKvittering.opprettet,
-                fagområde = Fagområde.SUUFORE,
-            )[0].utbetalingslinjer shouldBe nonEmptyListOf(første, andre)
-
-            repo.hentUtbetalingerForKonsistensavstemming(
-                løpendeFraOgMed = 1.mai(2020).startOfDay(),
-                opprettetTilOgMed = oversendtUtbetalingMedKvittering.opprettet,
-                fagområde = Fagområde.SUUFORE,
-            )[0].utbetalingslinjer shouldBe nonEmptyListOf(første, andre)
-
-            repo.hentUtbetalingerForKonsistensavstemming(
-                løpendeFraOgMed = 1.desember(2020).startOfDay(),
-                opprettetTilOgMed = oversendtUtbetalingMedKvittering.opprettet,
-                fagområde = Fagområde.SUUFORE,
-            )[0].utbetalingslinjer shouldBe nonEmptyListOf(første, andre)
+            val p1 = januar(2021)..april(2021)
+            val p2 = mai(2021)..desember(2021)
+            val (sak, _, oversendtUtbetalingMedKvittering) =
+                testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling { (sak, søknad) ->
+                    iverksattSøknadsbehandlingUføre(
+                        sakOgSøknad = sak to søknad,
+                        customVilkår = listOf(
+                            UføreVilkår.Vurdert.create(
+                                vurderingsperioder = nonEmptyListOf(
+                                    VurderingsperiodeUføre.create(
+                                        id = UUID.randomUUID(),
+                                        opprettet = fixedTidspunkt,
+                                        vurdering = Vurdering.Innvilget,
+                                        grunnlag = uføregrunnlag(opprettet = fixedTidspunkt, periode = p1, uføregrad = Uføregrad.parse(50)),
+                                        periode = p1,
+                                    ),
+                                    VurderingsperiodeUføre.create(
+                                        id = UUID.randomUUID(),
+                                        opprettet = fixedTidspunkt,
+                                        vurdering = Vurdering.Innvilget,
+                                        grunnlag = uføregrunnlag(opprettet = fixedTidspunkt, periode = p2, uføregrad = Uføregrad.parse(40)),
+                                        periode = p2,
+                                    ),
+                                ),
+                            ),
+                        ),
+                        customGrunnlag = listOf(
+                            fradragsgrunnlagArbeidsinntekt(periode = p1, arbeidsinntekt = 6500.0),
+                            fradragsgrunnlagArbeidsinntekt(periode = p2, arbeidsinntekt = 6500.0),
+                        ),
+                    )
+                }
 
             repo.hentUtbetalingerForKonsistensavstemming(
                 løpendeFraOgMed = 1.januar(2021).startOfDay(),
+                opprettetTilOgMed = oversendtUtbetalingMedKvittering.opprettet,
+                fagområde = Fagområde.SUUFORE,
+            )[0].utbetalingslinjer shouldBe sak.utbetalinger.flatMap { it.utbetalingslinjer }.toNonEmptyList()
+
+            repo.hentUtbetalingerForKonsistensavstemming(
+                løpendeFraOgMed = 1.mai(2021).startOfDay(),
+                opprettetTilOgMed = oversendtUtbetalingMedKvittering.opprettet,
+                fagområde = Fagområde.SUUFORE,
+            )[0].utbetalingslinjer shouldBe sak.utbetalinger.flatMap { it.utbetalingslinjer }.toNonEmptyList()
+
+            repo.hentUtbetalingerForKonsistensavstemming(
+                løpendeFraOgMed = 1.desember(2021).startOfDay(),
+                opprettetTilOgMed = oversendtUtbetalingMedKvittering.opprettet,
+                fagområde = Fagområde.SUUFORE,
+            )[0].utbetalingslinjer shouldBe sak.utbetalinger.flatMap { it.utbetalingslinjer }.toNonEmptyList()
+
+            repo.hentUtbetalingerForKonsistensavstemming(
+                løpendeFraOgMed = 1.januar(2022).startOfDay(),
                 opprettetTilOgMed = oversendtUtbetalingMedKvittering.opprettet,
                 fagområde = Fagområde.SUUFORE,
             ) shouldBe emptyList()

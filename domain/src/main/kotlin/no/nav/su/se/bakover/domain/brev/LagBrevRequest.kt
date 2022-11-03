@@ -5,13 +5,10 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.application.Månedsbeløp
 import no.nav.su.se.bakover.common.ddMMyyyy
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.toBrevformat
-import no.nav.su.se.bakover.domain.Månedsbeløp
-import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn.Companion.getDistinkteParagrafer
@@ -20,6 +17,9 @@ import no.nav.su.se.bakover.domain.brev.beregning.LagBrevinnholdForBeregning
 import no.nav.su.se.bakover.domain.brev.beregning.Tilbakekreving
 import no.nav.su.se.bakover.domain.brev.beregning.tilBrevperiode
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.domain.person.Person
+import no.nav.su.se.bakover.domain.sak.Saksnummer
+import no.nav.su.se.bakover.domain.sak.Sakstype
 import java.text.NumberFormat
 import java.time.Clock
 import java.time.LocalDate
@@ -471,7 +471,7 @@ interface LagBrevRequest {
             val saksbehandlerNavn: String,
             val fritekst: String,
             val klageDato: LocalDate,
-            val vedtakDato: LocalDate,
+            val vedtaksbrevDato: LocalDate,
             override val saksnummer: Saksnummer,
         ) : Klage() {
             override val brevInnhold: BrevInnhold = BrevInnhold.Klage.Oppretthold(
@@ -479,7 +479,7 @@ interface LagBrevRequest {
                 saksbehandlerNavn = saksbehandlerNavn,
                 fritekst = fritekst,
                 klageDato = klageDato.ddMMyyyy(),
-                vedtakDato = vedtakDato.ddMMyyyy(),
+                vedtakDato = vedtaksbrevDato.ddMMyyyy(),
                 saksnummer = saksnummer.nummer,
             )
 

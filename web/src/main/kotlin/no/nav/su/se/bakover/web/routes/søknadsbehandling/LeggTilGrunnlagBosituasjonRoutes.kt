@@ -11,10 +11,12 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.Fnr
+import no.nav.su.se.bakover.common.audit.application.AuditLogEvent
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeBehandling
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
+import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
@@ -78,10 +80,8 @@ internal fun Route.leggTilGrunnlagBosituasjonRoutes(
                                         }
                                     },
                                     {
-                                        Resultat.json(
-                                            HttpStatusCode.Created,
-                                            serialize(it.toJson(satsFactory)),
-                                        )
+                                        call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
+                                        Resultat.json(HttpStatusCode.Created, serialize(it.toJson(satsFactory)))
                                     },
                                 )
                             }.merge(),
@@ -108,14 +108,10 @@ internal fun Route.leggTilGrunnlagBosituasjonRoutes(
                                         is SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag.KunneIkkeEndreBosituasjongrunnlag -> Feilresponser.kunneIkkeLeggeTilBosituasjonsgrunnlag
                                     }
                                 }.map {
-                                    Resultat.json(
-                                        HttpStatusCode.Created,
-                                        serialize(it.toJson(satsFactory)),
-                                    )
+                                    call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
+                                    Resultat.json(HttpStatusCode.Created, serialize(it.toJson(satsFactory)))
                                 }
-                            }.getOrHandle {
-                                it
-                            },
+                            }.getOrHandle { it },
                     )
                 }
             }
@@ -131,7 +127,10 @@ internal fun SøknadsbehandlingService.KunneIkkeVilkårsvurdere.tilResultat(): R
 
 internal fun KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon.tilResultat(): Resultat {
     return when (this) {
-        is KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon.UgyldigTilstand -> ugyldigTilstand(this.fra, this.til)
+        is KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon.UgyldigTilstand -> ugyldigTilstand(
+            this.fra,
+            this.til,
+        )
     }
 }
 
@@ -149,14 +148,17 @@ internal fun KunneIkkeLageGrunnlagsdata.tilResultat(): Resultat {
             "Kan ikke legge til fradrag knyttet til EPS for en bruker som ikke har EPS.",
             "fradrag_for_eps_uten_eps",
         )
+
         KunneIkkeLageGrunnlagsdata.FradragManglerBosituasjon -> HttpStatusCode.BadRequest.errorJson(
             "Alle fradragsperiodene må være innenfor bosituasjonsperioden.",
             "fradragsperiode_utenfor_bosituasjonperiode",
         )
+
         KunneIkkeLageGrunnlagsdata.MåLeggeTilBosituasjonFørFradrag -> HttpStatusCode.BadRequest.errorJson(
             "Må ha et bosituasjon, før man legger til fradrag",
             "må_ha_bosituasjon_før_fradrag",
         )
+
         is KunneIkkeLageGrunnlagsdata.UgyldigFradragsgrunnlag -> this.feil.tilResultat()
         is KunneIkkeLageGrunnlagsdata.Konsistenssjekk -> this.feil.tilResultat()
     }

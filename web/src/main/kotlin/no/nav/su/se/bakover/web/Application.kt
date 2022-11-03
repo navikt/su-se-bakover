@@ -28,17 +28,21 @@ import no.nav.su.se.bakover.client.ProdClientsBuilder
 import no.nav.su.se.bakover.client.StubClientsBuilder
 import no.nav.su.se.bakover.client.UnleashBuilder
 import no.nav.su.se.bakover.common.ApplicationConfig
+import no.nav.su.se.bakover.common.CorrelationIdHeader
 import no.nav.su.se.bakover.common.JmsConfig
 import no.nav.su.se.bakover.common.UgyldigFnrException
+import no.nav.su.se.bakover.common.audit.infrastructure.CefAuditLogger
 import no.nav.su.se.bakover.common.infrastructure.web.AzureGroupMapper
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.authHeader
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
 import no.nav.su.se.bakover.common.infrastructure.web.svar
+import no.nav.su.se.bakover.common.infrastructure.web.withUser
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.metrics.SuMetrics
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.persistence.DbMetrics
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.DomainToQueryParameterMapper
 import no.nav.su.se.bakover.domain.DatabaseRepos
@@ -52,9 +56,11 @@ import no.nav.su.se.bakover.service.AccessCheckProxy
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.Tilgangssjekkfeil
-import no.nav.su.se.bakover.utenlandsopphold.infrastructure.web.utenlandsoppholdRoutes
+import no.nav.su.se.bakover.utenlandsopphold.application.annuller.AnnullerUtenlandsoppholdService
+import no.nav.su.se.bakover.utenlandsopphold.application.korriger.KorrigerUtenlandsoppholdService
+import no.nav.su.se.bakover.utenlandsopphold.application.registrer.RegistrerUtenlandsoppholdService
+import no.nav.su.se.bakover.utenlandsopphold.infrastruture.web.utenlandsoppholdRoutes
 import no.nav.su.se.bakover.web.external.frikortVedtakRoutes
-import no.nav.su.se.bakover.web.features.withUser
 import no.nav.su.se.bakover.web.metrics.BehandlingMicrometerMetrics
 import no.nav.su.se.bakover.web.metrics.DbMicrometerMetrics
 import no.nav.su.se.bakover.web.metrics.JournalpostClientMicrometerMetrics
@@ -102,31 +108,31 @@ fun Application.susebakover(
     clientMetrics: ClientMetrics = ClientMetrics(
         journalpostClientMetrics = JournalpostClientMicrometerMetrics(),
     ),
+    dbMetrics: DbMetrics = DbMicrometerMetrics(),
     applicationConfig: ApplicationConfig = ApplicationConfig.createConfig(),
     unleash: Unleash = UnleashBuilder.build(applicationConfig),
     satsFactory: SatsFactoryForSupplerendeStønad = SatsFactoryForSupplerendeStønad(),
     databaseRepos: DatabaseRepos = DatabaseBuilder.build(
         databaseConfig = applicationConfig.database,
-        dbMetrics = DbMicrometerMetrics(),
+        dbMetrics = dbMetrics,
         clock = clock,
         satsFactory = satsFactory,
         queryParameterMappers = listOf(DomainToQueryParameterMapper),
     ),
     jmsConfig: JmsConfig = JmsConfig(applicationConfig),
-    clients: Clients =
-        if (applicationConfig.runtimeEnvironment != ApplicationConfig.RuntimeEnvironment.Nais) {
-            StubClientsBuilder(
-                clock = clock,
-                databaseRepos = databaseRepos,
-            ).build(applicationConfig)
-        } else {
-            ProdClientsBuilder(
-                jmsConfig,
-                clock = clock,
-                unleash = unleash,
-                metrics = clientMetrics,
-            ).build(applicationConfig)
-        },
+    clients: Clients = if (applicationConfig.runtimeEnvironment != ApplicationConfig.RuntimeEnvironment.Nais) {
+        StubClientsBuilder(
+            clock = clock,
+            databaseRepos = databaseRepos,
+        ).build(applicationConfig)
+    } else {
+        ProdClientsBuilder(
+            jmsConfig,
+            clock = clock,
+            unleash = unleash,
+            metrics = clientMetrics,
+        ).build(applicationConfig)
+    },
     services: Services = ServiceBuilder.build(
         databaseRepos = databaseRepos,
         clients = clients,
@@ -160,10 +166,12 @@ fun Application.susebakover(
                     log.warn("[Tilgangssjekk] Ikke tilgang til person.", cause)
                     call.svar(Feilresponser.ikkeTilgangTilPerson)
                 }
+
                 is KunneIkkeHentePerson.FantIkkePerson -> {
                     log.warn("[Tilgangssjekk] Fant ikke person", cause)
                     call.svar(Feilresponser.fantIkkePerson)
                 }
+
                 is KunneIkkeHentePerson.Ukjent -> {
                     log.warn("[Tilgangssjekk] Feil ved oppslag på person", cause)
                     call.svar(Feilresponser.feilVedOppslagPåPerson)
@@ -228,7 +236,7 @@ fun Application.susebakover(
 
             return@filter true
         }
-        callIdMdc("X-Correlation-ID")
+        callIdMdc(CorrelationIdHeader)
 
         mdc("Authorization") { it.authHeader() }
         disableDefaultColors()
@@ -279,7 +287,28 @@ fun Application.susebakover(
                         satsFactory = satsFactoryIDag,
                     )
                     skattRoutes(accessProtectedServices.skatteService, accessProtectedServices.toggles)
-                    utenlandsoppholdRoutes()
+                    utenlandsoppholdRoutes(
+                        registerService = RegistrerUtenlandsoppholdService(
+                            sakRepo = databaseRepos.sak,
+                            utenlandsoppholdRepo = databaseRepos.utenlandsoppholdRepo,
+                            journalpostClient = clients.journalpostClient,
+                            auditLogger = CefAuditLogger,
+                            personService = services.person,
+                        ),
+                        korrigerService = KorrigerUtenlandsoppholdService(
+                            sakRepo = databaseRepos.sak,
+                            utenlandsoppholdRepo = databaseRepos.utenlandsoppholdRepo,
+                            journalpostClient = clients.journalpostClient,
+                            auditLogger = CefAuditLogger,
+                            personService = services.person,
+                        ),
+                        annullerService = AnnullerUtenlandsoppholdService(
+                            sakRepo = databaseRepos.sak,
+                            utenlandsoppholdRepo = databaseRepos.utenlandsoppholdRepo,
+                            auditLogger = CefAuditLogger,
+                            personService = services.person,
+                        ),
+                    )
                 }
             }
         }

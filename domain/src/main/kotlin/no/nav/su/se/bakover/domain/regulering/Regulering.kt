@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.regulering
 
 import arrow.core.Either
-import arrow.core.flatMap
+import arrow.core.NonEmptyList
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
@@ -11,8 +11,6 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.toNonEmptyList
-import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.Sakstype
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
@@ -21,12 +19,11 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.SjekkOmGrunnlagErKonsistent
 import no.nav.su.se.bakover.domain.grunnlag.erGyldigTilstand
-import no.nav.su.se.bakover.domain.oppdrag.SimulerUtbetalingRequest
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalRequest
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import no.nav.su.se.bakover.domain.sak.Saksnummer
+import no.nav.su.se.bakover.domain.sak.Sakstype
+import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
@@ -194,47 +191,23 @@ sealed interface Regulering : Reguleringsfelter {
         }
 
         fun simuler(
-            callback: (request: SimulerUtbetalingRequest.NyUtbetalingRequest) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>,
+            simuler: (beregning: Beregning, uføregrunnlag: NonEmptyList<Grunnlag.Uføregrunnlag>?) -> Either<SimulerUtbetalingFeilet, Simulering>,
         ): Either<KunneIkkeSimulere, OpprettetRegulering> {
-            return simulerUtbetalingRequest()
-                .mapLeft {
-                    KunneIkkeSimulere.FantIngenBeregning
-                }
-                .flatMap { simulertUtbetaling ->
-                    callback(simulertUtbetaling)
-                        .mapLeft { KunneIkkeSimulere.SimuleringFeilet }
-                        .map { copy(simulering = it.simulering) }
-                }
-        }
-
-        fun simulerUtbetalingRequest(): Either<KunneIkkeSimulere.FantIngenBeregning, SimulerUtbetalingRequest.NyUtbetaling> {
-            if (beregning == null) {
-                return KunneIkkeSimulere.FantIngenBeregning.left()
-            }
-
-            return when (sakstype) {
-                Sakstype.ALDER -> {
-                    SimulerUtbetalingRequest.NyUtbetaling.Alder(
-                        sakId = sakId,
-                        saksbehandler = saksbehandler,
-                        beregning = beregning,
-                        // Spesielt for regulering, ved etterbetaling, ønsker vi å utbetale disse sammen med neste kjøring, da disse beløpene bruker å være relativt små.
-                        utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SammenMedNestePlanlagteUtbetaling,
-                    )
-                }
-
-                Sakstype.UFØRE -> {
-                    SimulerUtbetalingRequest.NyUtbetaling.Uføre(
-                        sakId = sakId,
-                        saksbehandler = saksbehandler,
-                        beregning = beregning,
-                        uføregrunnlag = vilkårsvurderinger.uføreVilkår()
-                            .getOrHandle { throw IllegalStateException("Regulering for uføre mangler uføregrunnlag") }.grunnlag,
-                        // Spesielt for regulering, ved etterbetaling, ønsker vi å utbetale disse sammen med neste kjøring, da disse beløpene bruker å være relativt små.
-                        utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SammenMedNestePlanlagteUtbetaling,
-                    )
-                }
-            }.right()
+            return simuler(
+                beregning ?: return KunneIkkeSimulere.FantIngenBeregning.left(),
+                when (sakstype) {
+                    Sakstype.ALDER -> {
+                        null
+                    }
+                    Sakstype.UFØRE -> {
+                        vilkårsvurderinger.uføreVilkår()
+                            .getOrHandle { throw IllegalStateException("Regulering uføre: $id mangler uføregrunnlag") }
+                            .grunnlag
+                            .toNonEmptyList()
+                    }
+                },
+            ).mapLeft { KunneIkkeSimulere.SimuleringFeilet }
+                .map { copy(simulering = it) }
         }
 
         fun avslutt(clock: Clock): AvsluttetRegulering {
@@ -274,14 +247,6 @@ sealed interface Regulering : Reguleringsfelter {
         override fun erÅpen(): Boolean = false
 
         override val erFerdigstilt = true
-
-        fun utbetalRequest(): UtbetalRequest.NyUtbetaling {
-            return UtbetalRequest.NyUtbetaling(
-                request = opprettetRegulering.simulerUtbetalingRequest()
-                    .getOrHandle { throw IllegalStateException(it.toString()) },
-                simulering = simulering,
-            )
-        }
     }
 
     data class AvsluttetRegulering(

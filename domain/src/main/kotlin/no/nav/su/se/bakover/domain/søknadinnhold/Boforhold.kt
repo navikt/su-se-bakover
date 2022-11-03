@@ -16,7 +16,7 @@ data class Boforhold private constructor(
     val innlagtPåInstitusjon: InnlagtPåInstitusjon?,
     val oppgittAdresse: OppgittAdresse,
 ) {
-    enum class DelerBoligMed() {
+    enum class DelerBoligMed {
         EKTEMAKE_SAMBOER, // TODO AI: Skal endres till ektefelle (14/10/2020 LOL)
         VOKSNE_BARN,
         ANNEN_VOKSEN,

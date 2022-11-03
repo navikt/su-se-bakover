@@ -18,7 +18,7 @@ subprojects {
         maven("https://packages.confluent.io/maven/")
     }
     val junitJupiterVersion = "5.9.1"
-    val kotestVersion = "5.5.0"
+    val kotestVersion = "5.5.3"
     val jacksonVersion = "2.13.4"
     val kotlinVersion: String by this
     dependencies {
@@ -26,26 +26,29 @@ subprojects {
         implementation("org.jetbrains.kotlin:kotlin-script-runtime:$kotlinVersion")
         implementation("org.jetbrains.kotlin:kotlin-compiler-embeddable:$kotlinVersion")
         implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
-        implementation("io.arrow-kt:arrow-core:1.1.3")
+        implementation(platform("io.arrow-kt:arrow-stack:1.1.3"))
+        implementation("io.arrow-kt:arrow-core")
+        implementation("io.arrow-kt:arrow-fx-coroutines")
+        implementation("io.arrow-kt:arrow-fx-stm")
         implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
         implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:$jacksonVersion")
         implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
         implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jacksonVersion")
-        implementation("ch.qos.logback:logback-classic:1.4.3")
+        implementation("ch.qos.logback:logback-classic:1.4.4")
         implementation("net.logstash.logback:logstash-logback-encoder:7.2")
         implementation("io.github.cdimascio:dotenv-kotlin:6.3.1")
         implementation("org.apache.kafka:kafka-clients:3.3.1")
         implementation("com.networknt:json-schema-validator:1.0.73")
         implementation("no.finn.unleash:unleash-client-java:4.4.1")
 
-        implementation("com.ibm.mq:com.ibm.mq.allclient:9.3.0.1")
+        implementation("com.ibm.mq:com.ibm.mq.allclient:9.3.1.0")
         implementation("io.confluent:kafka-avro-serializer:7.1.3")
         implementation("org.apache.avro:avro:1.11.1")
         implementation("com.github.ben-manes.caffeine:caffeine:3.1.1")
-        implementation("io.micrometer:micrometer-core:1.9.4")
-        implementation("io.micrometer:micrometer-registry-prometheus:1.9.4")
+        implementation("io.micrometer:micrometer-core:1.9.5")
+        implementation("io.micrometer:micrometer-registry-prometheus:1.9.5")
         implementation("com.github.seratch:kotliquery:1.9.0")
-        implementation("org.flywaydb:flyway-core:9.4.0")
+        implementation("org.flywaydb:flyway-core:9.6.0")
         implementation("com.zaxxer:HikariCP:5.0.1")
         implementation("com.github.navikt:vault-jdbc:1.3.10")
 
@@ -195,8 +198,11 @@ configure(
         project(":database"),
         project(":web-regresjonstest"),
         project(":statistikk"),
-        project(":hendelse"),
-        project(":utenlandsopphold"),
+        project(":hendelse:infrastructure"),
+        project(":hendelse:domain"),
+        project(":utenlandsopphold:application"),
+        project(":utenlandsopphold:infrastructure"),
+        project(":utenlandsopphold:domain"),
     ),
 ) {
     tasks.test {

@@ -8,8 +8,9 @@ import arrow.core.right
 import no.nav.su.se.bakover.client.azure.AzureAd
 import no.nav.su.se.bakover.client.isSuccess
 import no.nav.su.se.bakover.common.ApplicationConfig
+import no.nav.su.se.bakover.common.CorrelationId.Companion.getOrCreateCorrelationIdFromThreadLocal
+import no.nav.su.se.bakover.common.CorrelationIdHeader
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
-import no.nav.su.se.bakover.common.getOrCreateCorrelationId
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.klage.KlageClient
@@ -68,7 +69,7 @@ class KabalHttpClient(
                 .uri(URI.create("${kabalConfig.url}$oversendelsePath"))
                 .header("Authorization", "Bearer $token")
                 .header("Accept", "application/json")
-                .header("X-Correlation-ID", getOrCreateCorrelationId())
+                .header(CorrelationIdHeader, getOrCreateCorrelationIdFromThreadLocal().toString())
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(requestBody)).build()
 
