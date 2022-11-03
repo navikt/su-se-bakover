@@ -502,6 +502,7 @@ sealed class Revurdering :
     }
 
     protected fun oppdaterFradragInternal(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradrag, OpprettetRevurdering> {
+        require(fradragsgrunnlag.all { periode inneholder it.periode })
         return Grunnlagsdata.tryCreate(
             bosituasjon = grunnlagsdata.bosituasjon,
             fradragsgrunnlag = fradragsgrunnlag,
