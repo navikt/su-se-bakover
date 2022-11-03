@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
-import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simulering
 import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.vilkårsvurderingerRevurderingInnvilget
@@ -26,6 +25,7 @@ internal class StansAvYtelsePostgresRepoTest {
 
             val simulertRevurdering = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
                 sakOgVedtakSomKanRevurderes = sak to vedtak,
+                clock = testDataHelper.clock,
             ).second
 
             testDataHelper.revurderingRepo.lagre(simulertRevurdering)
@@ -50,6 +50,7 @@ internal class StansAvYtelsePostgresRepoTest {
 
             val simulertRevurdering = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
                 sakOgVedtakSomKanRevurderes = sak to vedtak,
+                clock = testDataHelper.clock,
             ).second
 
             testDataHelper.revurderingRepo.lagre(simulertRevurdering)
@@ -86,6 +87,7 @@ internal class StansAvYtelsePostgresRepoTest {
 
             val simulertRevurdering = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
                 sakOgVedtakSomKanRevurderes = sak to vedtak,
+                clock = testDataHelper.clock,
             ).second
 
             testDataHelper.revurderingRepo.lagre(simulertRevurdering)

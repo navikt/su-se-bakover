@@ -41,16 +41,17 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.gjeldendeVedtaksdata
-import no.nav.su.se.bakover.test.nyUtbetalingSimulert
+import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.persistence.withSession
+import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
+import no.nav.su.se.bakover.test.simulerUtbetaling
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.stønadsperiode2021
@@ -363,12 +364,11 @@ internal class RevurderingPostgresRepoTest {
             val simulert = beregnet.simuler(
                 saksbehandler = saksbehandler,
                 clock = fixedClock,
-                simulerUtbetaling = {
-                    nyUtbetalingSimulert(
-                        sakOgBehandling = sak to beregnet,
-                        beregning = it.beregning,
-                        clock = fixedClock,
-                    ).right()
+                simuler = { _, _ ->
+                    simulerUtbetaling(
+                        sak = sak,
+                        revurdering = beregnet,
+                    ).getOrFail().simulering.right()
                 },
             ).getOrFail()
 
@@ -905,12 +905,11 @@ internal class RevurderingPostgresRepoTest {
             val simulertRevurdering = beregnetRevurdering.simuler(
                 saksbehandler = saksbehandler,
                 clock = fixedClock,
-                simulerUtbetaling = {
-                    nyUtbetalingSimulert(
-                        sakOgBehandling = sak to beregnetRevurdering,
-                        beregning = it.beregning,
-                        clock = fixedClock,
-                    ).right()
+                simuler = { _, _ ->
+                    simulerUtbetaling(
+                        sak = sak,
+                        revurdering = beregnetRevurdering,
+                    ).getOrFail().simulering.right()
                 },
             ).getOrFail()
 

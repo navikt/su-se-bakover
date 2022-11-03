@@ -20,9 +20,6 @@ import no.nav.su.se.bakover.common.persistence.sessionOf
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.DomainToQueryParameterMapper
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
-import no.nav.su.se.bakover.domain.SakFactory
-import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedSøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -52,7 +49,6 @@ import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
-import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
@@ -76,20 +72,14 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.attesteringIverksatt
-import no.nav.su.se.bakover.test.attesteringUnderkjent
 import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.beregnetSøknadsbehandling
 import no.nav.su.se.bakover.test.epsFnr
-import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
-import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.gjeldendeVedtaksdata
-import no.nav.su.se.bakover.test.grunnlag.uføregrunnlagForventetInntekt
-import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
 import no.nav.su.se.bakover.test.grunnlagsdataMedEpsMedFradrag
 import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
@@ -98,7 +88,6 @@ import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.kvittering
 import no.nav.su.se.bakover.test.nySøknadsbehandling
 import no.nav.su.se.bakover.test.oppgaveIdRevurdering
-import no.nav.su.se.bakover.test.oppgaveIdSøknad
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.oversendtUtbetalingUtenKvittering
 import no.nav.su.se.bakover.test.revurderingTilAttestering
@@ -106,7 +95,6 @@ import no.nav.su.se.bakover.test.revurderingUnderkjent
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
-import no.nav.su.se.bakover.test.simulerOpphør
 import no.nav.su.se.bakover.test.simulerUtbetaling
 import no.nav.su.se.bakover.test.simulering
 import no.nav.su.se.bakover.test.simulertRevurdering
@@ -123,10 +111,7 @@ import no.nav.su.se.bakover.test.underkjentSøknadsbehandling
 import no.nav.su.se.bakover.test.utbetalingslinje
 import no.nav.su.se.bakover.test.veileder
 import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårAvslag
-import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttUføreOgAndreInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
-import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkår
-import no.nav.su.se.bakover.test.vilkårsvurderinger.innvilgetUførevilkårForventetInntekt0
 import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurdertSøknadsbehandling
 import vilkår.personligOppmøtevilkårAvslag
@@ -139,7 +124,7 @@ import javax.sql.DataSource
 class TestDataHelper(
     val dataSource: DataSource,
     val dbMetrics: DbMetrics = dbMetricsStub,
-    val clock: Clock = fixedClock,
+    val clock: Clock = tikkendeFixedClock,
     satsFactory: SatsFactoryForSupplerendeStønad = satsFactoryTest,
 ) {
     val sessionFactory: PostgresSessionFactory =
@@ -210,7 +195,7 @@ class TestDataHelper(
             sakId = sakId,
             id = søknadId,
             søknadInnhold = søknadInnhold,
-            opprettet = fixedTidspunkt,
+            opprettet = Tidspunkt.now(clock),
             innsendtAv = identBruker,
         ).also { databaseRepos.søknad.opprettSøknad(it) }
     }
@@ -234,7 +219,10 @@ class TestDataHelper(
             søknadInnhold = søknadInnhold,
         ).second.let {
             it.lukk(
-                trekkSøknad(søknadId),
+                trekkSøknad(
+                    søknadId = søknadId,
+                    lukketTidspunkt = Tidspunkt.now(clock),
+                ),
             ).also { lukketSøknad ->
                 databaseRepos.søknad.lukkSøknad(lukketSøknad)
             }
@@ -327,6 +315,7 @@ class TestDataHelper(
         søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Triple<Sak, Søknadsbehandling.Iverksatt, Stønadsvedtak> = { (sak, søknad) ->
             iverksattSøknadsbehandlingUføre(
                 sakOgSøknad = sak to søknad,
+                clock = clock,
             )
         },
     ): Triple<Sak, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling, Utbetaling.OversendtUtbetaling.MedKvittering> {
@@ -377,7 +366,7 @@ class TestDataHelper(
             VedtakSomKanRevurderes.from(
                 revurdering = revurdering.tilIverksatt(
                     attestant = attestant,
-                    clock = fixedClock,
+                    clock = clock,
                     hentOpprinneligAvkorting = { avkortingid ->
                         databaseRepos.avkortingsvarselRepo.hent(id = avkortingid)
                     },
@@ -385,7 +374,7 @@ class TestDataHelper(
                     databaseRepos.revurderingRepo.lagre(it)
                 },
                 utbetalingId = utbetaling.id,
-                fixedClock,
+                clock,
             ).also {
                 databaseRepos.vedtakRepo.lagre(it)
             },
@@ -396,7 +385,7 @@ class TestDataHelper(
     fun persisterVedtakForKlageIverksattAvvist(
         klage: IverksattAvvistKlage = persisterKlageIverksattAvvist(),
     ): Klagevedtak.Avvist {
-        return Klagevedtak.Avvist.fromIverksattAvvistKlage(klage, fixedClock).also {
+        return Klagevedtak.Avvist.fromIverksattAvvistKlage(klage, clock).also {
             databaseRepos.vedtakRepo.lagre(it)
         }
     }
@@ -421,7 +410,7 @@ class TestDataHelper(
                 databaseRepos.utbetaling.oppdaterMedKvittering(utbetalingMedKvittering)
             }
         }
-        return VedtakSomKanRevurderes.from(stans, utbetalingId, fixedClock).also {
+        return VedtakSomKanRevurderes.from(stans, utbetalingId, clock).also {
             databaseRepos.vedtakRepo.lagre(it)
         }
     }
@@ -449,7 +438,7 @@ class TestDataHelper(
                 databaseRepos.utbetaling.oppdaterMedKvittering(utbetalingMedKvittering)
             }
         }
-        return VedtakSomKanRevurderes.from(stans, utbetalingId, fixedClock).also {
+        return VedtakSomKanRevurderes.from(stans, utbetalingId, clock).also {
             databaseRepos.vedtakRepo.lagre(it)
         }
     }
@@ -508,7 +497,7 @@ class TestDataHelper(
             sak to vedtak
         },
         sakOgRevurdering: (sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse>) -> Pair<Sak, OpprettetRevurdering> = {
-            opprettetRevurdering(sakOgVedtakSomKanRevurderes = it)
+            opprettetRevurdering(sakOgVedtakSomKanRevurderes = it, clock = clock)
         },
     ): Pair<Sak, OpprettetRevurdering> {
         return sakOgRevurdering(sakOgVedtak).let { (sak, revurdering) ->
@@ -524,7 +513,7 @@ class TestDataHelper(
             sak to vedtak
         },
         sakOgRevurdering: (sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse>) -> Pair<Sak, BeregnetRevurdering> = {
-            beregnetRevurdering(sakOgVedtakSomKanRevurderes = it)
+            beregnetRevurdering(sakOgVedtakSomKanRevurderes = it, clock = clock)
         },
     ): Pair<Sak, BeregnetRevurdering> {
         return sakOgRevurdering(sakOgVedtak).let { (sak, revurdering) ->
@@ -536,11 +525,11 @@ class TestDataHelper(
     }
 
     fun persisterSimulertRevurdering(
-        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().let { (sak, vedtak, _) ->
+        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
             sak to vedtak
         },
         sakOgRevurdering: (sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse>) -> Pair<Sak, SimulertRevurdering> = {
-            simulertRevurdering(sakOgVedtakSomKanRevurderes = it)
+            simulertRevurdering(sakOgVedtakSomKanRevurderes = it, clock = clock)
         },
     ): Pair<Sak, SimulertRevurdering> {
         return sakOgRevurdering(sakOgVedtak).let { (sak, revurdering) ->
@@ -552,11 +541,11 @@ class TestDataHelper(
     }
 
     fun persisterRevurderingTilAttestering(
-        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().let { (sak, vedtak, _) ->
+        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
             sak to vedtak
         },
         sakOgRevurdering: (sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse>) -> Pair<Sak, RevurderingTilAttestering> = {
-            revurderingTilAttestering(sakOgVedtakSomKanRevurderes = it)
+            revurderingTilAttestering(sakOgVedtakSomKanRevurderes = it, clock = clock)
         },
     ): Pair<Sak, RevurderingTilAttestering> {
         return sakOgRevurdering(sakOgVedtak).let { (sak, revurdering) ->
@@ -568,11 +557,11 @@ class TestDataHelper(
     }
 
     fun persisterIverksattRevurdering(
-        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().let { (sak, vedtak, _) ->
+        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
             sak to vedtak
         },
         sakOgRevurdering: (sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse>) -> Triple<Sak, IverksattRevurdering, Utbetaling?> = {
-            iverksattRevurdering(sakOgVedtakSomKanRevurderes = it)
+            iverksattRevurdering(sakOgVedtakSomKanRevurderes = it, clock = clock)
         },
     ): Triple<Sak, IverksattRevurdering, Utbetaling?> {
         return sakOgRevurdering(sakOgVedtak).let { (sak, revurdering, utbetaling) ->
@@ -585,11 +574,11 @@ class TestDataHelper(
     }
 
     fun persisterUnderkjentRevurdering(
-        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().let { (sak, vedtak, _) ->
+        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
             sak to vedtak
         },
         sakOgRevurdering: (sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse>) -> Pair<Sak, UnderkjentRevurdering> = {
-            revurderingUnderkjent(sakOgVedtakSomKanRevurderes = it)
+            revurderingUnderkjent(sakOgVedtakSomKanRevurderes = it, clock = clock)
         },
     ): Pair<Sak, UnderkjentRevurdering> {
         return sakOgRevurdering(sakOgVedtak).let { (sak, revurdering) ->
@@ -608,6 +597,7 @@ class TestDataHelper(
         return persisterBeregnetRevurdering(sakOgVedtak) { (sak, vedtak) ->
             beregnetRevurdering(
                 sakOgVedtakSomKanRevurderes = sak to vedtak,
+                clock = clock,
                 vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
             )
         }.let { (sak, revurdering) ->
@@ -616,7 +606,7 @@ class TestDataHelper(
     }
 
     fun persisterRevurderingBeregningIngenEndring(
-        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().let { (sak, vedtak, _) ->
+        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
             sak to vedtak
         },
     ): Pair<Sak, BeregnetRevurdering.IngenEndring> {
@@ -643,6 +633,7 @@ class TestDataHelper(
         return persisterSimulertRevurdering(sakOgVedtak) { (sak, vedtak) ->
             simulertRevurdering(
                 sakOgVedtakSomKanRevurderes = sak to vedtak,
+                clock = clock,
                 vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
             )
         }.let { (sak, revurdering) ->
@@ -651,7 +642,7 @@ class TestDataHelper(
     }
 
     fun persisterRevurderingTilAttesteringInnvilget(
-        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().let { (sak, vedtak, _) ->
+        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
             sak to vedtak
         },
     ): Pair<Sak, RevurderingTilAttestering.Innvilget> {
@@ -661,13 +652,14 @@ class TestDataHelper(
     }
 
     fun persisterRevurderingTilAttesteringOpphørt(
-        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().let { (sak, vedtak, _) ->
+        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
             sak to vedtak
         },
     ): Pair<Sak, RevurderingTilAttestering.Opphørt> {
         return persisterRevurderingTilAttestering(sakOgVedtak) { (sak, vedtak) ->
             revurderingTilAttestering(
                 sakOgVedtakSomKanRevurderes = sak to vedtak,
+                clock = clock,
                 vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
             )
         }.let { (sak, revurdering) ->
@@ -676,7 +668,7 @@ class TestDataHelper(
     }
 
     fun persisterRevurderingIverksattInnvilget(
-        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().let { (sak, vedtak, _) ->
+        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
             sak to vedtak
         },
     ): IverksattRevurdering.Innvilget {
@@ -684,13 +676,14 @@ class TestDataHelper(
     }
 
     fun persisterRevurderingIverksattOpphørt(
-        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().let { (sak, vedtak, _) ->
+        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
             sak to vedtak
         },
     ): IverksattRevurdering.Opphørt {
         return persisterIverksattRevurdering(sakOgVedtak) { (sak, vedtak) ->
             iverksattRevurdering(
                 sakOgVedtakSomKanRevurderes = sak to vedtak,
+                clock = clock,
                 vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
             )
         }.let {
@@ -699,7 +692,7 @@ class TestDataHelper(
     }
 
     fun persisterRevurderingUnderkjentInnvilget(
-        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().let { (sak, vedtak, _) ->
+        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
             sak to vedtak
         },
     ): Pair<Sak, UnderkjentRevurdering.Innvilget> {
@@ -719,18 +712,19 @@ class TestDataHelper(
             opprettet.avslutt(
                 begrunnelse = "",
                 brevvalg = null,
-                tidspunktAvsluttet = fixedTidspunkt,
+                tidspunktAvsluttet = Tidspunkt.now(clock),
             ).getOrFail().also { databaseRepos.revurderingRepo.lagre(it) }
         }
     }
 
     fun persisterSimulertStansAvYtelse(
-        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().let { (sak, vedtak, _) ->
+        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
             sak to vedtak
         },
     ): Pair<Sak, StansAvYtelseRevurdering.SimulertStansAvYtelse> {
         return simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
             sakOgVedtakSomKanRevurderes = sakOgVedtak.first to sakOgVedtak.second,
+            clock = clock,
         ).let { (sak, revurdering) ->
             databaseRepos.revurderingRepo.lagre(revurdering)
             databaseRepos.sak.hentSak(sak.id).let { persistertSak ->
@@ -740,12 +734,13 @@ class TestDataHelper(
     }
 
     fun persisterIverksattStansAvYtelse(
-        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterVedtakMedInnvilgetSøknadsbehandlingOgOversendtUtbetalingMedKvittering().let { (sak, vedtak, _) ->
+        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
             sak to vedtak
         },
     ): Pair<Sak, StansAvYtelseRevurdering.IverksattStansAvYtelse> {
         return iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
             sakOgVedtakSomKanRevurderes = sakOgVedtak.first to sakOgVedtak.second,
+            clock = clock,
         ).let { (sak, revurdering) ->
             databaseRepos.revurderingRepo.lagre(revurdering)
             databaseRepos.sak.hentSak(sak.id).let { persistertSak ->
@@ -755,7 +750,7 @@ class TestDataHelper(
     }
     fun persisterGjenopptakAvYtelseSimulert(
         id: UUID = UUID.randomUUID(),
-        opprettet: Tidspunkt = fixedTidspunkt,
+        opprettet: Tidspunkt = Tidspunkt.now(clock),
         periode: Periode = Periode.create(
             stønadsperiode2021.periode.fraOgMed.plusMonths(1),
             stønadsperiode2021.periode.tilOgMed,
@@ -790,7 +785,7 @@ class TestDataHelper(
      */
     fun persisterGjenopptakAvYtelseIverksatt(
         id: UUID = UUID.randomUUID(),
-        opprettet: Tidspunkt = fixedTidspunkt,
+        opprettet: Tidspunkt = Tidspunkt.now(clock),
         periode: Periode = Periode.create(
             stønadsperiode2021.periode.fraOgMed.plusMonths(1),
             stønadsperiode2021.periode.tilOgMed,
@@ -834,7 +829,10 @@ class TestDataHelper(
             stønadsperiode = stønadsperiode,
         ).second.let {
             it.lukkSøknadsbehandlingOgSøknad(
-                trekkSøknad(søknadId = søknadId),
+                trekkSøknad(
+                    søknadId = søknadId,
+                    lukketTidspunkt = Tidspunkt.now(clock),
+                ),
             ).getOrFail().let { lukketSøknadsbehandling ->
                 databaseRepos.søknadsbehandling.lagre(lukketSøknadsbehandling)
                 databaseRepos.søknad.lukkSøknad(lukketSøknadsbehandling.søknad)
@@ -854,6 +852,7 @@ class TestDataHelper(
                     type = sak.type,
                 ),
                 sakOgSøknad = sak to søknad,
+                clock = clock,
                 customVilkår = listOf(
                     personligOppmøtevilkårAvslag(),
                 ),
@@ -878,6 +877,7 @@ class TestDataHelper(
         søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Pair<Sak, Søknadsbehandling.Vilkårsvurdert> = { (sak, søknad) ->
             vilkårsvurdertSøknadsbehandling(
                 sakOgSøknad = sak to søknad,
+                clock = clock,
             )
         },
     ): Pair<Sak, Søknadsbehandling.Vilkårsvurdert> {
@@ -894,6 +894,7 @@ class TestDataHelper(
         søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Uavklart> = { (sak, søknad) ->
             nySøknadsbehandling(
                 sakOgSøknad = sak to søknad,
+                clock = clock,
             )
         },
     ): Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Uavklart> {
@@ -908,6 +909,7 @@ class TestDataHelper(
         return persisterSøknadsbehandlingVilkårsvurdert(sakOgSøknad) { (sak, søknad) ->
             vilkårsvurdertSøknadsbehandling(
                 sakOgSøknad = sak to søknad,
+                clock = clock,
             )
         }.let { (sak, revurdering) ->
             sak to revurdering as Søknadsbehandling.Vilkårsvurdert.Innvilget
@@ -920,6 +922,7 @@ class TestDataHelper(
         return persisterSøknadsbehandlingVilkårsvurdert(sakOgSøknad) { (sak, søknad) ->
             vilkårsvurdertSøknadsbehandling(
                 sakOgSøknad = sak to søknad,
+                clock = clock,
                 customVilkår = listOf(institusjonsoppholdvilkårAvslag()),
             )
         }.let { (sak, revurdering) ->
@@ -932,6 +935,7 @@ class TestDataHelper(
         søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Pair<Sak, Søknadsbehandling.Beregnet> = { (sak, søknad) ->
             beregnetSøknadsbehandling(
                 sakOgSøknad = sak to søknad,
+                clock = clock,
             )
         },
     ): Pair<Sak, Søknadsbehandling.Beregnet> {
@@ -957,6 +961,7 @@ class TestDataHelper(
         return persisterSøknadsbehandlingBeregnet(sakOgSøknad) { (sak, søknad) ->
             beregnetSøknadsbehandling(
                 sakOgSøknad = sak to søknad,
+                clock = clock,
                 customGrunnlag = listOf(fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 600000.0)),
             )
         }.let { (sak, søknadsbehandling) ->
@@ -969,6 +974,7 @@ class TestDataHelper(
         søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Pair<Sak, Søknadsbehandling.Simulert> = { (sak, søknad) ->
             simulertSøknadsbehandling(
                 sakOgSøknad = sak to søknad,
+                clock = clock,
             )
         },
     ): Pair<Sak, Søknadsbehandling.Simulert> {
@@ -985,6 +991,7 @@ class TestDataHelper(
         søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Pair<Sak, Søknadsbehandling.TilAttestering> = { (sak, søknad) ->
             tilAttesteringSøknadsbehandling(
                 sakOgSøknad = sak to søknad,
+                clock = clock,
             )
         },
     ): Pair<Sak, Søknadsbehandling.TilAttestering> {
@@ -1010,6 +1017,7 @@ class TestDataHelper(
         return persisterSøknadsbehandlingTilAttestering(sakOgSøknad) { (sak, søknad) ->
             tilAttesteringSøknadsbehandling(
                 sakOgSøknad = sak to søknad,
+                clock = clock,
                 customVilkår = listOf(institusjonsoppholdvilkårAvslag()),
             )
         }.let { (sak, søknadsbehandling) ->
@@ -1023,6 +1031,7 @@ class TestDataHelper(
         return persisterSøknadsbehandlingTilAttestering(sakOgSøknad) { (sak, søknad) ->
             tilAttesteringSøknadsbehandling(
                 sakOgSøknad = sak to søknad,
+                clock = clock,
                 customGrunnlag = listOf(fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 60000.0)),
             )
         }.let { (sak, søknadsbehandling) ->
@@ -1035,6 +1044,7 @@ class TestDataHelper(
         søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Triple<Sak, Søknadsbehandling.Iverksatt, Stønadsvedtak> = { (sak, søknad) ->
             iverksattSøknadsbehandling(
                 sakOgSøknad = sak to søknad,
+                clock = clock,
             )
         },
     ): Triple<Sak, Søknadsbehandling.Iverksatt, Stønadsvedtak> {
@@ -1065,6 +1075,7 @@ class TestDataHelper(
                     type = sak.type,
                 ),
                 sakOgSøknad = sak to søknad,
+                clock = clock,
             )
         },
     ): Triple<Sak, Søknadsbehandling.Iverksatt, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling> {
@@ -1083,6 +1094,7 @@ class TestDataHelper(
         return persisterSøknadsbehandlingIverksatt(sakOgSøknad) { (sak, søknad) ->
             iverksattSøknadsbehandling(
                 sakOgSøknad = sak to søknad,
+                clock = clock,
                 customVilkår = listOf(institusjonsoppholdvilkårAvslag()),
             )
         }.let { (sak, søknadsbehandling, vedtak) ->
@@ -1100,6 +1112,7 @@ class TestDataHelper(
         return persisterSøknadsbehandlingIverksatt(sakOgSøknad) { (sak, søknad) ->
             iverksattSøknadsbehandling(
                 sakOgSøknad = sak to søknad,
+                clock = clock,
                 customGrunnlag = listOf(fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 60000.0)),
             )
         }.let { (sak, søknadsbehandling, vedtak) ->
@@ -1116,6 +1129,7 @@ class TestDataHelper(
         søknadsbehandling: (sakOgSøknad: Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket>) -> Pair<Sak, Søknadsbehandling.Underkjent> = { (sak, søknad) ->
             underkjentSøknadsbehandling(
                 sakOgSøknad = sak to søknad,
+                clock = clock,
             )
         },
     ): Pair<Sak, Søknadsbehandling.Underkjent> {
@@ -1133,6 +1147,7 @@ class TestDataHelper(
         return persisterSøknadsbehandlingUnderkjent(sakOgSøknad) { (sak, søknad) ->
             underkjentSøknadsbehandling(
                 sakOgSøknad = sak to søknad,
+                clock = clock,
             )
         }.let { (sak, søknadsbehandling) ->
             sak to søknadsbehandling as Søknadsbehandling.Underkjent.Innvilget
@@ -1145,6 +1160,7 @@ class TestDataHelper(
         return persisterSøknadsbehandlingUnderkjent(sakOgSøknad) { (sak, søknad) ->
             underkjentSøknadsbehandling(
                 sakOgSøknad = sak to søknad,
+                clock = clock,
                 customVilkår = listOf(institusjonsoppholdvilkårAvslag()),
             )
         }.let { (sak, søknadsbehandling) ->
@@ -1158,6 +1174,7 @@ class TestDataHelper(
         return persisterSøknadsbehandlingUnderkjent(sakOgSøknad) { (sak, søknad) ->
             underkjentSøknadsbehandling(
                 sakOgSøknad = sak to søknad,
+                clock = clock,
                 customGrunnlag = listOf(fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 50000.0)),
             )
         }.let { (sak, søknadsbehandling) ->
@@ -1179,7 +1196,7 @@ class TestDataHelper(
         assert(sak.id == sakId && sak.søknader.count { it.sakId == sakId && it.id == søknadId } == 1)
         return NySøknadsbehandling(
             id = id,
-            opprettet = fixedTidspunkt,
+            opprettet = Tidspunkt.now(clock),
             sakId = sak.id,
             søknad = søknad,
             oppgaveId = søknad.oppgaveId,
@@ -1191,7 +1208,7 @@ class TestDataHelper(
             databaseRepos.sak.hentSak(sakId)!!.oppdaterStønadsperiodeForSøknadsbehandling(
                 søknadsbehandlingId = nySøknadsbehandling.id,
                 stønadsperiode = stønadsperiode,
-                clock = fixedClock,
+                clock = clock,
                 formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             ).getOrFail().let {
                 databaseRepos.søknadsbehandling.lagre(it)
@@ -1211,7 +1228,7 @@ class TestDataHelper(
             journalpostId = JournalpostId(value = UUID.randomUUID().toString()),
             oppgaveId = oppgaveIdRevurdering,
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerNyKlage"),
-            clock = fixedClock,
+            clock = clock,
             datoKlageMottatt = fixedLocalDate,
         ).also {
             databaseRepos.klageRepo.lagre(it)
@@ -1338,7 +1355,7 @@ class TestDataHelper(
     fun persisterKlageAvsluttet(
         vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second,
         begrunnelse: String = "Begrunnelse for å avslutte klagen.",
-        tidspunktAvsluttet: Tidspunkt = fixedTidspunkt,
+        tidspunktAvsluttet: Tidspunkt = Tidspunkt.now(clock),
     ): AvsluttetKlage {
         return persisterKlageVurdertBekreftet(vedtak = vedtak).avslutt(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerSomAvsluttetKlagen"),
@@ -1398,7 +1415,7 @@ class TestDataHelper(
         return persisterKlageTilAttesteringVurdert(vedtak = vedtak, oppgaveId = oppgaveId).underkjenn(
             underkjentAttestering = Attestering.Underkjent(
                 attestant = NavIdentBruker.Attestant(navIdent = "saksbehandlerUnderkjentKlage"),
-                opprettet = fixedTidspunkt,
+                opprettet = Tidspunkt.now(clock),
                 grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
                 kommentar = "underkjennelseskommentar",
             ),
@@ -1414,7 +1431,7 @@ class TestDataHelper(
         return persisterKlageTilAttesteringAvvist(vedtak, oppgaveId).underkjenn(
             underkjentAttestering = Attestering.Underkjent(
                 attestant = NavIdentBruker.Attestant(navIdent = "saksbehandlerUnderkjentKlage"),
-                opprettet = fixedTidspunkt,
+                opprettet = Tidspunkt.now(clock),
                 grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
                 kommentar = "underkjennelseskommentar",
             ),
@@ -1430,7 +1447,7 @@ class TestDataHelper(
         return persisterKlageTilAttesteringVurdert(vedtak = vedtak, oppgaveId = oppgaveId).oversend(
             iverksattAttestering = Attestering.Iverksatt(
                 attestant = NavIdentBruker.Attestant(navIdent = "saksbehandlerOversendtKlage"),
-                opprettet = fixedTidspunkt,
+                opprettet = Tidspunkt.now(clock),
             ),
         ).getOrFail().also {
             databaseRepos.klageRepo.lagre(it)
@@ -1444,7 +1461,7 @@ class TestDataHelper(
         return persisterKlageTilAttesteringAvvist(vedtak, oppgaveId).iverksett(
             iverksattAttestering = Attestering.Iverksatt(
                 attestant = NavIdentBruker.Attestant(navIdent = "saksbehandlerIverksattAvvistKlage"),
-                opprettet = fixedTidspunkt,
+                opprettet = Tidspunkt.now(clock),
             ),
         ).getOrFail().also { databaseRepos.klageRepo.lagre(it) }
     }
@@ -1453,7 +1470,7 @@ class TestDataHelper(
         id: UUID = UUID.randomUUID(),
         klageId: UUID = UUID.randomUUID(),
         utfall: KlageinstansUtfall = KlageinstansUtfall.STADFESTELSE,
-        opprettet: Tidspunkt = fixedTidspunkt,
+        opprettet: Tidspunkt = Tidspunkt.now(clock),
     ): Pair<UUID, UUID> {
         databaseRepos.klageinstanshendelseRepo.lagre(
             UprosessertKlageinstanshendelse(

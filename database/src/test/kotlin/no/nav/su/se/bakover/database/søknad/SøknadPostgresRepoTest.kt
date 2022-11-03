@@ -4,6 +4,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeTypeOf
 import io.kotest.matchers.types.shouldNotBeTypeOf
 import no.nav.su.se.bakover.common.NavIdentBruker.Saksbehandler
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.hentListe
 import no.nav.su.se.bakover.domain.Sak
@@ -59,6 +60,7 @@ internal class SøknadPostgresRepoTest {
                         trekkSøknad(
                             søknadId = it.id,
                             saksbehandler = saksbehandler,
+                            lukketTidspunkt = Tidspunkt.now(testDataHelper.clock),
                         ),
                     )
                 }
