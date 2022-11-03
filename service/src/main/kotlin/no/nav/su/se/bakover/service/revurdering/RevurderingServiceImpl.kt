@@ -589,8 +589,8 @@ internal class RevurderingServiceImpl(
         return when (originalRevurdering) {
             is BeregnetRevurdering, is OpprettetRevurdering, is SimulertRevurdering, is UnderkjentRevurdering -> {
                 val eksisterendeUtbetalinger = sak.utbetalinger
-                val gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
-                    fraOgMed = originalRevurdering.periode.fraOgMed,
+                val gjeldendeVedtaksdata = sak.hentGjeldendeVedtaksdata(
+                    periode = originalRevurdering.periode,
                     clock = clock,
                 ).getOrHandle {
                     throw IllegalStateException("Fant ikke gjeldende vedtaksdata for sak:${originalRevurdering.sakId}")

@@ -16,6 +16,9 @@ internal class BeregnRevurderingStrategyDecider(
     private val clock: Clock,
     private val beregningStrategyFactory: BeregningStrategyFactory,
 ) {
+    init {
+        require(revurdering.periode == gjeldendeVedtaksdata.garantertSammenhengendePeriode()) { "Periode for revurdering:${revurdering.periode} og gjeldende vedtaksdata:${gjeldendeVedtaksdata.garantertSammenhengendePeriode()} er forskjellig" }
+    }
     fun decide(): BeregnRevurderingStrategy {
         /**
          * Lurer typesystemet til å snevre inn valgmulighetene for avkorting ved å forsøke en vanlig beregning først.

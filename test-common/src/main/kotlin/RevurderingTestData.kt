@@ -248,8 +248,8 @@ fun beregnetRevurdering(
         val beregnet = opprettet.beregn(
             eksisterendeUtbetalinger = sak.utbetalinger,
             clock = clock,
-            gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
-                fraOgMed = revurderingsperiode.fraOgMed,
+            gjeldendeVedtaksdata = sak.hentGjeldendeVedtaksdata(
+                periode = opprettet.periode,
                 clock = clock,
             ).getOrFail(),
             satsFactory = satsFactoryTestPåDato(),
@@ -662,8 +662,8 @@ fun beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         val innvilgetBeregnetRevurdering = revurdering.beregn(
             eksisterendeUtbetalinger = sak.utbetalinger,
             clock = clock,
-            gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
-                fraOgMed = revurderingsperiode.fraOgMed,
+            gjeldendeVedtaksdata = sak.hentGjeldendeVedtaksdata(
+                periode = revurdering.periode,
                 clock = clock,
             ).getOrFail(),
             satsFactory = satsFactoryTestPåDato(),
