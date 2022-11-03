@@ -26,7 +26,7 @@ dependencies {
     implementation("com.nimbusds:nimbus-jose-jwt:9.25.6")
 
     testImplementation(project(":test-common"))
-    testImplementation("com.github.tomakehurst:wiremock-jre8:2.34.0") {
+    testImplementation("com.github.tomakehurst:wiremock-jre8:2.35.0") {
         exclude(group = "junit")
     }
     testImplementation("org.xmlunit:xmlunit-matchers:2.9.0")
