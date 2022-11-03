@@ -117,7 +117,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 avkorting = this.avkorting,
                 sakstype = this.sakstype,
                 status = SøknadsbehandlingStatusDB.OPPRETTET,
-                saksbehandler = null,
+                saksbehandler = saksbehandler.navIdent,
             ),
             beregning = null,
             simulering = null,

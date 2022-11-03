@@ -55,6 +55,7 @@ internal class LeggTilPensjonsVilkårIT {
                         expectedSakId = sakId,
                         expectedGrunnlagsdataOgVilkårsvurderinger = tomGrunnlagsdataOgVilkårsvurderingerResponse(),
                         expectedSakstype = "alder",
+                        expectedSaksbehandler = "Z990Lokal",
                     )
 
                     val fraOgMed: String = 1.januar(2022).toString()

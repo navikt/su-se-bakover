@@ -32,6 +32,7 @@ internal class NySøknadsbehandlingIT {
                     expectedSøknad = JSONObject(nySøknadsrespons).getJSONObject("søknad").toString(),
                     expectedSakId = sakId,
                     expectedGrunnlagsdataOgVilkårsvurderinger = tomGrunnlagsdataOgVilkårsvurderingerResponse(),
+                    expectedSaksbehandler = "Z990Lokal",
                 )
             }
         }
