@@ -20,6 +20,7 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering() {
     abstract val saksbehandler: NavIdentBruker.Saksbehandler
     abstract val simulering: Simulering
     abstract val revurderingsårsak: Revurderingsårsak
+    abstract val attesteringer: Attesteringshistorikk
 
     fun avslutt(
         begrunnelse: String,
@@ -47,6 +48,7 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering() {
         override val saksbehandler: NavIdentBruker.Saksbehandler = underliggendeStansAvYtelse.saksbehandler
         override val simulering: Simulering = underliggendeStansAvYtelse.simulering
         override val revurderingsårsak: Revurderingsårsak = underliggendeStansAvYtelse.revurderingsårsak
+        override val attesteringer: Attesteringshistorikk = underliggendeStansAvYtelse.attesteringer
 
         // vi sender ikke noe brev ved stans/gjenoppta
         fun skalSendeAvslutningsbrev(): Boolean {
@@ -84,7 +86,7 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering() {
         override val revurderingsårsak: Revurderingsårsak,
         override val sakinfo: SakInfo,
     ) : GjenopptaYtelseRevurdering() {
-
+        override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty()
         fun iverksett(attestering: Attestering): Either<KunneIkkeIverksetteGjenopptakAvYtelse, IverksattGjenopptakAvYtelse> {
             if (simulering.harFeilutbetalinger()) {
                 return KunneIkkeIverksetteGjenopptakAvYtelse.SimuleringIndikererFeilutbetaling.left()

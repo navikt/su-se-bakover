@@ -25,7 +25,6 @@ import no.nav.su.se.bakover.test.attesteringIverksatt
 import no.nav.su.se.bakover.test.enUkeEtterFixedClock
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
-import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.formuegrenserFactoryTestPåDato
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandling
@@ -406,7 +405,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     attesteringer = listOf(
                         Attestering.Iverksatt(
                             attestant = NavIdentBruker.Attestant(attestant.navIdent),
-                            opprettet = fixedTidspunkt,
+                            opprettet = opprettetMedStønadsperiode.attesteringer.hentSisteAttestering().opprettet,
                         ),
                     ),
                 ),

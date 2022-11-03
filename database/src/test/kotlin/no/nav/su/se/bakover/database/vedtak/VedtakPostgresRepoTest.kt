@@ -93,7 +93,7 @@ internal class VedtakPostgresRepoTest {
             val vedtakRepo = testDataHelper.vedtakRepo
             val (sak, søknadsbehandlingVedtak) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { it.first to it.second }
 
-            val nyRevurdering = testDataHelper.persisterRevurderingOpprettet(sak to søknadsbehandlingVedtak, søknadsbehandlingVedtak.periode).second
+            val nyRevurdering = testDataHelper.persisterRevurderingOpprettet(sak to søknadsbehandlingVedtak).second
             val iverksattRevurdering = IverksattRevurdering.Innvilget(
                 id = nyRevurdering.id,
                 periode = søknadsbehandlingVedtak.periode,
@@ -195,7 +195,7 @@ internal class VedtakPostgresRepoTest {
             val vedtakRepo = testDataHelper.vedtakRepo as VedtakPostgresRepo
             val (sak, søknadsbehandlingVedtak) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling()
 
-            val (_, nyRevurdering) = testDataHelper.persisterRevurderingOpprettet(sak to søknadsbehandlingVedtak, søknadsbehandlingVedtak.periode)
+            val (_, nyRevurdering) = testDataHelper.persisterRevurderingOpprettet(sak to søknadsbehandlingVedtak)
 
             val beregning = nyRevurdering.beregn(
                 eksisterendeUtbetalinger = sak.utbetalinger,

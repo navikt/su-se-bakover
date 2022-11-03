@@ -79,12 +79,13 @@ fun bosituasjonEpsUnder67(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = år(2021),
+    fnr: Fnr = fnrUnder67,
 ): Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning {
     return Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
         id = id,
         opprettet = opprettet,
         periode = periode,
-        fnr = fnrUnder67,
+        fnr = fnr,
     )
 }
 

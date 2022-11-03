@@ -278,7 +278,7 @@ internal class StansAvYtelseServiceTest {
         )
 
         val response = serviceAndMocks.revurderingService.iverksettStansAvYtelse(
-            revurderingId = revurderingId,
+            revurderingId = simulertStans.id,
             attestant = attestant,
         ).getOrFail()
 

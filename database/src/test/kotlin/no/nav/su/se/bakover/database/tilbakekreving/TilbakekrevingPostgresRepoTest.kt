@@ -11,13 +11,11 @@ import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.matchendeKravgrunnlag
 import no.nav.su.se.bakover.test.oppgaveIdRevurdering
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.saksbehandler
-import no.nav.su.se.bakover.test.stønadsperiode2022
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -28,16 +26,8 @@ internal class TilbakekrevingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
 
-            val (sak, vedtak, _) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling() { (sak, søknad) ->
-                iverksattSøknadsbehandlingUføre(
-                    sakOgSøknad = sak to søknad,
-                    sakInfo = sak.info(),
-                    stønadsperiode = stønadsperiode2022,
-                )
-            }
-            val (_, revurdering) = testDataHelper.persisterRevurderingSimulertInnvilget(
-                sakOgVedtak = sak to vedtak,
-            )
+            val (sak, vedtak, _) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling()
+            val (_, revurdering) = testDataHelper.persisterRevurderingSimulertInnvilget(sakOgVedtak = sak to vedtak)
 
             (testDataHelper.revurderingRepo.hent(revurdering.id) as SimulertRevurdering).tilbakekrevingsbehandling shouldBe IkkeBehovForTilbakekrevingUnderBehandling
         }
@@ -90,7 +80,10 @@ internal class TilbakekrevingPostgresRepoTest {
 
             val kunneIkkeForstå = ikkeAvgjort.ikkeTilbakekrev()
             testDataHelper.sessionFactory.withTransaction { tx ->
-                tilbakekrevingRepo.lagreTilbakekrevingsbehandling(kunneIkkeForstå, tx)
+                tilbakekrevingRepo.lagreTilbakekrevingsbehandling(
+                    tilbakrekrevingsbehanding = kunneIkkeForstå,
+                    tx = tx,
+                )
             }
             testDataHelper.sessionFactory.withSession { session ->
                 tilbakekrevingRepo.hentTilbakekrevingsbehandling(
@@ -123,17 +116,11 @@ internal class TilbakekrevingPostgresRepoTest {
                 attesteringsoppgaveId = oppgaveIdRevurdering,
                 saksbehandler = saksbehandler,
                 fritekstTilBrev = "nei",
-            ).getOrFail().let {
-                testDataHelper.revurderingRepo.lagre(it)
-                it.tilIverksatt(
-                    attestant = attestant,
-                    hentOpprinneligAvkorting = { null },
-                    clock = fixedClock,
-                ).getOrFail().let {
-                    testDataHelper.revurderingRepo.lagre(it)
-                    it
-                }
-            }
+            ).getOrFail().tilIverksatt(
+                attestant = attestant,
+                hentOpprinneligAvkorting = { null },
+                clock = fixedClock,
+            ).getOrFail()
 
             val mottattKravgrunnlag = avventerKravgrunnlag.mottattKravgrunnlag(
                 kravgrunnlag = RåttKravgrunnlag("xml"),

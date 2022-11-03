@@ -1,10 +1,8 @@
 package no.nav.su.se.bakover.database.revurdering
 
-import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.periode.mai
-import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
@@ -13,35 +11,22 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
-import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simulering
+import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.vilkårsvurderingerRevurderingInnvilget
 import org.junit.jupiter.api.Test
-import java.util.UUID
 
 internal class StansAvYtelsePostgresRepoTest {
     @Test
     fun `lagrer og henter revurdering for stans av ytelse`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val vedtak =
-                testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second
+            val (sak, vedtak) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling()
 
-            val simulertRevurdering = StansAvYtelseRevurdering.SimulertStansAvYtelse(
-                id = UUID.randomUUID(),
-                opprettet = fixedTidspunkt,
-                periode = år(2021),
-                grunnlagsdata = grunnlagsdataEnsligUtenFradrag(),
-                vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget(),
-                tilRevurdering = vedtak.id,
-                saksbehandler = saksbehandler,
-                simulering = simulering(),
-                revurderingsårsak = Revurderingsårsak.create(
-                    årsak = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING.toString(),
-                    begrunnelse = "huffa",
-                ),
-                sakinfo = vedtak.sakinfo(),
-            )
+            val simulertRevurdering = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+                sakOgVedtakSomKanRevurderes = sak to vedtak,
+                clock = testDataHelper.clock,
+            ).second
 
             testDataHelper.revurderingRepo.lagre(simulertRevurdering)
 
@@ -49,7 +34,8 @@ internal class StansAvYtelsePostgresRepoTest {
 
             val iverksattRevurdering = simulertRevurdering.iverksett(
                 Attestering.Iverksatt(NavIdentBruker.Attestant("atte"), fixedTidspunkt),
-            ).getOrFail("Feil i oppsett av testdata")
+            ).getOrFail()
+
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 
             testDataHelper.revurderingRepo.hent(iverksattRevurdering.id) shouldBe iverksattRevurdering
@@ -60,30 +46,16 @@ internal class StansAvYtelsePostgresRepoTest {
     fun `kan oppdatere revurdering for stans av ytelse`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val vedtak =
-                testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second
+            val (sak, vedtak) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling()
 
-            val simulertRevurdering = StansAvYtelseRevurdering.SimulertStansAvYtelse(
-                id = UUID.randomUUID(),
-                opprettet = fixedTidspunkt,
-                periode = år(2021),
-                grunnlagsdata = grunnlagsdataEnsligUtenFradrag(),
-                vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget(),
-                tilRevurdering = vedtak.id,
-                saksbehandler = saksbehandler,
-                simulering = simulering(),
-                revurderingsårsak = Revurderingsårsak.create(
-                    årsak = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING.toString(),
-                    begrunnelse = "huffa",
-                ),
-                sakinfo = vedtak.sakinfo(),
-            )
+            val simulertRevurdering = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+                sakOgVedtakSomKanRevurderes = sak to vedtak,
+                clock = testDataHelper.clock,
+            ).second
 
             testDataHelper.revurderingRepo.lagre(simulertRevurdering)
-            testDataHelper.revurderingRepo.hent(simulertRevurdering.id)!!.shouldBeEqualToIgnoringFields(
-                simulertRevurdering,
-                StansAvYtelseRevurdering.SimulertStansAvYtelse::tilRevurdering,
-            )
+
+            testDataHelper.revurderingRepo.hent(simulertRevurdering.id) shouldBe simulertRevurdering
 
             val nyInformasjon = simulertRevurdering.copy(
                 id = simulertRevurdering.id,
@@ -103,10 +75,7 @@ internal class StansAvYtelsePostgresRepoTest {
             )
 
             testDataHelper.revurderingRepo.lagre(nyInformasjon)
-            testDataHelper.revurderingRepo.hent(simulertRevurdering.id)!!.shouldBeEqualToIgnoringFields(
-                nyInformasjon,
-                StansAvYtelseRevurdering.SimulertStansAvYtelse::tilRevurdering,
-            )
+            testDataHelper.revurderingRepo.hent(simulertRevurdering.id) shouldBe nyInformasjon
         }
     }
 
@@ -114,24 +83,12 @@ internal class StansAvYtelsePostgresRepoTest {
     fun `lagrer og henter en avsluttet stansAvYtelse revurdering`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val vedtak =
-                testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second
+            val (sak, vedtak) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling()
 
-            val simulertRevurdering = StansAvYtelseRevurdering.SimulertStansAvYtelse(
-                id = UUID.randomUUID(),
-                opprettet = fixedTidspunkt,
-                periode = år(2021),
-                grunnlagsdata = grunnlagsdataEnsligUtenFradrag(),
-                vilkårsvurderinger = vilkårsvurderingerRevurderingInnvilget(),
-                tilRevurdering = vedtak.id,
-                saksbehandler = saksbehandler,
-                simulering = simulering(),
-                revurderingsårsak = Revurderingsårsak.create(
-                    årsak = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING.toString(),
-                    begrunnelse = "huffa",
-                ),
-                sakinfo = vedtak.sakinfo(),
-            )
+            val simulertRevurdering = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+                sakOgVedtakSomKanRevurderes = sak to vedtak,
+                clock = testDataHelper.clock,
+            ).second
 
             testDataHelper.revurderingRepo.lagre(simulertRevurdering)
 

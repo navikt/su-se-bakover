@@ -62,8 +62,7 @@ internal class GjenopptakAvYtelsePostgresRepoTest {
     fun `kan oppdatere revurdering for gjenopptak av ytelse`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val vedtak =
-                testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second
+            val vedtak = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second
 
             val simulertRevurdering = GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse(
                 id = UUID.randomUUID(),
@@ -108,8 +107,7 @@ internal class GjenopptakAvYtelsePostgresRepoTest {
     fun `lagrer og henter en avsluttet gjenopptakAvYtelse`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val vedtak =
-                testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second
+            val vedtak = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second
             val simulertRevurdering = GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
