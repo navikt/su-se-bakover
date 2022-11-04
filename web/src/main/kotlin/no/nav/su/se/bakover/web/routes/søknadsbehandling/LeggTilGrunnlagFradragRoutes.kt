@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.web.sikkerlogg
+import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
@@ -87,7 +88,7 @@ internal fun Route.leggTilGrunnlagFradrag(
                     call.withBody<Body> { body ->
                         call.svar(
                             body.toCommand(behandlingId, clock).flatMap { command ->
-                                behandlingService.leggTilFradragsgrunnlag(command)
+                                behandlingService.leggTilFradragsgrunnlag(command, saksbehandler = call.suUserContext.saksbehandler)
                                     .mapLeft { it.tilResultat() }
                                     .map {
                                         call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)

@@ -575,7 +575,7 @@ internal class SøknadsbehandlingJsonTest {
               "simulering": null,
               "opprettet": "${søknadsbehandling.opprettet}",
               "attesteringer": [],
-              "saksbehandler": null,
+              "saksbehandler": "saksbehandler",
               "fritekstTilBrev": "",
               "sakId": "${søknadsbehandling.sakId}",
               "stønadsperiode": {

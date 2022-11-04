@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEpsUførFlyktning
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataMedEpsMedFradrag
+import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.vilkår.formuevilkårMedEps0Innvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingerSøknadsbehandlingInnvilget
@@ -36,6 +37,7 @@ internal class OppdaterBosituasjonTest {
 
             original.oppdaterBosituasjon(
                 bosituasjon = bosituasjongrunnlagEnslig(),
+                saksbehandler = saksbehandler,
             ).getOrFail().also {
                 it.grunnlagsdata.fradragsgrunnlag.harEpsInntekt() shouldBe false
                 it.vilkårsvurderinger.formue.harEPSFormue() shouldBe false

@@ -17,7 +17,7 @@ fun assertSøknadsbehandlingJson(
     expectedSimulering: String? = null,
     expectedOpprettet: String = "2021-01-01T01:02:03.456789Z",
     expectedAttesteringer: String = "[]",
-    expectedSaksbehandler: String? = null,
+    expectedSaksbehandler: String? = "saksbehandler",
     expectedFritekstTilBrev: String = "",
     expectedSakId: String,
     expectedStønadsperiode: String? = null,

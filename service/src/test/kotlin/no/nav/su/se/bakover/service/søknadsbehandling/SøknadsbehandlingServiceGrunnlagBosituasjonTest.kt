@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
+import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringAvslagUtenBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
@@ -55,7 +56,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
 
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-        ).leggTilBosituasjonEpsgrunnlag(request)
+        ).leggTilBosituasjonEpsgrunnlag(request, saksbehandler = saksbehandler)
 
         response shouldBe KunneIkkeLeggeTilBosituasjonEpsGrunnlag.FantIkkeBehandling.left()
 
@@ -77,6 +78,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
                     behandlingId = UUID.randomUUID(),
                     epsFnr = null,
                 ),
+                saksbehandler = saksbehandler,
             ).getOrFail()
 
             response.grunnlagsdata.bosituasjon.single().shouldBeType<Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps>()
@@ -93,6 +95,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
         ).leggTilBosituasjonEpsgrunnlag(
             LeggTilBosituasjonEpsRequest(behandlingId = behandlingId, epsFnr = null),
+            saksbehandler = saksbehandler,
         )
 
         actual shouldBe KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeOppdatereBosituasjon(
@@ -125,6 +128,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             personService = personServiceMock,
         ).leggTilBosituasjonEpsgrunnlag(
             LeggTilBosituasjonEpsRequest(behandlingId = uavklart.id, epsFnr = nyBosituasjon.fnr),
+            saksbehandler = saksbehandler,
         ) shouldBe KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KlarteIkkeHentePersonIPdl.left()
     }
 
@@ -150,6 +154,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             personService = personServiceMock,
         ).leggTilBosituasjonEpsgrunnlag(
             LeggTilBosituasjonEpsRequest(behandlingId = uavklart.id, epsFnr = nyBosituasjon.fnr),
+            saksbehandler = saksbehandler,
         ) shouldBe KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KlarteIkkeHentePersonIPdl.left()
     }
 
@@ -192,6 +197,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
                 behandlingId = uavklart.id,
                 epsFnr = null,
             ),
+            saksbehandler = saksbehandler,
         ).getOrFail()
 
         response shouldBe expected.copy(
@@ -252,6 +258,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             clock = fixedClock,
         ).leggTilBosituasjonEpsgrunnlag(
             LeggTilBosituasjonEpsRequest(behandlingId = uavklart.id, epsFnr = bosituasjon.fnr),
+            saksbehandler = saksbehandler,
         ).getOrFail()
 
         response shouldBe expected.copy(
@@ -287,7 +294,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
 
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-        ).fullførBosituasjongrunnlag(request)
+        ).fullførBosituasjongrunnlag(request, saksbehandler = saksbehandler)
 
         response shouldBe KunneIkkeFullføreBosituasjonGrunnlag.FantIkkeBehandling.left()
 
@@ -311,6 +318,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
                 bosituasjon = BosituasjonValg.BOR_ALENE,
 
             ),
+            saksbehandler = saksbehandler,
         ) shouldBe KunneIkkeFullføreBosituasjonGrunnlag.KunneIkkeEndreBosituasjongrunnlag(
             KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon.UgyldigTilstand(
                 fra = Søknadsbehandling.TilAttestering.Avslag.UtenBeregning::class,
@@ -361,6 +369,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
                 behandlingId = uavklart.id,
                 bosituasjon = BosituasjonValg.BOR_ALENE,
             ),
+            saksbehandler = saksbehandler,
         ).getOrFail()
 
         response shouldBe expected.copy(

@@ -58,7 +58,7 @@ internal class LeggTilUtenlandsoppholdRoutesKtTest {
                 testSusebakover(
                     services = TestServicesBuilder.services(
                         søknadsbehandling = mock {
-                            on { leggTilUtenlandsopphold(any()) } doReturn SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.FantIkkeBehandling.left()
+                            on { leggTilUtenlandsopphold(any(), any()) } doReturn SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.FantIkkeBehandling.left()
                         },
                     ),
                 )
@@ -95,7 +95,7 @@ internal class LeggTilUtenlandsoppholdRoutesKtTest {
                 testSusebakover(
                     services = TestServicesBuilder.services(
                         søknadsbehandling = mock {
-                            on { leggTilUtenlandsopphold(any()) } doReturn vilkårsvurdert.right()
+                            on { leggTilUtenlandsopphold(any(), any()) } doReturn vilkårsvurdert.right()
                         },
                     ),
                 )

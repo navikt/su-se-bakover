@@ -85,8 +85,8 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImpl(
          * //TODO skulle ideelt sett at denne bare kunne bruke søknadsbehandlingservice for å få utført disse oppgavene, bør i såfall få plass transkasjoner på tvers av servicer.
          */
         val avslåttSøknadsbehandling = søknadsbehandling
-            .leggTilStønadsperiodeHvisNull()
-            .avslåPgaManglendeDok()
+            .leggTilStønadsperiodeHvisNull(request.saksbehandler)
+            .avslåPgaManglendeDok(request.saksbehandler)
             .tilAttestering(
                 saksbehandler = request.saksbehandler,
                 fritekstTilBrev = request.fritekstTilBrev,
@@ -131,7 +131,9 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImpl(
             .mapLeft { KunneIkkeAvslåSøknad.FantIkkeSak }
     }
 
-    private fun Søknadsbehandling.leggTilStønadsperiodeHvisNull(): Søknadsbehandling {
+    // må ta inn saksbehandler. Hvis det er en søknadsbehandling som er opprettet lenge siden, vil saksbehandler være null
+    // i søknadsbehandlingen
+    private fun Søknadsbehandling.leggTilStønadsperiodeHvisNull(saksbehandler: NavIdentBruker.Saksbehandler): Søknadsbehandling {
         return oppdaterStønadsperiode(
             oppdatertStønadsperiode = stønadsperiode
                 ?: Stønadsperiode.create(
@@ -142,10 +144,13 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImpl(
                 ),
             formuegrenserFactory = satsFactory.formuegrenserFactory,
             clock = clock,
+            saksbehandler = saksbehandler,
         ).getOrHandle { throw IllegalArgumentException(it.toString()) }
     }
 
-    private fun Søknadsbehandling.avslåPgaManglendeDok(): Søknadsbehandling.Vilkårsvurdert.Avslag {
+    // må ta inn saksbehandler. Hvis det er en søknadsbehandling som er opprettet lenge siden, vil saksbehandler være null
+    // i søknadsbehandlingen
+    private fun Søknadsbehandling.avslåPgaManglendeDok(saksbehandler: NavIdentBruker.Saksbehandler): Søknadsbehandling.Vilkårsvurdert.Avslag {
         return leggTilOpplysningspliktVilkår(
             opplysningspliktVilkår = OpplysningspliktVilkår.Vurdert.tryCreate(
                 vurderingsperioder = nonEmptyListOf(
@@ -162,6 +167,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImpl(
                     ),
                 ),
             ).getOrHandle { throw IllegalArgumentException(it.toString()) },
+            saksbehandler = saksbehandler,
         ).getOrHandle { throw IllegalArgumentException(it.toString()) } as Søknadsbehandling.Vilkårsvurdert.Avslag
     }
 }

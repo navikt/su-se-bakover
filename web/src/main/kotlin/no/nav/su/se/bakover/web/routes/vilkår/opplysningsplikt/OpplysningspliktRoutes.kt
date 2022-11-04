@@ -7,10 +7,12 @@ import io.ktor.server.application.call
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.su.se.bakover.common.Brukerrolle
+import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.audit.application.AuditLogEvent
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
+import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.serialize
@@ -36,7 +38,8 @@ internal fun Route.opplysningspliktRoutes(
         authorize(Brukerrolle.Saksbehandler) {
             call.withBody<LeggTilOpplysningspliktVilkårBody> { body ->
 
-                val request = body.toDomain().getOrHandle { return@authorize call.svar(it.tilResultat()) }
+                val request = body.toDomain(saksbehandler = call.suUserContext.saksbehandler)
+                    .getOrHandle { return@authorize call.svar(it.tilResultat()) }
 
                 call.svar(
                     when (request) {
@@ -117,12 +120,12 @@ private class LeggTilOpplysningspliktVilkårBody private constructor(
     val type: Behandlingstype,
     val data: List<VurderingsperiodeOpplysningspliktVilkårJson>,
 ) {
-    fun toDomain(): Either<KunneIkkeLeggeTilOpplysningsplikt, LeggTilOpplysningspliktRequest> {
+    fun toDomain(saksbehandler: NavIdentBruker.Saksbehandler): Either<KunneIkkeLeggeTilOpplysningsplikt, LeggTilOpplysningspliktRequest> {
         return data.toDomain()
             .map {
                 when (type) {
                     Behandlingstype.SØKNADSBEHANDLING -> {
-                        LeggTilOpplysningspliktRequest.Søknadsbehandling(id, it)
+                        LeggTilOpplysningspliktRequest.Søknadsbehandling(id, it, saksbehandler)
                     }
 
                     Behandlingstype.REVURDERING -> {

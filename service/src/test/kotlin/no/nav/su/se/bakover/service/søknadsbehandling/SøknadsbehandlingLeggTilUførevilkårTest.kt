@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.service.vilkår.UførevilkårStatus
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -50,6 +51,7 @@ internal class SøknadsbehandlingLeggTilUførevilkårTest {
                         ),
                     ),
                 ),
+                saksbehandler = saksbehandler,
             ).getOrFail().let { medUførevilkår ->
                 (medUførevilkår.vilkårsvurderinger.uføreVilkår().getOrFail() as UføreVilkår.Vurdert).let {
                     it.vurderingsperioder shouldHaveSize 2

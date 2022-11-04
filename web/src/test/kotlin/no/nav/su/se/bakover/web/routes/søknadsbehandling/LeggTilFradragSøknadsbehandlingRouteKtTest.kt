@@ -52,7 +52,7 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
         val behandling = søknadsbehandlingVilkårsvurdertInnvilget().second
 
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
-            on { leggTilFradragsgrunnlag(any()) } doReturn behandling.right()
+            on { leggTilFradragsgrunnlag(any(), any()) } doReturn behandling.right()
         }
 
         testApplication {
@@ -99,7 +99,7 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
         val behandling = søknadsbehandlingVilkårsvurdertInnvilget().second
 
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
-            on { leggTilFradragsgrunnlag(any()) } doReturn behandling.right()
+            on { leggTilFradragsgrunnlag(any(), any()) } doReturn behandling.right()
         }
 
         testApplication {
@@ -148,7 +148,7 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
         val behandling = søknadsbehandlingVilkårsvurdertInnvilget().second
 
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
-            on { leggTilFradragsgrunnlag(any()) } doReturn behandling.right()
+            on { leggTilFradragsgrunnlag(any(), any()) } doReturn behandling.right()
         }
 
         testApplication {
@@ -197,7 +197,7 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
         val behandling = søknadsbehandlingVilkårsvurdertInnvilget().second
 
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
-            on { leggTilFradragsgrunnlag(any()) } doReturn behandling.right()
+            on { leggTilFradragsgrunnlag(any(), any()) } doReturn behandling.right()
         }
 
         testApplication {
@@ -246,7 +246,7 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
         val behandling = søknadsbehandlingVilkårsvurdertInnvilget().second
 
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
-            on { leggTilFradragsgrunnlag(any()) } doReturn behandling.right()
+            on { leggTilFradragsgrunnlag(any(), any()) } doReturn behandling.right()
         }
 
         testApplication {
@@ -295,7 +295,7 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
         val behandling = søknadsbehandlingVilkårsvurdertInnvilget().second
 
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
-            on { leggTilFradragsgrunnlag(any()) } doReturn behandling.right()
+            on { leggTilFradragsgrunnlag(any(), any()) } doReturn behandling.right()
         }
 
         testApplication {

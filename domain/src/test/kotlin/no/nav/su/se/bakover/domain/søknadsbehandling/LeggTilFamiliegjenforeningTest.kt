@@ -4,6 +4,7 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.søknadsbehandlingBeregnetAvslag
 import no.nav.su.se.bakover.test.søknadsbehandlingBeregnetInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagMedBeregning
@@ -37,6 +38,7 @@ internal class LeggTilFamiliegjenforeningTest {
 
         uavklart.second.leggTilFamiliegjenforeningvilkår(
             familiegjenforening = familiegjenforeningVilkårInnvilget(),
+            saksbehandler = saksbehandler,
         ).shouldBeRight()
     }
 
@@ -49,6 +51,7 @@ internal class LeggTilFamiliegjenforeningTest {
             familiegjenforening = familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(vurderingsperiodeFamiliegjenforeningAvslag()),
             ),
+            saksbehandler = saksbehandler,
         )
     }
 
@@ -61,6 +64,7 @@ internal class LeggTilFamiliegjenforeningTest {
             familiegjenforening = familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(vurderingsperiodeFamiliegjenforeningInnvilget()),
             ),
+            saksbehandler = saksbehandler,
         ).shouldBeRight()
     }
 
@@ -74,6 +78,7 @@ internal class LeggTilFamiliegjenforeningTest {
             familiegjenforening = familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(vurderingsperiodeFamiliegjenforeningAvslag()),
             ),
+            saksbehandler = saksbehandler,
         ).shouldBeRight()
     }
 
@@ -87,6 +92,7 @@ internal class LeggTilFamiliegjenforeningTest {
             familiegjenforening = familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(vurderingsperiodeFamiliegjenforeningInnvilget()),
             ),
+            saksbehandler = saksbehandler,
         ).shouldBeRight()
     }
 
@@ -100,6 +106,7 @@ internal class LeggTilFamiliegjenforeningTest {
             familiegjenforening = familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(vurderingsperiodeFamiliegjenforeningInnvilget()),
             ),
+            saksbehandler = saksbehandler,
         ).shouldBeRight()
     }
 
@@ -113,6 +120,7 @@ internal class LeggTilFamiliegjenforeningTest {
             familiegjenforening = familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(vurderingsperiodeFamiliegjenforeningAvslag()),
             ),
+            saksbehandler = saksbehandler,
         ) shouldBe KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFamiliegjenforeningVilkår.UgyldigTilstand(
             fra = Søknadsbehandling.TilAttestering::class,
             til = Søknadsbehandling.Vilkårsvurdert::class,
@@ -129,6 +137,7 @@ internal class LeggTilFamiliegjenforeningTest {
             familiegjenforening = familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(vurderingsperiodeFamiliegjenforeningInnvilget()),
             ),
+            saksbehandler = saksbehandler,
         ) shouldBe KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFamiliegjenforeningVilkår.UgyldigTilstand(
             fra = Søknadsbehandling.TilAttestering::class,
             til = Søknadsbehandling.Vilkårsvurdert::class,
@@ -144,6 +153,7 @@ internal class LeggTilFamiliegjenforeningTest {
             familiegjenforening = familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(vurderingsperiodeFamiliegjenforeningInnvilget()),
             ),
+            saksbehandler = saksbehandler,
         ) shouldBe KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFamiliegjenforeningVilkår.UgyldigTilstand(
             fra = Søknadsbehandling.TilAttestering.Avslag.UtenBeregning::class,
             til = Søknadsbehandling.Vilkårsvurdert::class,
@@ -160,6 +170,7 @@ internal class LeggTilFamiliegjenforeningTest {
             familiegjenforening = familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(vurderingsperiodeFamiliegjenforeningAvslag()),
             ),
+            saksbehandler = saksbehandler,
         ) shouldBe KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFamiliegjenforeningVilkår.UgyldigTilstand(
             fra = Søknadsbehandling.Iverksatt::class,
             til = Søknadsbehandling.Vilkårsvurdert::class,
@@ -176,6 +187,7 @@ internal class LeggTilFamiliegjenforeningTest {
             familiegjenforening = familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(vurderingsperiodeFamiliegjenforeningInnvilget()),
             ),
+            saksbehandler = saksbehandler,
         ) shouldBe KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFamiliegjenforeningVilkår.UgyldigTilstand(
             fra = Søknadsbehandling.Iverksatt::class,
             til = Søknadsbehandling.Vilkårsvurdert::class,
@@ -191,6 +203,7 @@ internal class LeggTilFamiliegjenforeningTest {
             familiegjenforening = familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(vurderingsperiodeFamiliegjenforeningInnvilget()),
             ),
+            saksbehandler = saksbehandler,
         ) shouldBe KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFamiliegjenforeningVilkår.UgyldigTilstand(
             fra = Søknadsbehandling.Iverksatt.Avslag.UtenBeregning::class,
             til = Søknadsbehandling.Vilkårsvurdert::class,
@@ -207,6 +220,7 @@ internal class LeggTilFamiliegjenforeningTest {
             familiegjenforening = familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(vurderingsperiodeFamiliegjenforeningAvslag()),
             ),
+            saksbehandler = saksbehandler,
         ).shouldBeRight()
     }
 
@@ -220,6 +234,7 @@ internal class LeggTilFamiliegjenforeningTest {
             familiegjenforening = familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(vurderingsperiodeFamiliegjenforeningInnvilget()),
             ),
+            saksbehandler = saksbehandler,
         ).shouldBeRight()
     }
 
@@ -232,6 +247,7 @@ internal class LeggTilFamiliegjenforeningTest {
             familiegjenforening = familiegjenforeningVilkårInnvilget(
                 nonEmptyListOf(vurderingsperiodeFamiliegjenforeningInnvilget()),
             ),
+            saksbehandler = saksbehandler,
         ).shouldBeRight()
     }
 }

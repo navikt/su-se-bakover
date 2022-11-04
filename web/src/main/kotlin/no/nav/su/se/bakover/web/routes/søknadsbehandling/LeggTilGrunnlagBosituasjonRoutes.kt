@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ugyldigTilst
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
+import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
@@ -71,6 +72,7 @@ internal fun Route.leggTilGrunnlagBosituasjonRoutes(
                             .map { leggTilBosituasjonEpsgrunnlagRequest ->
                                 søknadsbehandlingService.leggTilBosituasjonEpsgrunnlag(
                                     leggTilBosituasjonEpsgrunnlagRequest,
+                                    saksbehandler = call.suUserContext.saksbehandler,
                                 ).fold(
                                     {
                                         when (it) {
@@ -100,6 +102,7 @@ internal fun Route.leggTilGrunnlagBosituasjonRoutes(
                             .flatMap { fullføreBosituasjongrunnlagRequest ->
                                 søknadsbehandlingService.fullførBosituasjongrunnlag(
                                     fullføreBosituasjongrunnlagRequest,
+                                    saksbehandler = call.suUserContext.saksbehandler,
                                 ).mapLeft {
                                     when (it) {
                                         SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag.FantIkkeBehandling -> fantIkkeBehandling

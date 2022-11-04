@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.nåtidForSimuleringStub
 import no.nav.su.se.bakover.test.oversendtUtbetalingMedKvittering
+import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.simuleringOpphørt
 import no.nav.su.se.bakover.test.stønadsperiode2021
@@ -33,6 +34,7 @@ internal class SøknadsbehandlingBeregnTest {
                 begrunnelse = "kakota",
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(),
+                nySaksbehandler = saksbehandler,
             ).getOrFail().let { etterBeregning ->
                 etterBeregning.beregning.getFradrag() shouldHaveSize 1
                 etterBeregning.beregning.getSumFradrag() shouldBe 0.0
@@ -61,12 +63,14 @@ internal class SøknadsbehandlingBeregnTest {
                         ),
                     ),
                 ),
+                saksbehandler = saksbehandler,
             )
         }.getOrFail().let { førBeregning ->
             førBeregning.beregn(
                 begrunnelse = "kakota",
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(),
+                nySaksbehandler = saksbehandler,
             ).getOrFail().let { etterBeregning ->
                 etterBeregning.beregning.getFradrag() shouldHaveSize 1
                 etterBeregning.beregning.getSumFradrag() shouldBe 0
@@ -94,12 +98,14 @@ internal class SøknadsbehandlingBeregnTest {
                         ),
                     ),
                 ),
+                saksbehandler = saksbehandler,
             )
         }.getOrFail().let { førBeregning ->
             førBeregning.beregn(
                 begrunnelse = "kakota",
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(),
+                nySaksbehandler = saksbehandler,
             ).getOrFail().let { etterBeregning ->
                 etterBeregning.beregning.getFradrag() shouldHaveSize 2
                 etterBeregning.beregning.getSumFradrag() shouldBe førBeregning.periode.getAntallMåneder() * 15000
@@ -144,6 +150,7 @@ internal class SøknadsbehandlingBeregnTest {
                 begrunnelse = "kakota",
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(),
+                nySaksbehandler = saksbehandler,
             ).getOrFail().let { etterBeregning ->
                 etterBeregning.beregning.getFradrag() shouldHaveSize 4
                 etterBeregning.beregning.getFradrag()
@@ -182,6 +189,7 @@ internal class SøknadsbehandlingBeregnTest {
                         ),
                     ),
                 ),
+                saksbehandler = saksbehandler,
             ).getOrFail().copy(
                 avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting(
                     Avkortingsvarsel.Utenlandsopphold.Opprettet(
@@ -206,6 +214,7 @@ internal class SøknadsbehandlingBeregnTest {
                 begrunnelse = "kakota",
                 clock = fixedClock,
                 satsFactory = satsFactoryTestPåDato(),
+                nySaksbehandler = saksbehandler,
             ).getOrFail().let { etterBeregning ->
                 etterBeregning.beregning.getFradrag() shouldHaveSize 4
                 etterBeregning.beregning.getFradrag()

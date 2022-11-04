@@ -23,5 +23,6 @@ fun NySøknadsbehandling.toSøknadsbehandling(saksnummer: Saksnummer): Søknadsb
         attesteringer = Attesteringshistorikk.empty(),
         avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke(),
         sakstype = this.sakstype,
+        saksbehandler = saksbehandler,
     )
 }

@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson
+import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
@@ -39,7 +40,7 @@ internal fun Route.leggTilLovligOppholdRoute(
         authorize(Brukerrolle.Saksbehandler) {
             call.withBehandlingId { behandlingId ->
                 call.withBody<LovligOppholdBody> { body ->
-                    søknadsbehandlingService.leggTilLovligOpphold(body.toLovligOppholdRequest(behandlingId)).fold(
+                    søknadsbehandlingService.leggTilLovligOpphold(body.toLovligOppholdRequest(behandlingId), saksbehandler = call.suUserContext.saksbehandler).fold(
                         ifLeft = { call.svar(it.tilResultat()) },
                         ifRight = {
                             call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)

@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson
+import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
@@ -57,7 +58,7 @@ internal fun Route.leggTilUtenlandsopphold(
                     body.toDomain(behandlingId).mapLeft {
                         call.svar(it)
                     }.map { request ->
-                        søknadsbehandlingService.leggTilUtenlandsopphold(request).fold(
+                        søknadsbehandlingService.leggTilUtenlandsopphold(request, saksbehandler = call.suUserContext.saksbehandler).fold(
                             ifLeft = { call.svar(it.tilResultat()) },
                             ifRight = {
                                 call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)

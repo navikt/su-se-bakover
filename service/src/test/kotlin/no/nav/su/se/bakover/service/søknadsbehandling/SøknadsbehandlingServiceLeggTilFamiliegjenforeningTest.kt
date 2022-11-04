@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.service.vilkår.FamiliegjenforeningVurderinger
 import no.nav.su.se.bakover.service.vilkår.FamiliegjenforeningvilkårStatus
 import no.nav.su.se.bakover.service.vilkår.LeggTilFamiliegjenforeningRequest
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.vilkårsvurderingSøknadsbehandlingIkkeVurdertAlder
 import org.junit.jupiter.api.Test
@@ -34,6 +35,7 @@ internal class SøknadsbehandlingServiceLeggTilFamiliegjenforeningTest {
                         FamiliegjenforeningVurderinger(FamiliegjenforeningvilkårStatus.Uavklart),
                     ),
                 ),
+                saksbehandler = saksbehandler,
             ) shouldBe SøknadsbehandlingService.KunneIkkeLeggeTilFamiliegjenforeningVilkårService.FantIkkeBehandling.left()
         }
     }
@@ -53,6 +55,7 @@ internal class SøknadsbehandlingServiceLeggTilFamiliegjenforeningTest {
                         FamiliegjenforeningVurderinger(FamiliegjenforeningvilkårStatus.VilkårOppfylt),
                     ),
                 ),
+                saksbehandler = saksbehandler,
             ).getOrFail()
 
             actual.let {
@@ -79,6 +82,7 @@ internal class SøknadsbehandlingServiceLeggTilFamiliegjenforeningTest {
                         behandlingId = behandlingId,
                         vurderinger = emptyList(),
                     ),
+                    saksbehandler = saksbehandler,
                 )
             }
         }

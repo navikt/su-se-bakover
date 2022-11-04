@@ -1191,6 +1191,7 @@ class TestDataHelper(
         sakId: UUID = UUID.randomUUID(),
         søknadId: UUID = UUID.randomUUID(),
         stønadsperiode: Stønadsperiode = stønadsperiode2021,
+        saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     ): Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Uavklart> {
         val (sak, søknad) = persisterJournalførtSøknadMedOppgave(sakId = sakId, søknadId = søknadId)
         assert(sak.id == sakId && sak.søknader.count { it.sakId == sakId && it.id == søknadId } == 1)
@@ -1203,6 +1204,7 @@ class TestDataHelper(
             fnr = sak.fnr,
             avkorting = AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående.kanIkke(),
             sakstype = sak.type,
+            saksbehandler = saksbehandler,
         ).let { nySøknadsbehandling ->
             databaseRepos.søknadsbehandling.lagreNySøknadsbehandling(nySøknadsbehandling)
             databaseRepos.sak.hentSak(sakId)!!.oppdaterStønadsperiodeForSøknadsbehandling(
@@ -1210,6 +1212,7 @@ class TestDataHelper(
                 stønadsperiode = stønadsperiode,
                 clock = clock,
                 formuegrenserFactory = formuegrenserFactoryTestPåDato(),
+                saksbehandler = saksbehandler,
             ).getOrFail().let {
                 databaseRepos.søknadsbehandling.lagre(it)
                 assert(it.fnr == sak.fnr && it.sakId == sakId)

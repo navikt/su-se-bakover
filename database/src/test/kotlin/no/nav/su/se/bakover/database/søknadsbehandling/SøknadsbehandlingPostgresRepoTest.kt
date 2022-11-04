@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
 import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.sak.SakInfo
-import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.test.attestant
@@ -82,10 +81,10 @@ internal class SøknadsbehandlingPostgresRepoTest {
             dataSource.withSession { session ->
                 "select count(1) from behandling where status = :status ".let {
                     it.antall(
-                        mapOf("status" to BehandlingsStatus.VILKÅRSVURDERT_INNVILGET.toString()),
+                        mapOf("status" to SøknadsbehandlingStatusDB.VILKÅRSVURDERT_INNVILGET.toString()),
                         session,
                     ) shouldBe 1
-                    it.antall(mapOf("status" to BehandlingsStatus.IVERKSATT_AVSLAG.toString()), session) shouldBe 1
+                    it.antall(mapOf("status" to SøknadsbehandlingStatusDB.IVERKSATT_AVSLAG.toString()), session) shouldBe 1
                 }
             }
         }
@@ -135,6 +134,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     oppdatertStønadsperiode = stønadsperiode2021,
                     formuegrenserFactory = formuegrenserFactoryTestPåDato(fixedLocalDate),
                     clock = fixedClock,
+                    saksbehandler = saksbehandler,
                 ).getOrFail(),
             )
 
@@ -165,6 +165,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     begrunnelse = null,
                     clock = fixedClock,
                     satsFactory = satsFactoryTestPåDato(),
+                    nySaksbehandler = saksbehandler,
                 ).getOrFail()
                 .also {
                     repo.lagre(it)
@@ -206,6 +207,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
 
             // Tilbake til vilkårsvurdert
             simulert.leggTilFormuevilkår(
+                saksbehandler = saksbehandler,
                 vilkår = innvilgetFormueVilkår(),
             ).getOrFail().also { vilkårsvurdert ->
                 repo.lagre(vilkårsvurdert)

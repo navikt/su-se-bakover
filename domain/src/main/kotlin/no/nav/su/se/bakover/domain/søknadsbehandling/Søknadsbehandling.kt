@@ -66,8 +66,6 @@ import java.util.UUID
 sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering, Visitable<SøknadsbehandlingVisitor> {
     abstract val søknad: Søknad.Journalført.MedOppgave
 
-    // TODO jah: Denne kan fjernes fra domenet og heller la mappingen ligge i infrastruktur-laget
-    abstract val status: BehandlingsStatus
     abstract val stønadsperiode: Stønadsperiode?
     abstract override val grunnlagsdata: Grunnlagsdata
     abstract override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling
@@ -105,12 +103,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
     fun lukkSøknadsbehandlingOgSøknad(
         lukkSøknadCommand: LukkSøknadCommand,
-    ): Either<KunneIkkeLukkeSøknadsbehandling, LukketSøknadsbehandling> {
-        return LukketSøknadsbehandling.tryCreate(
-            søknadsbehandlingSomSkalLukkes = this,
-            lukkSøknadCommand = lukkSøknadCommand,
-        )
-    }
+    ): Either<KunneIkkeLukkeSøknadsbehandling, LukketSøknadsbehandling> = LukketSøknadsbehandling.tryCreate(
+        søknadsbehandlingSomSkalLukkes = this,
+        lukkSøknadCommand = lukkSøknadCommand,
+    )
 
     private fun validerFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag, Unit> {
         if (fradragsgrunnlag.isNotEmpty()) {
@@ -122,58 +118,49 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     }
 
     fun leggTilFradragsgrunnlag(
+        saksbehandler: NavIdentBruker.Saksbehandler,
         fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
-    ): Either<KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> {
-        return vilkårsvurder().let {
-            when (it) {
-                is KanBeregnes -> {
-                    leggTilFradragsgrunnlagInternal(fradragsgrunnlag)
-                }
-
-                else -> {
-                    KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen(
-                        this::class,
-                    ).left()
-                }
-            }
+    ) = vilkårsvurder(saksbehandler).let {
+        when (it) {
+            is KanBeregnes -> leggTilFradragsgrunnlagInternal(saksbehandler, fradragsgrunnlag)
+            else -> KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen(
+                this::class,
+            ).left()
         }
     }
 
     private fun leggTilFradragsgrunnlagInternal(
+        saksbehandler: NavIdentBruker.Saksbehandler,
         fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
-    ): Either<KunneIkkeLeggeTilGrunnlag.KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> {
-        return validerFradragsgrunnlag(fradragsgrunnlag)
-            .map {
-                copyInternal(
-                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTilFradragsgrunnlag(
-                        fradragsgrunnlag,
-                    ),
-                ).vilkårsvurder() as Vilkårsvurdert.Innvilget // TODO cast
-            }
-    }
+    ) = validerFradragsgrunnlag(fradragsgrunnlag)
+        .map {
+            copyInternal(
+                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTilFradragsgrunnlag(
+                    fradragsgrunnlag,
+                ),
+            ).vilkårsvurder(saksbehandler) as Vilkårsvurdert.Innvilget // TODO cast
+        }
 
     /**
      * TODO("bør vi skille på oppdatering og fullføring (ufullstendig vs fullstendig bosituasjon)")
      */
     fun oppdaterBosituasjon(
+        saksbehandler: NavIdentBruker.Saksbehandler,
         bosituasjon: Grunnlag.Bosituasjon,
-    ): Either<KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon, Vilkårsvurdert> {
-        return if (this is KanOppdaterePeriodeGrunnlagVilkår) {
-            oppdaterBosituasjonInternal(bosituasjon).right()
-        } else {
-            KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon.UgyldigTilstand(
-                this::class,
-                Vilkårsvurdert::class,
-            ).left()
-        }
+    ) = if (this is KanOppdaterePeriodeGrunnlagVilkår) {
+        oppdaterBosituasjonInternal(saksbehandler, bosituasjon).right()
+    } else {
+        KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon.UgyldigTilstand(
+            this::class,
+            Vilkårsvurdert::class,
+        ).left()
     }
 
     private fun oppdaterBosituasjonInternal(
+        saksbehandler: NavIdentBruker.Saksbehandler,
         bosituasjon: Grunnlag.Bosituasjon,
-    ): Vilkårsvurdert {
-        return grunnlagsdataOgVilkårsvurderinger.oppdaterBosituasjon(listOf(bosituasjon)).let {
-            copyInternal(grunnlagsdataOgVilkårsvurderinger = it).vilkårsvurder()
-        }
+    ) = grunnlagsdataOgVilkårsvurderinger.oppdaterBosituasjon(listOf(bosituasjon)).let {
+        copyInternal(grunnlagsdataOgVilkårsvurderinger = it).vilkårsvurder(saksbehandler)
     }
 
     /**
@@ -182,51 +169,46 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     protected open fun copyInternal(
         stønadsperiode: Stønadsperiode = this.stønadsperiode!!,
         grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger.Søknadsbehandling = this.grunnlagsdataOgVilkårsvurderinger,
-    ): Søknadsbehandling {
-        return this
-    }
+    ) = this
 
     fun leggTilUtenlandsopphold(
+        saksbehandler: NavIdentBruker.Saksbehandler,
         utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
-    ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
-        return if (this is KanOppdaterePeriodeGrunnlagVilkår) {
-            leggTilUtenlandsoppholdInternal(utenlandsopphold)
-        } else {
-            KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold.IkkeLovÅLeggeTilUtenlandsoppholdIDenneStatusen(
-                fra = this::class,
-                til = Vilkårsvurdert::class,
-            ).left()
-        }
+    ) = if (this is KanOppdaterePeriodeGrunnlagVilkår) {
+        leggTilUtenlandsoppholdInternal(saksbehandler, utenlandsopphold)
+    } else {
+        KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold.IkkeLovÅLeggeTilUtenlandsoppholdIDenneStatusen(
+            fra = this::class,
+            til = Vilkårsvurdert::class,
+        ).left()
     }
 
     private fun leggTilUtenlandsoppholdInternal(
+        saksbehandler: NavIdentBruker.Saksbehandler,
         vilkår: UtenlandsoppholdVilkår.Vurdert,
-    ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
-        return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold>(vilkår)
-            .map {
-                copyInternal(
-                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
-                ).vilkårsvurder()
-            }
-    }
+    ) = valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUtenlandsopphold>(vilkår)
+        .map {
+            copyInternal(
+                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
+            ).vilkårsvurder(saksbehandler)
+        }
 
-    fun vilkårsvurder(): Vilkårsvurdert {
-        return opprett(
-            id = id,
-            opprettet = opprettet,
-            sakId = sakId,
-            saksnummer = saksnummer,
-            søknad = søknad,
-            oppgaveId = oppgaveId,
-            fnr = fnr,
-            fritekstTilBrev = fritekstTilBrev,
-            stønadsperiode = stønadsperiode!!,
-            grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
-            attesteringer = attesteringer,
-            avkorting = avkorting.uhåndtert(),
-            sakstype = sakstype,
-        )
-    }
+    fun vilkårsvurder(saksbehandler: NavIdentBruker.Saksbehandler): Vilkårsvurdert = opprett(
+        id = id,
+        opprettet = opprettet,
+        sakId = sakId,
+        saksnummer = saksnummer,
+        søknad = søknad,
+        oppgaveId = oppgaveId,
+        fnr = fnr,
+        fritekstTilBrev = fritekstTilBrev,
+        stønadsperiode = stønadsperiode!!,
+        grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+        attesteringer = attesteringer,
+        avkorting = avkorting.uhåndtert(),
+        sakstype = sakstype,
+        saksbehandler = saksbehandler,
+    )
 
     interface KanOppdaterePeriodeGrunnlagVilkår
     interface KanBeregnes : KanOppdaterePeriodeGrunnlagVilkår {
@@ -234,42 +216,40 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     }
 
     fun leggTilFormuevilkår(
+        saksbehandler: NavIdentBruker.Saksbehandler,
         vilkår: FormueVilkår.Vurdert,
-    ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFormuevilkår, Vilkårsvurdert> {
-        return if (this is KanOppdaterePeriodeGrunnlagVilkår) {
-            leggTilFormuevilkårInternal(vilkår)
-        } else {
-            return KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFormuevilkår.UgyldigTilstand(
-                fra = this::class,
-                til = Vilkårsvurdert::class,
-            ).left()
-        }
+    ) = if (this is KanOppdaterePeriodeGrunnlagVilkår) {
+        leggTilFormuevilkårInternal(saksbehandler, vilkår)
+    } else {
+        KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFormuevilkår.UgyldigTilstand(
+            fra = this::class,
+            til = Vilkårsvurdert::class,
+        ).left()
     }
 
     private fun leggTilFormuevilkårInternal(
+        saksbehandler: NavIdentBruker.Saksbehandler,
         vilkår: FormueVilkår.Vurdert,
-    ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFormuevilkår, Vilkårsvurdert> {
-        return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFormuevilkår>(vilkår)
-            .map {
-                copyInternal(
-                    grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.oppdaterFormuevilkår(vilkår),
-                ).vilkårsvurder()
-            }
-    }
+    ) = valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFormuevilkår>(vilkår)
+        .map {
+            copyInternal(
+                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.oppdaterFormuevilkår(vilkår),
+            ).vilkårsvurder(saksbehandler)
+        }
 
     fun oppdaterStønadsperiode(
+        saksbehandler: NavIdentBruker.Saksbehandler,
         oppdatertStønadsperiode: Stønadsperiode,
         formuegrenserFactory: FormuegrenserFactory,
         clock: Clock,
-    ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
-        return if (this is KanOppdaterePeriodeGrunnlagVilkår) {
-            oppdaterStønadsperiodeInternal(oppdatertStønadsperiode, formuegrenserFactory, clock)
-        } else {
-            KunneIkkeOppdatereStønadsperiode.UgyldigTilstand(this::class).left()
-        }
+    ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> = if (this is KanOppdaterePeriodeGrunnlagVilkår) {
+        oppdaterStønadsperiodeInternal(saksbehandler, oppdatertStønadsperiode, formuegrenserFactory, clock)
+    } else {
+        KunneIkkeOppdatereStønadsperiode.UgyldigTilstand(this::class).left()
     }
 
     private fun oppdaterStønadsperiodeInternal(
+        saksbehandler: NavIdentBruker.Saksbehandler,
         oppdatertStønadsperiode: Stønadsperiode,
         formuegrenserFactory: FormuegrenserFactory,
         clock: Clock,
@@ -284,57 +264,62 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             copyInternal(
                 stønadsperiode = oppdatertStønadsperiode,
                 grunnlagsdataOgVilkårsvurderinger = it,
-            ).vilkårsvurder()
+            ).vilkårsvurder(saksbehandler)
         }
     }
 
     fun leggTilOpplysningspliktVilkår(
+        saksbehandler: NavIdentBruker.Saksbehandler,
         opplysningspliktVilkår: OpplysningspliktVilkår.Vurdert,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
         return if (this is KanOppdaterePeriodeGrunnlagVilkår) {
-            leggTilOpplysningspliktVilkårInternal(opplysningspliktVilkår)
+            leggTilOpplysningspliktVilkårInternal(saksbehandler, opplysningspliktVilkår)
         } else {
             KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt.UgyldigTilstand(this::class).left()
         }
     }
 
     private fun leggTilOpplysningspliktVilkårInternal(
+        saksbehandler: NavIdentBruker.Saksbehandler,
         vilkår: OpplysningspliktVilkår.Vurdert,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt, Vilkårsvurdert> {
         return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilOpplysningsplikt>(vilkår)
             .map {
                 copyInternal(
                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
-                ).vilkårsvurder()
+                ).vilkårsvurder(saksbehandler)
             }
     }
 
     fun leggTilPensjonsVilkår(
         vilkår: PensjonsVilkår.Vurdert,
+        saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår, Vilkårsvurdert> {
         return if (this is KanOppdaterePeriodeGrunnlagVilkår) {
-            leggTilPensjonsVilkårInternal(vilkår)
+            leggTilPensjonsVilkårInternal(saksbehandler, vilkår)
         } else {
             KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår.UgyldigTilstand(this::class).left()
         }
     }
 
     private fun leggTilPensjonsVilkårInternal(
+        saksbehandler: NavIdentBruker.Saksbehandler,
         vilkår: PensjonsVilkår.Vurdert,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår, Vilkårsvurdert> {
         return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPensjonsVilkår>(vilkår)
             .map {
                 copyInternal(
                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
-                ).vilkårsvurder()
+                ).vilkårsvurder(saksbehandler)
             }
     }
 
     fun leggTilPersonligOppmøteVilkår(
+        saksbehandler: NavIdentBruker.Saksbehandler,
         vilkår: PersonligOppmøteVilkår.Vurdert,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPersonligOppmøteVilkår, Vilkårsvurdert> {
         return if (this is KanOppdaterePeriodeGrunnlagVilkår) {
-            leggTilPersonligOppmøteVilkårInternal(vilkår)
+            leggTilPersonligOppmøteVilkårInternal(saksbehandler, vilkår)
         } else {
             KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPersonligOppmøteVilkår.UgyldigTilstand(
                 this::class,
@@ -344,20 +329,22 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     }
 
     private fun leggTilPersonligOppmøteVilkårInternal(
+        saksbehandler: NavIdentBruker.Saksbehandler,
         vilkår: PersonligOppmøteVilkår.Vurdert,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPersonligOppmøteVilkår, Vilkårsvurdert> {
         return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilPersonligOppmøteVilkår>(vilkår)
             .map {
                 copyInternal(
                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
-                ).vilkårsvurder()
+                ).vilkårsvurder(saksbehandler)
             }
     }
 
     fun leggTilLovligOpphold(
+        saksbehandler: NavIdentBruker.Saksbehandler,
         lovligOppholdVilkår: LovligOppholdVilkår.Vurdert,
     ) = if (this is KanOppdaterePeriodeGrunnlagVilkår) {
-        leggTilLovligOppholdInternal(lovligOppholdVilkår)
+        leggTilLovligOppholdInternal(saksbehandler, lovligOppholdVilkår)
     } else {
         KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilLovligOpphold.UgyldigTilstand.Søknadsbehandling(
             this::class,
@@ -366,21 +353,23 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     }
 
     private fun leggTilLovligOppholdInternal(
+        saksbehandler: NavIdentBruker.Saksbehandler,
         lovligOppholdVilkår: LovligOppholdVilkår.Vurdert,
     ) = valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilLovligOpphold>(lovligOppholdVilkår).map {
         copyInternal(
             grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(lovligOppholdVilkår),
-        ).vilkårsvurder()
+        ).vilkårsvurder(saksbehandler)
     }
 
     fun beregn(
+        nySaksbehandler: NavIdentBruker.Saksbehandler,
         begrunnelse: String?,
         clock: Clock,
         satsFactory: SatsFactory,
     ): Either<KunneIkkeBeregne, Beregnet> {
         return when (this) {
             is KanOppdaterePeriodeGrunnlagVilkår -> {
-                when (val vilkårsvurdert = vilkårsvurder()) {
+                when (val vilkårsvurdert = vilkårsvurder(nySaksbehandler)) {
                     is KanBeregnes -> {
                         beregnInternal(
                             søknadsbehandling = vilkårsvurdert,
@@ -390,6 +379,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                                 clock = clock,
                                 satsFactory = satsFactory,
                             ),
+                            nySaksbehandler = nySaksbehandler,
                         )
                     }
 
@@ -406,6 +396,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     }
 
     fun leggTilInstitusjonsoppholdVilkår(
+        saksbehandler: NavIdentBruker.Saksbehandler,
         vilkår: InstitusjonsoppholdVilkår.Vurdert,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilInstitusjonsoppholdVilkår, Vilkårsvurdert> {
         require(vilkår.vurderingsperioder.size == 1) {
@@ -418,7 +409,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         return if (this is KanOppdaterePeriodeGrunnlagVilkår) {
             copyInternal(
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
-            ).vilkårsvurder().right()
+            ).vilkårsvurder(saksbehandler).right()
         } else {
             KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilInstitusjonsoppholdVilkår.UgyldigTilstand(this::class).left()
         }
@@ -474,10 +465,11 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     }
 
     fun leggTilUførevilkår(
+        saksbehandler: NavIdentBruker.Saksbehandler,
         uførhet: UføreVilkår.Vurdert,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
         return if (this is KanOppdaterePeriodeGrunnlagVilkår) {
-            leggTilUførevilkårInternal(uførhet)
+            leggTilUførevilkårInternal(saksbehandler, uførhet)
         } else {
             KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår.UgyldigTilstand(this::class, Vilkårsvurdert::class)
                 .left()
@@ -485,21 +477,23 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     }
 
     private fun leggTilUførevilkårInternal(
+        saksbehandler: NavIdentBruker.Saksbehandler,
         vilkår: UføreVilkår.Vurdert,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
         return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår>(vilkår)
             .map {
                 copyInternal(
                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
-                ).vilkårsvurder()
+                ).vilkårsvurder(saksbehandler)
             }
     }
 
     fun leggTilFamiliegjenforeningvilkår(
+        saksbehandler: NavIdentBruker.Saksbehandler,
         familiegjenforening: FamiliegjenforeningVilkår.Vurdert,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFamiliegjenforeningVilkår, Vilkårsvurdert> {
         return if (this is KanOppdaterePeriodeGrunnlagVilkår) {
-            leggTilFamiliegjenforeningvilkårInternal(familiegjenforening)
+            leggTilFamiliegjenforeningvilkårInternal(saksbehandler, familiegjenforening)
         } else {
             KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFamiliegjenforeningVilkår.UgyldigTilstand(
                 this::class,
@@ -509,21 +503,23 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     }
 
     private fun leggTilFamiliegjenforeningvilkårInternal(
+        saksbehandler: NavIdentBruker.Saksbehandler,
         vilkår: FamiliegjenforeningVilkår.Vurdert,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFamiliegjenforeningVilkår, Vilkårsvurdert> {
         return valider<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFamiliegjenforeningVilkår>(vilkår)
             .map {
                 copyInternal(
                     grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
-                ).vilkårsvurder()
+                ).vilkårsvurder(saksbehandler)
             }
     }
 
     fun leggTilFlyktningVilkår(
+        saksbehandler: NavIdentBruker.Saksbehandler,
         vilkår: FlyktningVilkår.Vurdert,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFlyktningVilkår, Vilkårsvurdert> {
         return if (this is KanOppdaterePeriodeGrunnlagVilkår) {
-            leggTilFlyktningVilkårInternal(vilkår)
+            leggTilFlyktningVilkårInternal(saksbehandler, vilkår)
         } else {
             KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFlyktningVilkår.UgyldigTilstand(
                 fra = this::class,
@@ -533,18 +529,20 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     }
 
     private fun leggTilFlyktningVilkårInternal(
+        saksbehandler: NavIdentBruker.Saksbehandler,
         vilkår: FlyktningVilkår.Vurdert,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFlyktningVilkår, Vilkårsvurdert> {
         return copyInternal(
             grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
-        ).vilkårsvurder().right()
+        ).vilkårsvurder(saksbehandler).right()
     }
 
     fun leggTilFastOppholdINorgeVilkår(
+        saksbehandler: NavIdentBruker.Saksbehandler,
         vilkår: FastOppholdINorgeVilkår.Vurdert,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFastOppholdINorgeVilkår, Vilkårsvurdert> {
         return if (this is KanOppdaterePeriodeGrunnlagVilkår) {
-            leggTilFastOppholdINorgeVilkårInternal(vilkår)
+            leggTilFastOppholdINorgeVilkårInternal(saksbehandler, vilkår)
         } else {
             KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFastOppholdINorgeVilkår.UgyldigTilstand(
                 fra = this::class,
@@ -554,11 +552,12 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     }
 
     private fun leggTilFastOppholdINorgeVilkårInternal(
+        saksbehandler: NavIdentBruker.Saksbehandler,
         vilkår: FastOppholdINorgeVilkår.Vurdert,
     ): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilFastOppholdINorgeVilkår, Vilkårsvurdert> {
         return copyInternal(
             grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.leggTil(vilkår),
-        ).vilkårsvurder().right()
+        ).vilkårsvurder(saksbehandler).right()
     }
 
     private fun valider(uførhet: UføreVilkår.Vurdert): Either<KunneIkkeLeggeTilVilkår.KunneIkkeLeggeTilUførevilkår, Unit> {
@@ -596,13 +595,14 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     }
 
     open fun simuler(
-        saksbehandler: NavIdentBruker,
+        saksbehandler: NavIdentBruker.Saksbehandler,
         simuler: (beregning: Beregning, uføregrunnlag: NonEmptyList<Grunnlag.Uføregrunnlag>?) -> Either<SimulerUtbetalingFeilet, Simulering>,
     ): Either<KunneIkkeSimulereBehandling, Simulert> {
         return KunneIkkeSimulereBehandling.UgyldigTilstand(this::class).left()
     }
 
     private fun beregnInternal(
+        nySaksbehandler: NavIdentBruker.Saksbehandler,
         søknadsbehandling: KanBeregnes,
         begrunnelse: String?,
         clock: Clock,
@@ -611,6 +611,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         return when (val avkort = søknadsbehandling.avkorting) {
             is AvkortingVedSøknadsbehandling.Uhåndtert.IngenUtestående -> {
                 beregnUtenAvkorting(
+                    saksbehandler = nySaksbehandler,
                     begrunnelse = begrunnelse,
                     beregningStrategyFactory = beregningStrategyFactory,
                 ).getOrHandle { return it.left() }
@@ -622,6 +623,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
             is AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting -> {
                 beregnMedAvkorting(
+                    saksbehandler = nySaksbehandler,
                     avkorting = avkort,
                     begrunnelse = begrunnelse,
                     clock = clock,
@@ -646,6 +648,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     attesteringer = behandling.attesteringer,
                     avkorting = behandling.avkorting.håndter().kanIkke(),
                     sakstype = behandling.sakstype,
+                    saksbehandler = nySaksbehandler,
                 )
 
                 AvslagGrunnetBeregning.Nei -> {
@@ -665,6 +668,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         attesteringer = behandling.attesteringer,
                         avkorting = behandling.avkorting.håndter(),
                         sakstype = behandling.sakstype,
+                        saksbehandler = nySaksbehandler,
                     )
                 }
             }.right()
@@ -676,10 +680,12 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
      * ligge i grunnlaget
      */
     private fun beregnUtenAvkorting(
+        saksbehandler: NavIdentBruker.Saksbehandler,
         begrunnelse: String?,
         beregningStrategyFactory: BeregningStrategyFactory,
     ): Either<KunneIkkeBeregne, Pair<Vilkårsvurdert, Beregning>> {
         return leggTilFradragsgrunnlag(
+            saksbehandler,
             fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag.filterNot { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold },
         ).getOrHandle {
             return KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag(it).left()
@@ -704,12 +710,13 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
      * Restbeløpet etter andre fradrag er faktorert inn av [beregnUtenAvkorting] er maksimalt beløp som kan avkortes.
      */
     private fun beregnMedAvkorting(
+        saksbehandler: NavIdentBruker.Saksbehandler,
         avkorting: AvkortingVedSøknadsbehandling.Uhåndtert.UteståendeAvkorting,
         begrunnelse: String?,
         clock: Clock,
         beregningStrategyFactory: BeregningStrategyFactory,
     ): Either<KunneIkkeBeregne, Pair<Vilkårsvurdert, Beregning>> {
-        return beregnUtenAvkorting(begrunnelse, beregningStrategyFactory)
+        return beregnUtenAvkorting(saksbehandler, begrunnelse, beregningStrategyFactory)
             .map { (utenAvkorting, beregningUtenAvkorting) ->
                 val fradragForAvkorting = Avkortingsplan(
                     feilutbetaltBeløp = avkorting.avkortingsvarsel.hentUtbetalteBeløp().sum(),
@@ -724,6 +731,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 }
 
                 val medAvkorting = utenAvkorting.leggTilFradragsgrunnlag(
+                    saksbehandler = saksbehandler,
                     fradragsgrunnlag = utenAvkorting.grunnlagsdata.fradragsgrunnlag + fradragForAvkorting,
                 ).getOrHandle { return KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag(it).left() }
 
@@ -756,6 +764,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 attesteringer: Attesteringshistorikk,
                 avkorting: AvkortingVedSøknadsbehandling.Uhåndtert,
                 sakstype: Sakstype,
+                saksbehandler: NavIdentBruker.Saksbehandler,
             ): Vilkårsvurdert {
                 val grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata
                 val vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger
@@ -804,6 +813,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                             attesteringer,
                             avkorting.kanIkke(),
                             sakstype,
+                            saksbehandler,
                         )
                     }
 
@@ -823,6 +833,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                             attesteringer,
                             avkorting.uhåndtert(),
                             sakstype,
+                            saksbehandler,
                         )
                     }
 
@@ -842,6 +853,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                             attesteringer = attesteringer,
                             avkorting = avkorting.kanIkke(),
                             sakstype = sakstype,
+                            saksbehandler,
                         )
                     }
                 }
@@ -863,13 +875,9 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val attesteringer: Attesteringshistorikk,
             override val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert,
             override val sakstype: Sakstype,
+            override val saksbehandler: NavIdentBruker.Saksbehandler?,
         ) : Vilkårsvurdert(), KanBeregnes {
-
-            override val status: BehandlingsStatus = BehandlingsStatus.VILKÅRSVURDERT_INNVILGET
-
             override val periode: Periode = stønadsperiode.periode
-
-            override val saksbehandler: NavIdentBruker.Saksbehandler? = null
 
             override val beregning = null
             override val simulering: Simulering? = null
@@ -909,11 +917,8 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val attesteringer: Attesteringshistorikk,
             override val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere,
             override val sakstype: Sakstype,
+            override val saksbehandler: NavIdentBruker.Saksbehandler?,
         ) : Vilkårsvurdert(), ErAvslag {
-
-            override val status: BehandlingsStatus = BehandlingsStatus.VILKÅRSVURDERT_AVSLAG
-
-            override val saksbehandler: NavIdentBruker.Saksbehandler? = null
 
             override val beregning = null
             override val simulering: Simulering? = null
@@ -984,11 +989,8 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val attesteringer: Attesteringshistorikk,
             override val avkorting: AvkortingVedSøknadsbehandling.Uhåndtert.KanIkkeHåndtere,
             override val sakstype: Sakstype,
+            override val saksbehandler: NavIdentBruker.Saksbehandler?,
         ) : Vilkårsvurdert() {
-
-            override val status: BehandlingsStatus = BehandlingsStatus.OPPRETTET
-
-            override val saksbehandler: NavIdentBruker.Saksbehandler? = null
 
             override val beregning = null
             override val simulering: Simulering? = null
@@ -1027,7 +1029,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         abstract override val avkorting: AvkortingVedSøknadsbehandling.Håndtert
 
         override fun simuler(
-            saksbehandler: NavIdentBruker,
+            saksbehandler: NavIdentBruker.Saksbehandler,
             simuler: (beregning: Beregning, uføregrunnlag: NonEmptyList<Grunnlag.Uføregrunnlag>?) -> Either<SimulerUtbetalingFeilet, Simulering>,
         ): Either<KunneIkkeSimulereBehandling, Simulert> {
             return simuler(
@@ -1036,6 +1038,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     Sakstype.ALDER -> {
                         null
                     }
+
                     Sakstype.UFØRE -> {
                         vilkårsvurderinger.uføreVilkår()
                             .getOrHandle { throw IllegalStateException("Søknadsbehandling uføre: $id mangler uføregrunnlag") }
@@ -1063,6 +1066,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     attesteringer = attesteringer,
                     avkorting = avkorting,
                     sakstype = sakstype,
+                    saksbehandler = saksbehandler,
                 )
             }
         }
@@ -1083,10 +1087,9 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val attesteringer: Attesteringshistorikk,
             override val avkorting: AvkortingVedSøknadsbehandling.Håndtert,
             override val sakstype: Sakstype,
+            override val saksbehandler: NavIdentBruker.Saksbehandler?,
         ) : Beregnet() {
-            override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET_INNVILGET
             override val periode: Periode = stønadsperiode.periode
-            override val saksbehandler: NavIdentBruker.Saksbehandler? = null
             override val simulering: Simulering? = null
 
             init {
@@ -1125,10 +1128,9 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val attesteringer: Attesteringshistorikk,
             override val avkorting: AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
             override val sakstype: Sakstype,
+            override val saksbehandler: NavIdentBruker.Saksbehandler?,
         ) : Beregnet(), ErAvslag {
-            override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET_AVSLAG
             override val periode: Periode = stønadsperiode.periode
-            override val saksbehandler: NavIdentBruker.Saksbehandler? = null
             override val simulering: Simulering? = null
 
             private val avslagsgrunnForBeregning: List<Avslagsgrunn> =
@@ -1205,10 +1207,9 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedSøknadsbehandling.Håndtert,
         override val sakstype: Sakstype,
+        override val saksbehandler: NavIdentBruker.Saksbehandler?,
     ) : Søknadsbehandling(), KanOppdaterePeriodeGrunnlagVilkår {
-        override val status: BehandlingsStatus = BehandlingsStatus.SIMULERT
         override val periode: Periode = stønadsperiode.periode
-        override val saksbehandler: NavIdentBruker.Saksbehandler? = null
 
         init {
             kastHvisGrunnlagsdataOgVilkårsvurderingerPeriodenOgBehandlingensPerioderErUlike()
@@ -1230,7 +1231,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         }
 
         override fun simuler(
-            saksbehandler: NavIdentBruker,
+            saksbehandler: NavIdentBruker.Saksbehandler,
             simuler: (beregning: Beregning, uføregrunnlag: NonEmptyList<Grunnlag.Uføregrunnlag>?) -> Either<SimulerUtbetalingFeilet, Simulering>,
         ): Either<KunneIkkeSimulereBehandling, Simulert> {
             return simuler(
@@ -1239,6 +1240,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     Sakstype.ALDER -> {
                         null
                     }
+
                     Sakstype.UFØRE -> {
                         vilkårsvurderinger.uføreVilkår()
                             .getOrHandle { throw IllegalStateException("Søknadsbehandling uføre: $id mangler uføregrunnlag") }
@@ -1266,6 +1268,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     attesteringer = attesteringer,
                     avkorting = avkorting,
                     sakstype = sakstype,
+                    saksbehandler = saksbehandler,
                 )
             }
         }
@@ -1329,7 +1332,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val avkorting: AvkortingVedSøknadsbehandling.Håndtert,
             override val sakstype: Sakstype,
         ) : TilAttestering() {
-            override val status: BehandlingsStatus = BehandlingsStatus.TIL_ATTESTERING_INNVILGET
 
             override fun copyInternal(
                 stønadsperiode: Stønadsperiode,
@@ -1402,7 +1404,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         }
 
         sealed class Avslag : TilAttestering(), ErAvslag {
-            final override val status: BehandlingsStatus = BehandlingsStatus.TIL_ATTESTERING_AVSLAG
             abstract override val stønadsperiode: Stønadsperiode
 
             data class UtenBeregning(
@@ -1643,7 +1644,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val sakstype: Sakstype,
         ) : Underkjent() {
 
-            override val status: BehandlingsStatus = BehandlingsStatus.UNDERKJENT_INNVILGET
             override val periode: Periode = stønadsperiode.periode
 
             init {
@@ -1670,7 +1670,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             }
 
             override fun simuler(
-                saksbehandler: NavIdentBruker,
+                saksbehandler: NavIdentBruker.Saksbehandler,
                 simuler: (beregning: Beregning, uføregrunnlag: NonEmptyList<Grunnlag.Uføregrunnlag>?) -> Either<SimulerUtbetalingFeilet, Simulering>,
             ): Either<KunneIkkeSimulereBehandling, Simulert> {
                 return simuler(
@@ -1679,6 +1679,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         Sakstype.ALDER -> {
                             null
                         }
+
                         Sakstype.UFØRE -> {
                             vilkårsvurderinger.uføreVilkår()
                                 .getOrHandle { throw IllegalStateException("Søknadsbehandling uføre: $id mangler uføregrunnlag") }
@@ -1706,6 +1707,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         attesteringer = attesteringer,
                         avkorting = avkorting,
                         sakstype = sakstype,
+                        saksbehandler = saksbehandler,
                     )
                 }
             }
@@ -1758,7 +1760,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val avkorting: AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
                 override val sakstype: Sakstype,
             ) : Avslag() {
-                override val status: BehandlingsStatus = BehandlingsStatus.UNDERKJENT_AVSLAG
                 override val periode: Periode = stønadsperiode.periode
                 override val simulering: Simulering? = null
 
@@ -1836,7 +1837,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val avkorting: AvkortingVedSøknadsbehandling.Håndtert.KanIkkeHåndtere,
                 override val sakstype: Sakstype,
             ) : Avslag() {
-                override val status: BehandlingsStatus = BehandlingsStatus.UNDERKJENT_AVSLAG
 
                 override val beregning = null
                 override val simulering: Simulering? = null
@@ -1927,7 +1927,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val avkorting: AvkortingVedSøknadsbehandling.Iverksatt,
             override val sakstype: Sakstype,
         ) : Iverksatt() {
-            override val status: BehandlingsStatus = BehandlingsStatus.IVERKSATT_INNVILGET
             override val periode: Periode = stønadsperiode.periode
 
             init {
@@ -1959,7 +1958,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val avkorting: AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere,
                 override val sakstype: Sakstype,
             ) : Avslag() {
-                override val status: BehandlingsStatus = BehandlingsStatus.IVERKSATT_AVSLAG
                 override val periode: Periode = stønadsperiode.periode
                 override val simulering: Simulering? = null
 
@@ -2003,7 +2001,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val avkorting: AvkortingVedSøknadsbehandling.Iverksatt.KanIkkeHåndtere,
                 override val sakstype: Sakstype,
             ) : Avslag() {
-                override val status: BehandlingsStatus = BehandlingsStatus.IVERKSATT_AVSLAG
                 override val periode: Periode = stønadsperiode.periode
 
                 override val beregning = null
@@ -2026,38 +2023,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 }
             }
         }
-    }
-}
-
-enum class BehandlingsStatus {
-    OPPRETTET,
-    VILKÅRSVURDERT_INNVILGET,
-    VILKÅRSVURDERT_AVSLAG,
-    BEREGNET_INNVILGET,
-    BEREGNET_AVSLAG,
-    SIMULERT,
-    TIL_ATTESTERING_INNVILGET,
-    TIL_ATTESTERING_AVSLAG,
-    UNDERKJENT_INNVILGET,
-    UNDERKJENT_AVSLAG,
-    IVERKSATT_INNVILGET,
-    IVERKSATT_AVSLAG,
-    ;
-
-    companion object {
-        @Suppress("MemberVisibilityCanBePrivate")
-        fun åpneBeregnetSøknadsbehandlinger() = listOf(
-            BEREGNET_INNVILGET,
-            BEREGNET_AVSLAG,
-            SIMULERT,
-            TIL_ATTESTERING_INNVILGET,
-            TIL_ATTESTERING_AVSLAG,
-            UNDERKJENT_INNVILGET,
-            UNDERKJENT_AVSLAG,
-        )
-
-        fun åpneBeregnetSøknadsbehandlingerKommaseparert(): String =
-            åpneBeregnetSøknadsbehandlinger().joinToString(",") { "'$it'" }
     }
 }
 
