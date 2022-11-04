@@ -106,6 +106,8 @@ sealed class AbstraktRevurdering : Behandling {
         is StansAvYtelseRevurdering.IverksattStansAvYtelse,
         -> false
     }
+
+    abstract val brevvalgRevurdering: BrevvalgRevurdering
 }
 
 sealed class Revurdering :
@@ -599,6 +601,7 @@ sealed class Revurdering :
                 }
             },
             sakinfo = sakinfo,
+            brevvalgRevurdering = BrevvalgRevurdering.IkkeValgt,
         )
     }
 
@@ -636,6 +639,7 @@ sealed class Revurdering :
                 }
             },
             sakinfo = sakinfo,
+            brevvalgRevurdering = BrevvalgRevurdering.IkkeValgt,
         )
     }
 
@@ -831,6 +835,7 @@ data class OpprettetRevurdering(
     override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty(),
     override val avkorting: AvkortingVedRevurdering.Uhåndtert,
     override val sakinfo: SakInfo,
+    override val brevvalgRevurdering: BrevvalgRevurdering = BrevvalgRevurdering.IkkeValgt,
 ) : Revurdering() {
     override val erOpphørt = false
     override val beregning: Beregning? = null
@@ -1007,6 +1012,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.DelvisHåndtert,
         override val sakinfo: SakInfo,
+        override val brevvalgRevurdering: BrevvalgRevurdering = BrevvalgRevurdering.IkkeValgt,
     ) : BeregnetRevurdering() {
         override val erOpphørt = false
         override val simulering: Simulering? = null
@@ -1092,6 +1098,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.DelvisHåndtert,
         override val sakinfo: SakInfo,
+        override val brevvalgRevurdering: BrevvalgRevurdering = BrevvalgRevurdering.IkkeValgt,
     ) : BeregnetRevurdering() {
         override val erOpphørt = false
         override val simulering: Simulering? = null
@@ -1102,6 +1109,25 @@ sealed class BeregnetRevurdering : Revurdering() {
             fritekstTilBrev: String,
             skalFøreTilUtsendingAvVedtaksbrev: Boolean,
         ): RevurderingTilAttestering.IngenEndring {
+            val brevvalgRevurdering = if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) {
+                BrevvalgRevurdering.IkkeSendBrev(
+                    begrunnelse = revurderingsårsak.årsak.toString(),
+                    bestemtAv = BrevvalgRevurdering.BestemtAv.System,
+                )
+            } else {
+                when (skalFøreTilUtsendingAvVedtaksbrev) {
+                    true -> BrevvalgRevurdering.SendBrev(
+                        fritekst = fritekstTilBrev,
+                        begrunnelse = null,
+                        bestemtAv = BrevvalgRevurdering.BestemtAv.Behandler(saksbehandler.toString()),
+                    )
+                    false -> BrevvalgRevurdering.IkkeSendBrev(
+                        begrunnelse = null,
+                        bestemtAv = BrevvalgRevurdering.BestemtAv.Behandler(saksbehandler.toString()),
+                    )
+                }
+            }
+
             return RevurderingTilAttestering.IngenEndring(
                 id = id,
                 periode = periode,
@@ -1110,8 +1136,10 @@ sealed class BeregnetRevurdering : Revurdering() {
                 saksbehandler = saksbehandler,
                 beregning = beregning,
                 oppgaveId = attesteringsoppgaveId,
+                // TODO(velg_send_brev slett)
                 fritekstTilBrev = fritekstTilBrev,
                 revurderingsårsak = revurderingsårsak,
+                // TODO(velg_send_brev slett)
                 skalFøreTilUtsendingAvVedtaksbrev = if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) false else skalFøreTilUtsendingAvVedtaksbrev,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
@@ -1119,6 +1147,7 @@ sealed class BeregnetRevurdering : Revurdering() {
                 attesteringer = attesteringer,
                 avkorting = avkorting.håndter(),
                 sakinfo = sakinfo,
+                brevvalgRevurdering = brevvalgRevurdering,
             )
         }
 
@@ -1143,6 +1172,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.DelvisHåndtert,
         override val sakinfo: SakInfo,
+        override val brevvalgRevurdering: BrevvalgRevurdering = BrevvalgRevurdering.IkkeValgt,
     ) : BeregnetRevurdering() {
         override val erOpphørt = true
         override val simulering: Simulering? = null
@@ -1479,6 +1509,7 @@ sealed class SimulertRevurdering : Revurdering() {
         override val avkorting: AvkortingVedRevurdering.Håndtert,
         override val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling,
         override val sakinfo: SakInfo,
+        override val brevvalgRevurdering: BrevvalgRevurdering = BrevvalgRevurdering.IkkeValgt,
     ) : SimulertRevurdering() {
         override val erOpphørt = false
 
@@ -1526,6 +1557,11 @@ sealed class SimulertRevurdering : Revurdering() {
                 avkorting = avkorting,
                 tilbakekrevingsbehandling = gyldigTilbakekrevingsbehandling,
                 sakinfo = sakinfo,
+                brevvalgRevurdering = BrevvalgRevurdering.SendBrev(
+                    fritekst = fritekstTilBrev,
+                    begrunnelse = null,
+                    bestemtAv = BrevvalgRevurdering.BestemtAv.System,
+                ),
             ).right()
         }
     }
@@ -1548,6 +1584,7 @@ sealed class SimulertRevurdering : Revurdering() {
         override val avkorting: AvkortingVedRevurdering.Håndtert,
         override val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling,
         override val sakinfo: SakInfo,
+        override val brevvalgRevurdering: BrevvalgRevurdering = BrevvalgRevurdering.IkkeValgt,
     ) : SimulertRevurdering() {
         override val erOpphørt = true
 
@@ -1618,6 +1655,11 @@ sealed class SimulertRevurdering : Revurdering() {
                 avkorting = avkorting,
                 tilbakekrevingsbehandling = gyldigTilbakekrevingsbehandling,
                 sakinfo = sakinfo,
+                brevvalgRevurdering = BrevvalgRevurdering.SendBrev(
+                    fritekst = fritekstTilBrev,
+                    begrunnelse = null,
+                    bestemtAv = BrevvalgRevurdering.BestemtAv.System,
+                ),
             ).right()
         }
     }
@@ -1657,6 +1699,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val avkorting: AvkortingVedRevurdering.Håndtert,
         val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling,
         override val sakinfo: SakInfo,
+        override val brevvalgRevurdering: BrevvalgRevurdering,
     ) : RevurderingTilAttestering() {
 
         override val erOpphørt = false
@@ -1700,6 +1743,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 avkorting = avkorting.iverksett(id),
                 tilbakekrevingsbehandling = tilbakekrevingsbehandling.fullførBehandling(),
                 sakinfo = sakinfo,
+                brevvalgRevurdering = brevvalgRevurdering,
             )
         }
     }
@@ -1722,6 +1766,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val avkorting: AvkortingVedRevurdering.Håndtert,
         val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling,
         override val sakinfo: SakInfo,
+        override val brevvalgRevurdering: BrevvalgRevurdering,
     ) : RevurderingTilAttestering() {
         override val erOpphørt = true
 
@@ -1779,6 +1824,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                     avkorting = avkorting.iverksett(id),
                     tilbakekrevingsbehandling = tilbakekrevingsbehandling.fullførBehandling(),
                     sakinfo = sakinfo,
+                    brevvalgRevurdering = brevvalgRevurdering,
                 )
             }
         }
@@ -1801,6 +1847,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.Håndtert,
         override val sakinfo: SakInfo,
+        override val brevvalgRevurdering: BrevvalgRevurdering,
     ) : RevurderingTilAttestering() {
 
         override val erOpphørt = false
@@ -1843,6 +1890,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                     ),
                     avkorting = avkorting.iverksett(id),
                     sakinfo = sakinfo,
+                    brevvalgRevurdering = brevvalgRevurdering,
                 ).right()
             }
         }
@@ -1884,6 +1932,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 avkorting = avkorting,
                 tilbakekrevingsbehandling = tilbakekrevingsbehandling,
                 sakinfo = sakinfo,
+                brevvalgRevurdering = brevvalgRevurdering,
             )
 
             is Opphørt -> UnderkjentRevurdering.Opphørt(
@@ -1904,6 +1953,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 avkorting = avkorting,
                 tilbakekrevingsbehandling = tilbakekrevingsbehandling,
                 sakinfo = sakinfo,
+                brevvalgRevurdering = brevvalgRevurdering,
             )
 
             is IngenEndring -> UnderkjentRevurdering.IngenEndring(
@@ -1923,6 +1973,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 informasjonSomRevurderes = informasjonSomRevurderes,
                 avkorting = avkorting,
                 sakinfo = sakinfo,
+                brevvalgRevurdering = brevvalgRevurdering,
             )
         }
     }
@@ -1963,6 +2014,7 @@ sealed class IverksattRevurdering : Revurdering() {
         override val avkorting: AvkortingVedRevurdering.Iverksatt,
         override val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet,
         override val sakinfo: SakInfo,
+        override val brevvalgRevurdering: BrevvalgRevurdering,
     ) : IverksattRevurdering() {
 
         override val erOpphørt = false
@@ -1994,6 +2046,7 @@ sealed class IverksattRevurdering : Revurdering() {
         override val avkorting: AvkortingVedRevurdering.Iverksatt,
         override val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet,
         override val sakinfo: SakInfo,
+        override val brevvalgRevurdering: BrevvalgRevurdering,
     ) : IverksattRevurdering() {
         override val erOpphørt = true
 
@@ -2047,6 +2100,7 @@ sealed class IverksattRevurdering : Revurdering() {
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.Iverksatt,
         override val sakinfo: SakInfo,
+        override val brevvalgRevurdering: BrevvalgRevurdering,
     ) : IverksattRevurdering() {
         override val erOpphørt = false
         override val simulering: Simulering? = null
@@ -2165,6 +2219,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override val avkorting: AvkortingVedRevurdering.Håndtert,
         val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling,
         override val sakinfo: SakInfo,
+        override val brevvalgRevurdering: BrevvalgRevurdering,
     ) : UnderkjentRevurdering() {
         override val erOpphørt = false
 
@@ -2194,6 +2249,11 @@ sealed class UnderkjentRevurdering : Revurdering() {
             avkorting = avkorting,
             tilbakekrevingsbehandling = tilbakekrevingsbehandling,
             sakinfo = sakinfo,
+            brevvalgRevurdering = BrevvalgRevurdering.SendBrev(
+                fritekst = fritekstTilBrev,
+                begrunnelse = null,
+                bestemtAv = BrevvalgRevurdering.BestemtAv.System,
+            ),
         )
 
         override fun lagForhåndsvarsel(
@@ -2245,6 +2305,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override val avkorting: AvkortingVedRevurdering.Håndtert,
         val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling,
         override val sakinfo: SakInfo,
+        override val brevvalgRevurdering: BrevvalgRevurdering,
     ) : UnderkjentRevurdering() {
         override val erOpphørt = true
 
@@ -2323,6 +2384,11 @@ sealed class UnderkjentRevurdering : Revurdering() {
                     avkorting = avkorting,
                     tilbakekrevingsbehandling = tilbakekrevingsbehandling,
                     sakinfo = sakinfo,
+                    brevvalgRevurdering = BrevvalgRevurdering.SendBrev(
+                        fritekst = fritekstTilBrev,
+                        begrunnelse = null,
+                        bestemtAv = BrevvalgRevurdering.BestemtAv.System,
+                    ),
                 ).right()
             }
         }
@@ -2345,6 +2411,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.Håndtert,
         override val sakinfo: SakInfo,
+        override val brevvalgRevurdering: BrevvalgRevurdering,
     ) : UnderkjentRevurdering() {
         override val erOpphørt = false
         override val simulering: Simulering? = null
@@ -2359,6 +2426,25 @@ sealed class UnderkjentRevurdering : Revurdering() {
             fritekstTilBrev: String,
             skalFøreTilUtsendingAvVedtaksbrev: Boolean,
         ): RevurderingTilAttestering.IngenEndring {
+            val brevvalgRevurdering = if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) {
+                BrevvalgRevurdering.IkkeSendBrev(
+                    begrunnelse = revurderingsårsak.årsak.toString(),
+                    bestemtAv = BrevvalgRevurdering.BestemtAv.System,
+                )
+            } else {
+                when (skalFøreTilUtsendingAvVedtaksbrev) {
+                    true -> BrevvalgRevurdering.SendBrev(
+                        fritekst = fritekstTilBrev,
+                        begrunnelse = null,
+                        bestemtAv = BrevvalgRevurdering.BestemtAv.Behandler(saksbehandler.toString()),
+                    )
+                    false -> BrevvalgRevurdering.IkkeSendBrev(
+                        begrunnelse = null,
+                        bestemtAv = BrevvalgRevurdering.BestemtAv.Behandler(saksbehandler.toString()),
+                    )
+                }
+            }
+
             return RevurderingTilAttestering.IngenEndring(
                 id = id,
                 periode = periode,
@@ -2367,8 +2453,10 @@ sealed class UnderkjentRevurdering : Revurdering() {
                 saksbehandler = saksbehandler,
                 beregning = beregning,
                 oppgaveId = oppgaveId,
+                // TODO(velg_send_brev slett)
                 fritekstTilBrev = fritekstTilBrev,
                 revurderingsårsak = revurderingsårsak,
+                // TODO(velg_send_brev slett)
                 skalFøreTilUtsendingAvVedtaksbrev = if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) false else skalFøreTilUtsendingAvVedtaksbrev,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
@@ -2376,6 +2464,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
                 attesteringer = attesteringer,
                 avkorting = avkorting,
                 sakinfo = sakinfo,
+                brevvalgRevurdering = brevvalgRevurdering,
             )
         }
     }

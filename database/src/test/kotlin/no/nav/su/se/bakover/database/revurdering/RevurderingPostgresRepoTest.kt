@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekre
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingUnderBehandling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.BrevvalgRevurdering
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
@@ -47,6 +48,7 @@ import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.persistence.withSession
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
+import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.simulerUtbetaling
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.stønadsperiode2021
@@ -539,6 +541,7 @@ internal class RevurderingPostgresRepoTest {
                 avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
                 tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling,
                 sakinfo = opprettet.sakinfo,
+                brevvalgRevurdering = tilAttestering.brevvalgRevurdering,
             )
 
             repo.lagre(underkjent)
@@ -577,6 +580,7 @@ internal class RevurderingPostgresRepoTest {
                 avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
                 tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingUnderBehandling,
                 sakinfo = opprettet.sakinfo,
+                brevvalgRevurdering = BrevvalgRevurdering.IkkeValgt,
             )
 
             repo.lagre(underkjent)
@@ -629,6 +633,7 @@ internal class RevurderingPostgresRepoTest {
                 avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
                 tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingFerdigbehandlet,
                 sakinfo = opprettet.sakinfo,
+                brevvalgRevurdering = BrevvalgRevurdering.IkkeValgt,
             )
 
             repo.lagre(underkjent)
@@ -666,6 +671,7 @@ internal class RevurderingPostgresRepoTest {
                 attesteringer = Attesteringshistorikk.empty(),
                 avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
                 sakinfo = opprettet.sakinfo,
+                brevvalgRevurdering = BrevvalgRevurdering.IkkeValgt,
             )
             repo.lagre(underkjentTilAttestering)
             val underkjent = UnderkjentRevurdering.IngenEndring(
@@ -692,6 +698,7 @@ internal class RevurderingPostgresRepoTest {
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
                 avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
                 sakinfo = opprettet.sakinfo,
+                brevvalgRevurdering = BrevvalgRevurdering.IkkeValgt,
             )
 
             repo.lagre(underkjent)
@@ -728,6 +735,7 @@ internal class RevurderingPostgresRepoTest {
                 attesteringer = Attesteringshistorikk.empty(),
                 avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
                 sakinfo = opprettet.sakinfo,
+                brevvalgRevurdering = BrevvalgRevurdering.IkkeValgt,
             )
 
             repo.lagre(underkjent)
@@ -764,6 +772,7 @@ internal class RevurderingPostgresRepoTest {
                 attesteringer = Attesteringshistorikk.empty(),
                 avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
                 sakinfo = opprettet.sakinfo,
+                brevvalgRevurdering = BrevvalgRevurdering.IkkeValgt,
             )
             repo.lagre(revurderingTilAttestering)
             val underkjent = IverksattRevurdering.IngenEndring(
@@ -788,6 +797,7 @@ internal class RevurderingPostgresRepoTest {
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
                 avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
                 sakinfo = opprettet.sakinfo,
+                brevvalgRevurdering = BrevvalgRevurdering.IkkeValgt,
             )
 
             repo.lagre(underkjent)
@@ -896,6 +906,34 @@ internal class RevurderingPostgresRepoTest {
             )
             testDataHelper.sessionFactory.withSession {
                 avkortingsvarselRepo.hent(avkortingsvarsel.id, it) shouldBe avkortingsvarsel
+            }
+        }
+    }
+
+    @Test
+    fun `hent og lagre brevvalg`() {
+        withMigratedDb { dataSource ->
+            TestDataHelper(dataSource).also { helper ->
+                helper.persisterSimulertRevurdering().second.shouldBeType<SimulertRevurdering.Innvilget>().also {
+                    helper.revurderingRepo.hent(it.id)!!.brevvalgRevurdering shouldBe BrevvalgRevurdering.IkkeValgt
+                    helper.revurderingRepo.lagre(
+                        it.tilAttestering(
+                            attesteringsoppgaveId = oppgaveId,
+                            saksbehandler = saksbehandler,
+                            fritekstTilBrev = "fin tekst",
+                        ).getOrFail(),
+                    )
+                    helper.revurderingRepo.hent(it.id)!!.brevvalgRevurdering shouldBe BrevvalgRevurdering.SendBrev(
+                        fritekst = "fin tekst",
+                        begrunnelse = null,
+                        bestemtAv = BrevvalgRevurdering.BestemtAv.System,
+                    )
+                }
+
+                helper.persisterSimulertStansAvYtelse().second.brevvalgRevurdering shouldBe BrevvalgRevurdering.IkkeSendBrev(
+                    begrunnelse = null,
+                    bestemtAv = BrevvalgRevurdering.BestemtAv.System,
+                )
             }
         }
     }

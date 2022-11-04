@@ -45,6 +45,7 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering() {
         override val periode: Periode = underliggendeStansAvYtelse.periode
         override val grunnlagsdata: Grunnlagsdata = underliggendeStansAvYtelse.grunnlagsdata
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering = underliggendeStansAvYtelse.vilkårsvurderinger
+        override val brevvalgRevurdering: BrevvalgRevurdering = underliggendeStansAvYtelse.brevvalgRevurdering
         override val attesteringer: Attesteringshistorikk = underliggendeStansAvYtelse.attesteringer
         override val saksbehandler: NavIdentBruker.Saksbehandler = underliggendeStansAvYtelse.saksbehandler
         override val simulering: Simulering = underliggendeStansAvYtelse.simulering
@@ -85,6 +86,10 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering() {
         override val simulering: Simulering,
         override val revurderingsårsak: Revurderingsårsak,
         override val sakinfo: SakInfo,
+        override val brevvalgRevurdering: BrevvalgRevurdering = BrevvalgRevurdering.IkkeSendBrev(
+            begrunnelse = null,
+            bestemtAv = BrevvalgRevurdering.BestemtAv.System,
+        ),
     ) : StansAvYtelseRevurdering() {
 
         override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty()
@@ -130,5 +135,9 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering() {
         override val attesteringer: Attesteringshistorikk,
         override val revurderingsårsak: Revurderingsårsak,
         override val sakinfo: SakInfo,
+        override val brevvalgRevurdering: BrevvalgRevurdering = BrevvalgRevurdering.IkkeSendBrev(
+            begrunnelse = null,
+            bestemtAv = BrevvalgRevurdering.BestemtAv.System,
+        ),
     ) : StansAvYtelseRevurdering(), BehandlingMedAttestering
 }
