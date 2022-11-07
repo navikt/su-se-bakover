@@ -13,7 +13,9 @@ import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering
+import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
+import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.revurdering.opprett.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.sakId
@@ -107,23 +109,9 @@ internal class OpprettRevurderingRouteKtTest {
     }
 
     @Test
-    fun `fant ikke sak`() {
+    fun `fant ingen vedtak som kan revurderes for angitt periode`() {
         shouldMapErrorCorrectly(
-            error = KunneIkkeOppretteRevurdering.FantIkkeSak,
-            expectedStatusCode = HttpStatusCode.NotFound,
-            expectedJsonResponse = """
-                {
-                    "message":"Fant ikke sak",
-                    "code":"fant_ikke_sak"
-                }
-            """.trimIndent(),
-        )
-    }
-
-    @Test
-    fun `fant ingenting som kan revurderes`() {
-        shouldMapErrorCorrectly(
-            error = KunneIkkeOppretteRevurdering.FeilVedOpprettelseAvRevurdering(Sak.KunneIkkeOppretteRevurdering.GjeldendeVedtaksdataKanIkkeRevurderes(Sak.GjeldendeVedtaksdataErUgyldigForRevurdering.FantIngenVedtakSomKanRevurderes)),
+            error = KunneIkkeOppretteRevurdering.VedtakInnenforValgtPeriodeKanIkkeRevurderes(Sak.GjeldendeVedtaksdataErUgyldigForRevurdering.FantIngenVedtakSomKanRevurderes),
             expectedStatusCode = HttpStatusCode.NotFound,
             expectedJsonResponse = """
                 {
@@ -135,14 +123,28 @@ internal class OpprettRevurderingRouteKtTest {
     }
 
     @Test
+    fun `hele revurderingsperioden inneholder ikke vedtak`() {
+        shouldMapErrorCorrectly(
+            error = KunneIkkeOppretteRevurdering.VedtakInnenforValgtPeriodeKanIkkeRevurderes(Sak.GjeldendeVedtaksdataErUgyldigForRevurdering.HeleRevurderingsperiodenInneholderIkkeVedtak),
+            expectedStatusCode = HttpStatusCode.InternalServerError,
+            expectedJsonResponse = """
+                {
+                    "message":"Sak mangler vedtak for en eller flere måneder i valgt revurderingsperiode!",
+                    "code":"vedtak_mangler_i_en_eller_flere_måneder_av_revurderingsperiode"
+                }
+            """.trimIndent(),
+        )
+    }
+
+    @Test
     fun `fant ikke aktør id`() {
         shouldMapErrorCorrectly(
-            error = KunneIkkeOppretteRevurdering.FeilVedOpprettelseAvRevurdering(Sak.KunneIkkeOppretteRevurdering.FantIkkeAktørId),
+            error = KunneIkkeOppretteRevurdering.FantIkkeAktørId(KunneIkkeHentePerson.FantIkkePerson),
             expectedStatusCode = HttpStatusCode.NotFound,
             expectedJsonResponse = """
                 {
-                    "message":"Fant ikke aktør id",
-                    "code":"fant_ikke_aktør_id"
+                    "message":"Fant ikke person",
+                    "code":"fant_ikke_person"
                 }
             """.trimIndent(),
         )
@@ -151,7 +153,7 @@ internal class OpprettRevurderingRouteKtTest {
     @Test
     fun `kunne ikke opprette oppgave`() {
         shouldMapErrorCorrectly(
-            error = KunneIkkeOppretteRevurdering.FeilVedOpprettelseAvRevurdering(Sak.KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave),
+            error = KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave(OppgaveFeil.KunneIkkeOppretteOppgave),
             expectedStatusCode = HttpStatusCode.InternalServerError,
             expectedJsonResponse = """
                 {

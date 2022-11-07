@@ -72,6 +72,8 @@ import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
+import no.nav.su.se.bakover.domain.revurdering.opprett.KunneIkkeOppretteRevurdering
+import no.nav.su.se.bakover.domain.revurdering.opprett.OpprettRevurderingCommand
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
 import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.sak.SakInfo
@@ -133,7 +135,6 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilUføreVilkår
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilUtenlandsopphold
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppdatereTilbakekrevingsbehandling
-import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeSendeRevurderingTilAttestering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeStanseYtelse
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeUnderkjenneRevurdering
@@ -141,7 +142,6 @@ import no.nav.su.se.bakover.service.revurdering.LeggTilBosituasjonerRequest
 import no.nav.su.se.bakover.service.revurdering.LeggTilOpplysningspliktRequest
 import no.nav.su.se.bakover.service.revurdering.OppdaterRevurderingRequest
 import no.nav.su.se.bakover.service.revurdering.OppdaterTilbakekrevingsbehandlingRequest
-import no.nav.su.se.bakover.service.revurdering.OpprettRevurderingRequest
 import no.nav.su.se.bakover.service.revurdering.RevurderingOgFeilmeldingerResponse
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.revurdering.SendTilAttesteringRequest
@@ -674,10 +674,10 @@ open class AccessCheckProxy(
                 }
 
                 override fun opprettRevurdering(
-                    opprettRevurderingRequest: OpprettRevurderingRequest,
+                    command: OpprettRevurderingCommand,
                 ): Either<KunneIkkeOppretteRevurdering, OpprettetRevurdering> {
-                    assertHarTilgangTilSak(opprettRevurderingRequest.sakId)
-                    return services.revurdering.opprettRevurdering(opprettRevurderingRequest)
+                    assertHarTilgangTilSak(command.sakId)
+                    return services.revurdering.opprettRevurdering(command)
                 }
 
                 override fun oppdaterRevurdering(
