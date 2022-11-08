@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.brev.søknad.lukk.AvvistSøknadBrevRequest
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.TrukketSøknadBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeLukkeOppgave
+import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.PersonService
@@ -31,7 +32,6 @@ import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.test.TestSessionFactory

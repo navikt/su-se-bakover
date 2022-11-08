@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web
 
 import no.nav.su.se.bakover.domain.brev.BrevService
+import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.service.SendPåminnelserOmNyStønadsperiodeService
@@ -11,7 +12,6 @@ import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
 import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
 import no.nav.su.se.bakover.service.kontrollsamtale.UtløptFristForKontrollsamtaleService
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
-import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.regulering.ReguleringService
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.skatt.SkatteService

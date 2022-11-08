@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.SakService
@@ -51,7 +52,6 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
-import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilOpplysningsplikt
 import no.nav.su.se.bakover.service.revurdering.LeggTilOpplysningspliktRequest
 import no.nav.su.se.bakover.service.søknad.SøknadService

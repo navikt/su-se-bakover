@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.TrukketSøknadBrevRequest
+import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
@@ -24,7 +25,6 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.søknad.FantIkkeSøknad
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService

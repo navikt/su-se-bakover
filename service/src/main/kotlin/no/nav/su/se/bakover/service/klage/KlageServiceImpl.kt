@@ -45,6 +45,7 @@ import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.SakRepo
@@ -52,7 +53,6 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
 import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
-import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import org.slf4j.LoggerFactory
 import java.time.Clock

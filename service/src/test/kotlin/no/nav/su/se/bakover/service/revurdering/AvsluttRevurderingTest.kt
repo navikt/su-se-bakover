@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.brev.Brevvalg
 import no.nav.su.se.bakover.domain.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
@@ -19,7 +20,6 @@ import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.avsluttetGjenopptakelseAvYtelseeFraIverksattSøknadsbehandlignsvedtak
 import no.nav.su.se.bakover.test.avsluttetStansAvYtelseFraIverksattSøknadsbehandlignsvedtak

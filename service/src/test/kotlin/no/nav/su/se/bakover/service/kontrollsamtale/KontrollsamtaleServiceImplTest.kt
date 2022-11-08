@@ -12,12 +12,12 @@ import no.nav.su.se.bakover.domain.kontrollsamtale.KontrollsamtaleRepo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.FantIkkeSak
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate

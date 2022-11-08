@@ -14,12 +14,12 @@ import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeLukkeOppgave
+import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.FantIkkeVedtakForUtbetalingId
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeGenerereBrev
 import no.nav.su.se.bakover.test.fixedClock

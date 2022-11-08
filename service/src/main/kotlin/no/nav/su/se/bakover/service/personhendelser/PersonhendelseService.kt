@@ -2,11 +2,11 @@ package no.nav.su.se.bakover.service.personhendelser
 
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import no.nav.su.se.bakover.domain.personhendelse.PersonhendelseRepo
 import no.nav.su.se.bakover.domain.sak.SakRepo
-import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.util.UUID

@@ -18,12 +18,12 @@ import no.nav.su.se.bakover.domain.kontrollsamtale.KontrollsamtaleRepo
 import no.nav.su.se.bakover.domain.kontrollsamtale.Kontrollsamtalestatus
 import no.nav.su.se.bakover.domain.kontrollsamtale.UgyldigStatusovergang
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
-import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import org.jetbrains.kotlin.utils.addToStdlib.ifFalse
 import java.time.Clock
 import java.time.LocalDate

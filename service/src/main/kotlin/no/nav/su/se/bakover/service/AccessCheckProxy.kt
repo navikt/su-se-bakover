@@ -60,6 +60,7 @@ import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.RåttKravgrunnlag
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.person.PersonRepo
@@ -113,7 +114,6 @@ import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeHenteKontrollsamtal
 import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeSetteNyDatoForKontrollsamtale
 import no.nav.su.se.bakover.service.kontrollsamtale.UtløptFristForKontrollsamtaleService
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
-import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.regulering.KunneIkkeAvslutte
 import no.nav.su.se.bakover.service.regulering.KunneIkkeOppretteRegulering
 import no.nav.su.se.bakover.service.regulering.KunneIkkeRegulereManuelt

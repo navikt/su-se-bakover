@@ -30,6 +30,7 @@ import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.person.PersonService
@@ -71,7 +72,6 @@ import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
-import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.revurdering.IverksettStansAvYtelseTransactionException.Companion.exception
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalStansFeil

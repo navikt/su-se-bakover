@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 import no.nav.su.se.bakover.domain.personhendelse.PersonhendelseRepo
@@ -18,7 +19,6 @@ import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.generer
