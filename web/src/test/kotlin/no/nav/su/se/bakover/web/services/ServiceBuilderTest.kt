@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.services
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.Clients
+import no.nav.su.se.bakover.common.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.service.klage.KlageServiceImpl
@@ -14,6 +15,7 @@ import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadServiceImpl
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServiceImpl
 import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.defaultMock
+import no.nav.su.se.bakover.test.persistence.dbMetricsStub
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
@@ -36,16 +38,15 @@ internal class ServiceBuilderTest {
                 personhendelseRepo = mock(),
                 dokumentRepo = mock(),
                 nøkkeltallRepo = mock(),
-                sessionFactory = mock(),
+                sessionFactory = mock<PostgresSessionFactory>(),
                 klageRepo = mock(),
                 klageinstanshendelseRepo = mock(),
-                kontrollsamtaleRepo = mock(),
                 avkortingsvarselRepo = mock(),
                 reguleringRepo = defaultMock(),
                 tilbakekrevingRepo = mock(),
-                jobContextRepo = mock(),
                 hendelseRepo = mock(),
                 utenlandsoppholdRepo = mock(),
+                sendPåminnelseNyStønadsperiodeJobRepo = mock(),
             ),
             clients = Clients(
                 oauth = mock(),
@@ -75,13 +76,15 @@ internal class ServiceBuilderTest {
             unleash = mock(),
             satsFactory = satsFactoryTestPåDato(),
             applicationConfig = applicationConfig(),
+            dbMetrics = dbMetricsStub,
         ).let {
             listOf(
                 (it.sak as SakServiceImpl).getObservers().singleOrNull(),
                 (it.søknad as SøknadServiceImpl).getObservers().singleOrNull(),
                 (it.revurdering as RevurderingServiceImpl).getObservers().singleOrNull(),
                 (it.reguleringService as ReguleringServiceImpl).getObservers().singleOrNull(),
-                (it.søknadsbehandling.søknadsbehandlingService as SøknadsbehandlingServiceImpl).getObservers().singleOrNull(),
+                (it.søknadsbehandling.søknadsbehandlingService as SøknadsbehandlingServiceImpl).getObservers()
+                    .singleOrNull(),
                 (it.klageService as KlageServiceImpl).getObservers().singleOrNull(),
                 (it.lukkSøknad as LukkSøknadServiceImpl).getObservers().singleOrNull(),
             ).forEach {

@@ -12,10 +12,10 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksattSøknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingCommand
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.KunneIkkeIverksetteSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.OpprettKontrollsamtaleVedNyStønadsperiodeService
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.iverksettSøknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
-import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import java.time.Clock
@@ -27,7 +27,7 @@ class IverksettSøknadsbehandlingServiceImpl(
     private val sessionFactory: SessionFactory,
     private val søknadsbehandlingRepo: SøknadsbehandlingRepo,
     private val vedtakRepo: VedtakRepo,
-    private val kontrollsamtaleService: KontrollsamtaleService,
+    private val opprettPlanlagtKontrollsamtaleService: OpprettKontrollsamtaleVedNyStønadsperiodeService,
     private val ferdigstillVedtakService: FerdigstillVedtakService,
     private val brevService: BrevService,
 ) : IverksettSøknadsbehandlingService {
@@ -65,7 +65,7 @@ class IverksettSøknadsbehandlingServiceImpl(
             lagreDokument = brevService::lagreDokument,
             lukkOppgave = ferdigstillVedtakService::lukkOppgaveMedBruker,
             klargjørUtbetaling = utbetalingService::klargjørUtbetaling,
-            opprettPlanlagtKontrollsamtale = kontrollsamtaleService::opprettPlanlagtKontrollsamtale,
+            opprettPlanlagtKontrollsamtale = opprettPlanlagtKontrollsamtaleService::opprett,
         )
     }
 }

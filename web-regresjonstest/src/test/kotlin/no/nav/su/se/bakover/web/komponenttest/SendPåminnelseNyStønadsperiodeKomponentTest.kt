@@ -8,6 +8,9 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.juni
+import no.nav.su.se.bakover.common.persistence.PostgresSessionFactory
+import no.nav.su.se.bakover.database.jobcontext.JobContextPostgresRepo
+import no.nav.su.se.bakover.database.stønadsperiode.SendPåminnelseNyStønadsperiodeJobPostgresRepo
 import no.nav.su.se.bakover.domain.brev.BrevTemplate
 import no.nav.su.se.bakover.domain.jobcontext.NameAndYearMonthId
 import no.nav.su.se.bakover.domain.jobcontext.SendPåminnelseNyStønadsperiodeContext
@@ -63,8 +66,13 @@ class SendPåminnelseNyStønadsperiodeKomponentTest {
             }
 
             appComponents.services.sendPåminnelserOmNyStønadsperiodeService.sendPåminnelser()
-
-            appComponents.databaseRepos.jobContextRepo.hent<SendPåminnelseNyStønadsperiodeContext>(
+            val jobContextPostgresRepo = JobContextPostgresRepo(
+                sessionFactory = appComponents.databaseRepos.sessionFactory as PostgresSessionFactory,
+            )
+            val jobRepo = SendPåminnelseNyStønadsperiodeJobPostgresRepo(
+                repo = jobContextPostgresRepo,
+            )
+            jobRepo.hent(
                 SendPåminnelseNyStønadsperiodeContext.genererIdForTidspunkt(clock),
             ) shouldBe SendPåminnelseNyStønadsperiodeContext(
                 clock = clock,
@@ -106,7 +114,7 @@ class SendPåminnelseNyStønadsperiodeKomponentTest {
 
             appComponents.services.sendPåminnelserOmNyStønadsperiodeService.sendPåminnelser()
 
-            appComponents.databaseRepos.jobContextRepo.hent<SendPåminnelseNyStønadsperiodeContext>(
+            jobRepo.hent(
                 SendPåminnelseNyStønadsperiodeContext.genererIdForTidspunkt(clock),
             ) shouldBe SendPåminnelseNyStønadsperiodeContext(
                 clock = clock,

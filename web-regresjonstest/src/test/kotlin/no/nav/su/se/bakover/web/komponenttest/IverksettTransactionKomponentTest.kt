@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.fixedClock
 import no.nav.su.se.bakover.common.startOfMonth
-import no.nav.su.se.bakover.domain.kontrollsamtale.Kontrollsamtale
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
@@ -18,7 +17,8 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
-import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeHenteKontrollsamtale
+import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtale
+import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeHenteKontrollsamtale
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.generer
@@ -93,7 +93,7 @@ internal class IverksettTransactionKomponentTest {
                 it.utbetalinger shouldBe emptyList()
                 it.søknadsbehandlinger.single().shouldBeType<Søknadsbehandling.TilAttestering.Innvilget>()
                 it.vedtakListe shouldBe emptyList()
-                appComponents.services.kontrollsamtale.hentNestePlanlagteKontrollsamtale(it.id) shouldBe KunneIkkeHenteKontrollsamtale.FantIkkeKontrollsamtale.left()
+                appComponents.services.kontrollsamtaleSetup.kontrollsamtaleService.hentNestePlanlagteKontrollsamtale(it.id) shouldBe KunneIkkeHenteKontrollsamtale.FantIkkePlanlagtKontrollsamtale.left()
             }
         }
     }
@@ -155,7 +155,7 @@ internal class IverksettTransactionKomponentTest {
                         sak.utbetalinger.single().id shouldBe it.utbetalingId
                     }
                     sak.revurderinger.single().shouldBeType<RevurderingTilAttestering.Innvilget>()
-                    appComponents.services.kontrollsamtale.hentNestePlanlagteKontrollsamtale(sak.id).getOrFail().shouldBeType<Kontrollsamtale>()
+                    appComponents.services.kontrollsamtaleSetup.kontrollsamtaleService.hentNestePlanlagteKontrollsamtale(sak.id).getOrFail().shouldBeType<Kontrollsamtale>()
                 }
             }
         }
@@ -228,7 +228,7 @@ internal class IverksettTransactionKomponentTest {
                         sak.utbetalinger.single().id shouldBe it.utbetalingId
                     }
                     sak.revurderinger.single().shouldBeType<RevurderingTilAttestering.Opphørt>()
-                    appComponents.services.kontrollsamtale.hentNestePlanlagteKontrollsamtale(sak.id).getOrFail().shouldBeType<Kontrollsamtale>()
+                    appComponents.services.kontrollsamtaleSetup.kontrollsamtaleService.hentNestePlanlagteKontrollsamtale(sak.id).getOrFail().shouldBeType<Kontrollsamtale>()
                 }
             }
         }
@@ -293,7 +293,7 @@ internal class IverksettTransactionKomponentTest {
                         revurderinger shouldHaveSize 1
                         revurderinger.single { it is StansAvYtelseRevurdering.SimulertStansAvYtelse }
                     }
-                    appComponents.services.kontrollsamtale.hentNestePlanlagteKontrollsamtale(sak.id).getOrFail().shouldBeType<Kontrollsamtale>()
+                    appComponents.services.kontrollsamtaleSetup.kontrollsamtaleService.hentNestePlanlagteKontrollsamtale(sak.id).getOrFail().shouldBeType<Kontrollsamtale>()
                 }
             }
         }
@@ -362,7 +362,7 @@ internal class IverksettTransactionKomponentTest {
                         revurderinger.single { it is StansAvYtelseRevurdering.IverksattStansAvYtelse }
                         revurderinger.single { it is GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse }
                     }
-                    appComponents.services.kontrollsamtale.hentNestePlanlagteKontrollsamtale(sak.id).getOrFail().shouldBeType<Kontrollsamtale>()
+                    appComponents.services.kontrollsamtaleSetup.kontrollsamtaleService.hentNestePlanlagteKontrollsamtale(sak.id).getOrFail().shouldBeType<Kontrollsamtale>()
                 }
             }
         }

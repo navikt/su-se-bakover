@@ -19,7 +19,7 @@ import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 
 internal const val frikortPath = "/frikort"
-internal val formatter = DateTimeFormatter.ofPattern("yyyy-MM")
+private val formatter = DateTimeFormatter.ofPattern("yyyy-MM")
 
 internal fun Route.frikortVedtakRoutes(
     vedtakService: VedtakService,
@@ -51,7 +51,10 @@ internal fun Route.frikortVedtakRoutes(
                 HttpStatusCode.OK,
                 serialize(
                     object {
+                        @Suppress("unused")
                         val dato = aktivDato.toFrikortFormat()
+
+                        @Suppress("unused")
                         val fnr = aktiveBehandlinger
                     },
                 ),
@@ -60,5 +63,5 @@ internal fun Route.frikortVedtakRoutes(
     }
 }
 
-fun LocalDate.toFrikortFormat(): String = formatter
+private fun LocalDate.toFrikortFormat(): String = formatter
     .withZone(zoneIdOslo).format(this)

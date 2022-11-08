@@ -9,12 +9,11 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseService
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.kontrollsamtale.infrastructure.setup.KontrollsamtaleSetup
 import no.nav.su.se.bakover.service.SendPåminnelserOmNyStønadsperiodeService
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
-import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
-import no.nav.su.se.bakover.service.kontrollsamtale.UtløptFristForKontrollsamtaleService
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.skatt.SkatteService
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
@@ -44,12 +43,11 @@ data class Services(
     val vedtakService: VedtakService,
     val nøkkeltallService: NøkkeltallService,
     val avslåSøknadManglendeDokumentasjonService: AvslåSøknadManglendeDokumentasjonService,
-    val kontrollsamtale: KontrollsamtaleService,
     val klageService: KlageService,
     val klageinstanshendelseService: KlageinstanshendelseService,
     val reguleringService: ReguleringService,
     val tilbakekrevingService: TilbakekrevingService,
     val sendPåminnelserOmNyStønadsperiodeService: SendPåminnelserOmNyStønadsperiodeService,
     val skatteService: SkatteService,
-    val utløptFristForKontrollsamtaleService: UtløptFristForKontrollsamtaleService,
+    val kontrollsamtaleSetup: KontrollsamtaleSetup,
 )

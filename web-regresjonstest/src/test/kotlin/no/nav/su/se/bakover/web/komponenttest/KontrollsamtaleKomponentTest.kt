@@ -15,15 +15,15 @@ import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.fixedClock
 import no.nav.su.se.bakover.common.førsteINesteMåned
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.startOfMonth
+import no.nav.su.se.bakover.database.jobcontext.JobContextPostgresRepo
 import no.nav.su.se.bakover.domain.jobcontext.NameAndLocalDateId
 import no.nav.su.se.bakover.domain.journalpost.ErKontrollNotatMottatt
 import no.nav.su.se.bakover.domain.journalpost.JournalpostStatus
 import no.nav.su.se.bakover.domain.journalpost.JournalpostTema
 import no.nav.su.se.bakover.domain.journalpost.JournalpostType
 import no.nav.su.se.bakover.domain.journalpost.KontrollnotatMottattJournalpost
-import no.nav.su.se.bakover.domain.kontrollsamtale.Kontrollsamtalestatus
-import no.nav.su.se.bakover.domain.kontrollsamtale.UtløptFristForKontrollsamtaleContext
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
@@ -35,7 +35,10 @@ import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.UtenlandsoppholdStatus
-import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
+import no.nav.su.se.bakover.kontrollsamtale.application.KontrollsamtaleServiceImpl
+import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtalestatus
+import no.nav.su.se.bakover.kontrollsamtale.domain.UtløptFristForKontrollsamtaleContext
+import no.nav.su.se.bakover.kontrollsamtale.infrastructure.persistence.KontrollsamtaleJobPostgresRepo
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.generer
@@ -75,7 +78,7 @@ internal class KontrollsamtaleKomponentTest {
         withKomptestApplication(
             clock = tikkendeKlokke,
         ) { appComponents ->
-            val kontrollsamtaleService = appComponents.services.kontrollsamtale
+            val kontrollsamtaleService = appComponents.services.kontrollsamtaleSetup.kontrollsamtaleService as KontrollsamtaleServiceImpl
 
             val sakId = innvilgSøknad(
                 fraOgMed = stønadStart,
@@ -137,7 +140,7 @@ internal class KontrollsamtaleKomponentTest {
         val stønadSlutt = stønadStart.plusMonths(11).endOfMonth()
 
         val statistikkCaptor = argumentCaptor<String>()
-        val kafkaPublisherMock = mock<KafkaPublisher>() {
+        val kafkaPublisherMock = mock<KafkaPublisher> {
             doNothing().whenever(it).publiser(any(), statistikkCaptor.capture())
         }
         withKomptestApplication(
@@ -194,31 +197,43 @@ internal class KontrollsamtaleKomponentTest {
                 }
             },
         ) { appComponents ->
-            val kontrollsamtaleService = appComponents.services.kontrollsamtale
-            val utløptFristForKontrollsamtaleService = appComponents.services.utløptFristForKontrollsamtaleService
+            val kontrollsamtaleService = appComponents.services.kontrollsamtaleSetup.kontrollsamtaleService as KontrollsamtaleServiceImpl
+            val jobContextPostgresRepo = JobContextPostgresRepo(
+                sessionFactory = appComponents.databaseRepos.sessionFactory as PostgresSessionFactory,
+            )
+            val kontrollsamtaleJobRepo = KontrollsamtaleJobPostgresRepo(
+                repo = jobContextPostgresRepo,
+            )
+            val utløptFristForKontrollsamtaleService = appComponents.services.kontrollsamtaleSetup.utløptFristForKontrollsamtaleService
 
             val sakIds = listOf(
-                innvilgSøknad( // ikke møtt - iverksatt stans ok
+                innvilgSøknad(
+                    // ikke møtt - iverksatt stans ok
                     fraOgMed = stønadStart,
                     tilOgMed = stønadSlutt,
                 ),
-                innvilgSøknad( // møtt - oppdater kontrollsamtale med journalpost
+                innvilgSøknad(
+                    // møtt - oppdater kontrollsamtale med journalpost
                     fraOgMed = stønadStart,
                     tilOgMed = stønadSlutt,
                 ),
-                innvilgSøknad( // møtt - oppdater kontrollsamtale med journalpost
+                innvilgSøknad(
+                    // møtt - oppdater kontrollsamtale med journalpost
                     fraOgMed = stønadStart,
                     tilOgMed = stønadSlutt,
                 ),
-                innvilgSøknad( // ikke møtt - utbetaling feiler ved første kjøring - iverksatt stans ok ved andre kjøring
+                innvilgSøknad(
+                    // ikke møtt - utbetaling feiler ved første kjøring - iverksatt stans ok ved andre kjøring
                     fraOgMed = stønadStart,
                     tilOgMed = stønadSlutt,
                 ),
-                innvilgSøknad( // ikke møtt - utbetaling feiler ved første og andre og andre kjøring - iverksatt stans ok ved tredje kjøring
+                innvilgSøknad(
+                    // ikke møtt - utbetaling feiler ved første og andre og andre kjøring - iverksatt stans ok ved tredje kjøring
                     fraOgMed = stønadStart,
                     tilOgMed = stønadSlutt,
                 ),
-                innvilgSøknad( // ikke møtt - opprettelse av stans feiler ved alle kjøringer
+                innvilgSøknad(
+                    // ikke møtt - opprettelse av stans feiler ved alle kjøringer
                     fraOgMed = stønadStart,
                     tilOgMed = stønadSlutt,
                 ).also {
@@ -228,7 +243,8 @@ internal class KontrollsamtaleKomponentTest {
                         tilOgMed = stønadSlutt.toString(),
                     )
                 },
-                innvilgSøknad( // ikke møtt - opprettelse av stans feiler ved alle kjøringer, opprettelse av oppgave feiler
+                innvilgSøknad(
+                    // ikke møtt - opprettelse av stans feiler ved alle kjøringer, opprettelse av oppgave feiler
                     fraOgMed = stønadStart,
                     tilOgMed = stønadSlutt,
                 ).also {
@@ -259,7 +275,7 @@ internal class KontrollsamtaleKomponentTest {
             // 1
             utløptFristForKontrollsamtaleService.håndterUtløpsdato(utløpsfristKontrollsamtale)
 
-            appComponents.databaseRepos.jobContextRepo.hent<UtløptFristForKontrollsamtaleContext>(
+            kontrollsamtaleJobRepo.hent(
                 id = NameAndLocalDateId(
                     name = "HåndterUtløptFristForKontrollsamtale",
                     date = utløpsfristKontrollsamtale,
@@ -310,9 +326,10 @@ internal class KontrollsamtaleKomponentTest {
             }
 
             // 2
-            utløptFristForKontrollsamtaleService.håndterUtløpsdato(utløpsfristKontrollsamtale)
+            @Suppress("UNUSED_VARIABLE")
+            val result2 = utløptFristForKontrollsamtaleService.håndterUtløpsdato(utløpsfristKontrollsamtale)
 
-            appComponents.databaseRepos.jobContextRepo.hent<UtløptFristForKontrollsamtaleContext>(
+            kontrollsamtaleJobRepo.hent(
                 id = NameAndLocalDateId(
                     name = "HåndterUtløptFristForKontrollsamtale",
                     date = utløpsfristKontrollsamtale,
@@ -360,7 +377,7 @@ internal class KontrollsamtaleKomponentTest {
                     saker = listOf(kontrollsamtaler[3].sakId),
                     periode = Periode.create(stønadStart, stønadSlutt),
                     sakService = appComponents.services.sak,
-                    kontrollsamtaleService = appComponents.services.kontrollsamtale,
+                    kontrollsamtaleService = appComponents.services.kontrollsamtaleSetup.kontrollsamtaleService as KontrollsamtaleServiceImpl,
                 )
             }
 
@@ -369,7 +386,7 @@ internal class KontrollsamtaleKomponentTest {
             // 4
             utløptFristForKontrollsamtaleService.håndterUtløpsdato(utløpsfristKontrollsamtale)
 
-            appComponents.databaseRepos.jobContextRepo.hent<UtløptFristForKontrollsamtaleContext>(
+            kontrollsamtaleJobRepo.hent(
                 id = NameAndLocalDateId(
                     name = "HåndterUtløptFristForKontrollsamtale",
                     date = utløpsfristKontrollsamtale,
@@ -414,13 +431,13 @@ internal class KontrollsamtaleKomponentTest {
                     saker = listOf(kontrollsamtaler[1].sakId, kontrollsamtaler[2].sakId),
                     periode = Periode.create(stønadStart, stønadSlutt),
                     sakService = appComponents.services.sak,
-                    kontrollsamtaleService = appComponents.services.kontrollsamtale,
+                    kontrollsamtaleService = appComponents.services.kontrollsamtaleSetup.kontrollsamtaleService as KontrollsamtaleServiceImpl,
                 )
                 assertIkkeMøttTilSamtale(
                     saker = listOf(kontrollsamtaler[0].sakId, kontrollsamtaler[4].sakId, kontrollsamtaler[3].sakId),
                     periode = Periode.create(utløpsfristKontrollsamtale.førsteINesteMåned(), stønadSlutt),
                     sakService = appComponents.services.sak,
-                    kontrollsamtaleService = appComponents.services.kontrollsamtale,
+                    kontrollsamtaleService = appComponents.services.kontrollsamtaleSetup.kontrollsamtaleService as KontrollsamtaleServiceImpl,
                 )
             }
             statistikkCaptor.allValues.filter { it.contains(""""behandlingStatus":"REGISTRERT"""") && it.contains(""""resultatBegrunnelse":"MANGLENDE_KONTROLLERKLÆRING"""") } shouldHaveSize 3
@@ -456,51 +473,72 @@ internal class KontrollsamtaleKomponentTest {
         )
     }
 
-    private fun assertIkkeMøttTilSamtale(saker: List<UUID>, periode: Periode, sakService: SakService, kontrollsamtaleService: KontrollsamtaleService) {
+    private fun assertIkkeMøttTilSamtale(
+        saker: List<UUID>,
+        periode: Periode,
+        sakService: SakService,
+        kontrollsamtaleService: KontrollsamtaleServiceImpl,
+    ) {
         saker.forEach { sakId ->
             sakService.hentSak(sakId).getOrFail().also { sak ->
                 sak.revurderinger.single().shouldBeType<StansAvYtelseRevurdering.IverksattStansAvYtelse>()
                 sak.vedtakListe.single { it is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse }
                 sak.vedtakstidslinje().also { vedtakstidslinje ->
                     periode.måneder().map {
-                        vedtakstidslinje.gjeldendeForDato(it.fraOgMed)!!.originaltVedtak to sak.utbetalingstidslinje(it).gjeldendeForDato(it.fraOgMed)
+                        vedtakstidslinje.gjeldendeForDato(it.fraOgMed)!!.originaltVedtak to sak.utbetalingstidslinje(it)
+                            .gjeldendeForDato(it.fraOgMed)
                     }.forEach { (vedtak, utbetaling) ->
                         (vedtak is VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse && utbetaling is UtbetalingslinjePåTidslinje.Stans) shouldBe true
                     }
                 }
-                kontrollsamtaleService.hentForSak(sak.id).single { it.status == Kontrollsamtalestatus.IKKE_MØTT_INNEN_FRIST }.let {
-                    it.journalpostIdKontrollnotat shouldBe beNull()
-                }
+                kontrollsamtaleService.hentForSak(sak.id)
+                    .single { it.status == Kontrollsamtalestatus.IKKE_MØTT_INNEN_FRIST }.let {
+                        it.journalpostIdKontrollnotat shouldBe beNull()
+                    }
             }
         }
     }
 
-    private fun assertMøttTilSamtale(saker: List<UUID>, periode: Periode, sakService: SakService, kontrollsamtaleService: KontrollsamtaleService) {
+    private fun assertMøttTilSamtale(
+        saker: List<UUID>,
+        periode: Periode,
+        sakService: SakService,
+        kontrollsamtaleService: KontrollsamtaleServiceImpl,
+    ) {
         saker.forEach { sakId ->
             sakService.hentSak(sakId).getOrFail().also { sak ->
                 sak.revurderinger shouldBe emptyList()
                 sak.vedtakListe.single()
                 sak.vedtakstidslinje().also { vedtakstidslinje ->
                     periode.måneder().map {
-                        vedtakstidslinje.gjeldendeForDato(it.fraOgMed)!!.originaltVedtak to sak.utbetalingstidslinje(it).gjeldendeForDato(it.fraOgMed)
+                        vedtakstidslinje.gjeldendeForDato(it.fraOgMed)!!.originaltVedtak to sak.utbetalingstidslinje(it)
+                            .gjeldendeForDato(it.fraOgMed)
                     }.forEach { (vedtak, utbetaling) ->
                         (vedtak is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling && utbetaling is UtbetalingslinjePåTidslinje.Ny) shouldBe true
                     }
                 }
-                kontrollsamtaleService.hentForSak(sak.id).single { it.status == Kontrollsamtalestatus.GJENNOMFØRT }.let {
-                    it.journalpostIdKontrollnotat shouldNot beNull()
-                }
+                kontrollsamtaleService.hentForSak(sak.id).single { it.status == Kontrollsamtalestatus.GJENNOMFØRT }
+                    .let {
+                        it.journalpostIdKontrollnotat shouldNot beNull()
+                    }
             }
         }
     }
-    private fun assertUendret(saker: List<UUID>, periode: Periode, sakService: SakService, kontrollsamtaleService: KontrollsamtaleService) {
+
+    private fun assertUendret(
+        saker: List<UUID>,
+        periode: Periode,
+        sakService: SakService,
+        kontrollsamtaleService: KontrollsamtaleServiceImpl,
+    ) {
         saker.forEach { sakId ->
             sakService.hentSak(sakId).getOrFail().also { sak ->
                 sak.revurderinger shouldBe emptyList()
                 sak.vedtakListe.single()
                 sak.vedtakstidslinje().let { tidslinje ->
                     periode.måneder().map {
-                        tidslinje.gjeldendeForDato(it.fraOgMed)!!.originaltVedtak to sak.utbetalingstidslinje(it).gjeldendeForDato(it.fraOgMed)
+                        tidslinje.gjeldendeForDato(it.fraOgMed)!!.originaltVedtak to sak.utbetalingstidslinje(it)
+                            .gjeldendeForDato(it.fraOgMed)
                     }.forEach { (vedtak, utbetaling) ->
                         (vedtak is VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling && utbetaling is UtbetalingslinjePåTidslinje.Ny) shouldBe true
                     }

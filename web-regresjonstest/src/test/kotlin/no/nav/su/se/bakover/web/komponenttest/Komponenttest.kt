@@ -6,10 +6,12 @@ import io.ktor.server.testing.testApplication
 import no.finn.unleash.FakeUnleash
 import no.finn.unleash.Unleash
 import no.nav.su.se.bakover.client.Clients
+import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.persistence.dbMetricsStub
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.web.Consumers
@@ -28,6 +30,7 @@ import javax.sql.DataSource
 
 class AppComponents private constructor(
     val clock: Clock,
+    val applicationConfig: ApplicationConfig,
     val databaseRepos: DatabaseRepos,
     val clients: Clients,
     val unleash: Unleash,
@@ -38,6 +41,7 @@ class AppComponents private constructor(
     companion object {
         fun instance(
             clock: Clock,
+            applicationConfig: ApplicationConfig,
             dataSource: DataSource,
             repoBuilder: (dataSource: DataSource, clock: Clock, satsFactory: SatsFactoryForSupplerendeStønad) -> DatabaseRepos,
             clientBuilder: (databaseRepos: DatabaseRepos, clock: Clock) -> Clients,
@@ -71,6 +75,7 @@ class AppComponents private constructor(
                 services = services,
                 accessCheckProxy = accessCheckProxy,
                 consumers = consumers,
+                applicationConfig = applicationConfig,
             )
         }
     }
@@ -78,6 +83,7 @@ class AppComponents private constructor(
 
 internal fun withKomptestApplication(
     clock: Clock = fixedClock,
+    applicationConfig: ApplicationConfig = applicationConfig(),
     repoBuilder: (dataSource: DataSource, clock: Clock, satsFactory: SatsFactoryForSupplerendeStønad) -> DatabaseRepos = { dataSource, klokke, satsFactory ->
         SharedRegressionTestData.databaseRepos(
             dataSource = dataSource,
@@ -89,7 +95,7 @@ internal fun withKomptestApplication(
         TestClientsBuilder(
             clock = klokke,
             databaseRepos = databaseRepos,
-        ).build(applicationConfig())
+        ).build(applicationConfig)
     },
     serviceBuilder: (databaseRepos: DatabaseRepos, clients: Clients, clock: Clock, satsFactory: SatsFactoryForSupplerendeStønad, unleash: Unleash) -> Services = { databaseRepos, clients, klokke, satsFactory, unleash ->
         ServiceBuilder.build(
@@ -100,7 +106,8 @@ internal fun withKomptestApplication(
             clock = klokke,
             unleash = unleash,
             satsFactory = satsFactory.gjeldende(LocalDate.now(klokke)),
-            applicationConfig = applicationConfig(),
+            applicationConfig = applicationConfig,
+            dbMetrics = dbMetricsStub,
         )
     },
     test: ApplicationTestBuilder.(appComponents: AppComponents) -> Unit,
@@ -113,6 +120,7 @@ internal fun withKomptestApplication(
                 repoBuilder = repoBuilder,
                 clientBuilder = clientsBuilder,
                 serviceBuilder = serviceBuilder,
+                applicationConfig = applicationConfig,
             ),
             test = test,
         )
@@ -122,7 +130,7 @@ internal fun withKomptestApplication(
 private fun Application.testSusebakover(appComponents: AppComponents) {
     return susebakover(
         clock = appComponents.clock,
-        applicationConfig = applicationConfig(),
+        applicationConfig = appComponents.applicationConfig,
         unleash = appComponents.unleash,
         databaseRepos = appComponents.databaseRepos,
         clients = appComponents.clients,

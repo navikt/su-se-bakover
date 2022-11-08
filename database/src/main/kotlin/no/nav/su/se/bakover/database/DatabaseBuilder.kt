@@ -34,15 +34,16 @@ import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingPostgresRep
 import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UtenlandsoppholdVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UtenlandsoppholdgrunnlagPostgresRepo
+import no.nav.su.se.bakover.database.jobcontext.JobContextPostgresRepo
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo
 import no.nav.su.se.bakover.database.klage.klageinstans.KlageinstanshendelsePostgresRepo
-import no.nav.su.se.bakover.database.kontrollsamtale.KontrollsamtalePostgresRepo
 import no.nav.su.se.bakover.database.nøkkeltall.NøkkeltallPostgresRepo
 import no.nav.su.se.bakover.database.person.PersonPostgresRepo
 import no.nav.su.se.bakover.database.personhendelse.PersonhendelsePostgresRepo
 import no.nav.su.se.bakover.database.regulering.ReguleringPostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
 import no.nav.su.se.bakover.database.sak.SakPostgresRepo
+import no.nav.su.se.bakover.database.stønadsperiode.SendPåminnelseNyStønadsperiodeJobPostgresRepo
 import no.nav.su.se.bakover.database.søknad.SøknadPostgresRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
 import no.nav.su.se.bakover.database.tilbakekreving.TilbakekrevingPostgresRepo
@@ -221,7 +222,6 @@ object DatabaseBuilder {
         )
         val personhendelseRepo = PersonhendelsePostgresRepo(sessionFactory, dbMetrics, clock)
         val nøkkeltallRepo = NøkkeltallPostgresRepo(sessionFactory, dbMetrics, clock)
-        val kontrollsamtaleRepo = KontrollsamtalePostgresRepo(sessionFactory, dbMetrics)
 
         val hendelseRepo = HendelsePostgresRepo(
             sessionFactory,
@@ -268,11 +268,10 @@ object DatabaseBuilder {
             sessionFactory = sessionFactory,
             klageRepo = klageRepo,
             klageinstanshendelseRepo = klageinstanshendelseRepo,
-            kontrollsamtaleRepo = kontrollsamtaleRepo,
             avkortingsvarselRepo = avkortingsvarselRepo,
             reguleringRepo = reguleringRepo,
             tilbakekrevingRepo = tilbakekrevingRepo,
-            jobContextRepo = JobContextPostgresRepo(sessionFactory),
+            sendPåminnelseNyStønadsperiodeJobRepo = SendPåminnelseNyStønadsperiodeJobPostgresRepo(JobContextPostgresRepo(sessionFactory)),
             hendelseRepo = hendelseRepo,
             utenlandsoppholdRepo = utenlandsoppholdRepo,
         )

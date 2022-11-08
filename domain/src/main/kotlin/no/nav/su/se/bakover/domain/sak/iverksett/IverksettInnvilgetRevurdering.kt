@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.oppdaterUteståendeAvkortingVedIverksettelse
-import no.nav.su.se.bakover.domain.kontrollsamtale.UgyldigStatusovergang
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
@@ -122,7 +121,7 @@ data class IverksettInnvilgetRevurderingResponse(
         klargjørUtbetaling: (utbetaling: Utbetaling.SimulertUtbetaling, tx: TransactionContext) -> Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>,
         lagreVedtak: (vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering, tx: TransactionContext) -> Unit,
         lagreRevurdering: (revurdering: IverksattRevurdering, tx: TransactionContext) -> Unit,
-        annullerKontrollsamtale: (sakId: UUID, tx: TransactionContext) -> Either<UgyldigStatusovergang, Unit>,
+        annullerKontrollsamtale: (sakId: UUID, tx: TransactionContext) -> Unit,
         statistikkObservers: () -> List<StatistikkEventObserver>,
     ): Either<KunneIkkeFerdigstilleIverksettelsestransaksjon, IverksattRevurdering> {
         return Either.catch {
@@ -165,7 +164,7 @@ data class IverksettInnvilgetRevurderingResponse(
 
                 else -> {
                     log.error("Ukjent feil ved iverksetting av revurdering ${vedtak.behandling.id}", it)
-                    KunneIkkeFerdigstilleIverksettelsestransaksjon.LagringFeilet
+                    KunneIkkeFerdigstilleIverksettelsestransaksjon.UkjentFeil(it)
                 }
             }
         }

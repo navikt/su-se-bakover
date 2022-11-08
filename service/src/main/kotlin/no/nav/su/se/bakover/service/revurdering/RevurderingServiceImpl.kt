@@ -73,6 +73,7 @@ import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Varselmelding
 import no.nav.su.se.bakover.domain.revurdering.VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling
 import no.nav.su.se.bakover.domain.revurdering.oppdater.OppdaterRevurderingRequest
+import no.nav.su.se.bakover.domain.revurdering.opphør.AnnullerKontrollsamtaleVedOpphørService
 import no.nav.su.se.bakover.domain.revurdering.opprett.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opprett.OpprettRevurderingCommand
 import no.nav.su.se.bakover.domain.revurdering.opprett.opprettRevurdering
@@ -105,7 +106,6 @@ import no.nav.su.se.bakover.domain.vilkår.pensjon.KunneIkkeLeggeTilPensjonsVilk
 import no.nav.su.se.bakover.domain.vilkår.pensjon.LeggTilPensjonsVilkårRequest
 import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilFlereUtenlandsoppholdRequest
-import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
@@ -121,7 +121,7 @@ class RevurderingServiceImpl(
     private val brevService: BrevService,
     private val clock: Clock,
     private val vedtakRepo: VedtakRepo,
-    private val kontrollsamtaleService: KontrollsamtaleService,
+    private val annullerKontrollsamtaleService: AnnullerKontrollsamtaleVedOpphørService,
     private val sessionFactory: SessionFactory,
     private val formuegrenserFactory: FormuegrenserFactory,
     private val sakService: SakService,
@@ -984,7 +984,7 @@ class RevurderingServiceImpl(
                 lagreRevurdering = revurderingRepo::lagre,
                 statistikkObservers = { observers },
                 annullerKontrollsamtale = { sakId, tx ->
-                    kontrollsamtaleService.annullerKontrollsamtale(sakId, tx).map {}
+                    annullerKontrollsamtaleService.annuller(sakId, tx)
                 },
             ).mapLeft {
                 KunneIkkeIverksetteRevurdering.IverksettelsestransaksjonFeilet(it)

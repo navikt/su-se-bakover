@@ -29,9 +29,16 @@ include("test-common")
 include("web-regresjonstest")
 include("web-kafka-test")
 include("statistikk")
+
 include("hendelse:infrastructure")
 include("hendelse:domain")
-include("utenlandsopphold:application")
+
 include("utenlandsopphold:infrastructure")
+include("utenlandsopphold:application")
 include("utenlandsopphold:domain")
+
 include("datapakker:søknad")
+
+include("kontrollsamtale:infrastructure")
+include("kontrollsamtale:application")
+include("kontrollsamtale:domain")

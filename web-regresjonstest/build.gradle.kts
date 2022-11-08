@@ -9,6 +9,9 @@ dependencies {
     testImplementation(project(":common"))
     testImplementation(project(":service"))
     testImplementation(project(":test-common"))
+    testImplementation(project(":kontrollsamtale:domain"))
+    testImplementation(project(":kontrollsamtale:application"))
+    testImplementation(project(":kontrollsamtale:infrastructure"))
 
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion") {
         exclude(group = "junit")

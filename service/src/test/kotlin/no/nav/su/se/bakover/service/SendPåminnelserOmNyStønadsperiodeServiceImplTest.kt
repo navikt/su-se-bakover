@@ -21,7 +21,6 @@ import no.nav.su.se.bakover.domain.brev.BrevTemplate
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
-import no.nav.su.se.bakover.domain.jobcontext.JobContextRepo
 import no.nav.su.se.bakover.domain.jobcontext.NameAndYearMonthId
 import no.nav.su.se.bakover.domain.jobcontext.SendPåminnelseNyStønadsperiodeContext
 import no.nav.su.se.bakover.domain.person.PersonService
@@ -29,6 +28,7 @@ import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
+import no.nav.su.se.bakover.domain.stønadsperiode.SendPåminnelseNyStønadsperiodeJobRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
@@ -98,8 +98,8 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             personService = mock {
                 on { hentPersonMedSystembruker(any()) } doReturn person().right()
             },
-            jobContextRepo = mock {
-                on { hent<SendPåminnelseNyStønadsperiodeContext>(any()) } doReturn null
+            sendPåminnelseNyStønadsperiodeJobRepo = mock {
+                on { hent(any()) } doReturn null
             },
             formuegrenserFactory = formuegrenserFactoryTestPåDato(),
         ).let { serviceAndMocks ->
@@ -142,13 +142,13 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
                 },
                 transactionContext = argThat { it shouldBe serviceAndMocks.sessionFactory.newTransactionContext() },
             )
-            verify(serviceAndMocks.jobContextRepo).hent<SendPåminnelseNyStønadsperiodeContext>(
+            verify(serviceAndMocks.sendPåminnelseNyStønadsperiodeJobRepo).hent(
                 SendPåminnelseNyStønadsperiodeContext.genererIdForTidspunkt(
                     desemberClock,
                 ),
             )
-            verify(serviceAndMocks.jobContextRepo).lagre(
-                jobContext = argThat { it shouldBe expectedContext },
+            verify(serviceAndMocks.sendPåminnelseNyStønadsperiodeJobRepo).lagre(
+                context = argThat { it shouldBe expectedContext },
                 transactionContext = argThat { it shouldBe serviceAndMocks.sessionFactory.newTransactionContext() },
             )
         }
@@ -188,8 +188,8 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             personService = mock {
                 on { hentPersonMedSystembruker(any()) } doReturn person().right()
             },
-            jobContextRepo = mock {
-                on { hent<SendPåminnelseNyStønadsperiodeContext>(any()) } doReturn
+            sendPåminnelseNyStønadsperiodeJobRepo = mock {
+                on { hent(any()) } doReturn
                     SendPåminnelseNyStønadsperiodeContext(
                         clock = desemberClock,
                         id = NameAndYearMonthId(
@@ -313,8 +313,8 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             personService = mock {
                 on { hentPersonMedSystembruker(any()) } doReturn person().right()
             },
-            jobContextRepo = mock {
-                on { hent<SendPåminnelseNyStønadsperiodeContext>(any()) } doReturn null
+            sendPåminnelseNyStønadsperiodeJobRepo = mock {
+                on { hent(any()) } doReturn null
             },
         ).let {
             it.service.sendPåminnelser() shouldBe SendPåminnelseNyStønadsperiodeContext(
@@ -347,8 +347,8 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             sakRepo = mock {
                 on { hentSakIdSaksnummerOgFnrForAlleSaker() } doReturn emptyList()
             },
-            jobContextRepo = mock {
-                on { hent<SendPåminnelseNyStønadsperiodeContext>(any()) } doReturn null
+            sendPåminnelseNyStønadsperiodeJobRepo = mock {
+                on { hent(any()) } doReturn null
             },
         ).let {
             it.service.sendPåminnelser() shouldBe SendPåminnelseNyStønadsperiodeContext(
@@ -364,7 +364,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             )
 
             verify(it.sakRepo).hentSakIdSaksnummerOgFnrForAlleSaker()
-            verify(it.jobContextRepo).hent<SendPåminnelseNyStønadsperiodeContext>(
+            verify(it.sendPåminnelseNyStønadsperiodeJobRepo).hent(
                 SendPåminnelseNyStønadsperiodeContext.genererIdForTidspunkt(
                     fixedClock,
                 ),
@@ -393,8 +393,8 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
                 )
                 on { hentSak(any<Saksnummer>()) } doReturn sak
             },
-            jobContextRepo = mock {
-                on { hent<SendPåminnelseNyStønadsperiodeContext>(any()) } doReturn null
+            sendPåminnelseNyStønadsperiodeJobRepo = mock {
+                on { hent(any()) } doReturn null
             },
         ).let {
             it.service.sendPåminnelser() shouldBe SendPåminnelseNyStønadsperiodeContext(
@@ -419,7 +419,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
         val sessionFactory: SessionFactory = TestSessionFactory(),
         val brevService: BrevService = mock(),
         val personService: PersonService = mock(),
-        val jobContextRepo: JobContextRepo = mock(),
+        val sendPåminnelseNyStønadsperiodeJobRepo: SendPåminnelseNyStønadsperiodeJobRepo = mock(),
         val formuegrenserFactory: FormuegrenserFactory = formuegrenserFactoryTestPåDato(),
     ) {
         val service = SendPåminnelserOmNyStønadsperiodeServiceImpl(
@@ -428,7 +428,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
             sessionFactory = sessionFactory,
             brevService = brevService,
             personService = personService,
-            jobContextRepo = jobContextRepo,
+            sendPåminnelseNyStønadsperiodeJobRepo = sendPåminnelseNyStønadsperiodeJobRepo,
             formuegrenserFactory = formuegrenserFactory,
         )
 
@@ -437,7 +437,7 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
                 sakRepo,
                 brevService,
                 personService,
-                jobContextRepo,
+                sendPåminnelseNyStønadsperiodeJobRepo,
             )
         }
     }

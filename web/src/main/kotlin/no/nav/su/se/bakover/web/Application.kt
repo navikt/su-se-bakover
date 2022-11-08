@@ -52,6 +52,7 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.satser.SatsFactoryForSupplerendeStønad
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
+import no.nav.su.se.bakover.kontrollsamtale.infrastructure.web.kontrollsamtaleRoutes
 import no.nav.su.se.bakover.utenlandsopphold.application.annuller.AnnullerUtenlandsoppholdService
 import no.nav.su.se.bakover.utenlandsopphold.application.korriger.KorrigerUtenlandsoppholdService
 import no.nav.su.se.bakover.utenlandsopphold.application.registrer.RegistrerUtenlandsoppholdService
@@ -66,7 +67,6 @@ import no.nav.su.se.bakover.web.routes.dokument.dokumentRoutes
 import no.nav.su.se.bakover.web.routes.drift.driftRoutes
 import no.nav.su.se.bakover.web.routes.installMetrics
 import no.nav.su.se.bakover.web.routes.klage.klageRoutes
-import no.nav.su.se.bakover.web.routes.kontrollsamtale.kontrollsamtaleRoutes
 import no.nav.su.se.bakover.web.routes.me.meRoutes
 import no.nav.su.se.bakover.web.routes.naisPaths
 import no.nav.su.se.bakover.web.routes.naisRoutes
@@ -143,6 +143,7 @@ fun Application.susebakover(
         unleash = unleash,
         satsFactory = satsFactory.gjeldende(LocalDate.now(clock)),
         applicationConfig = applicationConfig,
+        dbMetrics = dbMetrics,
     ),
     accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services),
     consumers: Consumers = Consumers(
@@ -282,7 +283,7 @@ fun Application.susebakover(
                     klageRoutes(accessProtectedServices.klageService, clock)
                     dokumentRoutes(accessProtectedServices.brev)
                     nøkkeltallRoutes(accessProtectedServices.nøkkeltallService)
-                    kontrollsamtaleRoutes(accessProtectedServices.kontrollsamtale)
+                    kontrollsamtaleRoutes(accessProtectedServices.kontrollsamtaleSetup.kontrollsamtaleService)
                     reguleringRoutes(accessProtectedServices.reguleringService, satsFactoryIDag, clock)
                     opplysningspliktRoutes(
                         søknadsbehandlingService = accessProtectedServices.søknadsbehandling.søknadsbehandlingService,
@@ -316,6 +317,9 @@ fun Application.susebakover(
                     leggTilBrevvalgRevurderingRoute(
                         revurderingService = accessProtectedServices.revurdering,
                         satsFactory = satsFactoryIDag,
+                    )
+                    kontrollsamtaleRoutes(
+                        kontrollsamtaleService = services.kontrollsamtaleSetup.kontrollsamtaleService,
                     )
                 }
             }

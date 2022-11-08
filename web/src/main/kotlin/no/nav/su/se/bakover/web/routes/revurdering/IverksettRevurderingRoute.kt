@@ -70,7 +70,7 @@ private fun KunneIkkeIverksetteRevurdering.tilResultat() = when (this) {
     is KunneIkkeIverksetteRevurdering.IverksettelsestransaksjonFeilet -> {
         when (val f = this.feil) {
             is KunneIkkeFerdigstilleIverksettelsestransaksjon.KunneIkkeUtbetale -> f.utbetalingFeilet.tilResultat()
-            KunneIkkeFerdigstilleIverksettelsestransaksjon.LagringFeilet -> lagringFeilet
+            is KunneIkkeFerdigstilleIverksettelsestransaksjon.UkjentFeil -> lagringFeilet
             KunneIkkeFerdigstilleIverksettelsestransaksjon.Opphør.KunneIkkeAnnullereKontrollsamtale -> HttpStatusCode.InternalServerError.errorJson(
                 "Kunne ikke annulere kontrollsamtale",
                 "kunne_ikke_annulere_kontrollsamtale",

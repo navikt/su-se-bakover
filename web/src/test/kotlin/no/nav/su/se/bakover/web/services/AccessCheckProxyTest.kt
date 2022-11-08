@@ -41,19 +41,18 @@ internal class AccessCheckProxyTest {
         søknadsbehandling = SøknadsbehandlingServices(mock(), mock()),
         ferdigstillVedtak = mock(),
         revurdering = mock(),
+        stansYtelse = mock(),
+        gjenopptaYtelse = mock(),
         vedtakService = mock(),
         nøkkeltallService = mock(),
         avslåSøknadManglendeDokumentasjonService = mock(),
-        kontrollsamtale = mock(),
         klageService = mock(),
         klageinstanshendelseService = mock(),
         reguleringService = mock(),
         tilbakekrevingService = mock(),
         sendPåminnelserOmNyStønadsperiodeService = mock(),
         skatteService = mock(),
-        utløptFristForKontrollsamtaleService = mock(),
-        stansYtelse = mock(),
-        gjenopptaYtelse = mock(),
+        kontrollsamtaleSetup = mock(),
     )
 
     @Nested
