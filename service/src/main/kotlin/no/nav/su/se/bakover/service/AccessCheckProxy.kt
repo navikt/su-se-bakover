@@ -78,8 +78,12 @@ import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opprett.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opprett.OpprettRevurderingCommand
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
+import no.nav.su.se.bakover.domain.sak.FantIkkeSak
+import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak
+import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.sak.NySak
 import no.nav.su.se.bakover.domain.sak.SakInfo
+import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
@@ -147,10 +151,6 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.revurdering.SendTilAttesteringRequest
 import no.nav.su.se.bakover.service.revurdering.StansAvYtelseITransaksjonResponse
 import no.nav.su.se.bakover.service.revurdering.StansYtelseRequest
-import no.nav.su.se.bakover.service.sak.FantIkkeSak
-import no.nav.su.se.bakover.service.sak.KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak
-import no.nav.su.se.bakover.service.sak.KunneIkkeHenteGjeldendeVedtaksdata
-import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.skatt.KunneIkkeHenteSkattemelding
 import no.nav.su.se.bakover.service.skatt.SkatteService
 import no.nav.su.se.bakover.service.søknad.AvslåManglendeDokumentasjonRequest

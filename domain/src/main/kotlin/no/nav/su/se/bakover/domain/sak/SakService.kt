@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.service.sak
+package no.nav.su.se.bakover.domain.sak
 
 import arrow.core.Either
 import no.nav.su.se.bakover.common.Fnr
@@ -6,11 +6,6 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.domain.AlleredeGjeldendeSakForBruker
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
-import no.nav.su.se.bakover.domain.sak.NySak
-import no.nav.su.se.bakover.domain.sak.SakInfo
-import no.nav.su.se.bakover.domain.sak.Saksnummer
-import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import java.util.UUID
 
