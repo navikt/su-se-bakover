@@ -1,8 +1,7 @@
-package no.nav.su.se.bakover.service.brev
+package no.nav.su.se.bakover.domain.brev
 
 import arrow.core.Either
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.domain.visitor.Visitable

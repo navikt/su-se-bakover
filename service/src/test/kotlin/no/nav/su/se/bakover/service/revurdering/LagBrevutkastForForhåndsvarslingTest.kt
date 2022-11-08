@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.service.revurdering
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.domain.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
-import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.test.aktørId
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.person

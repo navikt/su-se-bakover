@@ -13,7 +13,7 @@ interface AvslåSøknadManglendeDokumentasjonService {
 sealed class KunneIkkeAvslåSøknad {
     data class KunneIkkeOppretteSøknadsbehandling(val feil: SøknadsbehandlingService.KunneIkkeOpprette) :
         KunneIkkeAvslåSøknad()
-    data class KunneIkkeLageDokument(val nested: no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument) : KunneIkkeAvslåSøknad()
+    data class KunneIkkeLageDokument(val nested: no.nav.su.se.bakover.domain.brev.KunneIkkeLageDokument) : KunneIkkeAvslåSøknad()
     object FantIkkeSak : KunneIkkeAvslåSøknad()
     object FantIkkeSøknad : KunneIkkeAvslåSøknad()
 }

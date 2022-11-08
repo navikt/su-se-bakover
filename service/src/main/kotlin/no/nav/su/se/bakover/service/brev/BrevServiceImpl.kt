@@ -14,9 +14,17 @@ import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.brev.BrevInnhold
+import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.brev.Distribusjonstidspunkt
 import no.nav.su.se.bakover.domain.brev.Distribusjonstype
+import no.nav.su.se.bakover.domain.brev.HentDokumenterForIdType
+import no.nav.su.se.bakover.domain.brev.KunneIkkeBestilleBrevForDokument
+import no.nav.su.se.bakover.domain.brev.KunneIkkeDistribuereBrev
+import no.nav.su.se.bakover.domain.brev.KunneIkkeJournalføreBrev
+import no.nav.su.se.bakover.domain.brev.KunneIkkeJournalføreDokument
+import no.nav.su.se.bakover.domain.brev.KunneIkkeLageBrev
+import no.nav.su.se.bakover.domain.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo

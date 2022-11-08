@@ -25,6 +25,11 @@ import no.nav.su.se.bakover.domain.brev.BrevTemplate
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.brev.Distribusjonstidspunkt
 import no.nav.su.se.bakover.domain.brev.Distribusjonstype
+import no.nav.su.se.bakover.domain.brev.HentDokumenterForIdType
+import no.nav.su.se.bakover.domain.brev.KunneIkkeBestilleBrevForDokument
+import no.nav.su.se.bakover.domain.brev.KunneIkkeJournalføreDokument
+import no.nav.su.se.bakover.domain.brev.KunneIkkeLageBrev
+import no.nav.su.se.bakover.domain.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo

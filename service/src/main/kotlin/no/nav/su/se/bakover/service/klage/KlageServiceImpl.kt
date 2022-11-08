@@ -12,6 +12,8 @@ import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.brev.BrevService
+import no.nav.su.se.bakover.domain.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.journalpost.ErTilknyttetSak
@@ -50,7 +52,6 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.statistikk.notify
 import no.nav.su.se.bakover.domain.vedtak.Klagevedtak
-import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import org.slf4j.LoggerFactory
@@ -432,11 +433,11 @@ class KlageServiceImpl(
         }.flatMap {
             brevService.lagBrev(it).mapLeft { kunneIkkeLageBrev ->
                 when (kunneIkkeLageBrev) {
-                    no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev.FantIkkePerson -> KunneIkkeLageBrevutkast.GenereringAvBrevFeilet(
+                    KunneIkkeLageBrev.FantIkkePerson -> KunneIkkeLageBrevutkast.GenereringAvBrevFeilet(
                         KunneIkkeLageBrevForKlage.FantIkkePerson,
                     )
 
-                    no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev.KunneIkkeGenererePDF -> KunneIkkeLageBrevutkast.GenereringAvBrevFeilet(
+                    KunneIkkeLageBrev.KunneIkkeGenererePDF -> KunneIkkeLageBrevutkast.GenereringAvBrevFeilet(
                         KunneIkkeLageBrevForKlage.KunneIkkeGenererePDF,
                     )
                 }

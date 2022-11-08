@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.web
 
+import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.service.SendPåminnelserOmNyStønadsperiodeService
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
-import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
 import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
