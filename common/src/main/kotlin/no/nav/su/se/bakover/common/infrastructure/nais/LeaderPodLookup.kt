@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.nais
+package no.nav.su.se.bakover.common.infrastructure.nais
 
 import arrow.core.Either
 

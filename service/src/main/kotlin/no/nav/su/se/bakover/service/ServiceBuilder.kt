@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service
 import no.finn.unleash.Unleash
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.common.ApplicationConfig
+import no.nav.su.se.bakover.common.toggle.infrastructure.UnleashToggleClient
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.sak.SakFactory
@@ -26,7 +27,6 @@ import no.nav.su.se.bakover.service.søknad.SøknadServiceImpl
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadServiceImpl
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServiceImpl
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingServiceImpl
-import no.nav.su.se.bakover.service.toggles.ToggleServiceImpl
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingServiceImpl
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakServiceImpl
 import no.nav.su.se.bakover.service.vedtak.VedtakServiceImpl
@@ -46,7 +46,7 @@ object ServiceBuilder {
         applicationConfig: ApplicationConfig,
     ): Services {
         val personService = PersonServiceImpl(clients.personOppslag)
-        val toggleService = ToggleServiceImpl(unleash)
+        val toggleService = UnleashToggleClient(unleash)
 
         val statistikkEventObserver = StatistikkEventObserverBuilder(
             kafkaPublisher = clients.kafkaPublisher,

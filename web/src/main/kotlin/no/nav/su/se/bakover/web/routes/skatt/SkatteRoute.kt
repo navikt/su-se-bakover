@@ -18,16 +18,16 @@ import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.parameter
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.common.toggle.domain.ToggleClient
 import no.nav.su.se.bakover.service.skatt.KunneIkkeHenteSkattemelding
 import no.nav.su.se.bakover.service.skatt.SkatteService
-import no.nav.su.se.bakover.service.toggles.ToggleService
 import no.nav.su.se.bakover.web.features.authorize
 
 internal const val skattPath = "/skatt"
 
-internal fun Route.skattRoutes(skatteService: SkatteService, toggleService: ToggleService) {
+internal fun Route.skattRoutes(skatteService: SkatteService, toggleService: ToggleClient) {
     get("$skattPath/{fnr}") {
-        if (!toggleService.isEnabled(ToggleService.supstonadSkattemelding)) {
+        if (!toggleService.isEnabled("supstonad.skattemelding")) {
             call.respond(HttpStatusCode.NotFound)
             return@get
         }

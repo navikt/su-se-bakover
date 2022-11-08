@@ -1,10 +1,11 @@
-package no.nav.su.se.bakover.service.toggles
+package no.nav.su.se.bakover.common.toggle.infrastructure
 
 import no.finn.unleash.Unleash
+import no.nav.su.se.bakover.common.toggle.domain.ToggleClient
 
-class ToggleServiceImpl(
+class UnleashToggleClient(
     private val unleash: Unleash,
-) : ToggleService {
+) : ToggleClient {
     override fun isEnabled(toggleName: String): Boolean {
         return unleash.isEnabled(toggleName)
     }

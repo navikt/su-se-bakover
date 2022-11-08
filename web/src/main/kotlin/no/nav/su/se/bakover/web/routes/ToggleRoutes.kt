@@ -11,13 +11,13 @@ import no.nav.su.se.bakover.common.infrastructure.web.deserialize
 import no.nav.su.se.bakover.common.infrastructure.web.parameter
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.log
-import no.nav.su.se.bakover.service.toggles.ToggleService
+import no.nav.su.se.bakover.common.toggle.domain.ToggleClient
 
 private const val TOGGLES_PATH = "/toggles"
 
 internal val togglePaths = listOf(TOGGLES_PATH)
 
-internal fun Route.toggleRoutes(toggleService: ToggleService) {
+internal fun Route.toggleRoutes(toggleService: ToggleClient) {
     get("$TOGGLES_PATH/{toggleName}") {
         call.parameter("toggleName").fold(
             ifLeft = { call.svar(it) },

@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.common.toggle.domain.ToggleClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -31,7 +32,6 @@ import no.nav.su.se.bakover.domain.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.søknadinnhold.SøknadInnhold
 import no.nav.su.se.bakover.domain.søknadinnhold.SøknadsinnholdAlder
 import no.nav.su.se.bakover.domain.søknadinnhold.SøknadsinnholdUføre
-import no.nav.su.se.bakover.service.toggles.ToggleService
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.util.UUID
@@ -45,7 +45,7 @@ internal class SøknadServiceImpl(
     private val personService: PersonService,
     private val oppgaveService: OppgaveService,
     private val søknadMetrics: SøknadMetrics,
-    private val toggleService: ToggleService,
+    private val toggleService: ToggleClient,
     private val clock: Clock,
 ) : SøknadService {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -273,7 +273,7 @@ internal class SøknadServiceImpl(
 
     private fun SøknadInnhold.kanSendeInnSøknad(): Boolean {
         return when (this) {
-            is SøknadsinnholdAlder -> toggleService.isEnabled(ToggleService.supstonadAalderInnsending)
+            is SøknadsinnholdAlder -> toggleService.isEnabled("supstonad.alder.innsending")
             is SøknadsinnholdUføre -> true
         }
     }

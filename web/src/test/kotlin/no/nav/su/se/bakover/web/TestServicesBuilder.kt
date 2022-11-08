@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web
 
+import no.nav.su.se.bakover.common.toggle.domain.ToggleClient
 import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.person.PersonService
@@ -20,7 +21,6 @@ import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
-import no.nav.su.se.bakover.service.toggles.ToggleService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
@@ -36,7 +36,7 @@ object TestServicesBuilder {
         lukkSøknad: LukkSøknadService = mock(),
         oppgave: OppgaveService = mock(),
         person: PersonService = mock(),
-        toggles: ToggleService = mock(),
+        toggles: ToggleClient = mock(),
         søknadsbehandling: SøknadsbehandlingService = mock(),
         ferdigstillVedtak: FerdigstillVedtakService = mock(),
         revurdering: RevurderingService = mock(),

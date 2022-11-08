@@ -1,18 +1,19 @@
-package no.nav.su.se.bakover.web.services
+package no.nav.su.se.bakover.common.jobs.infrastructure
 
 import no.nav.su.se.bakover.common.ApplicationConfig
+import no.nav.su.se.bakover.common.infrastructure.nais.LeaderPodLookup
+import no.nav.su.se.bakover.common.infrastructure.nais.erLeaderPod
+import no.nav.su.se.bakover.common.toggle.domain.ToggleClient
 import no.nav.su.se.bakover.common.zoneIdOslo
-import no.nav.su.se.bakover.domain.nais.LeaderPodLookup
-import no.nav.su.se.bakover.service.toggles.ToggleService
 import java.net.InetAddress
 import java.time.Clock
 import java.time.LocalTime
 
-internal data class RunCheckFactory(
+data class RunCheckFactory(
     private val leaderPodLookup: LeaderPodLookup,
     private val applicationConfig: ApplicationConfig,
     private val clock: Clock,
-    private val toggleService: ToggleService,
+    private val toggleService: ToggleClient,
 ) {
     fun åpningstidStormaskin(): ÅpningstidStormaskin {
         return ÅpningstidStormaskin(
@@ -27,17 +28,17 @@ internal data class RunCheckFactory(
 
     fun unleashToggle(name: String): UnleashToggle {
         return UnleashToggle(
-            service = toggleService,
+            client = toggleService,
             toggleName = name,
         )
     }
 }
 
-internal interface RunJobCheck {
+interface RunJobCheck {
     fun shouldRun(): Boolean
 }
 
-internal fun List<RunJobCheck>.shouldRun(): Boolean {
+fun List<RunJobCheck>.shouldRun(): Boolean {
     return map { it.shouldRun() }.all { it }
 }
 
@@ -61,10 +62,10 @@ data class LeaderPod(
 }
 
 data class UnleashToggle(
-    private val service: ToggleService,
+    private val client: ToggleClient,
     private val toggleName: String,
 ) : RunJobCheck {
     override fun shouldRun(): Boolean {
-        return service.isEnabled(toggleName)
+        return client.isEnabled(toggleName)
     }
 }

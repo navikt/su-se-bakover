@@ -1,8 +1,9 @@
 package no.nav.su.se.bakover.web.services
 
 import arrow.core.Either
+import no.nav.su.se.bakover.common.jobs.infrastructure.RunCheckFactory
+import no.nav.su.se.bakover.common.jobs.infrastructure.shouldRun
 import no.nav.su.se.bakover.service.SendPåminnelserOmNyStønadsperiodeService
-import no.nav.su.se.bakover.service.toggles.ToggleService
 import org.jetbrains.kotlin.utils.addToStdlib.ifTrue
 import org.slf4j.LoggerFactory
 import java.net.InetAddress
@@ -19,6 +20,8 @@ internal class SendPåminnelseNyStønadsperiodeJob(
 
     private val jobName = "SendPåminnelseNyStønadsperiodeJob"
 
+    private val toggle = "supstonad.ufore.automatisk.paaminnelse.ny.stonadsperiode"
+
     fun schedule() {
         log.info("Starter skeduleringsjobb '$jobName' med periode: $intervall. Mitt hostnavn er $hostName.")
 
@@ -31,7 +34,7 @@ internal class SendPåminnelseNyStønadsperiodeJob(
             Either.catch {
                 listOf(
                     runCheckFactory.leaderPod(),
-                    runCheckFactory.unleashToggle(ToggleService.toggleSendAutomatiskPåminnelseOmNyStønadsperiode),
+                    runCheckFactory.unleashToggle(toggle),
                 ).shouldRun().ifTrue {
                     sendPåminnelseService.sendPåminnelser()
                 }

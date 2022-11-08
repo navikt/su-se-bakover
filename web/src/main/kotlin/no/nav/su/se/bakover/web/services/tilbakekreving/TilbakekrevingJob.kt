@@ -3,9 +3,9 @@ package no.nav.su.se.bakover.web.services.tilbakekreving
 import arrow.core.Either
 import arrow.core.getOrHandle
 import no.nav.su.se.bakover.common.CorrelationId.Companion.withCorrelationId
+import no.nav.su.se.bakover.common.jobs.infrastructure.RunCheckFactory
+import no.nav.su.se.bakover.common.jobs.infrastructure.shouldRun
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
-import no.nav.su.se.bakover.web.services.RunCheckFactory
-import no.nav.su.se.bakover.web.services.shouldRun
 import org.jetbrains.kotlin.utils.addToStdlib.ifTrue
 import org.slf4j.LoggerFactory
 import java.time.Duration

@@ -2,9 +2,9 @@ package no.nav.su.se.bakover.web.services.klage.klageinstans
 
 import arrow.core.Either
 import no.nav.su.se.bakover.common.CorrelationId.Companion.withCorrelationId
+import no.nav.su.se.bakover.common.jobs.infrastructure.RunCheckFactory
+import no.nav.su.se.bakover.common.jobs.infrastructure.shouldRun
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
-import no.nav.su.se.bakover.web.services.RunCheckFactory
-import no.nav.su.se.bakover.web.services.shouldRun
 import org.jetbrains.kotlin.utils.addToStdlib.ifTrue
 import org.slf4j.LoggerFactory
 import java.time.Duration

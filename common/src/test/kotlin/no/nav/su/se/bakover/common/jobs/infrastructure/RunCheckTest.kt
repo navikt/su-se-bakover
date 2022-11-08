@@ -1,11 +1,11 @@
-package no.nav.su.se.bakover.web.services
+package no.nav.su.se.bakover.common.jobs.infrastructure
 
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.ApplicationConfig
+import no.nav.su.se.bakover.common.infrastructure.nais.LeaderPodLookupFeil
 import no.nav.su.se.bakover.common.oktober
-import no.nav.su.se.bakover.domain.nais.LeaderPodLookupFeil
 import no.nav.su.se.bakover.test.fixedClock
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any

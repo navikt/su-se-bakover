@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.service.revurdering
 
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.common.toggle.domain.ToggleClient
 import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
@@ -13,7 +14,6 @@ import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
-import no.nav.su.se.bakover.service.toggles.ToggleService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
@@ -40,7 +40,7 @@ internal data class RevurderingServiceMocks(
     val avkortingsvarselRepo: AvkortingsvarselRepo = defaultMock(),
     val sessionFactory: SessionFactory = TestSessionFactory(),
     val observer: StatistikkEventObserver = mock(),
-    val toggleService: ToggleService = mock(),
+    val toggleService: ToggleClient = mock(),
     val clock: Clock = fixedClock,
     val tilbakekrevingService: TilbakekrevingService = defaultMock(),
     val satsFactory: SatsFactory = satsFactoryTestPåDato(),

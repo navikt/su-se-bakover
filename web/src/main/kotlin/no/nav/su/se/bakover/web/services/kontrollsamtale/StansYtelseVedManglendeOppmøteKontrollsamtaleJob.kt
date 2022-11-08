@@ -2,10 +2,9 @@ package no.nav.su.se.bakover.web.services.kontrollsamtale
 
 import arrow.core.Either
 import no.nav.su.se.bakover.common.igår
+import no.nav.su.se.bakover.common.jobs.infrastructure.RunCheckFactory
+import no.nav.su.se.bakover.common.jobs.infrastructure.shouldRun
 import no.nav.su.se.bakover.service.kontrollsamtale.UtløptFristForKontrollsamtaleService
-import no.nav.su.se.bakover.service.toggles.ToggleService
-import no.nav.su.se.bakover.web.services.RunCheckFactory
-import no.nav.su.se.bakover.web.services.shouldRun
 import org.jetbrains.kotlin.utils.addToStdlib.ifTrue
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -38,7 +37,7 @@ internal class StansYtelseVedManglendeOppmøteKontrollsamtaleJob(
                 listOf(
                     runCheckFactory.åpningstidStormaskin(),
                     runCheckFactory.leaderPod(),
-                    runCheckFactory.unleashToggle(ToggleService.supstonadAutomatiskStansVedManglendeOppmøteKontrollsamtale),
+                    runCheckFactory.unleashToggle("supstonad.automatisk.stans.manglende.oppmote.kontrollsamtale"),
                 ).shouldRun().ifTrue {
                     service.håndterUtløpsdato(igår(clock))
                 }

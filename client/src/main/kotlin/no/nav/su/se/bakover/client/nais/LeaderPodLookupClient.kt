@@ -4,8 +4,8 @@ import arrow.core.Either
 import arrow.core.flatMap
 import com.github.kittinunf.fuel.httpGet
 import no.nav.su.se.bakover.client.fromResult
-import no.nav.su.se.bakover.domain.nais.LeaderPodLookup
-import no.nav.su.se.bakover.domain.nais.LeaderPodLookupFeil
+import no.nav.su.se.bakover.common.infrastructure.nais.LeaderPodLookup
+import no.nav.su.se.bakover.common.infrastructure.nais.LeaderPodLookupFeil
 import org.json.JSONObject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
