@@ -122,7 +122,6 @@ sealed class Revurdering :
 
     abstract val informasjonSomRevurderes: InformasjonSomRevurderes
 
-    abstract val forhåndsvarsel: Forhåndsvarsel?
     abstract val avkorting: AvkortingVedRevurdering
     abstract val erOpphørt: Boolean
     abstract val beregning: Beregning?
@@ -194,30 +193,6 @@ sealed class Revurdering :
         avkorting: AvkortingVedRevurdering.Uhåndtert,
         saksbehandler: Saksbehandler,
     ): Either<KunneIkkeOppdatereRevurdering, OpprettetRevurdering> {
-        val forhåndsvarsel =
-            if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) {
-                when (this.forhåndsvarsel) {
-                    is Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet,
-                    is Forhåndsvarsel.UnderBehandling.Sendt,
-                    -> return KunneIkkeOppdatereRevurdering.KanIkkeEndreÅrsakTilReguleringVedForhåndsvarsletRevurdering.left()
-                    /* I disse casene er det ikke forhåndsvarslet og det er akseptabelt å endre til Regulering (selvom det kan virke som et corner case.) */
-                    is Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
-                    null,
-                    -> Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles
-                }
-            } else {
-                when (this.forhåndsvarsel) {
-                    /* I disse casene er det forhåndsvarslet og vi ønsker ikke å slette denne informasjonen.) */
-                    is Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet,
-                    is Forhåndsvarsel.UnderBehandling.Sendt,
-                    -> this.forhåndsvarsel
-                    /* I disse casene er det ikke forhåndsvarslet og vi kan resette valget.) */
-                    is Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
-                    null,
-                    -> null
-                }
-            }
-
         return OpprettetRevurdering(
             id = id,
             periode = periode,
@@ -227,7 +202,6 @@ sealed class Revurdering :
             oppgaveId = oppgaveId,
             fritekstTilBrev = fritekstTilBrev,
             revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = forhåndsvarsel,
             grunnlagsdata = grunnlagsdata,
             vilkårsvurderinger = vilkårsvurderinger,
             informasjonSomRevurderes = informasjonSomRevurderes,
@@ -593,7 +567,6 @@ sealed class Revurdering :
             oppgaveId = oppgaveId,
             fritekstTilBrev = fritekstTilBrev,
             revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = forhåndsvarsel,
             grunnlagsdata = grunnlagsdata,
             vilkårsvurderinger = vilkårsvurderinger,
             informasjonSomRevurderes = informasjonSomRevurderes,
@@ -631,7 +604,6 @@ sealed class Revurdering :
             oppgaveId = oppgaveId,
             fritekstTilBrev = fritekstTilBrev,
             revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = forhåndsvarsel,
             grunnlagsdata = grunnlagsdata,
             vilkårsvurderinger = vilkårsvurderinger,
             informasjonSomRevurderes = informasjonSomRevurderes,
@@ -686,7 +658,6 @@ sealed class Revurdering :
                 oppgaveId = revurdering.oppgaveId,
                 fritekstTilBrev = revurdering.fritekstTilBrev,
                 revurderingsårsak = revurdering.revurderingsårsak,
-                forhåndsvarsel = revurdering.forhåndsvarsel,
                 grunnlagsdata = revurdering.grunnlagsdata,
                 vilkårsvurderinger = revurdering.vilkårsvurderinger,
                 informasjonSomRevurderes = revurdering.informasjonSomRevurderes,
@@ -706,7 +677,6 @@ sealed class Revurdering :
                 oppgaveId = revurdering.oppgaveId,
                 fritekstTilBrev = revurdering.fritekstTilBrev,
                 revurderingsårsak = revurdering.revurderingsårsak,
-                forhåndsvarsel = revurdering.forhåndsvarsel,
                 grunnlagsdata = revurdering.grunnlagsdata,
                 vilkårsvurderinger = revurdering.vilkårsvurderinger,
                 informasjonSomRevurderes = revurdering.informasjonSomRevurderes,
@@ -729,7 +699,6 @@ sealed class Revurdering :
                 oppgaveId = revurdering.oppgaveId,
                 fritekstTilBrev = revurdering.fritekstTilBrev,
                 revurderingsårsak = revurdering.revurderingsårsak,
-                forhåndsvarsel = revurdering.forhåndsvarsel,
                 grunnlagsdata = revurdering.grunnlagsdata,
                 vilkårsvurderinger = revurdering.vilkårsvurderinger,
                 informasjonSomRevurderes = revurdering.informasjonSomRevurderes,
@@ -848,7 +817,6 @@ data class OpprettetRevurdering(
     override val oppgaveId: OppgaveId,
     override val fritekstTilBrev: String,
     override val revurderingsårsak: Revurderingsårsak,
-    override val forhåndsvarsel: Forhåndsvarsel?,
     override val grunnlagsdata: Grunnlagsdata,
     override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
     override val informasjonSomRevurderes: InformasjonSomRevurderes,
@@ -1025,7 +993,6 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val oppgaveId: OppgaveId,
         override val fritekstTilBrev: String,
         override val revurderingsårsak: Revurderingsårsak,
-        override val forhåndsvarsel: Forhåndsvarsel?,
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
@@ -1088,7 +1055,6 @@ sealed class BeregnetRevurdering : Revurdering() {
                     oppgaveId = oppgaveId,
                     fritekstTilBrev = fritekstTilBrev,
                     revurderingsårsak = revurderingsårsak,
-                    forhåndsvarsel = forhåndsvarsel,
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger,
                     informasjonSomRevurderes = informasjonSomRevurderes,
@@ -1111,7 +1077,6 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val oppgaveId: OppgaveId,
         override val fritekstTilBrev: String,
         override val revurderingsårsak: Revurderingsårsak,
-        override val forhåndsvarsel: Forhåndsvarsel?,
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
@@ -1139,7 +1104,6 @@ sealed class BeregnetRevurdering : Revurdering() {
                 fritekstTilBrev = fritekstTilBrev,
                 revurderingsårsak = revurderingsårsak,
                 skalFøreTilUtsendingAvVedtaksbrev = if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) false else skalFøreTilUtsendingAvVedtaksbrev,
-                forhåndsvarsel = forhåndsvarsel,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
@@ -1164,7 +1128,6 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val oppgaveId: OppgaveId,
         override val fritekstTilBrev: String,
         override val revurderingsårsak: Revurderingsårsak,
-        override val forhåndsvarsel: Forhåndsvarsel?,
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
@@ -1264,7 +1227,6 @@ sealed class BeregnetRevurdering : Revurdering() {
                 oppgaveId = oppgaveId,
                 fritekstTilBrev = fritekstTilBrev,
                 revurderingsårsak = revurderingsårsak,
-                forhåndsvarsel = forhåndsvarsel,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
@@ -1375,7 +1337,6 @@ sealed class SimulertRevurdering : Revurdering() {
 
     abstract override val beregning: Beregning
     abstract override val simulering: Simulering
-    abstract override val forhåndsvarsel: Forhåndsvarsel?
     abstract override val grunnlagsdata: Grunnlagsdata
     abstract val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling
 
@@ -1383,50 +1344,35 @@ sealed class SimulertRevurdering : Revurdering() {
 
     fun harSimuleringFeilutbetaling() = simulering.harFeilutbetalinger()
 
-    abstract fun ikkeSendForhåndsvarsel(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, SimulertRevurdering>
-
     fun lagForhåndsvarsel(
         person: Person,
         saksbehandlerNavn: String,
         fritekst: String,
         clock: Clock,
-    ): Either<Forhåndsvarsel.UgyldigTilstandsovergang, LagBrevRequest> {
-        return forhåndsvarsel.prøvOvergangTilSendt() // brukes for å verifisere tilstanden på forhåndsvarsel, resultatet ignoreres
-            .map {
-                tilbakekrevingsbehandling.skalTilbakekreve().fold(
-                    {
-                        LagBrevRequest.Forhåndsvarsel(
-                            person = person,
-                            saksbehandlerNavn = saksbehandlerNavn,
-                            fritekst = fritekst,
-                            dagensDato = LocalDate.now(clock),
-                            saksnummer = saksnummer,
-                        )
-                    },
-                    {
-                        LagBrevRequest.ForhåndsvarselTilbakekreving(
-                            person = person,
-                            saksbehandlerNavn = saksbehandlerNavn,
-                            fritekst = fritekst,
-                            dagensDato = LocalDate.now(clock),
-                            saksnummer = saksnummer,
-                            bruttoTilbakekreving = simulering.hentFeilutbetalteBeløp().sum(),
-                            tilbakekreving = Tilbakekreving(simulering.hentFeilutbetalteBeløp().månedbeløp),
-                        )
-                    },
+    ): LagBrevRequest {
+        return tilbakekrevingsbehandling.skalTilbakekreve().fold(
+            {
+                LagBrevRequest.Forhåndsvarsel(
+                    person = person,
+                    saksbehandlerNavn = saksbehandlerNavn,
+                    fritekst = fritekst,
+                    dagensDato = LocalDate.now(clock),
+                    saksnummer = saksnummer,
                 )
-            }
+            },
+            {
+                LagBrevRequest.ForhåndsvarselTilbakekreving(
+                    person = person,
+                    saksbehandlerNavn = saksbehandlerNavn,
+                    fritekst = fritekst,
+                    dagensDato = LocalDate.now(clock),
+                    saksnummer = saksnummer,
+                    bruttoTilbakekreving = simulering.hentFeilutbetalteBeløp().sum(),
+                    tilbakekreving = Tilbakekreving(simulering.hentFeilutbetalteBeløp().månedbeløp),
+                )
+            },
+        )
     }
-
-    abstract fun markerForhåndsvarselSomSendt(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, SimulertRevurdering>
-
-    abstract fun prøvOvergangTilEndreGrunnlaget(
-        begrunnelse: String,
-    ): Either<Forhåndsvarsel.UgyldigTilstandsovergang, SimulertRevurdering>
-
-    abstract fun prøvOvergangTilFortsettMedSammeGrunnlag(
-        begrunnelse: String,
-    ): Either<Forhåndsvarsel.UgyldigTilstandsovergang, SimulertRevurdering>
 
     override fun oppdaterUføreOgMarkerSomVurdert(
         uføre: UføreVilkår.Vurdert,
@@ -1517,7 +1463,6 @@ sealed class SimulertRevurdering : Revurdering() {
         override val fritekstTilBrev: String,
         override val beregning: Beregning,
         override val simulering: Simulering,
-        override val forhåndsvarsel: Forhåndsvarsel?,
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
@@ -1532,28 +1477,6 @@ sealed class SimulertRevurdering : Revurdering() {
             visitor.visit(this)
         }
 
-        override fun ikkeSendForhåndsvarsel(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, Innvilget> {
-            return forhåndsvarsel.prøvOvergangTilSkalIkkeForhåndsvarsles().map { this.copy(forhåndsvarsel = it) }
-        }
-
-        override fun markerForhåndsvarselSomSendt(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, Innvilget> {
-            return forhåndsvarsel.prøvOvergangTilSendt()
-                .map { copy(forhåndsvarsel = it) }
-        }
-
-        override fun prøvOvergangTilEndreGrunnlaget(
-            begrunnelse: String,
-        ): Either<Forhåndsvarsel.UgyldigTilstandsovergang, Innvilget> {
-            return forhåndsvarsel.prøvOvergangTilEndreGrunnlaget(begrunnelse).map { this.copy(forhåndsvarsel = it) }
-        }
-
-        override fun prøvOvergangTilFortsettMedSammeGrunnlag(
-            begrunnelse: String,
-        ): Either<Forhåndsvarsel.UgyldigTilstandsovergang, Innvilget> {
-            return forhåndsvarsel.prøvOvergangTilFortsettMedSammeGrunnlag(begrunnelse)
-                .map { this.copy(forhåndsvarsel = it) }
-        }
-
         override fun oppdaterTilbakekrevingsbehandling(tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling): Innvilget {
             return copy(tilbakekrevingsbehandling = tilbakekrevingsbehandling)
         }
@@ -1563,20 +1486,6 @@ sealed class SimulertRevurdering : Revurdering() {
             saksbehandler: Saksbehandler,
             fritekstTilBrev: String,
         ): Either<KunneIkkeSendeInnvilgetRevurderingTilAttestering, RevurderingTilAttestering.Innvilget> {
-            val gyldigForhåndsvarsel = when (forhåndsvarsel) {
-                is Forhåndsvarsel.Ferdigbehandlet -> {
-                    forhåndsvarsel
-                }
-
-                is Forhåndsvarsel.UnderBehandling -> {
-                    return KunneIkkeSendeInnvilgetRevurderingTilAttestering.ForhåndsvarslingErIkkeFerdigbehandlet.left()
-                }
-
-                null -> {
-                    return KunneIkkeSendeInnvilgetRevurderingTilAttestering.ForhåndsvarslingErIkkeFerdigbehandlet.left()
-                }
-            }
-
             val gyldigTilbakekrevingsbehandling = when (tilbakekrevingsbehandling) {
                 is Tilbakekrev,
                 is IkkeTilbakekrev,
@@ -1601,7 +1510,6 @@ sealed class SimulertRevurdering : Revurdering() {
                 oppgaveId = attesteringsoppgaveId,
                 fritekstTilBrev = fritekstTilBrev,
                 revurderingsårsak = revurderingsårsak,
-                forhåndsvarsel = gyldigForhåndsvarsel,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
@@ -1624,7 +1532,6 @@ sealed class SimulertRevurdering : Revurdering() {
         override val fritekstTilBrev: String,
         override val beregning: Beregning,
         override val simulering: Simulering,
-        override val forhåndsvarsel: Forhåndsvarsel?,
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
@@ -1652,28 +1559,6 @@ sealed class SimulertRevurdering : Revurdering() {
             }
         }
 
-        override fun ikkeSendForhåndsvarsel(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, Opphørt> {
-            return forhåndsvarsel.prøvOvergangTilSkalIkkeForhåndsvarsles().map { this.copy(forhåndsvarsel = it) }
-        }
-
-        override fun markerForhåndsvarselSomSendt(): Either<Forhåndsvarsel.UgyldigTilstandsovergang, Opphørt> {
-            return forhåndsvarsel.prøvOvergangTilSendt()
-                .map { copy(forhåndsvarsel = it) }
-        }
-
-        override fun prøvOvergangTilEndreGrunnlaget(
-            begrunnelse: String,
-        ): Either<Forhåndsvarsel.UgyldigTilstandsovergang, Opphørt> {
-            return forhåndsvarsel.prøvOvergangTilEndreGrunnlaget(begrunnelse).map { this.copy(forhåndsvarsel = it) }
-        }
-
-        override fun prøvOvergangTilFortsettMedSammeGrunnlag(
-            begrunnelse: String,
-        ): Either<Forhåndsvarsel.UgyldigTilstandsovergang, Opphørt> {
-            return forhåndsvarsel.prøvOvergangTilFortsettMedSammeGrunnlag(begrunnelse)
-                .map { this.copy(forhåndsvarsel = it) }
-        }
-
         override fun oppdaterTilbakekrevingsbehandling(tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling): Opphørt {
             return copy(tilbakekrevingsbehandling = tilbakekrevingsbehandling)
         }
@@ -1691,20 +1576,6 @@ sealed class SimulertRevurdering : Revurdering() {
         ): Either<KanIkkeSendeOpphørtRevurderingTilAttestering, RevurderingTilAttestering.Opphørt> {
             if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) {
                 return KanIkkeSendeOpphørtRevurderingTilAttestering.KanIkkeSendeEnOpphørtGReguleringTilAttestering.left()
-            }
-
-            val gyldigForhåndsvarsel = when (forhåndsvarsel) {
-                is Forhåndsvarsel.Ferdigbehandlet -> {
-                    forhåndsvarsel
-                }
-
-                is Forhåndsvarsel.UnderBehandling -> {
-                    return KanIkkeSendeOpphørtRevurderingTilAttestering.ForhåndsvarslingErIkkeFerdigbehandlet.left()
-                }
-
-                null -> {
-                    return KanIkkeSendeOpphørtRevurderingTilAttestering.ForhåndsvarslingErIkkeFerdigbehandlet.left()
-                }
             }
 
             val gyldigTilbakekrevingsbehandling = when (tilbakekrevingsbehandling) {
@@ -1731,7 +1602,6 @@ sealed class SimulertRevurdering : Revurdering() {
                 oppgaveId = attesteringsoppgaveId,
                 fritekstTilBrev = fritekstTilBrev,
                 revurderingsårsak = revurderingsårsak,
-                forhåndsvarsel = gyldigForhåndsvarsel,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
@@ -1771,7 +1641,6 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val revurderingsårsak: Revurderingsårsak,
         override val beregning: Beregning,
         override val simulering: Simulering,
-        override val forhåndsvarsel: Forhåndsvarsel.Ferdigbehandlet,
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
@@ -1810,7 +1679,6 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 oppgaveId = oppgaveId,
                 fritekstTilBrev = fritekstTilBrev,
                 revurderingsårsak = revurderingsårsak,
-                forhåndsvarsel = forhåndsvarsel,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
@@ -1838,7 +1706,6 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val revurderingsårsak: Revurderingsårsak,
         override val beregning: Beregning,
         override val simulering: Simulering,
-        override val forhåndsvarsel: Forhåndsvarsel.Ferdigbehandlet,
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
@@ -1891,7 +1758,6 @@ sealed class RevurderingTilAttestering : Revurdering() {
                     oppgaveId = oppgaveId,
                     fritekstTilBrev = fritekstTilBrev,
                     revurderingsårsak = revurderingsårsak,
-                    forhåndsvarsel = forhåndsvarsel,
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger,
                     informasjonSomRevurderes = informasjonSomRevurderes,
@@ -1920,7 +1786,6 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val fritekstTilBrev: String,
         override val revurderingsårsak: Revurderingsårsak,
         override val skalFøreTilUtsendingAvVedtaksbrev: Boolean,
-        override val forhåndsvarsel: Forhåndsvarsel?,
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
@@ -1958,7 +1823,6 @@ sealed class RevurderingTilAttestering : Revurdering() {
                     fritekstTilBrev = fritekstTilBrev,
                     revurderingsårsak = revurderingsårsak,
                     skalFøreTilUtsendingAvVedtaksbrev = skalFøreTilUtsendingAvVedtaksbrev,
-                    forhåndsvarsel = forhåndsvarsel,
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger,
                     informasjonSomRevurderes = informasjonSomRevurderes,
@@ -2006,7 +1870,6 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 attesteringer = attesteringer.leggTilNyAttestering(attestering),
                 fritekstTilBrev = fritekstTilBrev,
                 revurderingsårsak = revurderingsårsak,
-                forhåndsvarsel = forhåndsvarsel,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
@@ -2027,7 +1890,6 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 attesteringer = attesteringer.leggTilNyAttestering(attestering),
                 fritekstTilBrev = fritekstTilBrev,
                 revurderingsårsak = revurderingsårsak,
-                forhåndsvarsel = forhåndsvarsel,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
@@ -2048,7 +1910,6 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 fritekstTilBrev = fritekstTilBrev,
                 revurderingsårsak = revurderingsårsak,
                 skalFøreTilUtsendingAvVedtaksbrev = skalFøreTilUtsendingAvVedtaksbrev,
-                forhåndsvarsel = forhåndsvarsel,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
@@ -2085,7 +1946,6 @@ sealed class IverksattRevurdering : Revurdering() {
         override val fritekstTilBrev: String,
         override val revurderingsårsak: Revurderingsårsak,
         override val beregning: Beregning,
-        override val forhåndsvarsel: Forhåndsvarsel.Ferdigbehandlet,
         override val simulering: Simulering,
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
@@ -2118,7 +1978,6 @@ sealed class IverksattRevurdering : Revurdering() {
         override val revurderingsårsak: Revurderingsårsak,
         override val beregning: Beregning,
         override val simulering: Simulering,
-        override val forhåndsvarsel: Forhåndsvarsel.Ferdigbehandlet,
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
@@ -2173,7 +2032,6 @@ sealed class IverksattRevurdering : Revurdering() {
         override val fritekstTilBrev: String,
         override val revurderingsårsak: Revurderingsårsak,
         val skalFøreTilUtsendingAvVedtaksbrev: Boolean,
-        override val forhåndsvarsel: Forhåndsvarsel?,
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
@@ -2289,7 +2147,6 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override val revurderingsårsak: Revurderingsårsak,
         override val beregning: Beregning,
         override val attesteringer: Attesteringshistorikk,
-        override val forhåndsvarsel: Forhåndsvarsel.Ferdigbehandlet,
         override val simulering: Simulering,
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
@@ -2319,7 +2176,6 @@ sealed class UnderkjentRevurdering : Revurdering() {
             oppgaveId = oppgaveId,
             fritekstTilBrev = fritekstTilBrev,
             revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = forhåndsvarsel,
             grunnlagsdata = grunnlagsdata,
             vilkårsvurderinger = vilkårsvurderinger,
             informasjonSomRevurderes = informasjonSomRevurderes,
@@ -2340,7 +2196,6 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override val fritekstTilBrev: String,
         override val revurderingsårsak: Revurderingsårsak,
         override val beregning: Beregning,
-        override val forhåndsvarsel: Forhåndsvarsel.Ferdigbehandlet,
         override val simulering: Simulering,
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
@@ -2390,7 +2245,6 @@ sealed class UnderkjentRevurdering : Revurdering() {
                     oppgaveId = oppgaveId,
                     fritekstTilBrev = fritekstTilBrev,
                     revurderingsårsak = revurderingsårsak,
-                    forhåndsvarsel = forhåndsvarsel,
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger,
                     informasjonSomRevurderes = informasjonSomRevurderes,
@@ -2414,7 +2268,6 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override val fritekstTilBrev: String,
         override val revurderingsårsak: Revurderingsårsak,
         val skalFøreTilUtsendingAvVedtaksbrev: Boolean,
-        override val forhåndsvarsel: Forhåndsvarsel?,
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
@@ -2446,7 +2299,6 @@ sealed class UnderkjentRevurdering : Revurdering() {
                 fritekstTilBrev = fritekstTilBrev,
                 revurderingsårsak = revurderingsårsak,
                 skalFøreTilUtsendingAvVedtaksbrev = if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) false else skalFøreTilUtsendingAvVedtaksbrev,
-                forhåndsvarsel = forhåndsvarsel,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,

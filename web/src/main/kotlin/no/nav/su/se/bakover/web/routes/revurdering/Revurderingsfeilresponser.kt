@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
-import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
@@ -107,11 +106,6 @@ internal object Revurderingsfeilresponser {
     }
 
     fun KunneIkkeForhåndsvarsle.tilResultat() = when (this) {
-        is KunneIkkeForhåndsvarsle.UgyldigTilstandsovergangForForhåndsvarsling -> HttpStatusCode.Conflict.errorJson(
-            "Allerede forhåndsvarslet",
-            "allerede_forhåndsvarslet",
-        )
-
         is KunneIkkeForhåndsvarsle.FantIkkePerson -> fantIkkePerson
         is KunneIkkeForhåndsvarsle.KunneIkkeOppdatereOppgave -> kunneIkkeOppretteOppgave
         is KunneIkkeForhåndsvarsle.FantIkkeRevurdering -> fantIkkeRevurdering

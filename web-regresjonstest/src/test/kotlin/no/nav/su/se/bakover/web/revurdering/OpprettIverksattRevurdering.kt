@@ -4,7 +4,7 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.UtenlandsoppholdStatus
 import no.nav.su.se.bakover.web.revurdering.attestering.sendTilAttestering
 import no.nav.su.se.bakover.web.revurdering.bosituasjon.leggTilBosituasjon
-import no.nav.su.se.bakover.web.revurdering.forhåndsvarsel.leggTilIngenForhåndsvarsel
+import no.nav.su.se.bakover.web.revurdering.forhåndsvarsel.sendForhåndsvarsel
 import no.nav.su.se.bakover.web.revurdering.formue.leggTilFormue
 import no.nav.su.se.bakover.web.revurdering.fradrag.leggTilFradrag
 import no.nav.su.se.bakover.web.revurdering.iverksett.iverksett
@@ -80,7 +80,7 @@ internal fun ApplicationTestBuilder.opprettIverksattRevurdering(
         )
     },
     leggTilIngenForhåndsvarsel: (sakId: String, behandlingId: String) -> String = { sakId, behandlingId ->
-        leggTilIngenForhåndsvarsel(
+        sendForhåndsvarsel(
             sakId = sakId,
             behandlingId = behandlingId,
         )

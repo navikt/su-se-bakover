@@ -319,12 +319,10 @@ class ReguleringServiceImpl(
 
     override fun hentStatus(): List<Pair<Regulering, List<ReguleringMerknad>>> {
         val reguleringer = reguleringRepo.hentReguleringerSomIkkeErIverksatt()
-        val sakerSomAvventerForhåndsvarsel = sakRepo.hentSakerSomVenterPåForhåndsvarsling()
 
         return reguleringer.map {
             val tilhørendeMerknader = listOfNotNull(
                 if (it.grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.fradragsgrunnlag.any { it.fradragstype == Fradragstype.Fosterhjemsgodtgjørelse }) ReguleringMerknad.Fosterhjemsgodtgjørelse else null,
-                if (sakerSomAvventerForhåndsvarsel.contains(it.saksnummer)) ReguleringMerknad.VenterPåSvarFraForhåndsvarsel else null,
             )
 
             Pair(it, tilhørendeMerknader)

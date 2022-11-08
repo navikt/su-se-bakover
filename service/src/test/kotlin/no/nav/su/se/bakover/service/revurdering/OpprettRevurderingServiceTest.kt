@@ -24,7 +24,6 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
-import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
@@ -109,7 +108,6 @@ internal class OpprettRevurderingServiceTest {
                     årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER.toString(),
                     begrunnelse = "Ny informasjon",
                 )
-                opprettetRevurdering.forhåndsvarsel shouldBe null
                 opprettetRevurdering.vilkårsvurderinger.erLik(søknadsbehandling.vilkårsvurderinger)
                 opprettetRevurdering.vilkårsvurderinger.vilkår.all {
                     it.perioder == listOf(
@@ -191,7 +189,6 @@ internal class OpprettRevurderingServiceTest {
                     Revurderingsårsak.Årsak.REGULER_GRUNNBELØP,
                     Revurderingsårsak.Begrunnelse.create("g-regulering"),
                 )
-                opprettetRevurdering.forhåndsvarsel shouldBe Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles
                 opprettetRevurdering.vilkårsvurderinger.vilkår.erLik(søknadsbehandling.vilkårsvurderinger.vilkår)
                 opprettetRevurdering.vilkårsvurderinger.vilkår.all { it.perioder == listOf(periode) }
                 opprettetRevurdering.informasjonSomRevurderes shouldBe InformasjonSomRevurderes.create(
@@ -269,7 +266,6 @@ internal class OpprettRevurderingServiceTest {
                     Revurderingsårsak.Årsak.REGULER_GRUNNBELØP,
                     Revurderingsårsak.Begrunnelse.create("g-regulering"),
                 )
-                opprettetRevurdering.forhåndsvarsel shouldBe Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles
                 opprettetRevurdering.vilkårsvurderinger.vilkår.erLik(søknadsvedtak.behandling.vilkårsvurderinger.vilkår)
                 opprettetRevurdering.vilkårsvurderinger.vilkår.all { it.perioder == listOf(periode) }
                 opprettetRevurdering.informasjonSomRevurderes shouldBe InformasjonSomRevurderes.create(

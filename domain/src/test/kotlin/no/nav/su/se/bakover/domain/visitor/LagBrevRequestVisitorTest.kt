@@ -1283,7 +1283,6 @@ internal class LagBrevRequestVisitorTest {
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
             skalFøreTilUtsendingAvVedtaksbrev = false,
-            forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.create(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(

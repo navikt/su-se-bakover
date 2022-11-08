@@ -22,7 +22,6 @@ import no.nav.su.se.bakover.common.periode.år
 import no.nav.su.se.bakover.common.toPeriode
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
-import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeOppdatereRevurdering
@@ -51,7 +50,6 @@ import no.nav.su.se.bakover.test.oppgaveIdRevurdering
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.saksbehandler
-import no.nav.su.se.bakover.test.simulertRevurdering
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknad.nySøknadJournalførtMedOppgave
 import no.nav.su.se.bakover.test.søknad.søknadinnhold
@@ -138,104 +136,6 @@ internal class OppdaterRevurderingServiceTest {
     }
 
     @Test
-    fun `Kan ikke oppdatere revurdering med årsak reguler grunnbeløp dersom det er forhåndsvarslet`() {
-        val (sak, revurdering) = simulertRevurdering(
-            revurderingsperiode = år(2021),
-            forhåndsvarsel = Forhåndsvarsel.UnderBehandling.Sendt,
-        )
-        RevurderingServiceMocks(
-            sakService = mock {
-                on { hentSakForRevurdering(any()) } doReturn sak
-            },
-        ).also {
-            val actual = it.revurderingService.oppdaterRevurdering(
-                OppdaterRevurderingRequest(
-                    revurderingId = revurdering.id,
-                    periode = periodeNesteMånedOgTreMånederFram.fraOgMed.rangeTo(revurdering.periode.tilOgMed)
-                        .toPeriode(),
-                    årsak = "REGULER_GRUNNBELØP",
-                    begrunnelse = "gyldig begrunnelse",
-                    saksbehandler = saksbehandler,
-                    informasjonSomRevurderes = listOf(Revurderingsteg.Uførhet),
-                ),
-            )
-            actual shouldBe KunneIkkeOppdatereRevurdering.FeilVedOppdateringAvRevurdering(
-                Sak.KunneIkkeOppdatereRevurdering.KunneIkkeOppdatere(
-                    Revurdering.KunneIkkeOppdatereRevurdering.KanIkkeEndreÅrsakTilReguleringVedForhåndsvarsletRevurdering,
-                ),
-            ).left()
-        }
-    }
-
-    @Test
-    fun `Kan oppdatere sendt forhåndsvarslet revurdering med årsak melding fra bruker`() {
-        val simulertRevurdering = simulertRevurdering(
-            revurderingsperiode = år(2021),
-            forhåndsvarsel = Forhåndsvarsel.UnderBehandling.Sendt,
-        )
-        val (sak, revurdering) = simulertRevurdering
-        RevurderingServiceMocks(
-            sakService = mock {
-                on { hentSakForRevurdering(any()) } doReturn sak
-            },
-            revurderingRepo = mock(),
-        ).also {
-            val actual = it.revurderingService.oppdaterRevurdering(
-                OppdaterRevurderingRequest(
-                    revurderingId = revurdering.id,
-                    periode = periodeNesteMånedOgTreMånederFram.fraOgMed.rangeTo(revurdering.periode.tilOgMed)
-                        .toPeriode(),
-                    årsak = "MELDING_FRA_BRUKER",
-                    begrunnelse = "gyldig begrunnelse",
-                    saksbehandler = saksbehandler,
-                    informasjonSomRevurderes = listOf(Revurderingsteg.Uførhet),
-                ),
-            ).getOrFail()
-            inOrder(
-                *it.all(),
-            ) {
-                verify(it.sakService).hentSakForRevurdering(revurdering.id)
-                verify(it.revurderingRepo).defaultTransactionContext()
-                verify(it.revurderingRepo).lagre(argThat { it shouldBe actual }, anyOrNull())
-            }
-            it.verifyNoMoreInteractions()
-        }
-    }
-
-    @Test
-    fun `Kan oppdatere besluttet forhåndsvarslet revurdering med årsak andre kilder`() {
-        val (sak, revurdering) = simulertRevurdering(
-            forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.FortsettMedSammeGrunnlag("begrunnelse"),
-        )
-        RevurderingServiceMocks(
-            sakService = mock {
-                on { hentSakForRevurdering(any()) } doReturn sak
-            },
-            revurderingRepo = mock(),
-        ).also {
-            val actual = it.revurderingService.oppdaterRevurdering(
-                OppdaterRevurderingRequest(
-                    revurderingId = revurdering.id,
-                    periode = periodeNesteMånedOgTreMånederFram.fraOgMed.rangeTo(revurdering.periode.tilOgMed)
-                        .toPeriode(),
-                    årsak = "ANDRE_KILDER",
-                    begrunnelse = "gyldig begrunnelse",
-                    saksbehandler = saksbehandler,
-                    informasjonSomRevurderes = listOf(Revurderingsteg.Uførhet),
-                ),
-            ).getOrFail()
-            inOrder(
-                *it.all(),
-            ) {
-                verify(it.sakService).hentSakForRevurdering(revurdering.id)
-                verify(it.revurderingRepo).defaultTransactionContext()
-                verify(it.revurderingRepo).lagre(argThat { it shouldBe actual }, anyOrNull())
-            }
-            it.verifyNoMoreInteractions()
-        }
-    }
-
-    @Test
     fun `Oppdatering av iverksatt revurdering gir ugyldig tilstand`() {
         val (sak, iverksatt) = iverksattRevurdering()
 
@@ -306,7 +206,6 @@ internal class OppdaterRevurderingServiceTest {
                     årsak = Revurderingsårsak.Årsak.ANDRE_KILDER,
                     begrunnelse = Revurderingsårsak.Begrunnelse.create("bør bli oppdatert"),
                 )
-                oppdatertRevurdering.forhåndsvarsel shouldBe null
                 oppdatertRevurdering.vilkårsvurderinger.erLik(sak.søknadsbehandlinger.single().vilkårsvurderinger)
                 oppdatertRevurdering.vilkårsvurderinger.vilkår.all { it.perioder == listOf(oppdatertPeriode) }
                 oppdatertRevurdering.informasjonSomRevurderes shouldBe InformasjonSomRevurderes.create(

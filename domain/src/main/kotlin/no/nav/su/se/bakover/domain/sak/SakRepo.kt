@@ -17,7 +17,6 @@ interface SakRepo {
     fun hentÅpneBehandlinger(): List<Behandlingsoversikt>
     fun hentFerdigeBehandlinger(): List<Behandlingsoversikt>
     fun hentSakIdSaksnummerOgFnrForAlleSaker(): List<SakInfo>
-    fun hentSakerSomVenterPåForhåndsvarsling(): List<Saksnummer>
     fun hentSaker(fnr: Fnr): List<Sak>
 
     fun hentSakForRevurdering(revurderingId: UUID): Sak

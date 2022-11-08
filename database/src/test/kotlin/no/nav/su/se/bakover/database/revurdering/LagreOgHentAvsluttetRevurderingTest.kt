@@ -6,10 +6,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
-import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
-import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import org.junit.jupiter.api.Disabled
@@ -148,51 +145,6 @@ internal class LagreOgHentAvsluttetRevurderingTest {
                     ),
                 ),
             )
-        }
-    }
-
-    @Test
-    fun `simulert innvilget med skal ikke fohåndsvarsle`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val repo = testDataHelper.revurderingRepo
-            val (_, simulert) = testDataHelper.persisterRevurderingSimulertInnvilget()
-            val simulertIngenForhåndsvarsel =
-                simulert.ikkeSendForhåndsvarsel().getOrFail().also {
-                    repo.lagre(it)
-                }
-            (repo.hent(simulert.id) as Revurdering) shouldBe simulertIngenForhåndsvarsel
-        }
-    }
-
-    @Test
-    fun `simulert innvilget med sendt forhåndsvarsel`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val repo = testDataHelper.revurderingRepo
-            val (_, simulert) = testDataHelper.persisterRevurderingSimulertInnvilget()
-            val simulertIngenForhåndsvarsel =
-                simulert.markerForhåndsvarselSomSendt().getOrFail().also {
-                    repo.lagre(it)
-                }
-            (repo.hent(simulert.id) as Revurdering) shouldBe simulertIngenForhåndsvarsel
-        }
-    }
-
-    @Test
-    fun `simulert innvilget med avsluttet forhåndsvarsel`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val repo = testDataHelper.revurderingRepo
-            val (_, simulert) = testDataHelper.persisterRevurderingSimulertInnvilget()
-            val simulertIngenForhåndsvarsel =
-                simulert.markerForhåndsvarselSomSendt().getOrFail().copy(
-                    // Vi har fjernet muligheten for å endre til denne tilstanden, men vi må støtte ikke-migrerte verdier i databasen.
-                    forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.Avsluttet(""),
-                ).also {
-                    repo.lagre(it)
-                }
-            (repo.hent(simulert.id) as Revurdering) shouldBe simulertIngenForhåndsvarsel
         }
     }
 

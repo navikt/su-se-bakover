@@ -20,8 +20,6 @@ import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagReque
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.Person
-import no.nav.su.se.bakover.domain.revurdering.forhåndsvarsel.FortsettEtterForhåndsvarselFeil
-import no.nav.su.se.bakover.domain.revurdering.forhåndsvarsel.FortsettEtterForhåndsvarslingRequest
 import no.nav.su.se.bakover.domain.revurdering.oppdater.OppdaterRevurderingRequest
 import no.nav.su.se.bakover.domain.revurdering.opprett.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opprett.OpprettRevurderingCommand
@@ -68,7 +66,6 @@ interface RevurderingService {
     fun lagreOgSendForhåndsvarsel(
         revurderingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
-        forhåndsvarselhandling: Forhåndsvarselhandling,
         fritekst: String,
     ): Either<KunneIkkeForhåndsvarsle, Revurdering>
 
@@ -99,10 +96,6 @@ interface RevurderingService {
         revurderingId: UUID,
         attestering: Attestering.Underkjent,
     ): Either<KunneIkkeUnderkjenneRevurdering, UnderkjentRevurdering>
-
-    fun fortsettEtterForhåndsvarsling(
-        request: FortsettEtterForhåndsvarslingRequest,
-    ): Either<FortsettEtterForhåndsvarselFeil, Revurdering>
 
     fun leggTilUførevilkår(
         request: LeggTilUførevurderingerRequest,
@@ -197,12 +190,6 @@ data class SendTilAttesteringRequest(
     val skalFøreTilBrevutsending: Boolean,
 )
 
-enum class Forhåndsvarselhandling {
-    INGEN_FORHÅNDSVARSEL,
-    FORHÅNDSVARSLE,
-    ;
-}
-
 sealed class KunneIkkeOppdatereRevurdering {
     object MåVelgeInformasjonSomSkalRevurderes : KunneIkkeOppdatereRevurdering()
     object UgyldigÅrsak : KunneIkkeOppdatereRevurdering()
@@ -228,7 +215,6 @@ sealed class KunneIkkeBeregneOgSimulereRevurdering {
 }
 
 sealed class KunneIkkeForhåndsvarsle {
-    object UgyldigTilstandsovergangForForhåndsvarsling : KunneIkkeForhåndsvarsle()
     object FantIkkeRevurdering : KunneIkkeForhåndsvarsle()
     object FantIkkePerson : KunneIkkeForhåndsvarsle()
     object KunneIkkeOppdatereOppgave : KunneIkkeForhåndsvarsle()

@@ -232,18 +232,6 @@ internal class SakPostgresRepo(
         }
     }
 
-    override fun hentSakerSomVenterPåForhåndsvarsling(): List<Saksnummer> {
-        return sessionFactory.withSession { session ->
-            """
-                select distinct s.saksnummer
-                from revurdering
-                         join behandling_vedtak bv on revurdering.vedtaksomrevurderesid = bv.vedtakid
-                         join sak s on bv.sakid = s.id
-                where revurdering.forhåndsvarsel ->> 'type' = :type;
-            """.trimIndent().hentListe(mapOf("type" to "Sendt"), session) { Saksnummer(it.long("saksnummer")) }
-        }
-    }
-
     private fun hentSakInternal(fnr: Fnr, type: Sakstype, sessionContext: SessionContext): Sak? {
         return dbMetrics.timeQuery("hentSakInternalForFnr") {
             sessionContext.withSession { session ->

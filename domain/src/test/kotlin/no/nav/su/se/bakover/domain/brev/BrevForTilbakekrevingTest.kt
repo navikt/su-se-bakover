@@ -86,7 +86,7 @@ class BrevForTilbakekrevingTest {
                         saksbehandlerNavn = "kjell",
                         fritekst = "da",
                         clock = fixedClock,
-                    ).getOrFail(),
+                    ),
                 )
                 requireType<Dokument.UtenMetadata.Informasjon>(
                     forhåndsvarsel.tilDokument(fixedClock) { "fakePDF".toByteArray().right() }
@@ -183,7 +183,7 @@ class BrevForTilbakekrevingTest {
                         saksbehandlerNavn = "kjell",
                         fritekst = "da",
                         clock = fixedClock,
-                    ).getOrFail(),
+                    ),
                 )
                 requireType<Dokument.UtenMetadata.Informasjon>(
                     forhåndsvarsel.tilDokument(fixedClock) { "fakePDF".toByteArray().right() }

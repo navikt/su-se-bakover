@@ -46,7 +46,6 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
-import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
@@ -76,7 +75,6 @@ private data class BaseRevurderingDb(
     val oppgaveId: OppgaveId?,
     val fritekstTilBrev: String?,
     val revurderingsårsak: Revurderingsårsak,
-    val forhåndsvarsel: Forhåndsvarsel?,
     val grunnlagsdata: Grunnlagsdata,
     val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
     val informasjonSomRevurderes: InformasjonSomRevurderes?,
@@ -105,7 +103,6 @@ private fun StansAvYtelseRevurdering.toBaseRevurderingDb(): BaseRevurderingDb {
         oppgaveId = null,
         fritekstTilBrev = null,
         revurderingsårsak = this.revurderingsårsak,
-        forhåndsvarsel = null,
         grunnlagsdata = this.grunnlagsdata,
         vilkårsvurderinger = this.vilkårsvurderinger,
         informasjonSomRevurderes = null,
@@ -126,7 +123,6 @@ private fun GjenopptaYtelseRevurdering.toBaseRevurderingDb(): BaseRevurderingDb 
         oppgaveId = null,
         fritekstTilBrev = null,
         revurderingsårsak = this.revurderingsårsak,
-        forhåndsvarsel = null,
         grunnlagsdata = this.grunnlagsdata,
         vilkårsvurderinger = this.vilkårsvurderinger,
         informasjonSomRevurderes = null,
@@ -147,7 +143,6 @@ private fun Revurdering.toBaseRevurderingDb(): BaseRevurderingDb {
         oppgaveId = this.oppgaveId,
         fritekstTilBrev = this.fritekstTilBrev,
         revurderingsårsak = this.revurderingsårsak,
-        forhåndsvarsel = this.forhåndsvarsel,
         grunnlagsdata = this.grunnlagsdata,
         vilkårsvurderinger = this.vilkårsvurderinger,
         informasjonSomRevurderes = this.informasjonSomRevurderes,
@@ -614,7 +609,6 @@ internal class RevurderingPostgresRepo(
             begrunnelse = begrunnelse,
         )
         val skalFøreTilBrevutsending = boolean("skalFøreTilBrevutsending")
-        val forhåndsvarsel = deserializeNullable<ForhåndsvarselDatabaseJson>(stringOrNull("forhåndsvarsel"))?.toDomain()
 
         val informasjonSomRevurderes =
             deserializeMapNullable<Revurderingsteg, Vurderingstatus>(stringOrNull("informasjonSomRevurderes"))?.let {
@@ -647,7 +641,6 @@ internal class RevurderingPostgresRepo(
             attesteringer = attesteringer,
             fritekstTilBrev = fritekstTilBrev,
             revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = forhåndsvarsel,
             skalFøreTilBrevutsending = skalFøreTilBrevutsending,
             grunnlagsdata = grunnlagsdata,
             vilkårsvurderinger = vilkårsvurderinger,
@@ -707,7 +700,6 @@ internal class RevurderingPostgresRepo(
                         årsak,
                         begrunnelse,
                         skalFøreTilBrevutsending,
-                        forhåndsvarsel,
                         informasjonSomRevurderes,
                         avsluttet,
                         avkorting,
@@ -727,7 +719,6 @@ internal class RevurderingPostgresRepo(
                         :arsak,
                         :begrunnelse,
                         :skalFoereTilBrevutsending,
-                        to_json(:forhandsvarsel::json),
                         to_json(:informasjonSomRevurderes::json),
                         to_jsonb(:avsluttet::jsonb),
                         to_json(:avkorting::json),
@@ -746,7 +737,6 @@ internal class RevurderingPostgresRepo(
                         årsak = :arsak,
                         begrunnelse = :begrunnelse,
                         skalFøreTilBrevutsending = :skalFoereTilBrevutsending,
-                        forhåndsvarsel = to_json(:forhandsvarsel::json),
                         informasjonSomRevurderes = to_json(:informasjonSomRevurderes::json),
                         avsluttet = to_jsonb(:avsluttet::jsonb),
                         avkorting = to_json(:avkorting::json)
@@ -767,13 +757,6 @@ internal class RevurderingPostgresRepo(
                     "arsak" to revurdering.base.revurderingsårsak.årsak.toString(),
                     "begrunnelse" to revurdering.base.revurderingsårsak.begrunnelse.toString(),
                     "skalFoereTilBrevutsending" to revurdering.skalFøreTilBrevutsending,
-                    "forhandsvarsel" to serializeNullable(
-                        revurdering.base.forhåndsvarsel?.let {
-                            ForhåndsvarselDatabaseJson.from(
-                                it,
-                            )
-                        },
-                    ),
                     "informasjonSomRevurderes" to serializeNullable(revurdering.base.informasjonSomRevurderes),
                     "avsluttet" to serializeNullable(revurdering.avsluttet),
                     "avkorting" to serializeNullable(revurdering.base.avkorting?.toDb()),
@@ -881,7 +864,6 @@ internal class RevurderingPostgresRepo(
         attesteringer: Attesteringshistorikk,
         fritekstTilBrev: String?,
         revurderingsårsak: Revurderingsårsak,
-        forhåndsvarsel: Forhåndsvarsel?,
         skalFøreTilBrevutsending: Boolean,
         grunnlagsdata: Grunnlagsdata,
         vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
@@ -903,7 +885,6 @@ internal class RevurderingPostgresRepo(
                 attesteringer = attesteringer,
                 fritekstTilBrev = fritekstTilBrev ?: "",
                 revurderingsårsak = revurderingsårsak,
-                forhåndsvarsel = forhåndsvarsel as Forhåndsvarsel.Ferdigbehandlet,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
@@ -924,7 +905,6 @@ internal class RevurderingPostgresRepo(
                 attesteringer = attesteringer,
                 fritekstTilBrev = fritekstTilBrev ?: "",
                 revurderingsårsak = revurderingsårsak,
-                forhåndsvarsel = forhåndsvarsel as Forhåndsvarsel.Ferdigbehandlet,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
@@ -945,7 +925,6 @@ internal class RevurderingPostgresRepo(
                 attesteringer = attesteringer,
                 fritekstTilBrev = fritekstTilBrev ?: "",
                 revurderingsårsak = revurderingsårsak,
-                forhåndsvarsel = forhåndsvarsel as Forhåndsvarsel.Ferdigbehandlet,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
@@ -967,7 +946,6 @@ internal class RevurderingPostgresRepo(
                 grunnlagsdata = grunnlagsdata,
                 fritekstTilBrev = fritekstTilBrev ?: "",
                 revurderingsårsak = revurderingsårsak,
-                forhåndsvarsel = forhåndsvarsel as Forhåndsvarsel.Ferdigbehandlet,
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
                 avkorting = avkorting as AvkortingVedRevurdering.Iverksatt,
@@ -987,7 +965,6 @@ internal class RevurderingPostgresRepo(
                 grunnlagsdata = grunnlagsdata,
                 fritekstTilBrev = fritekstTilBrev ?: "",
                 revurderingsårsak = revurderingsårsak,
-                forhåndsvarsel = forhåndsvarsel as Forhåndsvarsel.Ferdigbehandlet,
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
                 attesteringer = attesteringer,
@@ -1007,7 +984,6 @@ internal class RevurderingPostgresRepo(
                 oppgaveId = OppgaveId(oppgaveId!!),
                 fritekstTilBrev = fritekstTilBrev ?: "",
                 revurderingsårsak = revurderingsårsak,
-                forhåndsvarsel = forhåndsvarsel as Forhåndsvarsel.Ferdigbehandlet,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
@@ -1028,7 +1004,6 @@ internal class RevurderingPostgresRepo(
                 oppgaveId = OppgaveId(oppgaveId!!),
                 fritekstTilBrev = fritekstTilBrev ?: "",
                 revurderingsårsak = revurderingsårsak,
-                forhåndsvarsel = forhåndsvarsel,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
@@ -1050,7 +1025,6 @@ internal class RevurderingPostgresRepo(
                 grunnlagsdata = grunnlagsdata,
                 fritekstTilBrev = fritekstTilBrev ?: "",
                 revurderingsårsak = revurderingsårsak,
-                forhåndsvarsel = forhåndsvarsel,
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
                 attesteringer = attesteringer,
@@ -1069,7 +1043,6 @@ internal class RevurderingPostgresRepo(
                 oppgaveId = OppgaveId(oppgaveId!!),
                 fritekstTilBrev = fritekstTilBrev ?: "",
                 revurderingsårsak = revurderingsårsak,
-                forhåndsvarsel = forhåndsvarsel,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
@@ -1088,7 +1061,6 @@ internal class RevurderingPostgresRepo(
                 grunnlagsdata = grunnlagsdata,
                 fritekstTilBrev = fritekstTilBrev ?: "",
                 revurderingsårsak = revurderingsårsak,
-                forhåndsvarsel = forhåndsvarsel,
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
                 attesteringer = attesteringer,
@@ -1104,7 +1076,6 @@ internal class RevurderingPostgresRepo(
                 oppgaveId = OppgaveId(oppgaveId!!),
                 fritekstTilBrev = fritekstTilBrev ?: "",
                 revurderingsårsak = revurderingsårsak,
-                forhåndsvarsel = forhåndsvarsel,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
@@ -1122,7 +1093,6 @@ internal class RevurderingPostgresRepo(
                 oppgaveId = OppgaveId(oppgaveId!!),
                 fritekstTilBrev = fritekstTilBrev ?: "",
                 revurderingsårsak = revurderingsårsak,
-                forhåndsvarsel = forhåndsvarsel,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
@@ -1140,7 +1110,6 @@ internal class RevurderingPostgresRepo(
                 oppgaveId = OppgaveId(oppgaveId!!),
                 fritekstTilBrev = fritekstTilBrev ?: "",
                 revurderingsårsak = revurderingsårsak,
-                forhåndsvarsel = forhåndsvarsel,
                 skalFøreTilUtsendingAvVedtaksbrev = skalFøreTilBrevutsending,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
@@ -1159,7 +1128,6 @@ internal class RevurderingPostgresRepo(
                 oppgaveId = OppgaveId(oppgaveId!!),
                 fritekstTilBrev = fritekstTilBrev ?: "",
                 revurderingsårsak = revurderingsårsak,
-                forhåndsvarsel = forhåndsvarsel,
                 attesteringer = attesteringer,
                 skalFøreTilUtsendingAvVedtaksbrev = skalFøreTilBrevutsending,
                 grunnlagsdata = grunnlagsdata,
@@ -1178,7 +1146,6 @@ internal class RevurderingPostgresRepo(
                 oppgaveId = OppgaveId(oppgaveId!!),
                 fritekstTilBrev = fritekstTilBrev ?: "",
                 revurderingsårsak = revurderingsårsak,
-                forhåndsvarsel = forhåndsvarsel,
                 attesteringer = attesteringer,
                 skalFøreTilUtsendingAvVedtaksbrev = skalFøreTilBrevutsending,
                 grunnlagsdata = grunnlagsdata,
