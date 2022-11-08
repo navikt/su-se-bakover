@@ -133,7 +133,7 @@ prod: https://alertmanager.prod-fss.nais.io
 ## Upgrade java version
 1. In `build.gradle.kts` and search for `jvmTarget = `
 2. In `.github/workflows/*.yml` and search for `java-version`
-3. In `Dockerfile` replace `FROM navikt/java:<version>`
+3. In `Dockerfile` replace `FROM ghcr.io/navikt/baseimages/temurin:<version>`
 
 ## Kubernetes
 1. Check out https://github.com/navikt/kubeconfigs
