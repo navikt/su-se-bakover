@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.oppdaterUteståendeAvkortingVedIverksettelse
-import no.nav.su.se.bakover.domain.kontrollsamtale.UgyldigStatusovergang
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
@@ -105,7 +104,7 @@ data class IverksettOpphørtRevurderingResponse(
         klargjørUtbetaling: (utbetaling: Utbetaling.SimulertUtbetaling, tx: TransactionContext) -> Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>>,
         lagreVedtak: (vedtak: VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering, tx: TransactionContext) -> Unit,
         lagreRevurdering: (revurdering: IverksattRevurdering, tx: TransactionContext) -> Unit,
-        annullerKontrollsamtale: (sakId: UUID, tx: TransactionContext) -> Either<UgyldigStatusovergang, Unit>,
+        annullerKontrollsamtale: (sakId: UUID, tx: TransactionContext) -> Unit,
         statistikkObservers: () -> List<StatistikkEventObserver>,
     ): Either<KunneIkkeFerdigstilleIverksettelsestransaksjon, IverksattRevurdering> {
         return Either.catch {
@@ -128,12 +127,6 @@ data class IverksettOpphørtRevurderingResponse(
                 lagreVedtak(vedtak, tx)
 
                 annullerKontrollsamtale(sak.id, tx)
-                    .getOrHandle {
-                        throw IverksettTransactionException(
-                            "Kunne ikke annullere kontrollsamtale. Underliggende feil: $it.",
-                            KunneIkkeFerdigstilleIverksettelsestransaksjon.Opphør.KunneIkkeAnnullereKontrollsamtale,
-                        )
-                    }
                 lagreRevurdering(vedtak.behandling, tx)
 
                 nyUtbetaling.sendUtbetaling()
@@ -155,7 +148,7 @@ data class IverksettOpphørtRevurderingResponse(
                 }
                 else -> {
                     log.error("Ukjent feil ved iverksetting av revurdering ${vedtak.behandling.id}", it)
-                    KunneIkkeFerdigstilleIverksettelsestransaksjon.LagringFeilet
+                    KunneIkkeFerdigstilleIverksettelsestransaksjon.UkjentFeil(it)
                 }
             }
         }

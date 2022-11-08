@@ -34,14 +34,13 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingCommand
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.KunneIkkeIverksetteSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.OpprettKontrollsamtaleVedNyStønadsperiodeService
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
-import no.nav.su.se.bakover.service.kontrollsamtale.OpprettPlanlagtKontrollsamtaleResultat
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.test.TestSessionFactory
@@ -54,7 +53,6 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.planlagtKontrollsamtale
 import no.nav.su.se.bakover.test.simulerUtbetaling
 import no.nav.su.se.bakover.test.søknad.nySøknadJournalførtMedOppgave
 import no.nav.su.se.bakover.test.søknad.personopplysninger
@@ -432,7 +430,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 },
                 sessionContext = argThat { it shouldBe TestSessionFactory.transactionContext },
             )
-            verify(serviceAndMocks.kontrollsamtaleService).opprettPlanlagtKontrollsamtale(
+            verify(serviceAndMocks.opprettPlanlagtKontrollsamtaleService).opprett(
                 vedtak = argThat {
                     it shouldBe actualVedtak
                 },
@@ -472,7 +470,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     sessionContext = argThat { it shouldBe TestSessionFactory.transactionContext },
                 )
 
-                verify(serviceAndMocks.kontrollsamtaleService).opprettPlanlagtKontrollsamtale(
+                verify(serviceAndMocks.opprettPlanlagtKontrollsamtaleService).opprett(
                     vedtak = any(),
                     sessionContext = argThat { it shouldBe TestSessionFactory.transactionContext },
                 )
@@ -486,16 +484,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
 
             val serviceAndMocks = ServiceAndMocks(
                 sakOgSøknadsbehandling = Pair(sak, innvilgetTilAttestering),
-                kontrollsamtaleService = mock {
-                    on {
-                        opprettPlanlagtKontrollsamtale(
-                            any(),
-                            any(),
-                        )
-                    } doReturn OpprettPlanlagtKontrollsamtaleResultat.PlanlagtKontrollsamtaleFinnesAllerede(
-                        planlagtKontrollsamtale(),
-                    )
-                },
+                opprettPlanlagtKontrollsamtaleService = mock { },
             )
 
             serviceAndMocks.service.iverksett(
@@ -573,14 +562,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                         )
                     }.whenever(it).simulerUtbetaling(any(), any())
                 },
-                kontrollsamtaleService = mock {
-                    on {
-                        opprettPlanlagtKontrollsamtale(
-                            any(),
-                            any(),
-                        )
-                    } doReturn OpprettPlanlagtKontrollsamtaleResultat.Opprettet(planlagtKontrollsamtale())
-                },
+                opprettPlanlagtKontrollsamtaleService = mock {},
                 vedtakRepo = mock {
                     doNothing().whenever(it).lagreITransaksjon(any(), anyOrNull())
                 },
@@ -746,14 +728,7 @@ private data class ServiceAndMocks(
             on { hentSakForSøknadsbehandling(any()) } doThrow NullPointerException("Kan ikke hente sak for søknadsbehandling id. Eksisterer IDen? Denne feilmeldingen er generert vha. en mock.")
         }
     },
-    val kontrollsamtaleService: KontrollsamtaleService = mock {
-        on {
-            opprettPlanlagtKontrollsamtale(
-                any(),
-                any(),
-            )
-        } doReturn OpprettPlanlagtKontrollsamtaleResultat.SkalIkkePlanleggeKontrollsamtale
-    },
+    val opprettPlanlagtKontrollsamtaleService: OpprettKontrollsamtaleVedNyStønadsperiodeService = mock {},
     val sessionFactory: SessionFactory = TestSessionFactory(),
 ) {
     val service = IverksettSøknadsbehandlingServiceImpl(
@@ -764,7 +739,7 @@ private data class ServiceAndMocks(
         sakService = sakService,
         sessionFactory = sessionFactory,
         vedtakRepo = vedtakRepo,
-        kontrollsamtaleService = kontrollsamtaleService,
+        opprettPlanlagtKontrollsamtaleService = opprettPlanlagtKontrollsamtaleService,
         ferdigstillVedtakService = ferdigstillVedtakService,
     ).apply { addObserver(observer) }
 
@@ -777,7 +752,7 @@ private data class ServiceAndMocks(
             vedtakRepo,
             ferdigstillVedtakService,
             sakService,
-            kontrollsamtaleService,
+            opprettPlanlagtKontrollsamtaleService,
         ).toTypedArray()
     }
 
@@ -790,7 +765,7 @@ private data class ServiceAndMocks(
             vedtakRepo,
             ferdigstillVedtakService,
             sakService,
-            kontrollsamtaleService,
+            opprettPlanlagtKontrollsamtaleService,
         )
     }
 }

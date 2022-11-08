@@ -9,6 +9,7 @@ dependencies {
     implementation(project(":hendelse:domain"))
     implementation(project(":hendelse:infrastructure"))
     implementation(project(":utenlandsopphold:domain"))
+    implementation(project(":kontrollsamtale:domain"))
 
     compileOnly("io.kotest:kotest-assertions-core:$kotestVersion")
     // TODO jah: Finn en måte å gjenbruke de versjonene her på.

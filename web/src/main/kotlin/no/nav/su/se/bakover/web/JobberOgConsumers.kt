@@ -18,6 +18,8 @@ import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.DatabaseRepos
+import no.nav.su.se.bakover.kontrollsamtale.infrastructure.jobs.KontrollsamtaleinnkallingJob
+import no.nav.su.se.bakover.kontrollsamtale.infrastructure.jobs.StansYtelseVedManglendeOppmøteKontrollsamtaleJob
 import no.nav.su.se.bakover.service.brev.DistribuerBrevService
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
 import no.nav.su.se.bakover.web.services.SendPåminnelseNyStønadsperiodeJob
@@ -27,8 +29,6 @@ import no.nav.su.se.bakover.web.services.avstemming.KonsistensavstemmingJob
 import no.nav.su.se.bakover.web.services.dokument.DistribuerDokumentJob
 import no.nav.su.se.bakover.web.services.klage.klageinstans.KlageinstanshendelseConsumer
 import no.nav.su.se.bakover.web.services.klage.klageinstans.KlageinstanshendelseJob
-import no.nav.su.se.bakover.web.services.kontrollsamtale.KontrollsamtaleinnkallingJob
-import no.nav.su.se.bakover.web.services.kontrollsamtale.StansYtelseVedManglendeOppmøteKontrollsamtaleJob
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseConsumer
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseOppgaveJob
 import no.nav.su.se.bakover.web.services.tilbakekreving.LokalMottaKravgrunnlagJob
@@ -164,7 +164,7 @@ internal fun startJobberOgConsumers(
         ).schedule()
 
         KontrollsamtaleinnkallingJob(
-            kontrollsamtaleService = services.kontrollsamtale,
+            kontrollsamtaleService = services.kontrollsamtaleSetup.kontrollsamtaleService,
             starttidspunkt = if (isProd) {
                 ZonedDateTime.now(zoneIdOslo).next(LocalTime.of(7, 0, 0))
             } else {
@@ -201,7 +201,7 @@ internal fun startJobberOgConsumers(
         StansYtelseVedManglendeOppmøteKontrollsamtaleJob(
             intervall = Duration.of(2, ChronoUnit.HOURS),
             initialDelay = initialDelay.next(),
-            service = services.utløptFristForKontrollsamtaleService,
+            service = services.kontrollsamtaleSetup.utløptFristForKontrollsamtaleService,
             clock = clock,
             runCheckFactory = runCheckFactory,
         ).schedule()
@@ -262,7 +262,7 @@ internal fun startJobberOgConsumers(
         ).schedule()
 
         KontrollsamtaleinnkallingJob(
-            kontrollsamtaleService = services.kontrollsamtale,
+            kontrollsamtaleService = services.kontrollsamtaleSetup.kontrollsamtaleService,
             starttidspunkt = Date.from(Instant.now(clock).plusSeconds(initialDelay.next().toSeconds())),
             periode = Duration.ofMinutes(5),
             runCheckFactory = runCheckFactory,
@@ -293,7 +293,7 @@ internal fun startJobberOgConsumers(
         StansYtelseVedManglendeOppmøteKontrollsamtaleJob(
             intervall = Duration.of(1, ChronoUnit.MINUTES),
             initialDelay = initialDelay.next(),
-            service = services.utløptFristForKontrollsamtaleService,
+            service = services.kontrollsamtaleSetup.utløptFristForKontrollsamtaleService,
             clock = clock,
             runCheckFactory = runCheckFactory,
         ).schedule()

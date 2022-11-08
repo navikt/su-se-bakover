@@ -3,19 +3,21 @@ package no.nav.su.se.bakover.web.services
 import no.finn.unleash.Unleash
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.common.ApplicationConfig
+import no.nav.su.se.bakover.common.persistence.DbMetrics
+import no.nav.su.se.bakover.common.persistence.PostgresSessionFactory
 import no.nav.su.se.bakover.common.toggle.infrastructure.UnleashToggleClient
+import no.nav.su.se.bakover.database.jobcontext.JobContextPostgresRepo
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.sak.SakFactory
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
+import no.nav.su.se.bakover.kontrollsamtale.infrastructure.setup.KontrollsamtaleSetup
 import no.nav.su.se.bakover.service.SendPåminnelserOmNyStønadsperiodeServiceImpl
 import no.nav.su.se.bakover.service.avstemming.AvstemmingServiceImpl
 import no.nav.su.se.bakover.service.brev.BrevServiceImpl
 import no.nav.su.se.bakover.service.klage.KlageServiceImpl
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseServiceImpl
-import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleServiceImpl
-import no.nav.su.se.bakover.service.kontrollsamtale.UtløptFristForKontrollsamtaleServiceImpl
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallServiceImpl
 import no.nav.su.se.bakover.service.oppgave.OppgaveServiceImpl
 import no.nav.su.se.bakover.service.person.PersonServiceImpl
@@ -40,7 +42,6 @@ import java.time.Clock
 
 object ServiceBuilder {
     fun build(
-        // TODO jah: TDD-messig bør denne service-laget ha sin egen versjon av denne dataclassen som kun refererer til interfacene (som bør ligge i domain/service)
         databaseRepos: DatabaseRepos,
         clients: Clients,
         behandlingMetrics: BehandlingMetrics,
@@ -49,6 +50,7 @@ object ServiceBuilder {
         unleash: Unleash,
         satsFactory: SatsFactory,
         applicationConfig: ApplicationConfig,
+        dbMetrics: DbMetrics,
     ): Services {
         val personService = PersonServiceImpl(clients.personOppslag)
         val toggleService = UnleashToggleClient(unleash)
@@ -113,16 +115,6 @@ object ServiceBuilder {
             clock = clock,
         )
 
-        val kontrollsamtaleService = KontrollsamtaleServiceImpl(
-            sakService = sakService,
-            personService = personService,
-            brevService = brevService,
-            oppgaveService = oppgaveService,
-            kontrollsamtaleRepo = databaseRepos.kontrollsamtaleRepo,
-            sessionFactory = databaseRepos.sessionFactory,
-            clock = clock,
-        )
-
         val tilbakekrevingService = TilbakekrevingServiceImpl(
             tilbakekrevingRepo = databaseRepos.tilbakekrevingRepo,
             tilbakekrevingClient = clients.tilbakekrevingClient,
@@ -130,6 +122,32 @@ object ServiceBuilder {
             brevService = brevService,
             sessionFactory = databaseRepos.sessionFactory,
             clock = clock,
+        )
+
+        val stansAvYtelseService = StansYtelseServiceImpl(
+            utbetalingService = utbetalingService,
+            revurderingRepo = databaseRepos.revurderingRepo,
+            vedtakService = vedtakService,
+            sakService = sakService,
+            clock = clock,
+            sessionFactory = databaseRepos.sessionFactory,
+        ).apply { addObserver(statistikkEventObserver) }
+
+        val kontrollsamtaleSetup = KontrollsamtaleSetup.create(
+            sakService = sakService,
+            personService = personService,
+            brevService = brevService,
+            oppgaveService = oppgaveService,
+            sessionFactory = databaseRepos.sessionFactory as PostgresSessionFactory,
+            dbMetrics = dbMetrics,
+            clock = clock,
+            serviceUser = applicationConfig.serviceUser.username,
+            jobContextPostgresRepo = JobContextPostgresRepo(
+                // TODO jah: Finnes nå 2 instanser av denne. Opprettes også i DatabaseBuilder for StønadsperiodePostgresRepo
+                sessionFactory = databaseRepos.sessionFactory as PostgresSessionFactory,
+            ),
+            journalpostClient = clients.journalpostClient,
+            stansAvYtelseService = stansAvYtelseService,
         )
 
         val revurderingService = RevurderingServiceImpl(
@@ -141,21 +159,12 @@ object ServiceBuilder {
             brevService = brevService,
             clock = clock,
             vedtakRepo = databaseRepos.vedtakRepo,
-            kontrollsamtaleService = kontrollsamtaleService,
             sessionFactory = databaseRepos.sessionFactory,
             formuegrenserFactory = satsFactory.formuegrenserFactory,
             sakService = sakService,
             tilbakekrevingService = tilbakekrevingService,
             satsFactory = satsFactory,
-        ).apply { addObserver(statistikkEventObserver) }
-
-        val stansAvYtelseService = StansYtelseServiceImpl(
-            utbetalingService = utbetalingService,
-            revurderingRepo = databaseRepos.revurderingRepo,
-            vedtakService = vedtakService,
-            sakService = sakService,
-            clock = clock,
-            sessionFactory = databaseRepos.sessionFactory,
+            annullerKontrollsamtaleService = kontrollsamtaleSetup.annullerKontrollsamtaleService,
         ).apply { addObserver(statistikkEventObserver) }
 
         val gjenopptakAvYtelseService = GjenopptaYtelseServiceImpl(
@@ -166,19 +175,6 @@ object ServiceBuilder {
             sakService = sakService,
             sessionFactory = databaseRepos.sessionFactory,
         ).apply { addObserver(statistikkEventObserver) }
-
-        val utgåttKontrollsamtaleFristService = UtløptFristForKontrollsamtaleServiceImpl(
-            sakService = sakService,
-            journalpostClient = clients.journalpostClient,
-            kontrollsamtaleRepo = databaseRepos.kontrollsamtaleRepo,
-            sessionFactory = databaseRepos.sessionFactory,
-            jobContextRepo = databaseRepos.jobContextRepo,
-            clock = clock,
-            serviceUser = applicationConfig.serviceUser.username,
-            personService = personService,
-            oppgaveService = oppgaveService,
-            stansAvYtelseService = stansAvYtelseService,
-        )
 
         val reguleringService = ReguleringServiceImpl(
             reguleringRepo = databaseRepos.reguleringRepo,
@@ -239,7 +235,7 @@ object ServiceBuilder {
             vedtakRepo = databaseRepos.vedtakRepo,
             ferdigstillVedtakService = ferdigstillVedtakService,
             sakService = sakService,
-            kontrollsamtaleService = kontrollsamtaleService,
+            opprettPlanlagtKontrollsamtaleService = kontrollsamtaleSetup.opprettPlanlagtKontrollsamtaleService,
             sessionFactory = databaseRepos.sessionFactory,
         )
         return Services(
@@ -284,7 +280,6 @@ object ServiceBuilder {
                 utbetalingService = utbetalingService,
                 brevService = brevService,
             ),
-            kontrollsamtale = kontrollsamtaleService,
             klageService = klageService,
             klageinstanshendelseService = klageinstanshendelseService,
             reguleringService = reguleringService,
@@ -295,13 +290,13 @@ object ServiceBuilder {
                 sessionFactory = databaseRepos.sessionFactory,
                 brevService = brevService,
                 personService = personService,
-                jobContextRepo = databaseRepos.jobContextRepo,
+                sendPåminnelseNyStønadsperiodeJobRepo = databaseRepos.sendPåminnelseNyStønadsperiodeJobRepo,
                 formuegrenserFactory = satsFactory.formuegrenserFactory,
             ),
             skatteService = skatteServiceImpl,
-            utløptFristForKontrollsamtaleService = utgåttKontrollsamtaleFristService,
             stansYtelse = stansAvYtelseService,
             gjenopptaYtelse = gjenopptakAvYtelseService,
+            kontrollsamtaleSetup = kontrollsamtaleSetup,
         )
     }
 }

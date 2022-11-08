@@ -45,8 +45,6 @@ import no.nav.su.se.bakover.domain.klage.TolketKlageinstanshendelse
 import no.nav.su.se.bakover.domain.klage.UprosessertKlageinstanshendelse
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
-import no.nav.su.se.bakover.domain.kontrollsamtale.Kontrollsamtale
-import no.nav.su.se.bakover.domain.kontrollsamtale.UtløptFristForKontrollsamtaleContext
 import no.nav.su.se.bakover.domain.nøkkeltall.Nøkkeltall
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -106,6 +104,7 @@ import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseService
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeSimulereGjenopptakAvYtelse
 import no.nav.su.se.bakover.domain.revurdering.oppdater.OppdaterRevurderingRequest
+import no.nav.su.se.bakover.domain.revurdering.opphør.AnnullerKontrollsamtaleVedOpphørService
 import no.nav.su.se.bakover.domain.revurdering.opprett.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opprett.OpprettRevurderingCommand
 import no.nav.su.se.bakover.domain.revurdering.stans.IverksettStansAvYtelseITransaksjonResponse
@@ -136,12 +135,12 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksattSøknad
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingCommand
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.IverksettSøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.KunneIkkeIverksetteSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.OpprettKontrollsamtaleVedNyStønadsperiodeService
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.AvslåManglendeDokumentasjonCommand
 import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.avslå.manglendedokumentasjon.KunneIkkeAvslåSøknad
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Stønadsvedtak
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.bosituasjon.FullførBosituasjonRequest
 import no.nav.su.se.bakover.domain.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjonEpsGrunnlag
 import no.nav.su.se.bakover.domain.vilkår.bosituasjon.LeggTilBosituasjonEpsRequest
@@ -165,6 +164,12 @@ import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerReques
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilFlereUtenlandsoppholdRequest
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.domain.visitor.Visitable
+import no.nav.su.se.bakover.kontrollsamtale.domain.Kontrollsamtale
+import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
+import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeHenteKontrollsamtale
+import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeSetteNyDatoForKontrollsamtale
+import no.nav.su.se.bakover.kontrollsamtale.domain.UtløptFristForKontrollsamtaleService
+import no.nav.su.se.bakover.kontrollsamtale.infrastructure.setup.KontrollsamtaleSetup
 import no.nav.su.se.bakover.service.SendPåminnelserOmNyStønadsperiodeService
 import no.nav.su.se.bakover.service.avstemming.AvstemmingFeilet
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
@@ -175,10 +180,6 @@ import no.nav.su.se.bakover.service.klage.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.service.klage.NyKlageRequest
 import no.nav.su.se.bakover.service.klage.UnderkjennKlageRequest
 import no.nav.su.se.bakover.service.klage.VurderKlagevilkårRequest
-import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
-import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeHenteKontrollsamtale
-import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeSetteNyDatoForKontrollsamtale
-import no.nav.su.se.bakover.service.kontrollsamtale.UtløptFristForKontrollsamtaleService
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.skatt.KunneIkkeHenteSkattemelding
 import no.nav.su.se.bakover.service.skatt.SkatteService
@@ -650,16 +651,14 @@ open class AccessCheckProxy(
                     }
                 },
             ),
-            ferdigstillVedtak =
-            object : FerdigstillVedtakService {
+            ferdigstillVedtak = object : FerdigstillVedtakService {
                 override fun ferdigstillVedtakEtterUtbetaling(
                     utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering,
                 ) = kastKanKunKallesFraAnnenService()
 
                 override fun lukkOppgaveMedBruker(behandling: Behandling) = kastKanKunKallesFraAnnenService()
             },
-            revurdering =
-            object : RevurderingService {
+            revurdering = object : RevurderingService {
                 override fun hentRevurdering(revurderingId: UUID): AbstraktRevurdering? {
                     assertHarTilgangTilRevurdering(revurderingId)
                     return services.revurdering.hentRevurdering(revurderingId)
@@ -843,23 +842,7 @@ open class AccessCheckProxy(
                     return services.revurdering.lagBrevutkastForAvslutting(revurderingId, fritekst)
                 }
             },
-            gjenopptaYtelse =
-            object : GjenopptaYtelseService {
-                override fun gjenopptaYtelse(request: GjenopptaYtelseRequest): Either<KunneIkkeSimulereGjenopptakAvYtelse, GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse> {
-                    assertHarTilgangTilSak(request.sakId)
-                    return services.gjenopptaYtelse.gjenopptaYtelse(request)
-                }
-
-                override fun iverksettGjenopptakAvYtelse(
-                    revurderingId: UUID,
-                    attestant: NavIdentBruker.Attestant,
-                ): Either<KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering, GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse> {
-                    assertHarTilgangTilRevurdering(revurderingId)
-                    return services.gjenopptaYtelse.iverksettGjenopptakAvYtelse(revurderingId, attestant)
-                }
-            },
-            stansYtelse =
-            object : StansYtelseService {
+            stansYtelse = object : StansYtelseService {
 
                 override fun stansAvYtelse(request: StansYtelseRequest): Either<KunneIkkeStanseYtelse, StansAvYtelseRevurdering.SimulertStansAvYtelse> {
                     assertHarTilgangTilSak(request.sakId)
@@ -892,8 +875,21 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
             },
-            vedtakService =
-            object : VedtakService {
+            gjenopptaYtelse = object : GjenopptaYtelseService {
+                override fun gjenopptaYtelse(request: GjenopptaYtelseRequest): Either<KunneIkkeSimulereGjenopptakAvYtelse, GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse> {
+                    assertHarTilgangTilSak(request.sakId)
+                    return services.gjenopptaYtelse.gjenopptaYtelse(request)
+                }
+
+                override fun iverksettGjenopptakAvYtelse(
+                    revurderingId: UUID,
+                    attestant: NavIdentBruker.Attestant,
+                ): Either<KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering, GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse> {
+                    assertHarTilgangTilRevurdering(revurderingId)
+                    return services.gjenopptaYtelse.iverksettGjenopptakAvYtelse(revurderingId, attestant)
+                }
+            },
+            vedtakService = object : VedtakService {
                 override fun lagre(vedtak: Vedtak) = kastKanKunKallesFraAnnenService()
 
                 override fun lagreITransaksjon(
@@ -913,8 +909,7 @@ open class AccessCheckProxy(
 
                 override fun hentForUtbetaling(utbetalingId: UUID30) = kastKanKunKallesFraAnnenService()
             },
-            nøkkeltallService =
-            object : NøkkeltallService {
+            nøkkeltallService = object : NøkkeltallService {
                 override fun hentNøkkeltall(): Nøkkeltall {
                     return services.nøkkeltallService.hentNøkkeltall()
                 }
@@ -930,50 +925,7 @@ open class AccessCheckProxy(
                     return services.avslåSøknadManglendeDokumentasjonService.genererBrevForhåndsvisning(command)
                 }
             },
-            kontrollsamtale =
-            object : KontrollsamtaleService {
-                override fun nyDato(
-                    sakId: UUID,
-                    dato: LocalDate,
-                ): Either<KunneIkkeSetteNyDatoForKontrollsamtale, Unit> {
-                    assertHarTilgangTilSak(sakId)
-                    return services.kontrollsamtale.nyDato(sakId, dato)
-                }
-
-                override fun hentNestePlanlagteKontrollsamtale(
-                    sakId: UUID,
-                    sessionContext: SessionContext,
-                ): Either<KunneIkkeHenteKontrollsamtale, Kontrollsamtale> {
-                    assertHarTilgangTilSak(sakId)
-                    return services.kontrollsamtale.hentNestePlanlagteKontrollsamtale(sakId)
-                }
-
-                override fun kallInn(
-                    sakId: UUID,
-                    kontrollsamtale: Kontrollsamtale,
-                ) = kastKanKunKallesFraAnnenService()
-
-                override fun hentPlanlagteKontrollsamtaler(
-                    sessionContext: SessionContext,
-                ) = kastKanKunKallesFraAnnenService()
-
-                override fun opprettPlanlagtKontrollsamtale(
-                    vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling,
-                    sessionContext: SessionContext,
-                ) = kastKanKunKallesFraAnnenService()
-
-                override fun annullerKontrollsamtale(
-                    sakId: UUID,
-                    sessionContext: SessionContext,
-                ) = kastKanKunKallesFraAnnenService()
-
-                override fun defaultSessionContext() = services.kontrollsamtale.defaultSessionContext()
-                override fun hentForSak(sakId: UUID): List<Kontrollsamtale> {
-                    return services.kontrollsamtale.hentForSak(sakId)
-                }
-            },
-            klageService =
-            object : KlageService {
+            klageService = object : KlageService {
                 override fun opprett(request: NyKlageRequest): Either<KunneIkkeOppretteKlage, OpprettetKlage> {
                     assertHarTilgangTilSak(request.sakId)
                     return services.klageService.opprett(request)
@@ -1064,15 +1016,13 @@ open class AccessCheckProxy(
                     )
                 }
             },
-            klageinstanshendelseService =
-            object : KlageinstanshendelseService {
+            klageinstanshendelseService = object : KlageinstanshendelseService {
                 override fun lagre(hendelse: UprosessertKlageinstanshendelse) = kastKanKunKallesFraAnnenService()
                 override fun håndterUtfallFraKlageinstans(
                     deserializeAndMap: (id: UUID, opprettet: Tidspunkt, json: String) -> Either<KunneIkkeTolkeKlageinstanshendelse, TolketKlageinstanshendelse>,
                 ) = kastKanKunKallesFraAnnenService()
             },
-            reguleringService =
-            object : ReguleringService {
+            reguleringService = object : ReguleringService {
                 override fun startRegulering(startDato: LocalDate): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
                     return services.reguleringService.startRegulering(startDato)
                 }
@@ -1103,8 +1053,7 @@ open class AccessCheckProxy(
                     )
                 }
             },
-            tilbakekrevingService =
-            object : TilbakekrevingService {
+            tilbakekrevingService = object : TilbakekrevingService {
                 override fun lagre(
                     tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag,
                 ) = kastKanKunKallesFraAnnenService()
@@ -1119,24 +1068,62 @@ open class AccessCheckProxy(
 
                 override fun hentAvventerKravgrunnlag() = kastKanKunKallesFraAnnenService()
             },
-            sendPåminnelserOmNyStønadsperiodeService =
-            object : SendPåminnelserOmNyStønadsperiodeService {
+            sendPåminnelserOmNyStønadsperiodeService = object : SendPåminnelserOmNyStønadsperiodeService {
                 override fun sendPåminnelser(): SendPåminnelseNyStønadsperiodeContext {
                     kastKanKunKallesFraAnnenService()
                 }
             },
-            skatteService =
-            object : SkatteService {
+            skatteService = object : SkatteService {
                 override fun hentSamletSkattegrunnlag(fnr: Fnr): Either<KunneIkkeHenteSkattemelding, Skattegrunnlag> {
                     assertHarTilgangTilPerson(fnr)
                     return services.skatteService.hentSamletSkattegrunnlag(fnr)
                 }
             },
-            utløptFristForKontrollsamtaleService =
-            object : UtløptFristForKontrollsamtaleService {
-                override fun håndterUtløpsdato(dato: LocalDate): UtløptFristForKontrollsamtaleContext {
-                    kastKanKunKallesFraAnnenService()
+            kontrollsamtaleSetup = object : KontrollsamtaleSetup {
+                override val kontrollsamtaleService: KontrollsamtaleService = object : KontrollsamtaleService {
+                    val service = services.kontrollsamtaleSetup.kontrollsamtaleService
+                    override fun nyDato(
+                        sakId: UUID,
+                        dato: LocalDate,
+                    ): Either<KunneIkkeSetteNyDatoForKontrollsamtale, Unit> {
+                        assertHarTilgangTilSak(sakId)
+                        return service.nyDato(sakId, dato)
+                    }
+
+                    override fun hentNestePlanlagteKontrollsamtale(
+                        sakId: UUID,
+                        sessionContext: SessionContext,
+                    ): Either<KunneIkkeHenteKontrollsamtale, Kontrollsamtale> {
+                        assertHarTilgangTilSak(sakId)
+                        return service.hentNestePlanlagteKontrollsamtale(sakId)
+                    }
+
+                    override fun hentInnkalteKontrollsamtalerMedFristUtløpt(dato: LocalDate) =
+                        kastKanKunKallesFraAnnenService()
+
+                    override fun lagre(kontrollsamtale: Kontrollsamtale, sessionContext: SessionContext) =
+                        kastKanKunKallesFraAnnenService()
+
+                    override fun kallInn(
+                        sakId: UUID,
+                        kontrollsamtale: Kontrollsamtale,
+                    ) = kastKanKunKallesFraAnnenService()
+
+                    override fun hentPlanlagteKontrollsamtaler(
+                        sessionContext: SessionContext,
+                    ) = kastKanKunKallesFraAnnenService()
+
+                    override fun defaultSessionContext() = service.defaultSessionContext()
                 }
+
+                override val annullerKontrollsamtaleService: AnnullerKontrollsamtaleVedOpphørService
+                    get() = kastKanKunKallesFraAnnenService()
+
+                override val opprettPlanlagtKontrollsamtaleService: OpprettKontrollsamtaleVedNyStønadsperiodeService
+                    get() = kastKanKunKallesFraAnnenService()
+
+                override val utløptFristForKontrollsamtaleService: UtløptFristForKontrollsamtaleService
+                    get() = kastKanKunKallesFraAnnenService()
             },
         )
     }

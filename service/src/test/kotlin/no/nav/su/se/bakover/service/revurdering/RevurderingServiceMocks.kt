@@ -8,11 +8,11 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
+import no.nav.su.se.bakover.domain.revurdering.opphør.AnnullerKontrollsamtaleVedOpphørService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
-import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
@@ -36,7 +36,7 @@ internal data class RevurderingServiceMocks(
     val vedtakRepo: VedtakRepo = defaultMock(),
     val ferdigstillVedtakService: FerdigstillVedtakService = defaultMock(),
     val sakService: SakService = defaultMock(),
-    val kontrollsamtaleService: KontrollsamtaleService = defaultMock(),
+    val annullerKontrollsamtaleService: AnnullerKontrollsamtaleVedOpphørService = defaultMock(),
     val avkortingsvarselRepo: AvkortingsvarselRepo = defaultMock(),
     val sessionFactory: SessionFactory = TestSessionFactory(),
     val observer: StatistikkEventObserver = mock(),
@@ -54,7 +54,7 @@ internal data class RevurderingServiceMocks(
         brevService = brevService,
         clock = clock,
         vedtakRepo = vedtakRepo,
-        kontrollsamtaleService = kontrollsamtaleService,
+        annullerKontrollsamtaleService = annullerKontrollsamtaleService,
         sessionFactory = sessionFactory,
         formuegrenserFactory = formuegrenserFactoryTestPåDato(),
         sakService = sakService,
@@ -74,7 +74,7 @@ internal data class RevurderingServiceMocks(
         ferdigstillVedtakService,
         sakService,
         avkortingsvarselRepo,
-        kontrollsamtaleService,
+        annullerKontrollsamtaleService,
         tilbakekrevingService,
     ).toTypedArray()
 

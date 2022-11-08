@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
+import no.nav.su.se.bakover.domain.revurdering.opphør.AnnullerKontrollsamtaleVedOpphørService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
@@ -22,7 +23,6 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUføre
-import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.test.TestSessionFactory
@@ -100,7 +100,7 @@ internal object RevurderingTestUtils {
         clock: Clock = fixedClock,
         vedtakRepo: VedtakRepo = mock(),
         sakService: SakService = mock(),
-        kontrollsamtaleService: KontrollsamtaleService = mock(),
+        annullerKontrollsamtaleService: AnnullerKontrollsamtaleVedOpphørService = mock(),
         sessionFactory: SessionFactory = TestSessionFactory(),
         tilbakekrevingService: TilbakekrevingService = mock(),
         satsFactory: SatsFactory = satsFactoryTestPåDato(),
@@ -114,7 +114,7 @@ internal object RevurderingTestUtils {
             brevService = brevService,
             clock = clock,
             vedtakRepo = vedtakRepo,
-            kontrollsamtaleService = kontrollsamtaleService,
+            annullerKontrollsamtaleService = annullerKontrollsamtaleService,
             sessionFactory = sessionFactory,
             formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             sakService = sakService,

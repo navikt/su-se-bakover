@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.test.applicationConfig
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.persistence.dbMetricsStub
 import no.nav.su.se.bakover.test.satsFactoryTest
 import no.nav.su.se.bakover.web.services.AccessCheckProxy
 import no.nav.su.se.bakover.web.services.ServiceBuilder
@@ -49,6 +50,7 @@ internal fun Application.testSusebakover(
         unleash = unleash,
         satsFactory = satsFactory,
         applicationConfig = applicationConfig(),
+        dbMetrics = dbMetricsStub,
     ),
     accessCheckProxy: AccessCheckProxy = AccessCheckProxy(
         databaseRepos.person,

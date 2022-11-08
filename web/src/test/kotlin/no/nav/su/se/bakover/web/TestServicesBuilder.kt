@@ -7,14 +7,17 @@ import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.regulering.ReguleringService
 import no.nav.su.se.bakover.domain.revurdering.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseService
+import no.nav.su.se.bakover.domain.revurdering.opphør.AnnullerKontrollsamtaleVedOpphørService
 import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.OpprettKontrollsamtaleVedNyStønadsperiodeService
+import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
+import no.nav.su.se.bakover.kontrollsamtale.domain.UtløptFristForKontrollsamtaleService
+import no.nav.su.se.bakover.kontrollsamtale.infrastructure.setup.KontrollsamtaleSetup
 import no.nav.su.se.bakover.service.SendPåminnelserOmNyStønadsperiodeService
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageinstanshendelseService
-import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
-import no.nav.su.se.bakover.service.kontrollsamtale.UtløptFristForKontrollsamtaleService
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.skatt.SkatteService
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
@@ -48,16 +51,20 @@ object TestServicesBuilder {
         vedtakService: VedtakService = mock(),
         nøkkeltallService: NøkkeltallService = mock(),
         avslåSøknadManglendeDokumentasjonService: AvslåSøknadManglendeDokumentasjonService = mock(),
-        kontrollsamtaleService: KontrollsamtaleService = mock(),
         klageService: KlageService = mock(),
         klageinstanshendelseService: KlageinstanshendelseService = mock(),
         regulerServices: ReguleringService = mock(),
         tilbakekrevingService: TilbakekrevingService = mock(),
         sendPåminnelserOmNyStønadsperiodeService: SendPåminnelserOmNyStønadsperiodeService = mock(),
         skatteService: SkatteService = mock(),
-        utløptFristForKontrollsamtaleService: UtløptFristForKontrollsamtaleService = mock(),
         stansAvYtelseService: StansYtelseService = mock(),
         gjenopptakAvYtelseService: GjenopptaYtelseService = mock(),
+        kontrollsamtaleSetup: KontrollsamtaleSetup = object : KontrollsamtaleSetup {
+            override val kontrollsamtaleService: KontrollsamtaleService = mock()
+            override val annullerKontrollsamtaleService: AnnullerKontrollsamtaleVedOpphørService = mock()
+            override val opprettPlanlagtKontrollsamtaleService: OpprettKontrollsamtaleVedNyStønadsperiodeService = mock()
+            override val utløptFristForKontrollsamtaleService: UtløptFristForKontrollsamtaleService = mock()
+        },
     ): Services = Services(
         avstemming = avstemming,
         utbetaling = utbetaling,
@@ -74,15 +81,14 @@ object TestServicesBuilder {
         vedtakService = vedtakService,
         nøkkeltallService = nøkkeltallService,
         avslåSøknadManglendeDokumentasjonService = avslåSøknadManglendeDokumentasjonService,
-        kontrollsamtale = kontrollsamtaleService,
         klageService = klageService,
         klageinstanshendelseService = klageinstanshendelseService,
         reguleringService = regulerServices,
         tilbakekrevingService = tilbakekrevingService,
         sendPåminnelserOmNyStønadsperiodeService = sendPåminnelserOmNyStønadsperiodeService,
         skatteService = skatteService,
-        utløptFristForKontrollsamtaleService = utløptFristForKontrollsamtaleService,
         stansYtelse = stansAvYtelseService,
         gjenopptaYtelse = gjenopptakAvYtelseService,
+        kontrollsamtaleSetup = kontrollsamtaleSetup,
     )
 }

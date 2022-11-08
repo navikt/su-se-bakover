@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.jobcontext
 
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.persistence.TransactionContext
 import java.time.LocalDate
 import java.time.YearMonth
 
@@ -11,11 +10,6 @@ interface JobContext {
 
 interface JobContextId {
     fun value(): String
-}
-
-interface JobContextRepo {
-    fun <T : JobContext> hent(id: JobContextId): T?
-    fun lagre(jobContext: JobContext, transactionContext: TransactionContext)
 }
 
 data class NameAndYearMonthId(

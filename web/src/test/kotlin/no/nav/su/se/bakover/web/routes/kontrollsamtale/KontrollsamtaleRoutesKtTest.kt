@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.routes.kontrollsamtale
 
 import arrow.core.left
 import arrow.core.right
+import io.kotest.assertions.fail
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.get
 import io.ktor.client.request.post
@@ -11,8 +12,10 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.Brukerrolle
-import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
-import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeHenteKontrollsamtale
+import no.nav.su.se.bakover.kontrollsamtale.domain.KontrollsamtaleService
+import no.nav.su.se.bakover.kontrollsamtale.domain.KunneIkkeHenteKontrollsamtale
+import no.nav.su.se.bakover.kontrollsamtale.domain.UtløptFristForKontrollsamtaleService
+import no.nav.su.se.bakover.kontrollsamtale.infrastructure.setup.KontrollsamtaleSetup
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.planlagtKontrollsamtale
@@ -44,14 +47,24 @@ internal class KontrollsamtaleRoutesKtTest {
     }
 
     @Test
-    fun `saksbehandler skal kunne endre dato`() {
+    fun `returnerer 200 ok dersom kallet treffer service`() {
         val kontrollsamtaleMock = mock<KontrollsamtaleService> {
             on { nyDato(any(), any()) } doReturn Unit.right()
         }
         testApplication {
             application {
                 testSusebakover(
-                    services = TestServicesBuilder.services(kontrollsamtaleService = kontrollsamtaleMock),
+                    services = TestServicesBuilder.services(
+                        kontrollsamtaleSetup = object : KontrollsamtaleSetup {
+                            override val kontrollsamtaleService = kontrollsamtaleMock
+                            override val opprettPlanlagtKontrollsamtaleService
+                                get() = fail("Should not end up here.")
+                            override val annullerKontrollsamtaleService
+                                get() = fail("Should not end up here.")
+                            override val utløptFristForKontrollsamtaleService: UtløptFristForKontrollsamtaleService
+                                get() = fail("Should not end up here.")
+                        },
+                    ),
                 )
             }
             defaultRequest(HttpMethod.Post, "/kontrollsamtale/nyDato", listOf(Brukerrolle.Saksbehandler)) {
@@ -81,7 +94,17 @@ internal class KontrollsamtaleRoutesKtTest {
         testApplication {
             application {
                 testSusebakover(
-                    services = TestServicesBuilder.services(kontrollsamtaleService = kontrollsamtaleMock),
+                    services = TestServicesBuilder.services(
+                        kontrollsamtaleSetup = object : KontrollsamtaleSetup {
+                            override val kontrollsamtaleService = kontrollsamtaleMock
+                            override val opprettPlanlagtKontrollsamtaleService
+                                get() = fail("Should not end up here.")
+                            override val annullerKontrollsamtaleService
+                                get() = fail("Should not end up here.")
+                            override val utløptFristForKontrollsamtaleService
+                                get() = fail("Should not end up here.")
+                        },
+                    ),
                 )
             }
             defaultRequest(
@@ -102,13 +125,23 @@ internal class KontrollsamtaleRoutesKtTest {
                     any(),
                     anyOrNull(),
                 )
-            } doReturn KunneIkkeHenteKontrollsamtale.FantIkkeKontrollsamtale.left()
+            } doReturn KunneIkkeHenteKontrollsamtale.FantIkkePlanlagtKontrollsamtale.left()
             on { defaultSessionContext() } doReturn TestSessionFactory.sessionContext
         }
         testApplication {
             application {
                 testSusebakover(
-                    services = TestServicesBuilder.services(kontrollsamtaleService = kontrollsamtaleMock),
+                    services = TestServicesBuilder.services(
+                        kontrollsamtaleSetup = object : KontrollsamtaleSetup {
+                            override val kontrollsamtaleService = kontrollsamtaleMock
+                            override val opprettPlanlagtKontrollsamtaleService
+                                get() = fail("Should not end up here.")
+                            override val annullerKontrollsamtaleService
+                                get() = fail("Should not end up here.")
+                            override val utløptFristForKontrollsamtaleService: UtløptFristForKontrollsamtaleService
+                                get() = fail("Should not end up here.")
+                        },
+                    ),
                 )
             }
             defaultRequest(
@@ -135,7 +168,17 @@ internal class KontrollsamtaleRoutesKtTest {
         testApplication {
             application {
                 testSusebakover(
-                    services = TestServicesBuilder.services(kontrollsamtaleService = kontrollsamtaleMock),
+                    services = TestServicesBuilder.services(
+                        kontrollsamtaleSetup = object : KontrollsamtaleSetup {
+                            override val kontrollsamtaleService = kontrollsamtaleMock
+                            override val opprettPlanlagtKontrollsamtaleService
+                                get() = fail("Should not end up here.")
+                            override val annullerKontrollsamtaleService
+                                get() = fail("Should not end up here.")
+                            override val utløptFristForKontrollsamtaleService: UtløptFristForKontrollsamtaleService
+                                get() = fail("Should not end up here.")
+                        },
+                    ),
                 )
             }
             defaultRequest(

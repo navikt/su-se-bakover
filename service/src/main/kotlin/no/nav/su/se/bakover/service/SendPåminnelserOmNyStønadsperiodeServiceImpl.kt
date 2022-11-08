@@ -2,10 +2,10 @@ package no.nav.su.se.bakover.service
 
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.brev.BrevService
-import no.nav.su.se.bakover.domain.jobcontext.JobContextRepo
 import no.nav.su.se.bakover.domain.jobcontext.SendPåminnelseNyStønadsperiodeContext
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.domain.stønadsperiode.SendPåminnelseNyStønadsperiodeJobRepo
 import no.nav.su.se.bakover.domain.vilkår.FormuegrenserFactory
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -20,7 +20,7 @@ class SendPåminnelserOmNyStønadsperiodeServiceImpl(
     private val sessionFactory: SessionFactory,
     private val brevService: BrevService,
     private val personService: PersonService,
-    private val jobContextRepo: JobContextRepo,
+    private val sendPåminnelseNyStønadsperiodeJobRepo: SendPåminnelseNyStønadsperiodeJobRepo,
     private val formuegrenserFactory: FormuegrenserFactory,
 ) : SendPåminnelserOmNyStønadsperiodeService {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -56,7 +56,7 @@ class SendPåminnelserOmNyStønadsperiodeServiceImpl(
                             brevService.lagreDokument(dokument, tx)
                         },
                         lagreContext = { ctx, tx ->
-                            jobContextRepo.lagre(ctx, tx)
+                            sendPåminnelseNyStønadsperiodeJobRepo.lagre(ctx, tx)
                         },
                         formuegrenserFactory = formuegrenserFactory,
                     ).fold(
@@ -76,7 +76,7 @@ class SendPåminnelserOmNyStønadsperiodeServiceImpl(
     }
 
     private fun hentEllerOpprettContext(): SendPåminnelseNyStønadsperiodeContext {
-        return jobContextRepo.hent<SendPåminnelseNyStønadsperiodeContext>(
+        return sendPåminnelseNyStønadsperiodeJobRepo.hent(
             SendPåminnelseNyStønadsperiodeContext.genererIdForTidspunkt(clock),
         )?.also {
             log.info("Gjenbruker eksisterende context for jobb: ${it.id().name}, måned: ${it.id().yearMonth}")
