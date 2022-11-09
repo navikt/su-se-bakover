@@ -19,12 +19,12 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.revurdering.RevurderingService
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.vilkår.KunneIkkeLageLovligOppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.lovligopphold.KunneIkkeLeggetilLovligOppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.lovligopphold.LeggTilLovligOppholdRequest
 import no.nav.su.se.bakover.domain.vilkår.lovligopphold.LovligOppholdVilkårStatus
 import no.nav.su.se.bakover.domain.vilkår.lovligopphold.LovligOppholdVurderinger
-import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.revurdering.revurderingPath
 import no.nav.su.se.bakover.web.routes.revurdering.toJson

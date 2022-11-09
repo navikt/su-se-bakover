@@ -130,6 +130,7 @@ import no.nav.su.se.bakover.domain.søknadinnhold.SøknadInnhold
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
@@ -181,7 +182,6 @@ import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteSøknad
 import no.nav.su.se.bakover.service.søknad.OpprettManglendeJournalpostOgOppgaveResultat
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
-import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService

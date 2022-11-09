@@ -28,10 +28,10 @@ import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageFormueVerdier
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilFormuegrunnlag
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilFormuegrunnlag.FantIkkeSøknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
-import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
-import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilFormuegrunnlag
-import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilFormuegrunnlag.FantIkkeSøknadsbehandling
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.grunnlag.FormuegrunnlagJson
 import no.nav.su.se.bakover.web.routes.grunnlag.tilResultat

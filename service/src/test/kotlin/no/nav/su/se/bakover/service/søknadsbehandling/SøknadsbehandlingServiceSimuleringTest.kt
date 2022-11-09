@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeSimulereBehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.beregnetSøknadsbehandlingUføre

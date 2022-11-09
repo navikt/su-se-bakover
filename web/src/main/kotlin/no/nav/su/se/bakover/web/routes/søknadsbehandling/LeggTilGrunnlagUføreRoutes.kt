@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.withBehandlingId
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.satser.SatsFactory
-import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.grunnlag.LeggTilUførervurderingerBody
 import no.nav.su.se.bakover.web.routes.revurdering.tilResultat

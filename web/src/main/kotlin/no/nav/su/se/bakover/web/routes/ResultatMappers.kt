@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeSimulereBehandling
-import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 
 internal fun UtbetalingFeilet.tilResultat(): Resultat {
     return when (this) {

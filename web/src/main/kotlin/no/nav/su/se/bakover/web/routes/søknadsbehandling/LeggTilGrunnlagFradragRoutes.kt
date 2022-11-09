@@ -32,8 +32,8 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.domain.satser.SatsFactory
-import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
-import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.periode.toPeriodeOrResultat
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.UtenlandskInntektJson

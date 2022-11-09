@@ -12,9 +12,9 @@ import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjonEpsGrunnlag
 import no.nav.su.se.bakover.domain.vilkår.bosituasjon.LeggTilBosituasjonEpsRequest
-import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.web.TestServicesBuilder

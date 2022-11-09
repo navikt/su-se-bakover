@@ -38,6 +38,7 @@ import no.nav.su.se.bakover.domain.søknadinnhold.FeilVedOpprettelseAvSøknadinn
 import no.nav.su.se.bakover.domain.søknadinnhold.FeilVedValideringAvBoforholdOgEktefelle
 import no.nav.su.se.bakover.domain.søknadinnhold.FeilVedValideringAvOppholdstillatelseOgOppholdstillatelseAlder
 import no.nav.su.se.bakover.domain.søknadinnhold.ForNav
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknad.AvslåManglendeDokumentasjonRequest
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
 import no.nav.su.se.bakover.service.søknad.KunneIkkeAvslåSøknad
@@ -45,7 +46,6 @@ import no.nav.su.se.bakover.service.søknad.KunneIkkeLageSøknadPdf
 import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteSøknad
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
-import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknad.lukk.LukkSøknadInputHandler

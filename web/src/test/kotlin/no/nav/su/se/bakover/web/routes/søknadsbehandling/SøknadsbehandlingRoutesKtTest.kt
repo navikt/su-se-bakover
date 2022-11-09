@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
-import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.underkjentSøknadsbehandlingUføre

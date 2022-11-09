@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.service.søknadsbehandling
+package no.nav.su.se.bakover.domain.søknadsbehandling
 
 import arrow.core.Either
 import no.nav.su.se.bakover.common.NavIdentBruker
@@ -9,12 +9,6 @@ import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjo
 import no.nav.su.se.bakover.domain.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
-import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
-import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilGrunnlag
-import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
-import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.UgyldigFamiliegjenforeningVilkår
 import no.nav.su.se.bakover.domain.vilkår.bosituasjon.FullførBosituasjonRequest
 import no.nav.su.se.bakover.domain.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjonEpsGrunnlag

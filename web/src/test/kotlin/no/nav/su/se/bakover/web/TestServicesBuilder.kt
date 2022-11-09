@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.regulering.ReguleringService
 import no.nav.su.se.bakover.domain.revurdering.RevurderingService
 import no.nav.su.se.bakover.domain.sak.SakService
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.SendPåminnelserOmNyStønadsperiodeService
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
@@ -19,7 +20,6 @@ import no.nav.su.se.bakover.service.skatt.SkatteService
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
-import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService

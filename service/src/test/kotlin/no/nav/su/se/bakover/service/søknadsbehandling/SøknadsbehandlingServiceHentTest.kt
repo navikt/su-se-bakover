@@ -5,6 +5,7 @@ import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn

@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagReque
 import no.nav.su.se.bakover.domain.oppdrag.simulering.TolketUtbetaling
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.satser.Satskategori
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
@@ -37,7 +38,6 @@ import no.nav.su.se.bakover.domain.vilkår.uføre.UførevilkårStatus
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilFlereUtenlandsoppholdRequest
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilUtenlandsoppholdRequest
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.UtenlandsoppholdStatus
-import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.test.fnrOver67
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
 import no.nav.su.se.bakover.test.getOrFail

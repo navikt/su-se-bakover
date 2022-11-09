@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.service.søknad
 import arrow.core.Either
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import java.util.UUID
 
 interface AvslåSøknadManglendeDokumentasjonService {

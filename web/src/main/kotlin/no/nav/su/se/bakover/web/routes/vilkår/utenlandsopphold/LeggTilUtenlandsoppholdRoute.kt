@@ -26,10 +26,10 @@ import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLeggeTilUtenlandsopphold
 import no.nav.su.se.bakover.domain.revurdering.RevurderingService
 import no.nav.su.se.bakover.domain.satser.SatsFactory
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilFlereUtenlandsoppholdRequest
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilUtenlandsoppholdRequest
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.UtenlandsoppholdStatus
-import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.periode.toPeriodeOrResultat
 import no.nav.su.se.bakover.web.routes.revurdering.revurderingPath

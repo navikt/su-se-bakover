@@ -11,7 +11,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.web.TestServicesBuilder

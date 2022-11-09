@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.søknadinnhold.Personopplysninger
 import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.test.fixedClock

@@ -15,8 +15,8 @@ import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknad.SøknadService
-import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.util.UUID
