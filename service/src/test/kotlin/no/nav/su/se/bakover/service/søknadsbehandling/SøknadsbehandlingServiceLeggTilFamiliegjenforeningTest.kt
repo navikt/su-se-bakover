@@ -4,9 +4,9 @@ import arrow.core.left
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.vilkår.Vurdering
-import no.nav.su.se.bakover.service.vilkår.FamiliegjenforeningVurderinger
-import no.nav.su.se.bakover.service.vilkår.FamiliegjenforeningvilkårStatus
-import no.nav.su.se.bakover.service.vilkår.LeggTilFamiliegjenforeningRequest
+import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.FamiliegjenforeningVurderinger
+import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.FamiliegjenforeningvilkårStatus
+import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.LeggTilFamiliegjenforeningRequest
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart

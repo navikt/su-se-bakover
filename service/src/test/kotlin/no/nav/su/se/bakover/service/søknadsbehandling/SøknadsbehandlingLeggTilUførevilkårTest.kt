@@ -9,9 +9,9 @@ import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
-import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
-import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
-import no.nav.su.se.bakover.service.vilkår.UførevilkårStatus
+import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevilkårRequest
+import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerRequest
+import no.nav.su.se.bakover.domain.vilkår.uføre.UførevilkårStatus
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart

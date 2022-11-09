@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.service.revurdering
+package no.nav.su.se.bakover.domain.revurdering.oppdater
 
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.periode.Periode

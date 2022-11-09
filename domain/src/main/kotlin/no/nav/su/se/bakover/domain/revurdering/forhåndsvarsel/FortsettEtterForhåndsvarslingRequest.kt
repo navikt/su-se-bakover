@@ -1,7 +1,8 @@
-package no.nav.su.se.bakover.service.revurdering
+package no.nav.su.se.bakover.domain.revurdering.forhåndsvarsel
 
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
+import no.nav.su.se.bakover.domain.revurdering.KunneIkkeSendeRevurderingTilAttestering
 import java.util.UUID
 import kotlin.reflect.KClass
 

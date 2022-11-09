@@ -11,7 +11,7 @@ import io.ktor.http.contentType
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.Fnr
-import no.nav.su.se.bakover.service.revurdering.RevurderingService
+import no.nav.su.se.bakover.domain.revurdering.RevurderingService
 import no.nav.su.se.bakover.test.avsluttetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.sakId

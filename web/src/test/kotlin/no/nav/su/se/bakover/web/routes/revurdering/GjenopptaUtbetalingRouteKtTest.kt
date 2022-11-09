@@ -16,13 +16,12 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.oppdrag.KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerGjenopptakFeil
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalGjenopptakFeil
+import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRequest
+import no.nav.su.se.bakover.domain.revurdering.KunneIkkeGjenopptaYtelse
+import no.nav.su.se.bakover.domain.revurdering.KunneIkkeIverksetteGjenopptakAvYtelse
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
-import no.nav.su.se.bakover.service.revurdering.GjenopptaYtelseRequest
-import no.nav.su.se.bakover.service.revurdering.KunneIkkeGjenopptaYtelse
-import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteGjenopptakAvYtelse
-import no.nav.su.se.bakover.service.revurdering.RevurderingService
-import no.nav.su.se.bakover.service.utbetaling.SimulerGjenopptakFeil
-import no.nav.su.se.bakover.service.utbetaling.UtbetalGjenopptakFeil
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse
@@ -111,7 +110,7 @@ internal class GjenopptaUtbetalingRouteKtTest {
             application {
                 testSusebakover(
                     services = TestServicesBuilder.services(
-                        revurdering = mock<RevurderingService> {
+                        revurdering = mock {
                             on {
                                 iverksettGjenopptakAvYtelse(
                                     any(),
@@ -151,7 +150,7 @@ internal class GjenopptaUtbetalingRouteKtTest {
             application {
                 testSusebakover(
                     services = TestServicesBuilder.services(
-                        revurdering = mock<RevurderingService> {
+                        revurdering = mock {
                             doAnswer {
                                 val args = (it.arguments[0] as GjenopptaYtelseRequest.Oppdater)
                                 simulertRevurdering.copy(
@@ -197,7 +196,7 @@ internal class GjenopptaUtbetalingRouteKtTest {
             application {
                 testSusebakover(
                     services = TestServicesBuilder.services(
-                        revurdering = mock<RevurderingService> {
+                        revurdering = mock {
                             on { gjenopptaYtelse(any()) } doReturn enRevurdering.right()
                         },
                     ),

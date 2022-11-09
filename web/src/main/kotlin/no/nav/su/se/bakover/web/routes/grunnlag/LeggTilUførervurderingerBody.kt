@@ -12,9 +12,9 @@ import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson
 import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
-import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
-import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
-import no.nav.su.se.bakover.service.vilkår.UførevilkårStatus
+import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevilkårRequest
+import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerRequest
+import no.nav.su.se.bakover.domain.vilkår.uføre.UførevilkårStatus
 import no.nav.su.se.bakover.web.routes.periode.toPeriodeOrResultat
 import java.util.UUID
 

@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson.Compan
 import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeLovligOpphold
-import no.nav.su.se.bakover.service.vilkår.LovligOppholdVilkårStatus
+import no.nav.su.se.bakover.domain.vilkår.lovligopphold.LovligOppholdVilkårStatus
 import no.nav.su.se.bakover.web.routes.vilkår.lovligopphold.VurderingsperiodeLovligOppholdJson.Companion.toJson
 
 data class LovligOppholdVilkårJson(

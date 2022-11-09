@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.service.vilkår
+package no.nav.su.se.bakover.domain.vilkår.uføre
 
 import arrow.core.left
 import arrow.core.nonEmptyListOf

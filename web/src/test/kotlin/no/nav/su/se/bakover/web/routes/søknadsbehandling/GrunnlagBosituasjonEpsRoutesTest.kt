@@ -12,8 +12,9 @@ import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.NavIdentBruker
+import no.nav.su.se.bakover.domain.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjonEpsGrunnlag
+import no.nav.su.se.bakover.domain.vilkår.bosituasjon.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
-import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -115,7 +116,7 @@ class GrunnlagBosituasjonEpsRoutesTest {
     @Test
     fun `service finner ikke behandling`() {
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
-            on { leggTilBosituasjonEpsgrunnlag(any(), any()) } doReturn SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.FantIkkeBehandling.left()
+            on { leggTilBosituasjonEpsgrunnlag(any(), any()) } doReturn KunneIkkeLeggeTilBosituasjonEpsGrunnlag.FantIkkeBehandling.left()
         }
 
         testApplication {
@@ -136,7 +137,7 @@ class GrunnlagBosituasjonEpsRoutesTest {
     @Test
     fun `service klarer ikke hente person i pdl`() {
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
-            on { leggTilBosituasjonEpsgrunnlag(any(), any()) } doReturn SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KlarteIkkeHentePersonIPdl.left()
+            on { leggTilBosituasjonEpsgrunnlag(any(), any()) } doReturn KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KlarteIkkeHentePersonIPdl.left()
         }
 
         testApplication {

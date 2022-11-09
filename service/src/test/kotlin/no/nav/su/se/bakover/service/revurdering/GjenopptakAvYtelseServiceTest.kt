@@ -22,17 +22,19 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerGjenopptakFeil
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalGjenopptakFeil
+import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRequest
+import no.nav.su.se.bakover.domain.revurdering.KunneIkkeGjenopptaYtelse
+import no.nav.su.se.bakover.domain.revurdering.KunneIkkeIverksetteGjenopptakAvYtelse
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
-import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.utbetaling.SimulerGjenopptakFeil
-import no.nav.su.se.bakover.service.utbetaling.UtbetalGjenopptakFeil
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
@@ -138,7 +140,9 @@ internal class GjenopptakAvYtelseServiceTest {
             },
             clock = tikkendeKlokke,
         ).let {
-            it.revurderingService.gjenopptaYtelse(defaultOpprettRequest()) shouldBe KunneIkkeGjenopptaYtelse.KunneIkkeSimulere(SimulerGjenopptakFeil.KunneIkkeSimulere(SimulerUtbetalingFeilet.FeilVedSimulering(SimuleringFeilet.TekniskFeil))).left()
+            it.revurderingService.gjenopptaYtelse(defaultOpprettRequest()) shouldBe KunneIkkeGjenopptaYtelse.KunneIkkeSimulere(
+                SimulerGjenopptakFeil.KunneIkkeSimulere(SimulerUtbetalingFeilet.FeilVedSimulering(SimuleringFeilet.TekniskFeil)),
+            ).left()
 
             verify(it.sakService).hentSak(sak.id)
             verify(it.utbetalingService).simulerUtbetaling(any(), any())
@@ -222,7 +226,7 @@ internal class GjenopptakAvYtelseServiceTest {
             sakService = mock {
                 on { hentSakForRevurdering(any()) } doReturn sak
             },
-            utbetalingService = mock<UtbetalingService> {
+            utbetalingService = mock {
                 doAnswer { invocation ->
                     simulerUtbetaling(
                         sak,
@@ -517,7 +521,7 @@ internal class GjenopptakAvYtelseServiceTest {
         }
     }
 
-    fun defaultOpprettRequest() = GjenopptaYtelseRequest.Opprett(
+    private fun defaultOpprettRequest() = GjenopptaYtelseRequest.Opprett(
         sakId = sakId,
         saksbehandler = saksbehandler,
         revurderingsårsak = Revurderingsårsak.create(

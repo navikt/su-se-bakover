@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
 import no.nav.su.se.bakover.domain.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
@@ -15,27 +16,27 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.UgyldigFamiliegjenforeningVilkår
-import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
-import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilOpplysningsplikt
-import no.nav.su.se.bakover.service.revurdering.LeggTilOpplysningspliktRequest
-import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
-import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeFastOppholdINorgeVilkår
-import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeTilFlyktningVilkår
-import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeTilInstitusjonsoppholdVilkår
-import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeTilPensjonsVilkår
-import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeTilPersonligOppmøteVilkår
-import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggetilLovligOppholdVilkår
-import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
-import no.nav.su.se.bakover.service.vilkår.LeggTilFamiliegjenforeningRequest
-import no.nav.su.se.bakover.service.vilkår.LeggTilFastOppholdINorgeRequest
-import no.nav.su.se.bakover.service.vilkår.LeggTilFlereUtenlandsoppholdRequest
-import no.nav.su.se.bakover.service.vilkår.LeggTilFlyktningVilkårRequest
-import no.nav.su.se.bakover.service.vilkår.LeggTilFormuevilkårRequest
-import no.nav.su.se.bakover.service.vilkår.LeggTilInstitusjonsoppholdVilkårRequest
-import no.nav.su.se.bakover.service.vilkår.LeggTilLovligOppholdRequest
-import no.nav.su.se.bakover.service.vilkår.LeggTilPensjonsVilkårRequest
-import no.nav.su.se.bakover.service.vilkår.LeggTilPersonligOppmøteVilkårRequest
-import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
+import no.nav.su.se.bakover.domain.vilkår.bosituasjon.FullførBosituasjonRequest
+import no.nav.su.se.bakover.domain.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjonEpsGrunnlag
+import no.nav.su.se.bakover.domain.vilkår.bosituasjon.LeggTilBosituasjonEpsRequest
+import no.nav.su.se.bakover.domain.vilkår.familiegjenforening.LeggTilFamiliegjenforeningRequest
+import no.nav.su.se.bakover.domain.vilkår.fastopphold.KunneIkkeLeggeFastOppholdINorgeVilkår
+import no.nav.su.se.bakover.domain.vilkår.fastopphold.LeggTilFastOppholdINorgeRequest
+import no.nav.su.se.bakover.domain.vilkår.flyktning.KunneIkkeLeggeTilFlyktningVilkår
+import no.nav.su.se.bakover.domain.vilkår.flyktning.LeggTilFlyktningVilkårRequest
+import no.nav.su.se.bakover.domain.vilkår.formue.LeggTilFormuevilkårRequest
+import no.nav.su.se.bakover.domain.vilkår.institusjonsopphold.KunneIkkeLeggeTilInstitusjonsoppholdVilkår
+import no.nav.su.se.bakover.domain.vilkår.institusjonsopphold.LeggTilInstitusjonsoppholdVilkårRequest
+import no.nav.su.se.bakover.domain.vilkår.lovligopphold.KunneIkkeLeggetilLovligOppholdVilkår
+import no.nav.su.se.bakover.domain.vilkår.lovligopphold.LeggTilLovligOppholdRequest
+import no.nav.su.se.bakover.domain.vilkår.opplysningsplikt.KunneIkkeLeggeTilOpplysningsplikt
+import no.nav.su.se.bakover.domain.vilkår.opplysningsplikt.LeggTilOpplysningspliktRequest
+import no.nav.su.se.bakover.domain.vilkår.oppmøte.KunneIkkeLeggeTilPersonligOppmøteVilkår
+import no.nav.su.se.bakover.domain.vilkår.oppmøte.LeggTilPersonligOppmøteVilkårRequest
+import no.nav.su.se.bakover.domain.vilkår.pensjon.KunneIkkeLeggeTilPensjonsVilkår
+import no.nav.su.se.bakover.domain.vilkår.pensjon.LeggTilPensjonsVilkårRequest
+import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerRequest
+import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilFlereUtenlandsoppholdRequest
 import java.util.UUID
 import kotlin.reflect.KClass
 
@@ -264,15 +265,6 @@ interface SøknadsbehandlingService {
                     til = this.til,
                 )
             }
-    }
-
-    sealed class KunneIkkeLeggeTilBosituasjonEpsGrunnlag {
-        object FantIkkeBehandling : KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
-
-        object KlarteIkkeHentePersonIPdl : KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
-
-        data class KunneIkkeOppdatereBosituasjon(val feil: KunneIkkeLeggeTilGrunnlag.KunneIkkeOppdatereBosituasjon) :
-            KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
     }
 
     sealed class KunneIkkeFullføreBosituasjonGrunnlag {

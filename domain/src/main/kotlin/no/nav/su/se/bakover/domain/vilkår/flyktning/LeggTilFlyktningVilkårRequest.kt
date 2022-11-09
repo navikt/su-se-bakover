@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.service.vilkår
+package no.nav.su.se.bakover.domain.vilkår.flyktning
 
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
@@ -18,5 +18,6 @@ sealed interface KunneIkkeLeggeTilFlyktningVilkår {
 
     object FantIkkeBehandling : KunneIkkeLeggeTilFlyktningVilkår
 
-    data class UgyldigFlyktningVilkår(val feil: FlyktningVilkår.Vurdert.UgyldigFlyktningVilkår) : KunneIkkeLeggeTilFlyktningVilkår
+    data class UgyldigFlyktningVilkår(val feil: FlyktningVilkår.Vurdert.UgyldigFlyktningVilkår) :
+        KunneIkkeLeggeTilFlyktningVilkår
 }

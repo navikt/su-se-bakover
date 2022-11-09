@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.service.vilkår
+package no.nav.su.se.bakover.domain.vilkår.formue
 
 import arrow.core.Either
 import arrow.core.Nel

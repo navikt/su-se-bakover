@@ -6,10 +6,10 @@ import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.revurdering.RevurderingsutfallSomIkkeStøttes
+import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevilkårRequest
+import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerRequest
+import no.nav.su.se.bakover.domain.vilkår.uføre.UførevilkårStatus
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
-import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
-import no.nav.su.se.bakover.service.vilkår.UførevilkårStatus
 import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.vilkår.formuevilkårAvslåttPgrBrukersformue

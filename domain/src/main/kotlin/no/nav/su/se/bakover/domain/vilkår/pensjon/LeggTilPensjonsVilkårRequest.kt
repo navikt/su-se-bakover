@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.service.vilkår
+package no.nav.su.se.bakover.domain.vilkår.pensjon
 
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vilkår.KunneIkkeLagePensjonsVilkår

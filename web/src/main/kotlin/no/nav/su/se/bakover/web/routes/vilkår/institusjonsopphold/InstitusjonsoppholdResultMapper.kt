@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.utenforBehan
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
-import no.nav.su.se.bakover.service.vilkår.KunneIkkeLeggeTilInstitusjonsoppholdVilkår
+import no.nav.su.se.bakover.domain.vilkår.institusjonsopphold.KunneIkkeLeggeTilInstitusjonsoppholdVilkår
 
 internal fun KunneIkkeLeggeTilInstitusjonsoppholdVilkår.tilResultat(): Resultat {
     return when (this) {

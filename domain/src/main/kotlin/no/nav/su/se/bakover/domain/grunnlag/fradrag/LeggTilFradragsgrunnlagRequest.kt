@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.service.grunnlag
+package no.nav.su.se.bakover.domain.grunnlag.fradrag
 
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import java.util.UUID

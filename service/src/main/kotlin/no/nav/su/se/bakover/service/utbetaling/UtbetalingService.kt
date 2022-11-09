@@ -10,9 +10,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingKlargjortForOversendelse
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
-import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
 import java.time.LocalDate
 import java.util.UUID
 
@@ -52,23 +50,3 @@ interface UtbetalingService {
 }
 
 object FantIkkeUtbetaling
-
-sealed class SimulerGjenopptakFeil {
-    data class KunneIkkeSimulere(val feil: SimulerUtbetalingFeilet) : SimulerGjenopptakFeil()
-    data class KunneIkkeGenerereUtbetaling(val feil: Utbetalingsstrategi.Gjenoppta.Feil) : SimulerGjenopptakFeil()
-}
-
-sealed class UtbetalGjenopptakFeil {
-    data class KunneIkkeSimulere(val feil: SimulerGjenopptakFeil) : UtbetalGjenopptakFeil()
-    data class KunneIkkeUtbetale(val feil: UtbetalingFeilet) : UtbetalGjenopptakFeil()
-}
-
-sealed class SimulerStansFeilet {
-    data class KunneIkkeSimulere(val feil: SimulerUtbetalingFeilet) : SimulerStansFeilet()
-    data class KunneIkkeGenerereUtbetaling(val feil: Utbetalingsstrategi.Stans.Feil) : SimulerStansFeilet()
-}
-
-sealed class UtbetalStansFeil {
-    data class KunneIkkeSimulere(val feil: SimulerStansFeilet) : UtbetalStansFeil()
-    data class KunneIkkeUtbetale(val feil: UtbetalingFeilet) : UtbetalStansFeil()
-}

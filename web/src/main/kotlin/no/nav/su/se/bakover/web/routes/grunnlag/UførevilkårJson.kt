@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson.Compan
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUføre
-import no.nav.su.se.bakover.service.vilkår.UførevilkårStatus
+import no.nav.su.se.bakover.domain.vilkår.uføre.UførevilkårStatus
 import java.time.format.DateTimeFormatter
 
 internal data class UføreVilkårJson(

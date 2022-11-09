@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.service.vilkår
+package no.nav.su.se.bakover.domain.vilkår.fastopphold
 
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
 import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
@@ -18,5 +18,6 @@ sealed interface KunneIkkeLeggeFastOppholdINorgeVilkår {
 
     object FantIkkeBehandling : KunneIkkeLeggeFastOppholdINorgeVilkår
 
-    data class UgyldigFastOppholdINorgeVikår(val feil: FastOppholdINorgeVilkår.Vurdert.UgyldigFastOppholdINorgeVikår) : KunneIkkeLeggeFastOppholdINorgeVilkår
+    data class UgyldigFastOppholdINorgeVikår(val feil: FastOppholdINorgeVilkår.Vurdert.UgyldigFastOppholdINorgeVikår) :
+        KunneIkkeLeggeFastOppholdINorgeVilkår
 }

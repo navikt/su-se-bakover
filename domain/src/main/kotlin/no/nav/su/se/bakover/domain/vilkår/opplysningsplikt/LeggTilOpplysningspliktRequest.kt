@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.service.revurdering
+package no.nav.su.se.bakover.domain.vilkår.opplysningsplikt
 
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeLeggeTilVilkår
