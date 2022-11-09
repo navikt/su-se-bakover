@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeAvslutteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
+import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeLageAvsluttetGjenopptaAvYtelse
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import no.nav.su.se.bakover.service.argThat
@@ -345,7 +346,9 @@ internal class AvsluttRevurderingTest {
             saksbehandler = saksbehandler,
         )
 
-        actual shouldBe KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetGjenopptaAvYtelse(GjenopptaYtelseRevurdering.KunneIkkeLageAvsluttetGjenopptaAvYtelse.RevurderingErAlleredeAvsluttet)
+        actual shouldBe KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetGjenopptaAvYtelse(
+            KunneIkkeLageAvsluttetGjenopptaAvYtelse.RevurderingErAlleredeAvsluttet,
+        )
             .left()
         verify(revurderingRepoMock).hent(argThat { it shouldBe gjenopptaYtelse.id })
         verifyNoMoreInteractions(revurderingRepoMock)
@@ -370,7 +373,7 @@ internal class AvsluttRevurderingTest {
             saksbehandler = saksbehandler,
         )
 
-        actual shouldBe KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetGjenopptaAvYtelse(GjenopptaYtelseRevurdering.KunneIkkeLageAvsluttetGjenopptaAvYtelse.RevurderingenErIverksatt)
+        actual shouldBe KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetGjenopptaAvYtelse(KunneIkkeLageAvsluttetGjenopptaAvYtelse.RevurderingenErIverksatt)
             .left()
         verify(revurderingRepoMock).hent(argThat { it shouldBe gjenopptaYtelse.id })
         verifyNoMoreInteractions(revurderingRepoMock)

@@ -9,21 +9,25 @@ import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerStansFeilet
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalStansFeil
-import no.nav.su.se.bakover.domain.revurdering.IverksettStansAvYtelseITransaksjonResponse
-import no.nav.su.se.bakover.domain.revurdering.IverksettStansAvYtelseTransactionException.Companion.exception
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeIverksetteStansYtelse
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeStanseYtelse
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
-import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseITransaksjonResponse
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
-import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseTransactionException.Companion.exception
-import no.nav.su.se.bakover.domain.revurdering.StansYtelseRequest
+import no.nav.su.se.bakover.domain.revurdering.stans.IverksettStansAvYtelseITransaksjonResponse
+import no.nav.su.se.bakover.domain.revurdering.stans.IverksettStansAvYtelseTransactionException
+import no.nav.su.se.bakover.domain.revurdering.stans.IverksettStansAvYtelseTransactionException.Companion.exception
+import no.nav.su.se.bakover.domain.revurdering.stans.KunneIkkeIverksetteStansYtelse
+import no.nav.su.se.bakover.domain.revurdering.stans.KunneIkkeStanseYtelse
+import no.nav.su.se.bakover.domain.revurdering.stans.StansAvYtelseITransaksjonResponse
+import no.nav.su.se.bakover.domain.revurdering.stans.StansAvYtelseTransactionException
+import no.nav.su.se.bakover.domain.revurdering.stans.StansAvYtelseTransactionException.Companion.exception
+import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseRequest
+import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.lagUtbetalingForStans
 import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
@@ -38,20 +42,21 @@ import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
-internal class StansAvYtelseService(
+internal class StansYtelseServiceImpl(
     private val utbetalingService: UtbetalingService,
     private val revurderingRepo: RevurderingRepo,
     private val vedtakService: VedtakService,
     private val sakService: SakService,
     private val clock: Clock,
-) {
+    private val sessionFactory: SessionFactory,
+) : StansYtelseService {
     private val observers: MutableList<StatistikkEventObserver> = mutableListOf()
 
     fun addObserver(eventObserver: StatistikkEventObserver) {
         observers.add(eventObserver)
     }
 
-    fun stansAvYtelse(
+    override fun stansAvYtelseITransaksjon(
         request: StansYtelseRequest,
         transactionContext: TransactionContext,
     ): StansAvYtelseITransaksjonResponse {
@@ -148,14 +153,72 @@ internal class StansAvYtelseService(
         )
     }
 
-    fun iverksettStansAvYtelse(
+    override fun stansAvYtelse(
+        request: StansYtelseRequest,
+    ): Either<KunneIkkeStanseYtelse, StansAvYtelseRevurdering.SimulertStansAvYtelse> {
+        return Either.catch {
+            sessionFactory.withTransactionContext { tx ->
+                stansAvYtelseITransaksjon(
+                    request = request,
+                    transactionContext = tx,
+                ).also { response ->
+                    response.sendStatistikkCallback()
+                }
+            }
+        }.mapLeft {
+            when (it) {
+                is StansAvYtelseTransactionException -> {
+                    it.feil
+                }
+                else -> {
+                    KunneIkkeStanseYtelse.UkjentFeil(it.message.toString())
+                }
+            }
+        }.map {
+            it.revurdering
+        }
+    }
+
+    override fun iverksettStansAvYtelse(
         revurderingId: UUID,
         attestant: NavIdentBruker.Attestant,
-        sessionContext: TransactionContext,
+    ): Either<KunneIkkeIverksetteStansYtelse, StansAvYtelseRevurdering.IverksattStansAvYtelse> {
+        return Either.catch {
+            sessionFactory.withTransactionContext { tx ->
+                iverksettStansAvYtelseITransaksjon(
+                    revurderingId = revurderingId,
+                    attestant = attestant,
+                    transactionContext = tx,
+                ).also { response ->
+                    response.sendUtbetalingCallback()
+                        .getOrHandle {
+                            throw KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale(UtbetalStansFeil.KunneIkkeUtbetale(it)).exception()
+                        }
+                    response.sendStatistikkCallback()
+                }
+            }
+        }.mapLeft {
+            when (it) {
+                is IverksettStansAvYtelseTransactionException -> {
+                    it.feil
+                }
+                else -> {
+                    KunneIkkeIverksetteStansYtelse.UkjentFeil(it.message.toString())
+                }
+            }
+        }.map {
+            it.revurdering
+        }
+    }
+
+    override fun iverksettStansAvYtelseITransaksjon(
+        revurderingId: UUID,
+        attestant: NavIdentBruker.Attestant,
+        transactionContext: TransactionContext,
     ): IverksettStansAvYtelseITransaksjonResponse {
         val sak = sakService.hentSakForRevurdering(
             revurderingId = revurderingId,
-            sessionContext = sessionContext,
+            sessionContext = transactionContext,
         )
 
         val revurdering = sak.hentRevurdering(revurderingId).getOrHandle { throw KunneIkkeIverksetteStansYtelse.FantIkkeRevurdering.exception() }
@@ -182,7 +245,7 @@ internal class StansAvYtelseService(
 
                 val stansUtbetaling = utbetalingService.klargjørUtbetaling(
                     utbetaling = simulertUtbetaling,
-                    transactionContext = sessionContext,
+                    transactionContext = transactionContext,
                 ).getOrHandle {
                     throw KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale(UtbetalStansFeil.KunneIkkeUtbetale(it)).exception()
                 }
@@ -191,11 +254,11 @@ internal class StansAvYtelseService(
 
                 revurderingRepo.lagre(
                     revurdering = iverksattRevurdering,
-                    transactionContext = sessionContext,
+                    transactionContext = transactionContext,
                 )
                 vedtakService.lagre(
                     vedtak = vedtak,
-                    sessionContext = sessionContext,
+                    sessionContext = transactionContext,
                 )
 
                 IverksettStansAvYtelseITransaksjonResponse(
@@ -208,7 +271,7 @@ internal class StansAvYtelseService(
                         observers.notify(
                             StatistikkEvent.Stønadsvedtak(
                                 vedtak,
-                            ) { sakService.hentSak(sak.id, sessionContext).orNull()!! },
+                            ) { sakService.hentSak(sak.id, transactionContext).orNull()!! },
                         )
                     },
                 )

@@ -18,11 +18,6 @@ import no.nav.su.se.bakover.domain.grunnlag.Konsistensproblem
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerGjenopptakFeil
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerStansFeilet
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalGjenopptakFeil
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalStansFeil
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.revurdering.forhåndsvarsel.FortsettEtterForhåndsvarselFeil
@@ -31,7 +26,6 @@ import no.nav.su.se.bakover.domain.revurdering.oppdater.OppdaterRevurderingReque
 import no.nav.su.se.bakover.domain.revurdering.opprett.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opprett.OpprettRevurderingCommand
 import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.fastopphold.KunneIkkeLeggeFastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.fastopphold.LeggTilFastOppholdINorgeRequest
 import no.nav.su.se.bakover.domain.vilkår.flyktning.KunneIkkeLeggeTilFlyktningVilkår
@@ -57,55 +51,6 @@ import kotlin.reflect.KClass
 
 interface RevurderingService {
     fun hentRevurdering(revurderingId: UUID): AbstraktRevurdering?
-
-    fun stansAvYtelse(
-        request: StansYtelseRequest,
-    ): Either<KunneIkkeStanseYtelse, StansAvYtelseRevurdering.SimulertStansAvYtelse>
-
-    /**
-     * Konsument er ansvarlig for [transactionContext] og tilhørende commit/rollback. Dette innebærer også at
-     * konsument må kalle aktuelle callbacks som returneres på et fornuftig tidspunkt.
-     *
-     * @throws IverksettStansAvYtelseTransactionException for alle feilsituasjoner vi selv har rådighet over.
-     *
-     * @return [StansAvYtelseITransaksjonResponse.revurdering] simulert revurdering for stans
-     * @return [StansAvYtelseITransaksjonResponse.sendStatistikkCallback] callback som publiserer statistikk på kafka
-     */
-    fun stansAvYtelseITransaksjon(
-        request: StansYtelseRequest,
-        transactionContext: TransactionContext,
-    ): StansAvYtelseITransaksjonResponse
-
-    fun iverksettStansAvYtelse(
-        revurderingId: UUID,
-        attestant: NavIdentBruker.Attestant,
-    ): Either<KunneIkkeIverksetteStansYtelse, StansAvYtelseRevurdering.IverksattStansAvYtelse>
-
-    /**
-     * Konsument er ansvarlig for [transactionContext] og tilhørende commit/rollback. Dette innebærer også at
-     * konsument må kalle aktuelle callbacks som returneres på et fornuftig tidspunkt.
-     *
-     * @throws IverksettStansAvYtelseTransactionException for alle feilsituasjoner vi selv har rådighet over.
-     *
-     * @return [IverksettStansAvYtelseITransaksjonResponse.revurdering] iverksatt revurdering for stans
-     * @return [IverksettStansAvYtelseITransaksjonResponse.vedtak] vedtak for stans
-     * @return [IverksettStansAvYtelseITransaksjonResponse.sendUtbetalingCallback] callback som publiserer utbetalinger på kø
-     * @return [IverksettStansAvYtelseITransaksjonResponse.sendStatistikkCallback] callback som publiserer statistikk på kafka
-     */
-    fun iverksettStansAvYtelseITransaksjon(
-        revurderingId: UUID,
-        attestant: NavIdentBruker.Attestant,
-        transactionContext: TransactionContext,
-    ): IverksettStansAvYtelseITransaksjonResponse
-
-    fun gjenopptaYtelse(
-        request: GjenopptaYtelseRequest,
-    ): Either<KunneIkkeGjenopptaYtelse, GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse>
-
-    fun iverksettGjenopptakAvYtelse(
-        revurderingId: UUID,
-        attestant: NavIdentBruker.Attestant,
-    ): Either<KunneIkkeIverksetteGjenopptakAvYtelse, GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse>
 
     fun opprettRevurdering(
         command: OpprettRevurderingCommand,
@@ -419,169 +364,6 @@ sealed class KunneIkkeLeggeTilFormuegrunnlag {
 sealed class KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger {
     object FantIkkeBehandling : KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger()
     object FantIkkeSak : KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger()
-}
-
-sealed class StansYtelseRequest {
-    abstract val sakId: UUID
-    abstract val saksbehandler: NavIdentBruker.Saksbehandler
-    abstract val fraOgMed: LocalDate
-    abstract val revurderingsårsak: Revurderingsårsak
-
-    data class Opprett(
-        override val sakId: UUID,
-        override val saksbehandler: NavIdentBruker.Saksbehandler,
-        override val fraOgMed: LocalDate,
-        override val revurderingsårsak: Revurderingsårsak,
-    ) : StansYtelseRequest()
-
-    data class Oppdater(
-        override val sakId: UUID,
-        val revurderingId: UUID,
-        override val saksbehandler: NavIdentBruker.Saksbehandler,
-        override val fraOgMed: LocalDate,
-        override val revurderingsårsak: Revurderingsårsak,
-    ) : StansYtelseRequest()
-}
-
-sealed class KunneIkkeStanseYtelse {
-    object FantIkkeRevurdering : KunneIkkeStanseYtelse()
-    object FantIkkeSak : KunneIkkeStanseYtelse()
-    object SakHarÅpenBehandling : KunneIkkeStanseYtelse()
-    data class SimuleringAvStansFeilet(val feil: SimulerStansFeilet) : KunneIkkeStanseYtelse()
-    object KunneIkkeOppretteRevurdering : KunneIkkeStanseYtelse()
-    data class UgyldigTypeForOppdatering(val type: KClass<out AbstraktRevurdering>) : KunneIkkeStanseYtelse()
-
-    data class UkjentFeil(val msg: String) : KunneIkkeStanseYtelse()
-}
-
-data class StansAvYtelseITransaksjonResponse(
-    val revurdering: StansAvYtelseRevurdering.SimulertStansAvYtelse,
-    val sendStatistikkCallback: () -> Unit,
-)
-
-data class StansAvYtelseTransactionException(
-    override val message: String,
-    val feil: KunneIkkeStanseYtelse,
-) : RuntimeException(message) {
-    companion object {
-        fun KunneIkkeStanseYtelse.exception(): StansAvYtelseTransactionException {
-            return when (this) {
-                KunneIkkeStanseYtelse.FantIkkeRevurdering -> {
-                    StansAvYtelseTransactionException(this::class.java.toString(), this)
-                }
-                KunneIkkeStanseYtelse.FantIkkeSak -> {
-                    StansAvYtelseTransactionException(this::class.java.toString(), this)
-                }
-                KunneIkkeStanseYtelse.KunneIkkeOppretteRevurdering -> {
-                    StansAvYtelseTransactionException(this::class.java.toString(), this)
-                }
-                KunneIkkeStanseYtelse.SakHarÅpenBehandling -> {
-                    StansAvYtelseTransactionException(this::class.java.toString(), this)
-                }
-                is KunneIkkeStanseYtelse.SimuleringAvStansFeilet -> {
-                    StansAvYtelseTransactionException(this.feil::class.java.toString(), this)
-                }
-                is KunneIkkeStanseYtelse.UgyldigTypeForOppdatering -> {
-                    StansAvYtelseTransactionException(this::class.java.toString(), this)
-                }
-                is KunneIkkeStanseYtelse.UkjentFeil -> {
-                    StansAvYtelseTransactionException(this.msg, this)
-                }
-            }
-        }
-    }
-}
-
-sealed class KunneIkkeIverksetteStansYtelse {
-    data class KunneIkkeUtbetale(val feil: UtbetalStansFeil) : KunneIkkeIverksetteStansYtelse()
-    object FantIkkeRevurdering : KunneIkkeIverksetteStansYtelse()
-    data class UgyldigTilstand(
-        val faktiskTilstand: KClass<out AbstraktRevurdering>,
-    ) : KunneIkkeIverksetteStansYtelse() {
-        val målTilstand: KClass<out StansAvYtelseRevurdering.IverksattStansAvYtelse> =
-            StansAvYtelseRevurdering.IverksattStansAvYtelse::class
-    }
-
-    object SimuleringIndikererFeilutbetaling : KunneIkkeIverksetteStansYtelse()
-    data class UkjentFeil(val msg: String) : KunneIkkeIverksetteStansYtelse()
-}
-
-data class IverksettStansAvYtelseITransaksjonResponse(
-    val revurdering: StansAvYtelseRevurdering.IverksattStansAvYtelse,
-    val vedtak: VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse,
-    val sendUtbetalingCallback: () -> Either<UtbetalingFeilet.Protokollfeil, Utbetalingsrequest>,
-    val sendStatistikkCallback: () -> Unit,
-)
-
-data class IverksettStansAvYtelseTransactionException(
-    override val message: String,
-    val feil: KunneIkkeIverksetteStansYtelse,
-) : RuntimeException(message) {
-    companion object {
-        fun KunneIkkeIverksetteStansYtelse.exception(): IverksettStansAvYtelseTransactionException {
-            return when (this) {
-                KunneIkkeIverksetteStansYtelse.FantIkkeRevurdering -> {
-                    IverksettStansAvYtelseTransactionException(this::class.java.toString(), this)
-                }
-                is KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale -> {
-                    IverksettStansAvYtelseTransactionException(this.feil::class.java.toString(), this)
-                }
-                KunneIkkeIverksetteStansYtelse.SimuleringIndikererFeilutbetaling -> {
-                    IverksettStansAvYtelseTransactionException(this::class.java.toString(), this)
-                }
-                is KunneIkkeIverksetteStansYtelse.UgyldigTilstand -> {
-                    IverksettStansAvYtelseTransactionException(this::class.java.toString(), this)
-                }
-                is KunneIkkeIverksetteStansYtelse.UkjentFeil -> {
-                    IverksettStansAvYtelseTransactionException(this.msg, this)
-                }
-            }
-        }
-    }
-}
-
-sealed class GjenopptaYtelseRequest {
-    abstract val sakId: UUID
-    abstract val saksbehandler: NavIdentBruker.Saksbehandler
-    abstract val revurderingsårsak: Revurderingsårsak
-
-    data class Opprett(
-        override val sakId: UUID,
-        override val saksbehandler: NavIdentBruker.Saksbehandler,
-        override val revurderingsårsak: Revurderingsårsak,
-    ) : GjenopptaYtelseRequest()
-
-    data class Oppdater(
-        override val sakId: UUID,
-        val revurderingId: UUID,
-        override val saksbehandler: NavIdentBruker.Saksbehandler,
-        override val revurderingsårsak: Revurderingsårsak,
-    ) : GjenopptaYtelseRequest()
-}
-
-sealed class KunneIkkeGjenopptaYtelse {
-    object FantIkkeRevurdering : KunneIkkeGjenopptaYtelse()
-    object FantIngenVedtak : KunneIkkeGjenopptaYtelse()
-    object FantIkkeSak : KunneIkkeGjenopptaYtelse()
-    object SakHarÅpenBehandling : KunneIkkeGjenopptaYtelse()
-    data class KunneIkkeSimulere(val feil: SimulerGjenopptakFeil) : KunneIkkeGjenopptaYtelse()
-    object KunneIkkeOppretteRevurdering : KunneIkkeGjenopptaYtelse()
-    data class UgyldigTypeForOppdatering(val type: KClass<out AbstraktRevurdering>) : KunneIkkeGjenopptaYtelse()
-    object SisteVedtakErIkkeStans : KunneIkkeGjenopptaYtelse()
-}
-
-sealed class KunneIkkeIverksetteGjenopptakAvYtelse {
-    data class KunneIkkeUtbetale(val feil: UtbetalGjenopptakFeil) : KunneIkkeIverksetteGjenopptakAvYtelse()
-    object FantIkkeRevurdering : KunneIkkeIverksetteGjenopptakAvYtelse()
-    data class UgyldigTilstand(
-        val faktiskTilstand: KClass<out AbstraktRevurdering>,
-    ) : KunneIkkeIverksetteGjenopptakAvYtelse() {
-        val målTilstand: KClass<out GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse> =
-            GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse::class
-    }
-
-    object SimuleringIndikererFeilutbetaling : KunneIkkeIverksetteGjenopptakAvYtelse()
-    object LagringFeilet : KunneIkkeIverksetteGjenopptakAvYtelse()
 }
 
 sealed class KunneIkkeLageBrevutkastForAvsluttingAvRevurdering {

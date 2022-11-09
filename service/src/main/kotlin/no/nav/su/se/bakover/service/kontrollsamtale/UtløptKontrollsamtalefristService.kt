@@ -12,9 +12,9 @@ import no.nav.su.se.bakover.domain.kontrollsamtale.UtløptFristForKontrollsamtal
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.person.PersonService
-import no.nav.su.se.bakover.domain.revurdering.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
-import no.nav.su.se.bakover.domain.revurdering.StansYtelseRequest
+import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseRequest
+import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import org.slf4j.LoggerFactory
@@ -30,7 +30,7 @@ internal class UtløptFristForKontrollsamtaleServiceImpl(
     private val sakService: SakService,
     private val journalpostClient: JournalpostClient,
     private val kontrollsamtaleRepo: KontrollsamtaleRepo,
-    private val revurderingService: RevurderingService,
+    private val stansAvYtelseService: StansYtelseService,
     private val sessionFactory: SessionFactory,
     private val jobContextRepo: JobContextRepo,
     private val clock: Clock,
@@ -68,7 +68,7 @@ internal class UtløptFristForKontrollsamtaleServiceImpl(
                     },
                     sessionFactory = sessionFactory,
                     opprettStans = { sakId: UUID, stansDato: LocalDate, transactionContext: TransactionContext ->
-                        revurderingService.stansAvYtelseITransaksjon(
+                        stansAvYtelseService.stansAvYtelseITransaksjon(
                             StansYtelseRequest.Opprett(
                                 sakId = sakId,
                                 saksbehandler = NavIdentBruker.Saksbehandler(serviceUser),
@@ -87,7 +87,7 @@ internal class UtløptFristForKontrollsamtaleServiceImpl(
                         }
                     },
                     iverksettStans = { revurderingId: UUID, transactionContext: TransactionContext ->
-                        revurderingService.iverksettStansAvYtelseITransaksjon(
+                        stansAvYtelseService.iverksettStansAvYtelseITransaksjon(
                             revurderingId = revurderingId,
                             attestant = NavIdentBruker.Attestant(serviceUser),
                             transactionContext = transactionContext,

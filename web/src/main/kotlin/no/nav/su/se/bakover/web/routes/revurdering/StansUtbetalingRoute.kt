@@ -24,11 +24,11 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerStansFeilet
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalStansFeil
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeIverksetteStansYtelse
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeStanseYtelse
-import no.nav.su.se.bakover.domain.revurdering.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
-import no.nav.su.se.bakover.domain.revurdering.StansYtelseRequest
+import no.nav.su.se.bakover.domain.revurdering.stans.KunneIkkeIverksetteStansYtelse
+import no.nav.su.se.bakover.domain.revurdering.stans.KunneIkkeStanseYtelse
+import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseRequest
+import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeSak
@@ -37,7 +37,7 @@ import no.nav.su.se.bakover.web.routes.tilResultat
 import java.time.LocalDate
 
 internal fun Route.stansUtbetaling(
-    revurderingService: RevurderingService,
+    service: StansYtelseService,
     satsFactory: SatsFactory,
 ) {
     post("$revurderingPath/stans") {
@@ -58,7 +58,7 @@ internal fun Route.stansUtbetaling(
                         revurderingsårsak = revurderingsårsak,
                     )
 
-                    revurderingService.stansAvYtelse(request).fold(
+                    service.stansAvYtelse(request).fold(
                         ifLeft = { call.svar(it.tilResultat()) },
                         ifRight = {
                             call.sikkerlogg("Opprettet revurdering for stans av ytelse for $sakId")
@@ -89,7 +89,7 @@ internal fun Route.stansUtbetaling(
                             revurderingId = revurderingId,
                         )
 
-                        revurderingService.stansAvYtelse(request).fold(
+                        service.stansAvYtelse(request).fold(
                             ifLeft = { call.svar(it.tilResultat()) },
                             ifRight = {
                                 call.sikkerlogg("Oppdaterer revurdering for stans av ytelse for sak:$sakId")
@@ -107,7 +107,7 @@ internal fun Route.stansUtbetaling(
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withSakId { sakId ->
                 call.withRevurderingId { revurderingId ->
-                    revurderingService.iverksettStansAvYtelse(
+                    service.iverksettStansAvYtelse(
                         revurderingId = revurderingId,
                         attestant = NavIdentBruker.Attestant(call.suUserContext.navIdent),
                     ).fold(

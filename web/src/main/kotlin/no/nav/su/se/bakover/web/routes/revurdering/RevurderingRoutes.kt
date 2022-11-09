@@ -2,6 +2,8 @@ package no.nav.su.se.bakover.web.routes.revurdering
 
 import io.ktor.server.routing.Route
 import no.nav.su.se.bakover.domain.revurdering.RevurderingService
+import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseService
+import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.web.routes.revurdering.avslutt.avsluttRevurderingRoute
@@ -15,6 +17,8 @@ internal const val revurderingPath = "$sakPath/{sakId}/revurderinger"
 
 internal fun Route.revurderingRoutes(
     revurderingService: RevurderingService,
+    stansAvYtelseService: StansYtelseService,
+    gjenopptakAvYtelseService: GjenopptaYtelseService,
     sakService: SakService,
     clock: Clock,
     satsFactory: SatsFactory,
@@ -49,9 +53,9 @@ internal fun Route.revurderingRoutes(
 
     hentGrunnlagRevurderingRoutes(sakService, satsFactory)
 
-    stansUtbetaling(revurderingService, satsFactory)
+    stansUtbetaling(stansAvYtelseService, satsFactory)
 
-    gjenopptaUtbetaling(revurderingService, satsFactory)
+    gjenopptaUtbetaling(gjenopptakAvYtelseService, satsFactory)
 
     avsluttRevurderingRoute(revurderingService, satsFactory)
 

@@ -26,11 +26,11 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerGjenopptakFeil
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalGjenopptakFeil
-import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRequest
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeGjenopptaYtelse
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeIverksetteGjenopptakAvYtelse
-import no.nav.su.se.bakover.domain.revurdering.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
+import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseRequest
+import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseService
+import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering
+import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeSimulereGjenopptakAvYtelse
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeSak
@@ -38,7 +38,7 @@ import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.til
 import no.nav.su.se.bakover.web.routes.tilResultat
 
 internal fun Route.gjenopptaUtbetaling(
-    revurderingService: RevurderingService,
+    service: GjenopptaYtelseService,
     satsFactory: SatsFactory,
 ) {
     post("$revurderingPath/gjenoppta") {
@@ -58,7 +58,7 @@ internal fun Route.gjenopptaUtbetaling(
                         revurderingsårsak = revurderingsårsak,
                     )
 
-                    revurderingService.gjenopptaYtelse(request).fold(
+                    service.gjenopptaYtelse(request).fold(
                         ifLeft = { call.svar(it.tilResultat()) },
                         ifRight = {
                             call.sikkerlogg("Opprettet revurdering for gjenopptak av ytelse for sak:$sakId")
@@ -90,7 +90,7 @@ internal fun Route.gjenopptaUtbetaling(
                             revurderingId = revurderingId,
                         )
 
-                        revurderingService.gjenopptaYtelse(request).fold(
+                        service.gjenopptaYtelse(request).fold(
                             ifLeft = { call.svar(it.tilResultat()) },
                             ifRight = {
                                 call.sikkerlogg("Oppdaterer revurdering for gjenopptak av ytelse for sak:$sakId")
@@ -108,7 +108,7 @@ internal fun Route.gjenopptaUtbetaling(
         authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
             call.withSakId { sakId ->
                 call.withRevurderingId { revurderingId ->
-                    revurderingService.iverksettGjenopptakAvYtelse(
+                    service.iverksettGjenopptakAvYtelse(
                         revurderingId = revurderingId,
                         attestant = NavIdentBruker.Attestant(call.suUserContext.navIdent),
                     ).fold(
@@ -130,55 +130,55 @@ internal class GjenopptaUtbetalingBody(
     val begrunnelse: String,
 )
 
-private fun KunneIkkeGjenopptaYtelse.tilResultat(): Resultat {
+private fun KunneIkkeSimulereGjenopptakAvYtelse.tilResultat(): Resultat {
     return when (this) {
-        KunneIkkeGjenopptaYtelse.FantIkkeRevurdering -> {
+        KunneIkkeSimulereGjenopptakAvYtelse.FantIkkeRevurdering -> {
             Revurderingsfeilresponser.fantIkkeRevurdering
         }
 
-        KunneIkkeGjenopptaYtelse.FantIngenVedtak -> {
+        KunneIkkeSimulereGjenopptakAvYtelse.FantIngenVedtak -> {
             Revurderingsfeilresponser.fantIngenVedtakSomKanRevurderes
         }
 
-        KunneIkkeGjenopptaYtelse.KunneIkkeOppretteRevurdering -> {
+        KunneIkkeSimulereGjenopptakAvYtelse.KunneIkkeOppretteRevurdering -> {
             InternalServerError.errorJson(
                 message = "Kunne ikke opprette revurdering for gjenopptak",
                 code = "kunne_ikke_opprette_revurdering_for_gjenopptak",
             )
         }
 
-        is KunneIkkeGjenopptaYtelse.KunneIkkeSimulere -> {
+        is KunneIkkeSimulereGjenopptakAvYtelse.KunneIkkeSimulere -> {
             feil.tilResultat()
         }
 
-        KunneIkkeGjenopptaYtelse.SisteVedtakErIkkeStans -> {
+        KunneIkkeSimulereGjenopptakAvYtelse.SisteVedtakErIkkeStans -> {
             InternalServerError.errorJson(
                 message = "Kan ikke opprette revurdering for gjenopptak, siste vetak er ikke stans",
                 code = "siste_vedtak_ikke_stans",
             )
         }
 
-        is KunneIkkeGjenopptaYtelse.UgyldigTypeForOppdatering -> {
+        is KunneIkkeSimulereGjenopptakAvYtelse.UgyldigTypeForOppdatering -> {
             BadRequest.errorJson(
                 message = "Ugyldig tilstand for oppdatering: ${this.type}",
                 code = "ugyldig_tilstand_for_oppdatering",
             )
         }
 
-        KunneIkkeGjenopptaYtelse.FantIkkeSak -> fantIkkeSak
-        KunneIkkeGjenopptaYtelse.SakHarÅpenBehandling -> {
+        KunneIkkeSimulereGjenopptakAvYtelse.FantIkkeSak -> fantIkkeSak
+        KunneIkkeSimulereGjenopptakAvYtelse.SakHarÅpenBehandling -> {
             harAlleredeÅpenBehandling
         }
     }
 }
 
-private fun KunneIkkeIverksetteGjenopptakAvYtelse.tilResultat(): Resultat {
+private fun KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.tilResultat(): Resultat {
     return when (this) {
-        KunneIkkeIverksetteGjenopptakAvYtelse.FantIkkeRevurdering -> {
+        KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.FantIkkeRevurdering -> {
             Revurderingsfeilresponser.fantIkkeRevurdering
         }
 
-        is KunneIkkeIverksetteGjenopptakAvYtelse.KunneIkkeUtbetale -> {
+        is KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.KunneIkkeUtbetale -> {
             when (val kunneIkkeUtbetale = this.feil) {
                 is UtbetalGjenopptakFeil.KunneIkkeSimulere -> {
                     kunneIkkeUtbetale.feil.tilResultat()
@@ -190,21 +190,21 @@ private fun KunneIkkeIverksetteGjenopptakAvYtelse.tilResultat(): Resultat {
             }
         }
 
-        is KunneIkkeIverksetteGjenopptakAvYtelse.UgyldigTilstand -> {
+        is KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.UgyldigTilstand -> {
             BadRequest.errorJson(
                 message = "Kan ikke iverksette gjenopptak av utbetalinger for revurdering av type: ${this.faktiskTilstand}, eneste gyldige tilstand er ${this.målTilstand}",
                 code = "kunne_ikke_iverksette_gjenopptak_ugyldig_tilstand",
             )
         }
 
-        KunneIkkeIverksetteGjenopptakAvYtelse.SimuleringIndikererFeilutbetaling -> {
+        KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.SimuleringIndikererFeilutbetaling -> {
             BadRequest.errorJson(
                 message = "Iverksetting av gjenopptak vil føre til feilutbetaling",
                 code = "kunne_ikke_iverksette_gjenopptak_fører_til_feilutbetaling",
             )
         }
 
-        KunneIkkeIverksetteGjenopptakAvYtelse.LagringFeilet -> {
+        KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.LagringFeilet -> {
             lagringFeilet
         }
     }

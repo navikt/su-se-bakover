@@ -271,10 +271,12 @@ fun Application.susebakover(
                     avstemmingRoutes(accessProtectedServices.avstemming, clock)
                     driftRoutes(accessProtectedServices.søknad)
                     revurderingRoutes(
-                        accessProtectedServices.revurdering,
-                        accessProtectedServices.sak,
-                        clock,
-                        satsFactoryIDag,
+                        revurderingService = accessProtectedServices.revurdering,
+                        sakService = accessProtectedServices.sak,
+                        clock = clock,
+                        satsFactory = satsFactoryIDag,
+                        stansAvYtelseService = accessProtectedServices.stansYtelse,
+                        gjenopptakAvYtelseService = accessProtectedServices.gjenopptaYtelse,
                     )
                     klageRoutes(accessProtectedServices.klageService, clock)
                     dokumentRoutes(accessProtectedServices.brev)

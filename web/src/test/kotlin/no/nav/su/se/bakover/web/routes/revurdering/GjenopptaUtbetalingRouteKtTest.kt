@@ -18,9 +18,9 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerGjenopptakFeil
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalGjenopptakFeil
-import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRequest
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeGjenopptaYtelse
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeIverksetteGjenopptakAvYtelse
+import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseRequest
+import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering
+import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeSimulereGjenopptakAvYtelse
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
@@ -45,7 +45,7 @@ internal class GjenopptaUtbetalingRouteKtTest {
             application {
                 testSusebakover(
                     services = TestServicesBuilder.services(
-                        revurdering = mock {
+                        gjenopptakAvYtelseService = mock {
                             on { gjenopptaYtelse(any()) } doReturn enRevurdering.right()
                         },
                     ),
@@ -79,13 +79,13 @@ internal class GjenopptaUtbetalingRouteKtTest {
             application {
                 testSusebakover(
                     services = TestServicesBuilder.services(
-                        revurdering = mock {
+                        gjenopptakAvYtelseService = mock {
                             on {
                                 iverksettGjenopptakAvYtelse(
                                     any(),
                                     any(),
                                 )
-                            } doReturn KunneIkkeIverksetteGjenopptakAvYtelse.UgyldigTilstand(
+                            } doReturn KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.UgyldigTilstand(
                                 enRevurdering::class,
                             ).left()
                         },
@@ -110,13 +110,13 @@ internal class GjenopptaUtbetalingRouteKtTest {
             application {
                 testSusebakover(
                     services = TestServicesBuilder.services(
-                        revurdering = mock {
+                        gjenopptakAvYtelseService = mock {
                             on {
                                 iverksettGjenopptakAvYtelse(
                                     any(),
                                     any(),
                                 )
-                            } doReturn KunneIkkeIverksetteGjenopptakAvYtelse.KunneIkkeUtbetale(
+                            } doReturn KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering.KunneIkkeUtbetale(
                                 UtbetalGjenopptakFeil.KunneIkkeUtbetale(
                                     UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte(
                                         KryssjekkAvSaksbehandlersOgAttestantsSimuleringFeilet.UliktBeløp,
@@ -150,7 +150,7 @@ internal class GjenopptaUtbetalingRouteKtTest {
             application {
                 testSusebakover(
                     services = TestServicesBuilder.services(
-                        revurdering = mock {
+                        gjenopptakAvYtelseService = mock {
                             doAnswer {
                                 val args = (it.arguments[0] as GjenopptaYtelseRequest.Oppdater)
                                 simulertRevurdering.copy(
@@ -196,7 +196,7 @@ internal class GjenopptaUtbetalingRouteKtTest {
             application {
                 testSusebakover(
                     services = TestServicesBuilder.services(
-                        revurdering = mock {
+                        gjenopptakAvYtelseService = mock {
                             on { gjenopptaYtelse(any()) } doReturn enRevurdering.right()
                         },
                     ),
@@ -230,8 +230,8 @@ internal class GjenopptaUtbetalingRouteKtTest {
             application {
                 testSusebakover(
                     services = TestServicesBuilder.services(
-                        revurdering = mock {
-                            on { gjenopptaYtelse(any()) } doReturn KunneIkkeGjenopptaYtelse.KunneIkkeSimulere(
+                        gjenopptakAvYtelseService = mock {
+                            on { gjenopptaYtelse(any()) } doReturn KunneIkkeSimulereGjenopptakAvYtelse.KunneIkkeSimulere(
                                 SimulerGjenopptakFeil.KunneIkkeGenerereUtbetaling(
                                     Utbetalingsstrategi.Gjenoppta.Feil.KanIkkeGjenopptaOpphørtePeriode,
                                 ),

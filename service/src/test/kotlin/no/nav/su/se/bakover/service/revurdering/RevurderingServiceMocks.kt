@@ -54,7 +54,6 @@ internal data class RevurderingServiceMocks(
         brevService = brevService,
         clock = clock,
         vedtakRepo = vedtakRepo,
-        vedtakService = vedtakService,
         kontrollsamtaleService = kontrollsamtaleService,
         sessionFactory = sessionFactory,
         formuegrenserFactory = formuegrenserFactoryTestPåDato(),

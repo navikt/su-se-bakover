@@ -11,6 +11,8 @@ import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedAttestering
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeIverksetteGjenopptakAvYtelse
+import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeLageAvsluttetGjenopptaAvYtelse
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.util.UUID
@@ -105,15 +107,6 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering() {
                 sakinfo = sakinfo,
             ).right()
         }
-    }
-
-    sealed class KunneIkkeIverksetteGjenopptakAvYtelse {
-        object SimuleringIndikererFeilutbetaling : KunneIkkeIverksetteGjenopptakAvYtelse()
-    }
-
-    sealed class KunneIkkeLageAvsluttetGjenopptaAvYtelse {
-        object RevurderingErAlleredeAvsluttet : KunneIkkeLageAvsluttetGjenopptaAvYtelse()
-        object RevurderingenErIverksatt : KunneIkkeLageAvsluttetGjenopptaAvYtelse()
     }
 
     data class IverksattGjenopptakAvYtelse(

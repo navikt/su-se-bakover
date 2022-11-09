@@ -15,12 +15,11 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerStansFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalStansFeil
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeIverksetteStansYtelse
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeStanseYtelse
-import no.nav.su.se.bakover.domain.revurdering.RevurderingService
-import no.nav.su.se.bakover.domain.revurdering.StansYtelseRequest
+import no.nav.su.se.bakover.domain.revurdering.stans.KunneIkkeIverksetteStansYtelse
+import no.nav.su.se.bakover.domain.revurdering.stans.KunneIkkeStanseYtelse
+import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseRequest
+import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
 import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
-import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -41,15 +40,14 @@ internal class StansUtbetalingRouteKtTest {
     @Test
     fun `svarer med 201 ved påbegynt stans av utbetaling`() {
         val enRevurdering = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak().second
-        val revurderingServiceMock = mock<RevurderingService> {
-            on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
+        val stansAvYtelseServiceMock = mock<StansYtelseService> {
             on { stansAvYtelse(any()) } doReturn enRevurdering.right()
         }
         testApplication {
             application {
                 testSusebakover(
                     services = mockServices.copy(
-                        revurdering = revurderingServiceMock,
+                        stansYtelse = stansAvYtelseServiceMock,
                     ),
                 )
             }
@@ -77,8 +75,7 @@ internal class StansUtbetalingRouteKtTest {
     @Test
     fun `svarer med 400 ved forsøk å iverksetting av ugyldig revurdering`() {
         val enRevurdering = beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
-        val revurderingServiceMock = mock<RevurderingService> {
-            on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
+        val stansAvYtelseServiceMock = mock<StansYtelseService> {
             on {
                 iverksettStansAvYtelse(
                     any(),
@@ -90,7 +87,7 @@ internal class StansUtbetalingRouteKtTest {
             application {
                 testSusebakover(
                     services = mockServices.copy(
-                        revurdering = revurderingServiceMock,
+                        stansYtelse = stansAvYtelseServiceMock,
                     ),
                 )
             }
@@ -108,8 +105,7 @@ internal class StansUtbetalingRouteKtTest {
     @Test
     fun `svarer med 500 hvis utbetaling feiler`() {
         val enRevurdering = beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
-        val revurderingServiceMock = mock<RevurderingService> {
-            on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
+        val stansAvYtelseServiceMock = mock<StansYtelseService> {
             on {
                 iverksettStansAvYtelse(
                     any(),
@@ -121,7 +117,7 @@ internal class StansUtbetalingRouteKtTest {
             application {
                 testSusebakover(
                     services = mockServices.copy(
-                        revurdering = revurderingServiceMock,
+                        stansYtelse = stansAvYtelseServiceMock,
                     ),
                 )
             }
@@ -139,8 +135,7 @@ internal class StansUtbetalingRouteKtTest {
     @Test
     fun `svarer med 200 ved oppdatering av eksisterende revurdering`() {
         val eksisterende = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak().second
-        val revurderingServiceMock = mock<RevurderingService> {
-            on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
+        val stansAvYtelseServiceMock = mock<StansYtelseService> {
             doAnswer {
                 val args = (it.arguments[0] as StansYtelseRequest.Oppdater)
                 eksisterende.copy(
@@ -153,7 +148,7 @@ internal class StansUtbetalingRouteKtTest {
             application {
                 testSusebakover(
                     services = mockServices.copy(
-                        revurdering = revurderingServiceMock,
+                        stansYtelse = stansAvYtelseServiceMock,
                     ),
                 )
             }
@@ -183,15 +178,14 @@ internal class StansUtbetalingRouteKtTest {
     @Test
     fun `svarer med 400 ved ugyldig input`() {
         val enRevurdering = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak().second
-        val revurderingServiceMock = mock<RevurderingService> {
-            on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
+        val stansAvYtelseServiceMock = mock<StansYtelseService> {
             on { stansAvYtelse(any()) } doReturn enRevurdering.right()
         }
         testApplication {
             application {
                 testSusebakover(
                     services = mockServices.copy(
-                        revurdering = revurderingServiceMock,
+                        stansYtelse = stansAvYtelseServiceMock,
                     ),
                 )
             }
@@ -219,15 +213,14 @@ internal class StansUtbetalingRouteKtTest {
 
     @Test
     fun `svarer med 500 hvis simulering ikke går bra`() {
-        val revurderingServiceMock = mock<RevurderingService> {
-            on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
+        val stansAvYtelseServiceMock = mock<StansYtelseService> {
             on { stansAvYtelse(any()) } doReturn KunneIkkeStanseYtelse.SimuleringAvStansFeilet(SimulerStansFeilet.KunneIkkeSimulere(SimulerUtbetalingFeilet.FeilVedSimulering(SimuleringFeilet.OppdragEksistererIkke))).left()
         }
         testApplication {
             application {
                 testSusebakover(
                     services = mockServices.copy(
-                        revurdering = revurderingServiceMock,
+                        stansYtelse = stansAvYtelseServiceMock,
                     ),
                 )
             }

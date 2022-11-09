@@ -26,7 +26,6 @@ import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUføre
 import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
-import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
@@ -84,6 +83,7 @@ internal object RevurderingTestUtils {
         Revurderingsårsak.Begrunnelse.create("Nytt Grunnbeløp"),
     )
 
+    @Suppress("unused")
     internal val uføregrunnlag = Grunnlag.Uføregrunnlag(
         periode = periodeNesteMånedOgTreMånederFram,
         uføregrad = Uføregrad.parse(20),
@@ -92,7 +92,6 @@ internal object RevurderingTestUtils {
     )
 
     internal fun createRevurderingService(
-        vedtakService: VedtakService = mock(),
         utbetalingService: UtbetalingService = mock(),
         revurderingRepo: RevurderingRepo = mock(),
         oppgaveService: OppgaveService = mock(),
@@ -117,7 +116,6 @@ internal object RevurderingTestUtils {
             brevService = brevService,
             clock = clock,
             vedtakRepo = vedtakRepo,
-            vedtakService = vedtakService,
             kontrollsamtaleService = kontrollsamtaleService,
             sessionFactory = sessionFactory,
             formuegrenserFactory = formuegrenserFactoryTestPåDato(),
@@ -147,7 +145,7 @@ internal fun Grunnlag.Uføregrunnlag.ekvivalentMed(other: Grunnlag.Uføregrunnla
     uføregrad shouldBe other.uføregrad
 }
 
-@Suppress("UNCHECKED_CAST")
+@Suppress("unused")
 internal fun Vilkår.ekvivalentMed(other: UføreVilkår.Vurdert) {
     this should beOfType<UføreVilkår.Vurdert>()
     (this as UføreVilkår.Vurdert).let {

@@ -19,7 +19,9 @@ import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallServiceImpl
 import no.nav.su.se.bakover.service.oppgave.OppgaveServiceImpl
 import no.nav.su.se.bakover.service.person.PersonServiceImpl
 import no.nav.su.se.bakover.service.regulering.ReguleringServiceImpl
+import no.nav.su.se.bakover.service.revurdering.GjenopptaYtelseServiceImpl
 import no.nav.su.se.bakover.service.revurdering.RevurderingServiceImpl
+import no.nav.su.se.bakover.service.revurdering.StansYtelseServiceImpl
 import no.nav.su.se.bakover.service.sak.SakServiceImpl
 import no.nav.su.se.bakover.service.skatt.SkatteServiceImpl
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonServiceImpl
@@ -135,7 +137,6 @@ object ServiceBuilder {
             brevService = brevService,
             clock = clock,
             vedtakRepo = databaseRepos.vedtakRepo,
-            vedtakService = vedtakService,
             kontrollsamtaleService = kontrollsamtaleService,
             sessionFactory = databaseRepos.sessionFactory,
             formuegrenserFactory = satsFactory.formuegrenserFactory,
@@ -145,17 +146,35 @@ object ServiceBuilder {
             satsFactory = satsFactory,
         ).apply { addObserver(statistikkEventObserver) }
 
+        val stansAvYtelseService = StansYtelseServiceImpl(
+            utbetalingService = utbetalingService,
+            revurderingRepo = databaseRepos.revurderingRepo,
+            vedtakService = vedtakService,
+            sakService = sakService,
+            clock = clock,
+            sessionFactory = databaseRepos.sessionFactory,
+        ).apply { addObserver(statistikkEventObserver) }
+
+        val gjenopptakAvYtelseService = GjenopptaYtelseServiceImpl(
+            utbetalingService = utbetalingService,
+            revurderingRepo = databaseRepos.revurderingRepo,
+            clock = clock,
+            vedtakRepo = databaseRepos.vedtakRepo,
+            sakService = sakService,
+            sessionFactory = databaseRepos.sessionFactory,
+        ).apply { addObserver(statistikkEventObserver) }
+
         val utgåttKontrollsamtaleFristService = UtløptFristForKontrollsamtaleServiceImpl(
             sakService = sakService,
             journalpostClient = clients.journalpostClient,
             kontrollsamtaleRepo = databaseRepos.kontrollsamtaleRepo,
-            revurderingService = revurderingService,
             sessionFactory = databaseRepos.sessionFactory,
             jobContextRepo = databaseRepos.jobContextRepo,
             clock = clock,
             serviceUser = applicationConfig.serviceUser.username,
             personService = personService,
             oppgaveService = oppgaveService,
+            stansAvYtelseService = stansAvYtelseService,
         )
 
         val reguleringService = ReguleringServiceImpl(
@@ -272,6 +291,8 @@ object ServiceBuilder {
             ),
             skatteService = skatteServiceImpl,
             utløptFristForKontrollsamtaleService = utgåttKontrollsamtaleFristService,
+            stansYtelse = stansAvYtelseService,
+            gjenopptaYtelse = gjenopptakAvYtelseService,
         )
     }
 }

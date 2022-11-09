@@ -6,6 +6,8 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.regulering.ReguleringService
 import no.nav.su.se.bakover.domain.revurdering.RevurderingService
+import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseService
+import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
@@ -36,6 +38,8 @@ data class Services(
     val søknadsbehandling: SøknadsbehandlingService,
     val ferdigstillVedtak: FerdigstillVedtakService,
     val revurdering: RevurderingService,
+    val stansYtelse: StansYtelseService,
+    val gjenopptaYtelse: GjenopptaYtelseService,
     val vedtakService: VedtakService,
     val nøkkeltallService: NøkkeltallService,
     val avslåSøknadManglendeDokumentasjonService: AvslåSøknadManglendeDokumentasjonService,

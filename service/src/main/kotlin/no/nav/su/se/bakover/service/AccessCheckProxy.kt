@@ -74,17 +74,12 @@ import no.nav.su.se.bakover.domain.regulering.ReguleringMerknad
 import no.nav.su.se.bakover.domain.regulering.ReguleringService
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarselhandling
-import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRequest
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
-import no.nav.su.se.bakover.domain.revurdering.IverksettStansAvYtelseITransaksjonResponse
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeAvslutteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeBeregneOgSimulereRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeForhåndsvarsle
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeGjenopptaYtelse
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeIverksetteGjenopptakAvYtelse
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeIverksetteRevurdering
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeIverksetteStansYtelse
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLageBrevutkastForAvsluttingAvRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLageBrevutkastForRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLeggeTilBosituasjongrunnlag
@@ -95,7 +90,6 @@ import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLeggeTilUtenlandsopphold
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeOppdatereTilbakekrevingsbehandling
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeSendeRevurderingTilAttestering
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeStanseYtelse
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeUnderkjenneRevurdering
 import no.nav.su.se.bakover.domain.revurdering.LeggTilBosituasjonerRequest
 import no.nav.su.se.bakover.domain.revurdering.OppdaterTilbakekrevingsbehandlingRequest
@@ -105,15 +99,23 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingOgFeilmeldingerRespons
 import no.nav.su.se.bakover.domain.revurdering.RevurderingService
 import no.nav.su.se.bakover.domain.revurdering.SendTilAttesteringRequest
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
-import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseITransaksjonResponse
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
-import no.nav.su.se.bakover.domain.revurdering.StansYtelseRequest
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.forhåndsvarsel.FortsettEtterForhåndsvarselFeil
 import no.nav.su.se.bakover.domain.revurdering.forhåndsvarsel.FortsettEtterForhåndsvarslingRequest
+import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseRequest
+import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseService
+import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering
+import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeSimulereGjenopptakAvYtelse
 import no.nav.su.se.bakover.domain.revurdering.oppdater.OppdaterRevurderingRequest
 import no.nav.su.se.bakover.domain.revurdering.opprett.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opprett.OpprettRevurderingCommand
+import no.nav.su.se.bakover.domain.revurdering.stans.IverksettStansAvYtelseITransaksjonResponse
+import no.nav.su.se.bakover.domain.revurdering.stans.KunneIkkeIverksetteStansYtelse
+import no.nav.su.se.bakover.domain.revurdering.stans.KunneIkkeStanseYtelse
+import no.nav.su.se.bakover.domain.revurdering.stans.StansAvYtelseITransaksjonResponse
+import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseRequest
+import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
 import no.nav.su.se.bakover.domain.sak.FantIkkeSak
 import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak
@@ -233,11 +235,17 @@ open class AccessCheckProxy(
                     kvittering: Kvittering,
                 ) = kastKanKunKallesFraAnnenService()
 
-                override fun simulerUtbetaling(utbetaling: Utbetaling.UtbetalingForSimulering, simuleringsperiode: Periode): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
+                override fun simulerUtbetaling(
+                    utbetaling: Utbetaling.UtbetalingForSimulering,
+                    simuleringsperiode: Periode,
+                ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
                     kastKanKunKallesFraAnnenService()
                 }
 
-                override fun klargjørUtbetaling(utbetaling: Utbetaling.SimulertUtbetaling, transactionContext: TransactionContext): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>> {
+                override fun klargjørUtbetaling(
+                    utbetaling: Utbetaling.SimulertUtbetaling,
+                    transactionContext: TransactionContext,
+                ): Either<UtbetalingFeilet, UtbetalingKlargjortForOversendelse<UtbetalingFeilet.Protokollfeil>> {
                     kastKanKunKallesFraAnnenService()
                 }
 
@@ -258,26 +266,23 @@ open class AccessCheckProxy(
                 }
 
                 override fun hentSaker(fnr: Fnr): Either<FantIkkeSak, List<Sak>> {
-                    return services.sak.hentSaker(fnr)
-                        .also {
-                            it.map { saker -> saker.map { sak -> assertHarTilgangTilSak(sak.id) } }
-                        }
+                    return services.sak.hentSaker(fnr).also {
+                        it.map { saker -> saker.map { sak -> assertHarTilgangTilSak(sak.id) } }
+                    }
                 }
 
                 override fun hentSak(fnr: Fnr, type: Sakstype): Either<FantIkkeSak, Sak> {
                     // Siden vi også vil kontrollere på EPS må vi hente ut saken først
                     // og sjekke på hele den (i stedet for å gjøre assertHarTilgangTilPerson(fnr))
-                    return services.sak.hentSak(fnr, type)
-                        .also {
-                            it.map { sak -> assertHarTilgangTilSak(sak.id) }
-                        }
+                    return services.sak.hentSak(fnr, type).also {
+                        it.map { sak -> assertHarTilgangTilSak(sak.id) }
+                    }
                 }
 
                 override fun hentSak(saksnummer: Saksnummer): Either<FantIkkeSak, Sak> {
-                    return services.sak.hentSak(saksnummer)
-                        .also {
-                            it.map { sak -> assertHarTilgangTilSak(sak.id) }
-                        }
+                    return services.sak.hentSak(saksnummer).also {
+                        it.map { sak -> assertHarTilgangTilSak(sak.id) }
+                    }
                 }
 
                 override fun hentGjeldendeVedtaksdata(
@@ -637,43 +642,6 @@ open class AccessCheckProxy(
                     return services.revurdering.hentRevurdering(revurderingId)
                 }
 
-                override fun stansAvYtelse(request: StansYtelseRequest): Either<KunneIkkeStanseYtelse, StansAvYtelseRevurdering.SimulertStansAvYtelse> {
-                    assertHarTilgangTilSak(request.sakId)
-                    return services.revurdering.stansAvYtelse(request)
-                }
-
-                override fun stansAvYtelseITransaksjon(request: StansYtelseRequest, transactionContext: TransactionContext): StansAvYtelseITransaksjonResponse {
-                    kastKanKunKallesFraAnnenService()
-                }
-
-                override fun iverksettStansAvYtelse(
-                    revurderingId: UUID,
-                    attestant: NavIdentBruker.Attestant,
-                ): Either<KunneIkkeIverksetteStansYtelse, StansAvYtelseRevurdering.IverksattStansAvYtelse> {
-                    assertHarTilgangTilRevurdering(revurderingId)
-                    return services.revurdering.iverksettStansAvYtelse(
-                        revurderingId = revurderingId,
-                        attestant = attestant,
-                    )
-                }
-
-                override fun iverksettStansAvYtelseITransaksjon(revurderingId: UUID, attestant: NavIdentBruker.Attestant, transactionContext: TransactionContext): IverksettStansAvYtelseITransaksjonResponse {
-                    kastKanKunKallesFraAnnenService()
-                }
-
-                override fun gjenopptaYtelse(request: GjenopptaYtelseRequest): Either<KunneIkkeGjenopptaYtelse, GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse> {
-                    assertHarTilgangTilSak(request.sakId)
-                    return services.revurdering.gjenopptaYtelse(request)
-                }
-
-                override fun iverksettGjenopptakAvYtelse(
-                    revurderingId: UUID,
-                    attestant: NavIdentBruker.Attestant,
-                ): Either<KunneIkkeIverksetteGjenopptakAvYtelse, GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse> {
-                    assertHarTilgangTilRevurdering(revurderingId)
-                    return services.revurdering.iverksettGjenopptakAvYtelse(revurderingId, attestant)
-                }
-
                 override fun opprettRevurdering(
                     command: OpprettRevurderingCommand,
                 ): Either<KunneIkkeOppretteRevurdering, OpprettetRevurdering> {
@@ -847,6 +815,53 @@ open class AccessCheckProxy(
                 ): Either<KunneIkkeLageBrevutkastForAvsluttingAvRevurdering, Pair<Fnr, ByteArray>> {
                     assertHarTilgangTilRevurdering(revurderingId)
                     return services.revurdering.lagBrevutkastForAvslutting(revurderingId, fritekst)
+                }
+            },
+            gjenopptaYtelse = object : GjenopptaYtelseService {
+                override fun gjenopptaYtelse(request: GjenopptaYtelseRequest): Either<KunneIkkeSimulereGjenopptakAvYtelse, GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse> {
+                    assertHarTilgangTilSak(request.sakId)
+                    return services.gjenopptaYtelse.gjenopptaYtelse(request)
+                }
+
+                override fun iverksettGjenopptakAvYtelse(
+                    revurderingId: UUID,
+                    attestant: NavIdentBruker.Attestant,
+                ): Either<KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering, GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse> {
+                    assertHarTilgangTilRevurdering(revurderingId)
+                    return services.gjenopptaYtelse.iverksettGjenopptakAvYtelse(revurderingId, attestant)
+                }
+            },
+            stansYtelse = object : StansYtelseService {
+
+                override fun stansAvYtelse(request: StansYtelseRequest): Either<KunneIkkeStanseYtelse, StansAvYtelseRevurdering.SimulertStansAvYtelse> {
+                    assertHarTilgangTilSak(request.sakId)
+                    return services.stansYtelse.stansAvYtelse(request)
+                }
+
+                override fun stansAvYtelseITransaksjon(
+                    request: StansYtelseRequest,
+                    transactionContext: TransactionContext,
+                ): StansAvYtelseITransaksjonResponse {
+                    kastKanKunKallesFraAnnenService()
+                }
+
+                override fun iverksettStansAvYtelse(
+                    revurderingId: UUID,
+                    attestant: NavIdentBruker.Attestant,
+                ): Either<KunneIkkeIverksetteStansYtelse, StansAvYtelseRevurdering.IverksattStansAvYtelse> {
+                    assertHarTilgangTilRevurdering(revurderingId)
+                    return services.stansYtelse.iverksettStansAvYtelse(
+                        revurderingId = revurderingId,
+                        attestant = attestant,
+                    )
+                }
+
+                override fun iverksettStansAvYtelseITransaksjon(
+                    revurderingId: UUID,
+                    attestant: NavIdentBruker.Attestant,
+                    transactionContext: TransactionContext,
+                ): IverksettStansAvYtelseITransaksjonResponse {
+                    kastKanKunKallesFraAnnenService()
                 }
             },
             vedtakService = object : VedtakService {
@@ -1092,45 +1107,37 @@ open class AccessCheckProxy(
         throw IllegalStateException("This should only be called from another service")
 
     private fun assertHarTilgangTilPerson(fnr: Fnr) {
-        services.person.sjekkTilgangTilPerson(fnr)
-            .getOrHandle {
-                throw Tilgangssjekkfeil(it, fnr)
-            }
+        services.person.sjekkTilgangTilPerson(fnr).getOrHandle {
+            throw Tilgangssjekkfeil(it, fnr)
+        }
     }
 
     private fun assertHarTilgangTilSak(sakId: UUID) {
-        personRepo.hentFnrForSak(sakId)
-            .forEach { assertHarTilgangTilPerson(it) }
+        personRepo.hentFnrForSak(sakId).forEach { assertHarTilgangTilPerson(it) }
     }
 
     private fun assertHarTilgangTilSøknad(søknadId: UUID) {
-        personRepo.hentFnrForSøknad(søknadId)
-            .forEach { assertHarTilgangTilPerson(it) }
+        personRepo.hentFnrForSøknad(søknadId).forEach { assertHarTilgangTilPerson(it) }
     }
 
     private fun assertHarTilgangTilBehandling(behandlingId: UUID) {
-        personRepo.hentFnrForBehandling(behandlingId)
-            .forEach { assertHarTilgangTilPerson(it) }
+        personRepo.hentFnrForBehandling(behandlingId).forEach { assertHarTilgangTilPerson(it) }
     }
 
     private fun assertHarTilgangTilUtbetaling(utbetalingId: UUID30) {
-        personRepo.hentFnrForUtbetaling(utbetalingId)
-            .forEach { assertHarTilgangTilPerson(it) }
+        personRepo.hentFnrForUtbetaling(utbetalingId).forEach { assertHarTilgangTilPerson(it) }
     }
 
     private fun assertHarTilgangTilRevurdering(revurderingId: UUID) {
-        personRepo.hentFnrForRevurdering(revurderingId)
-            .forEach { assertHarTilgangTilPerson(it) }
+        personRepo.hentFnrForRevurdering(revurderingId).forEach { assertHarTilgangTilPerson(it) }
     }
 
     private fun assertHarTilgangTilVedtak(vedtakId: UUID) {
-        personRepo.hentFnrForVedtak(vedtakId)
-            .forEach { assertHarTilgangTilPerson(it) }
+        personRepo.hentFnrForVedtak(vedtakId).forEach { assertHarTilgangTilPerson(it) }
     }
 
     private fun assertHarTilgangTilKlage(klageId: UUID) {
-        personRepo.hentFnrForKlage(klageId)
-            .forEach { assertHarTilgangTilPerson(it) }
+        personRepo.hentFnrForKlage(klageId).forEach { assertHarTilgangTilPerson(it) }
     }
 }
 

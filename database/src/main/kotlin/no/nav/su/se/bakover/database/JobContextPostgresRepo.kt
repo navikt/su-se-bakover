@@ -156,10 +156,11 @@ internal class JobContextPostgresRepo(
         val dato: String,
         val opprettet: Tidspunkt,
         val endret: Tidspunkt,
-        val prosessert: Set<UUID>,
-        val møtt: Set<UUID>,
-        val ikkeMøtt: Set<UUID>,
-        val feilet: Set<FeiletDb>,
+        // Ønsker beholde ordering på vei inn og ut av basen.
+        val prosessert: List<UUID>,
+        val møtt: List<UUID>,
+        val ikkeMøtt: List<UUID>,
+        val feilet: List<FeiletDb>,
     ) : JobContextDb() {
         override fun id(): String {
             return id
@@ -176,9 +177,9 @@ internal class JobContextPostgresRepo(
                 ),
                 opprettet = opprettet,
                 endret = endret,
-                prosessert = prosessert,
-                ikkeMøtt = ikkeMøtt,
-                feilet = feilet.toDomain(),
+                prosessert = prosessert.toSet(),
+                ikkeMøtt = ikkeMøtt.toSet(),
+                feilet = feilet.toSet().toDomain(),
             )
         }
     }
@@ -220,10 +221,10 @@ internal class JobContextPostgresRepo(
                 dato = id().date.toString(),
                 opprettet = opprettet(),
                 endret = endret(),
-                prosessert = prosessert(),
-                møtt = møtt(),
-                ikkeMøtt = ikkeMøtt(),
-                feilet = feilet().toDb(),
+                prosessert = prosessert().toList(),
+                møtt = møtt().toList(),
+                ikkeMøtt = ikkeMøtt().toList(),
+                feilet = feilet().toDb().toList(),
             )
         }
     }
