@@ -66,8 +66,12 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.person.PersonRepo
 import no.nav.su.se.bakover.domain.person.PersonService
+import no.nav.su.se.bakover.domain.regulering.KunneIkkeAvslutte
+import no.nav.su.se.bakover.domain.regulering.KunneIkkeOppretteRegulering
+import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringMerknad
+import no.nav.su.se.bakover.domain.regulering.ReguleringService
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarselhandling
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRequest
@@ -166,10 +170,6 @@ import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeHenteKontrollsamtal
 import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeSetteNyDatoForKontrollsamtale
 import no.nav.su.se.bakover.service.kontrollsamtale.UtløptFristForKontrollsamtaleService
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
-import no.nav.su.se.bakover.service.regulering.KunneIkkeAvslutte
-import no.nav.su.se.bakover.service.regulering.KunneIkkeOppretteRegulering
-import no.nav.su.se.bakover.service.regulering.KunneIkkeRegulereManuelt
-import no.nav.su.se.bakover.service.regulering.ReguleringService
 import no.nav.su.se.bakover.service.skatt.KunneIkkeHenteSkattemelding
 import no.nav.su.se.bakover.service.skatt.SkatteService
 import no.nav.su.se.bakover.service.søknad.AvslåManglendeDokumentasjonRequest

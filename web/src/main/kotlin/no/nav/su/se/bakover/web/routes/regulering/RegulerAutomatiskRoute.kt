@@ -25,9 +25,9 @@ import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
-import no.nav.su.se.bakover.service.regulering.KunneIkkeAvslutte
-import no.nav.su.se.bakover.service.regulering.KunneIkkeRegulereManuelt
-import no.nav.su.se.bakover.service.regulering.ReguleringService
+import no.nav.su.se.bakover.domain.regulering.KunneIkkeAvslutte
+import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
+import no.nav.su.se.bakover.domain.regulering.ReguleringService
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.grunnlag.UføregrunnlagJson

@@ -8,8 +8,8 @@ import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.domain.regulering.ReguleringService
 import no.nav.su.se.bakover.domain.satser.SatsFactory
-import no.nav.su.se.bakover.service.regulering.ReguleringService
 import no.nav.su.se.bakover.web.features.authorize
 
 internal fun Route.reguleringOversiktRoutes(

@@ -14,9 +14,14 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.hentGjeldendeUtbetaling
+import no.nav.su.se.bakover.domain.regulering.KunneIkkeAvslutte
+import no.nav.su.se.bakover.domain.regulering.KunneIkkeFerdigstilleOgIverksette
+import no.nav.su.se.bakover.domain.regulering.KunneIkkeOppretteRegulering
+import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.domain.regulering.Regulering
 import no.nav.su.se.bakover.domain.regulering.ReguleringMerknad
 import no.nav.su.se.bakover.domain.regulering.ReguleringRepo
+import no.nav.su.se.bakover.domain.regulering.ReguleringService
 import no.nav.su.se.bakover.domain.regulering.Reguleringstype
 import no.nav.su.se.bakover.domain.regulering.inneholderAvslag
 import no.nav.su.se.bakover.domain.regulering.ÅrsakTilManuellRegulering
