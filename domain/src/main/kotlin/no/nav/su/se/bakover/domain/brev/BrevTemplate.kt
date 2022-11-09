@@ -92,4 +92,6 @@ sealed class BrevTemplate(
             brevTittel = "Avvist klage",
         )
     }
+
+    data class Fritekst(val tittel: String) : BrevTemplate(PdfTemplate.FritekstDokument, tittel)
 }

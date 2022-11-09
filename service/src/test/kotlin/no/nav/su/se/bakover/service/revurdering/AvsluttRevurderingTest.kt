@@ -8,8 +8,8 @@ import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.brev.Brevvalg
-import no.nav.su.se.bakover.domain.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel

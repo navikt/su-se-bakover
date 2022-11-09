@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.service.sak
 
 import arrow.core.Either
 import arrow.core.flatMap
+import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
@@ -11,11 +12,18 @@ import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.domain.AlleredeGjeldendeSakForBruker
 import no.nav.su.se.bakover.domain.BegrensetSakinfo
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.brev.BrevService
+import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.domain.dokument.DokumentRepo
+import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.Behandlingsoversikt
 import no.nav.su.se.bakover.domain.sak.FantIkkeSak
 import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak
 import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeVedtaksdata
+import no.nav.su.se.bakover.domain.sak.KunneIkkeOppretteDokument
 import no.nav.su.se.bakover.domain.sak.NySak
+import no.nav.su.se.bakover.domain.sak.OpprettDokumentRequest
 import no.nav.su.se.bakover.domain.sak.SakInfo
 import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.sak.SakService
@@ -27,11 +35,15 @@ import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import org.slf4j.LoggerFactory
 import java.time.Clock
+import java.time.LocalDate
 import java.util.UUID
 
 internal class SakServiceImpl(
     private val sakRepo: SakRepo,
     private val clock: Clock,
+    private val dokumentRepo: DokumentRepo,
+    private val brevService: BrevService,
+    private val personService: PersonService,
 ) : SakService {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val observers: MutableList<StatistikkEventObserver> = mutableListOf()
@@ -113,6 +125,41 @@ internal class SakServiceImpl(
 
     override fun hentSakForSøknad(søknadId: UUID): Either<FantIkkeSak, Sak> {
         return sakRepo.hentSakForSøknad(søknadId)?.right() ?: FantIkkeSak.left()
+    }
+
+    override fun opprettFritekstDokument(request: OpprettDokumentRequest): Either<KunneIkkeOppretteDokument, Dokument.UtenMetadata> {
+        val sak = sakRepo.hentSak(request.sakId)
+            ?: throw IllegalStateException("Fant ikke sak ved opprettFritekstDokument. sakid ${request.sakId}")
+
+        val person = personService.hentPerson(sak.fnr).getOrHandle {
+            throw IllegalStateException("Fant ikke person ved opprettFritekstDokument. sakid ${request.sakId}, fnr ${sak.fnr}")
+        }
+
+        return brevService.lagDokument(
+            LagBrevRequest.Fritekst(
+                person = person,
+                dagensDato = LocalDate.now(clock),
+                saksnummer = sak.saksnummer,
+                saksbehandler = request.saksbehandler,
+                brevTittel = request.tittel,
+                fritekst = request.fritekst,
+            ),
+        ).mapLeft {
+            KunneIkkeOppretteDokument.KunneIkkeLageDokument(it)
+        }
+    }
+
+    override fun lagreOgSendFritekstDokument(request: OpprettDokumentRequest): Either<KunneIkkeOppretteDokument, Dokument.MedMetadata> {
+        return opprettFritekstDokument(request).map {
+            it.leggTilMetadata(
+                Dokument.Metadata(
+                    sakId = request.sakId,
+                    bestillBrev = true,
+                ),
+            )
+        }.tap {
+            dokumentRepo.lagre(it)
+        }
     }
 
     override fun opprettSak(sak: NySak) {

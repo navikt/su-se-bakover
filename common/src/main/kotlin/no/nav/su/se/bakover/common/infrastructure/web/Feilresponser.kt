@@ -241,6 +241,11 @@ object Feilresponser {
         "kryssjekk_utbetalingstidslinjer_simulering_feilet",
     )
 
+    val skalIkkeSendesBrev = InternalServerError.errorJson(
+        "Skal ikke sendes brev",
+        "skal_ikke_sendes_brev",
+    )
+
     val ukjentFeil = InternalServerError.errorJson(
         "Ukjent feil",
         "ukjent_feil",

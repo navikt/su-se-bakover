@@ -16,8 +16,8 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
 import no.nav.su.se.bakover.domain.brev.BrevService
-import no.nav.su.se.bakover.domain.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
@@ -140,21 +140,22 @@ internal class SøknadsbehandlingServiceImpl(
         val sak = sakService.hentSak(request.sakId)
             .getOrHandle { return KunneIkkeOpprette.FantIkkeSak.left() }
 
-        return sak.opprettNySøknadsbehandling(søknadId = request.søknadId, clock = clock, request.saksbehandler).mapLeft {
-            return KunneIkkeOpprette.KunneIkkeOppretteSøknadsbehandling(it).left()
-        }.map { nySøknadsbehandling ->
-            søknadsbehandlingRepo.lagreNySøknadsbehandling(nySøknadsbehandling)
+        return sak.opprettNySøknadsbehandling(søknadId = request.søknadId, clock = clock, request.saksbehandler)
+            .mapLeft {
+                return KunneIkkeOpprette.KunneIkkeOppretteSøknadsbehandling(it).left()
+            }.map { nySøknadsbehandling ->
+                søknadsbehandlingRepo.lagreNySøknadsbehandling(nySøknadsbehandling)
 
-            // Må hente fra db for å få joinet med saksnummer.
-            return (søknadsbehandlingRepo.hent(nySøknadsbehandling.id)!! as Søknadsbehandling.Vilkårsvurdert.Uavklart).let {
-                observers.forEach { observer ->
-                    observer.handle(
-                        StatistikkEvent.Behandling.Søknad.Opprettet(it, request.saksbehandler),
-                    )
+                // Må hente fra db for å få joinet med saksnummer.
+                return (søknadsbehandlingRepo.hent(nySøknadsbehandling.id)!! as Søknadsbehandling.Vilkårsvurdert.Uavklart).let {
+                    observers.forEach { observer ->
+                        observer.handle(
+                            StatistikkEvent.Behandling.Søknad.Opprettet(it, request.saksbehandler),
+                        )
+                    }
+                    it.right()
                 }
-                it.right()
             }
-        }
     }
 
     override fun beregn(request: BeregnRequest): Either<KunneIkkeBeregne, Søknadsbehandling.Beregnet> {

@@ -17,8 +17,8 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.brev.BrevService
-import no.nav.su.se.bakover.domain.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.grunnlag.OpplysningspliktBeskrivelse
 import no.nav.su.se.bakover.domain.grunnlag.Opplysningspliktgrunnlag
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil

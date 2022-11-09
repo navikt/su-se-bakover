@@ -246,6 +246,15 @@ abstract class BrevInnhold {
             override val brevTemplate = BrevTemplate.Klage.Avvist
         }
     }
+
+    data class Fritekst(
+        val personalia: Personalia,
+        val saksbehandlerNavn: String,
+        val tittel: String,
+        val fritekst: String,
+    ) : BrevInnhold() {
+        override val brevTemplate: BrevTemplate = BrevTemplate.Fritekst(tittel)
+    }
 }
 
 fun List<Beregningsperiode>.harFradrag() =

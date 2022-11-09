@@ -42,7 +42,7 @@ internal class SakServiceImplTest {
 
         val observer: StatistikkEventObserver = mock()
 
-        val sakService = SakServiceImpl(sakRepo, fixedClock)
+        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock())
         sakService.addObserver(observer)
         sakService.opprettSak(mock { on { id } doReturn sakId })
 
@@ -59,7 +59,7 @@ internal class SakServiceImplTest {
 
         val observer: StatistikkEventObserver = mock()
 
-        val sakService = SakServiceImpl(sakRepo, fixedClock)
+        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock())
         sakService.addObserver(observer)
         assertThrows<RuntimeException> {
             sakService.opprettSak(mock())
@@ -84,7 +84,7 @@ internal class SakServiceImplTest {
             )
         }
 
-        val sakService = SakServiceImpl(sakRepo, fixedClock)
+        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock())
         val sakMedÅpenSøknad = sakService.hentÅpneBehandlingerForAlleSaker()
 
         sakMedÅpenSøknad shouldBe listOf(
@@ -133,7 +133,7 @@ internal class SakServiceImplTest {
             )
         }
 
-        val sakService = SakServiceImpl(sakRepo, fixedClock)
+        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock())
         val sakerMedÅpneBehandlinger = sakService.hentÅpneBehandlingerForAlleSaker()
 
         sakerMedÅpneBehandlinger shouldBe listOf(
@@ -207,7 +207,7 @@ internal class SakServiceImplTest {
             )
         }
 
-        val sakService = SakServiceImpl(sakRepo, fixedClock)
+        val sakService = SakServiceImpl(sakRepo, fixedClock, mock(), mock(), mock())
         val sakerMedÅpneRevurderinger = sakService.hentÅpneBehandlingerForAlleSaker()
 
         sakerMedÅpneRevurderinger shouldBe listOf(

@@ -8,8 +8,8 @@ import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.brev.BrevService
-import no.nav.su.se.bakover.domain.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
@@ -61,7 +61,8 @@ internal class FerdigstillVedtakServiceImplTest {
                 vedtakIverksattGjenopptakAvYtelseFraIverksattStans(
                     periode = februar(2021).rangeTo(desember(2021)),
                 ).let { (sak, vedtak) ->
-                    val utbetaling = sak.utbetalinger.single { it.id == vedtak.utbetalingId } as Utbetaling.OversendtUtbetaling.UtenKvittering
+                    val utbetaling =
+                        sak.utbetalinger.single { it.id == vedtak.utbetalingId } as Utbetaling.OversendtUtbetaling.UtenKvittering
                     assert(utbetaling.erReaktivering())
                     utbetaling.toKvittertUtbetaling(kvittering(Kvittering.Utbetalingsstatus.OK))
                 },
@@ -75,7 +76,8 @@ internal class FerdigstillVedtakServiceImplTest {
         FerdigstillVedtakServiceMocks {
             service.ferdigstillVedtakEtterUtbetaling(
                 vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak().let { (sak, vedtak) ->
-                    val utbetaling = sak.utbetalinger.single { it.id == vedtak.utbetalingId } as Utbetaling.OversendtUtbetaling.UtenKvittering
+                    val utbetaling =
+                        sak.utbetalinger.single { it.id == vedtak.utbetalingId } as Utbetaling.OversendtUtbetaling.UtenKvittering
                     assert(utbetaling.erStans())
                     utbetaling.toKvittertUtbetaling(kvittering(Kvittering.Utbetalingsstatus.OK))
                 },
@@ -93,7 +95,8 @@ internal class FerdigstillVedtakServiceImplTest {
                 on { hentForUtbetaling(any()) } doReturn null
             },
         ) {
-            val feil = service.ferdigstillVedtakEtterUtbetaling(sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering)
+            val feil =
+                service.ferdigstillVedtakEtterUtbetaling(sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering)
             feil shouldBe FantIkkeVedtakForUtbetalingId(vedtak.utbetalingId).left()
 
             verify(vedtakRepo).hentForUtbetaling(vedtak.utbetalingId)
@@ -112,7 +115,8 @@ internal class FerdigstillVedtakServiceImplTest {
                 on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn KunneIkkeLageDokument.KunneIkkeHentePerson.left()
             },
         ) {
-            val feil = service.ferdigstillVedtakEtterUtbetaling(sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering)
+            val feil =
+                service.ferdigstillVedtakEtterUtbetaling(sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering)
             feil shouldBe KunneIkkeGenerereBrev.left()
 
             verify(vedtakRepo).hentForUtbetaling(vedtak.utbetalingId)
@@ -132,7 +136,8 @@ internal class FerdigstillVedtakServiceImplTest {
                 on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn KunneIkkeLageDokument.KunneIkkeGenererePDF.left()
             },
         ) {
-            val feil = service.ferdigstillVedtakEtterUtbetaling(sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering)
+            val feil =
+                service.ferdigstillVedtakEtterUtbetaling(sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering)
             feil shouldBe KunneIkkeGenerereBrev.left()
 
             inOrder(

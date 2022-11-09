@@ -5,8 +5,8 @@ import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
-import no.nav.su.se.bakover.domain.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes

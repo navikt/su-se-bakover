@@ -20,9 +20,9 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.brev.Brevvalg
-import no.nav.su.se.bakover.domain.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet

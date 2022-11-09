@@ -3,11 +3,14 @@ package no.nav.su.se.bakover.web.routes.sak
 import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.merge
+import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
+import io.ktor.http.HttpStatusCode.Companion.Created
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.server.application.call
+import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
@@ -20,18 +23,23 @@ import no.nav.su.se.bakover.common.infrastructure.web.audit
 import no.nav.su.se.bakover.common.infrastructure.web.errorJson
 import no.nav.su.se.bakover.common.infrastructure.web.parameter
 import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson.Companion.toJson
+import no.nav.su.se.bakover.common.infrastructure.web.suUserContext
 import no.nav.su.se.bakover.common.infrastructure.web.svar
 import no.nav.su.se.bakover.common.infrastructure.web.withBody
 import no.nav.su.se.bakover.common.infrastructure.web.withSakId
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.sak.KunneIkkeHenteGjeldendeVedtaksdata
+import no.nav.su.se.bakover.domain.sak.KunneIkkeOppretteDokument
+import no.nav.su.se.bakover.domain.sak.OpprettDokumentRequest
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.satser.SatsFactory
 import no.nav.su.se.bakover.web.features.authorize
+import no.nav.su.se.bakover.web.routes.dokument.toJson
 import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurderingerJson
 import no.nav.su.se.bakover.web.routes.grunnlag.toJson
 import no.nav.su.se.bakover.web.routes.sak.BehandlingsoversiktJson.Companion.toJson
@@ -89,6 +97,7 @@ internal fun Route.sakRoutes(
                             },
                         )
                     }
+
                     body.saksnummer != null -> {
                         Saksnummer.tryParse(body.saksnummer).fold(
                             ifLeft = {
@@ -117,6 +126,7 @@ internal fun Route.sakRoutes(
                             },
                         )
                     }
+
                     else -> call.svar(
                         BadRequest.errorJson(
                             "Må oppgi enten saksnummer eller fødselsnummer",
@@ -223,4 +233,64 @@ internal fun Route.sakRoutes(
             call.svar(Resultat.json(OK, serialize(ferdigeBehandlinger.toJson())))
         }
     }
+
+    data class DokumentBody(
+        val tittel: String,
+        val fritekst: String,
+    )
+
+    post("$sakPath/{sakId}/fritekstDokument/lagreOgSend") {
+        authorize(Brukerrolle.Saksbehandler) {
+            call.withSakId { sakId ->
+                call.withBody<DokumentBody> { body ->
+                    val res = sakService.lagreOgSendFritekstDokument(
+                        OpprettDokumentRequest(
+                            sakId = sakId,
+                            saksbehandler = call.suUserContext.saksbehandler,
+                            tittel = body.tittel,
+                            fritekst = body.fritekst,
+                        ),
+                    )
+
+                    res.fold(
+                        { call.svar(it.tilResultat()) },
+                        { call.svar(Resultat.json(Created, serialize(it.toJson()))) },
+                    )
+                }
+            }
+        }
+    }
+
+    post("$sakPath/{sakId}/fritekstDokument") {
+        authorize(Brukerrolle.Saksbehandler) {
+            call.withSakId { sakId ->
+                call.withBody<DokumentBody> { body ->
+                    val res = sakService.opprettFritekstDokument(
+                        OpprettDokumentRequest(
+                            sakId = sakId,
+                            saksbehandler = call.suUserContext.saksbehandler,
+                            tittel = body.tittel,
+                            fritekst = body.fritekst,
+                        ),
+                    )
+                    res.fold(
+                        { call.svar(it.tilResultat()) },
+                        { call.respondBytes(it.generertDokument, ContentType.Application.Pdf) },
+                    )
+                }
+            }
+        }
+    }
+}
+
+fun KunneIkkeOppretteDokument.tilResultat(): Resultat = when (this) {
+    is KunneIkkeOppretteDokument.KunneIkkeLageDokument -> this.feil.tilResultat()
+}
+
+fun KunneIkkeLageDokument.tilResultat(): Resultat = when (this) {
+    KunneIkkeLageDokument.DetSkalIkkeSendesBrev -> Feilresponser.skalIkkeSendesBrev
+    KunneIkkeLageDokument.KunneIkkeFinneGjeldendeUtbetaling -> Feilresponser.fantIkkeGjeldendeUtbetaling
+    KunneIkkeLageDokument.KunneIkkeGenererePDF -> Feilresponser.feilVedGenereringAvDokument
+    KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> Feilresponser.feilVedHentingAvSaksbehandlerNavn
+    KunneIkkeLageDokument.KunneIkkeHentePerson -> Feilresponser.fantIkkePerson
 }

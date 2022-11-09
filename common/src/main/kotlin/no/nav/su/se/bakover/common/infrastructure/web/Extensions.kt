@@ -159,6 +159,13 @@ suspend fun ApplicationCall.withKlageId(ifRight: suspend (UUID) -> Unit) {
     )
 }
 
+suspend fun ApplicationCall.withDokumentId(ifRight: suspend (UUID) -> Unit) {
+    this.lesUUID("dokumentId").fold(
+        ifLeft = { this.svar(HttpStatusCode.BadRequest.errorJson(it, "dokumentId_mangler_eller_feil_format")) },
+        ifRight = { ifRight(it) },
+    )
+}
+
 suspend inline fun <reified T> ApplicationCall.withBody(ifRight: (T) -> Unit) {
     Either.catch { this.receiveTextUTF8() }
         .tapLeft {
