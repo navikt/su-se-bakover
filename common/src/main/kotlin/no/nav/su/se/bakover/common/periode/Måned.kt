@@ -7,6 +7,7 @@ import java.time.LocalDate
 import java.time.Month
 import java.time.YearMonth
 import java.time.temporal.ChronoUnit
+import java.util.concurrent.ConcurrentHashMap
 
 data class Måned private constructor(
     // Vi ønsker ikke ha denne i json enda, men holder oss til Periode sin fraOgMed og tilOgMed
@@ -65,7 +66,7 @@ data class Måned private constructor(
         }
 
         private class CacheingFactory(
-            private val cached: MutableMap<YearMonth, Måned> = mutableMapOf(),
+            private val cached: MutableMap<YearMonth, Måned> = ConcurrentHashMap(48),
         ) {
             fun fra(yearMonth: YearMonth): Måned {
                 return cached.getOrPut(yearMonth) { Måned(yearMonth) }
