@@ -105,26 +105,6 @@ internal class RevurderingPostgresRepoTest {
         )
     }
 
-    private fun beregnetIngenEndring(
-        opprettet: OpprettetRevurdering,
-        vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling,
-    ) = BeregnetRevurdering.IngenEndring(
-        id = opprettet.id,
-        periode = opprettet.periode,
-        opprettet = opprettet.opprettet,
-        tilRevurdering = vedtak.id,
-        saksbehandler = opprettet.saksbehandler,
-        beregning = vedtak.beregning,
-        oppgaveId = opprettet.oppgaveId,
-        revurderingsårsak = opprettet.revurderingsårsak,
-        grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-        vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
-        informasjonSomRevurderes = informasjonSomRevurderes,
-        attesteringer = Attesteringshistorikk.empty(),
-        avkorting = opprettet.avkorting.håndter(),
-        sakinfo = opprettet.sakinfo,
-    )
-
     private fun beregnetInnvilget(
         opprettet: OpprettetRevurdering,
         vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetSøknadsbehandling,
@@ -206,25 +186,6 @@ internal class RevurderingPostgresRepoTest {
     )
 
     @Test
-    fun `kan opprette og beregner med ingen endring`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val repo = testDataHelper.revurderingRepo
-            val vedtak =
-                testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second
-
-            val opprettet = opprettet(vedtak)
-            repo.lagre(opprettet)
-            repo.hent(opprettet.id) shouldBe opprettet
-
-            val beregnetIngenEndring = beregnetIngenEndring(opprettet, vedtak)
-
-            repo.lagre(beregnetIngenEndring)
-            repo.hent(opprettet.id) shouldBe beregnetIngenEndring
-        }
-    }
-
-    @Test
     fun `kan beregne (innvilget) og oppdatere revurdering med ny informasjon`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
@@ -274,35 +235,6 @@ internal class RevurderingPostgresRepoTest {
 
             repo.lagre(oppdatertRevurdering)
             repo.hent(innvilgetBeregning.id) shouldBe oppdatertRevurdering
-        }
-    }
-
-    @Test
-    fun `beregnet ingen endring kan overskrives med ny saksbehandler`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val repo = testDataHelper.revurderingRepo
-            val vedtak =
-                testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second
-            val opprettet = opprettet(vedtak)
-
-            repo.lagre(opprettet)
-
-            val beregnet = beregnetIngenEndring(opprettet, vedtak)
-
-            repo.lagre(beregnet)
-
-            val nyBeregnet = beregnet.copy(
-                saksbehandler = Saksbehandler("ny saksbehandler"),
-            )
-
-            repo.lagre(nyBeregnet)
-
-            val actual = repo.hent(opprettet.id)
-
-            actual shouldNotBe opprettet
-            actual shouldNotBe beregnet
-            actual shouldBe nyBeregnet
         }
     }
 
@@ -622,160 +554,6 @@ internal class RevurderingPostgresRepoTest {
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
                 avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
                 tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingFerdigbehandlet,
-                sakinfo = opprettet.sakinfo,
-                brevvalgRevurdering = sendBrev(),
-            )
-
-            repo.lagre(underkjent)
-            repo.hent(underkjent.id) shouldBe underkjent
-        }
-    }
-
-    @Test
-    fun `beregnet, simulert og underkjent ingen endring`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val repo = testDataHelper.revurderingRepo
-            val vedtak =
-                testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second
-
-            val opprettet = opprettet(vedtak)
-            repo.lagre(opprettet)
-            val beregnet = beregnetIngenEndring(opprettet, vedtak)
-            repo.lagre(beregnet)
-            repo.hent(opprettet.id) shouldBe beregnet
-            val underkjentTilAttestering = RevurderingTilAttestering.IngenEndring(
-                id = opprettet.id,
-                periode = opprettet.periode,
-                opprettet = opprettet.opprettet,
-                tilRevurdering = vedtak.id,
-                saksbehandler = opprettet.saksbehandler,
-                oppgaveId = opprettet.oppgaveId,
-                revurderingsårsak = opprettet.revurderingsårsak,
-                beregning = vedtak.beregning,
-                grunnlagsdata = opprettet.grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
-                informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
-                attesteringer = Attesteringshistorikk.empty(),
-                avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
-                sakinfo = opprettet.sakinfo,
-                brevvalgRevurdering = sendBrev(),
-            )
-            repo.lagre(underkjentTilAttestering)
-            val underkjent = UnderkjentRevurdering.IngenEndring(
-                id = opprettet.id,
-                periode = opprettet.periode,
-                opprettet = opprettet.opprettet,
-                tilRevurdering = vedtak.id,
-                saksbehandler = opprettet.saksbehandler,
-                oppgaveId = opprettet.oppgaveId,
-                revurderingsårsak = opprettet.revurderingsårsak,
-                beregning = vedtak.beregning,
-                attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(
-                    Attestering.Underkjent(
-                        attestant = attestant,
-                        grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
-                        kommentar = "kommentar",
-                        opprettet = fixedTidspunkt,
-                    ),
-                ),
-                grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-                vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
-                informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
-                avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
-                sakinfo = opprettet.sakinfo,
-                brevvalgRevurdering = sendBrev(),
-            )
-
-            repo.lagre(underkjent)
-            repo.hent(underkjent.id) shouldBe underkjent
-        }
-    }
-
-    @Test
-    fun `til attestering ingen endring`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val repo = testDataHelper.revurderingRepo
-            val vedtak =
-                testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second
-
-            val opprettet = opprettet(vedtak)
-            repo.lagre(opprettet)
-            val beregnet = beregnetIngenEndring(opprettet, vedtak)
-            repo.lagre(beregnet)
-            val underkjent = RevurderingTilAttestering.IngenEndring(
-                id = opprettet.id,
-                periode = opprettet.periode,
-                opprettet = opprettet.opprettet,
-                tilRevurdering = vedtak.id,
-                saksbehandler = opprettet.saksbehandler,
-                oppgaveId = opprettet.oppgaveId,
-                revurderingsårsak = opprettet.revurderingsårsak,
-                beregning = vedtak.beregning,
-                grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-                vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
-                informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
-                attesteringer = Attesteringshistorikk.empty(),
-                avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
-                sakinfo = opprettet.sakinfo,
-                brevvalgRevurdering = sendBrev(),
-            )
-
-            repo.lagre(underkjent)
-            repo.hent(underkjent.id) shouldBe underkjent
-        }
-    }
-
-    @Test
-    fun `iverksatt ingen endring`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val repo = testDataHelper.revurderingRepo
-            val vedtak =
-                testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().second
-
-            val opprettet = opprettet(vedtak)
-            repo.lagre(opprettet)
-            val beregnet = beregnetIngenEndring(opprettet, vedtak)
-            repo.lagre(beregnet)
-            val revurderingTilAttestering = RevurderingTilAttestering.IngenEndring(
-                id = opprettet.id,
-                periode = opprettet.periode,
-                opprettet = opprettet.opprettet,
-                tilRevurdering = vedtak.id,
-                saksbehandler = opprettet.saksbehandler,
-                oppgaveId = opprettet.oppgaveId,
-                revurderingsårsak = opprettet.revurderingsårsak,
-                beregning = vedtak.beregning,
-                grunnlagsdata = opprettet.grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
-                informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
-                attesteringer = Attesteringshistorikk.empty(),
-                avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
-                sakinfo = opprettet.sakinfo,
-                brevvalgRevurdering = sendBrev(),
-            )
-            repo.lagre(revurderingTilAttestering)
-            val underkjent = IverksattRevurdering.IngenEndring(
-                id = opprettet.id,
-                periode = opprettet.periode,
-                opprettet = opprettet.opprettet,
-                tilRevurdering = vedtak.id,
-                saksbehandler = opprettet.saksbehandler,
-                oppgaveId = opprettet.oppgaveId,
-                revurderingsårsak = opprettet.revurderingsårsak,
-                beregning = vedtak.beregning,
-                attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(
-                    Attestering.Iverksatt(
-                        attestant,
-                        fixedTidspunkt,
-                    ),
-                ),
-                grunnlagsdata = opprettet.grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
-                informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
-                avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
                 sakinfo = opprettet.sakinfo,
                 brevvalgRevurdering = sendBrev(),
             )

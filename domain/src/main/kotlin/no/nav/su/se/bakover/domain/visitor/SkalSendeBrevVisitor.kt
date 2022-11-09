@@ -40,11 +40,6 @@ internal class SkalSendeBrevVisitor : VedtakVisitor {
         sendBrev = true
     }
 
-    override fun visit(vedtak: VedtakSomKanRevurderes.IngenEndringIYtelse) {
-        sendBrev = !vedtak.årsakErGRegulering() &&
-            vedtak.behandling.skalSendeBrev().isRight()
-    }
-
     override fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse) {
         sendBrev = vedtak.behandling.brevvalgRevurdering.skalSendeBrev().isRight()
     }

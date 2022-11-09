@@ -64,7 +64,6 @@ data class AvsluttetRevurdering private constructor(
         is SimulertRevurdering -> underliggendeRevurdering.beregning
         is UnderkjentRevurdering.Opphørt -> underliggendeRevurdering.beregning
         is UnderkjentRevurdering.Innvilget -> underliggendeRevurdering.beregning
-        is UnderkjentRevurdering.IngenEndring -> underliggendeRevurdering.beregning
 
         is OpprettetRevurdering -> null
 
@@ -80,7 +79,6 @@ data class AvsluttetRevurdering private constructor(
         is UnderkjentRevurdering.Innvilget -> underliggendeRevurdering.simulering
 
         is BeregnetRevurdering,
-        is UnderkjentRevurdering.IngenEndring,
         is OpprettetRevurdering,
         -> null
 

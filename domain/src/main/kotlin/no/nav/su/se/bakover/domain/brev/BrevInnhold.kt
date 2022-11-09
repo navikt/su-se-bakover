@@ -155,28 +155,6 @@ abstract class BrevInnhold {
         val harAvkorting: Boolean = beregningsperioder.harAvkorting()
     }
 
-    data class VedtakIngenEndring(
-        val personalia: Personalia,
-        val saksbehandlerNavn: String,
-        val attestantNavn: String,
-        val beregningsperioder: List<Beregningsperiode>,
-        val fritekst: String,
-        val harEktefelle: Boolean,
-        val forventetInntektStørreEnn0: Boolean,
-        val gjeldendeMånedsutbetaling: Int,
-        val satsoversikt: Satsoversikt,
-    ) : BrevInnhold() {
-        override val brevTemplate = BrevTemplate.VedtakIngenEndring
-
-        @Suppress("unused")
-        @JsonInclude
-        val harFradrag: Boolean = beregningsperioder.harFradrag()
-
-        @Suppress("unused")
-        @JsonInclude
-        val harAvkorting: Boolean = beregningsperioder.harAvkorting()
-    }
-
     data class Forhåndsvarsel(
         val personalia: Personalia,
         val saksbehandlerNavn: String,

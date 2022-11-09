@@ -3,9 +3,7 @@ package no.nav.su.se.bakover.domain.visitor
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.AktørId
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.Ident
@@ -23,9 +21,7 @@ import no.nav.su.se.bakover.common.periode.desember
 import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.år
-import no.nav.su.se.bakover.domain.avkorting.AvkortingVedRevurdering
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
@@ -36,7 +32,6 @@ import no.nav.su.se.bakover.domain.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest.AvslagBrevRequest
 import no.nav.su.se.bakover.domain.brev.Satsoversikt
@@ -45,14 +40,9 @@ import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.harEPS
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.firstOrThrowIfMultipleOrEmpty
-import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.Person
-import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
@@ -70,7 +60,6 @@ import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.sendBrev
 import no.nav.su.se.bakover.test.shouldBeType
-import no.nav.su.se.bakover.test.simulerUtbetaling
 import no.nav.su.se.bakover.test.simulertSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
@@ -79,7 +68,6 @@ import no.nav.su.se.bakover.test.vilkår.flyktningVilkårAvslått
 import no.nav.su.se.bakover.test.vilkår.formuevilkårAvslåttPgrBrukersformue
 import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårAvslag
 import no.nav.su.se.bakover.test.vilkår.institusjonsoppholdvilkårInnvilget
-import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -1237,103 +1225,6 @@ internal class LagBrevRequestVisitorTest {
             ),
             halvtGrunnbeløp = 50676, // halvparten av grunnbeløp for 2020-05-01 som er 101351 avrundet
         ).right()
-    }
-
-    @Test
-    fun `lager request for vedtak som ikke fører til endring`() {
-        val utbetalingId = UUID30.randomUUID()
-        val søknadsbehandling =
-            vilkårsvurdertInnvilget.beregn(
-                begrunnelse = null,
-                clock = fixedClock,
-                satsFactory = satsFactoryTestPåDato(),
-                nySaksbehandler = saksbehandler,
-            ).getOrFail().let { beregnet ->
-                beregnet.simuler(
-                    saksbehandler = saksbehandler,
-                ) { _, _ ->
-                    simulerUtbetaling(
-                        sak = sak,
-                        søknadsbehandling = beregnet,
-                    ).map {
-                        it.simulering
-                    }
-                }.getOrFail()
-                    .tilAttestering(saksbehandler, "Fritekst!")
-                    .tilIverksatt(Attestering.Iverksatt(attestant, fixedTidspunkt))
-            }
-
-        val revurderingsperiode = år(2021)
-        val revurdering = IverksattRevurdering.IngenEndring(
-            id = UUID.randomUUID(),
-            periode = revurderingsperiode,
-            opprettet = fixedTidspunkt,
-            tilRevurdering = VedtakSomKanRevurderes.fromSøknadsbehandling(
-                søknadsbehandling,
-                utbetalingId,
-                fixedClock,
-            ).id,
-            saksbehandler = saksbehandler,
-            oppgaveId = OppgaveId("15"),
-            beregning = expectedInnvilgetBeregning(søknadsbehandling.beregning.getId()),
-            attesteringer = Attesteringshistorikk.empty()
-                .leggTilNyAttestering(Attestering.Iverksatt(attestant, fixedTidspunkt)),
-            revurderingsårsak = Revurderingsårsak(
-                Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
-                Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
-            ),
-            grunnlagsdata = Grunnlagsdata.create(
-                bosituasjon = listOf(
-                    Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                        id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
-                        periode = revurderingsperiode,
-                    ),
-                ),
-            ),
-            vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
-            sakinfo = søknadsbehandling.sakinfo(),
-            brevvalgRevurdering = sendBrev(fritekst = "EN FIN FRITEKST"),
-        )
-
-        val vedtakIngenEndring = VedtakSomKanRevurderes.from(revurdering, fixedClock)
-
-        val brevRevurdering = LagBrevRequestVisitor(
-            hentPerson = { person.right() },
-            hentNavn = { hentNavn(it) },
-            hentGjeldendeUtbetaling = { _, _ -> 120.right() },
-            clock = fixedClock,
-            satsFactory = satsFactoryTestPåDato(),
-        ).apply { revurdering.accept(this) }
-
-        val brevVedtak = LagBrevRequestVisitor(
-            hentPerson = { person.right() },
-            hentNavn = { hentNavn(it) },
-            hentGjeldendeUtbetaling = { _, _ -> 120.right() },
-            clock = fixedClock,
-            satsFactory = satsFactoryTestPåDato(),
-        ).apply { vedtakIngenEndring.accept(this) }
-
-        brevRevurdering.brevRequest.map {
-            it.right() shouldBe brevVedtak.brevRequest
-            it shouldBe LagBrevRequest.VedtakIngenEndring(
-                person = person,
-                beregning = revurdering.beregning,
-                saksbehandlerNavn = saksbehandlerNavn,
-                attestantNavn = attestantNavn,
-                fritekst = "EN FIN FRITEKST",
-                harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEPS(),
-                forventetInntektStørreEnn0 = false,
-                gjeldendeMånedsutbetaling = 120,
-                dagensDato = fixedLocalDate,
-                saksnummer = revurdering.saksnummer,
-                satsoversikt = `satsoversikt2021EnsligPr01-01-21`,
-            )
-
-            it.brevInnhold should beOfType<BrevInnhold.VedtakIngenEndring>()
-        }
     }
 
     @Test

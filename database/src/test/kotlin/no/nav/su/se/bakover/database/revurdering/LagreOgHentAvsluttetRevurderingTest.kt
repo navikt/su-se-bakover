@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 internal class LagreOgHentAvsluttetRevurderingTest {
@@ -76,33 +75,6 @@ internal class LagreOgHentAvsluttetRevurderingTest {
 
             val (_, revurdering) = testDataHelper.persisterRevurderingBeregnetOpphørt()
             repo.lagre(revurdering)
-
-            val avsluttetRevurdering = AvsluttetRevurdering.tryCreate(
-                underliggendeRevurdering = revurdering,
-                begrunnelse = "avslutter denne revurderingen",
-                brevvalg = null,
-                tidspunktAvsluttet = fixedTidspunkt,
-            ).getOrHandle { fail("$it") }
-
-            repo.lagre(avsluttetRevurdering)
-            repo.hent(avsluttetRevurdering.id) shouldBe avsluttetRevurdering.copy(
-                underliggendeRevurdering = revurdering.copy(
-                    avkorting = AvkortingVedRevurdering.DelvisHåndtert.KanIkkeHåndtere(
-                        delvisHåndtert = AvkortingVedRevurdering.DelvisHåndtert.IngenUtestående,
-                    ),
-                ),
-            )
-        }
-    }
-
-    @Test
-    @Disabled("https://trello.com/c/5iblmYP9/1090-endre-sperre-for-10-endring-til-%C3%A5-v%C3%A6re-en-advarsel")
-    fun `beregnet ingen endring`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val repo = testDataHelper.revurderingRepo
-
-            val (_, revurdering) = testDataHelper.persisterRevurderingBeregningIngenEndring()
 
             val avsluttetRevurdering = AvsluttetRevurdering.tryCreate(
                 underliggendeRevurdering = revurdering,

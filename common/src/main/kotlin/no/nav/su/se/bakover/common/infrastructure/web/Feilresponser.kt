@@ -241,11 +241,6 @@ object Feilresponser {
         "opphør_av_ytelse_som_skal_avkortes",
     )
 
-    val ingenEndringUgyldig = InternalServerError.errorJson(
-        "Revurderingen er kalkulert med 'ingen endring', som ikke er en gyldig tilstand",
-        "ingen_endring_er_ikke_gyldig",
-    )
-
     val lagringFeilet = InternalServerError.errorJson(
         "Kunne ikke lagre",
         "kunne_ikke_lagre",

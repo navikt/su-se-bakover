@@ -14,22 +14,18 @@ import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekre
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
-import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.Avslagsvedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
-import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.persistence.TestDataHelper
 import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.persistence.withSession
 import no.nav.su.se.bakover.test.plus
-import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.sendBrev
 import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
 import org.junit.jupiter.api.Test
@@ -182,89 +178,6 @@ internal class VedtakPostgresRepoTest {
                     .hent(mapOf("vedtakId" to vedtak.id), session) {
                         it.stringOrNull("søknadsbehandlingId") shouldBe søknadsbehandling.id.toString()
                         it.stringOrNull("revurderingId") shouldBe null
-                    }
-            }
-        }
-    }
-
-    @Test
-    fun `kan lagre et vedtak som ikke fører til endring i utbetaling`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val vedtakRepo = testDataHelper.vedtakRepo as VedtakPostgresRepo
-            val (sak, søknadsbehandlingVedtak) = testDataHelper.persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling()
-
-            val (_, nyRevurdering) = testDataHelper.persisterRevurderingOpprettet(sak to søknadsbehandlingVedtak)
-
-            val beregning = nyRevurdering.beregn(
-                eksisterendeUtbetalinger = sak.utbetalinger,
-                clock = fixedClock,
-                gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
-                    fraOgMed = nyRevurdering.periode.fraOgMed,
-                    clock = fixedClock,
-                ).getOrFail(),
-                satsFactory = satsFactoryTestPåDato(),
-            ).getOrFail().beregning
-
-            val attestertRevurdering = RevurderingTilAttestering.IngenEndring(
-                id = nyRevurdering.id,
-                periode = nyRevurdering.periode,
-                opprettet = nyRevurdering.opprettet,
-                tilRevurdering = søknadsbehandlingVedtak.id,
-                saksbehandler = nyRevurdering.saksbehandler,
-                oppgaveId = OppgaveId(""),
-                beregning = beregning,
-                revurderingsårsak = Revurderingsårsak(
-                    Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
-                    Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
-                ),
-                grunnlagsdata = nyRevurdering.grunnlagsdata,
-                vilkårsvurderinger = nyRevurdering.vilkårsvurderinger,
-                informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-                attesteringer = Attesteringshistorikk.empty(),
-                avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
-                sakinfo = søknadsbehandlingVedtak.sakinfo(),
-                brevvalgRevurdering = sendBrev(),
-            )
-            testDataHelper.revurderingRepo.lagre(attestertRevurdering)
-            val iverksattRevurdering = IverksattRevurdering.IngenEndring(
-                id = nyRevurdering.id,
-                periode = nyRevurdering.periode,
-                opprettet = nyRevurdering.opprettet,
-                tilRevurdering = søknadsbehandlingVedtak.id,
-                saksbehandler = nyRevurdering.saksbehandler,
-                oppgaveId = OppgaveId(""),
-                beregning = beregning,
-                attesteringer = Attesteringshistorikk.empty()
-                    .leggTilNyAttestering(Attestering.Iverksatt(attestant, fixedTidspunkt)),
-                revurderingsårsak = Revurderingsårsak(
-                    Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
-                    Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
-                ),
-                grunnlagsdata = nyRevurdering.grunnlagsdata,
-                vilkårsvurderinger = nyRevurdering.vilkårsvurderinger,
-                informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-                avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
-                sakinfo = søknadsbehandlingVedtak.sakinfo(),
-                brevvalgRevurdering = sendBrev(),
-            )
-            testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
-
-            val revurderingVedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, fixedClock)
-
-            vedtakRepo.lagre(revurderingVedtak)
-
-            dataSource.withSession {
-                vedtakRepo.hent(revurderingVedtak.id, it) shouldBe revurderingVedtak
-            }
-
-            dataSource.withSession { session ->
-                """
-                    SELECT søknadsbehandlingId, revurderingId from behandling_vedtak where vedtakId = :vedtakId
-                """.trimIndent()
-                    .hent(mapOf("vedtakId" to revurderingVedtak.id), session) {
-                        it.stringOrNull("søknadsbehandlingId") shouldBe null
-                        it.stringOrNull("revurderingId") shouldBe iverksattRevurdering.id.toString()
                     }
             }
         }

@@ -172,15 +172,6 @@ private fun Revurdering.toDb(): RevurderingDb {
                 tilbakekrevingsbehandling = null,
             )
         }
-        is BeregnetRevurdering.IngenEndring -> {
-            RevurderingDb(
-                base = base,
-                beregning = this.beregning,
-                simulering = null,
-                avsluttet = null,
-                tilbakekrevingsbehandling = null,
-            )
-        }
         is BeregnetRevurdering.Innvilget -> {
             RevurderingDb(
                 base = base,
@@ -191,15 +182,6 @@ private fun Revurdering.toDb(): RevurderingDb {
             )
         }
         is BeregnetRevurdering.Opphørt -> {
-            RevurderingDb(
-                base = base,
-                beregning = this.beregning,
-                simulering = null,
-                avsluttet = null,
-                tilbakekrevingsbehandling = null,
-            )
-        }
-        is IverksattRevurdering.IngenEndring -> {
             RevurderingDb(
                 base = base,
                 beregning = this.beregning,
@@ -230,15 +212,6 @@ private fun Revurdering.toDb(): RevurderingDb {
             RevurderingDb(
                 base = base,
                 beregning = null,
-                simulering = null,
-                avsluttet = null,
-                tilbakekrevingsbehandling = null,
-            )
-        }
-        is RevurderingTilAttestering.IngenEndring -> {
-            RevurderingDb(
-                base = base,
-                beregning = this.beregning,
                 simulering = null,
                 avsluttet = null,
                 tilbakekrevingsbehandling = null,
@@ -280,15 +253,6 @@ private fun Revurdering.toDb(): RevurderingDb {
                 tilbakekrevingsbehandling = this.tilbakekrevingsbehandling,
             )
         }
-        is UnderkjentRevurdering.IngenEndring -> {
-            RevurderingDb(
-                base = base,
-                beregning = this.beregning,
-                simulering = null,
-                avsluttet = null,
-                tilbakekrevingsbehandling = null,
-            )
-        }
         is UnderkjentRevurdering.Innvilget -> {
             RevurderingDb(
                 base = base,
@@ -314,18 +278,14 @@ enum class RevurderingsType {
     OPPRETTET,
     BEREGNET_INNVILGET,
     BEREGNET_OPPHØRT,
-    BEREGNET_INGEN_ENDRING,
     SIMULERT_INNVILGET,
     SIMULERT_OPPHØRT,
     TIL_ATTESTERING_INNVILGET,
     TIL_ATTESTERING_OPPHØRT,
-    TIL_ATTESTERING_INGEN_ENDRING,
     IVERKSATT_INNVILGET,
     IVERKSATT_OPPHØRT,
-    IVERKSATT_INGEN_ENDRING,
     UNDERKJENT_INNVILGET,
     UNDERKJENT_OPPHØRT,
-    UNDERKJENT_INGEN_ENDRING,
     SIMULERT_STANS,
     IVERKSATT_STANS,
     SIMULERT_GJENOPPTAK,
@@ -338,18 +298,14 @@ enum class RevurderingsType {
                 is OpprettetRevurdering -> OPPRETTET
                 is BeregnetRevurdering.Innvilget -> BEREGNET_INNVILGET
                 is BeregnetRevurdering.Opphørt -> BEREGNET_OPPHØRT
-                is BeregnetRevurdering.IngenEndring -> BEREGNET_INGEN_ENDRING
                 is SimulertRevurdering.Innvilget -> SIMULERT_INNVILGET
                 is SimulertRevurdering.Opphørt -> SIMULERT_OPPHØRT
                 is RevurderingTilAttestering.Innvilget -> TIL_ATTESTERING_INNVILGET
                 is RevurderingTilAttestering.Opphørt -> TIL_ATTESTERING_OPPHØRT
-                is RevurderingTilAttestering.IngenEndring -> TIL_ATTESTERING_INGEN_ENDRING
                 is IverksattRevurdering.Innvilget -> IVERKSATT_INNVILGET
                 is IverksattRevurdering.Opphørt -> IVERKSATT_OPPHØRT
-                is IverksattRevurdering.IngenEndring -> IVERKSATT_INGEN_ENDRING
                 is UnderkjentRevurdering.Innvilget -> UNDERKJENT_INNVILGET
                 is UnderkjentRevurdering.Opphørt -> UNDERKJENT_OPPHØRT
-                is UnderkjentRevurdering.IngenEndring -> UNDERKJENT_INGEN_ENDRING
                 is AvsluttetRevurdering -> this.underliggendeRevurdering.toRevurderingsType()
             }.toString()
         }
@@ -374,15 +330,12 @@ enum class RevurderingsType {
             OPPRETTET,
             BEREGNET_INNVILGET,
             BEREGNET_OPPHØRT,
-            BEREGNET_INGEN_ENDRING,
             SIMULERT_INNVILGET,
             SIMULERT_OPPHØRT,
             TIL_ATTESTERING_INNVILGET,
             TIL_ATTESTERING_OPPHØRT,
-            TIL_ATTESTERING_INGEN_ENDRING,
             UNDERKJENT_INNVILGET,
             UNDERKJENT_OPPHØRT,
-            UNDERKJENT_INGEN_ENDRING,
             SIMULERT_STANS,
             SIMULERT_GJENOPPTAK,
         )
@@ -1056,75 +1009,6 @@ internal class RevurderingPostgresRepo(
                 attesteringer = attesteringer,
                 avkorting = avkorting as AvkortingVedRevurdering.Uhåndtert,
                 sakinfo = sakinfo,
-                brevvalgRevurdering = brevvalgRevurdering,
-            )
-            RevurderingsType.BEREGNET_INGEN_ENDRING -> BeregnetRevurdering.IngenEndring(
-                id = id,
-                periode = periode,
-                opprettet = opprettet,
-                tilRevurdering = tilRevurdering,
-                saksbehandler = Saksbehandler(saksbehandler),
-                beregning = beregning!!,
-                oppgaveId = OppgaveId(oppgaveId!!),
-                revurderingsårsak = revurderingsårsak,
-                grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger,
-                informasjonSomRevurderes = informasjonSomRevurderes!!,
-                attesteringer = attesteringer,
-                avkorting = avkorting as AvkortingVedRevurdering.DelvisHåndtert,
-                sakinfo = sakinfo,
-                brevvalgRevurdering = brevvalgRevurdering,
-            )
-            RevurderingsType.TIL_ATTESTERING_INGEN_ENDRING -> RevurderingTilAttestering.IngenEndring(
-                id = id,
-                periode = periode,
-                opprettet = opprettet,
-                tilRevurdering = tilRevurdering,
-                beregning = beregning!!,
-                saksbehandler = Saksbehandler(saksbehandler),
-                oppgaveId = OppgaveId(oppgaveId!!),
-                revurderingsårsak = revurderingsårsak,
-                grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger,
-                informasjonSomRevurderes = informasjonSomRevurderes!!,
-                attesteringer = attesteringer,
-                avkorting = avkorting as AvkortingVedRevurdering.Håndtert,
-                sakinfo = sakinfo,
-                brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt,
-            )
-            RevurderingsType.IVERKSATT_INGEN_ENDRING -> IverksattRevurdering.IngenEndring(
-                id = id,
-                periode = periode,
-                opprettet = opprettet,
-                tilRevurdering = tilRevurdering,
-                beregning = beregning!!,
-                saksbehandler = Saksbehandler(saksbehandler),
-                oppgaveId = OppgaveId(oppgaveId!!),
-                revurderingsårsak = revurderingsårsak,
-                attesteringer = attesteringer,
-                grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger,
-                informasjonSomRevurderes = informasjonSomRevurderes!!,
-                avkorting = avkorting as AvkortingVedRevurdering.Iverksatt,
-                sakinfo = sakinfo,
-                brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt,
-            )
-            RevurderingsType.UNDERKJENT_INGEN_ENDRING -> UnderkjentRevurdering.IngenEndring(
-                id = id,
-                periode = periode,
-                opprettet = opprettet,
-                tilRevurdering = tilRevurdering,
-                beregning = beregning!!,
-                saksbehandler = Saksbehandler(saksbehandler),
-                oppgaveId = OppgaveId(oppgaveId!!),
-                revurderingsårsak = revurderingsårsak,
-                attesteringer = attesteringer,
-                grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger,
-                informasjonSomRevurderes = informasjonSomRevurderes!!,
-                avkorting = avkorting as AvkortingVedRevurdering.Håndtert,
-                sakinfo = sakinfo,
-                brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt,
             )
             RevurderingsType.SIMULERT_STANS -> StansAvYtelseRevurdering.SimulertStansAvYtelse(
                 id = id,

@@ -131,7 +131,6 @@ private fun RevurderingsType.tilBehandlingsstatus(): Behandlingsoversikt.Behandl
         RevurderingsType.OPPRETTET,
         RevurderingsType.BEREGNET_INNVILGET,
         RevurderingsType.BEREGNET_OPPHØRT,
-        RevurderingsType.BEREGNET_INGEN_ENDRING,
         RevurderingsType.SIMULERT_INNVILGET,
         RevurderingsType.SIMULERT_OPPHØRT,
         -> Behandlingsoversikt.Behandlingsstatus.UNDER_BEHANDLING
@@ -140,19 +139,16 @@ private fun RevurderingsType.tilBehandlingsstatus(): Behandlingsoversikt.Behandl
         RevurderingsType.SIMULERT_GJENOPPTAK,
         RevurderingsType.TIL_ATTESTERING_INNVILGET,
         RevurderingsType.TIL_ATTESTERING_OPPHØRT,
-        RevurderingsType.TIL_ATTESTERING_INGEN_ENDRING,
         -> Behandlingsoversikt.Behandlingsstatus.TIL_ATTESTERING
 
         RevurderingsType.UNDERKJENT_INNVILGET,
         RevurderingsType.UNDERKJENT_OPPHØRT,
-        RevurderingsType.UNDERKJENT_INGEN_ENDRING,
         -> Behandlingsoversikt.Behandlingsstatus.UNDERKJENT
 
         RevurderingsType.IVERKSATT_STANS,
         RevurderingsType.IVERKSATT_GJENOPPTAK,
         RevurderingsType.IVERKSATT_INNVILGET,
         RevurderingsType.IVERKSATT_OPPHØRT,
-        RevurderingsType.IVERKSATT_INGEN_ENDRING,
         -> throw IllegalStateException("Iverksatte revurderinger er ikke en åpen behandling")
     }
 }

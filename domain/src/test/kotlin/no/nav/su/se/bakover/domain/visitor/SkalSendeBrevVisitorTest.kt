@@ -13,14 +13,12 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
-import no.nav.su.se.bakover.test.iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagMedBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagUtenBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vedtakRevurdering
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 internal class SkalSendeBrevVisitorTest {
@@ -85,36 +83,6 @@ internal class SkalSendeBrevVisitorTest {
             it.sendBrev
         } shouldBe true
         vedtak.skalSendeBrev() shouldBe true
-    }
-
-    @Test
-    @Disabled("https://trello.com/c/5iblmYP9/1090-endre-sperre-for-10-endring-til-%C3%A5-v%C3%A6re-en-advarsel")
-    fun `vedtak for revurdering uten endringer sender brev hvis det er valgt`() {
-        val skalSendeBrev = VedtakSomKanRevurderes.from(
-            revurdering = iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak().second,
-            clock = fixedClock,
-        )
-
-        SkalSendeBrevVisitor().let {
-            skalSendeBrev.accept(it)
-            it.sendBrev
-        } shouldBe true
-        skalSendeBrev.skalSendeBrev() shouldBe true
-    }
-
-    @Test
-    @Disabled("https://trello.com/c/5iblmYP9/1090-endre-sperre-for-10-endring-til-%C3%A5-v%C3%A6re-en-advarsel")
-    fun `vedtak for revurdering uten endringer sender ikke brev hvis det er valgt`() {
-        val skalIkkeSendeBrev = VedtakSomKanRevurderes.from(
-            revurdering = iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak().second,
-            clock = fixedClock,
-        )
-
-        SkalSendeBrevVisitor().let {
-            skalIkkeSendeBrev.accept(it)
-            it.sendBrev
-        } shouldBe false
-        skalIkkeSendeBrev.skalSendeBrev() shouldBe false
     }
 
     @Test

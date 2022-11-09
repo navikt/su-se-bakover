@@ -10,9 +10,7 @@ import no.nav.su.se.bakover.common.AktørId
 import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.Ident
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.persistence.SessionFactory
-import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.brev.BrevTemplate
 import no.nav.su.se.bakover.domain.brev.HentDokumenterForIdType
@@ -21,8 +19,6 @@ import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
-import no.nav.su.se.bakover.domain.oppdrag.FantIkkeGjeldendeUtbetaling
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.person.IdentClient
 import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
@@ -30,17 +26,13 @@ import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
-import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattAvslagMedBeregning
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
-import org.mockito.kotlin.doReturnConsecutively
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
@@ -181,86 +173,6 @@ internal class BrevServiceImplTest {
             it.verifyNoMoreInteraction()
         }
     }
-
-    @Test
-    @Disabled("https://trello.com/c/5iblmYP9/1090-endre-sperre-for-10-endring-til-%C3%A5-v%C3%A6re-en-advarsel")
-    fun `klarer ikke å finne gjeldende utbetaling`() {
-        val (sak, vedtak) = iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak()
-        val personServiceMock = mock<PersonService> {
-            on { hentPersonMedSystembruker(any()) } doReturn person.right()
-        }
-
-        val microsoftGraphApiOppslagMock = mock<IdentClient> {
-            on { hentNavnForNavIdent(any()) } doReturnConsecutively listOf(
-                "Kåre Kropp".right(),
-                "Suveren Severin".right(),
-            )
-        }
-
-        val utbetalingServiceMock = mock<UtbetalingService> {
-            on { hentGjeldendeUtbetaling(any(), any()) } doReturn FantIkkeGjeldendeUtbetaling.left()
-        }
-
-        ServiceOgMocks(
-            personService = personServiceMock,
-            identClient = microsoftGraphApiOppslagMock,
-            utbetalingService = utbetalingServiceMock,
-            clock = fixedClock,
-        ).let {
-            it.brevService.lagDokument(vedtak) shouldBe KunneIkkeLageDokument.KunneIkkeFinneGjeldendeUtbetaling.left()
-            verify(it.personService).hentPersonMedSystembruker(vedtak.fnr)
-            verify(it.identClient).hentNavnForNavIdent(vedtak.saksbehandler)
-            verify(it.identClient).hentNavnForNavIdent(vedtak.attesteringer.hentSisteAttestering().attestant)
-            verify(it.utbetalingService).hentGjeldendeUtbetaling(sak.id, vedtak.opprettet.toLocalDate(zoneIdOslo))
-            it.verifyNoMoreInteraction()
-        }
-    }
-
-    @Test
-    @Disabled("https://trello.com/c/5iblmYP9/1090-endre-sperre-for-10-endring-til-%C3%A5-v%C3%A6re-en-advarsel")
-    fun `svarer med feil der som generering av pdf feiler`() {
-        val (sak, vedtak) = iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak()
-        val personServiceMock = mock<PersonService> {
-            on { hentPersonMedSystembruker(any()) } doReturn person.right()
-        }
-
-        val microsoftGraphApiOppslagMock = mock<IdentClient> {
-            on { hentNavnForNavIdent(any()) } doReturnConsecutively listOf(
-                "Kåre Kropp".right(),
-                "Suveren Severin".right(),
-            )
-        }
-
-        val utbetalingServiceMock = mock<UtbetalingService> {
-            on { hentGjeldendeUtbetaling(any(), any()) } doReturn UtbetalingslinjePåTidslinje.Ny(
-                kopiertFraId = UUID30.randomUUID(),
-                opprettet = fixedTidspunkt,
-                periode = vedtak.periode,
-                beløp = 5999,
-            ).right()
-        }
-
-        val pdfGeneratorMock = mock<PdfGenerator> {
-            on { genererPdf(any<BrevInnhold>()) } doReturn KunneIkkeGenererePdf.left()
-        }
-
-        ServiceOgMocks(
-            personService = personServiceMock,
-            identClient = microsoftGraphApiOppslagMock,
-            utbetalingService = utbetalingServiceMock,
-            pdfGenerator = pdfGeneratorMock,
-            clock = fixedClock,
-        ).let {
-            it.brevService.lagDokument(vedtak) shouldBe KunneIkkeLageDokument.KunneIkkeGenererePDF.left()
-            verify(it.personService).hentPersonMedSystembruker(vedtak.fnr)
-            verify(it.identClient).hentNavnForNavIdent(vedtak.saksbehandler)
-            verify(it.identClient).hentNavnForNavIdent(vedtak.attesteringer.hentSisteAttestering().attestant)
-            verify(it.utbetalingService).hentGjeldendeUtbetaling(sak.id, vedtak.opprettet.toLocalDate(zoneIdOslo))
-            verify(it.pdfGenerator).genererPdf(any<BrevInnhold.VedtakIngenEndring>())
-            it.verifyNoMoreInteraction()
-        }
-    }
-
     private fun lagDokument(metadata: Dokument.Metadata): Dokument.MedMetadata.Vedtak {
         val utenMetadata = Dokument.UtenMetadata.Vedtak(
             id = UUID.randomUUID(),

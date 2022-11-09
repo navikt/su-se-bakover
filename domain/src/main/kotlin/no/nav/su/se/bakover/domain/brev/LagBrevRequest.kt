@@ -210,47 +210,6 @@ interface LagBrevRequest {
         }
     }
 
-    data class VedtakIngenEndring(
-        override val person: Person,
-        private val saksbehandlerNavn: String,
-        private val attestantNavn: String,
-        private val beregning: Beregning,
-        private val fritekst: String,
-        private val harEktefelle: Boolean,
-        private val forventetInntektStørreEnn0: Boolean,
-        private val gjeldendeMånedsutbetaling: Int,
-        override val dagensDato: LocalDate,
-        override val saksnummer: Saksnummer,
-        private val satsoversikt: Satsoversikt,
-    ) : LagBrevRequest {
-        override val brevInnhold = BrevInnhold.VedtakIngenEndring(
-            personalia = lagPersonalia(),
-            saksbehandlerNavn = saksbehandlerNavn,
-            attestantNavn = attestantNavn,
-            beregningsperioder = LagBrevinnholdForBeregning(beregning).brevInnhold,
-            fritekst = fritekst,
-            harEktefelle = harEktefelle,
-            forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
-            gjeldendeMånedsutbetaling = gjeldendeMånedsutbetaling,
-            satsoversikt = satsoversikt,
-        )
-
-        override fun tilDokument(
-            clock: Clock,
-            genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>,
-        ): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Vedtak> {
-            return genererDokument(clock, genererPdf).map {
-                Dokument.UtenMetadata.Vedtak(
-                    id = UUID.randomUUID(),
-                    opprettet = Tidspunkt.now(clock),
-                    tittel = it.first,
-                    generertDokument = it.second,
-                    generertDokumentJson = it.third,
-                )
-            }
-        }
-    }
-
     data class Forhåndsvarsel(
         override val person: Person,
         private val saksbehandlerNavn: String,

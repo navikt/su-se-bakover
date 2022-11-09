@@ -201,8 +201,7 @@ data class Sak(
     /**
      * Brukes for å hente den seneste gjeldenden/brukte beregningen for en gitt måned i saken.
      *
-     * Per nå så er det kun Vedtak i form av [VedtakSomKanRevurderes.EndringIYtelse] som bidrar til dette, bortsett fra [VedtakSomKanRevurderes.IngenEndringIYtelse] som har
-     * andre beregnings-beløp som ikke skal ha en påverkan på saken.
+     * Per nå så er det kun Vedtak i form av [VedtakSomKanRevurderes.EndringIYtelse] som bidrar til dette.
      *
      * ##NB
      * */

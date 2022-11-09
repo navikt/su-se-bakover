@@ -50,7 +50,6 @@ internal enum class VedtakType {
     AVSLAG, // Avslått Søknadsbehandling                    -> Avslag
     ENDRING, // Revurdering innvilget                       -> EndringIYtelse
     REGULERING, // Regulering innvilget                     -> EndringIYtelse
-    INGEN_ENDRING, // Revurdering mellom 2% og 10% endring  -> IngenEndringIYtelse
     OPPHØR, // Revurdering ført til opphør                  -> EndringIYtelse
     STANS_AV_YTELSE,
     GJENOPPTAK_AV_YTELSE,
@@ -123,7 +122,6 @@ internal class VedtakPostgresRepo(
                 when (vedtak) {
                     is VedtakSomKanRevurderes.EndringIYtelse -> lagreInternt(vedtak, tx)
                     is Avslagsvedtak -> lagreInternt(vedtak, tx)
-                    is VedtakSomKanRevurderes.IngenEndringIYtelse -> lagreInternt(vedtak, tx)
                     is Klagevedtak.Avvist -> lagreInternt(vedtak, tx)
                 }
             }
@@ -311,15 +309,6 @@ internal class VedtakPostgresRepo(
                     )
                 }
             }
-            VedtakType.INGEN_ENDRING -> VedtakSomKanRevurderes.IngenEndringIYtelse(
-                id = id,
-                opprettet = opprettet,
-                behandling = behandling as IverksattRevurdering.IngenEndring,
-                saksbehandler = saksbehandler,
-                attestant = attestant,
-                periode = periode!!,
-                beregning = beregning!!,
-            )
             VedtakType.STANS_AV_YTELSE -> VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse(
                 id = id,
                 opprettet = opprettet,
@@ -461,50 +450,6 @@ internal class VedtakPostgresRepo(
                 session,
             )
         lagreKlagevedtaksknytningTilSøknadsbehandling(vedtak, session)
-    }
-
-    private fun lagreInternt(vedtak: VedtakSomKanRevurderes.IngenEndringIYtelse, session: Session) {
-        """
-                INSERT INTO vedtak(
-                    id,
-                    opprettet,
-                    fraOgMed,
-                    tilOgMed,
-                    saksbehandler,
-                    attestant,
-                    utbetalingid,
-                    simulering,
-                    beregning,
-                    vedtaktype
-                ) VALUES (
-                    :id,
-                    :opprettet,
-                    :fraOgMed,
-                    :tilOgMed,
-                    :saksbehandler,
-                    :attestant,
-                    :utbetalingid,
-                    to_json(:simulering::json),
-                    to_json(:beregning::json),
-                    :vedtaktype
-                )
-        """.trimIndent()
-            .insert(
-                mapOf(
-                    "id" to vedtak.id,
-                    "opprettet" to vedtak.opprettet,
-                    "fraOgMed" to vedtak.periode.fraOgMed,
-                    "tilOgMed" to vedtak.periode.tilOgMed,
-                    "saksbehandler" to vedtak.saksbehandler,
-                    "attestant" to vedtak.attestant,
-                    "utbetalingid" to null,
-                    "simulering" to null,
-                    "beregning" to vedtak.beregning,
-                    "vedtaktype" to VedtakType.INGEN_ENDRING,
-                ),
-                session,
-            )
-        lagreKlagevedtaksknytningTilRevurdering(vedtak, session)
     }
 
     private fun lagreInternt(vedtak: Klagevedtak.Avvist, session: Session) {

@@ -25,7 +25,6 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.domain.beregning.harAlleMånederMerknadForAvslag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -55,7 +54,6 @@ import no.nav.su.se.bakover.test.søknad.søknadinnholdUføre
 import no.nav.su.se.bakover.test.vilkår.avslåttFormueVilkår
 import no.nav.su.se.bakover.test.vilkår.utenlandsoppholdInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderinger.avslåttUførevilkårUtenGrunnlag
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import java.util.UUID
@@ -120,40 +118,6 @@ internal class RevurderingBeregnTest {
     }
 
     @Test
-    @Disabled("https://trello.com/c/5iblmYP9/1090-endre-sperre-for-10-endring-til-%C3%A5-v%C3%A6re-en-advarsel")
-    fun `beregningen gir ikke opphør dersom beløpet er under minstegrense, men endringen er mindre enn 10 prosent`() {
-        opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak().let { (sak, revurdering) ->
-            sak to revurdering.oppdaterFradragOgMarkerSomVurdert(
-                fradragsgrunnlag = listOf(
-                    fradragsgrunnlagArbeidsinntekt(
-                        periode = Periode.create(1.januar(2021), 30.april(2021)),
-                        arbeidsinntekt = 20535.0,
-                        tilhører = FradragTilhører.BRUKER,
-                    ),
-                    fradragsgrunnlagArbeidsinntekt(
-                        periode = Periode.create(1.mai(2021), 31.desember(2021)),
-                        arbeidsinntekt = 21735.0,
-                        tilhører = FradragTilhører.BRUKER,
-                    ),
-                ),
-            ).getOrFail()
-        }.let { (sak, revurdering) ->
-            revurdering.beregn(
-                eksisterendeUtbetalinger = listOf(lagUtbetaling(lagUtbetalingslinje(440, revurdering.periode))),
-                clock = fixedClock,
-                gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
-                    fraOgMed = revurdering.periode.fraOgMed,
-                    clock = fixedClock,
-                ).getOrFail(),
-                satsFactory = satsFactoryTestPåDato(),
-            ).getOrFail().let {
-                it shouldBe beOfType<BeregnetRevurdering.IngenEndring>()
-                it.beregning.harAlleMånederMerknadForAvslag() shouldBe true
-            }
-        }
-    }
-
-    @Test
     fun `beregning med beløpsendring større enn 10 prosent fører til endring`() {
         opprettetRevurdering(
             grunnlagsdataOverrides = listOf(
@@ -175,33 +139,6 @@ internal class RevurderingBeregnTest {
             ).getOrFail().let {
                 over10ProsentEndring(it.beregning, sak.utbetalinger) shouldBe true
                 it shouldBe beOfType<BeregnetRevurdering.Innvilget>()
-            }
-        }
-    }
-
-    @Test
-    @Disabled("https://trello.com/c/5iblmYP9/1090-endre-sperre-for-10-endring-til-%C3%A5-v%C3%A6re-en-advarsel")
-    fun `beregning med beløpsendring mindre enn 10 prosent fører ikke til endring`() {
-        opprettetRevurdering(
-            grunnlagsdataOverrides = listOf(
-                fradragsgrunnlagArbeidsinntekt(
-                    periode = år(2021),
-                    arbeidsinntekt = 1000.0,
-                    tilhører = FradragTilhører.BRUKER,
-                ),
-            ),
-        ).let { (sak, revurdering) ->
-            revurdering.beregn(
-                eksisterendeUtbetalinger = sak.utbetalinger,
-                clock = fixedClock,
-                gjeldendeVedtaksdata = sak.kopierGjeldendeVedtaksdata(
-                    fraOgMed = revurdering.periode.fraOgMed,
-                    clock = fixedClock,
-                ).getOrFail(),
-                satsFactory = satsFactoryTestPåDato(),
-            ).getOrFail().let {
-                over10ProsentEndring(it.beregning, sak.utbetalinger) shouldBe false
-                it shouldBe beOfType<BeregnetRevurdering.IngenEndring>()
             }
         }
     }
@@ -237,7 +174,7 @@ internal class RevurderingBeregnTest {
     }
 
     @Test
-    fun `beregning uten beløpsendring fører til ingen endring - g regulering`() {
+    fun `beregning uten beløpsendring - g regulering`() {
         opprettetRevurdering(
             revurderingsårsak = Revurderingsårsak.create(
                 årsak = Revurderingsårsak.Årsak.REGULER_GRUNNBELØP.toString(),
@@ -254,7 +191,7 @@ internal class RevurderingBeregnTest {
                 satsFactory = satsFactoryTestPåDato(),
             ).getOrFail().let {
                 over10ProsentEndring(it.beregning, sak.utbetalinger) shouldBe false
-                it shouldBe beOfType<BeregnetRevurdering.IngenEndring>()
+                it shouldBe beOfType<BeregnetRevurdering.Innvilget>()
             }
         }
     }

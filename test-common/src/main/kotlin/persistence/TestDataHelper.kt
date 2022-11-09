@@ -609,16 +609,6 @@ class TestDataHelper(
         }
     }
 
-    fun persisterRevurderingBeregningIngenEndring(
-        sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
-            sak to vedtak
-        },
-    ): Pair<Sak, BeregnetRevurdering.IngenEndring> {
-        return persisterBeregnetRevurdering(sakOgVedtak).let { (sak, revurdering) ->
-            sak to revurdering as BeregnetRevurdering.IngenEndring
-        }
-    }
-
     fun persisterRevurderingSimulertInnvilget(
         sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse> = persisterSøknadsbehandlingIverksattInnvilgetMedKvittertUtbetaling().let { (sak, vedtak, _) ->
             sak to vedtak
