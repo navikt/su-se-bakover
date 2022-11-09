@@ -1,4 +1,3 @@
-
 package no.nav.su.se.bakover.domain.revurdering
 
 import arrow.core.Either
@@ -35,8 +34,7 @@ data class AvsluttetRevurdering private constructor(
     override val saksbehandler: NavIdentBruker.Saksbehandler = underliggendeRevurdering.saksbehandler
     override val fritekstTilBrev: String = underliggendeRevurdering.fritekstTilBrev
     override val revurderingsårsak: Revurderingsårsak = underliggendeRevurdering.revurderingsårsak
-    override val informasjonSomRevurderes: InformasjonSomRevurderes =
-        underliggendeRevurdering.informasjonSomRevurderes
+    override val informasjonSomRevurderes: InformasjonSomRevurderes = underliggendeRevurdering.informasjonSomRevurderes
     override val forhåndsvarsel: Forhåndsvarsel? = underliggendeRevurdering.forhåndsvarsel
     override val oppgaveId: OppgaveId = underliggendeRevurdering.oppgaveId
     override val attesteringer: Attesteringshistorikk = underliggendeRevurdering.attesteringer
@@ -47,6 +45,7 @@ data class AvsluttetRevurdering private constructor(
             false -> require(brevvalg is Brevvalg.SkalIkkeSendeBrev) {
                 "Saksbehandler kan ikke gjøre et brevvalg dersom man skal avslutte en revurdering som ikke er forhåndsvarslet"
             }
+
             true -> require(brevvalg is Brevvalg.SaksbehandlersValg || brevvalg is Brevvalg.SkalSendeBrev) {
                 "Saksbehandler må gjøre et brevvalg dersom man skal avslutte en revurdering som er forhåndsvarslet"
             }
@@ -57,12 +56,15 @@ data class AvsluttetRevurdering private constructor(
         is AvkortingVedRevurdering.DelvisHåndtert -> {
             avkorting.kanIkke()
         }
+
         is AvkortingVedRevurdering.Håndtert -> {
             avkorting.kanIkke()
         }
+
         is AvkortingVedRevurdering.Iverksatt -> {
             throw IllegalStateException("Kan ikke avslutte iverksatt")
         }
+
         is AvkortingVedRevurdering.Uhåndtert -> {
             avkorting.kanIkke()
         }
@@ -154,14 +156,17 @@ sealed class KunneIkkeLageAvsluttetRevurdering {
 }
 
 sealed class KunneIkkeAvslutteRevurdering {
-    data class KunneIkkeLageAvsluttetRevurdering(val feil: no.nav.su.se.bakover.domain.revurdering.KunneIkkeLageAvsluttetRevurdering) :
-        KunneIkkeAvslutteRevurdering()
+    data class KunneIkkeLageAvsluttetRevurdering(
+        val feil: no.nav.su.se.bakover.domain.revurdering.KunneIkkeLageAvsluttetRevurdering,
+    ) : KunneIkkeAvslutteRevurdering()
 
-    data class KunneIkkeLageAvsluttetGjenopptaAvYtelse(val feil: GjenopptaYtelseRevurdering.KunneIkkeLageAvsluttetGjenopptaAvYtelse) :
-        KunneIkkeAvslutteRevurdering()
+    data class KunneIkkeLageAvsluttetGjenopptaAvYtelse(
+        val feil: no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeLageAvsluttetGjenopptaAvYtelse,
+    ) : KunneIkkeAvslutteRevurdering()
 
-    data class KunneIkkeLageAvsluttetStansAvYtelse(val feil: StansAvYtelseRevurdering.KunneIkkeLageAvsluttetStansAvYtelse) :
-        KunneIkkeAvslutteRevurdering()
+    data class KunneIkkeLageAvsluttetStansAvYtelse(
+        val feil: StansAvYtelseRevurdering.KunneIkkeLageAvsluttetStansAvYtelse,
+    ) : KunneIkkeAvslutteRevurdering()
 
     object FantIkkeRevurdering : KunneIkkeAvslutteRevurdering()
     object KunneIkkeLageDokument : KunneIkkeAvslutteRevurdering()

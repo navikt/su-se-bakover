@@ -28,7 +28,6 @@ import no.nav.su.se.bakover.domain.grunnlag.fradrag.LeggTilFradragsgrunnlagReque
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingsinstruksjonForEtterbetalinger
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeAvgjort
-import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalStansFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -40,22 +39,15 @@ import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarselhandling
-import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRequest
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IdentifiserRevurderingsopphørSomIkkeStøttes
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
-import no.nav.su.se.bakover.domain.revurdering.IverksettStansAvYtelseITransaksjonResponse
-import no.nav.su.se.bakover.domain.revurdering.IverksettStansAvYtelseTransactionException
-import no.nav.su.se.bakover.domain.revurdering.IverksettStansAvYtelseTransactionException.Companion.exception
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeAvslutteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeBeregneOgSimulereRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeForhåndsvarsle
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeGjenopptaYtelse
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeHentePersonEllerSaksbehandlerNavn
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeIverksetteGjenopptakAvYtelse
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeIverksetteRevurdering
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeIverksetteStansYtelse
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLageBrevutkastForAvsluttingAvRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLageBrevutkastForRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLeggeTilBosituasjongrunnlag
@@ -66,7 +58,6 @@ import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLeggeTilUtenlandsopphold
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeOppdatereTilbakekrevingsbehandling
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeSendeRevurderingTilAttestering
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeStanseYtelse
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeUnderkjenneRevurdering
 import no.nav.su.se.bakover.domain.revurdering.LeggTilBosituasjonerRequest
 import no.nav.su.se.bakover.domain.revurdering.OppdaterTilbakekrevingsbehandlingRequest
@@ -79,10 +70,7 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SendTilAttesteringRequest
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
-import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseITransaksjonResponse
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
-import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseTransactionException
-import no.nav.su.se.bakover.domain.revurdering.StansYtelseRequest
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Varselmelding
 import no.nav.su.se.bakover.domain.revurdering.VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling
@@ -128,7 +116,6 @@ import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.LeggTilFlereUtenland
 import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
-import no.nav.su.se.bakover.service.vedtak.VedtakService
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import java.time.Clock
 import java.util.UUID
@@ -142,7 +129,6 @@ internal class RevurderingServiceImpl(
     private val brevService: BrevService,
     private val clock: Clock,
     private val vedtakRepo: VedtakRepo,
-    vedtakService: VedtakService,
     private val kontrollsamtaleService: KontrollsamtaleService,
     private val sessionFactory: SessionFactory,
     private val formuegrenserFactory: FormuegrenserFactory,
@@ -151,126 +137,17 @@ internal class RevurderingServiceImpl(
     private val tilbakekrevingService: TilbakekrevingService,
     private val satsFactory: SatsFactory,
 ) : RevurderingService {
-    private val stansAvYtelseService = StansAvYtelseService(
-        utbetalingService = utbetalingService,
-        revurderingRepo = revurderingRepo,
-        vedtakService = vedtakService,
-        sakService = sakService,
-        clock = clock,
-    )
-
-    private val gjenopptakAvYtelseService = GjenopptakAvYtelseService(
-        utbetalingService = utbetalingService,
-        revurderingRepo = revurderingRepo,
-        clock = clock,
-        vedtakRepo = vedtakRepo,
-        sakService = sakService,
-        sessionFactory = sessionFactory,
-    )
 
     private val observers: MutableList<StatistikkEventObserver> = mutableListOf()
 
     fun addObserver(observer: StatistikkEventObserver) {
         observers.add(observer)
-        gjenopptakAvYtelseService.addObserver(observer)
-        stansAvYtelseService.addObserver(observer)
     }
 
     fun getObservers(): List<StatistikkEventObserver> = observers.toList()
 
     override fun hentRevurdering(revurderingId: UUID): AbstraktRevurdering? {
         return revurderingRepo.hent(revurderingId)
-    }
-
-    override fun stansAvYtelse(
-        request: StansYtelseRequest,
-    ): Either<KunneIkkeStanseYtelse, StansAvYtelseRevurdering.SimulertStansAvYtelse> {
-        return Either.catch {
-            sessionFactory.withTransactionContext { tx ->
-                stansAvYtelseITransaksjon(
-                    request = request,
-                    transactionContext = tx,
-                ).also { response ->
-                    response.sendStatistikkCallback()
-                }
-            }
-        }.mapLeft {
-            when (it) {
-                is StansAvYtelseTransactionException -> {
-                    it.feil
-                }
-                else -> {
-                    KunneIkkeStanseYtelse.UkjentFeil(it.message.toString())
-                }
-            }
-        }.map {
-            it.revurdering
-        }
-    }
-
-    override fun stansAvYtelseITransaksjon(
-        request: StansYtelseRequest,
-        transactionContext: TransactionContext,
-    ): StansAvYtelseITransaksjonResponse {
-        return stansAvYtelseService.stansAvYtelse(
-            request = request,
-            transactionContext = transactionContext,
-        )
-    }
-
-    override fun iverksettStansAvYtelse(
-        revurderingId: UUID,
-        attestant: NavIdentBruker.Attestant,
-    ): Either<KunneIkkeIverksetteStansYtelse, StansAvYtelseRevurdering.IverksattStansAvYtelse> {
-        return Either.catch {
-            sessionFactory.withTransactionContext { tx ->
-                iverksettStansAvYtelseITransaksjon(
-                    revurderingId = revurderingId,
-                    attestant = attestant,
-                    transactionContext = tx,
-                ).also { response ->
-                    response.sendUtbetalingCallback()
-                        .getOrHandle {
-                            throw KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale(UtbetalStansFeil.KunneIkkeUtbetale(it)).exception()
-                        }
-                    response.sendStatistikkCallback()
-                }
-            }
-        }.mapLeft {
-            when (it) {
-                is IverksettStansAvYtelseTransactionException -> {
-                    it.feil
-                }
-                else -> {
-                    KunneIkkeIverksetteStansYtelse.UkjentFeil(it.message.toString())
-                }
-            }
-        }.map {
-            it.revurdering
-        }
-    }
-
-    override fun iverksettStansAvYtelseITransaksjon(
-        revurderingId: UUID,
-        attestant: NavIdentBruker.Attestant,
-        transactionContext: TransactionContext,
-    ): IverksettStansAvYtelseITransaksjonResponse {
-        return stansAvYtelseService.iverksettStansAvYtelse(
-            revurderingId = revurderingId,
-            attestant = attestant,
-            sessionContext = transactionContext,
-        )
-    }
-
-    override fun gjenopptaYtelse(request: GjenopptaYtelseRequest): Either<KunneIkkeGjenopptaYtelse, GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse> {
-        return gjenopptakAvYtelseService.gjenopptaYtelse(request)
-    }
-
-    override fun iverksettGjenopptakAvYtelse(
-        revurderingId: UUID,
-        attestant: NavIdentBruker.Attestant,
-    ): Either<KunneIkkeIverksetteGjenopptakAvYtelse, GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse> {
-        return gjenopptakAvYtelseService.iverksettGjenopptakAvYtelse(revurderingId, attestant)
     }
 
     override fun opprettRevurdering(

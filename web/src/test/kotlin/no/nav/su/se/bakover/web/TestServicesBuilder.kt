@@ -6,6 +6,8 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.person.PersonService
 import no.nav.su.se.bakover.domain.regulering.ReguleringService
 import no.nav.su.se.bakover.domain.revurdering.RevurderingService
+import no.nav.su.se.bakover.domain.revurdering.gjenopptak.GjenopptaYtelseService
+import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseService
 import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.SendPåminnelserOmNyStønadsperiodeService
@@ -51,6 +53,8 @@ object TestServicesBuilder {
         sendPåminnelserOmNyStønadsperiodeService: SendPåminnelserOmNyStønadsperiodeService = mock(),
         skatteService: SkatteService = mock(),
         utløptFristForKontrollsamtaleService: UtløptFristForKontrollsamtaleService = mock(),
+        stansAvYtelseService: StansYtelseService = mock(),
+        gjenopptakAvYtelseService: GjenopptaYtelseService = mock(),
     ): Services = Services(
         avstemming = avstemming,
         utbetaling = utbetaling,
@@ -75,5 +79,7 @@ object TestServicesBuilder {
         sendPåminnelserOmNyStønadsperiodeService = sendPåminnelserOmNyStønadsperiodeService,
         skatteService = skatteService,
         utløptFristForKontrollsamtaleService = utløptFristForKontrollsamtaleService,
+        stansYtelse = stansAvYtelseService,
+        gjenopptaYtelse = gjenopptakAvYtelseService,
     )
 }

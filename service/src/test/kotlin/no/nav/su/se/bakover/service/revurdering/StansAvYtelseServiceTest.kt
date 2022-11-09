@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.common.periode.år
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.oppdrag.KryssjekkAvTidslinjeOgSimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.KryssjekkFeil
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -29,20 +30,27 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulerStansFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalStansFeil
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeIverksetteStansYtelse
-import no.nav.su.se.bakover.domain.revurdering.KunneIkkeStanseYtelse
+import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
-import no.nav.su.se.bakover.domain.revurdering.StansYtelseRequest
+import no.nav.su.se.bakover.domain.revurdering.stans.KunneIkkeIverksetteStansYtelse
+import no.nav.su.se.bakover.domain.revurdering.stans.KunneIkkeStanseYtelse
+import no.nav.su.se.bakover.domain.revurdering.stans.StansYtelseRequest
+import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
+import no.nav.su.se.bakover.domain.statistikk.StatistikkEventObserver
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.argThat
 import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.beregnetRevurdering
+import no.nav.su.se.bakover.test.defaultMock
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.sakId
@@ -65,13 +73,14 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import java.time.Clock
 import java.util.UUID
 
 internal class StansAvYtelseServiceTest {
 
     @Test
     fun `svarer med feil dersom vi ikke får tak i gjeldende grunnlagdata`() {
-        RevurderingServiceMocks(
+        ServiceMocks(
             sakService = mock {
                 on {
                     hentSak(
@@ -81,18 +90,18 @@ internal class StansAvYtelseServiceTest {
                 } doReturn søknadsbehandlingIverksattAvslagUtenBeregning().first.right()
             },
         ).let {
-            it.revurderingService.stansAvYtelse(defaultOpprettRequest()) shouldBe KunneIkkeStanseYtelse.KunneIkkeOppretteRevurdering.left()
+            it.stansYtelseService.stansAvYtelse(defaultOpprettRequest()) shouldBe KunneIkkeStanseYtelse.KunneIkkeOppretteRevurdering.left()
         }
     }
 
     @Test
     fun `får ikke opprettet dersom sak har åpen behandling`() {
-        RevurderingServiceMocks(
+        ServiceMocks(
             sakService = mock {
                 on { hentSak(any<UUID>(), any()) } doReturn søknadsbehandlingVilkårsvurdertUavklart().first.right()
             },
         ).let {
-            it.revurderingService.stansAvYtelse(defaultOpprettRequest()) shouldBe KunneIkkeStanseYtelse.SakHarÅpenBehandling.left()
+            it.stansYtelseService.stansAvYtelse(defaultOpprettRequest()) shouldBe KunneIkkeStanseYtelse.SakHarÅpenBehandling.left()
         }
     }
 
@@ -102,7 +111,7 @@ internal class StansAvYtelseServiceTest {
         val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget(
             clock = tikkendeKlokke,
         )
-        RevurderingServiceMocks(
+        ServiceMocks(
             utbetalingService = mock {
                 on { simulerUtbetaling(any(), any()) } doReturn SimuleringFeilet.TekniskFeil.left()
             },
@@ -111,7 +120,7 @@ internal class StansAvYtelseServiceTest {
             },
             clock = tikkendeKlokke,
         ).let { serviceAndMocks ->
-            serviceAndMocks.revurderingService.stansAvYtelse(defaultOpprettRequest()) shouldBe KunneIkkeStanseYtelse.SimuleringAvStansFeilet(
+            serviceAndMocks.stansYtelseService.stansAvYtelse(defaultOpprettRequest()) shouldBe KunneIkkeStanseYtelse.SimuleringAvStansFeilet(
                 SimulerStansFeilet.KunneIkkeSimulere(SimulerUtbetalingFeilet.FeilVedSimulering(SimuleringFeilet.TekniskFeil)),
             ).left()
 
@@ -135,7 +144,7 @@ internal class StansAvYtelseServiceTest {
         val (sak, _) = iverksattSøknadsbehandlingUføre(
             clock = clock,
         )
-        RevurderingServiceMocks(
+        ServiceMocks(
             utbetalingService = mock {
                 doAnswer { invocation ->
                     simulerUtbetaling(
@@ -154,7 +163,7 @@ internal class StansAvYtelseServiceTest {
             },
             clock = clock,
         ).also { serviceAndMocks ->
-            val response = serviceAndMocks.revurderingService.stansAvYtelse(defaultOpprettRequest())
+            val response = serviceAndMocks.stansYtelseService.stansAvYtelse(defaultOpprettRequest())
                 .getOrFail()
                 .shouldBeType<StansAvYtelseRevurdering.SimulertStansAvYtelse>()
 
@@ -190,7 +199,7 @@ internal class StansAvYtelseServiceTest {
             clock = tikkendeFixedClock,
         )
 
-        RevurderingServiceMocks(
+        ServiceMocks(
             sakService = mock {
                 on { hentSakForRevurdering(any(), any()) } doReturn sak
             },
@@ -207,7 +216,7 @@ internal class StansAvYtelseServiceTest {
             },
             clock = tikkendeFixedClock,
         ).let { serviceAndMocks ->
-            serviceAndMocks.revurderingService.iverksettStansAvYtelse(
+            serviceAndMocks.stansYtelseService.iverksettStansAvYtelse(
                 revurderingId = simulertStans.id,
                 attestant = attestant,
             ) shouldBe KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale(
@@ -249,7 +258,7 @@ internal class StansAvYtelseServiceTest {
                 on { it.invoke(any()) } doReturn utbetalingsRequest.right()
             }
 
-        val serviceAndMocks = RevurderingServiceMocks(
+        val serviceAndMocks = ServiceMocks(
             sakService = mock {
                 on { hentSakForRevurdering(any(), any()) } doReturn sak
             },
@@ -279,7 +288,7 @@ internal class StansAvYtelseServiceTest {
             clock = tikkendeKlokke,
         )
 
-        val response = serviceAndMocks.revurderingService.iverksettStansAvYtelse(
+        val response = serviceAndMocks.stansYtelseService.iverksettStansAvYtelse(
             revurderingId = simulertStans.id,
             attestant = attestant,
         ).getOrFail()
@@ -327,12 +336,12 @@ internal class StansAvYtelseServiceTest {
         val (sak, enRevurdering) = beregnetRevurdering(
             stønadsperiode = Stønadsperiode.create(år(2021)),
         )
-        RevurderingServiceMocks(
+        ServiceMocks(
             sakService = mock {
                 on { hentSak(any<UUID>(), any()) } doReturn sak.right()
             },
         ).let {
-            it.revurderingService.stansAvYtelse(
+            it.stansYtelseService.stansAvYtelse(
                 StansYtelseRequest.Oppdater(
                     sakId = sak.id,
                     saksbehandler = NavIdentBruker.Saksbehandler("sverre"),
@@ -363,7 +372,7 @@ internal class StansAvYtelseServiceTest {
             utbetalingerKjørtTilOgMed = 1.januar(2021),
         )
 
-        RevurderingServiceMocks(
+        ServiceMocks(
             sakService = mock {
                 on { hentSak(any<UUID>(), any()) } doReturn sak.right()
             },
@@ -382,7 +391,7 @@ internal class StansAvYtelseServiceTest {
             },
             clock = clock,
         ).let { serviceAndMocks ->
-            val response = serviceAndMocks.revurderingService.stansAvYtelse(
+            val response = serviceAndMocks.stansYtelseService.stansAvYtelse(
                 StansYtelseRequest.Oppdater(
                     sakId = sakId,
                     saksbehandler = NavIdentBruker.Saksbehandler("kjeks"),
@@ -435,7 +444,7 @@ internal class StansAvYtelseServiceTest {
             on { simulering } doReturn simuleringFeilutbetaling(*eksisterende.periode.måneder().toTypedArray())
         }
 
-        RevurderingServiceMocks(
+        ServiceMocks(
             sakService = mock {
                 on { hentSakForRevurdering(any(), any()) } doReturn sak
             },
@@ -444,7 +453,7 @@ internal class StansAvYtelseServiceTest {
             },
             clock = tikkendeKlokke,
         ).let {
-            val response = it.revurderingService.iverksettStansAvYtelse(
+            val response = it.stansYtelseService.iverksettStansAvYtelse(
                 revurderingId = eksisterende.id,
                 attestant = attestant,
             )
@@ -472,12 +481,14 @@ internal class StansAvYtelseServiceTest {
 
     @Test
     fun `får ikke opprettet ny hvis det allerede eksisterer åpen revurdering for stans`() {
-        RevurderingServiceMocks(
+        ServiceMocks(
             sakService = mock {
-                on { hentSak(any<UUID>(), any()) } doReturn simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(periode = år(2021)).first.right()
+                on { hentSak(any<UUID>(), any()) } doReturn simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+                    periode = år(2021),
+                ).first.right()
             },
         ).let {
-            it.revurderingService.stansAvYtelse(defaultOpprettRequest()) shouldBe KunneIkkeStanseYtelse.SakHarÅpenBehandling.left()
+            it.stansYtelseService.stansAvYtelse(defaultOpprettRequest()) shouldBe KunneIkkeStanseYtelse.SakHarÅpenBehandling.left()
         }
     }
 
@@ -490,4 +501,36 @@ internal class StansAvYtelseServiceTest {
             begrunnelse = "opprett",
         ),
     )
+
+    private data class ServiceMocks(
+        val utbetalingService: UtbetalingService = defaultMock(),
+        val revurderingRepo: RevurderingRepo = defaultMock(),
+        val vedtakService: VedtakService = defaultMock(),
+        val sakService: SakService = defaultMock(),
+        val clock: Clock = fixedClock,
+        val sessionFactory: SessionFactory = TestSessionFactory(),
+        val observer: StatistikkEventObserver = mock(),
+    ) {
+        val stansYtelseService = StansYtelseServiceImpl(
+            utbetalingService = utbetalingService,
+            revurderingRepo = revurderingRepo,
+            vedtakService = vedtakService,
+            sakService = sakService,
+            clock = clock,
+            sessionFactory = sessionFactory,
+        ).apply { addObserver(observer) }
+
+        fun all() = listOf(
+            utbetalingService,
+            revurderingRepo,
+            vedtakService,
+            sakService,
+        ).toTypedArray()
+
+        fun verifyNoMoreInteractions() {
+            org.mockito.kotlin.verifyNoMoreInteractions(
+                *all(),
+            )
+        }
+    }
 }

@@ -296,13 +296,13 @@ internal class KontrollsamtaleKomponentTest {
                         UtløptFristForKontrollsamtaleContext.Feilet(
                             id = kontrollsamtaler[5].id,
                             retries = 0,
-                            feil = """class no.nav.su.se.bakover.domain.revurdering.KunneIkkeStanseYtelse${"\$"}SakHarÅpenBehandling""",
+                            feil = """class no.nav.su.se.bakover.domain.revurdering.stans.KunneIkkeStanseYtelse${"\$"}SakHarÅpenBehandling""",
                             oppgaveId = null,
                         ),
                         UtløptFristForKontrollsamtaleContext.Feilet(
                             id = kontrollsamtaler[6].id,
                             retries = 0,
-                            feil = """class no.nav.su.se.bakover.domain.revurdering.KunneIkkeStanseYtelse${"\$"}SakHarÅpenBehandling""",
+                            feil = """class no.nav.su.se.bakover.domain.revurdering.stans.KunneIkkeStanseYtelse${"\$"}SakHarÅpenBehandling""",
                             oppgaveId = null,
                         ),
                     ),
@@ -345,13 +345,13 @@ internal class KontrollsamtaleKomponentTest {
                         UtløptFristForKontrollsamtaleContext.Feilet(
                             id = kontrollsamtaler[5].id,
                             retries = 1,
-                            feil = """class no.nav.su.se.bakover.domain.revurdering.KunneIkkeStanseYtelse${"\$"}SakHarÅpenBehandling""",
+                            feil = """class no.nav.su.se.bakover.domain.revurdering.stans.KunneIkkeStanseYtelse${"\$"}SakHarÅpenBehandling""",
                             oppgaveId = null,
                         ),
                         UtløptFristForKontrollsamtaleContext.Feilet(
                             id = kontrollsamtaler[6].id,
                             retries = 1,
-                            feil = """class no.nav.su.se.bakover.domain.revurdering.KunneIkkeStanseYtelse${"\$"}SakHarÅpenBehandling""",
+                            feil = """class no.nav.su.se.bakover.domain.revurdering.stans.KunneIkkeStanseYtelse${"\$"}SakHarÅpenBehandling""",
                             oppgaveId = null,
                         ),
                     ),
@@ -399,13 +399,13 @@ internal class KontrollsamtaleKomponentTest {
                         UtløptFristForKontrollsamtaleContext.Feilet(
                             id = kontrollsamtaler[5].id,
                             retries = 2,
-                            feil = """class no.nav.su.se.bakover.domain.revurdering.KunneIkkeStanseYtelse${"\$"}SakHarÅpenBehandling""",
+                            feil = """class no.nav.su.se.bakover.domain.revurdering.stans.KunneIkkeStanseYtelse${"\$"}SakHarÅpenBehandling""",
                             oppgaveId = "stubbed",
                         ),
                         UtløptFristForKontrollsamtaleContext.Feilet(
                             id = kontrollsamtaler[6].id,
                             retries = 2,
-                            feil = """class no.nav.su.se.bakover.domain.revurdering.KunneIkkeStanseYtelse${"\$"}SakHarÅpenBehandling""",
+                            feil = """class no.nav.su.se.bakover.domain.revurdering.stans.KunneIkkeStanseYtelse${"\$"}SakHarÅpenBehandling""",
                             oppgaveId = null,
                         ),
                     ),

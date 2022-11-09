@@ -50,6 +50,8 @@ internal class AccessCheckProxyTest {
         sendPåminnelserOmNyStønadsperiodeService = mock(),
         skatteService = mock(),
         utløptFristForKontrollsamtaleService = mock(),
+        stansYtelse = mock(),
+        gjenopptaYtelse = mock(),
     )
 
     @Nested
