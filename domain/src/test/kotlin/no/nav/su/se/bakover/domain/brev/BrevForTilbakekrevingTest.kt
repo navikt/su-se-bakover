@@ -86,7 +86,7 @@ class BrevForTilbakekrevingTest {
                         saksbehandlerNavn = "kjell",
                         fritekst = "da",
                         clock = fixedClock,
-                    ),
+                    ).getOrFail(),
                 )
                 requireType<Dokument.UtenMetadata.Informasjon>(
                     forhåndsvarsel.tilDokument(fixedClock) { "fakePDF".toByteArray().right() }
@@ -134,6 +134,19 @@ class BrevForTilbakekrevingTest {
                 )
             }.let { (sak, revurdering) ->
                 requireType<Pair<Sak, UnderkjentRevurdering.Innvilget>>(sak to revurdering)
+                val forhåndsvarsel = requireType<LagBrevRequest.ForhåndsvarselTilbakekreving>(
+                    revurdering.lagForhåndsvarsel(
+                        person = person,
+                        saksbehandlerNavn = "kjell",
+                        fritekst = "da",
+                        clock = fixedClock,
+                    ).getOrFail(),
+                )
+                requireType<Dokument.UtenMetadata.Informasjon>(
+                    forhåndsvarsel.tilDokument(fixedClock) { "fakePDF".toByteArray().right() }
+                        .getOrFail(),
+                )
+
                 requireType<LagBrevRequest.TilbakekrevingAvPenger>(
                     lagVisitor(sak = sak).let { visitor ->
                         revurdering.accept(visitor)
@@ -183,7 +196,7 @@ class BrevForTilbakekrevingTest {
                         saksbehandlerNavn = "kjell",
                         fritekst = "da",
                         clock = fixedClock,
-                    ),
+                    ).getOrFail(),
                 )
                 requireType<Dokument.UtenMetadata.Informasjon>(
                     forhåndsvarsel.tilDokument(fixedClock) { "fakePDF".toByteArray().right() }

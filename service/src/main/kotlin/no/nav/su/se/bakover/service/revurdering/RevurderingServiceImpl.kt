@@ -638,11 +638,6 @@ internal class RevurderingServiceImpl(
         fritekst: String,
     ): Either<KunneIkkeForhåndsvarsle, Revurdering> {
         val revurdering = hent(revurderingId).getOrHandle { return KunneIkkeForhåndsvarsle.FantIkkeRevurdering.left() }
-        if (revurdering !is SimulertRevurdering) {
-            return KunneIkkeForhåndsvarsle.MåVæreITilstandenSimulert(
-                revurdering::class,
-            ).left()
-        }
         kanSendesTilAttestering(revurdering).getOrHandle {
             return KunneIkkeForhåndsvarsle.Attestering(it).left()
         }
@@ -665,7 +660,9 @@ internal class RevurderingServiceImpl(
                 saksbehandlerNavn = saksbehandlerNavn,
                 fritekst = fritekst,
                 clock = clock,
-            ).let { forhåndsvarselBrev ->
+            ).mapLeft {
+                KunneIkkeForhåndsvarsle.UgyldigTilstand
+            }.flatMap { forhåndsvarselBrev ->
                 forhåndsvarselBrev.tilDokument(clock) {
                     brevService.lagBrev(it).mapLeft {
                         LagBrevRequest.KunneIkkeGenererePdf
@@ -733,7 +730,6 @@ internal class RevurderingServiceImpl(
         return hent(revurderingId).mapLeft {
             KunneIkkeLageBrevutkastForRevurdering.FantIkkeRevurdering
         }.flatMap { revurdering ->
-            if (revurdering !is SimulertRevurdering) return KunneIkkeLageBrevutkastForRevurdering.KunneIkkeLageBrevutkast.left()
 
             hentPersonOgSaksbehandlerNavn(
                 fnr = revurdering.fnr,
@@ -754,7 +750,9 @@ internal class RevurderingServiceImpl(
                     saksbehandlerNavn = saksbehandlerNavn,
                     fritekst = fritekst,
                     clock = clock,
-                ).let {
+                ).mapLeft {
+                    KunneIkkeLageBrevutkastForRevurdering.UgyldigTilstand
+                }.flatMap {
                     brevService.lagBrev(it).mapLeft {
                         KunneIkkeLageBrevutkastForRevurdering.KunneIkkeLageBrevutkast
                     }
@@ -1086,6 +1084,7 @@ internal class RevurderingServiceImpl(
                             Sakstype.ALDER -> {
                                 null
                             }
+
                             Sakstype.UFØRE -> {
                                 iverksattRevurdering.vilkårsvurderinger.uføreVilkår()
                                     .getOrHandle { throw IllegalStateException("Revurdering uføre: ${iverksattRevurdering.id} mangler uføregrunnlag") }

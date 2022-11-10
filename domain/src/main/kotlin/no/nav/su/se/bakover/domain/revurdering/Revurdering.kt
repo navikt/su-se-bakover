@@ -127,6 +127,15 @@ sealed class Revurdering :
     abstract val beregning: Beregning?
     abstract val simulering: Simulering?
 
+    open fun lagForhåndsvarsel(
+        person: Person,
+        saksbehandlerNavn: String,
+        fritekst: String,
+        clock: Clock,
+    ): Either<UgyldigTilstand, LagBrevRequest> {
+        return UgyldigTilstand(this::class, this::class).left()
+    }
+
     fun vilkårsvurderingsResultat(): Vilkårsvurderingsresultat {
         return vilkårsvurderinger.vurdering
     }
@@ -1018,6 +1027,7 @@ sealed class BeregnetRevurdering : Revurdering() {
                     Sakstype.ALDER -> {
                         null
                     }
+
                     Sakstype.UFØRE -> {
                         vilkårsvurderinger.uføreVilkår()
                             .getOrHandle { throw IllegalStateException("Revurdering uføre: $id mangler uføregrunnlag") }
@@ -1344,12 +1354,12 @@ sealed class SimulertRevurdering : Revurdering() {
 
     fun harSimuleringFeilutbetaling() = simulering.harFeilutbetalinger()
 
-    fun lagForhåndsvarsel(
+    override fun lagForhåndsvarsel(
         person: Person,
         saksbehandlerNavn: String,
         fritekst: String,
         clock: Clock,
-    ): LagBrevRequest {
+    ): Either<UgyldigTilstand, LagBrevRequest> {
         return tilbakekrevingsbehandling.skalTilbakekreve().fold(
             {
                 LagBrevRequest.Forhåndsvarsel(
@@ -1371,7 +1381,7 @@ sealed class SimulertRevurdering : Revurdering() {
                     tilbakekreving = Tilbakekreving(simulering.hentFeilutbetalteBeløp().månedbeløp),
                 )
             },
-        )
+        ).right()
     }
 
     override fun oppdaterUføreOgMarkerSomVurdert(
@@ -2184,6 +2194,36 @@ sealed class UnderkjentRevurdering : Revurdering() {
             tilbakekrevingsbehandling = tilbakekrevingsbehandling,
             sakinfo = sakinfo,
         )
+
+        override fun lagForhåndsvarsel(
+            person: Person,
+            saksbehandlerNavn: String,
+            fritekst: String,
+            clock: Clock,
+        ): Either<UgyldigTilstand, LagBrevRequest> {
+            return tilbakekrevingsbehandling.skalTilbakekreve().fold(
+                {
+                    LagBrevRequest.Forhåndsvarsel(
+                        person = person,
+                        saksbehandlerNavn = saksbehandlerNavn,
+                        fritekst = fritekst,
+                        dagensDato = LocalDate.now(clock),
+                        saksnummer = saksnummer,
+                    )
+                },
+                {
+                    LagBrevRequest.ForhåndsvarselTilbakekreving(
+                        person = person,
+                        saksbehandlerNavn = saksbehandlerNavn,
+                        fritekst = fritekst,
+                        dagensDato = LocalDate.now(clock),
+                        saksnummer = saksnummer,
+                        bruttoTilbakekreving = simulering.hentFeilutbetalteBeløp().sum(),
+                        tilbakekreving = Tilbakekreving(simulering.hentFeilutbetalteBeløp().månedbeløp),
+                    )
+                },
+            ).right()
+        }
     }
 
     data class Opphørt(
@@ -2222,6 +2262,36 @@ sealed class UnderkjentRevurdering : Revurdering() {
                 is OpphørVedRevurdering.Ja -> opphør.opphørsgrunner
                 OpphørVedRevurdering.Nei -> emptyList()
             }
+        }
+
+        override fun lagForhåndsvarsel(
+            person: Person,
+            saksbehandlerNavn: String,
+            fritekst: String,
+            clock: Clock,
+        ): Either<UgyldigTilstand, LagBrevRequest> {
+            return tilbakekrevingsbehandling.skalTilbakekreve().fold(
+                {
+                    LagBrevRequest.Forhåndsvarsel(
+                        person = person,
+                        saksbehandlerNavn = saksbehandlerNavn,
+                        fritekst = fritekst,
+                        dagensDato = LocalDate.now(clock),
+                        saksnummer = saksnummer,
+                    )
+                },
+                {
+                    LagBrevRequest.ForhåndsvarselTilbakekreving(
+                        person = person,
+                        saksbehandlerNavn = saksbehandlerNavn,
+                        fritekst = fritekst,
+                        dagensDato = LocalDate.now(clock),
+                        saksnummer = saksnummer,
+                        bruttoTilbakekreving = simulering.hentFeilutbetalteBeløp().sum(),
+                        tilbakekreving = Tilbakekreving(simulering.hentFeilutbetalteBeløp().månedbeløp),
+                    )
+                },
+            ).right()
         }
 
         object KanIkkeSendeEnOpphørtGReguleringTilAttestering

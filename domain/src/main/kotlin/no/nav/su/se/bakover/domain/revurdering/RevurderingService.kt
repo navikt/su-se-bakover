@@ -194,7 +194,8 @@ sealed class KunneIkkeOppdatereRevurdering {
     object MåVelgeInformasjonSomSkalRevurderes : KunneIkkeOppdatereRevurdering()
     object UgyldigÅrsak : KunneIkkeOppdatereRevurdering()
     object UgyldigBegrunnelse : KunneIkkeOppdatereRevurdering()
-    data class FeilVedOppdateringAvRevurdering(val feil: Sak.KunneIkkeOppdatereRevurdering) : KunneIkkeOppdatereRevurdering()
+    data class FeilVedOppdateringAvRevurdering(val feil: Sak.KunneIkkeOppdatereRevurdering) :
+        KunneIkkeOppdatereRevurdering()
 }
 
 sealed class KunneIkkeBeregneOgSimulereRevurdering {
@@ -209,7 +210,9 @@ sealed class KunneIkkeBeregneOgSimulereRevurdering {
 
     object KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps : KunneIkkeBeregneOgSimulereRevurdering()
 
-    data class KunneIkkeSimulere(val simuleringFeilet: SimulerUtbetalingFeilet) : KunneIkkeBeregneOgSimulereRevurdering()
+    data class KunneIkkeSimulere(val simuleringFeilet: SimulerUtbetalingFeilet) :
+        KunneIkkeBeregneOgSimulereRevurdering()
+
     object AvkortingErUfullstendig : KunneIkkeBeregneOgSimulereRevurdering()
     object OpphørAvYtelseSomSkalAvkortes : KunneIkkeBeregneOgSimulereRevurdering()
 }
@@ -219,7 +222,7 @@ sealed class KunneIkkeForhåndsvarsle {
     object FantIkkePerson : KunneIkkeForhåndsvarsle()
     object KunneIkkeOppdatereOppgave : KunneIkkeForhåndsvarsle()
     object KunneIkkeHenteNavnForSaksbehandler : KunneIkkeForhåndsvarsle()
-    data class MåVæreITilstandenSimulert(val fra: KClass<out Revurdering>) : KunneIkkeForhåndsvarsle()
+    object UgyldigTilstand : KunneIkkeForhåndsvarsle()
     data class Attestering(val subError: KunneIkkeSendeRevurderingTilAttestering) : KunneIkkeForhåndsvarsle()
     object KunneIkkeGenerereDokument : KunneIkkeForhåndsvarsle()
 }
@@ -267,6 +270,7 @@ sealed class KunneIkkeLageBrevutkastForRevurdering {
     object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : KunneIkkeLageBrevutkastForRevurdering()
     object KunneIkkeFinneGjeldendeUtbetaling : KunneIkkeLageBrevutkastForRevurdering()
     object DetSkalIkkeSendesBrev : KunneIkkeLageBrevutkastForRevurdering()
+    object UgyldigTilstand : KunneIkkeLageBrevutkastForRevurdering()
 }
 
 sealed class KunneIkkeHentePersonEllerSaksbehandlerNavn {
