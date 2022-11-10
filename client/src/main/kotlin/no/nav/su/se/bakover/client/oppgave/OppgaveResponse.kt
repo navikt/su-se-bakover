@@ -18,7 +18,6 @@ internal data class OppgaveResponse(
     val id: Long,
     val tildeltEnhetsnr: String,
     val journalpostId: String?,
-    val behandlesAvApplikasjon: String?,
     val saksreferanse: String?,
     val aktoerId: String?,
     val beskrivelse: String?,

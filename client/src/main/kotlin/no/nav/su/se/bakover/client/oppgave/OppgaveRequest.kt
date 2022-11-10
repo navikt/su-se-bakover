@@ -7,7 +7,6 @@ internal data class OppgaveRequest(
     val saksreferanse: String,
     val aktoerId: String,
     val tema: String,
-    val behandlesAvApplikasjon: String,
     val beskrivelse: String,
     val oppgavetype: String,
     val behandlingstema: String?,

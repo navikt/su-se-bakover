@@ -145,7 +145,6 @@ internal class OppgaveHttpClient(
                                 saksreferanse = config.saksreferanse,
                                 aktoerId = config.aktørId.toString(),
                                 tema = Tema.SUPPLERENDE_STØNAD.value,
-                                behandlesAvApplikasjon = "SUPSTONAD",
                                 beskrivelse = beskrivelse,
                                 oppgavetype = config.oppgavetype.toString(),
                                 behandlingstema = config.behandlingstema?.toString(),
