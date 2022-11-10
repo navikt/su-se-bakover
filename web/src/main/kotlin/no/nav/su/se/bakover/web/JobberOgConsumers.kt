@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.service.Services
+import no.nav.su.se.bakover.service.brev.DistribuerBrevService
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
 import no.nav.su.se.bakover.web.services.SendPåminnelseNyStønadsperiodeJob
 import no.nav.su.se.bakover.web.services.avstemming.GrensesnittsavstemingJob
@@ -68,6 +69,14 @@ internal fun startJobberOgConsumers(
         toggleService = services.toggles,
 
     )
+    val distribuerBrevService = DistribuerBrevService(
+        sakService = services.sak,
+        dokumentRepo = databaseRepos.dokumentRepo,
+        dokDistFordeling = clients.dokDistFordeling,
+        personService = services.person,
+        dokArkiv = clients.dokArkiv,
+    )
+
     if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais) {
         // Prøver å time starten på jobbene slik at de ikke går i beina på hverandre.
         val initialDelay = object {
@@ -95,10 +104,10 @@ internal fun startJobberOgConsumers(
         )
 
         DistribuerDokumentJob(
-            brevService = services.brev,
             initialDelay = initialDelay.next(),
             periode = Duration.of(15, ChronoUnit.MINUTES),
             runCheckFactory = runCheckFactory,
+            distribuerBrevService = distribuerBrevService,
         ).schedule()
 
         GrensesnittsavstemingJob(
@@ -216,10 +225,10 @@ internal fun startJobberOgConsumers(
         ).schedule()
 
         DistribuerDokumentJob(
-            brevService = services.brev,
             initialDelay = initialDelay.next(),
             periode = Duration.ofSeconds(10),
             runCheckFactory = runCheckFactory,
+            distribuerBrevService = distribuerBrevService,
         ).schedule()
 
         GrensesnittsavstemingJob(

@@ -56,11 +56,6 @@ object ServiceBuilder {
             clock = clock,
             gitCommit = applicationConfig.gitCommit,
         ).statistikkService
-
-        val sakService = SakServiceImpl(
-            sakRepo = databaseRepos.sak,
-            clock = clock,
-        ).apply { addObserver(statistikkEventObserver) }
         val utbetalingService = UtbetalingServiceImpl(
             utbetalingRepo = databaseRepos.utbetaling,
             simuleringClient = clients.simuleringClient,
@@ -69,10 +64,7 @@ object ServiceBuilder {
         )
         val brevService = BrevServiceImpl(
             pdfGenerator = clients.pdfGenerator,
-            dokArkiv = clients.dokArkiv,
-            dokDistFordeling = clients.dokDistFordeling,
             dokumentRepo = databaseRepos.dokumentRepo,
-            sakService = sakService,
             personService = personService,
             sessionFactory = databaseRepos.sessionFactory,
             microsoftGraphApiOppslag = clients.identClient,
@@ -80,6 +72,14 @@ object ServiceBuilder {
             clock = clock,
             satsFactory = satsFactory,
         )
+        val sakService = SakServiceImpl(
+            sakRepo = databaseRepos.sak,
+            clock = clock,
+            dokumentRepo = databaseRepos.dokumentRepo,
+            brevService = brevService,
+            personService = personService,
+        ).apply { addObserver(statistikkEventObserver) }
+
         val oppgaveService = OppgaveServiceImpl(
             oppgaveClient = clients.oppgaveClient,
         )

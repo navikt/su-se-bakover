@@ -4,10 +4,6 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.client.ClientError
-import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
-import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
-import no.nav.su.se.bakover.client.dokdistfordeling.KunneIkkeBestilleDistribusjon
 import no.nav.su.se.bakover.client.pdf.KunneIkkeGenererePdf
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.common.AktørId
@@ -15,26 +11,16 @@ import no.nav.su.se.bakover.common.Fnr
 import no.nav.su.se.bakover.common.Ident
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.application.journal.JournalpostId
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.zoneIdOslo
-import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.brev.BrevTemplate
-import no.nav.su.se.bakover.domain.brev.BrevbestillingId
-import no.nav.su.se.bakover.domain.brev.Distribusjonstidspunkt
-import no.nav.su.se.bakover.domain.brev.Distribusjonstype
 import no.nav.su.se.bakover.domain.brev.HentDokumenterForIdType
-import no.nav.su.se.bakover.domain.brev.KunneIkkeBestilleBrevForDokument
-import no.nav.su.se.bakover.domain.brev.KunneIkkeJournalføreDokument
 import no.nav.su.se.bakover.domain.brev.KunneIkkeLageBrev
-import no.nav.su.se.bakover.domain.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
-import no.nav.su.se.bakover.domain.dokument.Dokumentdistribusjon
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
+import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.oppdrag.FantIkkeGjeldendeUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.person.IdentClient
@@ -42,11 +28,7 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHenteNavnForNavIdent
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.Person
 import no.nav.su.se.bakover.domain.person.PersonService
-import no.nav.su.se.bakover.domain.sak.FantIkkeSak
-import no.nav.su.se.bakover.domain.sak.SakService
 import no.nav.su.se.bakover.domain.sak.Saksnummer
-import no.nav.su.se.bakover.domain.sak.Sakstype
-import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
@@ -76,8 +58,6 @@ internal class BrevServiceImplTest {
             ),
             navn = Person.Navn(fornavn = "Tore", mellomnavn = null, etternavn = "Strømøy"),
         )
-        private val distribusjonstype = Distribusjonstype.VIKTIG
-        private val distribusjonstidspunkt = Distribusjonstidspunkt.KJERNETID
     }
 
     @Test
@@ -108,239 +88,6 @@ internal class BrevServiceImplTest {
         ).brevService.lagBrev(DummyRequest) shouldBe KunneIkkeLageBrev.KunneIkkeGenererePDF.left()
         verify(pdfGeneratorMock).genererPdf(DummyBrevInnhold)
         verifyNoMoreInteractions(pdfGeneratorMock)
-    }
-
-    @Test
-    fun `distribuerer brev`() {
-        val dockdistMock = mock<DokDistFordeling> {
-            on {
-                bestillDistribusjon(
-                    JournalpostId("journalpostId"),
-                    distribusjonstype,
-                    distribusjonstidspunkt,
-                )
-            } doReturn BrevbestillingId("en bestillings id").right()
-        }
-
-        ServiceOgMocks(
-            dokDistFordeling = dockdistMock,
-        ).brevService.distribuerBrev(
-            JournalpostId("journalpostId"),
-            distribusjonstype,
-            distribusjonstidspunkt,
-        ) shouldBe BrevbestillingId("en bestillings id").right()
-
-        verify(dockdistMock).bestillDistribusjon(
-            JournalpostId("journalpostId"),
-            distribusjonstype,
-            distribusjonstidspunkt,
-        )
-    }
-
-    @Test
-    fun `journalfør dokument - finner ikke sak`() {
-        val sakServiceMock = mock<SakService> {
-            on { hentSak(any<UUID>()) } doReturn FantIkkeSak.left()
-        }
-        val dokumentdistribusjon = dokumentdistribusjon()
-
-        ServiceOgMocks(
-            sakService = sakServiceMock,
-        ).let {
-            it.brevService.journalførDokument(dokumentdistribusjon) shouldBe KunneIkkeJournalføreDokument.KunneIkkeFinneSak.left()
-            verify(sakServiceMock).hentSak(dokumentdistribusjon.dokument.metadata.sakId)
-            it.verifyNoMoreInteraction()
-        }
-    }
-
-    @Test
-    fun `journalfør dokument - finner ikke person`() {
-        val sakServiceMock = mock<SakService> {
-            on { hentSak(any<UUID>()) } doReturn sak().right()
-        }
-        val personServiceMock = mock<PersonService> {
-            on { hentPersonMedSystembruker(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
-        }
-
-        val dokumentdistribusjon = dokumentdistribusjon()
-
-        ServiceOgMocks(
-            sakService = sakServiceMock,
-            personService = personServiceMock,
-        ).let {
-            it.brevService.journalførDokument(dokumentdistribusjon) shouldBe KunneIkkeJournalføreDokument.KunneIkkeFinnePerson.left()
-            verify(sakServiceMock).hentSak(dokumentdistribusjon.dokument.metadata.sakId)
-            verify(personServiceMock).hentPersonMedSystembruker(fnr)
-            it.verifyNoMoreInteraction()
-        }
-    }
-
-    @Test
-    fun `journalfør dokument - feil ved journalføring`() {
-        val sakServiceMock = mock<SakService> {
-            on { hentSak(any<UUID>()) } doReturn sak().right()
-        }
-        val personServiceMock = mock<PersonService> {
-            on { hentPersonMedSystembruker(any()) } doReturn person.right()
-        }
-
-        val dokarkivMock = mock<DokArkiv> {
-            on { opprettJournalpost(any()) } doReturn ClientError(500, "kek").left()
-        }
-
-        val dokumentdistribusjon = dokumentdistribusjon()
-
-        ServiceOgMocks(
-            sakService = sakServiceMock,
-            personService = personServiceMock,
-            dokArkiv = dokarkivMock,
-        ).let {
-            it.brevService.journalførDokument(dokumentdistribusjon) shouldBe KunneIkkeJournalføreDokument.FeilVedOpprettelseAvJournalpost.left()
-            verify(sakServiceMock).hentSak(dokumentdistribusjon.dokument.metadata.sakId)
-            verify(personServiceMock).hentPersonMedSystembruker(fnr)
-            verify(dokarkivMock).opprettJournalpost(any())
-            it.verifyNoMoreInteraction()
-        }
-    }
-
-    @Test
-    fun `journalfør dokument - dokument allerede journalført`() {
-        val sakServiceMock = mock<SakService> {
-            on { hentSak(any<UUID>()) } doReturn sak().right()
-        }
-        val personServiceMock = mock<PersonService> {
-            on { hentPersonMedSystembruker(any()) } doReturn person.right()
-        }
-
-        val dokumentdistribusjon = dokumentdistribusjon()
-            .copy(journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(JournalpostId("done")))
-
-        ServiceOgMocks(
-            sakService = sakServiceMock,
-            personService = personServiceMock,
-        ).let {
-            it.brevService.journalførDokument(dokumentdistribusjon) shouldBe dokumentdistribusjon.right()
-            verify(sakServiceMock).hentSak(dokumentdistribusjon.dokument.metadata.sakId)
-            verify(personServiceMock).hentPersonMedSystembruker(fnr)
-            it.verifyNoMoreInteraction()
-        }
-    }
-
-    @Test
-    fun `journalfør dokument - happy`() {
-        val sakServiceMock = mock<SakService> {
-            on { hentSak(any<UUID>()) } doReturn sak().right()
-        }
-        val personServiceMock = mock<PersonService> {
-            on { hentPersonMedSystembruker(any()) } doReturn person.right()
-        }
-
-        val dokarkivMock = mock<DokArkiv> {
-            on { opprettJournalpost(any()) } doReturn JournalpostId("happy").right()
-        }
-
-        val dokumentRepoMock = mock<DokumentRepo>()
-
-        val dokumentdistribusjon = dokumentdistribusjon()
-
-        val expected = dokumentdistribusjon
-            .copy(journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(JournalpostId("happy")))
-
-        ServiceOgMocks(
-            sakService = sakServiceMock,
-            personService = personServiceMock,
-            dokArkiv = dokarkivMock,
-            dokumentRepo = dokumentRepoMock,
-        ).let {
-            it.brevService.journalførDokument(dokumentdistribusjon) shouldBe expected.right()
-            verify(sakServiceMock).hentSak(dokumentdistribusjon.dokument.metadata.sakId)
-            verify(personServiceMock).hentPersonMedSystembruker(fnr)
-            verify(dokarkivMock).opprettJournalpost(any())
-            verify(dokumentRepoMock).oppdaterDokumentdistribusjon(expected)
-            it.verifyNoMoreInteraction()
-        }
-    }
-
-    @Test
-    fun `distribuer dokument - ikke journalført`() {
-        val dokumentdistribusjon = dokumentdistribusjon()
-
-        ServiceOgMocks().let {
-            it.brevService.distribuerDokument(dokumentdistribusjon) shouldBe KunneIkkeBestilleBrevForDokument.MåJournalføresFørst.left()
-            it.verifyNoMoreInteraction()
-        }
-    }
-
-    @Test
-    fun `distribuer dokument - allerede distribuert`() {
-        val dokumentdistribusjon = dokumentdistribusjon()
-            .copy(
-                journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
-                    JournalpostId("very"),
-                    BrevbestillingId("happy"),
-                ),
-            )
-
-        ServiceOgMocks().let {
-            it.brevService.distribuerDokument(dokumentdistribusjon) shouldBe dokumentdistribusjon.right()
-            it.verifyNoMoreInteraction()
-        }
-    }
-
-    @Test
-    fun `distribuer dokument - feil ved bestilling av brev`() {
-        val dokDistMock = mock<DokDistFordeling> {
-            on { bestillDistribusjon(any(), any(), any()) } doReturn KunneIkkeBestilleDistribusjon.left()
-        }
-
-        val dokumentdistribusjon = dokumentdistribusjon()
-            .copy(journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(JournalpostId("sad")))
-
-        ServiceOgMocks(
-            dokDistFordeling = dokDistMock,
-        ).let {
-            it.brevService.distribuerDokument(dokumentdistribusjon) shouldBe KunneIkkeBestilleBrevForDokument.FeilVedBestillingAvBrev.left()
-            verify(dokDistMock).bestillDistribusjon(
-                JournalpostId("sad"),
-                Distribusjonstype.VEDTAK,
-                distribusjonstidspunkt,
-            )
-            it.verifyNoMoreInteraction()
-        }
-    }
-
-    @Test
-    fun `distribuer dokument - happy`() {
-        val dokDistMock = mock<DokDistFordeling> {
-            on { bestillDistribusjon(any(), any(), any()) } doReturn BrevbestillingId("happy").right()
-        }
-
-        val dokumentRepoMock = mock<DokumentRepo>()
-
-        val dokumentdistribusjon = dokumentdistribusjon()
-            .copy(journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(JournalpostId("very")))
-
-        val expected = dokumentdistribusjon
-            .copy(
-                journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
-                    JournalpostId("very"),
-                    BrevbestillingId("happy"),
-                ),
-            )
-
-        ServiceOgMocks(
-            dokDistFordeling = dokDistMock,
-            dokumentRepo = dokumentRepoMock,
-        ).let {
-            it.brevService.distribuerDokument(dokumentdistribusjon) shouldBe expected.right()
-            verify(dokDistMock).bestillDistribusjon(
-                JournalpostId("very"),
-                Distribusjonstype.VEDTAK,
-                distribusjonstidspunkt,
-            )
-            verify(dokumentRepoMock).oppdaterDokumentdistribusjon(expected)
-            it.verifyNoMoreInteraction()
-        }
     }
 
     @Test
@@ -553,23 +300,16 @@ internal class BrevServiceImplTest {
 
     private data class ServiceOgMocks(
         val pdfGenerator: PdfGenerator = mock(),
-        val dokArkiv: DokArkiv = mock(),
-        val dokDistFordeling: DokDistFordeling = mock(),
         val dokumentRepo: DokumentRepo = mock(),
-        val sakService: SakService = mock(),
         val personService: PersonService = mock(),
         val sessionFactory: SessionFactory = mock(),
         val identClient: IdentClient = mock(),
         val utbetalingService: UtbetalingService = mock(),
         val clock: Clock = mock(),
-
     ) {
         val brevService = BrevServiceImpl(
             pdfGenerator = pdfGenerator,
-            dokArkiv = dokArkiv,
-            dokDistFordeling = dokDistFordeling,
             dokumentRepo = dokumentRepo,
-            sakService = sakService,
             personService = personService,
             sessionFactory = sessionFactory,
             microsoftGraphApiOppslag = identClient,
@@ -581,10 +321,7 @@ internal class BrevServiceImplTest {
         fun verifyNoMoreInteraction() {
             verifyNoMoreInteractions(
                 pdfGenerator,
-                dokArkiv,
-                dokDistFordeling,
                 dokumentRepo,
-                sakService,
                 personService,
                 sessionFactory,
                 identClient,
@@ -592,36 +329,4 @@ internal class BrevServiceImplTest {
             )
         }
     }
-
-    private fun dokumentdistribusjon(): Dokumentdistribusjon = Dokumentdistribusjon(
-        id = UUID.randomUUID(),
-        opprettet = fixedTidspunkt,
-        dokument = Dokument.MedMetadata.Vedtak(
-            id = UUID.randomUUID(),
-            opprettet = fixedTidspunkt,
-            tittel = "tittel",
-            generertDokument = "".toByteArray(),
-            generertDokumentJson = "{}",
-            metadata = Dokument.Metadata(
-                sakId = UUID.randomUUID(),
-                bestillBrev = true,
-            ),
-        ),
-        journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
-    )
-
-    private fun sak(): Sak = Sak(
-        id = UUID.randomUUID(),
-        saksnummer = Saksnummer(9999),
-        opprettet = fixedTidspunkt,
-        fnr = fnr,
-        søknader = listOf(),
-        søknadsbehandlinger = listOf(),
-        utbetalinger = listOf(),
-        revurderinger = listOf(),
-        vedtakListe = listOf(),
-        type = Sakstype.UFØRE,
-        uteståendeAvkorting = Avkortingsvarsel.Ingen,
-        versjon = Hendelsesversjon(1),
-    )
 }

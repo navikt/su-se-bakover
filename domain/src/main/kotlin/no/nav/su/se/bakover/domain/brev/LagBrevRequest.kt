@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.application.Månedsbeløp
 import no.nav.su.se.bakover.common.ddMMyyyy
@@ -549,6 +550,38 @@ interface LagBrevRequest {
         ): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Informasjon> {
             return genererDokument(clock, genererPdf).map {
                 Dokument.UtenMetadata.Informasjon.Viktig(
+                    id = UUID.randomUUID(),
+                    opprettet = Tidspunkt.now(clock),
+                    tittel = it.first,
+                    generertDokument = it.second,
+                    generertDokumentJson = it.third,
+                )
+            }
+        }
+    }
+
+    data class Fritekst(
+        override val person: Person,
+        override val dagensDato: LocalDate,
+        override val saksnummer: Saksnummer,
+        val saksbehandler: NavIdentBruker.Saksbehandler,
+        val brevTittel: String,
+        val fritekst: String,
+    ) : LagBrevRequest {
+        override val brevInnhold: BrevInnhold = BrevInnhold.Fritekst(
+            personalia = lagPersonalia(),
+            saksbehandlerNavn = saksbehandler.navIdent,
+            tittel = brevTittel,
+            fritekst = fritekst,
+        )
+
+        override fun tilDokument(
+            clock: Clock,
+            genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>,
+        ): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata> {
+            return genererDokument(clock, genererPdf).map {
+                // på sikt så vil vi kanskje la saksbehandler velge om brevet er viktig eller annet
+                Dokument.UtenMetadata.Informasjon.Annet(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(clock),
                     tittel = it.first,

@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.brev
 import arrow.core.Either
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.util.UUID
@@ -15,10 +16,6 @@ interface BrevService {
     fun hentDokumenterFor(hentDokumenterForIdType: HentDokumenterForIdType): List<Dokument>
     fun lagDokument(visitable: Visitable<LagBrevRequestVisitor>): Either<KunneIkkeLageDokument, Dokument.UtenMetadata>
     fun lagBrevRequest(visitable: Visitable<LagBrevRequestVisitor>): Either<LagBrevRequestVisitor.KunneIkkeLageBrevRequest, LagBrevRequest>
-
-    /** Journalfører og distribuerer utgående dokumenter som ikke har blitt journalført / distribuert.
-     * Denne er i utgangspunktet ment å kalles av en kron-jobb. */
-    fun journalførOgDistribuerUtgåendeDokumenter()
 }
 
 /**
@@ -33,15 +30,6 @@ sealed class HentDokumenterForIdType {
     data class Revurdering(override val id: UUID) : HentDokumenterForIdType()
     data class Vedtak(override val id: UUID) : HentDokumenterForIdType()
     data class Klage(override val id: UUID) : HentDokumenterForIdType()
-}
-
-sealed class KunneIkkeLageDokument {
-    override fun toString() = this::class.simpleName!!
-    object KunneIkkeFinneGjeldendeUtbetaling : KunneIkkeLageDokument()
-    object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : KunneIkkeLageDokument()
-    object KunneIkkeHentePerson : KunneIkkeLageDokument()
-    object KunneIkkeGenererePDF : KunneIkkeLageDokument()
-    object DetSkalIkkeSendesBrev : KunneIkkeLageDokument()
 }
 
 sealed class KunneIkkeLageBrev {

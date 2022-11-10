@@ -29,4 +29,6 @@ sealed class PdfTemplate(
         object Oppretthold : Klage("sendtTilKlageinstans")
         object Avvist : Klage("avvistKlage")
     }
+
+    object FritekstDokument : PdfTemplate("fritekstDokument")
 }
