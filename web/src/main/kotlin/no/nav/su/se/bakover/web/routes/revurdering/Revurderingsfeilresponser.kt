@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
-import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
@@ -16,7 +15,6 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeForhåndsvarsle
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLageBrevutkastForRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
-import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.Brev.brevvalgIkkeTillatt
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.Brev.fantIkkeGjeldendeUtbetaling
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.Brev.navneoppslagSaksbehandlerAttesttantFeilet
@@ -107,16 +105,11 @@ internal object Revurderingsfeilresponser {
     }
 
     fun KunneIkkeForhåndsvarsle.tilResultat() = when (this) {
-        is KunneIkkeForhåndsvarsle.UgyldigTilstandsovergangForForhåndsvarsling -> HttpStatusCode.Conflict.errorJson(
-            "Allerede forhåndsvarslet",
-            "allerede_forhåndsvarslet",
-        )
-
         is KunneIkkeForhåndsvarsle.FantIkkePerson -> fantIkkePerson
         is KunneIkkeForhåndsvarsle.KunneIkkeOppdatereOppgave -> kunneIkkeOppretteOppgave
         is KunneIkkeForhåndsvarsle.FantIkkeRevurdering -> fantIkkeRevurdering
-        is KunneIkkeForhåndsvarsle.MåVæreITilstandenSimulert -> BadRequest.errorJson(
-            "Må være i tilstanden ${SimulertRevurdering::class.simpleName} for å kunne forhåndsvarsle. Nåværende tilstand: ${fra.simpleName} ",
+        is KunneIkkeForhåndsvarsle.UgyldigTilstand -> BadRequest.errorJson(
+            "Ugyldig tilstand",
             "ugyldig_tilstand",
         )
 
@@ -133,6 +126,10 @@ internal object Revurderingsfeilresponser {
             KunneIkkeLageBrevutkastForRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> navneoppslagSaksbehandlerAttesttantFeilet
             KunneIkkeLageBrevutkastForRevurdering.KunneIkkeFinneGjeldendeUtbetaling -> fantIkkeGjeldendeUtbetaling
             KunneIkkeLageBrevutkastForRevurdering.DetSkalIkkeSendesBrev -> brevvalgIkkeTillatt
+            KunneIkkeLageBrevutkastForRevurdering.UgyldigTilstand -> BadRequest.errorJson(
+                "Ugyldig tilstand",
+                "ugyldig_tilstand",
+            )
         }
     }
 
@@ -155,6 +152,7 @@ internal object Revurderingsfeilresponser {
             Sak.OpphørtVilkårMåRevurderes.FormueSomFørerTilOpphørMåRevurderes -> {
                 OpprettelseOgOppdateringAvRevurdering.formueSomFørerTilOpphørMåRevurderes
             }
+
             Sak.OpphørtVilkårMåRevurderes.UtenlandsoppholdSomFørerTilOpphørMåRevurderes -> {
                 OpprettelseOgOppdateringAvRevurdering.utenlandsoppholdSomFørerTilOpphørMåRevurderes
             }
@@ -166,6 +164,7 @@ internal object Revurderingsfeilresponser {
             Sak.GjeldendeVedtaksdataErUgyldigForRevurdering.FantIngenVedtakSomKanRevurderes -> {
                 fantIngenVedtakSomKanRevurderes
             }
+
             Sak.GjeldendeVedtaksdataErUgyldigForRevurdering.HeleRevurderingsperiodenInneholderIkkeVedtak -> {
                 OpprettelseOgOppdateringAvRevurdering.heleRevurderingsperiodenInneholderIkkeVedtak
             }
@@ -176,6 +175,7 @@ internal object Revurderingsfeilresponser {
         is Sak.KunneIkkeHenteGjeldendeVedtaksdata.FinnesIngenVedtakSomKanRevurderes -> {
             fantIngenVedtakSomKanRevurderes
         }
+
         is Sak.KunneIkkeHenteGjeldendeVedtaksdata.UgyldigPeriode -> {
             ugyldigPeriode(this.feil)
         }

@@ -2,17 +2,13 @@ package no.nav.su.se.bakover.service.revurdering
 
 import arrow.core.left
 import arrow.core.right
-import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.brev.Brevvalg
-import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.oppgave.OppgaveService
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
-import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeAvslutteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
@@ -21,7 +17,6 @@ import no.nav.su.se.bakover.domain.revurdering.gjenopptak.KunneIkkeLageAvsluttet
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.avsluttetGjenopptakelseAvYtelseeFraIverksattSøknadsbehandlignsvedtak
 import no.nav.su.se.bakover.test.avsluttetStansAvYtelseFraIverksattSøknadsbehandlignsvedtak
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -82,73 +77,6 @@ internal class AvsluttRevurderingTest {
     }
 
     @Test
-    fun `avslutter en revurdering som er blitt forhåndsvarslet (med fritekst)`() {
-        val simulert = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second.copy(
-            forhåndsvarsel = Forhåndsvarsel.UnderBehandling.Sendt,
-        )
-
-        val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(any()) } doReturn simulert
-        }
-        val oppgaveServiceMock = mock<OppgaveService> {
-            on { lukkOppgave(any()) } doReturn Unit.right()
-        }
-        val brevServiceMock = mock<BrevService> {
-            on { lagDokument(any<Visitable<LagBrevRequestVisitor>>()) } doReturn Dokument.UtenMetadata.Informasjon.Annet(
-                opprettet = fixedTidspunkt,
-                tittel = "tittel1",
-                generertDokument = "brev".toByteArray(),
-                generertDokumentJson = "brev",
-            ).right()
-        }
-        val sessionFactoryMock = TestSessionFactory()
-
-        val revurderingService = RevurderingTestUtils.createRevurderingService(
-            revurderingRepo = revurderingRepoMock,
-            brevService = brevServiceMock,
-            oppgaveService = oppgaveServiceMock,
-            sessionFactory = sessionFactoryMock,
-        )
-
-        val actual = revurderingService.avsluttRevurdering(
-            revurderingId = simulert.id,
-            begrunnelse = "opprettet revurderingen med en feil",
-            brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst("en fri tekst"),
-            saksbehandler = saksbehandler,
-        )
-
-        val expectedAvsluttetRevurdering = AvsluttetRevurdering.tryCreate(
-            underliggendeRevurdering = simulert,
-            begrunnelse = "opprettet revurderingen med en feil",
-            brevvalg = Brevvalg.SaksbehandlersValg.SkalSendeBrev.InformasjonsbrevMedFritekst("en fri tekst"),
-            tidspunktAvsluttet = fixedTidspunkt,
-        )
-        actual shouldBe expectedAvsluttetRevurdering
-
-        verify(revurderingRepoMock).hent(argThat { it shouldBe simulert.id })
-        verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe simulert.oppgaveId })
-        verify(brevServiceMock).lagDokument(
-            argThat<Visitable<LagBrevRequestVisitor>> {
-                it shouldBe expectedAvsluttetRevurdering.getOrFail()
-            },
-        )
-        verify(brevServiceMock).lagreDokument(
-            argThat {
-                it should beOfType<Dokument.MedMetadata.Informasjon.Annet>()
-                it.generertDokument shouldBe "brev".toByteArray()
-                it.metadata shouldBe Dokument.Metadata(
-                    sakId = simulert.sakId,
-                    revurderingId = simulert.id,
-                    bestillBrev = true,
-                )
-            },
-        )
-        verify(revurderingRepoMock).defaultTransactionContext()
-        verify(revurderingRepoMock).lagre(argThat { it shouldBe actual.getOrFail() }, anyOrNull())
-        verifyNoMoreInteractions(revurderingRepoMock, oppgaveServiceMock, brevServiceMock)
-    }
-
-    @Test
     fun `får feil dersom man prøver å avslutte en revurdering man ikke finner`() {
         val id = UUID.randomUUID()
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -173,9 +101,7 @@ internal class AvsluttRevurderingTest {
 
     @Test
     fun `får feil dersom generering av brev feiler når man avslutter revurdering`() {
-        val simulert = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second.copy(
-            forhåndsvarsel = Forhåndsvarsel.UnderBehandling.Sendt,
-        )
+        val simulert = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn simulert

@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingUnderBehandling
 import no.nav.su.se.bakover.domain.person.PersonRepo
-import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.sak.SakInfo
@@ -295,7 +294,6 @@ internal class PersonPostgresRepoTest {
                         revurderingsårsak = revurdering.revurderingsårsak,
                         beregning = beregning(periode = revurdering.periode),
                         simulering = simulering(fnr = revurdering.fnr),
-                        forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
                         grunnlagsdata = revurdering.grunnlagsdata,
                         vilkårsvurderinger = revurdering.vilkårsvurderinger,
                         informasjonSomRevurderes = revurdering.informasjonSomRevurderes,
@@ -361,7 +359,6 @@ internal class PersonPostgresRepoTest {
                         revurderingsårsak = revurdering.revurderingsårsak,
                         beregning = beregning(periode = revurdering.periode),
                         simulering = simulering(revurdering.fnr),
-                        forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
                         grunnlagsdata = revurdering.grunnlagsdata,
                         vilkårsvurderinger = revurdering.vilkårsvurderinger,
                         informasjonSomRevurderes = revurdering.informasjonSomRevurderes,

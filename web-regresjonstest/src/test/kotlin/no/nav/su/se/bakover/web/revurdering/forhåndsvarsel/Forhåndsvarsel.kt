@@ -13,7 +13,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.web.SharedRegressionTestData.defaultRequest
 
-internal fun ApplicationTestBuilder.leggTilIngenForhåndsvarsel(
+internal fun ApplicationTestBuilder.sendForhåndsvarsel(
     sakId: String,
     behandlingId: String,
     brukerrolle: Brukerrolle = Brukerrolle.Saksbehandler,
@@ -29,8 +29,7 @@ internal fun ApplicationTestBuilder.leggTilIngenForhåndsvarsel(
                 //language=JSON
                 """
                 {
-                  "forhåndsvarselhandling": "INGEN_FORHÅNDSVARSEL",
-                  "fritekst": ""
+                  "fritekst": "Dette er friteksten til et forhåndsvarsel"
                 }
                 """.trimIndent(),
             )

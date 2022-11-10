@@ -21,7 +21,6 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
-import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeSendeRevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
@@ -70,7 +69,6 @@ internal class RevurderingSendTilAttesteringTest {
         val (sak, simulertRevurdering) = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
             stønadsperiode = stønadsperiode2021,
             revurderingsperiode = Periode.create(fraOgMed = 1.juli(2021), tilOgMed = 30.september(2021)),
-            forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
         )
 
         RevurderingServiceMocks(
@@ -169,7 +167,6 @@ internal class RevurderingSendTilAttesteringTest {
         val (sak, revurdering) = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
             stønadsperiode = stønadsperiode2021,
             revurderingsperiode = Periode.create(fraOgMed = 1.juli(2021), tilOgMed = 30.september(2021)),
-            forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
         )
 
         RevurderingServiceMocks(
@@ -212,7 +209,6 @@ internal class RevurderingSendTilAttesteringTest {
         val (sak, revurdering) = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
             stønadsperiode = stønadsperiode2021,
             revurderingsperiode = Periode.create(fraOgMed = 1.juli(2021), tilOgMed = 30.september(2021)),
-            forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
         )
 
         RevurderingServiceMocks(

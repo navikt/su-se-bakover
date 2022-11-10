@@ -158,7 +158,6 @@ internal class LagBrevutkastForRevurderingTest {
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
             revurderingsårsak = RevurderingTestUtils.revurderingsårsak,
-            forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = vilkårsvurderingRevurderingIkkeVurdert(),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),

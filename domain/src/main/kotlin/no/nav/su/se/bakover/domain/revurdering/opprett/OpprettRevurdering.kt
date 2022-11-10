@@ -11,11 +11,9 @@ import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
-import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak.Årsak.REGULER_GRUNNBELØP
 import java.time.Clock
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent.Behandling.Revurdering.Opprettet as StatistikkEvent
 
@@ -82,7 +80,6 @@ fun Sak.opprettRevurdering(
                 oppgaveId = oppgaveId,
                 fritekstTilBrev = "",
                 revurderingsårsak = revurderingsårsak,
-                forhåndsvarsel = if (revurderingsårsak.årsak == REGULER_GRUNNBELØP) SkalIkkeForhåndsvarsles else null,
                 grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
                 vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,

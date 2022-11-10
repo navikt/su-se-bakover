@@ -35,22 +35,9 @@ data class AvsluttetRevurdering private constructor(
     override val fritekstTilBrev: String = underliggendeRevurdering.fritekstTilBrev
     override val revurderingsårsak: Revurderingsårsak = underliggendeRevurdering.revurderingsårsak
     override val informasjonSomRevurderes: InformasjonSomRevurderes = underliggendeRevurdering.informasjonSomRevurderes
-    override val forhåndsvarsel: Forhåndsvarsel? = underliggendeRevurdering.forhåndsvarsel
     override val oppgaveId: OppgaveId = underliggendeRevurdering.oppgaveId
     override val attesteringer: Attesteringshistorikk = underliggendeRevurdering.attesteringer
     override val erOpphørt: Boolean = underliggendeRevurdering.erOpphørt
-
-    init {
-        when (forhåndsvarsel.harSendtForhåndsvarsel()) {
-            false -> require(brevvalg is Brevvalg.SkalIkkeSendeBrev) {
-                "Saksbehandler kan ikke gjøre et brevvalg dersom man skal avslutte en revurdering som ikke er forhåndsvarslet"
-            }
-
-            true -> require(brevvalg is Brevvalg.SaksbehandlersValg || brevvalg is Brevvalg.SkalSendeBrev) {
-                "Saksbehandler må gjøre et brevvalg dersom man skal avslutte en revurdering som er forhåndsvarslet"
-            }
-        }
-    }
 
     override val avkorting: AvkortingVedRevurdering = when (val avkorting = underliggendeRevurdering.avkorting) {
         is AvkortingVedRevurdering.DelvisHåndtert -> {
@@ -127,20 +114,13 @@ data class AvsluttetRevurdering private constructor(
                 is SimulertRevurdering,
                 is UnderkjentRevurdering,
                 -> {
-                    if (underliggendeRevurdering.forhåndsvarsel.harSendtForhåndsvarsel() && brevvalg == null) {
-                        KunneIkkeLageAvsluttetRevurdering.ManglerBrevvalgVedForhåndsvarsling.left()
-                    }
-                    if (!underliggendeRevurdering.forhåndsvarsel.harSendtForhåndsvarsel() && brevvalg?.skalSendeBrev() == true) {
-                        KunneIkkeLageAvsluttetRevurdering.BrevvalgUtenForhåndsvarsel.left()
-                    } else {
-                        AvsluttetRevurdering(
-                            underliggendeRevurdering,
-                            begrunnelse,
-                            // Ønsker ikke putte spesifikk domenelogikk inn i [Brevvalg], men vi kunne flyttet denne ut i en enum evt.
-                            brevvalg ?: Brevvalg.SkalIkkeSendeBrev("IKKE_FORHÅNDSVARSLET"),
-                            tidspunktAvsluttet,
-                        ).right()
-                    }
+                    AvsluttetRevurdering(
+                        underliggendeRevurdering,
+                        begrunnelse,
+                        // Ønsker ikke putte spesifikk domenelogikk inn i [Brevvalg], men vi kunne flyttet denne ut i en enum evt.
+                        brevvalg ?: Brevvalg.SkalIkkeSendeBrev("IKKE_FORHÅNDSVARSLET"),
+                        tidspunktAvsluttet,
+                    ).right()
                 }
             }
         }
