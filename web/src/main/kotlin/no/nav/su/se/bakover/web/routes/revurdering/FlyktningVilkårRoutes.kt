@@ -19,10 +19,12 @@ import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.vilkår.flyktning.LeggTilVurderingsperiodeFlyktningVilkårJson
 import no.nav.su.se.bakover.web.routes.vilkår.flyktning.tilResultat
 import no.nav.su.se.bakover.web.routes.vilkår.flyktning.toDomain
+import java.time.Clock
 
 internal fun Route.flyktningVilkårRoutes(
     revurderingService: RevurderingService,
     satsFactory: SatsFactory,
+    clock: Clock,
 ) {
     post("$revurderingPath/{revurderingId}/flyktning") {
         authorize(Brukerrolle.Saksbehandler) {
@@ -32,7 +34,7 @@ internal fun Route.flyktningVilkårRoutes(
                         revurderingService.leggTilFlyktningVilkår(
                             request = LeggTilFlyktningVilkårRequest(
                                 behandlingId = it,
-                                vilkår = body.toDomain().getOrHandle { return@withBody call.svar(it.tilResultat()) },
+                                vilkår = body.toDomain(clock).getOrHandle { return@withBody call.svar(it.tilResultat()) },
                             ),
                         ).fold(
                             { it.tilResultat() },

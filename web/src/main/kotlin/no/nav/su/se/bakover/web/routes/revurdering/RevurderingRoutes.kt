@@ -35,7 +35,7 @@ internal fun Route.revurderingRoutes(
 
     sendRevurderingTilAttestering(revurderingService, satsFactory)
 
-    underkjennRevurdering(revurderingService, satsFactory)
+    underkjennRevurdering(revurderingService, satsFactory, clock)
 
     iverksettRevurderingRoute(revurderingService, satsFactory)
 
@@ -59,15 +59,15 @@ internal fun Route.revurderingRoutes(
 
     avsluttRevurderingRoute(revurderingService, satsFactory)
 
-    pensjonsVilkårRoutes(revurderingService, satsFactory)
+    pensjonsVilkårRoutes(revurderingService, satsFactory, clock)
 
     leggTilLovligOppholdRoute(revurderingService, satsFactory)
 
-    flyktningVilkårRoutes(revurderingService, satsFactory)
+    flyktningVilkårRoutes(revurderingService, satsFactory, clock)
 
-    fastOppholdVilkårRoutes(revurderingService, satsFactory)
+    fastOppholdVilkårRoutes(revurderingService, satsFactory, clock)
 
-    personligOppmøteVilkårRoutes(revurderingService, satsFactory)
+    personligOppmøteVilkårRoutes(revurderingService, satsFactory, clock)
 
     institusjonsoppholdRoutes(revurderingService, satsFactory, clock)
 }

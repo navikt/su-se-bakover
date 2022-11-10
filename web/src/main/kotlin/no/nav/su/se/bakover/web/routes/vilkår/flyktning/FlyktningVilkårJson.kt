@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.routes.vilkår.flyktning
 
 import arrow.core.Either
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson
@@ -12,11 +13,11 @@ import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFlyktning
 import no.nav.su.se.bakover.domain.vilkår.flyktning.KunneIkkeLeggeTilFlyktningVilkår
-import no.nav.su.se.bakover.test.fixedTidspunkt
+import java.time.Clock
 import java.util.UUID
 
-internal fun List<LeggTilVurderingsperiodeFlyktningVilkårJson>.toDomain(): Either<KunneIkkeLeggeTilFlyktningVilkår, FlyktningVilkår.Vurdert> {
-    return map { it.toDomain() }
+internal fun List<LeggTilVurderingsperiodeFlyktningVilkårJson>.toDomain(clock: Clock): Either<KunneIkkeLeggeTilFlyktningVilkår, FlyktningVilkår.Vurdert> {
+    return map { it.toDomain(clock) }
         .let { vurderingsperioder ->
             FlyktningVilkår.Vurdert.tryCreate(
                 vurderingsperioder.toNonEmptyList(),
@@ -65,10 +66,10 @@ internal data class LeggTilVurderingsperiodeFlyktningVilkårJson(
     val periode: PeriodeJson,
     val vurdering: FlyktningVurderingJson,
 ) {
-    fun toDomain(): VurderingsperiodeFlyktning {
+    fun toDomain(clock: Clock): VurderingsperiodeFlyktning {
         return VurderingsperiodeFlyktning.create(
             id = UUID.randomUUID(),
-            opprettet = fixedTidspunkt,
+            opprettet = Tidspunkt.now(clock),
             vurdering = vurdering.toDomain(),
             periode = periode.toPeriode(),
         )

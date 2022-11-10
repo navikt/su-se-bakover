@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.routes.vilkår.opplysningsplikt
 import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.sequence
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.common.toNonEmptyList
@@ -12,7 +13,7 @@ import no.nav.su.se.bakover.domain.vilkår.KunneIkkeLageOpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.OpplysningspliktVilkår
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOpplysningsplikt
 import no.nav.su.se.bakover.domain.vilkår.opplysningsplikt.KunneIkkeLeggeTilOpplysningsplikt
-import no.nav.su.se.bakover.test.fixedTidspunkt
+import java.time.Clock
 import java.util.UUID
 
 internal data class OpplysningspliktVilkårJson(
@@ -28,14 +29,14 @@ internal data class VurderingsperiodeOpplysningspliktVilkårJson(
     val periode: PeriodeJson,
     val beskrivelse: OpplysningspliktBeskrivelseJson,
 ) {
-    fun toDomain(): Either<KunneIkkeLageOpplysningspliktVilkår.Vurderingsperiode, VurderingsperiodeOpplysningsplikt> {
+    fun toDomain(clock: Clock): Either<KunneIkkeLageOpplysningspliktVilkår.Vurderingsperiode, VurderingsperiodeOpplysningsplikt> {
         return VurderingsperiodeOpplysningsplikt.tryCreate(
             id = UUID.randomUUID(),
-            opprettet = fixedTidspunkt,
+            opprettet = Tidspunkt.now(clock),
             vurderingsperiode = periode.toPeriode(),
             grunnlag = Opplysningspliktgrunnlag(
                 id = UUID.randomUUID(),
-                opprettet = fixedTidspunkt,
+                opprettet = Tidspunkt.now(clock),
                 periode = periode.toPeriode(),
                 beskrivelse = when (beskrivelse) {
                     OpplysningspliktBeskrivelseJson.TilstrekkeligDokumentasjon -> {
@@ -50,8 +51,8 @@ internal data class VurderingsperiodeOpplysningspliktVilkårJson(
     }
 }
 
-internal fun List<VurderingsperiodeOpplysningspliktVilkårJson>.toDomain(): Either<KunneIkkeLeggeTilOpplysningsplikt, OpplysningspliktVilkår.Vurdert> {
-    return map { it.toDomain() }.sequence()
+internal fun List<VurderingsperiodeOpplysningspliktVilkårJson>.toDomain(clock: Clock): Either<KunneIkkeLeggeTilOpplysningsplikt, OpplysningspliktVilkår.Vurdert> {
+    return map { it.toDomain(clock) }.sequence()
         .mapLeft { KunneIkkeLeggeTilOpplysningsplikt.UgyldigOpplysningspliktVilkår(it) }
         .flatMap { vurderingsperioder ->
             OpplysningspliktVilkår.Vurdert.tryCreate(

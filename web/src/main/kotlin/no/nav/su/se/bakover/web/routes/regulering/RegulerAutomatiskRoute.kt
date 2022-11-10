@@ -14,6 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.NavIdentBruker
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.audit.application.AuditLogEvent
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
@@ -28,15 +29,16 @@ import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeAvslutte
 import no.nav.su.se.bakover.domain.regulering.KunneIkkeRegulereManuelt
 import no.nav.su.se.bakover.domain.regulering.ReguleringService
-import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.grunnlag.UføregrunnlagJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragRequestJson
+import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
 internal fun Route.reguler(
     reguleringService: ReguleringService,
+    clock: Clock,
 ) {
     post("$reguleringPath/automatisk") {
         authorize(Brukerrolle.Drift) {
@@ -62,8 +64,8 @@ internal fun Route.reguler(
                     call.withBody<Body> { body ->
                         reguleringService.regulerManuelt(
                             reguleringId = id,
-                            uføregrunnlag = body.uføre.toDomain().getOrHandle { return@authorize call.svar(it) },
-                            fradrag = body.fradrag.toDomain().getOrHandle { return@authorize call.svar(it) },
+                            uføregrunnlag = body.uføre.toDomain(clock).getOrHandle { return@authorize call.svar(it) },
+                            fradrag = body.fradrag.toDomain(clock).getOrHandle { return@authorize call.svar(it) },
                             saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                         ).fold(
                             ifLeft = {
@@ -152,7 +154,7 @@ internal fun Route.reguler(
     }
 }
 
-private fun List<FradragRequestJson>.toDomain(): Either<Resultat, List<Grunnlag.Fradragsgrunnlag>> {
+private fun List<FradragRequestJson>.toDomain(clock: Clock): Either<Resultat, List<Grunnlag.Fradragsgrunnlag>> {
     val (resultat, f) = this
         .map { it.toFradrag() }
         .separateEither()
@@ -162,7 +164,7 @@ private fun List<FradragRequestJson>.toDomain(): Either<Resultat, List<Grunnlag.
     return f.map {
         Grunnlag.Fradragsgrunnlag.tryCreate(
             id = UUID.randomUUID(),
-            opprettet = fixedTidspunkt,
+            opprettet = Tidspunkt.now(clock),
             fradrag = it,
         ).getOrHandle {
             return HttpStatusCode.BadRequest.errorJson(
@@ -174,11 +176,11 @@ private fun List<FradragRequestJson>.toDomain(): Either<Resultat, List<Grunnlag.
 }
 
 @JvmName("toDomainUføregrunnlagJson")
-private fun List<UføregrunnlagJson>.toDomain(): Either<Resultat, List<Grunnlag.Uføregrunnlag>> {
+private fun List<UføregrunnlagJson>.toDomain(clock: Clock): Either<Resultat, List<Grunnlag.Uføregrunnlag>> {
     return this.map {
         Grunnlag.Uføregrunnlag(
             id = UUID.randomUUID(),
-            opprettet = fixedTidspunkt,
+            opprettet = Tidspunkt.now(clock),
             periode = it.periode.toPeriode(),
             uføregrad = Uføregrad.tryParse(it.uføregrad).getOrHandle {
                 return Feilresponser.Uføre.uføregradMåVæreMellomEnOgHundre.left()

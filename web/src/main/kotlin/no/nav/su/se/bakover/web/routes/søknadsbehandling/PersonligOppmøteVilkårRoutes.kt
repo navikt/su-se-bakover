@@ -19,10 +19,12 @@ import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.vilkår.LeggTilVurderingsperiodePersonligOppmøteJson
 import no.nav.su.se.bakover.web.routes.vilkår.tilResultat
 import no.nav.su.se.bakover.web.routes.vilkår.toDomain
+import java.time.Clock
 
 internal fun Route.personligOppmøteVilkårRoutes(
     søknadsbehandlingService: SøknadsbehandlingService,
     satsFactory: SatsFactory,
+    clock: Clock,
 ) {
     post("$behandlingPath/{behandlingId}/personligoppmøte") {
         authorize(Brukerrolle.Saksbehandler) {
@@ -32,7 +34,7 @@ internal fun Route.personligOppmøteVilkårRoutes(
                         søknadsbehandlingService.leggTilPersonligOppmøteVilkår(
                             request = LeggTilPersonligOppmøteVilkårRequest(
                                 behandlingId = it,
-                                vilkår = body.toDomain(),
+                                vilkår = body.toDomain(clock),
                             ),
                             saksbehandler = call.suUserContext.saksbehandler,
                         ).fold(
