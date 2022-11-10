@@ -28,6 +28,8 @@ internal class DokumentPostgresRepo(
     private val clock: Clock,
 ) : DokumentRepo {
 
+    private val joinDokumentOgDistribusjonQuery = "select d.*, dd.journalpostid, dd.brevbestillingid from dokument d left join dokument_distribusjon dd on dd.dokumentid = d.id"
+
     override fun lagre(dokument: Dokument.MedMetadata, transactionContext: TransactionContext) {
         dbMetrics.timeQuery("lagreDokumentMedMetadata") {
             transactionContext.withTransaction { tx ->
@@ -86,7 +88,7 @@ internal class DokumentPostgresRepo(
         return dbMetrics.timeQuery("hentDokumentMedMetadataForSakId") {
             sessionFactory.withSession { session ->
                 """
-                select d.*, journalpostid, brevbestillingid from dokument d left join dokument_distribusjon dd on dd.dokumentid = d.id where sakId = :id
+                $joinDokumentOgDistribusjonQuery where sakId = :id
                 """.trimIndent()
                     .hentListe(mapOf("id" to id), session) {
                         it.toDokumentMedStatus()
@@ -99,10 +101,10 @@ internal class DokumentPostgresRepo(
         return dbMetrics.timeQuery("hentDokumentMedMetadataForSøknadId") {
             sessionFactory.withSession { session ->
                 """
-                select * from dokument where søknadId = :id
+                $joinDokumentOgDistribusjonQuery where søknadId = :id
                 """.trimIndent()
                     .hentListe(mapOf("id" to id), session) {
-                        it.toDokument()
+                        it.toDokumentMedStatus()
                     }
             }
         }
@@ -112,10 +114,10 @@ internal class DokumentPostgresRepo(
         return dbMetrics.timeQuery("hentDokumentMedMetadataForVedtakId") {
             sessionFactory.withSession { session ->
                 """
-                select * from dokument where vedtakId = :id
+                $joinDokumentOgDistribusjonQuery where vedtakId = :id
                 """.trimIndent()
                     .hentListe(mapOf("id" to id), session) {
-                        it.toDokument()
+                        it.toDokumentMedStatus()
                     }
             }
         }
@@ -125,10 +127,10 @@ internal class DokumentPostgresRepo(
         return dbMetrics.timeQuery("hentDokumentMedMetadataForRevurderingId") {
             sessionFactory.withSession { session ->
                 """
-                select * from dokument where revurderingId = :id
+                $joinDokumentOgDistribusjonQuery where revurderingId = :id
                 """.trimIndent()
                     .hentListe(mapOf("id" to id), session) {
-                        it.toDokument()
+                        it.toDokumentMedStatus()
                     }
             }
         }
@@ -138,10 +140,10 @@ internal class DokumentPostgresRepo(
         return dbMetrics.timeQuery("hentDokumentMedMetadataForKlageId") {
             sessionFactory.withSession { session ->
                 """
-                select * from dokument where klageId = :id
+                $joinDokumentOgDistribusjonQuery where klageId = :id
                 """.trimIndent()
                     .hentListe(mapOf("id" to id), session) {
-                        it.toDokument()
+                        it.toDokumentMedStatus()
                     }
             }
         }
@@ -230,13 +232,13 @@ internal class DokumentPostgresRepo(
 
     private fun hentDokument(id: UUID, session: Session) =
         """
-            select * from dokument where id = :id
+            $joinDokumentOgDistribusjonQuery where d.id = :id
         """.trimIndent()
             .hent(mapOf("id" to id), session) {
-                it.toDokument()
+                it.toDokumentMedStatus()
             }
 
-    private fun Row.toDokumentMedStatus(hentStatus: Boolean = true): Dokument.MedMetadata {
+    private fun Row.toDokumentMedStatus(): Dokument.MedMetadata {
         val type = DokumentKategori.valueOf(string("type"))
         val id = uuid("id")
         val opprettet = tidspunkt("opprettet")
@@ -249,8 +251,8 @@ internal class DokumentPostgresRepo(
         val klageId = uuidOrNull("klageId")
         val tittel = string("tittel")
         val bestillbrev = boolean("bestillbrev")
-        val brevbestillingId = if (hentStatus) stringOrNull("brevbestillingid") else null
-        val journalpostId = if (hentStatus) stringOrNull("journalpostid") else null
+        val brevbestillingId = stringOrNull("brevbestillingid")
+        val journalpostId = stringOrNull("journalpostid")
 
         return when (type) {
             DokumentKategori.INFORMASJON_VIKTIG -> Dokument.MedMetadata.Informasjon.Viktig(
@@ -306,9 +308,6 @@ internal class DokumentPostgresRepo(
             )
         }
     }
-
-    private fun Row.toDokument(): Dokument.MedMetadata = this.toDokumentMedStatus(false)
-
     private enum class DokumentKategori {
         INFORMASJON_VIKTIG,
         INFORMASJON_ANNET,
