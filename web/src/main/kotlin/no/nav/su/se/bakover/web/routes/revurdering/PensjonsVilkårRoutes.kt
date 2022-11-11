@@ -19,10 +19,12 @@ import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.vilkår.alder.LeggTilVurderingsperiodePensjonsvilkårJson
 import no.nav.su.se.bakover.web.routes.vilkår.alder.tilResultat
 import no.nav.su.se.bakover.web.routes.vilkår.alder.toDomain
+import java.time.Clock
 
 internal fun Route.pensjonsVilkårRoutes(
     revurderingService: RevurderingService,
     satsFactory: SatsFactory,
+    clock: Clock,
 ) {
     post("$revurderingPath/{revurderingId}/pensjon") {
         authorize(Brukerrolle.Saksbehandler) {
@@ -32,7 +34,7 @@ internal fun Route.pensjonsVilkårRoutes(
                         revurderingService.leggTilPensjonsVilkår(
                             request = LeggTilPensjonsVilkårRequest(
                                 behandlingId = it,
-                                vilkår = body.toDomain().getOrHandle { return@withBody call.svar(it.tilResultat()) },
+                                vilkår = body.toDomain(clock).getOrHandle { return@withBody call.svar(it.tilResultat()) },
                             ),
                         ).fold(
                             { it.tilResultat() },

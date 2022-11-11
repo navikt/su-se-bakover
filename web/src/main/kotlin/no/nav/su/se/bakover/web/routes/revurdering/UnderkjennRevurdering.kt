@@ -9,6 +9,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.patch
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.NavIdentBruker
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.audit.application.AuditLogEvent
 import no.nav.su.se.bakover.common.enumContains
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.attestantOgSaksbehandlerKanIkkeVæreSammePerson
@@ -29,9 +30,9 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeUnderkjenneRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingService
 import no.nav.su.se.bakover.domain.satser.SatsFactory
-import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
+import java.time.Clock
 
 data class UnderkjennBody(
     val grunn: String,
@@ -39,13 +40,13 @@ data class UnderkjennBody(
 ) {
     private fun valid() = enumContains<Attestering.Underkjent.Grunn>(grunn) && kommentar.isNotBlank()
 
-    internal fun toDomain(navIdent: String): Either<Resultat, Attestering.Underkjent> {
+    internal fun toDomain(navIdent: String, clock: Clock): Either<Resultat, Attestering.Underkjent> {
         if (valid()) {
             return Attestering.Underkjent(
                 attestant = NavIdentBruker.Attestant(navIdent),
                 grunn = Attestering.Underkjent.Grunn.valueOf(this.grunn),
                 kommentar = this.kommentar,
-                opprettet = fixedTidspunkt,
+                opprettet = Tidspunkt.now(clock),
             ).right()
         }
         return ugyldigBody.left()
@@ -55,6 +56,7 @@ data class UnderkjennBody(
 internal fun Route.underkjennRevurdering(
     revurderingService: RevurderingService,
     satsFactory: SatsFactory,
+    clock: Clock,
 ) {
     patch("$revurderingPath/{revurderingId}/underkjenn") {
         authorize(Brukerrolle.Attestant) {
@@ -67,7 +69,7 @@ internal fun Route.underkjennRevurdering(
                         call.svar(ugyldigBody)
                     },
                     ifRight = { body ->
-                        body.toDomain(navIdent).fold(
+                        body.toDomain(navIdent, clock).fold(
                             ifLeft = { call.svar(it) },
                             ifRight = { underkjent ->
                                 revurderingService.underkjenn(

@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.routes.vilkår.alder
 import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.sequence
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson
 import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson.Companion.toJson
@@ -16,7 +17,7 @@ import no.nav.su.se.bakover.domain.vilkår.PensjonsVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodePensjon
 import no.nav.su.se.bakover.domain.vilkår.pensjon.KunneIkkeLeggeTilPensjonsVilkår
-import no.nav.su.se.bakover.test.fixedTidspunkt
+import java.time.Clock
 import java.util.UUID
 
 internal data class PensjonsopplysningerJson(
@@ -158,8 +159,8 @@ internal data class LeggTilVurderingsperiodePensjonsvilkårJson(
     val periode: PeriodeJson,
     val pensjonsopplysninger: PensjonsopplysningerJson,
 ) {
-    fun toDomain(): Either<KunneIkkeLagePensjonsVilkår.Vurderingsperiode, VurderingsperiodePensjon> {
-        val opprettet = fixedTidspunkt
+    fun toDomain(clock: Clock): Either<KunneIkkeLagePensjonsVilkår.Vurderingsperiode, VurderingsperiodePensjon> {
+        val opprettet = Tidspunkt.now(clock)
         return VurderingsperiodePensjon.tryCreate(
             id = UUID.randomUUID(),
             opprettet = opprettet,
@@ -174,8 +175,8 @@ internal data class LeggTilVurderingsperiodePensjonsvilkårJson(
     }
 }
 
-internal fun List<LeggTilVurderingsperiodePensjonsvilkårJson>.toDomain(): Either<KunneIkkeLeggeTilPensjonsVilkår, PensjonsVilkår.Vurdert> {
-    return map { it.toDomain() }.sequence()
+internal fun List<LeggTilVurderingsperiodePensjonsvilkårJson>.toDomain(clock: Clock): Either<KunneIkkeLeggeTilPensjonsVilkår, PensjonsVilkår.Vurdert> {
+    return map { it.toDomain(clock) }.sequence()
         .mapLeft { KunneIkkeLeggeTilPensjonsVilkår.UgyldigPensjonsVilkår(it) }
         .flatMap { vurderingsperioder ->
             PensjonsVilkår.Vurdert.tryCreate(

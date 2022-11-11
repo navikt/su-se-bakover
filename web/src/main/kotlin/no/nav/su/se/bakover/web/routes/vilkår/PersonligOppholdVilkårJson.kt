@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.routes.vilkår
 
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson
@@ -13,11 +14,11 @@ import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodePersonligOppmøte
 import no.nav.su.se.bakover.domain.vilkår.oppmøte.KunneIkkeLeggeTilPersonligOppmøteVilkår
-import no.nav.su.se.bakover.test.fixedTidspunkt
+import java.time.Clock
 import java.util.UUID
 
-internal fun List<LeggTilVurderingsperiodePersonligOppmøteJson>.toDomain(): PersonligOppmøteVilkår.Vurdert {
-    return map { it.toDomain() }.let {
+internal fun List<LeggTilVurderingsperiodePersonligOppmøteJson>.toDomain(clock: Clock): PersonligOppmøteVilkår.Vurdert {
+    return map { it.toDomain(clock) }.let {
         PersonligOppmøteVilkår.Vurdert(
             it.toNonEmptyList(),
         )
@@ -53,8 +54,8 @@ internal data class LeggTilVurderingsperiodePersonligOppmøteJson(
     val periode: PeriodeJson,
     val vurdering: PersonligOppmøteÅrsakJson,
 ) {
-    fun toDomain(): VurderingsperiodePersonligOppmøte {
-        val opprettet = fixedTidspunkt
+    fun toDomain(clock: Clock): VurderingsperiodePersonligOppmøte {
+        val opprettet = Tidspunkt.now(clock)
         return VurderingsperiodePersonligOppmøte(
             id = UUID.randomUUID(),
             opprettet = opprettet,

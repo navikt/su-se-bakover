@@ -20,10 +20,12 @@ import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.vilkår.fastopphold.LeggTilVurderingsperiodeFastOppholdJson
 import no.nav.su.se.bakover.web.routes.vilkår.fastopphold.tilResultat
 import no.nav.su.se.bakover.web.routes.vilkår.fastopphold.toDomain
+import java.time.Clock
 
 internal fun Route.fastOppholdVilkårRoutes(
     søknadsbehandlingService: SøknadsbehandlingService,
     satsFactory: SatsFactory,
+    clock: Clock,
 ) {
     post("$behandlingPath/{behandlingId}/fastopphold") {
         authorize(Brukerrolle.Saksbehandler) {
@@ -33,7 +35,7 @@ internal fun Route.fastOppholdVilkårRoutes(
                         søknadsbehandlingService.leggTilFastOppholdINorgeVilkår(
                             request = LeggTilFastOppholdINorgeRequest(
                                 behandlingId = it,
-                                vilkår = body.toDomain().getOrHandle { return@withBody call.svar(it.tilResultat()) },
+                                vilkår = body.toDomain(clock).getOrHandle { return@withBody call.svar(it.tilResultat()) },
                             ),
                             saksbehandler = call.suUserContext.saksbehandler,
                         ).fold(

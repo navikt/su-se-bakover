@@ -20,10 +20,12 @@ import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.vilkår.flyktning.LeggTilVurderingsperiodeFlyktningVilkårJson
 import no.nav.su.se.bakover.web.routes.vilkår.flyktning.tilResultat
 import no.nav.su.se.bakover.web.routes.vilkår.flyktning.toDomain
+import java.time.Clock
 
 internal fun Route.flyktningVilkårRoutes(
     søknadsbehandlingService: SøknadsbehandlingService,
     satsFactory: SatsFactory,
+    clock: Clock,
 ) {
     post("$behandlingPath/{behandlingId}/flyktning") {
         authorize(Brukerrolle.Saksbehandler) {
@@ -33,7 +35,7 @@ internal fun Route.flyktningVilkårRoutes(
                         søknadsbehandlingService.leggTilFlyktningVilkår(
                             request = LeggTilFlyktningVilkårRequest(
                                 behandlingId = it,
-                                vilkår = body.toDomain().getOrHandle { return@withBody call.svar(it.tilResultat()) },
+                                vilkår = body.toDomain(clock).getOrHandle { return@withBody call.svar(it.tilResultat()) },
                             ),
                             saksbehandler = call.suUserContext.saksbehandler,
                         ).fold(

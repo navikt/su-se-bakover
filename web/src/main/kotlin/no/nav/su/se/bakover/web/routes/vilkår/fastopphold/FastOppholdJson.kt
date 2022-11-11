@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.routes.vilkår.fastopphold
 
 import arrow.core.Either
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.periode.PeriodeJson
@@ -12,11 +13,11 @@ import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurdering
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFastOppholdINorge
 import no.nav.su.se.bakover.domain.vilkår.fastopphold.KunneIkkeLeggeFastOppholdINorgeVilkår
-import no.nav.su.se.bakover.test.fixedTidspunkt
+import java.time.Clock
 import java.util.UUID
 
-internal fun List<LeggTilVurderingsperiodeFastOppholdJson>.toDomain(): Either<KunneIkkeLeggeFastOppholdINorgeVilkår, FastOppholdINorgeVilkår.Vurdert> {
-    return map { it.toDomain() }
+internal fun List<LeggTilVurderingsperiodeFastOppholdJson>.toDomain(clock: Clock): Either<KunneIkkeLeggeFastOppholdINorgeVilkår, FastOppholdINorgeVilkår.Vurdert> {
+    return map { it.toDomain(clock) }
         .let { vurderingsperioder ->
             FastOppholdINorgeVilkår.Vurdert.tryCreate(
                 vurderingsperioder.toNonEmptyList(),
@@ -65,10 +66,10 @@ internal data class LeggTilVurderingsperiodeFastOppholdJson(
     val periode: PeriodeJson,
     val vurdering: FastOppholdINorgeVurderingJson,
 ) {
-    fun toDomain(): VurderingsperiodeFastOppholdINorge {
+    fun toDomain(clock: Clock): VurderingsperiodeFastOppholdINorge {
         return VurderingsperiodeFastOppholdINorge.create(
             id = UUID.randomUUID(),
-            opprettet = fixedTidspunkt,
+            opprettet = Tidspunkt.now(clock),
             vurdering = vurdering.toDomain(),
             periode = periode.toPeriode(),
         )

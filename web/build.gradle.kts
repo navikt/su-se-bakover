@@ -18,7 +18,6 @@ dependencies {
     implementation(project(":utenlandsopphold:application"))
     implementation(project(":utenlandsopphold:domain"))
     implementation(project(":utenlandsopphold:infrastructure"))
-    implementation(project(":test-common"))
 
     testImplementation(project(":test-common"))
 }

@@ -27,18 +27,20 @@ import no.nav.su.se.bakover.domain.vilkår.opplysningsplikt.LeggTilOpplysningspl
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.revurdering.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.toJson
+import java.time.Clock
 import java.util.UUID
 
 internal fun Route.opplysningspliktRoutes(
     søknadsbehandlingService: SøknadsbehandlingService,
     revurderingService: RevurderingService,
     satsFactory: SatsFactory,
+    clock: Clock,
 ) {
     post("/vilkar/opplysningsplikt") {
         authorize(Brukerrolle.Saksbehandler) {
             call.withBody<LeggTilOpplysningspliktVilkårBody> { body ->
 
-                val request = body.toDomain(saksbehandler = call.suUserContext.saksbehandler)
+                val request = body.toDomain(saksbehandler = call.suUserContext.saksbehandler, clock = clock)
                     .getOrHandle { return@authorize call.svar(it.tilResultat()) }
 
                 call.svar(
@@ -120,8 +122,11 @@ private class LeggTilOpplysningspliktVilkårBody private constructor(
     val type: Behandlingstype,
     val data: List<VurderingsperiodeOpplysningspliktVilkårJson>,
 ) {
-    fun toDomain(saksbehandler: NavIdentBruker.Saksbehandler): Either<KunneIkkeLeggeTilOpplysningsplikt, LeggTilOpplysningspliktRequest> {
-        return data.toDomain()
+    fun toDomain(
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        clock: Clock,
+    ): Either<KunneIkkeLeggeTilOpplysningsplikt, LeggTilOpplysningspliktRequest> {
+        return data.toDomain(clock)
             .map {
                 when (type) {
                     Behandlingstype.SØKNADSBEHANDLING -> {

@@ -282,11 +282,12 @@ fun Application.susebakover(
                     dokumentRoutes(accessProtectedServices.brev)
                     nøkkeltallRoutes(accessProtectedServices.nøkkeltallService)
                     kontrollsamtaleRoutes(accessProtectedServices.kontrollsamtale)
-                    reguleringRoutes(accessProtectedServices.reguleringService, satsFactoryIDag)
+                    reguleringRoutes(accessProtectedServices.reguleringService, satsFactoryIDag, clock)
                     opplysningspliktRoutes(
                         søknadsbehandlingService = accessProtectedServices.søknadsbehandling,
                         revurderingService = accessProtectedServices.revurdering,
                         satsFactory = satsFactoryIDag,
+                        clock = clock,
                     )
                     skattRoutes(accessProtectedServices.skatteService, accessProtectedServices.toggles)
                     utenlandsoppholdRoutes(
