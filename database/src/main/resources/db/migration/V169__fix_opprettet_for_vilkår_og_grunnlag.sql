@@ -87,7 +87,7 @@ set attestering = (
 		jsonb_agg(
 			case
 				when attesteringer ->> 'opprettet' like '%2021-01-01T01:02:03.456789%'
-					then jsonb_set(attesteringer, '{opprettet}','2022-10-03T11:40:00.000000Z')
+					then jsonb_set(attesteringer, '{opprettet}','"2022-10-03T11:40:00.000000Z"')
 				else attesteringer
 			end
 		)
@@ -105,7 +105,7 @@ set attestering = (
 		jsonb_agg(
 			case
 				when attesteringer ->> 'opprettet' like '%2021-01-01T01:02:03.456789%'
-					then jsonb_set(attesteringer, '{opprettet}','2022-10-14T08:40:00.000000Z')
+					then jsonb_set(attesteringer, '{opprettet}','"2022-10-14T08:40:00.000000Z"')
 				else attesteringer
 			end
 		)
@@ -123,7 +123,7 @@ set attestering = (
 		jsonb_agg(
 			case
 				when attesteringer ->> 'opprettet' like '%2021-01-01T01:02:03.456789%'
-					then jsonb_set(attesteringer, '{opprettet}','2022-10-17T08:30:00.000000Z')
+					then jsonb_set(attesteringer, '{opprettet}','"2022-10-17T08:30:00.000000Z"')
 				else attesteringer
 			end
 		)
@@ -141,7 +141,7 @@ set attestering = (
 		jsonb_agg(
 			case
 				when attesteringer ->> 'opprettet' like '%2021-01-01T01:02:03.456789%'
-					then jsonb_set(attesteringer, '{opprettet}','2022-10-06T08:00:00.00000Z')
+					then jsonb_set(attesteringer, '{opprettet}','"2022-10-06T08:00:00.00000Z"')
 				else attesteringer
 			end
 		)
@@ -159,7 +159,7 @@ set attestering = (
 		jsonb_agg(
 			case
 				when attesteringer ->> 'opprettet' like '%2021-01-01T01:02:03.456789%'
-					then jsonb_set(attesteringer, '{opprettet}','2022-10-11T13:00:00.000000Z')
+					then jsonb_set(attesteringer, '{opprettet}','"2022-10-11T13:00:00.000000Z"')
 				else attesteringer
 			end
 		)
@@ -177,7 +177,7 @@ set attestering = (
 		jsonb_agg(
 			case
 				when attesteringer ->> 'opprettet' like '%2021-01-01T01:02:03.456789%'
-					then jsonb_set(attesteringer, '{opprettet}','2022-10-17T12:00:00.000000Z')
+					then jsonb_set(attesteringer, '{opprettet}','"2022-10-17T12:00:00.000000Z"')
 				else attesteringer
 			end
 		)
@@ -195,7 +195,7 @@ set attestering = (
 		jsonb_agg(
 			case
 				when attesteringer ->> 'opprettet' like '%2021-01-01T01:02:03.456789%'
-					then jsonb_set(attesteringer, '{opprettet}','2022-10-26T06:00:00.000000Z')
+					then jsonb_set(attesteringer, '{opprettet}','"2022-10-26T06:00:00.000000Z"')
 				else attesteringer
 			end
 		)
