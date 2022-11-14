@@ -111,6 +111,7 @@ sealed interface Avkortingsvarsel {
     object Ingen : Avkortingsvarsel
 }
 
+// TODO jah: Delete in next PR
 fun Sak.oppdaterUteståendeAvkortingVedIverksettelse(behandletAvkorting: AvkortingVedSøknadsbehandling.Iverksatt): Sak {
     return copy(
         uteståendeAvkorting = when (behandletAvkorting) {

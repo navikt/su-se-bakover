@@ -12,7 +12,7 @@ interface VedtakRepo {
     fun hentForSakId(sakId: UUID): List<Vedtak>
     fun hentAktive(dato: LocalDate): List<VedtakSomKanRevurderes.EndringIYtelse>
     fun lagre(vedtak: Vedtak)
-    fun lagre(vedtak: Vedtak, sessionContext: TransactionContext)
+    fun lagreITransaksjon(vedtak: Vedtak, sessionContext: TransactionContext)
     fun hentForUtbetaling(utbetalingId: UUID30): VedtakSomKanRevurderes?
     fun hentAlle(): List<Vedtak>
     fun hentJournalpostId(vedtakId: UUID): JournalpostId?

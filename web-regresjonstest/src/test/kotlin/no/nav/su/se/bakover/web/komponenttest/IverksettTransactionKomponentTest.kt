@@ -84,7 +84,7 @@ internal class IverksettTransactionKomponentTest {
                     behandlingId = behandlingId,
                     assertResponse = false,
                 ).let {
-                    JSONObject(it).getString("code") shouldBe "kunne_ikke_utbetale"
+                    JSONObject(it).getString("code") shouldBe "ukjent_feil"
                 }
                 sakId
             }

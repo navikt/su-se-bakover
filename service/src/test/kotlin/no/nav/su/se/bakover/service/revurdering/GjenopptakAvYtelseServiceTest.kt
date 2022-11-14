@@ -497,7 +497,7 @@ internal class GjenopptakAvYtelseServiceTest {
                 utbetalingId = simulertUtbetaling.id,
                 clock = tikkendeFixedClock,
             )
-            verify(serviceAndMocks.vedtakRepo).lagre(
+            verify(serviceAndMocks.vedtakRepo).lagreITransaksjon(
                 vedtak = argThat { vedtak ->
                     vedtak.shouldBeEqualToIgnoringFields(
                         expectedVedtak,

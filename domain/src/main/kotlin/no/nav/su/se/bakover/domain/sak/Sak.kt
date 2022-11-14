@@ -68,6 +68,9 @@ import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
+/**
+ * @param uteståendeAvkorting er enten [Avkortingsvarsel.Ingen] eller [Avkortingsvarsel.Utenlandsopphold.SkalAvkortes]
+ */
 data class Sak(
     val id: UUID = UUID.randomUUID(),
     val saksnummer: Saksnummer,
@@ -86,6 +89,10 @@ data class Sak(
     val versjon: Hendelsesversjon,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
+
+    init {
+        require(uteståendeAvkorting is Avkortingsvarsel.Ingen || uteståendeAvkorting is Avkortingsvarsel.Utenlandsopphold.SkalAvkortes)
+    }
 
     fun info(): SakInfo {
         return SakInfo(
@@ -346,6 +353,7 @@ data class Sak(
                     }
 
                 if (!alleUtbetalingerErOpphørt) {
+                    // Man kan ikke ha stønadsperioder over måneder med opphør som førte til eller ville ha ført til feilkonto, les: feilutbetalinger og avkortinger. Dersom man ønsker å endre disse månedene, må de revurderes.
                     return KunneIkkeOppdatereStønadsperiode.StønadsperiodeInneholderAvkortingPgaUtenlandsopphold.left()
                 }
             }

@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling
 
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.sak.SimulerUtbetalingFeilet
 import kotlin.reflect.KClass
@@ -141,19 +140,6 @@ sealed class KunneIkkeOppdatereStønadsperiode {
     data class KunneIkkeOppdatereGrunnlagsdata(
         val feil: KunneIkkeLageGrunnlagsdata,
     ) : KunneIkkeOppdatereStønadsperiode()
-}
-
-sealed interface KunneIkkeIverksette {
-    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksette
-    data class KunneIkkeUtbetale(val utbetalingFeilet: UtbetalingFeilet) : KunneIkkeIverksette
-    object FantIkkeBehandling : KunneIkkeIverksette
-    object KunneIkkeGenerereVedtaksbrev : KunneIkkeIverksette
-    object AvkortingErUfullstendig : KunneIkkeIverksette
-    object HarBlittAnnullertAvEnAnnen : KunneIkkeIverksette
-    object HarAlleredeBlittAvkortetAvEnAnnen : KunneIkkeIverksette
-    object KunneIkkeOpprettePlanlagtKontrollsamtale : KunneIkkeIverksette
-    object LagringFeilet : KunneIkkeIverksette
-    object SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving : KunneIkkeIverksette
 }
 
 sealed class KunneIkkeBeregne {

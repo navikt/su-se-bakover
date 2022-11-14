@@ -28,7 +28,6 @@ import no.nav.su.se.bakover.test.simulertSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknad.søknadId
 import no.nav.su.se.bakover.test.søknadsbehandlingSimulert
-import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingUnderkjentInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertAvslag
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
@@ -806,119 +805,30 @@ internal class StatusovergangTest {
         }
     }
 
-    @Nested
-    inner class TilIverksatt {
-        @Test
-        fun `attestert avslag vilkår til iverksatt avslag vilkår`() {
-            forsøkStatusovergang(
-                tilAttesteringAvslagVilkår,
-                Statusovergang.TilIverksatt(
-                    attestering = attestering,
-                    hentOpprinneligAvkorting = { null },
-                ),
-            ) shouldBe iverksattAvslagVilkår.right()
-        }
+    // TODO avkorting test hentOpprinneligAvkorting...
 
-        @Test
-        fun `attestert avslag beregning til iverksatt avslag beregning`() {
-            forsøkStatusovergang(
-                tilAttesteringAvslagBeregning,
-                Statusovergang.TilIverksatt(
-                    attestering = attestering,
-                    hentOpprinneligAvkorting = { null },
-                ),
-            ) shouldBe iverksattAvslagBeregning.right()
-        }
-
-        @Test
-        fun `attestert innvilget til iverksatt innvilging`() {
-            forsøkStatusovergang(
-                tilAttesteringInnvilget,
-                Statusovergang.TilIverksatt(
-                    attestering = attestering,
-                    hentOpprinneligAvkorting = { null },
-                ),
-            ) shouldBe iverksattInnvilget.right()
-        }
-
-        @Test
-        fun `attestert avslag vilkår, saksbehandler kan ikke attestere sitt eget verk`() {
-            forsøkStatusovergang(
-                tilAttesteringAvslagVilkår.copy(saksbehandler = NavIdentBruker.Saksbehandler(attestering.attestant.navIdent)),
-                Statusovergang.TilIverksatt(
-                    attestering = attestering,
-                    hentOpprinneligAvkorting = { null },
-                ),
-            ) shouldBe KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
-        }
-
-        @Test
-        fun `attestert avslag beregning, saksbehandler kan ikke attestere sitt eget verk`() {
-            forsøkStatusovergang(
-                tilAttesteringAvslagBeregning.copy(saksbehandler = NavIdentBruker.Saksbehandler(attestering.attestant.navIdent)),
-                Statusovergang.TilIverksatt(
-                    attestering = attestering,
-                    hentOpprinneligAvkorting = { null },
-                ),
-            ) shouldBe KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
-        }
-
-        @Test
-        fun `attestert innvilget, saksbehandler kan ikke attestere sitt eget verk`() {
-            forsøkStatusovergang(
-                tilAttesteringInnvilget.copy(saksbehandler = NavIdentBruker.Saksbehandler(attestering.attestant.navIdent)),
-                Statusovergang.TilIverksatt(
-                    attestering = attestering,
-                    hentOpprinneligAvkorting = { null },
-                ),
-            ) shouldBe KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
-        }
-
-        @Test
-        fun `kaster exception dersom simulering inneholder feilutbetaling`() {
-            val medFeilutbetaling = søknadsbehandlingTilAttesteringInnvilget().let { (_, tilAttestering) ->
-                tilAttestering.copy(
-                    simulering = simuleringFeilutbetaling(
-                        tilAttestering.beregning.getMånedsberegninger().first().periode,
-                    ),
-                )
-            }
-            assertThrows<IllegalStateException> {
+    @Test
+    fun `ulovlige overganger`() {
+        listOf(
+            opprettet,
+            vilkårsvurdertInnvilget,
+            vilkårsvurdertAvslag,
+            beregnetInnvilget,
+            beregnetAvslag,
+            simulert,
+            underkjentAvslagVilkår,
+            underkjentAvslagBeregning,
+            underkjentInnvilget,
+            iverksattAvslagBeregning,
+            iverksattAvslagVilkår,
+            iverksattInnvilget,
+            lukketSøknadsbehandling,
+        ).forEach {
+            assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it::class.simpleName}") {
                 forsøkStatusovergang(
-                    medFeilutbetaling,
-                    Statusovergang.TilIverksatt(
-                        attestering = attestering,
-                        hentOpprinneligAvkorting = { null },
-                    ),
+                    it,
+                    Statusovergang.TilUnderkjent(attesteringUnderkjent(clock = fixedClock)),
                 )
-            }
-        }
-
-        // TODO avkorting test hentOpprinneligAvkorting...
-
-        @Test
-        fun `ulovlige overganger`() {
-            listOf(
-                opprettet,
-                vilkårsvurdertInnvilget,
-                vilkårsvurdertAvslag,
-                beregnetInnvilget,
-                beregnetAvslag,
-                simulert,
-                underkjentAvslagVilkår,
-                underkjentAvslagBeregning,
-                underkjentInnvilget,
-                iverksattAvslagBeregning,
-                iverksattAvslagVilkår,
-                iverksattInnvilget,
-                lukketSøknadsbehandling,
-            ).forEach {
-                assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it::class.simpleName}") {
-                    forsøkStatusovergang(
-                        it,
-                        Statusovergang.TilUnderkjent(attesteringUnderkjent(clock = fixedClock)),
-                    )
-                }
             }
         }
     }

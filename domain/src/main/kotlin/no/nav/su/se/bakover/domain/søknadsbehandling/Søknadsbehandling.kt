@@ -1406,6 +1406,13 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         sealed class Avslag : TilAttestering(), ErAvslag {
             abstract override val stønadsperiode: Stønadsperiode
 
+            fun iverksett(attestering: Attestering.Iverksatt): Iverksatt.Avslag {
+                return when (this) {
+                    is MedBeregning -> this.tilIverksatt(attestering)
+                    is UtenBeregning -> this.tilIverksatt(attestering)
+                }
+            }
+
             data class UtenBeregning(
                 override val id: UUID,
                 override val opprettet: Tidspunkt,

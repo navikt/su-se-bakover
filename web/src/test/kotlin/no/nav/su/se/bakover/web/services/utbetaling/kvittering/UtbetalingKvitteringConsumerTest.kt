@@ -8,10 +8,10 @@ import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldStartWith
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
+import no.nav.su.se.bakover.domain.vedtak.KunneIkkeFerdigstilleVedtak
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
-import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.FantIkkeVedtakForUtbetalingId
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.oversendtUtbetalingMedKvittering
@@ -53,7 +53,9 @@ internal class UtbetalingKvitteringConsumerTest {
             on { oppdaterMedKvittering(any(), any()) } doReturn utbetalingMedKvittering.right()
         }
         val ferdigstillVedtakServiceMock = mock<FerdigstillVedtakService> {
-            on { ferdigstillVedtakEtterUtbetaling(any()) } doReturn FantIkkeVedtakForUtbetalingId(UUID30.randomUUID()).left()
+            on { ferdigstillVedtakEtterUtbetaling(any()) } doReturn KunneIkkeFerdigstilleVedtak.FantIkkeVedtakForUtbetalingId(
+                UUID30.randomUUID(),
+            ).left()
         }
         val consumer = UtbetalingKvitteringConsumer(
             utbetalingService = utbetalingServiceMock,

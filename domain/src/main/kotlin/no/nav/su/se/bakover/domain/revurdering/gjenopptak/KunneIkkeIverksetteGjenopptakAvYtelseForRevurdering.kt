@@ -7,7 +7,9 @@ import kotlin.reflect.KClass
 
 sealed class KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering {
     data class KunneIkkeUtbetale(val feil: UtbetalGjenopptakFeil) : KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering()
-    object FantIkkeRevurdering : KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering()
+    object FantIkkeRevurdering : KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering() {
+        override fun toString() = this::class.simpleName!!
+    }
     data class UgyldigTilstand(
         val faktiskTilstand: KClass<out AbstraktRevurdering>,
     ) : KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering() {
@@ -15,6 +17,10 @@ sealed class KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering {
             GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse::class
     }
 
-    object SimuleringIndikererFeilutbetaling : KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering()
-    object LagringFeilet : KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering()
+    object SimuleringIndikererFeilutbetaling : KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering() {
+        override fun toString() = this::class.simpleName!!
+    }
+    object LagringFeilet : KunneIkkeIverksetteGjenopptakAvYtelseForRevurdering() {
+        override fun toString() = this::class.simpleName!!
+    }
 }

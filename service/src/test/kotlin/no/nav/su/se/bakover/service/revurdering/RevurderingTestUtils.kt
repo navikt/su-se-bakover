@@ -6,7 +6,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.SessionFactory
-import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.brev.BrevService
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
@@ -103,7 +102,6 @@ internal object RevurderingTestUtils {
         sakService: SakService = mock(),
         kontrollsamtaleService: KontrollsamtaleService = mock(),
         sessionFactory: SessionFactory = TestSessionFactory(),
-        avkortingsvarselRepo: AvkortingsvarselRepo = mock(),
         tilbakekrevingService: TilbakekrevingService = mock(),
         satsFactory: SatsFactory = satsFactoryTestPåDato(),
     ) =
@@ -120,7 +118,6 @@ internal object RevurderingTestUtils {
             sessionFactory = sessionFactory,
             formuegrenserFactory = formuegrenserFactoryTestPåDato(),
             sakService = sakService,
-            avkortingsvarselRepo = avkortingsvarselRepo,
             tilbakekrevingService = tilbakekrevingService,
             satsFactory = satsFactory,
         )

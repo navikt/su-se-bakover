@@ -13,8 +13,8 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
-import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.domain.søknadsbehandling.iverksett.KunneIkkeIverksetteSøknadsbehandling
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
 import no.nav.su.se.bakover.test.iverksattSøknadsbehandlingUføre
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -36,64 +36,6 @@ internal class IverksettSøknadsbehandlingRouteTest {
     private val navIdentAttestant = "random-attestant-id"
 
     @Test
-    fun `BadRequest når behandlingId er ugyldig uuid eller NotFound når den ikke finnes`() {
-        testApplication {
-            application {
-                testSusebakover(
-                    services = TestServicesBuilder.services(
-                        søknadsbehandling = SøknadsbehandlingServices(
-                            søknadsbehandlingService = mock(),
-                            iverksettSøknadsbehandlingService = mock {
-                                on { iverksett(any()) } doReturn KunneIkkeIverksette.FantIkkeBehandling.left()
-                            },
-                        ),
-                    ),
-                )
-            }
-            requestSomAttestant(
-                HttpMethod.Patch,
-                "$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/iverksett",
-                navIdentSaksbehandler,
-            ).apply {
-                status shouldBe HttpStatusCode.NotFound
-            }
-
-            requestSomAttestant(
-                HttpMethod.Patch,
-                "$sakPath/rubbish/behandlinger/rubbish/iverksett",
-                navIdentSaksbehandler,
-            ).apply {
-                status shouldBe HttpStatusCode.BadRequest
-            }
-        }
-    }
-
-    @Test
-    fun `NotFound når behandling ikke eksisterer`() {
-        testApplication {
-            application {
-                testSusebakover(
-                    services = TestServicesBuilder.services(
-                        søknadsbehandling = SøknadsbehandlingServices(
-                            søknadsbehandlingService = mock(),
-                            iverksettSøknadsbehandlingService = mock {
-                                on { iverksett(any()) } doReturn KunneIkkeIverksette.FantIkkeBehandling.left()
-                            },
-                        ),
-                    ),
-                )
-            }
-            requestSomAttestant(
-                HttpMethod.Patch,
-                "$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/iverksett",
-                navIdentSaksbehandler,
-            ).apply {
-                status shouldBe HttpStatusCode.NotFound
-            }
-        }
-    }
-
-    @Test
     fun `Forbidden når den som behandlet saken prøver å attestere seg selv`() {
         testApplication {
             application {
@@ -102,7 +44,7 @@ internal class IverksettSøknadsbehandlingRouteTest {
                         søknadsbehandling = SøknadsbehandlingServices(
                             søknadsbehandlingService = mock(),
                             iverksettSøknadsbehandlingService = mock {
-                                on { iverksett(any()) } doReturn KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+                                on { iverksett(any()) } doReturn KunneIkkeIverksetteSøknadsbehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
                             },
                         ),
                     ),
@@ -132,7 +74,7 @@ internal class IverksettSøknadsbehandlingRouteTest {
                         søknadsbehandling = SøknadsbehandlingServices(
                             søknadsbehandlingService = mock(),
                             iverksettSøknadsbehandlingService = mock {
-                                on { iverksett(any()) } doReturn iverksattSøknadsbehandlingUføre().second.right()
+                                on { iverksett(any()) } doReturn iverksattSøknadsbehandlingUføre().right()
                             },
                         ),
                     ),
@@ -162,7 +104,7 @@ internal class IverksettSøknadsbehandlingRouteTest {
                         søknadsbehandling = SøknadsbehandlingServices(
                             søknadsbehandlingService = mock(),
                             iverksettSøknadsbehandlingService = mock {
-                                on { iverksett(any()) } doReturn KunneIkkeIverksette.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil)
+                                on { iverksett(any()) } doReturn KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil)
                                     .left()
                             },
                         ),
