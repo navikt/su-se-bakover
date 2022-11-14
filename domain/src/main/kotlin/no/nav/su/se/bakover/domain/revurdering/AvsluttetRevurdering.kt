@@ -35,7 +35,6 @@ data class AvsluttetRevurdering private constructor(
 
     // TODO jah: Denne bør overstyres av saksbehandler som avsluttet revurderingen.
     override val saksbehandler: NavIdentBruker.Saksbehandler = underliggendeRevurdering.saksbehandler
-    override val fritekstTilBrev: String = underliggendeRevurdering.fritekstTilBrev
     override val revurderingsårsak: Revurderingsårsak = underliggendeRevurdering.revurderingsårsak
     override val informasjonSomRevurderes: InformasjonSomRevurderes = underliggendeRevurdering.informasjonSomRevurderes
     override val oppgaveId: OppgaveId = underliggendeRevurdering.oppgaveId

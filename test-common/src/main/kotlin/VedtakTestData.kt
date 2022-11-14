@@ -173,10 +173,10 @@ fun vedtakRevurderingIverksattInnvilget(
     return iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         stønadsperiode = stønadsperiode,
         revurderingsperiode = revurderingsperiode,
-        grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
         sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
-        revurderingsårsak = revurderingsårsak,
         clock = clock,
+        grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+        revurderingsårsak = revurderingsårsak,
     ).let { (sak, revurdering) ->
         val utbetaling = oversendtUtbetalingMedKvittering(
             id = utbetalingId,

@@ -106,7 +106,6 @@ internal class VedtakPostgresRepoTest {
                 grunnlagsdata = Grunnlagsdata.IkkeVurdert,
                 attesteringer = Attesteringshistorikk.empty()
                     .leggTilNyAttestering(Attestering.Iverksatt(søknadsbehandlingVedtak.attestant, fixedTidspunkt)),
-                fritekstTilBrev = "",
                 revurderingsårsak = Revurderingsårsak(
                     Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                     Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
@@ -215,12 +214,10 @@ internal class VedtakPostgresRepoTest {
                 saksbehandler = nyRevurdering.saksbehandler,
                 oppgaveId = OppgaveId(""),
                 beregning = beregning,
-                fritekstTilBrev = "",
                 revurderingsårsak = Revurderingsårsak(
                     Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                     Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
                 ),
-                skalFøreTilUtsendingAvVedtaksbrev = true,
                 grunnlagsdata = nyRevurdering.grunnlagsdata,
                 vilkårsvurderinger = nyRevurdering.vilkårsvurderinger,
                 informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
@@ -240,12 +237,10 @@ internal class VedtakPostgresRepoTest {
                 beregning = beregning,
                 attesteringer = Attesteringshistorikk.empty()
                     .leggTilNyAttestering(Attestering.Iverksatt(attestant, fixedTidspunkt)),
-                fritekstTilBrev = "",
                 revurderingsårsak = Revurderingsårsak(
                     Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                     Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
                 ),
-                skalFøreTilUtsendingAvVedtaksbrev = true,
                 grunnlagsdata = nyRevurdering.grunnlagsdata,
                 vilkårsvurderinger = nyRevurdering.vilkårsvurderinger,
                 informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),

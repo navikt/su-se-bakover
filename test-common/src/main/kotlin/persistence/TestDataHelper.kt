@@ -561,7 +561,7 @@ class TestDataHelper(
             sak to vedtak
         },
         sakOgRevurdering: (sakOgVedtak: Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse>) -> Triple<Sak, IverksattRevurdering, Utbetaling?> = {
-            iverksattRevurdering(sakOgVedtakSomKanRevurderes = it, clock = clock)
+            iverksattRevurdering(clock = clock, sakOgVedtakSomKanRevurderes = it)
         },
     ): Triple<Sak, IverksattRevurdering, Utbetaling?> {
         return sakOgRevurdering(sakOgVedtak).let { (sak, revurdering, utbetaling) ->
@@ -682,8 +682,8 @@ class TestDataHelper(
     ): IverksattRevurdering.Opphørt {
         return persisterIverksattRevurdering(sakOgVedtak) { (sak, vedtak) ->
             iverksattRevurdering(
-                sakOgVedtakSomKanRevurderes = sak to vedtak,
                 clock = clock,
+                sakOgVedtakSomKanRevurderes = sak to vedtak,
                 vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag()),
             )
         }.let {

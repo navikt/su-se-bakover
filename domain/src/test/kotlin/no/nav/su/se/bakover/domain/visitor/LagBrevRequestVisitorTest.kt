@@ -1010,7 +1010,6 @@ internal class LagBrevRequestVisitorTest {
     fun `lager request for vedtak om revurdering av inntekt`() {
         val (revurdering, vedtak) = vedtakRevurdering(
             revurderingsperiode = år(2021),
-            fritekstTilBrev = "JEPP",
         ).let { (_, v) ->
             v.shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering>().let {
                 it.behandling to it
@@ -1060,7 +1059,6 @@ internal class LagBrevRequestVisitorTest {
         val revurderingsperiode = august(2021)..desember(2021)
         val (revurdering, opphørsvedtak) = vedtakRevurdering(
             revurderingsperiode = revurderingsperiode,
-            fritekstTilBrev = "FRITEKST REVURDERING",
             vilkårOverrides = listOf(
                 personligOppmøtevilkårAvslag(periode = revurderingsperiode),
             ),
@@ -1129,7 +1127,6 @@ internal class LagBrevRequestVisitorTest {
         val (_, revurdering) = iverksattRevurdering(
             revurderingsperiode = revurderingsperiode,
             vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag(periode = revurderingsperiode)),
-            fritekstTilBrev = "FRITEKST REVURDERING",
         ).let { it.first to it.second as IverksattRevurdering.Opphørt }
         val opphørsvedtak = VedtakSomKanRevurderes.from(revurdering, utbetalingId, fixedClock)
         val brevRevurdering = LagBrevRequestVisitor(
@@ -1189,7 +1186,6 @@ internal class LagBrevRequestVisitorTest {
                     periode = opphørsperiode,
                 ),
             ),
-            fritekstTilBrev = "FRITEKST REVURDERING",
         ).let {
             Triple(sak, it.second.behandling as IverksattRevurdering, it.second)
         }
@@ -1278,12 +1274,10 @@ internal class LagBrevRequestVisitorTest {
             beregning = expectedInnvilgetBeregning(søknadsbehandling.beregning.getId()),
             attesteringer = Attesteringshistorikk.empty()
                 .leggTilNyAttestering(Attestering.Iverksatt(attestant, fixedTidspunkt)),
-            fritekstTilBrev = "EN FIN FRITEKST",
             revurderingsårsak = Revurderingsårsak(
                 Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
-            skalFøreTilUtsendingAvVedtaksbrev = false,
             grunnlagsdata = Grunnlagsdata.create(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -1341,13 +1335,13 @@ internal class LagBrevRequestVisitorTest {
     @Test
     fun `tilbakekrevingsbrev dersom tilbakekreving ved endring`() {
         val vedtak = vedtakRevurdering(
+            clock = TikkendeKlokke(1.august(2021).fixedClock()),
             grunnlagsdataOverrides = listOf(
                 fradragsgrunnlagArbeidsinntekt(
                     periode = mai(2021),
                     arbeidsinntekt = 5000.0,
                 ),
             ),
-            clock = TikkendeKlokke(1.august(2021).fixedClock()),
             utbetalingerKjørtTilOgMed = 1.juli(2021),
         ).second.shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering>()
 
@@ -1374,7 +1368,7 @@ internal class LagBrevRequestVisitorTest {
                 saksbehandlerNavn = saksbehandlerNavn,
                 attestantNavn = attestantNavn,
                 revurdertBeregning = vedtak.beregning,
-                fritekst = vedtak.behandling.fritekstTilBrev,
+                fritekst = vedtak.behandling.skalSendeBrev().getOrFail().fritekst!!,
                 harEktefelle = false,
                 forventetInntektStørreEnn0 = false,
                 dagensDato = fixedLocalDate,
@@ -1393,13 +1387,13 @@ internal class LagBrevRequestVisitorTest {
     @Test
     fun `tilbakekrevingsbrev dersom tilbakekreving ved opphør`() {
         val vedtak = vedtakRevurdering(
+            clock = TikkendeKlokke(1.august(2021).fixedClock()),
             revurderingsperiode = juni(2021)..(desember(2021)),
             vilkårOverrides = listOf(
                 flyktningVilkårAvslått(
                     periode = juni(2021)..(desember(2021)),
                 ),
             ),
-            clock = TikkendeKlokke(1.august(2021).fixedClock()),
             utbetalingerKjørtTilOgMed = 1.juli(2021),
         ).second.shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering>()
 
@@ -1426,7 +1420,7 @@ internal class LagBrevRequestVisitorTest {
                 saksbehandlerNavn = saksbehandlerNavn,
                 attestantNavn = attestantNavn,
                 revurdertBeregning = vedtak.beregning,
-                fritekst = vedtak.behandling.fritekstTilBrev,
+                fritekst = vedtak.behandling.skalSendeBrev().getOrFail().fritekst!!,
                 harEktefelle = false,
                 forventetInntektStørreEnn0 = false,
                 dagensDato = fixedLocalDate,

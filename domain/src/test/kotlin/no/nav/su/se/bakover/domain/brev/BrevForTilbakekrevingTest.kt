@@ -108,7 +108,6 @@ class BrevForTilbakekrevingTest {
                 sak to revurdering.tilAttestering(
                     attesteringsoppgaveId = oppgaveIdRevurdering,
                     saksbehandler = saksbehandler,
-                    fritekstTilBrev = "fri",
                 ).getOrFail()
             }.let { (sak, revurdering) ->
                 requireType<Pair<Sak, RevurderingTilAttestering.Innvilget>>(sak to revurdering)
@@ -127,7 +126,6 @@ class BrevForTilbakekrevingTest {
                 sak to revurdering.tilAttestering(
                     attesteringsoppgaveId = oppgaveIdRevurdering,
                     saksbehandler = saksbehandler,
-                    fritekstTilBrev = "fri",
                 ).getOrFail().underkjenn(
                     attestering = attesteringUnderkjent(fixedClock),
                     oppgaveId = oppgaveIdRevurdering,
@@ -162,7 +160,6 @@ class BrevForTilbakekrevingTest {
                 sak to revurdering.tilAttestering(
                     attesteringsoppgaveId = oppgaveIdRevurdering,
                     saksbehandler = saksbehandler,
-                    fritekstTilBrev = "fri",
                 ).getOrFail().tilIverksatt(
                     attestant = attestant,
                     hentOpprinneligAvkorting = { null },
@@ -218,7 +215,6 @@ class BrevForTilbakekrevingTest {
                 sak to revurdering.tilAttestering(
                     attesteringsoppgaveId = oppgaveIdRevurdering,
                     saksbehandler = saksbehandler,
-                    fritekstTilBrev = "fri",
                 ).getOrFail()
             }.let { (sak, revurdering) ->
                 requireType<Pair<Sak, RevurderingTilAttestering.Opphørt>>(sak to revurdering)
@@ -237,7 +233,6 @@ class BrevForTilbakekrevingTest {
                 sak to revurdering.tilAttestering(
                     attesteringsoppgaveId = oppgaveIdRevurdering,
                     saksbehandler = saksbehandler,
-                    fritekstTilBrev = "fri",
                 ).getOrFail().underkjenn(
                     attestering = attesteringUnderkjent(fixedClock),
                     oppgaveId = oppgaveIdRevurdering,
@@ -259,7 +254,6 @@ class BrevForTilbakekrevingTest {
                 sak to revurdering.tilAttestering(
                     attesteringsoppgaveId = oppgaveIdRevurdering,
                     saksbehandler = saksbehandler,
-                    fritekstTilBrev = "fri",
                 ).getOrFail().tilIverksatt(
                     attestant = attestant,
                     hentOpprinneligAvkorting = { null },
@@ -283,10 +277,10 @@ class BrevForTilbakekrevingTest {
         @Test
         fun `erstatt brutto med netto`() {
             vedtakRevurdering(
+                clock = TikkendeKlokke(1.august(2021).fixedClock()),
                 grunnlagsdataOverrides = listOf(
                     fradragsgrunnlagArbeidsinntekt(periode = år(2021), arbeidsinntekt = 5000.0),
                 ),
-                clock = TikkendeKlokke(1.august(2021).fixedClock()),
                 utbetalingerKjørtTilOgMed = 1.juli(2021),
             ).also { (sak, vedtak) ->
                 requireType<Pair<Sak, VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering>>(sak to vedtak)

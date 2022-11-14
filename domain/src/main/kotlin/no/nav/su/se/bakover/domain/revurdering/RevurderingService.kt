@@ -82,6 +82,10 @@ interface RevurderingService {
         request: OppdaterTilbakekrevingsbehandlingRequest,
     ): Either<KunneIkkeOppdatereTilbakekrevingsbehandling, SimulertRevurdering>
 
+    fun leggTilBrevvalg(
+        request: LeggTilBrevvalgRequest,
+    ): Either<KunneIkkeLeggeTilBrevvalg, Revurdering>
+
     fun lagBrevutkastForRevurdering(
         revurderingId: UUID,
         fritekst: String?,
@@ -465,5 +469,42 @@ data class OppdaterTilbakekrevingsbehandlingRequest(
     enum class Avgjørelse {
         TILBAKEKREV,
         IKKE_TILBAKEKREV,
+    }
+}
+
+sealed interface KunneIkkeLeggeTilBrevvalg {
+
+    object FantIkkeRevurdering : KunneIkkeLeggeTilBrevvalg
+    data class Feil(val feil: Revurdering.KunneIkkeLeggeTilBrevvalg) : KunneIkkeLeggeTilBrevvalg
+}
+
+data class LeggTilBrevvalgRequest(
+    val revurderingId: UUID,
+    val valg: Valg,
+    val fritekst: String?,
+    val begrunnelse: String?,
+    val saksbehandler: NavIdentBruker.Saksbehandler,
+) {
+    enum class Valg {
+        SEND,
+        IKKE_SEND,
+        ;
+    }
+
+    fun toDomain(): BrevvalgRevurdering {
+        return when (valg) {
+            Valg.SEND -> {
+                BrevvalgRevurdering.SendBrev(
+                    fritekst = fritekst,
+                    begrunnelse = begrunnelse,
+                    bestemtAv = BrevvalgRevurdering.BestemtAv.Behandler(saksbehandler.navIdent),
+                )
+            } Valg.IKKE_SEND -> {
+                BrevvalgRevurdering.IkkeSendBrev(
+                    begrunnelse = begrunnelse,
+                    bestemtAv = BrevvalgRevurdering.BestemtAv.Behandler(saksbehandler.navIdent),
+                )
+            }
+        }
     }
 }

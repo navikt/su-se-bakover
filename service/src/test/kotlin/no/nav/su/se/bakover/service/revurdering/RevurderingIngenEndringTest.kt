@@ -186,9 +186,7 @@ internal class RevurderingIngenEndringTest {
 
     @Test
     fun `iverksetter revurdering som ikke fører til endring i ytelse og sender brev`() {
-        val (sak, revurderingTilAttestering) = tilAttesteringRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
-            skalFøreTilBrevutsending = true,
-        )
+        val (sak, revurderingTilAttestering) = tilAttesteringRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak()
 
         val iverksattRevurdering = revurderingTilAttestering.tilIverksatt(attestant, { null }, fixedClock).getOrFail()
         val vedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, fixedClock)
@@ -246,9 +244,7 @@ internal class RevurderingIngenEndringTest {
 
     @Test
     fun `iverksetter revurdering som ikke fører til endring i ytelse og sender ikke brev`() {
-        val (_, revurderingTilAttestering) = tilAttesteringRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
-            skalFøreTilBrevutsending = false,
-        )
+        val (_, revurderingTilAttestering) = tilAttesteringRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak()
 
         val iverksattRevurdering = revurderingTilAttestering.tilIverksatt(attestant, { null }, fixedClock).getOrFail()
         val vedtak = VedtakSomKanRevurderes.from(iverksattRevurdering, fixedClock)

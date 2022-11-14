@@ -6,7 +6,7 @@ data class BrevvalgVedtaksbrevDbJson(
     val type: BrevvalgVedtaksbrevDbType,
     val fritekst: String?,
     val begrunnelse: String?,
-    val bestemtAv: String?,
+    val bestemtav: String?,
 )
 enum class BrevvalgVedtaksbrevDbType {
     SEND_BREV,
@@ -22,7 +22,7 @@ fun BrevvalgRevurdering.toDb(): BrevvalgVedtaksbrevDbJson {
                 type = BrevvalgVedtaksbrevDbType.IKKE_SEND_BREV,
                 fritekst = null,
                 begrunnelse = begrunnelse,
-                bestemtAv = bestemtAv.toString(),
+                bestemtav = bestemtAv.toString(),
             )
         }
         BrevvalgRevurdering.IkkeValgt -> {
@@ -30,7 +30,7 @@ fun BrevvalgRevurdering.toDb(): BrevvalgVedtaksbrevDbJson {
                 type = BrevvalgVedtaksbrevDbType.IKKE_VALGT,
                 fritekst = null,
                 begrunnelse = null,
-                bestemtAv = null,
+                bestemtav = null,
             )
         }
         is BrevvalgRevurdering.SendBrev -> {
@@ -38,7 +38,7 @@ fun BrevvalgRevurdering.toDb(): BrevvalgVedtaksbrevDbJson {
                 type = BrevvalgVedtaksbrevDbType.SEND_BREV,
                 fritekst = fritekst,
                 begrunnelse = begrunnelse,
-                bestemtAv = bestemtAv.toString(),
+                bestemtav = bestemtAv.toString(),
             )
         }
     }
@@ -57,13 +57,13 @@ fun BrevvalgVedtaksbrevDbJson.toDomain(): BrevvalgRevurdering {
             BrevvalgRevurdering.SendBrev(
                 fritekst = fritekst,
                 begrunnelse = begrunnelse,
-                bestemtAv = bestemtAv(bestemtAv!!),
+                bestemtAv = bestemtAv(bestemtav!!),
             )
         }
         BrevvalgVedtaksbrevDbType.IKKE_SEND_BREV -> {
             BrevvalgRevurdering.IkkeSendBrev(
                 begrunnelse = begrunnelse,
-                bestemtAv = bestemtAv(bestemtAv!!),
+                bestemtAv = bestemtAv(bestemtav!!),
             )
         }
         BrevvalgVedtaksbrevDbType.IKKE_VALGT -> {

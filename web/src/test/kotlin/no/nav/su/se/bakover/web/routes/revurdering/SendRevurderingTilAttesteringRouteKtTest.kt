@@ -119,9 +119,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
     fun `ingen endring med brev`() {
         // TODO - flytt til regresjonstest dersom vi skal teste logikk, hvis ikke bør denne teste json
         val revurderingTilAttestering =
-            tilAttesteringRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
-                fritekstTilBrev = "Friteksten",
-            ).second
+            tilAttesteringRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak().second
 
         val revurderingServiceMock = mock<RevurderingService> {
             on { sendTilAttestering(any()) } doReturn revurderingTilAttestering.right()

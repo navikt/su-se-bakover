@@ -112,6 +112,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                 clock = tikkendeKlokke,
                 stønadsperiode = stønadsperiode2021,
                 revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
+                sakOgVedtakSomKanRevurderes = sak to førsteStønadsperiode,
                 vilkårOverrides = listOf(
                     utenlandsoppholdAvslag(
                         id = UUID.randomUUID(),
@@ -119,7 +120,6 @@ internal class BeregnRevurderingStrategyDeciderTest {
                         periode = Periode.create(1.mai(2021), 31.desember(2021)),
                     ),
                 ),
-                sakOgVedtakSomKanRevurderes = sak to førsteStønadsperiode,
                 utbetalingerKjørtTilOgMed = 1.juli(2021),
             ).let {
                 sak = it.first
@@ -182,6 +182,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
             clock = tikkendeKlokke,
             stønadsperiode = stønadsperiode2021,
             revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
+            sakOgVedtakSomKanRevurderes = sak to førsteStønadsperiode,
             vilkårOverrides = listOf(
                 utenlandsoppholdAvslag(
                     id = UUID.randomUUID(),
@@ -189,7 +190,6 @@ internal class BeregnRevurderingStrategyDeciderTest {
                     periode = Periode.create(1.mai(2021), 31.desember(2021)),
                 ),
             ),
-            sakOgVedtakSomKanRevurderes = sak to førsteStønadsperiode,
             utbetalingerKjørtTilOgMed = 1.juli(2021),
         ).let {
             sak = it.first
@@ -521,6 +521,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                 clock = tikkendeKlokke,
                 stønadsperiode = stønadsperiode2021,
                 revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
+                sakOgVedtakSomKanRevurderes = sak to førsteStønadsperiode,
                 vilkårOverrides = listOf(
                     utenlandsoppholdAvslag(
                         id = UUID.randomUUID(),
@@ -528,7 +529,6 @@ internal class BeregnRevurderingStrategyDeciderTest {
                         periode = Periode.create(1.mai(2021), 31.desember(2021)),
                     ),
                 ),
-                sakOgVedtakSomKanRevurderes = sak to førsteStønadsperiode,
                 utbetalingerKjørtTilOgMed = 1.juli(2021),
             ).let {
                 sak = it.first
@@ -600,6 +600,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                 clock = tikkendeKlokke,
                 stønadsperiode = stønadsperiode2021,
                 revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
+                sakOgVedtakSomKanRevurderes = sak to førsteStønadsperiode,
                 vilkårOverrides = listOf(
                     utenlandsoppholdAvslag(
                         id = UUID.randomUUID(),
@@ -607,7 +608,6 @@ internal class BeregnRevurderingStrategyDeciderTest {
                         periode = Periode.create(1.mai(2021), 31.desember(2021)),
                     ),
                 ),
-                sakOgVedtakSomKanRevurderes = sak to førsteStønadsperiode,
                 utbetalingerKjørtTilOgMed = 1.juli(2021),
             ).let {
                 sak = it.first
@@ -687,6 +687,7 @@ internal class BeregnRevurderingStrategyDeciderTest {
                 clock = tikkendeKlokke,
                 stønadsperiode = stønadsperiode2021,
                 revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
+                sakOgVedtakSomKanRevurderes = sak to førsteStønadsperiode,
                 vilkårOverrides = listOf(
                     utenlandsoppholdAvslag(
                         id = UUID.randomUUID(),
@@ -694,7 +695,6 @@ internal class BeregnRevurderingStrategyDeciderTest {
                         periode = Periode.create(1.mai(2021), 31.desember(2021)),
                     ),
                 ),
-                sakOgVedtakSomKanRevurderes = sak to førsteStønadsperiode,
                 utbetalingerKjørtTilOgMed = 1.juli(2021),
             ).let {
                 sak = it.first

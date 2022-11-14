@@ -255,9 +255,9 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
 
         // opphør fra fra neste måned
         val (sak4, _) = vedtakRevurdering(
+            saksnummer = Saksnummer(3004),
             stønadsperiode = Stønadsperiode.create(år(2021)),
             revurderingsperiode = Periode.create(1.august(2021), 31.desember(2021)),
-            saksnummer = Saksnummer(3004),
             grunnlagsdataOverrides = listOf(
                 formueGrunnlagUtenEpsAvslått(
                     periode = Periode.create(1.august(2021), 31.desember(2021)),
@@ -270,9 +270,9 @@ internal class SendPåminnelserOmNyStønadsperiodeServiceImplTest {
 
         // revurdert med naturlig utløp inneværende måned
         val (sak5, _) = vedtakRevurdering(
+            saksnummer = Saksnummer(3005),
             stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.juli(2021))),
             revurderingsperiode = Periode.create(1.mai(2021), 31.juli(2021)),
-            saksnummer = Saksnummer(3005),
             grunnlagsdataOverrides = listOf(
                 fradragsgrunnlagArbeidsinntekt1000(
                     periode = Periode.create(1.mai(2021), 31.juli(2021)),

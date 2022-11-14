@@ -103,7 +103,6 @@ internal class OpprettRevurderingServiceTest {
                 opprettetRevurdering.tilRevurdering shouldBe søknadsvedtak.id
                 opprettetRevurdering.saksbehandler shouldBe saksbehandler
                 opprettetRevurdering.oppgaveId shouldBe OppgaveId("oppgaveId")
-                opprettetRevurdering.fritekstTilBrev shouldBe ""
                 opprettetRevurdering.revurderingsårsak shouldBe Revurderingsårsak.create(
                     årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER.toString(),
                     begrunnelse = "Ny informasjon",
@@ -184,7 +183,6 @@ internal class OpprettRevurderingServiceTest {
                 opprettetRevurdering.tilRevurdering shouldBe søknadsvedtak.id
                 opprettetRevurdering.saksbehandler shouldBe saksbehandler
                 opprettetRevurdering.oppgaveId shouldBe OppgaveId("oppgaveId")
-                opprettetRevurdering.fritekstTilBrev shouldBe ""
                 opprettetRevurdering.revurderingsårsak shouldBe Revurderingsårsak(
                     Revurderingsårsak.Årsak.REGULER_GRUNNBELØP,
                     Revurderingsårsak.Begrunnelse.create("g-regulering"),
@@ -261,7 +259,6 @@ internal class OpprettRevurderingServiceTest {
                 opprettetRevurdering.tilRevurdering shouldBe søknadsvedtak.id
                 opprettetRevurdering.saksbehandler shouldBe saksbehandler
                 opprettetRevurdering.oppgaveId shouldBe OppgaveId("oppgaveId")
-                opprettetRevurdering.fritekstTilBrev shouldBe ""
                 opprettetRevurdering.revurderingsårsak shouldBe Revurderingsårsak(
                     Revurderingsårsak.Årsak.REGULER_GRUNNBELØP,
                     Revurderingsårsak.Begrunnelse.create("g-regulering"),
@@ -353,14 +350,14 @@ internal class OpprettRevurderingServiceTest {
             clock = tikkendeKlokke,
         )
         val (sak2, vedtakForFørsteJanuarLagetNå) = vedtakRevurdering(
-            sakOgVedtakSomKanRevurderes = sak1 to vedtakForFørsteJanuarLagetForLengeSiden as VedtakSomKanRevurderes,
-            revurderingsperiode = vedtaksperiode,
             clock = tikkendeKlokke,
+            revurderingsperiode = vedtaksperiode,
+            sakOgVedtakSomKanRevurderes = sak1 to vedtakForFørsteJanuarLagetForLengeSiden as VedtakSomKanRevurderes,
         )
         val (sak3, vedtakForFørsteMarsLagetNå) = vedtakRevurdering(
-            sakOgVedtakSomKanRevurderes = sak2 to vedtakForFørsteJanuarLagetNå,
-            revurderingsperiode = Periode.create(1.mars(2021), 31.desember(2021)),
             clock = tikkendeKlokke,
+            revurderingsperiode = Periode.create(1.mars(2021), 31.desember(2021)),
+            sakOgVedtakSomKanRevurderes = sak2 to vedtakForFørsteJanuarLagetNå,
         )
 
         val fraOgMedDatoFebruar = fixedLocalDate.plus(1, ChronoUnit.MONTHS)

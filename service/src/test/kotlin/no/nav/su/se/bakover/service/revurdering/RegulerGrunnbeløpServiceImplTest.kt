@@ -206,10 +206,10 @@ internal class RegulerGrunnbeløpServiceImplTest {
         assertThrows<AssertionError> {
             revurderingUnderkjent(
                 revurderingsårsak = revurderingsårsakRegulerGrunnbeløp,
+                clock = tikkendeFixedClock,
                 vilkårOverrides = listOf(
                     flyktningVilkårAvslått(),
                 ),
-                clock = tikkendeFixedClock,
             )
         }.also {
             it.message shouldContain "KanIkkeSendeEnOpphørtGReguleringTilAttestering"
@@ -246,9 +246,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
                     fritekstTilBrev = "Fritekst",
                     skalFøreTilBrevutsending = true,
                 ),
-            ).getOrFail().shouldBeType<RevurderingTilAttestering.IngenEndring>().also {
-                it.skalFøreTilUtsendingAvVedtaksbrev shouldBe false
-            }
+            ).getOrFail().shouldBeType<RevurderingTilAttestering.IngenEndring>()
 
             inOrder(it.revurderingRepo, it.personService, it.oppgaveService) {
                 verify(it.revurderingRepo).hent(beregnetRevurdering.id)

@@ -91,9 +91,7 @@ internal class SkalSendeBrevVisitorTest {
     @Disabled("https://trello.com/c/5iblmYP9/1090-endre-sperre-for-10-endring-til-%C3%A5-v%C3%A6re-en-advarsel")
     fun `vedtak for revurdering uten endringer sender brev hvis det er valgt`() {
         val skalSendeBrev = VedtakSomKanRevurderes.from(
-            revurdering = iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
-                skalFøreTilBrevutsending = true,
-            ).second,
+            revurdering = iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak().second,
             clock = fixedClock,
         )
 
@@ -108,9 +106,7 @@ internal class SkalSendeBrevVisitorTest {
     @Disabled("https://trello.com/c/5iblmYP9/1090-endre-sperre-for-10-endring-til-%C3%A5-v%C3%A6re-en-advarsel")
     fun `vedtak for revurdering uten endringer sender ikke brev hvis det er valgt`() {
         val skalIkkeSendeBrev = VedtakSomKanRevurderes.from(
-            revurdering = iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
-                skalFøreTilBrevutsending = false,
-            ).second,
+            revurdering = iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak().second,
             clock = fixedClock,
         )
 
@@ -139,11 +135,11 @@ internal class SkalSendeBrevVisitorTest {
     @Test
     fun `vedtak med vurdert tilbakekrevingsbehandling sender ikke brev`() {
         val vedtak = vedtakRevurdering(
+            clock = TikkendeKlokke(1.august(2021).fixedClock()),
             revurderingsperiode = mai(2021)..desember(2021),
             grunnlagsdataOverrides = listOf(
                 fradragsgrunnlagArbeidsinntekt(periode = mai(2021)..desember(2021), arbeidsinntekt = 5000.0),
             ),
-            clock = TikkendeKlokke(1.august(2021).fixedClock()),
             utbetalingerKjørtTilOgMed = 1.juli(2021),
         ).second.shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering>().also {
             it.behandling.tilbakekrevingsbehandling.skalTilbakekreve().isRight() shouldBe true
