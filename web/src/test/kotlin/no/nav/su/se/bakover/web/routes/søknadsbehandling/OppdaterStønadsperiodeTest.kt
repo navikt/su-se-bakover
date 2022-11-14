@@ -11,6 +11,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -34,7 +35,16 @@ class OppdaterStønadsperiodeTest {
         }
 
         testApplication {
-            application { testSusebakover(services = services.copy(søknadsbehandling = serviceMock)) }
+            application {
+                testSusebakover(
+                    services = TestServicesBuilder.services(
+                        søknadsbehandling = SøknadsbehandlingServices(
+                            søknadsbehandlingService = serviceMock,
+                            iverksettSøknadsbehandlingService = mock(),
+                        ),
+                    ),
+                )
+            }
             defaultRequest(
                 HttpMethod.Post,
                 url,
@@ -142,7 +152,16 @@ class OppdaterStønadsperiodeTest {
         }
 
         testApplication {
-            application { testSusebakover(services = services.copy(søknadsbehandling = serviceMock)) }
+            application {
+                testSusebakover(
+                    services = TestServicesBuilder.services(
+                        søknadsbehandling = SøknadsbehandlingServices(
+                            søknadsbehandlingService = serviceMock,
+                            iverksettSøknadsbehandlingService = mock(),
+                        ),
+                    ),
+                )
+            }
             defaultRequest(
                 HttpMethod.Post,
                 url,

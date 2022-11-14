@@ -128,7 +128,6 @@ import no.nav.su.se.bakover.domain.skatt.Skattegrunnlag
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadCommand
 import no.nav.su.se.bakover.domain.søknad.Søknad
 import no.nav.su.se.bakover.domain.søknadinnhold.SøknadInnhold
-import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
@@ -183,6 +182,7 @@ import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteSøknad
 import no.nav.su.se.bakover.service.søknad.OpprettManglendeJournalpostOgOppgaveResultat
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
@@ -469,181 +469,185 @@ open class AccessCheckProxy(
                 }
             },
             toggles = services.toggles,
-            søknadsbehandling = object : SøknadsbehandlingService {
-                override fun opprett(request: SøknadsbehandlingService.OpprettRequest): Either<SøknadsbehandlingService.KunneIkkeOpprette, Søknadsbehandling.Vilkårsvurdert.Uavklart> {
-                    assertHarTilgangTilSøknad(request.søknadId)
-                    return services.søknadsbehandling.opprett(request)
-                }
+            søknadsbehandling = SøknadsbehandlingServices(
+                iverksettSøknadsbehandlingService = {
+                    assertHarTilgangTilBehandling(it.behandlingId)
+                    services.søknadsbehandling.iverksettSøknadsbehandlingService.iverksett(it)
+                },
+                søknadsbehandlingService = object : SøknadsbehandlingService {
+                    val service = services.søknadsbehandling.søknadsbehandlingService
+                    override fun opprett(request: SøknadsbehandlingService.OpprettRequest): Either<SøknadsbehandlingService.KunneIkkeOpprette, Søknadsbehandling.Vilkårsvurdert.Uavklart> {
+                        assertHarTilgangTilSøknad(request.søknadId)
+                        return service.opprett(request)
+                    }
 
-                override fun beregn(request: SøknadsbehandlingService.BeregnRequest): Either<SøknadsbehandlingService.KunneIkkeBeregne, Søknadsbehandling.Beregnet> {
-                    assertHarTilgangTilBehandling(request.behandlingId)
-                    return services.søknadsbehandling.beregn(request)
-                }
+                    override fun beregn(request: SøknadsbehandlingService.BeregnRequest): Either<SøknadsbehandlingService.KunneIkkeBeregne, Søknadsbehandling.Beregnet> {
+                        assertHarTilgangTilBehandling(request.behandlingId)
+                        return service.beregn(request)
+                    }
 
-                override fun simuler(request: SøknadsbehandlingService.SimulerRequest): Either<SøknadsbehandlingService.KunneIkkeSimulereBehandling, Søknadsbehandling.Simulert> {
-                    assertHarTilgangTilBehandling(request.behandlingId)
-                    return services.søknadsbehandling.simuler(request)
-                }
+                    override fun simuler(request: SøknadsbehandlingService.SimulerRequest): Either<SøknadsbehandlingService.KunneIkkeSimulereBehandling, Søknadsbehandling.Simulert> {
+                        assertHarTilgangTilBehandling(request.behandlingId)
+                        return service.simuler(request)
+                    }
 
-                override fun sendTilAttestering(request: SøknadsbehandlingService.SendTilAttesteringRequest): Either<SøknadsbehandlingService.KunneIkkeSendeTilAttestering, Søknadsbehandling.TilAttestering> {
-                    assertHarTilgangTilBehandling(request.behandlingId)
-                    return services.søknadsbehandling.sendTilAttestering(request)
-                }
+                    override fun sendTilAttestering(request: SøknadsbehandlingService.SendTilAttesteringRequest): Either<SøknadsbehandlingService.KunneIkkeSendeTilAttestering, Søknadsbehandling.TilAttestering> {
+                        assertHarTilgangTilBehandling(request.behandlingId)
+                        return service.sendTilAttestering(request)
+                    }
 
-                override fun underkjenn(request: SøknadsbehandlingService.UnderkjennRequest): Either<SøknadsbehandlingService.KunneIkkeUnderkjenne, Søknadsbehandling.Underkjent> {
-                    assertHarTilgangTilBehandling(request.behandlingId)
-                    return services.søknadsbehandling.underkjenn(request)
-                }
+                    override fun underkjenn(request: SøknadsbehandlingService.UnderkjennRequest): Either<SøknadsbehandlingService.KunneIkkeUnderkjenne, Søknadsbehandling.Underkjent> {
+                        assertHarTilgangTilBehandling(request.behandlingId)
+                        return service.underkjenn(request)
+                    }
 
-                override fun iverksett(request: SøknadsbehandlingService.IverksettRequest): Either<KunneIkkeIverksette, Søknadsbehandling.Iverksatt> {
-                    assertHarTilgangTilBehandling(request.behandlingId)
-                    return services.søknadsbehandling.iverksett(request)
-                }
+                    override fun brev(request: SøknadsbehandlingService.BrevRequest): Either<KunneIkkeLageDokument, ByteArray> {
+                        assertHarTilgangTilBehandling(request.behandling.id)
+                        return service.brev(request)
+                    }
 
-                override fun brev(request: SøknadsbehandlingService.BrevRequest): Either<KunneIkkeLageDokument, ByteArray> {
-                    assertHarTilgangTilBehandling(request.behandling.id)
-                    return services.søknadsbehandling.brev(request)
-                }
+                    override fun hent(request: SøknadsbehandlingService.HentRequest): Either<SøknadsbehandlingService.FantIkkeBehandling, Søknadsbehandling> {
+                        assertHarTilgangTilBehandling(request.behandlingId)
+                        return service.hent(request)
+                    }
 
-                override fun hent(request: SøknadsbehandlingService.HentRequest): Either<SøknadsbehandlingService.FantIkkeBehandling, Søknadsbehandling> {
-                    assertHarTilgangTilBehandling(request.behandlingId)
-                    return services.søknadsbehandling.hent(request)
-                }
+                    override fun oppdaterStønadsperiode(request: SøknadsbehandlingService.OppdaterStønadsperiodeRequest): Either<SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode, Søknadsbehandling> {
+                        assertHarTilgangTilBehandling(request.behandlingId)
+                        return service.oppdaterStønadsperiode(request)
+                    }
 
-                override fun oppdaterStønadsperiode(request: SøknadsbehandlingService.OppdaterStønadsperiodeRequest): Either<SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode, Søknadsbehandling> {
-                    assertHarTilgangTilBehandling(request.behandlingId)
-                    return services.søknadsbehandling.oppdaterStønadsperiode(request)
-                }
+                    override fun leggTilUførevilkår(
+                        request: LeggTilUførevurderingerRequest,
+                        saksbehandler: NavIdentBruker.Saksbehandler,
+                    ): Either<SøknadsbehandlingService.KunneIkkeLeggeTilUføreVilkår, Søknadsbehandling> {
+                        assertHarTilgangTilBehandling(request.behandlingId)
+                        return service.leggTilUførevilkår(request, saksbehandler)
+                    }
 
-                override fun leggTilUførevilkår(
-                    request: LeggTilUførevurderingerRequest,
-                    saksbehandler: NavIdentBruker.Saksbehandler,
-                ): Either<SøknadsbehandlingService.KunneIkkeLeggeTilUføreVilkår, Søknadsbehandling> {
-                    assertHarTilgangTilBehandling(request.behandlingId)
-                    return services.søknadsbehandling.leggTilUførevilkår(request, saksbehandler)
-                }
+                    override fun leggTilLovligOpphold(
+                        request: LeggTilLovligOppholdRequest,
+                        saksbehandler: NavIdentBruker.Saksbehandler,
+                    ): Either<KunneIkkeLeggetilLovligOppholdVilkår, Søknadsbehandling> {
+                        assertHarTilgangTilBehandling(request.behandlingId)
+                        return service.leggTilLovligOpphold(request, saksbehandler)
+                    }
 
-                override fun leggTilLovligOpphold(
-                    request: LeggTilLovligOppholdRequest,
-                    saksbehandler: NavIdentBruker.Saksbehandler,
-                ): Either<KunneIkkeLeggetilLovligOppholdVilkår, Søknadsbehandling> {
-                    assertHarTilgangTilBehandling(request.behandlingId)
-                    return services.søknadsbehandling.leggTilLovligOpphold(request, saksbehandler)
-                }
+                    override fun leggTilFamiliegjenforeningvilkår(
+                        request: LeggTilFamiliegjenforeningRequest,
+                        saksbehandler: NavIdentBruker.Saksbehandler,
+                    ): Either<SøknadsbehandlingService.KunneIkkeLeggeTilFamiliegjenforeningVilkårService, Søknadsbehandling> {
+                        assertHarTilgangTilBehandling(request.behandlingId)
+                        return service.leggTilFamiliegjenforeningvilkår(request, saksbehandler)
+                    }
 
-                override fun leggTilFamiliegjenforeningvilkår(
-                    request: LeggTilFamiliegjenforeningRequest,
-                    saksbehandler: NavIdentBruker.Saksbehandler,
-                ): Either<SøknadsbehandlingService.KunneIkkeLeggeTilFamiliegjenforeningVilkårService, Søknadsbehandling> {
-                    assertHarTilgangTilBehandling(request.behandlingId)
-                    return services.søknadsbehandling.leggTilFamiliegjenforeningvilkår(request, saksbehandler)
-                }
+                    override fun leggTilBosituasjonEpsgrunnlag(
+                        request: LeggTilBosituasjonEpsRequest,
+                        saksbehandler: NavIdentBruker.Saksbehandler,
+                    ): Either<KunneIkkeLeggeTilBosituasjonEpsGrunnlag, Søknadsbehandling> {
+                        assertHarTilgangTilBehandling(request.behandlingId)
+                        return service.leggTilBosituasjonEpsgrunnlag(request, saksbehandler)
+                    }
 
-                override fun leggTilBosituasjonEpsgrunnlag(
-                    request: LeggTilBosituasjonEpsRequest,
-                    saksbehandler: NavIdentBruker.Saksbehandler,
-                ): Either<KunneIkkeLeggeTilBosituasjonEpsGrunnlag, Søknadsbehandling> {
-                    assertHarTilgangTilBehandling(request.behandlingId)
-                    return services.søknadsbehandling.leggTilBosituasjonEpsgrunnlag(request, saksbehandler)
-                }
+                    override fun fullførBosituasjongrunnlag(
+                        request: FullførBosituasjonRequest,
+                        saksbehandler: NavIdentBruker.Saksbehandler,
+                    ): Either<SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag, Søknadsbehandling> {
+                        assertHarTilgangTilBehandling(request.behandlingId)
+                        return service.fullførBosituasjongrunnlag(request, saksbehandler)
+                    }
 
-                override fun fullførBosituasjongrunnlag(
-                    request: FullførBosituasjonRequest,
-                    saksbehandler: NavIdentBruker.Saksbehandler,
-                ): Either<SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag, Søknadsbehandling> {
-                    assertHarTilgangTilBehandling(request.behandlingId)
-                    return services.søknadsbehandling.fullførBosituasjongrunnlag(request, saksbehandler)
-                }
+                    override fun leggTilFradragsgrunnlag(
+                        request: LeggTilFradragsgrunnlagRequest,
+                        saksbehandler: NavIdentBruker.Saksbehandler,
+                    ): Either<SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag, Søknadsbehandling> {
+                        assertHarTilgangTilBehandling(request.behandlingId)
+                        return service.leggTilFradragsgrunnlag(request, saksbehandler)
+                    }
 
-                override fun leggTilFradragsgrunnlag(
-                    request: LeggTilFradragsgrunnlagRequest,
-                    saksbehandler: NavIdentBruker.Saksbehandler,
-                ): Either<SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag, Søknadsbehandling> {
-                    assertHarTilgangTilBehandling(request.behandlingId)
-                    return services.søknadsbehandling.leggTilFradragsgrunnlag(request, saksbehandler)
-                }
+                    override fun leggTilFormuevilkår(
+                        request: LeggTilFormuevilkårRequest,
+                        saksbehandler: NavIdentBruker.Saksbehandler,
+                    ): Either<SøknadsbehandlingService.KunneIkkeLeggeTilFormuegrunnlag, Søknadsbehandling> {
+                        assertHarTilgangTilBehandling(request.behandlingId)
+                        return service.leggTilFormuevilkår(request, saksbehandler)
+                    }
 
-                override fun leggTilFormuevilkår(
-                    request: LeggTilFormuevilkårRequest,
-                    saksbehandler: NavIdentBruker.Saksbehandler,
-                ): Either<SøknadsbehandlingService.KunneIkkeLeggeTilFormuegrunnlag, Søknadsbehandling> {
-                    assertHarTilgangTilBehandling(request.behandlingId)
-                    return services.søknadsbehandling.leggTilFormuevilkår(request, saksbehandler)
-                }
+                    override fun hentForSøknad(søknadId: UUID) = kastKanKunKallesFraAnnenService()
 
-                override fun hentForSøknad(søknadId: UUID) = kastKanKunKallesFraAnnenService()
+                    override fun persisterSøknadsbehandling(
+                        lukketSøknadbehandling: LukketSøknadsbehandling,
+                        tx: TransactionContext,
+                    ) = kastKanKunKallesFraAnnenService()
 
-                override fun persisterSøknadsbehandling(
-                    lukketSøknadbehandling: LukketSøknadsbehandling,
-                    tx: TransactionContext,
-                ) = kastKanKunKallesFraAnnenService()
+                    override fun lagre(
+                        avslag: AvslagManglendeDokumentasjon,
+                        tx: TransactionContext,
+                    ) = kastKanKunKallesFraAnnenService()
 
-                override fun lagre(
-                    avslag: AvslagManglendeDokumentasjon,
-                    tx: TransactionContext,
-                ) = kastKanKunKallesFraAnnenService()
+                    override fun leggTilUtenlandsopphold(
+                        request: LeggTilFlereUtenlandsoppholdRequest,
+                        saksbehandler: NavIdentBruker.Saksbehandler,
+                    ): Either<SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold, Søknadsbehandling.Vilkårsvurdert> {
+                        assertHarTilgangTilBehandling(request.behandlingId)
+                        return service.leggTilUtenlandsopphold(request, saksbehandler)
+                    }
 
-                override fun leggTilUtenlandsopphold(
-                    request: LeggTilFlereUtenlandsoppholdRequest,
-                    saksbehandler: NavIdentBruker.Saksbehandler,
-                ): Either<SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold, Søknadsbehandling.Vilkårsvurdert> {
-                    assertHarTilgangTilBehandling(request.behandlingId)
-                    return services.søknadsbehandling.leggTilUtenlandsopphold(request, saksbehandler)
-                }
+                    override fun leggTilOpplysningspliktVilkår(request: LeggTilOpplysningspliktRequest.Søknadsbehandling): Either<KunneIkkeLeggeTilOpplysningsplikt, Søknadsbehandling.Vilkårsvurdert> {
+                        assertHarTilgangTilBehandling(request.behandlingId)
+                        return service.leggTilOpplysningspliktVilkår(request)
+                    }
 
-                override fun leggTilOpplysningspliktVilkår(request: LeggTilOpplysningspliktRequest.Søknadsbehandling): Either<KunneIkkeLeggeTilOpplysningsplikt, Søknadsbehandling.Vilkårsvurdert> {
-                    assertHarTilgangTilBehandling(request.behandlingId)
-                    return services.søknadsbehandling.leggTilOpplysningspliktVilkår(request)
-                }
+                    override fun leggTilPensjonsVilkår(
+                        request: LeggTilPensjonsVilkårRequest,
+                        saksbehandler: NavIdentBruker.Saksbehandler,
+                    ): Either<KunneIkkeLeggeTilPensjonsVilkår, Søknadsbehandling.Vilkårsvurdert> {
+                        assertHarTilgangTilBehandling(request.behandlingId)
+                        return service.leggTilPensjonsVilkår(request, saksbehandler)
+                    }
 
-                override fun leggTilPensjonsVilkår(
-                    request: LeggTilPensjonsVilkårRequest,
-                    saksbehandler: NavIdentBruker.Saksbehandler,
-                ): Either<KunneIkkeLeggeTilPensjonsVilkår, Søknadsbehandling.Vilkårsvurdert> {
-                    assertHarTilgangTilBehandling(request.behandlingId)
-                    return services.søknadsbehandling.leggTilPensjonsVilkår(request, saksbehandler)
-                }
+                    override fun leggTilFlyktningVilkår(
+                        request: LeggTilFlyktningVilkårRequest,
+                        saksbehandler: NavIdentBruker.Saksbehandler,
+                    ): Either<KunneIkkeLeggeTilFlyktningVilkår, Søknadsbehandling.Vilkårsvurdert> {
+                        assertHarTilgangTilBehandling(request.behandlingId)
+                        return service.leggTilFlyktningVilkår(request, saksbehandler)
+                    }
 
-                override fun leggTilFlyktningVilkår(
-                    request: LeggTilFlyktningVilkårRequest,
-                    saksbehandler: NavIdentBruker.Saksbehandler,
-                ): Either<KunneIkkeLeggeTilFlyktningVilkår, Søknadsbehandling.Vilkårsvurdert> {
-                    assertHarTilgangTilBehandling(request.behandlingId)
-                    return services.søknadsbehandling.leggTilFlyktningVilkår(request, saksbehandler)
-                }
+                    override fun leggTilFastOppholdINorgeVilkår(
+                        request: LeggTilFastOppholdINorgeRequest,
+                        saksbehandler: NavIdentBruker.Saksbehandler,
+                    ): Either<KunneIkkeLeggeFastOppholdINorgeVilkår, Søknadsbehandling.Vilkårsvurdert> {
+                        assertHarTilgangTilBehandling(request.behandlingId)
+                        return service.leggTilFastOppholdINorgeVilkår(request, saksbehandler)
+                    }
 
-                override fun leggTilFastOppholdINorgeVilkår(
-                    request: LeggTilFastOppholdINorgeRequest,
-                    saksbehandler: NavIdentBruker.Saksbehandler,
-                ): Either<KunneIkkeLeggeFastOppholdINorgeVilkår, Søknadsbehandling.Vilkårsvurdert> {
-                    assertHarTilgangTilBehandling(request.behandlingId)
-                    return services.søknadsbehandling.leggTilFastOppholdINorgeVilkår(request, saksbehandler)
-                }
+                    override fun leggTilPersonligOppmøteVilkår(
+                        request: LeggTilPersonligOppmøteVilkårRequest,
+                        saksbehandler: NavIdentBruker.Saksbehandler,
+                    ): Either<KunneIkkeLeggeTilPersonligOppmøteVilkår, Søknadsbehandling.Vilkårsvurdert> {
+                        assertHarTilgangTilBehandling(request.behandlingId)
+                        return service.leggTilPersonligOppmøteVilkår(request, saksbehandler)
+                    }
 
-                override fun leggTilPersonligOppmøteVilkår(
-                    request: LeggTilPersonligOppmøteVilkårRequest,
-                    saksbehandler: NavIdentBruker.Saksbehandler,
-                ): Either<KunneIkkeLeggeTilPersonligOppmøteVilkår, Søknadsbehandling.Vilkårsvurdert> {
-                    assertHarTilgangTilBehandling(request.behandlingId)
-                    return services.søknadsbehandling.leggTilPersonligOppmøteVilkår(request, saksbehandler)
-                }
-
-                override fun leggTilInstitusjonsoppholdVilkår(
-                    request: LeggTilInstitusjonsoppholdVilkårRequest,
-                    saksbehandler: NavIdentBruker.Saksbehandler,
-                ): Either<KunneIkkeLeggeTilInstitusjonsoppholdVilkår, Søknadsbehandling.Vilkårsvurdert> {
-                    assertHarTilgangTilBehandling(request.behandlingId)
-                    return services.søknadsbehandling.leggTilInstitusjonsoppholdVilkår(request, saksbehandler)
-                }
-            },
-            ferdigstillVedtak = object : FerdigstillVedtakService {
+                    override fun leggTilInstitusjonsoppholdVilkår(
+                        request: LeggTilInstitusjonsoppholdVilkårRequest,
+                        saksbehandler: NavIdentBruker.Saksbehandler,
+                    ): Either<KunneIkkeLeggeTilInstitusjonsoppholdVilkår, Søknadsbehandling.Vilkårsvurdert> {
+                        assertHarTilgangTilBehandling(request.behandlingId)
+                        return service.leggTilInstitusjonsoppholdVilkår(request, saksbehandler)
+                    }
+                },
+            ),
+            ferdigstillVedtak =
+            object : FerdigstillVedtakService {
                 override fun ferdigstillVedtakEtterUtbetaling(
                     utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering,
                 ) = kastKanKunKallesFraAnnenService()
 
                 override fun lukkOppgaveMedBruker(behandling: Behandling) = kastKanKunKallesFraAnnenService()
             },
-            revurdering = object : RevurderingService {
+            revurdering =
+            object : RevurderingService {
                 override fun hentRevurdering(revurderingId: UUID): AbstraktRevurdering? {
                     assertHarTilgangTilRevurdering(revurderingId)
                     return services.revurdering.hentRevurdering(revurderingId)
@@ -767,7 +771,12 @@ open class AccessCheckProxy(
                     saksbehandler: NavIdentBruker.Saksbehandler,
                 ): Either<KunneIkkeAvslutteRevurdering, AbstraktRevurdering> {
                     assertHarTilgangTilRevurdering(revurderingId)
-                    return services.revurdering.avsluttRevurdering(revurderingId, begrunnelse, brevvalg, saksbehandler)
+                    return services.revurdering.avsluttRevurdering(
+                        revurderingId,
+                        begrunnelse,
+                        brevvalg,
+                        saksbehandler,
+                    )
                 }
 
                 override fun leggTilOpplysningspliktVilkår(request: LeggTilOpplysningspliktRequest.Revurdering): Either<KunneIkkeLeggeTilOpplysningsplikt, RevurderingOgFeilmeldingerResponse> {
@@ -817,7 +826,8 @@ open class AccessCheckProxy(
                     return services.revurdering.lagBrevutkastForAvslutting(revurderingId, fritekst)
                 }
             },
-            gjenopptaYtelse = object : GjenopptaYtelseService {
+            gjenopptaYtelse =
+            object : GjenopptaYtelseService {
                 override fun gjenopptaYtelse(request: GjenopptaYtelseRequest): Either<KunneIkkeSimulereGjenopptakAvYtelse, GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse> {
                     assertHarTilgangTilSak(request.sakId)
                     return services.gjenopptaYtelse.gjenopptaYtelse(request)
@@ -831,7 +841,8 @@ open class AccessCheckProxy(
                     return services.gjenopptaYtelse.iverksettGjenopptakAvYtelse(revurderingId, attestant)
                 }
             },
-            stansYtelse = object : StansYtelseService {
+            stansYtelse =
+            object : StansYtelseService {
 
                 override fun stansAvYtelse(request: StansYtelseRequest): Either<KunneIkkeStanseYtelse, StansAvYtelseRevurdering.SimulertStansAvYtelse> {
                     assertHarTilgangTilSak(request.sakId)
@@ -864,7 +875,8 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
             },
-            vedtakService = object : VedtakService {
+            vedtakService =
+            object : VedtakService {
                 override fun lagre(vedtak: Vedtak) = kastKanKunKallesFraAnnenService()
 
                 override fun lagre(
@@ -884,18 +896,21 @@ open class AccessCheckProxy(
 
                 override fun hentForUtbetaling(utbetalingId: UUID30) = kastKanKunKallesFraAnnenService()
             },
-            nøkkeltallService = object : NøkkeltallService {
+            nøkkeltallService =
+            object : NøkkeltallService {
                 override fun hentNøkkeltall(): Nøkkeltall {
                     return services.nøkkeltallService.hentNøkkeltall()
                 }
             },
-            avslåSøknadManglendeDokumentasjonService = object : AvslåSøknadManglendeDokumentasjonService {
+            avslåSøknadManglendeDokumentasjonService =
+            object : AvslåSøknadManglendeDokumentasjonService {
                 override fun avslå(request: AvslåManglendeDokumentasjonRequest): Either<KunneIkkeAvslåSøknad, Sak> {
                     assertHarTilgangTilSøknad(request.søknadId)
                     return services.avslåSøknadManglendeDokumentasjonService.avslå(request)
                 }
             },
-            kontrollsamtale = object : KontrollsamtaleService {
+            kontrollsamtale =
+            object : KontrollsamtaleService {
                 override fun nyDato(
                     sakId: UUID,
                     dato: LocalDate,
@@ -936,7 +951,8 @@ open class AccessCheckProxy(
                     return services.kontrollsamtale.hentForSak(sakId)
                 }
             },
-            klageService = object : KlageService {
+            klageService =
+            object : KlageService {
                 override fun opprett(request: NyKlageRequest): Either<KunneIkkeOppretteKlage, OpprettetKlage> {
                     assertHarTilgangTilSak(request.sakId)
                     return services.klageService.opprett(request)
@@ -1027,13 +1043,15 @@ open class AccessCheckProxy(
                     )
                 }
             },
-            klageinstanshendelseService = object : KlageinstanshendelseService {
+            klageinstanshendelseService =
+            object : KlageinstanshendelseService {
                 override fun lagre(hendelse: UprosessertKlageinstanshendelse) = kastKanKunKallesFraAnnenService()
                 override fun håndterUtfallFraKlageinstans(
                     deserializeAndMap: (id: UUID, opprettet: Tidspunkt, json: String) -> Either<KunneIkkeTolkeKlageinstanshendelse, TolketKlageinstanshendelse>,
                 ) = kastKanKunKallesFraAnnenService()
             },
-            reguleringService = object : ReguleringService {
+            reguleringService =
+            object : ReguleringService {
                 override fun startRegulering(startDato: LocalDate): List<Either<KunneIkkeOppretteRegulering, Regulering>> {
                     return services.reguleringService.startRegulering(startDato)
                 }
@@ -1064,7 +1082,8 @@ open class AccessCheckProxy(
                     )
                 }
             },
-            tilbakekrevingService = object : TilbakekrevingService {
+            tilbakekrevingService =
+            object : TilbakekrevingService {
                 override fun lagre(
                     tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet.MedKravgrunnlag.MottattKravgrunnlag,
                 ) = kastKanKunKallesFraAnnenService()
@@ -1079,18 +1098,21 @@ open class AccessCheckProxy(
 
                 override fun hentAvventerKravgrunnlag() = kastKanKunKallesFraAnnenService()
             },
-            sendPåminnelserOmNyStønadsperiodeService = object : SendPåminnelserOmNyStønadsperiodeService {
+            sendPåminnelserOmNyStønadsperiodeService =
+            object : SendPåminnelserOmNyStønadsperiodeService {
                 override fun sendPåminnelser(): SendPåminnelseNyStønadsperiodeContext {
                     kastKanKunKallesFraAnnenService()
                 }
             },
-            skatteService = object : SkatteService {
+            skatteService =
+            object : SkatteService {
                 override fun hentSamletSkattegrunnlag(fnr: Fnr): Either<KunneIkkeHenteSkattemelding, Skattegrunnlag> {
                     assertHarTilgangTilPerson(fnr)
                     return services.skatteService.hentSamletSkattegrunnlag(fnr)
                 }
             },
-            utløptFristForKontrollsamtaleService = object : UtløptFristForKontrollsamtaleService {
+            utløptFristForKontrollsamtaleService =
+            object : UtløptFristForKontrollsamtaleService {
                 override fun håndterUtløpsdato(dato: LocalDate): UtløptFristForKontrollsamtaleContext {
                     kastKanKunKallesFraAnnenService()
                 }

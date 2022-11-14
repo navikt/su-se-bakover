@@ -10,6 +10,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingSøknadsbehandlingVurdertInnvilgetAlder
@@ -53,14 +54,18 @@ internal class LeggTilFamiliegjenforeningRoutesTest {
 
     @Test
     fun `ok request`() {
-        val vilkårsvurdert = søknadsbehandlingVilkårsvurdertInnvilget(vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingVurdertInnvilgetAlder()).second
+        val vilkårsvurdert =
+            søknadsbehandlingVilkårsvurdertInnvilget(vilkårsvurderinger = vilkårsvurderingSøknadsbehandlingVurdertInnvilgetAlder()).second
         testApplication {
             application {
                 testSusebakover(
                     services = TestServicesBuilder.services(
-                        søknadsbehandling = mock {
-                            on { leggTilFamiliegjenforeningvilkår(any(), any()) } doReturn vilkårsvurdert.right()
-                        },
+                        søknadsbehandling = SøknadsbehandlingServices(
+                            søknadsbehandlingService = mock {
+                                on { leggTilFamiliegjenforeningvilkår(any(), any()) } doReturn vilkårsvurdert.right()
+                            },
+                            iverksettSøknadsbehandlingService = mock(),
+                        ),
                     ),
                 )
             }

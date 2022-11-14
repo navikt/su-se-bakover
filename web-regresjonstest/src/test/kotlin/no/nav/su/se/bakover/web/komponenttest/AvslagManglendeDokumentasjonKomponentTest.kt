@@ -57,7 +57,7 @@ class AvslagManglendeDokumentasjonKomponentTest {
                 tilOgMed = LocalDate.now(fixedClock).endOfMonth(),
             )
 
-            appComponents.services.søknadsbehandling.hentForSøknad(søknadId)!!.let { søknadsbehandling ->
+            appComponents.services.søknadsbehandling.søknadsbehandlingService.hentForSøknad(søknadId)!!.let { søknadsbehandling ->
                 søknadsbehandling.shouldBeType<Søknadsbehandling.Iverksatt.Avslag.UtenBeregning>().let { avslag ->
                     avslag.søknad.id shouldBe søknadId
                     avslag.periode shouldBe expectedPeriode
@@ -140,7 +140,7 @@ class AvslagManglendeDokumentasjonKomponentTest {
                 tilOgMed = tilOgMed.endOfMonth(),
             )
 
-            appComponents.services.søknadsbehandling.hentForSøknad(UUID.fromString(søknadId))!!
+            appComponents.services.søknadsbehandling.søknadsbehandlingService.hentForSøknad(UUID.fromString(søknadId))!!
                 .let { søknadsbehandling ->
                     søknadsbehandling.shouldBeType<Søknadsbehandling.Iverksatt.Avslag.UtenBeregning>().let { avslag ->
                         avslag.periode shouldBe expectedPeriode

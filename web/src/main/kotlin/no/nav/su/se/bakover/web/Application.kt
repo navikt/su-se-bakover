@@ -284,7 +284,7 @@ fun Application.susebakover(
                     kontrollsamtaleRoutes(accessProtectedServices.kontrollsamtale)
                     reguleringRoutes(accessProtectedServices.reguleringService, satsFactoryIDag, clock)
                     opplysningspliktRoutes(
-                        søknadsbehandlingService = accessProtectedServices.søknadsbehandling,
+                        søknadsbehandlingService = accessProtectedServices.søknadsbehandling.søknadsbehandlingService,
                         revurderingService = accessProtectedServices.revurdering,
                         satsFactory = satsFactoryIDag,
                         clock = clock,

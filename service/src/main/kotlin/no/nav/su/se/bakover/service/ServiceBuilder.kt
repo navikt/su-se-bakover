@@ -27,7 +27,9 @@ import no.nav.su.se.bakover.service.skatt.SkatteServiceImpl
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonServiceImpl
 import no.nav.su.se.bakover.service.søknad.SøknadServiceImpl
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadServiceImpl
+import no.nav.su.se.bakover.service.søknadsbehandling.IverksettSøknadsbehandlingServiceImpl
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServiceImpl
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
 import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingServiceImpl
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingServiceImpl
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakServiceImpl
@@ -191,7 +193,6 @@ object ServiceBuilder {
         val nøkkelTallService = NøkkeltallServiceImpl(databaseRepos.nøkkeltallRepo)
 
         val søknadsbehandlingService = SøknadsbehandlingServiceImpl(
-            søknadService = søknadService,
             søknadsbehandlingRepo = databaseRepos.søknadsbehandling,
             utbetalingService = utbetalingService,
             personService = personService,
@@ -199,12 +200,7 @@ object ServiceBuilder {
             behandlingMetrics = behandlingMetrics,
             brevService = brevService,
             clock = clock,
-            vedtakRepo = databaseRepos.vedtakRepo,
-            ferdigstillVedtakService = ferdigstillVedtakService,
             sakService = sakService,
-            kontrollsamtaleService = kontrollsamtaleService,
-            sessionFactory = databaseRepos.sessionFactory,
-            avkortingsvarselRepo = databaseRepos.avkortingsvarselRepo,
             tilbakekrevingService = tilbakekrevingService,
             formuegrenserFactory = satsFactory.formuegrenserFactory,
             satsFactory = satsFactory,
@@ -260,7 +256,24 @@ object ServiceBuilder {
             oppgave = oppgaveService,
             person = personService,
             toggles = toggleService,
-            søknadsbehandling = søknadsbehandlingService,
+            søknadsbehandling = SøknadsbehandlingServices(
+                søknadsbehandlingService = søknadsbehandlingService,
+                iverksettSøknadsbehandlingService = IverksettSøknadsbehandlingServiceImpl(
+                    søknadsbehandlingRepo = databaseRepos.søknadsbehandling,
+                    utbetalingService = utbetalingService,
+                    behandlingMetrics = behandlingMetrics,
+                    brevService = brevService,
+                    clock = clock,
+                    vedtakRepo = databaseRepos.vedtakRepo,
+                    ferdigstillVedtakService = ferdigstillVedtakService,
+                    sakService = sakService,
+                    kontrollsamtaleService = kontrollsamtaleService,
+                    sessionFactory = databaseRepos.sessionFactory,
+                    avkortingsvarselRepo = databaseRepos.avkortingsvarselRepo,
+                    tilbakekrevingService = tilbakekrevingService,
+                    // TODO jah: Verifiser at vedtaksjobben prøver lukke oppgaven.
+                ),
+            ),
             ferdigstillVedtak = ferdigstillVedtakService,
             revurdering = revurderingService,
             vedtakService = vedtakService,

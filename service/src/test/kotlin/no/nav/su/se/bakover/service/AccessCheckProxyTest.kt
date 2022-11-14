@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.sak.Saksnummer
 import no.nav.su.se.bakover.domain.sak.Sakstype
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.hendelse.domain.Hendelsesversjon
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Nested
@@ -36,7 +37,7 @@ internal class AccessCheckProxyTest {
         oppgave = mock(),
         person = mock(),
         toggles = mock(),
-        søknadsbehandling = mock(),
+        søknadsbehandling = SøknadsbehandlingServices(mock(), mock()),
         ferdigstillVedtak = mock(),
         revurdering = mock(),
         vedtakService = mock(),
@@ -175,7 +176,7 @@ internal class AccessCheckProxyTest {
             ).proxy()
 
             shouldThrow<Tilgangssjekkfeil> {
-                proxied.søknadsbehandling.hent(
+                proxied.søknadsbehandling.søknadsbehandlingService.hent(
                     SøknadsbehandlingService.HentRequest(UUID.randomUUID()),
                 )
             }
@@ -289,8 +290,8 @@ internal class AccessCheckProxyTest {
         @Test
         fun `Når man gjør oppslag på behandlingId`() {
             val id = UUID.randomUUID()
-            proxied.søknadsbehandling.hent(SøknadsbehandlingService.HentRequest(id))
-            verify(servicesReturningSak.søknadsbehandling).hent(SøknadsbehandlingService.HentRequest(id))
+            proxied.søknadsbehandling.søknadsbehandlingService.hent(SøknadsbehandlingService.HentRequest(id))
+            verify(servicesReturningSak.søknadsbehandling.søknadsbehandlingService).hent(SøknadsbehandlingService.HentRequest(id))
         }
 
         @Test

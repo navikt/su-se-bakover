@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.vilkår.bosituasjon.BosituasjonValg
 import no.nav.su.se.bakover.domain.vilkår.bosituasjon.FullførBosituasjonRequest
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.argThat
@@ -57,10 +58,14 @@ class GrunnlagBosituasjonFullførRoutesTest {
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
             on { fullførBosituasjongrunnlag(any(), any()) } doReturn søknadsbehandling.right()
         }
+        val søknadsbehandlingServicesMock = SøknadsbehandlingServices(
+            søknadsbehandlingService = søknadsbehandlingServiceMock,
+            iverksettSøknadsbehandlingService = mock(),
+        )
 
         testApplication {
             application {
-                testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServiceMock))
+                testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServicesMock))
             }
             defaultRequest(
                 HttpMethod.Post,
@@ -89,10 +94,14 @@ class GrunnlagBosituasjonFullførRoutesTest {
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
             on { fullførBosituasjongrunnlag(any(), any()) } doReturn søknadsbehandling.right()
         }
+        val søknadsbehandlingServicesMock = SøknadsbehandlingServices(
+            søknadsbehandlingService = søknadsbehandlingServiceMock,
+            iverksettSøknadsbehandlingService = mock(),
+        )
 
         testApplication {
             application {
-                testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServiceMock))
+                testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServicesMock))
             }
             defaultRequest(
                 HttpMethod.Post,
@@ -121,10 +130,14 @@ class GrunnlagBosituasjonFullførRoutesTest {
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
             on { fullførBosituasjongrunnlag(any(), any()) } doReturn søknadsbehandling.right()
         }
+        val søknadsbehandlingServicesMock = SøknadsbehandlingServices(
+            søknadsbehandlingService = søknadsbehandlingServiceMock,
+            iverksettSøknadsbehandlingService = mock(),
+        )
 
         testApplication {
             application {
-                testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServiceMock))
+                testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServicesMock))
             }
             defaultRequest(
                 HttpMethod.Post,
@@ -153,10 +166,14 @@ class GrunnlagBosituasjonFullførRoutesTest {
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
             on { fullførBosituasjongrunnlag(any(), any()) } doReturn søknadsbehandling.right()
         }
+        val søknadsbehandlingServicesMock = SøknadsbehandlingServices(
+            søknadsbehandlingService = søknadsbehandlingServiceMock,
+            iverksettSøknadsbehandlingService = mock(),
+        )
 
         testApplication {
             application {
-                testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServiceMock))
+                testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServicesMock))
             }
             defaultRequest(
                 HttpMethod.Post,
@@ -185,10 +202,14 @@ class GrunnlagBosituasjonFullførRoutesTest {
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
             on { fullførBosituasjongrunnlag(any(), any()) } doReturn søknadsbehandling.right()
         }
+        val søknadsbehandlingServicesMock = SøknadsbehandlingServices(
+            søknadsbehandlingService = søknadsbehandlingServiceMock,
+            iverksettSøknadsbehandlingService = mock(),
+        )
 
         testApplication {
             application {
-                testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServiceMock))
+                testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServicesMock))
             }
             defaultRequest(
                 HttpMethod.Post,
@@ -217,10 +238,14 @@ class GrunnlagBosituasjonFullførRoutesTest {
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
             on { fullførBosituasjongrunnlag(any(), any()) } doReturn søknadsbehandling.right()
         }
+        val søknadsbehandlingServicesMock = SøknadsbehandlingServices(
+            søknadsbehandlingService = søknadsbehandlingServiceMock,
+            iverksettSøknadsbehandlingService = mock(),
+        )
 
         testApplication {
             application {
-                testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServiceMock))
+                testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServicesMock))
             }
             defaultRequest(
                 HttpMethod.Post,
@@ -249,10 +274,14 @@ class GrunnlagBosituasjonFullførRoutesTest {
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
             on { fullførBosituasjongrunnlag(any(), any()) } doReturn SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag.FantIkkeBehandling.left()
         }
+        val søknadsbehandlingServicesMock = SøknadsbehandlingServices(
+            søknadsbehandlingService = søknadsbehandlingServiceMock,
+            iverksettSøknadsbehandlingService = mock(),
+        )
 
         testApplication {
             application {
-                testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServiceMock))
+                testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServicesMock))
             }
             defaultRequest(
                 HttpMethod.Post,
@@ -272,10 +301,14 @@ class GrunnlagBosituasjonFullførRoutesTest {
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
             on { fullførBosituasjongrunnlag(any(), any()) } doReturn SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag.KlarteIkkeLagreBosituasjon.left()
         }
+        val søknadsbehandlingServicesMock = SøknadsbehandlingServices(
+            søknadsbehandlingService = søknadsbehandlingServiceMock,
+            iverksettSøknadsbehandlingService = mock(),
+        )
 
         testApplication {
             application {
-                testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServiceMock))
+                testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServicesMock))
             }
             defaultRequest(
                 HttpMethod.Post,

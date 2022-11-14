@@ -24,10 +24,7 @@ import no.nav.su.se.bakover.common.audit.application.AuditLogEvent
 import no.nav.su.se.bakover.common.enumContains
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.Brev.kanIkkeSendeBrevIDenneTilstanden
-import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.Brev.kunneIkkeGenerereBrev
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.attestantOgSaksbehandlerKanIkkeVæreSammePerson
-import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.avkortingErAlleredeAnnullert
-import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.avkortingErAlleredeAvkortet
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.avkortingErUfullstendig
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeBehandling
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeGjeldendeUtbetaling
@@ -36,8 +33,6 @@ import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeSak
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.fantIkkeSaksbehandlerEllerAttestant
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.feilVedGenereringAvDokument
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.kunneIkkeSimulere
-import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.lagringFeilet
-import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.sakAvventerKravgrunnlagForTilbakekreving
 import no.nav.su.se.bakover.common.infrastructure.web.Feilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.common.infrastructure.web.Resultat
 import no.nav.su.se.bakover.common.infrastructure.web.audit
@@ -55,12 +50,10 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.dokument.KunneIkkeLageDokument
 import no.nav.su.se.bakover.domain.satser.SatsFactory
-import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.BeregnRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.BrevRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.HentRequest
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.IverksettRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeBeregne
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeOpprette
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService.KunneIkkeSendeTilAttestering
@@ -386,51 +379,6 @@ internal fun Route.søknadsbehandlingRoutes(
                         )
                     }
                 }
-            }
-        }
-    }
-
-    fun kunneIkkeIverksetteMelding(value: KunneIkkeIverksette): Resultat {
-        return when (value) {
-            is KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
-            is KunneIkkeIverksette.KunneIkkeUtbetale -> value.utbetalingFeilet.tilResultat()
-            is KunneIkkeIverksette.KunneIkkeGenerereVedtaksbrev -> kunneIkkeGenerereBrev
-            is KunneIkkeIverksette.FantIkkeBehandling -> fantIkkeBehandling
-            KunneIkkeIverksette.AvkortingErUfullstendig -> avkortingErUfullstendig
-            KunneIkkeIverksette.HarAlleredeBlittAvkortetAvEnAnnen -> avkortingErAlleredeAvkortet
-            KunneIkkeIverksette.HarBlittAnnullertAvEnAnnen -> avkortingErAlleredeAnnullert
-            KunneIkkeIverksette.KunneIkkeOpprettePlanlagtKontrollsamtale -> InternalServerError.errorJson(
-                "Kunne ikke opprette kontrollsamtale",
-                "kunne_ikke_opprette_kontrollsamtale",
-            )
-
-            KunneIkkeIverksette.LagringFeilet -> lagringFeilet
-            KunneIkkeIverksette.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving -> sakAvventerKravgrunnlagForTilbakekreving
-        }
-    }
-
-    patch("$behandlingPath/{behandlingId}/iverksett") {
-        authorize(Brukerrolle.Attestant) {
-            call.withBehandlingId { behandlingId ->
-
-                val navIdent = call.suUserContext.navIdent
-
-                søknadsbehandlingService.iverksett(
-                    IverksettRequest(
-                        behandlingId = behandlingId,
-                        attestering = Attestering.Iverksatt(Attestant(navIdent), Tidspunkt.now(clock)),
-                    ),
-                ).fold(
-                    {
-                        call.svar(kunneIkkeIverksetteMelding(it))
-                    },
-                    {
-                        call.sikkerlogg("Iverksatte behandling med id: $behandlingId")
-                        call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
-                        SuMetrics.vedtakIverksatt(SuMetrics.Behandlingstype.SØKNAD)
-                        call.svar(OK.jsonBody(it, satsFactory))
-                    },
-                )
             }
         }
     }

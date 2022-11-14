@@ -1,3 +1,5 @@
+package no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning
+
 import arrow.core.left
 import arrow.core.right
 import io.kotest.assertions.assertSoftly
@@ -12,6 +14,7 @@ import io.ktor.server.testing.testApplication
 import no.nav.su.se.bakover.common.Brukerrolle
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
 import no.nav.su.se.bakover.test.beregnetSøknadsbehandlingUføre
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -33,9 +36,12 @@ internal class BeregnRoutesKtTest {
             application {
                 testSusebakover(
                     services = TestServicesBuilder.services(
-                        søknadsbehandling = mock {
-                            on { beregn(any()) } doReturn beregnetSøknadsbehandlingUføre().second.right()
-                        },
+                        søknadsbehandling = SøknadsbehandlingServices(
+                            søknadsbehandlingService = mock {
+                                on { beregn(any()) } doReturn beregnetSøknadsbehandlingUføre().second.right()
+                            },
+                            iverksettSøknadsbehandlingService = mock(),
+                        ),
                     ),
                 )
             }
@@ -69,9 +75,12 @@ internal class BeregnRoutesKtTest {
                 application {
                     testSusebakover(
                         services = TestServicesBuilder.services(
-                            søknadsbehandling = mock {
-                                on { beregn(any()) } doReturn SøknadsbehandlingService.KunneIkkeBeregne.FantIkkeBehandling.left()
-                            },
+                            søknadsbehandling = SøknadsbehandlingServices(
+                                søknadsbehandlingService = mock {
+                                    on { beregn(any()) } doReturn SøknadsbehandlingService.KunneIkkeBeregne.FantIkkeBehandling.left()
+                                },
+                                iverksettSøknadsbehandlingService = mock(),
+                            ),
                         ),
                     )
                 }

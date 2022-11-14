@@ -70,7 +70,7 @@ internal class SøknadsbehandlingAlderKomponentTest {
 
             søknad.type shouldBe Sakstype.ALDER
 
-            val søknadsbehandling = appComponents.services.søknadsbehandling.opprett(
+            val søknadsbehandling = appComponents.services.søknadsbehandling.søknadsbehandlingService.opprett(
                 request = SøknadsbehandlingService.OpprettRequest(
                     søknadId = søknad.id,
                     sakId = sak.id,
@@ -78,7 +78,7 @@ internal class SøknadsbehandlingAlderKomponentTest {
                 ),
             ).getOrFail()
 
-            appComponents.services.søknadsbehandling.oppdaterStønadsperiode(
+            appComponents.services.søknadsbehandling.søknadsbehandlingService.oppdaterStønadsperiode(
                 request = SøknadsbehandlingService.OppdaterStønadsperiodeRequest(
                     behandlingId = søknadsbehandling.id,
                     stønadsperiode = stønadsperiode2022,
@@ -88,7 +88,7 @@ internal class SøknadsbehandlingAlderKomponentTest {
             ).getOrFail()
 
             assertThrows<IllegalArgumentException> {
-                appComponents.services.søknadsbehandling.leggTilUførevilkår(
+                appComponents.services.søknadsbehandling.søknadsbehandlingService.leggTilUførevilkår(
                     request = LeggTilUførevurderingerRequest(
                         behandlingId = søknadsbehandling.id,
                         vurderinger = nonEmptyListOf(
@@ -107,7 +107,7 @@ internal class SøknadsbehandlingAlderKomponentTest {
             }.also {
                 it.message shouldBe "Kan ikke legge til uførevilkår for vilkårsvurdering alder (støttes kun av ufør flyktning)"
             }
-            appComponents.services.søknadsbehandling.leggTilOpplysningspliktVilkår(
+            appComponents.services.søknadsbehandling.søknadsbehandlingService.leggTilOpplysningspliktVilkår(
                 request = LeggTilOpplysningspliktRequest.Søknadsbehandling(
                     behandlingId = søknadsbehandling.id,
                     vilkår = tilstrekkeligDokumentert(periode = stønadsperiode2022.periode),
@@ -115,7 +115,7 @@ internal class SøknadsbehandlingAlderKomponentTest {
                 ),
             ).getOrFail()
 
-            appComponents.services.søknadsbehandling.leggTilPensjonsVilkår(
+            appComponents.services.søknadsbehandling.søknadsbehandlingService.leggTilPensjonsVilkår(
                 request = LeggTilPensjonsVilkårRequest(
                     behandlingId = søknadsbehandling.id,
                     vilkår = pensjonsVilkårInnvilget(periode = stønadsperiode2022.periode),
@@ -123,7 +123,7 @@ internal class SøknadsbehandlingAlderKomponentTest {
                 saksbehandler = saksbehandler,
             )
 
-            appComponents.services.søknadsbehandling.leggTilFamiliegjenforeningvilkår(
+            appComponents.services.søknadsbehandling.søknadsbehandlingService.leggTilFamiliegjenforeningvilkår(
                 request = LeggTilFamiliegjenforeningRequest(
                     behandlingId = søknadsbehandling.id,
                     vurderinger = listOf(
@@ -133,7 +133,7 @@ internal class SøknadsbehandlingAlderKomponentTest {
                 saksbehandler = saksbehandler,
             )
 
-            appComponents.services.søknadsbehandling.leggTilLovligOpphold(
+            appComponents.services.søknadsbehandling.søknadsbehandlingService.leggTilLovligOpphold(
                 request = LeggTilLovligOppholdRequest(
                     behandlingId = søknadsbehandling.id,
                     vurderinger = listOf(
@@ -142,7 +142,7 @@ internal class SøknadsbehandlingAlderKomponentTest {
                 ),
                 saksbehandler = saksbehandler,
             )
-            appComponents.services.søknadsbehandling.leggTilPersonligOppmøteVilkår(
+            appComponents.services.søknadsbehandling.søknadsbehandlingService.leggTilPersonligOppmøteVilkår(
                 request = LeggTilPersonligOppmøteVilkårRequest(
                     behandlingId = søknadsbehandling.id,
                     vilkår = personligOppmøtevilkårInnvilget(periode = stønadsperiode2022.periode),
@@ -150,7 +150,7 @@ internal class SøknadsbehandlingAlderKomponentTest {
                 saksbehandler = saksbehandler,
             )
 
-            appComponents.services.søknadsbehandling.leggTilFastOppholdINorgeVilkår(
+            appComponents.services.søknadsbehandling.søknadsbehandlingService.leggTilFastOppholdINorgeVilkår(
                 request = LeggTilFastOppholdINorgeRequest(
                     behandlingId = søknadsbehandling.id,
                     vilkår = fastOppholdVilkårInnvilget(periode = stønadsperiode2022.periode),
@@ -158,7 +158,7 @@ internal class SøknadsbehandlingAlderKomponentTest {
                 saksbehandler = saksbehandler,
             )
 
-            appComponents.services.søknadsbehandling.leggTilInstitusjonsoppholdVilkår(
+            appComponents.services.søknadsbehandling.søknadsbehandlingService.leggTilInstitusjonsoppholdVilkår(
                 request = LeggTilInstitusjonsoppholdVilkårRequest(
                     behandlingId = søknadsbehandling.id,
                     vilkår = institusjonsoppholdvilkårInnvilget(periode = stønadsperiode2022.periode),
@@ -166,7 +166,7 @@ internal class SøknadsbehandlingAlderKomponentTest {
                 saksbehandler = saksbehandler,
             )
 
-            appComponents.services.søknadsbehandling.leggTilBosituasjonEpsgrunnlag(
+            appComponents.services.søknadsbehandling.søknadsbehandlingService.leggTilBosituasjonEpsgrunnlag(
                 request = LeggTilBosituasjonEpsRequest(
                     behandlingId = søknadsbehandling.id,
                     epsFnr = null,
@@ -174,7 +174,7 @@ internal class SøknadsbehandlingAlderKomponentTest {
                 saksbehandler = saksbehandler,
             ).getOrFail()
 
-            appComponents.services.søknadsbehandling.fullførBosituasjongrunnlag(
+            appComponents.services.søknadsbehandling.søknadsbehandlingService.fullførBosituasjongrunnlag(
                 request = FullførBosituasjonRequest(
                     behandlingId = søknadsbehandling.id,
                     bosituasjon = BosituasjonValg.BOR_ALENE,
@@ -182,7 +182,7 @@ internal class SøknadsbehandlingAlderKomponentTest {
                 saksbehandler = saksbehandler,
             ).getOrFail()
 
-            appComponents.services.søknadsbehandling.hent(
+            appComponents.services.søknadsbehandling.søknadsbehandlingService.hent(
                 request = SøknadsbehandlingService.HentRequest(behandlingId = søknadsbehandling.id),
             ).getOrFail().also { oppdatert ->
                 oppdatert.vilkårsvurderinger.opplysningspliktVilkår()
@@ -198,7 +198,7 @@ internal class SøknadsbehandlingAlderKomponentTest {
                     it.bosituasjon.single().shouldBeType<Grunnlag.Bosituasjon.Fullstendig.Enslig>()
                 }
             }
-            appComponents.services.søknadsbehandling.leggTilFormuevilkår(
+            appComponents.services.søknadsbehandling.søknadsbehandlingService.leggTilFormuevilkår(
                 request = LeggTilFormuevilkårRequest(
                     behandlingId = søknadsbehandling.id,
                     formuegrunnlag = nonEmptyListOf(
@@ -222,7 +222,7 @@ internal class SøknadsbehandlingAlderKomponentTest {
                 ),
                 saksbehandler = saksbehandler,
             )
-            appComponents.services.søknadsbehandling.leggTilUtenlandsopphold(
+            appComponents.services.søknadsbehandling.søknadsbehandlingService.leggTilUtenlandsopphold(
                 LeggTilFlereUtenlandsoppholdRequest(
                     behandlingId = søknadsbehandling.id,
                     request = nonEmptyListOf(
@@ -236,7 +236,7 @@ internal class SøknadsbehandlingAlderKomponentTest {
                 saksbehandler = saksbehandler,
             ).getOrFail()
 
-            appComponents.services.søknadsbehandling.leggTilFradragsgrunnlag(
+            appComponents.services.søknadsbehandling.søknadsbehandlingService.leggTilFradragsgrunnlag(
                 request = LeggTilFradragsgrunnlagRequest(
                     behandlingId = søknadsbehandling.id,
                     fradragsgrunnlag = listOf(
@@ -248,7 +248,7 @@ internal class SøknadsbehandlingAlderKomponentTest {
                 saksbehandler = saksbehandler,
             ).getOrFail()
 
-            appComponents.services.søknadsbehandling.hent(
+            appComponents.services.søknadsbehandling.søknadsbehandlingService.hent(
                 request = SøknadsbehandlingService.HentRequest(behandlingId = søknadsbehandling.id),
             ).getOrFail().also { oppdatert ->
                 oppdatert.vilkårsvurderinger.vurdering.shouldBeType<Vilkårsvurderingsresultat.Innvilget>()
@@ -262,7 +262,7 @@ internal class SøknadsbehandlingAlderKomponentTest {
                 }
             }
 
-            appComponents.services.søknadsbehandling.beregn(
+            appComponents.services.søknadsbehandling.søknadsbehandlingService.beregn(
                 request = SøknadsbehandlingService.BeregnRequest(
                     behandlingId = søknadsbehandling.id,
                     begrunnelse = null,
@@ -277,7 +277,7 @@ internal class SøknadsbehandlingAlderKomponentTest {
                 it.beregning.getMånedsberegninger() shouldHaveSize 12
             }
 
-            appComponents.services.søknadsbehandling.simuler(
+            appComponents.services.søknadsbehandling.søknadsbehandlingService.simuler(
                 request = SøknadsbehandlingService.SimulerRequest(
                     behandlingId = søknadsbehandling.id,
                     saksbehandler = saksbehandler,
@@ -287,7 +287,7 @@ internal class SøknadsbehandlingAlderKomponentTest {
                 it.simulering.tolk().simulertePerioder.all { it.utbetaling is TolketUtbetaling.Ordinær }
             }
 
-            appComponents.services.søknadsbehandling.leggTilOpplysningspliktVilkår(
+            appComponents.services.søknadsbehandling.søknadsbehandlingService.leggTilOpplysningspliktVilkår(
                 request = LeggTilOpplysningspliktRequest.Søknadsbehandling(
                     behandlingId = søknadsbehandling.id,
                     vilkår = utilstrekkeligDokumentert(periode = stønadsperiode2022.periode),
@@ -297,7 +297,7 @@ internal class SøknadsbehandlingAlderKomponentTest {
                 it.vilkårsvurderinger.vurdering.shouldBeType<Vilkårsvurderingsresultat.Avslag>()
             }
 
-            appComponents.services.søknadsbehandling.hent(
+            appComponents.services.søknadsbehandling.søknadsbehandlingService.hent(
                 request = SøknadsbehandlingService.HentRequest(behandlingId = søknadsbehandling.id),
             ).getOrFail().also { oppdatert ->
                 oppdatert.vilkårsvurderinger.vurdering.shouldBeType<Vilkårsvurderingsresultat.Avslag>()

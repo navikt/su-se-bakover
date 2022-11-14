@@ -79,9 +79,6 @@ class SøknadsbehandlingServiceBeregningTest {
             søknadsbehandlingRepo = mock {
                 on { hent(any()) } doReturn vilkårsvurdert
             },
-            avkortingsvarselRepo = mock {
-                on { hentUtestående(any()) } doReturn Avkortingsvarsel.Ingen
-            },
         ).let {
             val beregnet = it.søknadsbehandlingService.beregn(
                 SøknadsbehandlingService.BeregnRequest(

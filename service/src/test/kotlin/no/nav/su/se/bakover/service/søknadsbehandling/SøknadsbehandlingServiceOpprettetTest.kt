@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.nySakUføre
@@ -163,9 +162,6 @@ internal class SøknadsbehandlingServiceOpprettetTest {
             søknadsbehandlingIverksattAvslagUtenBeregning().second,
             søknadsbehandlingIverksattInnvilget().second,
         )
-        val søknadService: SøknadService = mock {
-            on { hentSøknad(any()) } doReturn søknad.right()
-        }
 
         val capturedSøknadsbehandling = argumentCaptor<NySøknadsbehandling>()
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
@@ -177,7 +173,6 @@ internal class SøknadsbehandlingServiceOpprettetTest {
 
         val serviceAndMocks = SøknadsbehandlingServiceAndMocks(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            søknadService = søknadService,
             sakService = mock {
                 on { hentSak(any<UUID>()) } doReturn sak.right()
             },

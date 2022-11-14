@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.NavIdentBruker
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.domain.vilkår.bosituasjon.KunneIkkeLeggeTilBosituasjonEpsGrunnlag
 import no.nav.su.se.bakover.domain.vilkår.bosituasjon.LeggTilBosituasjonEpsRequest
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServices
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -53,14 +54,18 @@ class GrunnlagBosituasjonEpsRoutesTest {
         }
     }
 
-    @Test
+    @Test // TODO jah: Erstatt med integrasjonstest
     fun `happy case`() {
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
             on { leggTilBosituasjonEpsgrunnlag(any(), any()) } doReturn søknadsbehandling.right()
         }
+        val søknadsbehandlingServicesMock = SøknadsbehandlingServices(
+            søknadsbehandlingService = søknadsbehandlingServiceMock,
+            iverksettSøknadsbehandlingService = mock(),
+        )
 
         testApplication {
-            application { testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServiceMock)) }
+            application { testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServicesMock)) }
             defaultRequest(
                 HttpMethod.Post,
                 "$sakPath/${søknadsbehandling.sakId}/behandlinger/${søknadsbehandling.id}/grunnlag/bosituasjon/eps",
@@ -83,14 +88,18 @@ class GrunnlagBosituasjonEpsRoutesTest {
         }
     }
 
-    @Test
+    @Test // TODO jah: Erstatt med integrasjonstest
     fun `happy case med eps`() {
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
             on { leggTilBosituasjonEpsgrunnlag(any(), any()) } doReturn søknadsbehandling.right()
         }
+        val søknadsbehandlingServicesMock = SøknadsbehandlingServices(
+            søknadsbehandlingService = søknadsbehandlingServiceMock,
+            iverksettSøknadsbehandlingService = mock(),
+        )
 
         testApplication {
-            application { testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServiceMock)) }
+            application { testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServicesMock)) }
             defaultRequest(
                 HttpMethod.Post,
                 "$sakPath/${søknadsbehandling.sakId}/behandlinger/${søknadsbehandling.id}/grunnlag/bosituasjon/eps",
@@ -118,9 +127,13 @@ class GrunnlagBosituasjonEpsRoutesTest {
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
             on { leggTilBosituasjonEpsgrunnlag(any(), any()) } doReturn KunneIkkeLeggeTilBosituasjonEpsGrunnlag.FantIkkeBehandling.left()
         }
+        val søknadsbehandlingServicesMock = SøknadsbehandlingServices(
+            søknadsbehandlingService = søknadsbehandlingServiceMock,
+            iverksettSøknadsbehandlingService = mock(),
+        )
 
         testApplication {
-            application { testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServiceMock)) }
+            application { testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServicesMock)) }
             defaultRequest(
                 HttpMethod.Post,
                 "$sakPath/${søknadsbehandling.sakId}/behandlinger/${søknadsbehandling.id}/grunnlag/bosituasjon/eps",
@@ -139,9 +152,13 @@ class GrunnlagBosituasjonEpsRoutesTest {
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
             on { leggTilBosituasjonEpsgrunnlag(any(), any()) } doReturn KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KlarteIkkeHentePersonIPdl.left()
         }
+        val søknadsbehandlingServicesMock = SøknadsbehandlingServices(
+            søknadsbehandlingService = søknadsbehandlingServiceMock,
+            iverksettSøknadsbehandlingService = mock(),
+        )
 
         testApplication {
-            application { testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServiceMock)) }
+            application { testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServicesMock)) }
             defaultRequest(
                 HttpMethod.Post,
                 "$sakPath/${søknadsbehandling.sakId}/behandlinger/${søknadsbehandling.id}/grunnlag/bosituasjon/eps",
