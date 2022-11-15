@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.common.toNonEmptyList
 import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -78,8 +77,9 @@ import no.nav.su.se.bakover.domain.revurdering.oppdater.OppdaterRevurderingReque
 import no.nav.su.se.bakover.domain.revurdering.opprett.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.opprett.OpprettRevurderingCommand
 import no.nav.su.se.bakover.domain.revurdering.opprett.opprettRevurdering
+import no.nav.su.se.bakover.domain.sak.KunneIkkeIverksetteInnvilgetRevurdering
 import no.nav.su.se.bakover.domain.sak.SakService
-import no.nav.su.se.bakover.domain.sak.Sakstype
+import no.nav.su.se.bakover.domain.sak.iverksettInnvilget
 import no.nav.su.se.bakover.domain.sak.lagNyUtbetaling
 import no.nav.su.se.bakover.domain.sak.lagUtbetalingForOpphør
 import no.nav.su.se.bakover.domain.sak.simulerUtbetaling
@@ -1049,115 +1049,36 @@ internal class RevurderingServiceImpl(
             ).left()
         }
 
-        tilbakekrevingService.hentAvventerKravgrunnlag(revurdering.sakId)
-            .ifNotEmpty {
-                return KunneIkkeIverksetteRevurdering.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving.left()
-            }
-
         return when (revurdering) {
             is RevurderingTilAttestering.IngenEndring -> {
                 log.error("Revudere til INGEN_ENDRING er ikke lov. SakId: ${revurdering.sakId}")
                 KunneIkkeIverksetteRevurdering.IngenEndringErIkkeGyldig.left()
             }
 
-            is RevurderingTilAttestering.Innvilget -> revurdering.tilIverksatt(
-                attestant = attestant,
-                hentOpprinneligAvkorting = { avkortingid -> avkortingsvarselRepo.hent(avkortingid) },
-                clock = clock,
-            ).mapLeft {
-                when (it) {
-                    RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
-                    RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen -> KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen
-                    RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.HarBlittAnnullertAvEnAnnen -> KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen
-                    is RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale -> KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(
-                        it.utbetalingFeilet,
-                    )
-                }
-            }.flatMap { iverksattRevurdering ->
-                Either.catch {
-                    val simulertUtbetaling = sak.lagNyUtbetaling(
-                        saksbehandler = attestant,
-                        beregning = iverksattRevurdering.beregning,
-                        clock = clock,
-                        utbetalingsinstruksjonForEtterbetaling = UtbetalingsinstruksjonForEtterbetalinger.SåFortSomMulig,
-                        uføregrunnlag = when (iverksattRevurdering.sakstype) {
-                            Sakstype.ALDER -> {
-                                null
-                            }
-
-                            Sakstype.UFØRE -> {
-                                iverksattRevurdering.vilkårsvurderinger.uføreVilkår()
-                                    .getOrHandle { throw IllegalStateException("Revurdering uføre: ${iverksattRevurdering.id} mangler uføregrunnlag") }
-                                    .grunnlag
-                                    .toNonEmptyList()
-                            }
-                        },
-                    ).let {
-                        sak.simulerUtbetaling(
-                            utbetalingForSimulering = it,
-                            periode = iverksattRevurdering.periode,
-                            simuler = utbetalingService::simulerUtbetaling,
-                            kontrollerMotTidligereSimulering = iverksattRevurdering.simulering,
-                            clock = clock,
-                        )
-                    }.getOrHandle { feil ->
-                        throw IverksettTransactionException(
-                            "Kunne ikke opprette utbetaling. Underliggende feil:$feil.",
-                            KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(UtbetalingFeilet.KunneIkkeSimulere(feil)),
-                        )
-                    }
-                    sessionFactory.withTransactionContext { tx ->
-                        /**
-                         * OBS: Det er kun exceptions som vil føre til at transaksjonen ruller tilbake.
-                         * Hvis funksjonene returnerer Left/null o.l. vil transaksjonen gå igjennom. De tilfellene må håndteres eksplisitt per funksjon.
-                         * Det er også viktig at publiseringen av utbetalingen er det siste som skjer i blokka.
-                         * Alt som ikke skal påvirke utfallet av iverksettingen skal flyttes ut av blokka. E.g. statistikk.
-                         */
-                        val nyUtbetaling = utbetalingService.klargjørUtbetaling(
-                            utbetaling = simulertUtbetaling,
-                            transactionContext = tx,
-                        ).getOrHandle {
-                            throw IverksettTransactionException(
-                                "Kunne ikke opprette utbetaling. Underliggende feil:$it.",
-                                KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it),
-                            )
-                        }
-                        val vedtak = VedtakSomKanRevurderes.from(
-                            revurdering = iverksattRevurdering,
-                            utbetalingId = nyUtbetaling.utbetaling.id,
-                            clock = clock,
-                        )
-
-                        vedtakRepo.lagre(
-                            vedtak = vedtak,
-                            sessionContext = tx,
-                        )
-                        revurderingRepo.lagre(
-                            revurdering = iverksattRevurdering,
-                            transactionContext = tx,
-                        )
-                        nyUtbetaling.sendUtbetaling()
-                            .getOrHandle { feil ->
-                                throw IverksettTransactionException(
-                                    "Kunne ikke publisere utbetaling på køen. Underliggende feil: $feil.",
-                                    KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(feil),
-                                )
-                            }
-                        vedtak
-                    }
-                }.mapLeft {
+            is RevurderingTilAttestering.Innvilget -> {
+                sak.iverksettInnvilget(
+                    revurderingId = revurderingId,
+                    attestant = attestant,
+                    clock = clock,
+                    hentAvventerKravgrunnlag = { tilbakekrevingService.hentAvventerKravgrunnlag(revurdering.sakId).isNotEmpty() },
+                    hentOpprinneligAvkorting = { id -> avkortingsvarselRepo.hent(id) },
+                    simuler = utbetalingService::simulerUtbetaling,
+                    sessionFactory = sessionFactory,
+                    klargjørUtbetaling = utbetalingService::klargjørUtbetaling,
+                    lagreVedtak = vedtakRepo::lagre,
+                    lagreRevurdering = revurderingRepo::lagre,
+                    observers = observers,
+                    hentSak = { sakService.hentSak(it).orNull()!! },
+                ).mapLeft {
                     when (it) {
-                        is IverksettTransactionException -> it.feil
-                        else -> {
-                            log.error("Ukjent feil:${it.message} ved iverksetting av revurdering ${revurdering.id}")
-                            KunneIkkeIverksetteRevurdering.LagringFeilet
-                        }
+                        KunneIkkeIverksetteInnvilgetRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
+                        KunneIkkeIverksetteInnvilgetRevurdering.FantIkkeRevurdering -> KunneIkkeIverksetteRevurdering.FantIkkeRevurdering
+                        KunneIkkeIverksetteInnvilgetRevurdering.HarAlleredeBlittAvkortetAvEnAnnen -> KunneIkkeIverksetteRevurdering.HarAlleredeBlittAvkortetAvEnAnnen
+                        is KunneIkkeIverksetteInnvilgetRevurdering.KunneIkkeUtbetale -> KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it.utbetalingFeilet)
+                        KunneIkkeIverksetteInnvilgetRevurdering.LagringFeilet -> KunneIkkeIverksetteRevurdering.LagringFeilet
+                        KunneIkkeIverksetteInnvilgetRevurdering.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving -> KunneIkkeIverksetteRevurdering.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving
+                        is KunneIkkeIverksetteInnvilgetRevurdering.UgyldigTilstand -> KunneIkkeIverksetteRevurdering.UgyldigTilstand(it.fra, it.til)
                     }
-                }.map { vedtak ->
-                    // TODO jah: Vi har gjort endringer på saken underveis - endret regulering, ny utbetaling og nytt vedtak - uten at selve saken blir oppdatert underveis. Når saken returnerer en oppdatert versjon av seg selv for disse tilfellene kan vi fjerne det ekstra kallet til hentSak.
-                    observers.notify(StatistikkEvent.Stønadsvedtak(vedtak) { sakService.hentSak(sak.id).orNull()!! })
-                    observers.notify(StatistikkEvent.Behandling.Revurdering.Iverksatt.Innvilget(vedtak))
-                    iverksattRevurdering
                 }
             }
 
@@ -1175,6 +1096,11 @@ internal class RevurderingServiceImpl(
                     )
                 }
             }.flatMap { iverksattRevurdering ->
+                tilbakekrevingService.hentAvventerKravgrunnlag(revurdering.sakId)
+                    .ifNotEmpty {
+                        return KunneIkkeIverksetteRevurdering.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving.left()
+                    }
+
                 Either.catch {
                     val simulertUtbetaling = sak.lagUtbetalingForOpphør(
                         opphørsperiode = revurdering.opphørsperiodeForUtbetalinger,
