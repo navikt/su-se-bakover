@@ -49,7 +49,6 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.firstOrThrowIfMultipleOrEmpty
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.Person
-import no.nav.su.se.bakover.domain.revurdering.BrevvalgRevurdering
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
@@ -69,6 +68,7 @@ import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattRevurdering
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
+import no.nav.su.se.bakover.test.sendBrev
 import no.nav.su.se.bakover.test.shouldBeType
 import no.nav.su.se.bakover.test.simulerUtbetaling
 import no.nav.su.se.bakover.test.simulertSøknadsbehandlingUføre
@@ -1010,6 +1010,7 @@ internal class LagBrevRequestVisitorTest {
     fun `lager request for vedtak om revurdering av inntekt`() {
         val (revurdering, vedtak) = vedtakRevurdering(
             revurderingsperiode = år(2021),
+            brevvalg = sendBrev(fritekst = "JEPP"),
         ).let { (_, v) ->
             v.shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering>().let {
                 it.behandling to it
@@ -1062,6 +1063,7 @@ internal class LagBrevRequestVisitorTest {
             vilkårOverrides = listOf(
                 personligOppmøtevilkårAvslag(periode = revurderingsperiode),
             ),
+            brevvalg = sendBrev(fritekst = "FRITEKST REVURDERING"),
         ).let { (_, v) ->
             v.shouldBeType<VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering>().let {
                 it.behandling to it
@@ -1127,6 +1129,7 @@ internal class LagBrevRequestVisitorTest {
         val (_, revurdering) = iverksattRevurdering(
             revurderingsperiode = revurderingsperiode,
             vilkårOverrides = listOf(avslåttUførevilkårUtenGrunnlag(periode = revurderingsperiode)),
+            brevvalg = sendBrev(fritekst = "FRITEKST REVURDERING"),
         ).let { it.first to it.second as IverksattRevurdering.Opphørt }
         val opphørsvedtak = VedtakSomKanRevurderes.from(revurdering, utbetalingId, fixedClock)
         val brevRevurdering = LagBrevRequestVisitor(
@@ -1186,6 +1189,7 @@ internal class LagBrevRequestVisitorTest {
                     periode = opphørsperiode,
                 ),
             ),
+            brevvalg = sendBrev(fritekst = "FRITEKST REVURDERING"),
         ).let {
             Triple(sak, it.second.behandling as IverksattRevurdering, it.second)
         }
@@ -1291,7 +1295,7 @@ internal class LagBrevRequestVisitorTest {
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
             sakinfo = søknadsbehandling.sakinfo(),
-            brevvalgRevurdering = BrevvalgRevurdering.IkkeValgt,
+            brevvalgRevurdering = sendBrev(fritekst = "EN FIN FRITEKST"),
         )
 
         val vedtakIngenEndring = VedtakSomKanRevurderes.from(revurdering, fixedClock)

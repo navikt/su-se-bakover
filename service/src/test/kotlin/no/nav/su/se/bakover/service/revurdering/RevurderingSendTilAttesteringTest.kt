@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingsutfallSomIkkeStøttes
 import no.nav.su.se.bakover.domain.revurdering.SendTilAttesteringRequest
+import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.statistikk.StatistikkEvent
 import no.nav.su.se.bakover.domain.vilkår.FormueVilkår
 import no.nav.su.se.bakover.service.argThat
@@ -94,8 +95,6 @@ internal class RevurderingSendTilAttesteringTest {
                 SendTilAttesteringRequest(
                     revurderingId = simulertRevurdering.id,
                     saksbehandler = saksbehandler,
-                    fritekstTilBrev = "Fritekst",
-                    skalFøreTilBrevutsending = true,
                 ),
             ).getOrHandle { throw RuntimeException(it.toString()) }
 
@@ -147,8 +146,6 @@ internal class RevurderingSendTilAttesteringTest {
                 SendTilAttesteringRequest(
                     revurderingId = opprettetRevurdering.id,
                     saksbehandler = saksbehandler,
-                    fritekstTilBrev = "Fritekst",
-                    skalFøreTilBrevutsending = true,
                 ),
             )
 
@@ -187,8 +184,6 @@ internal class RevurderingSendTilAttesteringTest {
                 SendTilAttesteringRequest(
                     revurderingId = revurdering.id,
                     saksbehandler = saksbehandler,
-                    fritekstTilBrev = "Fritekst",
-                    skalFøreTilBrevutsending = true,
                 ),
             )
 
@@ -232,8 +227,6 @@ internal class RevurderingSendTilAttesteringTest {
                 SendTilAttesteringRequest(
                     revurderingId = revurderingId,
                     saksbehandler = saksbehandler,
-                    fritekstTilBrev = "Fritekst",
-                    skalFøreTilBrevutsending = true,
                 ),
             )
 
@@ -308,10 +301,8 @@ internal class RevurderingSendTilAttesteringTest {
                 SendTilAttesteringRequest(
                     revurderingId = revurderingId,
                     saksbehandler = saksbehandler,
-                    fritekstTilBrev = "Fritekst",
-                    skalFøreTilBrevutsending = true,
                 ),
-            ) shouldBe KunneIkkeSendeRevurderingTilAttestering.TilbakekrevingsbehandlingErIkkeFullstendig.left()
+            ) shouldBe KunneIkkeSendeRevurderingTilAttestering.FeilInnvilget(SimulertRevurdering.KunneIkkeSendeInnvilgetRevurderingTilAttestering.TilbakekrevingsbehandlingErIkkeFullstendig).left()
         }
     }
 
@@ -361,8 +352,6 @@ internal class RevurderingSendTilAttesteringTest {
                 SendTilAttesteringRequest(
                     revurderingId = revurderingId,
                     saksbehandler = saksbehandler,
-                    fritekstTilBrev = "Fritekst",
-                    skalFøreTilBrevutsending = true,
                 ),
             ).getOrFail() shouldBe beOfType<RevurderingTilAttestering.Innvilget>()
         }
@@ -418,8 +407,6 @@ internal class RevurderingSendTilAttesteringTest {
                 SendTilAttesteringRequest(
                     revurderingId = simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak.id,
                     saksbehandler = saksbehandler,
-                    fritekstTilBrev = "Fritekst",
-                    skalFøreTilBrevutsending = true,
                 ),
             )
             actual shouldBe KunneIkkeSendeRevurderingTilAttestering.RevurderingsutfallStøttesIkke(
@@ -458,8 +445,6 @@ internal class RevurderingSendTilAttesteringTest {
                 SendTilAttesteringRequest(
                     revurderingId = revurderingId,
                     saksbehandler = saksbehandler,
-                    fritekstTilBrev = "Fritekst",
-                    skalFøreTilBrevutsending = true,
                 ),
             )
 
@@ -501,8 +486,6 @@ internal class RevurderingSendTilAttesteringTest {
                 SendTilAttesteringRequest(
                     revurderingId = revurderingId,
                     saksbehandler = saksbehandler,
-                    fritekstTilBrev = "Fritekst",
-                    skalFøreTilBrevutsending = true,
                 ),
             ) shouldBe KunneIkkeSendeRevurderingTilAttestering.SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving(
                 revurderingId,

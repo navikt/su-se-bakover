@@ -812,19 +812,19 @@ sealed class Revurdering :
         object OpphørAvYtelseSomSkalAvkortes : KunneIkkeBeregneRevurdering()
     }
 
-    fun skalSendeBrev(): Either<Unit, BrevvalgRevurdering.SendBrev> {
+    fun skalSendeBrev(): Either<Unit, BrevvalgRevurdering.Valgt.SendBrev> {
         return brevvalgRevurdering.skalSendeBrev()
     }
 
     fun leggTilBrevvalg(brevvalgRevurdering: BrevvalgRevurdering): Either<KunneIkkeLeggeTilBrevvalg, Revurdering> {
         return when (brevvalgRevurdering) {
-            is BrevvalgRevurdering.IkkeSendBrev -> this.leggTilBrevvalgInternal(brevvalgRevurdering)
             BrevvalgRevurdering.IkkeValgt -> KunneIkkeLeggeTilBrevvalg.UgyldigBrevvalg.left()
-            is BrevvalgRevurdering.SendBrev -> this.leggTilBrevvalgInternal(brevvalgRevurdering)
+            is BrevvalgRevurdering.Valgt.IkkeSendBrev -> this.leggTilBrevvalgInternal(brevvalgRevurdering)
+            is BrevvalgRevurdering.Valgt.SendBrev -> this.leggTilBrevvalgInternal(brevvalgRevurdering)
         }
     }
 
-    protected open fun Revurdering.leggTilBrevvalgInternal(brevvalgRevurdering: BrevvalgRevurdering): Either<KunneIkkeLeggeTilBrevvalg, Revurdering> {
+    protected open fun Revurdering.leggTilBrevvalgInternal(brevvalgRevurdering: BrevvalgRevurdering.Valgt): Either<KunneIkkeLeggeTilBrevvalg, Revurdering> {
         return KunneIkkeLeggeTilBrevvalg.UgyldigTilstand(this::class).left()
     }
 
@@ -851,15 +851,15 @@ data class OpprettetRevurdering(
     override val avkorting: AvkortingVedRevurdering.Uhåndtert,
     override val sakinfo: SakInfo,
     override val brevvalgRevurdering: BrevvalgRevurdering = if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) {
-        BrevvalgRevurdering.IkkeSendBrev(
+        BrevvalgRevurdering.Valgt.IkkeSendBrev(
             begrunnelse = null,
-            bestemtAv = BrevvalgRevurdering.BestemtAv.System,
+            bestemtAv = BrevvalgRevurdering.BestemtAv.Systembruker,
         )
     } else {
-        BrevvalgRevurdering.SendBrev(
+        BrevvalgRevurdering.Valgt.SendBrev(
             fritekst = null,
             begrunnelse = null,
-            bestemtAv = BrevvalgRevurdering.BestemtAv.System,
+            bestemtAv = BrevvalgRevurdering.BestemtAv.Systembruker,
         )
     },
 ) : Revurdering() {
@@ -1131,6 +1131,7 @@ sealed class BeregnetRevurdering : Revurdering() {
             attesteringsoppgaveId: OppgaveId,
             saksbehandler: Saksbehandler,
         ): RevurderingTilAttestering.IngenEndring {
+            require(brevvalgRevurdering is BrevvalgRevurdering.Valgt) { "Brevvalg må gjøres før man kan sende til attestering" }
             return RevurderingTilAttestering.IngenEndring(
                 id = id,
                 periode = periode,
@@ -1152,6 +1153,10 @@ sealed class BeregnetRevurdering : Revurdering() {
 
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
+        }
+
+        override fun Revurdering.leggTilBrevvalgInternal(brevvalgRevurdering: BrevvalgRevurdering.Valgt): Either<KunneIkkeLeggeTilBrevvalg, IngenEndring> {
+            return copy(brevvalgRevurdering = brevvalgRevurdering).right()
         }
     }
 
@@ -1463,8 +1468,8 @@ sealed class SimulertRevurdering : Revurdering() {
     abstract fun oppdaterTilbakekrevingsbehandling(tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling): SimulertRevurdering
 
     sealed interface KunneIkkeSendeInnvilgetRevurderingTilAttestering {
-        object ForhåndsvarslingErIkkeFerdigbehandlet : KunneIkkeSendeInnvilgetRevurderingTilAttestering
         object TilbakekrevingsbehandlingErIkkeFullstendig : KunneIkkeSendeInnvilgetRevurderingTilAttestering
+        object BrevvalgMangler : KunneIkkeSendeInnvilgetRevurderingTilAttestering
     }
 
     override fun oppdater(
@@ -1535,6 +1540,10 @@ sealed class SimulertRevurdering : Revurdering() {
                 }
             }
 
+            if (brevvalgRevurdering !is BrevvalgRevurdering.Valgt) {
+                return KunneIkkeSendeInnvilgetRevurderingTilAttestering.BrevvalgMangler.left()
+            }
+
             return RevurderingTilAttestering.Innvilget(
                 id = id,
                 periode = periode,
@@ -1556,7 +1565,7 @@ sealed class SimulertRevurdering : Revurdering() {
             ).right()
         }
 
-        override fun Revurdering.leggTilBrevvalgInternal(brevvalgRevurdering: BrevvalgRevurdering): Either<KunneIkkeLeggeTilBrevvalg, Innvilget> {
+        override fun Revurdering.leggTilBrevvalgInternal(brevvalgRevurdering: BrevvalgRevurdering.Valgt): Either<KunneIkkeLeggeTilBrevvalg, Innvilget> {
             return copy(brevvalgRevurdering = brevvalgRevurdering).right()
         }
     }
@@ -1605,8 +1614,8 @@ sealed class SimulertRevurdering : Revurdering() {
 
         sealed interface KanIkkeSendeOpphørtRevurderingTilAttestering {
             object KanIkkeSendeEnOpphørtGReguleringTilAttestering : KanIkkeSendeOpphørtRevurderingTilAttestering
-            object ForhåndsvarslingErIkkeFerdigbehandlet : KanIkkeSendeOpphørtRevurderingTilAttestering
             object TilbakekrevingsbehandlingErIkkeFullstendig : KanIkkeSendeOpphørtRevurderingTilAttestering
+            object BrevvalgMangler : KanIkkeSendeOpphørtRevurderingTilAttestering
         }
 
         fun tilAttestering(
@@ -1630,6 +1639,10 @@ sealed class SimulertRevurdering : Revurdering() {
                 }
             }
 
+            if (brevvalgRevurdering !is BrevvalgRevurdering.Valgt) {
+                return KanIkkeSendeOpphørtRevurderingTilAttestering.BrevvalgMangler.left()
+            }
+
             return RevurderingTilAttestering.Opphørt(
                 id = id,
                 periode = periode,
@@ -1651,7 +1664,7 @@ sealed class SimulertRevurdering : Revurdering() {
             ).right()
         }
 
-        override fun Revurdering.leggTilBrevvalgInternal(brevvalgRevurdering: BrevvalgRevurdering): Either<KunneIkkeLeggeTilBrevvalg, Opphørt> {
+        override fun Revurdering.leggTilBrevvalgInternal(brevvalgRevurdering: BrevvalgRevurdering.Valgt): Either<KunneIkkeLeggeTilBrevvalg, Opphørt> {
             return copy(brevvalgRevurdering = brevvalgRevurdering).right()
         }
     }
@@ -1663,6 +1676,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
 
     abstract override fun accept(visitor: RevurderingVisitor)
     abstract override val avkorting: AvkortingVedRevurdering.Håndtert
+    abstract override val brevvalgRevurdering: BrevvalgRevurdering.Valgt
 
     abstract fun tilIverksatt(
         attestant: NavIdentBruker.Attestant,
@@ -1687,7 +1701,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val avkorting: AvkortingVedRevurdering.Håndtert,
         val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling,
         override val sakinfo: SakInfo,
-        override val brevvalgRevurdering: BrevvalgRevurdering,
+        override val brevvalgRevurdering: BrevvalgRevurdering.Valgt,
     ) : RevurderingTilAttestering() {
 
         override val erOpphørt = false
@@ -1750,7 +1764,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val avkorting: AvkortingVedRevurdering.Håndtert,
         val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling,
         override val sakinfo: SakInfo,
-        override val brevvalgRevurdering: BrevvalgRevurdering,
+        override val brevvalgRevurdering: BrevvalgRevurdering.Valgt,
     ) : RevurderingTilAttestering() {
         override val erOpphørt = true
 
@@ -1827,7 +1841,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.Håndtert,
         override val sakinfo: SakInfo,
-        override val brevvalgRevurdering: BrevvalgRevurdering,
+        override val brevvalgRevurdering: BrevvalgRevurdering.Valgt,
     ) : RevurderingTilAttestering() {
 
         override val erOpphørt = false
@@ -1966,6 +1980,7 @@ sealed class IverksattRevurdering : Revurdering() {
         get() = attesteringer.hentSisteAttestering()
     abstract override val avkorting: AvkortingVedRevurdering.Iverksatt
     abstract val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet
+    abstract override val brevvalgRevurdering: BrevvalgRevurdering.Valgt
 
     abstract override fun accept(visitor: RevurderingVisitor)
 
@@ -1986,7 +2001,7 @@ sealed class IverksattRevurdering : Revurdering() {
         override val avkorting: AvkortingVedRevurdering.Iverksatt,
         override val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet,
         override val sakinfo: SakInfo,
-        override val brevvalgRevurdering: BrevvalgRevurdering,
+        override val brevvalgRevurdering: BrevvalgRevurdering.Valgt,
     ) : IverksattRevurdering() {
 
         override val erOpphørt = false
@@ -2017,7 +2032,7 @@ sealed class IverksattRevurdering : Revurdering() {
         override val avkorting: AvkortingVedRevurdering.Iverksatt,
         override val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.Ferdigbehandlet,
         override val sakinfo: SakInfo,
-        override val brevvalgRevurdering: BrevvalgRevurdering,
+        override val brevvalgRevurdering: BrevvalgRevurdering.Valgt,
     ) : IverksattRevurdering() {
         override val erOpphørt = true
 
@@ -2069,7 +2084,7 @@ sealed class IverksattRevurdering : Revurdering() {
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.Iverksatt,
         override val sakinfo: SakInfo,
-        override val brevvalgRevurdering: BrevvalgRevurdering,
+        override val brevvalgRevurdering: BrevvalgRevurdering.Valgt,
     ) : IverksattRevurdering() {
         override val erOpphørt = false
         override val simulering: Simulering? = null
@@ -2096,6 +2111,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
     abstract override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering
     val attestering: Attestering.Underkjent
         get() = attesteringer.hentSisteAttestering() as Attestering.Underkjent
+    abstract override val brevvalgRevurdering: BrevvalgRevurdering.Valgt
 
     abstract override fun accept(visitor: RevurderingVisitor)
 
@@ -2187,7 +2203,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override val avkorting: AvkortingVedRevurdering.Håndtert,
         val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling,
         override val sakinfo: SakInfo,
-        override val brevvalgRevurdering: BrevvalgRevurdering,
+        override val brevvalgRevurdering: BrevvalgRevurdering.Valgt,
     ) : UnderkjentRevurdering() {
         override val erOpphørt = false
 
@@ -2248,7 +2264,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
             ).right()
         }
 
-        override fun Revurdering.leggTilBrevvalgInternal(brevvalgRevurdering: BrevvalgRevurdering): Either<KunneIkkeLeggeTilBrevvalg, Innvilget> {
+        override fun Revurdering.leggTilBrevvalgInternal(brevvalgRevurdering: BrevvalgRevurdering.Valgt): Either<KunneIkkeLeggeTilBrevvalg, Innvilget> {
             return copy(brevvalgRevurdering = brevvalgRevurdering).right()
         }
     }
@@ -2270,7 +2286,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override val avkorting: AvkortingVedRevurdering.Håndtert,
         val tilbakekrevingsbehandling: Tilbakekrevingsbehandling.UnderBehandling,
         override val sakinfo: SakInfo,
-        override val brevvalgRevurdering: BrevvalgRevurdering,
+        override val brevvalgRevurdering: BrevvalgRevurdering.Valgt,
     ) : UnderkjentRevurdering() {
         override val erOpphørt = true
 
@@ -2352,7 +2368,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
             }
         }
 
-        override fun Revurdering.leggTilBrevvalgInternal(brevvalgRevurdering: BrevvalgRevurdering): Either<KunneIkkeLeggeTilBrevvalg, Opphørt> {
+        override fun Revurdering.leggTilBrevvalgInternal(brevvalgRevurdering: BrevvalgRevurdering.Valgt): Either<KunneIkkeLeggeTilBrevvalg, Opphørt> {
             return copy(brevvalgRevurdering = brevvalgRevurdering).right()
         }
     }
@@ -2372,7 +2388,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override val attesteringer: Attesteringshistorikk,
         override val avkorting: AvkortingVedRevurdering.Håndtert,
         override val sakinfo: SakInfo,
-        override val brevvalgRevurdering: BrevvalgRevurdering,
+        override val brevvalgRevurdering: BrevvalgRevurdering.Valgt,
     ) : UnderkjentRevurdering() {
         override val erOpphørt = false
         override val simulering: Simulering? = null
@@ -2404,7 +2420,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
             )
         }
 
-        override fun Revurdering.leggTilBrevvalgInternal(brevvalgRevurdering: BrevvalgRevurdering): Either<KunneIkkeLeggeTilBrevvalg, IngenEndring> {
+        override fun Revurdering.leggTilBrevvalgInternal(brevvalgRevurdering: BrevvalgRevurdering.Valgt): Either<KunneIkkeLeggeTilBrevvalg, IngenEndring> {
             return copy(brevvalgRevurdering = brevvalgRevurdering).right()
         }
     }

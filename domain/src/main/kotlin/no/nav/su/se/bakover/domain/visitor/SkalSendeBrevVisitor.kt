@@ -16,7 +16,7 @@ internal class SkalSendeBrevVisitor : VedtakVisitor {
 
     override fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.InnvilgetRevurdering) {
         sendBrev = !vedtak.innvilgetGRegulering() &&
-            vedtak.behandling.brevvalgRevurdering.skalSendeBrev().isRight() &&
+            vedtak.behandling.skalSendeBrev().isRight() &&
             /** Enn så lenge unngår vi å svare ja dersom vi er i et tilbakekrevingsløp, utsending av brev håndteres i løpe for kravgrunnlag*/
             vedtak.behandling.tilbakekrevingErVurdert().isLeft()
     }
@@ -27,7 +27,7 @@ internal class SkalSendeBrevVisitor : VedtakVisitor {
 
     override fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.OpphørtRevurdering) {
         sendBrev = !vedtak.innvilgetGRegulering() &&
-            vedtak.behandling.brevvalgRevurdering.skalSendeBrev().isRight() &&
+            vedtak.behandling.skalSendeBrev().isRight() &&
             /** Enn så lenge unngår vi å svare ja dersom vi er i et tilbakekrevingsløp */
             vedtak.behandling.tilbakekrevingErVurdert().isLeft()
     }
@@ -42,7 +42,7 @@ internal class SkalSendeBrevVisitor : VedtakVisitor {
 
     override fun visit(vedtak: VedtakSomKanRevurderes.IngenEndringIYtelse) {
         sendBrev = !vedtak.årsakErGRegulering() &&
-            vedtak.behandling.brevvalgRevurdering.skalSendeBrev().isRight()
+            vedtak.behandling.skalSendeBrev().isRight()
     }
 
     override fun visit(vedtak: VedtakSomKanRevurderes.EndringIYtelse.StansAvYtelse) {

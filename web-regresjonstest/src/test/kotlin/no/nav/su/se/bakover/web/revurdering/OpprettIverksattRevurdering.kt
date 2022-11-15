@@ -4,6 +4,7 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.su.se.bakover.domain.vilkår.utenlandsopphold.UtenlandsoppholdStatus
 import no.nav.su.se.bakover.web.revurdering.attestering.sendTilAttestering
 import no.nav.su.se.bakover.web.revurdering.bosituasjon.leggTilBosituasjon
+import no.nav.su.se.bakover.web.revurdering.brevvalg.velgSendBrev
 import no.nav.su.se.bakover.web.revurdering.forhåndsvarsel.sendForhåndsvarsel
 import no.nav.su.se.bakover.web.revurdering.formue.leggTilFormue
 import no.nav.su.se.bakover.web.revurdering.fradrag.leggTilFradrag
@@ -85,6 +86,12 @@ internal fun ApplicationTestBuilder.opprettIverksattRevurdering(
             behandlingId = behandlingId,
         )
     },
+    leggTilBrevvalg: (sakId: String, behandlingId: String) -> String = { sakId, behandlingId ->
+        velgSendBrev(
+            sakId = sakId,
+            behandlingId = behandlingId,
+        )
+    },
     sendTilAttestering: (sakId: String, behandlingId: String) -> String = { sakId, behandlingId ->
         sendTilAttestering(
             sakId = sakId,
@@ -113,6 +120,7 @@ internal fun ApplicationTestBuilder.opprettIverksattRevurdering(
             leggTilFradrag(sakid, revurderingId, fraogmed, tilogmed),
             beregnOgSimuler(sakid, revurderingId),
             leggTilIngenForhåndsvarsel(sakid, revurderingId),
+            leggTilBrevvalg(sakid, revurderingId),
             sendTilAttestering(sakid, revurderingId),
             iverksett(sakid, revurderingId),
         ).map { it }.last { it != SKIP_STEP }

@@ -104,8 +104,6 @@ internal class RevurderingIngenEndringTest {
                 SendTilAttesteringRequest(
                     revurderingId = beregnetRevurdering.id,
                     saksbehandler = endretSaksbehandler,
-                    fritekstTilBrev = "endret fritekst",
-                    skalFøreTilBrevutsending = true,
                 ),
             ).getOrFail()
 

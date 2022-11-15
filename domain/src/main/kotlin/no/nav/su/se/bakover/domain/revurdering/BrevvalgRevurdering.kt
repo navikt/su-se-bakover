@@ -6,31 +6,33 @@ import arrow.core.right
 
 sealed interface BrevvalgRevurdering {
 
-    fun skalSendeBrev(): Either<Unit, SendBrev> {
+    fun skalSendeBrev(): Either<Unit, Valgt.SendBrev> {
         return when (this) {
-            is IkkeSendBrev -> Unit.left()
             IkkeValgt -> Unit.left()
-            is SendBrev -> this.right()
+            is Valgt.IkkeSendBrev -> Unit.left()
+            is Valgt.SendBrev -> this.right()
         }
     }
 
-    data class SendBrev(
-        val fritekst: String?,
-        val begrunnelse: String?,
-        val bestemtAv: BestemtAv,
-    ) : BrevvalgRevurdering
+    sealed interface Valgt : BrevvalgRevurdering {
+        data class SendBrev(
+            val fritekst: String?,
+            val begrunnelse: String?,
+            val bestemtAv: BestemtAv,
+        ) : Valgt
 
-    data class IkkeSendBrev(
-        val begrunnelse: String?,
-        val bestemtAv: BestemtAv,
-    ) : BrevvalgRevurdering
+        data class IkkeSendBrev(
+            val begrunnelse: String?,
+            val bestemtAv: BestemtAv,
+        ) : Valgt
+    }
 
     object IkkeValgt : BrevvalgRevurdering
 
     sealed class BestemtAv {
-        object System : BestemtAv() {
+        object Systembruker : BestemtAv() {
             override fun toString(): String {
-                return "SYSTEM"
+                return "srvsupstonad"
             }
         }
         data class Behandler(val ident: String) : BestemtAv() {

@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Tilbakekrevingsbehandl
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.BrevvalgRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
@@ -271,6 +272,7 @@ fun simulertRevurdering(
     grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
+    brevvalg: BrevvalgRevurdering = sendBrev(),
 ): Pair<Sak, SimulertRevurdering> {
     return beregnetRevurdering(
         saksnummer = saksnummer,
@@ -324,7 +326,7 @@ fun simulertRevurdering(
                 ).getOrFail()
                 oppdaterTilbakekrevingsbehandling(simulert)
             }
-        }
+        }.leggTilBrevvalg(brevvalg).getOrFail() as SimulertRevurdering
 
         sak.copy(
             revurderinger = sak.revurderinger.filterNot { it.id == simulert.id } + simulert,
@@ -348,6 +350,7 @@ fun revurderingTilAttestering(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     attesteringsoppgaveId: OppgaveId = OppgaveId("oppgaveid"),
     utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
+    brevvalg: BrevvalgRevurdering = sendBrev(),
 ): Pair<Sak, RevurderingTilAttestering> {
     return simulertRevurdering(
         saksnummer = saksnummer,
@@ -360,6 +363,7 @@ fun revurderingTilAttestering(
         vilkårOverrides = vilkårOverrides,
         grunnlagsdataOverrides = grunnlagsdataOverrides,
         utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
+        brevvalg = brevvalg,
     ).let { (sak, simulert) ->
         val tilAttestering = when (simulert) {
             is SimulertRevurdering.Innvilget -> {
@@ -466,6 +470,7 @@ fun iverksattRevurdering(
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     attesteringsoppgaveId: OppgaveId = OppgaveId("oppgaveid"),
     utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
+    brevvalg: BrevvalgRevurdering = sendBrev(),
 ): Triple<Sak, IverksattRevurdering, Utbetaling?> {
     return revurderingTilAttestering(
         saksnummer = saksnummer,
@@ -480,6 +485,7 @@ fun iverksattRevurdering(
         saksbehandler = saksbehandler,
         attesteringsoppgaveId = attesteringsoppgaveId,
         utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
+        brevvalg = brevvalg,
     ).let { (sak, tilAttestering) ->
         val (iverksatt, utbetaling) = tilAttestering.tilIverksatt(
             attestant = attestering.attestant,
@@ -572,6 +578,7 @@ fun vedtakRevurdering(
     grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
     attestering: Attestering = attesteringIverksatt(clock),
     utbetalingerKjørtTilOgMed: LocalDate = LocalDate.now(clock),
+    brevvalg: BrevvalgRevurdering = sendBrev(),
 ): Pair<Sak, VedtakSomKanRevurderes> {
     return iverksattRevurdering(
         clock = clock,
@@ -585,6 +592,7 @@ fun vedtakRevurdering(
         grunnlagsdataOverrides = grunnlagsdataOverrides,
         attestering = attestering,
         utbetalingerKjørtTilOgMed = utbetalingerKjørtTilOgMed,
+        brevvalg = brevvalg,
     ).let { (sak, iverksatt, utbetaling) ->
         val vedtak = when (iverksatt) {
             is IverksattRevurdering.IngenEndring -> {

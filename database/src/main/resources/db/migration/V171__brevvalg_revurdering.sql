@@ -13,9 +13,9 @@ brevvalg as (
 		case
 			when revurderingstype like '%IVERKS%INGEN%' and skalføretilbrevutsending then json_build_object('type','SEND_BREV','fritekst',friteksttilbrev,'begrunnelse',null,'bestemtav',saksbehandler)
 			when revurderingstype like '%TIL_ATT%INGEN%' and not skalføretilbrevutsending then json_build_object('type','IKKE_SEND_BREV','fritekst',friteksttilbrev,'begrunnelse',null,'bestemtav',saksbehandler)
-			when revurderingstype like '%IVERKS%'and skalføretilbrevutsending then json_build_object('type','SEND_BREV','fritekst',friteksttilbrev,'begrunnelse',null,'bestemtav','SYSTEM')
-			when revurderingstype like '%TIL_ATT%' and skalføretilbrevutsending then json_build_object('type','SEND_BREV','fritekst',friteksttilbrev,'begrunnelse',null,'bestemtav','SYSTEM')
-			when not skalføretilbrevutsending then json_build_object('type','IKKE_SEND_BREV','fritekst',friteksttilbrev,'begrunnelse',null,'bestemtav','SYSTEM')
+			when revurderingstype like '%IVERKS%'and skalføretilbrevutsending then json_build_object('type','SEND_BREV','fritekst',friteksttilbrev,'begrunnelse',null,'bestemtav','srvsupstonad')
+			when revurderingstype like '%TIL_ATT%' and skalføretilbrevutsending then json_build_object('type','SEND_BREV','fritekst',friteksttilbrev,'begrunnelse',null,'bestemtav','srvsupstonad')
+			when not skalføretilbrevutsending then json_build_object('type','IKKE_SEND_BREV','fritekst',friteksttilbrev,'begrunnelse',null,'bestemtav','srvsupstonad')
 			else json_build_object('type','IKKE_VALGT')
 		end as valg
 	from data

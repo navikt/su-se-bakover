@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.IkkeBehovForTilbakekrevingFerdigbehandlet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.domain.revurdering.BrevvalgRevurdering
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
@@ -31,6 +30,7 @@ import no.nav.su.se.bakover.test.persistence.withMigratedDb
 import no.nav.su.se.bakover.test.persistence.withSession
 import no.nav.su.se.bakover.test.plus
 import no.nav.su.se.bakover.test.satsFactoryTestPåDato
+import no.nav.su.se.bakover.test.sendBrev
 import no.nav.su.se.bakover.test.vilkårsvurderingRevurderingIkkeVurdert
 import org.junit.jupiter.api.Test
 import java.time.temporal.ChronoUnit
@@ -115,7 +115,7 @@ internal class VedtakPostgresRepoTest {
                 avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
                 tilbakekrevingsbehandling = IkkeBehovForTilbakekrevingFerdigbehandlet,
                 sakinfo = søknadsbehandlingVedtak.sakinfo(),
-                brevvalgRevurdering = BrevvalgRevurdering.IkkeValgt,
+                brevvalgRevurdering = sendBrev(),
             )
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 
@@ -224,7 +224,7 @@ internal class VedtakPostgresRepoTest {
                 attesteringer = Attesteringshistorikk.empty(),
                 avkorting = AvkortingVedRevurdering.Håndtert.IngenNyEllerUtestående,
                 sakinfo = søknadsbehandlingVedtak.sakinfo(),
-                brevvalgRevurdering = BrevvalgRevurdering.IkkeValgt,
+                brevvalgRevurdering = sendBrev(),
             )
             testDataHelper.revurderingRepo.lagre(attestertRevurdering)
             val iverksattRevurdering = IverksattRevurdering.IngenEndring(
@@ -246,7 +246,7 @@ internal class VedtakPostgresRepoTest {
                 informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
                 avkorting = AvkortingVedRevurdering.Iverksatt.IngenNyEllerUtestående,
                 sakinfo = søknadsbehandlingVedtak.sakinfo(),
-                brevvalgRevurdering = BrevvalgRevurdering.IkkeValgt,
+                brevvalgRevurdering = sendBrev(),
             )
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 

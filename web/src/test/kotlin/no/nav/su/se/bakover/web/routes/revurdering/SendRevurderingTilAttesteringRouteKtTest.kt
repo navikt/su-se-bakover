@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.domain.revurdering.KunneIkkeSendeRevurderingTilAttes
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingService
 import no.nav.su.se.bakover.test.sakId
-import no.nav.su.se.bakover.test.tilAttesteringRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
@@ -81,67 +80,6 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
                 val actualResponse = objectMapper.readValue<TilAttesteringJson>(bodyAsText())
                 actualResponse.id shouldBe revurderingTilAttestering.id.toString()
                 actualResponse.status shouldBe RevurderingsStatus.TIL_ATTESTERING_INNVILGET
-            }
-        }
-    }
-
-    @Test
-    fun `ingen endring uten brev`() {
-        val revurderingTilAttestering =
-            tilAttesteringRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak().second
-
-        val revurderingServiceMock = mock<RevurderingService> {
-            on { sendTilAttestering(any()) } doReturn revurderingTilAttestering.right()
-        }
-
-        testApplication {
-            application {
-                testSusebakover(services = TestServicesBuilder.services(revurdering = revurderingServiceMock))
-            }
-            defaultRequest(
-                HttpMethod.Post,
-                "/saker/$sakId/revurderinger/${revurderingTilAttestering.id}/tilAttestering",
-                listOf(Brukerrolle.Saksbehandler),
-            ) {
-                setBody("""{ "fritekstTilBrev": "", "skalFøreTilBrevutsending": "false" }""")
-            }.apply {
-                status shouldBe HttpStatusCode.OK
-                val actualResponse = objectMapper.readValue<TilAttesteringJson>(bodyAsText())
-                actualResponse.id shouldBe revurderingTilAttestering.id.toString()
-                actualResponse.status shouldBe RevurderingsStatus.TIL_ATTESTERING_INGEN_ENDRING
-                actualResponse.fritekstTilBrev shouldBe ""
-                actualResponse.skalFøreTilBrevutsending shouldBe false
-            }
-        }
-    }
-
-    @Test
-    fun `ingen endring med brev`() {
-        // TODO - flytt til regresjonstest dersom vi skal teste logikk, hvis ikke bør denne teste json
-        val revurderingTilAttestering =
-            tilAttesteringRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak().second
-
-        val revurderingServiceMock = mock<RevurderingService> {
-            on { sendTilAttestering(any()) } doReturn revurderingTilAttestering.right()
-        }
-
-        testApplication {
-            application {
-                testSusebakover(services = TestServicesBuilder.services(revurdering = revurderingServiceMock))
-            }
-            defaultRequest(
-                HttpMethod.Post,
-                "/saker/$sakId/revurderinger/${revurderingTilAttestering.id}/tilAttestering",
-                listOf(Brukerrolle.Saksbehandler),
-            ) {
-                setBody("""{ "fritekstTilBrev": "Friteksten", "skalFøreTilBrevutsending": "false" }""")
-            }.apply {
-                status shouldBe HttpStatusCode.OK
-                val actualResponse = objectMapper.readValue<TilAttesteringJson>(bodyAsText())
-                actualResponse.id shouldBe revurderingTilAttestering.id.toString()
-                actualResponse.status shouldBe RevurderingsStatus.TIL_ATTESTERING_INGEN_ENDRING
-                actualResponse.fritekstTilBrev shouldBe "Friteksten"
-                actualResponse.skalFøreTilBrevutsending shouldBe false
             }
         }
     }

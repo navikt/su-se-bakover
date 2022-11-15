@@ -188,10 +188,8 @@ sealed interface Varselmelding {
 object FantIkkeRevurdering
 
 data class SendTilAttesteringRequest(
-    val revurderingId: UUID,
-    val saksbehandler: NavIdentBruker.Saksbehandler,
-    val fritekstTilBrev: String,
-    val skalFøreTilBrevutsending: Boolean,
+    val revurderingId: java.util.UUID,
+    val saksbehandler: no.nav.su.se.bakover.common.NavIdentBruker.Saksbehandler,
 )
 
 sealed class KunneIkkeOppdatereRevurdering {
@@ -232,20 +230,19 @@ sealed class KunneIkkeForhåndsvarsle {
 }
 
 sealed class KunneIkkeSendeRevurderingTilAttestering {
+    data class FeilInnvilget(val feil: SimulertRevurdering.KunneIkkeSendeInnvilgetRevurderingTilAttestering) : KunneIkkeSendeRevurderingTilAttestering()
+    data class FeilOpphørt(val feil: SimulertRevurdering.Opphørt.KanIkkeSendeOpphørtRevurderingTilAttestering) : KunneIkkeSendeRevurderingTilAttestering()
     object FantIkkeRevurdering : KunneIkkeSendeRevurderingTilAttestering()
     object FantIkkeAktørId : KunneIkkeSendeRevurderingTilAttestering()
     object KunneIkkeOppretteOppgave : KunneIkkeSendeRevurderingTilAttestering()
     object KanIkkeRegulereGrunnbeløpTilOpphør : KunneIkkeSendeRevurderingTilAttestering()
-    object ForhåndsvarslingErIkkeFerdigbehandlet : KunneIkkeSendeRevurderingTilAttestering()
     data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) :
         KunneIkkeSendeRevurderingTilAttestering()
 
-    object ManglerBeslutningPåForhåndsvarsel : KunneIkkeSendeRevurderingTilAttestering()
     object FeilutbetalingStøttesIkke : KunneIkkeSendeRevurderingTilAttestering()
     data class RevurderingsutfallStøttesIkke(val feilmeldinger: List<RevurderingsutfallSomIkkeStøttes>) :
         KunneIkkeSendeRevurderingTilAttestering()
 
-    object TilbakekrevingsbehandlingErIkkeFullstendig : KunneIkkeSendeRevurderingTilAttestering()
     data class SakHarRevurderingerMedÅpentKravgrunnlagForTilbakekreving(
         val revurderingId: UUID,
     ) : KunneIkkeSendeRevurderingTilAttestering()
@@ -494,13 +491,13 @@ data class LeggTilBrevvalgRequest(
     fun toDomain(): BrevvalgRevurdering {
         return when (valg) {
             Valg.SEND -> {
-                BrevvalgRevurdering.SendBrev(
+                BrevvalgRevurdering.Valgt.SendBrev(
                     fritekst = fritekst,
                     begrunnelse = begrunnelse,
                     bestemtAv = BrevvalgRevurdering.BestemtAv.Behandler(saksbehandler.navIdent),
                 )
             } Valg.IKKE_SEND -> {
-                BrevvalgRevurdering.IkkeSendBrev(
+                BrevvalgRevurdering.Valgt.IkkeSendBrev(
                     begrunnelse = begrunnelse,
                     bestemtAv = BrevvalgRevurdering.BestemtAv.Behandler(saksbehandler.navIdent),
                 )

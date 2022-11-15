@@ -17,14 +17,6 @@ enum class BrevvalgVedtaksbrevDbType {
 
 fun BrevvalgRevurdering.toDb(): BrevvalgVedtaksbrevDbJson {
     return when (this) {
-        is BrevvalgRevurdering.IkkeSendBrev -> {
-            BrevvalgVedtaksbrevDbJson(
-                type = BrevvalgVedtaksbrevDbType.IKKE_SEND_BREV,
-                fritekst = null,
-                begrunnelse = begrunnelse,
-                bestemtav = bestemtAv.toString(),
-            )
-        }
         BrevvalgRevurdering.IkkeValgt -> {
             BrevvalgVedtaksbrevDbJson(
                 type = BrevvalgVedtaksbrevDbType.IKKE_VALGT,
@@ -33,7 +25,15 @@ fun BrevvalgRevurdering.toDb(): BrevvalgVedtaksbrevDbJson {
                 bestemtav = null,
             )
         }
-        is BrevvalgRevurdering.SendBrev -> {
+        is BrevvalgRevurdering.Valgt.IkkeSendBrev -> {
+            BrevvalgVedtaksbrevDbJson(
+                type = BrevvalgVedtaksbrevDbType.IKKE_SEND_BREV,
+                fritekst = null,
+                begrunnelse = begrunnelse,
+                bestemtav = bestemtAv.toString(),
+            )
+        }
+        is BrevvalgRevurdering.Valgt.SendBrev -> {
             BrevvalgVedtaksbrevDbJson(
                 type = BrevvalgVedtaksbrevDbType.SEND_BREV,
                 fritekst = fritekst,
@@ -46,28 +46,28 @@ fun BrevvalgRevurdering.toDb(): BrevvalgVedtaksbrevDbJson {
 
 fun BrevvalgVedtaksbrevDbJson.toDomain(): BrevvalgRevurdering {
     fun bestemtAv(string: String): BrevvalgRevurdering.BestemtAv {
-        return if (string == BrevvalgRevurdering.BestemtAv.System.toString()) {
-            BrevvalgRevurdering.BestemtAv.System
+        return if (string == BrevvalgRevurdering.BestemtAv.Systembruker.toString()) {
+            BrevvalgRevurdering.BestemtAv.Systembruker
         } else {
             BrevvalgRevurdering.BestemtAv.Behandler(string)
         }
     }
     return when (this.type) {
+        BrevvalgVedtaksbrevDbType.IKKE_VALGT -> {
+            BrevvalgRevurdering.IkkeValgt
+        }
+        BrevvalgVedtaksbrevDbType.IKKE_SEND_BREV -> {
+            BrevvalgRevurdering.Valgt.IkkeSendBrev(
+                begrunnelse = begrunnelse,
+                bestemtAv = bestemtAv(bestemtav!!),
+            )
+        }
         BrevvalgVedtaksbrevDbType.SEND_BREV -> {
-            BrevvalgRevurdering.SendBrev(
+            BrevvalgRevurdering.Valgt.SendBrev(
                 fritekst = fritekst,
                 begrunnelse = begrunnelse,
                 bestemtAv = bestemtAv(bestemtav!!),
             )
-        }
-        BrevvalgVedtaksbrevDbType.IKKE_SEND_BREV -> {
-            BrevvalgRevurdering.IkkeSendBrev(
-                begrunnelse = begrunnelse,
-                bestemtAv = bestemtAv(bestemtav!!),
-            )
-        }
-        BrevvalgVedtaksbrevDbType.IKKE_VALGT -> {
-            BrevvalgRevurdering.IkkeValgt
         }
     }
 }

@@ -851,15 +851,7 @@ internal class RevurderingServiceImpl(
                 oppgaveId,
                 saksbehandler,
             ).getOrHandle {
-                return when (it) {
-                    SimulertRevurdering.KunneIkkeSendeInnvilgetRevurderingTilAttestering.ForhåndsvarslingErIkkeFerdigbehandlet -> {
-                        KunneIkkeSendeRevurderingTilAttestering.ForhåndsvarslingErIkkeFerdigbehandlet
-                    }
-
-                    SimulertRevurdering.KunneIkkeSendeInnvilgetRevurderingTilAttestering.TilbakekrevingsbehandlingErIkkeFullstendig -> {
-                        KunneIkkeSendeRevurderingTilAttestering.TilbakekrevingsbehandlingErIkkeFullstendig
-                    }
-                }.left()
+                return KunneIkkeSendeRevurderingTilAttestering.FeilInnvilget(it).left()
             }.let {
                 Pair(it, StatistikkEvent.Behandling.Revurdering.TilAttestering.Innvilget(it))
             }
@@ -868,19 +860,7 @@ internal class RevurderingServiceImpl(
                 oppgaveId,
                 saksbehandler,
             ).getOrHandle {
-                return when (it) {
-                    SimulertRevurdering.Opphørt.KanIkkeSendeOpphørtRevurderingTilAttestering.ForhåndsvarslingErIkkeFerdigbehandlet -> {
-                        KunneIkkeSendeRevurderingTilAttestering.ForhåndsvarslingErIkkeFerdigbehandlet
-                    }
-
-                    SimulertRevurdering.Opphørt.KanIkkeSendeOpphørtRevurderingTilAttestering.KanIkkeSendeEnOpphørtGReguleringTilAttestering -> {
-                        KunneIkkeSendeRevurderingTilAttestering.KanIkkeRegulereGrunnbeløpTilOpphør
-                    }
-
-                    SimulertRevurdering.Opphørt.KanIkkeSendeOpphørtRevurderingTilAttestering.TilbakekrevingsbehandlingErIkkeFullstendig -> {
-                        KunneIkkeSendeRevurderingTilAttestering.TilbakekrevingsbehandlingErIkkeFullstendig
-                    }
-                }.left()
+                return KunneIkkeSendeRevurderingTilAttestering.FeilOpphørt(it).left()
             }.let {
                 Pair(it, StatistikkEvent.Behandling.Revurdering.TilAttestering.Opphør(it))
             }

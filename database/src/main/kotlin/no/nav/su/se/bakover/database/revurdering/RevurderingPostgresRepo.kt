@@ -866,7 +866,7 @@ internal class RevurderingPostgresRepo(
                 tilbakekrevingsbehandling = tilbakekrevingsbehandling as? Tilbakekrevingsbehandling.UnderBehandling
                     ?: IkkeBehovForTilbakekrevingUnderBehandling,
                 sakinfo = sakinfo,
-                brevvalgRevurdering = brevvalgRevurdering,
+                brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt,
             )
             RevurderingsType.UNDERKJENT_OPPHØRT -> UnderkjentRevurdering.Opphørt(
                 id = id,
@@ -886,7 +886,7 @@ internal class RevurderingPostgresRepo(
                 tilbakekrevingsbehandling = tilbakekrevingsbehandling as? Tilbakekrevingsbehandling.UnderBehandling
                     ?: IkkeBehovForTilbakekrevingUnderBehandling,
                 sakinfo = sakinfo,
-                brevvalgRevurdering = brevvalgRevurdering,
+                brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt,
             )
             RevurderingsType.IVERKSATT_INNVILGET -> IverksattRevurdering.Innvilget(
                 id = id,
@@ -906,7 +906,7 @@ internal class RevurderingPostgresRepo(
                 tilbakekrevingsbehandling = tilbakekrevingsbehandling as? Tilbakekrevingsbehandling.Ferdigbehandlet
                     ?: IkkeBehovForTilbakekrevingFerdigbehandlet,
                 sakinfo = sakinfo,
-                brevvalgRevurdering = brevvalgRevurdering,
+                brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt,
             )
             RevurderingsType.IVERKSATT_OPPHØRT -> IverksattRevurdering.Opphørt(
                 id = id,
@@ -926,7 +926,7 @@ internal class RevurderingPostgresRepo(
                 tilbakekrevingsbehandling = tilbakekrevingsbehandling as? Tilbakekrevingsbehandling.Ferdigbehandlet
                     ?: IkkeBehovForTilbakekrevingFerdigbehandlet,
                 sakinfo = sakinfo,
-                brevvalgRevurdering = brevvalgRevurdering,
+                brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt,
             )
             RevurderingsType.TIL_ATTESTERING_INNVILGET -> RevurderingTilAttestering.Innvilget(
                 id = id,
@@ -946,7 +946,7 @@ internal class RevurderingPostgresRepo(
                 tilbakekrevingsbehandling = tilbakekrevingsbehandling as? Tilbakekrevingsbehandling.UnderBehandling
                     ?: IkkeBehovForTilbakekrevingUnderBehandling,
                 sakinfo = sakinfo,
-                brevvalgRevurdering = brevvalgRevurdering,
+                brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt,
             )
             RevurderingsType.TIL_ATTESTERING_OPPHØRT -> RevurderingTilAttestering.Opphørt(
                 id = id,
@@ -966,7 +966,7 @@ internal class RevurderingPostgresRepo(
                 tilbakekrevingsbehandling = tilbakekrevingsbehandling as? Tilbakekrevingsbehandling.UnderBehandling
                     ?: IkkeBehovForTilbakekrevingUnderBehandling,
                 sakinfo = sakinfo,
-                brevvalgRevurdering = brevvalgRevurdering,
+                brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt,
             )
             RevurderingsType.SIMULERT_INNVILGET -> SimulertRevurdering.Innvilget(
                 id = id,
@@ -1090,7 +1090,7 @@ internal class RevurderingPostgresRepo(
                 attesteringer = attesteringer,
                 avkorting = avkorting as AvkortingVedRevurdering.Håndtert,
                 sakinfo = sakinfo,
-                brevvalgRevurdering = brevvalgRevurdering,
+                brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt,
             )
             RevurderingsType.IVERKSATT_INGEN_ENDRING -> IverksattRevurdering.IngenEndring(
                 id = id,
@@ -1107,7 +1107,7 @@ internal class RevurderingPostgresRepo(
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
                 avkorting = avkorting as AvkortingVedRevurdering.Iverksatt,
                 sakinfo = sakinfo,
-                brevvalgRevurdering = brevvalgRevurdering,
+                brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt,
             )
             RevurderingsType.UNDERKJENT_INGEN_ENDRING -> UnderkjentRevurdering.IngenEndring(
                 id = id,
@@ -1124,7 +1124,7 @@ internal class RevurderingPostgresRepo(
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
                 avkorting = avkorting as AvkortingVedRevurdering.Håndtert,
                 sakinfo = sakinfo,
-                brevvalgRevurdering = brevvalgRevurdering,
+                brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt,
             )
             RevurderingsType.SIMULERT_STANS -> StansAvYtelseRevurdering.SimulertStansAvYtelse(
                 id = id,
@@ -1137,7 +1137,7 @@ internal class RevurderingPostgresRepo(
                 simulering = simulering!!,
                 revurderingsårsak = revurderingsårsak,
                 sakinfo = sakinfo,
-                brevvalgRevurdering = brevvalgRevurdering,
+                brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt.IkkeSendBrev,
             )
             RevurderingsType.IVERKSATT_STANS -> StansAvYtelseRevurdering.IverksattStansAvYtelse(
                 id = id,
@@ -1151,7 +1151,7 @@ internal class RevurderingPostgresRepo(
                 attesteringer = attesteringer,
                 revurderingsårsak = revurderingsårsak,
                 sakinfo = sakinfo,
-                brevvalgRevurdering = brevvalgRevurdering,
+                brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt.IkkeSendBrev,
             )
             RevurderingsType.SIMULERT_GJENOPPTAK -> GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse(
                 id = id,
@@ -1164,7 +1164,7 @@ internal class RevurderingPostgresRepo(
                 simulering = simulering!!,
                 revurderingsårsak = revurderingsårsak,
                 sakinfo = sakinfo,
-                brevvalgRevurdering = brevvalgRevurdering,
+                brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt.IkkeSendBrev,
             )
             RevurderingsType.IVERKSATT_GJENOPPTAK -> GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse(
                 id = id,
@@ -1178,7 +1178,7 @@ internal class RevurderingPostgresRepo(
                 attesteringer = attesteringer,
                 revurderingsårsak = revurderingsårsak,
                 sakinfo = sakinfo,
-                brevvalgRevurdering = brevvalgRevurdering,
+                brevvalgRevurdering = brevvalgRevurdering as BrevvalgRevurdering.Valgt.IkkeSendBrev,
             )
         }
     }

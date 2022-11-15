@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.revurdering.KunneIkkeSendeRevurderingTilAttes
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.SendTilAttesteringRequest
+import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.vilkår.UføreVilkår
 import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevilkårRequest
 import no.nav.su.se.bakover.domain.vilkår.uføre.LeggTilUførevurderingerRequest
@@ -186,10 +187,8 @@ internal class RegulerGrunnbeløpServiceImplTest {
                 SendTilAttesteringRequest(
                     revurderingId = simulertRevurdering.id,
                     saksbehandler = saksbehandler,
-                    fritekstTilBrev = "Fritekst",
-                    skalFøreTilBrevutsending = true,
                 ),
-            ) shouldBe KunneIkkeSendeRevurderingTilAttestering.KanIkkeRegulereGrunnbeløpTilOpphør.left()
+            ) shouldBe KunneIkkeSendeRevurderingTilAttestering.FeilOpphørt(SimulertRevurdering.Opphørt.KanIkkeSendeOpphørtRevurderingTilAttestering.KanIkkeSendeEnOpphørtGReguleringTilAttestering).left()
 
             inOrder(it.revurderingRepo, it.personService, it.oppgaveService) {
                 verify(it.revurderingRepo).hent(simulertRevurdering.id)
@@ -243,8 +242,6 @@ internal class RegulerGrunnbeløpServiceImplTest {
                 SendTilAttesteringRequest(
                     revurderingId = beregnetRevurdering.id,
                     saksbehandler = saksbehandler,
-                    fritekstTilBrev = "Fritekst",
-                    skalFøreTilBrevutsending = true,
                 ),
             ).getOrFail().shouldBeType<RevurderingTilAttestering.IngenEndring>()
 

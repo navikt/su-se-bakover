@@ -51,14 +51,6 @@ data class BrevvalgRevurderingJson(
 
 fun BrevvalgRevurdering.toJson(): BrevvalgRevurderingJson {
     return when (this) {
-        is BrevvalgRevurdering.IkkeSendBrev -> {
-            BrevvalgRevurderingJson(
-                valg = "IKKE_SEND",
-                fritekst = null,
-                begrunnelse = begrunnelse,
-                bestemtAv = bestemtAv.toString(),
-            )
-        }
         BrevvalgRevurdering.IkkeValgt -> {
             BrevvalgRevurderingJson(
                 valg = "IKKE_VALGT",
@@ -67,7 +59,15 @@ fun BrevvalgRevurdering.toJson(): BrevvalgRevurderingJson {
                 bestemtAv = "",
             )
         }
-        is BrevvalgRevurdering.SendBrev -> {
+        is BrevvalgRevurdering.Valgt.IkkeSendBrev -> {
+            BrevvalgRevurderingJson(
+                valg = "IKKE_SEND",
+                fritekst = null,
+                begrunnelse = begrunnelse,
+                bestemtAv = bestemtAv.toString(),
+            )
+        }
+        is BrevvalgRevurdering.Valgt.SendBrev -> {
             BrevvalgRevurderingJson(
                 valg = "SEND",
                 fritekst = fritekst,
@@ -115,7 +115,6 @@ internal data class OpprettetRevurderingJson(
     override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson,
     override val attesteringer: List<AttesteringJson>,
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
-    val fritekstTilBrev: String,
     override val sakstype: String,
     override val brevvalg: BrevvalgRevurderingJson,
 ) : RevurderingJson()
@@ -128,7 +127,6 @@ internal data class BeregnetRevurderingJson(
     override val tilRevurdering: String,
     val beregning: BeregningJson,
     override val saksbehandler: String,
-    val fritekstTilBrev: String,
     override val årsak: String,
     override val begrunnelse: String,
     override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson,
@@ -151,7 +149,6 @@ internal data class SimulertRevurderingJson(
     override val attesteringer: List<AttesteringJson>,
     override val sakstype: String,
     val beregning: BeregningJson,
-    val fritekstTilBrev: String,
     val simulering: SimuleringJson,
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
     val simuleringForAvkortingsvarsel: SimuleringJson?,
@@ -173,8 +170,6 @@ internal data class TilAttesteringJson(
     override val sakstype: String,
     val simulering: SimuleringJson?,
     val beregning: BeregningJson,
-    val fritekstTilBrev: String,
-    val skalFøreTilBrevutsending: Boolean,
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
     val simuleringForAvkortingsvarsel: SimuleringJson?,
     val tilbakekrevingsbehandling: TilbakekrevingsbehandlingJson?,
@@ -195,8 +190,6 @@ internal data class IverksattRevurderingJson(
     override val sakstype: String,
     val beregning: BeregningJson,
     val simulering: SimuleringJson?,
-    val fritekstTilBrev: String,
-    val skalFøreTilBrevutsending: Boolean,
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
     val simuleringForAvkortingsvarsel: SimuleringJson?,
     val tilbakekrevingsbehandling: TilbakekrevingsbehandlingJson?,
@@ -217,8 +210,6 @@ internal data class UnderkjentRevurderingJson(
     override val sakstype: String,
     val beregning: BeregningJson,
     val simulering: SimuleringJson?,
-    val fritekstTilBrev: String,
-    val skalFøreTilBrevutsending: Boolean,
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
     val simuleringForAvkortingsvarsel: SimuleringJson?,
     val tilbakekrevingsbehandling: TilbakekrevingsbehandlingJson?,
@@ -239,7 +230,6 @@ internal data class AvsluttetRevurderingJson(
     override val sakstype: String,
     val beregning: BeregningJson?,
     val simulering: SimuleringJson?,
-    val fritekstTilBrev: String,
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
     val avsluttetTidspunkt: String,
     override val brevvalg: BrevvalgRevurderingJson,
@@ -287,7 +277,6 @@ internal fun Revurdering.toJson(satsFactory: SatsFactory): RevurderingJson = whe
         periode = periode.toJson(),
         tilRevurdering = tilRevurdering.toString(),
         saksbehandler = saksbehandler.toString(),
-        fritekstTilBrev = "",
         årsak = revurderingsårsak.årsak.toString(),
         begrunnelse = revurderingsårsak.begrunnelse.toString(),
         grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerJson.create(
@@ -307,7 +296,6 @@ internal fun Revurdering.toJson(satsFactory: SatsFactory): RevurderingJson = whe
         tilRevurdering = tilRevurdering.toString(),
         beregning = beregning.toJson(),
         saksbehandler = saksbehandler.toString(),
-        fritekstTilBrev = "",
         årsak = revurderingsårsak.årsak.toString(),
         begrunnelse = revurderingsårsak.begrunnelse.toString(),
         status = InstansTilStatusMapper(this).status,
@@ -334,8 +322,6 @@ internal fun Revurdering.toJson(satsFactory: SatsFactory): RevurderingJson = whe
         tilRevurdering = tilRevurdering.toString(),
         beregning = beregning.toJson(),
         saksbehandler = saksbehandler.toString(),
-        fritekstTilBrev = "",
-        skalFøreTilBrevutsending = true,
         årsak = revurderingsårsak.årsak.toString(),
         begrunnelse = revurderingsårsak.begrunnelse.toString(),
         status = InstansTilStatusMapper(this).status,
@@ -371,8 +357,6 @@ internal fun Revurdering.toJson(satsFactory: SatsFactory): RevurderingJson = whe
         tilRevurdering = tilRevurdering.toString(),
         beregning = beregning.toJson(),
         saksbehandler = saksbehandler.toString(),
-        fritekstTilBrev = "",
-        skalFøreTilBrevutsending = true,
         årsak = revurderingsårsak.årsak.toString(),
         begrunnelse = revurderingsårsak.begrunnelse.toString(),
         status = InstansTilStatusMapper(this).status,
@@ -408,8 +392,6 @@ internal fun Revurdering.toJson(satsFactory: SatsFactory): RevurderingJson = whe
         tilRevurdering = tilRevurdering.toString(),
         beregning = beregning.toJson(),
         saksbehandler = saksbehandler.toString(),
-        fritekstTilBrev = "",
-        skalFøreTilBrevutsending = true,
         årsak = revurderingsårsak.årsak.toString(),
         begrunnelse = revurderingsårsak.begrunnelse.toString(),
         status = InstansTilStatusMapper(this).status,
@@ -445,7 +427,6 @@ internal fun Revurdering.toJson(satsFactory: SatsFactory): RevurderingJson = whe
         tilRevurdering = tilRevurdering.toString(),
         beregning = beregning.toJson(),
         saksbehandler = saksbehandler.toString(),
-        fritekstTilBrev = "",
         årsak = revurderingsårsak.årsak.toString(),
         begrunnelse = revurderingsårsak.begrunnelse.toString(),
         status = InstansTilStatusMapper(this).status,
@@ -466,7 +447,6 @@ internal fun Revurdering.toJson(satsFactory: SatsFactory): RevurderingJson = whe
         tilRevurdering = tilRevurdering.toString(),
         beregning = beregning?.toJson(),
         saksbehandler = saksbehandler.toString(),
-        fritekstTilBrev = "",
         årsak = revurderingsårsak.årsak.toString(),
         begrunnelse = revurderingsårsak.begrunnelse.toString(),
         status = InstansTilStatusMapper(this).status,
